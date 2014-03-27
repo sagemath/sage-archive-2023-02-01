@@ -23,6 +23,7 @@ r'''\usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{graphicx}
+\usepackage{mathrsfs}
 \pagestyle{empty}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -47,7 +48,7 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-
+import sys
 import shutil, re
 import os.path
 import random
@@ -312,7 +313,7 @@ def str_function(x):
         sage: str_function('+34.5')
         '+34.5'
         sage: str_function('hello_world')
-        '\\verb|hello_world|'
+        '\\text{\\texttt{hello{\\char`\\_}world}}'
         sage: str_function('-1.00000?') # trac 12178
         '-1.00000?'
     """
@@ -320,41 +321,17 @@ def str_function(x):
     # point, and/or ends with "?"
     if re.match(r'(\+|-)?[0-9]*\.?[0-9]*\??$', x):
         return x
-    # Try to pick a delimiter.
-    for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
-        if delimiter == "E":
-            # x is too complicated
-            return "\\begin{verbatim}\n%s\n\\end{verbatim}\n" % x
-        if delimiter not in x:
-            break
-    wrapper = "\\verb" + delimiter + "%s" + delimiter
-
-    # Strategy:
-    # 1) break x into lines;
-    # 2) wrap each line into \verb;
-    # 3) assemble lines into a left-justified array.
-
-    spacer = r"\phantom{\verb!%s!}"
-    lines = []
-    for line in x.split("\n"):
-        parts = []
-        nspaces = 0
-        for part in line.split(" "):
-            if part == "":
-                nspaces += 1
-                continue
-            if nspaces > 0:
-                parts.append(spacer % ("x" * nspaces))
-            nspaces = 1
-            parts.append(wrapper % part)
-        # There is also a bug with omitting empty lines in arrays...
-        line = "".join(parts)
-        if not line:
-            line = spacer % "x"
-        lines.append(line)
-    x = "\\\\\n".join(lines)
-    # If the bugs were fixed, the above block could be just
-    # x = "\\\\\n".join(wrapper % line for line in x.split("\n"))
+    # Deal with special characters
+    char_wrapper = r"{\char`\%s}"
+    x = "".join(char_wrapper % c if c in "#$%&\^_{}~" else c for c in x)
+    # Avoid grouping spaces into one
+    x = x.replace(" ", "{ }")
+    # And dashes too, since it causes issues for the command line...
+    x = x.replace("-", "{-}")
+    # Make it work in math mode, but look like typewriter
+    line_wrapper = r"\text{\texttt{%s}}"
+    x = "\\\\\n".join(line_wrapper % line for line in x.split("\n"))
+    # Preserve line breaks
     if "\n" in x:
         x = "\\begin{array}{l}\n%s\n\\end{array}" % x
     return x
@@ -973,7 +950,7 @@ class Latex(LatexCall):
         sage: latex(FiniteField(25,'a'))
         \Bold{F}_{5^{2}}
         sage: latex("hello")
-        \verb|hello|
+        \text{\texttt{hello}}
         sage: LatexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
         \frac{x^2 - 1}{x + 1} = x - 1
 
@@ -1754,8 +1731,6 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         sage: s = sage.misc.latex._latex_file_(blah())
         coucou
     """
-    MACROS = latex_extra_preamble()
-
     process = True
     if has_latex_attr(objects):
         objects = [objects]
@@ -1768,8 +1743,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    s = LATEX_HEADER + '\n' + MACROS
-    s += '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
+    s = '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
         extra_preamble, title, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
@@ -1787,7 +1761,13 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         s += "\n\n".join([str(x) for x in objects])
 
-    s += '\n\\end{document}'
+    # latex_extra_preamble() is called here and not before because some objects
+    # may require additional packages to be displayed in LaTeX. Hence, the call
+    # to latex(x) in the previous loop may change the result of
+    # latex_extra_preamble()
+    MACROS = latex_extra_preamble()
+    s = LATEX_HEADER + '\n' + MACROS + s + '\n\\end{document}'
+
     if debug:
         print s
 
@@ -1943,6 +1923,54 @@ class MathJax:
         """
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)
+
+        # The following block, hopefully, can be removed in some future MathJax.
+        prefix = r"\text{\texttt{"
+        parts = x.split(prefix)
+        for i, part in enumerate(parts):
+            if i == 0:
+                continue    # Nothing to do with the head part
+            n = 1
+            for closing, c in enumerate(part):
+                if c == "{" and part[closing - 1] != "\\":
+                    n += 1
+                if c == "}" and part[closing - 1] != "\\":
+                    n -= 1
+                if n == -1:
+                    break
+            # part should end in "}}", so omit the last two characters
+            # from y
+            y = part[:closing-1]
+            for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
+                if delimiter not in y:
+                    break
+            if delimiter == "E":
+                # y is too complicated
+                delimiter = "|"
+                y = "(complicated string)"
+            wrapper = r"\verb" + delimiter + "%s" + delimiter
+            spacer = r"\phantom{\verb!%s!}"
+            y = y.replace("{ }", " ").replace("{-}", "-")
+            for c in r"#$%&\^_{}~":
+                char_wrapper = r"{\char`\%s}" % c
+                y = y.replace(char_wrapper, c)
+            subparts = []
+            nspaces = 0
+            for subpart in y.split(" "):
+                if subpart == "":
+                    nspaces += 1
+                    continue
+                if nspaces > 0:
+                    subparts.append(spacer % ("x" * nspaces))
+                nspaces = 1
+                subparts.append(wrapper % subpart)
+            # There is a bug with omitting empty lines in arrays
+            if not y:
+                subparts.append(spacer % "x")
+            subparts.append(part[closing + 1:])
+            parts[i] = "".join(subparts)
+        x = "".join(parts)
+
         # In MathJax:
         #   inline math: <script type="math/tex">...</script>
         #   displaymath: <script type="math/tex; mode=display">...</script>
@@ -2276,9 +2304,9 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\verb|a| + \\left(t - 2\\right)\\verb|s| + \\left(t^{12} + 2\\right)'
+        '-t\\text{\\texttt{a}} + \\left(t - 2\\right)\\text{\\texttt{s}} + \\left(t^{12} + 2\\right)'
         sage: repr_lincomb(['a', 'b'], [1,1])
-        '\\verb|a| + \\verb|b|'
+        '\\text{\\texttt{a}} + \\text{\\texttt{b}}'
 
     Verify that a certain corner case works (see :trac:`5707` and
     :trac:`5766`)::
@@ -2355,8 +2383,8 @@ def print_or_typeset(object):
 
 def pretty_print (*args):
     r"""
-    Try to pretty print the arguments in an intelligent way.  For graphics
-    objects, this returns their default representation.  For other
+    Try to pretty print the arguments in an intelligent way. For graphics
+    objects, this returns their default representation. For other
     objects, in the notebook, this calls the :func:`view` command,
     while from the command line, this produces an html string suitable
     for processing by MathJax.
@@ -2416,6 +2444,9 @@ def pretty_print_default(enable=True):
     rendering things so that MathJax or some other latex-aware front end
     can render real math.
 
+    This function is pretty useless without the notebook, it shoudn't
+    be in the global namespace.
+
     INPUT:
 
     -  ``enable`` -- bool (optional, default ``True``).  If ``True``, turn on
@@ -2424,17 +2455,15 @@ def pretty_print_default(enable=True):
     EXAMPLES::
 
         sage: pretty_print_default(True)
-        sage: sys.displayhook
-        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<function|\phantom{\verb!x!}\verb|pretty_print|\phantom{\verb!x!}\verb|at|\phantom{\verb!x!}\verb|...|</script></html>
+        sage: 'foo'
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|foo|</script></html>
         sage: pretty_print_default(False)
-        sage: sys.displayhook == sys.__displayhook__
-        True
+        sage: 'foo'
+        'foo'
     """
     import sys
-    if enable:
-        sys.displayhook = pretty_print
-    else:
-        sys.displayhook = sys.__displayhook__
+    sys.displayhook.set_display('typeset' if enable else 'simple')
+
 
 common_varnames = ['alpha',
                    'beta',
@@ -2916,4 +2945,3 @@ H_{p+q-1}(K^{p}/K^{p-1}) \ar[r]^{k} & H_{p+q-2}(K^{p-1}) \ar[r] \ar[d]^{i} &
 }"""
 
 latex_examples = LatexExamples()
-

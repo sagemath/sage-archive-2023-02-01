@@ -797,17 +797,20 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
             negative = False
             if len(coeff)>0 and coeff[0] == "-":
                 negative = True
-            #elif len(coeff) > 1 and coeff[1] == "-":
-                #negative = True
-            if c < 0 or negative:
+            try:
+                if c < 0:
+                    negative = True
+            except NotImplementedError:
+                # comparisons may not be implemented for some coefficients
+                pass
+            if negative:
                 coeff = coeff_repr(-c, is_latex)
             else:
                 coeff = coeff_repr(c, is_latex)
-            #pdb.set_trace()
             if coeff == "1":
                 coeff = ""
             if coeff != "0":
-                if c < 0 or negative:
+                if negative:
                     if first:
                         sign = "-" # add trailing space?
                     else:
@@ -832,8 +835,6 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
         #return "1" # is empty string representation invalid?
     else:
         return s
-
-
 
 
 def strunc(s, n = 60):
@@ -1928,38 +1929,43 @@ def sourcefile(object):
 #################################################################
 # alarm
 #################################################################
-__alarm_time=0
-def __mysig(a,b):
-    raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time
-
 def alarm(seconds):
     """
-    Raise a KeyboardInterrupt exception in a given number of seconds.
-    This is useful for automatically interrupting long computations and
-    can be trapped using exception handling (just catch
-    KeyboardInterrupt).
+    Raise an :class:`AlarmInterrupt` exception in a given number of
+    seconds. This is useful for automatically interrupting long
+    computations and can be trapped using exception handling.
 
     INPUT:
 
+    -  ``seconds`` -- positive number, may be floating point
 
-    -  ``seconds`` - integer
+    EXAMPLES::
 
-
-    TESTS::
-
-        sage: try: alarm(1); sleep(2)
-        ... except KeyboardInterrupt: print "Alarm went off"
-        Alarm went off
+        sage: alarm(0.5); factor(2^1031-1)
+        Traceback (most recent call last):
+        ...
+        AlarmInterrupt
+        sage: alarm(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: alarm() time must be positive
     """
-    seconds = int(seconds)
-    # Set our alarm signal handler.
-    signal.signal(signal.SIGALRM, __mysig)
-    global __alarm_time
-    __alarm_time = seconds
-    signal.alarm(seconds)
+    if seconds <= 0:
+        raise ValueError("alarm() time must be positive")
+    signal.setitimer(signal.ITIMER_REAL, seconds, 0)
 
 def cancel_alarm():
-    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+    """
+    Cancel a previously scheduled alarm (if any).
+
+    EXAMPLES::
+
+        sage: alarm(0.5)
+        sage: cancel_alarm()
+        sage: cancel_alarm()  # Calling more than once doesn't matter
+        sage: sleep(0.6)      # sleep succeeds
+    """
+    signal.setitimer(signal.ITIMER_REAL, 0, 0)
 
 
 #################################################################
@@ -2031,58 +2037,6 @@ def getitem(v, n):
         return v[n]
     except TypeError:
         return v[int(n)]
-
-
-def branch_current_hg():
-    """
-    Return the current Mercurial branch name.
-
-    TESTS::
-
-        sage: br = sage.misc.misc.branch_current_hg()
-        sage: len(br) > 0
-        True
-
-    AUTHOR:
-
-    - Jeroen Demeyer (#12481)
-    """
-    try:
-        br = os.readlink(SAGE_SRC)
-    except OSError:
-        raise RuntimeError("Unable to determine branch")
-    br = os.path.basename(br)
-
-    # Delete everything up to and including the first "-".
-    # (if there is no "-", then i == -1 and we return everything)
-    i = br.find('-')
-    return br[i+1:]
-
-def branch_current_hg_notice(branch):
-    r"""
-    Return a string describing the current branch.
-
-    Also, indicate that the library is being loaded.
-
-    INPUT:
-
-    -  ``branch`` -- a representation of the name of the
-       Sage library branch.
-
-    OUTPUT: string
-
-    .. note::
-
-       If the branch is main, then return an empty string.
-    """
-    if branch[-1] == '/':
-        branch = branch[:-1]
-    if branch == 'main':
-        return ''
-    notice = 'Loading Sage library. Current Mercurial branch is: '
-    return notice + branch
-
-
 
 def pad_zeros(s, size=3):
     """

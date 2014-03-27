@@ -15,7 +15,7 @@ When you do arithmetic with
     sage: f(x, y, z) = sin(x+y+z)
     sage: g(w, t) = cos(w - t)
     sage: f + g
-    (t, w, x, y, z) |--> sin(x + y + z) + cos(-t + w)
+    (t, w, x, y, z) |--> cos(-t + w) + sin(x + y + z)
 
 ::
 
@@ -295,7 +295,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: hash(f.parent()) #random
             -8878119762643067638
         """
-        return hash((self.__class__, self._arguments))
+        return hash(('CallableSymbolicExpressionRing', self._arguments))
 
     def __cmp__(self, other):
         """

@@ -21,7 +21,8 @@ from sage.categories.classical_crystals import ClassicalCrystals
 from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.letters import CrystalOfLetters
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
+from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \
+    TensorProductOfRegularCrystalsElement
 from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
 
 
@@ -100,7 +101,7 @@ def HighestWeightCrystal(dominant_weight):
     else:
         raise NotImplementedError
 
-class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
+class FiniteDimensionalHighestWeightCrystal_TypeE(TensorProductOfCrystals):
     """
     Commonalities for all finite dimensional type E highest weight crystals
 
@@ -118,7 +119,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
             sage: T.cartan_type()
             ['E', 6]
             sage: T.module_generators
-            [[[[2, -1], [1]], [[2, -1], [1]]]]
+            [[[(2, -1), (1,)], [(2, -1), (1,)]]]
             sage: T.cardinality()
             2430
             sage: T = HighestWeightCrystal(La[2])
@@ -132,6 +133,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
         Parent.__init__(self, category = ClassicalCrystals())
         self.module_generators = [self.module_generator()]
 
+    Element = TensorProductOfRegularCrystalsElement
 
     def module_generator(self):
         """
@@ -144,7 +146,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
             sage: La=C.root_system().weight_lattice().fundamental_weights()
             sage: T = HighestWeightCrystal(La[2])
             sage: T.module_generator()
-            [[[2, -1], [1]]]
+            [[(2, -1), (1,)]]
             sage: T = HighestWeightCrystal(0*La[2])
             sage: T.module_generator()
             []
@@ -153,7 +155,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
             sage: La=C.root_system().weight_lattice().fundamental_weights()
             sage: T = HighestWeightCrystal(La[1])
             sage: T.module_generator()
-            [[[-7, 1], [7]]]
+            [[(-7, 1), (7,)]]
         """
         dominant_weight = self._highest_weight
         tensor = sum(( [self.column_crystal[i]]*dominant_weight.coefficient(i) for i in dominant_weight.support()), [])
@@ -174,7 +176,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE6(FiniteDimensionalHighestWeigh
         sage: B6 = T.column_crystal[6]; B6
         The crystal of letters for type ['E', 6] (dual)
         sage: t = T(B6([-1]),B1([-1,3])); t
-        [[-1], [-1, 3]]
+        [(-1,), (-1, 3)]
         sage: [t.epsilon(i) for i in T.index_set()]
         [2, 0, 0, 0, 0, 0]
         sage: [t.phi(i) for i in T.index_set()]
@@ -225,7 +227,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE7(FiniteDimensionalHighestWeigh
         sage: B7 = T.column_crystal[7]; B7
         The crystal of letters for type ['E', 7]
         sage: t = T(B7([-5, 6]), B7([-2, 3])); t
-        [[-5, 6], [-2, 3]]
+        [(-5, 6), (-2, 3)]
         sage: [t.epsilon(i) for i in T.index_set()]
         [0, 1, 0, 0, 1, 0, 0]
         sage: [t.phi(i) for i in T.index_set()]

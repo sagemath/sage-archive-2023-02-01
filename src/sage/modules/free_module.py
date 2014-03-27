@@ -3587,6 +3587,76 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
+    def complement(self):
+        """
+        Return the complement of ``self`` in the
+        :meth:`~sage.modules.free_module.FreeModule_ambient_field.ambient_vector_space`.
+
+        EXAMPLES::
+
+            sage: V = QQ^3
+            sage: V.complement()
+            Vector space of degree 3 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+            sage: V == V.complement().complement()
+            True
+            sage: W = V.span([[1, 0, 1]])
+            sage: X = W.complement(); X
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  0]
+            sage: X.complement() == W
+            True
+            sage: X + W == V
+            True
+
+        Even though we construct a subspace of a subspace, the
+        orthogonal complement is still done in the ambient vector
+        space `\QQ^3`::
+
+            sage: V = QQ^3
+            sage: W = V.subspace_with_basis([[1,0,1],[-1,1,0]])
+            sage: X = W.subspace_with_basis([[1,0,1]])
+            sage: X.complement()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  0]
+
+        All these complements are only done with respect to the inner
+        product in the usual basis.  Over finite fields, this means
+        we can get complements which are only isomorphic to a vector
+        space decomposition complement.
+
+            sage: F2 = GF(2,x)
+            sage: V = F2^6
+            sage: W = V.span([[1,1,0,0,0,0]])
+            sage: W
+            Vector space of degree 6 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1 0 0 0 0]
+            sage: W.complement()
+            Vector space of degree 6 and dimension 5 over Finite Field of size 2
+            Basis matrix:
+            [1 1 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1]
+            sage: W.intersection(W.complement())
+            Vector space of degree 6 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1 0 0 0 0]
+        """
+        # Check simple cases
+        if self.dimension() == 0:
+            return self.ambient_vector_space()
+        if self.dimension() == self.ambient_vector_space().dimension():
+            return self.submodule([])
+        return self.basis_matrix().right_kernel()
+
     def vector_space(self, base_field=None):
         """
         Return the vector space associated to self. Since self is a vector
@@ -6601,10 +6671,10 @@ def element_class(R, is_sparse):
         from vector_rational_dense import Vector_rational_dense
         return Vector_rational_dense
     elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
-        from vector_modn_dense import Vector_modn_dense, MAX_MODULUS
         from vector_mod2_dense import Vector_mod2_dense
         if R.order() == 2:
             return Vector_mod2_dense
+        from vector_modn_dense import Vector_modn_dense, MAX_MODULUS
         if R.order() < MAX_MODULUS:
             return Vector_modn_dense
         else:

@@ -78,7 +78,9 @@ AUTHORS:
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power
 from sage.structure.sequence  import Sequence
 from sage.categories.homset   import Homset
-from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
+from sage.rings.all           import Integer
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.morphism import is_RingHomomorphism
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
 import scheme
@@ -127,8 +129,7 @@ class SchemeMorphism(Element):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.scheme import Scheme
-        sage: X = Scheme(ZZ)
+        sage: X = Spec(ZZ)
         sage: Hom = X.Hom(X)
         sage: from sage.schemes.generic.morphism import SchemeMorphism
         sage: f = SchemeMorphism(Hom)
@@ -141,8 +142,7 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.scheme import Scheme
-            sage: X = Scheme(ZZ)
+            sage: X = Spec(ZZ)
             sage: Hom = X.Hom(X)
             sage: from sage.schemes.generic.morphism import SchemeMorphism
             sage: f = SchemeMorphism(Hom)
@@ -165,8 +165,7 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.scheme import Scheme
-            sage: X = Scheme(ZZ)
+            sage: X = Spec(ZZ)
             sage: Hom = X.Hom(X)
             sage: from sage.schemes.generic.morphism import SchemeMorphism
             sage: f = SchemeMorphism(Hom)
@@ -207,8 +206,7 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.scheme import Scheme
-            sage: X = Scheme(ZZ)
+            sage: X = Spec(ZZ)
             sage: Hom = X.Hom(X)
             sage: from sage.schemes.generic.morphism import SchemeMorphism
             sage: f = SchemeMorphism(Hom)

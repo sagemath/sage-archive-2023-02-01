@@ -20,6 +20,7 @@ from generating_series import factorial_stream
 from structure import GenericSpeciesStructure
 from set_species import SetSpecies
 from sage.misc.cachefunc import cached_function
+from sage.structure.unique_representation import UniqueRepresentation
 
 class CharacteristicSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
@@ -92,44 +93,27 @@ class CharacteristicSpeciesStructure(GenericSpeciesStructure):
         return SymmetricGroup(len(self._labels))
 
 
-@cached_function
-def CharacteristicSpecies(*args, **kwds):
-    """
-    Returns the characteristic species of order n. This species has
-    exactly one structure on a set of of size n and no structures of on
-    sets of any other size.
-
-    EXAMPLES::
-
-        sage: X = species.CharacteristicSpecies(1)
-        sage: X.structures([1]).list()
-        [1]
-        sage: X.structures([1,2]).list()
-        []
-        sage: X.generating_series().coefficients(4)
-        [0, 1, 0, 0]
-        sage: X.isotype_generating_series().coefficients(4)
-        [0, 1, 0, 0]
-        sage: X.cycle_index_series().coefficients(4)
-        [0, p[1], 0, 0]
-
-    TESTS::
-
-        sage: S1 = species.CharacteristicSpecies(1)
-        sage: S2 = species.CharacteristicSpecies(1)
-        sage: S3 = species.CharacteristicSpecies(2)
-        sage: S4 = species.CharacteristicSpecies(2, weight=2)
-        sage: S1 is S2
-        True
-        sage: S1 == S3
-        False
-    """
-    return CharacteristicSpecies_class(*args, **kwds)
-
-class CharacteristicSpecies_class(GenericCombinatorialSpecies):
+class CharacteristicSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, n, min=None, max=None, weight=None):
         """
+        Returns the characteristic species of order `n`.
+
+        This species has exactly one structure on a set of of size `n`
+        and no structures of on sets of any other size.
+
         EXAMPLES::
+
+            sage: X = species.CharacteristicSpecies(1)
+            sage: X.structures([1]).list()
+            [1]
+            sage: X.structures([1,2]).list()
+            []
+            sage: X.generating_series().coefficients(4)
+            [0, 1, 0, 0]
+            sage: X.isotype_generating_series().coefficients(4)
+            [0, 1, 0, 0]
+            sage: X.cycle_index_series().coefficients(4)
+            [0, p[1], 0, 0]
 
             sage: F = species.CharacteristicSpecies(3)
             sage: c = F.generating_series().coefficients(4)
@@ -137,6 +121,17 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
             True
             sage: F == loads(dumps(F))
             True
+
+        TESTS::
+
+            sage: S1 = species.CharacteristicSpecies(1)
+            sage: S2 = species.CharacteristicSpecies(1)
+            sage: S3 = species.CharacteristicSpecies(2)
+            sage: S4 = species.CharacteristicSpecies(2, weight=2)
+            sage: S1 is S2
+            True
+            sage: S1 == S3
+            False
         """
         self._n = n
         self._name = "Characteristic species of order %s"%n
@@ -144,8 +139,6 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
         GenericCombinatorialSpecies.__init__(self, min=min, max=max, weight=weight)
 
     _default_structure_class = CharacteristicSpeciesStructure
-
-    _cached_constructor = staticmethod(CharacteristicSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -236,40 +229,37 @@ class CharacteristicSpecies_class(GenericCombinatorialSpecies):
         """
         return var_mapping['z']**(self._n)
 
-@cached_function
-def EmptySetSpecies(*args, **kwds):
-    """
-    Returns the empty set species. This species has exactly one
-    structure on the empty set. It is the same (and is implemented) as
-    CharacteristicSpecies(0).
+#Backward compatibility
+CharacteristicSpecies_class = CharacteristicSpecies
 
-    EXAMPLES::
-
-        sage: X = species.EmptySetSpecies()
-        sage: X.structures([]).list()
-        [{}]
-        sage: X.structures([1,2]).list()
-        []
-        sage: X.generating_series().coefficients(4)
-        [1, 0, 0, 0]
-        sage: X.isotype_generating_series().coefficients(4)
-        [1, 0, 0, 0]
-        sage: X.cycle_index_series().coefficients(4)
-        [p[], 0, 0, 0]
-
-    TESTS::
-
-        sage: E1 = species.EmptySetSpecies()
-        sage: E2 = species.EmptySetSpecies()
-        sage: E1 is E2
-        True
-    """
-    return EmptySetSpecies_class(*args, **kwds)
-
-class EmptySetSpecies_class(CharacteristicSpecies_class):
+class EmptySetSpecies(CharacteristicSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
+        Returns the empty set species.
+
+        This species has exactly one structure on the empty set. It is
+        the same (and is implemented) as ``CharacteristicSpecies(0)``.
+
         EXAMPLES::
+
+            sage: X = species.EmptySetSpecies()
+            sage: X.structures([]).list()
+            [{}]
+            sage: X.structures([1,2]).list()
+            []
+            sage: X.generating_series().coefficients(4)
+            [1, 0, 0, 0]
+            sage: X.isotype_generating_series().coefficients(4)
+            [1, 0, 0, 0]
+            sage: X.cycle_index_series().coefficients(4)
+            [p[], 0, 0, 0]
+
+        TESTS::
+
+            sage: E1 = species.EmptySetSpecies()
+            sage: E2 = species.EmptySetSpecies()
+            sage: E1 is E2
+            True
 
             sage: E = species.EmptySetSpecies()
             sage: E._check()
@@ -281,42 +271,37 @@ class EmptySetSpecies_class(CharacteristicSpecies_class):
         self._name = "Empty set species"
         self._state_info = []
 
-    _cached_constructor = staticmethod(EmptySetSpecies)
+#Backward compatibility
+EmptySetSpecies_class = EmptySetSpecies._cached_constructor = EmptySetSpecies
 
-@cached_function
-def SingletonSpecies(*args, **kwds):
-    """
-    Returns the species of singletons. This species has exactly one
-    structure on a set of size n. It is the same (and is implemented)
-    as CharacteristicSpecies(1).
-
-    EXAMPLES::
-
-        sage: X = species.SingletonSpecies()
-        sage: X.structures([1]).list()
-        [1]
-        sage: X.structures([1,2]).list()
-        []
-        sage: X.generating_series().coefficients(4)
-        [0, 1, 0, 0]
-        sage: X.isotype_generating_series().coefficients(4)
-        [0, 1, 0, 0]
-        sage: X.cycle_index_series().coefficients(4)
-        [0, p[1], 0, 0]
-
-    TESTS::
-
-        sage: S1 = species.SingletonSpecies()
-        sage: S2 = species.SingletonSpecies()
-        sage: S1 is S2
-        True
-    """
-    return SingletonSpecies_class(*args, **kwds)
-
-class SingletonSpecies_class(CharacteristicSpecies_class):
+class SingletonSpecies(CharacteristicSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
+        Returns the species of singletons.
+
+        This species has exactly one structure on a set of size `1`. It
+        is the same (and is implemented) as ``CharacteristicSpecies(1)``.
+
         EXAMPLES::
+
+            sage: X = species.SingletonSpecies()
+            sage: X.structures([1]).list()
+            [1]
+            sage: X.structures([1,2]).list()
+            []
+            sage: X.generating_series().coefficients(4)
+            [0, 1, 0, 0]
+            sage: X.isotype_generating_series().coefficients(4)
+            [0, 1, 0, 0]
+            sage: X.cycle_index_series().coefficients(4)
+            [0, p[1], 0, 0]
+
+        TESTS::
+
+            sage: S1 = species.SingletonSpecies()
+            sage: S2 = species.SingletonSpecies()
+            sage: S1 is S2
+            True
 
             sage: S = species.SingletonSpecies()
             sage: S._check()
@@ -328,4 +313,5 @@ class SingletonSpecies_class(CharacteristicSpecies_class):
         self._name = "Singleton species"
         self._state_info = []
 
-    _cached_constructor = staticmethod(SingletonSpecies)
+#Backward compatibility
+SingletonSpecies_class = SingletonSpecies

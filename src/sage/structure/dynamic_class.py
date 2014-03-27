@@ -119,30 +119,34 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 from sage.misc.cachefunc import weak_cached_function
 from sage.structure.unique_representation import ClasscallMetaclass
 
-def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
+def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
+                  prepend_cls_bases=True, cache=True):
     r"""
     INPUT:
 
     - ``name`` -- a string
     - ``bases`` -- a tuple of classes
-    - ``cls`` -- a class or None
-    - ``reduction`` -- a tuple or None
-    - ``doccls`` -- a class or None
+    - ``cls`` -- a class or ``None``
+    - ``reduction`` -- a tuple or ``None``
+    - ``doccls`` -- a class or ``None``
+    - ``prepend_cls_bases`` -- a boolean (default: ``True``)
+    - ``cache`` -- a boolean or ``"ignore_reduction"`` (default: ``True``)
 
     Constructs dynamically a new class ``C`` with name ``name``, and
     bases ``bases``. If ``cls`` is provided, then its methods will be
-    inserted into ``C`` as well. The module of ``C`` is set from the
-    module of ``cls`` or from the first base class (``bases`` should
-    be non empty if ``cls` is ``None``).
+    inserted into ``C``, and its bases will be prepended to ``bases``
+    (unless ``prepend_cls_bases`` is ``False``).
 
-    Documentation and source instrospection is taken from ``doccls``, or
-    ``cls`` if ``doccls`` is ``None``, or ``bases[0]`` if both are ``None``.
+    The module, documentation and source instrospection is taken from
+    ``doccls``, or ``cls`` if ``doccls`` is ``None``, or ``bases[0]``
+    if both are ``None`` (therefore ``bases`` should be non empty if
+    ``cls` is ``None``).
 
     The constructed class can safely be pickled (assuming the
     arguments themselves can).
 
-    The result is cached, ensuring unique representation of dynamic
-    classes.
+    Unless ``cache`` is ``False``, the result is cached, ensuring unique
+    representation of dynamic classes.
 
     See :mod:`sage.structure.dynamic_class` for a discussion of the
     dynamic classes paradigm, and its relevance to Sage.
@@ -150,7 +154,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     EXAMPLES:
 
     To setup the stage, we create a class Foo with some methods,
-    cached methods, and lazy_attributes, and a class Bar::
+    cached methods, and lazy attributes, and a class Bar::
 
         sage: from sage.misc.lazy_attribute import lazy_attribute
         sage: from sage.misc.cachefunc import cached_function
@@ -200,6 +204,8 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
         sage: FooBar.mro()
         [<class '__main__.FooBar'>, <type 'object'>, <class __main__.Bar at ...>]
 
+    .. RUBRIC:: Pickling
+
     Dynamic classes are pickled by construction. Namely, upon
     unpickling, the class will be reconstructed by recalling
     dynamic_class with the same arguments::
@@ -213,6 +219,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
         sage: type(FooBar)
         <class 'sage.structure.dynamic_class.DynamicMetaclass'>
 
+
     The following (meaningless) example illustrates how to customize
     the result of the reduction::
 
@@ -221,6 +228,54 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
         (<type 'str'>, (3,))
         sage: loads(dumps(BarFoo))
         '3'
+
+    .. RUBRIC:: Caching
+
+    By default, the built class is cached::
+
+         sage: dynamic_class("FooBar", (Bar,), Foo) is FooBar
+         True
+         sage: dynamic_class("FooBar", (Bar,), Foo, cache=True) is FooBar
+         True
+
+    and the result depends on the reduction::
+
+        sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (3,))) is BarFoo
+        True
+        sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,))) is BarFoo
+        False
+
+    With ``cache=False``, a new class is created each time::
+
+         sage: FooBar1 = dynamic_class("FooBar", (Bar,), Foo, cache=False); FooBar1
+         <class '__main__.FooBar'>
+         sage: FooBar2 = dynamic_class("FooBar", (Bar,), Foo, cache=False); FooBar2
+         <class '__main__.FooBar'>
+         sage: FooBar1 is FooBar
+         False
+         sage: FooBar2 is FooBar1
+         False
+
+    With ``cache="ignore_reduction"``, the class does not depend on
+    the reduction::
+
+        sage: BarFoo = dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (3,)), cache="ignore_reduction")
+        sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction") is BarFoo
+        True
+
+    In particular, the reduction used is that provided upon creating the
+    first class::
+
+        sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction")._reduction
+        (<type 'str'>, (3,))
+
+    .. WARNING::
+
+        The behaviour upon creating several dynamic classes from the
+        same data but with different values for ``cache`` option is
+        currently left unspecified. In other words, for a given
+        application, it is recommended to consistently use the same
+        value for that option.
 
     TESTS::
 
@@ -254,10 +309,20 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):
     #assert(len(bases) > 0 )
     assert(type(name) is str)
     #    assert(cls is None or issubtype(type(cls), type) or type(cls) is classobj)
-    return dynamic_class_internal(name, bases, cls, reduction, doccls)
+    if cache is True:
+        return dynamic_class_internal(name, bases, cls, reduction, doccls, prepend_cls_bases)
+    elif cache is False:
+        # bypass the cached method
+        return dynamic_class_internal.f(name, bases, cls, reduction, doccls, prepend_cls_bases)
+    else: # cache = "ignore_reduction"
+        result = dynamic_class_internal(name, bases, cls, False, doccls, prepend_cls_bases)
+        if result._reduction is False:
+            result._reduction = reduction
+        return result
+
 
 @weak_cached_function
-def dynamic_class_internal(name, bases, cls = None, reduction = None, doccls = None):
+def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, prepend_cls_bases=True):
     r"""
     See sage.structure.dynamic_class.dynamic_class? for indirect doctests.
 
@@ -309,7 +374,8 @@ def dynamic_class_internal(name, bases, cls = None, reduction = None, doccls = N
         # Anything else that should not be kept?
         if methods.has_key("__dict__"):
             methods.__delitem__("__dict__")
-        bases = cls.__bases__ + bases
+        if prepend_cls_bases:
+            bases = cls.__bases__ + bases
     else:
         methods = {}
     if doccls is None:

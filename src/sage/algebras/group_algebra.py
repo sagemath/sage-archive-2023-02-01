@@ -29,8 +29,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.all import IntegerRing
-from sage.groups.group import Group
-from sage.groups.old import Group as OldGroup
+from sage.groups.group import Group, is_Group
 from sage.structure.formal_sum import FormalSums, FormalSum
 from sage.sets.set import Set
 
@@ -68,7 +67,7 @@ class GroupAlgebra(Algebra):
         if not base_ring.is_commutative():
             raise NotImplementedError("Base ring must be commutative")
 
-        if not isinstance(group, (Group, OldGroup)):
+        if not is_Group(group):
             raise TypeError('"%s" is not a group' % group)
 
         ParentWithGens.__init__(self, base_ring, category = GroupAlgebras(base_ring))

@@ -17,7 +17,7 @@ cdef extern from 'symmetrica/def.h':
 cdef object _check_schubert(object a, OP ca):
     if a in Permutations():
         if isinstance(a, builtinlist):
-            a = Permutation_class(a)
+            a = Permutation(a)
         _op_schubert_perm(a, ca)
         return max(a.reduced_word()+[0])
     elif isinstance(a, SchubertPolynomial_class):
@@ -193,7 +193,7 @@ def divdiff_perm_schubert_symmetrica(perm, a):
         freeall(ca); freeall(cperm); freeall(cres)
         raise TypeError, "perm must be a permutation"
     else:
-        perm = Permutation_class(perm)
+        perm = Permutation(perm)
         rw = perm.reduced_word()
         max_perm = max(rw)
         _op_permutation(perm, cperm)

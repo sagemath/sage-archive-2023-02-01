@@ -92,6 +92,48 @@ class Rings(Category_singleton):
             """
             return x*y - y*x
 
+        def _Hom_(self, Y, category):
+            r"""
+            Returns the homset from ``self`` to ``Y`` in the category ``category``
+
+            INPUT::
+
+            - ``Y`` -- a ring
+            - ``category`` -- a subcategory of :class:`Rings`() or None
+
+            The sole purpose of this method is to construct the homset
+            as a :class:`~sage.rings.homset.RingHomset`. If
+            ``category`` is specified and is not a subcategory of
+            :class:`Rings`, a ``TypeError`` is raised instead
+
+            This method is not meant to be called directly. Please use
+            :func:`sage.categories.homset.Hom` instead.
+
+            EXAMPLES::
+
+                sage: H = QQ._Hom_(QQ, category = Rings()); H
+                Set of Homomorphisms from Rational Field to Rational Field
+                sage: H.__class__
+                <class 'sage.rings.homset.RingHomset_generic_with_category'>
+
+            TESTS::
+
+                sage: Hom(QQ, QQ, category = Rings()).__class__
+                <class 'sage.rings.homset.RingHomset_generic_with_category'>
+
+                sage: Hom(CyclotomicField(3), QQ, category = Rings()).__class__
+                <class 'sage.rings.number_field.morphism.CyclotomicFieldHomset_with_category'>
+
+                sage: TestSuite(Hom(QQ, QQ, category = Rings())).run() # indirect doctest
+
+            """
+            if category is not None and not category.is_subcategory(Rings()):
+                raise TypeError, "%s is not a subcategory of Rings()"%category
+            if Y not in Rings():
+                raise TypeError, "%s is not a ring"%Y
+            from sage.rings.homset import RingHomset
+            return RingHomset(self, Y, category = category)
+
         # this is already in sage.rings.ring.Ring,
         # but not all rings descend from that class,
         # e.g., matrix spaces.
@@ -489,7 +531,7 @@ class Rings(Category_singleton):
 
             ``MS`` is not an instance of :class:`~sage.rings.ring.Ring`.
             But since its category was fully initalised (which is not
-            by default, by trac ticket #11900), it is an instance of
+            by default, by :trac:`11900`), it is an instance of
             the parent class of the category of rings. The quotient
             method is inherited from there::
 
@@ -573,79 +615,9 @@ class Rings(Category_singleton):
             """
             raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
 
-
     class ElementMethods:
         pass
 
 
     class HomCategory(HomCategory):
-        def extra_super_categories(self):
-            """
-            EXAMPLES::
-
-                sage: Rings().hom_category().extra_super_categories()
-                [Category of sets]
-            """
-            from sage.categories.sets_cat import Sets
-            return [Sets()]
-
-#         def get_Parent(self, X, Y):
-#             """
-#             Given two objects X and Y in this category, returns the parent
-#             class to be used for the collection of the morphisms of this
-#             category between X and Y.
-
-#             Returns self.ParentMethods by default.
-
-#             Rationale: some categories, like Rings or Schemes, currently
-#             use different classes for their homset, depending on some
-#             specific properties of X or Y which do not fit in the category
-#             hierarchy. For example, if X is a quotient field, morphisms
-#             can be defined by the image of the generators, even if Y
-#             itself is not a quotient field.
-
-#             Design question: should this really concern the parent for the
-#             homset, or just the possible classes for the elements?
-#             """
-#             category = self.base_category
-#             assert(X in category and Y in category)
-#             # return self.hom_category()(X, Y)?
-#             #print self.hom_category(), X, Y, self.hom_category().parent_class, self.hom_category().parent_class.mro()
-#             return self.ParentMethods
-
-        class ParentMethods:
-            # Design issue: when X is a quotient field, we can build
-            # morphisms from X to Y by specifying the images of the
-            # generators. This is not something about the category,
-            # because Y need not be a quotient field.
-
-            # Currently, and to minimize the changes, this is done by
-            # delegating the job to RingHomset. This is not very robust:
-            # for example, only one category can do this hack.
-
-            # This should be cleaned up upon the next homset overhaul
-
-            def __new__(cls, X, Y, category):
-                """
-                    sage: Hom(QQ, QQ, category = Rings()).__class__                  # indirect doctest
-                    <class 'sage.rings.homset.RingHomset_generic_with_category'>
-
-                    sage: Hom(CyclotomicField(3), QQ, category = Rings()).__class__  # indirect doctest
-                    <class 'sage.rings.number_field.morphism.CyclotomicFieldHomset_with_category'>
-                """
-                from sage.rings.homset import RingHomset
-                return RingHomset(X, Y, category = category)
-
-            def __getnewargs__(self):
-                """
-                Note: without this method, :meth:`.__new__` gets called with no
-                argument upon unpickling. Maybe it would be preferable to
-                have :meth:`.__new__` accept to be called without arguments.
-
-                TESTS::
-
-                    sage: Hom(QQ, QQ, category = Rings()).__getnewargs__()
-                    (Rational Field, Rational Field, Category of hom sets in Category of rings)
-                    sage: TestSuite(Hom(QQ, QQ, category = Rings())).run() # indirect doctest
-                """
-                return (self.domain(), self.codomain(), self.category())
+        pass

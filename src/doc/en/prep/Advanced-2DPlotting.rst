@@ -199,7 +199,6 @@ to put together.
     ...                      )
     sage: def sine_and_unit_circle( angle=30, instant_show = True, show_pi=True ):
     ...      ccenter_x, ccenter_y = -radius, 0  # center of cirlce on real coords
-    ...
     ...      sine_x = angle # the big magic to sync both graphs :)
     ...      current_y = circle_y = sine_y = radius * sin(angle*pi/180)
     ...      circle_x = ccenter_x + radius * cos(angle*pi/180)
@@ -223,7 +222,6 @@ to put together.
     ...      graph += text("$(0, 0)$",  [ccenter_x, 0],  color = "#666")
     ...      # SINE x axis
     ...      graph +=  arrow( [0,0], [360, 0], color = "#000" )
-    ...
     ...      # let's set tics
     ...      # or http://aghitza.org/posts/tweak_labels_and_ticks_in_2d_plots_using_matplotlib/
     ...      # or wayt for http://trac.sagemath.org/sage_trac/ticket/1431
@@ -235,12 +233,10 @@ to put together.
     ...          graph += text(angle_label,  [x, 0], rotation=-90,
     ...          vertical_alignment='top', fontsize=8, color="#000" )
     ...      # CURRENT VALUES
-    ...
     ...      # SINE -- y
     ...      graph +=  arrow( [sine_x,0], [sine_x, sine_y], width=1, arrowsize=3)
     ...      graph +=  arrow( [circle_x,0], [circle_x, circle_y], width=1, arrowsize=3)
     ...      graph +=  line(([circle_x, current_y], [sine_x, current_y]), rgbcolor="#0F0", linestyle = "--", alpha=0.5)
-    ...
     ...      # LABEL on sine
     ...      graph += text("$(%d^{\circ}, %3.2f)$"%(sine_x, float(current_y)/radius),  [sine_x+30, current_y],  color = "#0A0")
     ...      # ANGLE -- x
@@ -250,8 +246,6 @@ to put together.
     ...      graph += disk( (ccenter_x, ccenter_y), float(radius)/4, (0, angle*pi/180), color='red', fill=False, thickness=1)
     ...      graph +=  arrow( [ccenter_x, ccenter_y], [circle_x, circle_y],
     ...                    rgbcolor="#cccccc", width=1, arrowsize=1)
-    ...
-    ...
     ...      if instant_show:
     ...          show (graph,  **graph_params)
     ...      return graph
@@ -261,7 +255,6 @@ to put together.
     sage: @interact
     sage: def _( angle = slider([0..360], default=30, step_size=5,
     ...            label="Pasirinkite kampą:    ", display_value=True) ):
-    ...
     ...       sine_and_unit_circle(angle, show_pi = False)
 
 Plotting Data
@@ -312,7 +305,7 @@ So we just define the numbers and coordinate pairs we are about to plot.
     sage: fibonacci
     [(0, 0), (1, 1), (2, 1), (3, 2), (4, 3), (5, 5)]
     sage: asymptotic
-    [(0, 1/5*sqrt(5)), (1, 1/10*(sqrt(5) + 1)*sqrt(5)), (2, 1/20*(sqrt(5) + 1)^2*sqrt(5)), (3, 1/40*(sqrt(5) + 1)^3*sqrt(5)), (4, 1/80*(sqrt(5) + 1)^4*sqrt(5)), (5, 1/160*(sqrt(5) + 1)^5*sqrt(5))]
+    [(0, 1/5*sqrt(5)), (1, 1/10*sqrt(5)*(sqrt(5) + 1)), (2, 1/20*sqrt(5)*(sqrt(5) + 1)^2), (3, 1/40*sqrt(5)*(sqrt(5) + 1)^3), (4, 1/80*sqrt(5)*(sqrt(5) + 1)^4), (5, 1/160*sqrt(5)*(sqrt(5) + 1)^5)]
 
 Now we can plot not just the two sets of points, but also use several of
 the documented options for plotting points. Those coming from other
@@ -571,7 +564,7 @@ possible.
     sage: disk((0,0), 1, (pi, 3*pi/2), color='yellow',aspect_ratio=1)
 
 There are also ellipses and various arcs; see the `full plot
-documentation <http://sagemath.org/doc/reference/plotting.html>`_.
+documentation <http://sagemath.org/doc/reference/plotting/index.html>`_.
 
 Arrows
 ######

@@ -309,7 +309,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
         """
         for a in x:
             assert a in self.alphabet
-        return self.element_class(x, parent = self)
+        return self.element_class(self, x)
 
     class Element(ElementWrapper):
         r"""
@@ -540,7 +540,7 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         if x.value > 42:
             return self.the_answer()
         else:
-            return self.element_class(x, parent = self)
+            return self.element_class(self, x)
 
     class Element(ElementWrapper):
         pass

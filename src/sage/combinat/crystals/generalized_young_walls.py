@@ -13,16 +13,17 @@ Generalized Young walls are certain generalizations of Young tableaux
 introduced in [KS10]_ and designed to be a realization of the crystals
 `\mathcal{B}(\infty)` and `\mathcal{B}(\lambda)` in type `A_n^{(1)}`.
 
-.. WARNING::
-
-    Does not work with :func:`TensorProductOfCrystals`.
-
 REFERENCES:
 
 .. [KS10] J.-A. Kim and D.-U. Shin.
    Generalized Young walls and crystal bases for quantum affine algebra
    of type `A`.
    Proc. Amer. Math. Soc. 138(11), pp. 3877--3889, 2010.
+
+.. [KLRS] S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+   A combinatorial description of the affine Gindikin-Karpelevich formula of
+   type `A_n^{(1)}`.
+   :arXiv:`1203.1640`.
 """
 
 #******************************************************************************
@@ -53,11 +54,11 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
     r"""
     A generalized Young wall.
 
-    For more information, see :class:`CrystalOfGeneralizedYoungWalls`.
+    For more information, see :class:`InfinityCrystalOfGeneralizedYoungWalls`.
 
     EXAMPLES::
 
-        sage: Y = CrystalOfGeneralizedYoungWalls(4)
+        sage: Y = InfinityCrystalOfGeneralizedYoungWalls(4)
         sage: mg = Y.module_generators[0]; mg.pp()
         0
         sage: mg.f_string([1,2,0,1]).pp()
@@ -69,7 +70,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         r"""
         EXAMPLES::
 
-            sage: Y = CrystalOfGeneralizedYoungWalls(2)
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2)
             sage: mg = Y.module_generators[0]
             sage: TestSuite(mg).run()
         """
@@ -90,7 +91,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         r"""
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: y
             [[0], [1, 0, 3, 2], [2, 1], [3, 2, 1, 0, 3, 2], [0], [], [2]]
         """
@@ -100,7 +101,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         r"""
         EXAMPLES::
 
-            sage: GYW = CrystalOfGeneralizedYoungWalls(2)
+            sage: GYW = InfinityCrystalOfGeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]])
             sage: x = GYW([[],[1,0],[2,1]])
             sage: z = GYW([[],[1],[2]])
@@ -121,7 +122,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: x = CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x = InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.raw_signature(2)
             [['-', 3, 6], ['-', 1, 4], ['-', 6, 1]]
         """
@@ -150,7 +151,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: hw = CrystalOfGeneralizedYoungWalls(5)([])
+            sage: hw = InfinityCrystalOfGeneralizedYoungWalls(5)([])
             sage: hw._sig_sort(['+',1,0])
             (0, 1)
         """
@@ -164,7 +165,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(2)([[0],[1,0],[2,1,0,2],[],[1]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(2)([[0],[1,0],[2,1,0,2],[],[1]])
             sage: y.generate_signature(1)
             ([['+', 2, 5], ['-', 4, 1]], '  ')
         """
@@ -198,11 +199,11 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(2)([[0],[1,0],[2,1,0,2],[],[1]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(2)([[0],[1,0],[2,1,0,2],[],[1]])
             sage: y.signature(1)
             ''
 
-            sage: x = CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x = InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.signature(2)
             '---'
         """
@@ -214,7 +215,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(2)([[0,2,1],[1,0,2,1,0],[],[0],[1,0,2],[],[],[1]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(2)([[0,2,1],[1,0,2,1,0],[],[0],[1,0,2],[],[],[1]])
             sage: y.pp()
                     1|
                      |
@@ -242,15 +243,101 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(2)([[0],[1,0],[2,1,0,2],[],[1]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(2)([[0],[1,0],[2,1,0,2],[],[1]])
             sage: y.content()
             8
 
-            sage: x = CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x = InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.content()
             13
         """
         return sum(len(r) for r in self.data)
+
+    def number_of_parts(self):
+        r"""
+        Return the value of `\mathscr{N}` on ``self``.
+
+        In [KLRS]_, the statistic `\mathscr{N}` was defined on elements in
+        `\mathcal{Y}(\infty)` which counts how many parts are in the
+        corresponding Kostant partition.  Specifically, the computation of
+        `\mathscr{N}(Y)` is done using the following algorithm:
+
+        - If `Y` has no rows whose right-most box is colored `n` and such that
+          the length of this row is a multiple of `n+1`, then `\mathscr{N}(Y)`
+          is the total number of distinct rows in `Y`, not counting multiplicity.
+
+        - Otherwise, search `Y` for the longest row such that the right-most box
+          is colored `n` and such that the total number of boxes in the row is
+          `k(n+1)` for some `k\ge 1`.  Replace this row by `n+1` distinct rows
+          of length `k`, reordering all rows, if necessary, so that the result
+          is a proper wall.  (Note that the resulting wall may no longer be
+          reduced.) Repeat the search and replace process for all other rows of
+          the above form for each `k' < k`.  Then `\mathscr{N}(Y)` is the number
+          of distinct rows, not counting multipicity, in the wall resulting from
+          this process.
+
+        EXAMPLES::
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(3)
+            sage: y = Y([[0],[],[],[],[0],[],[],[],[0]])
+            sage: y.number_of_parts()
+            1
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(3)
+            sage: y = Y([[0,3,2],[1,0],[],[],[0,3],[1,0],[],[],[0]])
+            sage: y.number_of_parts()
+            4
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2)
+            sage: y = Y([[0,2,1],[1,0],[2,1,0,2,1,0,2,1,0],[],[2,1,0,2,1,0]])
+            sage: y.number_of_parts()
+            8
+        """
+        n = self.parent().cartan_type().rank()-1
+        new = self.data[:]
+        i = 0
+        while i < len(new):
+            r = new[i]
+            if r == [] or r in new[i+1:]:
+                new.pop(i)
+            elif r[0] == n and len(r)%(n+1) == 0:
+                for j in range(n+1):
+                    temp = [k%(n+1) for k in range(j+len(r)/(n+1)-1,j-1,-1)]
+                    if temp not in new:
+                        new.insert(i+1, temp)
+                new.pop(i)
+            else:
+                i += 1
+        return len(new)
+
+    def sum_of_weighted_row_lengths(self):
+        r"""
+        Return the value of `\mathscr{M}` on ``self``.
+
+        Let `\mathcal{Y}_0 \subset \mathcal{Y}(\infty)` be the set of
+        generalized Young walls which have no rows whose right-most box is
+        colored `n`.  For `Y \in \mathcal{Y}_0`,
+
+        .. MATH::
+
+            \mathscr{M}(Y) = \sum_{i=1}^n (i+1)M_i(Y),
+
+        where `M_i(Y)` is the number of nonempty rows in `Y` whose right-most
+        box is colored `i-1`.
+
+        EXAMPLES::
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2)
+            sage: y = Y([[0,2,1,0,2],[1,0,2],[],[0,2],[1,0],[],[0],[1,0]])
+            sage: y.sum_of_weighted_row_lengths()
+            15
+        """
+        n = self.parent().cartan_type().rank()-1
+        m = lambda i : len([r for r in self.data if r!=[] if r[0]==(i-1)%(n+1)])
+        for r in self.data:
+            if r != [] and r[0] == n:
+                raise ValueError('Statistic only valid for generalized Young walls in Y_0')
+        return sum((i+1)*m(i) for i in range(1,n+1))
 
     def e(self,i):
         r"""
@@ -262,7 +349,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: x=CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x=InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.e(2)
             [[], [1, 0, 3, 2], [2, 1], [3, 2, 1, 0, 3, 2]]
             sage: _.e(2)
@@ -296,7 +383,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: hw = CrystalOfGeneralizedYoungWalls(2)([])
+            sage: hw = InfinityCrystalOfGeneralizedYoungWalls(2)([])
             sage: hw.f(1)
             [[], [1]]
             sage: _.f(2)
@@ -326,7 +413,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: x = CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x = InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.latex_large()
             '\\begin{tikzpicture}[baseline=5,scale=.45] \n \\foreach \\x [count=\\s from 0] in \n{{},{1,0,3,2},{2,1},{3,2,1,0,3,2},{},{},{2}} \n{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\scriptsize] at (-\\t,\\s) {$\\y$}; \n \\draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \\draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \\draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \\draw[-,thick] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n'
         """
@@ -345,7 +432,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: x = CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x = InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x._latex_()
             '\\begin{tikzpicture}[baseline=5,scale=.25] \\foreach \\x [count=\\s from 0] in \n{{},{1,0,3,2},{2,1},{3,2,1,0,3,2},{},{},{2}} \n{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\tiny] at (-\\t,\\s) {$\\y$}; \n \\draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \\draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \\draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \\draw[-] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n'
         """
@@ -365,7 +452,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: x=CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x=InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.weight()
             -2*alpha[0] - 3*alpha[1] - 5*alpha[2] - 3*alpha[3]
         """
@@ -384,7 +471,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y=CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: y=InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: y.epsilon(1)
             0
             sage: y.epsilon(2)
@@ -408,7 +495,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: y.Epsilon()
             Lambda[0] + 3*Lambda[2]
         """
@@ -423,7 +510,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: y.phi(1)
             3
             sage: y.phi(2)
@@ -438,11 +525,11 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: y.Phi()
             -Lambda[0] + 3*Lambda[1] - Lambda[2] + 3*Lambda[3]
 
-            sage: x=CrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
+            sage: x=InfinityCrystalOfGeneralizedYoungWalls(3)([[],[1,0,3,2],[2,1],[3,2,1,0,3,2],[],[],[2]])
             sage: x.Phi()
             2*Lambda[0] + Lambda[1] - Lambda[2] + Lambda[3]
             """
@@ -455,11 +542,11 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: y.column(2)
             [None, 0, 1, 2, None, None, None]
 
-            sage: hw = CrystalOfGeneralizedYoungWalls(5)([])
+            sage: hw = InfinityCrystalOfGeneralizedYoungWalls(5)([])
             sage: hw.column(1)
             []
         """
@@ -478,7 +565,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: y.a(1,2)
             1
             sage: y.a(0,2)
@@ -517,7 +604,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
-            sage: GYW = CrystalOfGeneralizedYoungWalls(2)
+            sage: GYW = InfinityCrystalOfGeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]])
             sage: y.in_highest_weight_crystal(La)
             True
@@ -546,7 +633,7 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
         return True
 
 
-class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
+class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
     r"""
     The crystal `\mathcal{Y}(\infty)` of generalized Young walls of
     type `A_n^{(1)}` as defined in [KS10]_.
@@ -603,7 +690,7 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: Yinf = CrystalOfGeneralizedYoungWalls(3)
+        sage: Yinf = InfinityCrystalOfGeneralizedYoungWalls(3)
         sage: y = Yinf([[0],[1,0,3,2],[],[3,2,1],[0],[1,0]])
         sage: y.pp()
             0|1|
@@ -642,18 +729,18 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: Yinf = CrystalOfGeneralizedYoungWalls(3)
-            sage: Yinf2 = CrystalOfGeneralizedYoungWalls(int(3))
+            sage: Yinf = InfinityCrystalOfGeneralizedYoungWalls(3)
+            sage: Yinf2 = InfinityCrystalOfGeneralizedYoungWalls(int(3))
             sage: Yinf is Yinf2
             True
         """
-        return super(CrystalOfGeneralizedYoungWalls,cls).__classcall__(cls,n,category)
+        return super(InfinityCrystalOfGeneralizedYoungWalls,cls).__classcall__(cls,n,category)
 
     def __init__(self, n, category):
         r"""
         EXAMPLES::
 
-            sage: Yinf = CrystalOfGeneralizedYoungWalls(3)
+            sage: Yinf = InfinityCrystalOfGeneralizedYoungWalls(3)
             sage: TestSuite(Yinf).run()
         """
         self._cartan_type = CartanType(['A',n,1])
@@ -674,7 +761,7 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: GYW = CrystalOfGeneralizedYoungWalls(2)
+            sage: GYW = InfinityCrystalOfGeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]]) # indirect doctest
             sage: y
             [[], [1, 0], [2, 1]]
@@ -685,7 +772,7 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
         r"""
         EXAMPLES::
 
-            sage: Y = CrystalOfGeneralizedYoungWalls(4)
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(4)
             sage: Y
             Crystal of generalized Young walls of type ['A', 4, 1]
         """
@@ -697,7 +784,7 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: Y = CrystalOfGeneralizedYoungWalls(2)
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2)
             sage: S = Y.subset(max_depth=2)
             sage: S
             [[], [[], [1]], [[], [], [2]], [[0]], [[0, 2]], [[0], [1]], [[], [], [2], [], [], [2]],
@@ -710,7 +797,7 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
 ## Highest weight GYW ##
 ########################
 
-class HighestWeightCrystalofGYWElement(GeneralizedYoungWall):
+class CrystalOfGeneralizedYoungWallsElement(GeneralizedYoungWall):
     r"""
     Element of the highest weight crystal of generalized Young walls.
     """
@@ -722,7 +809,7 @@ class HighestWeightCrystalofGYWElement(GeneralizedYoungWall):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
-            sage: hwy = HighestWeightCrystalOfGYW(2,La)([[],[1,0],[2,1]])
+            sage: hwy = CrystalOfGeneralizedYoungWalls(2,La)([[],[1,0],[2,1]])
             sage: hwy.e(1)
             [[], [1, 0], [2]]
             sage: hwy.e(2)
@@ -742,11 +829,11 @@ class HighestWeightCrystalofGYWElement(GeneralizedYoungWall):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
-            sage: GYW = CrystalOfGeneralizedYoungWalls(2)
+            sage: GYW = InfinityCrystalOfGeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]])
             sage: y.f(1)
             [[], [1, 0], [2, 1], [], [1]]
-            sage: hwy = HighestWeightCrystalOfGYW(2,La)([[],[1,0],[2,1]])
+            sage: hwy = CrystalOfGeneralizedYoungWalls(2,La)([[],[1,0],[2,1]])
             sage: hwy.f(1)
         """
         ret = GeneralizedYoungWall.f(self, i)
@@ -762,14 +849,14 @@ class HighestWeightCrystalofGYWElement(GeneralizedYoungWall):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
-            sage: hwy = HighestWeightCrystalOfGYW(2,La)([[],[1,0],[2,1]])
+            sage: hwy = CrystalOfGeneralizedYoungWalls(2,La)([[],[1,0],[2,1]])
             sage: hwy.weight()
             Lambda[0] - Lambda[1] + Lambda[2]
         """
         return self.parent().weight_lattice_realization()(self.parent().hw + GeneralizedYoungWall.weight(self))
 
 
-class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
+class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
     r"""
     The crystal `\mathcal{Y}(\lambda)` of generalized Young walls of the given
     type with highest weight `\lambda`.
@@ -786,7 +873,7 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
     EXAMPLES::
 
         sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()[1]
-        sage: YLa = HighestWeightCrystalOfGYW(3,La)
+        sage: YLa = CrystalOfGeneralizedYoungWalls(3,La)
         sage: y = YLa([[0],[1,0,3,2,1],[2,1,0],[3]])
         sage: y.pp()
                 3|
@@ -800,7 +887,7 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
         sage: y.f(1)
         [[0], [1, 0, 3, 2, 1], [2, 1, 0], [3], [], [1]]
         sage: y.f(1).f(1)
-        sage: yy = CrystalOfGeneralizedYoungWalls(3)([[0], [1, 0, 3, 2, 1], [2, 1, 0], [3], [], [1]])
+        sage: yy = InfinityCrystalOfGeneralizedYoungWalls(3)([[0], [1, 0, 3, 2, 1], [2, 1, 0], [3], [], [1]])
         sage: yy.f(1)
         [[0], [1, 0, 3, 2, 1], [2, 1, 0], [3], [], [1], [], [], [], [1]]
         sage: yyy = yy.f(1)
@@ -812,7 +899,7 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
         sage: G = LS.digraph(subset=C)
         sage: P = LS.weight_lattice_realization()
         sage: La = P.fundamental_weights()
-        sage: YW = HighestWeightCrystalOfGYW(3,La[0])
+        sage: YW = CrystalOfGeneralizedYoungWalls(3,La[0])
         sage: CW = YW.subcrystal(max_depth=4)
         sage: GW = YW.digraph(subset=CW)
         sage: GW.is_isomorphic(G,edge_labels=True)
@@ -833,37 +920,37 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[2]
             sage: Al = RootSystem(['A',2,1]).weight_lattice().monomial(2)
-            sage: Y = HighestWeightCrystalOfGYW(2,La)
-            sage: Y1 = HighestWeightCrystalOfGYW(int(2),Al)
+            sage: Y = CrystalOfGeneralizedYoungWalls(2,La)
+            sage: Y1 = CrystalOfGeneralizedYoungWalls(int(2),Al)
             sage: Y is Y1
             True
         """
         La = RootSystem(['A',n,1]).weight_lattice()(La)
-        return super(HighestWeightCrystalOfGYW, cls).__classcall__(cls, n, La)
+        return super(CrystalOfGeneralizedYoungWalls, cls).__classcall__(cls, n, La)
 
     def __init__(self, n, La):
         r"""
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
-            sage: YLa = HighestWeightCrystalOfGYW(2,La)
+            sage: YLa = CrystalOfGeneralizedYoungWalls(2,La)
 
         We skip the two tests because they take a very long time::
 
             sage: TestSuite(YLa).run(skip=["_test_enumerated_set_contains","_test_stembridge_local_axioms"]) # long time
         """
-        CrystalOfGeneralizedYoungWalls.__init__( self, n,
+        InfinityCrystalOfGeneralizedYoungWalls.__init__( self, n,
                 category=(RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets()) )
         self.hw = La
 
-    Element = HighestWeightCrystalofGYWElement
+    Element = CrystalOfGeneralizedYoungWallsElement
 
     def __repr__(self):
         r"""
         EXAMPLES::
 
             sage: La = RootSystem(['A',5,1]).weight_lattice().fundamental_weights()[2]
-            sage: Y = HighestWeightCrystalOfGYW(5,La)
+            sage: Y = CrystalOfGeneralizedYoungWalls(5,La)
             sage: Y
             Highest weight crystal of generalized Young walls of Cartan type ['A', 5, 1] and highest weight Lambda[2].
         """
@@ -873,7 +960,7 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
         r"""
         EXAMPLES::
 
-            sage: y = CrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
+            sage: y = InfinityCrystalOfGeneralizedYoungWalls(3)([[0],[1,0,3,2],[2,1],[3,2,1,0,3,2],[0],[],[2]])
             sage: x = y.__iter__()
             sage: x.next()
             [0]
@@ -888,7 +975,7 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
 
         EXAMPLES::
 
-            sage: Y = HighestWeightCrystalOfGYW(2,RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[0])
+            sage: Y = CrystalOfGeneralizedYoungWalls(2,RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[0])
             sage: S = Y.subset(max_depth=3)
             sage: S
             [[], [[0]], [[0, 2]], [[0], [1]], [[0, 2, 1]], [[0, 2], [1]]]

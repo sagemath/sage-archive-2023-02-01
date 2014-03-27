@@ -11,8 +11,8 @@ Bimodules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.misc.cachefunc import cached_method
+from sage.misc.unknown import Unknown
+from sage.categories.category import Category, CategoryWithParameters
 from sage.categories.left_modules import LeftModules
 from sage.categories.right_modules import RightModules
 
@@ -20,7 +20,7 @@ from sage.categories.rings import Rings
 _Rings = Rings()
 
 #?class Bimodules(Category_over_base_rng, Category_over_base_rng):
-class Bimodules(Category):
+class Bimodules(CategoryWithParameters):
     """
     The category of `(R,S)`-bimodules
 
@@ -43,11 +43,31 @@ class Bimodules(Category):
             sage: C = Bimodules(QQ, ZZ)
             sage: TestSuite(C).run()
         """
-        Category.__init__(self, name)
         assert left_base  in _Rings, "The left base must be a ring"
         assert right_base in _Rings, "The right base must be a ring"
         self._left_base_ring = left_base
         self._right_base_ring = right_base
+        Category.__init__(self, name)
+
+    def _make_named_class_key(self, name):
+        r"""
+        Return what the element/parent/... classes depend on.
+
+        Since :trac:`11935`, the element and parent classes of a
+        bimodule only depend on the categories of the left and right
+        base ring.
+
+        .. SEEALSO::
+
+            - :meth:`CategoryWithParameters`
+            - :meth:`CategoryWithParameters._make_named_class_key`
+
+        EXAMPLES::
+
+            sage: Bimodules(QQ,ZZ)._make_named_class_key('parent_class')
+            (Category of quotient fields, Category of euclidean domains)
+        """
+        return (self._left_base_ring.category(), self._right_base_ring.category())
 
     @classmethod
     def an_instance(cls):

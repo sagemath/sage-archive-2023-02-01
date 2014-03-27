@@ -70,9 +70,9 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             -826511807095108317
         """
         try:
-            return hash((self.__class__, id(self._reference)))
+            return hash(('CombinatorialSpecies', id(self._reference)))
         except AttributeError:
-            return hash(self.__class__)
+            return hash('CombinatorialSpecies')
 
     def __eq__(self, other):
         """
@@ -126,7 +126,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: L.define(E+X*L)
             sage: L._unique_info()
             (<class 'sage.combinat.species.recursive_species.CombinatorialSpecies'>,
-             <class 'sage.combinat.species.sum_species.SumSpecies_class'>,
+             <class 'sage.combinat.species.sum_species.SumSpecies'>,
              None,
              None,
              1,

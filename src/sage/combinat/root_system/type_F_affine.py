@@ -118,3 +118,15 @@ class CartanType(CartanType_standard_untwisted_affine):
             special_str = 'O'
         return special_str + "---O---O=>=O---O\n%s   %s   %s   %s   %s"%tuple(label(i) for i in (0,1,2,3,4))
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['F', 4, 1])._default_folded_cartan_type()
+            ['F', 4, 1] as a folding of ['E', 6, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        return CartanTypeFolded(self, ['E', 6, 1], [[0], [2], [4], [3, 5], [1, 6]])
+

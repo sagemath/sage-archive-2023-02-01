@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# unset RM which messes with libtool and was set by previous versions of Sage
+unset RM
+
+if [ "$SAGE64" = "yes" ]; then
+   echo "64 bit build"
+   CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS
+   CXXLAGS="-O2 -g -m64 -fPIC"; export CXXFLAGS
+   LDFLAGS="-m64 "; export LDFLAGS
+else
+   CFLAGS="-O2 -g -fPIC"; export CFLAGS
+fi
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --with-mpfr="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring MPFI"
+    exit 1
+fi
+
+echo "Building and installing MPFI"
+$MAKE install
+
+if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfi.h ]; then
+    echo "An error occurred while building MPFI."
+    exit 1
+fi

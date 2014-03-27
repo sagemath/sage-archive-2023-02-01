@@ -407,7 +407,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
             elif hex_colors:
                 return {rainbow(1)[0]: g.vertices()}
             else:
-                return g.vertices()
+                return [g.vertices()]
         # - Bipartite set
         if g.is_bipartite():
             if value_only:

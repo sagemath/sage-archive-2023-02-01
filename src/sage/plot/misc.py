@@ -236,3 +236,141 @@ def _multiple_of_constant(n,pos,const):
     from sage.rings.arith import convergents
     c=[i for i in convergents(n/const.n()) if i.denominator()<12]
     return '$%s$'%latex(c[-1]*const)
+
+
+def get_matplotlib_linestyle(linestyle, return_type):
+    """
+    Function which translates between matplotlib linestyle in short notation
+    (i.e. '-', '--', ':', '-.') and long notation (i.e. 'solid', 'dashed',
+    'dotted', 'dashdot' ). If linestyle is none of these allowed options the
+    function raises a ValueError.
+
+    INPUT:
+
+    - ``linestyle`` - The style of the line, which is one of
+       - ``"-"`` or ``"solid"``
+       - ``"--"`` or ``"dashed"``
+       - ``"-."`` or ``"dash dot"``
+       - ``":"`` or ``"dotted"``
+       - ``"None"`` or ``" "`` or ``""`` (nothing)
+
+       The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
+
+       - ``"default"`` (connect the points with straight lines)
+       - ``"steps"`` or ``"steps-pre"`` (step function; horizontal
+         line is to the left of point)
+       - ``"steps-mid"`` (step function; points are in the middle of
+         horizontal lines)
+       - ``"steps-post"`` (step function; horizontal line is to the
+         right of point)
+
+       If ``linestyle`` is ``None`` (of type NoneType), then we return it
+       back unmodified.
+
+    - ``return_type`` - The type of linestyle that should be output. This
+      argument takes only two values - ``"long"`` or ``"short"``.
+
+    EXAMPLES:
+
+    Here is an example how to call this function::
+
+        sage: from sage.plot.misc import get_matplotlib_linestyle
+        sage: get_matplotlib_linestyle(':', return_type='short')
+        ':'
+
+        sage: get_matplotlib_linestyle(':', return_type='long')
+        'dotted'
+
+    TESTS:
+
+    Make sure that if the input is already in the desired format, then it
+    is unchanged::
+
+        sage: get_matplotlib_linestyle(':', 'short')
+        ':'
+
+    Empty linestyles should be handled properly::
+
+        sage: get_matplotlib_linestyle("", 'short')
+        ''
+        sage: get_matplotlib_linestyle("", 'long')
+        'None'
+        sage: get_matplotlib_linestyle(None, 'short') is None
+        True
+
+    Linestyles with ``"default"`` or ``"steps"`` in them should also be
+    properly handled.  For instance, matplotlib understands only the short
+    version when ``"steps"`` is used::
+
+        sage: get_matplotlib_linestyle("default", "short")
+        ''
+        sage: get_matplotlib_linestyle("steps--", "short")
+        'steps--'
+        sage: get_matplotlib_linestyle("steps-predashed", "long")
+        'steps-pre--'
+
+    Finally, raise error on invalid linestyles::
+
+        sage: get_matplotlib_linestyle("isthissage", "long")
+        Traceback (most recent call last):
+        ...
+        ValueError: WARNING: Unrecognized linestyle 'isthissage'. Possible
+        linestyle options are:
+        {'solid', 'dashed', 'dotted', dashdot', 'None'}, respectively {'-',
+        '--', ':', '-.', ''}
+
+    """
+    long_to_short_dict={'solid' : '-','dashed' : '--', 'dotted' : ':',
+                        'dashdot':'-.'}
+    short_to_long_dict={'-' : 'solid','--' : 'dashed', ':' : 'dotted',
+                        '-.':'dashdot'}
+
+    # We need this to take care of region plot. Essentially, if None is
+    # passed, then we just return back the same thing.
+    if linestyle is None:
+        return None
+
+    if linestyle.startswith("default"):
+        return get_matplotlib_linestyle(linestyle.strip("default"), "short")
+    elif linestyle.startswith("steps"):
+        if linestyle.startswith("steps-mid"):
+            return "steps-mid" + get_matplotlib_linestyle(
+                                    linestyle.strip("steps-mid"), "short")
+        elif linestyle.startswith("steps-post"):
+            return "steps-post" + get_matplotlib_linestyle(
+                                    linestyle.strip("steps-post"), "short")
+        elif linestyle.startswith("steps-pre"):
+            return "steps-pre" + get_matplotlib_linestyle(
+                                    linestyle.strip("steps-pre"), "short")
+        else:
+            return "steps" + get_matplotlib_linestyle(
+                                    linestyle.strip("steps"), "short")
+
+    if return_type == 'short':
+        if linestyle in short_to_long_dict.keys():
+            return linestyle
+        elif linestyle == "" or linestyle == " " or linestyle == "None":
+            return ''
+        elif linestyle in long_to_short_dict.keys():
+            return long_to_short_dict[linestyle]
+        else:
+            raise ValueError("WARNING: Unrecognized linestyle '%s'. "
+                             "Possible linestyle options are:\n{'solid', "
+                             "'dashed', 'dotted', dashdot', 'None'}, "
+                             "respectively {'-', '--', ':', '-.', ''}"%
+                             (linestyle))
+
+    elif return_type == 'long':
+        if linestyle in long_to_short_dict.keys():
+            return linestyle
+        elif linestyle == "" or linestyle == " " or linestyle == "None":
+            return "None"
+        elif linestyle in short_to_long_dict.keys():
+            return short_to_long_dict[linestyle]
+        else:
+            raise ValueError("WARNING: Unrecognized linestyle '%s'. "
+                             "Possible linestyle options are:\n{'solid', "
+                             "'dashed', 'dotted', dashdot', 'None'}, "
+                             "respectively {'-', '--', ':', '-.', ''}"%
+                             (linestyle))
+

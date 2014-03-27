@@ -29,7 +29,6 @@ from sage.calculus.var import var
 from sage.libs.symmetrica.all import hall_littlewood
 import sfa
 import sage.combinat.partition
-import kfpoly
 from sage.matrix.all import matrix
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -48,14 +47,27 @@ QQt = QQ['t'].fraction_field()
 # Qp basis is computed using symmetrica, while P basis is computed using rigged
 # configurations
 class HallLittlewood(UniqueRepresentation):
+    r"""
+    The family of Hall-Littlewood symmetric function bases.
 
+    The Hall-Littlewood symmetric functions are a family of symmetric
+    functions that depend on a parameter `t`.
+
+    INPUT:
+
+    By default the parameter for these functions is `t`, and
+    whatever the parameter is, it must be in the base ring.
+
+    EXAMPLES::
+
+        sage: SymmetricFunctions(QQ).hall_littlewood(1)
+        Hall-Littlewood polynomials with t=1 over Rational Field
+        sage: SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood()
+        Hall-Littlewood polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+    """
     def __repr__(self):
         r"""
         A string representing the family of Hall-Littlewood symmetric function bases
-
-        INPUT:
-
-        - ``self`` -- a class of Hall-Littlewood symmetric function bases
 
         OUTPUT:
 
@@ -69,21 +81,13 @@ class HallLittlewood(UniqueRepresentation):
         return self._name+ " over %s"%self._sym.base_ring()
 
     def __init__(self, Sym, t = 't'):
-        r"""
-        The family of Hall-Littlewood symmetric function bases
-        By default the paramter for these functions is `t` and
-        whatever the paramter is, it must be in the base ring.
-
-        INPUT:
-
-        - ``self`` -- a class of Hall-Littlewood symmetric function bases
+        """
+        Initialize ``self``.
 
         EXAMPLES::
 
-            sage: SymmetricFunctions(QQ).hall_littlewood(1)
-            Hall-Littlewood polynomials with t=1 over Rational Field
-            sage: SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood()
-            Hall-Littlewood polynomials over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+            sage: HL = SymmetricFunctions(FractionField(QQ['t'])).hall_littlewood()
+            sage: TestSuite(HL).run()
         """
         self._sym = Sym
         if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
@@ -627,7 +631,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
     def transition_matrix(self, basis, n):
         r"""
         Returns the transitions matrix between ``self`` and ``basis`` for the
-        homogenous component of degree ``n``.
+        homogeneous component of degree ``n``.
 
         INPUT:
 
@@ -946,9 +950,10 @@ class HallLittlewood_p(HallLittlewood_generic):
             sage: [f21(p) for p in Partitions(3)]
             [0, 1, t^2 + t]
         """
+        from sage.combinat.sf.kfpoly import schur_to_hl
         t = QQt.gen()
-        zero = self.base_ring()(0)
-        res_dict = kfpoly.schur_to_hl(part, t)
+        zero = self.base_ring().zero()
+        res_dict = schur_to_hl(part, t)
         f = lambda part2: res_dict.get(part2,zero)
         return f
 
@@ -1152,7 +1157,7 @@ class HallLittlewood_qp(HallLittlewood_generic):
         t = QQt.gen()
 
         if part == []:
-            return lambda part2: QQt(1)
+            return lambda part2: QQt.one()
 
         res = hall_littlewood(part) # call to symmetrica (returns in variable x)
         f = lambda part2: res.coefficient(part2).subs(x=t)

@@ -50,8 +50,7 @@ résout le système de façon symbolique :
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(2)*sqrt(5) - 2/3],
-     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(2)*sqrt(5) - 2/3]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3], [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
 
 Pour une résolution numérique, on peut utiliser à la place :
 
@@ -117,7 +116,7 @@ Pour calculer la décomposition en éléments simples de
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/2/(x - 1) - 1/2/(x + 1)
+    -1/2/(x + 1) + 1/2/(x - 1)
 
 .. _section-systems:
 
@@ -150,7 +149,7 @@ transformée de Laplace de :math:`t^2e^t -\sin(t)` s'obtient comme suit :
     sage: t = var("t")
     sage: f = t^2*exp(t) - sin(t)
     sage: f.laplace(t,s)
-    2/(s - 1)^3 - 1/(s^2 + 1)
+    -1/(s^2 + 1) + 2/(s - 1)^3
 
 Voici un exemple plus élaboré. L'élongation à partir du point
 d'équilibre de ressorts couplés attachés à gauche à un mur
@@ -374,12 +373,12 @@ et *Special functions*, respectively) du manuel de référence de Sage
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
+    sage: bessel_I(1,1).n()
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # les quelques derniers chiffres sont aléatoires
-    0.167089499251049...
+    sage: bessel_I(2,1.1).n()
+    0.167089499251049
 
 Pour l'instant, ces fonctions n'ont été adaptées à Sage que pour une
 utilisation numérique. Pour faire du calcul formel, il faut utiliser

@@ -241,6 +241,117 @@ class AbstractTree(object):
         else:
             return Integer(0 if self.is_empty() else 1)
 
+    def _ascii_art_(self):
+        r"""
+        TESTS::
+
+            sage: t = OrderedTree([])
+            sage: ascii_art(t)
+            o
+            sage: t = OrderedTree([[]])
+            sage: aa = ascii_art(t);aa
+            o
+            |
+            o
+            sage: aa.get_baseline()
+            2
+            sage: tt1 = OrderedTree([[],[[],[],[[[[]]]]],[[[],[],[],[]]]])
+            sage: ascii_art(tt1)
+              _____o_______
+             /    /       /
+            o   _o__     o
+               / / /     |
+              o o o    __o___
+                  |   / / / /
+                  o  o o o o
+                  |
+                  o
+                  |
+                  o
+            sage: ascii_art(tt1.canonical_labelling())
+              ______1_______
+             /    /        /
+            2   _3__      10
+               / / /      |
+              4 5 6    ___11____
+                  |   /  /  /  /
+                  7  12 13 14 15
+                  |
+                  8
+                  |
+                  9
+            sage: ascii_art(OrderedTree([[],[[]]]))
+                  o_
+                 / /
+                o o
+                  |
+                  o
+            sage: t = OrderedTree([[[],[[[],[]]],[[]]],[[[[[],[]]]]],[[],[]]])
+            sage: ascii_art(t)
+                  _____o_______
+                 /       /    /
+              __o____   o    o_
+             /   /  /   |   / /
+            o   o  o    o  o o
+                |  |    |
+                o_ o    o
+               / /      |
+              o o       o_
+                       / /
+                      o o
+            sage: ascii_art(t.canonical_labelling())
+                  ______1________
+                 /       /      /
+              __2____   10     16_
+             /   /  /   |     /  /
+            3   4  8    11   17 18
+                |  |    |
+                5_ 9    12
+               / /      |
+              6 7       13_
+                       /  /
+                      14 15
+        """
+        node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
+
+        if self.is_empty():
+            from sage.misc.ascii_art import empty_ascii_art
+            return empty_ascii_art
+
+        from sage.misc.ascii_art import AsciiArt
+        if len(self) == 0:
+            t_repr = AsciiArt( [node_to_str(self)] )
+            t_repr._root = 1
+            return t_repr
+        if len(self) == 1:
+            repr_child = self[0]._ascii_art_()
+            sep = AsciiArt( [" "*(repr_child._root-1)] )
+            t_repr = AsciiArt( [node_to_str(self)] )
+            t_repr._root = 1
+            repr_root = (sep + t_repr)*(sep + AsciiArt( ["|"] ))
+            t_repr = repr_root * repr_child
+            t_repr._root = repr_child._root
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+        # General case
+        l_repr = [subtree._ascii_art_() for subtree in self]
+        acc = l_repr.pop(0)
+        whitesep = acc._root+1
+        lf_sep = " "*(acc._root+1) + "_"*(acc._l-acc._root)
+        ls_sep = " "*(acc._root) + "/" + " "*(acc._l-acc._root)
+        while len(l_repr) > 0:
+            t_repr = l_repr.pop(0)
+            acc += AsciiArt([" "]) + t_repr
+            if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
+            else: lf_sep += "_"*(t_repr._l+1)
+            ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
+        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        node = node_to_str( self )
+        t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
+        t_repr._root = mid
+        t_repr._baseline = t_repr._h - 1
+        return t_repr
+
     def canonical_labelling(self,shift=1):
         """
         Returns a labelled version of ``self``
@@ -273,6 +384,50 @@ class AbstractTree(object):
             liste += [subtree.canonical_labelling(shift+deca)]
             deca += subtree.node_number()
         return LTR._element_constructor_(liste,label=shift)
+
+    def to_hexacode(self):
+        r"""
+        Transform a tree into an hexadecimal string.
+
+        The definition of the hexacode is recursive. The first letter is
+        the valence of the root as an hexadecimal (up to 15), followed by
+        the concatenation of the hexacodes of the subtrees.
+
+        This method only works for trees where every vertex has
+        valency at most 15.
+
+        See :func:`from_hexacode` for the reverse transformation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.abstract_tree import from_hexacode
+            sage: LT = LabelledOrderedTrees()
+            sage: from_hexacode('2010', LT).to_hexacode()
+            '2010'
+            sage: LT.an_element().to_hexacode()
+            '3020010'
+            sage: t = from_hexacode('a0000000000000000', LT)
+            sage: t.to_hexacode()
+            'a0000000000'
+
+            sage: OrderedTrees(6).an_element().to_hexacode()
+            '500000'
+
+        TESTS::
+
+            sage: one = LT([], label='@')
+            sage: LT([one for _ in range(15)], label='@').to_hexacode()
+            'f000000000000000'
+            sage: LT([one for _ in range(16)], label='@').to_hexacode()
+            Traceback (most recent call last):
+            ...
+            ValueError: the width of the tree is too large
+        """
+        if len(self) > 15:
+            raise ValueError("the width of the tree is too large")
+        if self.node_number() == 1:
+            return "0"
+        return "".join(["%x" % len(self)] + [u.to_hexacode() for u in self])
 
     def tree_factorial(self):
         """
@@ -984,3 +1139,93 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
             return self
         return self.parent()([t.map_labels(f) for t in self],
                              label=f(self.label()))
+
+
+def from_hexacode(ch, parent=None, label='@'):
+    r"""
+    Transform an hexadecimal string into a tree.
+
+    INPUT:
+
+    - ``ch`` -- an hexadecimal string
+
+    - ``parent`` -- kind of trees to be produced. If ``None``, this will
+      be ``LabelledOrderedTrees``
+
+    - ``label`` -- a label (default: ``'@'``) to be used for every vertex
+      of the tree
+
+    See :meth:`AbstractTree.to_hexacode` for the description of the encoding
+
+    See :func:`_from_hexacode_aux` for the actual code
+
+    EXAMPLES::
+
+        sage: from sage.combinat.abstract_tree import from_hexacode
+        sage: from_hexacode('12000', LabelledOrderedTrees())
+        @[@[@[], @[]]]
+
+        sage: from_hexacode('1200', LabelledOrderedTrees())
+        @[@[@[], @[]]]
+
+    It can happen that only a prefix of the word is used::
+
+        sage: from_hexacode('a'+14*'0', LabelledOrderedTrees())
+        @[@[], @[], @[], @[], @[], @[], @[], @[], @[], @[]]
+
+    One can choose the label::
+
+        sage: from_hexacode('1200', LabelledOrderedTrees(), label='o')
+        o[o[o[], o[]]]
+
+    One can also create other kinds of trees::
+
+        sage: from_hexacode('1200', OrderedTrees())
+        [[[], []]]
+    """
+    if parent is None:
+        from sage.combinat.rooted_tree import LabelledOrderedTrees
+        parent = LabelledOrderedTrees()
+    return _from_hexacode_aux(ch, parent, label)[0]
+
+
+def _from_hexacode_aux(ch, parent, label='@'):
+    r"""
+    Transform an hexadecimal string into a tree and a remainder string.
+
+    INPUT:
+
+    - ``ch`` -- an hexadecimal string
+
+    - ``parent`` -- kind of trees to be produced.
+
+    - ``label`` -- a label (default: ``'@'``) to be used for every vertex
+      of the tree
+
+    This method is used in :func:`from_hexacode`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.abstract_tree import _from_hexacode_aux
+        sage: _from_hexacode_aux('12000', LabelledOrderedTrees())
+        (@[@[@[], @[]]], '0')
+
+        sage: _from_hexacode_aux('1200', LabelledOrderedTrees())
+        (@[@[@[], @[]]], '')
+
+        sage: _from_hexacode_aux('1200', OrderedTrees())
+        ([[[], []]], '')
+
+        sage: _from_hexacode_aux('a00000000000000', LabelledOrderedTrees())
+        (@[@[], @[], @[], @[], @[], @[], @[], @[], @[], @[]], '0000')
+    """
+    Trees = parent
+    width = int(ch[0], 16)  # hexadecimal input
+    remainder = ch[1:]
+    if width == 0:
+        return (Trees([], label), remainder)
+    branches = {}
+    for i in range(width):
+        tree, remainder = _from_hexacode_aux(remainder, parent, label)
+        branches[i] = tree
+    return (Trees(branches.values(), label), remainder)

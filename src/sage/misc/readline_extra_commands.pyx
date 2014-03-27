@@ -12,35 +12,40 @@ from the history. This is the same command with the same name in the Bash shell.
 
 The ``history-search-backward-and-save`` command searches backward in the history
 for the string of characters from the start of the input line to the current cursor
-position, and fetches the line found. If the cursor is at the start of the line, the previous line
-is fetched. The position of the fetched line is saved internally.
+position, and fetches the first line found. If the cursor is at the start of the line, the previous line
+is fetched. The position of the fetched line is saved internally, and the next search begins at the
+saved position.
 
-The ``history-search-forward-and-save`` command behaves similarly but forward. This
-command is useful to fetch a block of lines from the history by first searching the first
-line of the block and then issuing this command as many times as needed.
+The ``history-search-forward-and-save`` command behaves similarly but forward.
 
-The previous two commands is best used in tandem. They are intended to replace the
-``history-search-backward`` command and the ``history-search-forward`` command provided by
-the GNU readline library used in Sage.
+The previous two commands is best used in tandem to fetch a block of lines from the history,
+by searching backward the first line of the block and then issuing the forward command as many times as needed.
+They are intended to replace the ``history-search-backward`` command and the ``history-search-forward`` command
+provided by the GNU readline library used in Sage.
 
-To bind these commands with keys, insert the relevant lines into the ``$DOT_SAGE/ipython/ipythonrc``
-file. Note that ``$DOT_SAGE`` is ``$HOME/.sage`` by default. For example,
-
+To bind these commands with keys, insert the relevant lines into the IPython configuration file
+``$DOT_SAGE/ipython-0.12/profile_sage/ipython_config.py``.  Note that ``$DOT_SAGE`` is ``$HOME/.sage``
+by default. For example,
 ::
 
-    readline_parse_and_bind "\C-o": operate-and-get-next
-    readline_parse_and_bind "\e[A": history-search-backward-and-save
-    readline_parse_and_bind "\e[B": history-search-forward-and-save
+    c = get_config()
+
+    c.InteractiveShell.readline_parse_and_bind = [
+        '"\C-o": operate-and-get-next',
+        '"\e[A": history-search-backward-and-save',
+        '"\e[B": history-search-forward-and-save'
+        ]
 
 binds the three commands with the control-o key, the up arrow key, and the down arrow key,
-respectively. Warning: Sometimes, these keys may be bound to do other actions by the terminal and does not
+respectively. *Warning:* Sometimes, these keys may be bound to do other actions by the terminal and does not
 reach to the readline properly (check this by running ``stty -a`` and reading the ``cchars`` section). Then
 you may need to turn off these bindings before the new readline commands work fine . A prominent case is when
-control-o is bound to discard by the terminal. You can turn this off by running ``stty discard undef``.
+control-o is bound to ``discard`` by the terminal. You can turn this off by running ``stty discard undef``.
 
 AUTHORS:
 
     - Kwankyu Lee (2010-11-23): initial version
+    - Kwankyu Lee (2013-06-05): updated for the new IPython configuration format.
 """
 
 #*****************************************************************************
@@ -254,3 +259,4 @@ cdef int history_search_backward_and_save(int count,int key):
 rl_add_defun("operate-and-get-next", &operate_and_get_next, -1)
 rl_add_defun("history-search-backward-and-save", &history_search_backward_and_save, -1)
 rl_add_defun("history-search-forward-and-save", &history_search_forward_and_save, -1)
+

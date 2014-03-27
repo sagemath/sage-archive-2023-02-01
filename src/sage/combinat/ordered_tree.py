@@ -21,6 +21,8 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
+from sage.combinat.combinatorial_map import combinatorial_map
+
 
 class OrderedTree(AbstractClonableTree, ClonableList):
     """
@@ -261,6 +263,244 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         return False
 
+    def _to_binary_tree_rec(self, bijection="left"):
+        r"""
+        Internal recursive method to obtain a binary tree from an ordered
+        tree.
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[],[]])
+            sage: T._to_binary_tree_rec()
+            [[., .], .]
+            sage: T._to_binary_tree_rec(bijection="right")
+            [., [., .]]
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T._to_binary_tree_rec()
+            [[[., .], [[., .], .]], [[., .], [., .]]]
+            sage: T._to_binary_tree_rec(bijection="right")
+            [., [[., [., .]], [[., [[., .], .]], .]]]
+        """
+        from sage.combinat.binary_tree import BinaryTree
+        root = BinaryTree()
+        if(bijection=="left"):
+            for child in self:
+                root = BinaryTree([root,child._to_binary_tree_rec(bijection)])
+        elif(bijection=="right"):
+            children = list(self)
+            children.reverse()
+            for child in children:
+                root = BinaryTree([child._to_binary_tree_rec(bijection),root])
+        else:
+            raise ValueError("the bijection argument should be either left or right")
+        return root
+
+    @combinatorial_map(name="To binary tree, left brother = left child")
+    def to_binary_tree_left_branch(self):
+        r"""
+        Return a binary tree of size `n-1` by the following recursive rule:
+
+        - if `x` is the left brother of `y`, `x` becomes the left child
+          of `y`
+        - if `x` is the last child of `y`, `x` becomes the right child
+          of `y`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[],[]])
+            sage: T.to_binary_tree_left_branch()
+            [[., .], .]
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T.to_binary_tree_left_branch()
+            [[[., .], [[., .], .]], [[., .], [., .]]]
+
+        TESTS::
+
+            sage: T = OrderedTree([[],[]])
+            sage: T == T.to_binary_tree_left_branch().to_ordered_tree_left_branch()
+            True
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T == T.to_binary_tree_left_branch().to_ordered_tree_left_branch()
+            True
+        """
+        return self._to_binary_tree_rec()
+
+    @combinatorial_map(name="To binary tree, right brother = right child")
+    def to_binary_tree_right_branch(self):
+        r"""
+        Return a binary tree of size n-1 by the following recursive rule:
+
+        - if `x` is the right brother of `y`, `x` becomes the right child
+          of `y`
+        - if `x` is the first child of `y`, `x` becomes the left child
+          of `y`
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[],[]])
+            sage: T.to_binary_tree_right_branch()
+            [., [., .]]
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T.to_binary_tree_right_branch()
+            [., [[., [., .]], [[., [[., .], .]], .]]]
+
+        TESTS::
+
+            sage: T = OrderedTree([[],[]])
+            sage: T == T.to_binary_tree_right_branch().to_ordered_tree_right_branch()
+            True
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T == T.to_binary_tree_right_branch().to_ordered_tree_right_branch()
+            True
+        """
+        return self._to_binary_tree_rec(bijection="right")
+
+    @combinatorial_map(name="To Dyck path")
+    def to_dyck_word(self):
+        r"""
+        Return the dyck path corresponding to ``self`` where the maximal
+        height of the Dyck path is the depth of ``self`` .
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[],[]])
+            sage: T.to_dyck_word()
+            [1, 0, 1, 0]
+            sage: T = OrderedTree([[],[[]]])
+            sage: T.to_dyck_word()
+            [1, 0, 1, 1, 0, 0]
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T.to_dyck_word()
+            [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0]
+        """
+        word = []
+        for child in self:
+            word.append(1)
+            word.extend(child.to_dyck_word())
+            word.append(0)
+        from sage.combinat.dyck_word import DyckWord
+        return DyckWord(word)
+
+    @combinatorial_map(name="To graph")
+    def to_undirected_graph(self):
+        r"""
+        Return the undirected graph obtained from the tree nodes and edges.
+
+        EXAMPLES::
+
+            sage: t = OrderedTree([])
+            sage: t.to_undirected_graph()
+            Graph on 1 vertex
+            sage: t = OrderedTree([[[]],[],[]])
+            sage: t.to_undirected_graph()
+            Graph on 5 vertices
+
+        If the tree is labelled, we use its labelling to label the graph.
+        Otherwise, we use the graph canonical labelling which means that
+        two different trees can have the same graph.
+
+        EXAMPLES::
+
+            sage: t = OrderedTree([[[]],[],[]])
+            sage: t.canonical_labelling().to_undirected_graph()
+            Graph on 5 vertices
+            sage: t.canonical_labelling().to_undirected_graph() == t.to_undirected_graph()
+            False
+            sage: OrderedTree([[],[]]).to_undirected_graph() == OrderedTree([[[]]]).to_undirected_graph()
+            True
+            sage: OrderedTree([[],[],[]]).to_undirected_graph() == OrderedTree([[[[]]]]).to_undirected_graph()
+            False
+        """
+        from sage.graphs.graph import Graph
+        g = Graph()
+        if self in LabelledOrderedTrees():
+            relabel = False
+        else:
+            self = self.canonical_labelling()
+            relabel = True
+        roots = [self]
+        g.add_vertex(name=self.label())
+        while len(roots)!=0:
+            node = roots.pop()
+            for child in node:
+                g.add_vertex(name=child.label())
+                g.add_edge(child.label(), node.label())
+                roots.append(child)
+        if(relabel):
+            g = g.canonical_label()
+        return g
+
+    @combinatorial_map(name="To poset")
+    def to_poset(self, root_to_leaf = False):
+        r"""
+        Return the poset obtained by interpreting the tree as a hasse
+        diagram. The default orientation is from leaves to root but you can
+        pass ``root_to_leaf=True`` to obtain the inverse orientation.
+
+        INPUT:
+
+        - ``root_to_leaf`` -- boolean, true if the poset orientation should
+          be from root to leaves. It is false by default.
+
+        EXAMPLES::
+
+            sage: t = OrderedTree([])
+            sage: t.to_poset()
+            Finite poset containing 1 elements
+            sage: p = OrderedTree([[[]],[],[]]).to_poset()
+            sage: p.cover_relations()
+            [[0, 4], [1, 4], [2, 3], [3, 4]]
+            sage: p = OrderedTree([[[]],[],[]]).to_poset(root_to_leaf=True)
+            sage: p.cover_relations()
+            [[0, 2], [0, 3], [0, 4], [4, 1]]
+
+        If the tree is labelled, we use its labelling to label the poset.
+        Otherwise, we use the poset canonical labelling::
+
+            sage: t = OrderedTree([[[]],[],[]]).canonical_labelling()
+            sage: t
+            1[2[3[]], 4[], 5[]]
+            sage: t.to_poset().cover_relations()
+            [[5, 1], [4, 1], [3, 2], [2, 1]]
+        """
+        if self in LabelledOrderedTrees():
+            relabel = False
+        else:
+            self = self.canonical_labelling()
+            relabel = True
+        relations = []
+        elements = [self.label()]
+        roots = [self]
+        while len(roots)!=0:
+            node = roots.pop()
+            for child in node:
+                elements.append(child.label())
+                relations.append((node.label(),child.label()) if root_to_leaf else (child.label(),node.label()))
+                roots.append(child)
+        from sage.combinat.posets.posets import Poset
+        p = Poset([elements, relations])
+        if relabel:
+            p = p.canonical_label()
+        return p
+
+    @combinatorial_map(order=2,name="Left-right symmetry")
+    def left_right_symmetry(self):
+        r"""
+        Return the symmetric tree of ``self``
+
+        EXAMPLES::
+
+            sage: T = OrderedTree([[],[[]]])
+            sage: T.left_right_symmetry()
+            [[[]], []]
+            sage: T = OrderedTree([[], [[], []], [[], [[]]]])
+            sage: T.left_right_symmetry()
+            [[[[]], []], [[], []], []]
+        """
+        children = [c.left_right_symmetry() for c in self]
+        children.reverse()
+        return OrderedTree(children)
+
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.rings.integer import Integer
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -398,7 +638,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -409,7 +649,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def labelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -694,7 +934,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def cardinality(self):
         """
-        Returns the cardinality of `self`
+        Return the cardinality of `self`
 
         EXAMPLE::
 
@@ -705,7 +945,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         """
-        Returns a labelled tree
+        Return a labelled tree
 
         EXAMPLE::
 
@@ -730,7 +970,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -741,7 +981,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 

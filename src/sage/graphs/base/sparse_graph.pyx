@@ -1493,10 +1493,10 @@ def _test_adjacency_sequence_out():
     for v in randg.vertex_iterator():
         V[i] = v
         i += 1
-    cdef int *seq
+    cdef int *seq = <int *> sage_malloc(n * sizeof(int))
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
-        seq = g.adjacency_sequence_out(n, V, u)
+        g.adjacency_sequence_out(n, V, u, seq)
         A = [seq[k] for k in range(n)]
         try:
             assert A == list(M[u])
@@ -1504,7 +1504,7 @@ def _test_adjacency_sequence_out():
             sage_free(V)
             sage_free(seq)
             raise AssertionError("Graph adjacency mismatch")
-        sage_free(seq)
+    sage_free(seq)
     sage_free(V)
 
 ###########################################
@@ -1715,7 +1715,7 @@ class SparseGraphBackend(CGraphBackend):
             sage: G.edges()
             [(0, 1, 2)]
 
-        Do we remove loops correctly? (Trac 12135)::
+        Do we remove loops correctly? (:trac:`12135`)::
 
             sage: g=Graph({0:[0,0,0]}, implementation='c_graph', sparse=True)
             sage: g.edges(labels=False)
@@ -1839,6 +1839,15 @@ class SparseGraphBackend(CGraphBackend):
             [(1, 2, 3)]
 
         """
+        # Improvement possible in the code below !
+        #
+        # It is through this function that Sage answers to G.edges(). That's so
+        # unefficient that it hurts to see it. Basically, to answer G.edges(),
+        # Sage first builds the list L of all vertices, then and returns all the
+        # edges which have at least one endpoint in L. That is, absolutely *ALL*
+        # the edges, but it checks this condition on the endpoints for each of
+        # them. It tests containment in a LIST, not even a set. That should
+        # REALLY be updated.
         cdef object v, l, L
         vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
                     self._cg) for v in vertices if self.has_vertex(v)]

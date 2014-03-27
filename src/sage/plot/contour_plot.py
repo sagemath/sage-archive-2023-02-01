@@ -178,7 +178,13 @@ class ContourPlot(GraphicPrimitive):
             linewidths = int(linewidths)
         elif isinstance(linewidths, (list, tuple)):
             linewidths = tuple(int(x) for x in linewidths)
-        linestyles = options.get('linestyles',None)
+
+        from sage.plot.misc import get_matplotlib_linestyle
+        linestyles = options.get('linestyles', None)
+        if isinstance(linestyles, (list, tuple)):
+            linestyles = [get_matplotlib_linestyle(l, 'long') for l in linestyles]
+        else:
+            linestyles = get_matplotlib_linestyle(linestyles, 'long')
         if contours is None:
             CS = subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1),
                                  linewidths=linewidths, linestyles=linestyles, label=options['legend_label'])
@@ -250,8 +256,9 @@ def contour_plot(f, xrange, yrange, **options):
       the widths will be repeated cyclically.
 
     - ``linestyles`` -- string or list of strings (default: None), the
-      style of the lines to be plotted, one of: solid, dashed,
-      dashdot, or dotted.  If the list is shorter than the number of
+      style of the lines to be plotted, one of: ``"solid"``, ``"dashed"``,
+      ``"dashdot"``, ``"dotted"``, respectively ``"-"``, ``"--"``,
+      ``"-."``, ``":"``.  If the list is shorter than the number of
       contours, then the styles will be repeated cyclically.
 
     - ``labels`` -- boolean (default: False) Show level labels or not.
@@ -374,6 +381,10 @@ def contour_plot(f, xrange, yrange, **options):
 
         sage: P=contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],\
         ...    linewidths=[1,5],linestyles=['solid','dashed'])
+        sage: P
+
+        sage: P=contour_plot(x^2-y^2,(x,-3,3),(y,-3,3),contours=[0,1,2,3,4],\
+        ...    linewidths=[1,5],linestyles=['-',':'])
         sage: P
 
     We can add labels and play with them::
@@ -552,7 +563,8 @@ def implicit_plot(f, xrange, yrange, **options):
       widths in the order given.
 
     - ``linestyle`` -- string (default: None), the style of the line to be
-      plotted, one of: solid, dashed, dashdot or dotted.
+      plotted, one of: ``"solid"``, ``"dashed"``, ``"dashdot"`` or
+      ``"dotted"``, respectively ``"-"``, ``"--"``, ``"-."``, or ``":"``.
 
     - ``color`` -- string (default: ``blue``), the color of the plot. Colors are
       defined in :mod:`sage.plot.colors`; try ``colors?`` to see them all.
@@ -733,7 +745,9 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
      - ``bordercol`` -- a color (default: ``None``), the color of the border
        (``'black'`` if ``borderwidth`` or ``borderstyle`` is specified but not ``bordercol``)
 
-    - ``borderstyle``  -- string (default: 'solid'), one of 'solid', 'dashed', 'dotted', 'dashdot'
+    - ``borderstyle``  -- string (default: 'solid'), one of ``'solid'``,
+      ``'dashed'``, ``'dotted'``, ``'dashdot'``, respectively ``'-'``,
+      ``'--'``, ``':'``, ``'-.'``.
 
     - ``borderwidth``  -- integer (default: None), the width of the border in pixels
 

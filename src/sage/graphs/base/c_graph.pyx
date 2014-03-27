@@ -850,12 +850,13 @@ cdef class CGraph:
         """
         raise NotImplementedError()
 
-    cdef int * adjacency_sequence_in(self, int n, int *vertices, int v):
+    cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence):
         r"""
-        Returns the adjacency sequence corresponding to a list of vertices
+        Computes the adjacency sequence corresponding to a list of vertices
         and a vertex.
 
-        See the OUTPUT section for a formal definition.
+        This method fills the array ``sequence``, whose i-th element is set to
+        `1` iff ``(v,vertices[i])`` is an edge.
 
         See the function ``_test_adjacency_sequence()`` of
         ``dense_graph.pyx`` and ``sparse_graph.pyx`` for unit tests.
@@ -876,14 +877,8 @@ cdef class CGraph:
 
         - ``v`` -- a vertex.
 
-        - ``reverse`` (bool) -- if set to ``True``, considers the
-          edges ``(v,vertices[i])`` instead of ``(v,vertices[i])``
-          (only useful for digraphs).
-
-        OUTPUT:
-
-        Returns a list of ``n`` integers, whose i-th element is set to
-        `1` iff ``(v,vertices[i])`` is an edge.
+        - ``sequence`` (int *) -- the memory segment of length `>= n` that is to
+          be filled.
 
         .. SEEALSO::
 
@@ -892,18 +887,16 @@ cdef class CGraph:
             difference only matters for digraphs).
         """
         cdef int i = 0
-        cdef int *seq = <int *>sage_malloc(n * sizeof(int))
         for 0 <= i < n:
-            seq[i] = 1 if self.has_arc_unsafe(vertices[i], v) else 0
+            sequence[i] = self.has_arc_unsafe(vertices[i], v)
 
-        return seq
-
-    cdef int * adjacency_sequence_out(self, int n, int *vertices, int v):
+    cdef adjacency_sequence_out(self, int n, int *vertices, int v, int* sequence):
         r"""
         Returns the adjacency sequence corresponding to a list of vertices
         and a vertex.
 
-        See the OUTPUT section for a formal definition.
+        This method fills the array ``sequence``, whose i-th element is set to
+        `1` iff ``(v,vertices[i])`` is an edge.
 
         See the function ``_test_adjacency_sequence()`` of
         ``dense_graph.pyx`` and ``sparse_graph.pyx`` for unit tests.
@@ -924,10 +917,8 @@ cdef class CGraph:
 
         - ``v`` -- a vertex.
 
-        OUTPUT:
-
-        Returns a list of ``n`` integers, whose i-th element is set to
-        `1` iff ``(v,vertices[i])`` is an edge.
+        - ``sequence`` (int *) -- the memory segment of length `>= n` that is to
+          be filled.
 
         .. SEEALSO::
 
@@ -937,12 +928,8 @@ cdef class CGraph:
 
         """
         cdef int i = 0
-        cdef int *seq = <int *>sage_malloc(n * sizeof(int))
         for 0 <= i < n:
-            seq[i] = 1 if self.has_arc_unsafe(v, vertices[i]) else 0
-
-        return seq
-
+            sequence[i] = self.has_arc_unsafe(v, vertices[i])
 
     cpdef list all_arcs(self, int u, int v):
         """
@@ -1141,7 +1128,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
 
     TESTS:
 
-    We check that the bug described in #8406 is gone::
+    We check that the bug described in :trac:`8406` is gone::
 
         sage: G = Graph()
         sage: R.<a> = GF(3**3)
@@ -1151,7 +1138,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: G.vertices()
         [a^2, x]
 
-    And that the bug described in #9610 is gone::
+    And that the bug described in :trac:`9610` is gone::
 
         sage: n = 20
         sage: k = 3
@@ -1162,6 +1149,16 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: g.strongly_connected_components()
         [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
 
+    The bug in :trac:`14967` and :trac:`14853` is fixed::
+
+        sage: DiGraph({0: {}, 1/2: {}})
+        Multi-digraph on 2 vertices
+        sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
+        sage: G = Graph()
+        sage: G.add_vertices(A)
+        sage: Set(G.vertices()) == A
+        True
+
     """
     cdef int u_int
     if u in vertex_ints:
@@ -1170,7 +1167,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         u_int = u
     except StandardError:
         return -1
-    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels:
+    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
         return -1
     return u_int
 
@@ -1702,6 +1699,9 @@ class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_nbrs(0))
             [1, 4, 5]
         """
+        if not self._directed:
+            return self.iterator_out_nbrs(v)
+
         return iter(set(self.iterator_in_nbrs(v)) |
                     set(self.iterator_out_nbrs(v)))
 
@@ -2656,16 +2656,22 @@ class CGraphBackend(GenericGraphBackend):
            False
 
         A graph with non-integer vertex labels::
+
             sage: Graph(graphs.CubeGraph(3), implementation='c_graph').is_connected()
             True
         """
-        cdef int v_int = 0
-        v_int = bitset_first((<CGraph>self._cg).active_vertices)
+        cdef int v_int
+        cdef CGraph cg = <CGraph> self._cg
+
+        if cg.num_edges() < cg.num_verts - 1:
+            return False
+
+        v_int = bitset_first(cg.active_vertices)
 
         if v_int == -1:
             return True
-        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
-        return len(list(self.depth_first_search(v, ignore_direction=True))) == (<CGraph>self._cg).num_verts
+        v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, cg)
+        return len(list(self.depth_first_search(v, ignore_direction=True))) == cg.num_verts
 
     def is_strongly_connected(self):
         r"""

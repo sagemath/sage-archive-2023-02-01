@@ -35,7 +35,7 @@ AUTHORS:
 REFERENCES:
 
 - Data provided by Jason Grout (Brigham Young University). [Online]
-  Available: http://math.byu.edu/~grout/graphs/
+  Available: http://artsci.drake.edu/grout/graphs/
 """
 
 ################################################################################
@@ -703,7 +703,7 @@ class GraphDatabase(SQLDatabase):
 
         - Data provided by Jason Grout (Brigham Young
           University). [Online] Available:
-          http://math.byu.edu/~grout/graphs/
+          http://artsci.drake.edu/grout/graphs/
 
         EXAMPLE::
 
@@ -905,7 +905,7 @@ class GraphDatabase(SQLDatabase):
             sage: interact(f)
             <html>...
         """
-        from sage.server.notebook.interact import input_grid
+        from sagenb.notebook.interact import input_grid
         arg=['%s=%s'%(word,kwds[word]) for word in kwds]
         boxes=["%s=input_grid(1,2,['=',%s])"%(word,kwds[word]) for word in kwds]
         params = ['%s=%s[0]'%tuple(2*[arg[i].split('=')[0]]) for i in range(len(arg))]
@@ -1059,7 +1059,7 @@ class GraphDatabase(SQLDatabase):
             sage: D.interactive_query(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=5,max_degree=3)
             <html>...</html>
         """
-        from sage.server.notebook.interact import interact
+        from sagenb.notebook.interact import interact
         print '<html><h1>Interactive Graph Query</h1></html>'
         f = self._gen_interact_func(display=display_cols,**kwds)
         interact(f)

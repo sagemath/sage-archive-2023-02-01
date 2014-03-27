@@ -55,19 +55,35 @@ graphplot_options = layout_options.copy()
 graphplot_options.update(
                    {'pos': 'The position dictionary of vertices',
                     'vertex_labels': 'Whether or not to draw vertex labels.',
-                    'vertex_colors': 'Dictionary of vertex coloring : each key is a color recognizable by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed, it looks invisible on the resulting plot (it doesn\'t get drawn).',
+                    'vertex_colors': 'Dictionary of vertex coloring : each '
+                        'key is a color recognizable by matplotlib, and each '
+                        'corresponding entry is a list of vertices. '
+                        'If a vertex is not listed, it looks invisible on '
+                        'the resulting plot (it does not get drawn).',
                     'vertex_size': 'The size to draw the vertices.',
-                    'vertex_shape': 'The shape to draw the vertices, Currently unavailable for Multi-edged DiGraphs.',
+                    'vertex_shape': 'The shape to draw the vertices. '
+                        'Currently unavailable for Multi-edged DiGraphs.',
                     'edge_labels': 'Whether or not to draw edge labels.',
-                    'edge_style': 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot". This currently only works for directed graphs, since we pass off the undirected graph to networkx',
+                    'edge_style': 'The linestyle of the edges. It should be '
+                        'one of "solid", "dashed", "dotted", dashdot", or '
+                        '"-", "--", ":", "-.", respectively. '
+                        'This currently only works for directed graphs, '
+                        'since we pass off the undirected graph to networkx.',
                     'edge_color': 'The default color for edges.',
-                    'edge_colors': 'a dictionary specifying edge colors: each key is a color recognized by matplotlib, and each entry is a list of edges.',
-                    'color_by_label': 'Whether to color the edges according to their labels. This also accepts a function or dictionary mapping labels to colors.',
-                    'partition': 'A partition of the vertex set.  If specified, plot will show each cell in a different color. vertex_colors takes precedence.',
+                    'edge_colors': 'a dictionary specifying edge colors: each '
+                        'key is a color recognized by matplotlib, and each '
+                        'entry is a list of edges.',
+                    'color_by_label': 'Whether to color the edges according '
+                        'to their labels. This also accepts a function or '
+                        'dictionary mapping labels to colors.',
+                    'partition': 'A partition of the vertex set. If specified, '
+                        'plot will show each cell in a different color. '
+                        'vertex_colors takes precedence.',
                     'loop_size': 'The radius of the smallest loop.',
                     'dist': 'The distance between multiedges.',
                     'max_dist': 'The max distance range to allow multiedges.',
-                    'talk': 'Whether to display the vertices in talk mode (larger and white)',
+                    'talk': 'Whether to display the vertices in talk mode '
+                        '(larger and white).',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
 for key, value in graphplot_options.iteritems():
@@ -465,7 +481,10 @@ class GraphPlot(SageObject):
         # Handle base edge options: thickness, linestyle
         eoptions={}
         if 'edge_style' in self._options:
-            eoptions['linestyle'] = self._options['edge_style']
+            from sage.plot.misc import get_matplotlib_linestyle
+            eoptions['linestyle'] = get_matplotlib_linestyle(
+                                        self._options['edge_style'],
+                                        return_type='long')
         if 'thickness' in self._options:
             eoptions['thickness'] = self._options['thickness']
 
@@ -840,6 +859,10 @@ class GraphPlot(SageObject):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
+
+        The ``edge_style`` option may be provided in the short format too::
+
+            sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='--').plot()
 
         TESTS:
 

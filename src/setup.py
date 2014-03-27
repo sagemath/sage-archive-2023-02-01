@@ -38,18 +38,6 @@ except KeyError:
 
 SAGE_INC = os.path.join(SAGE_LOCAL,'include')
 
-SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0])
-if not os.path.exists(SITE_PACKAGES):
-    raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
-
-if not os.path.exists('build/sage'):
-    os.makedirs('build/sage')
-
-sage_link = SITE_PACKAGES + '/sage'
-if not os.path.islink(sage_link) or not os.path.exists(sage_link):
-    os.system('rm -rf "%s"'%sage_link)
-    os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
-
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
                 os.path.join(SAGE_INC, 'csage'),
@@ -525,6 +513,10 @@ if not sdist:
     if os.environ.get('SAGE_DEBUG', None) != 'no':
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
+
+    CYCACHE_DIR = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache'))
+    if os.path.exists(os.path.join(CYCACHE_DIR, os.pardir)):
+        Cython.Compiler.Main.default_options['cache'] = CYCACHE_DIR
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')

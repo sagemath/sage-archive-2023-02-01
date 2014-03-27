@@ -378,7 +378,7 @@ Sage zwar, dass `\sin^2(x) + \cos^2(x) = 1`. Wenn wir den Term aber
 so eingeben, wird er nicht vereinfacht::
 
     sage: sin(x)^2 + cos(x)^2
-    sin(x)^2 + cos(x)^2
+    cos(x)^2 + sin(x)^2
 
 Falls wir alle Terme so weit wie möglich vereinfachen möchten, erreichen
 wir dies mit der ``simplify_full()`` Funktion::
@@ -386,17 +386,13 @@ wir dies mit der ``simplify_full()`` Funktion::
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
-Dabei werden auch Additionstheoreme für trigonometrische Funktionen und
-Logarithmengesetzte eingesetzt::
+Dabei werden auch Additionstheoreme für trigonometrische Funktionen und manche
+Logarithmengesetze eingesetzt::
 
     sage: var('x, y, z')
     (x, y, z)
     sage: (sin(x + y)/(log(x) + log(y))).simplify_full()
-    (sin(x)*cos(y) + sin(y)*cos(x))/log(x*y)
-
-    sage: (log(8)/log(2)).simplify_full()
-    3
-
+    (cos(y)*sin(x) + cos(x)*sin(y))/log(x*y)
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
@@ -411,7 +407,7 @@ verwendet, um einen Term so weit als möglich zu faktorisieren::
     2*x^2 - 2*x - 4
 
     sage: (2*x^2 - 2*x - 4).factor()
-    2*(x - 2)*(x + 1)
+    2*(x + 1)*(x - 2)
 
 Gleichungen
 -----------
@@ -596,7 +592,7 @@ Diese Zerlegung findet ``partial_fraction()`` in Sage für uns::
 
     sage: f(x) = 1/(x^2 -1)
     sage: f.partial_fraction()
-    x |--> 1/2/(x - 1) - 1/2/(x + 1)
+    x |--> -1/2/(x + 1) + 1/2/(x - 1)
 
 Funktions-Graphen darstellen
 ----------------------------
@@ -693,15 +689,25 @@ dies wie folgt ein::
      sage: log(8,2)
      3
 
-Die oben betrachtete Funktion ``simplify_full()`` wendet auch die Logarithmengesetze an, um Terme zu vereinfachen.
+
+Man kann auch die Logarithmengesetze benutzen, um Terme zu zerlegen.
 So können wir zum Beispiel Sage die Zerlegung
 
 .. math:: \log(10^5) = 5\log(2) + 5\log(5)
 
-machen lassen::
+machen lassen.  In diesem Fall benutzen wir nicht ``simplify_full()``, sondern
+die ähnliche Funktion ``simplify_exp``::
 
-    sage: log(10^5).simplify_full()
-    5*log(2) + 5*log(5)
+    sage: log(10^5).simplify_exp()
+    5*log(5) + 5*log(2)
+
+Diese Gesetze können auch umgekehrt verwendet werden, wie in diesem Beispiel::
+
+    sage: (5*log(2) + 5*log(5)).simplify_log()
+    log(100000)
+
+Es geben weitere mögliche Vereinfachungen, die wir hier nicht weiter erwähnen.
+
 
 Trigonometrie
 =============
@@ -780,7 +786,7 @@ Additionstheoreme::
     sage: var('x, y')
     (x, y)
     sage: (sin(x+y)).simplify_full()
-    sin(x)*cos(y) + sin(y)*cos(x)
+    cos(y)*sin(x) + cos(x)*sin(y)
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 

@@ -84,6 +84,54 @@ class HeckeModules(Category_module):
         R = self.base_ring()
         return [ModulesWithBasis(R)]
 
+
+    class ParentMethods:
+
+        def _Hom_(self, Y, category):
+            r"""
+            Returns the homset from ``self`` to ``Y`` in the category ``category``
+
+            INPUT::
+
+            - ``Y`` -- an Hecke module
+            - ``category`` -- a subcategory of :class:`HeckeModules`() or None
+
+            The sole purpose of this method is to construct the homset
+            as a :class:`~sage.modular.hecke.homspace.HeckeModuleHomspace`. If
+            ``category`` is specified and is not a subcategory of
+            :class:`HeckeModules`, a ``TypeError`` is raised instead
+
+            This method is not meant to be called directly. Please use
+            :func:`sage.categories.homset.Hom` instead.
+
+            EXAMPLES::
+
+                sage: M = ModularForms(Gamma0(7), 4)
+                sage: H = M._Hom_(M, category = HeckeModules(QQ)); H
+                Set of Morphisms from Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field to Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(7) of weight 4 over Rational Field in Category of Hecke modules over Rational Field
+                sage: H.__class__
+                <class 'sage.modular.hecke.homspace.HeckeModuleHomspace_with_category'>
+                sage: TestSuite(H).run(skip=["_test_zero", "_test_elements", "_test_an_element", "_test_additive_associativity", "_test_elements_eq", "_test_elements_eq_reflexive", "_test_elements_eq_transitive", "_test_elements_eq_symmetric", "_test_elements_neq", "_test_some_elements"])
+
+            Fixing :meth:`_test_zero` (``__call__`` should accept a
+            function as input) and :meth:`_test_elements*` (modular
+            form morphisms elements should inherit from categories) is
+            :trac:`12879`.
+
+            TESTS::
+
+                sage: H = M._Hom_(M, category = HeckeModules(GF(5))); H
+                Traceback (most recent call last):
+                ...
+                TypeError: Category of Hecke modules over Finite Field of size 5 is not a subcategory of Category of Hecke modules over Rational Field
+
+            """
+            # TODO: double check that it's the correct HeckeModules category below:
+            if category is not None and not category.is_subcategory(HeckeModules(self.base_ring())):
+                raise TypeError, "%s is not a subcategory of %s"%(category, HeckeModules(self.base_ring()))
+            from sage.modular.hecke.homspace import HeckeModuleHomspace
+            return HeckeModuleHomspace(self, Y, category = category)
+
     class HomCategory(HomCategory):
         def extra_super_categories(self):
             """
@@ -94,6 +142,15 @@ class HeckeModules(Category_module):
             """
             return [] # FIXME: what category structure is there on Homsets of hecke modules?
 
-        import sage.modular.hecke.homspace
-        class ParentMethods(sage.modular.hecke.homspace.HeckeModuleHomspace):
+
+        def base_ring(self):
+            """
+            EXAMPLES::
+
+                sage: HeckeModules(QQ).hom_category().base_ring()
+                Rational Field
+            """
+            return self.base().base_ring()
+
+        class ParentMethods:
             pass

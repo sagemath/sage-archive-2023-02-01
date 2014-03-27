@@ -36,7 +36,7 @@ cpdef list all_children(ClonableIntArray v, int max_part):
     EXAMPLES::
 
         sage: from sage.combinat.enumeration_mod_permgroup import all_children
-        sage: from sage.structure.list_clone import IncreasingIntArrays
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: v = IncreasingIntArrays()([1,2,3,4])
         sage: all_children(v, -1)
         [[1, 2, 3, 5]]
@@ -65,7 +65,7 @@ cpdef int lex_cmp_partial(ClonableIntArray v1, ClonableIntArray v2, int step):
     EXAMPLES::
 
         sage: from sage.combinat.enumeration_mod_permgroup import lex_cmp_partial
-        sage: from sage.structure.list_clone import IncreasingIntArrays
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: IA = IncreasingIntArrays()
         sage: lex_cmp_partial(IA([0,1,2,3]),IA([0,1,2,4]),3)
         0
@@ -156,7 +156,7 @@ cpdef bool is_canonical(list sgs, ClonableIntArray v):
         sage: from sage.combinat.enumeration_mod_permgroup import is_canonical
         sage: G = PermutationGroup([[(1,2,3,4)]])
         sage: sgs = G.strong_generating_system()
-        sage: from sage.structure.list_clone import IncreasingIntArrays
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: IA = IncreasingIntArrays()
         sage: is_canonical(sgs, IA([1,2,3,6]))
         False
@@ -204,7 +204,7 @@ cpdef ClonableIntArray canonical_representative_of_orbit_of(list sgs, ClonableIn
         sage: from sage.combinat.enumeration_mod_permgroup import canonical_representative_of_orbit_of
         sage: G = PermutationGroup([[(1,2,3,4)]])
         sage: sgs = G.strong_generating_system()
-        sage: from sage.structure.list_clone import IncreasingIntArrays
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: IA = IncreasingIntArrays()
         sage: canonical_representative_of_orbit_of(sgs, IA([1,2,3,5]))
         [5, 1, 2, 3]
@@ -241,7 +241,7 @@ cpdef list canonical_children(list sgs, ClonableIntArray v, int max_part):
         sage: from sage.combinat.enumeration_mod_permgroup import canonical_children
         sage: G = PermutationGroup([[(1,2,3,4)]])
         sage: sgs = G.strong_generating_system()
-        sage: from sage.structure.list_clone import IncreasingIntArrays
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: IA = IncreasingIntArrays()
         sage: canonical_children(sgs, IA([1,2,3,5]), -1)
         []
@@ -264,7 +264,7 @@ cpdef set orbit(list sgs, ClonableIntArray v):
         sage: from sage.combinat.enumeration_mod_permgroup import orbit, lex_cmp
         sage: G = PermutationGroup([[(1,2,3,4)]])
         sage: sgs = G.strong_generating_system()
-        sage: from sage.structure.list_clone import IncreasingIntArrays
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: IA = IncreasingIntArrays()
         sage: sorted(orbit(sgs, IA([1,2,3,4])), cmp=lex_cmp)
         [[1, 2, 3, 4], [2, 3, 4, 1], [3, 4, 1, 2], [4, 1, 2, 3]]

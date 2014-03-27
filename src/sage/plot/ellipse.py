@@ -144,13 +144,16 @@ class Ellipse(GraphicPrimitive):
         return {'alpha':'How transparent the figure is.',
                 'fill': 'Whether or not to fill the ellipse.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'thickness':'How thick the border of the ellipse is.',
                 'edgecolor':'2D only: The color of the edge as an RGB tuple.',
                 'facecolor':'2D only: The color of the face as an RGB tuple.',
                 'rgbcolor':'The color (edge and face) as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'2D only: The layer level in which to draw',
-                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"2D only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively."}
 
     def _repr_(self):
         """
@@ -179,6 +182,8 @@ class Ellipse(GraphicPrimitive):
             sage: ellipse((3,2),1,2)
         """
         import matplotlib.patches as patches
+        from sage.plot.misc import get_matplotlib_linestyle
+
         options = self.options()
         p = patches.Ellipse(
                 (self.x,self.y),
@@ -193,7 +198,7 @@ class Ellipse(GraphicPrimitive):
             ec = fc = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
-        p.set_linestyle(options['linestyle'])
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_label(options['legend_label'])
         z = int(options.pop('zorder', 0))
         p.set_zorder(z)
@@ -215,7 +220,7 @@ class Ellipse(GraphicPrimitive):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, edgecolor='blue', facecolor='blue', linestyle='solid', zorder=5,
-         aspect_ratio=1.0, legend_label=None)
+         aspect_ratio=1.0, legend_label=None, legend_color=None)
 def ellipse(center, r1, r2, angle=0, **options):
     """
     Return an ellipse centered at a point center = ``(x,y)`` with radii =
@@ -239,7 +244,9 @@ def ellipse(center, r1, r2, angle=0, **options):
 
     - ``thickness`` - default: 1 - thickness of the line
 
-    - ``linestyle`` - default: 'solid'
+    - ``linestyle`` - default: ``'solid'`` - The style of the line, which is one
+      of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
+      ``':'``, ``'-'``, ``'-.'``,  respectively.
 
     - ``edgecolor`` - default: 'black' - color of the contour
 
@@ -247,6 +254,10 @@ def ellipse(center, r1, r2, angle=0, **options):
 
     - ``rgbcolor`` - 2D or 3D plotting.  This option overrides
       ``edgecolor`` and ``facecolor`` for 2D plotting.
+
+    - ``legend_label`` - the label for this item in the legend
+
+    - ``legend_color`` - the color for the legend label
 
     EXAMPLES:
 
@@ -258,6 +269,7 @@ def ellipse(center, r1, r2, angle=0, **options):
     More complicated examples with tilted axes and drawing options::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="dashed")
+        sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="--")
 
     ::
 
@@ -279,6 +291,10 @@ def ellipse(center, r1, r2, angle=0, **options):
         Traceback (most recent call last):
         ...
         NotImplementedError: plotting ellipse in 3D is not implemented
+
+    We can also give ellipses a legend::
+
+        sage: ellipse((0,0),2,1,legend_label="My ellipse", legend_color='green')
     """
     from sage.plot.all import Graphics
     g = Graphics()
@@ -295,6 +311,7 @@ def ellipse(center, r1, r2, angle=0, **options):
     g.add_primitive(Ellipse(center[0],center[1],r1,r2,angle,options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     if len(center)==2:
         return g
     elif len(center)==3:

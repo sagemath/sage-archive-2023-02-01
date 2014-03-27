@@ -1,8 +1,8 @@
 r"""
 Calculus functions.
 """
-
-from sage.matrix.all import matrix, is_Matrix
+from sage.matrix.all import matrix
+from sage.matrix.matrix import is_Matrix
 from sage.structure.element import is_Vector
 from sage.symbolic.ring import is_SymbolicVariable
 from functional import diff
@@ -54,12 +54,12 @@ def wronskian(*args):
     Two-by-two Wronskian of sin(x) and e^x::
 
         sage: wronskian(sin(x), e^x, x)
-        e^x*sin(x) - e^x*cos(x)
+        -cos(x)*e^x + e^x*sin(x)
 
     Or don't put x last::
 
         sage: wronskian(x, sin(x), e^x)
-        (e^x*sin(x) + e^x*cos(x))*x - 2*e^x*sin(x)
+        (cos(x)*e^x + e^x*sin(x))*x - 2*e^x*sin(x)
 
     Example where one of the functions is constant::
 

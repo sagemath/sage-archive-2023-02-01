@@ -20,6 +20,7 @@ from sage.rings.all import Integer
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
+from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.graded_coalgebras import GradedCoalgebras
@@ -268,9 +269,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ['t'])
             sage: from sage.combinat.sf.new_kschur import KBoundedSubspaceBases
             sage: KB = Sym.kBoundedSubspace(3)
-            sage: ks = KB.kschur()
-            sage: KBB = KBoundedSubspaceBases(ks); KBB
-            Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
+            sage: KBB = KBoundedSubspaceBases(KB); KBB
+            Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
         """
         self.t = t
         Category_realization_of_parent.__init__(self, base)
@@ -787,6 +787,51 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             """
             return self.lift().expand(*args,**kwargs)
 
+        def scalar(self, x, zee=None):
+            r"""
+            Return standard scalar product between ``self`` and ``x``.
+
+            INPUT:
+
+            - ``x`` -- element of the ring of symmetric functions over the
+              same base ring as ``self``
+
+            - ``zee`` -- an optional function on partitions giving
+              the value for the scalar product between `p_{\mu}` and `p_{\mu}`
+              (default is to use the standard :meth:`~sage.combinat.sf.sfa.zee` function)
+
+            .. SEEALSO:: :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.scalar`
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ['t'])
+                sage: ks3 = Sym.kschur(3)
+                sage: ks3[3,2,1].scalar( ks3[2,2,2] )
+                t^3 + t
+                sage: dks3 = Sym.kBoundedQuotient(3).dks()
+                sage: [ks3[3,2,1].scalar(dks3(la)) for la in Partitions(6, max_part=3)]
+                [0, 1, 0, 0, 0, 0, 0]
+                sage: dks3 = Sym.kBoundedQuotient(3,t=1).dks()
+                sage: [ks3[2,2,2].scalar(dks3(la)) for la in Partitions(6, max_part=3)]
+                [0, t - 1, 0, 1, 0, 0, 0]
+                sage: ks3 = Sym.kschur(3,t=1)
+                sage: [ks3[2,2,2].scalar(dks3(la)) for la in Partitions(6, max_part=3)]
+                [0, 0, 0, 1, 0, 0, 0]
+                sage: kH = Sym.khomogeneous(4)
+                sage: kH([2,2,1]).scalar(ks3[2,2,1])
+                3
+
+            TESTS::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: ks3 = Sym.kschur(3,1)
+                sage: ks3(1).scalar(ks3([]))
+                1
+            """
+            if hasattr(x, 'lift'):
+                return self.lift().scalar(x.lift(), zee)
+            return self.lift().scalar(x, zee)
+
 
 class kSchur(CombinatorialFreeModule):
     """
@@ -867,6 +912,11 @@ class kSchur(CombinatorialFreeModule):
         r"""
         Computes the change of basis from `k`-Schur functions to Schur functions.
 
+        When `t=1` this procedure does this computation by first factoring out all
+        maximal rectangles, computing all the atoms, and then taking the product
+        again of the `k`-Schur function indexed by the `k`-irreducible partition and
+        the Schur functions indexed by rectangles.
+
         INPUT:
 
         - ``p`` -- a partition
@@ -879,13 +929,126 @@ class kSchur(CombinatorialFreeModule):
             sage: ks = Sym.kschur(4)
             sage: ks._to_schur_on_basis(Partition([3,3,2,1]))
             s[3, 3, 2, 1] + t*s[4, 3, 1, 1] + t*s[4, 3, 2] + t^2*s[4, 4, 1] + t^2*s[5, 3, 1] + t^3*s[5, 4]
+            sage: ks = Sym.kschur(4,1)
+            sage: ks._to_schur_on_basis(Partition([4,4,3,3,2,2,2,1])).coefficient([12,5,4])
+            5
+
+        TESTS::
+
+            sage: ks._to_schur_on_basis(Partition([]))
+            s[]
         """
-        katom = p.k_atom(self.k)
         s = self.realization_of().ambient().schur()
         t = self.realization_of().t
-        if t == 1:
-            return s.sum_of_monomials(tab.shape() for tab in katom)
+        if t == 1: # in this case factor out maximal rectangles for speed
+            pexp = p.to_exp()+[0]*self.k
+            katom = p.k_irreducible(self.k).k_atom(self.k)
+            return s.sum_of_monomials(tab.shape() for tab in katom)*prod(s([r+1]*(self.k-r)) for r in range(self.k) for m in range(pexp[r] // (self.k-r)))
+        katom = p.k_atom(self.k)
         return s.sum_of_terms((tab.shape(), t**tab.charge()) for tab in katom)
+
+    def _multiply_basis( self, left, right ):
+        r"""
+        Multiply two `k`-Schur functions at `t=1` indexed by ``left`` and ``right``
+
+        This algorithm uses the the property that if `R` is an `r \times (k+1-r)`
+        rectangle, then
+
+        .. MATH::
+
+            s_{R} \cdot s^{(k)}_\lambda = s^{(k)}_{R \cup \lambda}
+
+        To compute the product of two `k`-Schur functions, all rectangles are factored
+        out, the product is performed in the Schur basis, then the rectangles are
+        re-inserted.
+
+        INPUT:
+
+        - ``left``, ``right`` -- partitions
+
+        OUTPUT:
+
+        - the product of the `k`-Schur functions indexed by ``left`` and ``right``
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: ks = Sym.kschur(5,1)
+            sage: ks._multiply_basis(Partition([5,4,4,3,3,3]),Partition([4,4,2,2,2,2]))
+            ks5[5, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2]
+            sage: ks._multiply_basis(Partition([5,4,4,3,3,3,1]),Partition([4,4,2]))
+            ks5[5, 4, 4, 4, 4, 3, 3, 3, 2, 1] + ks5[5, 4, 4, 4, 4, 3, 3, 3, 3]
+
+        TESTS::
+
+            sage: ks._multiply_basis(Partition([]), Partition([]))
+            ks5[]
+        """
+        leftir = self._to_schur_on_basis(left.k_irreducible(self.k))
+        rightir = self._to_schur_on_basis(right.k_irreducible(self.k))
+        heart = self.retract( leftir*rightir )
+        leftexp = left.to_exp()
+        rightexp = right.to_exp()
+        rects = sum(([r+1]*(self.k-r) for r in range(len(leftexp)) for m in range(leftexp[r] // (self.k-r))), [])
+        rects += sum(([r+1]*(self.k-r) for r in range(len(rightexp)) for m in range(rightexp[r] // (self.k-r))), [])
+        return heart.map_support(lambda lam: Partition( sorted(lam+rects, reverse=True) ))
+
+    def product( self, left, right ):
+        r"""
+        Take the product of two `k`-Schur functions.
+
+        If `t \neq 1`, then take the product by lifting to the Schur functions and then
+        retracting back into the the `k`-bounded subspace (if possible).
+
+        If `t=1`, then the product is done using
+        :meth:`~AlgebrasWithBasis.ParentMethods._product_from_combinatorial_algebra_multiply`
+        and this method calls :meth:`_multiply_basis`.
+
+        INPUT:
+
+        - ``left``, ``right`` -- elements of the `k`-Schur functions
+
+        OUTPUT:
+
+        - an element of the `k`-Schur functions
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ['t'])
+            sage: ks3 = Sym.kschur(3,1)
+            sage: kH = Sym.khomogeneous(3)
+            sage: ks3(kH[2,1,1])
+            ks3[2, 1, 1] + ks3[2, 2] + ks3[3, 1]
+            sage: ks3([])*kH[2,1,1]
+            ks3[2, 1, 1] + ks3[2, 2] + ks3[3, 1]
+            sage: ks3([3,3,3,2,2,1,1,1])^2
+            ks3[3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1]
+            sage: ks3([3,3,3,2,2,1,1,1])*ks3([2,2,2,2,2,1,1,1,1])
+            ks3[3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1]
+            sage: ks3([2,2,1,1,1,1])*ks3([2,2,2,1,1,1,1])
+            ks3[2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1] + ks3[2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1]
+            sage: ks3[2,1]^2
+            ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1]
+            sage: ks3 = Sym.kschur(3)
+            sage: ks3[2,1]*ks3[2,1]
+            s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+        TESTS::
+
+            sage: Sym = SymmetricFunctions(QQ['t'])
+            sage: ks3 = Sym.kschur(3,1)
+            sage: kH = Sym.khomogeneous(3)
+            sage: ks3.product( ks3([]), ks3([]) )
+            ks3[]
+            sage: ks3.product( ks3([]), kH([]) )
+            ks3[]
+            sage: ks3 = Sym.kschur(3)
+            sage: ks3.product( ks3([]), ks3([]) )
+            ks3[]
+        """
+        if self.realization_of().t==1:
+            return self._product_from_combinatorial_algebra_multiply( left, right )
+        return self.retract(self.lift(left) * self.lift(right))
 
 
 class kHomogeneous(CombinatorialFreeModule):
@@ -979,7 +1142,7 @@ class K_kSchur(CombinatorialFreeModule):
             sage: g = K_kSchur(kB)
             sage: g
             3-bounded Symmetric Functions over Rational Field with t=1 in the K-3-Schur basis
-            sage: g[2,1]*g[1]
+            sage: g[2,1]*g[1]  # takes a while but caches stuff
             -2*Kks3[2, 1] + Kks3[2, 1, 1] + Kks3[2, 2]
             sage: g([])
             Kks3[]
@@ -1051,14 +1214,14 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g._homogeneous_generators_noncommutative_variables_zero_Hecke(2)
-            T1*T0 + T2*T0 + T0*T3 + T3*T2 + T3*T1 + T2*T1
+            T[1,0] + T[2,0] + T[0,3] + T[3,2] + T[3,1] + T[2,1]
             sage: g._homogeneous_generators_noncommutative_variables_zero_Hecke(0)
             1
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
-        from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebraT
+        from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
         W = WeylGroup(['A',self.k,1])
-        H = IwahoriHeckeAlgebraT(W, 0, base_ring = self.base_ring())
+        H = IwahoriHeckeAlgebra(W, 0, base_ring = self.base_ring()).T()
         Hgens = H.algebra_generators()
         S = [w.reduced_word() for w in W.pieri_factors() if w.length() == r]
         return sum( (prod((Hgens[i] for i in w), 1) for w in S), 0 )
@@ -1081,7 +1244,7 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g._homogeneous_basis(Partition([2,1]))
-            T2*T1*T0 + T3*T1*T0 - T1*T0 + T1*T2*T0 + T3*T2*T0 - 2*T2*T0 + T0*T1*T0 + T2*T0*T1 + T1*T0*T3 + T0*T3*T0 - T0*T3 + T2*T0*T3 + T0*T3*T2 + T0*T3*T1 - T3*T2 + T2*T3*T2 - 2*T3*T1 - T2*T1 + T3*T2*T1 + T2*T3*T1 + T3*T1*T2 + T1*T2*T1
+            T[2,1,0] + T[3,1,0] + T[1,2,0] + T[3,2,0] + T[0,1,0] + T[2,0,1] + T[1,0,3] + T[0,3,0] + T[2,0,3] + T[0,3,2] + T[0,3,1] + T[2,3,2] + T[3,2,1] + T[2,3,1] + T[3,1,2] + T[1,2,1] - T[1,0] - 2*T[2,0] - T[0,3] - T[3,2] - 2*T[3,1] - T[2,1]
             sage: g._homogeneous_basis(Partition([]))
             1
         """
@@ -1104,7 +1267,7 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g.homogeneous_basis_noncommutative_variables_zero_Hecke([2,1])
-            T2*T1*T0 + T3*T1*T0 - T1*T0 + T1*T2*T0 + T3*T2*T0 - 2*T2*T0 + T0*T1*T0 + T2*T0*T1 + T1*T0*T3 + T0*T3*T0 - T0*T3 + T2*T0*T3 + T0*T3*T2 + T0*T3*T1 - T3*T2 + T2*T3*T2 - 2*T3*T1 - T2*T1 + T3*T2*T1 + T2*T3*T1 + T3*T1*T2 + T1*T2*T1
+            T[2,1,0] + T[3,1,0] + T[1,2,0] + T[3,2,0] + T[0,1,0] + T[2,0,1] + T[1,0,3] + T[0,3,0] + T[2,0,3] + T[0,3,2] + T[0,3,1] + T[2,3,2] + T[3,2,1] + T[2,3,1] + T[3,1,2] + T[1,2,1] - T[1,0] - 2*T[2,0] - T[0,3] - T[3,2] - 2*T[3,1] - T[2,1]
             sage: g.homogeneous_basis_noncommutative_variables_zero_Hecke([])
             1
         """
@@ -1176,7 +1339,7 @@ class K_kSchur(CombinatorialFreeModule):
             h[2] + h[2, 1] - h[3]
             sage: g._DualGrothendieck(Partition([]))
             h[]
-            sage: g._DualGrothendieck(Partition([4,1]))
+            sage: g._DualGrothendieck(Partition([4,1]))  # long time (5s on sage.math, 2013)
             0
         """
         m = la.size()
@@ -1244,7 +1407,7 @@ class K_kSchur(CombinatorialFreeModule):
 
             sage: g = SymmetricFunctions(QQ).kBoundedSubspace(3,1).K_kschur()
             sage: g.K_k_Schur_non_commutative_variables([2,1])
-            T3*T1*T0 + T1*T2*T0 + T3*T2*T0 - T2*T0 + T0*T1*T0 + T2*T0*T1 + T0*T3*T0 + T2*T0*T3 + T0*T3*T1 + T2*T3*T2 - T3*T1 + T2*T3*T1 + T3*T1*T2 + T1*T2*T1
+            T[3,1,0] + T[1,2,0] + T[3,2,0] + T[0,1,0] + T[2,0,1] + T[0,3,0] + T[2,0,3] + T[0,3,1] + T[2,3,2] + T[2,3,1] + T[3,1,2] + T[1,2,1] - T[2,0] - T[3,1]
             sage: g.K_k_Schur_non_commutative_variables([])
             1
             sage: g.K_k_Schur_non_commutative_variables([4,1])

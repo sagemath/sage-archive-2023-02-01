@@ -24,9 +24,12 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.misc.all import cached_method
-from sage.rings.all import (IntegerRing, is_CommutativeRing,
-                            ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
+from sage.rings.all import (IntegerRing,
+                            ZZ, GF, PowerSeriesRing,
                             Rationals)
+
+from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.morphism import is_RingHomomorphism
 
 def is_Scheme(x):
     """
@@ -353,11 +356,19 @@ class Scheme(Parent):
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.point([4,5])
             (4, 5)
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: E = EllipticCurve([t + 1, t, t, 0, 0])
+            sage: E.point([0, 0])
+            (0 : 0 : 1)
         """
         # todo: update elliptic curve stuff to take point_homset as argument
         from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
         if is_EllipticCurve(self):
-            return self._point(self, v, check=check)
+            try:
+                return self._point(self.point_homset(), v, check=check)
+            except AttributeError:  # legacy code without point_homset
+                return self._point(self, v, check=check)
 
         return self.point_homset() (v, check=check)
 
@@ -658,6 +669,18 @@ class Scheme(Parent):
             sage: S = Spec(ZZ)
             sage: S._Hom_(P)
             Set of rational points of Projective Space of dimension 3 over Integer Ring
+
+        TESTS::
+
+            sage: S._Hom_(P).__class__
+            <class 'sage.schemes.projective.projective_homset.SchemeHomset_points_projective_ring_with_category'>
+
+            sage: E = EllipticCurve('37a1')
+            sage: Hom(E, E).__class__
+            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+
+            sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
+            <class 'sage.schemes.affine.affine_homset.SchemeHomset_points_spec_with_category'>
         """
         from sage.schemes.generic.homset import SchemeHomset
         return SchemeHomset(self, Y, category=category, check=check)

@@ -922,10 +922,21 @@ class LazyFamily(AbstractFamily):
             sage: l = LazyFamily(NonNegativeIntegers(), lambda i: 2*i)
             sage: l.cardinality()
             +Infinity
+
+        TESTS:
+
+        Check that :trac:`15195` is fixed::
+
+            sage: C = CartesianProduct(PositiveIntegers(), [1,2,3])
+            sage: C.cardinality()
+            +Infinity
+            sage: F = Family(C, lambda x: x)
+            sage: F.cardinality()
+            +Infinity
             """
         try:
             return Integer(len(self.set))
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, TypeError):
             return self.set.cardinality()
 
     def __iter__(self):

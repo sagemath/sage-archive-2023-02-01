@@ -1,0 +1,36 @@
+= gf2x =
+
+== Description ==
+gf2x is a C/C++ software package containing routines for fast arithmetic
+in GF(2)[x] (multiplication, squaring, GCD) and searching for
+irreducible/primitive trinomials.
+
+Website: http://gf2x.gforge.inria.fr/
+
+== License ==
+ * GNU GPLv2+.
+
+== SPKG Maintainers ==
+ * Jean-Pierre Flori
+
+== Upstream Contact ==
+ * Richard Brent
+ * Pierrick Gaudry
+ * Emmanuel Thomé
+ * Paul Zimmermann
+
+== Dependencies ==
+ * None
+
+== Special Update/Build Instructions ==
+
+=== Patches ===
+ * no-undefined.patch: pass -no-undefined flag to libtool.
+
+== Changelog ==
+
+=== gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
+  * Trac #15014: Let gf2x build a shared library on Cygwin.
+
+=== gf2x-1.1 (Jean-Pierre Flori, 4 June 2013) ===
+  * Trac #2114: gf2x-1.1.

@@ -19,6 +19,7 @@ graphs.
     :meth:`~Graph.bipartite_sets` | Returns `(X,Y)` where X and Y are the nodes in each bipartite set of graph.
     :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
     :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
+    :meth:`~Graph.join` | Returns the join of self and other.
 
 
 **Distances:**
@@ -52,6 +53,7 @@ graphs.
     :meth:`~Graph.is_long_antihole_free` | Tests whether ``self`` contains an induced anticycle of length at least 5.
     :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
     :meth:`~Graph.is_strongly_regular` | Tests whether ``self`` is strongly regular.
+    :meth:`~Graph.is_distance_regular` | Tests whether ``self`` is distance-regular.
     :meth:`~Graph.is_tree` | Return True if the graph is a tree.
     :meth:`~Graph.is_forest` | Return True if the graph is a forest, i.e. a disjoint union of trees.
     :meth:`~Graph.is_overfull` | Tests whether the current graph is overfull.
@@ -202,6 +204,8 @@ AUTHORS:
 
 - Birk Eisermann (2012-06): added recognition of weakly chordal graphs and
                             long-hole-free / long-antihole-free graphs
+
+- Alexandre P. Zuge (2013-07): added join operation.
 
 
 Graph Format
@@ -502,10 +506,11 @@ Methods
 
 from sage.rings.integer import Integer
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
-
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class Graph(GenericGraph):
     r"""
@@ -658,10 +663,23 @@ class Graph(GenericGraph):
        the graph. Currently, the options are either 'networkx' or
        'c_graph'
 
-    -  ``sparse`` - only for implementation == 'c_graph'.
-       Whether to use sparse or dense graphs as backend. Note that
-       currently dense graphs do not have edge labels, nor can they be
-       multigraphs
+    - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
+      ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+      ``data_structure="dense"``.
+
+    -  ``data_structure`` -- one of the following
+
+       * ``"dense"`` -- selects the :mod:`~sage.graphs.base.dense_graph`
+         backend.
+
+       * ``"sparse"`` -- selects the :mod:`~sage.graphs.base.sparse_graph`
+         backend.
+
+       * ``"static_sparse"`` -- selects the
+         :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
+         than the sparse backend and smaller in memory, but it is immutable).
+
+       *Only available when* ``implementation == 'c_graph'``
 
     -  ``vertex_labels`` - only for implementation == 'c_graph'.
        Whether to allow any object as a vertex (slower), or
@@ -671,7 +689,6 @@ class Graph(GenericGraph):
        the default edge labels used by NetworkX (empty dictionaries)
        to be replaced by None, the default Sage edge label. It is
        set to ``True`` iff a NetworkX graph is on the input.
-
 
     EXAMPLES:
 
@@ -922,9 +939,10 @@ class Graph(GenericGraph):
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=[], weighted=None, implementation='c_graph',
-                 sparse=True, vertex_labels=True, name=None,
-                 multiedges=None, convert_empty_dict_labels_to_None=None):
+                 boundary=None, weighted=None, implementation='c_graph',
+                 data_structure="sparse", vertex_labels=True, name=None,
+                 multiedges=None, convert_empty_dict_labels_to_None=None,
+                 sparse = True):
         """
         TESTS::
 
@@ -954,8 +972,8 @@ class Graph(GenericGraph):
             sage: g.get_pos() == h.get_pos()
             True
 
-        Loops are not counted as multiedges (see trac 11693) and edges
-        are not counted twice ::
+        Loops are not counted as multiedges (see :trac:`11693`) and edges are
+        not counted twice ::
 
             sage: Graph([[1,1]],multiedges=False).num_edges()
             1
@@ -1012,11 +1030,24 @@ class Graph(GenericGraph):
             sage: grafo4 = Graph(matad,format = "adjacency_matrix", weighted=True)
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
+
+        Get rid of mutable default argument for `boundary` (:trac:`14794`)::
+
+            sage: G = Graph(boundary=None)
+            sage: G._boundary
+            []
         """
         GenericGraph.__init__(self)
         msg = ''
         from sage.structure.element import is_Matrix
         from sage.misc.misc import uniq
+
+        if sparse == False:
+            if data_structure != "sparse":
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
+            data_structure = "dense"
+
         if format is None and isinstance(data, str):
             if data[:10] == ">>graph6<<":
                 data = data[10:]
@@ -1417,11 +1448,21 @@ class Graph(GenericGraph):
                     self.add_vertices(range(num_verts))
         elif implementation == 'c_graph':
             if multiedges or weighted:
-                if not sparse:
+                if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+
+            # If the data structure is static_sparse, we first build a graph
+            # using the sparse data structure, then reencode the resulting graph
+            # as a static sparse graph.
             from sage.graphs.base.sparse_graph import SparseGraphBackend
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            CGB = SparseGraphBackend if sparse else DenseGraphBackend
+            if data_structure in ["sparse", "static_sparse"]:
+                CGB = SparseGraphBackend
+            elif data_structure == "dense":
+                 CGB = DenseGraphBackend
+            else:
+                raise ValueError("data_structure must be equal to 'sparse', "
+                                 "'static_sparse' or 'dense'")
             if format == 'Graph':
                 self._backend = CGB(0, directed=False)
                 self.add_vertices(verts)
@@ -1538,12 +1579,16 @@ class Graph(GenericGraph):
             assert format == 'int'
 
         self._pos = pos
-        self._boundary = boundary
+        self._boundary = boundary if boundary is not None else []
         if format != 'Graph' or name is not None:
             self.name(name)
 
-    ### Formats
+        if data_structure == "static_sparse":
+            from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
+            self._backend = ib
 
+    ### Formats
     def graph6_string(self):
         """
         Returns the graph6 representation of the graph as an ASCII string.
@@ -1584,8 +1629,8 @@ class Graph(GenericGraph):
 
         ::
 
-            sage: G = Graph(loops=True, multiedges=True,sparse=True)
-            sage: Graph(':?',sparse=True) == G
+            sage: G = Graph(loops=True, multiedges=True,data_structure="sparse")
+            sage: Graph(':?',data_structure="sparse") == G
             True
         """
         n = self.order()
@@ -1641,6 +1686,22 @@ class Graph(GenericGraph):
 
     ### Attributes
 
+    @combinatorial_map(name="partition of connected components")
+    def to_partition(self):
+        """
+        Return the partition of connected components of ``self``.
+
+        EXAMPLES::
+
+            sage: for x in graphs(3):    print x.to_partition()
+            [1, 1, 1]
+            [2, 1]
+            [3]
+            [3]
+        """
+        from sage.combinat.partition import Partition
+        return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
+
     def is_directed(self):
         """
         Since graph is undirected, returns False.
@@ -1653,7 +1714,6 @@ class Graph(GenericGraph):
         return False
 
     ### Properties
-
     def is_tree(self, certificate = False):
         """
         Tests if the graph is a tree
@@ -1690,6 +1750,17 @@ class Graph(GenericGraph):
             sage: -1 in cycle
             True
 
+        TESTS:
+
+        :trac:`14434` is fixed::
+
+            sage: g = Graph({0:[1,4,5],3:[4,8,9],4:[9],5:[7,8],7:[9]})
+            sage: _,cycle = g.is_tree(certificate=True)
+            sage: g.size()
+            10
+            sage: g.add_cycle(cycle)
+            sage: g.size()
+            10
         """
 
         if self.order() == 0:
@@ -1707,9 +1778,8 @@ class Graph(GenericGraph):
             n = self.order()
             seen = {}
             u = self.vertex_iterator().next()
-            v = self.neighbor_iterator(u).next()
             seen[u] = u
-            stack = [(u,v)]
+            stack = [(u,v) for v in self.neighbor_iterator(u)]
             while stack:
                 u,v = stack.pop(-1)
                 if v in seen:
@@ -1754,7 +1824,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate = True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate = True)
-            (False, [60, 61, 62, 63, 64])
+            (False, [63, 62, 61, 60, 64])
         """
         number_of_connected_components = len(self.connected_components())
         isit = (self.num_verts() ==
@@ -1905,7 +1975,7 @@ class Graph(GenericGraph):
         As any chordal graph is hole-free, interval graphs behave the
         same way::
 
-            sage: g = graphs.RandomInterval(20)
+            sage: g = graphs.RandomIntervalGraph(20)
             sage: g.is_even_hole_free()
             True
 
@@ -2024,7 +2094,7 @@ class Graph(GenericGraph):
 
         As any chordal graph is hole-free, no interval graph has an odd hole::
 
-            sage: g = graphs.RandomInterval(20)
+            sage: g = graphs.RandomIntervalGraph(20)
             sage: g.is_odd_hole_free()
             True
 
@@ -2233,7 +2303,6 @@ class Graph(GenericGraph):
         else:
             raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
-
     def is_split(self):
         r"""
         Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
@@ -2307,7 +2376,6 @@ class Graph(GenericGraph):
 
         return left == right
 
-
     def is_perfect(self, certificate = False):
         r"""
         Tests whether the graph is perfect.
@@ -2357,7 +2425,7 @@ class Graph(GenericGraph):
 
         Interval Graphs, which are chordal graphs, too ::
 
-            sage: g =  graphs.RandomInterval(7)
+            sage: g =  graphs.RandomIntervalGraph(7)
             sage: g.is_perfect()
             True
 
@@ -4284,7 +4352,7 @@ class Graph(GenericGraph):
 
         .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
            Shortest-Path Based Centrality Indices. [Online] Available:
-           http://citeseer.nj.nec.com/brandes00faster.html
+           http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.1504
 
         EXAMPLES::
 
@@ -4395,23 +4463,50 @@ class Graph(GenericGraph):
 
     ### Constructors
 
-    def to_directed(self, implementation='c_graph', sparse=None):
+    def to_directed(self, implementation='c_graph', data_structure=None,
+                    sparse=None):
         """
         Returns a directed version of the graph. A single edge becomes two
         edges, one in each direction.
+
+        INPUT:
+
+         - ``implementation`` - string (default: 'networkx') the
+           implementation goes here.  Current options are only
+           'networkx' or 'c_graph'.
+
+         - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
+           ``"dense"``. See the documentation of :class:`Graph` or
+           :class:`DiGraph`.
+
+         - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
+           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+           ``data_structure="dense"``.
 
         EXAMPLES::
 
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
         """
-        if sparse is None:
+        if sparse != None:
+            if data_structure != None:
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
+            data_structure = "sparse" if sparse else "dense"
+
+        if data_structure is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            sparse = (not isinstance(self._backend, DenseGraphBackend))
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self._backend, SparseGraphBackend):
+                data_structure = "sparse"
+            else:
+                data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
         D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
                     multiedges=self.allows_multiple_edges(),
-                    implementation=implementation, sparse=sparse)
+                    implementation=implementation, data_structure=data_structure)
         D.name(self.name())
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():
@@ -4435,6 +4530,65 @@ class Graph(GenericGraph):
         """
         from copy import copy
         return copy(self)
+
+    def join(self, other, verbose_relabel=True):
+        """
+        Returns the join of self and other.
+
+        INPUT:
+
+        - ``verbose_relabel`` - (defaults to True) If True, each vertex `v` in
+          the first graph will be named '0,v' and each vertex u in the second
+          graph will be named'1,u' in the final graph. If False, the vertices
+          of the first graph and the second graph will be relabeled with
+          consecutive integers.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.union`
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.disjoint_union`
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: H = Graph(2)
+            sage: J = G.join(H); J
+            Cycle graph join : Graph on 5 vertices
+            sage: J.vertices()
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
+            sage: J = G.join(H, verbose_relabel=False); J
+            Cycle graph join : Graph on 5 vertices
+            sage: J.vertices()
+            [0, 1, 2, 3, 4]
+            sage: J.edges()
+            [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None), (1, 2, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
+
+        ::
+
+            sage: G = Graph(3)
+            sage: G.name("Graph on 3 vertices")
+            sage: H = Graph(2)
+            sage: H.name("Graph on 2 vertices")
+            sage: J = G.join(H); J
+            Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
+            sage: J.vertices()
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
+            sage: J = G.join(H, verbose_relabel=False); J
+            Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
+            sage: J.edges()
+            [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
+        """
+        G = self.disjoint_union(other, verbose_relabel)
+        if not verbose_relabel:
+            G.add_edges((u,v) for u in range(self.order())
+                        for v in range(self.order(), self.order()+other.order()))
+        else:
+            G.add_edges(((0,u), (1,v)) for u in self.vertices()
+                        for v in other.vertices())
+
+        G.name('%s join %s'%(self.name(), other.name()))
+        return G
 
     ### Visualization
 
@@ -5564,7 +5718,7 @@ class Graph(GenericGraph):
         REFERENCE:
 
         .. [WPkcore] K-core. Wikipedia. (2007). [Online] Available:
-          http://en.wikipedia.org/wiki/K-core
+          :wikipedia:`K-core`
 
         .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
           Emergence of a Giant k-Core in a Random
@@ -5574,8 +5728,7 @@ class Graph(GenericGraph):
 
         .. [BZ] Vladimir Batagelj and Matjaz Zaversnik. An `O(m)`
           Algorithm for Cores Decomposition of
-          Networks. arXiv:cs/0310049v1. [Online] Available:
-          http://arxiv.org/abs/cs/0310049
+          Networks. :arxiv:`cs/0310049v1`.
 
         EXAMPLES::
 
@@ -6097,6 +6250,9 @@ Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, Non
 
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
+
+import sage.graphs.distances_all_pairs
+Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
 
 # From Python modules
 import sage.graphs.line_graph

@@ -132,18 +132,15 @@ cFiles = Split( "convert.c  interrupt.c  memory.c  mpn_pylong.c  mpz_pylong.c") 
          Split( "mpz_longlong.c stdsage.c  gmp_globals.c" )
 cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 srcFiles = cFiles + cppFiles
+incFiles = Split( "ccobject.h  convert.h  ginac_wrap.h  gmp_globals.h" ) + \
+           Split( "interrupt.h  memory.h  mpn_pylong.h  mpz_longlong.h" ) + \
+           Split( "mpz_pylong.h  ntl_wrap.h  pb_wrap.h  stdsage.h  ZZ_pylong.h" )
 
 lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
                          LIBS=['ntl', 'pari', 'gmp', 'python$PYV'],
                          LIBPATH=['$SAGE_LOCAL/lib','$SAGE_LOCAL/lib/python$PYV/config/'],
                          CPPPATH=includes )
 env.Install("$SAGE_LOCAL/lib", lib)
+env.Install("$SAGE_LOCAL/include/csage", [ os.path.join('include',x) for x in incFiles ])
 
-#Here we only copy the files over if we are on Cygwin.  Otherwise, the
-#library will be handled by the symlinks created in
-#$SAGE_ROOT/devel/sage/spkg-install
-if os.environ['UNAME'] == 'CYGWIN':
-    env.Alias("install", "$SAGE_LOCAL/lib")
-else:
-    env.Alias("install", [lib])
-
+env.Alias("install", "$SAGE_LOCAL")

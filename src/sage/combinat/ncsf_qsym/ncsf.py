@@ -38,10 +38,9 @@ from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import *
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
-from sage.combinat.sf.sf import SymmetricFunctions
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
-    """
+    r"""
     The abstract algebra of non-commutative symmetric functions
 
     We construct the abstract algebra of non-commutative symmetric
@@ -55,7 +54,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: S[2,1]*R[1,2]
         S[2, 1, 1, 2] - S[2, 1, 3]
 
-    NCSF is the unique free (non-commutative!) graded connected algebra, with
+    NCSF is the unique free (non-commutative!) graded connected algebra with
     one generator in each degree::
 
         sage: NCSF.category()
@@ -77,7 +76,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: Psi
         NCSF in the Psi basis
 
-    Elements of Psi are linear combinations of such compositions::
+    Elements of ``Psi`` are linear combinations of basis elements indexed
+    by compositions::
 
       sage: Psi.an_element()
       2*Psi[] + 2*Psi[1] + 3*Psi[1, 1]
@@ -125,9 +125,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Algebra structure
 
-    To start with, Psi is a graded algebra, the grading being induced by the
-    size of compositions. Due to this, the one is the basis element indexed by
-    the empty composition::
+    To start with, ``Psi`` is a graded algebra, the grading being induced by
+    the size of compositions. The one is the basis element indexed by the empty
+    composition::
 
         sage: Psi.one()
         Psi[]
@@ -147,9 +147,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Hopf algebra structure
 
-    ``Psi`` is further endowed with a coalgebra algebra structure (in fact, it is,
-    up to isomorphism, the unique free algebra on primitive elements). The
-    coproduct is an algebra morphism, and therefore determined by its values on
+    ``Psi`` is further endowed with a coalgebra structure. The coproduct
+    is an algebra morphism, and therefore determined by its values on
     the generators; those are primitive::
 
         sage: Psi[1].coproduct()
@@ -157,13 +156,22 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: Psi[2].coproduct()
         Psi[] # Psi[2] + Psi[2] # Psi[]
 
-    The coproduct being cocommutative on the generators is cocommutative everywhere::
+    The coproduct, being cocommutative on the generators, is
+    cocommutative everywhere::
 
         sage: Psi[1,2].coproduct()
         Psi[] # Psi[1, 2] + Psi[1] # Psi[2] + Psi[1, 2] # Psi[] + Psi[2] # Psi[1]
 
-    The antipode is an anti-algebra morphism; in the ``Psi`` basis, it sends
-    the generators to their opposite::
+    The algebra and coalgebra structures on ``Psi`` combine to form a
+    bialgebra structure, which cooperates with the grading to form a
+    connected graded bialgebra. Thus, as any connected graded bialgebra,
+    ``Psi`` is a Hopf algebra. Over ``QQ`` (or any other `\QQ`-algebra),
+    this Hopf algebra ``Psi`` is isomorphic to the tensor algebra of
+    its space of primitive elements.
+
+    The antipode is an anti-algebra morphism; in the ``Psi`` basis, it
+    sends the generators to their opposites and changes their sign if
+    they are of odd degree::
 
         sage: Psi[3].antipode()
         -Psi[3]
@@ -172,7 +180,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: Psi[1,3,2].coproduct().apply_multilinear_morphism(lambda be,ga: Psi(be)*Psi(ga).antipode())
         0
 
-    The counit is defined by sending all elements of positive degree to zero::
+    The counit is defined by sending all elements of positive degree to
+    zero::
 
         sage: S[3].degree(), S[3,1,2].degree(), S.one().degree()
         (3, 6, 0)
@@ -189,7 +198,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Other concrete representations
 
-    TODO: demonstrate how to customize the basis names
+    .. TODO:: demonstrate how to customize the basis names
 
     NCSF admits many other concrete realizations::
 
@@ -197,6 +206,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: ribbon     = NCSF.ribbon()
         sage: complete   = NCSF.complete()
         sage: elementary = NCSF.elementary()
+        sage: monomial   = NCSF.monomial()
 
     To change from one basis to another, one simply does::
 
@@ -205,7 +215,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: Phi(Psi[3])
         -1/4*Phi[1, 2] + 1/4*Phi[2, 1] + Phi[3]
 
-    In general, one can mix up different basis in computations::
+    In general, one can mix up different bases in computations::
 
         sage: Phi[1] * Psi[1]
         Phi[1, 1]
@@ -231,14 +241,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: ribbon(elementary([1,3,2]))
         R[1, 1, 1, 1, 1, 1] + R[1, 1, 1, 2, 1] + R[2, 1, 1, 1, 1] + R[2, 1, 2, 1]
 
-    By mobius inversion on the composition poset, the ribbon
-    basis is then the alternating sum over all compositions fatter than the
-    complement composition in the elementary basis::
+    By Moebius inversion on the composition poset, the ribbon
+    basis element corresponding to a composition `I` is then the
+    alternating sum over all compositions fatter than the
+    complement composition of `I` in the elementary basis::
 
         sage: elementary(ribbon[2,1,2,1])
         L[1, 3, 2] - L[1, 5] - L[4, 2] + L[6]
 
-    TODO: explain the other changes of bases!
+    .. TODO:: explain the other changes of bases!
 
     Here is how to fetch the conversion morphisms::
 
@@ -284,15 +295,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: TestSuite(Psi).run()
         sage: TestSuite(complete).run()
 
-    TODO:
-     - Bases: monomial, fundamental, forgotten, quasi_schur_dual
-           simple() ? (<=> simple modules of HS_n; to be discussed with Florent)
-     - Multiplication in:
-        - fundamental and monomial (cf. Lenny's code)
-        - ribbon (from Mike's code)
-     - Coproducts (most done by coercions)
-     - some_elements in all bases
-     - Systematic coercion checks (in AlgebrasWithBasis().Abstract())
+    .. TODO::
+
+        - Bases: monomial, fundamental, forgotten, quasi_schur_dual
+          simple() ? (<=> simple modules of HS_n; to be discussed with Florent)
+        - Multiplication in:
+
+          - fundamental and monomial (cf. Lenny's code)
+          - ribbon (from Mike's code)
+
+        - Coproducts (most done by coercions)
+        - some_elements in all bases
+        - Systematic coercion checks (in AlgebrasWithBasis().Abstract())
     """
     def __init__(self, R):
         r"""
@@ -359,7 +373,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     def dual(self):
         r"""
-        This function returns the dual to the non-commutative symmetric functions.
+        Return the dual to the non-commutative symmetric functions.
 
         OUTPUT:
 
@@ -390,7 +404,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         def super_categories(self):
             r"""
-            Returns the super categories of the category of bases of the
+            Return the super categories of the category of bases of the
             non-commutative symmetric functions.
 
             OUTPUT:
@@ -426,7 +440,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 OUTPUT:
 
-                - Returns the image of the non-commutative basis element of
+                - The image of the non-commutative basis element of
                   ``self`` indexed by the composition ``I`` under the map from
                   non-commutative symmetric functions to the symmetric
                   functions. This will be a symmetric function.
@@ -479,22 +493,256 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 codomain = on_basis(self.one_basis()).parent()
                 return self.module_morphism(on_basis=on_basis, codomain=codomain)
 
+            def to_ncsym_on_basis(self, I):
+                r"""
+                The image of the basis element indexed by ``I`` under the
+                map `\kappa` to the symmetric functions in non-commuting
+                variables such that for the natural maps `\chi : NCSym \to Sym`
+                and `\rho : NSym \to Sym`, we have `\chi \circ \kappa = \rho`.
+
+                This default implementation does a change of basis and
+                computes the image in the complete basis.
+
+                INPUT:
+
+                - ``I`` -- a composition
+
+                EXAMPLES::
+
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: S.to_ncsym(S[2,1])
+                    1/2*m{{1}, {2}, {3}} + 1/2*m{{1}, {2, 3}} + m{{1, 2}, {3}}
+                     + m{{1, 2, 3}} + 1/2*m{{1, 3}, {2}}
+                    sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+                    sage: R.to_ncsym_on_basis(Composition([2,1]))
+                    1/3*m{{1}, {2}, {3}} + 1/6*m{{1}, {2, 3}} + 2/3*m{{1, 2}, {3}} + 1/6*m{{1, 3}, {2}}
+                """
+                S = self.realization_of().complete()
+                return S.to_ncsym(S(self[I]))
+
+            @lazy_attribute
+            def to_ncsym(self):
+                r"""
+                Morphism `\kappa` of ``self`` to the algebra of symmetric
+                functions in non-commuting variables that for the natural
+                maps `\chi : NCSym \to Sym` and `\rho : NSym \to Sym`, we
+                have `\chi \circ \kappa = \rho`.
+
+                This is constructed by extending the method
+                :meth:`to_ncsym_on_basis` linearly.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: x = R.an_element(); x
+                    2*R[] + 2*R[1] + 3*R[1, 1]
+                    sage: R.to_ncsym(x)
+                    2*m{} + 2*m{{1}} + 3/2*m{{1}, {2}}
+                    sage: S = N.complete()
+                    sage: S.to_ncsym(S[1,2])
+                    1/2*m{{1}, {2}, {3}} + m{{1}, {2, 3}} + 1/2*m{{1, 2}, {3}}
+                     + m{{1, 2, 3}} + 1/2*m{{1, 3}, {2}}
+                    sage: Phi = N.Phi()
+                    sage: Phi.to_ncsym(Phi[1,3])
+                    -1/4*m{{1}, {2}, {3, 4}} - 1/4*m{{1}, {2, 3}, {4}} + m{{1}, {2, 3, 4}}
+                     + 1/2*m{{1}, {2, 4}, {3}} - 1/4*m{{1, 2}, {3, 4}} - 1/4*m{{1, 2, 3}, {4}}
+                     + m{{1, 2, 3, 4}} + 1/2*m{{1, 2, 4}, {3}} + 1/2*m{{1, 3}, {2, 4}}
+                     - 1/4*m{{1, 3, 4}, {2}} - 1/4*m{{1, 4}, {2, 3}}
+                    sage: R.to_ncsym
+                    Generic morphism:
+                      From: Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
+                      To:   Symmetric functions in non-commuting variables over the Rational Field in the monomial basis
+                """
+                from sage.combinat.ncsym.ncsym import SymmetricFunctionsNonCommutingVariables
+                codomain = SymmetricFunctionsNonCommutingVariables(self.base_ring()).monomial()
+                return self.module_morphism(self.to_ncsym_on_basis, codomain=codomain)
+
         class ElementMethods:
+
+            def verschiebung(self, n):
+                r"""
+                Return the image of the noncommutative symmetric function
+                ``self`` under the `n`-th Verschiebung operator.
+
+                The `n`-th Verschiebung operator `\mathbf{V}_n` is defined
+                to be the map from the `\mathbf{k}`-algebra of noncommutative
+                symmetric functions to itself that sends the complete function
+                `S^I` indexed by a composition `I = (i_1, i_2, \ldots , i_k)`
+                to `S^{(i_1/n, i_2/n, \ldots , i_k/n)}` if all of the numbers
+                `i_1, i_2, \ldots, i_k` are divisible by `n`, and to `0`
+                otherwise. This operator `\mathbf{V}_n` is a Hopf algebra
+                endomorphism. For every positive integer `r` with `n \mid r`,
+                it satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = S_{r/n},
+                    \quad \mathbf{V}_n(\Lambda_r) = (-1)^{r - r/n} \Lambda_{r/n},
+                    \quad \mathbf{V}_n(\Psi_r) = n \Psi_r,
+                    \quad \mathbf{V}_n(\Phi_r) = n \Phi_r
+
+                (where `S_r` denotes the `r`-th complete non-commutative
+                symmetric function, `\Lambda_r` denotes the `r`-th elementary
+                non-commutative symmetric function, `\Psi_r` denotes the `r`-th
+                power-sum non-commutative symmetric function of the first kind,
+                and `\Phi_r` denotes the `r`-th power-sum non-commutative
+                symmetric function of the second kind). For every positive
+                integer `r` with `n \not\mid r`, it satisfes
+
+                .. MATH::
+
+                    \mathbf{V}_n(S_r) = \mathbf{V}_n(\Lambda_r)
+                    = \mathbf{V}_n(\Psi_r) = \mathbf{V}_n(\Phi_r) = 0.
+
+                The `n`-th Verschiebung operator is also called the `n`-th
+                Verschiebung endomorphism.
+
+                It is a lift of the `n`-th Verschiebung operator on the ring
+                of symmetric functions (
+                :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+                ) to the ring of noncommutative symmetric functions.
+
+                The action of the `n`-th Verschiebung operator can also be
+                described on the ribbon Schur functions. Namely, every
+                composition `I` of size `n \ell` satisfies
+
+                .. MATH::
+
+                    \mathbf{V}_n ( R_I )
+                    = (-1)^{\ell(I) - \ell(J)}
+                    \cdot R_{J/n},
+
+                where `J` denotes the meet of the compositions `I` and
+                `(\underbrace{n, n, \ldots, n}_{\ell\mbox{ times}})`,
+                where `\ell(I)` is the length of `I`, and
+                where `J / n` denotes the composition obtained by dividing
+                every entry of `J` by `n`.
+                For a composition `I` of size not divisible by `n`, we have
+                `\mathbf{V}_n( R_I ) = 0`.
+
+                .. SEEALSO::
+
+                    :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                The result of applying the `n`-th Verschiebung operator (on the
+                ring of noncommutative symmetric functions) to ``self``.
+
+                EXAMPLES::
+
+                    sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                    sage: S = NSym.S()
+                    sage: S[3,2].verschiebung(2)
+                    0
+                    sage: S[6,4].verschiebung(2)
+                    S[3, 2]
+                    sage: (S[9,1] - S[8,2] + 2*S[6,4] - 3*S[3] + 4*S[[]]).verschiebung(2)
+                    4*S[] + 2*S[3, 2] - S[4, 1]
+                    sage: (S[3,3] - 2*S[2]).verschiebung(3)
+                    S[1, 1]
+                    sage: S([4,2]).verschiebung(1)
+                    S[4, 2]
+                    sage: R = NSym.R()
+                    sage: R([4,2]).verschiebung(2)
+                    R[2, 1]
+
+                Being Hopf algebra endomorphisms, the Verschiebung operators
+                commute with the antipode::
+
+                    sage: all( R(I).verschiebung(2).antipode()
+                    ....:      == R(I).antipode().verschiebung(2)
+                    ....:      for I in Compositions(4) )
+                    True
+
+                They lift the Verschiebung operators of the ring of symmetric
+                functions::
+
+                    sage: all( S(I).verschiebung(2).to_symmetric_function()
+                    ....:      == S(I).to_symmetric_function().verschiebung(2)
+                    ....:      for I in Compositions(4) )
+                    True
+
+                The Frobenius operators on `QSym` are adjoint to the
+                Verschiebung operators on `NSym` with respect to the duality
+                pairing::
+
+                    sage: QSym = QuasiSymmetricFunctions(ZZ)
+                    sage: M = QSym.M()
+                    sage: all( all( M(I).frobenius(3).duality_pairing(S(J))
+                    ....:           == M(I).duality_pairing(S(J).verschiebung(3))
+                    ....:           for I in Compositions(2) )
+                    ....:      for J in Compositions(3) )
+                    True
+                """
+                # Convert to the homogeneous basis, there apply Verschiebung
+                # componentwise, then convert back.
+                parent = self.parent()
+                S = parent.realization_of().S()
+                dct = {Composition(map(lambda i: i // n, I)): coeff
+                       for (I, coeff) in S(self).monomial_coefficients().items()
+                       if all(i % n == 0 for i in I)}
+                return parent(S._from_dict(dct))
+
+            def to_descent_algebra(self, n):
+                r"""
+                Return the image of the ``n``-th degree homogeneous component
+                of ``self`` in the descent algebra of `S_n` over the same
+                base ring as ``self``.
+
+                This is based upon the canonical isomorphism from the
+                `n`-th degree homogeneous component of the algebra of
+                noncommutative symmetric functions to the descent algebra
+                of `S_n`. This isomorphism maps the inner product of
+                noncommutative symmetric functions either to the product
+                in the descent algebra of `S_n` or to its opposite
+                (depending on how the latter is defined).
+
+                OUTPUT:
+
+                - The image of the ``n``-th homogeneous component of ``self``
+                  under the isomorphism into the descent algebra of `S_n`
+                  over the same base ring as ``self``.
+
+                EXAMPLES::
+
+                    sage: S = NonCommutativeSymmetricFunctions(ZZ).S()
+                    sage: S[2,1].to_descent_algebra(3)
+                    B[2, 1]
+                    sage: (S[1,2,1] - 3 * S[1,1,2]).to_descent_algebra(4)
+                    -3*B[1, 1, 2] + B[1, 2, 1]
+                    sage: S[2,1].to_descent_algebra(2)
+                    0
+                    sage: (S[1,2,1] - 3 * S[1,1,2]).to_descent_algebra(1)
+                    0
+                """
+                from sage.combinat.descent_algebra import DescentAlgebra
+                S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
+                S_expansion = S(self)
+                B = DescentAlgebra(self.base_ring(), n).B()
+                return B.sum(coeff * B[I] for I, coeff in S_expansion.monomial_coefficients().items() if sum(I) == n)
 
             def to_symmetric_group_algebra(self):
                 r"""
-                Returns the image of a non-commutative symmetric function into the
+                Return the image of a non-commutative symmetric function into the
                 symmetric group algebra where the ribbon basis element indexed by a
                 composition is associated with the sum of all permutations which have
                 descent set equal to said composition. In compliance with the anti-
-                automorphism between the descent algebra and the non-commutative
+                isomorphism between the descent algebra and the non-commutative
                 symmetric functions, we index descent positions by the reversed composition.
 
                 OUTPUT:
 
-                - The image of ``self`` under the embedding of the
-                  non-commutative symmetric functions in the symmetric group
-                  algebra.
+                - The image of ``self`` under the embedding of the `n`-th
+                  degree homogeneous component of the non-commutative
+                  symmetric functions in the symmetric group algebra of
+                  `S_n`. This can behave unexpectedly when ``self`` is
+                  not homogeneous.
 
                 EXAMPLES::
 
@@ -503,14 +751,28 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     [1, 3, 2] + [2, 3, 1]
                     sage: R([]).to_symmetric_group_algebra()
                     []
+
+                TESTS:
+
+                Sending a noncommutative symmetric function to the symmetric
+                group algebra directly has the same result as going through
+                the descent algebra::
+
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+                    sage: D4 = DescentAlgebra(QQ, 4).D()
+                    sage: all( S[C].to_symmetric_group_algebra()
+                    ....:      == SGA4(D4(S[C].to_descent_algebra(4)))
+                    ....:      for C in Compositions(4) )
+                    True
                 """
-                S=NonCommutativeSymmetricFunctions(self.base_ring()).S()
-                S_expansion=S(self)
+                S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
+                S_expansion = S(self)
                 return sum(S_expansion.coefficient(I)*S._to_symmetric_group_algebra_on_basis(I) for I in S_expansion.support())
 
             def to_symmetric_function(self):
                 r"""
-                Returns the commutative image of a non-commutative symmetric function.
+                Return the commutative image of a non-commutative symmetric function.
 
                 OUTPUT:
 
@@ -532,6 +794,26 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             chi = to_symmetric_function
 
+            def to_ncsym(self):
+                r"""
+                Return the image of ``self`` in the symmetric functions in
+                non-commuting variables under the map that fixes the usual
+                symmetric functions.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: x = R.an_element(); x
+                    2*R[] + 2*R[1] + 3*R[1, 1]
+                    sage: x.to_ncsym()
+                    2*m{} + 2*m{{1}} + 3/2*m{{1}, {2}}
+                    sage: y = N.Phi()[1,2]
+                    sage: y.to_ncsym()
+                    m{{1}, {2, 3}} + m{{1, 2, 3}}
+                """
+                return self.parent().to_ncsym(self)
+
     class MultiplicativeBases(Category_realization_of_parent):
         """
         Category of multiplicative bases of non-commutative symmetric functions.
@@ -551,7 +833,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         def super_categories(self):
             r"""
-            Returns the super categories of the category of multiplicative
+            Return the super categories of the category of multiplicative
             bases of the non-commutative symmetric functions.
 
             OUTPUT:
@@ -572,8 +854,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             @cached_method
             def algebra_generators(self):
                 """
-                Returns the algebra generators of a given multiplicative basis of non-
-                commutative symmetric functions.
+                Return the algebra generators of a given multiplicative basis of
+                non-commutative symmetric functions.
 
                 OUTPUT:
 
@@ -587,7 +869,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     Lazy family (<lambda>(i))_{i in Positive integers}
                     sage: f[1], f[2], f[3]
                     (Psi[1], Psi[2], Psi[3])
-
                 """
                 from sage.sets.family import Family
                 from sage.sets.positive_integers import PositiveIntegers
@@ -595,12 +876,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def product_on_basis(self, composition1, composition2):
                 """
-                Returns the product of two basis elements from the multiplicative basis.
+                Return the product of two basis elements from the multiplicative basis.
                 Multiplication is just concatenation on compositions.
 
                 INPUT:
 
-                - ``composition1, composition2`` -- integer compositions
+                - ``composition1``, ``composition2`` -- integer compositions
 
                 OUTPUT:
 
@@ -622,19 +903,24 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def algebra_morphism(self, on_generators, **keywords):
                 """
-                Given a map on the multiplicative basis, this method returns the algebra
-                morphism which is the linear extension of its image on generators.
+                Given a map defined on the generators of the multiplicative
+                basis ``self``, return the algebra morphism that extends
+                this map to the whole algebra of non-commutative symmetric
+                functions.
 
                 INPUT:
 
-                - ``on_generators`` -- a function defined on the index set of the generators
-                - ``anti`` -- a boolean; defaults to False
-                - ``category`` -- a category; defaults to None
+                - ``on_generators`` -- a function defined on the index set of
+                  the generators (that is, on the positive integers)
+                - ``anti`` -- a boolean; defaults to ``False``
+                - ``category`` -- a category; defaults to ``None``
 
                 OUTPUT:
 
-                - The module morphism of ``self`` which is defined by
-                  ``on_generators`` in the basis ``self``.
+                - The algebra morphism of ``self`` which is defined by
+                  ``on_generators`` in the basis ``self``. When ``anti``
+                  is set to ``True``, an algebra anti-morphism is
+                  computed instead of an algebra morphism.
 
                 EXAMPLES::
 
@@ -671,7 +957,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     2*Psi[] + 3*Psi[2, 2, 3, 3, 1, 1] + Psi[4, 4, 2, 2]
                     sage: f.category()
                     Category of hom sets in Category of modules with basis over Rational Field
-
                 """
                 from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
                 return AlgebraMorphism(self, on_generators, **keywords)
@@ -679,7 +964,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             @lazy_attribute
             def antipode(self):
                 r"""
-                Gives the antipode morphism in the basis.
+                Return the antipode morphism on the basis ``self``.
 
                 OUTPUT:
 
@@ -700,7 +985,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             @lazy_attribute
             def coproduct(self):
                 r"""
-                Gives the coproduct morphism in the basis.
+                Return the coproduct morphism in the basis ``self``.
 
                 OUTPUT:
 
@@ -722,9 +1007,24 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     return NotImplemented
 
     class MultiplicativeBasesOnGroupLikeElements(Category_realization_of_parent):
-        """
-        Category of multiplicative bases on group like elements of
+        r"""
+        Category of multiplicative bases on grouplike elements of
         non-commutative symmetric functions.
+
+        Here, a "multiplicative basis on grouplike elements" means
+        a multiplicative basis whose generators `(f_1, f_2, f_3, \ldots )`
+        satisfy
+
+        .. MATH::
+
+            \Delta(f_i) = \sum_{j=0}^{i} f_j \otimes f_{i-j}
+
+        with `f_0 = 1`. (In other words, the generators are to form a
+        divided power sequence in the sense of a coalgebra.) This
+        does not mean that the generators are grouplike, but means that
+        the element `1 + f_1 + f_2 + f_3 + \cdots` in the completion of
+        the ring of non-commutative symmetric functions with respect
+        to the grading is grouplike.
 
         EXAMPLES::
 
@@ -741,7 +1041,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         def super_categories(self):
             r"""
-            Returns the super categories of the category of multiplicative
+            Return the super categories of the category of multiplicative
             bases of group-like elements of the non-commutative symmetric
             functions.
 
@@ -754,7 +1054,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: N = NonCommutativeSymmetricFunctions(QQ)
                 sage: N.MultiplicativeBasesOnGroupLikeElements().super_categories()
                 [Category of multiplicative bases of Non-Commutative Symmetric Functions over the Rational Field]
-
             """
             return [self.base().MultiplicativeBases()]
 
@@ -762,7 +1061,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def antipode_on_basis(self, composition):
                 """
-                Gives the application of the antipode on a basis element.
+                Return the application of the antipode to a basis element.
 
                 INPUT:
 
@@ -770,8 +1069,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 OUTPUT:
 
-                - The application of the antipode to the basis element indexed
-                  by ``composition``.
+                - The image of the basis element indexed by ``composition``
+                  under the antipode map.
 
                 EXAMPLES::
 
@@ -796,7 +1095,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # @cached_method?
             def coproduct_on_generators(self, i):
                 """
-                Applies the coproduct to the `i^{th}` generator of the algebra.
+                Return the image of the `i^{th}` generator of the algebra under
+                the coproduct.
 
                 INPUT:
 
@@ -804,7 +1104,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 OUTPUT:
 
-                - The result of the coproduct to the `i^{th}` generator of ``self``.
+                - The result of applying the coproduct to the `i^{th}`
+                  generator of ``self``.
 
                 EXAMPLES::
 
@@ -825,10 +1126,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         Category of multiplicative bases of the non-commutative symmetric
         functions whose generators are primitive elements.
 
-        An element is *primitive* if `\Delta(x) = x \otimes 1 + 1 \otimes x`, where
-        `\Delta` is the coproduct of the non-commutative symmetric functions.
+        An element `x` of a bialgebra is *primitive* if
+        `\Delta(x) = x \otimes 1 + 1 \otimes x`, where
+        `\Delta` is the coproduct of the bialgebra.
 
-        From this one can compute the coproduct and the antipode of
+        Given a multiplicative basis and knowing the coproducts and antipodes
+        of its generators, one can compute the coproduct and the antipode of
         any element, since they are respectively algebra morphisms and
         anti-morphisms. See :meth:`~ParentMethods.antipode_on_generators` and
         :meth:`~ParentMethods.coproduct_on_generators`.
@@ -841,7 +1144,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             sage: N.MultiplicativeBasesOnPrimitiveElements()
             Category of multiplicative bases on primitive elements of Non-Commutative Symmetric Functions over the Rational Field
 
-        The Phi and Psi bases are a multiplicative basis whose generators
+        The Phi and Psi bases are multiplicative bases whose generators
         are primitive elements, but the complete and ribbon bases are not::
 
             sage: N.Phi() in N.MultiplicativeBasesOnPrimitiveElements()
@@ -856,7 +1159,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def super_categories(self):
             r"""
-            Returns the super categories of the category of multiplicative
+            Return the super categories of the category of multiplicative
             bases of primitive elements of the non-commutative symmetric
             functions.
 
@@ -869,7 +1172,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: N = NonCommutativeSymmetricFunctions(QQ)
                 sage: N.MultiplicativeBasesOnPrimitiveElements().super_categories()
                 [Category of multiplicative bases of Non-Commutative Symmetric Functions over the Rational Field]
-
             """
             return [self.base().MultiplicativeBases()]
 
@@ -877,17 +1179,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def antipode_on_generators(self, i):
                 r"""
-                Gives the antipode morphism on the generators of a primitive basis of the
-                non-commutative symmetric functions.
+                Return the image of a generator of a primitive basis of
+                the non-commutative symmetric functions under the antipode
+                map.
 
                 INPUT:
 
-                - ``i`` -- a non-negative integer
+                - ``i`` -- a positive integer
 
                 OUTPUT:
 
-                - The antipode module map from non-commutative symmetric
-                  functions on basis ``self``.
+                - The image of the `i`-th generator of the multiplicative
+                  basis ``self`` under the antipode of the algebra of
+                  non-commutative symmetric functions.
 
                 EXAMPLES::
 
@@ -903,15 +1207,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def coproduct_on_generators(self, i):
                 r"""
-                Applies the coproduct to the `i^{th}` generator of the algebra.
+                Return the image of the `i^{th}` generator of the
+                multiplicative basis ``self`` under the coproduct.
 
                 INPUT:
 
-                - ``i`` -- a non-negative integer
+                - ``i`` -- a positive integer
 
                 OUTPUT:
 
-                - The result of the coproduct to the `i^{th}` generator of ``self``.
+                - The result of applying the coproduct to the
+                  `i^{th}` generator of ``self``.
 
                 EXAMPLES::
 
@@ -929,7 +1235,24 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Ribbon(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions in the Ribbon basis.
+        The Hopf algebra of non-commutative symmetric functions in the
+        Ribbon basis.
+
+        The Ribbon basis is defined in Definition 3.12 of [NCSF1]_, where
+        it is denoted by `(R_I)_I`. It is connected to the complete
+        basis of the ring of non-commutative symmetric functions by the
+        following relation: For every composition `I`, we have
+
+        .. MATH::
+
+            R_I = \sum_J (-1)^{\ell(I) - \ell(J)} S^J,
+
+        where the sum is over all compositions `J` which are coarser than
+        `I` and `\ell(I)` denotes the length of `I`. (See the proof of
+        Proposition 4.13 in [NCSF1]_.)
+
+        The elements of the Ribbon basis are commonly referred to as the
+        ribbon Schur functions.
 
         EXAMPLES::
 
@@ -963,7 +1286,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 R[]
 
             We include some sanity tests to verify that conversions between the
-            ribbon basis and other bases works the way they should::
+            ribbon basis and other bases work the way they should::
 
                 sage: R = NonCommutativeSymmetricFunctions(QQ).ribbon()
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
@@ -987,7 +1310,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def dual(self):
             r"""
-            Returns the dual basis to the ribbon basis of the non-commutative symmetric
+            Return the dual basis to the ribbon basis of the non-commutative symmetric
             functions. This is the Fundamental basis of the quasi-symmetric functions.
 
             OUTPUT:
@@ -1004,12 +1327,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def product_on_basis(self, I, J):
             r"""
-            Returns the product of two ribbon basis elements of the non-commutative
+            Return the product of two ribbon basis elements of the non-commutative
             symmetric functions.
 
             INPUT:
 
-            - ``I, J`` -- compositions
+            - ``I``, ``J`` -- compositions
 
             OUTPUT:
 
@@ -1042,8 +1365,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def to_symmetric_function_on_basis(self, I):
             r"""
-            Returns the commutative image of a ribbon basis element of the non-commutative
-            symmetric functions.
+            Return the commutative image of a ribbon basis element of the
+            non-commutative symmetric functions.
 
             INPUT:
 
@@ -1067,15 +1390,32 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             from sage.combinat.sf.sf import SymmetricFunctions
             s = SymmetricFunctions(self.base_ring()).schur()
-            if I==Composition([]):
+            if I == []:
                 return s([])
             return s(I.to_skew_partition())
 
     R = ribbon = Ribbon
 
     class Complete(CombinatorialFreeModule, BindableClass):
-        """
-        The Hopf algebra of non-commutative symmetric functions in the Complete basis.
+        r"""
+        The Hopf algebra of non-commutative symmetric functions in the
+        Complete basis.
+
+        The Complete basis is defined in Definition 3.4 of [NCSF1]_, where
+        it is denoted by `(S^I)_I`. It is a multiplicative basis, and is
+        connected to the elementary generators `\Lambda_i` of the ring of
+        non-commutative symmetric functions by the following relation:
+        Define a non-commutative symmetric function `S_n` for every
+        nonnegative integer `n` by the power series identity
+
+        .. MATH::
+
+            \sum_{k \geq 0} t^k S_k
+            = \left( \sum_{k \geq 0} (-t)^k \Lambda_k \right)^{-1},
+
+        with `\Lambda_0` denoting `1`. For every composition
+        `(i_1, i_2, \ldots, i_k)`, we have
+        `S^{(i_1, i_2, \ldots, i_k)} = S_{i_1} S_{i_2} \cdots S_{i_k}`.
 
         EXAMPLES::
 
@@ -1098,7 +1438,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: TestSuite(S).run()
-
             """
             CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
                                              prefix='S', bracket=False,
@@ -1106,8 +1445,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_elementary_on_basis(self, I):
             r"""
-            Turns an elementary basis element of non-commutative symmetric functions
-            into the complete basis.
+            Expand an elementary basis element of non-commutative symmetric
+            functions in the complete basis.
 
             INPUT:
 
@@ -1128,11 +1467,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             n = I.size()
             minus_one = -self.base_ring().one()
-            return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer () )
+            return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer() )
 
         def dual(self):
             r"""
-            Returns the dual basis to the complete basis of non-commutative symmetric
+            Return the dual basis to the complete basis of non-commutative symmetric
             functions. This is the Monomial basis of quasi-symmetric functions.
 
             OUTPUT:
@@ -1203,11 +1542,15 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_symmetric_group_algebra_on_basis(self, I):
             r"""
-            Returns the image of the complete non-commutative symmetric function in the
-            symmetric group algebra under the embedding of the non-commutative symmetric
-            functions into the symmetric group algebra which sends the complete basis
-            element indexed by the composition ``I`` to the sum of all permutations with
-            right descent set contained in ``I``.
+            Return the image of the complete non-commutative symmetric function indexed
+            by the composition ``I`` in the symmetric group algebra under the canonical
+            embedding of the non-commutative symmetric functions into the symmetric
+            group algebra.
+
+            This embedding sends the complete basis element indexed by the composition
+            ``I`` to the sum of all permutations whose descent composition is fatter
+            than ``I`` (that is, all permutations whose right descent set is contained
+            in the subset corresponding to ``I``).
 
             INPUT:
 
@@ -1228,7 +1571,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             n = sum(I)
             from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
             from sage.sets.set import Set
-            if n==0:
+            if n == 0:
                 return SymmetricGroupAlgebra(self.base_ring(),n).one()
             sga = SymmetricGroupAlgebra(self.base_ring(),n)
             x = sga.zero()
@@ -1238,11 +1581,81 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     x += sga(p)
             return x
 
+        def to_ncsym_on_basis(self, I):
+            r"""
+            Return the image of the complete non-commutative symmetric function
+            in the symmetric functions in non-commuting variables under the
+            embedding `\mathcal{I}` which fixes the symmetric functions.
+
+            This map is defined by
+
+            .. MATH::
+
+                S_n \mapsto \sum_{A \vdash [n]}
+                \frac{\lambda(A)! \lambda(A)^!}{n!} \mathbf{m}_A
+
+            and extended as an algebra homomorphism.
+
+            EXAMPLES::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S.to_ncsym_on_basis(Composition([2]))
+                1/2*m{{1}, {2}} + m{{1, 2}}
+                sage: S.to_ncsym_on_basis(Composition([1,2,1]))
+                1/2*m{{1}, {2}, {3}, {4}} + 1/2*m{{1}, {2}, {3, 4}} + m{{1}, {2, 3}, {4}}
+                 + m{{1}, {2, 3, 4}} + 1/2*m{{1}, {2, 4}, {3}} + 1/2*m{{1, 2}, {3}, {4}}
+                 + 1/2*m{{1, 2}, {3, 4}} + m{{1, 2, 3}, {4}} + m{{1, 2, 3, 4}}
+                 + 1/2*m{{1, 2, 4}, {3}} + 1/2*m{{1, 3}, {2}, {4}} + 1/2*m{{1, 3}, {2, 4}}
+                 + 1/2*m{{1, 3, 4}, {2}} + 1/2*m{{1, 4}, {2}, {3}} + m{{1, 4}, {2, 3}}
+                sage: S.to_ncsym_on_basis(Composition([]))
+                m{}
+
+            TESTS:
+
+            Check that the image under `\mathcal{I}` fixes the
+            symmetric functions::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).monomial()
+                sage: mon = SymmetricFunctions(QQ).monomial()
+                sage: all(S[c].to_ncsym().to_symmetric_function() == S[c].to_symmetric_function()
+                ....:     for i in range(5) for c in Compositions(i))
+                True
+
+            We also check that the `NCSym` monomials agree on the homogeneous
+            and complete basis::
+
+                sage: h = SymmetricFunctions(QQ).h()
+                sage: all(m.from_symmetric_function(h[i]) == S[i].to_ncsym() for i in range(6))
+                True
+            """
+            from sage.combinat.ncsym.ncsym import SymmetricFunctionsNonCommutingVariables
+            m = SymmetricFunctionsNonCommutingVariables(self.base_ring()).m()
+            if I == []:
+                return m.one()
+
+            from sage.combinat.set_partition import SetPartitions
+            R = self.base_ring()
+            P = SetPartitions()
+            c_num = lambda A: prod([factorial(i) for i in A.shape()], R.one())
+            return prod(m.sum_of_terms([(P(A), R(c_num(A) / factorial(n))) for A in SetPartitions(n)], distinct=True)
+                        for n in I)
+
     S = complete = Complete
 
     class Elementary(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions in the Elementary basis.
+        The Hopf algebra of non-commutative symmetric functions in the
+        Elementary basis.
+
+        The Elementary basis is defined in Definition 3.4 of [NCSF1]_,
+        where it is denoted by `(\Lambda^I)_I`. It is a multiplicative
+        basis, and is obtained from the elementary generators
+        `\Lambda_i` of the ring of non-commutative symmetric functions
+        through the formula
+        `\Lambda^{(i_1, i_2, \ldots, i_k)}
+        = \Lambda_{i_1} \Lambda_{i_2} \cdots \Lambda_{i_k}`
+        for every composition `(i_1, i_2, \ldots, i_k)`.
 
         EXAMPLES::
 
@@ -1304,8 +1717,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         # TODO: use alternating_sum_of_finer_compositions, if possible getting rid of this method
         def _from_complete_on_basis(self, I):
             r"""
-            Turns a complete basis element of non-commutative symmetric functions
-            into the elementary basis.
+            Expand a complete basis element of non-commutative symmetric functions
+            in the elementary basis.
 
             INPUT:
 
@@ -1326,13 +1739,42 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             n = I.size()
             minus_one = -self.base_ring().one()
-            return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer () )
+            return self.sum_of_terms( (compo, minus_one**(len(compo)-n)) for compo in I.finer() )
 
     L = elementary = Elementary
 
     class Psi(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions in the Psi basis.
+        The Hopf algebra of non-commutative symmetric functions in the
+        Psi basis.
+
+        The Psi basis is defined in Definition 3.4 of [NCSF1]_, where
+        it is denoted by `(\Psi^I)_I`. It is a multiplicative basis, and
+        is connected to the elementary generators `\Lambda_i` of the ring
+        of non-commutative symmetric functions by the following relation:
+        Define a non-commutative symmetric function `\Psi_n` for every
+        positive integer `n` by the power series identity
+
+        .. MATH::
+
+            \frac{d}{dt} \sigma(t)
+            = \sigma(t) \cdot \left( \sum_{k \geq 1} t^{k-1} \Psi_k \right),
+
+        where
+
+        .. MATH::
+
+            \sigma(t) = \left( \sum_{k \geq 0} (-t)^k \Lambda_k \right)^{-1}
+
+        and where `\Lambda_0` denotes `1`. For every composition
+        `(i_1, i_2, \ldots, i_k)`, we have
+        `\Psi^{(i_1, i_2, \ldots, i_k)}
+        = \Psi_{i_1} \Psi_{i_2} \cdots \Psi_{i_k}`.
+
+        The `\Psi`-basis is a basis only when the base ring is a
+        `\QQ`-algebra (although the `\Psi^I` can be defined over any base
+        ring). The elements of the `\Psi`-basis are known as the
+        "power-sum non-commutative symmetric functions of the first kind".
 
         EXAMPLES::
 
@@ -1364,8 +1806,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         # TODO: should those be defined using algebra morphism?
         def _from_complete_on_generators(self, n):
             r"""
-            Returns the expansion of a complete generator of non-commutative symmetric
-            functions into the Psi basis.
+            Expand a complete generator of non-commutative symmetric
+            functions in the Psi basis.
 
             INPUT:
 
@@ -1396,8 +1838,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_complete_on_basis(self, I):
             r"""
-            Turns a complete basis element of non-commutative symmetric functions
-            into the Psi basis.
+            Expand a complete basis element of non-commutative symmetric functions
+            in the Psi basis.
 
             INPUT:
 
@@ -1405,7 +1847,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the complete function indexed by ``I`` into the
+            - The expansion of the complete function indexed by ``I`` in the
               Psi basis.
 
             TESTS::
@@ -1432,8 +1874,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_complete_on_basis(self, I):
             r"""
-            Turns a Psi basis element of non-commutative symmetric functions
-            into the complete basis.
+            Expand a Psi basis element of non-commutative symmetric functions
+            in the complete basis.
 
             INPUT:
 
@@ -1441,7 +1883,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the Psi function indexed by ``I`` into the
+            - The expansion of the Psi function indexed by ``I`` in the
               complete basis.
 
             TESTS::
@@ -1471,7 +1913,30 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Phi(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of non-commutative symmetric functions in the Phi basis.
+        The Hopf algebra of non-commutative symmetric functions in the
+        Phi basis.
+
+        The Phi basis is defined in Definition 3.4 of [NCSF1]_, where
+        it is denoted by `(\Phi^I)_I`. It is a multiplicative basis, and
+        is connected to the elementary generators `\Lambda_i` of the ring
+        of non-commutative symmetric functions by the following relation:
+        Define a non-commutative symmetric function `\Phi_n` for every
+        positive integer `n` by the power series identity
+
+        .. MATH::
+
+            \sum_{k\geq 1} t^k \frac{1}{k} \Phi_k
+            = -\log \left( \sum_{k \geq 0} (-t)^k \Lambda_k \right),
+
+        with `\Lambda_0` denoting `1`. For every composition
+        `(i_1, i_2, \ldots, i_k)`, we have
+        `\Phi^{(i_1, i_2, \ldots, i_k)}
+        = \Phi_{i_1} \Phi_{i_2} \cdots \Phi_{i_k}`.
+
+        The `\Phi`-basis is well-defined only when the base ring is a
+        `\QQ`-algebra. The elements of the `\Phi`-basis are known as the
+        "power-sum non-commutative symmetric functions of the second
+        kind".
 
         EXAMPLES::
 
@@ -1503,8 +1968,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_complete_on_basis(self, I):
             r"""
-            Turns a complete basis element of non-commutative symmetric functions
-            into the Phi basis.
+            Expand a complete basis element of non-commutative symmetric
+            functions in the Phi basis.
 
             INPUT:
 
@@ -1512,7 +1977,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the complete function indexed by ``I`` into the
+            - The expansion of the complete function indexed by ``I`` in the
               Phi basis.
 
             TESTS::
@@ -1540,8 +2005,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_complete_on_basis(self, I):
             r"""
-            Turns a Phi basis element of non-commutative symmetric functions
-            into the complete basis.
+            Expand a Phi basis element of non-commutative symmetric functions
+            in the complete basis.
 
             INPUT:
 
@@ -1549,7 +2014,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the Phi function indexed by ``I`` into the
+            - The expansion of the Phi function indexed by ``I`` in the
               complete basis.
 
             TESTS::
@@ -1580,9 +2045,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     class Monomial(CombinatorialFreeModule, BindableClass):
         def __init__(self, NCSF):
             r"""
-            Basis from 'Noncommutative Analogs of Monomial Symmetric
-            Functions, Cauchy Identity, and Hall Scalar Product'
-            Lenny Tevlin arXiv:0712.2201v1 [math.CO]
+            The monomial basis defined in Tevlin's paper [Tev2007]_. It
+            is the basis denoted by `(M^I)_I` in that paper.
+
+            The Monomial basis is well-defined only when the base ring is a
+            `\QQ`-algebra.
 
             TESTS::
 
@@ -1617,8 +2084,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_complete_on_basis(self, I):
             r"""
-            Turns a Monomial basis element of non-commutative symmetric functions
-            into the complete basis.
+            Expand a Monomial basis element of non-commutative symmetric functions
+            in the complete basis.
 
             INPUT:
 
@@ -1627,7 +2094,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the Monomial function indexed by ``I`` into the complete
+            - The expansion of the Monomial function indexed by ``I`` in the complete
               basis.
 
             TESTS::
@@ -1648,8 +2115,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_psi_on_basis(self, I):
             r"""
-            Turns a Psi basis element of non-commutative symmetric functions
-            into the Monomial basis.
+            Expand a Psi basis element of non-commutative symmetric functions
+            in the Monomial basis.
 
             INPUT:
 
@@ -1677,7 +2144,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             sum_of_elements = M.zero()
             for J in Compositions(I.size()):
                 if I.is_finer(J):
-                    len_of_J = J.to_partition().length()
+                    len_of_J = len(J)
                     p = [0] + Composition(I).refinement_splitting_lengths(J).partial_sums()
                     sum_of_elements += prod( (len_of_J - k)**(p[k+1]-p[k]) for k in range(len_of_J) ) * M(J)
             return sum_of_elements
@@ -1687,9 +2154,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     class Immaculate(CombinatorialFreeModule, BindableClass):
         def __init__(self, NCSF):
             r"""
-            The immaculate basis of the non-commutative symmetric functions. This basis first
-            appears in Berg, Bergeron, Saliola, Serrano and Zabrocki's "A lift of the Schur and Hall-Littlewood
-            bases to non-commutative symmetric functions" arXiv:1208.5191.
+            The immaculate basis of the non-commutative symmetric
+            functions. This basis first appears in Berg, Bergeron,
+            Saliola, Serrano and Zabrocki's [BBSSZ2012]_.
 
             EXAMPLES::
 
@@ -1720,7 +2187,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     category = category)
             to_S.register_as_coercion()
 
-            from_S= S.module_morphism(
+            from_S = S.module_morphism(
                         on_basis = self._from_complete_on_basis,
                         codomain = self,
                         category = category)
@@ -1737,10 +2204,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return "Immaculate"
 
-        def _H( self, alpha ):
+        def _H(self, alpha):
             r"""
-            Returns the complete basis element indexed by a list if the list happens to
-            be a composition. Otherwise, returns 0.
+            Return the complete basis element indexed by a list ``alpha`` if
+            the list happens to be a composition (possibly with `0`s
+            interspersed). Otherwise, return `0`.
 
             INPUT:
 
@@ -1749,8 +2217,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - Returns the complete basis element indexed by ``alpha`` when alpha is a list.
-              Otherwise, returns 0
+            - the complete basis element indexed by ``alpha`` (with any
+              zeroes removed) if all entries of ``alpha`` are nonnegative;
+              otherwise, `0`
 
             EXAMPLES::
 
@@ -1763,25 +2232,27 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S[1, 2]
             """
             S = NonCommutativeSymmetricFunctions(self.base_ring()).complete()
-            if any( d<0 for d in alpha ):
+            if any( d < 0 for d in alpha ):
                 return 0
-            return S( [ d for d in alpha if d>0 ] )
+            return S( [ d for d in alpha if d > 0 ] )
 
         @cached_method
         def _to_complete_on_basis(self, alpha):
             r"""
-            Gives the expansion of an Immaculate basis element to the complete basis.
+            Return the expansion of an Immaculate basis element in the
+            complete basis.
 
             INPUT:
 
             - ``self`` - the Immaculate basis of the non-commutative
               symmetric functions
-            - ``I`` - a composition
+            - ``alpha`` - a composition
 
             OUTPUT:
 
-            - The expansion of the basis element of ``self`` indexed by the composition
-              ``I`` into the complete basis.
+            - The expansion in the complete basis of the basis element
+              of the Immaculate basis ``self`` indexed by the
+              composition ``alpha``.
 
             EXAMPLES::
 
@@ -1800,7 +2271,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def _from_complete_on_basis(self, comp_content):
             r"""
-            Gives the expansion of a complete basis element to the Immaculate.
+            Return the expansion of a complete basis element in the
+            Immaculate basis.
 
             INPUT:
 
@@ -1808,8 +2280,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion of the basis element of the complete basis indexed by the
-              composition ``comp_content`` into the Immaculate.
+            - The expansion in the Immaculate basis of the basis element
+              of the complete basis indexed by the composition
+              ``comp_content`` .
 
             EXAMPLES::
 
@@ -1820,10 +2293,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 I[2, 1, 3] + I[2, 2, 2] + I[2, 3, 1] + I[2, 4] + I[3, 1, 2] + I[3, 2, 1] + 2*I[3, 3] + I[4, 1, 1] + 2*I[4, 2] + 2*I[5, 1] + I[6]
             """
             I = NonCommutativeSymmetricFunctions(self.base_ring()).I()
-            if comp_content==[]:
+            if comp_content == []:
                 return I([])
             else:
-                return sum( number_of_fCT(comp_content,comp_shape) *I(comp_shape) \
-                            for comp_shape in Compositions(Composition(comp_content).size()))
+                return sum( number_of_fCT(comp_content,comp_shape) * I(comp_shape) \
+                            for comp_shape in Compositions(Composition(comp_content).size()) )
 
     I = Immaculate

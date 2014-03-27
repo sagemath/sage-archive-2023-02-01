@@ -56,6 +56,31 @@ class FiniteCoxeterGroups(Category):
         return [CoxeterGroups(), FiniteGroups()]
 
     class ParentMethods:
+
+        """
+        Ambiguity resolution: the implementation of ``some_elements``
+        is preferable to that of :class:`FiniteGroups`. The same holds
+        for ``__iter__``, although a breath first search would be more
+        natural; at least this maintains backward compatibility after
+        :trac:`13589`.
+
+        TESTS::
+
+            sage: W = FiniteCoxeterGroups().example(3)
+
+            sage: W.some_elements.__module__
+            'sage.categories.coxeter_groups'
+            sage: W.__iter__.__module__
+            'sage.categories.coxeter_groups'
+
+            sage: W.some_elements()
+            [(1,), (2,), (), (1, 2)]
+            sage: list(W)
+            [(), (1,), (1, 2), (1, 2, 1), (2,), (2, 1)]
+        """
+        some_elements = CoxeterGroups.ParentMethods.__dict__["some_elements"]
+        __iter__      = CoxeterGroups.ParentMethods.__dict__["__iter__"]
+
         @lazy_attribute
         def w0(self):
             r"""

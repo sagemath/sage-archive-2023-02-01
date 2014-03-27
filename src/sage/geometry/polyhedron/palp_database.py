@@ -79,7 +79,7 @@ class PALPreader(SageObject):
         sage: iter(PALPreader(2, output='PPL')).next()
         A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
         sage: type(_)
-        <class 'sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class'>
+        <class 'sage.geometry.polyhedron.ppl_lattice_polygon.LatticePolygon_PPL_class'>
 
         sage: iter(PALPreader(2, output='PointCollection')).next()
         [ 1,  0],
@@ -106,8 +106,8 @@ class PALPreader(SageObject):
             self._data_basename = data_basename
         else:
             import os
-            SAGE_DATA = os.getenv('SAGE_DATA')
-            self._data_basename = os.path.join(SAGE_DATA, 'reflexive_polytopes',
+            from sage.env import SAGE_SHARE
+            self._data_basename = os.path.join(SAGE_SHARE, 'reflexive_polytopes',
                                                'Full'+str(dim)+'d', 'zzdb')
             info = self._data_basename + '.info'
             if not os.path.exists(info):
@@ -435,8 +435,8 @@ class Reflexive4dHodge(PALPreader):
         dim = 4
         if data_basename is None:
             import os
-            SAGE_DATA = os.getenv('SAGE_DATA')
-            data_basename = os.path.join(SAGE_DATA, 'reflexive_polytopes',
+            from sage.env import SAGE_SHARE
+            data_basename = os.path.join(SAGE_SHARE, 'reflexive_polytopes',
                                          'Hodge4d', 'all')
             info = data_basename + '.vinfo'
             if not os.path.exists(info):

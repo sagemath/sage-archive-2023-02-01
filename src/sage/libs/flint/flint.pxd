@@ -4,5 +4,7 @@ cdef extern from "flint/flint.h":
     cdef long FLINT_D_BITS
 
     cdef unsigned long FLINT_BIT_COUNT(unsigned long)
+
+cdef extern from "flint/fmpz.h":
     void _fmpz_cleanup()
     void _fmpz_cleanup_mpz_content()

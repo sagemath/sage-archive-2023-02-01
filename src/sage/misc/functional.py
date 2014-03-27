@@ -578,7 +578,7 @@ def symbolic_sum(expression, *args, **kwds):
     ::
 
         sage: sum(k * binomial(n, k), k, 1, n)
-        n*2^(n - 1)
+        2^(n - 1)*n
 
     ::
 
@@ -658,15 +658,16 @@ def symbolic_sum(expression, *args, **kwds):
         from sage.symbolic.ring import SR
         return SR(expression).sum(*args, **kwds)
 
+
 def integral(x, *args, **kwds):
     """
     Returns an indefinite or definite integral of an object x.
 
-    First call x.integrate() and if that fails make an object and
+    First call x.integral() and if that fails make an object and
     integrate it using Maxima, maple, etc, as specified by algorithm.
 
     For symbolic expression calls
-    ``sage.calculus.calculus.integral`` - see this function for
+    :func:`sage.calculus.calculus.integral` - see this function for
     available options.
 
     EXAMPLES::
@@ -707,7 +708,7 @@ def integral(x, *args, **kwds):
         sage: integral(sin(x)^2, x, algorithm='maxima')
         1/2*x - 1/4*sin(2*x)
         sage: integral(sin(x)^2, x, algorithm='sympy')
-        -1/2*sin(x)*cos(x) + 1/2*x
+        -1/2*cos(x)*sin(x) + 1/2*x
 
     TESTS:
 
@@ -725,7 +726,7 @@ def integral(x, *args, **kwds):
 
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
-        -1/4*((erf(1) - 1)*sqrt(pi) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*((erf(1) - 1)*sqrt(pi) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
+        1/4*(sqrt(pi)*(erf(1) - 1) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
         sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
 
@@ -735,6 +736,13 @@ def integral(x, *args, **kwds):
         sage: integrate(f, x, 0, infinity)
         1
 
+    This integral would cause a stack overflow in earlier versions of
+    Maxima, crashing sage. See :trac:`12377`. We don't care about the
+    result here, just that the computation completes successfully::
+
+        sage: y = (x^2)*exp(x) / (1 + exp(x))^2
+        sage: _ = integrate(y, x, -1000, 1000)
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
@@ -743,6 +751,7 @@ def integral(x, *args, **kwds):
         return SR(x).integral(*args, **kwds)
 
 integrate = integral
+
 
 def integral_closure(x):
     """

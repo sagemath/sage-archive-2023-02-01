@@ -18,7 +18,7 @@ Transcendental Functions
 #*****************************************************************************
 
 import sys
-import  sage.libs.pari.all
+import sage.libs.pari.all
 from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
 import sage.rings.real_double as real_double
@@ -28,9 +28,10 @@ from sage.structure.coerce import parent
 from sage.symbolic.expression import Expression
 from sage.functions.log import exp
 
-from sage.rings.all import (is_RealNumber, RealField,
-                            is_ComplexNumber, ComplexField,
+from sage.rings.all import (ComplexField,
                             ZZ, RR, RDF, CDF, prime_range)
+from sage.rings.complex_number import is_ComplexNumber
+from sage.rings.real_mpfr import (RealField, is_RealNumber)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
 
@@ -169,7 +170,7 @@ def zeta_symmetric(s):
     REFERENCE:
 
     - I copied the definition of xi from
-      http://www.math.ubc.ca/~pugh/RiemannZeta/RiemannZetaLong.html
+      http://web.viu.ca/pughg/RiemannZeta/RiemannZetaLong.html
     """
     if not (is_ComplexNumber(s) or is_RealNumber(s)):
         s = ComplexField()(s)

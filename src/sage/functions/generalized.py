@@ -441,7 +441,8 @@ class FunctionSignum(BuiltinFunction):
             sgn(x)
         """
         BuiltinFunction.__init__(self, "sgn", latex_name=r"\mathrm{sgn}",
-                conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'))
+                conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'),
+                alt_name="sign")
 
     def _eval_(self, x):
         """
@@ -570,7 +571,7 @@ class FunctionKroneckerDelta(BuiltinFunction):
             1
 
         Kronecker delta is a symmetric function. We keep arguments sorted to
-        ensure that (k_d(m, n) - k_d(n, m) cancels automatically::
+        ensure that k_d(m, n) - k_d(n, m) cancels automatically::
 
             sage: x,y=var('x,y')
             sage: kronecker_delta(x, y)
@@ -633,4 +634,3 @@ class FunctionKroneckerDelta(BuiltinFunction):
         return "\\delta_{%s,%s}"%(latex(m), latex(n))
 
 kronecker_delta = FunctionKroneckerDelta()
-

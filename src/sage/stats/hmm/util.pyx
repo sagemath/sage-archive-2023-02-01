@@ -15,7 +15,7 @@ AUTHOR:
 
 include "sage/ext/stdsage.pxi"
 
-from sage.matrix.all import is_Matrix
+from sage.matrix.matrix import is_Matrix
 from sage.misc.flatten  import flatten
 
 cdef class HMM_Util:

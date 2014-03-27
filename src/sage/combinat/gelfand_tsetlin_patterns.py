@@ -170,8 +170,14 @@ class GelfandTsetlinPattern(ClonableArray):
             sage: gt = G([[3,2,1],[2,1],[1]])
             sage: hash(gt) == hash(gt)
             True
+
+        Check that :trac:`14717` is fixed::
+
+            sage: GT = GelfandTsetlinPattern([[2, 1, 0], [2, 0], [1]])
+            sage: GT in {}
+            False
         """
-        return hash(self.parent()) + hash(tuple(map(tuple, self)))
+        return hash(tuple(map(tuple, self)))
 
     def _repr_diagram(self):
         """
@@ -287,7 +293,7 @@ class GelfandTsetlinPattern(ClonableArray):
 
         Using the *right-hand* rule, an entry `a_{i,j}` is boxed if
         `a_{i,j} = a_{i-1,j-1}`; i.e., `a_{i,j}` has the same value as its
-        neighbor to the northeast.
+        neighbor to the northwest.
 
         EXAMPLES::
 
@@ -308,8 +314,8 @@ class GelfandTsetlinPattern(ClonableArray):
         Return the circled entries of ``self``.
 
         Using the *right-hand* rule, an entry `a_{i,j}` is circled if
-        `a_{i,j} = a_{i-1,j}`, that is to say it is northwest neighbor has the
-        same value.
+        `a_{i,j} = a_{i-1,j}`; i.e., `a_{i,j}` has the same value as its
+        neighbor to the northeast.
 
         EXAMPLES::
 
@@ -738,14 +744,23 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             sage: [it.next() for i in range(10)]
             [[],
              [[0]],
+             [[1]],
              [[0, 0], [0]],
              [[1, 0], [0]],
              [[1, 0], [1]],
              [[1, 1], [1]],
              [[0, 0, 0], [0, 0], [0]],
              [[1, 0, 0], [0, 0], [0]],
-             [[1, 0, 0], [1, 0], [0]],
-             [[1, 0, 0], [1, 0], [1]]]
+             [[1, 0, 0], [1, 0], [0]]]
+
+        Check that :trac:`14718` is fixed::
+
+            sage: T = GelfandTsetlinPatterns(1,3)
+            sage: list(T)
+            [[[0]],
+             [[1]],
+             [[2]],
+             [[3]]]
         """
         # Special cases
         if self._n is None:
@@ -765,7 +780,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
                             yield self.element_class(self, list(x))
                     n += 1
                 return
-            for x in xrange(self._k):
+            for x in xrange(self._k+1):
                 yield self.element_class(self, [[x]])
             n = 2
             while not self._strict or n <= self._k+1:
@@ -779,10 +794,8 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             yield self.element_class(self, [])
             return
         if self._n == 1:
-            if self._row is not None:
-                yield self.element_class(self, [list(self._row)])
-            elif self._k is not None:
-                for x in xrange(self._k):
+            if self._k is not None:
+                for x in xrange(self._k+1):
                     yield self.element_class(self, [[x]])
             else:
                 k = 1
@@ -912,10 +925,21 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
             sage: G = GelfandTsetlinPatterns(top_row=[4,4,3,1])
             sage: TestSuite(G).run()
+
+        TESTS:
+
+        Check a border case in :trac:`14765`::
+
+            sage: G = GelfandTsetlinPatterns(top_row=[])
+            sage: list(G)
+            [[]]
         """
         self._row = top_row
         n = len(top_row)
-        k = top_row[0]
+        if n == 0:
+            k = 0
+        else:
+            k = top_row[0]
         GelfandTsetlinPatterns.__init__(self, n, k, strict)
 
     def _repr_(self):
@@ -976,8 +1000,10 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
              [[4, 2, 1], [4, 2], [4]]]
         """
         # If we enforce strictness, check to see if a specified top row is strict
-        if self._strict and self._row is not None and \
-                any(self._row[i] == self._row[i+1] for i in range(self._n-1)):
+        if self._strict and any(self._row[i] == self._row[i+1] for i in range(self._n-1)):
+            return
+        if self._n == 0:
+            yield self.element_class(self, [])
             return
         if self._n == 1:
             yield self.element_class(self, [list(self._row)])

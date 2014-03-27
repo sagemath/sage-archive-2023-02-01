@@ -20,6 +20,7 @@ from generating_series import factorial_stream, _integers_from
 from sage.combinat.species.structure import GenericSpeciesStructure
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
+from sage.structure.unique_representation import UniqueRepresentation
 
 class SetSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
@@ -78,26 +79,29 @@ class SetSpeciesStructure(GenericSpeciesStructure):
         from sage.groups.all import SymmetricGroup
         return SymmetricGroup(max(1,len(self._labels)))
 
-@accept_size
-@cached_function
-def SetSpecies(*args, **kwds):
-    """
-    Returns the species of sets.
-
-    EXAMPLES::
-
-        sage: E = species.SetSpecies()
-        sage: E.structures([1,2,3]).list()
-        [{1, 2, 3}]
-        sage: E.isotype_generating_series().coefficients(4)
-        [1, 1, 1, 1]
-    """
-    return SetSpecies_class(*args, **kwds)
-
-class SetSpecies_class(GenericCombinatorialSpecies):
-    def __init__(self, min=None, max=None, weight=None):
+class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
+    @staticmethod
+    @accept_size
+    def __classcall__(cls, *args, **kwds):
         """
         EXAMPLES::
+
+            sage: E = species.SetSpecies(); E
+            Set species
+        """
+        return super(SetSpecies, cls).__classcall__(cls, *args, **kwds)
+
+    def __init__(self, min=None, max=None, weight=None):
+        """
+        Returns the species of sets.
+
+        EXAMPLES::
+
+            sage: E = species.SetSpecies()
+            sage: E.structures([1,2,3]).list()
+            [{1, 2, 3}]
+            sage: E.isotype_generating_series().coefficients(4)
+            [1, 1, 1, 1]
 
             sage: S = species.SetSpecies()
             sage: c = S.generating_series().coefficients(3)
@@ -110,8 +114,6 @@ class SetSpecies_class(GenericCombinatorialSpecies):
         self._name = "Set species"
 
     _default_structure_class = SetSpeciesStructure
-
-    _cached_constructor = staticmethod(SetSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -191,3 +193,7 @@ class SetSpecies_class(GenericCombinatorialSpecies):
         yield p(0)
         for n in _integers_from(1):
             yield p([n])/n
+
+
+#Backward compatibility
+SetSpecies_class = SetSpecies

@@ -454,8 +454,8 @@ Here is the standard crystal of type `A_r`.
 
 You may create the crystal, and work with it as follows::
 
-    sage: C=CrystalOfLetters("A6")
-    sage: v0=C.highest_weight_vector(); v0
+    sage: C = CrystalOfLetters("A6")
+    sage: v0 = C.highest_weight_vector(); v0
     1
     sage: v0.f(1)
     2
@@ -489,9 +489,9 @@ replaces `\epsilon_r` by `-`.
 Create the Crystal of Spins as follows. The crystal elements are represented
 in the signature representation listing the `\epsilon_i`::
 
-       sage: C=CrystalOfSpins("B3")
-       sage: C.list()
-       [+++, ++-, +-+, -++, +--, -+-, --+, ---]
+    sage: C = CrystalOfSpins("B3")
+    sage: C.list()
+    [+++, ++-, +-+, -++, +--, -+-, --+, ---]
 
 Here is the standard crystal of type `C_r`.
 
@@ -914,13 +914,13 @@ For all tableaux in a given crystal, this can be tested via::
 The Lusztig involution is also defined for finite-dimensional highest weight crystals of exceptional
 type::
 
-    sage: C=CartanType(['E',6])
-    sage: La=C.root_system().weight_lattice().fundamental_weights()
+    sage: C = CartanType(['E',6])
+    sage: La = C.root_system().weight_lattice().fundamental_weights()
     sage: T = HighestWeightCrystal(La[1])
     sage: t = T[4]; t
-    [[-2, 5]]
+    [(-2, 5)]
     sage: t.lusztig_involution()
-    [[-3, 2]]
+    [(-3, 2)]
 
 
 Levi branching rules for crystals

@@ -7,39 +7,7 @@ from sage.categories.all import Category, Semigroups
 from sage.misc.cachefunc import cached_method
 from sage.categories.examples.semigroups import LeftZeroSemigroup as LeftZeroSemigroupPython
 
-class DummyClass:
-    def method(self):
-        """
-        TESTS::
-
-            sage: from sage.categories.examples.semigroups_cython import DummyClass
-            sage: DummyClass().method()
-        """
-        pass
-
-cdef class DummyCClass:
-    def method(self):
-        """
-        TESTS::
-
-            sage: from sage.categories.examples.semigroups_cython import DummyCClass
-            sage: DummyCClass().method()
-        """
-        pass
-
-    cpdef cpmethod(self):
-        """
-        TESTS::
-
-            sage: from sage.categories.examples.semigroups_cython import DummyCClass
-            sage: DummyCClass().cpmethod()
-        """
-        pass
-
-instancemethod     = type(DummyClass.method)
-method_descriptor  = type(DummyCClass.method)
-
-cdef class IdempotentSemigroupsElement(Element):
+cdef class IdempotentSemigroupsElementMethods:
     def _pow_(self, i):
         """
         EXAMPLES::
@@ -64,7 +32,6 @@ cdef class IdempotentSemigroupsElement(Element):
         return True
 
 class IdempotentSemigroups(Category):
-    #@cached_method
     def super_categories(self):
         """
         EXAMPLES::
@@ -75,13 +42,13 @@ class IdempotentSemigroups(Category):
         """
         return [Semigroups()]
 
-    ElementMethods = IdempotentSemigroupsElement
+    ElementMethods = IdempotentSemigroupsElementMethods
 
 
 cdef class LeftZeroSemigroupElement(Element):
     cdef object _value
 
-    def __init__(self, value, parent):
+    def __init__(self, parent, value):
         """
         EXAMPLES::
 
@@ -113,9 +80,9 @@ cdef class LeftZeroSemigroupElement(Element):
             sage: x = S(3)
             sage: x.__reduce__()
             (<type 'sage.categories.examples.semigroups_cython.LeftZeroSemigroupElement'>,
-             (3, An example of a semigroup: the left zero semigroup))
+             (An example of a semigroup: the left zero semigroup, 3))
         """
-        return LeftZeroSemigroupElement, (self._value, self._parent)
+        return LeftZeroSemigroupElement, (self._parent, self._value)
 
     def __cmp__(LeftZeroSemigroupElement self, LeftZeroSemigroupElement other):
         """
@@ -179,9 +146,9 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
 
     Comments:
 
-    - nested classes seem not to be currently supported by cython
+    - nested classes seem not to be currently supported by Cython
 
-    - one cannot play ugly use class surgery tricks (as with _mul_parent)
+    - one cannot play ugly class surgery tricks (as with _mul_parent).
       available operations should really be declared to the coercion model!
 
     EXAMPLES::

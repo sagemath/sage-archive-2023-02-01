@@ -2055,7 +2055,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: c = ComplexNumber(-1,0)
             sage: c.log(2)
             4.53236014182719*I
+
+        If either component (real or imaginary) of the complex number
+        is NaN (not a number), log will return the complex NaN::
+
+            sage: c = ComplexNumber(NaN,2)
+            sage: c.log()
+            NaN - NaN*I
+
         """
+        if mpfr_nan_p(self.__re):
+            return ComplexNumber(self._parent,self.real(),self.real())
+        if mpfr_nan_p(self.__im):
+            return ComplexNumber(self._parent,self.imag(),self.imag())
         theta = self.argument()
         rho = abs(self)
         if base is None:

@@ -5,8 +5,10 @@ Miscellaneous
    :maxdepth: 2
 
    sage/misc/abstract_method
+   sage/misc/ascii_art
    sage/misc/bindable_class
    sage/misc/cachefunc
+   sage/misc/weak_dict
    sage/misc/c3
    sage/misc/decorators
    sage/misc/lazy_list
@@ -26,7 +28,6 @@ Miscellaneous
    sage/misc/sage_timeit_class
    sage/misc/mrange
    sage/misc/dist
-   sage/misc/hg
    sage/misc/preparser
    sage/misc/interpreter
    sage/misc/functional

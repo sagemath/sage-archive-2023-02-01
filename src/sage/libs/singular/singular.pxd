@@ -22,7 +22,7 @@ cdef Integer  si2sa_ZZ(number (*),ring (*))
 
 cdef FFgivE   si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache)
 cdef FFgf2eE  si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache)
-cdef object   si2sa_GFqPari(number *n, ring *_ring, object base)
+cdef object   si2sa_GFq_generic(number *n, ring *_ring, object base)
 cdef object   si2sa_ZZmod(number *n, ring *_ring, object base)
 
 cdef object   si2sa_NF(number *n, ring *_ring, object base)
@@ -40,8 +40,8 @@ cdef number *sa2si_QQ(Rational ,ring (*))
 cdef number *sa2si_ZZ(Integer d, ring *_ring)
 
 cdef number *sa2si_GFqGivaro(int exp ,ring (*))
-cdef number *sa2si_GFqPari(object vector, ring *_ring)
 cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring)
+cdef number *sa2si_GFq_generic(object vector, ring *_ring)
 cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring)
 
 cdef number *sa2si_NF(object element, ring *_ring)

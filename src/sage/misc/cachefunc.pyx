@@ -36,7 +36,7 @@ which is used to create unique parents: If an algebraic structure, such
 as a finite field, is only temporarily used, then it will not stay in
 cache forever. That behaviour is implemented using ``weak_cached_function``,
 that behaves the same as ``cached_function``, except that it uses a
-``WeakValueDictionary`` for storing the results.
+:class:`~sage.misc.weak_dict.WeakValueDictionary` for storing the results.
 ::
 
     sage: from sage.misc.cachefunc import weak_cached_function
@@ -128,7 +128,7 @@ which is used to create unique parents: If an algebraic structure, such
 as a finite field, is only temporarily used, then it will not stay in
 cache forever. That behaviour is implemented using ``weak_cached_function``,
 that behaves the same as ``cached_function``, except that it uses a
-``WeakValueDictionary`` for storing the results.
+:class:`~sage.misc.weak_dict.WeakValueDictionary` for storing the results.
 ::
 
     sage: from sage.misc.cachefunc import weak_cached_function
@@ -422,7 +422,8 @@ from function_mangling import ArgumentFixer
 import os
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 
-from weakref import WeakValueDictionary
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
 
 def _cached_function_unpickle(module,name):
     """
@@ -541,7 +542,8 @@ cdef class CachedFunction(object):
             True
 
         """
-        self._common_init(f, ArgumentFixer(f,classmethod=classmethod), name=name)
+        self.is_classmethod = classmethod
+        self._common_init(f, None, name=name)
         self.cache = {}
 
     def _common_init(self, f, argument_fixer, name=None):
@@ -551,10 +553,10 @@ cdef class CachedFunction(object):
         TESTS::
 
             sage: @cached_function
-            ... def test_cache(x):
-            ...     return -x
-            sage: test_cache._fix_to_pos is not None  # indirect doctest
-            True
+            ....: def test_cache(x):
+            ....:     return -x
+            sage: test_cache.__name__  # indirect doctest
+            'test_cache'
 
         """
         self.f = f
@@ -568,9 +570,29 @@ cdef class CachedFunction(object):
             self.__module__ = f.__module__
         except AttributeError:
             self.__module__ = f.__objclass__.__module__
-        if argument_fixer is not None: # it is None for CachedMethodCallerNoArgs
+        if argument_fixer is not None: # it is None unless the argument fixer
+                                       # was known previously. See #15038.
             self._argument_fixer = argument_fixer
             self._fix_to_pos = argument_fixer.fix_to_pos
+
+    cdef argfix_init(self):
+        """
+        Perform initialization common to CachedFunction and CachedMethodCaller.
+
+        TESTS::
+
+            sage: @cached_function
+            ....: def test_cache(x):
+            ....:     return -x
+            sage: test_cache(1)
+            -1
+            sage: test_cache._fix_to_pos is not None  # indirect doctest
+            True
+
+        """
+        A = ArgumentFixer(self.f,classmethod=self.is_classmethod)
+        self._argument_fixer = A
+        self._fix_to_pos = A.fix_to_pos
 
     def __reduce__(self):
         """
@@ -710,11 +732,15 @@ cdef class CachedFunction(object):
         """
         # We shortcut a common case of no arguments
         if args or kwds:
+            if self._argument_fixer is None:
+                self.argfix_init()
             k = self._fix_to_pos(*args, **kwds)
         else:
             if self._default_key is not None:
                 k = self._default_key
             else:
+                if self._argument_fixer is None:
+                    self.argfix_init()
                 k = self._default_key = self._fix_to_pos()
 
         try:
@@ -759,6 +785,8 @@ cdef class CachedFunction(object):
             sage: a.f.is_in_cache(3,y=0)
             True
         """
+        if self._argument_fixer is None:
+            self.argfix_init()
         return self._fix_to_pos(*args, **kwds) in (<dict>self.cache)
 
     def set_cache(self, value, *args, **kwds):
@@ -789,6 +817,8 @@ cdef class CachedFunction(object):
             sage: g(5)         # todo: not implemented
             19
         """
+        if self._argument_fixer is None:
+            self.argfix_init()
         (<dict>self.cache)[self._fix_to_pos(*args, **kwds)] = value
 
     def get_key(self, *args, **kwds):
@@ -809,6 +839,8 @@ cdef class CachedFunction(object):
             sage: foo.get_key(x=3)
             ((3,), ())
         """
+        if self._argument_fixer is None:
+            self.argfix_init()
         return self._fix_to_pos(*args, **kwds)
 
     def __repr__(self):
@@ -861,6 +893,8 @@ cdef class CachedFunction(object):
         from sage.parallel.decorate import parallel, normalize_input
         P = parallel(num_processes)(self.f)
         has_key = self.cache.has_key
+        if self._argument_fixer is None:
+            self.argfix_init()
         get_key = self._fix_to_pos
         new = lambda x: not has_key(get_key(*x[0],**x[1]))
         arglist = filter(new, map(normalize_input, arglist))
@@ -936,11 +970,11 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: __main__.f = f
             sage: loads(dumps(f))
             Cached version of <function f at ...>
-            sage: f.cache
-            <WeakValueDictionary at ...>
+            sage: str(f.cache)
+            '<WeakValueDictionary at 0x...>'
 
         """
-        self._common_init(f, ArgumentFixer(f,classmethod=classmethod), name=name)
+        self._common_init(f, None, name=name)
         self.cache = WeakValueDictionary()
     def __call__(self, *args, **kwds):
         """
@@ -979,11 +1013,15 @@ cdef class WeakCachedFunction(CachedFunction):
         """
         # We shortcut a common case of no arguments
         if args or kwds:
+            if self._argument_fixer is None:
+                self.argfix_init()
             k = self._fix_to_pos(*args, **kwds)
         else:
             if self._default_key is not None:
                 k = self._default_key
             else:
+                if self._argument_fixer is None:
+                    self.argfix_init()
                 k = self._default_key = self._fix_to_pos()
 
         try:
@@ -1025,6 +1063,8 @@ cdef class WeakCachedFunction(CachedFunction):
             False
 
         """
+        if self._argument_fixer is None:
+            self.argfix_init()
         return self._fix_to_pos(*args, **kwds) in self.cache
 
     def set_cache(self, value, *args, **kwds):
@@ -1048,7 +1088,9 @@ cdef class WeakCachedFunction(CachedFunction):
             sage: f(5)
             Integer Ring
 
-         """
+        """
+        if self._argument_fixer is None:
+            self.argfix_init()
         self.cache[self._fix_to_pos(*args, **kwds)] = value
 
 
@@ -1173,6 +1215,7 @@ class CachedMethodPickle(object):
             Pickle of the cached method "groebner_basis"
         """
         return 'Pickle of the cached method "%s"'%self._name
+
     def __reduce__(self):
         """
         This class is a pickle. However, sometimes, pickles
@@ -1180,43 +1223,30 @@ class CachedMethodPickle(object):
 
         TEST::
 
-            sage: PF = WeylGroup(['A',3]).pieri_factors()
-            sage: a = PF.an_element()
-            sage: a.bruhat_lower_covers()
-            [[0 1 0 0]
-            [0 0 1 0]
-            [1 0 0 0]
-            [0 0 0 1], [0 1 0 0]
-            [1 0 0 0]
-            [0 0 0 1]
-            [0 0 1 0], [1 0 0 0]
-            [0 0 1 0]
-            [0 0 0 1]
-            [0 1 0 0]]
-            sage: b = loads(dumps(a))
-            sage: b.bruhat_lower_covers
-            Pickle of the cached method "bruhat_lower_covers"
+            sage: R.<x, y, z> = PolynomialRing(QQ, 3)
+            sage: I = R*(x^3 + y^3 + z^3,x^4-y^4)
+            sage: I.groebner_basis()
+            [y^5*z^3 - 1/4*x^2*z^6 + 1/2*x*y*z^6 + 1/4*y^2*z^6,
+             x^2*y*z^3 - x*y^2*z^3 + 2*y^3*z^3 + z^6,
+             x*y^3 + y^4 + x*z^3, x^3 + y^3 + z^3]
+            sage: J = loads(dumps(I))
+            sage: J.groebner_basis
+            Pickle of the cached method "groebner_basis"
 
-        When we now pickle ``b``, the pickle of the cached method
+        When we now pickle ``J``, the pickle of the cached method
         needs to be taken care of::
 
-            sage: c = loads(dumps(b))  # indirect doctest
-            sage: c.bruhat_lower_covers
-            Pickle of the cached method "bruhat_lower_covers"
-            sage: c.bruhat_lower_covers()
-            [[0 1 0 0]
-            [0 0 1 0]
-            [1 0 0 0]
-            [0 0 0 1], [0 1 0 0]
-            [1 0 0 0]
-            [0 0 0 1]
-            [0 0 1 0], [1 0 0 0]
-            [0 0 1 0]
-            [0 0 0 1]
-            [0 1 0 0]]
-
+            sage: K = loads(dumps(J))  # indirect doctest
+            sage: K.groebner_basis
+            Pickle of the cached method "groebner_basis"
+            sage: K.groebner_basis.cache
+            {(('', None, None, False), ()):
+            [y^5*z^3 - 1/4*x^2*z^6 + 1/2*x*y*z^6 + 1/4*y^2*z^6,
+             x^2*y*z^3 - x*y^2*z^3 + 2*y^3*z^3 + z^6,
+             x*y^3 + y^4 + x*z^3, x^3 + y^3 + z^3]}
         """
         return CachedMethodPickle,(self._instance,self._name,self._cache)
+
     def __call__(self,*args,**kwds):
         """
         The purpose of this call method is to kill ``self`` and to
@@ -1333,7 +1363,12 @@ cdef class CachedMethodCaller(CachedFunction):
             sage: a.f.get_cache()
             {((), ()): 4}
         """
-        # initialize CachedFunction, but re-use the ArgumentFixer
+        # initialize CachedFunction. Since the cached method is actually bound
+        # to an instance, it now makes sense to initialise the ArgumentFixer
+        # and re-use it for all bound cached method callers of the unbound
+        # cached method.
+        if cachedmethod._cachedfunc._argument_fixer is None:
+            cachedmethod._cachedfunc.argfix_init()
         self._common_init(cachedmethod._cachedfunc.f, cachedmethod._cachedfunc._argument_fixer, name=name)
         self.cache = {} if cache is None else cache
         self._instance = inst
@@ -1431,6 +1466,8 @@ cdef class CachedMethodCaller(CachedFunction):
         cdef tuple k
         cdef dict cache = self.cache
         if kwds:
+            if self._argument_fixer is None:
+                self.argfix_init()
             if self._inst_in_key:
                 k = (self._instance,self._fix_to_pos(*args, **kwds))
             else:
@@ -1452,6 +1489,8 @@ cdef class CachedMethodCaller(CachedFunction):
             elif self._default_key is not None:
                 k = self._default_key
             else:
+                if self._argument_fixer is None:
+                    self.argfix_init()
                 if self._inst_in_key:
                     k = self._default_key = (self._instance,self._fix_to_pos())
                 else:
@@ -1505,6 +1544,8 @@ cdef class CachedMethodCaller(CachedFunction):
             ((5, 0), ())
 
         """
+        if self._argument_fixer is None:
+            self.argfix_init()
         if self._inst_in_key:
             return (self._instance,self._fix_to_pos(*args,**kwds))
         return self._fix_to_pos(*args,**kwds)

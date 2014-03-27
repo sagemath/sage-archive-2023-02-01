@@ -8,7 +8,7 @@ Crystals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import CachedFunction
+from sage.misc.cachefunc import CachedFunction, cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -175,6 +175,7 @@ class Crystals(Category_singleton):
             """
             return self._cartan_type
 
+        @cached_method
         def index_set(self):
             """
             Returns the index set of the Dynkin diagram underlying the crystal
@@ -183,7 +184,7 @@ class Crystals(Category_singleton):
 
                 sage: C = CrystalOfLetters(['A', 5])
                 sage: C.index_set()
-                [1, 2, 3, 4, 5]
+                (1, 2, 3, 4, 5)
             """
             return self.cartan_type().index_set()
 
@@ -817,8 +818,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = CrystalOfLetters(['A', 5])
-                sage: show_default(False) #do not show the plot by default
-                sage: C.plot()
+                sage: print(C.plot())
                 Graphics object consisting of 17 graphics primitives
             """
             return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
@@ -830,7 +830,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = KirillovReshetikhinCrystal(['A',3,1],2,1)
-                sage: C.plot3d()
+                sage: print(C.plot3d())
                 Graphics3d Object
             """
             G = self.digraph(**options)
@@ -839,13 +839,14 @@ class Crystals(Category_singleton):
 
     class ElementMethods:
 
+        @cached_method
         def index_set(self):
             """
             EXAMPLES::
 
                 sage: C = CrystalOfLetters(['A',5])
                 sage: C(1).index_set()
-                [1, 2, 3, 4, 5]
+                (1, 2, 3, 4, 5)
             """
             return self.parent().index_set()
 
@@ -989,7 +990,6 @@ class Crystals(Category_singleton):
                 sage: b.f_string([1,2])
                 3
                 sage: b.f_string([2,1])
-
             """
             b = self
             for i in list:
@@ -1009,7 +1009,6 @@ class Crystals(Category_singleton):
                 sage: b.e_string([2,1])
                 1
                 sage: b.e_string([1,2])
-
             """
             b = self
             for i in list:
@@ -1118,12 +1117,12 @@ class Crystals(Category_singleton):
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             if index_set is None:
                 if HighestWeightCrystals() not in self.parent().categories():
-                    raise ValueError, "This is not a highest weight crystals!"
+                    raise ValueError("This is not a highest weight crystals!")
                 index_set = self.index_set()
             for i in index_set:
-                if self.epsilon(i) <> 0:
-                    self = self.e(i)
-                    hw = self.to_highest_weight(index_set = index_set)
+                next = self.e(i)
+                if next is not None:
+                    hw = next.to_highest_weight(index_set = index_set)
                     return [hw[0], [i] + hw[1]]
             return [self, []]
 
@@ -1162,9 +1161,9 @@ class Crystals(Category_singleton):
                     raise ValueError, "This is not a highest weight crystals!"
                 index_set = self.index_set()
             for i in index_set:
-                if self.phi(i) <> 0:
-                    self = self.f(i)
-                    lw = self.to_lowest_weight(index_set = index_set)
+                next = self.f(i)
+                if next is not None:
+                    lw = next.to_lowest_weight(index_set = index_set)
                     return [lw[0], [i] + lw[1]]
             return [self, []]
 

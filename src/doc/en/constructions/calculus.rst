@@ -25,9 +25,9 @@ Differentiation:
     sage: f = x^3 * e^(k*x) * sin(w*x); f
     x^3*e^(k*x)*sin(w*x)
     sage: f.diff(x)
-    k*x^3*e^(k*x)*sin(w*x) + w*x^3*e^(k*x)*cos(w*x) + 3*x^2*e^(k*x)*sin(w*x)
+    w*x^3*cos(w*x)*e^(k*x) + k*x^3*e^(k*x)*sin(w*x) + 3*x^2*e^(k*x)*sin(w*x)
     sage: latex(f.diff(x))
-    k x^{3} e^{\left(k x\right)} \sin\left(w x\right) + w x^{3} e^{\left(k x\right)} \cos\left(w x\right) + 3 \, x^{2} e^{\left(k x\right)} \sin\left(w x\right)
+    w x^{3} \cos\left(w x\right) e^{\left(k x\right)} + k x^{3} e^{\left(k x\right)} \sin\left(w x\right) + 3 \, x^{2} e^{\left(k x\right)} \sin\left(w x\right)
 
 If you type ``view(f.diff(x))`` another window will open up
 displaying the compiled output. In the notebook, you can enter
@@ -147,7 +147,7 @@ Sage can also compute symbolic definite integrals involving limits.
     (x, k, w)
     sage: f = x^3 * e^(k*x) * sin(w*x)
     sage: f.integrate(x)
-    -(((k^6*w + 3*k^4*w^3 + 3*k^2*w^5 + w^7)*x^3 - 24*k^3*w + 24*k*w^3 - 6*(k^5*w + 2*k^3*w^3 + k*w^5)*x^2 + 6*(3*k^4*w + 2*k^2*w^3 - w^5)*x)*e^(k*x)*cos(w*x) - ((k^7 + 3*k^5*w^2 + 3*k^3*w^4 + k*w^6)*x^3 - 6*k^4 + 36*k^2*w^2 - 6*w^4 - 3*(k^6 + k^4*w^2 - k^2*w^4 - w^6)*x^2 + 6*(k^5 - 2*k^3*w^2 - 3*k*w^4)*x)*e^(k*x)*sin(w*x))/(k^8 + 4*k^6*w^2 + 6*k^4*w^4 + 4*k^2*w^6 + w^8)
+    ((24*k^3*w - 24*k*w^3 - (k^6*w + 3*k^4*w^3 + 3*k^2*w^5 + w^7)*x^3 + 6*(k^5*w + 2*k^3*w^3 + k*w^5)*x^2 - 6*(3*k^4*w + 2*k^2*w^3 - w^5)*x)*cos(w*x)*e^(k*x) - (6*k^4 - 36*k^2*w^2 + 6*w^4 - (k^7 + 3*k^5*w^2 + 3*k^3*w^4 + k*w^6)*x^3 + 3*(k^6 + k^4*w^2 - k^2*w^4 - w^6)*x^2 - 6*(k^5 - 2*k^3*w^2 - 3*k*w^4)*x)*e^(k*x)*sin(w*x))/(k^8 + 4*k^6*w^2 + 6*k^4*w^4 + 4*k^2*w^6 + w^8)
     sage: integrate(1/x^2, x, 1, infinity)
     1
 
@@ -232,7 +232,7 @@ computation.
     sage: f2(x) = 1-x
     sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
     sage: f.laplace(x, s)
-    (s + 1)*e^(-2*s)/s^2 - e^(-s)/s + 1/s - e^(-s)/s^2
+    -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
 
 For other "reasonable" functions, Laplace transforms can be
 computed using the Maxima interface:
@@ -283,7 +283,7 @@ An example, how to solve ODE's symbolically in Sage using the Maxima interface
     sage: y=function('y',x); desolve(diff(y,x,2) + 3*x == y, dvar = y, ics = [1,1,1])
     3*x - 2*e^(x - 1)
     sage: desolve(diff(y,x,2) + 3*x == y, dvar = y)
-    k1*e^x + k2*e^(-x) + 3*x
+    k2*e^(-x) + k1*e^x + 3*x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y)
     (3*(x + 1)*e^(-x) + c)*e^x
     sage: desolve(diff(y,x) + 3*x == y, dvar = y, ics = [1,1]).expand()
@@ -375,7 +375,7 @@ illustrating how the Gibbs phenomenon is mollified).
     sage: f.fourier_series_sine_coefficient(2,pi)
     -3/pi
     sage: f.fourier_series_partial_sum(3,pi)
-    -3*sin(2*x)/pi + sin(x)/pi - 3*cos(x)/pi + 1/4
+    -3*cos(x)/pi - 3*sin(2*x)/pi + sin(x)/pi + 1/4
 
 Type ``show(f.plot_fourier_series_partial_sum(15,pi,-5,5))`` and
 ``show(f.plot_fourier_series_partial_sum_cesaro(15,pi,-5,5))``

@@ -28,20 +28,6 @@ class Coalgebras(Category_over_base_ring):
         Category of coalgebras over Rational Field
         sage: Coalgebras(QQ).super_categories()
         [Category of vector spaces over Rational Field]
-        sage: Coalgebras(QQ).all_super_categories()
-        [Category of coalgebras over Rational Field,
-         Category of vector spaces over Rational Field,
-         Category of modules over Rational Field,
-         Category of bimodules over Rational Field on the left and Rational Field on the right,
-         Category of left modules over Rational Field,
-         Category of right modules over Rational Field,
-         Category of commutative additive groups,
-         Category of commutative additive monoids,
-         Category of commutative additive semigroups,
-         Category of additive magmas,
-         Category of sets,
-         Category of sets with partial maps,
-         Category of objects]
 
     TESTS::
 

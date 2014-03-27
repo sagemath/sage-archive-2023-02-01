@@ -18,36 +18,30 @@ Functorial composition species
 from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from sage.misc.cachefunc import cached_function
+from sage.structure.unique_representation import UniqueRepresentation
 
 class FunctorialCompositionStructure(GenericSpeciesStructure):
     pass
 
-@cached_function
-def FunctorialCompositionSpecies(*args, **kwds):
-    """
-    Returns the functorial composition of two species.
-
-    EXAMPLES::
-
-        sage: E = species.SetSpecies()
-        sage: E2 = species.SetSpecies(size=2)
-        sage: WP = species.SubsetSpecies()
-        sage: P2 = E2*E
-        sage: G = WP.functorial_composition(P2)
-        sage: G.isotype_generating_series().coefficients(5)
-        [1, 1, 2, 4, 11]
-    """
-    return FunctorialCompositionSpecies_class(*args, **kwds)
-
-class FunctorialCompositionSpecies_class(GenericCombinatorialSpecies):
+class FunctorialCompositionSpecies(GenericCombinatorialSpecies):
     def __init__(self, F, G, min=None, max=None, weight=None):
         """
+        Returns the functorial composition of two species.
+
         EXAMPLES::
+
+            sage: E = species.SetSpecies()
+            sage: E2 = species.SetSpecies(size=2)
+            sage: WP = species.SubsetSpecies()
+            sage: P2 = E2*E
+            sage: G = WP.functorial_composition(P2)
+            sage: G.isotype_generating_series().coefficients(5)
+            [1, 1, 2, 4, 11]
 
             sage: G = species.SimpleGraphSpecies()
             sage: c = G.generating_series().coefficients(2)
             sage: type(G)
-            <class 'sage.combinat.species.functorial_composition_species.FunctorialCompositionSpecies_class'>
+            <class 'sage.combinat.species.functorial_composition_species.FunctorialCompositionSpecies'>
             sage: G == loads(dumps(G))
             True
             sage: G._check() #False due to isomorphism types not being implemented
@@ -60,8 +54,6 @@ class FunctorialCompositionSpecies_class(GenericCombinatorialSpecies):
         GenericCombinatorialSpecies.__init__(self, min=None, max=None, weight=None)
 
     _default_structure_class = FunctorialCompositionStructure
-
-    _cached_constructor = staticmethod(FunctorialCompositionSpecies)
 
     def _structures(self, structure_class, s):
         """
@@ -151,3 +143,6 @@ class FunctorialCompositionSpecies_class(GenericCombinatorialSpecies):
         g_weights = self._G.weight_ring()
 
         return cm.explain(f_weights, g_weights, verbosity=0)
+
+#Backward compatibility
+FunctorialCompositionSpecies_class = FunctorialCompositionSpecies

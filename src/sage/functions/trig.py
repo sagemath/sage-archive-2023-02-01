@@ -1,4 +1,4 @@
-"""
+r"""
 Trigonometric Functions
 """
 from sage.symbolic.function import BuiltinFunction, GinacFunction
@@ -82,7 +82,7 @@ cos = Function_cos()
 class Function_tan(GinacFunction):
     def __init__(self):
         """
-        The tangent function
+        The tangent function.
 
         EXAMPLES::
 
@@ -121,8 +121,8 @@ tan = Function_tan()
 
 class Function_sec(BuiltinFunction):
     def __init__(self):
-        """
-        The secant function
+        r"""
+        The secant function.
 
         EXAMPLES::
 
@@ -204,7 +204,7 @@ class Function_sec(BuiltinFunction):
             sage: bool(diff(sec(x), x) == diff(1/cos(x), x))
             True
             sage: diff(sec(x), x)
-            tan(x)*sec(x)
+            sec(x)*tan(x)
         """
         return sec(x)*tan(x)
 
@@ -212,7 +212,7 @@ sec = Function_sec()
 
 class Function_csc(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The cosecant function.
 
         EXAMPLES::
@@ -296,7 +296,7 @@ class Function_csc(BuiltinFunction):
             sage: bool(diff(csc(x), x) == diff(1/sin(x), x))
             True
             sage: diff(csc(x), x)
-            -csc(x)*cot(x)
+            -cot(x)*csc(x)
         """
         return -csc(x)*cot(x)
 
@@ -304,7 +304,7 @@ csc = Function_csc()
 
 class Function_cot(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The cotangent function.
 
         EXAMPLES::
@@ -421,7 +421,7 @@ class Function_arcsin(GinacFunction):
             sage: a = arcsin(0,hold=True); a.simplify()
             0
 
-        ``conjugate(arcsin(x))==arcsin(conjugate(x))`` unless on the branch
+        ``conjugate(arcsin(x))==arcsin(conjugate(x))``, unless on the branch
         cuts which run along the real axis outside the interval [-1, +1].::
 
             sage: conjugate(arcsin(x))
@@ -452,7 +452,7 @@ arcsin = asin = Function_arcsin()
 class Function_arccos(GinacFunction):
     def __init__(self):
         """
-        The arccosine function
+        The arccosine function.
 
         EXAMPLES::
 
@@ -476,8 +476,8 @@ class Function_arccos(GinacFunction):
             sage: a = arccos(0,hold=True); a.simplify()
             1/2*pi
 
-        ``conjugate(arccos(x))==arccos(conjugate(x))`` unless on the branch
-        cuts which run along the real axis outside the interval [-1, +1].::
+        ``conjugate(arccos(x))==arccos(conjugate(x))``, unless on the branch
+        cuts, which run along the real axis outside the interval [-1, +1].::
 
             sage: conjugate(arccos(x))
             conjugate(arccos(x))
@@ -531,7 +531,7 @@ class Function_arctan(GinacFunction):
             sage: a = arctan(0,hold=True); a.simplify()
             0
 
-        ``conjugate(arctan(x))==arctan(conjugate(x))`` unless on the branch
+        ``conjugate(arctan(x))==arctan(conjugate(x))``, unless on the branch
         cuts which run along the imaginary axis outside the interval [-I, +I].::
 
             sage: conjugate(arctan(x))
@@ -687,7 +687,7 @@ class Function_arccsc(BuiltinFunction):
         EXAMPLES::
 
             sage: diff(acsc(x), x)
-            -1/(sqrt(-1/x^2 + 1)*x^2)
+            -1/(x^2*sqrt(-1/x^2 + 1))
         """
         return -1/(x**2 * (1 - x**(-2)).sqrt())
 
@@ -750,7 +750,7 @@ class Function_arcsec(BuiltinFunction):
         EXAMPLES::
 
             sage: diff(asec(x), x)
-            1/(sqrt(-1/x^2 + 1)*x^2)
+            1/(x^2*sqrt(-1/x^2 + 1))
         """
         return 1/(x**2 * (1 - x**(-2)).sqrt())
 
@@ -758,7 +758,7 @@ arcsec = asec = Function_arcsec()
 
 class Function_arctan2(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The modified arctangent function.
 
         Returns the arc tangent (measured in radians) of `y/x`, where
@@ -839,17 +839,17 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(y,x).operator()
             arctan2
 
-        Check if #8565 is fixed::
+        Check if :trac:`8565` is fixed::
 
             sage: atan2(-pi,0)
             -1/2*pi
 
-        Check if #8564 is fixed::
+        Check if :trac:`8564` is fixed::
 
             sage: arctan2(x,x)._sympy_()
             atan2(x, x)
 
-        Check if numerical evaluation works #9913::
+        Check if numerical evaluation works :trac:`9913`::
 
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
@@ -869,6 +869,11 @@ class Function_arctan2(GinacFunction):
             ...
             ValueError: arctan2(0,0) undefined
 
+        Check if :trac:`10062` is fixed, this was caused by
+        ``(I*I)._is_positive()`` returning ``True``::
+
+            sage: arctan2(0, I*I)
+            pi
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2', sympy='atan2'))

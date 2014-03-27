@@ -231,7 +231,9 @@ class Arc(GraphicPrimitive):
                 'hue':'The color given as a hue.',
                 'rgbcolor':'The color',
                 'zorder':'2D only: The layer level in which to draw',
-                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"2D only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively."}
 
     def _repr_(self):
         """
@@ -252,6 +254,8 @@ class Arc(GraphicPrimitive):
             sage: A = arc((1,1),3,4,pi/4,(pi,4*pi/3)); A
         """
         import matplotlib.patches as patches
+        from sage.plot.misc import get_matplotlib_linestyle
+
 
         options = self.options()
 
@@ -268,7 +272,7 @@ class Arc(GraphicPrimitive):
         z = int(options.pop('zorder',1))
         p.set_zorder(z)
         c = to_mpl_color(options['rgbcolor'])
-        p.set_linestyle(options['linestyle'])
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_edgecolor(c)
         subplot.add_patch(p)
 
@@ -316,7 +320,9 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
     - ``color``, ``rgbcolor`` - string or 2-tuple (default: 'blue') - the color
       of the arc
 
-    - ``linestyle`` - string (default: 'solid') - the style of the line
+    - ``linestyle`` - string (default: ``'solid'``) - The style of the line,
+      which is one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``,
+      or ``'--'``, ``':'``, ``'-'``, ``'-.'``, respectively.
 
     EXAMPLES:
 
@@ -336,6 +342,7 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
     Plot an arc of an ellipse in red with a dashed linestyle::
 
         sage: arc((0,0), 2, 1, 0, (0,pi/2), linestyle="dashed", color="red")
+        sage: arc((0,0), 2, 1, 0, (0,pi/2), linestyle="--", color="red")
 
     The default aspect ratio for arcs is 1.0::
 

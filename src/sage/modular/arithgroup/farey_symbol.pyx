@@ -461,7 +461,6 @@ cdef class Farey:
     @options(alpha=1, fill=True, thickness=1, rgbcolor="lightgray", \
              zorder=2, linestyle='solid', show_pairing=True, \
              show_tesselation=False)
-
     def fundamental_domain(self, **options):
         r"""
         Plot a fundamental domain of an arithmetic subgroup of
@@ -469,14 +468,20 @@ cdef class Farey:
 
         OPTIONS:
 
-        - ``fill`` - fill the fundamental domain (default True)
+        - ``fill`` - boolean (default True) fill the fundamental domain
 
-        - ``rgbcolor`` - fill color (default 'lightgray')
+        - ``linestyle`` - string (default: 'solid') The style of the line,
+          which is one of 'dashed', 'dotted', 'solid', 'dashdot', or '--',
+          ':', '-', '-.', respectively
 
-        - ``show_pairing`` - flag for pairing (default True)
+        - ``rgbcolor`` - (default: 'lightgray') fill color
 
-        - ``show_tesselation`` - flag for the hyperbolic tesselation
-          (default False)
+        - ``show_pairing`` - boolean (default: True) flag for pairing
+
+        - ``show_tesselation`` - boolean (default: False) flag for the
+          hyperbolic tesselation
+
+        - ``thickness`` - float (default: 1) the thickness of the line
 
         EXAMPLES:
 
@@ -494,11 +499,14 @@ cdef class Farey:
             sage: FareySymbol(Gamma(3)).fundamental_domain(show_pairing=False)
 
         Plot the fundamental domain of `\Gamma_0(23)` showing the left
-        coset representatives.
-
-        ::
+        coset representatives::
 
             sage: FareySymbol(Gamma0(23)).fundamental_domain(show_tesselation=True)
+
+        The same as above but with a custom linestyle::
+
+            sage: FareySymbol(Gamma0(23)).fundamental_domain(show_tesselation=True, linestyle=':', thickness='2')
+
         """
         from sage.plot.colors import rainbow
         L = 1000
@@ -514,24 +522,34 @@ cdef class Farey:
                     /(c*c+c*d+d*d)
             else:
                 A, B, C = [x.acton(z) for z in [CC(0, 0), CC(1, 0), CC(0, L)]]
-            g += hyperbolic_triangle(A, B, C, \
-                                     color=options['rgbcolor'], \
-                                     fill=options['fill'], \
-                                     alpha=options['alpha'])
+            g += hyperbolic_triangle(A, B, C,
+                                     alpha=options['alpha'],
+                                     color=options['rgbcolor'],
+                                     fill=options['fill'],
+                                     linestyle=options['linestyle'],
+                                     thickness=options['thickness'])
             if options['show_tesselation']:
-                g += hyperbolic_triangle(A, B, C, color="gray")
+                g += hyperbolic_triangle(A, B, C, color="gray",
+                                         linestyle=options['linestyle'],
+                                         thickness=options['thickness'])
         ## show pairings
         p = self.pairings()
         x = self.fractions()
         if options['show_pairing']:
             rc = rainbow(max(p)-min(p)+1)
             if p[0] > 0:
-                g += hyperbolic_arc(CC(0, L), x[0], color=rc[p[0]-min(p)])
+                g += hyperbolic_arc(CC(0, L), x[0], color=rc[p[0]-min(p)],
+                                    linestyle=options['linestyle'],
+                                    thickness=options['thickness'])
             if p[-1] > 0:
-                g += hyperbolic_arc(CC(0, L), x[-1], color=rc[p[-1]-min(p)])
+                g += hyperbolic_arc(CC(0, L), x[-1], color=rc[p[-1]-min(p)],
+                                    linestyle=options['linestyle'],
+                                    thickness=options['thickness'])
             for i in range(len(x)-1):
                 if p[i+1] > 0:
-                    g += hyperbolic_arc(x[i], x[i+1], color=rc[p[i+1]-min(p)])
+                    g += hyperbolic_arc(x[i], x[i+1], color=rc[p[i+1]-min(p)],
+                                        linestyle=options['linestyle'],
+                                        thickness=options['thickness'])
         d = g.get_minmax_data()
         g.set_axes_range(d['xmin'], d['xmax'], 0, 1)
         return g

@@ -4004,6 +4004,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: factor(p*q)
             (x^2 + y^2 + x + 1) * (x^4 + x^2*y^2 + y^4 + x*y^2 + x^2 + y^2 + 1)
 
+        Check that :trac:`13770` is fixed::
+
+            sage: U.<y,t> = GF(2)[]
+            sage: f = y*t^8 + y^5*t^2 + y*t^6 + t^7 + y^6 + y^5*t + y^2*t^4 + y^2*t^2 + y^2*t + t^3 + y^2 + t^2
+            sage: l = f.factor()
+            sage: l[0][0]==t^2 + y + t + 1 or l[1][0]==t^2 + y + t + 1
+            True
+
         The following used to sometimes take a very long time or get
         stuck, see :trac:`12846`. These 100 iterations should take less
         than 1 second::
@@ -4762,6 +4770,58 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         p = pDiff(self._poly, var_i)
         return new_MP(self._parent,p)
+
+
+    def integral(self, MPolynomial_libsingular var):
+        """
+        Integrates this polynomial with respect to the provided
+        variable.
+
+        One requires that `\QQ` is contained in the ring.
+
+        INPUT:
+
+        - ``variable`` - the integral is taken with respect to variable
+
+        EXAMPLES::
+
+            sage: R.<x, y> = PolynomialRing(QQ, 2)
+            sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
+            sage: f.integral(x)
+            3/4*x^4*y^2 + 5*x*y^2 + 3/2*x^2 + 2*x
+            sage: f.integral(y)
+            x^3*y^3 + 5/3*y^3 + 3*x*y + 2*y
+
+        TESTS::
+
+            sage: z, w = polygen(QQ, 'z, w')
+            sage: f.integral(z)
+            Traceback (most recent call last):
+            ...
+            TypeError: the variable is not in the same ring as self
+        """
+        if var is None:
+            raise ValueError("please specify a variable")
+
+        ring = var.parent()
+        if ring is not self._parent:
+            raise TypeError("the variable is not in the same ring as self")
+
+        if not ring.has_coerce_map_from(RationalField()):
+            raise TypeError("the ring must contain the rational numbers")
+
+        gens = ring.gens()
+
+        try:
+            index = gens.index(var)
+        except ValueError:
+            raise TypeError("not a variable in the same ring as self")
+
+        d = {}
+        v = ETuple({index:1}, len(gens))
+        for (exp, coeff) in self.dict().iteritems():
+            d[exp.eadd(v)] = coeff / (1+exp[index])
+        return MPolynomial_polydict(self.parent(), d)
 
 
     def resultant(self, MPolynomial_libsingular other, variable=None):

@@ -47,8 +47,10 @@ def QuaternionMatrixGroupGF3():
     TESTS::
 
         sage: groups.matrix.QuaternionGF3()
-        Matrix group over Finite Field of size 3 with 2 generators:
-            [[[1, 1], [1, 2]], [[2, 1], [1, 1]]]
+        Matrix group over Finite Field of size 3 with 2 generators (
+        [1 1]  [2 1]
+        [1 2], [1 1]
+        )
 
         sage: Q = QuaternionMatrixGroupGF3()
         sage: QP = Q.as_permutation_group()
@@ -64,7 +66,7 @@ def QuaternionMatrixGroupGF3():
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.matrix.matrix_space import MatrixSpace
-    from sage.groups.matrix_gps.matrix_group import MatrixGroup
+    from sage.groups.matrix_gps.all import MatrixGroup
     MS = MatrixSpace(FiniteField(3), 2)
     aye = MS([1,1,1,2])
     jay = MS([2,1,1,1])

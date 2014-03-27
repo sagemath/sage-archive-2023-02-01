@@ -23,7 +23,10 @@ Although any mathematics the reader is not familiar with can simply be
 skipped at first, we do assume throughout that the reader is familiar
 with the concept of a function and different kinds of numbers.  We also
 make liberal use of basic examples from calculus, linear algebra, and
-other areas.
+other areas.  In the :doc:`Quickstart tutorials <quickstart>`, we assume
+familiarity with the topics at the level of a student who has just
+completed a course in the subject, or of a faculty member who is about
+to teach it.
 
 Contents:
 
@@ -36,3 +39,4 @@ Contents:
    Calculus <Calculus>
    Introductory Programming <Programming>
    Advanced 2D Plotting <Advanced-2DPlotting>
+   Quickstart Tutorials <quickstart>

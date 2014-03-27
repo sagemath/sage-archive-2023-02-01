@@ -46,8 +46,6 @@ def init(object_directory=None, globs={}):
 
     import sage.plot.plot
     sage.plot.plot.EMBEDDED_MODE = True
-    # Set this to true and plots are shown by default.
-    #sage.plot.plot.SHOW_DEFAULT = True
     if object_directory:
         sage.structure.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True

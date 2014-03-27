@@ -400,10 +400,10 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
             sage: P._from_integer_(42)            # Don't do that at home kids!
             42
         """
-        return self.element_class(p, self)
+        return self.element_class(self, p)
 
     class Element(IntegerWrapper, PrimeNumbers_Abstract.Element):
-        def __init__(self, p, parent):
+        def __init__(self, parent, p):
             """
             TESTS::
 
@@ -417,7 +417,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
                 sage: x.parent() is P
                 True
             """
-            IntegerWrapper.__init__(self, p, parent=parent)
+            IntegerWrapper.__init__(self, parent, p)
 
 
 #*************************************************************************#
@@ -524,7 +524,7 @@ class PrimeNumbers_Wrapper(PrimeNumbers_Abstract):
             ...
             ValueError: 14 is not a prime number
         """
-        return self.element_class(Integer(e), parent=self)
+        return self.element_class(self, Integer(e))
 
     from sage.structure.element_wrapper import ElementWrapper
     class Element (ElementWrapper, PrimeNumbers_Abstract.Element):

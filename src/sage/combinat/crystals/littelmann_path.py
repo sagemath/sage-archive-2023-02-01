@@ -605,6 +605,19 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         sage: GT = T.digraph() # long time
         sage: GLS.is_isomorphic(GT, edge_labels = True) # long time
         True
+
+    TESTS::
+
+        sage: ct = CartanType(['A',4,2]).dual()
+        sage: P = RootSystem(ct).weight_space()
+        sage: La = P.fundamental_weights()
+        sage: C = CrystalOfProjectedLevelZeroLSPaths(La[1])
+        sage: C.list()
+        [(-Lambda[0] + Lambda[1],),
+        (Lambda[0] - Lambda[1],),
+        (Lambda[1] - 2*Lambda[2],),
+        (-Lambda[1] + 2*Lambda[2],),
+        (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])]
     """
 
     @staticmethod
@@ -626,27 +639,24 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             True
         """
         La = weight.parent().basis()
-        weight = weight - (weight.level())*La[0]
+        weight = weight - (weight.level())*La[0]/(La[0].level())
         return super(CrystalOfLSPaths, cls).__classcall__(cls, weight)
 
     def one_dimensional_configuration_sum(self, q = None, group_components = True):
         r"""
-        Computes the one-dimensional configuration sum for untwisted types.
+        Compute the one-dimensional configuration sum.
 
         INPUT:
 
         - ``q`` -- (default: ``None``) a variable or ``None``; if ``None``,
-          a variable `q` is set in the code
+          a variable ``q`` is set in the code
         - ``group_components`` -- (default: ``True``) boolean; if ``True``,
           then the terms are grouped by classical component
 
         The one-dimensional configuration sum is the sum of the weights of all elements in the crystal
-        weighted by the energy function.
-
-        .. WARNING::
-
-            The one-dimensional configuration sum using LS paths is currently only implemented for
-            untwisted types!
+        weighted by the energy function. For untwisted types it uses the parabolic quantum Bruhat graph, see [LNSSS2013]_.
+        In the dual-of-untwisted case, the parabolic quantum Bruhat graph is defined by
+        exchanging the roles of roots and coroots (which is still conjectural at this point).
 
         EXAMPLES::
 
@@ -671,6 +681,23 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: K1 = KirillovReshetikhinCrystal(['B',3,1],1,1)
             sage: K2 = KirillovReshetikhinCrystal(['B',3,1],2,1)
             sage: T = TensorProductOfCrystals(K2,K1)
+            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
+            True
+
+            sage: R = RootSystem(['D',4,2])
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+            sage: K1 = KirillovReshetikhinCrystal(['D',4,2],1,1)
+            sage: K2 = KirillovReshetikhinCrystal(['D',4,2],2,1)
+            sage: T = TensorProductOfCrystals(K2,K1)
+            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
+            True
+
+            sage: R = RootSystem(['A',5,2])
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(3*La[1])
+            sage: K1 = KirillovReshetikhinCrystal(['A',5,2],1,1)
+            sage: T = TensorProductOfCrystals(K1,K1,K1)
             sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
             True
         """
@@ -757,38 +784,31 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: c.weyl_group_representation()
                 [s2*s3*s1, s3*s1]
             """
-            weight = self.parent().weight
-            level = -weight.coefficient(0)
-            La = weight.parent().fundamental_weights()
-            cartan = weight.parent().cartan_type().classical()
+            cartan = self.parent().weight.parent().cartan_type().classical()
+            I = cartan.index_set()
             W = WeylGroup(cartan,prefix='s')
-            scalars = [0] + self.scalar_factors()
-            l = [(self.value[i]/(scalars[i+1]-scalars[i])+level*La[0]).to_dominant_chamber(reduced_word=True) for i in range(len(scalars)-1)]
-            return [W.from_reduced_word(a[1]) for a in l]
+            return [W.from_reduced_word(x.to_dominant_chamber(index_set=I, reduced_word=True)[1]) for x in self.value]
 
         @cached_in_parent_method
         def energy_function(self):
             r"""
-            Returns the energy function of ``self`` for untwisted types.
+            Return the energy function of ``self``.
 
-            For level zero LS paths `\pi \in \mathbb{B}_\mathrm{cl}(\lambda)`, the energy function is defined as follows:
+            The energy function `D(\pi)` of the level zero LS path `\pi \in \mathbb{B}_\mathrm{cl}(\lambda)`
+            requires a series of definitions; for simplicity the root system is assumed to be untwisted affine.
+
+            The LS path `\pi` is a piecewise linear map from the unit interval `[0,1]` to the weight lattice.
+            It is specified by "times" `0=\sigma_0<\sigma_1<\dotsm<\sigma_s=1` and "direction vectors"
+            `x_u \lambda` where `x_u \in W/W_J` for `1\le u\le s`, and `W_J` is the
+            stabilizer of `\lambda` in the finite Weyl group `W`. Precisely,
 
             .. MATH::
 
-                D(\pi)=-\sum_{u=1}^{s-1} (1-\sigma_{u}) \langle \lambda,\mathrm{wt}(b_{u}) \rangle
+                \pi(t)=\sum_{u'=1}^{u-1} (\sigma_{u'}-\sigma_{u'-1})x_{u'}\lambda+(t-\sigma_{u-1})x_{u}\lambda
 
-            To make sense of this equation, we first need some definitions.
-            Let us write the LS path (or ``self``) as a piecewise linear map
+            for `1\le u\le s` and `\sigma_{u-1} \le t \le \sigma_{u}`.
 
-            .. MATH::
-
-                \pi(t)=\sum_{u'=1}^{u-1} (\sigma_{u'}-\sigma_{u'-1})x_{u'}+(t-\sigma_{u-1})x_{u}
-
-            for `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
-            Here `b_{u}` is a shortest directed path from `x_{u+1}` to `x_{u}` in the parabolic quantum
-            Bruhat graph.
-
-            For any `x,y\in W/W_J`, where `W_J` is a parabolic subgroup of `W` (the stabilizer of the weight `\lambda`), let
+            For any `x,y\in W/W_J` let
 
             .. MATH::
 
@@ -796,17 +816,19 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 w_{1} \stackrel{\beta_{2}}{\leftarrow} \cdots
                 \stackrel{\beta_{n}}{\leftarrow} w_{n}=y
 
-            be a shortest path in the parabolic quantum Bruhat graph. The weight is defined as
+            be a shortest directed path in the parabolic quantum Bruhat graph. Define
 
             .. MATH::
 
-                \mathrm{wt}(d):=\sum_{ \begin{subarray}{c}
-                1 \le k \le n \text{ such that } \\
-                w_{k-1} \stackrel{\beta_{k}}{\leftarrow} w_{k}
-                \text{ is a down arrow}
-                \end{subarray}
-                }
-                \beta_{k}^{\vee}.
+                \mathrm{wt}(d):=\sum_{\substack{1\le k\le n \\  \ell(w_{k-1})<\ell(w_k)}}
+                \beta_{k}^{\vee}
+
+            It can be shown that `\mathrm{wt}(d)` depends only on `x,y`;
+            call its value `\mathrm{wt}(x,y)`. The energy function `D(\pi)` is defined by
+
+            .. MATH::
+
+                D(\pi)=-\sum_{u=1}^{s-1} (1-\sigma_{u}) \langle \lambda,\mathrm{wt}(x_u,x_{u+1}) \rangle
 
             For more information, see [LNSSS2013]_.
 
@@ -816,11 +838,14 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.
                DMTCS proc, to appear ( {{{:arXiv:`1211.6019`}}} )
 
-            .. WARNING::
+            .. NOTE::
 
-                The energy function for LS paths is currently only implemented for
-                untwisted types!
-
+                In the dual-of-untwisted case the parabolic quantum Bruhat graph that is used is obtained by
+                exchanging the roles of roots and coroots. Moreover, in the computation of the
+                pairing the short roots must be doubled (or tripled for type `G`). This factor
+                is determined by the translation factor of the corresponding root.
+                Type `BC` is viewed as untwisted type, whereas the dual of `BC` is viewed as twisted.
+                Except for the untwisted cases, these formulas are currently still conjectural.
 
             EXAMPLES::
 
@@ -854,17 +879,89 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: C = G.connected_components()
                 sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
                 [True, True, True, True]
+
+                sage: R = RootSystem(['D',4,2])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[2])
+                sage: J = R.cartan_type().classical().index_set()
+                sage: hw = [x for x in LS if x.is_highest_weight(J)]
+                sage: [(x.weight(), x.energy_function()) for x in hw]
+                [(-2*Lambda[0] + Lambda[2], 0), (-2*Lambda[0] + Lambda[1], 1), (0, 2)]
+                sage: G = LS.digraph(index_set=J)
+                sage: C = G.connected_components()
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                [True, True, True]
+
+                sage: R = RootSystem(CartanType(['G',2,1]).dual())
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+                sage: G = LS.digraph(index_set=[1,2])
+                sage: C = G.connected_components()
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
+
+                sage: ct = CartanType(['BC',2,2]).dual()
+                sage: R = RootSystem(ct)
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+                sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
+                sage: C = G.connected_components()
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                [True, True, True, True, True, True, True, True, True, True, True]
+
+                sage: R = RootSystem(['BC',2,2])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+                sage: G = LS.digraph(index_set=R.cartan_type().classical().index_set())
+                sage: C = G.connected_components()
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
+                True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
             """
             weight = self.parent().weight
-            c_weight = weight.parent().classical()(weight)
-            cartan = weight.parent().cartan_type().classical()
+            P = weight.parent()
+            c_weight = P.classical()(weight)
+            ct = P.cartan_type()
+            cartan = ct.classical()
+            Qv = RootSystem(cartan).coroot_lattice()
             W = WeylGroup(cartan,prefix='s')
-            R = RootSystem(cartan).coroot_lattice()
-            G = W.quantum_bruhat_graph(tuple(weight.weyl_stabilizer()))
+            J = tuple(weight.weyl_stabilizer())
             L = self.weyl_group_representation()
+            if ct.is_untwisted_affine() or ct.type() == 'BC':
+                untwisted = True
+                G = W.quantum_bruhat_graph(J)
+            else:
+                untwisted = False
+                cartan_dual = cartan.dual()
+                Wd = WeylGroup(cartan_dual, prefix='s')
+                G = Wd.quantum_bruhat_graph(J)
+                Qd = RootSystem(cartan_dual).root_lattice()
+                dualize = lambda x: Qv.from_vector(x.to_vector())
+                L = [Wd.from_reduced_word(x.reduced_word()) for x in L]
+                def stretch_short_root(a):
+                    # stretches roots by translation factor
+                    if ct.dual().type() == 'BC':
+                        return ct.c()[a.to_simple_root()]*a
+                    return ct.dual().c()[a.to_simple_root()]*a
+                    #if a.is_short_root():
+                    #    if cartan_dual.type() == 'G':
+                    #        return 3*a
+                    #    else:
+                    #        return 2*a
+                    #return a
             paths = [G.shortest_path(L[i+1],L[i]) for i in range(len(L)-1)]
             paths_labels = [[G.edge_label(p[i],p[i+1]) for i in range(len(p)-1) if p[i].length()+1 != p[i+1].length()] for p in paths]
             scalars = self.scalar_factors()
-            return sum((1-scalars[i])*c_weight.scalar( R.sum(root.associated_coroot()
+            if untwisted:
+                s = sum((1-scalars[i])*c_weight.scalar( Qv.sum(root.associated_coroot()
                        for root in paths_labels[i]) ) for i in range(len(paths_labels)))
-
+                if ct.type() == 'BC':
+                    return 2*s
+                else:
+                    return s
+            else:
+                s = sum((1-scalars[i])*c_weight.scalar( dualize (Qd.sum(stretch_short_root(root) for root in paths_labels[i])) ) for i in range(len(paths_labels)))
+                if ct.dual().type() == 'BC':
+                    return s/2
+                else:
+                    return s

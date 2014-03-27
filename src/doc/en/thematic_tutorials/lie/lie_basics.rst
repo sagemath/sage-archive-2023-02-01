@@ -328,12 +328,12 @@ that we are modeling the Lie group `U(r+1)` or `GL(r+1,\mathbf{C})`
 rather than `SU(r+1)` or `SL(r+1,\mathbf{C})`. The ambient space is
 identified with `\mathbf{Q}^{r+1}`::
 
-   sage: RootSystem("A3").ambient_space().simple_roots()
-   Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1)}
-   sage: RootSystem("A3").ambient_space().fundamental_weights()
-   Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1, 1, 1, 0)}
-   sage: RootSystem("A3").ambient_space().rho()
-   (3, 2, 1, 0)
+    sage: RootSystem("A3").ambient_space().simple_roots()
+    Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1)}
+    sage: RootSystem("A3").ambient_space().fundamental_weights()
+    Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1, 1, 1, 0)}
+    sage: RootSystem("A3").ambient_space().rho()
+    (3, 2, 1, 0)
 
 The dominant weights consist of integer `r+1`-tuples
 `\lambda = (\lambda_1,\dots,\lambda_{r+1})` such that
@@ -347,15 +347,15 @@ Type B
 For the remaining classical Cartan types `B_r`, `C_r` and `D_r` we use
 an `r`-dimensional ambient space::
 
-   sage: RootSystem("B3").ambient_space().simple_roots()
-   Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 1)}
-   sage: RootSystem("B3").ambient_space().fundamental_weights()
-   Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1/2, 1/2, 1/2)}
-   sage: RootSystem("B3").ambient_space().rho()
-   (5/2, 3/2, 1/2)
+    sage: RootSystem("B3").ambient_space().simple_roots()
+    Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 1)}
+    sage: RootSystem("B3").ambient_space().fundamental_weights()
+    Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1/2, 1/2, 1/2)}
+    sage: RootSystem("B3").ambient_space().rho()
+    (5/2, 3/2, 1/2)
 
 This is the Cartan type of `spin(2r+1)`. The last fundamental weight
-``(1/2, 1/2, ... , 1/2)`` is the highest weight of the `2^r`
+``(1/2, 1/2, ..., 1/2)`` is the highest weight of the `2^r`
 dimensional *spin representation*. All the other fundamental
 representations factor through the homomorphism
 `spin(2r+1) \to SO(2r+1)` and are representations of the orthogonal
@@ -371,12 +371,12 @@ Type C
 ^^^^^^
 ::
 
-   sage: RootSystem("C3").ambient_space().simple_roots()
-   Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 2)}
-   sage: RootSystem("C3").ambient_space().fundamental_weights()
-   Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1, 1, 1)}
-   sage: RootSystem("C3").ambient_space().rho()
-   (3, 2, 1)
+    sage: RootSystem("C3").ambient_space().simple_roots()
+    Finite family {1: (1, -1, 0), 2: (0, 1, -1), 3: (0, 0, 2)}
+    sage: RootSystem("C3").ambient_space().fundamental_weights()
+    Finite family {1: (1, 0, 0), 2: (1, 1, 0), 3: (1, 1, 1)}
+    sage: RootSystem("C3").ambient_space().rho()
+    (3, 2, 1)
 
 This is the Cartan type of the symplectic group `Sp(2r)`.
 
@@ -389,12 +389,12 @@ Type D
 ^^^^^^
 ::
 
-   sage: RootSystem("D4").ambient_space().simple_roots()
-   Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1), 4: (0, 0, 1, 1)}
-   sage: RootSystem("D4").ambient_space().fundamental_weights()
-   Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1/2, 1/2, 1/2, -1/2), 4: (1/2, 1/2, 1/2, 1/2)}
-   sage: RootSystem("D4").ambient_space().rho()
-   (3, 2, 1, 0)
+    sage: RootSystem("D4").ambient_space().simple_roots()
+    Finite family {1: (1, -1, 0, 0), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1), 4: (0, 0, 1, 1)}
+    sage: RootSystem("D4").ambient_space().fundamental_weights()
+    Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (1/2, 1/2, 1/2, -1/2), 4: (1/2, 1/2, 1/2, 1/2)}
+    sage: RootSystem("D4").ambient_space().rho()
+    (3, 2, 1, 0)
 
 This is the Cartan type of `spin(2r)`.  The last two fundamental
 weights are the highest weights of the two `2^{r-1}`-dimensional spin
@@ -554,7 +554,7 @@ There are various ways to get the Dynkin diagram::
     O---O---O---O---O
     1   3   4   5   6
     E6
-    sage: B4=WeylCharacterRing("B4"); B4
+    sage: B4 = WeylCharacterRing("B4"); B4
     The Weyl Character Ring of Type ['B', 4] with Integer Ring coefficients
     sage: B4.dynkin_diagram()
     O---O---O=>=O

@@ -1,0 +1,32 @@
+commit d753563ff6bb8ea992999f83db9f454da873d4ba
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Mon Aug 6 11:50:31 2012 +0200
+
+    Change default slibdir to ${datarootdir}/singular
+
+diff --git a/IntegerProgramming/Makefile.in b/IntegerProgramming/Makefile.in
+index 50de520..88238a6 100644
+--- a/IntegerProgramming/Makefile.in
++++ b/IntegerProgramming/Makefile.in
+@@ -5,7 +5,7 @@ SINGUNAME       = @SINGUNAME@
+ ##
+ bindir          = @bindir@
+ prefix          = @prefix@
+-slibdir         = ${prefix}/LIB
++slibdir         = @datarootdir@/singular
+ install_bindir  = ${install_prefix}/${SINGUNAME}
+ libdir          = @libdir@
+ 
+diff --git a/Singular/Makefile.in b/Singular/Makefile.in
+index c4a6e78..e077cd3 100644
+--- a/Singular/Makefile.in
++++ b/Singular/Makefile.in
+@@ -47,7 +47,7 @@ libdir 		= @libdir@
+ bindir		= @bindir@
+ # includes are taken from here
+ includedir	= @includedir@
+-slibdir		= ${prefix}/LIB
++slibdir		= @datarootdir@/singular
+ install_bindir  = ${install_prefix}/${SINGUNAME}
+ install_slibdir = ${install_prefix}/LIB
+ 

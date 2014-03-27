@@ -21,7 +21,7 @@ from generating_series import _integers_from, factorial_stream
 from subset_species import SubsetSpeciesStructure
 from set_species import SetSpecies
 from structure import GenericSpeciesStructure
-
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -122,26 +122,29 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
         return PartitionSpeciesStructure(self.parent(), labels, [block.change_labels(labels) for block in self._list])
 
 
-@accept_size
-@cached_function
-def PartitionSpecies(*args, **kwds):
-    """
-    Returns the species of partitions.
-
-    EXAMPLES::
-
-        sage: P = species.PartitionSpecies()
-        sage: P.generating_series().coefficients(5)
-        [1, 1, 1, 5/6, 5/8]
-        sage: P.isotype_generating_series().coefficients(5)
-        [1, 1, 2, 3, 5]
-    """
-    return PartitionSpecies_class(*args, **kwds)
-
-class PartitionSpecies_class(GenericCombinatorialSpecies):
-    def __init__(self, min=None, max=None, weight=None):
+class PartitionSpecies(GenericCombinatorialSpecies):
+    @staticmethod
+    @accept_size
+    def __classcall__(cls, *args, **kwds):
         """
         EXAMPLES::
+
+            sage: P = species.PartitionSpecies(); P
+            Partition species
+       """
+        return super(PartitionSpecies, cls).__classcall__(cls, *args, **kwds)
+
+    def __init__(self, min=None, max=None, weight=None):
+        """
+        Returns the species of partitions.
+
+        EXAMPLES::
+
+            sage: P = species.PartitionSpecies()
+            sage: P.generating_series().coefficients(5)
+            [1, 1, 1, 5/6, 5/8]
+            sage: P.isotype_generating_series().coefficients(5)
+            [1, 1, 2, 3, 5]
 
             sage: P = species.PartitionSpecies()
             sage: P._check()
@@ -153,8 +156,6 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
         self._name = "Partition species"
 
     _default_structure_class = PartitionSpeciesStructure
-
-    _cached_constructor = staticmethod(PartitionSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -277,3 +278,6 @@ class PartitionSpecies_class(GenericCombinatorialSpecies):
         if self.is_weighted():
             res *= self._weight
         return res
+
+#Backward compatibility
+PartitionSpecies_class = PartitionSpecies

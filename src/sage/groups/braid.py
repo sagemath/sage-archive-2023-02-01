@@ -436,6 +436,56 @@ class Braid(FinitelyPresentedGroupElement):
         """
         return self.parent()._LKB_matrix_(self.Tietze(), variab=variables)
 
+    def tropical_coordinates(self):
+        r"""
+        Return the tropical coordinates of ``self`` in the braid group `B_n`.
+
+        OUTPUT:
+
+        - a list of `2n` tropical integers
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1])
+            sage: tc = b.tropical_coordinates(); tc
+            [1, 0, 0, 2, 0, 1]
+            sage: tc[0].parent()
+            Tropical semiring over Integer Ring
+
+            sage: b = B([-2, -2, -1, -1, 2, 2, 1, 1])
+            sage: b.tropical_coordinates()
+            [1, -19, -12, 9, 0, 13]
+
+        REFERENCES:
+
+        .. [Dynnikov07] I. Dynnikov and B. Wiest, On the complexity of braids,
+           J. Europ. Math. Soc. 9 (2007)
+        .. [Dehornoy] P. Dehornoy, Le probleme d'isotopie des tresses, in
+           lecons de mathematiques d'aujourd'hui vol. 4
+        """
+        coord = [0, 1] * self.strands()
+        for s in self.Tietze():
+            k = 2*(abs(s)-1)
+            x1, y1, x2, y2 = coord[k:k+4]
+            if s > 0:
+                sign = 1
+                z = x1 - min(y1, 0) - x2 + max(y2, 0)
+                coord[k+1] = y2 - max(z, 0)
+                coord[k+3] = y1 + max(z, 0)
+            else:
+                sign = -1
+                z = x1 + min(y1, 0) - x2 - max(y2, 0)
+                coord[k+1] = y2 + min(z, 0)
+                coord[k+3] = y1 - min(z, 0)
+
+            coord[k] = x1 + sign*(max(y1, 0) + max(max(y2, 0) - sign*z, 0))
+            coord[k+2] = x2 + sign*(min(y2, 0) + min(min(y1, 0) + sign*z, 0))
+
+        from sage.rings.semirings.tropical_semiring import TropicalSemiring
+        T = TropicalSemiring(IntegerRing())
+        return map(T, coord)
+
     @cached_method
     def left_normal_form(self):
         """
@@ -569,6 +619,29 @@ class BraidGroup_class(FinitelyPresentedGroup):
             Braid group on 2 strands
             sage: BraidGroup(('a',))
             Braid group on 2 strands
+
+        Check that :trac:`15505` is fixed::
+
+            sage: B=BraidGroup(4)
+            sage: B.relations()
+            (s0*s1*s0*s1^-1*s0^-1*s1^-1, s0*s2*s0^-1*s2^-1, s1*s2*s1*s2^-1*s1^-1*s2^-1)
+            sage: B=BraidGroup('a,b,c,d,e,f')
+            sage: B.relations()
+            (a*b*a*b^-1*a^-1*b^-1,
+             a*c*a^-1*c^-1,
+             a*d*a^-1*d^-1,
+             a*e*a^-1*e^-1,
+             a*f*a^-1*f^-1,
+             b*c*b*c^-1*b^-1*c^-1,
+             b*d*b^-1*d^-1,
+             b*e*b^-1*e^-1,
+             b*f*b^-1*f^-1,
+             c*d*c*d^-1*c^-1*d^-1,
+             c*e*c^-1*e^-1,
+             c*f*c^-1*f^-1,
+             d*e*d*e^-1*d^-1*e^-1,
+             d*f*d^-1*f^-1,
+             e*f*e*f^-1*e^-1*f^-1)
         """
         n = len(names)
         if n<1: #n is the number of generators, not the number of strands (see ticket 14081)
@@ -576,9 +649,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
         free_group = FreeGroup(names)
         rels = []
         for i in range(1, n):
-            if i<n-1:
-                rels.append(free_group([i, i+1, i, -i-1, -i, -i-1]))
-            for j in range(i+2, n):
+            rels.append(free_group([i, i+1, i, -i-1, -i, -i-1]))
+            for j in range(i+2, n+1):
                 rels.append(free_group([i, j, -i, -j]))
         FinitelyPresentedGroup.__init__(self, free_group, tuple(rels))
         self._nstrands_ = n+1
@@ -673,7 +745,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B([1, 2, 3]) # indirect doctest
             s0*s1*s2
         """
-        return Braid(x, parent=self)
+        return Braid(self, x)
 
     def _permutation_braid_Tietze(self, p):
         """

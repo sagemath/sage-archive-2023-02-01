@@ -22,6 +22,7 @@ from structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
+from sage.structure.unique_representation import UniqueRepresentation
 
 class SubsetSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
@@ -115,26 +116,29 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
         new_list = [i for i in range(1, len(self._labels)+1) if i not in self._list]
         return SubsetSpeciesStructure(self.parent(), self._labels, new_list)
 
-@accept_size
-@cached_function
-def SubsetSpecies(*args, **kwds):
-    """
-    Returns the species of subsets.
-
-    EXAMPLES::
-
-        sage: S = species.SubsetSpecies()
-        sage: S.generating_series().coefficients(5)
-        [1, 2, 2, 4/3, 2/3]
-        sage: S.isotype_generating_series().coefficients(5)
-        [1, 2, 3, 4, 5]
-    """
-    return SubsetSpecies_class(*args, **kwds)
-
-class SubsetSpecies_class(GenericCombinatorialSpecies):
-    def __init__(self, min=None, max=None, weight=None):
+class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
+    @staticmethod
+    @accept_size
+    def __classcall__(cls, *args, **kwds):
         """
         EXAMPLES::
+
+            sage: S = species.SubsetSpecies(); S
+            Subset species
+        """
+        return super(SubsetSpecies, cls).__classcall__(cls, *args, **kwds)
+
+    def __init__(self, min=None, max=None, weight=None):
+        """
+        Returns the species of subsets.
+
+        EXAMPLES::
+
+            sage: S = species.SubsetSpecies()
+            sage: S.generating_series().coefficients(5)
+            [1, 2, 2, 4/3, 2/3]
+            sage: S.isotype_generating_series().coefficients(5)
+            [1, 2, 3, 4, 5]
 
             sage: S = species.SubsetSpecies()
             sage: c = S.generating_series().coefficients(3)
@@ -147,8 +151,6 @@ class SubsetSpecies_class(GenericCombinatorialSpecies):
         self._name = "Subset species"
 
     _default_structure_class = SubsetSpeciesStructure
-
-    _cached_constructor = staticmethod(SubsetSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -241,3 +243,6 @@ class SubsetSpecies_class(GenericCombinatorialSpecies):
         yield base_ring(0)
         for n in _integers_from(ZZ(1)):
             yield 2*p([n])/n
+
+#Backward compatibility
+SubsetSpecies_class = SubsetSpecies

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# This script must be run from $SAGE_ROOT and without having sourced
+# sage-env.
+
+set -e
+
+# Update sources
+local/bin/sage-update-src "$@"
+
+# Run top-level make with SAGE_UPGRADING set
+export SAGE_UPGRADING=yes
+exec make

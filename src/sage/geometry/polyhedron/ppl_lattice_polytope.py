@@ -13,6 +13,13 @@ polytopes in 4 dimensions.
     :func:`~sage.geometry.polyhedon.constructor.Polyhedron` with
     `base_ring=ZZ`.
 
+The class derives from the PPL :class:`sage.libs.ppl.C_Polyhedron`
+class, so you can work with the underlying generator and constraint
+objects. However, integral points are generally represented by
+`\ZZ`-vectors. In the following, we always use *generator* to refer
+the PPL generator objects and *vertex* (or integral point) for the
+corresponding `\ZZ`-vector.
+
 EXAMPLES::
 
     sage: vertices = [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (-9, -6, -1, -1)]
@@ -57,20 +64,55 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-
-
 import copy
 from sage.rings.integer import GCD_list
 from sage.rings.integer_ring import ZZ
 from sage.misc.all import union, cached_method, prod, uniq
-from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
+from sage.modules.all import (
+    vector, zero_vector )
+from sage.matrix.constructor import (
+    matrix, column_matrix, diagonal_matrix )
+from sage.libs.ppl import (
+     C_Polyhedron, Linear_Expression, Variable,
+    point, ray, line,
+    Generator, Generator_System, Generator_System_iterator )
 from sage.libs.ppl import (
     C_Polyhedron, Linear_Expression, Variable,
     point, ray, line, Generator, Generator_System,
     Constraint_System,
-    Poly_Con_Relation)
+    Poly_Con_Relation )
 
 
+
+
+########################################################################
+def _class_for_LatticePolytope(dim):
+    """
+    Return the appropriate class in the given dimension.
+
+    Helper function for :func:`LatticePolytope_PPL`. You should not
+    have to use this function manually.
+
+    INPUT:
+
+    - ``dim`` -- integer. The ambient space dimenson.
+
+    OUTPUT:
+
+    The appropriate class for the lattice polytope.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.ppl_lattice_polytope import _class_for_LatticePolytope
+        sage: _class_for_LatticePolytope(2)
+        <class 'sage.geometry.polyhedron.ppl_lattice_polygon.LatticePolygon_PPL_class'>
+        sage: _class_for_LatticePolytope(3)
+        <class 'sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class'>
+    """
+    if dim <= 2:
+        from sage.geometry.polyhedron.ppl_lattice_polygon import LatticePolygon_PPL_class
+        return LatticePolygon_PPL_class
+    return LatticePolytope_PPL_class
 
 
 ########################################################################
@@ -108,39 +150,42 @@ def LatticePolytope_PPL(*args):
         point(2/5, 3/5)
         sage: LatticePolytope_PPL(p)
         Traceback (most recent call last):
-        ...
-        TypeError: The generator is not a lattice polytope generator.
+         ...
+        TypeError: generator is not a lattice polytope generator
 
         sage: P = C_Polyhedron(Generator_System(p));  P
         A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point
         sage: LatticePolytope_PPL(P)
         Traceback (most recent call last):
         ...
-        TypeError: The polyhedron has non-integral generators.
+        TypeError: polyhedron has non-integral generators
     """
+    polytope_class = LatticePolytope_PPL_class
     if len(args)==1 and isinstance(args[0], C_Polyhedron):
         polyhedron = args[0]
-        #if not polyhedron.is_bounded():
-        #    raise TypeError('The polyhedron is unbounded.')
+        polytope_class = _class_for_LatticePolytope(polyhedron.space_dimension())
         if not all(p.is_point() and p.divisor().is_one() for p in polyhedron.generators()):
-            raise TypeError('The polyhedron has non-integral generators.')
-        return LatticePolytope_PPL_class(polyhedron)
-    if len(args)==1:
+            raise TypeError('polyhedron has non-integral generators')
+        return polytope_class(polyhedron)
+    if len(args)==1 \
+            and isinstance(args[0], (list, tuple)) \
+            and isinstance(args[0][0], (list,tuple)):
         vertices = args[0]
-        try:
-            return LatticePolytope_PPL(*vertices)
-        except TypeError:
-            pass
-    vertices = args
+    else:
+        vertices = args
     gs = Generator_System()
     for v in vertices:
         if isinstance(v, Generator):
             if (not v.is_point()) or (not v.divisor().is_one()):
-                raise TypeError('The generator is not a lattice polytope generator.')
+                raise TypeError('generator is not a lattice polytope generator')
             gs.insert(v)
         else:
             gs.insert(point(Linear_Expression(v, 0)))
-    return LatticePolytope_PPL_class(gs)
+    if not gs.empty():
+        dim = Generator_System_iterator(gs).next().space_dimension()
+        polytope_class = _class_for_LatticePolytope(dim)
+    return polytope_class(gs)
+
 
 
 ########################################################################
@@ -265,7 +310,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         box_min = []
         box_max = []
         if self.is_empty():
-            raise ValueError('Empty polytope is not allowed')
+            raise ValueError('empty polytope is not allowed')
         for i in range(0, self.space_dimension()):
             x = Variable(i)
             coords = [ v.coefficient(x) for v in self.generators() ]
@@ -460,6 +505,37 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             v_copy.set_immutable()
             points.append(v_copy)
         return tuple(points)
+
+    def vertices_saturating(self, constraint):
+        """
+        Return the vertices saturating the constraint
+
+        INPUT:
+
+        - ``constraint`` -- a constraint (inequality or equation) of
+          the polytope.
+
+        OUTPUT:
+
+        The tuple of vertices saturating the constraint. The vertices
+        are returned as `\ZZ`-vectors, as in :meth:`vertices`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
+            sage: p = LatticePolytope_PPL((0,0),(0,1),(1,0))
+            sage: ieq = iter(p.constraints()).next();  ieq
+            x0>=0
+            sage: p.vertices_saturating(ieq)
+            ((0, 0), (0, 1))
+        """
+        from sage.libs.ppl import C_Polyhedron, Poly_Con_Relation
+        result = []
+        for i,v in enumerate(self.minimized_generators()):
+            v = C_Polyhedron(v)
+            if v.relation_with(constraint).implies(Poly_Con_Relation.saturates()):
+                result.append(self.vertices()[i])
+        return tuple(result)
 
     @cached_method
     def is_full_dimensional(self):
@@ -1023,6 +1099,157 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             lattice_gens.append(perm_list)
         return PermutationGroup(lattice_gens, domain=point_labels)
 
+    def sub_polytope_generator(self):
+        """
+        Generate the maximal lattice sub-polytopes.
+
+        OUTPUT:
+
+        A generator yielding the maximal (with respect to inclusion)
+        lattice sub polytopes. That is, each can be gotten as the
+        convex hull of the integral points of ``self`` with one vertex
+        removed.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
+            sage: P = LatticePolytope_PPL((1,0,0), (0,1,0), (0,0,1), (-1,-1,-1))
+            sage: for p in P.sub_polytope_generator():
+            ....:     print p.vertices()
+            ((0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0))
+            ((-1, -1, -1), (0, 0, 0), (0, 1, 0), (1, 0, 0))
+            ((-1, -1, -1), (0, 0, 0), (0, 0, 1), (1, 0, 0))
+            ((-1, -1, -1), (0, 0, 0), (0, 0, 1), (0, 1, 0))
+        """
+        pointset = set(self.integral_points())
+        for v in self.vertices():
+            sub = list(pointset.difference([v]))
+            yield LatticePolytope_PPL(*sub)
+
+    @cached_method
+    def _find_isomorphism_to_subreflexive_polytope(self):
+        """
+        Find an isomorphism to a sub-polytope of a maximal reflexive
+        polytope.
+
+        OUTPUT:
+
+        A tuple consisting of the ambient reflexive polytope, the
+        subpolytope, and the embedding of ``self`` into the ambient
+        polytope.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
+            sage: polygon = LatticePolytope_PPL((0,0,2,1),(0,1,2,0),(2,3,0,0),(2,0,0,3))
+            sage: polygon._find_isomorphism_to_subreflexive_polytope()
+            (A 2-dimensional lattice polytope in ZZ^2 with 3 vertices,
+             A 2-dimensional lattice polytope in ZZ^2 with 4 vertices,
+             The map A*x+b with A=
+             [ 1  1]
+             [ 0  1]
+             [-1 -1]
+             [ 1  0]
+             b =
+             (-1, 0, 3, 0))
+            sage: ambient, sub, embedding = _
+            sage: ambient.vertices()
+            ((0, 0), (0, 3), (3, 0))
+            sage: sub.vertices()
+            ((0, 1), (3, 0), (0, 3), (1, 0))
+        """
+        from ppl_lattice_polygon import sub_reflexive_polygons
+        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
+            LatticePolytopesNotIsomorphicError, LatticePolytopeNoEmbeddingError
+        for p, ambient in sub_reflexive_polygons():
+            try:
+                return (ambient, p, p.find_isomorphism(self))
+            except LatticePolytopesNotIsomorphicError:
+                pass
+        from sage.geometry.polyhedron.lattice_euclidean_group_element import \
+            LatticePolytopeNoEmbeddingError
+        raise LatticePolytopeNoEmbeddingError('not a sub-polytope of a reflexive polygon')
+
+    def embed_in_reflexive_polytope(self, output='hom'):
+        """
+        Find an embedding as a sub-polytope of a maximal reflexive
+        polytope.
+
+        INPUT:
+
+        - ``hom`` -- string. One of ``'hom'`` (default),
+          ``'polytope'``, or ``points``. How the embedding is
+          returned. See the output section for details.
+
+        OUTPUT:
+
+        An embedding into a reflexive polytope. Depending on the
+        ``output`` option slightly different data is returned.
+
+        - If ``output='hom'``, a map from a reflexive polytope onto
+          ``self`` is returned.
+
+        - If ``output='polytope'``, a reflexive polytope that contains
+          ``self`` (up to a lattice linear transformation) is
+          returned. That is, the domain of the ``output='hom'`` map is
+          returned. If the affine span of ``self`` is less or equal
+          2-dimnsional, the output is one of the following three
+          possibilities::
+          :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_polytope`,
+          :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P1xP1_polytope`,
+          or
+          :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_112_polytope`.
+
+        - If ``output='points'``, a dictionary containing the integral
+          points of ``self`` as keys and the corresponding integral
+          point of the reflexive polytope as value.
+
+        If there is no such embedding, a
+        :class:`~sage.geometry.polyhedron.lattice_euclidean_group_element.LatticePolytopeNoEmbeddingError`
+        is raised. Even if it exists, the ambient reflexive polytope
+        is usually not uniquely determined an a random but fixed
+        choice will be returned.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
+            sage: polygon = LatticePolytope_PPL((0,0,2,1),(0,1,2,0),(2,3,0,0),(2,0,0,3))
+            sage: polygon.embed_in_reflexive_polytope()
+            The map A*x+b with A=
+            [ 1  1]
+            [ 0  1]
+            [-1 -1]
+            [ 1  0]
+            b =
+            (-1, 0, 3, 0)
+            sage: polygon.embed_in_reflexive_polytope('polytope')
+            A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
+            sage: polygon.embed_in_reflexive_polytope('points')
+            {(0, 0, 2, 1): (1, 0), (2, 1, 0, 2): (2, 1),
+             (0, 1, 2, 0): (0, 1), (1, 1, 1, 1): (1, 1),
+             (1, 2, 1, 0): (0, 2), (2, 2, 0, 1): (1, 2),
+             (2, 3, 0, 0): (0, 3), (1, 0, 1, 2): (2, 0),
+             (2, 0, 0, 3): (3, 0)}
+
+            sage: LatticePolytope_PPL((0,0), (4,0), (0,4)).embed_in_reflexive_polytope()
+            Traceback (most recent call last):
+            ...
+            LatticePolytopeNoEmbeddingError: not a sub-polytope of a reflexive polygon
+        """
+        if self.affine_dimension() > 2:
+            raise NotImplementedError('can only embed in reflexive polygons')
+        ambient, subreflexive, hom = self._find_isomorphism_to_subreflexive_polytope()
+        if output == 'hom':
+            return hom
+        elif output == 'polytope':
+            return ambient
+        elif output == 'points':
+            points = dict()
+            for p in subreflexive.integral_points():
+                points[ tuple(hom(p)) ] = p
+            return points
+        else:
+            raise ValueError('output='+str(output)+' is not valid.')
 
 
 

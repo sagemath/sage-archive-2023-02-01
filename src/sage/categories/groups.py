@@ -51,7 +51,7 @@ class Groups(Category_singleton):
             General Linear Group of degree 4 over Rational Field
         """
         from sage.rings.rational_field import QQ
-        from sage.groups.matrix_gps.general_linear import GL
+        from sage.groups.matrix_gps.linear import GL
         return GL(4,QQ)
 
     class ParentMethods:
@@ -207,12 +207,12 @@ class Groups(Category_singleton):
                 sage: M.cayley_table()
                 *  a b c d e f
                  +------------
-                a| d c b a f e
-                b| e f a b c d
-                c| f e d c b a
-                d| a b c d e f
-                e| b a f e d c
-                f| c d e f a b
+                a| c e a f b d
+                b| d f b e a c
+                c| a b c d e f
+                d| b a d c f e
+                e| f d e b c a
+                f| e c f a d b
 
             ::
 
@@ -377,38 +377,6 @@ class Groups(Category_singleton):
 
                 sage: Groups().Algebras(QQ).super_categories()
                 [Category of hopf algebras with basis over Rational Field, Category of monoid algebras over Rational Field]
-
-                sage: Groups().example().algebra(ZZ).categories()
-                [Category of group algebras over Integer Ring,
-                 Category of hopf algebras with basis over Integer Ring,
-                 Category of bialgebras with basis over Integer Ring,
-                 Category of monoid algebras over Integer Ring,
-                 Category of semigroup algebras over Integer Ring,
-                 Category of algebras with basis over Integer Ring,
-                 Category of coalgebras with basis over Integer Ring,
-                 Category of set algebras over Integer Ring,
-                 Category of modules with basis over Integer Ring,
-                 Category of hopf algebras over Integer Ring,
-                 Category of bialgebras over Integer Ring,
-                 Category of algebras over Integer Ring,
-                 Category of rings,
-                 Category of rngs,
-                 Category of coalgebras over Integer Ring,
-                 Category of modules over Integer Ring,
-                 Category of bimodules over Integer Ring on the left and Integer Ring on the right,
-                 Category of left modules over Integer Ring,
-                 Category of right modules over Integer Ring,
-                 Category of commutative additive groups,
-                 Category of semirings,
-                 Category of commutative additive monoids,
-                 Category of commutative additive semigroups,
-                 Category of additive magmas,
-                 Category of monoids,
-                 Category of semigroups,
-                 Category of magmas,
-                 Category of sets,
-                 Category of sets with partial maps,
-                 Category of objects]
             """
             from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
             return [HopfAlgebrasWithBasis(self.base_ring())]

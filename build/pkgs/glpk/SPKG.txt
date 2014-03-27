@@ -1,0 +1,94 @@
+= GLPK 4.42 =
+
+== Description ==
+
+The GLPK (GNU Linear Programming Kit) package is intended for solving
+large-scale linear programming (LP), mixed integer programming (MIP),
+and other related problems. It is a set of routines written in ANSI C
+and organized in the form of a callable library.
+
+GLPK supports the GNU MathProg modelling language, which is a subset of
+the AMPL language.
+
+The GLPK package includes the following main components:
+
+ * primal and dual simplex methods
+ * primal-dual interior-point method
+ * branch-and-cut method
+ * translator for GNU MathProg
+ * application program interface (API)
+ * stand-alone LP/MIP solver
+
+== License ==
+
+The GLPK package is GPL version 3.
+
+== SPKG Maintainers ==
+
+Nathann Cohen (nathann.cohen@gmail.com)
+
+== Upstream Contact ==
+
+GLPK is currently being maintained by mao@gnu.org, mao@mai2.rcnet.ru
+http://www.gnu.org/software/glpk/#maintainer
+
+== Dependencies ==
+
+ * zlib
+ * mpir (as an gmp substitute)
+ * python
+ * possibly others.
+
+== Changelog ==
+
+=== glpk-4.44.p0 (Simon King, 10th December 2011) ==
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
+== glpk-4.44 (Nathann Cohen, 5th July 2010) ==
+
+ * Removed the patch/ directory which was only useful for backward
+   compatibility (and had been for some time already), and updated
+   consequently several files
+
+=== glpk-4.44 (David Kirkby, 23rd June 2010) ===
+ * Updated to the latest upstream code, version 4.44.
+ * Added code to allow a 64-bit build on any platform.
+   If SAGE64 is set to "yes", the compiler flag -m64 is added
+   by default. That flag works with GCC and SunStudio, but not
+   all compilers - IBM's compiler for AIX and HP's for HP-UX
+   both use different flags to create a 64-bit build.
+   If the compiler does not use -m64 for 64-bit builds, then
+   the environment variable CFLAG64 can be set to indicate what
+   flag gets added.
+ * Added a file spkg-check so the self-test code is built.
+   This includes code which will add the appropriate flag
+   for 64-bit builds if the test procedures need code to be
+   compiled. (Sometimes running 'make test' actually needs
+   the compiler flags set properly, so I do it just in case.
+   It appears to be unnecessary with this version of GLPK,
+   but might with later releases.
+ * Added the configure option --with-gmp which will speed up
+   processing of large integers (see src/INSTALL)
+ * Added the configure option --disable-static since there is
+   no need to build static libraries. (see src/INSTALL)
+ * Added the configure option --with-zlib. Adding this allows
+   GLPK API routines and the stand-alone solver to read and
+   write compressed data files performing compression and
+   decompression "on the fly" (see src/INSTALL)
+ * Removed linking of the 'ld' library in spkg-install, as the
+   reason for it being added was not clear.
+ * Corrected SPKG.txt to indicate this code is GPL 3.
+   (see src/COPYING)
+ * Added the ChangeLog section to the SPKG.txt file
+ * Added zlib, python and mpir as dependencies in SPKG.txt
+ * Checked that the configure script actually does configure
+   properly, if not exits.
+ * Checked that 'make' does build the code properly, if not exits.
+ * Checked that 'make install' does actually install the library
+ * Checked that running 'python setup.py install' does actually work.
+   If this is not done, code can appear to install properly as it
+   passes 'configure', 'make' and 'make install'. So unusually there
+   are 4 cases where spkg-install can fail.
+ * The 'patch' directory is left - I think this should be removed
+   but I'll leave it to those that know the software better
+   than me to mess with this.

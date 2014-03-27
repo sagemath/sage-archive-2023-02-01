@@ -50,6 +50,10 @@ For display options, see :meth:`Tableaux.global_options`.
     - Move methods that only apply to semistandard tableaux from tableau to
       semistandard tableau
 
+    - Tableau([[]]) is standard and distinct from Tableau([]). Is this bad?
+
+    - Copy/move functionality to skew tableaux
+
     - Add a class for tableaux of a given shape (eg Tableaux_shape)
 """
 #*****************************************************************************
@@ -76,12 +80,11 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import factorial, binomial
+from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialObject
-import sage.combinat.skew_tableau
+from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
@@ -90,12 +93,11 @@ import permutation
 from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq, prod
-from sage.misc.sage_unittest import TestSuite
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
-
+from sage.misc.superseded import deprecated_function_alias
 
 TableauOptions=GlobalOptions(name='tableaux',
     doc=r"""
@@ -144,17 +146,41 @@ TableauOptions=GlobalOptions(name='tableaux',
         sage: T
           1  2  3
           4  5
+
+    The ASCII art can also be changed::
+
+        sage: t = Tableau([[1,2,3],[4,5]])
+        sage: ascii_art(t)
+          1  2  3
+          4  5
+        sage: Tableaux.global_options(ascii_art="normal")
+        sage: ascii_art(t)
+        +---+---+
+        | 4 | 5 |
+        +---+---+---+
+        | 1 | 2 | 3 |
+        +---+---+---+
+        sage: Tableaux.global_options(ascii_art="compact")
+        sage: ascii_art(t)
+        |4|5|
+        |1|2|3|
         sage: Tableaux.global_options.reset()
     """,
     display=dict(default="list",
                  description='Controls the way in which tableaux are printed',
                  values=dict(list='print tableaux as lists',
-                             diagram='display as Young diagram (simlar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
+                             diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                              compact='minimal length string representation'),
                  alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
                  case_sensitive=False),
+    ascii_art=dict(default="repr",
+                 description='Controls the ascii art output for tableaux',
+                 values=dict(repr='display using the diagram string representation',
+                             table='display as a table',
+                             compact='minimal length ascii art'),
+                 case_sensitive=False),
     latex=dict(default="diagram",
-               description='Controls the way in wich tableaux are latexed',
+               description='Controls the way in which tableaux are latexed',
                values=dict(list='as a list', diagram='as a Young diagram'),
                alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
                case_sensitive=False),
@@ -164,7 +190,6 @@ TableauOptions=GlobalOptions(name='tableaux',
                     case_sensitive=False),
     notation = dict(alt_name="convention")
 )
-
 
 class Tableau(CombinatorialObject, Element):
     """
@@ -256,7 +281,8 @@ class Tableau(CombinatorialObject, Element):
         if not isinstance(t, list) or not all(isinstance(row, list) for row in t):
             raise ValueError("A tableau must be a list of lists.")
 
-        if not map(len,t) in sage.combinat.partition._Partitions:
+        from sage.combinat.partition import _Partitions
+        if not map(len,t) in _Partitions:
             raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
 
         return Tableaux_all().element_class(Tableaux_all(), t)
@@ -292,7 +318,8 @@ class Tableau(CombinatorialObject, Element):
             raise ValueError("A tableau must be a list of lists.")
 
         # and that it has partition shape
-        if not map(len,t) in sage.combinat.partition._Partitions:
+        from sage.combinat.partition import _Partitions
+        if not map(len,t) in _Partitions:
             raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
 
         Element.__init__(self, parent)
@@ -386,10 +413,90 @@ class Tableau(CombinatorialObject, Element):
             return '-'
         else: return '/'.join(','.join('%s'%r for r in row) for row in self._list)
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              1 ]
+            [              1  3    1  2    2 ]
+            [   1  2  3,   2   ,   3   ,   3 ]
+            sage: Tableaux.global_options(ascii_art="compact")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                        |3| ]
+            [          |2|    |3|    |2| ]
+            [ |1|2|3|, |1|3|, |1|2|, |1| ]
+            sage: Tableaux.global_options(ascii_art="table")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                                      +---+ ]
+            [                                      | 3 | ]
+            [                +---+      +---+      +---+ ]
+            [                | 2 |      | 3 |      | 2 | ]
+            [ +---+---+---+  +---+---+  +---+---+  +---+ ]
+            [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
+            [ +---+---+---+, +---+---+, +---+---+, +---+ ]
+            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.global_options(ascii_art="repr")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              3 ]
+            [              2       3       2 ]
+            [   1  2  3,   1  3,   1  2,   1 ]
+            sage: Tableaux.global_options.reset()
+        """
+        ascii = self.parent().global_options.dispatch(self,'_ascii_art_','ascii_art')
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(ascii.splitlines())
+
+    _ascii_art_repr = _repr_diagram
+
+    def _ascii_art_table(self):
+        """
+        TESTS::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_table()
+            +---+---+
+            | 4 | 5 |
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            sage: t = Tableau([]); print t._ascii_art_table()
+            ++
+            ++
+        """
+        if len(self) == 0: return "++\n++"
+        matr = ""
+        for row in self:
+            l1 = ""; l2 =  ""
+            for e in row:
+                l1 += "+---"
+                l2 += "| " + str(e) + " "
+            l1 += "+"; l2 += "|"
+            matr = l1 + "\n" + l2 + "\n" + matr
+        matr += "+---"** Integer(len(self[0])) + "+"
+        return matr
+
+    def _ascii_art_compact(self):
+        """
+        TESTS::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_compact()
+            |4|5|
+            |1|2|3|
+        """
+        if len(self) == 0:
+            return "."
+        matr = ''
+        for row in self:
+            l1 = ""
+            for e in row:
+                l1 += "|" + str(e)
+            l1 += "|"
+            matr = l1 + "\n" + matr
+        return matr
 
     def _latex_(self):
         r"""
-        Returns a LaTeX version of ``self``.
+        Return a LaTeX version of ``self``.
 
         EXAMPLES::
 
@@ -440,7 +547,7 @@ class Tableau(CombinatorialObject, Element):
 
     def __div__(self, t):
         """
-        Returns the skew tableau self/t.
+        Return the skew tableau ``self``/``t``.
 
         EXAMPLES::
 
@@ -454,9 +561,10 @@ class Tableau(CombinatorialObject, Element):
             ...
             ValueError: the shape of the tableau must contain the partition
         """
+        from sage.combinat.partition import Partition
         #if t is a list, convert to to a partition first
         if isinstance(t, list):
-            t = sage.combinat.partition.Partition(t)
+            t = Partition(t)
 
         #Check to make sure that tableau shape contains t
         if not self.shape().contains(t):
@@ -468,14 +576,14 @@ class Tableau(CombinatorialObject, Element):
             for j in range(t[i]):
                 st[i][j] = None
 
-        return sage.combinat.skew_tableau.SkewTableau(st)
+        from sage.combinat.skew_tableau import SkewTableau
+        return SkewTableau(st)
 
     def __call__(self, *cell):
         r"""
 
         INPUT:
 
-        - ``self`` -- a tableau
         - ``cell`` -- a pair of integers, tuple, or list specifying a cell in
           the tableau
 
@@ -535,18 +643,19 @@ class Tableau(CombinatorialObject, Element):
     @combinatorial_map(name='shape')
     def shape(self):
         r"""
-        Returns the shape of a tableau t.
+        Return the shape of a tableau ``self``.
 
         EXAMPLES::
 
             sage: Tableau([[1,2,3],[4,5],[6]]).shape()
             [3, 2, 1]
         """
-        return sage.combinat.partition.Partition([len(row) for row in self])
+        from sage.combinat.partition import Partition
+        return Partition([len(row) for row in self])
 
     def size(self):
         """
-        Returns the size of the shape of the tableau t.
+        Return the size of the shape of the tableau ``self``.
 
         EXAMPLES::
 
@@ -559,7 +668,7 @@ class Tableau(CombinatorialObject, Element):
 
     def corners(self):
         """
-        Returns the corners of the tableau t.
+        Return the corners of the tableau ``self``.
 
         EXAMPLES::
 
@@ -618,7 +727,9 @@ class Tableau(CombinatorialObject, Element):
 
     def to_word_by_row(self):
         """
-        Returns a word obtained from a row reading of the tableau t.
+        Return the word obtained from a row reading of the tableau ``self``
+        (starting with the lowermost row, reading every row from left
+        to right).
 
         EXAMPLES::
 
@@ -635,7 +746,9 @@ class Tableau(CombinatorialObject, Element):
 
     def to_word_by_column(self):
         """
-        Returns the word obtained from a column reading of the tableau t.
+        Return the word obtained from a column reading of the tableau ``self``
+        (starting with the leftmost column, reading every column from bottom
+        to top).
 
         EXAMPLES::
 
@@ -652,7 +765,7 @@ class Tableau(CombinatorialObject, Element):
 
     def to_word(self):
         """
-        An alias for to_word_by_row.
+        An alias for :meth:`to_word_by_row`.
 
         EXAMPLES::
 
@@ -666,26 +779,69 @@ class Tableau(CombinatorialObject, Element):
 
     def to_permutation(self):
         """
-        Returns a permutation with the entries of self obtained by reading
-        self in the reading order.
+        Deprecated in :trac:`14724`. Use :meth:`reading_word_permutation()`
+        instead.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).to_permutation()
+            doctest:...: DeprecationWarning: to_permutation() is deprecated. Use instead reading_word_permutation()
+            See http://trac.sagemath.org/14724 for details.
             [3, 4, 1, 2]
         """
-        return permutation.Permutation(self.to_word())
+        from sage.misc.superseded import deprecation
+        deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
+        return self.reading_word_permutation()
+
+    def attacking_pairs(self):
+        """
+        Deprecated in :trac:`15327`. Use ``T.shape().attacking_pairs()``
+        instead for a tableau ``T``.
+
+        Return a list of the attacking pairs of ``self``. A pair of
+        cells `(c, d)` of a Young tableau is said to be attacking if one
+        of the following conditions holds:
+
+        1. `c` and `d` lie in the same row with `c` strictly to the west
+           of `d`.
+
+        2. `c` is in the row immediately to the south of `d`, and `c`
+           lies strictly east of `d`.
+
+        This only depends on the shape of ``self``, not on the entries.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[2,5]])
+            sage: t.attacking_pairs()
+            doctest:...: DeprecationWarning: attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()
+            See http://trac.sagemath.org/15327 for details.
+            [((0, 0), (0, 1)),
+             ((0, 0), (0, 2)),
+             ((0, 1), (0, 2)),
+             ((1, 0), (1, 1)),
+             ((1, 1), (0, 0))]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(15327, 'attacking_pairs() is deprecated. Instead, use shape().attacking_pairs()')
+        return self.shape().attacking_pairs()
 
     def descents(self):
         """
-        Returns a list of the cells (i,j) such that
-        self[i][j] > self[i-1][j].
+        Return a list of the cells ``(i,j)`` such that
+        ``self[i][j] > self[i-1][j]``.
+
+        .. WARNING::
+
+            This is not to be confused with the descents of a standard tableau.
 
         EXAMPLES::
 
             sage: Tableau( [[1,4],[2,3]] ).descents()
             [(1, 0)]
             sage: Tableau( [[1,2],[3,4]] ).descents()
+            [(1, 0), (1, 1)]
+            sage: Tableau( [[1,2,3],[4,5]] ).descents()
             [(1, 0), (1, 1)]
         """
         descents = []
@@ -697,87 +853,94 @@ class Tableau(CombinatorialObject, Element):
 
     def major_index(self):
         """
-        Returns the major index of self. The major index is defined to be
-        the sum of the number of descents of self and the sum of their
-        legs length.
-        EXAMPLES
+        Return the major index of ``self``.
 
-        ::
+        The major index of a tableau `T` is defined to be the sum of the number
+        of descents of ``T`` (defined in :meth:`descents`) with the sum of
+        their legs' lengths.
+
+        .. WARNING::
+
+            This is not to be confused with the major index of a
+            standard tableau.
+
+        EXAMPLES::
 
             sage: Tableau( [[1,4],[2,3]] ).major_index()
             1
             sage: Tableau( [[1,2],[3,4]] ).major_index()
             2
+
+        If the major index would be defined in the sense of standard tableaux
+        theory, then the following would give 3 for a result::
+
+            sage: Tableau( [[1,2,3],[4,5]] ).major_index()
+            2
         """
         descents = self.descents()
         p = self.shape()
-        return len(descents) + sum([ p.leg_length(*d) for d in descents])
-
-    def attacking_pairs(self):
-        """
-        Returns a list of the attacking pairs of self. An pair of cells (c,
-        d) is said to be attacking if one of the following conditions
-        hold:
-
-        1. c and d lie in the same row with c to the west of d
-
-        2. c is in the row immediately to the south of d and c
-           lies strictly east of d.
-
-        EXAMPLES::
-
-            sage: t = Tableau([[1,2,3],[2,5]])
-            sage: t.attacking_pairs()
-            [((0, 0), (0, 1)),
-             ((0, 0), (0, 2)),
-             ((0, 1), (0, 2)),
-             ((1, 0), (1, 1)),
-             ((1, 1), (0, 0))]
-        """
-        attacking_pairs = []
-        for i in range(len(self)):
-            for j in range(len(self[i])):
-                #c is in position (i,j)
-                #Find the d that satisfy condition 1
-                for k in range(j+1,len(self[i])):
-                    attacking_pairs.append( ((i,j),(i,k)) )
-
-                #Find the d that satisfy condition 2
-                if i == 0:
-                    continue
-                for k in range(j):
-                    attacking_pairs.append( ((i,j),(i-1,k)) )
-
-        return attacking_pairs
+        return len(descents) + sum([ p.leg_length(*d) for d in descents ])
 
     def inversions(self):
         """
-        Returns a list of the inversions of self. An inversion is an
-        attacking pair (c,d) such that the entry of c in self is greater
-        than the entry of d.
+        Return a list of the inversions of ``self``.
+
+        Let `T` be a tableau. An inversion is an attacking pair `(c,d)` of
+        the shape of `T` (see
+        :meth:`~sage.combinat.partition.Partition.attacking_pairs` for
+        a definition of this) such that the entry of `c` in `T` is
+        greater than the entry of `d`.
+
+        .. WARNING::
+
+            Do not mistake this for the inversions of a standard tableau.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[2,5]])
             sage: t.inversions()
             [((1, 1), (0, 0))]
+            sage: t = Tableau([[1,4,3],[5,2],[2,6],[3]])
+            sage: t.inversions()
+            [((0, 1), (0, 2)), ((1, 0), (1, 1)), ((1, 1), (0, 0)), ((2, 1), (1, 0))]
         """
         inversions = []
-        for (c,d) in self.attacking_pairs():
-            if self.entry(c) > self.entry(d):
-                inversions.append( (c,d) )
+        for i, row in enumerate(self):
+            for j, entry in enumerate(row):
+                #c is in position (i,j)
+                #Find the d that satisfy condition 1
+                for k in range(j+1, len(row)):
+                    if entry > row[k]:
+                        inversions.append( ((i,j),(i,k)) )
+                #Find the d that satisfy condition 2
+                if i == 0:
+                    continue
+                for k in range(j):
+                    if entry > previous_row[k]:
+                        inversions.append( ((i,j),(i-1,k)) )
+            previous_row = row
         return inversions
 
     def inversion_number(self):
         """
-        Returns the inversion number of self.
+        Return the inversion number of ``self``.
 
-        The inversion number is defined to be the number of inversion of
-        self minus the sum of the arm lengths of the descents of self.
+        The inversion number is defined to be the number of inversions of
+        ``self`` minus the sum of the arm lengths of the descents of ``self``
+        (see the :meth:`inversions` and :meth:`descents` methods for the
+        relevant definitions).
+
+        .. WARNING::
+
+            This has none of the meanings in which the word "inversion"
+            is used in the theory of standard tableaux.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2,3],[2,5]])
+            sage: t.inversion_number()
+            0
+            sage: t = Tableau([[1,2,4],[3,5]])
             sage: t.inversion_number()
             0
         """
@@ -836,6 +999,8 @@ class Tableau(CombinatorialObject, Element):
             t = t.bump(wi[k])
         if isinstance(self, StandardTableau):
             return StandardTableau(list(t))
+        elif isinstance(self, SemistandardTableau):
+            return SemistandardTableau(list(t))
         return t
 
     def standardization(self, check=True):
@@ -995,20 +1160,26 @@ class Tableau(CombinatorialObject, Element):
     @combinatorial_map(name ='reading word permutation')
     def reading_word_permutation(self):
         """
-        Returns a permutation with the entries of ``self`` obtained by reading
-        ``self`` in the given reading order.
+        Return the permutation obtained by reading the entries of ``self``
+        row by row, starting with the bottommost row (in English
+        notation).
 
         EXAMPLES::
 
             sage: StandardTableau([[1,2],[3,4]]).reading_word_permutation()
             [3, 4, 1, 2]
+
+        Check that :trac:`14724` is fixed::
+
+            sage: SemistandardTableau([[1,1]]).reading_word_permutation()
+            [1, 2]
         """
-        return permutation.Permutation(self.to_word())
+        return permutation.Permutation(self.standardization().to_word())
 
     def entries(self):
         """
-        Returns a list of all entries of self, in the order obtained
-        by reading across the rows.
+        Return a list of all entries of ``self``, in the order obtained
+        by reading across the rows from top to bottom.
 
         EXAMPLES::
 
@@ -1020,8 +1191,10 @@ class Tableau(CombinatorialObject, Element):
 
     def entry(self, cell):
         """
-        Returns the entry of cell in self. Cell is a tuple (i,j) of
-        coordinates.
+        Returns the entry of cell ``cell`` in the tableau ``self``. Here,
+        ``cell`` should be given as a tuple `(i,j)` of zero-based
+        coordinates (so the northwesternmost cell in English notation
+        is `(0,0)`).
 
         EXAMPLES::
 
@@ -1035,28 +1208,61 @@ class Tableau(CombinatorialObject, Element):
         return self[i][j]
 
     def weight(self):
-        """
-        Returns the weight of the word corresponding to the tableau ``self``.
+        r"""
+        Return the weight of the tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`. This
+        sequence contains only finitely many nonzero entries.
+
+        The weight of a tableau `T` is the same as the weight of the
+        reading word of `T`, for any reading order.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).weight()
             [1, 1, 1, 1]
+
+            sage: Tableau([]).weight()
+            []
+
+            sage: Tableau([[1,3,3,7],[4,2],[2,3]]).weight()
+            [1, 2, 3, 1, 0, 0, 1]
+
+        TESTS:
+
+        We check that this agrees with going to the word::
+
+            sage: t = Tableau([[1,3,4,7],[6,2],[2,3]])
+            sage: def by_word(T):
+            ....:     ed = T.to_word().evaluation_dict()
+            ....:     m = max(ed.keys()) + 1
+            ....:     return [ed.get(k,0) for k in range(1,m)]
+            sage: by_word(t) == t.weight()
+            True
+            sage: SST = SemistandardTableaux(shape=[3,1,1])
+            sage: all(by_word(t) == t.weight() for t in SST)
+            True
         """
-        ed = self.to_word().evaluation_dict()
-        entries = ed.keys()
-        m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
+        if len(self) == 0:
+            return []
+        m = max(max(row) for row in self)
+        res = [0] * m
+        for row in self:
+            for i in row:
+                res[i - 1] += 1
+        return res
 
     evaluation = weight
 
     def is_row_strict(self):
         """
-        Returns ``True`` if ``self`` is a row strict tableau and ``False``
+        Return ``True`` if ``self`` is a row strict tableau and ``False``
         otherwise.
 
-        A tableau is row strict if the entries in each row are in increasing
-        order.
+        A tableau is row strict if the entries in each row are in
+        (strictly) increasing order.
 
         EXAMPLES::
 
@@ -1073,11 +1279,11 @@ class Tableau(CombinatorialObject, Element):
 
     def is_column_strict(self):
         """
-        Returns ``True`` if ``self`` is a column strict tableau and ``False``
+        Return ``True`` if ``self`` is a column strict tableau and ``False``
         otherwise.
 
         A tableau is column strict if the entries in each column are in
-        increasing order.
+        (strictly) increasing order.
 
         EXAMPLES::
 
@@ -1094,7 +1300,8 @@ class Tableau(CombinatorialObject, Element):
 
     def is_standard(self):
         """
-        Returns True if t is a standard tableau and False otherwise.
+        Return ``True`` if ``self`` is a standard tableau and ``False``
+        otherwise.
 
         EXAMPLES::
 
@@ -1111,9 +1318,32 @@ class Tableau(CombinatorialObject, Element):
         entries.sort()
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
 
+    def is_increasing(self):
+        """
+        Return ``True`` if ``self`` is an increasing tableau and
+        ``False`` otherwise.
+
+        A tableau is increasing if it is both row strict and column strict.
+
+        EXAMPLES::
+
+            sage: Tableau([[1, 3], [2, 4]]).is_increasing()
+            True
+            sage: Tableau([[1, 2], [2, 4]]).is_increasing()
+            True
+            sage: Tableau([[2, 3], [2, 4]]).is_increasing()
+            False
+            sage: Tableau([[5, 3], [2, 4]]).is_increasing()
+            False
+            sage: Tableau([[1, 2, 3], [2, 3], [3]]).is_increasing()
+            True
+        """
+        return self.is_row_strict() and self.is_column_strict()
+
     def is_rectangular(self):
         """
-        Returns True if the tableau t is rectangular and False otherwise.
+        Return ``True`` if the tableau ``self`` is rectangular and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1121,7 +1351,11 @@ class Tableau(CombinatorialObject, Element):
             True
             sage: Tableau([[1,2,3],[4,5],[6]]).is_rectangular()
             False
+            sage: Tableau([]).is_rectangular()
+            True
         """
+        if len(self) == 0:
+            return True
         width = len(self[0])
         for row in self:
             if len(row) != width:
@@ -1130,8 +1364,8 @@ class Tableau(CombinatorialObject, Element):
 
     def vertical_flip(self):
         """
-        Returns the tableau obtained by vertically flipping the tableau t.
-        This only works for rectangular tableau.
+        Return the tableau obtained by vertically flipping the tableau ``self``.
+        This only works for rectangular tableaux.
 
         EXAMPLES::
 
@@ -1139,13 +1373,13 @@ class Tableau(CombinatorialObject, Element):
             [[3, 4], [1, 2]]
         """
         if not self.is_rectangular():
-            raise TypeError, "the tableau must be rectangular to use verticl_flip()"
+            raise TypeError("the tableau must be rectangular to use vertical_flip()")
 
         return Tableau([row for row in reversed(self)])
 
     def rotate_180(self):
         """
-        Returns the tableau obtained by rotating t by 180 degrees.
+        Return the tableau obtained by rotating ``self`` by `180` degrees.
 
         EXAMPLES::
 
@@ -1153,13 +1387,13 @@ class Tableau(CombinatorialObject, Element):
             [[4, 3], [2, 1]]
         """
         if not self.is_rectangular():
-            raise TypeError, "the tableau must be rectangular to use verticl_flip()"
+            raise TypeError("the tableau must be rectangular to use rotate_180()")
 
         return Tableau([ [l for l in reversed(row)] for row in reversed(self) ])
 
     def cells(self):
         """
-        Returns a list of the coordinates of the cells of self.
+        Return a list of the coordinates of the cells of ``self``.
 
         EXAMPLES::
 
@@ -1167,14 +1401,19 @@ class Tableau(CombinatorialObject, Element):
             [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
         s = []
-        for i in range(len(self)):
-            s += [ (i,j) for j in range(len(self[i])) ]
+        for i, row in enumerate(self):
+            s += [ (i,j) for j in range(len(row)) ]
         return s
 
     def cells_containing(self, i):
         r"""
-        Returns the list of cells in which the letter `i` appears in the tableau `self`.
-        The list is ordered with cells appearing from left to right.
+        Return the list of cells in which the letter `i` appears in the
+        tableau ``self``. The list is ordered with cells appearing from
+        left to right.
+
+        Cells are given as pairs of coordinates `(a, b)`, where both
+        rows and columns are counted from `0` (so `a = 0` means the cell
+        lies in the leftmost column of the tableau, etc.).
 
         EXAMPLES::
 
@@ -1189,18 +1428,25 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,1,2,4],[2,4,4],[4]])
             sage: t.cells_containing(4)
             [(2, 0), (1, 1), (1, 2), (0, 3)]
+
+            sage: t = Tableau([[1,1,2,8,9],[2,5,6,11],[3,7,7,13],[4,8,9],[5],[13],[14]])
+            sage: t.cells_containing(8)
+            [(3, 1), (0, 3)]
+
+            sage: Tableau([]).cells_containing(3)
+            []
         """
-        list = []
-        for r in range(len(self)):
-            for c in range(self.shape()[r]-1,-1,-1):
-                if self[r][c] == i:
-                    list += [(r,c)]
-        list.reverse()
-        return list
+        cell_list = []
+        for r in range(len(self)-1, -1, -1):
+            rth_row = self[r]
+            for c,val in enumerate(rth_row):
+                if val == i:
+                    cell_list.append((r,c))
+        return cell_list
 
     def k_weight(self, k):
         """
-        Returns the k-weight of self.
+        Return the ``k``-weight of ``self``.
 
         EXAMPLES::
 
@@ -1236,10 +1482,39 @@ class Tableau(CombinatorialObject, Element):
 
         return res
 
+    def is_k_tableau(self, k):
+        r"""
+        Checks whether ``self`` is a valid weak `k`-tableau.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[2,3],[3]])
+            sage: t.is_k_tableau(3)
+            True
+            sage: t = Tableau([[1,1,3],[2,2],[3]])
+            sage: t.is_k_tableau(3)
+            False
+        """
+        shapes = self.to_chain()
+        kshapes = [ la.k_conjugate(k) for la in shapes ]
+        return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
+
     def restrict(self, n):
         """
-        Returns the restriction of the (standard) tableau to `n`. If possible,
-        the restricted tableau will have the same parent as this tableau.
+        Return the restriction of the semistandard tableau ``self``
+        to ``n``. If possible, the restricted tableau will have the same
+        parent as this tableau.
+
+        If `T` is a semistandard tableau and `n` is a nonnegative integer,
+        then the restriction of `T` to `n` is defined as the
+        (semistandard) tableau obtained by removing all cells filled with
+        entries greater than `n` from `T`.
+
+        .. NOTE::
+
+            If only the shape of the restriction, rather than the whole
+            restriction, is needed, then the faster method
+            :meth:`restriction_shape` is preferred.
 
         EXAMPLES::
 
@@ -1247,6 +1522,14 @@ class Tableau(CombinatorialObject, Element):
             [[1, 2], [3]]
             sage: StandardTableau([[1,2],[3],[4]]).restrict(2)
             [[1, 2]]
+            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(0)
+            []
+            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(2)
+            [[1, 2], [2]]
+            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(3)
+            [[1, 2, 3], [2], [3]]
+            sage: Tableau([[1,2,3],[2,4,4],[3]]).restrict(5)
+            [[1, 2, 3], [2, 4, 4], [3]]
 
         If possible the restricted tableau will belong to the same category as
         the original tableau::
@@ -1269,7 +1552,7 @@ class Tableau(CombinatorialObject, Element):
             sage: _.category()
             Category of elements of Semistandard tableaux
         """
-        res = [ [y for y in row if y <=n] for row in self]
+        res = [ [y for y in row if y <= n] for row in self ]
         res = [row for row in res if row != []]
         # attempt to return a tableau of the same type
         try:
@@ -1280,10 +1563,52 @@ class Tableau(CombinatorialObject, Element):
             except StandardError:
                 return Tableau(res)
 
-    def to_chain(self):
+    def restriction_shape(self, n):
         """
-        Returns the chain of partitions corresponding to the (semi)standard
-        tableau.
+        Return the shape of the restriction of the semistandard tableau
+        ``self`` to ``n``.
+
+        If `T` is a semistandard tableau and `n` is a nonnegative integer,
+        then the restriction of `T` to `n` is defined as the
+        (semistandard) tableau obtained by removing all cells filled with
+        entries greater than `n` from `T`.
+
+        This method computes merely the shape of the restriction. For
+        the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: Tableau([[1,2],[2,3],[3,4]]).restriction_shape(3)
+            [2, 2, 1]
+            sage: StandardTableau([[1,2],[3],[4],[5]]).restriction_shape(2)
+            [2]
+            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(0)
+            []
+            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(2)
+            [1, 1]
+            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(3)
+            [3, 1]
+            sage: Tableau([[1,3,3,5],[2,4,4],[17]]).restriction_shape(5)
+            [4, 3]
+
+            sage: all( T.restriction_shape(i) == T.restrict(i).shape()
+            ....:      for T in StandardTableaux(5) for i in range(1, 5) )
+            True
+        """
+        from sage.combinat.partition import Partition
+        res = [len([y for y in row if y <= n]) for row in self]
+        return Partition(res)
+
+    def to_chain(self, max_entry=None):
+        """
+        Return the chain of partitions corresponding to the (semi)standard
+        tableau ``self``.
+
+        The optional keyword parameter ``max_entry`` can be used to
+        customize the length of the chain. Specifically, if this parameter
+        is set to a nonnegative integer ``n``, then the chain is
+        constructed from the positions of the letters `1, 2, \ldots, n`
+        in the tableau.
 
         EXAMPLES::
 
@@ -1295,11 +1620,21 @@ class Tableau(CombinatorialObject, Element):
             [[], [2], [2], [2, 1]]
             sage: Tableau([]).to_chain()
             [[]]
+            sage: Tableau([[1,1],[2],[3]]).to_chain(max_entry=2)
+            [[], [2], [2, 1]]
+            sage: Tableau([[1,1],[2],[3]]).to_chain(max_entry=3)
+            [[], [2], [2, 1], [2, 1, 1]]
+            sage: Tableau([[1,1],[2],[3]]).to_chain(max_entry=4)
+            [[], [2], [2, 1], [2, 1, 1], [2, 1, 1]]
+            sage: Tableau([[1,1,2],[2,3],[4,5]]).to_chain(max_entry=6)
+            [[], [2], [3, 1], [3, 2], [3, 2, 1], [3, 2, 2], [3, 2, 2]]
         """
-        if self == []:
-            return [self.shape()]
-        m = max(self.to_word())
-        return [self.restrict(k).shape() for k in range(m+1)]
+        if max_entry is None:
+            if len(self) == 0:
+                max_entry = 0
+            else:
+                max_entry = max(max(row) for row in self)
+        return [self.restriction_shape(k) for k in range(max_entry+1)]
 
     @combinatorial_map(name='to Gelfand-Tsetlin pattern')
     def to_Gelfand_Tsetlin_pattern(self):
@@ -1323,8 +1658,8 @@ class Tableau(CombinatorialObject, Element):
 
     def anti_restrict(self, n):
         """
-        Returns the skew tableau formed by removing all of the cells from
-        self that are filled with a number less than `n`.
+        Return the skew tableau formed by removing all of the cells from
+        ``self`` that are filled with a number at most `n`.
 
         EXAMPLES::
 
@@ -1338,6 +1673,8 @@ class Tableau(CombinatorialObject, Element):
             [[None, None, None], [4, 5]]
             sage: t.anti_restrict(4)
             [[None, None, None], [None, 5]]
+            sage: t.anti_restrict(5)
+            [[None, None, None], [None, None]]
         """
         t = list(copy.deepcopy(self))
 
@@ -1345,76 +1682,76 @@ class Tableau(CombinatorialObject, Element):
             for col in xrange(len(t[row])):
                 if t[row][col] <= n:
                     t[row][col] = None
-        return sage.combinat.skew_tableau.SkewTableau( t )
-
+        from sage.combinat.skew_tableau import SkewTableau
+        return SkewTableau(t)
 
     def up(self):
         """
-        An iterator for all the tableaux that can be obtained from self by
-        adding a cell.
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2]])
             sage: [x for x in t.up()]
+            doctest:...: DeprecationWarning: Tableau.up() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
             [[[1, 2, 3]], [[1, 2], [3]]]
         """
-        #Get a list of all places where we can add a cell
-        #to the shape of self
-
-        outside_corners = self.shape().outside_corners()
-
-        n = self.size()
-
-        #Go through and add n+1 to the end of each
-        #of the rows
-        for row, _ in outside_corners:
-            new_t = map(list, self)
-            if row != len(self):
-                new_t[row] += [n+1]
-            else:
-                new_t.append([n+1])
-            yield Tableau(new_t)
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.up() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).up()
 
     def up_list(self):
         """
-        Returns a list of all the tableaux that can be obtained from self
-        by adding a cell.
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2]])
             sage: t.up_list()
+            doctest:...: DeprecationWarning: Tableau.up_list() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
             [[[1, 2, 3]], [[1, 2], [3]]]
         """
-        return list(self.up())
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.up_list() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).up_list()
 
     def down(self):
         """
-        An iterator for all the tableaux that can be obtained from self by
-        removing a cell. Note that this iterates just over a single
+        Deprecated in :trac:`7983` since this is an operation on standard
         tableaux.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3]])
             sage: [x for x in t.down()]
+            doctest:...: DeprecationWarning: Tableau.down() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
             [[[1, 2]]]
         """
-        yield self.restrict( self.size() - 1 )
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.down() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).down()
 
     def down_list(self):
         """
-        Returns a list of all the tableaux that can be obtained from self
-        by removing a cell. Note that this is just a single tableaux.
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3]])
             sage: t.down_list()
+            doctest:...: DeprecationWarning: Tableau.down_list() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
             [[[1, 2]]]
         """
-        return list(self.down())
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.down_list() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).down_list()
 
     def to_list(self):
         """
@@ -1431,7 +1768,8 @@ class Tableau(CombinatorialObject, Element):
 
     def bump(self, x):
         """
-        Schensted's row-bumping (or row-insertion) algorithm.
+        Insert ``x`` into ``self`` using Schensted's row-bumping (or
+        row-insertion) algorithm.
 
         EXAMPLES::
 
@@ -1580,6 +1918,13 @@ class Tableau(CombinatorialObject, Element):
 
     def insert_word(self, w, left=False):
         """
+        Insert the word ``w`` into the tableau ``self`` letter by letter
+        using Schensted insertion. By default, the word ``w`` is being
+        processed from left to right, and the insertion used is row
+        insertion. If the optional keyword ``left`` is set to ``True``,
+        the word ``w`` is being processed from right to left, and column
+        insertion is used instead.
+
         EXAMPLES::
 
             sage: t0 = Tableau([])
@@ -1593,6 +1938,11 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 3, 3], [2, 3], [3]]
             sage: t0.insert_word(w,left=True)
             [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t1 = Tableau([[1,3],[2]])
+            sage: t1.insert_word([4,5])
+            [[1, 3, 4, 5], [2]]
+            sage: t1.insert_word([4,5], left=True)
+            [[1, 3], [2, 5], [4]]
         """
         if left:
             w = [i for i in reversed(w)]
@@ -1606,9 +1956,8 @@ class Tableau(CombinatorialObject, Element):
         Multiply two tableaux using Schensted's bump.
 
         This product makes the set of tableaux into an associative monoid.
-        The empty tableaux is the unit in this monoid.
-
-        Fulton, William. 'Young Tableaux' p11-12
+        The empty tableau is the unit in this monoid. See pp. 11-12 of
+        [Ful1997]_.
 
         EXAMPLES::
 
@@ -1633,9 +1982,9 @@ class Tableau(CombinatorialObject, Element):
         Multiply two tableaux using jeu de taquin.
 
         This product makes the set of tableaux into an associative monoid.
-        The empty tableaux is the unit in this monoid.
+        The empty tableau is the unit in this monoid.
 
-        Fulton, William. 'Young Tableaux' p15
+        See pp. 15 of [Ful1997]_.
 
         EXAMPLES::
 
@@ -1655,13 +2004,14 @@ class Tableau(CombinatorialObject, Element):
         for row in range(len(left)):
             st.append(left[row])
 
-        return sage.combinat.skew_tableau.SkewTableau(st).rectify()
+        from sage.combinat.skew_tableau import SkewTableau
+        return SkewTableau(st).rectify()
 
     def _slide_up(self, c):
         r"""
-        Auxiliary method used for promotion, which removes cell `c` from self,
-        slides the letters of self up using jeu de taquin slides, and then fills the empty
-        cell at `(0,0)` with the value 0.
+        Auxiliary method used for promotion, which removes cell `c` from ``self``,
+        slides the letters of ``self`` up using jeu de taquin slides, and
+        then fills the empty cell at `(0,0)` with the value `0`.
 
         TESTS::
 
@@ -1680,6 +2030,7 @@ class Tableau(CombinatorialObject, Element):
         spotl, spotc = c
         while [spotl, spotc] != [0,0]:
             #once moving box is in first column, just move letters up
+            #(French notation!)
             if spotc == 0:
                 new_st[spotl][spotc] = new_st[spotl-1][spotc]
                 spotl -= 1
@@ -1707,21 +2058,117 @@ class Tableau(CombinatorialObject, Element):
         new_st[0][0] = 0
         return Tableau(new_st)
 
+    def _slide_down(self, c, n):
+        r"""
+        Auxiliary method used for promotion, which removes cell `c` from ``self``,
+        slides the letters of ``self`` down using jeu de taquin slides, and
+        then fills the empty cell with the value `n + 2`.
+
+        When the entries of ``self`` are positive integers, and cell `c` is
+        filled with `1`, then the position of `c` is irrelevant.
+
+        TESTS::
+
+            sage: t = Tableau([[1,1,2],[2,3,5],[4,5]])
+            sage: t._slide_down((0, 0), 8)
+            [[1, 2, 5], [2, 3, 10], [4, 5]]
+
+            sage: t._slide_down((0, 1), 8)
+            [[1, 2, 5], [2, 3, 10], [4, 5]]
+
+            sage: t = Tableau([[1,1,2,2,2,3],[2,2,4,6,6],[4,4,5,7],[5,8]])
+            sage: t._slide_down((0, 1), 9)
+            [[1, 2, 2, 2, 2, 3], [2, 4, 4, 6, 6], [4, 5, 7, 11], [5, 8]]
+        """
+        new_st = [x[:] for x in self]
+        #new_st is a deep copy of self, so as not to mess around with self.
+        new_st_shape = [len(x) for x in self]
+        spotl, spotc = c
+        #spotl and spotc are the coordinates of the wandering hole.
+        #All comments and variable names below refer to French notation.
+        while True:
+            #"right_neighbor" and "upper_neighbor" refer to neighbors of the
+            #hole.
+            go_right = None
+            if len(new_st_shape) > spotl + 1 and new_st_shape[spotl + 1] >= spotc + 1:
+                upper_neighbor = new_st[spotl + 1][spotc]
+                go_right = False
+            if new_st_shape[spotl] != spotc + 1:
+                right_neighbor = new_st[spotl][spotc + 1]
+                if go_right is None or upper_neighbor > right_neighbor:
+                    go_right = True
+            if go_right == True:
+                new_st[spotl][spotc] = right_neighbor
+                spotc += 1
+            elif go_right == False:
+                new_st[spotl][spotc] = upper_neighbor
+                spotl += 1
+            else:
+                break
+        new_st[spotl][spotc] = n + 2
+        return Tableau(new_st)
+
     def promotion_inverse(self, n):
         """
-        Inverse promotion operator defined on rectangular tableaux
-        using jeu de taquin
+        Return the image of ``self`` under the inverse promotion operator.
+
+        The inverse promotion operator, applied to a tableau `t`, does the
+        following:
+
+        Iterate over all letters `1` in the tableau `t`, from right to left.
+        For each of these letters, do the following:
+
+        - Remove the letter from `t`, thus leaving a hole where it used to be.
+
+        - Apply jeu de taquin to move this hole northeast (in French notation)
+          until it reaches the outer boundary of `t`.
+
+        - Fill `n+2` into the hole once jeu de taquin has completed.
+
+        Once this all is done, subtract `1` from each letter in the tableau.
+        This is not always well-defined. Restricted to the class of
+        semistandard tableaux whose entries are all `\leq n + 1`, this is the
+        usual inverse promotion operator defined on this class.
+
+        When ``self`` is a standard tableau of size ``n + 1``, this definition of
+        inverse promotion is the map called "promotion" in [Sg2011]_ (p. 23) and
+        in [St2009]_, and is the inverse of the map called "promotion" in
+        [Hai1992]_ (p. 90).
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,3]])
             sage: t.promotion_inverse(2)
             [[1, 2], [2, 3]]
+
             sage: t = Tableau([[1,2],[2,3]])
             sage: t.promotion_inverse(2)
             [[1, 1], [2, 3]]
 
+            sage: t = Tableau([[1,2,5],[3,3,6],[4,7]])
+            sage: t.promotion_inverse(8)
+            [[1, 2, 4], [2, 5, 9], [3, 6]]
+
+            sage: t = Tableau([])
+            sage: t.promotion_inverse(2)
+            []
+
         TESTS:
+
+        We check the equivalence of two definitions of inverse promotion
+        on semistandard tableaux::
+
+            sage: ST = SemistandardTableaux(shape=[4,2,1], max_entry=7)
+            sage: def bk_promotion_inverse7(st):
+            ....:     st2 = st
+            ....:     for i in range(1, 7):
+            ....:         st2 = st2.bender_knuth_involution(i, check=False)
+            ....:     return st2
+            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse(6) for st in ST ) # long time
+            True
+            sage: ST = SemistandardTableaux(shape=[2,2,2], max_entry=7)
+            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse(6) for st in ST ) # long time
+            True
 
         A test for :trac:`13203`::
 
@@ -1729,29 +2176,64 @@ class Tableau(CombinatorialObject, Element):
             sage: type(T.promotion_inverse(2)[0][0])
             <type 'sage.rings.integer.Integer'>
         """
-        if not self.is_rectangular():
-            raise ValueError( "Tableau is not rectangular" )
-        n = Integer(n)
-        s = self.shape()[0]
-        l = self.weight()[0]
-        word = [i for i in self.to_word() if i>1]
-        word = [i-1 for i in word]
-        t = Tableau([])
-        t = t.insert_word(word)
-        t = t.to_list()
-        if l<s:
-            for i in range(l):
-                t[len(t)-1].append(n+1)
-        else:
-            t.append([n+1 for i in range(s)])
-        return Tableau(t)
+        if self.is_rectangular():
+            n = Integer(n)
+            if self.size() == 0:
+                return self
+            s = self.shape()[0]
+            l = self.weight()[0]
+            word = [i for i in self.to_word() if i>1]
+            word = [i-1 for i in word]
+            t = Tableau([])
+            t = t.insert_word(word)
+            t = t.to_list()
+            if l < s:
+                for i in range(l):
+                    t[len(t)-1].append(n+1)
+            else:
+                t.append([n+1 for i in range(s)])
+            return Tableau(t)
+        # Now, the non-rectangular case.
+        p = self
+        for c in reversed(self.cells_containing(1)):
+            p = p._slide_down(c, n)
+        return Tableau([[i-1 for i in row] for row in p])
 
     def promotion(self, n):
         r"""
-        Returns the promotion operator acting on `self` by removing all letters `n+1`
-        from tableau `t` (one by one from left to right), applying jeu de taquin to move
-        boxes into the empty box, filling 0 into the empty boxes in the first row, and
-        finally adding one to each letter.
+        Return the image of ``self`` under the promotion operator.
+
+        The promotion operator, applied to a tableau `t`, does the following:
+
+        Iterate over all letters `n+1` in the tableau `t`, from left to right.
+        For each of these letters, do the following:
+
+        - Remove the letter from `t`, thus leaving a hole where it used to be.
+
+        - Apply jeu de taquin to move this hole southwest (in French notation)
+          until it reaches the inner boundary of `t`.
+
+        - Fill `0` into the hole once jeu de taquin has completed.
+
+        Once this all is done, add `1` to each letter in the tableau.
+        This is not always well-defined. Restricted to the class of
+        semistandard tableaux whose entries are all `\leq n + 1`, this is the
+        usual promotion operator defined on this class.
+
+        When ``self`` is a standard tableau of size ``n + 1``, this definition of
+        promotion is precisely the one given in [Hai1992]_ (p. 90). It is the
+        inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [St2009]_.
+
+        REFERENCES:
+
+        .. [Hai1992] Mark D. Haiman,
+           *Dual equivalence with applications, including a conjecture of Proctor*,
+           Discrete Mathematics 99 (1992), 79-113,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+
+        .. [Sg2011] Bruce E. Sagan,
+           *The cyclic sieving phenomenon: a survey*,
+           :arXiv:`1008.0790v3`
 
         EXAMPLES::
 
@@ -1774,6 +2256,34 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,1,3],[2,3]])
             sage: t.promotion(2)
             [[1, 1, 2], [2, 3]]
+
+            sage: t = Tableau([])
+            sage: t.promotion(2)
+            []
+
+        TESTS:
+
+        We check the equivalence of two definitions of promotion on
+        semistandard tableaux::
+
+            sage: ST = SemistandardTableaux(shape=[3,2,2,1], max_entry=6)
+            sage: def bk_promotion6(st):
+            ....:     st2 = st
+            ....:     for i in range(5, 0, -1):
+            ....:         st2 = st2.bender_knuth_involution(i, check=False)
+            ....:     return st2
+            sage: all( bk_promotion6(st) == st.promotion(5) for st in ST ) # long time
+            True
+            sage: ST = SemistandardTableaux(shape=[4,4], max_entry=6)
+            sage: all( bk_promotion6(st) == st.promotion(5) for st in ST ) # long time
+            True
+
+        We also check :meth:`promotion_inverse()` is the inverse
+        of :meth:`promotion()`::
+
+            sage: ST = SemistandardTableaux(shape=[3,2,1], max_entry=7)
+            sage: all( st.promotion(6).promotion_inverse(6) == st for st in ST ) # long time
+            True
         """
         if self.is_rectangular():
             t = self.rotate_180()
@@ -1789,7 +2299,10 @@ class Tableau(CombinatorialObject, Element):
     def row_stabilizer(self):
         """
         Return the PermutationGroup corresponding to the row stabilizer of
-        self.
+        ``self``.
+
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
 
         EXAMPLES::
 
@@ -1808,11 +2321,17 @@ class Tableau(CombinatorialObject, Element):
             sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
             sage: rs.order()
             1
+            sage: rs = Tableau([[2,4,5],[1,3]]).row_stabilizer()
+            sage: rs.order()
+            12
+            sage: rs = Tableau([]).row_stabilizer()
+            sage: rs.order()
+            1
         """
 
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..k].
-        k = max(self.entries())
+        k = self.size()
         gens = [range(1,k+1)]
         for i in range(len(self)):
             for j in range(0, len(self[i])-1):
@@ -1823,7 +2342,10 @@ class Tableau(CombinatorialObject, Element):
     def column_stabilizer(self):
         """
         Return the PermutationGroup corresponding to the column stabilizer
-        of self.
+        of ``self``.
+
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
 
         EXAMPLES::
 
@@ -1840,7 +2362,7 @@ class Tableau(CombinatorialObject, Element):
 
     def height(self):
         """
-        Returns the height of the tableau.
+        Return the height of ``self``.
 
         EXAMPLES::
 
@@ -1883,7 +2405,7 @@ class Tableau(CombinatorialObject, Element):
 
     def last_letter_lequal(self, tab2):
         """
-        Returns True if self is less than or equal to tab2 in the last
+        Return ``True`` if ``self`` is less than or equal to ``tab2`` in the last
         letter ordering.
 
         EXAMPLES::
@@ -1930,8 +2452,8 @@ class Tableau(CombinatorialObject, Element):
 
     def charge(self):
         r"""
-        Returns the charge of the reading word of self.  See
-        :meth:`sage.combinat.words.finite_word.FiniteWord_class.charge` for more information.
+        Return the charge of the reading word of ``self``.  See
+        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.charge` for more information.
 
         EXAMPLES::
 
@@ -1954,8 +2476,8 @@ class Tableau(CombinatorialObject, Element):
 
     def cocharge(self):
         r"""
-        Returns the cocharge of the reading word of self.  See
-        :meth:`sage.combinat.words.finite_word.FiniteWord_class.cocharge` for more information.
+        Return the cocharge of the reading word of ``self``.  See
+        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.cocharge` for more information.
 
         EXAMPLES::
 
@@ -1979,7 +2501,7 @@ class Tableau(CombinatorialObject, Element):
 
     def add_entry(self,cell,m):
         """
-        Set the entry in `cell` equal to `m`. If the cell does not exist then
+        Set the entry in ``cell`` equal to ``m``. If the cell does not exist then
         extend the tableau, otherwise just replace the entry.
 
         EXAMPLES::
@@ -2039,7 +2561,8 @@ class Tableau(CombinatorialObject, Element):
 
     def catabolism(self):
         """
-        Removes the top row of ``self`` and inserts it back in.
+        Remove the top row of ``self`` and insert it back in using
+        column Schensted insertion (starting with the largest letter).
 
         EXAMPLES::
 
@@ -2061,8 +2584,8 @@ class Tableau(CombinatorialObject, Element):
 
     def catabolism_sequence(self):
         """
-        Perform :meth:`catabolism` on ``self`` until returns a tableau
-        consisting of a single row.
+        Perform :meth:`catabolism` on ``self`` until it returns a
+        tableau consisting of a single row.
 
         EXAMPLES::
 
@@ -2072,16 +2595,23 @@ class Tableau(CombinatorialObject, Element):
              [[1, 2, 3, 4, 5, 6, 7, 9], [8]],
              [[1, 2, 3, 4, 5, 6, 7, 8], [9]],
              [[1, 2, 3, 4, 5, 6, 7, 8, 9]]]
+            sage: Tableau([]).catabolism_sequence()
+            [[]]
         """
         h = self.height()
         res = [self]
-        while h != 1:
-            res.append( res[-1].catabolism() )
-            h = res[-1].height()
+        newterm = self
+        while h > 1:
+            newterm = newterm.catabolism()
+            res.append(newterm)
+            h = newterm.height()
         return res
 
     def lambda_catabolism(self, part):
         r"""
+        Return the ``part``-catabolism of ``self``, where ``part`` is a
+        partition (which can be just given as an array).
+
         For a partition `\lambda` and a tableau `T`, the
         `\lambda`-catabolism of `T` is defined by performing the following
         steps.
@@ -2202,8 +2732,6 @@ class Tableau(CombinatorialObject, Element):
         else:
             return Tableau([])
 
-
-    from sage.misc.superseded import deprecated_function_alias
     katabolism = deprecated_function_alias(13605, catabolism)
     katabolism_sequence = deprecated_function_alias(13605, catabolism_sequence)
     lambda_katabolism = deprecated_function_alias(13605, lambda_catabolism)
@@ -2354,7 +2882,7 @@ class Tableau(CombinatorialObject, Element):
             sage: _.category()
             Category of elements of Tableaux
         """
-        w=w*permutation.Permutation( (self.size(),) )   #need to ensure that it belongs to Sym_size
+        w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
         except StandardError:
@@ -2644,11 +3172,12 @@ class SemistandardTableau(Tableau):
             sage: isinstance(r, Tableau)
             True
         """
-        super(SemistandardTableau,self).__init__(parent, t)
+        super(SemistandardTableau, self).__init__(parent, t)
 
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers
-        if any(c not in sage.sets.positive_integers.PositiveIntegers() for row in t for c in row):
+        from sage.sets.positive_integers import PositiveIntegers
+        if any(c not in PositiveIntegers() for row in t for c in row):
             raise ValueError("the entries of a semistandard tableau must be non-negative integers")
 
         # which are weakly increasing along rows
@@ -2656,7 +3185,7 @@ class SemistandardTableau(Tableau):
             raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
-        if len(t)>0 and any(t[r][c]>=t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
+        if len(t)>0 and any(t[r][c] >= t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
             raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
@@ -2796,14 +3325,14 @@ class StandardTableau(SemistandardTableau):
         r"""
         Return ``True`` if ``self`` dominates the tableau ``t``. That is,
         if the shape of the tableau restricted to `k` dominates the shape of
-        ``t`` restrcted to `k`, for `k = 1, 2, \ldots, n`.
+        ``t`` restricted to `k`, for `k = 1, 2, \ldots, n`.
 
         When the two tableaux have the same shape, then this ordering
-        coincides with the Bruhat ordering for the correspomding permutations.
+        coincides with the Bruhat ordering for the corresponding permutations.
 
         INPUT:
 
-        - ``t`` -- A tableaux
+        - ``t`` -- A tableau
 
         EXAMPLES::
 
@@ -2820,7 +3349,7 @@ class StandardTableau(SemistandardTableau):
 
         """
         t=StandardTableau(t)
-        return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
+        return all(self.restriction_shape(m).dominates(t.restriction_shape(m))
                         for m in xrange(1,1+self.size()))
 
     def is_standard(self):
@@ -2833,6 +3362,233 @@ class StandardTableau(SemistandardTableau):
             True
         """
         return True
+
+    def up(self):
+        """
+        An iterator for all the standard tableaux that can be
+        obtained from ``self`` by adding a cell.
+
+        EXAMPLES::
+
+            sage: t = StandardTableau([[1,2]])
+            sage: [x for x in t.up()]
+            [[[1, 2, 3]], [[1, 2], [3]]]
+        """
+        #Get a list of all places where we can add a cell
+        #to the shape of self
+
+        outside_corners = self.shape().outside_corners()
+
+        n = self.size()
+
+        #Go through and add n+1 to the end of each
+        #of the rows
+        for row, _ in outside_corners:
+            new_t = map(list, self)
+            if row != len(self):
+                new_t[row] += [n+1]
+            else:
+                new_t.append([n+1])
+            yield StandardTableau(new_t)
+
+    def up_list(self):
+        """
+        Return a list of all the standard tableaux that can be obtained
+        from ``self`` by adding a cell.
+
+        EXAMPLES::
+
+            sage: t = StandardTableau([[1,2]])
+            sage: t.up_list()
+            [[[1, 2, 3]], [[1, 2], [3]]]
+        """
+        return list(self.up())
+
+    def down(self):
+        """
+        An iterator for all the standard tableaux that can be obtained
+        from ``self`` by removing a cell. Note that this iterates just
+        over a single tableau (or nothing if ``self`` is empty).
+
+        EXAMPLES::
+
+            sage: t = StandardTableau([[1,2],[3]])
+            sage: [x for x in t.down()]
+            [[[1, 2]]]
+            sage: t = StandardTableau([])
+            sage: [x for x in t.down()]
+            []
+        """
+        if len(self) > 0:
+            yield self.restrict( self.size() - 1 )
+
+    def down_list(self):
+        """
+        Return a list of all the standard tableaux that can be obtained
+        from ``self`` by removing a cell. Note that this is just a singleton
+        list if ``self`` is nonempty, and an empty list otherwise.
+
+        EXAMPLES::
+
+            sage: t = StandardTableau([[1,2],[3]])
+            sage: t.down_list()
+            [[[1, 2]]]
+            sage: t = StandardTableau([])
+            sage: t.down_list()
+            []
+        """
+        return list(self.down())
+
+    def standard_descents(self):
+        """
+        Return a list of the integers `i` such that `i` appears
+        strictly further north than `i + 1` in ``self`` (this is not
+        to say that `i` and `i + 1` must be in the same column). The
+        list is sorted in increasing order.
+
+        EXAMPLES::
+
+            sage: StandardTableau( [[1,3,4],[2,5]] ).standard_descents()
+            [1, 4]
+            sage: StandardTableau( [[1,2],[3,4]] ).standard_descents()
+            [2]
+            sage: StandardTableau( [[1,2,5],[3,4],[6,7],[8],[9]] ).standard_descents()
+            [2, 5, 7, 8]
+            sage: StandardTableau( [] ).standard_descents()
+            []
+        """
+        descents = []
+        #whatpart gives the number for which self is a partition
+        whatpart = sum(i for i in self.shape())
+        #now find the descents
+        for i in range(1, whatpart):
+            #find out what row i and i+1 are in (we're using the
+            #standardness of self here)
+            for j in range(len(self)):
+                if self[j].count(i+1) > 0:
+                    break
+                if self[j].count(i) > 0:
+                    descents.append(i)
+                    break
+        return descents
+
+    def standard_number_of_descents(self):
+        """
+        Return the number of all integers `i` such that `i` appears
+        strictly further north than `i + 1` in ``self`` (this is not
+        to say that `i` and `i + 1` must be in the same column). A
+        list of these integers can be obtained using the
+        :meth:`standard_descents` method.
+
+        EXAMPLES::
+
+            sage: StandardTableau( [[1,2],[3,4],[5]] ).standard_number_of_descents()
+            2
+            sage: StandardTableau( [] ).standard_number_of_descents()
+            0
+            sage: tabs = StandardTableaux(5)
+            sage: all( t.standard_number_of_descents() == t.schuetzenberger_involution().standard_number_of_descents() for t in tabs )
+            True
+        """
+        return len(self.standard_descents())
+
+    def standard_major_index(self):
+        """
+        Return the major index of the standard tableau ``self`` in the
+        standard meaning of the word. The major index is defined to be
+        the sum of the descents of ``self`` (see :meth:`standard_descents`
+        for their definition).
+
+        EXAMPLES::
+
+            sage: StandardTableau( [[1,4,5],[2,6],[3]] ).standard_major_index()
+            8
+            sage: StandardTableau( [[1,2],[3,4]] ).standard_major_index()
+            2
+            sage: StandardTableau( [[1,2,3],[4,5]] ).standard_major_index()
+            3
+        """
+        return sum(self.standard_descents())
+
+    def promotion_inverse(self, m=None):
+        """
+        Return the image of ``self`` under the inverse promotion operator.
+        The optional variable `m` should be set to the size of ``self`` minus
+        `1` for a minimal speedup; otherwise, it defaults to this number.
+
+        The inverse promotion operator, applied to a standard tableau `t`,
+        does the following:
+
+        Remove the letter `1` from `t`, thus leaving a hole where it used to be.
+        Apply jeu de taquin to move this hole northeast (in French notation)
+        until it reaches the outer boundary of `t`. Fill `n + 1` into this hole,
+        where `n` is the size of `t`. Finally, subtract `1` from each letter in
+        the tableau. This yields a new standard tableau.
+
+        This definition of inverse promotion is the map called "promotion" in
+        [Sg2011]_ (p. 23) and in [St2009]_, and is the inverse of the map
+        called "promotion" in [Hai1992]_ (p. 90).
+
+        See the :meth:`~sage.combinat.tableau.promotion_inverse` method for a
+        more general operator.
+
+        EXAMPLES::
+
+            sage: t = StandardTableau([[1,3],[2,4]])
+            sage: t.promotion_inverse()
+            [[1, 2], [3, 4]]
+
+        We check the equivalence of two definitions of inverse promotion on
+        standard tableaux::
+
+            sage: ST = StandardTableaux(7)
+            sage: def bk_promotion_inverse7(st):
+            ....:     st2 = st
+            ....:     for i in range(1, 7):
+            ....:         st2 = st2.bender_knuth_involution(i, check=False)
+            ....:     return st2
+            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse() for st in ST ) # long time
+            True
+        """
+        if m is None:
+            m = self.size() - 1
+        return StandardTableau(Tableau(self.to_list()).promotion_inverse(m))
+
+    def promotion(self, m=None):
+        r"""
+        Return the image of ``self`` under the promotion operator.
+
+        The promotion operator, applied to a standard tableau `t`, does the
+        following:
+
+        Remove the letter `n` from `t`, thus leaving a hole where it used to be.
+        Apply jeu de taquin to move this hole southwest (in French notation)
+        until it reaches the inner boundary of `t`. Fill `0` into the hole once
+        jeu de taquin has completed. Finally, add `1` to each letter in the
+        tableau. The resulting standard tableau is the image of `t` under the
+        promotion operator.
+
+        This definition of promotion is precisely the one given in [Hai1992]_
+        (p. 90). It is the inverse of the maps called "promotion" in [Sg2011]_
+        (p. 23) and in [St2009]_.
+
+        See the :meth:`~sage.combinat.tableau.promotion` method for a
+        more general operator.
+
+        EXAMPLES::
+
+            sage: ST = StandardTableaux(7)
+            sage: all( st.promotion().promotion_inverse() == st for st in ST ) # long time
+            True
+            sage: all( st.promotion_inverse().promotion() == st for st in ST ) # long time
+            True
+            sage: st = StandardTableau([[1,2,5],[3,4]])
+            sage: parent(st.promotion())
+            Standard tableaux
+        """
+        if m is None:
+            m = self.size() - 1
+        return StandardTableau(Tableau(self.to_list()).promotion(m))
 
 def from_chain(chain):
     """
@@ -3071,11 +3827,12 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: 1 in sage.combinat.tableau.Tableaux()
             False
         """
+        from sage.combinat.partition import _Partitions
         if isinstance(x, Tableau):
             return True
         elif isinstance(x, list) and all(isinstance(y, list) for y in x):
             # any list of lists of partition shape is a tableau
-            return map(len,x) in sage.combinat.partition._Partitions
+            return map(len,x) in _Partitions
         else:
             return False
 
@@ -3387,8 +4144,9 @@ class SemistandardTableaux(Tableaux):
             sage: SemistandardTableaux([[1]])
             Traceback (most recent call last):
             ...
-            ValueError: shape must be a partition
+            ValueError: shape must be a (skew) partition
         """
+        from sage.combinat.partition import Partition, _Partitions
         # Process the keyword arguments -- allow for original syntax where
         #   n == size,  p== shape and mu == eval
         n = kwargs.get('n', None)
@@ -3422,7 +4180,6 @@ class SemistandardTableaux(Tableaux):
             else:
                 mu = args[1]
 
-
         # Consistency checks
         if size is not None:
             if not isinstance(size, (int, Integer)):
@@ -3431,17 +4188,22 @@ class SemistandardTableaux(Tableaux):
                 raise ValueError( "size must be non-negative" )
 
         if shape is not None:
+            from sage.combinat.skew_partition import SkewPartitions
             # use in (and not isinstance) below so that lists can be used as
             # shorthand
-            if not shape in sage.combinat.partition.Partitions():
-                raise ValueError( "shape must be a partition" )
-            shape = sage.combinat.partition.Partition(shape)
+            if shape in _Partitions:
+                shape = Partition(shape)
+            elif shape in SkewPartitions():
+                from sage.combinat.skew_tableau import SemistandardSkewTableaux
+                return SemistandardSkewTableaux(shape, mu)
+            else:
+                raise ValueError( "shape must be a (skew) partition" )
 
         if mu is not None:
-            if (not mu in sage.combinat.composition.Compositions()) and\
-                    (not mu in sage.combinat.partition.Partitions()):
+            if (not mu in Compositions()) and\
+                    (not mu in _Partitions):
                 raise ValueError( "mu must be a composition" )
-            mu = sage.combinat.composition.Composition(mu)
+            mu = Composition(mu)
 
         is_inf = max_entry is PlusInfinity()
 
@@ -3770,20 +4532,19 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
+        from sage.combinat.partition import Partitions
         # Iterates through with maximum entry as order
         i = 1
         while(True):
-            for part in sage.combinat.partition.Partitions(self.size):
+            for part in Partitions(self.size):
                 if i != 1:
                     for k in range(1, self.size+1):
                         for c in IntegerVectors(self.size - k, i-1):
                             c.append(k)
-                            for sst in SemistandardTableaux_shape_weight(part,
-                                    sage.combinat.composition.Composition(c)):
+                            for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
                                 yield self.element_class(self, sst)
                 else:
-                    for sst in SemistandardTableaux_shape_weight(part,
-                            sage.combinat.composition.Composition([self.size])):
+                    for sst in SemistandardTableaux_shape_weight(part, Composition([self.size])):
                         yield self.element_class(self, sst)
             i += 1
 
@@ -3882,12 +4643,10 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
                 for k in range(1, n+1):
                     for c in IntegerVectors(n - k, i-1):
                         c.append(k)
-                        for sst in SemistandardTableaux_shape_weight(self.shape,
-                                sage.combinat.composition.Composition(c)):
+                        for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                             yield self.element_class(self, sst)
             else:
-                for sst in SemistandardTableaux_shape_weight(self.shape,
-                                sage.combinat.composition.Composition([n])):
+                for sst in SemistandardTableaux_shape_weight(self.shape, Composition([n])):
                     yield self.element_class(self, sst)
             i += 1
 
@@ -3982,8 +4741,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: all([sst.cardinality() == len(sst.list()) for sst in ssts])
             True
         """
+        from sage.combinat.partition import Partitions
         c = 0
-        for part in sage.combinat.partition.Partitions(self.size):
+        for part in Partitions(self.size):
             c += SemistandardTableaux_shape(part, self.max_entry).cardinality()
         return c
 
@@ -4027,13 +4787,18 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for part in sage.combinat.partition.Partitions(self.size):
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self.size):
             for sst in SemistandardTableaux_shape(part, self.max_entry):
                 yield self.element_class(self, sst)
 
 class SemistandardTableaux_shape(SemistandardTableaux):
     """
     Semistandard tableaux of fixed shape `p` with a given max entry.
+
+    A semistandard tableau with max entry `i` is required to have all
+    its entries less or equal to `i`. It is not required to actually
+    contain an entry `i`.
 
     INPUT:
 
@@ -4067,7 +4832,8 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
     def __iter__(self):
         """
-        An iterator for the semistandard partitions of the specified shape.
+        An iterator for the semistandard tableaux of the specified shape
+        with the specified max entry.
 
         EXAMPLES::
 
@@ -4105,8 +4871,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             True
         """
         for c in IntegerVectors(sum(self.shape), self.max_entry):
-            for sst in SemistandardTableaux_shape_weight(self.shape,
-                    sage.combinat.composition.Composition(c)):
+            for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                 yield self.element_class(self, sst)
 
 
@@ -4164,8 +4929,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         """
         c = 0
         for comp in IntegerVectors(sum(self.shape), self.max_entry):
-            c += SemistandardTableaux_shape_weight(self.shape,
-                    sage.combinat.composition.Composition(comp)).cardinality()
+            c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
         return c
 
 class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
@@ -4267,8 +5031,8 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
 
     def list(self):
         """
-        Return a list of semistandard tableau in ``self`` generated by
-        semmetrica.
+        Return a list of all semistandard tableaux in ``self`` generated
+        by symmetrica.
 
         EXAMPLES::
 
@@ -4329,7 +5093,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for p in sage.combinat.partition.Partitions(self.size):
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
             for sst in SemistandardTableaux_shape_weight(p, self.weight):
                 yield self.element_class(self, sst)
 
@@ -4345,8 +5110,9 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: SemistandardTableaux(4, [2,2]).cardinality()
             3
         """
+        from sage.combinat.partition import Partitions
         c = 0
-        for p in sage.combinat.partition.Partitions(self.size):
+        for p in Partitions(self.size):
             c += SemistandardTableaux_shape_weight(p, self.weight).cardinality()
         return c
 
@@ -4360,7 +5126,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: all([sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2])])
             True
         """
-        return x in SemistandardTableaux_shape_weight(sage.combinat.partition.Partition(map(len,
+        from sage.combinat.partition import Partition
+        return x in SemistandardTableaux_shape_weight(Partition(map(len,
             x)), self.weight)
 
 ########################
@@ -4411,6 +5178,7 @@ class StandardTableaux(SemistandardTableaux):
         - :class:`SemistandardTableaux`
         - :class:`SemistandardTableau`
         - :class:`StandardTableau`
+        - :class:`StandardSkewTableaux`
 
     TESTS::
 
@@ -4454,6 +5222,9 @@ class StandardTableaux(SemistandardTableaux):
             ...
             ValueError: The argument must be a non-negative integer or a partition.
         """
+        from sage.combinat.partition import _Partitions, Partition
+        from sage.combinat.skew_partition import SkewPartitions
+
         if args:
             n = args[0]
         elif 'n' in kwargs:
@@ -4464,10 +5235,14 @@ class StandardTableaux(SemistandardTableaux):
         if n is None:
             return StandardTableaux_all()
 
-        elif n in sage.combinat.partition._Partitions:
-            return StandardTableaux_shape(sage.combinat.partition.Partition(n))
+        elif n in _Partitions:
+            return StandardTableaux_shape(Partition(n))
 
-        if not isinstance(n,(int, Integer)) or n < 0:
+        elif n in SkewPartitions():
+            from sage.combinat.skew_tableau import StandardSkewTableaux
+            return StandardSkewTableaux(n)
+
+        if not isinstance(n, (int, Integer)) or n < 0:
             raise ValueError( "The argument must be a non-negative integer or a partition." )
 
         return StandardTableaux_size(n)
@@ -4534,7 +5309,7 @@ class StandardTableaux_all(StandardTableaux, DisjointUnionEnumeratedSets):
 
 class StandardTableaux_size(StandardTableaux):
     """
-    Semistandard tableaux of fixed size `n`.
+    Standard tableaux of fixed size `n`.
 
     .. WARNING::
 
@@ -4607,18 +5382,19 @@ class StandardTableaux_size(StandardTableaux):
             sage: ST4[0].parent() is ST4
             True
         """
-        for p in sage.combinat.partition.Partitions(self.size):
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
             for st in StandardTableaux(p):
                 yield self.element_class(self, st)
 
     def cardinality(self):
         r"""
-        Return the cardinality of number of standard tableaux of size
-        ``n``.
+        Return the number of all standard tableaux of size ``n``.
 
-        The number of standard tableaux of `n` is equal to the number of
-        involutions of size `n`. This is a consequence of the symmetry of
-        the RSK correspondence, that if `\sigma \mapsto (P, Q)`, then
+        The number of standard tableaux of size `n` is equal to the
+        number of involutions in the symmetric group `S_n`.
+        This is a consequence of the symmetry of the RSK
+        correspondence, that if `\sigma \mapsto (P, Q)`, then
         `\sigma^{-1} \mapsto (Q, P)`. For more information, see
         :wikipedia:`Robinson-Schensted-Knuth_correspondence#Symmetry`.
 
@@ -4633,8 +5409,9 @@ class StandardTableaux_size(StandardTableaux):
 
         REFERENCES:
 
-        .. [Ful1997] Fulton, William.  Young Tableaux.
-           Cambridge University Press, 1997
+        .. [Ful1997] William Fulton,
+           *Young Tableaux*.
+           Cambridge University Press, 1997.
 
         EXAMPLES::
 
@@ -4650,19 +5427,20 @@ class StandardTableaux_size(StandardTableaux):
         TESTS::
 
             sage: def cardinality_using_hook_formula(n):
-            ...       c = 0
-            ...       for p in sage.combinat.partition.Partitions(n):
-            ...           c += StandardTableaux(p).cardinality()
-            ...       return c
+            ....:     c = 0
+            ....:     for p in Partitions(n):
+            ....:         c += StandardTableaux(p).cardinality()
+            ....:     return c
             sage: all([cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(10)])
             True
         """
         tableaux_number = self.size % 2  # identity involution
         fixed_point_numbers = xrange(tableaux_number, self.size + 1 - tableaux_number, 2)
 
-        # number of involution of size "size" (number of way to put
-        # "fixed_point_number" in "size" box * number of involutions
-        # without fixed point of size "size" - "fixed_point_number"
+        # number of involutions of size "size" (number of ways to
+        # choose "fixed_point_number" out of "size" elements *
+        # number of involutions without fixed point of size
+        # "size" - "fixed_point_number")
         for fixed_point_number in fixed_point_numbers:
             tableaux_number += (self.size.binomial(fixed_point_number) *
                                 prod(range(1, self.size - fixed_point_number, 2)))
@@ -4687,8 +5465,9 @@ class StandardTableaux_shape(StandardTableaux):
 
             sage: TestSuite( StandardTableaux([2,1,1]) ).run()
         """
+        from sage.combinat.partition import Partition
         super(StandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
-        self.shape = sage.combinat.partition.Partition(p)
+        self.shape = Partition(p)
 
 
     def __contains__(self, x):
@@ -4721,23 +5500,27 @@ class StandardTableaux_shape(StandardTableaux):
 
     def cardinality(self):
         r"""
-        Returns the number of standard Young tableaux of this shape.
+        Return the number of standard Young tableaux of this shape.
 
-        A formula for the number of Young tableaux associated with a given
-        partition. In each cell, write the sum of one plus the number of
-        cells horizontally to the right and vertically below the cell (the
-        hook length). The number of tableaux is then n! divided by the
-        product of all hook lengths.
+        This method uses the so-called *hook length formula*, a formula
+        for the number of Young tableaux associated with a given
+        partition. The formula says the following: Let `\lambda` be a
+        partition. For each cell `c` of the Young diagram of `\lambda`,
+        let the *hook length* of `c` be defined as `1` plus the number of
+        cells horizontally to the right of `c` plus the number of cells
+        vertically below `c`. The number of standard Young tableaux of
+        shape `\lambda` is then `n!` divided by the product of the hook
+        lengths of the shape of `\lambda`, where `n = |\lambda|`.
 
-        For example, consider the partition [3,2,1] of 6 with Ferrers
-        Diagram::
+        For example, consider the partition ``[3,2,1]`` of ``6`` with
+        Ferrers diagram::
 
             # # #
             # #
             #
 
-        When we fill in the cells with the hook
-        lengths, we obtain::
+        When we fill in the cells with their respective hook lengths, we
+        obtain::
 
             5 3 1
             3 1
@@ -4747,7 +5530,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         .. MATH::
 
-            \frac{6!}{(5 \cdot 3 \cdot 1 \cdot 3 \cdot 1 \cdot 1} = 16.
+            \frac{6!}{5 \cdot 3 \cdot 1 \cdot 3 \cdot 1 \cdot 1} = 16.
 
         EXAMPLES::
 
@@ -4759,6 +5542,8 @@ class StandardTableaux_shape(StandardTableaux):
             1
             sage: StandardTableaux([6,5,5,3]).cardinality()
             6651216
+            sage: StandardTableaux([]).cardinality()
+            1
 
         REFERENCES:
 
@@ -4769,10 +5554,10 @@ class StandardTableaux_shape(StandardTableaux):
         number = factorial(sum(pi))
         hook = pi.hook_lengths()
 
-        for row in range(len(pi)):
-            for col in range(pi[row]):
+        for row in hook:
+            for col in row:
                 #Divide the hook length by the entry
-                number /= hook[row][col]
+                number /= col
 
         return Integer(number)
 
@@ -4797,7 +5582,7 @@ class StandardTableaux_shape(StandardTableaux):
         """
 
         pi = self.shape
-        #Set the initial tableaux by filling it in going down the columns
+        #Set the initial tableau by filling it in going down the columns
         tableau = [[None]*n for n in pi]
         size = sum(pi)
         row = 0
@@ -4883,7 +5668,7 @@ class StandardTableaux_shape(StandardTableaux):
             #Check to see if we are at the last tableau
             #The last tableau if given by filling in the
             #partition along the rows.  For example, the
-            #last partition corresponding to [3,2] is
+            #last tableau corresponding to [3,2] is
             #[[1,2,3],
             # [4,5]]
             last_tableau = True
@@ -4899,7 +5684,7 @@ class StandardTableaux_shape(StandardTableaux):
 
     def list(self):
         r"""
-        Returns a list of the standard Young tableaux of the specified shape.
+        Return a list of the standard Young tableaux of the specified shape.
 
         EXAMPLES::
 
@@ -4930,13 +5715,15 @@ class StandardTableaux_shape(StandardTableaux):
 
     def random_element(self):
         """
-        Returns a random standard tableau of the given shape using the
-        Green-Nijenhuis-Wilf Algorithm.
+        Return a random standard tableau of the given shape using the
+        Greene-Nijenhuis-Wilf Algorithm.
 
         EXAMPLES::
 
             sage: StandardTableaux([2,2]).random_element()
             [[1, 2], [3, 4]]
+            sage: StandardTableaux([]).random_element()
+            []
         """
 
         p = self.shape
@@ -5064,8 +5851,6 @@ def symmetric_group_action_on_values(word, perm):
 
 
 # August 2012: Deprecation of internal classes seems to be unnecessarily painful...
-from sage.misc.superseded import deprecation
-
 def Tableau_class(*args, **kargs):
     """
     EXAMPLES::
@@ -5075,6 +5860,7 @@ def Tableau_class(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         [[3, 2]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use Tableau_class instead')
     return Tableau(*args, **kargs)
 
@@ -5087,6 +5873,7 @@ def Tableaux_n(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Tableaux of size 3
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use Tableaux_size instead')
     return Tableaux(*args, **kargs)
 
@@ -5099,6 +5886,7 @@ def SemistandardTableaux_n(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of size 3 and maximum entry 3
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5111,6 +5899,7 @@ def SemistandardTableaux_nmu(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of size 3 and weight [2, 1]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size_weight instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5123,6 +5912,7 @@ def SemistandardTableaux_p(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of shape [2, 1] and maximum entry 3
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5135,6 +5925,7 @@ def SemistandardTableaux_pmu(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of shape [2, 1] and weight [2, 1]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape_weight instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5147,6 +5938,7 @@ def StandardTableaux_n(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Standard tableaux of size 2
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use StandardTableaux_size instead')
     return StandardTableaux(*args, **kargs)
 
@@ -5159,6 +5951,7 @@ def StandardTableaux_partition(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Standard tableaux of shape [2, 1]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use StandardTableaux_shape instead')
     return StandardTableaux(*args, **kargs)
 

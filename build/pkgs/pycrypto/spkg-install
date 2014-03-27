@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined... exiting"
+    echo "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+    echo "64-bit build"
+    CFLAGS="-O2 -g -m64 "; export CFLAGS
+    LDFLAGS="-m64 "; export LDFLAGS
+fi
+
+CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
+export CFLAGS
+
+cd src
+
+python setup.py install
+if [ $? -ne 0 ]; then
+    echo "Error installing PyCrypto... exiting"
+    exit 1
+fi

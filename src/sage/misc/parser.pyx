@@ -451,7 +451,7 @@ cdef class Parser:
 
             sage: p = Parser(make_var=var)
             sage: p.parse("a*b^c - 3a")
-            b^c*a - 3*a
+            a*b^c - 3*a
 
             sage: R.<x> = QQ[]
             sage: p = Parser(make_var = {'x': x })
@@ -752,7 +752,7 @@ cdef class Parser:
             sage: p.p_term(Tokenizer("-a * b + c"))
             -a*b
             sage: p.p_term(Tokenizer("a*(b-c)^2"))
-            (b - c)^2*a
+            a*(b - c)^2
             sage: p.p_term(Tokenizer("-3a"))
             -3*a
         """

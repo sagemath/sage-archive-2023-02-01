@@ -110,13 +110,16 @@ class Circle(GraphicPrimitive):
         return {'alpha':'How transparent the figure is.',
                 'fill':'Whether or not to fill the circle.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'thickness':'How thick the border of the circle is.',
                 'edgecolor':'2D only: The color of the edge as an RGB tuple.',
                 'facecolor':'2D only: The color of the face as an RGB tuple.',
                 'rgbcolor':'The color (edge and face) as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'2D only: The layer level in which to draw',
-                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'.",
+                'linestyle':"2D only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively.",
                 'clip': 'Whether or not to clip the circle.'}
 
     def _repr_(self):
@@ -138,6 +141,8 @@ class Circle(GraphicPrimitive):
             sage: C = circle((2,pi), 2, edgecolor='black', facecolor='green', fill=True)
         """
         import matplotlib.patches as patches
+        from sage.plot.misc import get_matplotlib_linestyle
+
         options = self.options()
         p = patches.Circle((float(self.x), float(self.y)), float(self.r), clip_on=options['clip'])
         if not options['clip']:
@@ -152,7 +157,7 @@ class Circle(GraphicPrimitive):
             ec = fc = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
-        p.set_linestyle(options['linestyle'])
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_label(options['legend_label'])
         z = int(options.pop('zorder', 0))
         p.set_zorder(z)
@@ -214,7 +219,7 @@ class Circle(GraphicPrimitive):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, edgecolor='blue', facecolor='blue', linestyle='solid',
-         zorder=5, legend_label=None, clip=True, aspect_ratio=1.0)
+         zorder=5, legend_label=None, legend_color=None, clip=True, aspect_ratio=1.0)
 def circle(center, radius, **options):
     """
     Return a circle at a point center = `(x,y)` (or `(x,y,z)` and
@@ -229,7 +234,9 @@ def circle(center, radius, **options):
 
     - ``thickness`` - default: 1
 
-    - ``linestyle`` - default: 'solid' (2D plotting only)
+    - ``linestyle`` - default: ``'solid'`` (2D plotting only) The style of the
+      line, which is one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``,
+      or ``'--'``, ``':'``, ``'-'``, ``'-.'``, respectively.
 
     - ``edgecolor`` - default: 'blue' (2D plotting only)
 
@@ -241,16 +248,18 @@ def circle(center, radius, **options):
 
     - ``legend_label`` - the label for this item in the legend
 
+    - ``legend_color`` - the color for the legend label
+
     EXAMPLES:
 
-    The default color is blue, but this is easy to change::
+    The default color is blue, the default linestyle is solid, but this is easy to change::
 
         sage: c = circle((1,1), 1)
         sage: c
 
     ::
 
-        sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+        sage: c = circle((1,1), 1, rgbcolor=(1,0,0), linestyle='-.')
         sage: c
 
     We can also use this command to plot three-dimensional circles parallel
@@ -293,9 +302,13 @@ def circle(center, radius, **options):
 
         sage: circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green', hue=.8)
 
-    And a circle with a legend::
+    And circles with legends::
 
         sage: circle((4,5), 1, rgbcolor='yellow', fill=True, legend_label='the sun').show(xmin=0, ymin=0)
+
+    ::
+
+        sage: circle((4,5), 1, legend_label='the sun', legend_color='yellow').show(xmin=0, ymin=0)
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -335,6 +348,7 @@ def circle(center, radius, **options):
     g.add_primitive(Circle(center[0], center[1], radius, options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     if len(center)==2:
         return g
     elif len(center)==3:

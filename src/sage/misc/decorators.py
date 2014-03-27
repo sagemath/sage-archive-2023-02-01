@@ -12,13 +12,15 @@ AUTHORS:
   file into the reference manual.
 
 """
-from functools import partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
+from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
+                       WRAPPER_UPDATES)
 from copy import copy
-from sage.misc.sageinspect import sage_getsource, sage_getsourcelines, sage_getargspec
-from sage.misc.misc import verbose
+from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
+                                   sage_getargspec)
 from inspect import ArgSpec
 
-def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATES):
+
+def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     r"""
     Decorator factory which should be used in decorators for making sure that
     meta-information on the decorated callables are retained through the
@@ -57,8 +59,9 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: sage_getsource(g)
         '@square...def g(x)...'
 
-    Demonstrate that the argument description are retained from the decorated
-    function through the special method (when left unchanged) (see trac #9976)::
+    Demonstrate that the argument description are retained from the
+    decorated function through the special method (when left
+    unchanged) (see :trac:`9976`)::
 
         sage: def diff_arg_dec(f):
         ...     @sage_wraps(f)
@@ -92,7 +95,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
           '        return ret\n'], ...)
 
     Demonstrate that sage_wraps works for non-function callables
-    (Trac 9919)::
+    (:trac:`9919`)::
 
         sage: def square_for_met(f):
         ...     @sage_wraps(f)
@@ -110,7 +113,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: t.g.__doc__
         'My little method'
 
-    The bug described in #11734 is fixed::
+    The bug described in :trac:`11734` is fixed::
 
         sage: def square(f):
         ...     @sage_wraps(f)
@@ -121,23 +124,23 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: g = square(f)
         sage: g(3) # this line used to fail for some people if these command were manually entered on the sage prompt
         81
+
     """
     #TRAC 9919: Workaround for bug in @update_wrapper when used with
     #non-function callables.
-    assigned= set(assigned).intersection(set(dir(wrapped)))
+    assigned = set(assigned).intersection(set(dir(wrapped)))
     #end workaround
+
     def f(wrapper):
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
-        wrapper._sage_src_=lambda: sage_getsource(wrapped)
-        wrapper._sage_src_lines_=lambda: sage_getsourcelines(wrapped)
+        wrapper._sage_src_ = lambda: sage_getsource(wrapped)
+        wrapper._sage_src_lines_ = lambda: sage_getsourcelines(wrapped)
         #Getting the signature right in documentation by Sphinx (Trac 9976)
         #The attribute _sage_argspec_() is read by Sphinx if present and used
         #as the argspec of the function instead of using reflection.
-        from sageinspect import sage_getargspec
         wrapper._sage_argspec_ = lambda: sage_getargspec(wrapped)
         return wrapper
     return f
-
 
 
 # Infix operator decorator
@@ -212,12 +215,12 @@ class infix_operator(object):
             sage: x |thendo| cos |thendo| (lambda x: x^2)
             cos(x)^2
         """
-        self.precedence=precedence
+        self.precedence = precedence
 
-    operators={'add': {'left': '__add__', 'right': '__radd__'},
-               'multiply': {'left': '__mul__', 'right': '__rmul__'},
-               'or': {'left': '__or__', 'right': '__ror__'},
-               }
+    operators = {'add': {'left': '__add__', 'right': '__radd__'},
+                 'multiply': {'left': '__mul__', 'right': '__rmul__'},
+                 'or': {'left': '__or__', 'right': '__ror__'},
+                 }
 
     def __call__(self, func):
         """
@@ -265,10 +268,11 @@ class infix_operator(object):
             if self.left is None:
                 if self.right is None:
                     new = copy(self)
-                    new.right=right
+                    new.right = right
                     return new
                 else:
-                    raise SyntaxError, "Infix operator already has its right argument"
+                    raise SyntaxError("Infix operator already has its "
+                                      "right argument")
             else:
                 return self.function(self.left, right)
 
@@ -288,13 +292,13 @@ class infix_operator(object):
             if self.right is None:
                 if self.left is None:
                     new = copy(self)
-                    new.left=left
+                    new.left = left
                     return new
                 else:
-                    raise SyntaxError, "Infix operator already has its left argument"
+                    raise SyntaxError("Infix operator already has its "
+                                      "left argument")
             else:
                 return self.function(left, self.right)
-
 
         @sage_wraps(func)
         class wrapper:
@@ -316,6 +320,7 @@ class infix_operator(object):
                 self.function = func
                 self.left = left
                 self.right = right
+
             def __call__(self, *args, **kwds):
                 """
                 Call the passed function.
@@ -334,12 +339,9 @@ class infix_operator(object):
         setattr(wrapper, self.operators[self.precedence]['left'], left_func)
         setattr(wrapper, self.operators[self.precedence]['right'], right_func)
 
-        from sage.misc.sageinspect import sage_getsource
         wrapper._sage_src_ = lambda: sage_getsource(func)
 
         return wrapper()
-
-
 
 
 def decorator_defaults(func):
@@ -382,8 +384,8 @@ def decorator_defaults(func):
         my_fun
     """
     @sage_wraps(func)
-    def my_wrap(*args,**kwds):
-        if len(kwds)==0 and len(args)==1:
+    def my_wrap(*args, **kwds):
+        if len(kwds) == 0 and len(args) == 1:
             # call without parentheses
             return func(*args)
         else:
@@ -433,7 +435,7 @@ class suboptions(object):
             [('arrow_options', {'size': 5})]
 
          Demonstrate that the introspected argument specification of the
-         wrapped function is updated (see trac #9976).
+         wrapped function is updated (see :trac:`9976`).
 
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(f)
@@ -459,19 +461,20 @@ class suboptions(object):
         #function in the Sphinx-generated documentation (Trac 9976), using the
         #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
         def argspec():
-            from sageinspect import sage_getargspec
             argspec = sage_getargspec(func)
+
             def listForNone(l):
                 return l if not l is None else []
-            newArgs = [ self.name + opt for opt in self.options.keys() ]
+            newArgs = [self.name + opt for opt in self.options.keys()]
             args = (argspec.args if not argspec.args is None else []) + newArgs
             defaults = (argspec.defaults if not argspec.defaults is None else ()) \
-                            + tuple(self.options.values())
+                        + tuple(self.options.values())
             #Note: argspec.defaults is not always a tuple for some reason
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
         wrapper._sage_argspec_ = argspec
 
         return wrapper
+
 
 class options(object):
     def __init__(self, **options):
@@ -494,7 +497,7 @@ class options(object):
             {'rgbcolor': (0, 0, 1)}
 
         Demonstrate that the introspected argument specification of the wrapped
-        function is updated (see trac #9976)::
+        function is updated (see :trac:`9976`)::
 
             sage: from sage.misc.decorators import options
             sage: o = options(rgbcolor=(0,0,1))
@@ -537,11 +540,9 @@ class options(object):
         #function in the Sphinx-generated documentation (Trac 9976), using the
         #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
         def argspec():
-            from sageinspect import sage_getargspec
             argspec = sage_getargspec(func)
             args = (argspec.args if not argspec.args is None else []) + self.options.keys()
-            defaults = tuple(argspec.defaults if not argspec.defaults is None else ()) \
-                            + tuple(self.options.values())
+            defaults = tuple(argspec.defaults if not argspec.defaults is None else ()) + tuple(self.options.values())
             #Note: argspec.defaults is not always a tuple for some reason
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
         wrapper._sage_argspec_ = argspec
@@ -594,7 +595,7 @@ class options(object):
 
         Defaults:
         %s
-        """%self.options
+        """ % self.options
 
         wrapper.defaults = defaults
         wrapper.defaults.__doc__ = """
@@ -602,7 +603,7 @@ class options(object):
 
         Defaults:
         %s
-        """%self.options
+        """ % self.options
 
         return wrapper
 
@@ -684,8 +685,8 @@ class rename_keyword(object):
                 if old_name in kwds and new_name not in kwds:
                     if self.deprecation is not None:
                         from sage.misc.superseded import deprecation
-                        deprecation(self.deprecation,
-                                    "use the option %r instead of %r"%(new_name,old_name))
+                        deprecation(self.deprecation, "use the option "
+                                    "%r instead of %r" % (new_name, old_name))
                     kwds[new_name] = kwds[old_name]
                     del kwds[old_name]
             return func(*args, **kwds)

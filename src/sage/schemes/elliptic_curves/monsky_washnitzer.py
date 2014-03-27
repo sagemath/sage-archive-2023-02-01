@@ -46,13 +46,17 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial, PowerSeriesRing, Rationals, Rational, LaurentSeriesRing
+from sage.rings.all import Integers, Integer, PolynomialRing, PowerSeriesRing, Rationals, Rational, LaurentSeriesRing
+
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+
 from sage.modules.module import Module
 from sage.structure.element import ModuleElement
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
+from sage.rings.infinity import Infinity
 
 from sage.rings.arith import binomial, integer_ceil as ceil
 from sage.misc.functional import log
@@ -1728,7 +1732,11 @@ import weakref
 
 from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ, is_LaurentSeriesRing, is_IntegralDomain
+from sage.rings.all import QQ
+
+from sage.rings.laurent_series_ring import is_LaurentSeriesRing
+from sage.rings.integral_domain import is_IntegralDomain
+
 from sage.modules.all import FreeModule, is_FreeModuleElement
 
 from sage.misc.profiler import Profiler
@@ -2264,7 +2272,9 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         coeffs = []
         n = y_degree - y_offset + 1
         for a in self._f.list():
-            k = a.valuation() - y_offset
+            k = a.valuation()
+            if k is Infinity: k = 0
+            k -= y_offset
             z = a.list()
             coeffs.append( [zero] * k + z + [zero]*(n - len(z) - k))
         while len(coeffs) < self.parent().degree():

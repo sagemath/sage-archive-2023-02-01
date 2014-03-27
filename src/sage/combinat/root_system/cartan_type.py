@@ -526,6 +526,14 @@ class CartanTypeFactory(SageObject):
             ['D', 4]
 
         .. SEEALSO:: :func:`~sage.combinat.root_system.cartan_type.CartanType`
+
+        TESTS:
+
+        Check that this is compatible with :class:`CartanTypeFolded`::
+
+            sage: fct = CartanType(['C', 4, 1]).as_folding()
+            sage: CartanType(fct)
+            ['C', 4, 1]
         """
         if len(args) == 1:
             t = args[0]
@@ -917,27 +925,27 @@ class CartanType_abstract(object):
         EXAMPLES::
 
             sage: CartanType(['A', 3, 1]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['D', 4]).index_set()
-            [1, 2, 3, 4]
+            (1, 2, 3, 4)
             sage: CartanType(['A', 7, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 7, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 6, 2]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['D', 6, 2]).index_set()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
             sage: CartanType(['E', 6, 1]).index_set()
-            [0, 1, 2, 3, 4, 5, 6]
+            (0, 1, 2, 3, 4, 5, 6)
             sage: CartanType(['E', 6, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 2, 2]).index_set()
-            [0, 1]
+            (0, 1)
             sage: CartanType(['G', 2, 1]).index_set()
-            [0, 1, 2]
+            (0, 1, 2)
             sage: CartanType(['F', 4, 1]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
         """
 
     # This coloring scheme is used for crystal graphs and will eventually
@@ -1230,6 +1238,71 @@ class CartanType_abstract(object):
         from sage.combinat.root_system.root_system import RootSystem
         return RootSystem(self)
 
+    def as_folding(self, folding_of=None, sigma=None):
+        r"""
+        Return ``self`` realized as a folded Cartan type.
+
+        For finite and affine types, this is realized by the Dynkin
+        diagram foldings:
+
+        .. MATH::
+
+            \begin{array}{ccl}
+            C_n^{(1)}, A_{2n}^{(2)}, A_{2n}^{(2)\dagger}, D_{n+1}^{(2)}
+            & \hookrightarrow & A_{2n-1}^{(1)}, \\
+            A_{2n-1}^{(2)}, B_n^{(1)} & \hookrightarrow & D_{n+1}^{(1)}, \\
+            E_6^{(2)}, F_4^{(1)} & \hookrightarrow & E_6^{(1)}, \\
+            D_4^{(3)}, G_2^{(1)} & \hookrightarrow & D_4^{(1)}, \\
+            C_n & \hookrightarrow & A_{2n-1}, \\
+            B_n & \hookrightarrow & D_{n+1}, \\
+            F_4 & \hookrightarrow & E_6, \\
+            G_2 & \hookrightarrow & D_4.
+            \end{array}
+
+        For general types, this returns ``self`` as a folded type of ``self``
+        with `\sigma` as the identity map.
+
+        For more information on these foldings and folded Cartan types, see
+        :class:`sage.combinat.root_system.type_folded.CartanTypeFolded`.
+
+        If the optional inputs ``folding_of`` and ``sigma`` are specified, then
+        this returns the folded Cartan type of ``self`` in ``folding_of`` given
+        by the automorphism ``sigma``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B', 3, 1]).as_folding()
+            ['B', 3, 1] as a folding of  ['D', 4, 1]
+            sage: CartanType(['F', 4]).as_folding()
+            ['F', 4] as a folding of  ['E', 6]
+            sage: CartanType(['BC', 3, 2]).as_folding()
+            ['BC', 3, 2] as a folding of  ['A', 5, 1]
+            sage: CartanType(['D', 4, 3]).as_folding()
+            ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1} as a folding of ['D', 4, 1]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        if folding_of is None and sigma is None:
+            return self._default_folded_cartan_type()
+        if folding_of is None or sigma is None:
+            raise ValueError("Both folding_of and sigma must be given")
+        return CartanTypeFolded(self, folding_of, sigma)
+
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        In general, this just returns ``self`` in ``self`` with `\sigma` as
+        the identity map.
+
+        EXAMPLES::
+
+            sage: D = CartanMatrix([[2, -3], [-2, 2]]).dynkin_diagram()
+            sage: D._default_folded_cartan_type()
+            Dynkin diagram of rank 2 as a folding of  Dynkin diagram of rank 2
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
+
     global_options = CartanTypeOptions
 
 class CartanType_crystallographic(CartanType_abstract):
@@ -1326,7 +1399,8 @@ class CartanType_crystallographic(CartanType_abstract):
             [ 0 -1  2 -1]
             [ 0  0 -1  2]
         """
-        return self.dynkin_diagram().cartan_matrix()
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+        return CartanMatrix(self.dynkin_diagram())
 
     @cached_method
     def coxeter_diagram(self):
@@ -1447,7 +1521,6 @@ class CartanType_crystallographic(CartanType_abstract):
             sage: print T.ascii_art(lambda i: alpha[i].scalar(alpha[i]))
             O---O---O---O=<=O
             2   2   2   2   4
-
         """
         from sage.matrix.constructor import matrix, diagonal_matrix
         m = self.cartan_matrix()
@@ -1642,9 +1715,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         the nodes of the classical Dynkin diagram::
 
             sage: CartanType(['A', 3, 1]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['A', 3, 1]).classical().index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
 
     @abstract_method
@@ -1734,7 +1807,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         if m is None:
             m = self.cartan_matrix()
-        assert self.index_set() == list(range(m.ncols()))
+        assert self.index_set() == tuple(range(m.ncols()))
         annihilator_basis = m.integer_kernel().gens()
         assert(len(annihilator_basis) == 1)
         assert(all(coef > 0 for coef in annihilator_basis[0]))
@@ -2141,9 +2214,9 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         EXAMPLES::
 
             sage: CartanType(['A', 5]).index_set()
-            [1, 2, 3, 4, 5]
+            (1, 2, 3, 4, 5)
         """
-        return range(1,self.n+1)
+        return tuple(range(1,self.n+1))
 
     def rank(self):
         """
@@ -2339,9 +2412,9 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
         EXAMPLES::
 
             sage: CartanType(['A', 5, 1]).index_set()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
         """
-        return range(0,self.n+1)
+        return tuple(range(self.n+1))
 
     def special_node(self):
         r"""

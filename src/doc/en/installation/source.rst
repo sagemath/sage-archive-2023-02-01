@@ -69,8 +69,8 @@ computer:
   a wide variety of C compilers is supported.
   Many GCC versions work,
   from as old as version 3.4.3 to the most recent release.
+  Clang also works.
   On Solaris systems, the Sun compiler should also work.
-  Clang currently does not work.
   See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
@@ -217,15 +217,16 @@ Using alternative compilers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, Sage build process should succeed with any reasonable C compiler.
+Nonetheless, the Sage build process should succeed with any reasonable C compiler.
 This is because Sage will build GCC first (if needed) and then use that newly
 built GCC to compile Sage.
 
 If you don't want this and want to try building Sage with a different set of
 compilers,
 you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
+Make sure you have C, C++ and Fortran compilers installed!
 
-Clang is currently not supported, see :trac:`12426`.
+Building all of Sage with Clang is currently not supported, see :trac:`12426`.
 
 If you are interested in working on support for commerical compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
@@ -977,8 +978,14 @@ Environment variables dealing with specific Sage packages:
 
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
-  variable to set a particular architecture and instruction set extension.
-  The syntax is ``SAGE_ATLAS_ARCH=arch[,isaext1][,isaext2]...[,isaextN]``.
+  variable to set a particular architecture and instruction set extension,
+  to control the maximum number of threads ATLAS can use, and to trigger the
+  installation of a static library (which is disabled by default unless
+  building our custom shared libraries fails).
+  The syntax is
+
+    ``SAGE_ATLAS_ARCH=[threads:n,][static,]arch[,isaext1][,isaext2]...[,isaextN]``.
+
   While ATLAS comes with precomputed timings for a variety of CPUs, it only
   uses them if it finds an exact match.
   Otherwise, ATLAS runs through a lengthy automated tuning process in order
@@ -990,16 +997,20 @@ Environment variables dealing with specific Sage packages:
   systems with CPU throttling or if you want to distribute the binaries.
   Available architectures are
 
-    ``POWER3``, ``POWER4``, ``POWER5``, ``PPCG4``, ``PPCG5``, ``P5``,
+    ``POWER3``, ``POWER4``, ``POWER5``, ``PPCG4``, ``PPCG5``,
+    ``POWER6``, ``POWER7``, ``IBMz9``, ``IBMz10``, ``IBMz196``,
+    ``x86x87``, ``x86SSE1``, ``x86SSE2``, ``x86SSE3``, ``P5``,
     ``P5MMX``, ``PPRO``, ``PII``, ``PIII``, ``PM``, ``CoreSolo``,
-    ``CoreDuo``, ``Core2Solo``, ``Core2``, ``Corei7``, ``P4``,
-    ``P4E``, ``Efficeon``, ``K7``, ``HAMMER``, ``AMD64K10h``,
-    ``IA64Itan``, ``IA64Itan2``, ``USI``, ``USII``, ``USIII``,
-    ``USIV``, ``UnknownUS``, ``MIPSR1xK``, ``MIPSICE9``
+    ``CoreDuo``, ``Core2Solo``, ``Core2``, ``Corei1``, ``Corei2``,
+    ``Atom``, ``P4``, ``P4E``, ``Efficeon``, ``K7``, ``HAMMER``,
+    ``AMD64K10h``, ``AMDDOZER``, ``UNKNOWNx86``, ``IA64Itan``,
+    ``IA64Itan2``, ``USI``, ``USII``, ``USIII``, ``USIV``, ``UST2``,
+    ``UnknownUS``, ``MIPSR1xK``, ``MIPSICE9``, ``ARMv7``.
 
   and instruction set extensions are
 
-    ``AltiVec``, ``SSE3``, ``SSE2``, ``SSE1``, ``3DNow``.
+    ``VSX``, ``AltiVec``, ``AVXMAC``, ``AVXFMA4``, ``AVX``, ``SSE3``,
+    ``SSE2``, ``SSE1``, ``3DNow``, ``NEON``.
 
   In addition, you can also set
 
@@ -1011,7 +1022,7 @@ Environment variables dealing with specific Sage packages:
 
   For example,
 
-    ``SAGE_ATLAS_ARCH=Corei7,SSE3,SSE2,SSE1``
+    ``SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1``
 
   would be appropriate for a Core i7 CPU.
 
@@ -1020,8 +1031,8 @@ Environment variables dealing with specific Sage packages:
   own version of ATLAS, set this variable to be the directory containing your
   ATLAS installation.
   It should contain the files :file:`libatlas`, :file:`liblapack`,
-  :file:`libcblas`, and :file:`libf77blas` with extensions ``.a``, ``.so``, or
-  ``.dylib``.
+  :file:`libcblas`, :file:`libptcblas`, :file:`libf77blas`, and
+  :file:`libptf77blas`, with extensions ``.a``, ``.so``, or ``.dylib``.
   For backward compatibility, the libraries may also be in the subdirectory
   :file:`SAGE_ATLAS_LIB/lib/`.
 
@@ -1261,18 +1272,42 @@ Some common problems
 ATLAS
 ~~~~~
 
-Sometimes the ATLAS spkg can fail to build.
-Some things to check for:
+Usually Sage will build ATLAS with architectural defaults that are not tuned
+to your particular CPU.
+In particular, if your CPU has powersaving enabled then no accurate timings
+can be made to tune the ATLAS build for your hardware.
+If BLAS performance is critical for you, you must recompile ATLAS after
+installing Sage either with architecture settings that match your hardware,
+or run through ATLAS' automatic tuning process where timings of different
+implementations are compared and the best choice used to build a custom ATLAS
+library.
+To do so, you have to
 
-- Make sure that CPU throttling mode (i.e. power-saving mode) is turned off
-  when building ATLAS.
+- Leave the computer idle while you are reinstalling ATLAS.
+  Most of ATLAS will intentionally only compile/run on a single core.
+  Accurate timings of cache edges require that the CPU is otherwise idle.
 
-- The ATLAS build can also fail if the system load is too high, and in
-  particular this has been known to happen when building with
-  ``MAKE='make -jNUM'`` with ``NUM`` large.
-  If this happens, just try running ``make`` again.
-  If ``make`` fails after five or six attempts, report your problem to the
-  sage-devel mailing list at http://groups.google.com/group/sage-devel.
+- Make sure that CPU powersaving mode (that is, anything but the
+  ``performance`` CPU scaling governor in Linux) is turned off when building
+  ATLAS.
+  This requires administrator privileges.
+
+- If your architecture is listed in :envvar:`SAGE_ATLAS_ARCH`, you should set
+  it as it can help ATLAS in narrowing down the timing search.
+
+To help you disable CPU power saving, Sage includes an ``atlas-config`` script
+that will turn off CPU powersave and rebuild ATLAS.
+The script will call ``sudo`` to gain the necessary rights, which may prompt
+you for your password. For example::
+
+    atlas-config
+
+will run through the full automated tuning, and::
+
+    SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1 atlas-config
+
+would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
-**This page was last updated in June 2013 (Sage 5.10).**
+
+**This page was last updated in October 2013 (Sage 5.12).**

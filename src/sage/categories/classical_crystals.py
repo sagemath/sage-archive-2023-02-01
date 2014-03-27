@@ -156,15 +156,15 @@ class ClassicalCrystals(Category_singleton):
                 sage: weight.reduced_word()
                 [2, 1]
                 sage: T.demazure_character(weight)
-                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x1*x3^2
+                x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x1*x3^2
 
                 sage: T = CrystalOfTableaux(['A',3],shape=[2,1])
                 sage: T.demazure_character([1,2,3])
-                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x2^2*x3
+                x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x2^2*x3
                 sage: W = WeylGroup(['A',3])
                 sage: w = W.from_reduced_word([1,2,3])
                 sage: T.demazure_character(w)
-                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x2^2*x3
+                x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x2^2*x3
 
                 sage: T = CrystalOfTableaux(['B',2], shape = [2])
                 sage: e = T.weight_lattice_realization().basis()
@@ -454,11 +454,12 @@ class ClassicalCrystals(Category_singleton):
                 sage: La=C.root_system().weight_lattice().fundamental_weights()
                 sage: T = HighestWeightCrystal(La[1])
                 sage: t = T[3]; t
-                [[-4, 2, 5]]
+                [(-4, 2, 5)]
                 sage: t.lusztig_involution()
-                [[-2, -3, 4]]
+                [(-2, -3, 4)]
             """
             hw = self.to_highest_weight()[1]
             hw.reverse()
             hw = [self.parent().opposition_automorphism()[i] for i in hw]
             return self.to_lowest_weight()[0].e_string(hw)
+

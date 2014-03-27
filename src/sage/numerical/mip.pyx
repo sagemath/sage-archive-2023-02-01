@@ -188,7 +188,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     INPUT:
 
-    - ``solver`` -- 4 solvers should be available through this class:
+    - ``solver`` -- the following solvers should be available through this class:
 
       - GLPK (``solver="GLPK"``). See the `GLPK
         <http://www.gnu.org/software/glpk/>`_ web site.
@@ -245,7 +245,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         INPUT:
 
-        - ``solver`` -- 4 solvers should be available through this class:
+        - ``solver`` -- the following solvers should be available through this class:
 
           - GLPK (``solver="GLPK"``). See the `GLPK
             <http://www.gnu.org/software/glpk/>`_ web site.

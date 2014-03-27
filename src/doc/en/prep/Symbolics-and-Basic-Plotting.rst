@@ -183,11 +183,6 @@ assigned :math:`z` to a (much more complex) expression.
 
     sage: z = ((x - 1)^(3/2) - (x + 1)*sqrt(x - 1))/sqrt((x - 1)*(x + 1))
     sage: z.simplify_full()
-    -2/sqrt(x + 1)
-
-::
-
-    sage: z.simplify_rational() # Just simplify the fraction part of the expression by combining it.
     -2*sqrt(x - 1)/sqrt(x^2 - 1)
 
 This is a good place for a few reminders of basic help.

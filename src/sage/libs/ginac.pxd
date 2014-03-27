@@ -88,16 +88,22 @@ cdef extern from "ginac_wrap.h":
         GEx numer_denom()             except +
         int degree(GEx expr)          except +
         int ldegree(GEx expr)         except +
+        GEx unit(GEx expr)            except +
+        GEx content(GEx expr)         except +
+        GEx primpart(GEx expr)        except +
+        void unitcontprim(GEx expr, GEx unit, GEx cont, GEx prim) except +
         GEx rhs()                     except +
         GEx lhs()                     except +
         int nops()                    except +
-        GEx op(int i)                 except +
+        GEx op "sorted_op" (int i)    except +
         GEx eval(int level)           except +
         GEx evalf(int level, object parent) except +
         GEx conjugate()               except +
         GEx real_part()               except +
         GEx imag_part()               except +
         bint info(unsigned)           except +
+        void dbgprint()
+        void dbgprinttree()
 
     GExPair make_pair "std::make_pair" (GEx, GEx)
 
@@ -239,6 +245,7 @@ cdef extern from "ginac_wrap.h":
     bint is_a_power "is_a<power>" (GEx e)
     bint is_a_fderivative "is_a<fderivative>" (GEx e)
     bint is_a_function "is_a<function>" (GEx e)
+    bint is_exactly_a_function "is_exactly_a<function>" (GEx e)
     bint is_a_ncmul "is_a<ncmul>" (GEx e)
 
     # Arithmetic
@@ -528,3 +535,13 @@ cdef extern from "ginac_wrap.h":
         object (*py_rational_power_parts)(object basis, object exp)
 
     py_funcs_struct py_funcs "GiNaC::py_funcs"
+
+cdef extern from "pynac/order.h":
+    bint print_order_compare "GiNaC::print_order().compare" \
+            (GEx left, GEx right) except +
+    bint print_order_compare_mul "GiNaC::print_order_mul().compare" \
+            (GEx left, GEx right) except +
+    bint print_order "GiNaC::print_order()" \
+            (GEx left, GEx right) except +
+    bint print_order_mul "GiNaC::print_order_mul()" \
+            (GEx left, GEx right) except +

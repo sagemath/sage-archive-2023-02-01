@@ -22,6 +22,8 @@ from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.parent cimport Parent
+from sage.structure.coerce import parent
+from sage.structure.element import get_coercion_model
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -47,7 +49,7 @@ cdef class Function(SageObject):
     subclasses :class:`BuiltinFunction` or :class:`SymbolicFunction`.
     """
     def __init__(self, name, nargs, latex_name=None, conversions=None,
-            evalf_params_first=True):
+            evalf_params_first=True, alt_name=None):
         """
         This is an abstract base class. It's not possible to test it directly.
 
@@ -84,6 +86,7 @@ cdef class Function(SageObject):
             ValueError: eval_func parameter must be callable
         """
         self._name = name
+        self._alt_name = alt_name
         self._nargs = nargs
         self._latex_name = latex_name
         self._evalf_params_first = evalf_params_first
@@ -184,7 +187,7 @@ cdef class Function(SageObject):
         self._serial = g_register_new(opt)
         g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
-    def _eval_default(self, x):
+    def _eval_default(self, *args):
         """
         Default automatic evaluation function.
 
@@ -192,27 +195,70 @@ cdef class Function(SageObject):
 
         TESTS::
 
-            sage: cot(0.5) #indirect doctest
-            1.83048772171245
-            sage: cot(complex(1,2))
-            (0.0327977555337526-0.98432922645819...j)
+            sage: coth(5)  # indirect doctest
+            coth(5)
+            sage: coth(0.5)
+            2.16395341373865
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class Test(BuiltinFunction):
+            ....:     def __init__(self):
+            ....:         BuiltinFunction.__init__(self, 'test', nargs=2)
+            ....:     def _evalf_(self, x, y, parent):
+            ....:         return x + 1
+            ....:     def _eval_(self, x, y):
+            ....:         res = self._eval_default(x, y)
+            ....:         if res:
+            ....:             return res
+            ....:         elif x == 2:
+            ....:             return 3
+            ....:         else:
+            ....:             return
+            sage: test = Test()
+            sage: test(1.3, 4)
+            2.30000000000000
+            sage: test(pi, 4)
+            test(pi, 4)
+            sage: test(2, x)
+            3
+            sage: test(2., 4)
+            3.00000000000000
+            sage: test(1 + 1.0*I, 2)
+            2.00000000000000 + 1.00000000000000*I
+            sage: class Test2(BuiltinFunction):
+            ....:     def __init__(self):
+            ....:         BuiltinFunction.__init__(self, 'test', nargs=1)
+            ....:     def _evalf_(self, x, parent):
+            ....:         return 0.5
+            ....:     def _eval_(self, x):
+            ....:         res = self._eval_default(x)
+            ....:         if res:
+            ....:             return res
+            ....:         else:
+            ....:             return 3
+            sage: test2 = Test2()
+            sage: test2(1.3)
+            0.500000000000000
+            sage: test2(pi)
+            3
         """
-        if isinstance(x, (int, long)):
-            return None
-
-        if isinstance(x, float):
-            return self._evalf_(x, float)
-        if isinstance(x, complex):
-            return self._evalf_(x, complex)
-        if isinstance(x, Element):
-            if x.parent().is_exact():
-                return None
-        try:
-            memberfn = getattr(x, self.name())
-        except AttributeError:
-            pass
+        if len(args) == 1:
+            x = args[0]
+            try:
+                memberfn = getattr(x, self.name())
+            except AttributeError:
+                pass
+            else:
+                return memberfn()
+            if is_inexact(x) and not parent_c(x) is SR:
+                return self._evalf_(x, parent=parent(x))
+            return
         else:
-            return memberfn()
+            cc = get_coercion_model().canonical_coercion
+            coerced = reduce(lambda x, y: cc(x, y)[0], args)
+            if is_inexact(coerced) and not parent_c(coerced) is SR:
+                return self._evalf_(*args, parent=parent(coerced))
+            else:
+                return
 
     def __hash__(self):
         """
@@ -271,7 +317,7 @@ cdef class Function(SageObject):
             return cmp(self._serial, (<Function>other)._serial)
         return False
 
-    def __call__(self, *args, coerce=True, hold=False):
+    def __call__(self, *args, bint coerce=True, bint hold=False):
         """
         Evaluates this function at the given arguments.
 
@@ -795,9 +841,35 @@ cdef class GinacFunction(BuiltinFunction):
 
         g_foptions_assign(g_registered_functions().index(self._serial), opt)
 
-    def __call__(self, *args, coerce=True, hold=False,
-            dont_call_method_on_arg=False):
+
+cdef class BuiltinFunction(Function):
+    """
+    This is the base class for symbolic functions defined in Sage.
+
+    If a function is provided by the Sage library, we don't need to pickle
+    the custom methods, since we can just initialize the same library function
+    again. This allows us to use Cython for custom methods.
+
+    We assume that each subclass of this class will define one symbolic
+    function. Make sure you use subclasses and not just call the initializer
+    of this class.
+    """
+    def __init__(self, name, nargs=1, latex_name=None, conversions=None,
+            evalf_params_first=True, alt_name=None):
         """
+        TESTS::
+
+            sage: from sage.functions.trig import Function_cot
+            sage: c = Function_cot() # indirect doctest
+            sage: c(pi/2)
+            0
+        """
+        Function.__init__(self, name, nargs, latex_name, conversions,
+                evalf_params_first, alt_name = alt_name)
+
+    def __call__(self, *args, bint coerce=True, bint hold=False,
+            bint dont_call_method_on_arg=False):
+        r"""
         Evaluate this function on the given arguments and return the result.
 
         EXAMPLES::
@@ -806,23 +878,41 @@ cdef class GinacFunction(BuiltinFunction):
             e^5
             sage: gamma(15)
             87178291200
-        """
-        # we want to convert the result to the original parent if the input
-        # is not exact, so we store the parent here
-        org_parent = parent_c(args[0])
 
+        TESTS::
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class A:
+            ....:     def foo(self):
+            ....:         return 'foo'
+            sage: foo = BuiltinFunction(name='foo')
+            sage: foo(A())
+            'foo'
+            sage: bar = BuiltinFunction(name='bar', alt_name='foo')
+            sage: bar(A())
+            'foo'
+        """
         # if there is only one argument, and the argument has an attribute
         # with the same name as this function, try to call it to get the result
         # The argument dont_call_method_on_arg is used to prevent infinite loops
         # when .exp(), .log(), etc. methods call this symbolic function on
         # themselves
         if len(args) == 1 and not hold and not dont_call_method_on_arg:
-            memberfn = getattr(args[0], self._name, None)
-            if callable(memberfn):
-                return memberfn()
+            arg = args[0]
+            method = getattr(arg, self._name, None)
+            if callable(method):
+                return method()
+            elif self._alt_name is not None:
+                method = getattr(arg, self._alt_name, None)
+                if method is not None:
+                    return method()
 
-        res = super(GinacFunction, self).__call__(*args, coerce=coerce,
-                hold=hold)
+        res = super(BuiltinFunction, self).__call__(
+                        *args, coerce=coerce, hold=hold)
+
+        # we want to convert the result to the original parent if the input
+        # is not exact, so we store the parent here
+        org_parent = parent_c(args[0])
 
         # convert the result back to the original parent previously stored
         # otherwise we end up with
@@ -853,32 +943,6 @@ cdef class GinacFunction(BuiltinFunction):
 
         return res
 
-
-cdef class BuiltinFunction(Function):
-    """
-    This is the base class for symbolic functions defined in Sage.
-
-    If a function is provided by the Sage library, we don't need to pickle
-    the custom methods, since we can just initialize the same library function
-    again. This allows us to use Cython for custom methods.
-
-    We assume that each subclass of this class will define one symbolic
-    function. Make sure you use subclasses and not just call the initializer
-    of this class.
-    """
-    def __init__(self, name, nargs=1, latex_name=None, conversions=None,
-            evalf_params_first=True):
-        """
-        TESTS::
-
-            sage: from sage.functions.trig import Function_cot
-            sage: c = Function_cot() # indirect doctest
-            sage: c(pi/2)
-            0
-        """
-        Function.__init__(self, name, nargs, latex_name, conversions,
-                evalf_params_first)
-
     cdef _is_registered(self):
         """
         TESTS:
@@ -887,12 +951,11 @@ cdef class BuiltinFunction(Function):
 
             sage: from sage.symbolic.function import BuiltinFunction
             sage: class AFunction(BuiltinFunction):
-            ...         def __init__(self, name, exp=1):
-            ...             self.exponent=exp
-            ...             BuiltinFunction.__init__(self, name, nargs=1)
-            ...         def _eval_(self, arg):
-            ...                 return arg**self.exponent
-            ...
+            ....:       def __init__(self, name, exp=1):
+            ....:           self.exponent=exp
+            ....:           BuiltinFunction.__init__(self, name, nargs=1)
+            ....:       def _eval_(self, arg):
+            ....:               return arg**self.exponent
             sage: p2 = AFunction('p2', 2)
             sage: p2(x)
             x^2
@@ -971,12 +1034,12 @@ cdef class SymbolicFunction(Function):
 
             sage: from sage.symbolic.function import SymbolicFunction
             sage: class my_function(SymbolicFunction):
-            ...  def __init__(self):
-            ...     SymbolicFunction.__init__(self, 'foo', nargs=2)
-            ...  def _evalf_(self, x, y, parent=None):
-            ...     return x*y*2r
-            ...  def _conjugate_(self, x, y):
-            ...     return x
+            ....:     def __init__(self):
+            ....:         SymbolicFunction.__init__(self, 'foo', nargs=2)
+            ....:     def _evalf_(self, x, y, parent=None):
+            ....:         return x*y*2r
+            ....:     def _conjugate_(self, x, y):
+            ....:         return x
             sage: foo = my_function()
             sage: foo
             foo
@@ -1115,7 +1178,7 @@ cdef class SymbolicFunction(Function):
         Test pickling expressions with symbolic functions::
 
             sage: u = loads(dumps(foo(x)^2 + foo(y) + x^y)); u
-            x^y + foo(x)^2 + foo(y)
+            foo(x)^2 + x^y + foo(y)
             sage: u.subs(y=0)
             foo(x)^2 + foo(0) + 1
             sage: u.subs(y=0).n()

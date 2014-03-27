@@ -456,7 +456,7 @@ def matrix_plot(mat, **options):
     import numpy as np
     import scipy.sparse as scipysparse
     from sage.plot.all import Graphics
-    from sage.matrix.all import is_Matrix
+    from sage.matrix.matrix import is_Matrix
     from sage.rings.all import RDF
     orig_mat=mat
     if is_Matrix(mat):

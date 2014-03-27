@@ -195,7 +195,7 @@ cdef class Type:
             False
             sage: d = {a: 1, b: 2}                                     # optional - coxeter3
         """
-        return hash((self.__class__.__name__, self.name()))
+        return hash(('Type', self.name()))
 
     def __richcmp__(Type self, other, int op):
         """

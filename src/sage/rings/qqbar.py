@@ -619,7 +619,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
 
             sage: x = polygen(SR)
             sage: p = (x - sqrt(-5)) * (x - sqrt(3)); p
-            x^2 + (-sqrt(-5) - sqrt(3))*x + sqrt(-5)*sqrt(3)
+            x^2 + (-sqrt(3) - sqrt(-5))*x + sqrt(3)*sqrt(-5)
             sage: p = QQbar.common_polynomial(p)
             sage: a = QQbar.polynomial_root(p, CIF(RIF(-0.1, 0.1), RIF(2, 3))); a
             0.?e-18 + 2.236067977499790?*I
@@ -4566,6 +4566,20 @@ class AlgebraicReal(AlgebraicNumber_base):
             Algebraic Real Field
         """
         return AA_0
+
+    def conjugate(self):
+        """
+        Returns the complex conjugate of self, i.e. returns itself.
+
+        EXAMPLES::
+
+            sage: a = AA(sqrt(2) + sqrt(3))
+            sage: a.conjugate()
+            3.146264369941973?
+            sage: a.conjugate() is a
+            True
+        """
+        return self
 
     def sign(self):
         """

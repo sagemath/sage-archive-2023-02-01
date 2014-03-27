@@ -1019,31 +1019,17 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: B.rank()
             12
             sage: A = B.change_ring(RDF)
-            sage: A.condition() > 1.7 * 10^16
+            sage: A.condition() > 1.6e16 or A.condition()
             True
 
-            sage: sv = A.singular_values(eps=None)
-            sage: [round(sv[i],15) for i in range(12)]
-            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789,
-             0.000233089089022, 1.1163357483e-05, 4.08237611e-07,
-             1.1228611e-08, 2.25196e-10, 3.111e-12, 2.6e-14, 0.0]
-            sage: (10^-17 < sv[11]) and (sv[11] < 10^-15)
-            True
+            sage: A.singular_values(eps=None)  # abs tol 1e-16
+            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789, 0.000233089089022, 1.11633574832e-05, 4.08237611034e-07, 1.12286106622e-08, 2.25196451406e-10, 3.11134627616e-12, 2.65006299814e-14, 1.00050293715e-16]
 
-            sage: sv = A.singular_values(eps='auto')
-            sage: [round(sv[i],15) for i in range(12)]
-            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789,
-             0.000233089089022, 1.1163357483e-05, 4.08237611e-07,
-             1.1228611e-08, 2.25196e-10, 3.111e-12, 2.6e-14, 0.0]
-            sage: sv[11] == 0.0
-            True
+            sage: A.singular_values(eps='auto')  # abs tol 1e-16
+            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789, 0.000233089089022, 1.11633574832e-05, 4.08237611034e-07, 1.12286106622e-08, 2.25196451406e-10, 3.11134627616e-12, 2.65006299814e-14, 0.0]
 
-            sage: sv = A.singular_values(eps=1e-4)
-            sage: [round(sv[i],15) for i in range(12)]
-            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789,
-             0.000233089089022, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-            sage: all([sv[i] == 0.0 for i in range(5, 12)])
-            True
+            sage: A.singular_values(eps=1e-4)
+            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789, 0.000233089089022, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         With Sage's "verbose" facility, you can compactly see the cutoff
         at work.  In any application of this routine, or those that build upon
@@ -1948,8 +1934,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         over the same base ring as the coefficient matrix.  ::
 
             sage: A=matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: A.solve_right([1]*5)
-            (5.0..., -120.0..., 630.0..., -1120.0..., 630.0...)
+            sage: A.solve_right([1]*5)  # rel tol 1e-11
+            (5.0, -120.0, 630.0, -1120.0, 630.0)
 
         TESTS:
 
@@ -2088,8 +2074,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         over the same base ring as the coefficient matrix.  ::
 
             sage: A=matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: A.solve_left([1]*5)
-            (5.0..., -120.0..., 630.0..., -1120.0..., 630.0...)
+            sage: A.solve_left([1]*5)  # rel tol 1e-11
+            (5.0, -120.0, 630.0, -1120.0, 630.0)
 
         TESTS:
 

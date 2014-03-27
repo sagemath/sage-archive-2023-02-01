@@ -289,6 +289,7 @@ latex_elements['preamble'] = r"""
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{textcomp}
+\usepackage{mathrsfs}
 \DeclareUnicodeCharacter{01CE}{\capitalcaron a}
 \DeclareUnicodeCharacter{0428}{cyrillic Sha}
 """

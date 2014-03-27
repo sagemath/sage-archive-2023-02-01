@@ -49,20 +49,16 @@ Sage also includes classical and matrix groups over finite fields:
     sage: gens = [MS([[1,0],[-1,1]]),MS([[1,1],[0,1]])]
     sage: G = MatrixGroup(gens)
     sage: G.conjugacy_class_representatives()
-        [
-        [1 0]
-        [0 1],
-        [0 1]
-        [6 1],
-        ...
-        [6 0]
-        [0 6]
-        ]
+    (
+    [1 0]  [0 1]  [0 1]  [0 1]  [0 1]  [0 1]  [0 1]  [0 3]  [0 3]  [0 1]
+    [0 1], [6 1], [6 3], [6 2], [6 6], [6 4], [6 5], [2 2], [2 5], [6 0],
+    <BLANKLINE>
+    [6 0]
+    [0 6]
+    )
     sage: G = Sp(4,GF(7))
-    sage: G._gap_init_()
-    'Sp(4, 7)'
     sage: G
-    Symplectic Group of rank 2 over Finite Field of size 7
+    Symplectic Group of degree 4 over Finite Field of size 7
     sage: G.random_element()             # random output
     [5 5 5 1]
     [0 2 6 3]

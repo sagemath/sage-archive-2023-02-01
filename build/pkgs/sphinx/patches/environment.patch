@@ -1,0 +1,16 @@
+--- ../src/sphinx/environment.py	2011-09-23 01:20:17.000000000 -0700
++++ src.patched/sphinx/environment.py	2011-09-23 16:35:10.000000000 -0700
+@@ -563,10 +563,13 @@
+         else:
+             # check if a config value was changed that affects how
+             # doctrees are read
++            import inspect
+             for key, descr in config.values.iteritems():
+                 if descr[1] != 'env':
+                     continue
+                 if self.config[key] != config[key]:
++                    if inspect.isfunction(config[key]):
++                        continue
+                     msg = '[config changed] '
+                     config_changed = True
+                     break

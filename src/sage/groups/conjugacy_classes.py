@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 r"""
 Conjugacy classes of groups
 
@@ -35,8 +35,10 @@ Conjugacy classes for groups of matrices::
     sage: h = H(matrix(F,2,[1,2, -1, 1]))
     sage: H.conjugacy_class(h)
     Conjugacy class of [1 2]
-    [4 1] in Matrix group over Finite Field of size 5 with 2 generators:
-    [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+    [4 1] in Matrix group over Finite Field of size 5 with 2 generators (
+    [1 2]  [1 1]
+    [4 1], [0 1]
+    )
 
 TESTS::
 
@@ -57,6 +59,15 @@ from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+
+# TODO
+#
+# Don't derive from Parent if there are no elements
+#
+# @cached_method must not return mutable containers (lists), use
+# tuples instead.
+
+
 
 class ConjugacyClass(Parent):
     r"""
@@ -90,10 +101,14 @@ class ConjugacyClass(Parent):
         """
         self._parent = group
         self._representative = element
-        if group.is_finite():
-            Parent.__init__(self, category = FiniteEnumeratedSets())
+        try:
+            finite = group.is_finite()
+        except (AttributeError, NotImplementedError):
+            finite = False
+        if finite:
+            Parent.__init__(self, category=FiniteEnumeratedSets())
         else: # If the group is not finite, then we do not know if we are finite or not
-            Parent.__init__(self, category = EnumeratedSets())
+            Parent.__init__(self, category=EnumeratedSets())
 
     def __repr__(self):
         r"""
@@ -300,17 +315,25 @@ class ConjugacyClassGAP(ConjugacyClass):
             sage: h = H(matrix(F,2,[1,2, -1, 1]))
             sage: ConjugacyClassGAP(H,h)
             Conjugacy class of [1 2]
-            [4 1] in Matrix group over Finite Field of size 5 with 2 generators:
-            [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
-
+            [4 1] in Matrix group over Finite Field of size 5 with 2 generators (
+            [1 2]  [1 1]
+            [4 1], [0 1]
+            )
         """
         try:
+            # GAP interface
             self._gap_group = group._gap_()
             self._gap_representative = element._gap_()
-            self._gap_conjugacy_class = self._gap_group.ConjugacyClass(self._gap_representative)
-            ConjugacyClass.__init__(self, group, element)
-        except TypeError:
-            raise TypeError("The group %s cannot be defined as a GAP group"%group)
+        except (AttributeError, TypeError):
+            try:
+                # LibGAP
+                self._gap_group = group.gap()
+                self._gap_representative = element.gap()
+            except (AttributeError, TypeError):
+                raise TypeError("The group %s cannot be defined as a GAP group"%group)
+
+        self._gap_conjugacy_class = self._gap_group.ConjugacyClass(self._gap_representative)
+        ConjugacyClass.__init__(self, group, element)
 
     def _gap_(self):
         r"""

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Sage version and banner info
 """
@@ -53,25 +54,26 @@ def banner_text():
     EXAMPLES::
 
         sage: print sage.misc.banner.banner_text()
-        +--------------------------------------------------------------------+
-        | Sage Version ...
+        ┌────────────────────────────────────────────────────────────────────┐
+        │ Sage Version ...
     """
-    bars = '+' + "-"*68 + '+'
-    s = bars
-    s += "\n| %-66s |\n"%version()
-    s += "| %-66s |\n"%'Type "notebook()" for the browser-based notebook interface.'
-    s += "| %-66s |\n"%'Type "help()" for help.'
-    #s += "| %-66s |\n"%'Distributed under the GNU General Public License V2.'
-    s += bars
+    bars = u"─"*68
+    s = u'┌' + bars + u'┐'
+    s += u"\n│ %-66s │\n" % version()
+    s += u"│ %-66s │\n" % 'Type "notebook()" for the browser-based notebook interface.'
+    s += u"│ %-66s │\n" % 'Type "help()" for help.'
+    #s += u"│ %-66s │\n" % 'Distributed under the GNU General Public License V2.'
+    s += u'└' + bars + u'┘'
     pre = version_dict()['prerelease']
     if pre:
+        red_in = '\033[31m'
+        red_out = '\033[0m'
+        bars2 = bars.replace(u'─', u'━')
         s += '\n'
-        s += bars.replace('-', '*').replace('+','*')
-        s += "\n* %-66s *\n"%''
-        s += "* %-66s *\n"%'Warning: this is a prerelease version, and it may be unstable.'
-        s += "* %-66s *\n"%''
-        s += bars.replace('-', '*').replace('+','*')
-    return s
+        s += red_in + u'┏' + bars2 + u'┓' + '\n'
+        s += u"┃ %-66s ┃\n" % 'Warning: this is a prerelease version, and it may be unstable.'
+        s += u'┗' + bars2 + u'┛' + red_out
+    return s.encode('utf8')
 
 
 def banner():
@@ -89,10 +91,10 @@ def banner():
     EXAMPLES::
 
         sage: banner()
-        +--------------------------------------------------------------------+
-        | Sage Version ..., Release Date: ...
-        | Type "notebook()" for the browser-based notebook interface.        |
-        | Type "help()" for help.                                            |
+        ┌────────────────────────────────────────────────────────────────────┐
+        │ Sage Version ..., Release Date: ...
+        │ Type "notebook()" for the browser-based notebook interface.        │
+        │ Type "help()" for help.                                            │
         ...
     """
     print banner_text()

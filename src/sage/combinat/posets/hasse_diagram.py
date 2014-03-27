@@ -521,14 +521,21 @@ class HasseDiagram(DiGraph):
 
     def rank_function(self):
         r"""
-        Returns a rank function of the poset, if it exists.
+        Return the (normalized) rank function of the poset,
+        if it exists.
 
         A *rank function* of a poset `P` is a function `r`
         that maps elements of `P` to integers and satisfies:
         `r(x) = r(y) + 1` if `x` covers `y`. The function `r`
-        is normalized such that its smallest value is `0`.
-        When `P` has several components, this is done for each
-        component separately.
+        is normalized such that its minimum value on every
+        connected component of the Hasse diagram of `P` is
+        `0`. This determines the function `r` uniquely (when
+        it exists).
+
+        OUTPUT:
+
+        - a lambda function, if the poset admits a rank function
+        - ``None``, if the poset does not admit a rank function
 
         EXAMPLES::
 
@@ -583,9 +590,10 @@ class HasseDiagram(DiGraph):
         A *rank function* of a poset `P` is a function `r`
         that maps elements of `P` to integers and satisfies:
         `r(x) = r(y) + 1` if `x` covers `y`. The function `r`
-        is normalized such that its smallest value is `0`.
-        When `P` has several components, this is done for each
-        component separately.
+        is normalized such that its minimum value on every
+        connected component of the Hasse diagram of `P` is
+        `0`. This determines the function `r` uniquely (when
+        it exists).
 
         EXAMPLES::
 
@@ -598,7 +606,6 @@ class HasseDiagram(DiGraph):
             sage: H = Poset(([1,2,3,4,5],[[1,2],[2,3],[3,4],[1,5],[5,4]]))._hasse_diagram
             sage: H._rank_dict is None
             True
-
         """
         rank_fcn = {}  # rank_fcn will be the dictionary whose i-th entry
                        # is the rank of vertex i for every i.
@@ -1561,13 +1568,22 @@ class HasseDiagram(DiGraph):
                                          self.are_incomparable,
                                          element_class = element_class)
 
-    def chains(self, element_class = list):
+    def chains(self, element_class=list, exclude=None):
         """
-        Returns all chains of ``self``, organized as a prefix tree
+        Return all chains of ``self``, organized as a prefix tree.
 
         INPUT:
 
-         - ``element_class`` -- (default:list) an iterable type
+        - ``element_class`` -- (default: ``list``) an iterable type
+
+        - ``exclude`` -- elements of the poset to be excluded
+          (default: ``None``)
+
+        OUTPUT:
+
+        The enumerated set (with a forest structure given by prefix
+        ordering) consisting of all chains of ``self``, each of
+        which is given as an ``element_class``.
 
         EXAMPLES::
 
@@ -1583,9 +1599,32 @@ class HasseDiagram(DiGraph):
             sage: [1,4] in A
             True
 
+        One can exclude some vertices::
+
+            sage: list(H.chains(exclude=[4, 3]))
+            [[], [0], [0, 1], [0, 2], [1], [2]]
+
+        The ``element_class`` keyword determines how the chains are
+        being returned:
+
+            sage: P = Poset({1: [2, 3], 2: [4]})
+            sage: list(P._hasse_diagram.chains(element_class=tuple))
+            [(), (0,), (0, 1), (0, 1, 2), (0, 2), (0, 3), (1,), (1, 2), (2,), (3,)]
+            sage: list(P._hasse_diagram.chains())
+            [[], [0], [0, 1], [0, 1, 2], [0, 2], [0, 3], [1], [1, 2], [2], [3]]
+
+        (Note that taking the Hasse diagram has renamed the vertices.)
+
+            sage: list(P._hasse_diagram.chains(element_class=tuple, exclude=[0]))
+            [(), (1,), (1, 2), (2,), (3,)]
+
         .. seealso:: :meth:`antichains`
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
-        return PairwiseCompatibleSubsets(self.vertices(),
+        if not(exclude is None):
+            vertices = [u for u in self.vertices() if not u in exclude]
+        else:
+            vertices = self.vertices()
+        return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
                                          element_class = element_class)

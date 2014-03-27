@@ -7,7 +7,6 @@ AUTHORS:
 
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
-from sage.symbolic.pynac import symbol_table
 from sage.symbolic.constants import e as const_e
 
 from sage.libs.mpmath import utils as mpmath_utils
@@ -15,7 +14,7 @@ from sage.structure.coerce import parent as sage_structure_coerce_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 
 class Function_exp(GinacFunction):
     def __init__(self):
@@ -494,7 +493,7 @@ class Function_lambert_w(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Lambert_W_function
+    - :wikipedia:`Lambert_W_function`
 
     EXAMPLES:
 
@@ -670,7 +669,23 @@ class Function_lambert_w(BuiltinFunction):
             sage: x = var('x')
             sage: derivative(lambert_w(x), x)
             lambert_w(x)/(x*lambert_w(x) + x)
+
+            sage: derivative(lambert_w(2, exp(x)), x)
+            e^x*lambert_w(2, e^x)/(e^x*lambert_w(2, e^x) + e^x)
+
+        TESTS:
+
+        Differentiation in the first parameter raises an error :trac:`14788`::
+
+            sage: n = var('n')
+            sage: lambert_w(n, x).diff(n)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate lambert_w in the first parameter
         """
+        if diff_param == 0:
+            raise ValueError("cannot differentiate lambert_w in the first parameter")
+
         return lambert_w(n, z)/(z*lambert_w(n, z)+z)
 
     def _maxima_init_evaled_(self, n, z):
@@ -707,7 +722,7 @@ class Function_lambert_w(BuiltinFunction):
         if n == 0:
             return "lambert_w(%s)" % z
         else:
-            return "lambert_w(%s, %s)" % (n,z)
+            return "lambert_w(%s, %s)" % (n, z)
 
     def _print_latex_(self, n, z):
         """
@@ -726,6 +741,6 @@ class Function_lambert_w(BuiltinFunction):
         if n == 0:
             return r"\operatorname{W_0}(%s)" % z
         else:
-            return r"\operatorname{W_{%s}}(%s)" % (n,z)
+            return r"\operatorname{W_{%s}}(%s)" % (n, z)
 
 lambert_w = Function_lambert_w()

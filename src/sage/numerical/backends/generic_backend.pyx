@@ -974,7 +974,7 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
           <http://www.gurobi.com/>`_ web site.
 
         - PPL (``solver="PPL"``). See the `PPL
-          <http://bugseng.com/products/ppl>` _ web site.
+          <http://bugseng.com/products/ppl>`_ web site.
 
         ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
         ``"CPLEX"``, ``"Gurobi"``, ``"PPL"``, or ``None``. If ``solver=None`` (default),

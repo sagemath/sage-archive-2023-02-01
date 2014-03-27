@@ -6,7 +6,7 @@ A Steiner Quadruple System on `n` points is a family `SQS_n \subset \binom {[n]}
 exactly one member of `SQS_n`.
 
 This module implements Haim Hanani's constructive proof that a Steiner Quadruple
-System exists if and only if `n\equiv 2,4[12]`. Hanani's proof consists in 6
+System exists if and only if `n\equiv 2,4 \pmod 6`. Hanani's proof consists in 6
 different constructions that build a large Steiner Quadruple System from a smaller
 one, and though it does not give a very clear understanding of why it works (to say the
 least)... it does !
@@ -63,7 +63,7 @@ This function redistributes its work among 6 constructions :
 
     Construction `1` | :func:`two_n`                | Returns a Steiner Quadruple System on `2n` points
     Construction `2` | :func:`three_n_minus_two`    | Returns a Steiner Quadruple System on `3n-2` points
-    Construction `3` | :func:`three_n_minus_height` | Returns a Steiner Quadruple System on `3n-8` points
+    Construction `3` | :func:`three_n_minus_eight`  | Returns a Steiner Quadruple System on `3n-8` points
     Construction `4` | :func:`three_n_minus_four`   | Returns a Steiner Quadruple System on `3n-4` points
     Construction `5` | :func:`four_n_minus_six`     | Returns a Steiner Quadruple System on `4n-6` points
     Construction `6` | :func:`twelve_n_minus_ten`   | Returns a Steiner Quadruple System on `12n-10` points
@@ -174,23 +174,23 @@ def three_n_minus_two(n,B):
     return Y
 
 # Construction 3
-def three_n_minus_height(n, B):
+def three_n_minus_eight(n, B):
     """
     Returns a Steiner Quadruple System on `3n-8` points.
 
     INPUT:
 
-    - ``n`` -- an integer such that `n\equiv 2[12]`.
+    - ``n`` -- an integer such that `n\equiv 2 \pmod{12}`.
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.steiner_quadruple_systems import three_n_minus_height, is_steiner_quadruple_system
+        sage: from sage.combinat.designs.steiner_quadruple_systems import three_n_minus_eight, is_steiner_quadruple_system
         sage: for n in xrange(4, 30):
         ....:     if (n%12) == 2:
         ....:         sqs = designs.steiner_quadruple_system(n)
-        ....:         if not is_steiner_quadruple_system(3*n-8, three_n_minus_height(n, sqs)):
+        ....:         if not is_steiner_quadruple_system(3*n-8, three_n_minus_eight(n, sqs)):
         ....:             print "Something is wrong !"
 
     """
@@ -247,7 +247,7 @@ def three_n_minus_four(n, B):
 
     INPUT:
 
-    - ``n`` -- an integer such that `n\equiv 10[12]`
+    - ``n`` -- an integer such that `n\equiv 10\pmod{12}`
 
     - ``B`` -- A Steiner Quadruple System on `n` points.
 
@@ -721,7 +721,7 @@ def steiner_quadruple_system(n, check = False):
 
     INPUT:
 
-    - ``n`` -- an integer such that `n\equiv 2,4[12]`
+    - ``n`` -- an integer such that `n\equiv 2,4\pmod 6`
 
     - ``check`` (boolean) -- whether to check that the system is a Steiner
       Quadruple System before returning it (`False` by default)
@@ -743,7 +743,7 @@ def steiner_quadruple_system(n, check = False):
     """
     n = int(n)
     if not ((n%6) in [2, 4]):
-        raise ValueError("n mod 12 must be equal to 2 or 4")
+        raise ValueError("n mod 6 must be equal to 2 or 4")
     elif n == 4:
         return ((0,1,2,3),)
     elif n == 14:
@@ -758,7 +758,7 @@ def steiner_quadruple_system(n, check = False):
         sqs = three_n_minus_two(nn,steiner_quadruple_system(nn, check = False))
     elif (n%36) == 34:
         nn = (n+8)/3
-        sqs = three_n_minus_height(nn,steiner_quadruple_system(nn, check = False))
+        sqs = three_n_minus_eight(nn,steiner_quadruple_system(nn, check = False))
     elif (n%36) == 26 :
         nn = (n+4)/3
         sqs = three_n_minus_four(nn,steiner_quadruple_system(nn, check = False))

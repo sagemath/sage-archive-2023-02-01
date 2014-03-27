@@ -161,6 +161,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# For now, the scheme morphism base class cannot derive from Morphism
+# since this would clash with elliptic curves. So we derive only on
+# the toric varieties level from Morphism. See
+# https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
+from sage.categories.morphism import Morphism
+
 from sage.structure.sequence  import Sequence
 from sage.rings.all import ZZ
 
@@ -174,7 +180,7 @@ from sage.schemes.generic.morphism import (
 
 ############################################################################
 # A points on a toric variety determined by homogeneous coordinates.
-class SchemeMorphism_point_toric_field(SchemeMorphism_point):
+class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
     """
     A point of a toric variety determined by homogeneous coordinates
     in a field.
@@ -245,7 +251,7 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point):
 
 ############################################################################
 # A morphism of toric varieties determined by homogeneous polynomials.
-class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
+class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphism):
     """
     A morphism determined by homogeneous polynomials.
 
@@ -341,7 +347,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
 
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism
-class SchemeMorphism_fan_toric_variety(SchemeMorphism):
+class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
     """
     Construct a morphism determined by a fan morphism
 
@@ -427,6 +433,72 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
             raise ValueError('The fan morphism codomain must be the fan of the codomain.')
         self._fan_morphism = fan_morphism
 
+    def __cmp__(self, right):
+        r"""
+        Compare ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- anything.
+
+        OUTPUT:
+
+        - 0 if ``right`` is also a toric morphism between the same domain and
+          codomain, given by an equal fan morphism. 1 or -1 otherwise.
+
+        TESTS::
+
+            sage: A2 = toric_varieties.A2()
+            sage: P3 = toric_varieties.P(3)
+            sage: m = matrix([(2,0,0), (1,1,0)])
+            sage: phi = A2.hom(m, P3)
+            sage: cmp(phi, phi)
+            0
+            sage: cmp(phi, prod(phi.factor()))
+            0
+            sage: abs(cmp(phi, phi.factor()[0]))
+            1
+            sage: cmp(phi, 1) * cmp(1, phi)
+            -1
+        """
+        if isinstance(right, SchemeMorphism_fan_toric_variety):
+            return cmp(
+                [self.domain(), self.codomain(), self.fan_morphism()],
+                [right.domain(), right.codomain(), right.fan_morphism()])
+        else:
+            return cmp(type(self), type(right))
+
+    def _composition_(self, right, homset):
+        """
+        Return the composition of ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- a toric morphism defined by a fan morphism.
+
+        OUTPUT:
+
+        - a toric morphism.
+
+        EXAMPLES::
+
+            sage: A2 = toric_varieties.A2()
+            sage: P3 = toric_varieties.P(3)
+            sage: m = matrix([(2,0,0), (1,1,0)])
+            sage: phi = A2.hom(m, P3)
+            sage: phi1, phi2, phi3 = phi.factor()
+            sage: phi1 * phi2
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   3-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined by sending Rational polyhedral fan in Sublattice
+                    <N(1, 0, 0), N(0, 1, 0)> to Rational polyhedral fan in 3-d lattice N.
+            sage: phi1 * phi2 * phi3 == phi
+            True
+        """
+        f = self.fan_morphism() * right.fan_morphism()
+        return homset(f, self.codomain())
+
     def _repr_defn(self):
         """
         Return a string representation of the definition of ``self``.
@@ -449,6 +521,98 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
         s += str(self.codomain().fan())
         s += '.'
         return s
+
+    def factor(self):
+        r"""
+        Factor ``self`` into injective * birational * surjective morphisms.
+
+        OUTPUT:
+
+        - a triple of toric morphisms `(\phi_i, \phi_b, \phi_s)`, such that
+          `\phi_s` is surjective, `\phi_b` is birational, `\phi_i` is injective,
+          and ``self`` is equal to `\phi_i \circ \phi_b \circ \phi_s`.
+
+        The intermediate varieties are universal in the following sense. Let
+        ``self`` map `X` to `X'` and let `X_s`, `X_i` seat in between, i.e.
+
+        .. math::
+
+            X
+            \twoheadrightarrow
+            X_s
+            \to
+            X_i
+            \hookrightarrow
+            X'.
+
+        Then any toric morphism from `X` coinciding with ``self`` on the maximal
+        torus factors through `X_s` and any toric morphism into `X'` coinciding
+        with ``self`` on the maximal torus factors through `X_i`. In particular,
+        `X_i` is the closure of the image of ``self`` in `X'`.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.factor`
+        for a description of the toric algorithm.
+
+        EXAMPLES:
+
+        We map an affine plane into a projective 3-space in such a way, that it
+        becomes "a double cover of a chart of the blow up of one of the
+        coordinate planes"::
+
+            sage: A2 = toric_varieties.A2()
+            sage: P3 = toric_varieties.P(3)
+            sage: m = matrix([(2,0,0), (1,1,0)])
+            sage: phi = A2.hom(m, P3)
+            sage: phi.as_polynomial_map()
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   3-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [x : y] to
+                    [x^2*y : y : 1 : 1]
+
+            sage: phi.is_surjective(), phi.is_birational(), phi.is_injective()
+            (False, False, False)
+            sage: phi_i, phi_b, phi_s = phi.factor()
+            sage: phi_s.is_surjective(), phi_b.is_birational(), phi_i.is_injective()
+            (True, True, True)
+            sage: prod(phi.factor()) == phi
+            True
+
+        Double cover (surjective)::
+
+            sage: phi_s.as_polynomial_map()
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   2-d affine toric variety
+              Defn: Defined on coordinates by sending [x : y] to
+                    [x^2 : y]
+
+        Blowup chart (birational)::
+
+            sage: phi_b.as_polynomial_map()
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   2-d toric variety covered by 3 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1] to
+                    [z0*z1 : z1 : 1]
+
+        Coordinate plane inclusion (injective)::
+
+            sage: phi_i.as_polynomial_map()
+            Scheme morphism:
+              From: 2-d toric variety covered by 3 affine patches
+              To:   3-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1 : z2] to
+                    [z0 : z1 : z2 : z2]
+        """
+        phi_i, phi_b, phi_s = self.fan_morphism().factor()
+        from sage.schemes.toric.all import ToricVariety
+        X = self.domain()
+        X_s = ToricVariety(phi_s.codomain_fan())
+        X_i = ToricVariety(phi_i.domain_fan())
+        X_prime = self.codomain()
+        return X_i.hom(phi_i, X_prime), X_s.hom(phi_b, X_i), X.hom(phi_s, X_s)
 
     def fan_morphism(self):
         """
@@ -515,3 +679,79 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
                 polys[i] *= x**d
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 
+    def is_birational(self):
+        r"""
+        Check if ``self`` is birational.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_birational`
+        for a description of the toric algorithm.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is birational.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.A(2)
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: m = identity_matrix(2)
+            sage: f = Y.hom(m, X)
+            sage: f.is_birational()
+            True
+        """
+        return self.fan_morphism().is_birational()
+
+    def is_injective(self):
+        r"""
+        Check if ``self`` is injective.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_injective`
+        for a description of the toric algorithm.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is injective.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.A(2)
+            sage: m = identity_matrix(2)
+            sage: f = X.hom(m, X)
+            sage: f.is_injective()
+            True
+
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: f = Y.hom(m, X)
+            sage: f.is_injective()
+            False
+        """
+        return self.fan_morphism().is_injective()
+
+    def is_surjective(self):
+        r"""
+        Check if ``self`` is surjective.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_surjective`
+        for a description of the toric algorithm.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is surjective.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.A(2)
+            sage: m = identity_matrix(2)
+            sage: f = X.hom(m, X)
+            sage: f.is_surjective()
+            True
+
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: f = Y.hom(m, X)
+            sage: f.is_surjective()
+            False
+        """
+        return self.fan_morphism().is_surjective()

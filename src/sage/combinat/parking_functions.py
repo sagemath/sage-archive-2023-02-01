@@ -65,6 +65,7 @@ from sage.combinat.combinat import (CombinatorialClass, CombinatorialObject,
                       InfiniteAbstractCombinatorialClass)
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.dyck_word import DyckWord
+from sage.combinat.combinatorial_map import combinatorial_map
 
 def ParkingFunctions(n=None):
     r"""
@@ -371,7 +372,7 @@ class ParkingFunctions_n(CombinatorialClass):
             return
         for res in iterator_rec(self.n):
             for pi in Permutations(res):
-                yield ParkingFunction(pi)
+                yield ParkingFunction(list(pi))
         return
 
 def ParkingFunction(pf=None, labelling=None, area_sequence=None, labelled_dyck_word = None):
@@ -576,6 +577,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return self.cars_permutation().inverse()
 
+    @combinatorial_map(name='to car permutation')
     def cars_permutation(self):     # indices are parking spaces, entries are car labels
         r"""
         Returns the sequence of cars that take parking spots 1 through `n`
@@ -905,13 +907,15 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return sum(self.to_area_sequence())
 
+    @combinatorial_map(name='to ides composition')
     def ides_composition(self):
         r"""
-        Returns the :meth:`~sage.combinat.permutation.Permutation_class.descents_composition`
+        Return the :meth:`~sage.combinat.permutation.Permutation.descents_composition`
         of the inverse of the :meth:`diagonal_reading_word` of corresponding parking
         function.  For example, ``ides_composition(PF) = [4, 2, 1]``
-        means that the descents of the inverse of the permtuation
-        :meth:`diagonal_reading_word` are at the 4th and 6th positions.
+        means that the descents of the inverse of the permutation
+        :meth:`diagonal_reading_word` of the parking function with word ``PF`` are at
+        the 4th and 6th positions.
 
         INPUT:
 
@@ -919,7 +923,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the descents sequence of the inverse of the
+        - the descents composition of the inverse of the
           :meth:`diagonal_reading_word` of the parking function
 
         EXAMPLES::
@@ -941,8 +945,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def ides(self):
         r"""
-        Returns the :meth:`~sage.combinat.permutation.Permutation_class.descents` sequence
-        of the inverse of a :meth:`diagonal_reading_word` of ``self``.
+        Return the :meth:`~sage.combinat.permutation.Permutation.descents` sequence
+        of the inverse of the :meth:`diagonal_reading_word` of ``self``.
         For example, ``ides(PF) = [1, 2, 3, 5]`` means that descents are at the 2nd, 3rd,
         4th and 6th positions in the inverse of the
         :meth:`diagonal_reading_word` of the parking function (see [GXZ]_ p. 2).
@@ -953,7 +957,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the descents sequence of the inverse of the
+        - the descents sequence of the inverse of the
           :meth:`diagonal_reading_word` of the parking function
 
         EXAMPLES::
@@ -1006,6 +1010,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return self.to_dyck_word().touch_points()
 
+    @combinatorial_map(name = 'to touch composition')
     def touch_composition(self):
         r"""
         Returns the composition of the labelled Dyck path corresponding to the
@@ -1041,6 +1046,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     diagonal_composition = touch_composition
 
+    @combinatorial_map(name = 'to labelling permutation')
     def to_labelling_permutation(self):
         r"""
         Returns the labelling of the support Dyck path of the parking function.
@@ -1134,6 +1140,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return (self.to_labelling_permutation(), self.to_area_sequence())
 
+    @combinatorial_map(name='to dyck word')
     def to_dyck_word(self):
         r"""
         Returns the support Dyck word of the parking function.
@@ -1235,6 +1242,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return (self.to_labelling_permutation(), self.to_dyck_word())
 
+    @combinatorial_map(name = 'to non-decreasing parking function')
     def to_NonDecreasingParkingFunction(self):
         r"""
         Returns the non-decreasing parking function which underlies the parking

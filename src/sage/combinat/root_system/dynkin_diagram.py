@@ -6,9 +6,15 @@ AUTHORS:
 - Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved Cartan matrix creation
   to here and I cached results for speed.
 
+- Travis Scrimshaw (2013-06-11): Changed inputs of Dynkin diagrams to handle
+  other Dynkin diagrams and graphs. Implemented remaining Cartan type methods.
+
+- Christian Stump, Travis Scrimshaw (2013-04-11): Added Cartan matrix as
+  possible input for Dynkin diagrams.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -22,17 +28,26 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
+from sage.matrix.matrix import is_Matrix
 from sage.graphs.digraph import DiGraph
-from cartan_type import CartanType, CartanType_abstract
+from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.superseded import deprecated_function_alias
 
-def DynkinDiagram(*args):
+def DynkinDiagram(*args, **kwds):
     r"""
-    Return a Dynkin diagram for type ``ct``.
+    Return the Dynkin diagram corresponding to the input.
 
     INPUT:
 
-    -  ``ct`` -- a Cartan Type
+    The input can be one of the following:
+
+    - empty to obtain an empty Dynkin diagram
+    - a Cartan type
+    - a Cartan matrix
+    - a Cartan matrix and an indexing set
+
+    Also one can input an index_set by
 
     The edge multiplicities are encoded as edge labels. This uses the
     convention in Hong and Kang, Kac, Fulton Harris, and crystals. This is the
@@ -41,8 +56,8 @@ def DynkinDiagram(*args):
 
        i <--k-- j <==> a_ij = -k
                   <==> -scalar(coroot[i], root[j]) = k
-                  <==> multiple arrows point from the shorter root
-                       to the longer one
+                  <==> multiple arrows point from the longer root
+                       to the shorter one
 
     For example, in type `C_2`, we have::
 
@@ -87,73 +102,172 @@ def DynkinDiagram(*args):
         5   6   7   8
         A2xB2xF4
 
+        sage: R = RootSystem("A2xB2xF4")
+        sage: CM = R.cartan_matrix(); CM
+        [ 2 -1| 0  0| 0  0  0  0]
+        [-1  2| 0  0| 0  0  0  0]
+        [-----+-----+-----------]
+        [ 0  0| 2 -1| 0  0  0  0]
+        [ 0  0|-2  2| 0  0  0  0]
+        [-----+-----+-----------]
+        [ 0  0| 0  0| 2 -1  0  0]
+        [ 0  0| 0  0|-1  2 -1  0]
+        [ 0  0| 0  0| 0 -2  2 -1]
+        [ 0  0| 0  0| 0  0 -1  2]
+        sage: DD = DynkinDiagram(CM); DD
+        O---O
+        1   2
+        O=>=O
+        3   4
+        O---O=>=O---O
+        5   6   7   8
+        A2xB2xF4
+        sage: DD.cartan_matrix()
+        [ 2 -1  0  0  0  0  0  0]
+        [-1  2  0  0  0  0  0  0]
+        [ 0  0  2 -1  0  0  0  0]
+        [ 0  0 -2  2  0  0  0  0]
+        [ 0  0  0  0  2 -1  0  0]
+        [ 0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0 -2  2 -1]
+        [ 0  0  0  0  0  0 -1  2]
+
+    We can also create Dynkin diagrams from arbitrary Cartan matrices::
+
+        sage: C = CartanMatrix([[2, -3], [-4, 2]])
+        sage: DynkinDiagram(C)
+        Dynkin diagram of rank 2
+        sage: C.index_set()
+        (0, 1)
+        sage: CI = CartanMatrix([[2, -3], [-4, 2]], [3, 5])
+        sage: DI = DynkinDiagram(CI)
+        sage: DI.index_set()
+        (3, 5)
+        sage: CII = CartanMatrix([[2, -3], [-4, 2]])
+        sage: DII = DynkinDiagram(CII, ('y', 'x'))
+        sage: DII.index_set()
+        ('x', 'y')
+
     .. SEEALSO::
 
         :func:`CartanType` for a general discussion on Cartan
         types and in particular node labeling conventions.
+
+    TESTS:
+
+    Check that :trac:`15277` is fixed by not having edges from 0's::
+
+        sage: CM = CartanMatrix([[2,-1,0,0],[-3,2,-2,-2],[0,-1,2,-1],[0,-1,-1,2]])
+        sage: CM
+        [ 2 -1  0  0]
+        [-3  2 -2 -2]
+        [ 0 -1  2 -1]
+        [ 0 -1 -1  2]
+        sage: CM.dynkin_diagram().edges()
+        [(0, 1, 3),
+         (1, 0, 1),
+         (1, 2, 1),
+         (1, 3, 1),
+         (2, 1, 2),
+         (2, 3, 1),
+         (3, 1, 2),
+         (3, 2, 1)]
     """
     if len(args) == 0:
-       return DynkinDiagram_class()
+        return DynkinDiagram_class()
+    mat = args[0]
+    if is_Matrix(mat):
+        mat = CartanMatrix(*args)
+    if isinstance(mat, CartanMatrix):
+        if mat.cartan_type() is not mat:
+            try:
+                return mat.cartan_type().dynkin_diagram()
+            except AttributeError:
+                ct = CartanType(*args)
+                raise ValueError("Dynkin diagram data not yet hardcoded for type %s"%ct)
+        if len(args) > 1:
+            index_set = tuple(args[1])
+        elif "index_set" in kwds:
+            index_set = tuple(kwds["index_set"])
+        else:
+            index_set = mat.index_set()
+        D = DynkinDiagram_class(index_set=index_set)
+        for (i, j) in mat.nonzero_positions():
+            if i != j:
+                D.add_edge(index_set[i], index_set[j], -mat[j, i])
+        return D
     ct = CartanType(*args)
-    if hasattr(ct, "dynkin_diagram"):
+    try:
         return ct.dynkin_diagram()
-    else:
-        raise ValueError, "Dynkin diagram data not yet hardcoded for type %s"%ct
-
-def dynkin_diagram(t):
-    """
-    Return the Dynkin diagram of type ``t``.
-
-    Note that this function is deprecated, and that you should use
-    :func:`DynkinDiagram` instead as this will be disappearing in the
-    near future.
-
-    EXAMPLES::
-
-        sage: dynkin_diagram(["A", 3])
-        doctest:1: DeprecationWarning: dynkin_diagram is deprecated, use DynkinDiagram instead!
-        See http://trac.sagemath.org/3654 for details.
-        O---O---O
-        1   2   3
-        A3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(3654, "dynkin_diagram is deprecated, use DynkinDiagram instead!")
-    return DynkinDiagram(t)
+    except AttributeError:
+        raise ValueError("Dynkin diagram data not yet hardcoded for type %s"%ct)
 
 
 class DynkinDiagram_class(DiGraph, CartanType_abstract):
-    def __init__(self, t = None):
-        """
-        INPUT:
+    """
+    A Dynkin diagram.
 
-        - ``t`` -- a Cartan type or ``None``
+    .. SEEALSO::
+
+        :func:`DynkinDiagram()`
+
+    INPUT:
+
+    - ``t`` -- a Cartan type, Cartan matrix, or ``None``
+
+    EXAMPLES::
+
+        sage: DynkinDiagram(['A', 3])
+        O---O---O
+        1   2   3
+        A3
+        sage: C = CartanMatrix([[2, -3], [-4, 2]])
+        sage: DynkinDiagram(C)
+        Dynkin diagram of rank 2
+        sage: C.dynkin_diagram().cartan_matrix() == C
+        True
+
+    TESTS:
+
+    Check that the correct type is returned when copied::
+
+        sage: d = DynkinDiagram(['A', 3])
+        sage: type(copy(d))
+        <class 'sage.combinat.root_system.dynkin_diagram.DynkinDiagram_class'>
+
+    We check that :trac:`14655` is fixed::
+
+        sage: cd = copy(d)
+        sage: cd.add_vertex(4)
+        sage: d.vertices() != cd.vertices()
+        True
+
+    Implementation note: if a Cartan type is given, then the nodes
+    are initialized from the index set of this Cartan type.
+    """
+    def __init__(self, t=None, index_set=None, **options):
+        """
+        Initialize ``self``.
 
         EXAMPLES::
 
             sage: d = DynkinDiagram(["A", 3])
-            sage: d == loads(dumps(d))
-            True
-
-        Implementation note: if a Cartan type is given, then the nodes
-        are initialized from the index set of this Cartan type.
+            sage: TestSuite(d).run()
         """
-        DiGraph.__init__(self)
+        if isinstance(t, DiGraph):
+            if isinstance(t, DynkinDiagram_class):
+                self._cartan_type = t._cartan_type
+            else:
+                self._cartan_type = None
+            DiGraph.__init__(self, data=t, **options)
+            return
+
+        DiGraph.__init__(self, **options)
         self._cartan_type = t
-        if t is not None:
+        if index_set is not None:
+            self.add_vertices(index_set)
+        elif t is not None:
             self.add_vertices(t.index_set())
-
-    def __copy__(self):
-        """
-        EXAMPLES::
-
-            sage: d = DynkinDiagram(["A", 3])
-            sage: type(copy(d))
-            <class 'sage.combinat.root_system.dynkin_diagram.DynkinDiagram_class'>
-        """
-        import copy
-        # we have to go back to the generic copy method because the DiGraph one returns a DiGraph, not a DynkinDiagram
-        return copy._reconstruct(self,self.__reduce_ex__(2),0)
 
     def _repr_(self):
         """
@@ -165,12 +279,13 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             1   2
             G2
         """
-        result = self.cartan_type().ascii_art() +"\n" if hasattr(self.cartan_type(), "ascii_art") else ""
+        ct = self.cartan_type()
+        result = ct.ascii_art() +"\n" if hasattr(ct, "ascii_art") else ""
 
-        if self.cartan_type() is None:
+        if ct is None or isinstance(ct, CartanMatrix):
             return result+"Dynkin diagram of rank %s"%self.rank()
         else:
-            return result+"%s"%self.cartan_type()._repr_(compact = True)
+            return result+"%s"%ct._repr_(compact=True)
             #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
 
     def _latex_(self, scale=0.5):
@@ -198,6 +313,21 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         ret += self.cartan_type()._latex_dynkin_diagram()
         ret += "\n\\end{tikzpicture}"
         return ret
+
+    def _matrix_(self):
+        """
+        Return a regular matrix from ``self``.
+
+        EXAMPLES::
+
+            sage: M = DynkinDiagram(['C',3])._matrix_(); M
+            [ 2 -1  0]
+            [-1  2 -2]
+            [ 0 -1  2]
+            sage: type(M)
+            <class 'sage.combinat.root_system.cartan_matrix.CartanMatrix'>
+        """
+        return self.cartan_matrix()._matrix_()
 
     def add_edge(self, i, j, label=1):
         """
@@ -259,16 +389,17 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
     ##########################################################################
     # Cartan type methods
 
+    @cached_method
     def index_set(self):
         """
         EXAMPLES::
 
             sage: DynkinDiagram(['C',3]).index_set()
-            [1, 2, 3]
+            (1, 2, 3)
             sage: DynkinDiagram("A2","B2","F4").index_set()
-            [1, 2, 3, 4, 5, 6, 7, 8]
+            (1, 2, 3, 4, 5, 6, 7, 8)
         """
-        return self.vertices()
+        return tuple(self.vertices())
 
     def cartan_type(self):
         """
@@ -315,15 +446,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             [-1  2 -2]
             [ 0 -1  2]
         """
-        from sage.matrix.constructor import identity_matrix
-        from sage.rings.all import ZZ
-        index_set = self.index_set()
-        reverse = dict((index_set[i], i) for i in range(len(index_set)))
-        m = 2*identity_matrix(ZZ, len(self.index_set()), sparse=True)
-        for (i,j,l) in self.edge_iterator():
-            m[reverse[j], reverse[i]] = -l
-        m.set_immutable()
-        return m
+        return CartanMatrix(self)
 
     def dual(self):
         r"""
@@ -369,6 +492,49 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             result.add_edge(target, source, label)
         result._cartan_type = self._cartan_type.dual() if not self._cartan_type is None else None
         return result
+
+    def is_finite(self):
+        """
+        Check if ``self`` corresponds to a finite root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_finite()
+            True
+            sage: D = DynkinDiagram(CartanMatrix([[2, -4], [-3, 2]]))
+            sage: D.is_finite()
+            False
+        """
+        if self._cartan_type is not None:
+            return self._cartan_type.is_finite()
+        return self.cartan_matrix().is_finite()
+
+    def is_affine(self):
+        """
+        Check if ``self`` corresponds to an affine root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_affine()
+            False
+            sage: D = DynkinDiagram(CartanMatrix([[2, -4], [-3, 2]]))
+            sage: D.is_affine()
+            False
+        """
+        if self._cartan_type is not None:
+            return self._cartan_type.is_affine()
+        return self.cartan_matrix().is_affine()
+
+    def is_irreducible(self):
+        """
+        Check if ``self`` corresponds to an irreducible root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_irreducible()
+            True
+        """
+        return self._cartan_type.is_irreducible()
 
     def is_crystallographic(self):
         """

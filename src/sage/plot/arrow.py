@@ -76,8 +76,11 @@ class CurveArrow(GraphicPrimitive):
              ('arrowstyle', 'todo'),
              ('head', '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)'),
              ('hue', 'The color given as a hue.'),
+             ('legend_color', 'The color of the legend text.'),
              ('legend_label', 'The label for this item in the legend.'),
-             ('linestyle', "2d only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."),
+             ('linestyle', "2d only: The style of the line, which is one of
+             'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.',
+             respectively."),
              ('rgbcolor', 'The color as an RGB tuple.'),
              ('width', 'The width of the shaft of the arrow, in points.'),
              ('zorder', '2-d only: The layer level in which to draw')]
@@ -86,12 +89,14 @@ class CurveArrow(GraphicPrimitive):
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'arrowstyle': 'todo',
-                'linestyle': 'todo',
                 'arrowsize':'The size of the arrowhead',
                 'zorder':'2-d only: The layer level in which to draw',
                 'head':'2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)',
-                'linestyle':"2d only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"2d only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively."}
 
     def _repr_(self):
         """
@@ -116,6 +121,8 @@ class CurveArrow(GraphicPrimitive):
         This function implicitly ends up rendering this arrow on a matplotlib subplot:
             sage: arrow(path=[[(0,1), (2,-1), (4,5)]])
         """
+        from sage.plot.misc import get_matplotlib_linestyle
+
         options = self.options()
         width = float(options['width'])
         head = options.pop('head')
@@ -132,7 +139,8 @@ class CurveArrow(GraphicPrimitive):
         bpath = Path(self.vertices, self.codes)
         p = FancyArrowPatch(path=bpath,
                             lw=width, arrowstyle='%s,head_width=%s,head_length=%s'%(style,head_width, head_length),
-                            fc=color, ec=color, linestyle=options['linestyle'])
+                            fc=color, ec=color)
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
         subplot.add_patch(p)
@@ -198,10 +206,15 @@ class Arrow(GraphicPrimitive):
              sage: list(sorted(Arrow(0,0,2,3,{})._allowed_options().iteritems()))
              [('arrowshorten', 'The length in points to shorten the arrow.'),
              ('arrowsize', 'The size of the arrowhead'),
-             ('head', '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)'),
+             ('head',
+             '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)'),
              ('hue', 'The color given as a hue.'),
+             ('legend_color', 'The color of the legend text.'),
              ('legend_label', 'The label for this item in the legend.'),
-             ('linestyle', "2d only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."),
+             ('linestyle',
+             "2d only: The style of the line, which is one of 'dashed',
+             'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.',
+             respectively."),
              ('rgbcolor', 'The color as an RGB tuple.'),
              ('width', 'The width of the shaft of the arrow, in points.'),
              ('zorder', '2-d only: The layer level in which to draw')]
@@ -212,9 +225,12 @@ class Arrow(GraphicPrimitive):
                 'arrowshorten':'The length in points to shorten the arrow.',
                 'arrowsize':'The size of the arrowhead',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'zorder':'2-d only: The layer level in which to draw',
                 'head':'2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)',
-                'linestyle':"2d only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"2d only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively."}
 
     def _plot3d_options(self, options=None):
         """
@@ -290,7 +306,7 @@ class Arrow(GraphicPrimitive):
         return "Arrow from (%s,%s) to (%s,%s)"%(self.xtail, self.ytail, self.xhead, self.yhead)
 
     def _render_on_subplot(self, subplot):
-        """
+        r"""
         Render this arrow in a subplot.  This is the key function that
         defines how this arrow graphics primitive is rendered in
         matplotlib's library.
@@ -319,7 +335,27 @@ class Arrow(GraphicPrimitive):
             sage: p1.shrinkB == p2.shrinkB
             True
 
+        Dashed arrows should have solid arrowheads,
+        :trac:`12852`. This test saves the plot of a dashed arrow to
+        an EPS file. Within the EPS file, ``stroke`` will be called
+        twice: once to draw the line, and again to draw the
+        arrowhead. We check that both calls do not occur while the
+        dashed line style is enabled::
+
+            sage: a = arrow((0,0), (1,1), linestyle='dashed')
+            sage: filename = tmp_filename(ext='.eps')
+            sage: a.save(filename=filename)
+            sage: with open(filename, 'r') as f:
+            ....:     contents = f.read().replace('\n', ' ')
+            sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash'
+            sage: import re
+            sage: two_stroke_re = re.compile(two_stroke_pattern)
+            sage: two_stroke_re.search(contents) is None
+            True
         """
+        from sage.plot.misc import get_matplotlib_linestyle
+
+
         options = self.options()
         head = options.pop('head')
         if head == 0: style = '<|-'
@@ -336,9 +372,64 @@ class Arrow(GraphicPrimitive):
         p = FancyArrowPatch((self.xtail, self.ytail), (self.xhead, self.yhead),
                             lw=width, arrowstyle='%s,head_width=%s,head_length=%s'%(style,head_width, head_length),
                             shrinkA=arrowshorten_end, shrinkB=arrowshorten_end,
-                            fc=color, ec=color, linestyle=options['linestyle'])
+                            fc=color, ec=color)
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
+
+        if options['linestyle']!='solid':
+            # The next few lines work around a design issue in matplotlib. Currently, the specified
+            # linestyle is used to draw both the path and the arrowhead.  If linestyle is 'dashed', this
+            # looks really odd.  This code is from Jae-Joon Lee in response to a post to the matplotlib mailing
+            # list.  See http://sourceforge.net/mailarchive/forum.php?thread_name=CAG%3DuJ%2Bnw2dE05P9TOXTz_zp-mGP3cY801vMH7yt6vgP9_WzU8w%40mail.gmail.com&forum_name=matplotlib-users
+
+            import matplotlib.patheffects as pe
+            class CheckNthSubPath(object):
+                def __init__(self, patch, n):
+                    """
+                    creates an callable object that returns True if the provided
+                    path is the n-th path from the patch.
+                    """
+                    self._patch = patch
+                    self._n = n
+
+                def get_paths(self, renderer):
+                    self._patch.set_dpi_cor(renderer.points_to_pixels(1.))
+                    paths, fillables = self._patch.get_path_in_displaycoord()
+                    return paths
+
+                def __call__(self, renderer, gc, tpath, affine, rgbFace):
+                    path = self.get_paths(renderer)[self._n]
+                    vert1, code1 = path.vertices, path.codes
+                    import numpy as np
+
+                    if np.all(vert1 == tpath.vertices) and np.all(code1 == tpath.codes):
+                        return True
+                    else:
+                        return False
+
+
+            class ConditionalStroke(pe._Base):
+
+                def __init__(self, condition_func, pe_list):
+                    """
+                    path effect that is only applied when the condition_func
+                    returns True.
+                    """
+                    super(ConditionalStroke, self).__init__()
+                    self._pe_list = pe_list
+                    self._condition_func = condition_func
+
+                def draw_path(self, renderer, gc, tpath, affine, rgbFace):
+
+                    if self._condition_func(renderer, gc, tpath, affine, rgbFace):
+                        for pe1 in self._pe_list:
+                            pe1.draw_path(renderer, gc, tpath, affine, rgbFace)
+
+            pe1 = ConditionalStroke(CheckNthSubPath(p, 0),[pe.Stroke()])
+            pe2 = ConditionalStroke(CheckNthSubPath(p, 1),[pe.Stroke(linestyle="solid")])
+            p.set_path_effects([pe1, pe2])
+
         subplot.add_patch(p)
         return p
 
@@ -382,8 +473,9 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
       of the path (using 0 will swap headpoint and tailpoint).  This is ignored
       in 3D plotting.
 
-    - ``linestyle`` - The style of the line, which is one of 'dashed',
-      'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', respectively.
+    - ``linestyle`` - (default: ``'solid'``) The style of the line, which is one of
+      ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``, ``':'``,
+      ``'-'``, ``'-.'``, respectively.
 
     - ``width`` - (default: 2) the width of the arrow shaft, in points
 
@@ -397,6 +489,8 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
       parameter)
 
     - ``legend_label`` - the label for this item in the legend
+
+    - ``legend_color`` - the color for the legend label
 
     - ``zorder`` - the layer level to draw the arrow-- note that this is ignored in 3D
       plotting.
@@ -435,21 +529,15 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
         sage: arrow2d(headpoint=None, tailpoint=None)
 
-
     We can also draw an arrow with a legend::
 
-        sage: arrow((0,0), (0,2), legend_label='up')
+        sage: arrow((0,0), (0,2), legend_label='up', legend_color='purple')
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: arrow2d((-2, 2), (7,1), frame=True)
         sage: arrow2d((-2, 2), (7,1)).show(frame=True)
     """
-    # Allow the usual linestyles used in the plot() command
-    dict_line = {':': 'dotted', '-': 'solid', '--': 'dashed', '-.': 'dashdot'}
-    if options['linestyle'] in dict_line:
-        options['linestyle'] = dict_line[options['linestyle']]
-
     from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
@@ -466,4 +554,5 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         raise TypeError('Arrow requires either both headpoint and tailpoint or a path parameter.')
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     return g

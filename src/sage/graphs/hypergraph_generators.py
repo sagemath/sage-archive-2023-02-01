@@ -1,5 +1,5 @@
 r"""
-Hypergraph generators.
+Hypergraph generators
 
 At the moment this module only implement one method, which calls Brendan McKay's
 Nauty (`<http://cs.anu.edu.au/~bdm/nauty/>`_) to enumerate hypergraphs up to

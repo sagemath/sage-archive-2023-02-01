@@ -20,6 +20,7 @@ cdef class Function(SageObject):
     cdef unsigned int _serial
     cdef int _nargs
     cdef object _name
+    cdef object _alt_name
     cdef object _latex_name
     cdef object _conversions
     cdef object _evalf_params_first

@@ -10,8 +10,8 @@ example, we derive the quadratic formula as follows::
     a*x^2 + b*x + c == 0
     sage: print solve(qe, x)
     [
-    x == -1/2*(b + sqrt(-4*a*c + b^2))/a,
-    x == -1/2*(b - sqrt(-4*a*c + b^2))/a
+    x == -1/2*(b + sqrt(b^2 - 4*a*c))/a,
+    x == -1/2*(b - sqrt(b^2 - 4*a*c))/a
     ]
 
 
@@ -238,7 +238,7 @@ Variables appearing in the relation::
     sage: var('x,y,z,w')
     (x, y, z, w)
     sage: f =  (x+y+w) == (x^2 - y^2 - z^3);   f
-    w + x + y == x^2 - y^2 - z^3
+    w + x + y == -z^3 + x^2 - y^2
     sage: f.variables()
     (w, x, y, z)
 
@@ -247,6 +247,24 @@ LaTeX output::
     sage: latex(x^(3/5) >= pi)
     x^{\frac{3}{5}} \geq \pi
 
+When working with the symbolic complex number `I`, notice that comparison do not
+automatically simplifies even in trivial situations::
+
+    sage: I^2 == -1
+    -1 == -1
+    sage: I^2 < 0
+    -1 < 0
+    sage: (I+1)^4 > 0
+    -4 > 0
+
+Nevertheless, if you force the comparison, you get the right answer (:trac:`7160`)::
+
+    sage: bool(I^2 == -1)
+    True
+    sage: bool(I^2 < 0)
+    True
+    sage: bool((I+1)^4 > 0)
+    False
 
 More Examples
 -------------
@@ -276,11 +294,11 @@ below::
     x == y - 5
     sage: h =  x^3 + sqrt(2) == x*y*sin(x)
     sage: h
-    sqrt(2) + x^3 == x*y*sin(x)
+    x^3 + sqrt(2) == x*y*sin(x)
     sage: h - sqrt(2)
     x^3 == x*y*sin(x) - sqrt(2)
     sage: h + f
-    x + sqrt(2) + x^3 + 3 == x*y*sin(x) + y - 2
+    x^3 + x + sqrt(2) + 3 == x*y*sin(x) + y - 2
     sage: f = x + 3 < y - 2
     sage: g = 2 < x+10
     sage: f - g
@@ -648,7 +666,7 @@ def solve(f, *args, **kwds):
 
        sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
        sage: solve([c1(x,y),c2(x,y)],[x,y])
-       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(5)*sqrt(11) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(5)*sqrt(11) + 123/68]]
+       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(11)*sqrt(5) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(11)*sqrt(5) + 123/68]]
 
     TESTS::
 
@@ -662,9 +680,9 @@ def solve(f, *args, **kwds):
     Test if the empty list is returned, too, when (a list of)
     dictionaries (is) are requested (#8553)::
 
-        sage: solve([0==1],x)
+        sage: solve([SR(0)==1],x)
         []
-        sage: solve([0==1],x,solution_dict=True)
+        sage: solve([SR(0)==1],x,solution_dict=True)
         []
         sage: solve([x==1,x==-1],x)
         []
@@ -689,6 +707,21 @@ def solve(f, *args, **kwds):
         sage: solve(x^4+2>0,x)
         [x < +Infinity]
 
+    Test for user friendly input handling :trac:`13645`::
+
+        sage: poly.<a,b> = PolynomialRing(RR)
+        sage: solve([a+b+a*b == 1], a)
+        Traceback (most recent call last):
+        ...
+        TypeError: The first argument to solve() should be a symbolic expression or a list of symbolic expressions, cannot handle <type 'bool'>
+        sage: solve([a, b], (1, a))
+        Traceback (most recent call last):
+        ...
+        TypeError: 1 is not a valid variable.
+        sage: solve([x == 1], (1, a))
+        Traceback (most recent call last):
+        ...
+        TypeError: 1 is not a valid variable.
     """
     from sage.symbolic.expression import is_Expression
     if is_Expression(f): # f is a single expression
@@ -698,15 +731,21 @@ def solve(f, *args, **kwds):
     if not isinstance(f, (list, tuple)):
         raise TypeError("The first argument must be a symbolic expression or a list of symbolic expressions.")
 
-    if len(f)==1 and is_Expression(f[0]):
-        # f is a list with a single expression
-        return f[0].solve(*args,**kwds)
+    if len(f)==1:
+        # f is a list with a single element
+        if is_Expression(f[0]):
+            # if its a symbolic expression call solve method of this expression
+            return f[0].solve(*args,**kwds)
+        # otherwise complain
+        raise TypeError("The first argument to solve() should be a symbolic "
+                        "expression or a list of symbolic expressions, "
+                        "cannot handle %s"%repr(type(f[0])))
 
     # f is a list of such expressions or equations
     from sage.symbolic.ring import is_SymbolicVariable
 
     if len(args)==0:
-        raise TypeError, "Please input variables to solve for."
+        raise TypeError("Please input variables to solve for.")
     if is_SymbolicVariable(args[0]):
         variables = args
     else:
@@ -714,7 +753,7 @@ def solve(f, *args, **kwds):
 
     for v in variables:
         if not is_SymbolicVariable(v):
-            raise TypeError, "%s is not a valid variable."%v
+            raise TypeError("%s is not a valid variable."%repr(v))
 
     try:
         f = [s for s in f if s is not True]

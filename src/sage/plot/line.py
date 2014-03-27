@@ -60,6 +60,7 @@ class Line(GraphicPrimitive_xydata):
             sage: list(sorted(Line([-1,2], [17,4], {})._allowed_options().iteritems()))
             [('alpha', 'How transparent the line is.'),
              ('hue', 'The color given as a hue.'),
+             ('legend_color', 'The color of the legend text.'),
              ('legend_label', 'The label for this item in the legend.'),
              ('linestyle',
               "The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted)."),
@@ -73,8 +74,9 @@ class Line(GraphicPrimitive_xydata):
              ('zorder', 'The layer level in which to draw')]
         """
         return {'alpha':'How transparent the line is.',
+                'legend_color':'The color of the legend text.',
                 'legend_label':'The label for this item in the legend.',
-               'thickness':'How thick the line is.',
+                'thickness':'How thick the line is.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'linestyle':"The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted).",
@@ -114,8 +116,9 @@ class Line(GraphicPrimitive_xydata):
         if 'zorder' in options:
             del options['zorder']
         if 'linestyle' in options:
-            if options['linestyle'] != '--':
-                raise NotImplementedError, "Invalid 3d line style: '%s'" % options['linestyle']
+            if options['linestyle'] not in ('-', 'solid'):
+                raise NotImplementedError("Invalid 3d line style: '%s'"%
+                                          (options['linestyle']))
             del options['linestyle']
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
@@ -239,12 +242,10 @@ class Line(GraphicPrimitive_xydata):
         """
         import matplotlib.lines as lines
         options = dict(self.options())
-        del options['alpha']
-        del options['thickness']
-        del options['rgbcolor']
-        del options['legend_label']
-        if 'linestyle' in options:
-            del options['linestyle']
+        for o in ('alpha', 'legend_color', 'legend_label', 'linestyle',
+                  'rgbcolor', 'thickness'):
+            if o in options:
+                del options[o]
         p = lines.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
         a = float(options['alpha'])
@@ -255,7 +256,9 @@ class Line(GraphicPrimitive_xydata):
         # we don't pass linestyle in directly since the drawstyles aren't
         # pulled off automatically.  This (I think) is a bug in matplotlib 1.0.1
         if 'linestyle' in options:
-            p.set_linestyle(options['linestyle'])
+            from sage.plot.misc import get_matplotlib_linestyle
+            p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],
+                                                     return_type='short'))
         subplot.add_line(p)
 
 def line(points, **kwds):
@@ -282,7 +285,8 @@ def line(points, **kwds):
 
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, rgbcolor=(0,0,1), thickness=1, legend_label=None, aspect_ratio ='automatic')
+@options(alpha=1, rgbcolor=(0,0,1), thickness=1, legend_label=None,
+         legend_color=None, aspect_ratio ='automatic')
 def line2d(points, **options):
     r"""
     Create the line through the given list of points.
@@ -301,15 +305,18 @@ def line2d(points, **options):
 
     - ``hue`` -- The color given as a hue
 
+    - ``legend_color`` -- The color of the text in the legend
+
     - ``legend_label`` -- the label for this item in the legend
+
 
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
-    - ``linestyle`` - The style of the line, which is one of
-       - ``"-"`` (solid) -- default
-       - ``"--"`` (dashed)
-       - ``"-."`` (dash dot)
-       - ``":"`` (dotted)
+    - ``linestyle`` - (default: "-") The style of the line, which is one of
+       - ``"-"`` or ``"solid"``
+       - ``"--"`` or ``"dashed"``
+       - ``"-."`` or ``"dash dot"``
+       - ``":"`` or ``"dotted"``
        - ``"None"`` or ``" "`` or ``""`` (nothing)
 
        The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
@@ -353,6 +360,12 @@ def line2d(points, **options):
     A line with a legend::
 
         sage: line([(0,0),(1,1)], legend_label='line')
+
+    Lines with different colors in the legend text::
+
+        sage: p1 = line([(0,0),(1,1)], legend_label='line')
+        sage: p2 = line([(1,1),(2,4)], legend_label='squared', legend_color='red')
+        sage: p1 + p2
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -455,4 +468,5 @@ def line2d(points, **options):
     g.add_primitive(Line(xdata, ydata, options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     return g

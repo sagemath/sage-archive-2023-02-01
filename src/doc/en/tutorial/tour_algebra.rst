@@ -52,8 +52,8 @@ symbolically:
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(2)*sqrt(5) - 2/3],
-     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(2)*sqrt(5) - 2/3]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3],
+     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
 
 For numerical approximations of the solutions, you can instead use:
 
@@ -138,7 +138,7 @@ To compute the partial fraction decomposition of
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/2/(x - 1) - 1/2/(x + 1)
+    -1/2/(x + 1) + 1/2/(x - 1)
 
 .. _section-systems:
 
@@ -170,7 +170,7 @@ You can compute Laplace transforms also; the Laplace transform of
     sage: t = var("t")
     sage: f = t^2*exp(t) - sin(t)
     sage: f.laplace(t,s)
-    2/(s - 1)^3 - 1/(s^2 + 1)
+    -1/(s^2 + 1) + 2/(s - 1)^3
 
 Here is a more involved example. The displacement from equilibrium
 (respectively) for a coupled spring attached to a wall on the left
@@ -395,12 +395,12 @@ manual.
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
+    sage: bessel_I(1,1).n()
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
-    0.16708949925104899
+    sage: bessel_I(2,1.1).n()
+    0.167089499251049
 
 At this point, Sage has only wrapped these functions for numerical use.
 For symbolic use, please use the Maxima interface directly, as in

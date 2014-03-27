@@ -236,6 +236,18 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         """
         return self.relabel({1:2, 2:1})
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['G', 2])._default_folded_cartan_type()
+            ['G', 2] as a folding of ['D', 4]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        return CartanTypeFolded(self, ['D', 4], [[1, 3, 4], [2]])
+
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_G', 'ambient_space',  AmbientSpace)

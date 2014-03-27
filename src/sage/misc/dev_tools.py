@@ -197,11 +197,19 @@ def import_statements(*objects, **options):
         Traceback (most recent call last):
         ...
         ValueError: no import statement for 5
+
+    We test that it behaves well with lazy imported objects (:trac:`14767`)::
+
+        sage: import_statements(NN)
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        sage: import_statements('NN')
+        from sage.rings.semirings.non_negative_integer_semiring import NN
     """
     import inspect, sys, re
     import sage.all
     from sage.misc import sageinspect
     from sage.misc.flatten import flatten
+    from sage.misc.lazy_import import LazyImport
 
     lazy = options.get("lazy", False)
     verbose = options.get("verbose", True)
@@ -223,6 +231,9 @@ def import_statements(*objects, **options):
                         break
         else:
             name = None
+
+        if isinstance(obj, LazyImport):
+            obj = obj._get_object()
 
         # Case 1: the object is a module
         if inspect.ismodule(obj):

@@ -120,17 +120,19 @@ AUTHORS:
 
 import math
 
-from sage.structure.element import AdditiveGroupElement
 import sage.plot.all as plot
 
 from sage.rings.padics.factory import Qp
 from sage.rings.padics.precision_error import PrecisionError
 
 import sage.rings.all as rings
+from sage.rings.real_mpfr import is_RealField
+from sage.rings.all import ZZ
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari.all import pari, PariError
-from sage.structure.sequence  import Sequence
+from sage.libs.pari.gen import prec_words_to_bits
+from sage.structure.sequence import Sequence
 
 from sage.schemes.plane_curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
@@ -138,8 +140,10 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
 from sage.schemes.generic.morphism import is_SchemeMorphism
 
 from constructor import EllipticCurve
+from sage.misc.superseded import deprecated_function_alias
 
 oo = rings.infinity       # infinity
+
 
 class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
     """
@@ -152,7 +156,8 @@ class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
 
         .. NOTE::
 
-            ``__eq__`` and ``__ne__`` are implemented in SchemeMorphism_point_projective_ring
+            ``__eq__`` and ``__ne__`` are implemented in
+            SchemeMorphism_point_projective_ring
 
         EXAMPLES:
             sage: E=EllipticCurve(QQ,[1,1])
@@ -261,22 +266,21 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             (1 : -2 : 1)
         """
         point_homset = curve.point_homset()
-        if is_SchemeMorphism(v) or isinstance(v,EllipticCurvePoint_field):
+        if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
             v = list(v)
         elif v == 0:
             # some of the code assumes that E(0) has integral entries
             # irregardless of the base ring...
             #R = self.base_ring()
             #v = (R.zero(),R.one(),R.zero())
-            v = (0,1,0)
+            v = (0, 1, 0)
         if check:
             # mostly from SchemeMorphism_point_projective_field
             d = point_homset.codomain().ambient_space().ngens()
-            if not isinstance(v,(list,tuple)):
-                raise TypeError, \
-                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
+            if not isinstance(v, (list, tuple)):
+                raise TypeError("Argument v (= %s) must be a scheme point, list, or tuple." % str(v))
             if len(v) != d and len(v) != d-1:
-                raise TypeError, "v (=%s) must have %s components"%(v, d)
+                raise TypeError("v (=%s) must have %s components" % (v, d))
             v = Sequence(v, point_homset.value_ring())
             if len(v) == d-1:     # very common special case
                 v.append(v.universe()(1))
@@ -293,7 +297,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                         v[j] /= c
                     break
             if all_zero:
-                raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
+                raise ValueError("%s does not define a valid point "
+                                 "since all entries are 0" % repr(v))
 
             x, y, z = v
             if z == 0:
@@ -302,7 +307,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 a1, a2, a3, a4, a6 = curve.ainvs()
                 test = y**2 + (a1*x+a3)*y - (((x+a2)*x+a4)*x+a6)
             if not test == 0:
-                raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),curve)
+                raise TypeError("Coordinates %s do not define a point on %s" % (list(v), curve))
 
         SchemeMorphism_point_abelian_variety_field.__init__(self, point_homset, v, check=False)
         #AdditiveGroupElement.__init__(self, point_homset)
@@ -369,7 +374,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P.__tuple__()
             (1, -2, 1)
         """
-        return tuple(self._coords) # Warning: _coords is a list!
+        return tuple(self._coords)  # Warning: _coords is a list!
 
     def __cmp__(self, other):
         """
@@ -377,7 +382,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         .. NOTE::
 
-            ``__eq__`` and ``__ne__`` are implemented in SchemeMorphism_point_projective_field
+            ``__eq__`` and ``__ne__`` are implemented in
+            SchemeMorphism_point_projective_field
 
         EXAMPLES::
 
@@ -426,9 +432,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._pari_()
             [Mod(1, 11), Mod(2, 11)]
 
-        We need to explicitly call ``pari()`` because of :trac:`11868`::
+        We no longer need to explicitly call ``pari(O)`` and ``pari(P)``
+        after :trac:`11868`::
 
-            sage: pari(E).elladd(pari(O), pari(P))
+            sage: pari(E).elladd(O, P)
             [Mod(1, 11), Mod(2, 11)]
         """
         if self[2]:
@@ -439,7 +446,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
     def scheme(self):
         """
         Return the scheme of this point, i.e., the curve it is on.
-        This is synonymous with curve() which is perhaps more
+        This is synonymous with :meth:`curve` which is perhaps more
         intuitive.
 
         EXAMPLES::
@@ -488,7 +495,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
     def codomain(self):
         """
         Return the codomain of this point, which is the curve it is
-        on.  Synonymous with curve() which is perhaps more intuitive.
+        on. Synonymous with :meth:`curve` which is perhaps more intuitive.
 
         EXAMPLES::
 
@@ -514,7 +521,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         For curves over number fields and finite fields, see below.
 
-        .. note::
+        .. NOTE::
 
            :meth:`additive_order` is a synonym for :meth:`order`
 
@@ -535,7 +542,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         if self.is_zero():
             return rings.Integer(1)
-        raise NotImplementedError, "Computation of order of a point not implemented over general fields."
+        raise NotImplementedError("Computation of order of a point "
+                                  "not implemented over general fields.")
 
     additive_order = order
 
@@ -592,10 +600,11 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: (2*P).is_zero()
             True
         """
-        if self.is_zero(): return True
+        if self.is_zero():
+            return True
         return self.order() != oo
 
-    is_finite_order = has_finite_order # for backward compatibility
+    is_finite_order = has_finite_order  # for backward compatibility
 
     def has_infinite_order(self):
         """
@@ -620,7 +629,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: (2*P).is_zero()
             True
         """
-        if self.is_zero(): return False
+        if self.is_zero():
+            return False
         return self.order() == oo
 
     def plot(self, **args):
@@ -639,7 +649,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P.plot(pointsize=30, rgbcolor=(1,0,0))
         """
         if self.is_zero():
-            return plot.text("$\\infty$", (-3,3), **args)
+            return plot.text("$\\infty$", (-3, 3), **args)
 
         else:
             return plot.point((self[0], self[1]), **args)
@@ -657,14 +667,15 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._add_(Q) == P + Q
             True
 
-        Example to show that bug \#4820 is fixed::
+        Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
             [<type 'sage.rings.rational.Rational'>,
             <type 'sage.rings.rational.Rational'>,
             <type 'sage.rings.rational.Rational'>]
         """
-        # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic Number Theory"
+        # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic
+        # Number Theory"
         if self.is_zero():
             return right
         if right.is_zero():
@@ -674,7 +685,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         x1, y1 = self[0], self[1]
         x2, y2 = right[0], right[1]
         if x1 == x2 and y1 == -y2 - a1*x2 - a3:
-            return E(0) # point at infinity
+            return E(0)  # point at infinity
 
         if x1 == x2 and y1 == y2:
             try:
@@ -683,12 +694,11 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 R = E.base_ring()
                 if R.is_finite():
                     N = R.characteristic()
-                    from sage.rings.all import ZZ
                     N1 = N.gcd(ZZ(2*y1 + a1*x1 + a3))
                     N2 = N//N1
-                    raise ZeroDivisionError, "Inverse of %s does not exist (characteristic = %s = %s*%s)"%(2*y1 + a1*x1 + a3, N,N1,N2)
+                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (2*y1 + a1*x1 + a3, N, N1, N2))
                 else:
-                    raise ZeroDivisionError, "Inverse of %s does not exist"%(2*y1 + a1*x1 + a3)
+                    raise ZeroDivisionError("Inverse of %s does not exist" % (2*y1 + a1*x1 + a3))
         else:
             try:
                 m = (y1-y2)/(x1-x2)
@@ -699,13 +709,13 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                     from sage.rings.all import ZZ
                     N1 = N.gcd(ZZ(x1-x2))
                     N2 = N//N1
-                    raise ZeroDivisionError, "Inverse of %s does not exist (characteristic = %s = %s*%s)"%(x1-x2, N,N1,N2)
+                    raise ZeroDivisionError("Inverse of %s does not exist (characteristic = %s = %s*%s)" % (x1-x2, N, N1, N2))
                 else:
-                    raise ZeroDivisionError, "Inverse of %s does not exist"%(x1-x2)
+                    raise ZeroDivisionError("Inverse of %s does not exist" % (x1-x2))
 
         x3 = -x1 - x2 - a2 + m*(m+a1)
         y3 = -y1 - a3 - a1*x3 + m*(x1-x3)
-        # See \#4820 for why we need to coerce 1 into the base ring here:
+        # See trac #4820 for why we need to coerce 1 into the base ring here:
         return E.point([x3, y3, E.base_ring()(1)], check=False)
 
     def _sub_(self, right):
@@ -740,7 +750,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Q + P
             (0 : 1 : 0)
 
-        Example to show that bug \#4820 is fixed::
+        Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
             [<type 'sage.rings.rational.Rational'>,
@@ -750,7 +760,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         if self.is_zero():
             return self
         E, x, y = self.curve(), self[0], self[1]
-        # See \#4820 for why we need to coerce 1 into the base ring here:
+        # See trac #4820 for why we need to coerce 1 into the base ring here:
         return E.point([x, -y - E.a1()*x - E.a3(), E.base_ring()(1)], check=False)
 
     def xy(self):
@@ -789,7 +799,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         (bool) -- True if there is a solution, else False.
 
-        .. warning::
+        .. WARNING::
 
            This function usually triggers the computation of the
            `m`-th division polynomial of the associated elliptic
@@ -820,7 +830,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         TESTS:
 
-        This shows that the bug reported at #10076 is fixed::
+        This shows that the bug reported at :trac:`10076` is fixed::
 
             sage: K = QuadraticField(8,'a')
             sage: E = EllipticCurve([K(0),0,0,-1,0])
@@ -856,7 +866,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         if m == 1 or m == -1:
             return True
         if m == 0:
-            return self == 0 # then m*self=self for all m!
+            return self == 0  # then m*self=self for all m!
         m = m.abs()
 
         # Now the following line would of course be correct, but we
@@ -872,24 +882,24 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         try:
             n = P.order()
             if not n == oo:
-                if m.gcd(n)==1:
+                if m.gcd(n) == 1:
                     return True
         except NotImplementedError:
             pass
 
-        P_is_2_torsion = (P==-P)
+        P_is_2_torsion = (P == -P)
         g = P.division_points(m, poly_only=True)
 
         if not P_is_2_torsion:
             # In this case deg(g)=m^2, and each root in K lifts to two
             # points Q,-Q both in E(K), of which exactly one is a
             # solution.  So we just check the existence of roots:
-            return len(g.roots())>0
+            return len(g.roots()) > 0
 
         # Now 2*P==0
 
-        if m%2==1:
-            return True # P itself is a solution when m is odd
+        if m % 2 == 1:
+            return True  # P itself is a solution when m is odd
 
         # Now m is even and 2*P=0.  Roots of g in K may or may not
         # lift to solutions in E(K), so we fall back to the default.
@@ -908,11 +918,15 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         INPUT:
 
         - ``m`` -- a positive integer
-        - ``poly_only`` -- bool (default: False); if True return polynomial whose roots give all possible `x`-coordinates of `m`-th roots of self.
+
+        - ``poly_only`` -- bool (default: False); if True return
+          polynomial whose roots give all possible `x`-coordinates of
+          `m`-th roots of self.
 
         OUTPUT:
 
-        (list) -- a (possibly empty) list of solutions `Q` to `mQ=P`,  where `P` = self.
+        (list) -- a (possibly empty) list of solutions `Q` to `mQ=P`,
+        where `P` = self.
 
         EXAMPLES:
 
@@ -934,7 +948,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: (4*Q).division_points(4)
             [(44 : -270 : 1)]
 
-        We create a curve over a non-prime finite field with group of order `18`::
+        We create a curve over a non-prime finite field with group of
+        order `18`::
 
             sage: k.<a> = GF(25)
             sage: E = EllipticCurve(k, [1,2+a,3,4*a,2])
@@ -969,7 +984,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P.division_points(5)
             [(1 : 1 : 1)]
 
-        An example over a number field (see trac #3383)::
+        An example over a number field (see :trac:`3383`)::
 
             sage: E = EllipticCurve('19a1')
             sage: K.<t> = NumberField(x^9-3*x^8-4*x^7+16*x^6-3*x^5-21*x^4+5*x^3+7*x^2-7*x+1)
@@ -990,7 +1005,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         if m == 1 or m == -1:
             return [self]
         if m == 0:
-            if self == 0: # then every point Q is a solution, but...
+            if self == 0:  # then every point Q is a solution, but...
                 return [self]
             else:
                 return []
@@ -1006,7 +1021,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         E = self.curve()
         P = self
         nP = -P
-        P_is_2_torsion = (P==nP)
+        P_is_2_torsion = (P == nP)
 
         # If self is the 0, then self is a solution, and the correct
         # poly is the m'th division polynomial
@@ -1026,7 +1041,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             # and each root of g1 leads to a pair Q, -Q.
 
             if P_is_2_torsion:
-                if m%2==0:
+                if m % 2 == 0:
                     # This computes g.sqrt() which is not implemented
                     g = g.gcd(g.derivative())*g.leading_coefficient().sqrt()
 
@@ -1069,7 +1084,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         ans.sort()
         return ans
 
-    def _divide_out(self,p):
+    def _divide_out(self, p):
         r"""
         Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
@@ -1104,18 +1119,19 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         p = rings.Integer(p)
         if not p.is_prime():
-            raise ValueError, "p (=%s) should be prime."%p
+            raise ValueError("p (=%s) should be prime." % p)
 
         if self.is_zero():
-            raise ValueError, "self must not be 0."
+            raise ValueError("self must not be 0.")
 
-        k=0; Q=self
+        k = 0
+        Q = self
         pts = Q.division_points(p)
         while len(pts) > 0:
             Q = pts[0]
             k += 1
             pts = Q.division_points(p)
-        return (Q,k)
+        return (Q, k)
 
     def set_order(self, value):
         r"""
@@ -1130,7 +1146,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         OUTPUT:
 
-        None
+        ``None``
 
         EXAMPLES:
 
@@ -1220,18 +1236,19 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 raise ValueError('Value 1 illegal order for non-identity')
         low, hi = Hasse_bounds(q)
         if value > hi:
-            raise ValueError('Value %s illegal: outside max Hasse bound'%value)
+            raise ValueError('Value %s illegal: outside max Hasse bound' % value)
         if value * self != O:
-            raise ValueError('Value %s illegal: %s * %s is not the identity'%(value, value, self))
+            raise ValueError('Value %s illegal: %s * %s is not the identity' % (value, value, self))
         if (value - 1) * self == O:
-            raise ValueError('Value %s illegal: %s * %s is the identity'%(value, value-1, self))
+            raise ValueError('Value %s illegal: %s * %s is the identity' % (value, value-1, self))
         self._order = value
 
     ##############################  end  ################################
 
-    def _line_(self,R,Q):
+    def _line_(self, R, Q):
         r"""
-        Computes the value at `Q` of a straight line through points self and `R`.
+        Computes the value at `Q` of a straight line through points
+        self and `R`.
 
         INPUT:
 
@@ -1262,7 +1279,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._line_(P,Q) == a^4 + a^3 + a^2 + 1
             True
 
-        See trac #7116::
+        See :trac:`7116`::
 
             sage: P._line_ (Q,O)
             Traceback (most recent call last):
@@ -1278,7 +1295,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         - David Hansen (2009-01-25)
         """
         if Q.is_zero():
-            raise ValueError, "Q must be nonzero."
+            raise ValueError("Q must be nonzero.")
 
         if self.is_zero() or R.is_zero():
             if self == R:
@@ -1303,9 +1320,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 l = numerator/denominator
                 return Q[1] - self[1] - l * (Q[0] - self[0])
 
-    def _miller_(self,Q,n):
+    def _miller_(self, Q, n):
         r"""
-        Return the value at `Q` of the rational function `f_{n,P}`, where the divisor of `f_{n,P}` is `n[P]-[nP]-(n-1)[O]`.
+        Return the value at `Q` of the rational function `f_{n,P}`, where the
+        divisor of `f_{n,P}` is `n[P]-[nP]-(n-1)[O]`.
 
         INPUT:
 
@@ -1348,7 +1366,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: x^360 == F(1)
             True
 
-        You can use the _miller_ function on linearly dependent points, but with the risk of a dividing with zero::
+        You can use the _miller_ function on linearly dependent
+        points, but with the risk of a dividing with zero::
 
             sage: Px._miller_(2*Px,41)
             Traceback (most recent call last):
@@ -1436,11 +1455,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         ALGORITHM:
 
-            Double-and-add.
-
-        REFERENCES:
-
-        - [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
+            Double-and-add. See also [Mil04]_.
 
         AUTHORS:
 
@@ -1449,9 +1464,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
           negative n.
         """
         if Q.is_zero():
-            raise ValueError, "Q must be nonzero."
+            raise ValueError("Q must be nonzero.")
         if n.is_zero():
-            raise ValueError, "n must be nonzero."
+            raise ValueError("n must be nonzero.")
         n_is_negative = False
         if n < 0:
             n = n.abs()
@@ -1465,17 +1480,17 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         i = n.nbits() - 2
         while i > -1:
             S = 2*V
-            ell = V._line_(V,Q)
-            vee = S._line_(-S,Q)
+            ell = V._line_(V, Q)
+            vee = S._line_(-S, Q)
             t = (t**2)*(ell/vee)
             V = S
             if nbin[i] == 1:
                 S = V+self
-                ell = V._line_(self,Q)
-                vee = S._line_(-S,Q)
-                t=t*(ell/vee)
+                ell = V._line_(self, Q)
+                vee = S._line_(-S, Q)
+                t = t*(ell/vee)
                 V = S
-            i=i-1
+            i = i-1
         if n_is_negative:
             vee = V._line_(-V, Q)
             t = 1/(t*vee)
@@ -1489,7 +1504,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         - ``Q`` -- a point on self.curve().
 
-        - ``n`` -- an integer `n` such that `nP = nQ = (0:1:0)` where `P` = self.
+        - ``n`` -- an integer `n` such that `nP = nQ = (0:1:0)` where
+          `P` = self.
 
         OUTPUT:
 
@@ -1520,7 +1536,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: points must both be n-torsion
 
-        A larger example (see trac \#4964)::
+        A larger example (see :trac:`4964`)::
 
             sage: P,Q = EllipticCurve(GF(19^4,'a'),[-1,0]).gens()
             sage: P.order(), Q.order()
@@ -1542,16 +1558,16 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         ALGORITHM:
 
-        Implemented using Proposition 8 in [Mil04].  The value 1 is
+        Implemented using Proposition 8 in [Mil04]_.  The value 1 is
         returned for linearly dependent input points.  This condition
         is caught via a DivisionByZeroError, since the use of a
-        discrete logarithm test for linear dependence, is much to slow
+        discrete logarithm test for linear dependence, is much too slow
         for large `n`.
 
         REFERENCES:
 
-        [Mil04] Victor S. Miller, "The Weil pairing, and its efficient
-        calculation", J. Cryptol., 17(4):235-261, 2004
+        .. [Mil04] Victor S. Miller, "The Weil pairing, and its
+           efficient calculation", J. Cryptol., 17(4):235-261, 2004
 
         AUTHOR:
 
@@ -1561,11 +1577,11 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         E = P.curve()
 
         if not Q.curve() is E:
-            raise ValueError, "points must both be on the same curve"
+            raise ValueError("points must both be on the same curve")
 
         # Test if P, Q are both in E[n]
         if not ((n*P).is_zero() and (n*Q).is_zero()):
-            raise ValueError, "points must both be n-torsion"
+            raise ValueError("points must both be n-torsion")
 
         one = E.base_field().one_element()
 
@@ -1606,8 +1622,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         # n = d
 
         try:
-            return ((-1)**n.test_bit(0))*(P._miller_(Q,n)/Q._miller_(P,n))
-        except ZeroDivisionError, detail:
+            return ((-1)**n.test_bit(0))*(P._miller_(Q, n)/Q._miller_(P, n))
+        except ZeroDivisionError:
             return one
 
     def tate_pairing(self, Q, n, k, q=None):
@@ -1732,20 +1748,20 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         E = P.curve()
 
         if not Q.curve() is E:
-            raise ValueError, "Points must both be on the same curve"
+            raise ValueError("Points must both be on the same curve")
 
         K = E.base_ring()
         d = K.degree()
-        if q == None:
+        if q is None:
             if d == 1:
                 q = K.order()
             elif d == k:
                 q = K.base_ring().order()
             else:
-                raise ValueError("Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^%s))."%k)
+                raise ValueError("Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^%s))." % k)
 
         if n*P != E(0):
-            raise ValueError('This point is not of order n=%s' %n)
+            raise ValueError('This point is not of order n=%s' % n)
 
         # In small cases, or in the case of pairing an element with
         # itself, Q could be on one of the lines in the Miller
@@ -1934,21 +1950,20 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         E = P.curve()
         O = E(0)
         if not Q.curve() is E:
-            raise ValueError, "Points must both be on the same curve"
+            raise ValueError("Points must both be on the same curve")
 
         # set q to be the order of the base field
         K = E.base_ring()
-        F = K.base_ring()
-        if q == None:
+        if q is None:
             d = K.degree()
             if d == k:
                 q = K.base_ring().order()
             else:
-                raise ValueError("Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^%s))." %k)
+                raise ValueError("Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^%s))." % k)
 
         # check order of P
         if n*P != O:
-            raise ValueError('This point %s is not of order n=%s' % (P,n))
+            raise ValueError('This point %s is not of order n=%s' % (P, n))
 
         # check for P in kernel pi - 1:
         piP = E(P[0]**q, P[1]**q)
@@ -1965,6 +1980,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         e = rings.Integer((q**k - 1)/n)
         ret = ret**e
         return ret
+
 
 class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
     """
@@ -2025,7 +2041,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         curves defined over `\QQ`, we call PARI; over other
         number fields we implement the function here.
 
-        .. note::
+        .. NOTE::
 
            :meth:`additive_order` is a synonym for :meth:`order`
 
@@ -2061,7 +2077,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         # Special code for curves over Q, calling PARI
         try:
             n = int(E.pari_curve().ellorder(self))
-            if n == 0: n = oo
+            if n == 0:
+                n = oo
             self._order = n
             return n
         except PariError:
@@ -2083,7 +2100,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             return self._order
 
         # Finally we find the exact order using the generic code:
-        self._order = generic.order_from_multiple(self,N,operation='+')
+        self._order = generic.order_from_multiple(self, N, operation='+')
         return self._order
 
     additive_order = order
@@ -2107,7 +2124,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.has_finite_order()
             True
         """
-        if self.is_zero(): return True
+        if self.is_zero():
+            return True
         return self.order() != oo
 
     def has_infinite_order(self):
@@ -2129,7 +2147,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.has_infinite_order()
             False
         """
-        if self.is_zero(): return False
+        if self.is_zero():
+            return False
         return self.order() == oo
 
     def is_on_identity_component(self, embedding=None):
@@ -2142,13 +2161,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         - ``self`` -- a point on a curve over any ordered field (e.g. `\QQ`)
 
         - ``embedding`` -- an embedding from the base_field of the
-          point's curve into `\RR` or `\CC`; if None (the
+          point's curve into `\RR` or `\CC`; if ``None`` (the
           default) it uses the first embedding of the base_field into
           `\RR` if any, else the first embedding into `\CC`.
 
         OUTPUT:
 
-        (bool) -- True iff the point is on the identity component of
+        (bool) -- ``True`` iff the point is on the identity component of
         the curve.  (If the point is zero then the result is True.)
 
         EXAMPLES:
@@ -2184,7 +2203,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         e = embedding
         # It is also trivially true if we have a complex embedding
         if not e is None:
-            if not rings.is_RealField(e.codomain()):
+            if not is_RealField(e.codomain()):
                 return True
 
         # find a suitable embedding if none was supplied:
@@ -2197,16 +2216,16 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 e = K.embeddings(rings.ComplexField())[0]
 
         # If there is only one component, the result is True:
-        if not rings.is_RealField(e.codomain()): # complex embedding
+        if not is_RealField(e.codomain()):  # complex embedding
             return True
-        if e(E.discriminant()) < 0: # only one component
+        if e(E.discriminant()) < 0:  # only one component
             return True
 
         # Now we have a real embedding and two components and have to work:
         gx = E.two_division_polynomial()
         gxd = gx.derivative()
         gxdd = gxd.derivative()
-        return ( e(gxd(self[0])) > 0 and e(gxdd(self[0])) > 0)
+        return (e(gxd(self[0])) > 0 and e(gxdd(self[0])) > 0)
 
     def has_good_reduction(self, P=None):
         r"""
@@ -2215,7 +2234,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         INPUT:
 
         - ``P`` -- a prime of the base_field of the point's curve, or
-          None (default)
+          ``None`` (default)
 
         OUTPUT:
 
@@ -2265,7 +2284,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         TESTS:
 
-        An example showing that #8498 is fixed::
+        An example showing that :trac:`8498` is fixed::
 
             sage: E = EllipticCurve('11a1')
             sage: K.<t> = NumberField(x^2+47)
@@ -2283,10 +2302,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         E = self.curve()
         if P is None:
-            return all([self.has_good_reduction(P) for P in E.discriminant().support()])
+            return all([self.has_good_reduction(Pr) for Pr in E.discriminant().support()])
         K = E.base_field()
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
-        P = check_prime(K,P)
+        P = check_prime(K, P)
 
         # If the curve has good reduction at P, the result is True:
         t = E.local_data(P).bad_reduction_type()
@@ -2301,7 +2320,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         # Scale the homogeneous coordinates of the point to be primitive:
         xyz = list(Q)
         e = min([c.valuation(P) for c in xyz])
-        if e !=0:
+        if e != 0:
             if K is rings.QQ:
                 pi = P
             else:
@@ -2326,9 +2345,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 return True
         return False
 
-    def reduction(self,p):
+    def reduction(self, p):
         """
-        This finds the reduction of a point `P` on the elliptic curve modulo the prime `p`.
+        This finds the reduction of a point `P` on the elliptic curve
+        modulo the prime `p`.
 
         INPUT:
 
@@ -2377,34 +2397,51 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = P.curve()
         return E.reduction(p)(P)
 
-    def height(self, precision=None):
+    def height(self, precision=None, normalised=True, algorithm='pari'):
         """
-        The Neron-Tate canonical height of the point.
+        Return the Néron-Tate canonical height of the point.
 
         INPUT:
 
-        - ``self`` -- a point on a curve over a number field
+        - ``self`` -- a point on an elliptic curve over a number field
+          `K`.
 
-        - ``precision`` -- (int or None (default)): the precision in
-          bits of the result (default real precision if None)
+        - ``precision`` -- positive integer, or None (default). The
+          precision in bits of the result. If None, the default real
+          precision is used.
+
+        - ``normalised`` -- boolean. If True (default), the height is
+          normalised to be invariant under extension of `K`. If False,
+          return this normalised height multiplied by the degree of
+          `K`.
+
+        - ``algorithm`` -- string: either 'pari' (default) or 'sage'.
+          If 'pari' and the base field is `\QQ`, use the PARI library
+          function; otherwise use the Sage implementation.
 
         OUTPUT:
 
-        The rational number 0, or a nonzero real field element.
+        The rational number 0, or a non-negative real number.
 
-        The returned height is normalized to be independant of the base field.
-        Fixing this, there are two normalizations used in the literature,
-        one of which is double the other. We use the larger of the two,
-        which is the one appropriate for the BSD conjecture. This is consistant
-        with [Cre] and double that of [Sil].
+        There are two normalisations used in the literature, one of
+        which is double the other. We use the larger of the two, which
+        is the one appropriate for the BSD conjecture. This is
+        consistent with [Cre]_ and double that of [SilBook]_.
+
+        See :wikipedia:`Néron-Tate height`
 
         REFERENCES:
 
-        - [Cre] John Cremona, Algorithms for modular elliptic curves,
-          Cambridge University Press, 1997.
+        .. [Cre] John Cremona, Algorithms for Modular Elliptic Curves.
+           Cambridge University Press, 1997.
 
-        - [Sil] Silverman, Joseph H. The arithmetic of elliptic curves.
-          Second edition. Graduate Texts in Mathematics, 106. Springer, 2009.
+        .. [Sil1988] Joseph H. Silverman, Computing heights on
+           elliptic curves. Mathematics of Computation, Vol. 51,
+           No. 183 (Jul., 1988), pp. 339-358.
+
+        .. [SilBook] Joseph H. Silverman, The Arithmetic of Elliptic
+           Curves. Second edition. Graduate Texts in Mathematics, 106.
+           Springer, 2009.
 
         EXAMPLES::
 
@@ -2490,6 +2527,22 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: (100*P).height() / P.height()
             10000.0000000000
 
+        Setting normalised=False multiplies the height by the degree of `K`::
+
+            sage: E = EllipticCurve('37a')
+            sage: P = E([0,0])
+            sage: P.height()
+            0.0511114082399688
+            sage: P.height(normalised=False)
+            0.0511114082399688
+            sage: K.<z> = CyclotomicField(5)
+            sage: EK = E.change_ring(K)
+            sage: PK = EK([0,0])
+            sage: PK.height()
+            0.0511114082399688
+            sage: PK.height(normalised=False)
+            0.204445632959875
+
         Some consistency checks::
 
             sage: E = EllipticCurve('5077a1')
@@ -2537,6 +2590,9 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.height(precision=500)
             25.8603170675461907438688407407351103230988729038444162155771710417835725129551130570889813281792157278507639909972112856019190236125362914195452321720
 
+            sage: P.height(precision=100) == P.non_archimedean_local_height(prec=100)+P.archimedean_local_height(prec=100)
+            True
+
         An example to show that the bug at :trac:`8319` is fixed (correct height when the curve is not minimal)::
 
             sage: E = EllipticCurve([-5580472329446114952805505804593498080000,-157339733785368110382973689903536054787700497223306368000000])
@@ -2566,84 +2622,115 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: (2*P).height(precision=1000)/P.height(precision=1000)
             4.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
+        This shows that the bug reported at :trac:`13951` has been fixed::
+
+            sage: E = EllipticCurve([0,17])
+            sage: P1 = E(2,5)
+            sage: P1.height()
+            1.06248137652528
+            sage: F = E.change_ring(QuadraticField(-3,'a'))
+            sage: P2 = F([2,5])
+            sage: P2.height()
+            1.06248137652528
         """
         if self.has_finite_order():
             return rings.QQ(0)
 
+        E = self.curve()
+        K = E.base_ring()
+
         if precision is None:
             precision = rings.RealField().precision()
 
+        known_prec = -1
         try:
             height = self.__height
-            if height.prec() == precision:
-                return height
-            if height.prec() > precision:
-                return rings.RealField(precision)(height)
+            known_prec = height.prec()
+            if known_prec > precision:
+                height = rings.RealField(precision)(height)
         except AttributeError:
             pass
 
-        if self.curve().base_ring() is rings.QQ:
-            E = self.curve()
-            Emin = E.minimal_model()
-            iso = E.isomorphism_to(Emin)
-            P = iso(self)
-            h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
-            height = rings.RealField(precision)(h)
-        else:
-            height = (self.nonarchimedian_local_height(prec=precision)
-                        + self.archimedian_local_height(prec=precision))
+        if known_prec < precision:
+            if algorithm == 'pari' and K is rings.QQ:
+                Emin = E.minimal_model()
+                iso = E.isomorphism_to(Emin)
+                P = iso(self)
+                h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
+                height = rings.RealField(precision)(h)
+            else:
+                height = (self.non_archimedean_local_height(prec=precision)
+                            + self.archimedean_local_height(prec=precision))
 
+        # The cached height is the one that is independent of the base field.
         self.__height = height
+        if not normalised:
+            height *= K.degree()
         return height
 
-
-    def archimedian_local_height(self, v=None, prec=None):
+    def archimedean_local_height(self, v=None, prec=None, weighted=False):
         """
-        Computes the local height of self at the archimedian place `v`.
-
-        If `v` is None, returns the (weighted) sum of all archimedian
-        contributions to the height.
-
-        The normalization is taken to be independant of the base field,
-        but twice that in the paper. Note also that this local height depends
-        on the model of the curve.
+        Compute the local height of self at the archimedean place `v`.
 
         INPUT:
 
-        - ``v`` -- a real or complex embedding, or None
+        - ``self`` -- a point on an elliptic curve over a number field
+          `K`.
 
-        - ``prec`` -- the precision of the computation. If None, the precision
-          is deduced from v.
+        - ``v`` -- a real or complex embedding of K, or None (default).
+          If `v` is a real or complex embedding, return the local
+          height of self at `v`. If `v` is None, return the total
+          archimedean contribution to the global height.
+
+        - ``prec`` -- integer, or None (default). The precision of the
+          computation. If None, the precision is deduced from v.
+
+        - ``weighted`` -- boolean. If False (default), the height is
+          normalised to be invariant under extension of `K`. If True,
+          return this normalised height multiplied by the local degree
+          if `v` is a single place, or by the degree of `K` if `v` is
+          None.
+
+        OUTPUT:
+
+        A real number. The normalisation is twice that in Silverman's
+        paper [Sil1988]_. Note that this local height depends on the
+        model of the curve.
 
         ALGORITHM:
 
-        See section 4 of Silverman, J. Computing Heights on Elliptic Curves.
-        Mathematics of Computation, Vol. 51, No. 183 (Jul., 1988), pp. 339-358
-
+        See [Sil1988]_, Section 4.
 
         EXAMPLES:
 
-        Examples 1, 2, and 3 from the above paper::
+        Examples 1, 2, and 3 from [Sil1988]_::
 
             sage: K.<a> = QuadraticField(-2)
             sage: E = EllipticCurve(K, [0,-1,1,0,0]); E
             Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 + 2
             sage: P = E.lift_x(2+a); P
             (a + 2 : 2*a + 1 : 1)
-            sage: P.archimedian_local_height(K.places(prec=170)[0]) / 2
+            sage: P.archimedean_local_height(K.places(prec=170)[0]) / 2
             0.45754773287523276736211210741423654346576029814695
 
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve(K, [0,0,4,6*i,0]); E
             Elliptic Curve defined by y^2 + 4*y = x^3 + 6*i*x over Number Field in i with defining polynomial x^2 + 1
             sage: P = E((0,0))
-            sage: P.archimedian_local_height(K.places()[0]) / 2
+            sage: P.archimedean_local_height(K.places()[0]) / 2
             0.510184995162373
 
             sage: Q = E.lift_x(-9/4); Q
             (-9/4 : -27/8*i : 1)
-            sage: Q.archimedian_local_height(K.places()[0]) / 2
+            sage: Q.archimedean_local_height(K.places()[0]) / 2
             0.654445619529600
+
+        An example over the rational numbers::
+
+            sage: E = EllipticCurve([0, 0, 0, -36, 0])
+            sage: P = E([-3, 9])
+            sage: P.archimedean_local_height()
+            1.98723816350773
 
         Local heights of torsion points can be non-zero (unlike the
         global height)::
@@ -2651,7 +2738,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0, 0, 0, K(1), 0])
             sage: P = E(i, 0)
-            sage: P.archimedian_local_height()
+            sage: P.archimedean_local_height()
             0.346573590279973
 
         TESTS:
@@ -2663,24 +2750,36 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: v = [0, a + 1, 1, 28665*a - 46382, 2797026*a - 4525688]
             sage: E = EllipticCurve(v)
             sage: P = E([72*a - 509/5,  -682/25*a - 434/25])
-            sage: P.archimedian_local_height()
+            sage: P.archimedean_local_height()
             -0.2206607955468278492183362746930
 
         """
+        E = self.curve()
+        K = E.base_ring()
+
         if v is None:
-            K = self.curve().base_ring()
-            def local_degree(v):
-                """
-                Computes [ K_v : Q_v ]
-                """
-                return 2 - int(v.im_gens()[0] in rings.RR)
-            return sum(local_degree(v) * self.archimedian_local_height(v, prec) for v in K.places()) / K.degree()
+            if K is rings.QQ:
+                v = K.embeddings(rings.RR)[0]
+                h = self.archimedean_local_height(v, prec)
+            else:
+                r1, r2 = K.signature()
+                pl = K.places()
+                h = (sum(self.archimedean_local_height(pl[i], prec, weighted=False)
+                         for i in range(r1))
+                     + 2 * sum(self.archimedean_local_height(pl[i], prec, weighted=False)
+                               for i in range(r1, r1 + r2)))
+                if not weighted:
+                    h /= K.degree()
+            return h
 
         from sage.rings.number_field.number_field import refine_embedding
+        prec_v = v.codomain().prec()
         if prec is None:
-            prec  = v.codomain().prec()
-        vv = refine_embedding(v, 2*prec)  # prec(vv) = max(2*prec, prec(v))
-        E = self.curve()
+            prec = prec_v
+        if K is rings.QQ:
+            vv = K.embeddings(rings.RealField(max(2*prec, prec_v)))[0]
+        else:
+            vv = refine_embedding(v, 2*prec)  # vv.prec() = max(2*prec, prec_v)
         b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
         H = max(4, abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
         # The following comes from Silverman Theorem 4.2.  Silverman
@@ -2732,58 +2831,79 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                     t = w/(z-w)
                     beta = not beta
             four_to_n >>= 2
-        return rings.RealField(prec)(lam + mu/4)
+        h = rings.RealField(prec)(lam + mu/4)
+        if weighted and not v.im_gens()[0] in rings.RR:
+            h *= 2
+        return h
 
-    def nonarchimedian_local_height(self, v=None, prec=None, weighted=False, is_minimal=None):
+    archimedian_local_height = deprecated_function_alias(13951, archimedean_local_height)
+
+    def non_archimedean_local_height(self, v=None, prec=None,
+                                     weighted=False, is_minimal=None):
         """
-        Computes the local height of self at the non-archimedian place `v`.
-
-        If `v` is None, returns the (weighted) sum of all non-archimedian
-        contributions to the height.
-
-        The normalization is taken to be independant of the base field,
-        but twice that in the paper. Note also that this local height depends
-        on the model of the curve.
+        Compute the local height of self at the non-archimedean place `v`.
 
         INPUT:
 
-        - ``v`` -- a non-archimedean place of the base field of the curve,
-          or None, in which case the total nonarchimedian contribution
-          is returned
+        - ``self`` -- a point on an elliptic curve over a number field
+          `K`.
 
-        - ``prec`` -- working precision, or None in which case the height
-          is returned symbolically
+        - ``v`` -- a non-archimedean place of `K`, or None (default).
+          If `v` is a non-archimedean place, return the local height
+          of self at `v`. If `v` is None, return the total
+          non-archimedean contribution to the global height.
+
+        - ``prec`` -- integer, or None (default). The precision of the
+          computation. If None, the height is returned symbolically.
+
+        - ``weighted`` -- boolean. If False (default), the height is
+          normalised to be invariant under extension of `K`. If True,
+          return this normalised height multiplied by the local degree
+          if `v` is a single place, or by the degree of `K` if `v` is
+          None.
+
+        OUTPUT:
+
+        A real number. The normalisation is twice that in Silverman's
+        paper [Sil1988]_. Note that this local height depends on the
+        model of the curve.
 
         ALGORITHM:
 
-        See section 5 of Silverman, J. Computing Heights on Elliptic Curves.
-        Mathematics of Computation, Vol. 51, No. 183 (Jul., 1988), pp. 339-358
+        See [Sil1988]_, Section 5.
 
         EXAMPLES:
 
-        Examples 2 and 3 from the above paper::
+        Examples 2 and 3 from [Sil1988]_::
 
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve(K, [0,0,4,6*i,0]); E
             Elliptic Curve defined by y^2 + 4*y = x^3 + 6*i*x over Number Field in i with defining polynomial x^2 + 1
             sage: P = E((0,0))
-            sage: P.nonarchimedian_local_height(K.ideal(i+1))
+            sage: P.non_archimedean_local_height(K.ideal(i+1))
             -1/2*log(2)
-            sage: P.nonarchimedian_local_height(K.ideal(3))
+            sage: P.non_archimedean_local_height(K.ideal(3))
             0
-            sage: P.nonarchimedian_local_height(K.ideal(1-2*i))
+            sage: P.non_archimedean_local_height(K.ideal(1-2*i))
             0
 
             sage: Q = E.lift_x(-9/4); Q
             (-9/4 : -27/8*i : 1)
-            sage: Q.nonarchimedian_local_height(K.ideal(1+i))
+            sage: Q.non_archimedean_local_height(K.ideal(1+i))
             2*log(2)
-            sage: Q.nonarchimedian_local_height(K.ideal(3))
+            sage: Q.non_archimedean_local_height(K.ideal(3))
             0
-            sage: Q.nonarchimedian_local_height(K.ideal(1-2*i))
+            sage: Q.non_archimedean_local_height(K.ideal(1-2*i))
             0
-            sage: Q.nonarchimedian_local_height()
+            sage: Q.non_archimedean_local_height()
             1/2*log(16)
+
+        An example over the rational numbers::
+
+            sage: E = EllipticCurve([0, 0, 0, -36, 0])
+            sage: P = E([-3, 9])
+            sage: P.non_archimedean_local_height()
+            -log(3)
 
         Local heights of torsion points can be non-zero (unlike the
         global height)::
@@ -2791,14 +2911,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0, 0, 0, K(1), 0])
             sage: P = E(i, 0)
-            sage: P.nonarchimedian_local_height()
+            sage: P.non_archimedean_local_height()
             -1/2*log(2)
 
         TESTS::
 
-            sage: Q.nonarchimedian_local_height(prec=100)
+            sage: Q.non_archimedean_local_height(prec=100)
             1.3862943611198906188344642429
-            sage: (3*Q).nonarchimedian_local_height()
+            sage: (3*Q).non_archimedean_local_height()
             1/2*log(75923153929839865104)
 
             sage: F.<a> = NumberField(x^4 + 2*x^3 + 19*x^2 + 18*x + 288)
@@ -2811,8 +2931,15 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             (-1/6*a^2 - 1/6*a - 1 : a : 1)
             sage: P[0].is_integral()
             True
-            sage: P.nonarchimedian_local_height()
+            sage: P.non_archimedean_local_height()
             0
+
+        This shows that the bug reported at :trac:`13951` has been fixed::
+
+            sage: E = EllipticCurve([0,17])
+            sage: P = E(2,5)
+            sage: P.non_archimedean_local_height(2)
+            -2/3*log(2)
         """
         if prec:
             log = lambda x: rings.RealField(prec)(x).log()
@@ -2822,16 +2949,37 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if v is None:
             D = self.curve().discriminant()
             K = self.curve().base_ring()
-            factorD = K.factor(D)
-            if self[0] == 0:
-                c = K.ideal(1)
+            if K is rings.QQ:
+                factorD = D.factor()
+                if self[0] == 0:
+                    c = 1
+                else:
+                    c = self[0].denominator()
+                # The last sum is for bad primes that divide c where
+                # the model is not minimal.
+                h = (log(c)
+                     + sum(self.non_archimedean_local_height(p, prec, weighted=True, is_minimal=(e < 12))
+                           for p,e in factorD if not p.divides(c))
+                     + sum(self.non_archimedean_local_height(p, prec, weighted=True)
+                           - c.valuation(p) * log(p)
+                           for p,e in factorD if e >= 12 and p.divides(c)))
             else:
-                c = K.ideal(self[0]).denominator()
-            # The last sum is for bad primes that divide c where the model is not minimal.
-            return (log(c.norm())
-                 + sum(self.nonarchimedian_local_height(v, prec, True, e < 12) for v,e in factorD if not v.divides(c))
-                 + sum(self.nonarchimedian_local_height(v, prec, True) - c.valuation(v) * log(v.norm()) for v,e in factorD if e >= 12 and v.divides(c))
-                    ) / K.degree()
+                factorD = K.factor(D)
+                if self[0] == 0:
+                    c = K.ideal(1)
+                else:
+                    c = K.ideal(self[0]).denominator()
+                # The last sum is for bad primes that divide c where
+                # the model is not minimal.
+                h = (log(c.norm())
+                     + sum(self.non_archimedean_local_height(v, prec, weighted=True, is_minimal=(e < 12))
+                           for v,e in factorD if not v.divides(c))
+                     + sum(self.non_archimedean_local_height(v, prec, weighted=True)
+                           - c.valuation(v) * log(v.norm())
+                           for v,e in factorD if e >= 12 and v.divides(c)))
+                if not weighted:
+                    h /= K.degree()
+            return h
 
         if is_minimal:
             E = self.curve()
@@ -2847,7 +2995,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         a1, a2, a3, a4, a6 = E.a_invariants()
         b2, b4, b6, b8 = E.b_invariants()
         c4 = E.c4()
-        x,y = P.xy()
+        x, y = P.xy()
         D = E.discriminant()
         N = D.valuation(v)
         A = (3*x**2 + 2*a2*x + a4 - a1*y).valuation(v)
@@ -2858,7 +3006,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         elif c4.valuation(v) == 0:
             n = min(B, N/2)
             r = -n*(N-n)/N
-        elif C > 3*B:
+        elif C >= 3*B:
             r = -2*B/3
         else:
             r = -C/4
@@ -2874,7 +3022,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                     r /= v.ramification_index() * v.residue_class_degree()
             return r * log(Nv)
 
-    def elliptic_logarithm(self, embedding=None, precision=100, algorithm='pari'):
+    nonarchimedian_local_height = deprecated_function_alias(13951, non_archimedean_local_height)
+
+    def elliptic_logarithm(self, embedding=None, precision=100,
+                           algorithm='pari'):
         r"""
         Returns the elliptic logarithm of this elliptic curve point.
 
@@ -2949,7 +3100,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.elliptic_logarithm(algorithm='sage')  # 100 bits
             0.27656204014107061464076203097
 
-        This shows that the bug reported at \#4901 has been fixed::
+        This shows that the bug reported at :trac:`4901` has been fixed::
 
             sage: E = EllipticCurve("4390c2")
             sage: P = E(683762969925/44944,-565388972095220019/9528128)
@@ -2998,7 +3149,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         """
         from sage.rings.number_field.number_field import refine_embedding
-        from sage.rings.all import RealField, ComplexField, is_RealField, QQ
+        from sage.rings.all import RealField, ComplexField, QQ
 
         # Check the trivial case:
 
@@ -3015,7 +3166,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         if emb is None:
             emb = K.embeddings(RealField(precision))
-            if len(emb)>0:
+            if len(emb) > 0:
                 emb = emb[0]
             else:
                 emb = K.embeddings(ComplexField(precision))[0]
@@ -3024,15 +3175,15 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             prec = emb.codomain().precision()
             # if the precision parameter is greater, refine the embedding:
             if precision > prec:
-                emb = refine_embedding(emb,precision)
+                emb = refine_embedding(emb, precision)
 
         L = E.period_lattice(emb)
 
         if algorithm == 'sage' or not is_RealField(emb.codomain):
-            return L.elliptic_logarithm(self,precision)
+            return L.elliptic_logarithm(self, precision)
 
-        if algorithm <> 'pari':
-            raise ValueError, "algorithm must be either 'pari' or 'sage'"
+        if algorithm != 'pari':
+            raise ValueError("algorithm must be either 'pari' or 'sage'")
 
         # From now on emb() is a real embedding of K into
         # RealField(precision).  We interface with the PARI library.
@@ -3040,10 +3191,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         x, y = self.xy()
         if rational:        # work with exact coordinates
             E_work = E
-            pt_pari = pari([x,y])
+            pt_pari = pari([x, y])
         else:               # use the embedding to get real coordinates
             ai = [emb(a) for a in E.a_invariants()]
-            E_work = EllipticCurve(ai) # defined over RR
+            E_work = EllipticCurve(ai)  # defined over RR
             pt_pari = pari([emb(x), emb(y)])
         working_prec = precision
         E_pari = E_work.pari_curve(prec=working_prec)
@@ -3058,7 +3209,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             if not rational:
                 emb = refine_embedding(emb, working_prec)
                 ai = [emb(a) for a in E.a_invariants()]
-                E_work = EllipticCurve(ai) # defined over RR
+                E_work = EllipticCurve(ai)  # defined over RR
                 pt_pari = pari([emb(x), emb(y)])
             E_pari = E_work.pari_curve(prec=working_prec)
             log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
@@ -3101,11 +3252,11 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         to get into the formal group, and divide the result
         afterwards.
 
-        TODO:
+        .. TODO::
 
-        See comments at trac \#4805.  Currently the absolute precision
-        of the result may be less than the given value of absprec, and
-        error-handling is imperfect.
+            See comments at :trac:`4805`.  Currently the absolute
+            precision of the result may be less than the given value
+            of absprec, and error-handling is imperfect.
 
         EXAMPLES::
 
@@ -3125,7 +3276,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]  # long time (2s)
             [1 + 2^2 + O(2^19), 2 + 3 + O(3^20), 5 + O(5^19), 5 + O(7^19), 5 + O(11^19)]
 
-        An example which arose during reviewing #4741::
+        An example which arose during reviewing :trac:`4741`::
 
             sage: E = EllipticCurve('794a1')
             sage: P = E(-1,2)
@@ -3137,10 +3288,10 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             2^4 + 2^5 + 2^6 + 2^8 + 2^9 + 2^13 + 2^14 + 2^15 + 2^22 + 2^23 + 2^24 + 2^28 + 2^29 + 2^31 + 2^34 + O(2^35)
         """
         if not p.is_prime():
-            raise ValueError,'p must be prime'
-        debug = False # True
+            raise ValueError('p must be prime')
+        debug = False  # True
         if debug:
-            print "P=",self,"; p=",p," with precision ",precision
+            print "P=", self, "; p=", p, " with precision ", absprec
         E = self.curve()
         Q_p = Qp(p, absprec)
         if self.has_finite_order():
@@ -3149,58 +3300,63 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             try:
                 Ep = E.change_ring(Q_p)
                 P = Ep(self)
-                x,y = P.xy()
+                x, y = P.xy()
                 break
             except (PrecisionError, ArithmeticError, ZeroDivisionError):
-                absprec *=2
+                absprec *= 2
                 Q_p = Qp(p, absprec)
         if debug:
-            print "x,y=",(x,y)
-        f = 1  # f will be such that f*P is in the formal group E^1(Q_p)
-        if x.valuation() >=0:  # P is not in E^1
-            if not self.has_good_reduction(p):  # P is not in E^0
-                n = E.tamagawa_exponent(p)  # n*P has good reduction at p
+            print "x,y=", (x, y)
+        f = 1   # f will be such that f*P is in the formal group E^1(Q_p)
+        if x.valuation() >= 0:   # P is not in E^1
+            if not self.has_good_reduction(p):   # P is not in E^0
+                n = E.tamagawa_exponent(p)   # n*P has good reduction at p
                 if debug:
-                    print "Tamagawa exponent = =",n
+                    print "Tamagawa exponent = =", n
                 f = n
-                P = n*P #  lies in E^0
+                P = n*P   # lies in E^0
                 if debug:
-                    print "P=",P
+                    print "P=", P
                 try:
-                    x,y = P.xy()
+                    x, y = P.xy()
                 except ZeroDivisionError:
-                    raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+                    raise ValueError("Insufficient precision in "
+                                     "p-adic_elliptic_logarithm()")
                 if debug:
-                    print "x,y=",(x,y)
-            if x.valuation() >=0:  # P is still not in E^1
+                    print "x,y=", (x, y)
+            if x.valuation() >= 0:   # P is still not in E^1
                 t = E.local_data(p).bad_reduction_type()
                 if t is None:
                     m = E.reduction(p).abelian_group().exponent()
                 else:
                     m = p - t
                 if debug:
-                    print "mod p exponent = =",m
-                    # now m*(n*P) reduces to the identity mod p, so is in E^1(Q_p)
+                    print "mod p exponent = =", m
+                    # now m*(n*P) reduces to the identity mod p, so is
+                    # in E^1(Q_p)
                 f *= m
-                P = m*P #  lies in E^1
+                P = m*P   # lies in E^1
                 try:
-                    x,y = P.xy()
+                    x, y = P.xy()
                 except ZeroDivisionError:
-                    raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+                    raise ValueError("Insufficient precision in "
+                                     "p-adic_elliptic_logarithm()")
                 if debug:
-                    print "f=",f
-                    print "x,y=",(x,y)
+                    print "f=", f
+                    print "x,y=", (x, y)
         vx = x.valuation()
         vy = y.valuation()
         v = vx-vy
-        if not ( v>0 and vx==-2*v and vy == -3*v):
-            raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+        if not (v > 0 and vx == -2*v and vy == -3*v):
+            raise ValueError("Insufficient precision in "
+                             "p-adic_elliptic_logarithm()")
         try:
             t = -x/y
         except (ZeroDivisionError, PrecisionError):
-            raise ValueError, "Insufficient precision in p-adic_elliptic_logarithm()"
+            raise ValueError("Insufficient precision in "
+                             "p-adic_elliptic_logarithm()")
         if debug:
-            print "t=",t,", with valuation ",v
+            print "t=", t, ", with valuation ", v
         phi = Ep.formal().log(prec=1+absprec//v)
         return phi(t)/f
 
@@ -3222,8 +3378,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             'EllipticCurve([_sage_ref...|GF(17)!0,GF(17)!0,GF(17)!0,GF(17)!1,GF(17)!16])![13,4]'
         """
         E = self.curve()._magma_init_(magma)
-        x,y = self.xy()
-        return "%s![%s,%s]"%(E,x,y)
+        x, y = self.xy()
+        return "%s![%s,%s]" % (E, x, y)
 
     def discrete_log(self, Q, ord=None):
         r"""
@@ -3233,7 +3389,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         - ``Q`` (point) -- another point on the same curve as self.
 
-        - ``ord`` (integer or None (default)) -- the order of self.
+        - ``ord`` (integer or ``None`` (default)) -- the order of self.
 
         OUTPUT:
 
@@ -3241,7 +3397,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         integer `m` with `0\le m<o(P)` such that `mP=Q`, if one
         exists. A ValueError is raised if there is no solution.
 
-        .. note::
+        .. NOTE::
 
            The order of self is computed if not supplied.
 
@@ -3258,16 +3414,16 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             762
             sage: A = E.abelian_group()
             sage: P = A.gen(0).element()
-            sage: Q=400*P
+            sage: Q = 400*P
             sage: P.discrete_log(Q)
             400
         """
-        if ord==None: ord=self.order()
+        if ord is None:
+            ord = self.order()
         try:
-            return generic.discrete_log(Q,self,ord,operation='+')
+            return generic.discrete_log(Q, self, ord, operation='+')
         except StandardError:
-            raise ValueError, "ECDLog problem has no solution"
-
+            raise ValueError("ECDLog problem has no solution")
 
     def order(self):
         r"""
@@ -3275,7 +3431,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         ALGORITHM:
 
-        Use generic functions from ``sage.groups.generic``.  If the
+        Use generic functions from :mod:`sage.groups.generic`.  If the
         group order is known, use ``order_from_multiple()``, otherwise
         use ``order_from_bounds()`` with the Hasse bounds for the base
         field.  In the latter case, we might find that we have a
@@ -3286,7 +3442,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         order via computation of several random points and their
         orders.
 
-        .. note::
+        .. NOTE::
 
            :meth:`additive_order` is a synonym for :meth:`order`
 
@@ -3308,7 +3464,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: Q.additive_order()
             7
 
-        In the next example, the cardinality of E will be computed (using SEA) and cached::
+        In the next example, the cardinality of E will be computed
+        (using SEA) and cached::
 
             sage: p=next_prime(2^150)
             sage: E=EllipticCurve(GF(p),[1,1])
@@ -3317,8 +3474,6 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             1427247692705959881058262545272474300628281448
             sage: P.order()==E.cardinality()
             True
-
-
         """
         try:
             return self._order
@@ -3338,29 +3493,23 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             except AttributeError:
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
-            N = generic.order_from_multiple(self,M,plist,operation='+')
+            N = generic.order_from_multiple(self, M, plist, operation='+')
         except StandardError:
             if K.is_prime_field():
-                M = E.cardinality() # computed and cached
+                M = E.cardinality()  # computed and cached
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
-                N = generic.order_from_multiple(self,M,plist,operation='+')
+                N = generic.order_from_multiple(self, M, plist, operation='+')
             else:
-                N = generic.order_from_bounds(self,bounds,operation='+')
+                N = generic.order_from_bounds(self, bounds, operation='+')
 
-        if 2*N>bounds[1]: # then we have a generator, so cache this
-            try:
-                dummy = E._order
-            except AttributeError:
+        if 2*N > bounds[1]:  # then we have a generator, so cache this
+            if not hasattr(E, '_order'):
                 E._order = N
-            try:
-                dummy = E.__abelian_group
-            except AttributeError:
-                E.__abelian_group = AbelianGroup([N]), (self,)
+            if not hasattr(E, '__abelian_group'):
+                E.__abelian_group = AbelianGroup([N]), (self, )
 
         self._order = N
         return self._order
 
     additive_order = order
-
-

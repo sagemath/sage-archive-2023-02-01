@@ -15,7 +15,8 @@ This is placed in a separate file from categories.py to avoid circular imports
 #*****************************************************************************
 
 from sage.misc.latex import latex
-from category import Category
+from sage.misc.unknown import Unknown
+from category import Category, CategoryWithParameters
 from objects import Objects
 
 ####################################################################
@@ -197,10 +198,36 @@ class Sequences(Category):
 #############################################################
 # Category of objects over some base object
 #############################################################
-class Category_over_base(Category):
+class Category_over_base(CategoryWithParameters):
     def __init__(self, base, name=None):
-        Category.__init__(self, name)
         self.__base = base
+        Category.__init__(self, name)
+
+    def _make_named_class_key(self, name):
+        r"""
+        Return what the element/parent/... classes depend on.
+
+        Since :trac:`11935`, the element and parent classes of a
+        category over base only depend on the categories of the base
+        ring.
+
+        .. SEEALSO::
+
+            - :meth:`CategoryWithParameters`
+            - :meth:`CategoryWithParameters._make_named_class_key`
+
+        EXAMPLES::
+
+            sage: Modules(ZZ)._make_named_class_key('element_class')
+            Category of euclidean domains
+            sage: Modules(QQ)._make_named_class_key('parent_class')
+            Category of quotient fields
+            sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
+            Category of Schemes
+            sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
+            Category of quotient fields
+        """
+        return self.__base.category()
 
     @classmethod
     def an_instance(cls):
@@ -234,6 +261,42 @@ class Category_over_base(Category):
         """
         return "\\mathbf{%s}_{%s}"%(self._label, latex(self.__base))
 
+    def _subcategory_hook_(self, C):
+        """
+        A quick test whether a category ``C`` may be subcategory of
+        this category.
+
+        INPUT:
+
+        - ``C`` -- a category (type not tested)
+
+        OUTPUT:
+
+        A boolean if it is certain that ``C`` is (or is not) a
+        subcategory of self. :obj:`~sage.misc.unknown.Unknown`
+        otherwise.
+
+        EXAMPLES::
+
+            sage: Algebras(QQ)._subcategory_hook_(HopfAlgebras(QQ))
+            True
+            sage: Algebras(QQ)._subcategory_hook_(HopfAlgebras(ZZ))
+            False
+            sage: VectorSpaces(QQ)._subcategory_hook_(VectorSpaces(QQ).hom_category())
+            True
+            sage: VectorSpaces(QQ)._subcategory_hook_(Category.join([VectorSpaces(QQ).hom_category(),Rings()]))
+            Unknown
+
+        """
+        if not issubclass(C.parent_class, self.parent_class):
+            return False
+        try:
+            if C.base() is self.__base:
+                return True
+        except AttributeError:
+            pass
+        return Unknown
+
 #    def construction(self):
 #        return (self.__class__, self.__base)
 
@@ -262,7 +325,6 @@ class Category_over_base_ring(Category_over_base):
         from sage.categories.rings import Rings
         assert base in Rings(), "base must be a ring"
         Category_over_base.__init__(self, base, name)
-        self.__base = base
 
     def base_ring(self):
         """
@@ -276,8 +338,8 @@ class Category_over_base_ring(Category_over_base):
 #############################################################
 class Category_in_ambient(Category):
     def __init__(self, ambient, name=None):
-        Category.__init__(self, name)
         self.__ambient = ambient
+        Category.__init__(self, name)
 
     def ambient(self):
         """
@@ -323,8 +385,8 @@ class Category_ideal(Category_in_ambient):
         """
         if super(Category_ideal, self).__contains__(x):
             return True
-        import sage.rings.all
-        if sage.rings.all.is_Ideal(x) and x.ring() == self.ring():
+        from sage.rings.ideal import is_Ideal
+        if is_Ideal(x) and x.ring() == self.ring():
             return True
         return False
 

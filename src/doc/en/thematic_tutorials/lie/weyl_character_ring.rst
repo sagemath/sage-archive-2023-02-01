@@ -2,6 +2,7 @@
 The Weyl Character Ring
 =======================
 
+.. linkall
 
 Weyl character rings
 --------------------
@@ -139,20 +140,12 @@ product into irreducibles::
 The element `spin` of the WeylCharacterRing is the representation
 corresponding to the third highest weight representation, the
 eight-dimensional spin representation of `spin(7)`. We could
-just as easily construct it with the commmand:
-
-.. link
-
-::
+just as easily construct it with the commmand::
 
     sage: spin = B3(1/2,1/2,1/2)
 
 We may compute its tensor product with itself, using the
-multiplicative structure of the Weyl character ring:
-
-.. link
-
-::
+multiplicative structure of the Weyl character ring::
 
     sage: chi = spin*spin; chi
     B3(0,0,0) + B3(1,0,0) + B3(1,1,0) + B3(1,1,1)
@@ -162,11 +155,7 @@ with itself. We see that the tensor square splits into four
 irreducibles, each with multiplicity one.
 
 The highest weights that appear here are available (with their
-coefficients) through the usual free module accessors:
-
-.. link
-
-::
+coefficients) through the usual free module accessors::
 
     sage: list(chi)
     [((1, 1, 1), 1), ((1, 0, 0), 1), ((1, 1, 0), 1), ((0, 0, 0), 1)]
@@ -192,11 +181,7 @@ Weight multiplicities
 
 The weights of the character are available (with their coefficients)
 through the method ``weight_multiplicities``. Continuing from the
-example in the last section:
-
-.. link
-
-::
+example in the last section::
 
     sage: chi.weight_multiplicities()
     {(0, 1, 0): 4, (1, -1, 1): 1, (-1, -1, 1): 1, (0, 1, 1): 2,
@@ -205,7 +190,7 @@ example in the last section:
      (1, 0, 0): 4, (-1, -1, 0): 2, (1, 0, -1): 2, (0, 0, -1): 4,
      (0, -1, 1): 2, (1, 1, -1): 1, (0, 0, 1): 4, (-1, 0, -1): 2,
      (-1, 1, 1): 1, (-1, 1, -1): 1, (0, 0, 0): 8, (-1, -1, -1): 1,
-      (1, 0, 1): 2, (1, 1, 1): 1, (1, -1, 0): 2}
+     (1, 0, 1): 2, (1, 1, 1): 1, (1, -1, 0): 2}
 
 Each key of this dictionary is a weight, and its value is the
 multiplicity of that weight in the character.
@@ -236,36 +221,29 @@ coercing it into the ring. For example, if `k=5` and `n=3` so `r=2`::
 We may compute the norm square the character ``tr^5`` by decomposing it into
 irreducibles, and taking the sum of the squares of their multiplicities. By
 Schur orthogonality, this gives the inner product of the `tr(g)^5` with
-itself, that is, the integral of `|tr(g)|^{10}`:
-
-.. link
-
-::
+itself, that is, the integral of `|tr(g)|^{10}`::
 
     sage: sum(d^2 for d in (tr^5).coefficients())
     103
 
 So far we have been working with `n=3`. For general `n`::
 
-   sage: def f(n,k):
-   ....:     R = WeylCharacterRing(['A',n-1])
-   ....:     tr = R(R.fundamental_weights()[1])
-   ....:     return sum(d^2 for d in (tr^k).coefficients())
-   ....:
-   sage: [f(n,5) for n in [2..7]] # long time
-   [42, 103, 119, 120, 120, 120]
+    sage: def f(n,k):
+    ....:     R = WeylCharacterRing(['A',n-1])
+    ....:     tr = R(R.fundamental_weights()[1])
+    ....:     return sum(d^2 for d in (tr^k).coefficients())
+    sage: [f(n,5) for n in [2..7]]
+    [42, 103, 119, 120, 120, 120]
 
 We see that the 10-th moment of `tr(g)` is just `5!` when `n` is sufficiently
 large. What if we fix `n` and vary `k`?
 
-.. link
-
 ::
 
-        sage: [f(2,k) for k in [1..10]]
-        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
-        sage: [catalan_number(k) for k in [1..10]]
-        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+    sage: [f(2,k) for k in [1..10]]
+    [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+    sage: [catalan_number(k) for k in [1..10]]
+    [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
 
 
 Frobenius-Schur indicator
@@ -287,9 +265,9 @@ the Frobenius-Schur indicators of the spin representations of some
 odd spin groups::
 
     sage: def spinrepn(r):
-    ...       R = WeylCharacterRing(['B',r])
-    ...       return R(R.fundamental_weights()[r])
-    ...
+    ....:     R = WeylCharacterRing(['B',r])
+    ....:     return R(R.fundamental_weights()[r])
+    ....:
     sage: spinrepn(3)
     B3(1/2,1/2,1/2)
     sage: for r in [1..4]: print r, spinrepn(r).frobenius_schur_indicator()
@@ -311,7 +289,7 @@ Symmetric and exterior powers
 Sage can compute symmetric and exterior powers of a representation::
 
     sage: B3 = WeylCharacterRing("B3",style="coroots")
-    sage: spin=B3(0,0,1); spin.degree()
+    sage: spin = B3(0,0,1); spin.degree()
     8
     sage: spin.exterior_power(2)
     B3(1,0,0) + B3(0,1,0)
@@ -341,11 +319,7 @@ of the symmetric and exterior squares::
 
 Since in this example the exterior square contains the trivial
 representation we expect the Frobenius-Schur indicator to be `-1`, and
-indeed it is:
-
-.. link
-
-::
+indeed it is::
 
     sage: chi = C4(1,0,0,0)
     sage: chi.frobenius_schur_indicator()
@@ -503,11 +477,7 @@ the first fundamental weight and coercing it into the ring. For example, if
 We may compute the norm square the character ``tr^5`` by decomposing it into
 irreducibles, and taking the sum of the squares of their multiplicities. By
 Schur orthogonality, this gives the inner product of the `tr(g)^5` with
-itself, that is, the integral of `|tr(g)|^{10}`:
-
-.. link
-
-::
+itself, that is, the integral of `|tr(g)|^{10}`::
 
     sage: tr^5
     5*A2(2,2,1) + 6*A2(3,1,1) + 5*A2(3,2,0) + 4*A2(4,1,0) + A2(5,0,0)
@@ -520,25 +490,23 @@ itself, that is, the integral of `|tr(g)|^{10}`:
 
 So far we have been working with `n=3`. For general `n`::
 
-   sage: def f(n,k):
-   ...      R = WeylCharacterRing(['A',n-1])
-   ...      tr = R(R.fundamental_weights()[1])
-   ...      return sum(x^2 for x in (tr^k).coefficients())
-   ...
-   sage: [f(n,5) for n in [2..7]]  # long time (31s on sage.math, 2012)
-   [42, 103, 119, 120, 120, 120]
+    sage: def f(n,k):
+    ....:    R = WeylCharacterRing(['A',n-1])
+    ....:    tr = R(R.fundamental_weights()[1])
+    ....:    return sum(x^2 for x in (tr^k).coefficients())
+    ....:
+    sage: [f(n,5) for n in [2..7]]  # long time (31s on sage.math, 2012)
+    [42, 103, 119, 120, 120, 120]
 
 We see that the 10-th moment of `tr(g)` is just `5!` when `n` is sufficiently
 large. What if we fix `n` and vary `k`?
 
-.. link
-
 ::
 
-        sage: [f(2,k) for k in [1..10]]
-        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
-        sage: [catalan_number(k) for k in [1..10]]
-        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+    sage: [f(2,k) for k in [1..10]]
+    [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+    sage: [catalan_number(k) for k in [1..10]]
+    [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
 
 
 Invariants and multiplicities
@@ -548,11 +516,9 @@ Sometimes we are only interested in the multiplicity of the trivial
 representation in some character. This may be found by the method
 ``invariant_degree``. Continuing from the preceding example,
 
-.. link
-
 ::
 
-    sage: A2=WeylCharacterRing("A2",style="coroots")
+    sage: A2 = WeylCharacterRing("A2",style="coroots")
     sage: ad = A2(1,1)
     sage: [ad.symmetric_power(k).invariant_degree() for k in [0..6]]
     [1, 0, 1, 1, 1, 1, 2]
@@ -560,11 +526,7 @@ representation in some character. This may be found by the method
     [1, 0, 0, 1, 0, 1, 0]
 
 If we want the multiplicity of some other representation, we may
-obtain that using the method ``multiplicity``:
-
-.. link
-
-::
+obtain that using the method ``multiplicity``::
 
     sage: (ad^3).multiplicity(ad)
     8

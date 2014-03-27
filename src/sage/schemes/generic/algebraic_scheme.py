@@ -131,12 +131,12 @@ AUTHORS:
 
 
 
-from sage.rings.all import (
-    is_Ideal,
-    is_MPolynomialRing,
-    is_FiniteField,
-    is_RationalField,
-    ZZ)
+from sage.rings.all import ZZ
+
+from sage.rings.ideal import is_Ideal
+from sage.rings.rational_field import is_RationalField
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.finite_rings.constructor import is_FiniteField
 
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator

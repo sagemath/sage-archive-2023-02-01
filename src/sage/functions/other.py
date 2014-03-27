@@ -7,8 +7,8 @@ from sage.symbolic.pynac import register_symbol, symbol_table
 from sage.symbolic.pynac import py_factorial_py
 from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, \
-     is_ComplexNumber, ComplexField
+from sage.rings.all import Integer, Rational, RealField, RR, ComplexField
+from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 
@@ -331,8 +331,8 @@ class Function_ceil(BuiltinFunction):
 
         ::
 
-            sage: ceil(log(8)/log(2))
-            3
+            sage: ceil(sin(8)/sin(2))
+            2
 
         ::
 
@@ -431,7 +431,7 @@ class Function_ceil(BuiltinFunction):
                 return lower_ceil
             else:
                 try:
-                    return ceil(SR(x).full_simplify())
+                    return ceil(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
@@ -503,8 +503,8 @@ class Function_floor(BuiltinFunction):
 
         ::
 
-            sage: floor(log(8)/log(2))
-            3
+            sage: floor(cos(8)/cos(2))
+            0
 
         ::
 
@@ -592,7 +592,7 @@ class Function_floor(BuiltinFunction):
                 return lower_floor
             else:
                 try:
-                    return floor(SR(x).full_simplify())
+                    return floor(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
@@ -900,7 +900,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(CDF(0,1), 3)
             0.00320857499337 + 0.0124061858119*I
             sage: gamma_inc(RDF(1), 3)
-            0.0497870683678639
+            0.0497870683679
             sage: gamma_inc(3,2)
             gamma(3, 2)
             sage: gamma_inc(x,0)
@@ -927,9 +927,9 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(2,0)
             1
             sage: gamma_inc(1/2,2)
-            -(erf(sqrt(2)) - 1)*sqrt(pi)
+            -sqrt(pi)*(erf(sqrt(2)) - 1)
             sage: gamma_inc(1/2,1)
-            -(erf(1) - 1)*sqrt(pi)
+            -sqrt(pi)*(erf(1) - 1)
             sage: gamma_inc(1/2,0)
             sqrt(pi)
             sage: gamma_inc(x,0)
@@ -1516,23 +1516,23 @@ class Function_beta(GinacFunction):
             sage: beta(-1/2,-1/2)
             0
             sage: beta(x/2,3)
-            beta(1/2*x, 3)
+            beta(3, 1/2*x)
             sage: beta(.5,.5)
             3.14159265358979
             sage: beta(1,2.0+I)
             0.400000000000000 - 0.200000000000000*I
             sage: beta(3,x+I)
-            beta(x + I, 3)
+            beta(3, x + I)
 
         Note that the order of arguments does not matter::
 
             sage: beta(1/2,3*x)
-            beta(3*x, 1/2)
+            beta(1/2, 3*x)
 
         The result is symbolic if exact input is given::
 
             sage: beta(2,1+5*I)
-            beta(5*I + 1, 2)
+            beta(2, 5*I + 1)
             sage: beta(2, 2.)
             0.166666666666667
             sage: beta(I, 2.)
@@ -1803,7 +1803,7 @@ class Function_arg(BuiltinFunction):
             sage: arg(ComplexIntervalField(90)(3)).parent()
             Real Interval Field with 90 bits of precision
             sage: arg(3.0r)
-            0.000000000000000
+            0.0
             sage: arg(RDF(3))
             0.0
             sage: arg(RDF(3)).parent()
@@ -1868,6 +1868,8 @@ class Function_real_part(GinacFunction):
             <type 'sage.rings.real_mpfr.RealLiteral'>
             sage: real(1.0r)
             1.0
+            sage: real(complex(3, 4))
+            3.0
 
         TESTS::
 
@@ -1885,6 +1887,18 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                    conversions=dict(maxima='realpart'))
+
+    def __call__(self, x, **kwargs):
+        r"""
+        TESTS::
+
+            sage: type(real(complex(3, 4)))
+            <type 'float'>
+        """
+        if isinstance(x, complex):
+            return x.real
+        else:
+            return GinacFunction.__call__(self, x, **kwargs)
 
     def _eval_numpy_(self, x):
         """
@@ -1924,6 +1938,8 @@ class Function_imag_part(GinacFunction):
             2
             sage: imag(z)
             2
+            sage: imag(complex(3, 4))
+            4.0
             sage: loads(dumps(imag_part))
             imag_part
 
@@ -1938,6 +1954,18 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                    conversions=dict(maxima='imagpart'))
+
+    def __call__(self, x, **kwargs):
+        r"""
+        TESTS::
+
+            sage: type(imag(complex(3, 4)))
+            <type 'float'>
+        """
+        if isinstance(x, complex):
+            return x.imag
+        else:
+            return GinacFunction.__call__(self, x, **kwargs)
 
     def _eval_numpy_(self, x):
         """
@@ -2018,7 +2046,7 @@ class Function_conjugate(GinacFunction):
             sage: var('a')
             a
             sage: conjugate(a*sqrt(-2)*sqrt(-3))
-            conjugate(a)*conjugate(sqrt(-3))*conjugate(sqrt(-2))
+            conjugate(sqrt(-2))*conjugate(sqrt(-3))*conjugate(a)
 
         Test pickling::
 

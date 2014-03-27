@@ -66,7 +66,7 @@ class FiniteGroups(Category):
             sage: G = FiniteGroups().example(); G
             General Linear Group of degree 2 over Finite Field of size 3
         """
-        from sage.groups.matrix_gps.general_linear import GL
+        from sage.groups.matrix_gps.linear import GL
         return GL(2,3)
 
     class ParentMethods:
@@ -188,12 +188,13 @@ class FiniteGroups(Category):
 
             EXAMPLES::
 
-                sage: W = WeylGroup(['C',6])
-                sage: W.conjugacy_classes()
+                sage: from sage.groups.group import FiniteGroup
+                sage: G = FiniteGroup()
+                sage: G.conjugacy_classes()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: Listing the conjugacy classes for group
-                  Weyl Group of type ['C', 6] (as a matrix group acting on the ambient space) is not implemented
+                NotImplementedError: Listing the conjugacy classes for
+                group <type 'sage.groups.group.FiniteGroup'> is not implemented
             """
             raise NotImplementedError("Listing the conjugacy classes for group %s is not implemented"%self)
 
@@ -220,8 +221,10 @@ class FiniteGroups(Category):
                 sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
                 sage: h.conjugacy_class()
                 Conjugacy class of [1 2]
-                [4 1] in Matrix group over Finite Field of size 5 with 2 generators:
-                [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+                [4 1] in Matrix group over Finite Field of size 5 with 2 generators (
+                [1 2]  [1 1]
+                [4 1], [0 1]
+                )
             """
             return self.parent().conjugacy_class(self)
 

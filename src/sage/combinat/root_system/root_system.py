@@ -229,13 +229,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: W = L.weyl_group()
         sage: S3 = [ w.action(id) for w in W.classical() ]
         sage: [L.classical()(x) for x in S3]
-        [(1, 2, 3), (2, 1, 3), (3, 1, 2), (3, 2, 1), (1, 3, 2), (2, 3, 1)]
+        [(3, 2, 1), (3, 1, 2), (2, 3, 1), (2, 1, 3), (1, 3, 2), (1, 2, 3)]
 
     And the action of `s_0` on these yields::
 
         sage: s = W.simple_reflections()
         sage: [L.classical()(s[0].action(x)) for x in S3]
-        [(0, 2, 4), (0, 1, 5), (-1, 1, 6), (-2, 2, 6), (-1, 3, 4), (-2, 3, 5)]
+        [(-2, 2, 6), (-1, 1, 6), (-2, 3, 5), (0, 1, 5), (-1, 3, 4), (0, 2, 4)]
 
     We can also plot various components of the ambient spaces::
 
@@ -333,7 +333,6 @@ class RootSystem(UniqueRepresentation, SageObject):
         # only affects the pretty printing
         if as_dual_of is None:
             self.dual_side = False
-            self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
             # still fails for CartanType G2xA1
             try:
                 self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
@@ -423,12 +422,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return self.cartan_type().cartan_matrix()
 
+    @cached_method
     def index_set(self):
         """
         EXAMPLES::
 
             sage: RootSystem(['A',3]).index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
         return self.cartan_type().index_set()
 

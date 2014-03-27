@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Compile Fortran code within Sage,
+# see devel/sage/sage/misc/inline_fortran.py
+
+[ -n "$FC" ] || FC=gfortran
+
+if [ "$UNAME" = "Darwin" ]; then
+    exec $FC -bundle -undefined dynamic_lookup "$@"
+else
+    exec $FC -shared "$@"
+fi

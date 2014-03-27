@@ -51,7 +51,6 @@ import matrix_dense
 from matrix_integer_dense import _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
 from misc import matrix_integer_dense_rational_reconstruction
-from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -68,10 +67,13 @@ from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.misc import verbose
 import math
 
+from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_modn_dense_double
+from sage.ext.multi_modular import MAX_MODULUS as MAX_MODULUS_multi_modular
+MAX_MODULUS = min(MAX_MODULUS_modn_dense_double, MAX_MODULUS_multi_modular)
+
 # parameters for tuning
 echelon_primes_increment = 15
 echelon_verbose_level = 1
-
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################

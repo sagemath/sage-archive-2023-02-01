@@ -42,13 +42,13 @@ AUTHORS:
 REFERENCES:
 
 ..  [wp:ChowRing]
-    http://en.wikipedia.org/wiki/Chow_ring
+    :wikipedia:`Chow_ring`
 
 ..  [FMSS1]
     Fulton, MacPherson, Sottile, Sturmfels:
     *Intersection theory on spherical varieties*,
     J. of Alg. Geometry 4 (1995), 181-193.
-    http://www.math.tamu.edu/~frank.sottile/ps/spherical.ps.gz
+    http://www.math.tamu.edu/~frank.sottile/research/ps/spherical.ps.gz
 
 ..  [FultonChow]
     Chapter 5.1 "Chow Groups" of Fulton, William:

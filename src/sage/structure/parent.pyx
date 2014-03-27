@@ -10,33 +10,32 @@ CLASS HIERARCHY::
 A simple example of registering coercions::
 
     sage: class A_class(Parent):
-    ...     def __init__(self, name):
-    ...         Parent.__init__(self, name=name)
-    ...         self._populate_coercion_lists_()
-    ...         self.rename(name)
-    ...     #
-    ...     def category(self):
-    ...         return Sets()
-    ...     #
-    ...     def _element_constructor_(self, i):
-    ...         assert(isinstance(i, (int, Integer)))
-    ...         return ElementWrapper(i, parent = self)
-    ...
-    ...
+    ....:   def __init__(self, name):
+    ....:       Parent.__init__(self, name=name)
+    ....:       self._populate_coercion_lists_()
+    ....:       self.rename(name)
+    ....:   #
+    ....:   def category(self):
+    ....:       return Sets()
+    ....:   #
+    ....:   def _element_constructor_(self, i):
+    ....:       assert(isinstance(i, (int, Integer)))
+    ....:       return ElementWrapper(self, i)
+    ....:
     sage: A = A_class("A")
     sage: B = A_class("B")
     sage: C = A_class("C")
 
     sage: def f(a):
-    ...     return B(a.value+1)
-    ...
+    ....:   return B(a.value+1)
+    ....:
     sage: class MyMorphism(Morphism):
-    ...     def __init__(self, domain, codomain):
-    ...         Morphism.__init__(self, Hom(domain, codomain))
-    ...     #
-    ...     def _call_(self, x):
-    ...         return self.codomain()(x.value)
-    ...
+    ....:   def __init__(self, domain, codomain):
+    ....:       Morphism.__init__(self, Hom(domain, codomain))
+    ....:   #
+    ....:   def _call_(self, x):
+    ....:       return self.codomain()(x.value)
+    ....:
     sage: f = MyMorphism(A,B)
     sage: f
         Generic morphism:
@@ -64,7 +63,7 @@ base ring, and with ``_mul_`` for the ring multiplication. However, prior to
 
     sage: from sage.structure.element import RingElement
     sage: class MyElement(RingElement):
-    ....:      def __init__(self, x,y, parent = None):
+    ....:      def __init__(self, parent, x, y):
     ....:          RingElement.__init__(self, parent)
     ....:      def _mul_(self, other):
     ....:          return self
@@ -98,6 +97,7 @@ This came up in some subtle bug once::
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
+from sage.structure.debug_options import debug
 from sage.structure.sage_object import SageObject
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
                                  is_extension_type)
@@ -106,9 +106,6 @@ from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.sage_itertools import unique_merge
 from sage.misc.lazy_format import LazyFormat
-
-cdef int bad_parent_warnings = 0
-cdef int unique_parent_warnings = 0
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -323,6 +320,7 @@ cdef class Parent(category_object.CategoryObject):
         .. automethod:: _get_action_
         .. automethod:: _an_element_
         .. automethod:: _repr_option
+        .. automethod:: _init_category_
         """
         # TODO: in the long run, we want to get rid of the element_constructor = argument
         # (element_constructor would always be set by inheritance)
@@ -347,10 +345,10 @@ cdef class Parent(category_object.CategoryObject):
         self._init_category_(category)
 
         if len(kwds) > 0:
-            if bad_parent_warnings:
+            if debug.bad_parent_warnings:
                 print "Illegal keywords for %s: %s" % (type(self), kwds)
         # TODO: many classes don't call this at all, but __new__ crashes Sage
-        if bad_parent_warnings:
+        if debug.bad_parent_warnings:
             if element_constructor is not None and not callable(element_constructor):
                 print "coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor
         if gens is not None:
@@ -371,14 +369,23 @@ cdef class Parent(category_object.CategoryObject):
 
     def _init_category_(self, category):
         """
+        Initialize the category framework
+
+        Most parents initialize their category upon construction, and
+        this is the recommended behavior. For example, this happens
+        when the constructor calls :meth:`Parent.__init__` directly or
+        indirectly. However, some parents defer this for performance
+        reasons. For example,
+        :mod:`sage.matrix.matrix_space.MatrixSpace` does not.
+
         EXAMPLES::
 
             sage: P = Parent()
             sage: P.category()
             Category of sets
             sage: class MyParent(Parent):
-            ...       def __init__(self):
-            ...           self._init_category_(Groups())
+            ....:     def __init__(self):
+            ....:         self._init_category_(Groups())
             sage: MyParent().category()
             Category of groups
         """
@@ -393,7 +400,10 @@ cdef class Parent(category_object.CategoryObject):
             # TODO: assert that the category is consistent
             if not issubclass(self.__class__, Sets_parent_class) and not is_extension_type(self.__class__):
                 #documentation transfer is handled by dynamic_class
-                self.__class__     = dynamic_class("%s_with_category"%self.__class__.__name__, (self.__class__, category.parent_class, ), doccls=self.__class__)
+                self.__class__ = dynamic_class(
+                    '{0}_with_category'.format(self.__class__.__name__),
+                    (self.__class__, category.parent_class, ),
+                    doccls=self.__class__)
 
     def _refine_category_(self, category):
         """
@@ -423,14 +433,48 @@ cdef class Parent(category_object.CategoryObject):
             sage: first_class = Q.__class__
             sage: Q._refine_category_(Fields())
             sage: Q.category()
-            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+            Join of Category of fields and Category of subquotients of monoids and Category of quotients of semigroups
             sage: first_class == Q.__class__
             False
             sage: TestSuite(Q).run()
 
+
+        TESTS:
+
+        Here is a test against :trac:`14471`. Refining the category will issue
+        a warning, if this change affects the hash value (note that this will
+        only be seen in doctest mode)::
+
+            sage: class MyParent(Parent):
+            ....:     def __hash__(self):
+            ....:         return hash(type(self))   # subtle mistake
+            sage: a = MyParent()
+            sage: h_a = hash(a)
+            sage: a._refine_category_(Algebras(QQ))
+            hash of <class '__main__.MyParent_with_category'> changed in
+            Parent._refine_category_ during initialisation
+
+            sage: b = MyParent(category=Rings())
+            sage: h_b = hash(b)
+            sage: h_a == h_b
+            False
+            sage: b._refine_category_(Algebras(QQ))
+            hash of <class '__main__.MyParent_with_category'> changed in
+            Parent._refine_category_ during refinement
+            sage: hash(a) == hash(b)
+            True
+            sage: hash(a) != h_a
+            True
+
         """
+        if debug.refine_category_hash_check:
+            # check that the hash stays the same after refinement
+            hash_old = hash(self)
         if self._category is None:
             self._init_category_(category)
+            if debug.refine_category_hash_check and hash_old != hash(self):
+                print 'hash of {0} changed in Parent._refine_category_ during initialisation' \
+                    .format(str(self.__class__))
             return
         if category is self._category:
             return
@@ -455,6 +499,10 @@ cdef class Parent(category_object.CategoryObject):
             self.__dict__.__delitem__('element_class')
         except (AttributeError, KeyError):
             pass
+        if debug.refine_category_hash_check and hash_old != hash(self):
+            print 'hash of {0} changed in Parent._refine_category_ during refinement' \
+                .format(str(self.__class__))
+
 
     # This probably should go into Sets().Parent
     @lazy_attribute
@@ -524,7 +572,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: P.category()
             Category of sets
             sage: class MyParent(Parent):
-            ...       def __init__(self): pass
+            ....:     def __init__(self): pass
             sage: MyParent().category()
             Category of sets
         """
@@ -547,8 +595,8 @@ cdef class Parent(category_object.CategoryObject):
         Let us now write a parent with broken categories:
 
             sage: class MyParent(Parent):
-            ...       def __init__(self):
-            ...           pass
+            ....:     def __init__(self):
+            ....:         pass
             sage: P = MyParent()
             sage: P._test_category()
             Traceback (most recent call last):
@@ -591,8 +639,8 @@ cdef class Parent(category_object.CategoryObject):
         Let us now write a broken class method::
 
             sage: class CCls(Parent):
-            ...       def __eq__(self, other):
-            ...           return True
+            ....:     def __eq__(self, other):
+            ....:         return True
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
@@ -601,8 +649,8 @@ cdef class Parent(category_object.CategoryObject):
         Let us now break inequality::
 
             sage: class CCls(Parent):
-            ...       def __ne__(self, other):
-            ...           return True
+            ....:     def __ne__(self, other):
+            ....:         return True
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
@@ -727,7 +775,7 @@ cdef class Parent(category_object.CategoryObject):
         EXAMPLES::
 
             sage: for s in dir(ZZ):
-            ...       if s[:6] == "_test_": print s
+            ....:     if s[:6] == "_test_": print s
             _test_additive_associativity
             _test_an_element
             _test_associativity
@@ -913,12 +961,12 @@ cdef class Parent(category_object.CategoryObject):
         is preserved (see :trac:`5979`)::
 
             sage: class MyParent(Parent):
-            ...       def _element_constructor_(self, x):
-            ...           print self, x
-            ...           return sage.structure.element.Element(parent = self)
-            ...       def _repr_(self):
-            ...           return "my_parent"
-            ...
+            ....:     def _element_constructor_(self, x):
+            ....:         print self, x
+            ....:         return sage.structure.element.Element(parent = self)
+            ....:     def _repr_(self):
+            ....:         return "my_parent"
+            ....:
             sage: my_parent = MyParent()
             sage: x = my_parent("bla")
             my_parent bla
@@ -1250,24 +1298,21 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: from sage.rings.integer_ring import IntegerRing_class
             sage: class MyIntegers_class(IntegerRing_class):
-            ...        def is_finite(self):
-            ...            raise NotImplementedError
+            ....:      def is_finite(self):
+            ....:          raise NotImplementedError
             sage: MyIntegers = MyIntegers_class()
             sage: MyIntegers.is_finite()
             Traceback (most recent call last):
             ...
             NotImplementedError
 
-        Asking for ``list(MyIntegers)`` below  will never finish without
+        Asking for ``list(MyIntegers)`` below will never finish without
         pressing Ctrl-C.  We let it run for 1 second and then interrupt::
 
-            sage: try:
-            ...     alarm(1)
-            ...     list(MyIntegers)
-            ... except KeyboardInterrupt:
-            ...     print "Caught KeyboardInterrupt"
+            sage: alarm(1.0); list(MyIntegers)
+            Traceback (most recent call last):
             ...
-            Caught KeyboardInterrupt
+            AlarmInterrupt
 
         """
         try:
@@ -1389,13 +1434,13 @@ cdef class Parent(category_object.CategoryObject):
         override this default implementation::
 
             sage: class As(Category):
-            ...       def super_categories(self): return [Sets()]
-            ...       class ParentMethods:
-            ...           def __getitem__(self, n):
-            ...               return 'coucou'
+            ....:     def super_categories(self): return [Sets()]
+            ....:     class ParentMethods:
+            ....:         def __getitem__(self, n):
+            ....:             return 'coucou'
             sage: class A(Parent):
-            ...       def __init__(self):
-            ...           Parent.__init__(self, category=As())
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=As())
             sage: a = A()
             sage: a[1]
             'coucou'
@@ -1423,9 +1468,21 @@ cdef class Parent(category_object.CategoryObject):
 
     def Hom(self, codomain, category=None):
         r"""
-        Return the homspace ``Hom(self, codomain, cat)`` of all
-        homomorphisms from self to codomain in the category cat.  The
-        default category is :meth:`category`.
+        Return the homspace ``Hom(self, codomain, category)``.
+
+        INPUT:
+
+        - ``codomain`` -- a parent
+        - ``category`` -- a category or ``None`` (default: ``None``)
+          If ``None``, the meet of the category of ``self`` and
+          ``codomain`` is used.
+
+        OUTPUT:
+
+        The homspace of all homomorphisms from ``self`` to
+        ``codomain`` in the category ``category``.
+
+        .. SEEALSO:: :func:`~sage.categories.homset.Hom`
 
         EXAMPLES::
 
@@ -1446,14 +1503,9 @@ cdef class Parent(category_object.CategoryObject):
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
 
         A parent may specify how to construct certain homsets by
-        implementing a method ``_Hom_(codomain, category)``. This
-        method should either construct the requested homset or raise a
-        ``TypeError``.
+        implementing a method :meth:`_Hom_`(codomain, category).
+        See :func:`~sage.categories.homset.Hom` for details.
         """
-        try:
-            return self._Hom_(codomain, category)
-        except (AttributeError, TypeError):
-            pass
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
@@ -1720,20 +1772,20 @@ cdef class Parent(category_object.CategoryObject):
             sage: import operator
 
             sage: class SymmetricGroupAction(sage.categories.action.Action):
-            ...       "Act on a multivariate polynomial ring by permuting the generators."
-            ...       def __init__(self, G, M, is_left=True):
-            ...           sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
-            ...
-            ...       def _call_(self, g, a):
-            ...           if not self.is_left():
-            ...               g, a = a, g
-            ...           D = {}
-            ...           for k, v in a.dict().items():
-            ...               nk = [0]*len(k)
-            ...               for i in range(len(k)):
-            ...                   nk[g(i+1)-1] = k[i]
-            ...               D[tuple(nk)] = v
-            ...           return a.parent()(D)
+            ....:     "Act on a multivariate polynomial ring by permuting the generators."
+            ....:     def __init__(self, G, M, is_left=True):
+            ....:         sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
+            ....:
+            ....:     def _call_(self, g, a):
+            ....:         if not self.is_left():
+            ....:             g, a = a, g
+            ....:         D = {}
+            ....:         for k, v in a.dict().items():
+            ....:             nk = [0]*len(k)
+            ....:             for i in range(len(k)):
+            ....:                 nk[g(i+1)-1] = k[i]
+            ....:             D[tuple(nk)] = v
+            ....:         return a.parent()(D)
 
             sage: R.<x, y, z> = QQ['x, y, z']
             sage: G = SymmetricGroup(3)
@@ -1837,7 +1889,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: G(p)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce (1,3,2) to a 3-by-3 matrix over Rational Field
+            TypeError: entries must be coercible to a list or integer
             sage: G(1) * p
             Traceback (most recent call last):
             ...
@@ -2045,7 +2097,7 @@ cdef class Parent(category_object.CategoryObject):
         if S is self:
             return True
         elif S == self:
-            if unique_parent_warnings:
+            if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return True
         return self.coerce_map_from(S) is not None
@@ -2087,9 +2139,9 @@ cdef class Parent(category_object.CategoryObject):
             sage: _ = gc.collect()
             sage: K = GF(1<<55,'t')
             sage: for i in range(50):
-            ...     a = K.random_element()
-            ...     E = EllipticCurve(j=a)
-            ...     b = K.has_coerce_map_from(E)
+            ....:   a = K.random_element()
+            ....:   E = EllipticCurve(j=a)
+            ....:   b = K.has_coerce_map_from(E)
             sage: _ = gc.collect()
             sage: len([x for x in gc.get_objects() if isinstance(x,type(E))])
             1
@@ -2124,30 +2176,41 @@ cdef class Parent(category_object.CategoryObject):
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
 
+        The following was fixed in :trac:`4740`::
+
+            sage: F = GF(13)
+            sage: F.coerce_map_from(F) is F.coerce_map_from(F)
+            True
+
         """
         if not good_as_coerce_domain(S):
             return None
         self._coercions_used = True
         cdef map.Map mor
-        if S is self:
-            from sage.categories.homset import Hom
-            return Hom(self, self).identity()
 
-        elif isinstance(S, Set_PythonType_class):
+        if isinstance(S, Set_PythonType_class):
             return self.coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
-        #cdef object ret
+
         try:
             return self._coerce_from_hash.get(S)
         except KeyError:
             pass
 
+        if S is self:
+            from sage.categories.homset import Hom
+            mor = Hom(self, self).identity()
+            self._coerce_from_hash.set(S, mor)
+            return mor
+
         if S == self:
             # non-unique parents
-            if unique_parent_warnings:
+            if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
-            return self._generic_convert_map(S)
+            mor = self._generic_convert_map(S)
+            self._coerce_from_hash.set(S, mor)
+            return mor
 
         try:
             _register_pair(self, S, "coerce")
@@ -2204,9 +2267,9 @@ cdef class Parent(category_object.CategoryObject):
         Regression test for :trac:`12919` (probably not 100% robust)::
 
             sage: class P(Parent):
-            ...       def __init__(self):
-            ...           Parent.__init__(self, category=Sets())
-            ...       Element=ElementWrapper
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=Sets())
+            ....:     Element=ElementWrapper
             sage: A = P(); a = A('a')
             sage: B = P(); b = B('b')
             sage: C = P(); c = C('c')
@@ -2901,22 +2964,6 @@ cdef class Set_PythonType_class(Set_generic):
             # probably
             import sage.rings.infinity
             return sage.rings.infinity.infinity
-
-#     def _Hom_disabled(self, domain, cat=None):
-#         """
-#         By default, create a homset in the category of sets.
-
-#         EXAMPLES:
-#             sage: R = sage.structure.parent.Set_PythonType(int)
-#             sage: S = sage.structure.parent.Set_PythonType(float)
-#             sage: R._Hom_(S)
-#             Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
-#         """
-#         from sage.categories.sets_cat import Sets
-#         from sage.categories.homset import Homset
-#         if cat is None:
-#             cat = Sets()
-#         return Homset(self, domain, cat)
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their

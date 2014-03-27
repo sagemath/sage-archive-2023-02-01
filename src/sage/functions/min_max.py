@@ -1,3 +1,31 @@
+r"""
+Symbolic Minimum and Maximum
+
+Sage provides a symbolic maximum and minimum due to the fact that the Python
+builtin max and min are not able to deal with variables as users might expect.
+These functions wait to evaluate if there are variables.
+
+Here you can see some differences::
+
+   sage: max(x,x^2)
+   x
+   sage: max_symbolic(x,x^2)
+   max(x, x^2)
+   sage: f(x) = max_symbolic(x,x^2); f(1/2)
+   1/2
+
+This works as expected for more than two entries::
+
+   sage: max(3,5,x)
+   5
+   sage: min(3,5,x)
+   3
+   sage: max_symbolic(3,5,x)
+   max(x, 5)
+   sage: min_symbolic(3,5,x)
+   min(x, 3)
+
+"""
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>
@@ -138,9 +166,9 @@ class MinMax_base(BuiltinFunction):
 class MaxSymbolic(MinMax_base):
     def __init__(self):
         r"""
-        Symbolic `max` function.
+        Symbolic `\max` function.
 
-        The Python builtin `max` function doesn't work as expected when symbolic
+        The Python builtin `\max` function doesn't work as expected when symbolic
         expressions are given as arguments. This function delays evaluation
         until all symbolic arguments are substituted with values.
 
@@ -224,9 +252,9 @@ max_symbolic = MaxSymbolic()
 class MinSymbolic(MinMax_base):
     def __init__(self):
         r"""
-        Symbolic `min` function.
+        Symbolic `\min` function.
 
-        The Python builtin `min` function doesn't work as expected when symbolic
+        The Python builtin `\min` function doesn't work as expected when symbolic
         expressions are given as arguments. This function delays evaluation
         until all symbolic arguments are substituted with values.
 

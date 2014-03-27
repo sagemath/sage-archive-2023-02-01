@@ -1,5 +1,5 @@
 """
-Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<float>``
+Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 
 AUTHORS:
 - Burcin Erocal
@@ -17,8 +17,7 @@ AUTHORS:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
-# randstate in template needs this
-include 'sage/ext/random.pxi'
+from sage.rings.finite_rings.stdint cimport *
 
 from sage.libs.linbox.echelonform cimport BlasMatrixDouble as BlasMatrix
 from sage.libs.linbox.modular cimport ModDoubleField as ModField, ModDoubleFieldElement as ModFieldElement
@@ -31,13 +30,8 @@ from sage.libs.linbox.fflas cimport ModDouble_fgemm as Mod_fgemm, ModDouble_fgem
     ModDouble_MinPoly as Mod_MinPoly, \
     ModDouble_CharPoly as Mod_CharPoly
 
+# Limit for LinBox Modular<double>
 MAX_MODULUS = 2**23
-
-cdef extern from "../rings/finite_rings/stdint.h":
-    ctypedef int int_fast32_t
-    ctypedef int int_fast64_t
-    int_fast32_t INTEGER_MOD_INT32_LIMIT
-    int_fast64_t INTEGER_MOD_INT64_LIMIT
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int64
 
@@ -46,16 +40,31 @@ include "matrix_modn_dense_template.pxi"
 
 cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
     r"""
-    Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<float>``
+    Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 
     These are matrices with integer entries mod ``n`` represented as
     floating-point numbers in a 64-bit word for use with LinBox routines.
-    This allows for ``n`` up to `2^{23}`.  The
-    ``Matrix_modn_dense_float`` class specializes to smaller moduli.
+    This allows for ``n`` up to `2^{23}`.  The analogous
+    ``Matrix_modn_dense_float`` class is used for smaller moduli.
 
     Routines here are for the most basic access, see the
     `matrix_modn_dense_template.pxi` file for higher-level routines.
     """
+
+    def __cinit__(self):
+        """
+        The Cython constructor
+
+        TESTS::
+
+            sage: A = random_matrix(IntegerModRing(2^16), 4, 4)
+            sage: type(A[0,0])
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+        """
+        self._get_template = self._base_ring.zero()
+        # note that INTEGER_MOD_INT32_LIMIT is ceil(sqrt(2^31-1)) < 2^23
+        self._fits_int32 = ((<Matrix_modn_dense_template>self).p <= INTEGER_MOD_INT32_LIMIT)
+
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         r"""
         Set the (i,j) entry of self to the int value.
@@ -130,8 +139,7 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
             sage: a*a
             4337773
         """
-        # note that INTEGER_MOD_INT32_LIMIT is ceil(sqrt(2^31-1)) < 2^23
-        if (<Matrix_modn_dense_template>self).p <= INTEGER_MOD_INT32_LIMIT:
+        if (<Matrix_modn_dense_double>self)._fits_int32:
             self._matrix[i][j] = <double>(<IntegerMod_int>x).ivalue
         else:
             self._matrix[i][j] = <double>(<IntegerMod_int64>x).ivalue
@@ -139,6 +147,13 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
     cdef IntegerMod_abstract get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         r"""
         Return the (i,j) entry with no bounds-checking.
+
+        OUTPUT:
+
+        A :class:`sage.rings.finite_rings.integer_mod.IntegerMod_int`
+        or
+        :class:`sage.rings.finite_rings.integer_mod.IntegerMod_int64`
+        object, depending on the modulus.
 
         EXAMPLE::
 
@@ -168,9 +183,9 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
             sage: K(1237101)^2
             3803997
         """
-        # note that INTEGER_MOD_INT32_LIMIT is ceil(sqrt(2^31-1)) < 2^23
-        if (<Matrix_modn_dense_template>self).p <= INTEGER_MOD_INT32_LIMIT:
-            return IntegerMod_int(self._base_ring, <mod_int>(<Matrix_modn_dense_template>self)._matrix[i][j])
+        cdef Matrix_modn_dense_double _self = <Matrix_modn_dense_double>self
+        cdef double result = (<Matrix_modn_dense_template>self)._matrix[i][j]
+        if _self._fits_int32:
+            return (<IntegerMod_int>_self._get_template)._new_c(<int_fast32_t>result)
         else:
-            return IntegerMod_int64(self._base_ring, <mod_int>(<Matrix_modn_dense_template>self)._matrix[i][j])
-
+            return (<IntegerMod_int64>_self._get_template)._new_c(<int_fast64_t>result)

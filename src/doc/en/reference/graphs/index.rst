@@ -1,3 +1,4 @@
+
 Graph Theory
 ============
 
@@ -23,7 +24,6 @@ Constructors and databases
    sage/graphs/graph_generators
    sage/graphs/digraph_generators
    sage/graphs/graph_generators_pyx
-   sage/graphs/hypergraph_generators
    sage/graphs/graph_database
    sage/graphs/isgci
 
@@ -38,6 +38,18 @@ Low-level implementation
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
    sage/graphs/base/static_sparse_graph
+   sage/graphs/base/static_sparse_backend
+   sage/graphs/base/graph_backends
+
+Hypergraphs
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/graphs/hypergraph_generators
+   sage/graphs/hypergraph
+
 
 
 Libraries of algorithms

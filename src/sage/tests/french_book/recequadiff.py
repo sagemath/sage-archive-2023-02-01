@@ -68,13 +68,13 @@ Sage example in ./recequadiff.tex, line 297::
 
   sage: DE = diff(y,x)+2*y == x**2-2*x+3
   sage: desolve(DE, y)
-  -1/4*(2*(2*x - 1)*e^(2*x) - (2*x^2 - 2*x + 1)*e^(2*x) - 4*c
-  - 6*e^(2*x))*e^(-2*x)
+  1/4*((2*x^2 - 2*x + 1)*e^(2*x) - 2*(2*x - 1)*e^(2*x) + 4*c
+  + 6*e^(2*x))*e^(-2*x)
 
 Sage example in ./recequadiff.tex, line 305::
 
   sage: desolve(DE, y).expand()
-  c*e^(-2*x) + 1/2*x^2 - 3/2*x + 9/4
+  1/2*x^2 + c*e^(-2*x) - 3/2*x + 9/4
 
 Sage example in ./recequadiff.tex, line 321::
 
@@ -190,14 +190,14 @@ Sage example in ./recequadiff.tex, line 567::
 Sage example in ./recequadiff.tex, line 575::
 
   sage: Sol(x) = solve(sol, y)[0]; Sol(x)
-  log(y(x)) == (c + x)*a + log(b*y(x) - a)
+  log(y(x)) == a*(c + x) + log(b*y(x) - a)
 
 Sage example in ./recequadiff.tex, line 582::
 
   sage: Sol(x) = Sol(x).lhs()-Sol(x).rhs(); Sol(x)
-  -(c + x)*a - log(b*y(x) - a) + log(y(x))
+  -a*(c + x) - log(b*y(x) - a) + log(y(x))
   sage: Sol = Sol.simplify_log(); Sol(x)
-  -(c + x)*a + log(y(x)/(b*y(x) - a))
+  -a*(c + x) + log(y(x)/(b*y(x) - a))
   sage: solve(Sol, y)[0].simplify()
   y(x) == a*e^(a*c + a*x)/(b*e^(a*c + a*x) - 1)
 
@@ -206,7 +206,7 @@ Sage example in ./recequadiff.tex, line 602::
   sage: x = var('x'); y = function('y', x)
   sage: DE = diff(y,x,2)+3*y == x^2-7*x+31
   sage: desolve(DE, y).expand()
-  k1*sin(sqrt(3)*x) + k2*cos(sqrt(3)*x) + 1/3*x^2 - 7/3*x + 91/9
+  1/3*x^2 + k2*cos(sqrt(3)*x) + k1*sin(sqrt(3)*x) - 7/3*x + 91/9
 
 Sage example in ./recequadiff.tex, line 611::
 
@@ -217,7 +217,7 @@ Sage example in ./recequadiff.tex, line 611::
 Sage example in ./recequadiff.tex, line 621::
 
   sage: desolve(DE, y, ics=[0,1,-1,0]).expand()
-  1/3*x^2 - 7/3*x - 82/9*sin(sqrt(3)*x)*cos(sqrt(3))/sin(sqrt(3))
+  1/3*x^2 - 7/3*x - 82/9*cos(sqrt(3))*sin(sqrt(3)*x)/sin(sqrt(3))
   + 115/9*sin(sqrt(3)*x)/sin(sqrt(3)) - 82/9*cos(sqrt(3)*x) + 91/9
 
 Sage example in ./recequadiff.tex, line 674::
@@ -265,22 +265,22 @@ Sage example in ./recequadiff.tex, line 795::
 
   sage: X(s) = 1/(s^2-3*s-4)/(s^2+1) + (s-4)/(s^2-3*s-4)
   sage: X(s).inverse_laplace(s, x)
-  9/10*e^(-x) + 1/85*e^(4*x) - 5/34*sin(x) + 3/34*cos(x)
+  3/34*cos(x) + 1/85*e^(4*x) + 9/10*e^(-x) - 5/34*sin(x)
 
 Sage example in ./recequadiff.tex, line 807::
 
   sage: X(s).partial_fraction()
-  1/34*(3*s - 5)/(s^2 + 1) + 1/85/(s - 4) + 9/10/(s + 1)
+  1/34*(3*s - 5)/(s^2 + 1) + 9/10/(s + 1) + 1/85/(s - 4)
 
 Sage example in ./recequadiff.tex, line 818::
 
   sage: x = var('x'); y = function('y',x)
   sage: eq = diff(y,x,x) - 3*diff(y,x) - 4*y - sin(x) == 0
   sage: desolve_laplace(eq, y)
-  1/10*(8*y(0) - 2*D[0](y)(0) - 1)*e^(-x) + 1/85*(17*y(0) +
-  17*D[0](y)(0) + 1)*e^(4*x) - 5/34*sin(x) + 3/34*cos(x)
+  1/85*(17*y(0) + 17*D[0](y)(0) + 1)*e^(4*x) + 1/10*(8*y(0)
+  - 2*D[0](y)(0) - 1)*e^(-x) + 3/34*cos(x) - 5/34*sin(x)
   sage: desolve_laplace(eq, y, ics=[0,1,-1])
-  9/10*e^(-x) + 1/85*e^(4*x) - 5/34*sin(x) + 3/34*cos(x)
+  3/34*cos(x) + 1/85*e^(4*x) + 9/10*e^(-x) - 5/34*sin(x)
 
 Sage example in ./recequadiff.tex, line 869::
 
@@ -290,9 +290,9 @@ Sage example in ./recequadiff.tex, line 869::
   sage: A = matrix([[2,-2,0],[-2,0,2],[0,2,2]])
   sage: system = [diff(y[i], x) - (A * y)[i] for i in range(3)]
   sage: desolve_system(system, [y1, y2, y3], ics=[0,2,1,-2])
-  [y1(x) ==   e^(-2*x) + e^(4*x),
-   y2(x) == 2*e^(-2*x) - e^(4*x),
-   y3(x) ==  -e^(-2*x) - e^(4*x)]
+  [y1(x) == e^(4*x) + e^(-2*x),
+   y2(x) == -e^(4*x) + 2*e^(-2*x),
+   y3(x) == -e^(4*x) - e^(-2*x)]
 
 Sage example in ./recequadiff.tex, line 913::
 
@@ -301,7 +301,7 @@ Sage example in ./recequadiff.tex, line 913::
   sage: A = matrix([[3,-4],[1,3]])
   sage: system = [diff(y[i], x) - (A * y)[i] for i in range(2)]
   sage: desolve_system(system, [y1, y2], ics=[0,2,0])
-  [y1(x) == 2*e^(3*x)*cos(2*x), y2(x) == e^(3*x)*sin(2*x)]
+  [y1(x) == 2*cos(2*x)*e^(3*x), y2(x) == e^(3*x)*sin(2*x)]
 
 Sage example in ./recequadiff.tex, line 966::
 
@@ -315,9 +315,10 @@ Sage example in ./recequadiff.tex, line 966::
 Sage example in ./recequadiff.tex, line 977::
 
   sage: sol[0]
-  u1(x) == 1/24*(2*u1(0) - 6*u2(0) - u3(0) + 3*u4(0))*e^(-4*x)
-          + 1/12*(2*u1(0) - 6*u2(0) + 5*u3(0) + 3*u4(0))*e^(2*x)
-          + 3/4*u1(0) + 3/4*u2(0) - 3/8*u3(0) - 3/8*u4(0)
+  u1(x) == 1/12*(2*u1(0) - 6*u2(0) + 5*u3(0) + 3*u4(0))*e^(2*x)
+           + 1/24*(2*u1(0) - 6*u2(0) - u3(0) + 3*u4(0))*e^(-4*x)
+           + 3/4*u1(0) + 3/4*u2(0) - 3/8*u3(0) - 3/8*u4(0)
+
   sage: sol[1]
   u2(x) == -1/12*(2*u1(0) - 6*u2(0) - u3(0) - 3*u4(0))*e^(2*x)
            - 1/24*(2*u1(0) - 6*u2(0) - u3(0) + 3*u4(0))*e^(-4*x)

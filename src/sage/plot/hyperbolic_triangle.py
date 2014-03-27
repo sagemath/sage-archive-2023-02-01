@@ -64,7 +64,13 @@ class HyperbolicTriangle(BezierPath):
 
     def _repr_(self):
         """
-        String representation of HyperbolicTriangle.
+        String representation of HyperbolicArc.
+
+        TESTS::
+
+            sage: from sage.plot.hyperbolic_triangle import HyperbolicTriangle
+            sage: HyperbolicTriangle(0, 1/2, I,{})._repr_()
+            'Hyperbolic triangle (0.000000000000000, 0.500000000000000, 1.00000000000000*I)'
         """
         return "Hyperbolic triangle (%s, %s, %s)" % (self.A, self.B, self.C)
 
@@ -125,7 +131,9 @@ def hyperbolic_triangle(a, b, c, **options):
 
     - ``rgbcolor`` - default: 'blue'
 
-    - ``linestyle`` - default: 'solid'
+    - ``linestyle`` - (default: ``'solid'``) The style of the line, which is
+      one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
+      ``':'``, ``'-'``, ``'-.'``, respectively.
 
     EXAMPLES:
 
@@ -134,9 +142,9 @@ def hyperbolic_triangle(a, b, c, **options):
 
          sage: hyperbolic_triangle(0, -1/2+I*sqrt(3)/2, 1/2+I*sqrt(3)/2)
 
-    A hyperbolic triangle with coordinates 0, 1 and 2+i::
+    A hyperbolic triangle with coordinates 0, 1 and 2+i and a dashed line::
 
-         sage: hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red')
+         sage: hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red', linestyle='--')
     """
     from sage.plot.all import Graphics
     g = Graphics()

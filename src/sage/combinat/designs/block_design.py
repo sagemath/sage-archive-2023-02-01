@@ -22,10 +22,10 @@ a block design uses `P = [0,1,..., v-1]`, so a block design is specified by
 REFERENCES:
 
 .. [1] Block design from wikipedia,
-  http://en.wikipedia.org/wiki/Block_design
+  :wikipedia:`Block_design`
 
 .. [2] What is a block design?,
-  http://designtheory.org/library/extrep/html/node4.html (in 'The
+  http://designtheory.org/library/extrep/extrep-1.1-html/node4.html (in 'The
   External Representation of Block Designs' by Peter J. Cameron, Peter
   Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
@@ -264,7 +264,7 @@ def steiner_triple_system(n):
     the complete graph `K_n` with triangles.
 
     A Steiner Triple System of a `n`-set exists if and only if
-    `n \equiv 1 mod 6` or `n \equiv 3 mod 6`, in which case
+    `n \equiv 1 \pmod 6` or `n \equiv 3 \pmod 6`, in which case
     one can be found through Bose's and Skolem's constructions,
     respectively [AndHon97]_.
 

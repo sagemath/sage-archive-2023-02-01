@@ -4,6 +4,8 @@ Matrix Group Homsets
 AUTHORS:
 
 - William Stein (2006-05-07): initial version
+
+- Volker Braun (2013-1) port to new Parent, libGAP
 """
 
 ##############################################################################
@@ -17,21 +19,17 @@ AUTHORS:
 ##############################################################################
 
 from sage.groups.group_homset import GroupHomset_generic
-from sage.categories.homset import HomsetWithBase
-from sage.categories.all import Groups
-GROUPS = Groups()
 
-import matrix_group_morphism
 
 def is_MatrixGroupHomset(x):
     r"""
+    Test whether ``x`` is a homset.
+
     EXAMPLES::
 
         sage: from sage.groups.matrix_gps.homset import is_MatrixGroupHomset
         sage: is_MatrixGroupHomset(4)
         False
-
-    ::
 
         sage: F = GF(5)
         sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
@@ -43,34 +41,22 @@ def is_MatrixGroupHomset(x):
     """
     return isinstance(x, MatrixGroupHomset)
 
+
 class MatrixGroupHomset(GroupHomset_generic):
-    r"""
-    Return the homset of two matrix groups.
 
-    INPUT:
-
-    - ``G`` - a matrix group
-    - ``H`` - a matrix group
-
-    OUTPUT:
-
-    The homset of two matrix groups.
-
-    EXAMPLES::
-
-        sage: F = GF(5)
-        sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
-        sage: G = MatrixGroup(gens)
-        sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
-        sage: MatrixGroupHomset(G, G)
-        Set of Homomorphisms from Matrix group over Finite Field of size 5 with 2 generators:
-         [[[1, 2], [4, 1]], [[1, 1], [0, 1]]] to Matrix group over Finite Field of size 5 with 2 generators:
-         [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
-
-    """
     def __init__(self, G, H):
         r"""
-        See ``MatrixGroupHomset`` for full documentation.
+        Return the homset of two matrix groups.
+
+        INPUT:
+
+        - ``G`` -- a matrix group.
+
+        - ``H`` -- a matrix group.
+
+        OUTPUT:
+
+        The homset of two matrix groups.
 
         EXAMPLES::
 
@@ -79,11 +65,18 @@ class MatrixGroupHomset(GroupHomset_generic):
             sage: G = MatrixGroup(gens)
             sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
             sage: MatrixGroupHomset(G, G)
-            Set of Homomorphisms from Matrix group over Finite Field of size 5 with 2 generators:
-             [[[1, 2], [4, 1]], [[1, 1], [0, 1]]] to Matrix group over Finite Field of size 5 with 2 generators:
-             [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+            Set of Homomorphisms from
+            Matrix group over Finite Field of size 5 with 2 generators (
+            [1 2]  [1 1]
+            [4 1], [0 1]
+            ) to Matrix group over Finite Field of size 5 with 2 generators (
+            [1 2]  [1 1]
+            [4 1], [0 1]
+            )
         """
-        HomsetWithBase.__init__(self, G, H, GROUPS, G.base_ring())
+        from sage.categories.groups import Groups
+        from sage.categories.homset import HomsetWithBase
+        HomsetWithBase.__init__(self, G, H, Groups(), G.base_ring())
 
     def __call__(self, im_gens, check=True):
         """
@@ -91,10 +84,15 @@ class MatrixGroupHomset(GroupHomset_generic):
 
         INPUT:
 
-        - ``im_gens`` - iterable, the list of images of the generators of
-          the domain
-        - ``check`` - bool (optional, default: ``True``), whether to check
-          if images define a valid homomorphism
+        - ``im_gens`` -- iterable, the list of images of the
+          generators of the domain
+
+        - ``check`` -- bool (optional, default: ``True``), whether to
+          check if images define a valid homomorphism
+
+        OUTPUT:
+
+        Group homomorphism.
 
         EXAMPLES::
 
@@ -104,15 +102,18 @@ class MatrixGroupHomset(GroupHomset_generic):
             sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
             sage: M = MatrixGroupHomset(G, G)
             sage: M(gens)
-            Homomorphism : Matrix group over Finite Field of size 5 with 2 generators:
-             [[[1, 2], [4, 1]], [[1, 1], [0, 1]]] --> Matrix group over Finite Field of size 5 with 2 generators:
-             [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
-
+            Homomorphism : Matrix group over Finite Field of size 5 with 2 generators (
+            [1 2]  [1 1]
+            [4 1], [0 1]
+            ) --> Matrix group over Finite Field of size 5 with 2 generators (
+            [1 2]  [1 1]
+            [4 1], [0 1]
+            )
         """
+        from sage.groups.matrix_gps.morphism import MatrixGroupMorphism_im_gens
         try:
-            return matrix_group_morphism.MatrixGroupMorphism_im_gens(self,
-                                                            im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
-            raise TypeError, "images (=%s) do not define a valid homomorphism"%im_gens
+            return MatrixGroupMorphism_im_gens(self, im_gens, check=check)
+        except (NotImplementedError, ValueError) as err:
+            raise TypeError('images do not define a group homomorphism')
 
 

@@ -40,8 +40,13 @@ AUTHORS:
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
 
-from sage.rings.all import ( gcd, ZZ, QQ,
-    is_CommutativeRing, is_RingHomomorphism, is_RationalField, is_FiniteField )
+from sage.rings.all import ( gcd, ZZ, QQ )
+
+from sage.rings.morphism import is_RingHomomorphism
+from sage.rings.rational_field import is_RationalField
+from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.commutative_ring import is_CommutativeRing
+
 
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.generic.spec import Spec, is_Spec

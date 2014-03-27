@@ -110,9 +110,9 @@ class Category_singleton(Category):
 
         sage: from sage.categories.category_singleton import Category_singleton
         sage: class MyRings(Category):
-        ...        super_categories = Rings.__dict__['super_categories']
+        ....:         super_categories = Rings.__dict__['super_categories']
         sage: class MyRingsSingleton(Category_singleton):
-        ...        super_categories = Rings.__dict__['super_categories']
+        ....:         super_categories = Rings.__dict__['super_categories']
 
     We create three rings. One of them is contained in the usual category of
     rings, one in the category of "my rings" and the third in the category of
@@ -178,38 +178,62 @@ class Category_singleton(Category):
         sage: timeit("c(R)", number = 10000)                          # not tested
         10000 loops, best of 3: 661 ns per loop
 
-    .. warning::
+    .. WARNING::
 
-        A singleton concrete class `A` cannot have a subclass `B`
+        A singleton concrete class `A` should not have a subclass `B`
         (necessarily concrete). Otherwise, creating an instance `a` of
         `A` and an instance `b` of `B` would break the singleton
         principle: `A` would have two instances `a` and `b`.
 
-        This implementation currently requires that:
+        With the current implementation only direct subclasses of
+        :class:`Category_singleton` are supported::
 
-        - a subclass of :class:`Category_singleton` should not have subclasses
-
-        - :class:`Category_singleton` should not be instantiated.
-
-        For example, subclassing our rings singleton produces wrong results::
-
+            sage: class MyRingsSingleton(Category_singleton):
+            ....:         super_categories = Rings.__dict__['super_categories']
             sage: class Disaster(MyRingsSingleton): pass
-            sage: Disaster()   # Note that this is NOT "Category of disaster"!
-            Category of my rings singleton
-            sage: Disaster() is MyRingsSingleton()
+            sage: Disaster()
+            Traceback (most recent call last):
+            ...
+            AssertionError: <class '__main__.Disaster'> is not a direct subclass of <class 'sage.categories.category_singleton.Category_singleton'>
+
+        However, it is acceptable for a direct subclass `R` of
+        :class:`Category_singleton` to create its unique instance as
+        an instance of a subclass of itself (in which case, its the
+        subclass of `R` which is concrete, not `R` itself). This is
+        used for example to plug in extra category code via a dynamic
+        subclass::
+
+            sage: from sage.categories.category_singleton import Category_singleton
+            sage: class R(Category_singleton):
+            ....:        def super_categories(self): return [Sets()]
+            sage: R()
+            Category of r
+            sage: R().__class__
+            <class '__main__.R_with_category'>
+            sage: R().__class__.mro()
+            [<class '__main__.R_with_category'>,
+             <class '__main__.R'>,
+             <class 'sage.categories.category_singleton.Category_singleton'>,
+             <class 'sage.categories.category.Category'>,
+             <class 'sage.structure.unique_representation.UniqueRepresentation'>,
+             <class 'sage.structure.unique_representation.CachedRepresentation'>,
+             <type 'sage.misc.fast_methods.WithEqualityById'>,
+             <type 'sage.structure.sage_object.SageObject'>,
+             <class '__main__.R.subcategory_class'>,
+             <class 'sage.categories.sets_cat.Sets.subcategory_class'>,
+             <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.subcategory_class'>,
+             <class 'sage.categories.objects.Objects.subcategory_class'>,
+             <type 'object'>]
+            sage: R() is R()
+            True
+            sage: R() is R().__class__()
             True
 
-        For safety, we made sure that instanciating
-        :class:`Category_singleton` does not break subclasses, by not
-        caching the result::
+        In that case, ``R`` is an abstract class and has a single
+        concrete subclass, so this does not break the Singleton design
+        pattern.
 
-            sage: Category_singleton() is Category_singleton()
-            False
-            sage: class NewSubclass(Category_singleton): pass
-            sage: NewSubclass()
-            Category of new subclass
-            sage: NewSubclass() is NewSubclass()
-            True
+        .. SEEALSO:: :meth:`Category.__classcall__`, :meth:`Category.__init__`
 
     TESTS::
 
@@ -220,41 +244,50 @@ class Category_singleton(Category):
     """
 
     # That is just an optimized constant cached_method
-    @lazy_class_attribute
+    @staticmethod
     def __classcall__(object cls):
         """
         TESTS::
 
             sage: from sage.categories.category_singleton import Category_singleton
             sage: class MyRingsSingleton(Category_singleton):
-            ...        super_categories = Rings.__dict__['super_categories']
+            ....:         super_categories = Rings.__dict__['super_categories']
             sage: MyRingsSingleton()
             Category of my rings singleton
 
-        Note that when calling :class:`Category_singleton` directly
-        then there is no cache used::
+        Instanciating :class:`Category_singleton` triggers an assertion error::
 
-            sage: Category_singleton() is Category_singleton()
-            False
+            sage: Category_singleton()
+            Traceback (most recent call last):
+            ...
+            AssertionError: <class 'sage.categories.category_singleton.Category_singleton'> is not a direct subclass of <class 'sage.categories.category_singleton.Category_singleton'>
 
-        You must **never** subclass a subclass of :class:`Category_singleton`.
-        Otherwise, the instance the sub-sub-class may become identical with
-        the instance of the sub-class::
+        Instantiating a subclass of a subclass of :class:`Category_singleton`
+        also triggers an assertion error::
 
-            sage: class MyStuff(Category_singleton): pass
-            sage: MyStuff()
-            Category of my stuff
+            sage: class MyStuff(Category_singleton):
+            ....:        def super_categories(self): return [Sets()]
             sage: class MySubStuff(MyStuff): pass
             sage: MySubStuff()
+            Traceback (most recent call last):
+            ...
+            AssertionError: <class '__main__.MySubStuff'> is not a direct subclass of <class 'sage.categories.category_singleton.Category_singleton'>
+
+        even if ``MyStuff`` has already been instanciated::
+
+            sage: MyStuff()
             Category of my stuff
+            sage: MySubStuff()
+            Traceback (most recent call last):
+            ...
+            AssertionError: <class '__main__.MySubStuff'> is not a direct subclass of <class 'sage.categories.category_singleton.Category_singleton'>
         """
-        if cls.__mro__[1] is not Category_singleton:
-            # Actually this type error is invisible. But it makes sure that
-            # the __classcall__ for Category_singleton is not overridden
-            # when someone is calling it.
-            raise TypeError, "%s is not a direct subclass of %s"%(cls,Category_singleton)
-        obj = UniqueRepresentation.__classcall__(cls)
-        return ConstantFunction(obj)
+        assert cls.__mro__[1] is Category_singleton, \
+            "%s is not a direct subclass of %s"%(cls, Category_singleton)
+        obj = super(Category_singleton, cls).__classcall__(cls)
+        cls._set_classcall(ConstantFunction(obj))
+        obj.__class__._set_classcall(ConstantFunction(obj))
+        return obj
 
     @lazy_class_attribute
     def __contains__(cls):
@@ -263,7 +296,7 @@ class Category_singleton(Category):
 
             sage: from sage.categories.category_singleton import Category_singleton
             sage: class MyRingsSingleton(Category_singleton):
-            ...        super_categories = Rings.__dict__['super_categories']
+            ....:         super_categories = Rings.__dict__['super_categories']
             sage: ZZ in MyRingsSingleton()
             False
             sage: Parent(category=MyRingsSingleton()) in MyRingsSingleton()

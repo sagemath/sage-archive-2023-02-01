@@ -61,7 +61,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.misc.flatten import flatten
-from sage.combinat.permutation import Permutation, Permutation_class
+from sage.combinat.permutation import Permutation
 from sage.sets.set import Set
 from sage.combinat.partition import Partition
 from sage.misc.misc_c import prod
@@ -186,7 +186,7 @@ class PerfectMatching(ElementWrapper):
         # check if it is a fix-point-free involution.
         elif ((isinstance(p, list) and
                all(map(lambda x: (isinstance(x, Integer) or isinstance(x, int)), p)))
-              or isinstance(p, Permutation_class)):
+              or isinstance(p, Permutation)):
             p = Permutation(p)
             n = len(p)
             if not(p.cycle_type() == [2 for i in range(n//2)]):
@@ -205,9 +205,28 @@ class PerfectMatching(ElementWrapper):
         # executed and we do not have an infinite loop.
         return PerfectMatchings(objects)(data)
 
+    def __iter__(self):
+        r"""
+        Iterate over the edges of the matching ``self``.
+
+        The edges are yielded as 2-tuples. Neither the elements of these
+        tuples nor the tuples are necessarily sorted in any predictable
+        way.
+
+        EXAMPLES::
+
+            sage: list(PerfectMatching([('a','e'),('b','c'),('d','f')]))
+            [('a', 'e'), ('b', 'c'), ('d', 'f')]
+            sage: list(PerfectMatchings(2)[0])
+            [(1, 2)]
+            sage: list(PerfectMatching([3,8,1,7,6,5,4,2]))
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+        """
+        return self.value.__iter__()
+
     def _repr_(self):
         r"""
-        returns the name of the object
+        Return a string representation of the matching ``self``.
 
         EXAMPLES::
 
@@ -728,7 +747,7 @@ class PerfectMatching(ElementWrapper):
             sage: m = PerfectMatching([(1,3),(2,4)])
             sage: n = PerfectMatching([(1,2),(3,4)])
             sage: factor(m.Weingarten_function(N,n))
-            -1/((N - 1)*(N + 2)*N)
+            -1/((N + 2)*(N - 1)*N)
         """
         if other is None:
             other = self.parent().an_element()
@@ -777,7 +796,7 @@ class PerfectMatching(ElementWrapper):
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(self.__dict__['value'])
+        return Permutation(self.value)
 
 
 class PerfectMatchings(UniqueRepresentation, Parent):

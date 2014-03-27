@@ -117,12 +117,12 @@ Make sure we don't have a new field for every new literal::
 
 import math # for log
 import sys
-import weakref
 import re
 
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
+include 'sage/libs/pari/pari_err.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -134,6 +134,7 @@ cdef bin_op
 from sage.structure.element import bin_op
 
 import sage.misc.misc as misc
+import sage.misc.weak_dict
 
 import operator
 
@@ -358,7 +359,7 @@ _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
-cdef object RealField_cache = weakref.WeakValueDictionary()
+cdef object RealField_cache = sage.misc.weak_dict.WeakValueDictionary()
 
 cpdef RealField(int prec=53, int sci_not=0, rnd="RNDN"):
     """
@@ -1279,7 +1280,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
            is the same as in the IEEE 754-1985 standard and it is
            generalized to the other functions supported by MPFR.
 
-
         TESTS::
 
             sage: TestSuite(R).run()
@@ -1290,7 +1290,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self._parent = parent
         mpfr_init2(self.value, parent.__prec)
         self.init = 1
-        if x is None: return
+        if x is None:
+            return
+
         self._set(x, base)
 
     def _magma_init_(self, magma):
@@ -1786,9 +1788,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '-10.042'
             sage: (389.0).str(skip_zeroes=True)
             '389.'
+
+        Test various bases::
+
+            sage: print (65536.0).str(base=2)
+            1.0000000000000000000000000000000000000000000000000000e16
+            sage: print (65536.0).str(base=36)
+            1ekg.00000000
+            sage: print (65536.0).str(base=62)
+            H32.0000000
+            sage: print (65536.0).str(base=63)
+            Traceback (most recent call last):
+            ...
+            ValueError: base (=63) must be an integer between 2 and 62
         """
-        if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+        if base < 2 or base > 62:
+            raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
         if mpfr_nan_p(self.value):
             if base >= 24:
                 return "@NaN@"
@@ -2123,6 +2138,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealField_class> self._parent).rnd)
         return x
 
+    def _sympy_(self):
+        """
+        Return a sympy object of ``self``.
+
+        EXAMPLES:
+
+        An indirect doctest to check this (see :trac:`14915`)::
+
+            sage: x,y = var('x, y')
+            sage: integrate(y, y, 0.5, 8*log(x), algorithm='sympy')
+            32*log(x)^2 - 0.125000000000000
+
+        """
+        import sympy
+        return sympy.simplify(float(self))
+
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
@@ -2371,16 +2402,38 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self
 
-    def ulp(self):
+    def ulp(self, field=None):
         """
-        Returns the unit of least precision of ``self``, which is the weight of
-        the least significant bit of ``self``. Unless ``self`` is exactly a
-        power of two, it is gap between this number and the next closest
-        distinct number that can be represented.
+        Returns the unit of least precision of ``self``, which is the
+        weight of the least significant bit of ``self``. This is always
+        a strictly positive number. It is also the gap between this
+        number and the closest number with larger absolute value that
+        can be represented.
+
+        INPUT:
+
+        - ``field`` -- :class:`RealField` used as parent of the result.
+          If not specified, use ``parent(self)``.
+
+        .. NOTE::
+
+            The ulp of zero is defined as the smallest representable
+            positive number. For extremely small numbers, underflow
+            occurs and the output is also the smallest representable
+            positive number (the rounding mode is ignored, this
+            computation is done by rounding towards +infinity).
+
+        .. SEEALSO::
+
+            :meth:`epsilon` for a scale-invariant version of this.
 
         EXAMPLES::
 
             sage: a = 1.0
+            sage: a.ulp()
+            2.22044604925031e-16
+            sage: (-1.5).ulp()
+            2.22044604925031e-16
             sage: a + a.ulp() == a
             False
             sage: a + a.ulp()/2 == a
@@ -2391,33 +2444,150 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: (a+b)/2 in [a,b]
             True
 
+        The ulp of zero is the smallest non-zero number::
+
+            sage: a = RR(0).ulp()
+            sage: a
+            2.38256490488795e-323228497            # 32-bit
+            8.50969131174084e-1388255822130839284  # 64-bit
+            sage: a.fp_rank()
+            1
+
+        The ulp of very small numbers results in underflow, so the
+        smallest non-zero number is returned instead::
+
+            sage: a.ulp() == a
+            True
+
+        We use a different field::
+
+            sage: a = RealField(256).pi()
+            sage: a.ulp()
+            3.454467422037777850154540745120159828446400145774512554009481388067436721265e-77
+            sage: e = a.ulp(RealField(64))
+            sage: e
+            3.45446742203777785e-77
+            sage: parent(e)
+            Real Field with 64 bits of precision
+            sage: e = a.ulp(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: field argument must be a RealField
+
+        For infinity and NaN, we get back positive infinity and NaN::
+
             sage: a = RR(infinity)
             sage: a.ulp()
             +infinity
             sage: (-a).ulp()
             +infinity
             sage: a = RR('nan')
-            sage: a.ulp() is a
-            True
+            sage: a.ulp()
+            NaN
+            sage: parent(RR('nan').ulp(RealField(42)))
+            Real Field with 42 bits of precision
         """
-        cdef RealNumber x
-        if mpfr_nan_p(self.value):
-            return self
-        elif mpfr_inf_p(self.value):
-            if mpfr_sgn(self.value) == 1:
-                return self
-            else:
-                return -self
+        cdef RealField_class _parent
+        if field is None:
+            _parent = self._parent
         else:
-            x = self._new()
-            mpfr_set(x.value, self.value, (<RealField_class>self._parent).rnd)
-            if mpfr_sgn(self.value) == 1:
+            try:
+                _parent = field
+            except TypeError:
+                raise TypeError("field argument must be a RealField")
+
+        cdef RealNumber x = _parent._new()
+        cdef mp_exp_t e
+        if mpfr_regular_p(self.value):
+            # Non-zero number
+            e = mpfr_get_exp(self.value) - mpfr_get_prec(self.value)
+            # Round up in case of underflow
+            mpfr_set_ui_2exp(x.value, 1, e, GMP_RNDU)
+        else:
+            # Special cases: zero, infinity, NaN
+            if mpfr_zero_p(self.value):
+                mpfr_set_zero(x.value, 1)
                 mpfr_nextabove(x.value)
-            else:
-                mpfr_nextbelow(x.value)
-            mpfr_sub(x.value, x.value, self.value, (<RealField_class>self._parent).rnd)
-            mpfr_abs(x.value, x.value, (<RealField_class>self._parent).rnd)
-            return x
+            elif mpfr_inf_p(self.value):
+                mpfr_set_inf(x.value, 1)
+            else: # NaN
+                mpfr_set_nan(x.value)
+        return x
+
+    def epsilon(self, field=None):
+        """
+        Returns ``abs(self)`` divided by `2^b` where `b` is the
+        precision in bits of ``self``. Equivalently, return
+        ``abs(self)`` multiplied by the :meth:`ulp` of 1.
+
+        This is a scale-invariant version of :meth:`ulp` and it lies
+        in `[u/2, u)` where `u` is ``self.ulp()`` (except in the case
+        of zero or underflow).
+
+        INPUT:
+
+        - ``field`` -- :class:`RealField` used as parent of the result.
+          If not specified, use ``parent(self)``.
+
+        OUTPUT:
+
+        ``field(self.abs() / 2^self.precision())``
+
+        EXAMPLES::
+
+            sage: RR(2^53).epsilon()
+            1.00000000000000
+            sage: RR(0).epsilon()
+            0.000000000000000
+            sage: a = RR.pi()
+            sage: a.epsilon()
+            3.48786849800863e-16
+            sage: a.ulp()/2, a.ulp()
+            (2.22044604925031e-16, 4.44089209850063e-16)
+            sage: a / 2^a.precision()
+            3.48786849800863e-16
+            sage: (-a).epsilon()
+            3.48786849800863e-16
+
+        We use a different field::
+
+            sage: a = RealField(256).pi()
+            sage: a.epsilon()
+            2.713132368784788677624750042896586252980746500631892201656843478528498954308e-77
+            sage: e = a.epsilon(RealField(64))
+            sage: e
+            2.71313236878478868e-77
+            sage: parent(e)
+            Real Field with 64 bits of precision
+            sage: e = a.epsilon(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: field argument must be a RealField
+
+        Special values::
+
+            sage: RR('nan').epsilon()
+            NaN
+            sage: parent(RR('nan').epsilon(RealField(42)))
+            Real Field with 42 bits of precision
+            sage: RR('+Inf').epsilon()
+            +infinity
+            sage: RR('-Inf').epsilon()
+            +infinity
+        """
+        cdef RealField_class _parent
+        if field is None:
+            _parent = self._parent
+        else:
+            try:
+                _parent = field
+            except TypeError:
+                raise TypeError("field argument must be a RealField")
+
+        cdef RealNumber x = _parent._new()
+        mpfr_div_2exp(x.value, self.value, mpfr_get_prec(self.value), _parent.rnd)
+        mpfr_abs(x.value, x.value, _parent.rnd)
+        return x
 
 
     ###################
@@ -2836,7 +3006,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
-        sig_on()
+        pari_catch_sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError, 'Cannot convert NaN or infinity to Pari float'
 
@@ -3814,7 +3984,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             3.14159265358979*I
             sage: r.log(2)
             4.53236014182719*I
+
+        For the error value NaN (Not A Number), log will return NaN::
+
+            sage: r = R(NaN); r.log()
+            NaN
+
         """
+        if mpfr_nan_p(self.value):
+            return self
+
         cdef RealNumber x
         if self < 0:
             if base is 'e':
@@ -5140,7 +5319,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     - ``s`` -- a string that defines a real number (or
       something whose string representation defines a number)
 
-    - ``base`` -- an integer between 2 and 36
+    - ``base`` -- an integer between 2 and 62
 
     - ``pad`` -- an integer = 0.
 
@@ -5167,6 +5346,31 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: (1.2).parent() is RR
         True
 
+    We can use various bases::
+
+        sage: RealNumber("10101e2",base=2)
+        84.0000000000000
+        sage: RealNumber("deadbeef", base=16)
+        3.73592855900000e9
+        sage: RealNumber("deadbeefxxx", base=16)
+        Traceback (most recent call last):
+        ...
+        TypeError: Unable to convert x (='deadbeefxxx') to real number.
+        sage: RealNumber("z", base=36)
+        35.0000000000000
+        sage: RealNumber("AAA", base=37)
+        14070.0000000000
+        sage: RealNumber("aaa", base=37)
+        50652.0000000000
+        sage: RealNumber("3.4", base="foo")
+        Traceback (most recent call last):
+        ...
+        TypeError: an integer is required
+        sage: RealNumber("3.4", base=63)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=63) must be an integer between 2 and 62
+
     TESTS::
 
         sage: RealNumber('.000000000000000000000000000000001').prec()
@@ -5180,17 +5384,20 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: ks = 5*10**5, 10**6
         sage: all(RealNumber("1." + "0"*k +"1")-1 > 0 for k in ks)
         True
-
     """
     if not isinstance(s, str):
         s = str(s)
+
+    # Check for a valid base
+    if base < 2 or base > 62:
+        raise ValueError("base (=%s) must be an integer between 2 and 62"%base)
 
     if base == 10 and min_prec == 53 and len(s) <= 15:
         R = RR
 
     else:
-
-        if 'e' in s or 'E' in s:
+        # For bases 15 and up, treat 'e' as digit
+        if base <= 14 and ('e' in s or 'E' in s):
             #Figure out the exponent
             index = max( s.find('e'), s.find('E') )
             exponent = int(s[index+1:])

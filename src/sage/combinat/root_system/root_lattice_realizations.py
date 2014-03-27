@@ -210,7 +210,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: r = RootSystem(['A',4]).root_space()
                 sage: r.index_set()
-                [1, 2, 3, 4]
+                (1, 2, 3, 4)
             """
             return self.root_system.index_set()
 
@@ -2003,30 +2003,29 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["A",2]).ambient_space()
-                sage: plot_expose(L.plot_reflection_hyperplanes())
-                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                sage: print L.plot_reflection_hyperplanes().description()
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
 
-                sage: plot_expose(L.plot_reflection_hyperplanes("all"))
-                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
-                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
-                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
-                Line defined by 2 points: [(3.0, 0.0), (-3.0, 0.0)]
+                sage: print L.plot_reflection_hyperplanes("all").description()
                 Text '$H_{\alpha^\vee_{1} + \alpha^\vee_{2}}$' at the point (3.15,0.0)
+                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
+                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
+                Line defined by 2 points: [(3.0, 0.0), (-3.0, 0.0)]
 
                 sage: L = RootSystem(["A",2,1]).ambient_space()
-                sage: plot_expose(L.plot_reflection_hyperplanes())
-                Line defined by 2 points: [(3.0, 0.86...), (-3.0, 0.86...)]
+                sage: print L.plot_reflection_hyperplanes().description()
                 Text '$H_{\alpha^\vee_{0}}$' at the point (3.15,0.90...)
-                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
+                Line defined by 2 points: [(3.0, 0.86...), (-3.0, 0.86...)]
 
             .. TODO:: Provide an option for transparency?
             """
@@ -2082,19 +2081,18 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["B",2]).ambient_space()
-                sage: plot_expose(L.plot_hedron())
+                sage: print L.plot_hedron().description()
+                Polygon defined by 8 points: [(1.5, 0.5), (0.5, 1.5), (-0.5, 1.5), (-1.5, 0.5), (-1.5, -0.5), (-0.5, -1.5), (0.5, -1.5), (1.5, -0.5)]
+                Line defined by 2 points: [(-0.5, -1.5), (0.5, -1.5)]
+                Line defined by 2 points: [(-0.5, 1.5), (0.5, 1.5)]
+                Line defined by 2 points: [(-1.5, -0.5), (-0.5, -1.5)]
+                Line defined by 2 points: [(-1.5, -0.5), (-1.5, 0.5)]
+                Line defined by 2 points: [(-1.5, 0.5), (-0.5, 1.5)]
+                Line defined by 2 points: [(0.5, -1.5), (1.5, -0.5)]
+                Line defined by 2 points: [(0.5, 1.5), (1.5, 0.5)]
+                Line defined by 2 points: [(1.5, -0.5), (1.5, 0.5)]
                 Point set defined by 8 point(s): [(-1.5, -0.5), (-1.5, 0.5), (-0.5, -1.5), (-0.5, 1.5), (0.5, -1.5), (0.5, 1.5), (1.5, -0.5), (1.5, 0.5)]
-                Line defined by 2 points:        [(-1.5, -0.5), (-1.5, 0.5)]
-                Line defined by 2 points:        [(-1.5, -0.5), (-0.5, -1.5)]
-                Line defined by 2 points:        [(-1.5, 0.5), (-0.5, 1.5)]
-                Line defined by 2 points:        [(-0.5, -1.5), (0.5, -1.5)]
-                Line defined by 2 points:        [(-0.5, 1.5), (0.5, 1.5)]
-                Line defined by 2 points:        [(0.5, -1.5), (1.5, -0.5)]
-                Line defined by 2 points:        [(0.5, 1.5), (1.5, 0.5)]
-                Line defined by 2 points:        [(1.5, -0.5), (1.5, 0.5)]
-                Polygon defined by 8 points:     [(1.5, 0.5), (0.5, 1.5), (-0.5, 1.5), (-1.5, 0.5), (-1.5, -0.5), (-0.5, -1.5), (0.5, -1.5), (1.5, -0.5)]
             """
             from sage.geometry.polyhedron.all import Polyhedron
             plot_options = self.plot_parse_options(**options)
@@ -2141,12 +2139,11 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["B",2,1]).ambient_space()
-                sage: plot_expose(L.plot_fundamental_chamber())
+                sage: print L.plot_fundamental_chamber().description()
                 Polygon defined by 3 points:     [(0.5, 0.5), (1.0, 0.0), (0.0, 0.0)]
 
-                sage: plot_expose(L.plot_fundamental_chamber(style="classical"))
+                sage: print L.plot_fundamental_chamber(style="classical").description()
                 Polygon defined by 3 points:     [(0.0, 0.0), (3.0, 3.0), (3.0, 0.0)]
             """
             plot_options = self.plot_parse_options(**options)
@@ -2206,21 +2203,25 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["A",2,1]).weight_space()
-                sage: plot_expose(L.plot_alcoves(alcoves=[[0,0]]))
-                Line defined by 2 points: [(0.0, 1.0), (1.0, 0.0)]
-                Line defined by 2 points: [(0.0, 1.0), (0.0, 0.0)]
-                Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
-                Line defined by 2 points: [(0.0, 1.0), (-1.0, 1.0)]
-                Line defined by 2 points: [(-1.0, 1.0), (0.0, 0.0)]
-                Line defined by 2 points: [(-1.0, 1.0), (-1.0, 0.0)]
-                Line defined by 2 points: [(0.0, 0.0), (-1.0, 0.0)]
+                sage: p = L.plot_alcoves(alcoves=[[0,0]])
+                sage: print p.description()
                 Line defined by 2 points: [(-1.0, 0.0), (0.0, -1.0)]
-                Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
-                Line defined by 2 points: [(0.0, 0.0), (1.0, -1.0)]
-                Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
+                Line defined by 2 points: [(-1.0, 1.0), (-1.0, 0.0)]
+                Line defined by 2 points: [(-1.0, 1.0), (0.0, 0.0)]
+                Line defined by 2 points: [(0.0, 0.0), (-1.0, 0.0)]
                 Line defined by 2 points: [(0.0, 0.0), (0.0, -1.0)]
+                Line defined by 2 points: [(0.0, 0.0), (1.0, -1.0)]
+                Line defined by 2 points: [(0.0, 1.0), (-1.0, 1.0)]
+                Line defined by 2 points: [(0.0, 1.0), (0.0, 0.0)]
+                Line defined by 2 points: [(0.0, 1.0), (1.0, 0.0)]
+                Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
+                Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
+                Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
+                sage: [(line.options()['rgbcolor'], line.options()['thickness']) for line in p]
+                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('blue', 1),
+                 ('black', 2), ('red', 1), ('black', 2), ('blue', 1),
+                 ('black', 2), ('red', 1), ('black', 2)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):
@@ -2248,7 +2249,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 # not draw them. Besides this avoids ugly fat points
                 # in dimension 2.
                 return plot_options.cone(rays=[w.action(fundamental_alcove_rays[j]) for j in I if j != i],
-                                         color = plot_options.color(i),
+                                         color=plot_options.color(i),
+                                         thickness=plot_options.thickness(i),
                                          wireframe=wireframe,
                                          draw_degenerate=False)
             def alcove_label(w):
@@ -2425,26 +2427,25 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["A",2,1]).weight_space()
                 sage: p = L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
                 ...                          foldings = [False, False, True, False, False, False, True, False, True, False],
                 ...                          color="green",
                 ...                          start=L.rho())
-                sage: plot_expose(p)
-                Arrow from (1.0,1.0) to (2.0,2.0)
-                Arrow from (2.0,2.0) to (1.0,4.0)
-                Line defined by 2 points: [(1.0, 4.0), (1.5, 4.5)]
-                Arrow from (1.5,4.5) to (1.0,4.0)
-                Arrow from (1.0,4.0) to (-1.0,5.0)
-                Arrow from (-1.0,5.0) to (-2.0,7.0)
-                Arrow from (-2.0,7.0) to (-1.0,8.0)
+                sage: print p.description()
                 Line defined by 2 points: [(-1.0, 8.0), (-1.5, 9.0)]
-                Arrow from (-1.5,9.0) to (-1.0,8.0)
-                Arrow from (-1.0,8.0) to (1.0,7.0)
+                Line defined by 2 points: [(1.0, 4.0), (1.5, 4.5)]
                 Line defined by 2 points: [(1.0, 7.0), (1.5, 6.0)]
-                Arrow from (1.5,6.0) to (1.0,7.0)
+                Arrow from (-1.0,5.0) to (-2.0,7.0)
+                Arrow from (-1.0,8.0) to (1.0,7.0)
+                Arrow from (-1.5,9.0) to (-1.0,8.0)
+                Arrow from (-2.0,7.0) to (-1.0,8.0)
+                Arrow from (1.0,1.0) to (2.0,2.0)
+                Arrow from (1.0,4.0) to (-1.0,5.0)
                 Arrow from (1.0,7.0) to (2.0,8.0)
+                Arrow from (1.5,4.5) to (1.0,4.0)
+                Arrow from (1.5,6.0) to (1.0,7.0)
+                Arrow from (2.0,2.0) to (1.0,4.0)
             """
             from sage.plot.line import line
             from sage.plot.arrow import arrow
@@ -2464,13 +2465,38 @@ class RootLatticeRealizations(Category_over_base_ring):
                 if folding:
                     middle = (source+target)/2
                     G += line ([source, middle], rgbcolor=color)
-                    G += arrow(middle, source, rgbcolor=color)
+                    G += arrow(middle, source, rgbcolor=color, arrowsize=plot_options._arrowsize)
                     # reset w
                     w = w * s[i]
                 else:
-                    G += arrow(source, target, rgbcolor=color)
+                    G += arrow(source, target, rgbcolor=color, arrowsize=plot_options._arrowsize)
                     source=target
             return G
+
+        @cached_method
+        def _maximum_root_length(self):
+            r"""
+            Return the square of the maximum of the root lengths for irreducible finite type root systems.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['C',2]).root_lattice()
+                sage: Q._maximum_root_length()
+                4
+                sage: Q = RootSystem(['G',2]).root_lattice()
+                sage: Q._maximum_root_length()
+                6
+                sage: Q = RootSystem(['A',3]).root_lattice()
+                sage: Q._maximum_root_length()
+                2
+            """
+            ct = self.cartan_type()
+            if not ct.is_irreducible():
+                raise NotImplementedError, "Implemented only for irreducible finite root systems"
+            if not ct.is_finite():
+                raise NotImplementedError, "Implemented only for irreducible finite root systems"
+            L = self.root_system.ambient_space() # uses peculiarities of ambient embedding
+            return max([root.scalar(root) for root in L.simple_roots()])
 
     ##########################################################################
 
@@ -3244,3 +3270,49 @@ class RootLatticeRealizations(Category_over_base_ring):
                 if i not in index_set:
                     return False
             return True
+
+        def is_short_root(self):
+            r"""
+            Is ``self`` a short root?
+
+            Returns False unless the parent is an irreducible root system of finite type
+            having two root lengths and ``self`` is of the shorter length.
+            There is no check of whether ``self`` is actually a root.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['C',2]).root_lattice()
+                sage: al = Q.simple_root(1).weyl_action([1,2]); al
+                alpha[1] + alpha[2]
+                sage: al.is_short_root()
+                True
+                sage: bt = Q.simple_root(2).weyl_action([2,1,2]); bt
+                -2*alpha[1] - alpha[2]
+                sage: bt.is_short_root()
+                False
+                sage: RootSystem(['A',2]).root_lattice().simple_root(1).is_short_root()
+                False
+
+            """
+            ct = self.parent().cartan_type()
+            if not ct.is_irreducible():
+                raise ValueError, "Cartan type needs to be irreducible!"
+            if not ct.is_finite():
+                raise NotImplementedError, "Implemented only for irreducible finite root systems"
+            L = self.parent().root_system.ambient_space() # uses peculiarities of ambient embedding
+            ls = L(self)
+            return ls.scalar(ls) < L._maximum_root_length()
+            #Alternative implementation
+            #if ct.is_simply_laced():
+            #    return False
+            #L = self.parent().root_system.ambient_space() # uses peculiarities of ambient embedding
+            #ls = L(self)
+            #lensq = ls.scalar(ls)
+            #if lensq > 2:
+            #    return False
+            #if lensq == 1:
+            #    return True
+            ## now only types BCFG remain and the square length is 2
+            #if ct.type() == 'C' or ct.type() == 'G':
+            #    return True
+            #return False

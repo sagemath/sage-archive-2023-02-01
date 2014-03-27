@@ -7,8 +7,8 @@ an incidence matrix ([1]_, [2]_).
 REFERENCES:
 
 .. [1] Block designs and incidence structures from wikipedia,
-  http://en.wikipedia.org/wiki/Block_design
-  http://en.wikipedia.org/wiki/Incidence_structure
+  :wikipedia:`Block_design`
+  :wikipedia:`Incidence_structure`
 
 .. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
@@ -249,7 +249,7 @@ class IncidenceStructure(object):
         """
         This is *not* a wrapper for GAP Design's IsBlockDesign. The GAP
         Design function IsBlockDesign
-        http://www.gap-system.org/Manuals/pkg/design/htm/CHAP004.htmSSEC001.1
+        http://www.gap-system.org/Manuals/pkg/design/htm/CHAP004.htm
         apparently simply checks the record structure and no mathematical
         properties. Instead, the function below checks some necessary (but
         not sufficient) "easy" identities arising from the identity.
@@ -525,11 +525,11 @@ class IncidenceStructure(object):
             (True, [2, 7, 3, 1])
             sage: BD.block_design_checker(2, 7, 3, 1)
             True
-            sage: BD = WittDesign(9)        # optional - gap_packages (design package)
-            sage: BD.is_block_design()      # optional - gap_packages (design package)
+            sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
+            sage: BD.is_block_design()         # optional - gap_packages (design package)
             (True, [2, 9, 3, 1])
-            sage: BD = WittDesign(12)       # optional - gap_packages (design package)
-            sage: BD.is_block_design()      # optional - gap_packages (design package)
+            sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
+            sage: BD.is_block_design()         # optional - gap_packages (design package)
             (True, [5, 12, 6, 1])
             sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
             sage: BD.is_block_design()
@@ -624,6 +624,8 @@ class IncidenceStructure(object):
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: BD.points_from_gap()      # optional - gap_packages (design package)
+            doctest:1: DeprecationWarning: Unless somebody protests this method will be removed, as nobody seems to know why it is there.
+            See http://trac.sagemath.org/14499 for details.
             [1, 2, 3, 4, 5, 6, 7]
         """
         from sage.misc.superseded import deprecation

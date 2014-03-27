@@ -46,11 +46,10 @@ This example illustrates generators for a free module over `\ZZ`.
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
 
-cdef int bad_parent_warnings = 0
-
 import generators
 import sage_object
 from sage.categories.category import Category, JoinCategory
+from sage.structure.debug_options import debug
 
 def guess_category(obj):
     # this should be obsolete if things declare their categories
@@ -153,7 +152,7 @@ cdef class CategoryObject(sage_object.SageObject):
             Join of Category of semigroups and Category of commutative additive semigroups
         """
         if category is None:
-            if bad_parent_warnings:
+            if debug.bad_parent_warnings:
                 print "No category for %s" % type(self)
             category = guess_category(self) # so generators don't crash
         elif (type(category) == tuple or type(category) == list):
@@ -193,11 +192,10 @@ cdef class CategoryObject(sage_object.SageObject):
             Join of Category of magmas and Category of enumerated sets
             sage: P._refine_category_([Semigroups(), CommutativeAdditiveSemigroups()])
             sage: P.category()
-            Join of Category of enumerated sets and Category of semigroups and Category of commutative additive semigroups
+            Join of Category of semigroups and Category of commutative additive semigroups and Category of enumerated sets
             sage: P._refine_category_((CommutativeAdditiveMonoids(), Monoids()))
             sage: P.category()
-            Join of Category of enumerated sets and Category of commutative additive monoids and Category of monoids
-
+            Join of Category of monoids and Category of commutative additive monoids and Category of enumerated sets
         """
         if self._category is None:
             self._init_category_(category)
@@ -226,18 +224,18 @@ cdef class CategoryObject(sage_object.SageObject):
              Category of unique factorization domains,
              Category of gcd domains,
              Category of integral domains,
-             Category of commutative rings,
              Category of domains,
+             Category of commutative rings,
              Category of rings,
              Category of rngs,
-             Category of commutative additive groups,
              Category of semirings,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
              Category of monoids,
              Category of semigroups,
              Category of magmas,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]

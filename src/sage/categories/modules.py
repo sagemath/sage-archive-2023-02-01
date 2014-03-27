@@ -48,18 +48,6 @@ class Modules(Category_module):
 
         sage: Modules(Integers(9)).super_categories()
         [Category of bimodules over Ring of integers modulo 9 on the left and Ring of integers modulo 9 on the right]
-        sage: Modules(Integers(9)).all_super_categories()
-        [Category of modules over Ring of integers modulo 9,
-         Category of bimodules over Ring of integers modulo 9 on the left and Ring of integers modulo 9 on the right,
-         Category of left modules over Ring of integers modulo 9,
-         Category of right modules over Ring of integers modulo 9,
-         Category of commutative additive groups,
-         Category of commutative additive monoids,
-         Category of commutative additive semigroups,
-         Category of additive magmas,
-         Category of sets,
-         Category of sets with partial maps,
-         Category of objects]
 
         sage: Modules(ZZ).super_categories()
         [Category of bimodules over Integer Ring on the left and Integer Ring on the right]

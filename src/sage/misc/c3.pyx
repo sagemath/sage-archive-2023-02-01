@@ -26,12 +26,18 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
     resolution order for new style classes involving multiple
     inheritance.
 
-    This implementation is used to order the list of super categories
-    of a category; see
+    After :trac:`11943` this implementation was used to compute the
+    list of super categories of a category; see
     :meth:`~sage.categories.category.Category.all_super_categories`.
     The purpose is to ensure that list of super categories matches
     with the method resolution order of the parent or element classes
     of a category.
+
+    Since :trac:`13589`, this implementation is superseded by that in
+    :mod:`sage.misc.c3_controlled`, that puts the ``C3`` algorithm
+    under control of some total order on categories.  This guarantees
+    that ``C3`` always finds a consistent Method Resolution Order. For
+    background, see :mod:`sage.misc.c3_controlled`.
 
     INPUT:
 
@@ -55,61 +61,60 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
 
     EXAMPLES:
 
-    We start with some categories having an inconsistent inheritance
-    order::
+    We create a class for elements in a hierarchy that uses the ``C3``
+    algorithm to compute, for each element, a linear extension of the
+    elements above it::
 
-        sage: class X(Category):
-        ...    def super_categories(self):
-        ...        return [Objects()]
-        sage: class Y(Category):
-        ...    def super_categories(self):
-        ...        return [Objects()]
-        sage: class A(Category):
-        ...    def super_categories(self):
-        ...        return [X(), Y()]
-        sage: class B(Category):
-        ...    def super_categories(self):
-        ...        return [Y(), X()]
-        sage: class Foo(Category):
-        ...    def super_categories(self):
-        ...       return [A(), B()]
-        sage: F = Foo()
+    .. TODO:: Move back the __init__ at the beginning
 
-    Python is not able to create a consistent method resolution order
-    for the parent class::
-
-        sage: F.parent_class
-        Traceback (most recent call last):
-        ...
-        TypeError: Cannot create a consistent method resolution
-        order (MRO) for bases ....parent_class, ....parent_class
-
-    Since the C3 algorithm is used for determining the list of
-    all super categories (by trac ticket #11943), a similar error
-    arises here::
-
-        sage: F.all_super_categories()
-        Traceback (most recent call last):
-        ...
-        ValueError: Can not merge the items Category of x, Category of y.
-
-    Next, we demonstrate how our implementation of the C3 algorithm
-    is used to compute the list of all super categories::
-
-        sage: C = Category.join([HopfAlgebrasWithBasis(QQ), FiniteEnumeratedSets()])
         sage: from sage.misc.c3 import C3_algorithm
-        sage: C3_algorithm(C,'_super_categories','_all_super_categories',True) == C._all_super_categories_proper
-        True
-        sage: C3_algorithm(C,'_super_categories','_all_super_categories',False) == C._all_super_categories
-        True
+        sage: class HierarchyElement(UniqueRepresentation):
+        ....:     @lazy_attribute
+        ....:     def _all_bases(self):
+        ....:         return C3_algorithm(self, '_bases', '_all_bases', False)
+        ....:     def __repr__(self):
+        ....:         return self._name
+        ....:     def __init__(self, name, bases):
+        ....:         self._name = name
+        ....:         self._bases = list(bases)
 
-    By trac ticket #11943, the following consistency tests are part
-    of the test suites of categories (except for hom categories)::
+    We construct a little hierarchy::
 
-        sage: C.parent_class.mro() == [x.parent_class for x in C.all_super_categories()]+[object]
-        True
-        sage: C.element_class.mro() == [x.element_class for x in C.all_super_categories()]+[object]
-        True
+        sage: T = HierarchyElement("T", ())
+        sage: X = HierarchyElement("X", (T,))
+        sage: Y = HierarchyElement("Y", (T,))
+        sage: A = HierarchyElement("A", (X, Y))
+        sage: B = HierarchyElement("B", (Y, X))
+        sage: Foo = HierarchyElement("Foo", (A, B))
+
+    And inspect the linear extensions associated to each element::
+
+        sage: T._all_bases
+        [T]
+        sage: X._all_bases
+        [X, T]
+        sage: Y._all_bases
+        [Y, T]
+        sage: A._all_bases
+        [A, X, Y, T]
+        sage: B._all_bases
+        [B, Y, X, T]
+
+    So far so good. However::
+
+        sage: Foo._all_bases
+        Traceback (most recent call last):
+        ...
+        ValueError: Can not merge the items X, Y.
+
+    The ``C3`` algorithm is not able to create a consistent linear
+    extension. Indeed, its specifications impose that, if ``X`` and
+    ``Y`` appear in a certain order in the linear extension for an
+    element of the hierarchy, then they should appear in the same
+    order for any lower element. This is clearly not possibly for
+    ``Foo``, since ``A`` and ``B`` impose incompatible orders. If the
+    above was a hierarchy of classes, Python would complain that it
+    cannot calculate a consistent Method Resolution Order.
 
     TESTS:
 
@@ -125,23 +130,15 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
         sage: [cls.__name__ for cls in A.mro()]
         ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'object']
 
-        sage: class Cs(Category):
-        ...     def super_categories(self): return []
-        sage: class Fs(Category):
-        ...       def super_categories(self): return []
-        sage: class Gs(Category):
-        ...       def super_categories(self): return []
-        sage: class Bs(Category):
-        ...       def super_categories(self): return [Cs(), Fs()]
-        sage: class Ds(Category):
-        ...       def super_categories(self): return [Fs(), Gs()]
-        sage: class Es(Category):
-        ...       def super_categories(self): return [Fs()]
-        sage: class As(Category):
-        ...       def super_categories(self): return [Bs(), Ds(), Es()]
-        sage: As().all_super_categories()
-        [Category of as, Category of bs, Category of cs, Category of ds, Category of es, Category of fs, Category of gs]
-        sage: TestSuite(As()).run(skip=["_test_pickling"])
+        sage: C = HierarchyElement("C", ())
+        sage: F = HierarchyElement("F", ())
+        sage: G = HierarchyElement("G", ())
+        sage: B = HierarchyElement("B", (C, F))
+        sage: D = HierarchyElement("D", (F, G))
+        sage: E = HierarchyElement("E", (F,))
+        sage: A = HierarchyElement("A", (B, D, E))
+        sage: A._all_bases
+        [A, B, C, D, E, F, G]
 
     Regression test for bug #2 of :trac:`13501`. The following should
     fail since ``A`` asks for ``B`` to come before ``C``, where as
@@ -156,20 +153,22 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
             Cannot create a consistent method resolution
         order (MRO) for bases ...
 
-        sage: class Bs(Category):
-        ...       def super_categories(self): return []
-        sage: class Cs(Category):
-        ...       def super_categories(self): return [Bs()]
-        sage: class As(Category):
-        ...       def super_categories(self): return [Bs(), Cs()]
-        ...       class subcategory_class(object): # Quick hack to skip the failure when computing the mro for subcategory_class
-        ...            pass
-        sage: As()
-        Category of as
-        sage: As().all_super_categories()
+        sage: B = HierarchyElement("B", ())
+        sage: C = HierarchyElement("C", (B,))
+        sage: A = HierarchyElement("A", (B,C))
+        sage: A._all_bases
         Traceback (most recent call last):
         ...
-        ValueError: Can not merge the items Category of bs, Category of cs, Category of bs.
+        ValueError: Can not merge the items B, C, B.
+
+    Since :trac:`11943`, the following consistency tests are part
+    of the test suites of categories (except for hom categories)::
+
+        sage: C = Category.join([HopfAlgebrasWithBasis(QQ), FiniteEnumeratedSets()])
+        sage: C.parent_class.mro() == [x.parent_class for x in C.all_super_categories()]+[object]
+        True
+        sage: C.element_class.mro() == [x.element_class for x in C.all_super_categories()]+[object]
+        True
     """
     cdef list out
     if proper:

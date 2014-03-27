@@ -7,6 +7,7 @@ AUTHORS:
 - Mike Hansen (2008): initial version
 - Anne Schilling (2008): initial version
 - Nicolas Thiery (2008): initial version
+- Volker Braun (2013): LibGAP-based matrix groups
 
 EXAMPLES:
 
@@ -36,14 +37,14 @@ The Cayley graph of the Weyl Group of type ['D', 4]::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.groups.matrix_gps.matrix_group import MatrixGroup_gens
-from sage.groups.matrix_gps.matrix_group_element import MatrixGroupElement
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
+from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
-#from sage.misc.cache import Cache
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.structure.unique_representation import UniqueRepresentation
@@ -54,18 +55,21 @@ from sage.graphs.graph import DiGraph
 
 def WeylGroup(x, prefix=None):
     """
-    Returns the Weyl group of type ct.
+    Returns the Weyl group of the root system defined by the Cartan
+    type (or matrix) ``ct``.
 
     INPUT:
 
-    - ``ct`` - a Cartan Type.
+    - ``x`` - a root system or a Cartan type (or matrix)
 
     OPTIONAL:
 
-    - ``prefix`` - changes the representation of elements from matrices
+    - ``prefix`` -- changes the representation of elements from matrices
       to products of simple reflections
 
-    EXAMPLES: The following constructions yield the same result, namely
+    EXAMPLES:
+
+    The following constructions yield the same result, namely
     a weight lattice and its corresponding Weyl group::
 
         sage: G = WeylGroup(['F',4])
@@ -75,6 +79,7 @@ def WeylGroup(x, prefix=None):
 
         sage: L = RootSystem(['F',4]).ambient_space()
         sage: G = L.weyl_group()
+        sage: W = WeylGroup(L)
 
     Either produces a weight lattice, with access to its roots and
     weights.
@@ -126,30 +131,74 @@ def WeylGroup(x, prefix=None):
         sage: w.action(rho) # action of G on weight lattice
         (5, -1, 3, 2)
 
+    We can also do the same for arbitrary Cartan matrices::
+
+        sage: cm = CartanMatrix([[2,-5,0],[-2,2,-1],[0,-1,2]])
+        sage: W = WeylGroup(cm)
+        sage: W.gens()
+        (
+        [-1  5  0]  [ 1  0  0]  [ 1  0  0]
+        [ 0  1  0]  [ 2 -1  1]  [ 0  1  0]
+        [ 0  0  1], [ 0  0  1], [ 0  1 -1]
+        )
+        sage: s0,s1,s2 = W.gens()
+        sage: s1*s2*s1
+        [ 1  0  0]
+        [ 2  0 -1]
+        [ 2 -1  0]
+        sage: s2*s1*s2
+        [ 1  0  0]
+        [ 2  0 -1]
+        [ 2 -1  0]
+        sage: s0*s1*s0*s2*s0
+        [ 9  0 -5]
+        [ 2  0 -1]
+        [ 0  1 -1]
+
+    Same Cartan matrix, but with a prefix to display using simple reflections::
+
+        sage: W = WeylGroup(cm, prefix='s')
+        sage: s0,s1,s2 = W.gens()
+        sage: s0*s2*s1
+        s2*s0*s1
+        sage: (s1*s2)^3
+        1
+        sage: (s0*s1)^5
+        s0*s1*s0*s1*s0*s1*s0*s1*s0*s1
+        sage: s0*s1*s2*s1*s2
+        s2*s0*s1
+        sage: s0*s1*s2*s0*s2
+        s0*s1*s0
+
     TESTS::
 
         sage: TestSuite(WeylGroup(["A",3])).run()
-        sage: TestSuite(WeylGroup(["A",3, 1])).run()
+        sage: TestSuite(WeylGroup(["A",3,1])).run() # long time
 
-        sage: W=WeylGroup(['A',3,1])
-        sage: s=W.simple_reflections()
-        sage: w=s[0]*s[1]*s[2]
+        sage: W = WeylGroup(['A',3,1])
+        sage: s = W.simple_reflections()
+        sage: w = s[0]*s[1]*s[2]
         sage: w.reduced_word()
         [0, 1, 2]
-        sage: w=s[0]*s[2]
+        sage: w = s[0]*s[2]
         sage: w.reduced_word()
         [2, 0]
     """
     if x in RootLatticeRealizations:
         return WeylGroup_gens(x, prefix=prefix)
 
-    ct = CartanType(x)
-    if ct.is_affine():
-        return WeylGroup_gens(ct.root_system().root_space(), prefix=prefix)
-    else:
+    try:
+        ct = CartanType(x)
+    except TypeError:
+        ct = CartanMatrix(x)  # See if it is a Cartan matrix
+    if ct.is_finite():
         return WeylGroup_gens(ct.root_system().ambient_space(), prefix=prefix)
+    return WeylGroup_gens(ct.root_system().root_space(), prefix=prefix)
 
-class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens):
+
+class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
+                     FinitelyGeneratedMatrixGroup_gap):
+
     @staticmethod
     def __classcall__(cls, domain, prefix=None):
         return super(WeylGroup_gens, cls).__classcall__(cls, domain, prefix)
@@ -160,6 +209,9 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
             sage: G = WeylGroup(['B',3])
             sage: TestSuite(G).run()
+            sage: cm = CartanMatrix([[2,-5,0],[-2,2,-1],[0,-1,2]])
+            sage: W = WeylGroup(cm)
+            sage: TestSuite(W).run() # long time
         """
         self._domain = domain
         if self.cartan_type().is_affine():
@@ -169,10 +221,17 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         else:
             category = WeylGroups()
         self.n = domain.dimension() # Really needed?
-        # MatrixGroup_gens takes plain matrices as input. So we can't do:
-        #MatrixGroup_gens.__init__(self, list(self.simple_reflections()))
         self._prefix = prefix
-        MatrixGroup_gens.__init__(self, [self.morphism_matrix(self.domain().simple_reflection(i)) for i in self.index_set()], category = category)
+
+        # FinitelyGeneratedMatrixGroup_gap takes plain matrices as input
+        gens_matrix = [self.morphism_matrix(self.domain().simple_reflection(i))
+                       for i in self.index_set()]
+        from sage.libs.all import libgap
+        libgap_group = libgap.Group(gens_matrix)
+        degree = ZZ(self.domain().dimension())
+        ring = self.domain().base_ring()
+        FinitelyGeneratedMatrixGroup_gap.__init__(
+            self, degree, ring, libgap_group, category=category)
 
     @cached_method
     def cartan_type(self):
@@ -196,10 +255,10 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
             sage: G = WeylGroup(['F',4])
             sage: G.index_set()
-            [1, 2, 3, 4]
+            (1, 2, 3, 4)
             sage: G = WeylGroup(['A',3,1])
             sage: G.index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
 
@@ -273,7 +332,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
 
         EXAMPLES::
 
-            sage: W = WeylGroup("B2",prefix="s")
+            sage: W = WeylGroup("B2", prefix="s")
             sage: refdict = W.reflections(); refdict
             Finite family {s1: (1, -1), s2*s1*s2: (1, 1), s1*s2*s1: (1, 0), s2: (0, 1)}
             sage: [refdict[r]+r.action(refdict[r]) for r in refdict.keys()]
@@ -283,36 +342,15 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
         ret = {}
         try:
             for alp in self.domain().positive_roots():
-                r = self.__call__(Matrix([self.domain().reflection(alp)(x).to_vector() for x in self.domain().basis()]))
+                m = Matrix([self.domain().reflection(alp)(x).to_vector()
+                            for x in self.domain().basis()])
+                r = self(m)
                 ret[r] = alp
             return Family(ret)
         except StandardError:
             raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
-    def gens(self):
-        """
-        Returns the generators of self, i.e. the simple reflections.
-
-        EXAMPLES::
-
-            sage: G = WeylGroup(['A',3])
-            sage: G.gens()
-            [[0 1 0 0]
-             [1 0 0 0]
-             [0 0 1 0]
-             [0 0 0 1],
-             [1 0 0 0]
-             [0 0 1 0]
-             [0 1 0 0]
-             [0 0 0 1],
-             [1 0 0 0]
-             [0 1 0 0]
-             [0 0 0 1]
-             [0 0 1 0]]
-        """
-        return list(self.simple_reflections())
-
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -326,125 +364,17 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
                                                                                                       base_ring=False,
                                                                                                       type=False))
 
-
-    def __call__(self, x):
-        """
-        EXAMPLES::
-
-            sage: W = WeylGroup(['A',2])
-            sage: W(1)
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-
-        ::
-
-            sage: W(2)
-            Traceback (most recent call last):
-            ...
-            TypeError: no way to coerce element into self.
-
-            sage: W2 = WeylGroup(['A',3])
-            sage: W(1) in W2  # indirect doctest
-            False
-
-        """
-        if isinstance(x, self.element_class) and x.parent() is self:
-            return x
-        from sage.matrix.matrix import is_Matrix
-        if not (x in ZZ or is_Matrix(x)): # this should be handled by self.matrix_space()(x)
-            raise TypeError, "no way to coerce element into self"
-        M = self.matrix_space()(x)
-        # This is really bad, especially for infinite groups!
-        # TODO: compute the image of rho, compose by s_i until back in
-        # the fundamental chamber. Return True iff the matrix is the identity
-        g = self._element_constructor_(M)
-        if not gap(g) in gap(self):
-            raise TypeError, "no way to coerce element into self."
-        return g
-
-        # Here is a first attempt, which is not guaranteed to terminate
-        # because g might map the simple roots all over the place.
-        # we really need to do that with a single element of the fundamental chamber
-        #while True:
-        #    s = self.simple_reflections()
-        #    i = g.first_descent()
-        #    if i is None:
-        #        if g == self.unit():
-        #            return g
-        #        else:
-        #            raise TypeError, "no way to coerce element into self."
-        #    g = g * s[i]
-
-
-    #def list(self):
-    #    """
-    #    Returns a list of the elements of self.
-    #
-    #    EXAMPLES::
-    #
-    #        sage: G = WeylGroup(['A',1])
-    #        sage: G.list()
-    #        [[0 1]
-    #         [1 0], [1 0]
-    #         [0 1]]
-    #    """
-    #    return [self._element_constructor_(a._matrix_(QQ)) for a in self._gap_().Elements()]
-
-    def list(self):
-        """
-        Returns a list of the elements of self.
-
-        EXAMPLES::
-
-            sage: G = WeylGroup(['A',1])
-            sage: G.list()
-            [[1 0]
-             [0 1], [0 1]
-             [1 0]]
-
-            sage: G = WeylGroup(['A',3,1])
-            sage: G.list()
-            Traceback (most recent call last):
-              ...
-            NotImplementedError: infinite list
-
-        This overrides the implementation of MatrixGroup_gap.
-        Those seem typical timings (without the overriding):
-
-        #   sage: W = WeylGroup(["C",4])
-
-        #   sage: %time  len(W.list())
-            CPU times: user 7.63 s, sys: 0.60 s, total: 8.22 s
-            Wall time: 8.63 s
-
-        #    sage: %time  len([ x for x in W])
-            CPU times: user 3.23 s, sys: 0.09 s, total: 3.32 s
-            Wall time: 3.34 s
-
-        #    sage: %time  len(list(W))
-            CPU times: user 3.26 s, sys: 0.02 s, total: 3.28 s
-            Wall time: 3.29 s
-
-        Note: listing the matrices in GAP is much faster than the
-        timings above suggest; the slowness apparently comes from the
-        interface with GAP, and are therefore highly subject to
-        improvement.
-        """
-        if hasattr(self, "_list_from_iterator"):
-            return self._list_from_iterator()
-        else:
-            raise NotImplementedError, "infinite list"
-
     def character_table(self):
         """
-        Returns the GAP character table as a string. For larger tables you
+        Returns the character table as a matrix
+
+        Each row is an irreducible character. For larger tables you
         may preface this with a command such as
         gap.eval("SizeScreen([120,40])") in order to widen the screen.
 
         EXAMPLES::
 
-            sage: print WeylGroup(['A',3]).character_table()
+            sage: WeylGroup(['A',3]).character_table()
             CT1
             <BLANKLINE>
                  2  3  2  2  .  3
@@ -458,7 +388,9 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             X.4     3 -1  1  . -1
             X.5     1  1  1  1  1
         """
-        return gap.eval("Display(CharacterTable(%s))"%gap(self).name())
+        gens_str = ', '.join(str(g.gap()) for g  in self.gens())
+        ctbl = gap('CharacterTable(Group({0}))'.format(gens_str))
+        return ctbl.Display()
 
     @cached_method
     def one(self):
@@ -651,7 +583,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         sage: G.cardinality()
         24
         sage: G.index_set()
-        [1, 2, 3]
+        (1, 2, 3)
         sage: TestSuite(G).run()
 
     TESTS::
@@ -677,7 +609,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['A',3,1]).classical().cartan_type()
             ['A', 3]
             sage: WeylGroup(['A',3,1]).classical().index_set()
-            [1, 2, 3]
+            (1, 2, 3)
 
         Note: won't be needed, once the lattice will be a parabolic sub root system
         """
@@ -746,11 +678,11 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         assert(not self.weyl_group(self._prefix).is_finite())
         assert(self.is_finite())
 
-class WeylGroupElement(MatrixGroupElement):
+class WeylGroupElement(MatrixGroupElement_gap):
     """
     Class for a Weyl Group elements
     """
-    def __init__(self, g, parent):
+    def __init__(self, parent, g, check=False):
         """
         EXAMPLES::
 
@@ -758,9 +690,8 @@ class WeylGroupElement(MatrixGroupElement):
             sage: s1 = G.simple_reflection(1)
             sage: TestSuite(s1).run()
         """
-        MatrixGroupElement.__init__(self, g, parent)
-        self.__matrix = self._MatrixGroupElement__mat
-        self.__matrix.set_immutable()
+        MatrixGroupElement_gap.__init__(self, parent, g, check=check)
+        self.__matrix = self.matrix()
         self._parent = parent
 
     def __hash__(self):
@@ -779,12 +710,12 @@ class WeylGroupElement(MatrixGroupElement):
         """
         return self._parent.domain()
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: W = WeylGroup(['A',2,1], prefix="s")
-            sage: [s0,s1,s2]=W.simple_reflections()
+            sage: [s0,s1,s2] = W.simple_reflections()
             sage: s0*s1
             s0*s1
             sage: W = WeylGroup(['A',2,1])
@@ -795,7 +726,7 @@ class WeylGroupElement(MatrixGroupElement):
             [ 0  0  1]
         """
         if self._parent._prefix is None:
-            return MatrixGroupElement.__repr__(self)
+            return MatrixGroupElement_gap._repr_(self)
         else:
             redword = self.reduced_word()
             if len(redword) == 0:
@@ -824,30 +755,13 @@ class WeylGroupElement(MatrixGroupElement):
             \end{array}\right)
         """
         if self._parent._prefix is None:
-            return MatrixGroupElement._latex_(self)
+            return MatrixGroupElement_gap._latex_(self)
         else:
             redword = self.reduced_word()
             if len(redword) == 0:
                 return "1"
             else:
                 return "".join(["%s_{%d}"%(self._parent._prefix, i) for i in redword])
-
-    def matrix(self):
-        """
-        Returns self as a matrix.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup(['A',2])
-            sage: s1 = W.simple_reflection(1)
-            sage: m = s1.matrix(); m
-            [0 1 0]
-            [1 0 0]
-            [0 0 1]
-            sage: m.parent()
-            Full MatrixSpace of 3 by 3 dense matrices over Rational Field
-        """
-        return self.__matrix
 
     def __eq__(self, other):
         """
@@ -885,54 +799,6 @@ class WeylGroupElement(MatrixGroupElement):
         if self._parent.cartan_type() != other._parent.cartan_type():
             return cmp(self._parent.cartan_type(), other._parent.cartan_type())
         return cmp(self.matrix(), other.matrix())
-
-    def parent(self):
-        """
-        Returns self's parent.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup(['A',2])
-            sage: s = W.simple_reflections()
-            sage: s[1].parent()
-            Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
-        """
-        return self._parent
-
-    def _mul_(self, other):
-        """
-        EXAMPLES::
-
-            sage: W = WeylGroup(['A',2])
-            sage: s = W.simple_reflections()
-            sage: s[1]*s[1]
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-        """
-        return self.parent()._element_constructor_(self.__matrix * other.__matrix)
-
-    def inverse(self):
-        """
-        Returns the inverse of self.
-
-        EXAMPLES::
-
-            sage: W = WeylGroup(['A',2])
-            sage: w = W.unit()
-            sage: w = w.inverse()
-            sage: type(w.inverse()) == W.element_class
-            True
-            sage: W=WeylGroup(['A',2])
-            sage: w=W.from_reduced_word([2,1])
-            sage: w.inverse().reduced_word()
-            [1, 2]
-            sage: ~w == w.inverse()
-            True
-        """
-        return self.parent()._element_constructor_(self.matrix().inverse())
-
-    __invert__ = inverse
 
     def action(self, v):
         """

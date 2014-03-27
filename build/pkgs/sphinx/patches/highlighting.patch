@@ -1,0 +1,12 @@
+diff -ur src/sphinx/highlighting.py src.patched/sphinx/highlighting.py
+--- src/sphinx/highlighting.py	2010-08-11 17:17:48.000000000 +0200
++++ src.patched/sphinx/highlighting.py	2010-11-28 12:04:44.068642703 +0100
+@@ -161,7 +161,7 @@
+ 
+         # find out which lexer to use
+         if lang in ('py', 'python'):
+-            if source.startswith('>>>'):
++            if source.startswith('>>>') or source.startswith('sage: '):
+                 # interactive session
+                 lexer = lexers['pycon']
+             else:

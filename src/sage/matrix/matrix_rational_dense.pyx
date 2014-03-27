@@ -71,7 +71,6 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.rings.arith import gcd
 
-import sage.ext.multi_modular
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
 
@@ -80,18 +79,10 @@ from sage.misc.misc import verbose, get_verbose, prod
 #########################################################
 # PARI C library
 from sage.libs.pari.gen cimport gen, PariInstance
-from sage.libs.pari.gen import pari
-cdef extern from 'pari/pari.h':
-    GEN     zeromat(long m, long n)
-    GEN     det0(GEN a,long flag)
-    GEN     gcoeff(GEN,long,long)
-    GEN     gtomat(GEN x)
-    GEN     gel(GEN,long)
-    long    glength(GEN x)
-    GEN     ginv(GEN x)
-    int     gcmp0(GEN x)
-    long    rank(GEN x)
-    GEN     gmul(GEN x, GEN y)
+from sage.libs.pari.gen import pari, PariError
+
+include "sage/libs/pari/decl.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 cdef extern from "convert.h":
     void t_FRAC_to_QQ ( mpq_t value, GEN g )
@@ -727,11 +718,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_mul(t1, self._entries[1], self._entries[2])
                 mpq_sub(det, det, t1)
                 i = mpq_cmp_si(det, 0, 1)
-                sig_off()
                 if i == 0:
                     mpq_clear(det); mpq_clear(t1)
+                    sig_off()
                     raise ZeroDivisionError("input matrix must be nonsingular" )
-                sig_on()
                 # d/det
                 mpq_div(A._entries[0], self._entries[3], det)
                 # -b/det
@@ -753,7 +743,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             else:
                 algorithm = "iml"
         if algorithm == "pari":
-            return self._invert_pari()
+            try:
+                return self._invert_pari()
+            except PariError:
+                # Assume the error is because the matrix is not invertible.
+                raise ZeroDivisionError("input matrix must be nonsingular")
         elif algorithm == "iml":
             AZ, denom = self._clear_denom()
             B, d = AZ._invert_iml(check_invertible=check_invertible)
@@ -885,7 +879,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpz_t *A_row
         D = <Integer>PY_NEW(Integer)
         self.mpz_denom(D.value)
-        MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
+        from sage.matrix.matrix_space import MatrixSpace
+        MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
         sig_on()
         for i from 0 <= i < self._nrows:
@@ -1347,7 +1342,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if not is_Ring(R):
             raise TypeError("R must be a ring")
-        from matrix_modn_dense import MAX_MODULUS
+        from matrix_modn_dense_double import MAX_MODULUS
         if R == self._base_ring:
             if self._is_immutable:
                 return self
@@ -2574,8 +2569,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        cdef PariInstance P = pari
+        pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
         cdef Rational e = Rational()
@@ -2592,8 +2587,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,3,[1..9])._rank_pari()
             2
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        cdef PariInstance P = pari
+        pari_catch_sig_on()
         cdef long r = rank(pari_GEN(self))
         P.clear_stack()
         return r
@@ -2622,8 +2617,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
-        cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        cdef PariInstance P = pari
+        pari_catch_sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         P.clear_stack()
@@ -2631,32 +2626,27 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def _invert_pari(self):
         """
-        Return the inverse of this matrix computed using pari.
+        Return the inverse of this matrix computed using PARI.
 
         EXAMPLES::
 
             sage: matrix(QQ,2,[1,2,3,4])._invert_pari()
             [  -2    1]
             [ 3/2 -1/2]
+            sage: matrix(QQ,2,[1,2,2,4])._invert_pari()
+            Traceback (most recent call last):
+            ...
+            PariError: non invertible matrix in gauss
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         cdef GEN M, d
 
-        sig_on()
+        pari_catch_sig_on()
         M = pari_GEN(self)
-
-        # unfortunately I can't get signal handling to be good enough
-        # to properly catch error (and clean up) when trying to
-        # compute inverse, so we have to compute rank.  This does add
-        # time... (!) :-(
-        #
-        # TODO: fix this in #10126 -- Jeroen Demeyer
-        if rank(M) < self._nrows:
-            P.clear_stack()
-            raise ZeroDivisionError("input matrix must be nonsingular")
         d = ginv(M)
+
         # Convert matrix back to Sage.
         A = new_matrix_from_pari_GEN(self._parent, d)
         P.clear_stack()
@@ -2671,7 +2661,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9])._pari_()
             [1/5, -2/3; 3/4, 4/9]
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         return P.rational_matrix(self._matrix, self._nrows, self._ncols)
 
     def row(self, Py_ssize_t i, from_list=False):
@@ -2699,7 +2689,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if i < 0:
             i = i + self._nrows
         cdef Py_ssize_t j
-        parent = sage.modules.free_module.FreeModule(self._base_ring, self._ncols)
+        from sage.modules.free_module import FreeModule
+        parent = FreeModule(self._base_ring, self._ncols)
         cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
@@ -2732,7 +2723,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         i %= self._ncols
         if i < 0: i += self._ncols
         cdef Py_ssize_t j
-        parent = sage.modules.free_module.FreeModule(self._base_ring, self._nrows)
+        from sage.modules.free_module import FreeModule
+        parent = FreeModule(self._base_ring, self._nrows)
         cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
@@ -2767,7 +2759,7 @@ cdef inline GEN pari_GEN(Matrix_rational_dense B):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef PariInstance P = sage.libs.pari.gen.pari
+    cdef PariInstance P = pari
     cdef GEN A
     A = P._new_GEN_from_mpq_t_matrix(B._matrix, B._nrows, B._ncols)
     return A

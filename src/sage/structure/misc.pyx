@@ -65,15 +65,15 @@ cdef class AttributeErrorMessage:
     ::
 
         sage: try:
-        ...     1.__bla
-        ... except AttributeError, ElementError:
-        ...     pass
+        ....:     1.__bla
+        ....: except AttributeError as ElementError:
+        ....:     pass
         sage: ElementError
         AttributeError('sage.rings.integer.Integer' object has no attribute '__bla',)
         sage: try:
-        ...     x.__bla
-        ... except AttributeError, ElementError2:
-        ...     pass
+        ....:     x.__bla
+        ....: except AttributeError as ElementError2:
+        ....:     pass
         sage: ElementError2 is ElementError
         True
         sage: ElementError
@@ -86,15 +86,15 @@ cdef class AttributeErrorMessage:
     Errors of parents behave similarly::
 
         sage: try:
-        ...     QQ.__bla
-        ... except AttributeError, ParentError:
-        ...     pass
+        ....:     QQ.__bla
+        ....: except AttributeError as ParentError:
+        ....:     pass
         sage: ParentError
         AttributeError('RationalField_with_category' object has no attribute '__bla',)
         sage: try:
-        ...     ZZ.__bla
-        ... except AttributeError, ParentError2:
-        ...     pass
+        ....:     ZZ.__bla
+        ....: except AttributeError as ParentError2:
+        ....:     pass
         sage: ParentError2 is ParentError
         True
         sage: ParentError2

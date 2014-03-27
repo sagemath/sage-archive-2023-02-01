@@ -2,6 +2,8 @@
 Weight Rings
 ------------
 
+.. linkall
+
 You may wish to work directly with the weights of a representation.
 
 ``WeylCharacterRingElements`` are represented internally by a
@@ -36,11 +38,7 @@ another way is to coerce it into the weight ring::
 This command produces a dictionary of the weights that appear in
 the representation, together with their multiplicities. But another
 way of getting the same information, with an aim of working with it,
-is to coerce it into the weight ring:
-
-.. link
-
-::
+is to coerce it into the weight ring::
 
     sage: a2 = WeightRing(A2)
     sage: a2(ad)

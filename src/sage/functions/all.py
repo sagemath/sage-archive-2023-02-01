@@ -26,8 +26,9 @@ from log import (exp, log, ln, polylog, dilog, lambert_w)
 
 from transcendental import (zeta, zetaderiv, zeta_symmetric, dickman_rho)
 
-from special import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                     hypergeometric_U, Bessel,
+from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
+
+from special import (hypergeometric_U,
                      spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
                      spherical_harmonic, jacobi,

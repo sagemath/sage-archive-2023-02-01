@@ -304,7 +304,7 @@ cdef class Matrix(matrix1.Matrix):
             (3, 5)
             sage: soln=A.solve_right(result)
             sage: soln
-            (-(3*c/a - 5)*b/((b*c/a - d)*a) + 3/a, (3*c/a - 5)/(b*c/a - d))
+            (-b*(3*c/a - 5)/(a*(b*c/a - d)) + 3/a, (3*c/a - 5)/(b*c/a - d))
             sage: (a*x+b*y).subs(x=soln[0],y=soln[1]).simplify_full()
             3
             sage: (c*x+d*y).subs(x=soln[0],y=soln[1]).simplify_full()
@@ -681,40 +681,42 @@ cdef class Matrix(matrix1.Matrix):
 
     def permanent(self):
         r"""
-        Calculate and return the permanent of this `m \times n`
-        matrix using Ryser's algorithm.
+        Calculate and return the permanent of the `m \times n`
+        matrix ``self`` using Ryser's algorithm.
 
         Let `A = (a_{i,j})` be an `m \times n` matrix over
         any commutative ring, with `m \le n`. The permanent of
         `A` is
 
-        .. math::
+        .. MATH::
 
-           \text{per}(A) = \sum_\pi a_{1,\pi(1)}a_{2,\pi(2)} \cdots a_{m,\pi(m)}
-
+           \mathrm{per}(A)
+           = \sum_\pi a_{1,\pi(1)} a_{2,\pi(2)} \cdots a_{m,\pi(m)}
 
         where the summation extends over all one-to-one functions
         `\pi` from `\{1, \ldots, m\}` to
         `\{1, \ldots, n\}`.
 
         The product
-        `a_{1,\pi(1)}a_{2,\pi(2)} \cdots a_{m,\pi(m)}` is
+        `a_{1,\pi(1)} a_{2,\pi(2)} \cdots a_{m,\pi(m)}` is
         called diagonal product. So the permanent of an
         `m \times n` matrix `A` is the sum of all the
         diagonal products of `A`.
+
+        INPUT:
+
+        - ``A`` -- matrix of size `m \times n` with `m \leq n`
+
+        OUTPUT:
+
+        permanent of the matrix `A`
+
+        ALGORITHM:
 
         Modification of theorem 7.1.1. from Brualdi and Ryser:
         Combinatorial Matrix Theory. Instead of deleting columns from
         `A`, we choose columns from `A` and calculate the
         product of the row sums of the selected submatrix.
-
-        INPUT:
-
-
-        -  ``A`` - matrix of size m x n with m = n
-
-
-        OUTPUT: permanent of matrix A
 
         EXAMPLES::
 
@@ -742,9 +744,10 @@ cdef class Matrix(matrix1.Matrix):
 
         ::
 
-            sage: print sloane_sequence(79908)                # optional (internet connection)
-            Searching Sloane's online database...
-            [79908, 'Solution to the Dancing School Problem with 3 girls and n+3 boys: f(3,n).', [1, 4, 14, 36, 76, 140, 234, 364, 536, 756, 1030, 1364, 1764, 2236, 2786, 3420, 4144, 4964, 5886, 6916, 8060, 9324, 10714, 12236, 13896, 15700, 17654, 19764, 22036, 24476, 27090, 29884, 32864, 36036, 39406, 42980, 46764, 50764, 54986, 59436]]
+            sage: oeis(79908)                           # optional -- internet
+            A079908: Solution to the Dancing School Problem with 3 girls and n+3 boys: f(3,n).
+            sage: _(3)                                  # optional -- internet
+            36
 
         ::
 
@@ -808,8 +811,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def permanental_minor(self, Py_ssize_t k):
         r"""
-        Calculates the permanental `k`-minor of a
-        `m \times n` matrix.
+        Return the permanental `k`-minor of an `m \times n` matrix.
 
         This is the sum of the permanents of all possible `k` by
         `k` submatrices of `A`.
@@ -819,19 +821,20 @@ cdef class Matrix(matrix1.Matrix):
         see Theorem 7.2.1 and Theorem 7.2.4.
 
         Note that the permanental `m`-minor equals
-        `per(A)`.
+        `\mathrm{per}(A)` if `m = n`.
 
         For a (0,1)-matrix `A` the permanental `k`-minor
         counts the number of different selections of `k` 1's of
-        `A` with no two of the 1's on the same line.
+        `A` with no two of the 1's on the same row and no two of the
+        1's on the same column.
 
         INPUT:
 
+        - ``self`` -- matrix of size `m \times n` with `m \leq n`
 
-        -  ``self`` - matrix of size m x n with m = n
+        OUTPUT:
 
-
-        OUTPUT: permanental k-minor of matrix A
+        The permanental `k`-minor of the matrix ``self``.
 
         EXAMPLES::
 
@@ -853,9 +856,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanental_minor(3)
             36
 
-        Note that if k == m the permanental k-minor equals per(A)
-
-        ::
+        Note that if `k = m = n`, the permanental `k`-minor equals
+        `\mathrm{per}(A)`::
 
             sage: A.permanent()
             36
@@ -865,7 +867,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.permanental_minor(5)
             0
 
-        For C the "complement" of A::
+        For `C` the "complement" of `A`::
 
             sage: M = MatrixSpace(ZZ,3,6)
             sage: C = M([0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0])
@@ -873,7 +875,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: sum([(-1)^k * C.permanental_minor(k)*factorial(n-k)/factorial(n-m) for k in range(m+1)])
             36
 
-        See Theorem 7.2.1 of Brualdi: and Ryser: Combinatorial Matrix
+        See Theorem 7.2.1 of Brualdi and Ryser: Combinatorial Matrix
         Theory: per(A)
 
         AUTHORS:
@@ -883,13 +885,13 @@ cdef class Matrix(matrix1.Matrix):
         m = self._nrows
         n = self._ncols
         if not m <= n:
-            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"%(m,n))
 
         R = self._base_ring
         if k == 0:
-            return R(1)
+            return R.one()
         if k > m:
-            return R(0)
+            return R.zero()
 
         pm = 0
         for cols in _choose(n,k):
@@ -900,17 +902,16 @@ cdef class Matrix(matrix1.Matrix):
 
     def rook_vector(self, check = False):
         r"""
-        Returns rook vector of this matrix.
+        Return the rook vector of the matrix ``self``.
 
-        Let `A` be a general `m` by `n`
-        (0,1)-matrix with `m \le n`. We identify `A` with a
-        chessboard where rooks can be placed on the fields corresponding
-        with `a_{ij} = 1`. The number
-        `r_k =  p_k(A)` (the permanental
-        `k`-minor) counts the number of ways to place `k`
-        rooks on this board so that no two rooks can attack another.
+        Let `A` be an `m` by `n` (0,1)-matrix with `m \le n`. We identify
+        `A` with a chessboard where rooks can be placed on the fields
+        `(i, j)` with `a_{i,j} = 1`. The number
+        `r_k = p_k(A)` (the permanental `k`-minor) counts the number of
+        ways to place `k` rooks on this board so that no rook can attack
+        another.
 
-        The rook vector is the list consisting of
+        The rook vector of the matrix `A` is the list consisting of
         `r_0, r_1, \ldots, r_m`.
 
         The rook polynomial is defined by
@@ -918,13 +919,14 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
+        - ``self`` -- an `m` by `n` (0,1)-matrix with `m \le n`
 
-        -  ``self`` - m by n matrix with m = n
+        - ``check`` -- Boolean (default: ``False``) determining whether
+          to check that ``self`` is a (0,1)-matrix.
 
-        -  ``check`` - True or False (default), optional
+        OUTPUT:
 
-
-        OUTPUT: rook vector
+        The rook vector of the matrix ``self``.
 
         EXAMPLES::
 
@@ -964,32 +966,40 @@ cdef class Matrix(matrix1.Matrix):
         return tmp
 
     def minors(self,k):
-        """
-        Return the list of all k-minors of self.
+        r"""
+        Return the list of all `k \times k` minors of self.
 
-        Let A be an m x n matrix and k an integer with 0 < k, k <= m, and
-        k <= n. A k x k minor of A is the determinant of a k x k matrix
-        obtained from A by deleting m - k rows and n - k columns.
+        Let `A` be an `m \times n` matrix and `k` an integer with
+        `0 \leq k`, `k \leq m` and `k \leq n`.
+        A `k \times k` minor of `A` is the determinant of a
+        `k \times k` matrix obtained from `A` by deleting `m - k`
+        rows and `n - k` columns.
+        There are no `k \times k` minors of `A` if `k` is larger
+        than either `m` or `n`.
 
         The returned list is sorted in lexicographical row major ordering,
-        e.g., if A is a 3 x 3 matrix then the minors returned are with for
-        these rows/columns: [ [0, 1]x[0, 1], [0, 1]x[0, 2], [0, 1]x[1, 2],
+        e.g., if A is a `3 \times 3` matrix then the minors returned are
+        with these rows/columns: [ [0, 1]x[0, 1], [0, 1]x[0, 2], [0, 1]x[1, 2],
         [0, 2]x[0, 1], [0, 2]x[0, 2], [0, 2]x[1, 2], [1, 2]x[0, 1], [1,
         2]x[0, 2], [1, 2]x[1, 2] ].
 
         INPUT:
 
+        - ``k`` -- integer
 
-        -  ``k`` - integer
-
-
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(ZZ,2,3,[1,2,3,4,5,6]); A
             [1 2 3]
             [4 5 6]
             sage: A.minors(2)
             [-3, -6, -3]
+            sage: A.minors(1)
+            [1, 2, 3, 4, 5, 6]
+            sage: A.minors(0)
+            [1]
+            sage: A.minors(5)
+            []
 
         ::
 
@@ -1242,6 +1252,197 @@ cdef class Matrix(matrix1.Matrix):
                 self.swap_rows(level, i)
             return d
 
+    def pfaffian(self, algorithm=None, check=True):
+        r"""
+        Return the Pfaffian of ``self``, assuming that ``self`` is an
+        alternating matrix.
+
+        INPUT:
+
+        - ``algorithm`` -- string, the algorithm to use; currently the
+          following algorithms have been implemented:
+
+          * ``'definition'`` - using the definition given by perfect
+            matchings
+
+        - ``check`` (default: ``True``) -- Boolean determining whether to
+          check ``self`` for alternatingness and squareness. This has to
+          be set to ``False`` if ``self`` is defined over a non-discrete
+          ring.
+
+        The Pfaffian of an alternating matrix is defined as follows:
+
+        Let `A` be an alternating `k \times k` matrix over a commutative
+        ring. (Here, "alternating" means that `A^T = -A` and that the
+        diagonal entries of `A` are zero.)
+        If `k` is odd, then the Pfaffian of the matrix `A` is
+        defined to be `0`. Let us now define it when `k` is even. In this
+        case, set `n = k/2` (this is an integer). For every `i` and `j`,
+        we denote the `(i, j)`-th entry of `A` by `a_{i, j}`. Let `M`
+        denote the set of all perfect matchings of the set
+        `\{ 1, 2, \ldots, 2n \}` (see
+        :class:`sage.combinat.perfect_matching.PerfectMatchings` ).
+        For every matching `m \in M`, define the sign `\mathrm{sign}(m)`
+        of `m` by writing `m` as `\{ \{ i_1, j_1 \}, \{ i_2, j_2 \},
+        \ldots, \{ i_n, j_n \} \}` with `i_k < j_k` for all `k`, and
+        setting `\mathrm{sign}(m)` to be the sign of the permutation
+        `( i_1, j_1, i_2, j_2, \ldots, i_n, j_n )` (written here in
+        one-line notation). For every matching `m \in M`, define the
+        weight `w(m)` of `m` by writing `m` as
+        `\{ \{ i_1, j_1 \}, \{ i_2, j_2 \}, \ldots, \{ i_n, j_n \} \}`
+        with `i_k < j_k` for all `k`, and setting
+        `w(m) = a_{i_1, j_1} a_{i_2, j_2} \cdots a_{i_n, j_n}`. Now, the
+        Pfaffian of the matrix `A` is defined to be the sum
+
+        .. MATH::
+
+            \sum_{m \in M} \mathrm{sign}(m) w(m).
+
+        The Pfaffian of `A` is commonly denoted by `\mathrm{Pf}(A)`. It
+        is well-known that `(\mathrm{Pf}(A))^2 = \det A` for every
+        alternating matrix `A`, and that
+        `\mathrm{Pf} (U^T A U) = \det U \cdot \mathrm{Pf}(A)` for any
+        `n \times n` matrix `U` and any alternating `n \times n`
+        matrix `A`.
+
+        See [Kn95]_, [DW95]_ and [Rote2001]_, just to name three
+        sources, for further properties of Pfaffians.
+
+        ALGORITHM:
+
+        The current implementation uses the definition given above.
+        It checks alternatingness of the matrix ``self`` only if
+        ``check`` is ``True`` (this is important because even if ``self``
+        is alternating, a non-discrete base ring might prevent Sage
+        from being able to check this).
+
+        REFERENCES:
+
+        .. [Kn95] Donald E. Knuth, *Overlapping Pfaffians*,
+           :arxiv:`math/9503234v1`.
+
+        .. [Rote2001] Gunter Rote,
+           *Division-Free Algorithms for the Determinant and the
+           Pfaffian: Algebraic and Combinatorial Approaches*,
+           H. Alt (Ed.): Computational Discrete Mathematics, LNCS
+           2122, pp. 119–135, 2001.
+           http://page.mi.fu-berlin.de/rote/Papers/pdf/Division-free+algorithms.pdf
+
+        .. [DW95] Andreas W.M. Dress, Walter Wenzel,
+           *A Simple Proof of an Identity Concerning Pfaffians of
+           Skew Symmetric Matrices*,
+           Advances in Mathematics, volume 112, Issue 1, April
+           1995, pp. 120-134.
+           http://www.sciencedirect.com/science/article/pii/S0001870885710298
+
+        .. TODO::
+
+            Implement faster algorithms, including a division-free one.
+            Does [Rote2001]_, section 3.3 give one?
+
+            Check the implementation of the matchings used here for
+            performance?
+
+        EXAMPLES:
+
+        A `3 \times 3` alternating matrix has Pfaffian 0 independently
+        of its entries::
+
+            sage: MSp = MatrixSpace(Integers(27), 3)
+            sage: A = MSp([0, 2, -3,  -2, 0, 8,  3, -8, 0])
+            sage: A.pfaffian()
+            0
+            sage: parent(A.pfaffian())
+            Ring of integers modulo 27
+
+        The Pfaffian of a `2 \times 2` alternating matrix is just its
+        northeast entry::
+
+            sage: MSp = MatrixSpace(QQ, 2)
+            sage: A = MSp([0, 4,  -4, 0])
+            sage: A.pfaffian()
+            4
+            sage: parent(A.pfaffian())
+            Rational Field
+
+        The Pfaffian of a `0 \times 0` alternating matrix is `1`::
+
+            sage: MSp = MatrixSpace(ZZ, 0)
+            sage: A = MSp([])
+            sage: A.pfaffian()
+            1
+            sage: parent(A.pfaffian())
+            Integer Ring
+
+        Let us compute the Pfaffian of a generic `4 \times 4`
+        alternating matrix::
+
+            sage: R = PolynomialRing(QQ, 'x12,x13,x14,x23,x24,x34')
+            sage: x12, x13, x14, x23, x24, x34 = R.gens()
+            sage: A = matrix(R, [[   0,  x12,  x13,  x14],
+            ....:                [-x12,    0,  x23,  x24],
+            ....:                [-x13, -x23,    0,  x34],
+            ....:                [-x14, -x24, -x34,    0]])
+            sage: A.pfaffian()
+            x14*x23 - x13*x24 + x12*x34
+            sage: parent(A.pfaffian())
+            Multivariate Polynomial Ring in x12, x13, x14, x23, x24, x34 over Rational Field
+
+        The Pfaffian of an alternating matrix squares to its
+        determinant::
+
+            sage: A = [[0] * 6 for i in range(6)]
+            sage: for i in range(6):
+            ....:     for j in range(i):
+            ....:         u = floor(random() * 10)
+            ....:         A[i][j] = u
+            ....:         A[j][i] = -u
+            ....:     A[i][i] = 0
+            sage: AA = Matrix(ZZ, A)
+            sage: AA.pfaffian() ** 2 == AA.det()
+            True
+
+        AUTHORS:
+
+        - Darij Grinberg (1 Oct 2013): first (slow)
+          implementation.
+        """
+        k = self._nrows
+
+        if check:
+            if k != self._ncols:
+                raise ValueError("self must be a square matrix")
+            if not self.is_alternating():
+                raise ValueError("self must be alternating, which includes the diagonal entries being 0")
+
+        R = self.base_ring()
+
+        if k % 2 == 1:
+            return R.zero()
+
+        if k == 0:
+            return R.one()
+
+        n = k // 2
+
+        res = R.zero()
+
+        from sage.combinat.perfect_matching import PerfectMatchings
+        from sage.misc.flatten import flatten
+        from sage.misc.misc_c import prod
+        from sage.combinat.permutation import Permutation
+        for m in PerfectMatchings(k):
+            # We only need each edge of the matching to be sorted,
+            # not the totality of edges.
+            edges = [sorted(edge) for edge in list(m)]
+            sgn = Permutation(flatten(edges)).sign()
+            # Subtract 1 from everything for indexing purposes:
+            edges2 = [[i-1 for i in edge] for edge in edges]
+            # Product without base case since k == 0 case has
+            # already been dealt with:
+            res += sgn * prod([self.get_unsafe(edge[0], edge[1]) for edge in edges2])
+
+        return res
 
     # shortcuts
     def det(self, *args, **kwds):
@@ -1322,7 +1523,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
 
-        We can take the minimal polynomail of symbolic matrices::
+        We can take the minimal polynomial of symbolic matrices::
 
             sage: t = var('t')
             sage: m = matrix(2,[1,2,4,t])
@@ -4757,11 +4958,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: S = matrix([[x, y], [y, 3*x^2]])
             sage: em = S.eigenmatrix_left()
             sage: eigenvalues = em[0]; eigenvalues
-            [-1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) + 3/2*x^2 + 1/2*x                                                        0]
-            [                                                       0  3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
+            [3/2*x^2 + 1/2*x - 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)                                                       0]
+            [                                                      0 3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
             sage: eigenvectors = em[1]; eigenvectors
-            [                                                     1  1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
-            [                                                     1 -1/2*(x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) - 3*x^2)/y]
+            [                                                    1 1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
+            [                                                    1 1/2*(3*x^2 - x + sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
+
 
         A request for ``'all'`` the eigenvalues, when it is not
         possible, will raise an error.  Using the ``'galois'``
@@ -4861,7 +5063,7 @@ cdef class Matrix(matrix1.Matrix):
                 elif format == 'all':
                     try:
                         alpha_conj = alpha.galois_conjugates(sage.rings.qqbar.QQbar)
-                    except (AttributeError, TypeError):
+                    except AttributeError:
                         msg = ("unable to construct eigenspaces for eigenvalues outside the base field,\n"
                                "try the keyword option: format='galois'")
                         raise NotImplementedError(''.join(msg))
@@ -5025,11 +5227,13 @@ cdef class Matrix(matrix1.Matrix):
             sage: S = matrix([[x, y], [y, 3*x^2]])
             sage: em = S.eigenmatrix_right()
             sage: eigenvalues = em[0]; eigenvalues
-            [-1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) + 3/2*x^2 + 1/2*x                                                        0]
-            [                                                       0  3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
+            [3/2*x^2 + 1/2*x - 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)                                                       0]
+            [                                                      0 3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
+
             sage: eigenvectors = em[1]; eigenvectors
-            [                                                     1                                                      1]
-            [ 1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y -1/2*(x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) - 3*x^2)/y]
+            [                                                    1                                                     1]
+            [1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y 1/2*(3*x^2 - x + sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
+
 
         TESTS::
 
@@ -5178,7 +5382,7 @@ cdef class Matrix(matrix1.Matrix):
                     F = h.root_field('%s%s'%('a',i))
                     try:
                         alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError, TypeError:
+                    except AttributeError:
                         raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
                     V.extend(alpha*e)
             i+=1
@@ -5268,7 +5472,7 @@ cdef class Matrix(matrix1.Matrix):
                 else:
                     try:
                         eigval_conj = eigval.galois_conjugates(QQbar)
-                    except AttributeError, TypeError:
+                    except AttributeError:
                         raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
 
                     for e in eigval_conj:
@@ -7112,6 +7316,10 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 0 1 0]
             sage: P.is_unitary()
             True
+            sage: P.change_ring(GF(3)).is_unitary()
+            True
+            sage: P.change_ring(GF(3)).is_unitary()
+            True
 
         A square matrix far from unitary. ::
 
@@ -7128,7 +7336,10 @@ cdef class Matrix(matrix1.Matrix):
         import sage.matrix.constructor
         if not self.is_square():
             return False
-        P = self.conjugate().transpose()*self
+        if hasattr(self.base_ring().an_element(), 'conjugate'):
+            P = self.conjugate().transpose()*self    # Unitary
+        else:
+            P = self.transpose()*self                # Orthogonal
         return P.is_scalar(1)
 
     def is_bistochastic(self, normalized = True):
@@ -8318,6 +8529,26 @@ cdef class Matrix(matrix1.Matrix):
             sage: G.row_space() == A.row_space()
             True
 
+        After :trac:`14047`, the matrix can also be over the algebraic reals
+        ``AA``::
+
+            sage: A = matrix(AA, [[6, -8,  1],
+            ...                   [4,  1,  3],
+            ...                   [6,  3,  3],
+            ...                   [7,  1, -5],
+            ...                   [7, -3,  5]])
+            sage: G, M = A.gram_schmidt(orthonormal=True)
+            sage: G
+            [ 0.5970223141259934? -0.7960297521679913? 0.09950371902099891?]
+            [ 0.6063218341690895?  0.5289635311888953?  0.5937772444966257?]
+            [ 0.5252981913594170?  0.2941669871612735?  -0.798453250866314?]
+            sage: M
+            [ 10.04987562112089?                   0                   0]
+            [ 1.890570661398980?  4.735582601355131?                   0]
+            [ 1.492555785314984?  7.006153332071100?  1.638930357041381?]
+            [ 2.885607851608969?  1.804330147889395?  7.963520581008761?]
+            [ 7.064764050490923?  5.626248468100069? -1.197679876299471?]
+
         Starting with complex numbers with rational real and imaginary parts.
         Note the use of the conjugate-transpose when checking the
         orthonormality. ::
@@ -8470,10 +8701,10 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 Q, R = self.transpose()._gram_schmidt_noscale()
         else:
-            raise NotImplementedError("Gram-Scmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
+            raise NotImplementedError("Gram-Schmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
         return Q.transpose(), R.transpose()
 
-    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False):
+    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False, eigenvalues=None, check_input=True):
         r"""
         Compute the Jordan normal form of this square matrix `A`, if it exists.
 
@@ -8494,6 +8725,20 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``transformation`` - (default ``False``) If ``transformation=True``,
           computes also the transformation matrix.
+
+        - ``eigenvalues`` - (default ``None``) A complete set of roots, with
+          multiplicity, of the characteristic polynomial of `A`, encoded as
+          a list of pairs, each having the form `(r, m)` with `r` a root and
+          `m` its multiplicity. If this is ``None``, then Sage computes this
+          list itself, but this is only possible over base rings in whose
+          quotient fields polynomial factorization is implemented. Over all
+          other rings, providing this list manually is the only way to
+          compute Jordan normal forms.
+
+        - ``check_input`` - (default ``True``) A Boolean specifying whether
+          the list ``eigenvalues`` (if provided) has to be checked for
+          correctness. Set this to ``False`` for a speedup if the eigenvalues
+          are known to be correct.
 
         NOTES:
 
@@ -8755,6 +9000,29 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.jordan_form(transformation=True) == (M/1).jordan_form(transformation=True)
             True
 
+        By providing eigenvalues ourselves, we can compute the Jordan form even
+        lacking a polynomial factorization algorithm.  ::
+
+            sage: Qx = PolynomialRing(QQ, 'x11, x12, x13, x21, x22, x23, x31, x32, x33')
+            sage: x11, x12, x13, x21, x22, x23, x31, x32, x33 = Qx.gens()
+            sage: M = matrix(Qx, [[0, 0, x31], [0, 0, x21], [0, 0, 0]])    # This is a nilpotent matrix.
+            sage: M.jordan_form(eigenvalues=[(0, 3)])
+            [0 1|0]
+            [0 0|0]
+            [---+-]
+            [0 0|0]
+            sage: M.jordan_form(eigenvalues=[(0, 2)])
+            Traceback (most recent call last):
+            ...
+            ValueError: The provided list of eigenvalues is not correct.
+            sage: M.jordan_form(transformation=True, eigenvalues=[(0, 3)])
+            (
+            [0 1|0]
+            [0 0|0]  [x31   0   1]
+            [---+-]  [x21   0   0]
+            [0 0|0], [  0   1   0]
+            )
+
         TESTS:
 
         The base ring for the matrix needs to have a fraction field
@@ -8806,7 +9074,19 @@ cdef class Matrix(matrix1.Matrix):
         # Compute the eigenvalues of the matrix, with multiplicities.  Here,
         # ``evals`` is a list of pairs, each first entry a root and each
         # second entry the corresponding multiplicity.
-        evals = A.charpoly().roots()
+        if eigenvalues is not None:
+            if check_input:    # Checking input for sanity.
+                C1 = A.charpoly()
+                Polyring = C1.parent()
+                C2 = Polyring.one()
+                x = Polyring.gens()[0]
+                for z, i in eigenvalues:
+                    C2 *= (x - z) ** i
+                if C1 != C2:
+                    raise ValueError("The provided list of eigenvalues is not correct.")
+            evals = eigenvalues
+        else:
+            evals = A.charpoly().roots()
         if sum([mult for (_,mult) in evals]) < n:
             raise RuntimeError("Some eigenvalue does not exist in %s."  %(A.base_ring()))
 
@@ -8919,7 +9199,7 @@ cdef class Matrix(matrix1.Matrix):
         The diagonal entries of the matrix `D` are the eigenvalues
         of `A`.  It may be necessary to "increase" the base field to
         contain all of the eigenvalues.  Over the rationals, the field
-        of algebraic integers, :mod:`sage.rings.qqbar` is a good choice.
+        of algebraic numbers, :mod:`sage.rings.qqbar` is a good choice.
 
         To obtain the matrices `S` and `D` use the :meth:`jordan_form`
         method with the ``transformation=True`` keyword.
@@ -9079,7 +9359,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def is_similar(self, other, transformation=False):
         r"""
-        Returns true if ``self`` and ``other`` are similar,
+        Returns ``True`` if ``self`` and ``other`` are similar,
         i.e. related by a change-of-basis matrix.
 
         INPUT:
@@ -9188,7 +9468,7 @@ cdef class Matrix(matrix1.Matrix):
         Jordan form, as provided by :meth:`jordan_form`.  The matrices
         below have identical eigenvalues (as evidenced by equal
         characteristic polynomials), but slightly different Jordan forms,
-        and hence are not similar.
+        and hence are not similar.  ::
 
             sage: A = matrix(QQ, [[ 19, -7, -29],
             ...                   [-16, 11,  30],
@@ -9404,6 +9684,384 @@ cdef class Matrix(matrix1.Matrix):
             """
         import sage.matrix.symplectic_basis
         return sage.matrix.symplectic_basis.symplectic_basis_over_field(self)
+
+    def _cyclic_subspace(self, v):
+        r"""
+        Helper function for computing with cyclic (Krylov) subspaces.
+
+        For a square matrix `A` and a vector `v`, the cyclic subspace
+        is spanned by the vectors
+
+        .. math::
+
+            \{v, Av, A^2v, A^3v, \dots \}
+
+        INPUT:
+
+        - ``self`` - a square matrix over a field.
+
+        - ``v`` - a vector with a degree equal to the size of the matrix.
+
+        There is no explicit error-checking, it is the responsibility of
+        the calling routine to provide accurate input.
+
+        OUTPUT:
+
+        Four related items are output.  Principally this routine
+        determines the dimension of a cyclic subspace, but also
+        creates two bases for the subspace.  Let `k` be the smallest
+        integer such that `A^kv` is a linear combination of the
+        products with smaller powers of `A`, i.e. the dimension
+        of the cyclic subspace.
+
+        - A list of the vectors `v, Av, A^2v,\dots, A^{k-1}v`
+          (the "iterates").  These vectors give one basis of
+          the subspace.
+
+        - A list of scalars giving a linear combination of
+          `v, Av, A^2v,\dots, A^kv` that equals the zero vector.
+          This is the unique such set of such scalars where the
+          last one in the list is 1.  These can be used to form
+          a monic polynomial in `A` that has `v` in its right kernel.
+          the length of this list is `k+1`.
+
+        - Form a matrix whose rows are the linearly independent iterates.
+          Augment with a `k\times k` identity matrix.  Apply row operations,
+          scaling and adding multiples of rows, but never swap rows.  Do
+          this to create `k` pivot columns.  The third output is this
+          augmented, nearly row-reduced, matrix.  The rows of the left
+          portion will form a basis for the subspace, while the right
+          portion will record linear combinations of the iterates that
+          equal these basis vectors.
+
+        - A list of length `k` with the location of the pivots
+          in the augmented matrix.  Specifically, entry  ``i``  of this
+          list is the column index of the pivot column containing its
+          lone 1 in row ``i``.
+
+        ALGORITHM:
+
+        This could be called an "online echelon form" routine.  As each
+        new power of the matrix is built, the iterate is added to the bottom
+        of the augmented matrix and row operations are used to update
+        the pivot columns.  Rows are never swapped, so this is not
+        strictly reduced row-echelon form, but the running time will
+        be similar.  The main difference is that it "discovers" the
+        dimension of the subspace as quickly as possible.
+
+        EXAMPLE::
+
+            sage: A = matrix(QQ, [[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]])
+            sage: v = vector(QQ, [0,1,0,0])
+            sage: (QQ^4).span([v, A*v, A^2*v, A^3*v]).dimension()
+            3
+
+            sage: iterates, poly, augmented, pivots = A._cyclic_subspace(v)
+
+            sage: iterates
+            [(0, 1, 0, 0), (4, 1, -1, 1), (23, 1, -8, 8)]
+            sage: poly
+            [-16, 24, -9, 1]
+            sage: lindep = iterates + [A^3*v]
+            sage: sum(poly[i]*lindep[i] for i in range(4))
+            (0, 0, 0, 0)
+            sage: B = sum(poly[i]*A^i for i in range(4))
+            sage: v in B.right_kernel()
+            True
+
+            sage: augmented
+            [    0     1     0     0     1     0     0]
+            [    1     0     0     0  -7/9   8/9  -1/9]
+            [    0     0     1    -1 -19/9  23/9  -4/9]
+            sage: pivots
+            [1, 0, 2]
+            sage: transform = augmented[:, 4:7]
+            sage: transform*matrix(iterates) == augmented[:, 0:4]
+            True
+            sage: (QQ^4).span(iterates) == (QQ^4).span(augmented[:, 0:4].rows())
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-05-20)
+        """
+        cdef Py_ssize_t n, i, j, k, pivcol
+        cdef Matrix aug
+        n = self.ncols()
+        aug = self.new_matrix(nrows=n+1, ncols=n+(n+1))
+        iterate = v.__copy__()
+        iterates = []
+        pivots = []
+        for k in range(n+1):
+            for j in range(n):
+                aug[k, j] = iterate[j]
+            # record keeping in augmented identity matrix
+            aug[k, n+k] = 1
+            # clear out pivot cols of row k, using pivots of previous rows
+            for i in range(k):
+                aug.add_multiple_of_row(k, i, -aug[k, pivots[i]])
+            # identify new pivot
+            # no new pivot is all zeros, ie linear dependence
+            pivcol = -1
+            for j in range(n):
+                if aug[k, j] != 0:
+                    pivcol = j
+                    pivots.append(pivcol)
+                    break
+            # scale pivot, and clear its column
+            if pivcol != -1:
+                aug.rescale_row(k, 1/aug[k, pivcol])
+                for i in range(k):
+                    aug.add_multiple_of_row(i, k, -aug[i, pivcol])
+                iterates.append(iterate)
+                iterate = self*iterate
+            else:
+                break
+        poly = []
+        for j in range(n, n+k+1):
+            poly.append(aug[k, j])
+        return iterates, poly, aug.submatrix(0, 0, k, n+k), pivots
+
+    def cyclic_subspace(self, v, var=None, basis='echelon'):
+        r"""
+        Create a cyclic subspace for a vector, and optionally,
+        a minimal polynomial for the iterated powers.
+
+        These subspaces are also known as Krylov subspaces.  They are
+        spanned by the vectors
+
+        .. math::
+
+            \{v, Av, A^2v, A^3v, \dots \}
+
+        INPUT:
+
+        - ``self`` - a square matrix with entries from a field.
+
+        - ``v`` - a vector with a degree equal to the size of the matrix
+          and entries compatible with the entries of the matrix.
+
+        - ``var`` - default: ``None`` - if specified as a string or
+          a generator of a polynomial ring, then this will be used
+          to construct a polynomial reflecting a relation of linear
+          dependence on the powers `A^iv` *and* this will cause
+          the polynomial to be returned along with the subspace.
+          A generator must create polynomials with coefficients from
+          the same field as the matrix entries.
+
+        - ``basis`` - default: ``echelon`` - the basis for the
+          subspace is "echelonized" by default, but the keyword
+          'iterates' will return a subspace with a user basis
+          equal to the largest linearly independent
+          set `\{v, Av, A^2v, A^3v, \dots, A^{k-1}v \}`.
+
+        OUTPUT:
+
+        Suppose `k` is the smallest power such that
+        `\{v, Av, A^2v, A^3v, \dots, A^{k}v \}` is linearly
+        dependent.  Then the subspace returned will have
+        dimension `k` and be spanned by the powers `0` through
+        `k-1`.
+
+        If a polynomial is requested through the use of the
+        ``var`` keyword, then a pair is returned, with the
+        polynomial first and the subspace second.  The polynomial
+        is the unique monic polynomial whose coefficients provide
+        a relation of linear dependence on the first `k` powers.
+
+        For less convenient, but more flexible output, see the
+        helper method "_cyclic_subspace" in this module.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQ, [[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]])
+            sage: v = vector(QQ, [0,1,0,0])
+            sage: E = A.cyclic_subspace(v); E
+            Vector space of degree 4 and dimension 3 over Rational Field
+            Basis matrix:
+            [ 1  0  0  0]
+            [ 0  1  0  0]
+            [ 0  0  1 -1]
+            sage: F = A.cyclic_subspace(v, basis='iterates'); F
+            Vector space of degree 4 and dimension 3 over Rational Field
+            User basis matrix:
+            [ 0  1  0  0]
+            [ 4  1 -1  1]
+            [23  1 -8  8]
+            sage: E == F
+            True
+            sage: p, S = A.cyclic_subspace(v, var='T'); p
+            T^3 - 9*T^2 + 24*T - 16
+            sage: gen = polygen(QQ, 'z')
+            sage: p, S = A.cyclic_subspace(v, var=gen); p
+            z^3 - 9*z^2 + 24*z - 16
+            sage: p.degree() == E.dimension()
+            True
+
+        The polynomial has coefficients that yield a non-trivial
+        relation of linear dependence on the iterates.  Or,
+        equivalently, evaluating the polynomial with the matrix
+        will create a matrix that annihilates the vector.  ::
+
+            sage: A = matrix(QQ, [[15, 37/3, -16, -104/3, -29, -7/3, 35, 2/3, -29/3, -1/3],
+            ...                   [ 2, 9, -1, -6, -6, 0, 7, 0, -2, 0],
+            ...                   [24, 74/3, -29, -208/3, -58, -14/3, 70, 4/3, -58/3, -2/3],
+            ...                   [-6, -19, 3, 21, 19, 0, -21, 0, 6, 0],
+            ...                   [2, 6, -1, -6, -3, 0, 7, 0, -2, 0],
+            ...                   [-96, -296/3, 128, 832/3, 232, 65/3, -279, -16/3, 232/3, 8/3],
+            ...                   [0, 0, 0, 0, 0, 0, 3, 0, 0, 0],
+            ...                   [20, 26/3, -30, -199/3, -42, -14/3, 70, 13/3, -55/3, -2/3],
+            ...                   [18, 57, -9, -54, -57, 0, 63, 0, -15, 0],
+            ...                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 3]])
+            sage: u = zero_vector(QQ, 10); u[0] = 1
+            sage: p, S = A.cyclic_subspace(u, var='t', basis='iterates')
+            sage: S
+            Vector space of degree 10 and dimension 3 over Rational Field
+            User basis matrix:
+            [   1    0    0    0    0    0    0    0    0    0]
+            [  15    2   24   -6    2  -96    0   20   18    0]
+            [  79   12  140  -36   12 -560    0  116  108    0]
+            sage: p
+            t^3 - 9*t^2 + 27*t - 27
+            sage: k = p.degree()
+            sage: coeffs = p.list()
+            sage: iterates = S.basis() + [A^k*u]
+            sage: sum(coeffs[i]*iterates[i] for i in range(k+1))
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: u in p(A).right_kernel()
+            True
+
+        TESTS:
+
+        A small case.  ::
+
+            sage: A = matrix(QQ, 5, range(25))
+            sage: u = zero_vector(QQ, 5)
+            sage: A.cyclic_subspace(u)
+            Vector space of degree 5 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        Various problem inputs.  Notice the vector must have entries
+        that coerce into the base ring of the matrix, and a polynomial
+        ring generator must have a base ring that agrees with the
+        base ring of the matrix.  ::
+
+            sage: A = matrix(QQ, 4, range(16))
+            sage: v = vector(QQ, 4, range(4))
+
+            sage: A.cyclic_subspace('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: first input should be a vector, not junk
+
+            sage: A.cyclic_subspace(v, var=sin(x))
+            Traceback (most recent call last):
+            ...
+            TypeError: polynomial variable must be a string or polynomial ring generator, not sin(x)
+
+            sage: t = polygen(GF(7), 't')
+            sage: A.cyclic_subspace(v, var=t)
+            Traceback (most recent call last):
+            ...
+            TypeError: polynomial generator must be over the same ring as the matrix entries
+
+            sage: A.cyclic_subspace(v, basis='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: basis format must be 'echelon' or 'iterates', not garbage
+
+            sage: B = matrix(QQ, 4, 5, range(20))
+            sage: B.cyclic_subspace(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 4 x 5
+
+            sage: C = matrix(QQ, 5, 5, range(25))
+            sage: C.cyclic_subspace(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: vector must have degree equal to the size of the matrix, not 4
+
+            sage: D = matrix(RDF, 4, 4, range(16))
+            sage: D.cyclic_subspace(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix entries must be from an exact ring, not Real Double Field
+
+            sage: E = matrix(Integers(6), 4, 4, range(16))
+            sage: E.cyclic_subspace(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix entries must be from an exact field, not Ring of integers modulo 6
+
+            sage: F.<a> = GF(2^4)
+            sage: G = matrix(QQ, 4, range(16))
+            sage: w = vector(F, 4, [1, a, a^2, a^3])
+            sage: G.cyclic_subspace(w)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to make vector entries compatible with matrix entries
+
+        AUTHOR:
+
+        - Rob Beezer (2011-05-20)
+        """
+        import sage.rings.polynomial.polynomial_ring
+        n = self.ncols()
+        R = self.base_ring()
+        if not is_Vector(v):
+            raise TypeError('first input should be a vector, not {0}'.format(v))
+        if not (var is None  or isinstance(var, basestring)):
+            generator = False
+            try:
+                generator = var.is_gen()
+            except AttributeError:
+                pass
+            if not generator:
+                raise TypeError('polynomial variable must be a string or polynomial ring generator, not {0}'.format(var))
+            elif var.base_ring() != R:
+                raise TypeError('polynomial generator must be over the same ring as the matrix entries')
+        if not basis in ['echelon', 'iterates']:
+            raise ValueError("basis format must be 'echelon' or 'iterates', not {0}".format(basis))
+        if not self.is_square():
+            raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
+        if v.degree() != n:
+            raise TypeError('vector must have degree equal to the size of the matrix, not {0}'.format(v.degree()))
+        if not (R.is_field() and R.is_exact()):
+            try:
+                fraction_field = R.fraction_field()
+            except TypeError:
+                raise TypeError('matrix entries must be from an exact field, not {0}'.format(R))
+            if fraction_field.is_exact():
+                return self.change_ring(R.fraction_field()).cyclic_subspace(v, var, basis)
+            raise TypeError('matrix entries must be from an exact ring, not {0}'.format(R))
+        try:
+            v = v.change_ring(R)
+        except TypeError:
+            raise TypeError('unable to make vector entries compatible with matrix entries')
+
+        iterates, poly, augmented, pivots = self._cyclic_subspace(v)
+        k = len(pivots)
+        polynomial = not var is None
+        if polynomial:
+            x = sage.rings.polynomial.polynomial_ring.polygen(R, var)
+            poly = sum([poly[i]*x**i for i in range(len(poly))])
+        ambient = R**n
+        if basis == 'echelon':
+            echelon = []
+            pivot_col_row = zip(pivots, range(k))
+            pivot_col_row.sort()
+            aug = augmented.submatrix(0, 0, k, n)
+            for _, pivrow in pivot_col_row:
+                echelon.append(aug.row(pivrow))
+            subspace = ambient.subspace(echelon, check=False, already_echelonized=True)
+        elif basis == 'iterates':
+            subspace = ambient.subspace_with_basis(iterates, check=False)
+        if polynomial:
+            return poly, subspace
+        else:
+            return subspace
 
     def cholesky_decomposition(self):
         r"""
@@ -10782,9 +11440,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B == L*D*L.conjugate_transpose()
             True
 
-        If a leading principal submatrix is zero this algorithm
-        will fail.  This will never happen with a positive definite
-        matrix.  ::
+        If a leading principal submatrix has zero determinant, this
+        algorithm will fail.  This will never happen with a positive
+        definite matrix.  ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
             ...                   [15, 12,  9,  6],
@@ -11105,7 +11763,7 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT: If ``indices`` is not specified, return a
         matrix with 1 where `f` is satisfied and 0 where it is not.
-        If ``indices`` is specified, return a dictionary with
+        If ``indices`` is specified, return a dictionary
         containing the elements of this matrix satisfying `f`.
 
         EXAMPLES::
@@ -11575,20 +12233,21 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: a=matrix([[1,2],[3,4]])
             sage: a.exp()
-            [-1/22*((sqrt(33) - 11)*e^sqrt(33) - sqrt(33) - 11)*e^(-1/2*sqrt(33) + 5/2)              2/33*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)]
-            [             1/11*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)  1/22*((sqrt(33) + 11)*e^sqrt(33) - sqrt(33) + 11)*e^(-1/2*sqrt(33) + 5/2)]
+            [-1/22*(e^sqrt(33)*(sqrt(33) - 11) - sqrt(33) - 11)*e^(-1/2*sqrt(33) + 5/2)              2/33*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)]
+            [             1/11*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)  1/22*(e^sqrt(33)*(sqrt(33) + 11) - sqrt(33) + 11)*e^(-1/2*sqrt(33) + 5/2)]
+
             sage: type(a.exp())
             <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
 
             sage: a=matrix([[1/2,2/3],[3/4,4/5]])
             sage: a.exp()
-            [-1/418*((3*sqrt(209) - 209)*e^(1/10*sqrt(209)) - 3*sqrt(209) - 209)*e^(-1/20*sqrt(209) + 13/20)                   20/627*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)]
-            [                  15/418*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)  1/418*((3*sqrt(209) + 209)*e^(1/10*sqrt(209)) - 3*sqrt(209) + 209)*e^(-1/20*sqrt(209) + 13/20)]
+            [-1/418*(e^(1/10*sqrt(209))*(3*sqrt(209) - 209) - 3*sqrt(209) - 209)*e^(-1/20*sqrt(209) + 13/20)                   20/627*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)]
+            [                  15/418*(sqrt(209)*e^(1/10*sqrt(209)) - sqrt(209))*e^(-1/20*sqrt(209) + 13/20)  1/418*(e^(1/10*sqrt(209))*(3*sqrt(209) + 209) - 3*sqrt(209) + 209)*e^(-1/20*sqrt(209) + 13/20)]
 
             sage: a=matrix(RR,[[1,pi.n()],[1e2,1e-2]])
             sage: a.exp()
-            [ 1/11882424341266*((11*sqrt(227345670387496707609) + 5941212170633)*e^(3/1275529100*sqrt(227345670387496707609)) - 11*sqrt(227345670387496707609) + 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)                            445243650/75781890129165569203*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
-            [                                     10000/53470909535697*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200) -1/11882424341266*((11*sqrt(227345670387496707609) - 5941212170633)*e^(3/1275529100*sqrt(227345670387496707609)) - 11*sqrt(227345670387496707609) - 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
+            [ 1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) + 5941212170633) - 11*sqrt(227345670387496707609) + 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)                            445243650/75781890129165569203*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
+            [                                     10000/53470909535697*(sqrt(227345670387496707609)*e^(3/1275529100*sqrt(227345670387496707609)) - sqrt(227345670387496707609))*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200) -1/11882424341266*(e^(3/1275529100*sqrt(227345670387496707609))*(11*sqrt(227345670387496707609) - 5941212170633) - 11*sqrt(227345670387496707609) - 5941212170633)*e^(-3/2551058200*sqrt(227345670387496707609) + 101/200)]
             sage: a.change_ring(RDF).exp()
             [42748127.3153 7368259.24416]
             [234538976.138 40426191.4516]
@@ -12505,7 +13164,7 @@ cdef class Matrix(matrix1.Matrix):
           be returned, where each list contains coefficients of a
           polynomial associated with a companion matrix.
 
-        - `subdivide` - default: 'True' - if 'True' and a matrix is
+        - ``subdivide`` - default: 'True' - if 'True' and a matrix is
           returned, then it contains subdivisions delineating the
           companion matrices along the diagonal.
 

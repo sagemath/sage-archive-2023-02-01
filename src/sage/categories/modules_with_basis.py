@@ -908,20 +908,22 @@ class ModulesWithBasis(Category_over_base_ring):
         The category of homomorphisms sets Hom(X,Y) for X, Y modules with basis
         """
 
-        class ParentMethods: #(sage.modules.free_module_homspace.FreeModuleHomspace): #    Only works for plain FreeModule's
-            """
-            Abstract class for hom sets
-            """
-
-            def __call__(self, on_basis = None, *args, **options):
+        class ParentMethods:
+            def __call_on_basis__(self, **options):
                 """
-                Construct an element of this homset
+                Construct a morphism in this homset from a function defined on the basis
 
                 INPUT:
 
-                 - on_basis (optional) -- a function from the indices
-                   of the basis of the domain of ``self`` to the
-                   codomain of ``self``
+                - ``on_basis`` -- a function from the indices of the
+                  basis of the domain of ``self`` to the codomain of
+                  ``self``
+
+                This method simply delegates the work to
+                :meth:`ModulesWithBasis.ParentMethods.module_morphism`. It
+                is used by :meth:`Homset.__call__` to handle the
+                ``on_basis`` argument, and will disapear as soon as
+                the logic will be generalized.
 
                 EXAMPLES::
 
@@ -929,6 +931,26 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
                     sage: H = Hom(X, Y)
                     sage: x = X.basis()
+
+                    sage: phi = H(on_basis = lambda i: Y.monomial(i) + 2*Y.monomial(i+1)) # indirect doctest
+                    sage: phi
+                    Generic morphism:
+                    From: X
+                    To:   Y
+                    sage: phi(x[1] + x[3])
+                    B[1] + 2*B[2] + B[3] + 2*B[4]
+
+                Diagonal functions can be constructed using the ``diagonal`` option::
+
+                    sage: X = CombinatorialFreeModule(QQ, [1,2,3,4]); X.rename("X")
+                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4], key="Y"); Y.rename("Y")
+                    sage: H = Hom(X, Y)
+                    sage: x = X.basis()
+                    sage: phi = H(diagonal = lambda x: x^2)
+                    sage: phi(x[1] + x[2] + x[3])
+                    B[1] + 4*B[2] + 9*B[3]
+
+                TESTS::
 
                 As for usual homsets, the argument can be a Python function::
 
@@ -940,75 +962,23 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: phi(x[1] + x[3])
                     0
 
-                With the on_basis argument, the function can instead
-                be constructed by extending by linearity a function on
-                the basis::
+               We check that the homset category is properly set up::
 
-                    sage: phi = H(on_basis = lambda i: Y.monomial(i) + 2*Y.monomial(i+1))
-                    sage: phi
-                    Generic morphism:
-                    From: X
-                    To:   Y
-                    sage: phi(x[1] + x[3])
-                    B[1] + 2*B[2] + B[3] + 2*B[4]
-
-                This is achieved internaly by using
-                :meth:`ModulesWithBasis.ParentMethods.module_morphism`, which see.
-                """
-                if on_basis is not None:
-                    args = (self.domain().module_morphism(on_basis, codomain = self.codomain()),) + args
-                h = Homset.__call__(self, *args, **options)
-                if on_basis is not None:
-                    h._on_basis = on_basis
-                return h
-
-            # Temporary hack
-            __call_on_basis__ = __call__
-
-            @lazy_attribute
-            def element_class_set_morphism(self):
-                """
-                A base class for elements of this homset which are
-                also SetMorphism's, i.e. implemented by mean of a
-                Python function.
-
-                This overrides the default implementation
-                :meth:`Homset.element_class_set_morphism`, to also
-                inherit from categories.
-
-                Todo: refactor during the upcoming homset cleanup.
-
-                EXAMPLES::
-
-                    sage: X = CombinatorialFreeModule(QQ, [1,2,3]);   X.rename("X")
-                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4]); Y.rename("Y")
+                    sage: category = FiniteDimensionalModulesWithBasis(QQ)
+                    sage: X = CombinatorialFreeModule(QQ, [1,2,3], category = category);   X.rename("X")
+                    sage: Y = CombinatorialFreeModule(QQ, [1,2,3,4], category = category); Y.rename("Y")
                     sage: H = Hom(X, Y)
-                    sage: H.element_class_set_morphism
-                    <class 'sage.categories.morphism.SetMorphism_with_category'>
-                    sage: H.element_class_set_morphism.mro()
-                    [<class 'sage.categories.morphism.SetMorphism_with_category'>,
-                     <type 'sage.categories.morphism.SetMorphism'>,
-                     <type 'sage.categories.morphism.Morphism'>,
-                     <type 'sage.categories.map.Map'>,
-                     <type 'sage.structure.element.Element'>,
-                     <type 'sage.structure.sage_object.SageObject'>,
-                     <class 'sage.categories.modules_with_basis.ModulesWithBasis.HomCategory.element_class'>,
-                     <class 'sage.categories.category.Modules.HomCategory.element_class'>,
-                     <class 'sage.categories.vector_spaces.VectorSpaces.element_class'>,
-                     ...]
-
-                Compare with:
-
-                    sage: H = Hom(ZZ, ZZ)
-                    sage: H.element_class_set_morphism
-                    <type 'sage.categories.morphism.SetMorphism'>
+                    sage: H.zero().category_for()
+                    Category of finite dimensional modules with basis over Rational Field
                 """
-                return self.__make_element_class__(SetMorphism, inherit = True)
+                return self.domain().module_morphism(codomain = self.codomain(),
+                                                     **options)
 
         class ElementMethods:
             """
             Abstract class for morphisms of modules with basis
             """
+            @cached_method
             def on_basis(self):
                 """
                 Returns the action of this morphism on basis elements
@@ -1035,11 +1005,8 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: g == f
                     True
                 """
-                if not hasattr(self, "_on_basis"):
-                    monomial = self.domain().monomial
-                    self._on_basis = lambda t: self(monomial(t))
-                return self._on_basis
-
+                monomial = self.domain().monomial
+                return lambda t: self(monomial(t))
 
     class CartesianProducts(CartesianProductsCategory):
         """
@@ -1360,8 +1327,6 @@ class ModuleMorphismByLinearity(Morphism):
             B[2]
             sage: phi.on_basis() == phi_on_basis
             True
-
-        Note: could probably be inherited from the categories
         """
         return self._on_basis
 

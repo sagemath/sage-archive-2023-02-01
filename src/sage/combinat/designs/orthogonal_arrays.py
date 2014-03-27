@@ -47,9 +47,12 @@ def transversal_design(k,n,t=2,check=True):
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
     """
-    # Section 6.6
-    OA = orthogonal_array(k,n)
-    TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+    if n == 12 and k <= 6:
+        TD = [l[:k] for l in TD6_12()]
+    else:
+        # Section 6.6
+        OA = orthogonal_array(k,n, check = False)
+        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     if check:
         assert is_transversal_design(TD,k,n)
@@ -96,6 +99,45 @@ def is_transversal_design(B,k,n):
         m = g.size()
 
     return g.is_clique()
+
+def TD6_12():
+    r"""
+    Returns a `TD(6,12)` as build in [Hanani75]_.
+
+    This design is Lemma 3.21 from [Hanani75]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import TD6_12
+        sage: _ = TD6_12()
+
+    REFERENCES:
+
+    .. [Hanani75] Haim Hanani,
+      Balanced incomplete block designs and related designs,
+      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
+      Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
+    """
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+    G = AdditiveAbelianGroup([2,6])
+    d = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
+         [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
+         [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
+         [(0,0),(0,3),(0,2),(0,1),(1,5),(1,4)],
+         [(0,0),(0,4),(1,1),(1,3),(0,5),(0,2)],
+         [(0,0),(0,5),(0,1),(1,5),(1,3),(1,1)],
+         [(0,0),(1,0),(1,3),(0,2),(0,3),(1,2)],
+         [(0,0),(1,1),(1,5),(1,2),(1,4),(1,0)],
+         [(0,0),(1,2),(0,4),(0,5),(0,2),(1,3)],
+         [(0,0),(1,3),(1,4),(0,4),(1,1),(0,1)],
+         [(0,0),(1,4),(0,5),(1,1),(1,0),(0,3)],
+         [(0,0),(1,5),(0,3),(1,4),(0,4),(0,5)]]
+
+    r = lambda x : int(x[0])*6+int(x[1])
+    TD = [[i*12+r(G(x)+g) for i,x in enumerate(X)] for X in d for g in G]
+    for x in TD: x.sort()
+
+    return TD
 
 def orthogonal_array(k,n,t=2,check=True):
     r"""

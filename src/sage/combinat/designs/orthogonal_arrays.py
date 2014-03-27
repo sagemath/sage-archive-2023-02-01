@@ -99,7 +99,7 @@ def is_transversal_design(B,k,n):
 
 def orthogonal_array(k,n,t=2,check=True):
     r"""
-    Returns an orthogonal array of parameters `k,n,t`
+    Return an orthogonal array of parameters `k,n,t`.
 
     INPUT:
 

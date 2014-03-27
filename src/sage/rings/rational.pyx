@@ -1474,42 +1474,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
-    def sqrt_approx(self, prec=None, all=False):
-        """
-        Return numerical approximation with given number of bits of
-        precision to this rational number. If all is given, return both
-        approximations.
-
-        INPUT:
-
-        -  ``prec`` -- integer
-
-        -  ``all`` -- bool
-
-        EXAMPLES::
-
-            sage: (5/3).sqrt_approx()
-            doctest:...: DeprecationWarning: This function is deprecated.  Use sqrt with a given number of bits of precision instead.
-            See http://trac.sagemath.org/9859 for details.
-            1.29099444873581
-            sage: (990829038092384908234098239048230984/4).sqrt_approx()
-            4.9770197862083713747374920870362581922510725585130996993055116540856385e17
-            sage: (5/3).sqrt_approx(prec=200)
-            1.2909944487358056283930884665941332036109739017638636088625
-            sage: (9/4).sqrt_approx()
-            3/2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(9859, "This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
-        try:
-            return self.sqrt(extend=False,all=all)
-        except ValueError:
-            pass
-        if prec is None:
-            prec = max(max(53, 2*(mpz_sizeinbase(mpq_numref(self.value), 2)+2)),
-                   2*(mpz_sizeinbase(mpq_denref(self.value), 2)+2))
-        return self.sqrt(prec=prec, all=all)
-
     def is_padic_square(self, p):
         """
         Determines whether this rational number is a square in `\QQ_p` (or in

@@ -1995,50 +1995,6 @@ class MPolynomialIdeal_singular_repr(
         S = syz(self)
         return matrix(self.ring(), S)
 
-    def reduced_basis(self):
-        r"""
-        .. warning::
-
-           This function is deprecated. It will be removed in a future
-           release of Sage. Please use the :meth:`interreduced_basis`
-           function instead.
-
-        If this ideal is spanned by `(f_1, ..., f_n)` this method
-        returns `(g_1, ..., g_s)` such that:
-
-        - `(f_1,...,f_n) = (g_1,...,g_s)`
-
-        - `LT(g_i) != LT(g_j)` for all `i != j`
-
-        - `LT(g_i)` does not divide `m` for all monomials `m`
-          of `\{g_1,...,g_{i-1},g_{i+1},...,g_s\}`
-
-        - `LC(g_i) == 1` for all `i`.
-
-        EXAMPLES::
-
-            sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
-            sage: I.reduced_basis()
-            doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.
-            See http://trac.sagemath.org/5058 for details.
-            [y^3 + z, x*y + z, x*z - z]
-
-            sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
-            sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
-            sage: I.reduced_basis()
-            [z + x*y, x*y - y^3, x^2*y - y^3]
-
-        ALGORITHM:
-
-        Uses Singular's interred command or
-        ``toy_buchberger.inter_reduction`` if conversion to
-        Singular fails.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(5058, "This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.")
-        return self.interreduced_basis()
-
     @singular_standard_options
     @libsingular_standard_options
     def interreduced_basis(self):

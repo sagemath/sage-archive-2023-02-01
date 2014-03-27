@@ -170,7 +170,9 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: C = CrystalOfLSPaths(['A',2,1],[0,1,0])
                 sage: list(C.__iter__(max_depth=3))
-                [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + 2*Lambda[2] - delta,), (2*Lambda[0] - Lambda[2],), (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[2] - 1/2*delta), (-Lambda[0] + Lambda[1] + 1/2*Lambda[2] - delta, Lambda[0] - 1/2*Lambda[2])]
+                [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + 2*Lambda[2] - delta,), (2*Lambda[0] - Lambda[2],),
+                (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[2] - 1/2*delta),
+                (-Lambda[0] + Lambda[1] + 1/2*Lambda[2] - delta, Lambda[0] - 1/2*Lambda[2])]
                 sage: [p for p in C.__iter__(index_set=[0, 1], max_depth=3)]
                 [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + 2*Lambda[2] - delta,)]
             """

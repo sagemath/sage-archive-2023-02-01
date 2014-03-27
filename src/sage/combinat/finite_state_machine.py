@@ -3183,14 +3183,25 @@ class FiniteStateMachine(SageObject):
             sage: t2 = FSMTransition('B', 'B', 1)
             sage: F = FiniteStateMachine([t1, t2])
             sage: F.delete_state('A')
-            sage: F. transitions()
+            sage: F.transitions()
             [Transition from 'B' to 'B': 1|-]
+
+        TESTS::
+
+            sage: F._states_
+            ['B']
+            sage: F._states_dict_  # This shows that #16024 is fixed.
+            {'B': 'B'}
         """
         state = self.state(s)
         for transition in self.transitions():
             if transition.to_state == state:
                 self.delete_transition(transition)
         self._states_.remove(state)
+        try:
+            del self._states_dict_[state.label()]
+        except AttributeError:
+            pass
 
 
     def remove_epsilon_transitions(self):

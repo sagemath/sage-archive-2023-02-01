@@ -140,7 +140,7 @@ cdef extern from "Python.h":
         Py_ssize_t ma_used
         Py_ssize_t ma_mask
         PyDictEntry* ma_table
-        PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, long hash)
+        PyDictEntry* (*ma_lookup)(PyDictObject *mp, PyObject *key, long hash) except NULL
         
     PyObject* Py_None
     #we need this redefinition because we want to be able to call
@@ -149,7 +149,7 @@ cdef extern from "Python.h":
     PyObject* PyWeakref_GetObject(PyObject * wr)
     int PyList_SetItem(object list, Py_ssize_t index,PyObject * item) except -1
     #this one's just missing.
-    long PyObject_Hash(object obj)
+    long PyObject_Hash(object obj) except -1
 
 cdef PyObject* PyDict_GetItemWithError(dict op, object key) except? NULL:
     cdef PyDictEntry* ep
@@ -927,13 +927,9 @@ cdef class WeakValueDictionary(dict):
             TypeError: mutable matrices are unhashable
 
         """
-        cdef PyObject* wr = PyDict_GetItemWithError(self, k)
-        if wr==NULL:
-            return False
-        if PyWeakref_GetObject(wr)==Py_None:
-            return False
-        else:
-            return True
+        cdef PyDictObject* mp=<PyDictObject*><void*>self
+        cdef PyDictEntry* ep=mp.ma_lookup(mp,<PyObject*><void*>k, PyObject_Hash(k))
+        return (ep.me_value != NULL) and (PyWeakref_GetObject(ep.me_value) != Py_None)
 
     #def __len__(self):
     #since GC is not deterministic, neither is the length of a WeakValueDictionary,

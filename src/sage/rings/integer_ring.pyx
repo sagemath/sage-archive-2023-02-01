@@ -57,8 +57,8 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/random.pxi"
 
-from cpython.int cimport * 
-from cpython.list cimport * 
+from cpython.int cimport *
+from cpython.list cimport *
 
 import sage.rings.infinity
 import sage.rings.rational
@@ -295,7 +295,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: A = IntegerRing_class()
 
         """
-        ParentWithGens.__init__(self, self, ('x',), normalize=False, category=EuclideanDomains())
+        ParentWithGens.__init__(self, self, ('x',), normalize=False, category = EuclideanDomains())
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -354,7 +354,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: cmp(ZZ,QQ)
             -1
         """
-        return (< Parent > left)._richcmp_helper(right, op)
+        return (<Parent>left)._richcmp_helper(right, op)
 
     def _cmp_(left, right):
         """
@@ -369,7 +369,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             -1
         """
 
-        if isinstance(right, IntegerRing_class):
+        if isinstance(right,IntegerRing_class):
             return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
             return -1
@@ -502,20 +502,20 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if end is None:
             end = start
-            start = PY_NEW(Integer)  # 0
+            start = PY_NEW(Integer) # 0
         if step is None:
             step = 1
         if not PyInt_CheckExact(step):
             if not PY_TYPE_CHECK(step, integer.Integer):
                 step = integer.Integer(step)
-            if mpz_fits_slong_p((< Integer > step).value):
+            if mpz_fits_slong_p((<Integer>step).value):
                 step = int(step)
         if not PY_TYPE_CHECK(start, integer.Integer):
             start = integer.Integer(start)
         if not PY_TYPE_CHECK(end, integer.Integer):
             end = integer.Integer(end)
-        cdef integer.Integer a = < Integer > start
-        cdef integer.Integer b = < Integer > end
+        cdef integer.Integer a = <Integer>start
+        cdef integer.Integer b = <Integer>end
 
         cdef int step_sign
         cdef long istep
@@ -526,14 +526,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             istep = PyInt_AS_LONG(step)
             step_sign = istep
         else:
-            zstep = < Integer > step
+            zstep = <Integer>step
             step_sign = mpz_sgn(zstep.value)
 
         sig_on()
-        while mpz_cmp(a.value, b.value) * step_sign < 0:
+        while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
             a = PY_NEW(Integer)
-            if PyInt_CheckExact(step):  # count on branch prediction...
+            if PyInt_CheckExact(step): # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
                 else:
@@ -561,11 +561,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return integer_ring_python.iterator(self)
 
-    cdef Integer _coerce_ZZ(self, ZZ_c * z):
+    cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i
         i = PY_NEW(integer.Integer)
         sig_on()
-        ZZ_to_mpz(& i.value, z)
+        ZZ_to_mpz(&i.value, z)
         sig_off()
         return i
 
@@ -744,7 +744,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             [(-1955, 1), (-1026, 1), (-357, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 1), (-25, 1), (-23, 2), (-22, 3), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 206), (0, 208), (1, 189), (2, 63), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 3), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 2), (19, 1), (26, 2), (27, 1), (28, 2), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
         """
         cdef integer.Integer z
-        z = < integer.Integer > PY_NEW(integer.Integer)
+        z = <integer.Integer>PY_NEW(integer.Integer)
         if x is not None and y is None and x <= 0:
             raise TypeError, "x must be > 0"
         if x is not None and y is not None and x >= y:
@@ -770,14 +770,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef integer.Integer n_max, n_min, n_width
         cdef randstate rstate = current_randstate()
-        cdef int den = rstate.c_random() - SAGE_RAND_MAX / 2
+        cdef int den = rstate.c_random()-SAGE_RAND_MAX/2
         if den == 0: den = 1
         if (distribution is None and x is None) or distribution == "1/n":
-            mpz_set_si(value, (SAGE_RAND_MAX / 5 * 2) / den)
+            mpz_set_si(value, (SAGE_RAND_MAX/5*2) / den)
         elif distribution is None or distribution == "uniform":
             if y is None:
                 if x is None:
-                    mpz_set_si(value, rstate.c_random() % 5 - 2)
+                    mpz_set_si(value, rstate.c_random()%5 - 2)
                 else:
                     n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
                     mpz_urandomm(value, rstate.gmp_state, n_max.value)
@@ -795,7 +795,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 raise ValueError("must specify x to use 'distribution=mpz_rrandomb'")
             mpz_rrandomb(value, rstate.gmp_state, int(x))
         else:
-            raise ValueError, "Unknown distribution for the integers: %s" % distribution
+            raise ValueError, "Unknown distribution for the integers: %s"%distribution
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         r"""
@@ -843,7 +843,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return True
         return super(IntegerRing_class, self)._repr_option(key)
 
-    def is_field(self, proof=True):
+    def is_field(self, proof = True):
         """
         Return ``False`` since the integers are not a field.
 
@@ -912,7 +912,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             x^2 + 1 over its base field
         """
         if embedding is not None:
-            if embedding != [None] * len(embedding):
+            if embedding!=[None]*len(embedding):
                 raise NotImplementedError
         from sage.rings.number_field.order import EquationOrder
         return EquationOrder(poly, names)
@@ -946,7 +946,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return self
         return sage.rings.finite_rings.integer_mod_ring.IntegerModRing(n)
 
-    def residue_field(self, prime, check=True):
+    def residue_field(self, prime, check = True):
         r"""
         Return the residue field of the integers modulo the given prime, i.e.
         `\ZZ/p\ZZ`.
@@ -1004,14 +1004,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             p = self.ideal(prime)
         elif sage.rings.ideal.is_Ideal(prime):
             if not (prime.ring() is self):
-                raise TypeError, "%s is not an ideal of ZZ" % prime
+                raise TypeError, "%s is not an ideal of ZZ"%prime
             p = prime
         else:
-            raise TypeError, "%s is neither an ideal of ZZ nor an integer" % prime
+            raise TypeError, "%s is neither an ideal of ZZ nor an integer"%prime
         if check and not p.is_prime():
-            raise TypeError, "%s is not prime" % prime
+            raise TypeError, "%s is not prime"%prime
         from sage.rings.residue_field import ResidueField
-        return ResidueField(p, names=None, check=check)
+        return ResidueField(p, names = None, check = check)
 
     def gens(self):
         """
@@ -1026,7 +1026,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: type(ZZ.gens()[0])
             <type 'sage.rings.integer.Integer'>
         """
-        return (self(1),)
+        return (self(1), )
 
     def gen(self, n=0):
         """
@@ -1125,7 +1125,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return True
 
-    def completion(self, p, prec, extras={}):
+    def completion(self, p, prec, extras = {}):
         r"""
         Return the completion of the integers at the prime `p`.
 
@@ -1219,7 +1219,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
 
     #################################
-    # # Coercions to interfaces
+    ## Coercions to interfaces
     #################################
     def _gap_init_(self):
         """
@@ -1353,12 +1353,12 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE = X[0].parent()(1)
+    ONE=X[0].parent()(1)
     for i in range(len(X)):
         p = X[i]
-        prod = P // p
-        g, s, t = p.xgcd(prod)
+        prod = P//p
+        g,s,t = p.xgcd(prod)
         if g != ONE:
             raise ArithmeticError, "The elements of the list X must be coprime in pairs."
-        Y.append(t * prod)
+        Y.append(t*prod)
     return Y

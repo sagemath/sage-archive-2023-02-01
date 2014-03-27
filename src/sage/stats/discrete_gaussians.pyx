@@ -80,20 +80,20 @@ cdef class DiscreteGaussianSampler(SageObject):
         - "uniform+logtable" - samples are drawn from a uniform distribution and
           accepted with probability proportional to $exp(-(x-c)^2/(2σ^2))$ where
           $exp(-(x-c)^2/(2σ^2))$ is computed using logarithmically many calls to
-          Bernoulli distributions. See [DDLL23]_ for details.  Only
+          Bernoulli distributions. See [DDLL13]_ for details.  Only
           integer-valued ``c`` are supported.
 
         - "uniform+online" - samples are drawn from a uniform distribution and
           accepted with probability proportional to $exp(-(x-c)^2/(2σ^2))$ where
           $exp(-(x-c)^2/(2σ^2))$ is computed in each invocation. Typically this
-          is very slow.  See [DDLL23]_ for details.  Any real-valued ``c`` is
+          is very slow.  See [DDLL13]_ for details.  Any real-valued ``c`` is
           accepted.
 
         - "sigma2+logtable" - samples are drawn from an easily samplable
           distribution k·σ2 and accepted with probability proportional to 
           $exp(-(x-c)^2/(2σ^2))$ where $exp(-(x-c)^2/(2σ^2))$ is computed using 
           logarithmically many calls to Bernoulli distributions. 
-          See [DDLL23]_ for details. Note that this sampler adjusts sigma to match σ2·k 
+          See [DDLL13]_ for details. Note that this sampler adjusts sigma to match σ2·k 
           for some integer k. Only integer-valued ``c`` are supported.
 
         EXAMPLES::

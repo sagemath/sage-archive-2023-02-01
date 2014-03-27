@@ -116,12 +116,17 @@ def ZS1_iterator(int n):
     """
     A fast iterator for the partitions of ``n`` (in the opposite
     of the lexicographic order) which returns lists and not
-    partition types.
+    objects of type :class:`~sage.combinat.partition.Partition`.
 
     This is an implementation of the ZS1 algorithm found in
-    "Fast Algorithms for Generating Integer Partitons" by Zoghbi
-    and Stojmenovic
-    ( http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287 ).
+    [ZS98]_.
+
+    REFERENCES:
+
+    .. [ZS98] Antoine Zoghbi, Ivan Stojmenovic,
+      *Fast Algorithms for Generating Integer Partitons*,
+      Intern. J. Computer Math., Vol. 70., pp. 319--332.
+      http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287
 
     EXAMPLES::
 
@@ -183,7 +188,8 @@ def ZS1_iterator_nk(int n, int k):
     """
     An iterator for the partitions of ``n`` of length at most
     ``k`` (in the opposite of the lexicographic order) which
-    returns lists and not partition types.
+    returns lists and not objects of type
+    :class:`~sage.combinat.partition.Partition`.
 
     The algorithm is a mild variation on :func:`ZS1_iterator`;
     I would not vow for its speed.

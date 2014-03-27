@@ -56,8 +56,10 @@ class OrderedSetPartition(ClonableArray):
     order.
 
     The number `T_n` of ordered set partitions of
-    `\{ 1, 2, ..., n \}` is the so-called `n`-th *Fubini number*. Its
-    exponential generating function is
+    `\{ 1, 2, ..., n \}` is the so-called `n`-th *Fubini number* (also
+    known as the `n`-th ordered Bell number; see
+    :wikipedia:`Ordered Bell number`). Its exponential generating
+    function is
     
     .. MATH::
     

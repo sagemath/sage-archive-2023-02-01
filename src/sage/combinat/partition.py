@@ -5634,7 +5634,7 @@ class Partitions_nk(Partitions):
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError
         elif self.n >= self.k > 0:
-            lst = [self.n - self.k + 1] + [1 for _ in range(self.k-1)]
+            lst = [self.n - self.k + 1] + [1] * (self.k-1)
         else:
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError

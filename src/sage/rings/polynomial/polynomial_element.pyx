@@ -4989,11 +4989,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: E2 = E1.subs(t1=t2, x1=x2, y1=y2)
             sage: det(mu*E1 + E2).discriminant().degrees()
             (24, 12, 12, 8, 8, 8, 8)
+
+        This addresses an issue raised by :trac:`15061`::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.discriminant()
+            4 + 4*T + O(T^2)
         """
+        # Late import to avoid cyclic dependencies:
+        from sage.rings.power_series_ring import is_PowerSeriesRing
         if self.is_zero():
             return self.parent().zero_element()
         poly = self
-        if is_MPolynomialRing(self.parent().base_ring()):
+        base_ring = self.parent().base_ring()
+        if (is_MPolynomialRing(base_ring) or
+            is_PowerSeriesRing(base_ring)):
             # It is often cheaper to compute discriminant of simple
             # multivariate polynomial and substitute the real
             # coefficients into that result (see #16014).

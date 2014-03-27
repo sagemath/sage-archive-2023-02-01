@@ -1126,7 +1126,7 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
         """
         if self.phi(a) == 0:
             return None
-        return RiggedConfigurationElement.f(self, a)
+        return RCNonSimplyLacedElement.f(self, a)
 
 ##############################################
 ## KR crystal rigged configuration elements ##

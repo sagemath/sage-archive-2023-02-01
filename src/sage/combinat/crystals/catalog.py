@@ -7,6 +7,7 @@ This is a catalog of crystals that are currently in Sage:
 * :class:`Tableaux <sage.combinat.crystals.tensor_product.CrystalOfTableaux>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
+* :class:`RiggedConfigurations <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
 * :class:`GeneralizedYoungWalls <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Spins <sage.combinat.crystals.spins.CrystalOfSpins>`
@@ -44,6 +45,7 @@ from kyoto_path_model import KyotoPathModel
 from generalized_young_walls import CrystalOfGeneralizedYoungWalls as GeneralizedYoungWalls
 from monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
+from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 
 from tensor_product import TensorProductOfCrystals as TensorProduct
 from direct_sum import DirectSumOfCrystals as DirectSum

@@ -208,9 +208,11 @@ cdef class Function(SageObject):
             if x.parent().is_exact():
                 return None
         try:
-            return getattr(x, self.name())()
+            memberfn = getattr(x, self.name())
         except AttributeError:
             pass
+        else:
+            return memberfn()
 
     def __hash__(self):
         """
@@ -349,6 +351,13 @@ cdef class Function(SageObject):
             sage: exp(M)
             [e^x   0]
             [  0  -1]
+
+        Make sure we can pass mpmath arguments (:trac:`13608`)::
+
+            sage: import mpmath
+            sage: with mpmath.workprec(128): sin(mpmath.mpc('0.5', '1.2'))
+            mpc(real='0.86807452059118713192871150787046523179886', imag='1.3246769633571289324095313649562791720086')
+
         """
         if self._nargs > 0 and len(args) != self._nargs:
             raise TypeError, "Symbolic function %s takes exactly %s arguments (%s given)"%(self._name, self._nargs, len(args))
@@ -357,9 +366,11 @@ cdef class Function(SageObject):
         if self._nargs == 1:
             if isinstance(args[0], FastDoubleFunc):
                 try:
-                    return getattr(args[0], self._name)()
+                    memberfn = getattr(args[0], self._name)
                 except AttributeError, err:
                     raise TypeError, "cannot handle fast float arguments"
+                else:
+                    return memberfn()
 
         # support numpy arrays as arguments
         if any([type(arg).__module__ == 'numpy' for arg in args]): # avoid importing
@@ -367,9 +378,23 @@ cdef class Function(SageObject):
             # check that at least one of the arguments is a numpy array
             if any([isinstance(arg, numpy.ndarray) for arg in args]):
                 try:
-                    return getattr(numpy, self.name())(*args)
+                    modulefn = getattr(numpy, self.name())
                 except AttributeError:
                     return self._eval_numpy_(*args)
+                else:
+                    return modulefn(*args)
+
+        # support mpmath mpf and mpc numbers as arguments
+        if any(['mpmath' in type(arg).__module__ for arg in args]): # avoid importing
+            import mpmath
+            # check that at least one of the arguments is an mpmath type
+            if any([isinstance(arg, (mpmath.mpf, mpmath.mpc)) for arg in args]):
+                try:
+                    modulefn = getattr(mpmath, self.name())
+                except AttributeError:
+                    return self._eval_mpmath_(*args)
+                else:
+                    return modulefn(*args)
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
@@ -388,13 +413,13 @@ cdef class Function(SageObject):
                 # a method with the name of this function on the object.
                 # This makes the following work:
                 #     sage: M = matrix(SR, 2, 2, [x, 0, 0, I*pi])
+                #     sage: exp(M)
                 #     [e^x   0]
                 #     [  0  -1]
                 if len(args) == 1:
-                    try:
-                        return getattr(args[0], self._name)()
-                    except AttributeError:
-                        pass
+                    memberfn = getattr(args[0], self._name, None)
+                    if callable(memberfn):
+                        return memberfn()
 
                 # There is no natural coercion from QQbar to the symbolic ring
                 # in order to support
@@ -632,6 +657,57 @@ cdef class Function(SageObject):
         """
         raise NotImplementedError("The Function %s does not support numpy arrays as arguments" % self.name())
 
+    def _eval_mpmath_(self, *args):
+        r"""
+        Evaluates this function for arguments of mpmath types.
+
+        The default implementation casts its arguments to sage reals
+        of the appropriate precision.
+
+        EXAMPLES::
+
+        At the time of this writing, mpmath had no arcsin, only asin.
+        So the following call would actually fall back to the default
+        implementation, using sage reals instead of mpmath ones. This
+        might change when aliases for these functions are established.
+
+            sage: import mpmath
+            sage: with mpmath.workprec(128): arcsin(mpmath.mpf('0.5'))
+            mpf('0.52359877559829887307710723054658381403157')
+
+        TESTS:
+
+        To ensure that we actually can fall back to an implementation
+        not using mpmath, we have to create a custom function which
+        will certainly never get created in mpmath.
+
+            sage: import mpmath
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: class NoMpmathFn(BuiltinFunction):
+            ....:         def _eval_(self, arg):
+            ....:                 parent = arg.parent()
+            ....:                 prec = parent.prec()
+            ....:                 assert parent == RealField(prec)
+            ....:                 return prec
+            sage: noMpmathFn = NoMpmathFn("noMpmathFn")
+            sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))
+            64
+            sage: mpmath.noMpmathFn = lambda x: 123
+            sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))
+            123
+            sage: del mpmath.noMpmathFn
+
+        """
+        import mpmath
+        from sage.libs.mpmath.utils import mpmath_to_sage, sage_to_mpmath
+        prec = mpmath.mp.prec
+        args = [mpmath_to_sage(x, prec)
+                if isinstance(x, (mpmath.mpf, mpmath.mpc)) else x
+                for x in args]
+        res = self(*args)
+        res = sage_to_mpmath(res, prec)
+        return res
+
 cdef class GinacFunction(BuiltinFunction):
     """
     This class provides a wrapper around symbolic functions already defined in
@@ -740,9 +816,10 @@ cdef class GinacFunction(BuiltinFunction):
         # The argument dont_call_method_on_arg is used to prevent infinite loops
         # when .exp(), .log(), etc. methods call this symbolic function on
         # themselves
-        if len(args) == 1 and not hold and not dont_call_method_on_arg and \
-                hasattr(args[0], self._name):
-            return getattr(args[0], self._name)()
+        if len(args) == 1 and not hold and not dont_call_method_on_arg:
+            memberfn = getattr(args[0], self._name, None)
+            if callable(memberfn):
+                return memberfn()
 
         res = super(GinacFunction, self).__call__(*args, coerce=coerce,
                 hold=hold)

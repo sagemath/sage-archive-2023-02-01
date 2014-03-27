@@ -238,7 +238,7 @@ class Hypergraph:
             # "center", i.e. the vertex representing the set s
             cx,cy = pos[s]
             s = map(lambda x:pos[x],s)
-            s = sorted(s, key = lambda (x,y) : arctan2(x-cx,y-cy))
+            s = sorted(s, key = lambda x_y : arctan2(x_y[0]-cx,x_y[1]-cy))
 
             for x in s:
                 tex += str(x)+" "

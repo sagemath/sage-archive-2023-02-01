@@ -549,9 +549,9 @@ class Crystals(Category_singleton):
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             d = {}
             if self in HighestWeightCrystals:
-                f = lambda (u,v,label): ({})
+                f = lambda u_v_label: ({})
             else:
-                f = lambda (u,v,label): ({"backward":label ==0})
+                f = lambda u_v_label1: ({"backward":u_v_label1[2] ==0})
 
             # Parse optional arguments
             if subset is None:

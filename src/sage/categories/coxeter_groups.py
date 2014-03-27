@@ -1216,7 +1216,8 @@ v            EXAMPLES::
             if not predicate(W.one()):
                 return FiniteCombinatorialClass([])
             s = W.simple_reflections()
-            def succ((u,v)):
+            def succ(xxx_todo_changeme):
+                (u,v) = xxx_todo_changeme
                 for i in v.descents(side = 'left'):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):

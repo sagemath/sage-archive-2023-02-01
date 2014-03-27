@@ -277,7 +277,7 @@ def RandomBoundedToleranceGraph(n):
 
     W = n**2 * 2**n
 
-    tolrep = map(lambda (l,r): (l,r,randint(0,r-l)),
+    tolrep = map(lambda l_r: (l_r[0],l_r[1],randint(0,l_r[1]-l_r[0])),
         [sorted((randint(0,W), randint(0,W))) for i in range(n)])
 
     return ToleranceGraph(tolrep)

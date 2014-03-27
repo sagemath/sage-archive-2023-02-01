@@ -1589,8 +1589,10 @@ class Permutation(CombinatorialObject, Element):
         # for big permutations,
         # we use a divide-and-conquer strategy
         # it's a merge sort, plus counting inversions
-        def merge_and_countv((ivA,A),(ivB,B)):
+        def merge_and_countv(xxx_todo_changeme, xxx_todo_changeme1):
             # iv* is the inversion vector of *
+            (ivA,A) = xxx_todo_changeme
+            (ivB,B) = xxx_todo_changeme1
             C = []
             i,j = 0,0
             ivC = []

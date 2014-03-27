@@ -238,11 +238,11 @@ def ZS1_iterator_nk(int n, int k):
             h -= 1
             yield x[:m+1]
         else:
-            t = m - h + 1 # 1 + "the number of 1s to the right of x[h]"
+            t = m - h + 1 # 1 + "the number of 1s to the right of x[h] that belong to the partition"
             r = x[h] - 1
 
             # This loop finds the largest h such that x[:h] can be completed
-            # with integers smaller (<=) than r=x[h]-1 into a partition of n.
+            # with integers smaller-or-equal to r=x[h]-1 into a partition of n.
             #
             # We decrement h until it becomes possible.
             while t > (k-h-1) * r:
@@ -276,6 +276,5 @@ def ZS1_iterator_nk(int n, int k):
                 if t > 1:
                     h += 1
                 x[m] = t
-            #yield [x[i] for i in xrange(m+1)]
             yield x[:m+1]
     #free(x)

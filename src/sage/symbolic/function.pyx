@@ -737,7 +737,7 @@ cdef class Function(SageObject):
             ....:                 return prec
             sage: noMpmathFn = NoMpmathFn("noMpmathFn")
             sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))
-            64
+            mpf('64.0')
             sage: mpmath.noMpmathFn = lambda x: 123
             sage: with mpmath.workprec(64): noMpmathFn(sqrt(mpmath.mpf('2')))
             123

@@ -1,8 +1,8 @@
 """
 Orthogonal arrays
 
-This module gathers anything related to orthogonal arrays. And, incidentally, to
-transversal designs.
+This module gathers anything related to orthogonal arrays, and, incidentally,
+to transversal designs.
 
 Functions
 ---------
@@ -10,67 +10,78 @@ Functions
 
 def transversal_design(k,n,t=2,check=True):
     r"""
-    Returns a transversal design of parameters `k,n`.
+    Return a transversal design of parameters `k,n`.
+
+    A transversal design of parameters `n, k` is a collection `\mathcal{S}`
+    of `k`-subsets of `V = V_1 \sqcup \cdots \sqcup V_k`
+    (where `|V_i| = n` for all `i`) such that:
+
+    * Any element `S \in \mathcal{S}` intersects each set `V_i` on exactly one
+      element.
+
+    * Any two elements `v_i \in V_i, v_j\in V_j` with `i \neq j` belong to
+      exactly one element of `\mathcal{S}`.
+
+    For more information on transversal designs, see
+    http://mathworld.wolfram.com/TransversalDesign.html.
 
     INPUT:
 
-    - `n,k,t` -- integers.
+    - `n,k,t` -- integers
 
-    - ``check`` (boolean) -- whether to check that output is correct before
+    - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
-      guys), you may want to disable it whenever you want speed. Set to ``True``
-      by default.
-
-    **Definition**
-
-    A transversal design of parameters `n, k` is a collection `\mathcal S` of
-    `k`-subsets of `V=V_1 \sqcup \dots \sqcup V_k` (where `|V_i|=n`) such that :
-
-    * Any element `S\in \mathcal S` intersects each set `V_i` on exactly one
-      element.
-
-    * Any two elements `v_i\in V_i,v_j\in V_j` with `i\neq j` belong to exactly
-      one element of `\mathcal S`
-
-    For more information on transversal designs, see
-    `http://mathworld.wolfram.com/TransversalDesign.html`_.
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
 
     EXAMPLES::
 
         sage: designs.transversal_design(5,5)
-        [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23], [0, 8, 11, 19, 22],
-         [0, 9, 13, 17, 21], [1, 6, 11, 16, 21], [1, 7, 13, 19, 20], [1, 8, 10, 17, 24],
-         [1, 9, 12, 15, 23], [1, 5, 14, 18, 22], [2, 7, 12, 17, 22], [2, 8, 14, 15, 21],
-         [2, 9, 11, 18, 20], [2, 5, 13, 16, 24], [2, 6, 10, 19, 23], [3, 8, 13, 18, 23],
-         [3, 9, 10, 16, 22], [3, 5, 12, 19, 21], [3, 6, 14, 17, 20], [3, 7, 11, 15, 24],
-         [4, 9, 14, 19, 24], [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
+        [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23],
+         [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 6, 11, 16, 21],
+         [1, 7, 13, 19, 20], [1, 8, 10, 17, 24], [1, 9, 12, 15, 23],
+         [1, 5, 14, 18, 22], [2, 7, 12, 17, 22], [2, 8, 14, 15, 21],
+         [2, 9, 11, 18, 20], [2, 5, 13, 16, 24], [2, 6, 10, 19, 23],
+         [3, 8, 13, 18, 23], [3, 9, 10, 16, 22], [3, 5, 12, 19, 21],
+         [3, 6, 14, 17, 20], [3, 7, 11, 15, 24], [4, 9, 14, 19, 24],
+         [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
     """
     # Section 6.6
     OA = orthogonal_array(k,n)
     TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
-    if check and not is_transversal_design(TD,k,n):
-        raise RuntimeError("Sage returns wrong results ! Please report the bug.")
+    if check:
+        assert is_transversal_design(TD,k,n)
 
     return TD
 
 def is_transversal_design(B,k,n):
     r"""
-    Checks that a given set B of blocks is a transversal design.
+    Check that a given set of blocks ``B`` is a transversal design.
 
-    See :mod:`sage.combinat.design.orthogonal_arrays` for a definition.
+    See :func:`~sage.combinat.designs.orthogonal_arrays.transversal_design`
+    for a definition.
 
     INPUT:
 
     - ``B`` -- the list of blocks
-    - ``k,n`` -- integers
+    - ``k, n`` -- integers
 
     .. NOTE::
 
-        The tranversal design must have `0,...,kn-1` as a ground set,
-        partitionned as `k` sets of size `n` : `\{0,...,k-1\}\cup
-        \{k,...,2k-1\}\cup\{k(n-1),...,kn-1\}`.
+        The tranversal design must have `\{0, \ldots, kn-1\}` as a ground set,
+        partitioned as `k` sets of size `n`: `\{0, \ldots, k-1\} \sqcup
+        \{k, \ldots, 2k-1\} \sqcup \cdots \sqcup \{k(n-1), \ldots, kn-1\}`.
+
+    EXAMPLES::
+
+        sage: TD = designs.transversal_design(5, 5, check=True) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
+        sage: is_transversal_design(TD, 5, 5)
+        True
+        sage: is_transversal_design(TD, 4, 4)
+        False
     """
     from sage.graphs.generators.basic import CompleteGraph
     from itertools import combinations
@@ -84,10 +95,7 @@ def is_transversal_design(B,k,n):
             return False
         m = g.size()
 
-    if not g.is_clique():
-        return False
-
-    return True
+    return g.is_clique()
 
 def orthogonal_array(k,n,t=2,check=True):
     r"""
@@ -95,16 +103,16 @@ def orthogonal_array(k,n,t=2,check=True):
 
     INPUT:
 
-    - ``k`` (integer) -- number of columns
+    - ``k`` -- (integer) number of columns
 
-    - ``n`` (integer) -- number of symbols
+    - ``n`` -- (integer) number of symbols
 
-    - ``t`` (integer) -- only ``t=2`` is available at the moment.
+    - ``t`` -- (integer; default: 2) only ``t=2`` is available at the moment
 
-    - ``check`` (boolean) -- whether to check that output is correct before
+    - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
-      guys), you may want to disable it whenever you want speed. Set to ``True``
-      by default.
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.
@@ -140,14 +148,14 @@ def orthogonal_array(k,n,t=2,check=True):
     OA = None
 
     if t != 2:
-        raise NotImplementedError("Only implemented for t == 2")
+        raise NotImplementedError("only implemented for t=2")
 
-    if k <= 1:
-        raise ValueError("Not defined for this value !")
+    if k < 2:
+        raise ValueError("undefined for k less than 2")
 
     if k == t:
         from itertools import product
-        OA = [list(t) for t in product(*[range(n) for _ in range(k)])]
+        OA = map(list, product(range(n), repeat=k))
 
     # Theorem 6.39 from [Stinson2004]
     elif 2 <= k and k <= n and is_prime_power(n):
@@ -183,30 +191,38 @@ def orthogonal_array(k,n,t=2,check=True):
                   for i in range(n) for j in range(n)]
 
     if OA is None:
-        raise NotImplementedError("I don't know how to build this OA !")
-    if check and not is_orthogonal_array(OA,k,n,t):
-        raise RuntimeError("Sage returns wrong results ! Please report the bug.")
+        raise NotImplementedError("I don't know how to build this orthogonal array!")
+    if check:
+        assert is_orthogonal_array(OA,k,n,t)
 
     return OA
 
 def is_orthogonal_array(M,k,n,t):
     r"""
-    Checks that the integer matrix `M` is an `OA(k,n,t)`.
+    Check that the integer matrix `M` is an `OA(k,n,t)`.
+
+    See :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
+    for a definition.
 
     INPUT:
 
-    - ``M`` -- an integer matrix of size `k^t\times n`.
+    - ``M`` -- an integer matrix of size `k^t \times n`
 
-    - ``k,n,t`` -- integers.
+    - ``k, n, t`` -- integers
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(5,9,check=True) # indirect doctest
+        sage: OA = designs.orthogonal_array(5,9,check=True) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: is_orthogonal_array(OA, 5, 9, 2)
+        True
+        sage: is_orthogonal_array(OA, 4, 5, 2)
+        False
     """
     if t != 2:
-        raise NotImplementedError
+        raise NotImplementedError("only implemented for t=2")
 
-    if not all([len(l) == k for l in M]):
+    if not all(len(l) == k for l in M):
         return False
 
     from itertools import combinations
@@ -216,3 +232,4 @@ def is_orthogonal_array(M,k,n,t):
             return False
 
     return True
+

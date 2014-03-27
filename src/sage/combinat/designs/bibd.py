@@ -64,7 +64,7 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
 
     TODO:
 
-        * Implement `(v,5,1)`-BIBD with `http://www.argilo.net/files/bibd.pdf`_.
+        * Implement `(v,5,1)`-BIBD using `this text <http://www.argilo.net/files/bibd.pdf>`_.
         * Implement other constructions from the Handbook of Combinatorial
           Designs.
 
@@ -133,7 +133,7 @@ def steiner_triple_system(n):
     A Steiner Triple System of a `n`-set exists if and only if
     `n \equiv 1 \pmod 6` or `n \equiv 3 \pmod 6`, in which case
     one can be found through Bose's and Skolem's constructions,
-    respectively [AndHon97]_.
+    respectively [AndHonk97]_.
 
     INPUT:
 
@@ -163,7 +163,7 @@ def steiner_triple_system(n):
 
     REFERENCE:
 
-    .. [AndHon97] A short course in Combinatorial Designs,
+    .. [AndHonk97] A short course in Combinatorial Designs,
       Ian Anderson, Iiro Honkala,
       Internet Editions, Spring 1997,
       http://www.utu.fi/~honkala/designs.ps

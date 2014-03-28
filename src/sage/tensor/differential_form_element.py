@@ -70,8 +70,7 @@ def sort_subscript(subscript):
     if len(subscript) == 0:
         return 1, ()
 
-    sub_list = list(subscript)
-    sub_list.sort()
+    sub_list = sorted(subscript)
     offsets = [subscript.index(x)+1 for x in sub_list]
 
     # Check that offsets is a true permutation of 1..n
@@ -553,7 +552,7 @@ class DifferentialForm(AlgebraElement):
             sage: f.diff() == g
             True
         """
-        if type(other) == type(self):
+        if isinstance(other, type(self)):
             if self._degree != other._degree:
                 return False
             else:

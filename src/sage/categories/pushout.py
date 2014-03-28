@@ -2454,7 +2454,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if type(self)!=type(other):
+        if not isinstance(self, type(other)):
             return None
         if self.names != other.names:
             return None

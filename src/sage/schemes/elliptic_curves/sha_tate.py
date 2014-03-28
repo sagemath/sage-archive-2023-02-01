@@ -971,8 +971,7 @@ class Sha(SageObject):
         if not ignore_nonsurj_hypothesis:
             for p in E.galois_representation().non_surjective():
                 B.append(p)
-        B = list(set([int(x) for x in B]))
-        B.sort()
+        B = sorted(set([int(x) for x in B]))
         return B, n
 
 
@@ -1057,8 +1056,7 @@ class Sha(SageObject):
         for p, n in factor(self.an()):
             if n >= 2:    # use parity of Sha
                 B.append(int(p))
-        B = list(set(B))
-        B.sort()
+        B = sorted(set(B))
         return B
 
     def bound(self):

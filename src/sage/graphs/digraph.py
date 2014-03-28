@@ -754,8 +754,7 @@ class DiGraph(GenericGraph):
                     if len(NZ) != 2:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
                         assert False
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
                     if L != [-1,0,1]:
                         msg += "Each column represents an edge: -1 goes to 1."
                         assert False

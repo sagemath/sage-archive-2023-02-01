@@ -4553,8 +4553,7 @@ class Permutations_mset(Permutations):
         mset = self.mset
         n = len(self.mset)
         lmset = list(mset)
-        mset_list = map(lambda x: lmset.index(x), lmset)
-        mset_list.sort()
+        mset_list = sorted(map(lambda x: lmset.index(x), lmset))
 
         yield self.element_class(self, [lmset[x] for x in mset_list])
 
@@ -4722,8 +4721,7 @@ class Permutations_set(Permutations):
         s = self._set
         n = len(s)
         lset = list(s)
-        set_list = map(lambda x: lset.index(x), lset)
-        set_list.sort()
+        set_list = sorted(map(lambda x: lset.index(x), lset))
 
         yield self.element_class(self, [lset[x] for x in set_list])
 
@@ -5099,8 +5097,7 @@ class StandardPermutations_all(Permutations):
         if isinstance(x, Permutation):
             return True
         elif isinstance(x, list):
-            s = x[:]
-            s.sort()
+            s = sorted(x[:])
             if s != range(1, len(x)+1):
                 return False
             return True

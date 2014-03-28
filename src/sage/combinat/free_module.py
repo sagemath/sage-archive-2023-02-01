@@ -416,8 +416,7 @@ class CombinatorialFreeModuleElement(Element):
         if have_same_parent(left, right) and left._monomial_coefficients == right._monomial_coefficients:
             return 0
         nonzero = lambda mc: mc[1] != 0
-        v = filter(nonzero, left._monomial_coefficients.items())
-        v.sort()
+        v = sorted(filter(nonzero, left._monomial_coefficients.items()))
         w = filter(nonzero, right._monomial_coefficients.items())
         w.sort()
         return cmp(v, w)
@@ -658,8 +657,7 @@ class CombinatorialFreeModuleElement(Element):
         BR = self.parent().base_ring()
         zero = BR( 0 )
 
-        supp = [ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ]
-        supp.sort()
+        supp = sorted([ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ])
 
         return supp
 
@@ -681,8 +679,7 @@ class CombinatorialFreeModuleElement(Element):
         zero = BR( 0 )
         one = BR( 1 )
 
-        supp = [ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ]
-        supp.sort()
+        supp = sorted([ key for key, coeff in self._monomial_coefficients.iteritems() if coeff != zero ])
 
         return [ P._from_dict( { key : one }, remove_zeros=False ) for key in supp ]
 
@@ -702,8 +699,7 @@ class CombinatorialFreeModuleElement(Element):
         """
         BR = self.parent().base_ring()
         zero = BR( 0 )
-        v = [ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ]
-        v.sort()
+        v = sorted([ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ])
         from_dict = self.parent()._from_dict
         return [ from_dict( { key : value } ) for key,value in v ]
 
@@ -729,8 +725,7 @@ class CombinatorialFreeModuleElement(Element):
         """
         BR = self.parent().base_ring()
         zero = BR( 0 )
-        v = [ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ]
-        v.sort()
+        v = sorted([ ( key, value ) for key, value in self._monomial_coefficients.iteritems() if value != zero ])
         return [ value for key,value in v ]
 
     def _vector_(self, new_base_ring=None):

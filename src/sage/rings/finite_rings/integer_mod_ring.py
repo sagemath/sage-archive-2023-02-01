@@ -1056,7 +1056,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: Z11 == Z11, Z11 == Z12, Z11 == Z13, Z11 == F
             (True, False, False, False)
         """
-        if type(other) is not type(self):   # so that GF(p) =/= Z/pZ
+        if not isinstance(other, type(self)):   # so that GF(p) =/= Z/pZ
             return cmp(type(self), type(other))
         return cmp(self.__order, other.__order)
 

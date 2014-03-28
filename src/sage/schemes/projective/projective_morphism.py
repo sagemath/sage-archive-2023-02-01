@@ -1147,8 +1147,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     power+=1
             if power == 1:
                 badprimes=badprimes+GB[i].lt().coefficients()[0].support()
-        badprimes=list(set(badprimes))
-        badprimes.sort()
+        badprimes=sorted(set(badprimes))
 
         #check to return only the truly bad primes
         if check == True:

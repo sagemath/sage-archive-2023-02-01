@@ -2767,8 +2767,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         if degree is not None:
             degree = ZZ(degree)
-        facs = [ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ]
-        facs.sort() # sorts on residue_class_degree(), lowest first
+        facs = sorted([ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ])
         if degree is None:
             return [ id for d, n, id in facs ]
         else:
@@ -5467,9 +5466,9 @@ class NumberField_generic(number_field_base.NumberField):
         if not S:
             S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(self.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):
@@ -6867,8 +6866,7 @@ class NumberField_absolute(NumberField_generic):
             self.__embeddings = {}
         except KeyError:
             pass
-        embs = map(self, self.pari_nf().nfgaloisconj())
-        embs.sort()
+        embs = sorted(map(self, self.pari_nf().nfgaloisconj()))
         v = [ self.hom([ e ], check=False) for e in embs ]
         put_natural_embedding_first(v)
         self.__embeddings[self] = Sequence(v, cr=(v != []), immutable=True,

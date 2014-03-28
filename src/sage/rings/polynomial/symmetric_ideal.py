@@ -503,8 +503,7 @@ class SymmetricIdeal( Ideal_generic ):
                     return SymmetricIdeal(self.ring(),[self.ring()(1)], coerce=False)
                 TODO.append(P)
         if not sorted:
-            TODO = list(set(TODO))
-            TODO.sort()
+            TODO = sorted(set(TODO))
         if hasattr(PARENT,'_P'):
             CommonR = PARENT._P
         else:
@@ -552,8 +551,7 @@ class SymmetricIdeal( Ideal_generic ):
             else:
                 if len(TODO)==len(DONE):
                     import copy
-                    bla = copy.copy(TODO)
-                    bla.sort()
+                    bla = sorted(copy.copy(TODO))
                     if bla==DONE:
                         break
                 TODO = DONE

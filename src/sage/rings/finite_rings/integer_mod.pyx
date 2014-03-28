@@ -3002,7 +3002,7 @@ cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
 
     a = a % m
 
-    while 1:
+    while True:
         if a == 0:
             return 0 # gcd was nontrivial
         elif a == 1:
@@ -3725,7 +3725,7 @@ cdef int jacobi_int64(int_fast64_t a, int_fast64_t m) except -2:
 
     a = a % m
 
-    while 1:
+    while True:
         if a == 0:
             return 0 # gcd was nontrivial
         elif a == 1:

@@ -57,3 +57,4 @@ update GAP, please also update and use the spkg-src script.
 
  * sparc_segfault.patch: fix alignment issue on SPARC
 
+ * osx_10_4.patch: OSX 10.4 build fix taken from https://bitbucket.org/gap-system/gap/

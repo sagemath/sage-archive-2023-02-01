@@ -95,7 +95,6 @@ from sage.rings.arith import is_prime
 from sage.structure.element import is_Vector
 
 cimport sage.structure.element
-from matrix_modn_dense cimport Matrix_modn_dense
 
 include 'sage/modules/binary_search.pxi'
 include 'sage/modules/vector_integer_sparse_h.pxi'

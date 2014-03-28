@@ -87,6 +87,8 @@ values**, see next section)::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x, y, z = p['x'], p['y'], p['z']
+    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+    See http://trac.sagemath.org/15521 for details.
 
 Next, we set the objective function
 
@@ -166,8 +168,8 @@ write
 
 ::
 
-    sage: p.add_constraint(x["I am a valid key"]
-    ...                    + x[("a",pi)] <= 3)
+    sage: p.add_constraint(x["I am a valid key"] +
+    ....:                  x[("a",pi)] <= 3)
 
 
 And because any immutable object can be used as a key, doubly indexed variables
@@ -179,7 +181,6 @@ And because any immutable object can be used as a key, doubly indexed variables
 ::
 
     sage: p.add_constraint(x[3,2] + x[5] == 6)
-
 
 Typed variables and bounds
 """"""""""""""""""""""""""

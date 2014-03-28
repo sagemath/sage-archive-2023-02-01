@@ -306,7 +306,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (3, 3, [(0 : 0 : 1), (1/2*zeta43_0^2 + 3/2*zeta43_0 - 2 : -zeta43_0^2 - 4*zeta43_0 + 3 : 1)])
 
         """
-
+        verbose = int(verbose)
         try:
             result = self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime]
             if verbose == 0:
@@ -319,11 +319,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
-        prob_rank = Integer(t[0])
-        two_selmer_rank = Integer(t[1])
-        prob_gens = [self(P) for P in t[2]]
-        self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = (prob_rank, two_selmer_rank, prob_gens)
-        return prob_rank, two_selmer_rank, prob_gens
+        self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = t
+        return t
 
     def division_field(self, p, names, map=False, **kwds):
         """

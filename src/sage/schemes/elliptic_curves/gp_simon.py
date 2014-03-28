@@ -22,7 +22,7 @@ from sage.structure.parent_gens import localvars
 from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
 from sage.misc.randstate import current_randstate
-from sage.rings.all import QQ
+from sage.rings.all import QQ, ZZ
 from constructor import EllipticCurve
 
 gp = None
@@ -52,7 +52,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        [2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)]]
+        (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
 
     TESTS::
 
@@ -137,19 +137,22 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         print cmd
     s = gp.eval('ans=%s;'%cmd)
     if s.find(" *** ") != -1:
-        raise RuntimeError, "\n%s\nAn error occurred while running Simon's 2-descent program"%s
+        raise RuntimeError("\n%s\nAn error occurred while running Simon's 2-descent program"%s)
     if verbose > 0:
         print s
     v = gp.eval('ans')
     if v=='ans': # then the call to ellrank() or bnfellrank() failed
-        return 'fail'
+        raise RuntimeError("An error occurred while running Simon's 2-descent program")
     if verbose >= 2:
-        print "v = ", v
+        print("v = %s" % v)
+
     # pari represents field elements as Mod(poly, defining-poly)
     # so this function will return the respective elements of K
     def _gp_mod(*args):
         return args[0]
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
-    ans[2] = [E_orig([from_K(c) for c in list(P)]) for P in ans[2]]
-    ans[2] = [P for P in ans[2] if P.has_infinite_order()]
-    return ans
+    lower = ZZ(ans[0])
+    upper = ZZ(ans[1])
+    points = [E_orig([from_K(c) for c in list(P)]) for P in ans[2]]
+    points = [P for P in points if P.has_infinite_order()]
+    return lower, upper, points

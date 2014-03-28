@@ -132,7 +132,7 @@ class KyotoPathModel(TensorProductOfCrystals):
     EXAMPLES::
 
         sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-        sage: L = RootSystem(['A',2,1]).weight_space()
+        sage: L = RootSystem(['A',2,1]).weight_lattice()
         sage: C = KyotoPathModel(B, L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
         [[[3]]]
@@ -142,7 +142,7 @@ class KyotoPathModel(TensorProductOfCrystals):
     An example of type `A_5^{(2)}`::
 
         sage: B = KirillovReshetikhinCrystal(['A',5,2], 1,1)
-        sage: L = RootSystem(['A',5,2]).weight_space()
+        sage: L = RootSystem(['A',5,2]).weight_lattice()
         sage: C = KyotoPathModel(B, L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
         [[[-1]]]
@@ -154,7 +154,7 @@ class KyotoPathModel(TensorProductOfCrystals):
     An example of type `D_3^{(2)}`::
 
         sage: B = KirillovReshetikhinCrystal(['D',3,2], 1,1)
-        sage: L = RootSystem(['D',3,2]).weight_space()
+        sage: L = RootSystem(['D',3,2]).weight_lattice()
         sage: C = KyotoPathModel(B, L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
         [[]]
@@ -165,7 +165,7 @@ class KyotoPathModel(TensorProductOfCrystals):
 
         sage: B1 = KirillovReshetikhinCrystal(['A',2,1], 1,1)
         sage: B2 = KirillovReshetikhinCrystal(['A',2,1], 2,1)
-        sage: L = RootSystem(['A',2,1]).weight_space()
+        sage: L = RootSystem(['A',2,1]).weight_lattice()
         sage: C = KyotoPathModel([B1, B2, B1], L.fundamental_weight(0))
         sage: mg = C.module_generators[0]; mg
         [[[3]]]
@@ -185,12 +185,18 @@ class KyotoPathModel(TensorProductOfCrystals):
         EXAMPLES::
 
             sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-            sage: L = RootSystem(['A',2,1]).weight_space()
+            sage: L = RootSystem(['A',2,1]).weight_lattice()
             sage: C = KyotoPathModel(B, L.fundamental_weight(0))
             sage: C2 = KyotoPathModel((B,), L.fundamental_weight(0))
             sage: C3 = KyotoPathModel([B], L.fundamental_weight(0))
             sage: C is C2 and C2 is C3
             True
+
+            sage: L = RootSystem(['A',2,1]).weight_space()
+            sage: C = KyotoPathModel(B, L.fundamental_weight(0))
+            Traceback (most recent call last):
+            ...
+            ValueError: Lambda[0] is not in the weight lattice
         """
         if isinstance(crystals, list):
             crystals = tuple(crystals)
@@ -203,9 +209,12 @@ class KyotoPathModel(TensorProductOfCrystals):
         if any(B.level() != level for B in crystals[1:]):
             raise ValueError("all crystals must have the same level")
         ct = crystals[0].cartan_type()
+        P = RootSystem(ct).weight_lattice()
+        if weight.parent() is not P:
+            raise ValueError("{} is not in the weight lattice".format(weight))
         if sum( ct.dual().c()[i] * weight.scalar(h) for i,h in
-                enumerate(RootSystem(ct).weight_space().simple_coroots()) ) != level:
-            raise ValueError( "%s is not a level %s weight"%(weight, level) )
+                enumerate(P.simple_coroots()) ) != level:
+            raise ValueError( "{} is not a level {} weight".format(weight, level) )
 
         return super(KyotoPathModel, cls).__classcall__(cls, crystals, weight)
 
@@ -216,7 +225,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         EXAMPLES::
 
             sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-            sage: L = RootSystem(['A',2,1]).weight_space()
+            sage: L = RootSystem(['A',2,1]).weight_lattice()
             sage: C = KyotoPathModel(B, L.fundamental_weight(0))
             sage: TestSuite(C).run() # long time
         """
@@ -236,7 +245,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         EXAMPLES::
 
             sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-            sage: L = RootSystem(['A',2,1]).weight_space()
+            sage: L = RootSystem(['A',2,1]).weight_lattice()
             sage: KyotoPathModel(B, L.fundamental_weight(0))
             Kyoto path realization of B(Lambda[0]) using [Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)]
         """
@@ -254,7 +263,7 @@ class KyotoPathModel(TensorProductOfCrystals):
             EXAMPLES::
 
                 sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-                sage: L = RootSystem(['A',2,1]).weight_space()
+                sage: L = RootSystem(['A',2,1]).weight_lattice()
                 sage: C = KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
                 sage: [mg.epsilon(i) for i in C.index_set()]
@@ -283,7 +292,7 @@ class KyotoPathModel(TensorProductOfCrystals):
             EXAMPLES::
 
                 sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-                sage: L = RootSystem(['A',2,1]).weight_space()
+                sage: L = RootSystem(['A',2,1]).weight_lattice()
                 sage: C = KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
                 sage: [mg.phi(i) for i in C.index_set()]
@@ -309,7 +318,7 @@ class KyotoPathModel(TensorProductOfCrystals):
             EXAMPLES::
 
                 sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-                sage: L = RootSystem(['A',2,1]).weight_space()
+                sage: L = RootSystem(['A',2,1]).weight_lattice()
                 sage: C = KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
                 sage: all(mg.e(i) is None for i in C.index_set())
@@ -337,7 +346,7 @@ class KyotoPathModel(TensorProductOfCrystals):
             EXAMPLES::
 
                 sage: B = KirillovReshetikhinCrystal(['A',2,1], 1,1)
-                sage: L = RootSystem(['A',2,1]).weight_space()
+                sage: L = RootSystem(['A',2,1]).weight_lattice()
                 sage: C = KyotoPathModel(B, L.fundamental_weight(0))
                 sage: mg = C.module_generators[0]
                 sage: mg.f(2)

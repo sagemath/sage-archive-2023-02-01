@@ -747,8 +747,8 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
             sage: P1xP1 = CPRFanoToricVariety(
             ...       Delta_polar=lattice_polytope.octahedron(2))
-            sage: P1xP1._latex_()
-            '\\mathbb{P}_{\\Delta^{2}}'
+            sage: print P1xP1._latex_()
+            \mathbb{P}_{\Delta^{2}_{14}}
         """
         return r"\mathbb{P}_{%s}" % latex(self.Delta())
 

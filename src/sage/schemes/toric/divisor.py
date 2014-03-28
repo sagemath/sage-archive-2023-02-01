@@ -247,8 +247,8 @@ class ToricDivisorGroup(DivisorGroup_generic):
 
         TESTS::
 
-            sage: toric_varieties.P2().toric_divisor_group()._latex_()
-            '\\mathrm{Div_T}\\left(\\mathbb{P}_{\\Delta^{2}}, \\Bold{Z}\\right)'
+            sage: print toric_varieties.P2().toric_divisor_group()._latex_()
+            \mathrm{Div_T}\left(\mathbb{P}_{\Delta^{2}_{15}}, \Bold{Z}\right)
         """
         return (r"\mathrm{Div_T}\left(%s, %s\right)"
                 % (latex(self.scheme()), latex(self.base_ring())))
@@ -2014,8 +2014,8 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
 
             sage: P2 = toric_varieties.P2()
             sage: from sage.schemes.toric.divisor import ToricRationalDivisorClassGroup
-            sage: ToricRationalDivisorClassGroup(P2)._latex_()
-            '\\mathop{Cl}_{\\QQ}\\left(\\mathbb{P}_{\\Delta^{2}}\\right)'
+            sage: print ToricRationalDivisorClassGroup(P2)._latex_()
+            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{15}}\right)
         """
         return '\\mathop{Cl}_{\\QQ}\\left('+self._variety._latex_()+'\\right)'
 
@@ -2131,7 +2131,7 @@ class ToricRationalDivisorClassGroup_basis_lattice(FreeModule_ambient_pid):
             sage: L = P1xP1.Kaehler_cone().lattice()
             sage: print L._latex_()
             \text{Basis lattice of }
-            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}}\right)
+            \mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{14}}\right)
         """
         return r"\text{{Basis lattice of }} {}".format(latex(self._group))
 

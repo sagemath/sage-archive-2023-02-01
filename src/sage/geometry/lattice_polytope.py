@@ -426,7 +426,8 @@ def ReflexivePolytopes(dim):
             os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
         for n, p in enumerate(rp):
             # Data files have normal form of reflexive polytopes
-            p._normal_form = p._vertices
+            p.normal_form_pc.set_cache(p._vertices)
+            p.index.set_cache(n)
             # Prevents dimension computation later
             p._dim = dim
         # Compute "fast" data in one call to PALP
@@ -973,37 +974,16 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: LatticePolytope([(1,1), (0,0)])._latex_()
             '\\Delta^{1}'
 
-        For reflexive polytopes the output is the same... ::
+        For 2- and 3-d reflexive polytopes the index in the internal database
+        appears as a subscript::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o._latex_()
-            '\\Delta^{2}'
-
-        ... unless they are written in the normal from in which case the index
-        in the internal database is printed as a subscript::
-
-            sage: o.vertices_pc()
-            M( 1,  0),
-            M( 0,  1),
-            M(-1,  0),
-            M( 0, -1)
-            in 2-d lattice M
-            sage: o = LatticePolytope(o.normal_form().columns())
-            sage: o.vertices_pc()
-            M( 1,  0),
-            M( 0,  1),
-            M( 0, -1),
-            M(-1,  0)
-            in 2-d lattice M
-            sage: o._latex_()
-            '\\Delta^{2}_{3}'
+            sage: print ReflexivePolytope(2, 3)._latex_()
+            \Delta^{2}_{3}
         """
-        if (self.dim() in (2, 3)
-            and self.is_reflexive()
-            and self.normal_form() == self.vertices_pc().column_matrix()):
-            return r"\Delta^{%d}_{%d}" % (self.dim(), self.index())
-        else:
-            return r"\Delta^{%d}" % self.dim()
+        result = r"\Delta^{%d}" % self.dim()
+        if self.dim() in (2, 3) and self.is_reflexive():
+            result += "_{%d}" % self.index()
+        return result
 
     def _palp(self, command, reduce_dimension=False):
         r"""
@@ -2099,12 +2079,18 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         But they are in the same `GL(Z^n)` orbit and have the same
         normal form::
 
-            sage: o.normal_form()
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
-            sage: lattice_polytope.ReflexivePolytope(2,3).normal_form()
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
+            sage: o.normal_form_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
+            sage: lattice_polytope.ReflexivePolytope(2,3).normal_form_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
         """
         if not self.is_reflexive():
             raise NotImplementedError, "only reflexive polytopes can be indexed!"
@@ -2114,9 +2100,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if LatticePolytopeClass._rp_dict[dim] == None:
             rp_dict = dict()
             for n, p in enumerate(ReflexivePolytopes(dim)):
-                rp_dict[str(p.normal_form())] = n
+                rp_dict[p.normal_form_pc().matrix()] = n
             LatticePolytopeClass._rp_dict[dim] = rp_dict
-        return LatticePolytopeClass._rp_dict[dim][str(self.normal_form())]
+        return LatticePolytopeClass._rp_dict[dim][self.normal_form_pc().matrix()]
 
     @cached_method
     def is_reflexive(self):
@@ -2371,33 +2357,69 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     def normal_form(self):
         r"""
-        Return the normal form of vertices of the polytope.
+        Return the normal form of vertices of ``self`` as a matrix.
 
-        Two full-dimensional lattice polytopes are in the same GL(Z)-orbit if
-        and only if their normal forms are the same. Normal form is not defined
-        and thus cannot be used for polytopes whose dimension is smaller than
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.normal_form()
+            doctest:1: DeprecationWarning: normal_form() output will change,
+            please use normal_form_pc().column_matrix() instead
+            or consider using normal_form_pc() directly!
+            See http://trac.sagemath.org/15240 for details.
+            [ 1  0  0  0  0 -1]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1 -1  0  0]
+        """
+        deprecation(15240, "normal_form() output will change, "
+            "please use normal_form_pc().column_matrix() instead "
+            "or consider using normal_form_pc() directly!")
+        return self.normal_form_pc().column_matrix()
+
+    @cached_method
+    def normal_form_pc(self):
+        r"""
+        Return the normal form of vertices of ``self``.
+
+        OUTPUT:
+
+        - a :class:`point collection <PointCollection>` in the :meth:`lattice`
+          of ``self``.
+
+        Two full-dimensional lattice polytopes are in the same
+        `\mathrm{GL}(\ZZ)`-orbit if and only if their normal forms are the same.
+       
+        Normal form is not defined for polytopes whose dimension is smaller than
         the dimension of the ambient space.
 
-        EXAMPLES: We compute the normal form of the "diamond"::
+        EXAMPLES:
+        
+        We compute the normal form of the "diamond"::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.vertices_pc()
+            sage: d = LatticePolytope([(1,0), (0,1), (-1,0), (0,-1)])
+            sage: d.vertices_pc()
             M( 1,  0),
             M( 0,  1),
             M(-1,  0),
             M( 0, -1)
             in 2-d lattice M
-            sage: o.normal_form()
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
+            sage: d.normal_form_pc()
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
 
-        The diamond is the 3rd polytope in the internal database...
+        The diamond is the 3rd polytope in the internal database::
 
-        ::
-
-            sage: o.index()
+            sage: d.index()
             3
-            sage: lattice_polytope.ReflexivePolytope(2,3).vertices_pc()
+            sage: d
+            2-d reflexive polytope #3 in 2-d lattice M
+            
+        You can get it in its normal form (in the default lattice) as ::
+        
+            sage: lattice_polytope.ReflexivePolytope(2, 3).vertices_pc()
             M( 1,  0),
             M( 0,  1),
             M( 0, -1),
@@ -2411,19 +2433,16 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.normal_form()
             Traceback (most recent call last):
             ...
-            ValueError: Normal form is not defined for a 2-dimensional polytope in a 3-dimensional space!
+            ValueError: normal form is not defined for
+            2-d lattice polytope in 3-d lattice M
         """
-        if not hasattr(self, "_normal_form"):
-            if self.dim() < self.ambient_dim():
-                raise ValueError(
-                ("Normal form is not defined for a %d-dimensional polytope " +
-                "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
-            M = ToricLattice(self.dim()).dual() # All normal form are in M
-            vertices = map(M, read_palp_matrix(self.poly_x("N")).columns())
-            for v in vertices:
-                v.set_immutable()
-            self._normal_form = PointCollection(vertices, M)
-        return self._normal_form.column_matrix()
+        if self.dim() < self.ambient_dim():
+            raise ValueError("normal form is not defined for %s" % self)
+        M = self.lattice()
+        vertices = map(M, read_palp_matrix(self.poly_x("N")).columns())
+        for v in vertices:
+            v.set_immutable()
+        return PointCollection(vertices, M)
 
     def npoints(self):
         r"""

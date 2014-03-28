@@ -12,8 +12,10 @@ method, available in Sage as ``designs.BalancedIncompleteBlockDesign``.
 EXAMPLES::
 
     sage: designs.BalancedIncompleteBlockDesign(7,3)
+    Incidence structure with 7 points and 7 blocks
+    sage: designs.BalancedIncompleteBlockDesign(7,3).blocks()
     [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-    sage: designs.BalancedIncompleteBlockDesign(13,4)
+    sage: designs.BalancedIncompleteBlockDesign(13,4).blocks()
     [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10], [1, 3, 8, 10],
      [1, 4, 7, 9], [1, 5, 6, 11], [2, 3, 7, 11], [2, 4, 6, 10], [2, 5, 8, 9],
      [3, 4, 5, 12], [6, 7, 8, 12], [9, 10, 11, 12]]
@@ -70,15 +72,19 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
 
     EXAMPLES::
 
-        sage: designs.BalancedIncompleteBlockDesign(7,3)
+        sage: designs.BalancedIncompleteBlockDesign(7,3).blocks()
         [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-        sage: designs.BalancedIncompleteBlockDesign(21,5, use_LJCR=True) # optional - internet
-        [[0, 1, 4, 14, 16], [0, 2, 7, 8, 11], [0, 3, 13, 15, 20], [0, 5, 6, 9, 19],
-        [0, 10, 12, 17, 18], [1, 2, 5, 15, 17], [1, 3, 8, 9, 12], [1, 6, 7, 10, 20],
-        [1, 11, 13, 18, 19], [2, 3, 6, 16, 18], [2, 4, 9, 10, 13], [2, 12, 14, 19, 20],
-        [3, 4, 7, 17, 19], [3, 5, 10, 11, 14], [4, 5, 8, 18, 20], [4, 6, 11, 12, 15],
-        [5, 7, 12, 13, 16], [6, 8, 13, 14, 17], [7, 9, 14, 15, 18], [8, 10, 15, 16, 19],
-        [9, 11, 16, 17, 20]]
+        sage: B = designs.BalancedIncompleteBlockDesign(21,5, use_LJCR=True) # optional - internet
+        sage: B                                                              # optional - internet
+        Incidence structure with 21 points and 21 blocks
+        sage: B.blocks()                                                     # optional - internet
+        [[0, 1, 2, 3, 20], [0, 4, 8, 12, 16], [0, 5, 10, 15, 19],
+         [0, 6, 11, 13, 17], [0, 7, 9, 14, 18], [1, 4, 11, 14, 19],
+         [1, 5, 9, 13, 16], [1, 6, 8, 15, 18], [1, 7, 10, 12, 17],
+         [2, 4, 9, 15, 17], [2, 5, 11, 12, 18], [2, 6, 10, 14, 16],
+         [2, 7, 8, 13, 19], [3, 4, 10, 13, 18], [3, 5, 8, 14, 17],
+         [3, 6, 9, 12, 19], [3, 7, 11, 15, 16], [4, 5, 6, 7, 20],
+         [8, 9, 10, 11, 20], [12, 13, 14, 15, 20], [16, 17, 18, 19, 20]]
         sage: designs.BalancedIncompleteBlockDesign(20,5, use_LJCR=True) # optional - internet
         Traceback (most recent call last):
         ...
@@ -96,14 +102,14 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
 
     if k == 2:
         from itertools import combinations
-        return list(combinations(range(v),2))
+        return BlockDesign(v, combinations(range(v),2), test = False)
     if k == 3:
-        return steiner_triple_system(v).blocks()
+        return steiner_triple_system(v)
     if k == 4:
-        return v_4_1_BIBD(v)
+        return BlockDesign(v, v_4_1_BIBD(v), test = False)
     if v == (k-1)**2+k and is_prime_power(k-1):
         from block_design import ProjectivePlaneDesign
-        return ProjectivePlaneDesign(k-1).blocks()
+        return ProjectivePlaneDesign(k-1)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -112,8 +118,8 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
         expected_n_of_blocks = binomial(v,2)/binomial(k,2)
         if B.low_bd() > expected_n_of_blocks:
             raise ValueError("No such design exists !")
-        B = B.incidence_structure().blocks()
-        if len(B) == expected_n_of_blocks:
+        B = B.incidence_structure()
+        if len(B.blcks) == expected_n_of_blocks:
             return B
 
     raise ValueError("I don't know how to build this design.")
@@ -352,7 +358,7 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
         n = len(X)
         N = (k-1)*n+1
         if not (n,k) in base_cases:
-            base_cases[n,k] = _relabel_bibd(BalancedIncompleteBlockDesign(N,k),N)
+            base_cases[n,k] = _relabel_bibd(BalancedIncompleteBlockDesign(N,k).blcks,N)
 
         for XX in base_cases[n,k]:
             if N-1 in XX:
@@ -381,10 +387,10 @@ def _check_pbd(B,v,S):
 
     EXAMPLE::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4) # indirect doctest
-        [[0, 1, 2, 12], [0, 14, 28, 38], [0, 27, 15, 25], [13, 1, 28, 25],
-         [13, 14, 15, 12], [13, 27, 2, 38], [26, 1, 15, 38], [26, 14, 2, 25],
-         [26, 27, 28, 12], [0, 3, 6, 9], [0, 16, 32, 35], [0, 29, 19, 22],
+        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
+         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
+         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
         ...
     """
     from itertools import combinations
@@ -420,10 +426,10 @@ def _relabel_bibd(B,n):
 
     EXAMPLE::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4) # indirect doctest
-        [[0, 1, 2, 12], [0, 14, 28, 38], [0, 27, 15, 25], [13, 1, 28, 25],
-         [13, 14, 15, 12], [13, 27, 2, 38], [26, 1, 15, 38], [26, 14, 2, 25],
-         [26, 27, 28, 12], [0, 3, 6, 9], [0, 16, 32, 35], [0, 29, 19, 22],
+        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
+         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
+         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
         ...
     """
     found = 0
@@ -459,10 +465,10 @@ def PBD_4_5_8_9_12(v, check=True):
 
     EXAMPLES::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4) # indirect doctest
-        [[0, 1, 2, 12], [0, 14, 28, 38], [0, 27, 15, 25], [13, 1, 28, 25],
-         [13, 14, 15, 12], [13, 27, 2, 38], [26, 1, 15, 38], [26, 14, 2, 25],
-         [26, 27, 28, 12], [0, 3, 6, 9], [0, 16, 32, 35], [0, 29, 19, 22],
+        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
+         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
+         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
         ...
     """
     if not v%4 in [0,1]:
@@ -532,10 +538,10 @@ def _PBD_4_5_8_9_12_closure(B):
 
     EXAMPLES::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4) # indirect doctest
-        [[0, 1, 2, 12], [0, 14, 28, 38], [0, 27, 15, 25], [13, 1, 28, 25],
-         [13, 14, 15, 12], [13, 27, 2, 38], [26, 1, 15, 38], [26, 14, 2, 25],
-         [26, 27, 28, 12], [0, 3, 6, 9], [0, 16, 32, 35], [0, 29, 19, 22],
+        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
+         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
+         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
         ...
     """
     BB = []

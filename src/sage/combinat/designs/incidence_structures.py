@@ -97,7 +97,6 @@ def IncidenceStructureFromMatrix(M, name=None):
         blocks.append(B)
     return IncidenceStructure(range(v), blocks, name=nm)
 
-
 class IncidenceStructure(object):
     """
     This the base class for block designs.

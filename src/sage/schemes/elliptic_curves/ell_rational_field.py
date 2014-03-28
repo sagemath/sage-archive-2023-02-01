@@ -1372,7 +1372,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 from sage.lfunctions.lcalc import lcalc
                 return lcalc.analytic_rank(L=self)
-            except TypeError,msg:
+            except TypeError as msg:
                 raise RuntimeError, "unable to compute analytic rank using rubinstein algorithm ('%s')"%msg
         elif algorithm == 'sympow':
             if leading_coefficient:

@@ -2034,11 +2034,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def gens(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
-        Returns some points of infinite order on this elliptic curve.
-        They are not necessarily linearly independent.
+        Return some points of infinite order on this elliptic curve.
 
-        Check :meth:`~rank` or
-        :meth:`~rank_bounds` to verify the number of generators.
+        Contrary to what the name of this method suggests, the points
+        it returns do not always generate a subgroup of full rank in
+        the Mordell-Weil group, nor are they necessarily linearly
+        independent.  Moreover, the number of points can be smaller or
+        larger than what one could expect after calling :meth:`~rank`
+        or :meth:`~rank_bounds`.
 
         .. NOTE::
 
@@ -2080,6 +2083,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.gens()
             [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)]
 
+        It can happen that no points are found if the height bounds
+        used in the search are too small (see :trac:`10745`)::
+
+            sage: K.<y> = NumberField(x^4 + x^2 - 7)
+            sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
+            sage: E.rank()
+            1
+            sage: E.gens(lim1=1, lim3=1)
+            []
+            sage: E.gens()  # long time (about 3 s)
+            [(-369/25*y^3 + 539/25*y^2 - 1178/25*y + 1718/25 : -27193/125*y^3 + 39683/125*y^2 - 86816/125*y + 126696/125 : 1)]
 
         Here is a curve of rank 2, yet the list contains many points::
 
@@ -2101,7 +2115,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
-        Test that the points of finite order are not included :trac: `13593` ::
+        Test that points of finite order are not included (see :trac:`13593`)::
 
             sage: E = EllipticCurve("17a3")
             sage: K.<t> = NumberField(x^2+3)

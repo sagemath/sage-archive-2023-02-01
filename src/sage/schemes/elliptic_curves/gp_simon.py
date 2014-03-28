@@ -71,7 +71,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
 
     Check that :trac:`16022` is fixed::
 
-        sage: K.<y> = NumberField(x^4 + x^2 - 7);
+        sage: K.<y> = NumberField(x^4 + x^2 - 7)
         sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
         sage: E.simon_two_descent(lim1=2, limtriv=3)  # long time (about 3 s)
         (1, 1, ...)

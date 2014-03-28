@@ -4007,7 +4007,7 @@ class Permutation(CombinatorialObject, Element):
         elif side == "left" :
             return Permutation([a + len(self) for a in other] + list(self))
         else :
-            raise ValueError, "%s must be \"left\" or \"right\"" %(side)
+            raise ValueError("%s must be \"left\" or \"right\"" %(side))
 
     def shifted_shuffle(self, other):
         r"""

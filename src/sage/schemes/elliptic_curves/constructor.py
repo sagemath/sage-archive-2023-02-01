@@ -296,13 +296,13 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
                 try:
                     j = x(j)
                 except (ZeroDivisionError, ValueError, TypeError):
-                    raise ValueError, "First parameter must be a ring containing %s"%j
+                    raise ValueError("First parameter must be a ring containing %s"%j)
             else:
-                raise ValueError, "First parameter (if present) must be a ring when j is specified"
+                raise ValueError("First parameter (if present) must be a ring when j is specified")
         return EllipticCurve_from_j(j, minimal_twist)
 
     if x is None:
-        raise TypeError, "invalid input to EllipticCurve constructor"
+        raise TypeError("invalid input to EllipticCurve constructor")
 
     if is_SymbolicEquation(x):
         x = x.lhs() - x.rhs()
@@ -336,14 +336,14 @@ def EllipticCurve(x=None, y=None, j=None, minimal_twist=True):
         return ell_rational_field.EllipticCurve_rational_field(x)
 
     if is_RingElement(x) and y is None:
-        raise TypeError, "invalid input to EllipticCurve constructor"
+        raise TypeError("invalid input to EllipticCurve constructor")
 
     if not isinstance(x, (list, tuple)):
-        raise TypeError, "invalid input to EllipticCurve constructor"
+        raise TypeError("invalid input to EllipticCurve constructor")
 
     x = Sequence(x)
     if not (len(x) in [2,5]):
-        raise ValueError, "sequence of coefficients must have length 2 or 5"
+        raise ValueError("sequence of coefficients must have length 2 or 5")
     R = x.universe()
 
     if isinstance(x[0], (rings.Rational, rings.Integer, int, long)):

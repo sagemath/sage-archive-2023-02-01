@@ -72,7 +72,7 @@ def is_triangular(B):
     try:
       G = B.gens()
     except Exception:
-      raise TypeError, "is_triangular wants as input an ideal, or a list of polynomials\n"
+      raise TypeError("is_triangular wants as input an ideal, or a list of polynomials\n")
   vars = G[0].parent().gens()
   n = len(G)
   # We expect the polynomials of G to be ordered G[i].lm() > G[i+1].lm();
@@ -264,7 +264,7 @@ def triangular_factorization(B, n=-1):
     try:
       G = B.gens()
     except Exception:
-      raise TypeError, "triangular_factorization wants as input an ideal, or a list of polynomials\n"
+      raise TypeError("triangular_factorization wants as input an ideal, or a list of polynomials\n")
   # easy cases
   if len(G)==0:
     return list()
@@ -333,7 +333,7 @@ def elim_pol(B, n=-1):
     try:
       G = B.gens()
     except Exception:
-      raise TypeError, "elim_pol wants as input an ideal or a list of polynomials"
+      raise TypeError("elim_pol wants as input an ideal or a list of polynomials")
 
   # setup -- main algorithm
   x = G[0].parent().gens()[n]

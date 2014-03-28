@@ -684,7 +684,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     if algorithm is not None:
         integrator = available_integrators.get(algorithm)
         if not integrator:
-            raise ValueError, "Unknown algorithm: %s" % algorithm
+            raise ValueError("Unknown algorithm: %s" % algorithm)
         return integrator(expression, v, a, b)
     if a is None:
         return indefinite_integral(expression, v)

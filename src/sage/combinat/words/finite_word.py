@@ -301,7 +301,7 @@ class FiniteWord_class(Word_class):
                     self = other.parent()(self)
                     self.parent()._check(self, length=None)
                 except Exception:
-                    raise TypeError, "no coercion rule between %r and %r" % (self.parent(), other.parent())
+                    raise TypeError("no coercion rule between %r and %r" % (self.parent(), other.parent()))
         return self, other
 
     def __hash__(self):
@@ -466,9 +466,9 @@ class FiniteWord_class(Word_class):
         if length in ZZ and length >= 0:
             return self._parent(fcn, length=length)
         else:
-            raise ValueError, "Power of the word is not defined on the \
+            raise ValueError("Power of the word is not defined on the \
 exponent %s: the length of the word (%s) times the exponent \
-(%s) must be a positive integer"  % (exp, self.length(), exp)
+(%s) must be a positive integer"  % (exp, self.length(), exp))
 
     def length(self):
         r"""
@@ -1955,7 +1955,7 @@ exponent %s: the length of the word (%s) times the exponent \
             TypeError: other must be a finite word
         """
         if not isinstance(other, FiniteWord_class):
-            raise TypeError, "other must be a finite word"
+            raise TypeError("other must be a finite word")
 
         if self.is_empty():
             return self
@@ -2094,7 +2094,7 @@ exponent %s: the length of the word (%s) times the exponent \
             if not isinstance(f, WordMorphism):
                 f = WordMorphism(f)
             if not f.is_involution():
-                raise ValueError, "f must be an involution"
+                raise ValueError("f must be an involution")
             return self[:l/2 + l%2] == f(self[l/2:].reversal())
 
     def lps(self, f=None, l=None):
@@ -2608,7 +2608,7 @@ exponent %s: the length of the word (%s) times the exponent \
             if not isinstance(f, WordMorphism):
                 f = WordMorphism(f)
             if not f.is_involution():
-                raise ValueError, "f must be an involution"
+                raise ValueError("f must be an involution")
             D = f.domain()
             A = set(map(D,set(self)))
             while A:
@@ -3476,7 +3476,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if all(x in ZZ for x in self):
             return sum(self)
 
-        raise TypeError, "degree is not defined for your word"
+        raise TypeError("degree is not defined for your word")
 
     def deg_lex_less(self, other, weights=None):
         r"""
@@ -3798,7 +3798,7 @@ exponent %s: the length of the word (%s) times the exponent \
             [0, 2, 8]
         """
         if self.length() == 0:
-            raise NotImplementedError, "The factor must be non empty"
+            raise NotImplementedError("The factor must be non empty")
         p = self._pos_in(other, 0)
         while p is not None:
             yield p
@@ -3844,7 +3844,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         ls = self.length()
         if ls == 0:
-            raise NotImplementedError, "undefined value"
+            raise NotImplementedError("undefined value")
         elif ls == 1:
             return self.nb_factor_occurrences_in(other)
         elif len(other) < ls:
@@ -4350,18 +4350,18 @@ exponent %s: the length of the word (%s) times the exponent \
             109 pages.
         """
         if not isinstance(delay, (int, Integer)):
-            raise TypeError, "delay (=%s) must be an integer"%delay
+            raise TypeError("delay (=%s) must be an integer"%delay)
         elif delay < 0:
             return other.overlap_partition(self, -delay, p)
 
         from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
             if self.parent().size_of_alphabet() is Infinity:
-                raise ValueError, "The alphabet of the parent must be finite"
+                raise ValueError("The alphabet of the parent must be finite")
             from sage.sets.disjoint_set import DisjointSet
             p = DisjointSet(self.parent().alphabet())
         elif not isinstance(p, DisjointSet_class):
-            raise TypeError, "p(=%s) is not a DisjointSet" % p
+            raise TypeError("p(=%s) is not a DisjointSet" % p)
 
         #Join the classes of each pair of letters that are one above the other
         from itertools import islice, izip
@@ -4380,7 +4380,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 p.union(a, b)
                 p.union(involution(a), involution(b))
         else:
-            raise TypeError, "involution (=%s) must be callable"%involution
+            raise TypeError("involution (=%s) must be callable"%involution)
         return p
 
     # TODO: requires a parent with a cmp_letters method
@@ -4906,7 +4906,7 @@ exponent %s: the length of the word (%s) times the exponent \
             University Press, U.K., 2002.
         """
         if not isinstance(q, (int, Integer)) or q <= 0:
-            raise TypeError, "the balance level must be a positive integer"
+            raise TypeError("the balance level must be a positive integer")
         alphabet = set(self)
         for i in xrange(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
@@ -5337,7 +5337,7 @@ exponent %s: the length of the word (%s) times the exponent \
             TypeError: the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead
         """
         if alphabet is None and self._parent.size_of_alphabet() is Infinity:
-            raise TypeError, "the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead"
+            raise TypeError("the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead")
         if alphabet is None:
             alphabet = self._parent._alphabet
         ev_dict = self.evaluation_dict()
@@ -5430,14 +5430,14 @@ exponent %s: the length of the word (%s) times the exponent \
             return ShuffleProduct_w1w2(self, other)
         else:
             if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
-                raise ValueError, "for a nonzero overlap, words must contain integers as letters"
+                raise ValueError("for a nonzero overlap, words must contain integers as letters")
             if overlap is True:
                 from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
                 return ShuffleProduct_overlapping(self, other)
             elif isinstance(overlap, (int,Integer)):
                 from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping_r
                 return ShuffleProduct_overlapping_r(self, other, overlap)
-            raise ValueError, 'overlapping must be True or an integer'
+            raise ValueError('overlapping must be True or an integer')
 
     def shifted_shuffle(self, other, shift=None):
         r"""
@@ -5477,7 +5477,7 @@ exponent %s: the length of the word (%s) times the exponent \
             ValueError: for shifted shuffle, words must only contain integers as letters
         """
         if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
-            raise ValueError, "for shifted shuffle, words must only contain integers as letters"
+            raise ValueError("for shifted shuffle, words must only contain integers as letters")
         if shift is None:
             from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
             return ShuffleProduct_shifted(self, other)
@@ -5514,7 +5514,7 @@ exponent %s: the length of the word (%s) times the exponent \
             s = cycle_alphabet.next()
         else:
             if s not in alphabet:
-                raise ValueError, "starting letter not in alphabet"
+                raise ValueError("starting letter not in alphabet")
             t = cycle_alphabet.next()
             while t != s:
                 t = cycle_alphabet.next()
@@ -6022,7 +6022,7 @@ exponent %s: the length of the word (%s) times the exponent \
                                        isinstance(cm.__dict__[x], C)])
             import sage.misc.misc
             sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
-            raise RuntimeError, "Color map %s not known"%cmap
+            raise RuntimeError("Color map %s not known"%cmap)
 
         #Drawing the colored vector...
         from sage.plot.plot import polygon,line,text
@@ -6254,7 +6254,7 @@ class CallableFromListOfWords(tuple):
             if (j - c.length() < 0):
                 return c[j]
             j -= c.length()
-        raise IndexError, "index (=%s) out of range" % i
+        raise IndexError("index (=%s) out of range" % i)
 
 class Factorization(list):
     r"""

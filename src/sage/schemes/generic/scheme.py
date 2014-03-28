@@ -544,7 +544,7 @@ class Scheme(Parent):
         try:
             return self._coordinate_ring
         except AttributeError:
-            raise ValueError, "This scheme has no associated coordinated ring (defined)."
+            raise ValueError("This scheme has no associated coordinated ring (defined).")
 
     def dimension_absolute(self):
         """
@@ -642,7 +642,7 @@ class Scheme(Parent):
             if is_Scheme(x):
                 return self.Hom(x).natural_map()
             else:
-                raise TypeError, "unable to determine codomain"
+                raise TypeError("unable to determine codomain")
         return self.Hom(Y)(x, check)
 
     def _Hom_(self, Y, category=None, check=True):
@@ -718,10 +718,10 @@ class Scheme(Parent):
         """
         F = self.base_ring()
         if not F.is_finite():
-            raise TypeError, "Point counting only defined for schemes over finite fields"
+            raise TypeError("Point counting only defined for schemes over finite fields")
         q = F.cardinality()
         if not q.is_prime():
-            raise NotImplementedError, "Point counting only implemented for schemes over prime fields"
+            raise NotImplementedError("Point counting only implemented for schemes over prime fields")
         a = []
         for i in range(1, n+1):
             F1 = GF(q**i, name='z')

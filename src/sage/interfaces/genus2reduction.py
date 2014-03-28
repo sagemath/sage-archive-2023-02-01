@@ -385,9 +385,9 @@ class Genus2reduction(SageObject):
         P = R(P)
         Q = R(Q)
         if P.degree() > 6:
-            raise ValueError, "P (=%s) must have degree at most 6"%P
+            raise ValueError("P (=%s) must have degree at most 6"%P)
         if Q.degree() >=4:
-            raise ValueError, "Q (=%s) must have degree at most 3"%Q
+            raise ValueError("Q (=%s) must have degree at most 3"%Q)
 
         E = self.__expect
         try:
@@ -398,7 +398,7 @@ class Genus2reduction(SageObject):
             # a bad state, and quitting it fixes things, since next
             # time it is used, it is started cleanly.  See trac 5573.
             E.quit()
-            raise ValueError, "error in input; possibly singular curve? (Q=%s, P=%s)"%(Q,P)
+            raise ValueError("error in input; possibly singular curve? (Q=%s, P=%s)"%(Q,P))
         i = s.find('a minimal')
         j = s.rfind(']')
         return s[i:j+2], Q, P

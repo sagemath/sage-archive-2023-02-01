@@ -771,7 +771,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 raise NotImplementedError("error bounds only for dimension 1")
             err = R(err)
             if not err>0:
-                raise ValueError, "Error bound (=%s) must be positive."%err
+                raise ValueError("Error bound (=%s) must be positive."%err)
 
             #if doing error estimates, compute needed number of iterates
             res = F.resultant()

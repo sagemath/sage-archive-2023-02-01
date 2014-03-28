@@ -853,7 +853,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def ngens(self):
         r"""
@@ -1727,7 +1727,7 @@ def find_zero_result(fn, l):
         if ambig:
             continue
         if result is None:
-            raise ValueError, 'find_zero_result could not find any zeroes'
+            raise ValueError('find_zero_result could not find any zeroes')
         return result
 
 def conjugate_expand(v):
@@ -3750,7 +3750,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             1.41421356237309504880168872420969807857?
         """
         if diam <= 0:
-            raise ValueError, 'diameter must be positive in interval_diameter'
+            raise ValueError('diameter must be positive in interval_diameter')
 
         while self._value.diameter() > diam:
             self._more_precision()

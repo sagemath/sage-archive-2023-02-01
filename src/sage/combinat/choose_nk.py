@@ -169,7 +169,7 @@ class ChooseNK(CombinatorialClass):
             True
         """
         if r < 0 or r >= self.cardinality():
-            raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.cardinality()-1)
+            raise ValueError("rank must be between 0 and %s (inclusive)"%(self.cardinality()-1))
         return from_rank(r, self._n, self._k)
 
     def rank(self, x):
@@ -217,7 +217,7 @@ def rank(comb, n):
 
     k = len(comb)
     if k > n:
-        raise ValueError, "len(comb) must be <= n"
+        raise ValueError("len(comb) must be <= n")
 
     #Generate the combinadic from the
     #combination
@@ -285,9 +285,9 @@ def from_rank(r, n, k):
         [0, 1, 2]
     """
     if k < 0:
-        raise ValueError, "k must be > 0"
+        raise ValueError("k must be > 0")
     if k > n:
-        raise ValueError, "k must be <= n"
+        raise ValueError("k must be <= n")
 
     a = n
     b = k

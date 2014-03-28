@@ -252,7 +252,7 @@ class TrianglePlot:
         self._max_bend = max_bend
         self._objects = []
         if min(max_x - min_x, max_y - min_y) == 0:
-            raise ValueError, 'Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.'
+            raise ValueError('Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.')
         self._num_colors = num_colors
         if g is None:
             def fcn(x,y):

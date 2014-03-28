@@ -349,11 +349,11 @@ class SuffixTrie(SageObject):
             TypeError: 17 is not a state
         """
         if not isinstance(state, (int,Integer)):
-            raise TypeError, "%s is not an integer" % state
+            raise TypeError("%s is not an integer" % state)
         if state == -1:
-            raise TypeError, "suffix link is not defined for -1"
+            raise TypeError("suffix link is not defined for -1")
         if state not in range(len(self._suffix_link)):
-            raise TypeError, "%s is not a state" % state
+            raise TypeError("%s is not a state" % state)
         return self._suffix_link[state]
 
     def active_state(self):
@@ -1023,7 +1023,7 @@ class ImplicitSuffixTree(SageObject):
         if state in self._suffix_link:
             return self._suffix_link[state]
         else:
-            raise TypeError, "there is no suffix link from %s" % state
+            raise TypeError("there is no suffix link from %s" % state)
 
     def active_state(self):
         r"""
@@ -1205,7 +1205,7 @@ class ImplicitSuffixTree(SageObject):
                             else:
                                 queue.append((u,l+j-i+1))
         else:
-            raise TypeError, "not an integer or None: %s" %s
+            raise TypeError("not an integer or None: %s" %s)
         return num_factors
 
     def factor_iterator(self,n=None):
@@ -1273,7 +1273,7 @@ class ImplicitSuffixTree(SageObject):
                             else:
                                 queue.append((u,w*self.word()[i-1:j]))
         else:
-            raise TypeError, "not an integer or None: %s" %s
+            raise TypeError("not an integer or None: %s" %s)
 
     #####
     # Miscellaneous methods

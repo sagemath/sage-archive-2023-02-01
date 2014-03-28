@@ -1949,7 +1949,7 @@ class DiGraph(GenericGraph):
                     pass
 
         if not self.has_edge(u,v,label):
-            raise ValueError, "Input edge must exist in the digraph."
+            raise ValueError("Input edge must exist in the digraph.")
 
         tempG = self if inplace else self.copy()
 

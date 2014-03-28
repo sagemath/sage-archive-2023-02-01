@@ -234,7 +234,7 @@ class AlgebraicScheme(scheme.Scheme):
             Category of schemes over Integer Ring
         """
         if not ambient_space.is_AmbientSpace(A):
-            raise TypeError, "A (=%s) must be an ambient space"
+            raise TypeError("A (=%s) must be an ambient space")
         self.__A = A
         self.__divisor_group = {}
         scheme.Scheme.__init__(self, A.base_scheme())
@@ -444,7 +444,7 @@ class AlgebraicScheme(scheme.Scheme):
         if '_embedding_morphism' in self.__dict__:
             hom = self._embedding_morphism
             if isinstance(hom, tuple):
-                raise(hom[0], hom[1])
+                raise hom[0]
             return hom
         ambient = self.ambient_space()
         return self.hom(ambient.coordinate_ring().gens(), ambient)
@@ -490,7 +490,7 @@ class AlgebraicScheme(scheme.Scheme):
         """
         if '_embedding_center' in self.__dict__:
             return self._embedding_center
-        raise AttributeError, 'This algebraic scheme does not have a designated point.'
+        raise AttributeError('This algebraic scheme does not have a designated point.')
 
     def ngens(self):
         """
@@ -637,11 +637,11 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         self.__X = X
         self.__Y = Y
         if not isinstance(X, AlgebraicScheme_subscheme):
-            raise TypeError, "X must be a closed subscheme of an ambient space."
+            raise TypeError("X must be a closed subscheme of an ambient space.")
         if not isinstance(Y, AlgebraicScheme_subscheme):
-            raise TypeError, "Y must be a closed subscheme of an ambient space."
+            raise TypeError("Y must be a closed subscheme of an ambient space.")
         if X.ambient_space() != Y.ambient_space():
-            raise ValueError, "X and Y must be embedded in the same ambient space."
+            raise ValueError("X and Y must be embedded in the same ambient space.")
         # _latex_ and _repr_ assume all of the above conditions and should be
         # probably changed if they are relaxed!
         A = X.ambient_space()
@@ -813,11 +813,11 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         coords = list(v)
         for f in self.__X.defining_polynomials():
             if f(coords) != 0:
-                raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
+                raise TypeError("Coordinates %s do not define a point on %s"%(v,self))
         for f in self.__Y.defining_polynomials():
             if f(coords) != 0:
                 return True
-        raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
+        raise TypeError("Coordinates %s do not define a point on %s"%(v,self))
 
     def rational_points(self, F=None, bound=0):
         """
@@ -849,9 +849,9 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
         if bound == 0:
             if is_RationalField(F):
-                raise TypeError, "A positive bound (= %s) must be specified."%bound
+                raise TypeError("A positive bound (= %s) must be specified."%bound)
             if not is_FiniteField(F):
-                raise TypeError, "Argument F (= %s) must be a finite field."%F
+                raise TypeError("Argument F (= %s) must be a finite field."%F)
         pts = []
         for P in self.ambient_space().rational_points(F):
             try:
@@ -964,11 +964,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         for f in self.defining_polynomials():
             if f(coords) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
                                  # because of p-adic base rings.
-                raise TypeError, "Coordinates %s do not define a point on %s"%(coords,self)
+                raise TypeError("Coordinates %s do not define a point on %s"%(coords,self))
         try:
             return self.ambient_space()._check_satisfies_equations(coords)
         except TypeError:
-            raise TypeError, "Coordinates %s do not define a point on %s"%(coords,self)
+            raise TypeError("Coordinates %s do not define a point on %s"%(coords,self))
 
     def base_extend(self, R):
         """
@@ -1357,10 +1357,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             True
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
-            raise TypeError, "other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+            raise TypeError("other (=%s) must be a closed algebraic subscheme of an ambient space"%other)
         A = self.ambient_space()
         if other.ambient_space() != A:
-            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+            raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return A.subscheme(self.defining_ideal().intersection(other.defining_ideal()))
 
     __add__ = union
@@ -1381,10 +1381,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
               y
         """
         if not isinstance(other, AlgebraicScheme_subscheme):
-            raise TypeError, "other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+            raise TypeError("other (=%s) must be a closed algebraic subscheme of an ambient space"%other)
         A = self.ambient_space()
         if other.ambient_space() != A:
-            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+            raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return A.subscheme(self.defining_ideal() + other.defining_ideal())
 
     def complement(self, other=None):
@@ -1436,10 +1436,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             if other == A:
                 other = A.subscheme([])
             else:
-                raise TypeError, \
-                      "Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+                raise TypeError("Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other)
         if other.ambient_space() != A:
-            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+            raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
     def rational_points(self, F=None, bound=0):
@@ -1488,15 +1487,15 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         X = self(F)
         if is_RationalField(F) or F == ZZ:
             if not bound > 0:
-                raise TypeError, "A positive bound (= %s) must be specified."%bound
+                raise TypeError("A positive bound (= %s) must be specified."%bound)
             try:
                 return X.points(bound)
             except TypeError:
-                raise TypeError, "Unable to enumerate points over %s."%F
+                raise TypeError("Unable to enumerate points over %s."%F)
         try:
             return X.points()
         except TypeError:
-            raise TypeError, "Unable to enumerate points over %s."%F
+            raise TypeError("Unable to enumerate points over %s."%F)
 
     def change_ring(self,R):
         r"""
@@ -1652,8 +1651,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         else:
             i = int(i)
         if i < 0 or i > n:
-            raise ValueError, \
-                  "Argument i (=%s) must be between 0 and %s, inclusive"%(i, n)
+            raise ValueError("Argument i (=%s) must be between 0 and %s, inclusive"%(i, n))
         try:
             return self.__projective_embedding[i]
         except AttributeError:
@@ -1881,7 +1879,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         PP = self.ambient_space()
         n = PP.dimension()
         if i < 0 or i > n:
-            raise ValueError, "Argument i (= %s) must be between 0 and %s."%(i, n)
+            raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
             return self.__affine_patches[i]
         except AttributeError:

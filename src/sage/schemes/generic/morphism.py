@@ -150,7 +150,7 @@ class SchemeMorphism(Element):
             <class 'sage.schemes.generic.morphism.SchemeMorphism'>
         """
         if not isinstance(parent, Homset):
-            raise TypeError, "parent (=%s) must be a Homspace"%parent
+            raise TypeError("parent (=%s) must be a Homspace"%parent)
         Element.__init__(self, parent)
         self._domain = parent.domain()
         self._codomain = parent.codomain()
@@ -340,7 +340,7 @@ class SchemeMorphism(Element):
             'SchemeMorphism_id' and 'SchemeMorphism_id'
         """
         if not self.is_endomorphism():
-            raise TypeError, "self must be an endomorphism."
+            raise TypeError("self must be an endomorphism.")
         if n==0:
             return self.domain().identity_morphism()
         return generic_power(self, n)
@@ -489,7 +489,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
         """
         SchemeMorphism.__init__(self, parent)
         if self.domain().base_scheme() != self.codomain():
-            raise ValueError, "parent must have codomain equal the base scheme of domain."
+            raise ValueError("parent must have codomain equal the base scheme of domain.")
 
     def _repr_defn(self):
         r"""
@@ -598,7 +598,7 @@ class SchemeMorphism_spec(SchemeMorphism):
             NotImplementedError
         """
         if not is_SchemeTopologicalPoint(P) and P in self.domain():
-            raise TypeError, "P (=%s) must be a topological scheme point of %s"%(P, self)
+            raise TypeError("P (=%s) must be a topological scheme point of %s"%(P, self))
         S = self.ring_homomorphism().inverse_image(P.prime_ideal())
         return self.codomain()(S)
 
@@ -733,15 +733,15 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         if check:
             if not isinstance(polys, (list, tuple)):
-                raise TypeError, "polys (=%s) must be a list or tuple"%polys
+                raise TypeError("polys (=%s) must be a list or tuple"%polys)
             source_ring = parent.domain().coordinate_ring()
             target = parent.codomain().ambient_space()
             if len(polys) != target.ngens():
-                raise ValueError, "there must be %s polynomials"%target.ngens()
+                raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
             except TypeError:
-                raise TypeError, "polys (=%s) must be elements of %s"%(polys,source_ring)
+                raise TypeError("polys (=%s) must be elements of %s"%(polys,source_ring))
             if isinstance(source_ring, QuotientRing_generic):
                 lift_polys = [f.lift() for f in polys]
             else:
@@ -852,7 +852,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             if not isinstance(x,SchemeMorphism_point):
                 x = self.domain()(x)
             elif x.codomain()!=self.domain():
-                raise TypeError, "Point must be in the domain of the function"
+                raise TypeError("Point must be in the domain of the function")
         P = [f(x._coords) for f in self.defining_polynomials()]
         return self.codomain().point(P,check)
 

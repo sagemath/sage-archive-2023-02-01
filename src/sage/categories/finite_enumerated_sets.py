@@ -248,7 +248,7 @@ class FiniteEnumeratedSets(Category):
             try:
                 return lst[r]
             except IndexError:
-                raise ValueError, "the value must be between %s and %s inclusive"%(0,len(lst)-1)
+                raise ValueError("the value must be between %s and %s inclusive"%(0,len(lst)-1))
 
 
         def list(self):

@@ -1191,7 +1191,7 @@ def unitdocs(unit):
     if is_unit(unit):
         return unit_docs[unit_to_type[str(unit)]+"_docs"][str(unit)]
     else:
-        raise ValueError, "No documentation exists for the unit %s."%unit
+        raise ValueError("No documentation exists for the unit %s."%unit)
 
 def is_unit(s):
     """
@@ -1313,7 +1313,7 @@ def convert(expr, target):
 
         for variable in coeff.variables():
             if is_unit(str(variable)):
-                raise ValueError, "Incompatible units"
+                raise ValueError("Incompatible units")
 
         return coeff.mul(target, hold=True)
 
@@ -1413,7 +1413,7 @@ def convert_temperature(expr, target):
         98.6000000000000
     """
     if len(expr.variables()) != 1:
-        raise ValueError, "Cannot convert"
+        raise ValueError("Cannot convert")
     elif target == None or unit_to_type[str(target)] == 'temperature':
         from sage.misc.all import sage_eval
         expr_temp = expr.variables()[0]
@@ -1430,4 +1430,4 @@ def convert_temperature(expr, target):
         elif target_temp == units.temperature.rankine:
             return a[3]*target_temp
     else:
-        raise ValueError, "Cannot convert"
+        raise ValueError("Cannot convert")

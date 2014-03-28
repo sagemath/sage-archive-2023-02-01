@@ -103,8 +103,7 @@ class DifferentialForms(Algebra):
             coordinate_patch = CoordinatePatch((x, y, z))
 
         if not isinstance(coordinate_patch, CoordinatePatch):
-            raise TypeError, \
-                "%s not a valid Coordinate Patch" % coordinate_patch
+            raise TypeError("%s not a valid Coordinate Patch" % coordinate_patch)
         self._patch = coordinate_patch
 
         ParentWithGens.__init__(self, SR, \
@@ -267,8 +266,7 @@ class DifferentialForms(Algebra):
 
         fun = SR(fun)
         if fun not in self:
-            raise ValueError, \
-                "Function not an element of this algebra of differential forms."
+            raise ValueError("Function not an element of this algebra of differential forms.")
 
         return DifferentialForm(self, 0, fun)
 

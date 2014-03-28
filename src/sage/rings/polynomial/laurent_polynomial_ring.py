@@ -233,10 +233,10 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         arg1 = name
 
     if not is_Ring(base_ring):
-        raise TypeError, 'base_ring must be a ring'
+        raise TypeError('base_ring must be a ring')
 
     if arg1 is None:
-        raise TypeError, "You must specify the names of the variables."
+        raise TypeError("You must specify the names of the variables.")
 
     R = None
     if isinstance(arg1, (list, tuple)):
@@ -246,7 +246,7 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
     if isinstance(arg2, (int, long, Integer)):
         # 3. LaurentPolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
-            raise TypeError, "You *must* specify the names of the variables."
+            raise TypeError("You *must* specify the names of the variables.")
         n = int(arg2)
         names = arg1
         R = _multi_variate(base_ring, names, n, sparse, order)
@@ -257,13 +257,13 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         if not ',' in arg1:
             # 1. LaurentPolynomialRing(base_ring, name, sparse=False):
             if not arg2 is None:
-                raise TypeError, "if second arguments is a string with no commas, then there must be no other non-optional arguments"
+                raise TypeError("if second arguments is a string with no commas, then there must be no other non-optional arguments")
             name = arg1
             R = _single_variate(base_ring, name, sparse)
         else:
             # 2-4. LaurentPolynomialRing(base_ring, names, order='degrevlex'):
             if not arg2 is None:
-                raise TypeError, "invalid input to LaurentPolynomialRing function; please see the docstring for that function"
+                raise TypeError("invalid input to LaurentPolynomialRing function; please see the docstring for that function")
             names = arg1.split(',')
             n = len(names)
             R = _multi_variate(base_ring, names, n, sparse, order)
@@ -274,9 +274,9 @@ def LaurentPolynomialRing(base_ring, arg1=None, arg2=None, sparse = False, order
         R = _multi_variate(base_ring, names, n, sparse, order)
 
     if arg1 is None and arg2 is None:
-        raise TypeError, "you *must* specify the indeterminates (as not None)."
+        raise TypeError("you *must* specify the indeterminates (as not None).")
     if R is None:
-        raise TypeError, "invalid input (%s, %s, %s) to PolynomialRing function; please see the docstring for that function"%(base_ring, arg1, arg2)
+        raise TypeError("invalid input (%s, %s, %s) to PolynomialRing function; please see the docstring for that function"%(base_ring, arg1, arg2))
 
     return R
 
@@ -296,7 +296,7 @@ def _get_from_cache(key):
         if key in _cache:
             return _cache[key]   # put () here to re-enable weakrefs
     except TypeError as msg:
-        raise TypeError, 'key = %s\n%s'%(key,msg)
+        raise TypeError('key = %s\n%s'%(key,msg))
     return None
 
 def _save_in_cache(key, R):
@@ -316,7 +316,7 @@ def _save_in_cache(key, R):
         #weakref.ref(R)
         _cache[key] = R
     except TypeError as msg:
-        raise TypeError, 'key = %s\n%s'%(key,msg)
+        raise TypeError('key = %s\n%s'%(key,msg))
 
 def _single_variate(base_ring, names, sparse):
     """
@@ -469,7 +469,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             ValueError: generator not defined
         """
         if i < 0 or i >= self._n:
-            raise ValueError, "generator not defined"
+            raise ValueError("generator not defined")
         return self(self._R.gen(i))
 
     def is_integral_domain(self, proof = True):
@@ -795,9 +795,9 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             True
         """
         if R.ngens() <= 0:
-            raise ValueError, "n must be positive"
+            raise ValueError("n must be positive")
         if not R.base_ring().is_integral_domain():
-            raise ValueError, "base ring must be an integral domain"
+            raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R, prepend_string, names)
 
     def _element_constructor_(self, x):

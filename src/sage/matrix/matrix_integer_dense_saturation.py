@@ -80,7 +80,7 @@ def random_sublist_of_size(k, n):
         [0, 1, 3, 4, 5, 7, 8]
     """
     if n > k:
-        raise ValueError, "n must be <= len(v)"
+        raise ValueError("n must be <= len(v)")
     if n == k:
         return range(k)
     if n >= k//2+5:

@@ -2917,7 +2917,7 @@ class Graph(GenericGraph):
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
         if bounds is None:
-            raise ValueError,"The `bounds` keyword can not be equal to None"
+            raise ValueError("The `bounds` keyword can not be equal to None")
         elif isinstance(bounds,dict):
             f_bounds = lambda x: bounds[x]
         else:

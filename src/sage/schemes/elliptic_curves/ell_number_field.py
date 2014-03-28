@@ -1580,7 +1580,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             proof = sage.structure.proof.proof.get_flag(None, "number_field")
         K = self.base_ring()
         if K.class_number() != 1:
-            raise ValueError, "global minimal models only exist in general for class number 1"
+            raise ValueError("global minimal models only exist in general for class number 1")
 
         E = self.global_integral_model()
         primes = E.base_ring()(E.discriminant()).support()
@@ -1625,16 +1625,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
        try:
            place = K.ideal(place)
        except TypeError:
-           raise TypeError, "The parameter must be an ideal of the base field of the elliptic curve"
+           raise TypeError("The parameter must be an ideal of the base field of the elliptic curve")
        if not place.is_prime():
-           raise ValueError, "The ideal must be prime."
+           raise ValueError("The ideal must be prime.")
        disc = self.discriminant()
        if not K.ideal(disc).valuation(place) == 0:
            local_data=self.local_data(place)
            if local_data.has_good_reduction():
                Fv = OK.residue_field(place)
                return local_data.minimal_model().change_ring(Fv)
-           raise ValueError, "The curve must have good reduction at the place."
+           raise ValueError("The curve must have good reduction at the place.")
        Fv = OK.residue_field(place)
        return self.change_ring(Fv)
 
@@ -2027,7 +2027,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         if lower == upper:
             return lower
         else:
-            raise ValueError, 'There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper)
+            raise ValueError('There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper))
 
     def gens(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
@@ -2304,12 +2304,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         """
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         K = self.base_field()
         if K != other.base_field():
-            raise ValueError, "Second argument must be defined over the same number field."
+            raise ValueError("Second argument must be defined over the same number field.")
 
         E1 = self.integral_model()
         E2 = other.integral_model()
@@ -2350,7 +2350,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # At this point is is highly likely that the curves are
         # isogenous, but we have not proved it.
 
-        raise NotImplementedError, "Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm)
+        raise NotImplementedError("Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm))
 
     def isogeny_degree(self, other):
         """

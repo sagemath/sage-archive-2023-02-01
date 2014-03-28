@@ -181,11 +181,11 @@ def hap_decorator(f):
     @wraps(f)
     def wrapped(self, n, p=0):
         if not is_package_installed('gap_packages'):
-            raise RuntimeError, "You must install the optional gap_packages package."
+            raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
         from sage.rings.arith import is_prime
         if not (p == 0 or is_prime(p)):
-            raise ValueError, "p must be 0 or prime"
+            raise ValueError("p must be 0 or prime")
 
         return f(self, n, p=p)
     return wrapped
@@ -327,7 +327,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
     if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
     if gens is not None and not isinstance(gens, (tuple, list, GapElement)):
-        raise TypeError, "gens must be a tuple, list, or GapElement"
+        raise TypeError("gens must be a tuple, list, or GapElement")
     return PermutationGroup_generic(gens=gens, gap_group=gap_group, domain=domain,
                                     canonicalize=canonicalize, category=category)
 
@@ -389,7 +389,7 @@ class PermutationGroup_generic(group.Group):
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
         super(PermutationGroup_generic, self).__init__(category = FinitePermutationGroups().or_subcategory(category))
         if (gens is None and gap_group is None):
-            raise ValueError, "you must specify gens or gap_group"
+            raise ValueError("you must specify gens or gap_group")
 
         #Handle the case where only the GAP group is specified.
         if gens is None:
@@ -693,7 +693,7 @@ class PermutationGroup_generic(group.Group):
             compatible_domains = all(point in self._domain_to_gap for point in x_parent.domain())
             if  compatible_domains and (self.__class__ == SymmetricGroup or x._gap_() in self._gap_()):
                 return self._element_class()(x.cycle_tuples(), self, check=False)
-        raise TypeError, "no implicit coercion of element into permutation group"
+        raise TypeError("no implicit coercion of element into permutation group")
 
     @cached_method
     def list(self):
@@ -881,7 +881,7 @@ class PermutationGroup_generic(group.Group):
              if len(gens) == 1:
                   return gens[0]
              else:
-                  raise ValueError, "You must specify which generator you want"
+                  raise ValueError("You must specify which generator you want")
         else:
              return gens[i]
 
@@ -1012,7 +1012,7 @@ class PermutationGroup_generic(group.Group):
             try:
                 return repr([self._domain_to_gap[point] for point in domain])
             except KeyError:
-                raise ValueError, "domain must be a subdomain of self.domain()"
+                raise ValueError("domain must be a subdomain of self.domain()")
 
     @cached_method
     def smallest_moved_point(self):
@@ -1307,7 +1307,7 @@ class PermutationGroup_generic(group.Group):
         try:
             seed = [self._domain_to_gap[point] for point in seed]
         except KeyError:
-            raise ValueError, "seed must be a subset of self.domain()"
+            raise ValueError("seed must be a subset of self.domain()")
 
         return [self._domain_from_gap[x] for x in self._gap_().StabChain(seed).BaseStabChain().sage()]
 
@@ -3246,7 +3246,7 @@ class PermutationGroup_generic(group.Group):
             info = self._gap_().IsomorphismTypeInfoFiniteSimpleGroup()
             return info
         else:
-            raise TypeError, "Group must be simple."
+            raise TypeError("Group must be simple.")
 
     ######################  Boolean tests #####################
 
@@ -3355,7 +3355,7 @@ class PermutationGroup_generic(group.Group):
         """
         current_randstate().set_seed_gap()
         if not isinstance(right, PermutationGroup_generic):
-            raise TypeError, "right must be a permutation group"
+            raise TypeError("right must be a permutation group")
 
         iso = self._gap_().IsomorphismGroups(right)
         if str(iso) == "fail":
@@ -3396,7 +3396,7 @@ class PermutationGroup_generic(group.Group):
             True
         """
         if not isinstance(right, PermutationGroup_generic):
-            raise TypeError, "right must be a permutation group"
+            raise TypeError("right must be a permutation group")
         iso = self._gap_().IsomorphismGroups(right)
         return str(iso) != 'fail'
 
@@ -3935,11 +3935,11 @@ class PermutationGroup_generic(group.Group):
         - David Joyner and Graham Ellis
         """
         if not is_package_installed('gap_packages'):
-            raise RuntimeError, "You must install the optional gap_packages package."
+            raise RuntimeError("You must install the optional gap_packages package.")
         load_hap()
         from sage.rings.arith import is_prime
         if not (p == 0 or is_prime(p)):
-            raise ValueError, "p must be 0 or prime"
+            raise ValueError("p must be 0 or prime")
 
         ff = self._gap_().PoincareSeriesPrimePart(p, n)
         R = QQ['x']
@@ -4063,7 +4063,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
             TypeError: each generator must be in the ambient group
         """
         if not isinstance(ambient, PermutationGroup_generic):
-            raise TypeError, "ambient (=%s) must be perm group."%ambient
+            raise TypeError("ambient (=%s) must be perm group."%ambient)
         if domain is None:
             domain = ambient.domain()
         if category is None:
@@ -4075,7 +4075,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         if check:
             for g in self.gens():
                 if g not in ambient:
-                    raise TypeError, "each generator must be in the ambient group"
+                    raise TypeError("each generator must be in the ambient group")
 
     def __cmp__(self, other):
         r"""

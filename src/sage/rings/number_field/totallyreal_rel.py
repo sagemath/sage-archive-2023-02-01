@@ -313,9 +313,9 @@ class tr_data_rel:
             # currently unknown; e.g., if k == -1, then we can iterate
             # over polynomials, and if k == n-1, then we have finished iterating.
             if a[len(a)-1] != 1:
-                raise ValueError, "a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1]
+                raise ValueError("a[len(a)-1](=%s) must be 1 so polynomial is monic"%a[len(a)-1])
 
-            raise NotImplementedError, "These have not been checked."
+            raise NotImplementedError("These have not been checked.")
 
             k = m-len(a)
             self.k = k
@@ -342,7 +342,7 @@ class tr_data_rel:
             self.gnk[k+1] = [[0] + [binomial(j,k+1)*v(a[j]) for j in range (k+2,m+1)] for v in self.Foo]
         else:
             # Bad input!
-            raise ValueError, "a has length %s > m+1"%len(a)
+            raise ValueError("a has length %s > m+1"%len(a))
 
     def incr(self, f_out, verbose=False, haltk=0):
         r"""
@@ -728,9 +728,9 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         try:
             m = Integer(m)
         except TypeError:
-            raise TypeError, "cannot coerce m (= %s) to an integer" % m
+            raise TypeError("cannot coerce m (= %s) to an integer" % m)
     if (m < 1):
-        raise ValueError, "m must be at least 1."
+        raise ValueError("m must be at least 1.")
 
     n = F.degree()*m
 
@@ -969,7 +969,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
     S = []
     counts = [0,0,0,0]
     if len(divisors(n)) > 4:
-        raise ValueError, "Only implemented for n = p*q with p,q prime"
+        raise ValueError("Only implemented for n = p*q with p,q prime")
     for d in divisors(n):
         if d > 1 and d < n:
             Sds = enumerate_totallyreal_fields_prim(d, int(math.floor((1.*B)**(1.*d/n))), verbose=verbose)

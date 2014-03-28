@@ -53,7 +53,7 @@ class AlgebraModules(Category_module):
         """
         from sage.categories.commutative_algebras import CommutativeAlgebras
         if not hasattr(A, "base_ring") or not A in CommutativeAlgebras(A.base_ring()):
-            raise TypeError, "A (=%s) must be a commutative algebra"%A
+            raise TypeError("A (=%s) must be a commutative algebra"%A)
         Category_module.__init__(self, A)
 
     @classmethod

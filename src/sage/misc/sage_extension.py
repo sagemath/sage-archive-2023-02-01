@@ -146,7 +146,7 @@ class SageMagics(Magics):
         try:
             F = open(name)
         except IOError:
-            raise ImportError, 'could not open file "%s"'%name
+            raise ImportError('could not open file "%s"'%name)
 
 
         shell = self.shell

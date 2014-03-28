@@ -511,7 +511,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                     try:
                         u, v = r
                     except ValueError:
-                        raise TypeError, "not a list of relations"
+                        raise TypeError("not a list of relations")
             D = DiGraph()
             D.add_vertices(elements)
             D.add_edges(relations)
@@ -519,11 +519,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             # type 3, list/tuple of upper covers
             D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]))
         else:
-            raise ValueError, "not valid poset data."
+            raise ValueError("not valid poset data.")
 
     # DEBUG: At this point D should be a DiGraph.
     if not isinstance(D,DiGraph):
-        raise TypeError, "BUG: D should be a digraph."
+        raise TypeError("BUG: D should be a digraph.")
 
     # Determine cover relations, if necessary.
     if cover_relations is False:
@@ -532,11 +532,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
     # Check that the digraph does not contain loops, multiple edges
     # and is transitively reduced.
     if D.has_loops():
-        raise ValueError, "Hasse diagram contains loops."
+        raise ValueError("Hasse diagram contains loops.")
     elif D.has_multiple_edges():
-        raise ValueError, "Hasse diagram contains multiple edges."
+        raise ValueError("Hasse diagram contains multiple edges.")
     elif cover_relations is True and not D.is_transitively_reduced():
-        raise ValueError, "Hasse diagram is not transitively reduced."
+        raise ValueError("Hasse diagram is not transitively reduced.")
 
     if linear_extension and elements is not None:
         lin_ext = list(elements)
@@ -545,7 +545,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         try:
             lin_ext = D.topological_sort()
         except Exception:
-            raise ValueError, "Hasse diagram contains cycles."
+            raise ValueError("Hasse diagram contains cycles.")
 
     # Relabel using the linear_extension.
     # So range(len(D)) becomes a linear extension of the poset.
@@ -881,7 +881,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 return self._element_to_vertex_dict[element]
             except KeyError:
-                raise ValueError, "element (=%s) not in poset"%element
+                raise ValueError("element (=%s) not in poset"%element)
 
     def _vertex_to_element(self, vertex):
         """
@@ -1041,7 +1041,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                     return self.element_class(self, \
                         self._elements[element], self.cardinality()+element)
             else:
-                raise ValueError, "%s is not an element of this poset"%type(element)
+                raise ValueError("%s is not an element of this poset"%type(element))
 
     def __call__(self, element):
         """
@@ -2207,7 +2207,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         elif self.is_ranked():
             return self.rank_function()(element)
         else:
-            raise ValueError, "Poset is not ranked."
+            raise ValueError("Poset is not ranked.")
 
     def is_ranked(self):
         r"""
@@ -2641,7 +2641,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if hasattr(other,'hasse_diagram'):
             return self.hasse_diagram().is_isomorphic( other.hasse_diagram() )
         else:
-            raise ValueError, 'The input is not a finite poset.'
+            raise ValueError('The input is not a finite poset.')
 
     import __builtin__ # Caveat: list is overridden by the method list above!!!
     def antichains(self, element_constructor = __builtin__.list):

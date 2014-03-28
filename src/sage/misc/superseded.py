@@ -182,7 +182,7 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.iteritems():
                     if val is self:
                         return key
-        raise AttributeError, "The name of this deprecated function can not be determined"
+        raise AttributeError("The name of this deprecated function can not be determined")
 
     def __call__(self, *args, **kwds):
         """

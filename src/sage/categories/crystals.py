@@ -427,7 +427,7 @@ class Crystals(Category_singleton):
                             if d is not None:
                                 return d
                             else:
-                                raise ValueError, "This is not a morphism!"
+                                raise ValueError("This is not a morphism!")
                             #now we know that b is hw
                     return g(b)
 
@@ -448,7 +448,7 @@ class Crystals(Category_singleton):
                         eigx = getattr(morphism[x], f_string)([automorphism(i) for k in range(similarity_factor[i])])
                         if bool(eix is None) != bool(eigx is None):
                             # This is not a crystal morphism!
-                            raise ValueError, "This is not a morphism!" #, print("x="x,"g(x)="g(x),"i="i)
+                            raise ValueError("This is not a morphism!") #, print("x="x,"g(x)="g(x),"i="i)
                         if (eix is not None) and (eix not in known):
                             todo.add(eix)
                             known.add(eix)
@@ -1158,7 +1158,7 @@ class Crystals(Category_singleton):
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             if index_set is None:
                 if HighestWeightCrystals() not in self.parent().categories():
-                    raise ValueError, "This is not a highest weight crystals!"
+                    raise ValueError("This is not a highest weight crystals!")
                 index_set = self.index_set()
             for i in index_set:
                 next = self.f(i)

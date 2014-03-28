@@ -356,7 +356,7 @@ class LabelledPermutation(SageObject):
             3 2 1
             2 1 3
         """
-        if self.__dict__.has_key('_twin'):
+        if '_twin' in self.__dict__:
             del self.__dict__['_twin']
         if self._hash is not None:
             self._hash = None
@@ -381,7 +381,7 @@ class LabelledPermutation(SageObject):
             3 1 2
             1 2 3
         """
-        if self.__dict__.has_key('_twin'):
+        if '_twin' in self.__dict__:
             del self.__dict__['_twin']
         if self._hash is not None:
             self._hash = None

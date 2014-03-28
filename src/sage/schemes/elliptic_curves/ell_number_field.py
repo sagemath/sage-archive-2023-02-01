@@ -161,7 +161,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EllipticCurve_field.__init__(self, [field(x) for x in ainvs])
         self._point = ell_point.EllipticCurvePoint_number_field
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Return lower and upper bounds on the rank of the Mordell-Weil
         group `E(K)` and a list of points.
@@ -175,11 +175,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1`` -- (default: 5) limit on trivial points on quartics
+        - ``lim1`` -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3`` -- (default: 50) limit on points on ELS quartics
+        - ``lim3`` -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on `E`
+        - ``limtriv`` -- (default: 2) limit on trivial points on `E`
 
         - ``maxprob`` -- (default: 20)
 
@@ -220,7 +220,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.simon_two_descent()
-            (2, 2, [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)])
+            (2, 2, [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)])
             sage: E.simon_two_descent(lim1=3, lim3=20, limtriv=5, maxprob=7, limbigprime=10)
             (2, 2, [(-1 : 0 : 1), (-1/8*a + 5/8 : -3/16*a - 9/16 : 1)])
 
@@ -249,7 +249,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
               B = Mod(1, y^2 + 7)
               C = Mod(y, y^2 + 7)
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y + 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x + Mod(-1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Computing the Selmer group
               #LS2gen = 2
                LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
@@ -285,24 +285,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.simon_two_descent()  # long time (3s on sage.math, 2013), points can vary
             (1, 3, [...])
 
-        A failure in the PARI/GP script ell.gp (VERSION 25/03/2009) is reported::
+        Check that the bug reported in :trac:`15483` is fixed::
+
+            sage: K.<s> = QuadraticField(229)
+            sage: c4 = 2173 - 235*(1 - s)/2
+            sage: c6 = -124369 + 15988*(1 - s)/2
+            sage: E = EllipticCurve([-c4/48, -c6/864])
+            sage: E.simon_two_descent()
+            (0, 0, [])
+
+            sage: R.<t> = QQ[]
+            sage: L.<g> = NumberField(t^3 - 9*t^2 + 13*t - 4)
+            sage: E1 = EllipticCurve(L,[1-g*(g-1),-g^2*(g-1),-g^2*(g-1),0,0])
+            sage: E1.rank()  # long time (about 5 s)
+            0
 
             sage: K = CyclotomicField(43).subfields(3)[0][0]
             sage: E = EllipticCurve(K, '37')
             sage: E.simon_two_descent()  # long time (4s on sage.math, 2013)
-            Traceback (most recent call last):
-            ...
-            RuntimeError:
-              ***   at top-level: ans=bnfellrank(K,[0,0,1,
-              ***                     ^--------------------
-              ***   in function bnfellrank: ...eqtheta,rnfeq,bbnf];rang=
-              ***   bnfell2descent_gen(b
-              ***   ^--------------------
-              ***   in function bnfell2descent_gen: ...und,r=nfsqrt(nf,norm(zc))
-              ***   [1];if(DEBUGLEVEL_el
-              ***   ^--------------------
-              ***   array index (1) out of allowed range [none].
-            An error occurred while running Simon's 2-descent program
+            (3, 3, [(0 : 0 : 1), (1/2*zeta43_0^2 + 3/2*zeta43_0 - 2 : -zeta43_0^2 - 4*zeta43_0 + 3 : 1)])
 
         """
 
@@ -1668,6 +1669,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [6, 6, 6, 6, 6, 6]
             sage: [E.torsion_order() for E in CDB.iter([14])]
             [6, 6, 2, 6, 2, 6]
+
+        An example over a relative number field (after #16011)::
+
+            sage: R.<x> = QQ[]
+            sage: F.<a> = QuadraticField(5)
+            sage: K.<b> = F.extension(x^2-3)
+            sage: E = EllipticCurve(K,[0,0,0,b,1])
+            sage: E.torsion_subgroup().order()
+            1
+
         """
         E = self
         bound = 0
@@ -1689,7 +1700,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 if fqq == 1 or charqq**fqq < 3*number_of_places:
                     # check if the model is integral at the place
                     if min([K.ideal(a).valuation(qq) for a in E.a_invariants()]) >= 0:
-                        eqq = qq.ramification_index()
+                        eqq = qq.absolute_ramification_index()
                         # check if the formal group at the place is torsion-free
                         # if so the torsion injects into the reduction
                         if eqq < charqq - 1 and disc.valuation(qq) == 0:
@@ -1871,7 +1882,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         T = self.torsion_subgroup() # make sure it is cached
         return sorted(T.points())           # these are also cached in T
 
-    def rank_bounds(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def rank_bounds(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Returns the lower and upper bounds using :meth:`~simon_two_descent`.
         The results of :meth:`~simon_two_descent` are cached.
@@ -1886,11 +1897,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve
 
         - ``maxprob`` -- (default: 20)
 
@@ -1948,7 +1959,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         upper -= self.two_torsion_rank()
         return lower, upper
 
-    def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def rank(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Return the rank of this elliptic curve, if it can be determined.
 
@@ -1962,11 +1973,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve
 
         - ``maxprob`` -- (default: 20)
 
@@ -2021,7 +2032,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         else:
             raise ValueError, 'There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper)
 
-    def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def gens(self,verbose=0, lim1=2, lim3=4, limtriv=2, maxprob=20, limbigprime=30):
         r"""
         Returns some points of infinite order on this elliptic curve.
         They are not necessarily linearly independent.
@@ -2039,11 +2050,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+        - ``lim1``    -- (default: 2) limit on trivial points on quartics
 
-        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+        - ``lim3``  -- (default: 4) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+        - ``limtriv`` -- (default: 2) limit on trivial points on elliptic curve
 
         - ``maxprob`` -- (default: 20)
 
@@ -2067,7 +2078,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.gens()
-            [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
+            [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)]
 
 
         Here is a curve of rank 2, yet the list contains many points::
@@ -2262,13 +2273,27 @@ class EllipticCurve_number_field(EllipticCurve_field):
         In this case E1 and E2 are in fact 9-isogenous, as may be
         deduced from the following::
 
-           sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
-           sage: E3.is_isogenous(E1)
-           True
-           sage: E3.is_isogenous(E2)
-           True
-           sage: E1.isogeny_degree(E2)
-           9
+            sage: E3 = EllipticCurve([i + 1, 0, 1, -5*i - 5, -2*i - 5])
+            sage: E3.is_isogenous(E1)
+            True
+            sage: E3.is_isogenous(E2)
+            True
+            sage: E1.isogeny_degree(E2)
+            9
+
+        TESTS:
+
+        Check that :trac:`15890` is fixed::
+
+            sage: K.<s> = QuadraticField(229)
+            sage: c4 = 2173 - 235*(1 - s)/2
+            sage: c6 = -124369 + 15988*(1 - s)/2
+            sage: c4c = 2173 - 235*(1 + s)/2
+            sage: c6c = -124369 + 15988*(1 + s)/2
+            sage: E = EllipticCurve_from_c4c6(c4, c6)
+            sage: Ec = EllipticCurve_from_c4c6(c4c, c6c)
+            sage: E.is_isogenous(Ec)
+            True
 
         """
         if not is_EllipticCurve(other):
@@ -2290,8 +2315,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             P = PI.next()
             if P.norm() > maxnorm: break
             if not P.divides(N):
-                OP = K.residue_field(P)
-                if E1.change_ring(OP).cardinality() != E2.change_ring(OP).cardinality():
+                if E1.reduction(P).cardinality() != E2.reduction(P).cardinality():
                     return False
 
         if not proof:
@@ -2499,8 +2523,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, '37')
             sage: E.lll_reduce(E.gens())
             (
-                                                    [1 1]
-            [(-1 : 0 : 1), (-2 : 1/2*a - 1/2 : 1)], [0 1]
+                                                    [ 1 -1]
+            [(0 : 0 : 1), (-2 : -1/2*a - 1/2 : 1)], [ 0  1]
             )
 
         ::

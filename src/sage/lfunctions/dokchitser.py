@@ -187,7 +187,7 @@ class Dokchitser(SageObject):
 
     def __reduce__(self):
         D = copy.copy(self.__dict__)
-        if D.has_key('_Dokchitser__gp'):
+        if '_Dokchitser__gp' in D:
             del D['_Dokchitser__gp']
         return reduce_load_dokchitser, (D, )
 

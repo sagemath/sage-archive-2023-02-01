@@ -39,7 +39,7 @@ def init():
         gp.read("resultant3.gp")
 
 
-def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=20, limbigprime=30):
     """
     Interface to Simon's gp script for two-descent.
 
@@ -52,14 +52,36 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        [2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)]]
+        [2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)]]
 
     TESTS::
 
         sage: E = EllipticCurve('37a1').change_ring(QuadraticField(-11,'x'))
         sage: E.simon_two_descent()
-        (1, 1, [(-1 : 0 : 1)])
+        (1, 1, [(0 : 0 : 1)])
 
+    An example with an elliptic curve defined over a relative number field::
+
+        sage: F.<a> = QuadraticField(29)
+        sage: x = QQ['x'].gen()
+        sage: K.<b> = F.extension(x^2-1/2*a+1/2)
+        sage: E = EllipticCurve(K,[1, 0, 5/2*a + 27/2, 0, 0]) # long time (about 3 s)
+        sage: E.simon_two_descent(lim1=2, limtriv=3)
+        (1, 1, ...)
+
+    Check that :trac:`16022` is fixed::
+
+        sage: K.<y> = NumberField(x^4 + x^2 - 7);
+        sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
+        sage: E.simon_two_descent(lim1=2, limtriv=3)  # long time (about 3 s)
+        (1, 1, ...)
+
+    An example that checks that :trac:`9322` is fixed (it should take less than a second to run)
+
+        sage: K.<w> = NumberField(x^2-x-232)
+        sage: E = EllipticCurve([2-w,18+3*w,209+9*w,2581+175*w,852-55*w])
+        sage: E.simon_two_descent()
+        (0, 2, [])
     """
     init()
 
@@ -69,10 +91,15 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     K_orig = K
     # The following is to correct the bug at \#5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
-    if not K is QQ:
-        K = K.change_names('a')
+    # It also deals with relative number fields.
     E_orig = E
-    E = EllipticCurve(K,[K(list(a)) for a in E.ainvs()])
+    if not K is QQ:
+        K = K_orig.absolute_field('a')
+        from_K,to_K = K.structure()
+        E = E_orig.change_ring(to_K)
+    else:
+        from_K = lambda x:x
+        to_K = lambda x:x
     F = E.integral_model()
 
     if K != QQ:
@@ -85,18 +112,32 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         if verbose >= 2:
             print "%s = Mod(y,K.pol);" % K.gen()
 
+    # The block below mimicks the defaults in Simon's scripts, and needs to be changed
+    # when these are updated.
     if K == QQ:
         cmd = 'ellrank([%s,%s,%s,%s,%s]);' % F.ainvs()
+        if lim1 is None:
+            lim1 = 5
+        if lim3 is None:
+            lim3 = 50
+        if limtriv is None:
+            limtriv = 3
     else:
         cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % F.ainvs()
+        if lim1 is None:
+            lim1 = 2
+        if lim3 is None:
+            lim3 = 4
+        if limtriv is None:
+            limtriv = 2
 
     gp('DEBUGLEVEL_ell=%s; LIM1=%s; LIM3=%s; LIMTRIV=%s; MAXPROB=%s; LIMBIGPRIME=%s;'%(
-        verbose, lim1, lim3, limtriv, maxprob, limbigprime))
+       verbose, lim1, lim3, limtriv, maxprob, limbigprime))
 
     if verbose >= 2:
         print cmd
     s = gp.eval('ans=%s;'%cmd)
-    if s.find("***") != -1:
+    if s.find(" *** ") != -1:
         raise RuntimeError, "\n%s\nAn error occurred while running Simon's 2-descent program"%s
     if verbose > 0:
         print s
@@ -112,6 +153,6 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
     inv_transform = F.isomorphism_to(E)
     ans[2] = [inv_transform(F(P)) for P in ans[2]]
-    ans[2] = [E_orig([K_orig(list(c)) for c in list(P)]) for P in ans[2]]
+    ans[2] = [E_orig([from_K(c) for c in list(P)]) for P in ans[2]]
     return ans
 

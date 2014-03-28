@@ -86,7 +86,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     from sage.numerical.mip import MixedIntegerLinearProgram
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-    A = p.new_variable(integer=isinteger) # A>=0 is assumed
+    A = p.new_variable(integer=isinteger, nonnegative=not isinteger) # A>=0 is assumed
     p.set_objective(sum([A[r] for r in xrange(n+1)]))
     p.add_constraint(A[0]==1)
     for i in xrange(1,d):

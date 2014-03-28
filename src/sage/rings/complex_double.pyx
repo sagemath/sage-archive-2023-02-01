@@ -611,6 +611,53 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 #         x._set_multiplicative_order( n ) # not implemented for CDF
         return x
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the double precision
+          complex numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the double precision complex numbers
+          into a unit and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = CDF[]
+            sage: CDF._factor_univariate_polynomial(x)
+            x
+            sage: CDF._factor_univariate_polynomial(2*x)
+            (2.0) * x
+            sage: CDF._factor_univariate_polynomial(x^2)
+            x^2
+            sage: f = x^2 + 1
+            sage: F = CDF._factor_univariate_polynomial(f)
+            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-9
+            [5.55111512313e-17, 6.66133814775e-16]
+            sage: f = (x^2 + 2*R(I))^3
+            sage: F = f.factor()
+            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-9
+            [1.979365054e-14, 1.97936298566e-14, 1.97936990747e-14, 3.6812407475e-14, 3.65211563729e-14, 3.65220890052e-14]
+
+        """
+        unit = f.leading_coefficient()
+        f *= ~unit
+        roots = f.roots()
+        from sage.misc.flatten import flatten
+        roots = flatten([[r]*m for r, m in roots])
+        from sage.structure.factorization import Factorization
+        x = f.parent().gen()
+        return Factorization([(x - a, 1) for a in roots], unit)
+
 
 cdef ComplexDoubleElement new_ComplexDoubleElement():
     """
@@ -1007,14 +1054,22 @@ cdef class ComplexDoubleElement(FieldElement):
 
     cdef GEN _gen(self):
         cdef GEN y
-        y = cgetg(3, t_COMPLEX)    # allocate space for a complex number
-        set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
-        set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
+        if self._complex.dat[1] == 0:
+            # Return t_REAL
+            y = pari.double_to_GEN(self._complex.dat[0])
+        else:
+            # Return t_COMPLEX
+            y = cgetg(3, t_COMPLEX)
+            if self._complex.dat[0] == 0:
+                set_gel(y, 1, gen_0)
+            else:
+                set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
+            set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
         return y
 
     def _pari_(self):
         """
-        Return PARI version of ``self``.
+        Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
 
         EXAMPLES::
 
@@ -1022,6 +1077,10 @@ cdef class ComplexDoubleElement(FieldElement):
             1.00000000000000 + 2.00000000000000*I
             sage: pari(CDF(1,2))
             1.00000000000000 + 2.00000000000000*I
+            sage: pari(CDF(2.0))
+            2.00000000000000
+            sage: pari(CDF(I))
+            1.00000000000000*I
         """
         pari_catch_sig_on()
         return pari.new_gen(self._gen())

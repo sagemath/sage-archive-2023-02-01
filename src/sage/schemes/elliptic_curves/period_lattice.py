@@ -1300,7 +1300,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
-            sage: T = E.simon_two_descent()
+            sage: T = E.simon_two_descent(lim1=20,lim3=5,limtriv=20)
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])

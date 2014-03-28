@@ -657,7 +657,7 @@ cdef class RingHomomorphism(RingMap):
         self._lift = lift
 
     cdef _update_slots(self, _slots):
-        if _slots.has_key('_lift'):
+        if '_lift' in _slots:
             self._lift = _slots['_lift']
         Morphism._update_slots(self, _slots)
 
@@ -1282,8 +1282,6 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
 
         """
         RingHomomorphism.__init__(self, parent)
-        if not is_RingHomomorphism(underlying):
-            raise TypeError, "Homomorphism of the base ring expected"
         if underlying.domain() != parent.domain().base():
             raise ValueError, "The given homomorphism has to have the domain %s"%parent.domain().base()
         if underlying.codomain() != parent.codomain().base():

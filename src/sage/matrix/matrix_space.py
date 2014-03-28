@@ -34,7 +34,6 @@ import matrix
 import matrix_generic_dense
 import matrix_generic_sparse
 
-import matrix_modn_dense
 import matrix_modn_sparse
 
 import matrix_mod2_dense
@@ -70,7 +69,6 @@ import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-from sage.misc.superseded import deprecation
 import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
@@ -227,7 +225,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         We test that in the real or complex double dense case,
         conversion from the base ring is done by a call morphism.
-        Note that by trac ticket #9138, other algebras usually
+        Note that by :trac:`9138`, other algebras usually
         get a conversion map by multiplication with the one element.
         ::
 
@@ -242,6 +240,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
               From: Complex Double Field
               To:   Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
 
+        We check that :trac:`10095` is fixed::
+
+            sage: M = Matrix(QQ, [[1 for dummy in range(125)]])
+            sage: V = M.right_kernel()
+            sage: V
+            Vector space of degree 125 and dimension 124 over Rational Field
+            Basis matrix:
+            124 x 125 dense matrix over Rational Field
+            sage: MatrixSpace(ZZ,20,20)(1) \ MatrixSpace(ZZ,20,1).random_element()
+            20 x 1 dense matrix over Rational Field
+            sage: MatrixSpace(ZZ,200,200)(1) \ MatrixSpace(ZZ,200,1).random_element()
+            200 x 1 dense matrix over Rational Field
+            sage: A = MatrixSpace(RDF,1000,1000).random_element()
+            sage: B = MatrixSpace(RDF,1000,1000).random_element()
+            sage: C = A * B
         """
         if ncols == None: ncols = nrows
         from sage.categories.all import Modules, Algebras
@@ -384,7 +397,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=True, rows=None):
+    def __call__(self, entries=None, coerce=True, copy=True):
         """
         EXAMPLES::
 
@@ -414,35 +427,10 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         ::
 
-            sage: MS = MatrixSpace(ZZ,2,2)
-            sage: MS([1,2,3,4])
-            [1 2]
-            [3 4]
-            sage: MS([1,2,3,4], rows=True)
-            doctest:...: DeprecationWarning:
-            'rows=True/False' parameter is deprecated!
-            See http://trac.sagemath.org/13012 for details.
-            doctest:...: DeprecationWarning:
-            'rows=True/False' parameter is deprecated!
-            See http://trac.sagemath.org/13012 for details.
-            [1 2]
-            [3 4]
-            sage: MS([1,2,3,4], rows=False)
-            [1 3]
-            [2 4]
-
-        ::
-
             sage: MS = MatrixSpace(ZZ,2,2, sparse=True)
             sage: MS([1,2,3,4])
             [1 2]
             [3 4]
-            sage: MS([1,2,3,4], rows=True)
-            [1 2]
-            [3 4]
-            sage: MS([1,2,3,4], rows=False)
-            [1 3]
-            [2 4]
 
             sage: MS = MatrixSpace(ZZ, 2)
             sage: g = Gamma0(5)([1,1,0,1])
@@ -501,9 +489,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             cannot be converted to a matrix in
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
         """
-        if rows is not None:
-            deprecation(13012, "'rows=True/False' parameter is deprecated!")
-            return self.matrix(entries, coerce, copy, rows)
         return self.matrix(entries, coerce, copy)
 
     def change_ring(self, R):
@@ -908,6 +893,47 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
                    yield self(entries=[base_elements[i] for i in iv])
 
+    def __getitem__(self, x):
+        """
+        Return a polynomial ring over this ring or the `n`-th element of this ring.
+
+        This method implements the syntax ``R['x']`` to define polynomial rings
+        over matrix rings, while still allowing to get the `n`-th element of a
+        finite matrix ring with ``R[n]`` for backward compatibility.
+
+        (If this behaviour proves desirable for all finite enumerated rings, it
+        should eventually be implemented in the corresponding category rather
+        than here.)
+
+        ..SEEALSO::
+
+            :meth:`sage.categories.rings.Rings.ParentMethod.__getitem__`,
+            :meth:`sage.structure.parent.Parent.__getitem__`
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(3), 2, 2)
+            sage: MS['x']
+            Univariate Polynomial Ring in x over Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
+            sage: MS[0]
+            [0 0]
+            [0 0]
+            sage: MS[9]
+            [0 2]
+            [0 0]
+
+            sage: MS = MatrixSpace(QQ, 7)
+            sage: MS['x']
+            Univariate Polynomial Ring in x over Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+            sage: MS[2]
+            Traceback (most recent call last):
+            ...
+            ValueError: since it is infinite, cannot list Full MatrixSpace of 7 by 7 dense matrices over Rational Field
+        """
+        if isinstance(x, (int, long, integer.Integer)):
+            return self.list()[x]
+        return Rings.ParentMethods.__getitem__.__func__(self, x)
+
     def _get_matrix_class(self):
         r"""
         Returns the class of self
@@ -950,8 +976,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return matrix_modn_dense_float.Matrix_modn_dense_float
                 elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
-                # elif R.order() < matrix_modn_dense.MAX_MODULUS:
-                #     return matrix_modn_dense.Matrix_modn_dense
                 return matrix_generic_dense.Matrix_generic_dense
             elif sage.rings.finite_rings.all.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
                 return matrix_mod2e_dense.Matrix_mod2e_dense
@@ -1184,7 +1208,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         return self.dimension()
 
-    def matrix(self, x=0, coerce=True, copy=True, rows=None):
+    def matrix(self, x=0, coerce=True, copy=True):
         r"""
         Create a matrix in ``self``.
 
@@ -1226,12 +1250,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M.matrix([1,2,3,4])
             [1 2]
             [3 4]
-            sage: M.matrix([1,2,3,4],rows=False)
-            doctest:...: DeprecationWarning:
-            'rows=True/False' parameter is deprecated!
-            See http://trac.sagemath.org/13012 for details.
-            [1 3]
-            [2 4]
 
         Note that the last "flip" cannot be performed if ``x`` is a matrix, no
         matter what is ``rows`` (it used to be possible but was fixed by
@@ -1317,12 +1335,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if isinstance(x, (int, integer.Integer)) and x == 1:
             return self.identity_matrix().__copy__()
         m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
-        if rows is not None:
-            deprecation(13012, "'rows=True/False' parameter is deprecated!")
-        if rows is not None and not rows:
-            if not isinstance(x, dict):
-                MT =  MatrixSpace(self.base_ring(), n, m, sparse)
-                return MT.matrix(x, coerce=coerce, copy=copy).transpose()
         if matrix.is_Matrix(x):
             if x.parent() is self:
                 if x.is_immutable():

@@ -619,7 +619,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
             sage: e = E.pari_curve(prec=100)
-            sage: E._pari_curve.has_key(100)
+            sage: 100 in E._pari_curve
             True
             sage: e.type()
             't_VEC'
@@ -628,7 +628,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         This shows that the bug uncovered by trac:`3954` is fixed::
 
-            sage: E._pari_curve.has_key(100)
+            sage: 100 in E._pari_curve
             True
 
         ::
@@ -1397,7 +1397,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError, "algorithm %s not defined"%algorithm
 
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3, maxprob=20, limbigprime=30):
         r"""
         Return lower and upper bounds on the rank of the Mordell-Weil
         group `E(\QQ)` and a list of points of infinite order.
@@ -1412,9 +1412,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         - ``lim3`` -- (default: 50) limit on points on ELS quartics
 
-        - ``limtriv`` -- (default: 10) limit on trivial points on `E`
+        - ``limtriv`` -- (default: 3) limit on trivial points on `E`
 
-        -  ``maxprob`` -- (default: 20)
+        - ``maxprob`` -- (default: 20)
 
         - ``limbigprime`` - (default: 30) to distinguish between small
            and large prime numbers. Use probabilistic tests for large
@@ -1457,7 +1457,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
-            (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
+            (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
             (3, 3, [(1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1)])
@@ -1688,7 +1688,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__rank[proof]
         except KeyError:
-            if proof is False and self.__rank.has_key(True):
+            if proof is False and True in self.__rank:
                 return self.__rank[True]
         if use_database:
             try:
@@ -1855,7 +1855,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except AttributeError:
             pass
         except KeyError:
-            if proof is False and self.__gens.has_key(True):
+            if proof is False and True in self.__gens:
                 return self.__gens[True]
 
         # At this point, either self.__gens does not exist, or
@@ -1984,7 +1984,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.gens_certain()
             True
         """
-        return self.__gens.has_key(True)
+        return True in self.__gens
 
     def ngens(self, proof = None):
         """
@@ -2080,7 +2080,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             else: # Found regulator value but precision is too low
                 pass
         except KeyError:
-            if proof is False and self.__regulator.has_key(True):
+            if proof is False and True in self.__regulator:
                 reg = self.__regulator[True]
                 if reg.parent().precision() >= precision:
                     return RR(reg)
@@ -2709,7 +2709,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         except AttributeError:
             self.__kodaira_type = {}
             self.__tamagawa_number = {}
-        if not self.__kodaira_type.has_key(p):
+        if p not in self.__kodaira_type:
             v = self.pari_mincurve().elllocalred(p)
             from kodaira_symbol import KodairaSymbol
             self.__kodaira_type[p] = KodairaSymbol(v[1])
@@ -3824,7 +3824,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1728
         """
 
-        return CMJ.has_key(self.j_invariant())
+        return self.j_invariant() in CMJ
 
     def cm_discriminant(self):
         """
@@ -5092,12 +5092,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     padic_E2 = padics.padic_E2
 
     matrix_of_frobenius = padics.matrix_of_frobenius
-
-    # def weierstrass_p(self):
-    #         # TODO: add allowing negative valuations for power series
-    #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
-    #                - (a4+a1*a3)*t**2  + O(t**3)
-
 
     def mod5family(self):
         """

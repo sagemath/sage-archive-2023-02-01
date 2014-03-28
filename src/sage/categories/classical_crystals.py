@@ -263,9 +263,9 @@ class ClassicalCrystals(Category_singleton):
             Let `B(\lambda)` denote a highest weight crystal. Recall that
             the degree of the weight space `\alpha` of `B(\lambda)` (under
             the principal gradation) is equal to
-            `\langle \rho, \lambda - \beta \rangle` where
-            `\langle \rho, \alpha_i \rangle = 1` for all `i \in I` (in
-            particular take `\rho = \sum_{i \in I} \Lambda_i`).
+            `\langle \rho^{\vee}, \lambda - \alpha \rangle` where
+            `\langle \rho^{\vee}, \alpha_i \rangle = 1` for all `i \in I`
+            (in particular, take `\rho^{\vee} = \sum_{i \in I} h_i`).
 
             The `q`-dimension of a highest weight crystal `B(\Lambda)` is
             defined as
@@ -275,14 +275,14 @@ class ClassicalCrystals(Category_singleton):
                 \dim_q B(\lambda) := \sum_{j \geq 0} \dim(B_j) q^j,
 
             where `B_j` denotes the degree `j` portion of `B(\lambda)`. This
-            can be expressed as the product:
+            can be expressed as the product
 
             .. MATH::
 
                 \dim_q B(\lambda) = \prod_{\alpha \in \Delta_+^{\vee}}
                 \left( \frac{1 - q^{\langle \lambda + \rho, \alpha \rangle}}
                 {1 - q^{\langle \rho, \alpha \rangle}} \right)^{\mathrm{mult}
-                \alpha},
+                \, \alpha},
 
             where `\Delta_+^{\vee}` denotes the set of positive coroots.
             Taking the limit as `q \to 1` gives the dimension of `B(\lambda)`.
@@ -332,6 +332,8 @@ class ClassicalCrystals(Category_singleton):
                  + 498*q^5 + 342*q^4 + 201*q^3 + 117*q^2 + 48*q + 26
                 sage: qdim(1)
                 25600
+                sage: TP.q_dimension() == qdim # long time
+                True
             """
             from sage.rings.all import ZZ
             if q is None:

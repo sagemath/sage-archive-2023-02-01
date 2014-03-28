@@ -652,11 +652,11 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         # Specific case of Words_over_Alphabet and WordPath. See #15480
         # i.e. when self,other in Words_over_Alphabet, WordPath and one of them at least is a wordpath
         if ((isinstance(self,WordPaths_all) and isinstance(other,WordPaths_all)) or
-            (isinstance(self, Words_over_OrderedAlphabet) and isinstance(other,WordPaths_all)) or
-            (isinstance(other, Words_over_OrderedAlphabet) and isinstance(self,WordPaths_all))):
+            (type(self) is Words_over_OrderedAlphabet and isinstance(other,WordPaths_all)) or
+            (type(other) is Words_over_OrderedAlphabet and isinstance(self,WordPaths_all))):
             return self.alphabet() == other.alphabet()
 
-        if not (isinstance(self, type(other))):
+        if not (type(self) is type(other)):
             return False
 
         cardinality = self.cardinality()

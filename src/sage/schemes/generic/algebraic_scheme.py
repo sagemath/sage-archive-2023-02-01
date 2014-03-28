@@ -1200,7 +1200,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             P = [J for J in P if any(g not in J for g in G)]
 
         A = self.ambient_space()
-        C = sorted(Sequence([A.subscheme(X) for X in P], check=False, cr=True))
+        C = Sequence([A.subscheme(X) for X in P], check=False, cr=True)
+        C.sort()
         C.set_immutable()
         self.__irreducible_components = C
         return C

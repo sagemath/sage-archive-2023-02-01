@@ -94,7 +94,7 @@ cdef public GEx pyExpression_to_ex(object res) except *:
         raise TypeError, "function returned None, expected return value of type sage.symbolic.expression.Expression"
     try:
         t = ring.SR.coerce(res)
-    except TypeError, err:
+    except TypeError as err:
         raise TypeError, "function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
     return (<Expression>t)._gobj
 
@@ -1667,7 +1667,7 @@ cdef public object py_sqrt(object x) except +:
     try:
         # WORRY: What if Integer's sqrt calls symbolic one and we go in circle?
         return x.sqrt()
-    except AttributeError, msg:
+    except AttributeError as msg:
         return sage_sqrtl(float(x))
 
 cdef public object py_abs(object x) except +:

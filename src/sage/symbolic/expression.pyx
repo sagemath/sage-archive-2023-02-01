@@ -2295,7 +2295,7 @@ cdef class Expression(CommutativeRingElement):
         if len(vars) == 0:
             try:
                 val = domain(diff)
-            except (TypeError, ValueError, ArithmeticError), ex:
+            except (TypeError, ValueError, ArithmeticError) as ex:
                 pass
             else:
                 if self.operator()(val, zero):
@@ -2323,7 +2323,7 @@ cdef class Expression(CommutativeRingElement):
                         return False
                     if is_interval:
                         eq_count += <bint>val.contains_zero()
-                except (TypeError, ValueError, ArithmeticError, AttributeError), ex:
+                except (TypeError, ValueError, ArithmeticError, AttributeError) as ex:
                     errors += 1
                     if k == errors > 3 and is_ComplexIntervalField(domain):
                         domain = RIF.to_prec(domain.prec())
@@ -2882,7 +2882,7 @@ cdef class Expression(CommutativeRingElement):
             else:
                 x = gdiv(left._gobj, _right._gobj)
             return new_Expression_from_GEx(left._parent, x)
-        except Exception, msg:
+        except Exception as msg:
             # TODO: change this to maybe cleverly do something involving Cython C++ exception handling.
             # See http://docs.cython.org/docs/wrapping_CPlusPlus.html
             if 'division by zero' in str(msg):
@@ -9318,7 +9318,7 @@ cdef class Expression(CommutativeRingElement):
                 s = m.solve(x).str()
             else: # omit Maxima's solve command
                 s = str([])
-        except TypeError, mess: # if Maxima's solve has an error, we catch it
+        except TypeError as mess: # if Maxima's solve has an error, we catch it
             if "Error executing code in Maxima" in str(mess):
                 s = str([])
             else:
@@ -9374,7 +9374,7 @@ cdef class Expression(CommutativeRingElement):
                         X.remove(eq)
                         # replace with the new solutions
                         X.extend([y[0] for y in Y])
-                    except TypeError, mess:
+                    except TypeError as mess:
                         if "Error executing code in Maxima" in str(mess) or \
                                 "unable to make sense of Maxima expression" in\
                                 str(mess):

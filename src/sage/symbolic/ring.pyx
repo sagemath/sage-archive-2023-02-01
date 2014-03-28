@@ -266,7 +266,7 @@ cdef class SymbolicRing(CommutativeRing):
             try:
                 from sage.calculus.calculus import symbolic_expression_from_string
                 return self(symbolic_expression_from_string(x))
-            except SyntaxError, err:
+            except SyntaxError as err:
                 msg, s, pos = err.args
                 raise TypeError, "%s: %s !!! %s" % (msg, s[:pos], s[pos:])
 

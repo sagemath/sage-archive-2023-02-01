@@ -2111,17 +2111,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EK.gens()
             []
 
-
         IMPLEMENTATION:
 
         Uses Denis Simon's PARI/GP scripts from
         http://www.math.unicaen.fr/~simon/.
         """
-
         lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
-        res = [P for P in gens if P.has_infinite_order()]
-        return res
-
+        return gens
 
     def period_lattice(self, embedding):
         r"""

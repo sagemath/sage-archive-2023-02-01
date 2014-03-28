@@ -1541,7 +1541,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         rank_low_bd = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
         pts = [self(P) for P in t[2]]
-        pts = [P for P in pts if P.has_infinite_order()]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
             if verbose>0:
                 print "Rank determined successfully, saturating..."

@@ -100,7 +100,6 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
     else:
         from_K = lambda x:x
         to_K = lambda x:x
-    F = E.integral_model()
 
     if K != QQ:
         # Simon's program requires that this name be y.
@@ -115,7 +114,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
     # The block below mimicks the defaults in Simon's scripts, and needs to be changed
     # when these are updated.
     if K == QQ:
-        cmd = 'ellrank([%s,%s,%s,%s,%s]);' % F.ainvs()
+        cmd = 'ellrank([%s,%s,%s,%s,%s]);' % E.ainvs()
         if lim1 is None:
             lim1 = 5
         if lim3 is None:
@@ -123,7 +122,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         if limtriv is None:
             limtriv = 3
     else:
-        cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % F.ainvs()
+        cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % E.ainvs()
         if lim1 is None:
             lim1 = 2
         if lim3 is None:
@@ -151,8 +150,6 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
     def _gp_mod(*args):
         return args[0]
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
-    inv_transform = F.isomorphism_to(E)
-    ans[2] = [inv_transform(F(P)) for P in ans[2]]
     ans[2] = [E_orig([from_K(c) for c in list(P)]) for P in ans[2]]
+    ans[2] = [P for P in ans[2] if P.has_infinite_order()]
     return ans
-

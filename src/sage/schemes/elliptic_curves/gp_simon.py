@@ -52,7 +52,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
-        [2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)]]
+        [2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)]]
 
     TESTS::
 
@@ -121,7 +121,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         if lim3 is None:
             lim3 = 50
         if limtriv is None:
-            limtriv = 50
+            limtriv = 3
     else:
         cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % F.ainvs()
         if lim1 is None:

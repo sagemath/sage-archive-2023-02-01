@@ -169,7 +169,7 @@ check if you can do necessary things using lattice polytopes and polyhedra
 corresponding to cones::
 
     sage: four_rays.lattice_polytope()
-    A lattice polytope: 3-dimensional, 5 vertices.
+    3-d lattice polytope in 3-d lattice N
     sage: four_rays.polyhedron()
     A 3-dimensional polyhedron in ZZ^3 defined as
     the convex hull of 1 vertex and 4 rays
@@ -2959,7 +2959,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: lp = quadrant.lattice_polytope()
             sage: lp
-            A lattice polytope: 2-dimensional, 3 vertices.
+            2-d lattice polytope in 2-d lattice N
             sage: lp.vertices_pc()
             N(1, 0),
             N(0, 1),
@@ -2969,7 +2969,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: line = Cone([(1,0), (-1,0)])
             sage: lp = line.lattice_polytope()
             sage: lp
-            A lattice polytope: 1-dimensional, 2 vertices.
+            1-d lattice polytope in 2-d lattice N
             sage: lp.vertices_pc()
             N( 1, 0),
             N(-1, 0)

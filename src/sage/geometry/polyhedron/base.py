@@ -3781,7 +3781,7 @@ class Polyhedron_base(Element):
 
             sage: P = Polyhedron( vertices = [(1, 0), (0, 1), (-1, 0), (0, -1)])
             sage: lp = P.lattice_polytope(); lp
-            A lattice polytope: 2-dimensional, 4 vertices.
+            2-d reflexive polytope #3 in 2-d lattice M
             sage: lp.vertices_pc()
             M(-1,  0),
             M( 0, -1),
@@ -3799,7 +3799,7 @@ class Polyhedron_base(Element):
             to add the argument "envelope=True" to compute an enveloping
             lattice polytope.
             sage: lp = P.lattice_polytope(True); lp
-            A lattice polytope: 2-dimensional, 5 vertices.
+            2-d reflexive polytope #5 in 2-d lattice M
             sage: lp.vertices_pc()
             M(-1,  0),
             M( 0, -1),

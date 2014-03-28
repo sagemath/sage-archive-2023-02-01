@@ -149,7 +149,7 @@ class SetOfAllLatticePolytopesClass(Set_generic):
 
             sage: o = lattice_polytope.octahedron(3)
             sage: lattice_polytope.SetOfAllLatticePolytopesClass().__call__(o)
-            An octahedron: 3-dimensional, 6 vertices.
+            3-d reflexive polytope in 3-d lattice M
         """
         if isinstance(x, LatticePolytopeClass):
             return x
@@ -181,7 +181,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         * a filename of such a file, see :func:`read_palp_matrix` for the
           file format;
 
-    -  ``desc`` -- (default: "A lattice polytope") a string
+    -  ``desc`` -- DEPRECATED (default: "A lattice polytope") a string
        description of the polytope;
 
     - ``compute_vertices`` -- boolean (default: ``True``). If ``True``, the
@@ -207,7 +207,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         sage: points = [(1,0,0), (0,1,0), (0,0,1), (-1,0,0), (0,-1,0), (0,0,-1)]
         sage: p = LatticePolytope(points)
         sage: p
-        A lattice polytope: 3-dimensional, 6 vertices.
+        3-d reflexive polytope in 3-d lattice M
         sage: p.vertices_pc()
         M( 1,  0,  0),
         M( 0,  1,  0),
@@ -217,7 +217,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         M( 0,  0, -1)
         in 3-d lattice M
 
-    We draw a pretty picture of the polytype in 3-dimensional space::
+    We draw a pretty picture of the polytope in 3-dimensional space::
 
         sage: p.plot3d().show()
 
@@ -227,18 +227,17 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
     ::
 
         sage: points.append((0,0,0))
-        sage: p = LatticePolytope(points, "A lattice polytope constructed from 7 points")
-        sage: p
-        A lattice polytope constructed from 7 points: 3-dimensional, 6 vertices.
+        sage: p = LatticePolytope(points)
+        sage: p.nvertices()
+        6
 
     You can suppress vertex computation for speed but this can lead to
     mistakes::
 
-        sage: p = LatticePolytope(points, "A lattice polytope with WRONG vertices",
-        ...                         compute_vertices=False)
+        sage: p = LatticePolytope(points, compute_vertices=False)
         ...
-        sage: p
-        A lattice polytope with WRONG vertices: 3-dimensional, 7 vertices.
+        sage: p.nvertices()
+        7
 
     Given points must be in the lattice::
 
@@ -255,7 +254,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,0),
         ...         (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
         sage: p
-        A lattice polytope: 2-dimensional, 4 vertices.
+        2-d lattice polytope in 3-d lattice M
         sage: p.vertices_pc()
         M( 1,  0, 0),
         M( 0,  1, 0),
@@ -266,7 +265,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
     An empty lattice polytope can be considered as well::
 
         sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
-        A lattice polytope: -1-dimensional, 0 vertices.
+        -1-d lattice polytope in 3-d lattice M
         sage: p.ambient_dim()
         3
         sage: p.npoints()
@@ -279,16 +278,15 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         sage: p.faces()
         []
     """
+    if desc is not None:
+        deprecation(15240, "custom descriptions for lattice polytopes are "
+                           "deprecated and ignored!")
     if isinstance(data, LatticePolytopeClass):
-        if desc is None:
-            desc = data._desc
         data = data._vertices
         compute_vertices = False
-    elif desc is None:
-        desc = "A lattice polytope"
     if (is_PointCollection(data) and
         (lattice is None or lattice is data.module())):
-        return LatticePolytopeClass(data, desc, compute_vertices)
+        return LatticePolytopeClass(data, compute_vertices)
     if isinstance(data, str):
         f = open(data)
         skip_palp_matrix(f, n)
@@ -328,7 +326,7 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
     for p in data:
         p.set_immutable()
     data = PointCollection(data, lattice)
-    return LatticePolytopeClass(data, desc, compute_vertices)
+    return LatticePolytopeClass(data, compute_vertices)
 
 
 copy_reg.constructor(LatticePolytope)   # "safe for unpickling"
@@ -356,8 +354,8 @@ def ReflexivePolytope(dim, n):
 
     ::
 
-        sage: ReflexivePolytope(2,3)
-        Reflexive polytope    3: 2-dimensional, 4 vertices.
+        sage: ReflexivePolytope(2, 3)
+        2-d reflexive polytope #3 in 2-d lattice M
         sage: lattice_polytope.ReflexivePolytope(2,3).vertices_pc()
         M( 1,  0),
         M( 0,  1),
@@ -425,8 +423,7 @@ def ReflexivePolytopes(dim):
         raise NotImplementedError, "only 2- and 3-dimensional reflexive polytopes are available!"
     if _rp[dim] == None:
         rp = read_all_polytopes(
-            os.path.join(data_location,"reflexive_polytopes_%dd"%dim),
-            desc="Reflexive polytope %4d")
+            os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
         for n, p in enumerate(rp):
             # Data files have normal form of reflexive polytopes
             p._normal_form = p._vertices
@@ -434,9 +431,9 @@ def ReflexivePolytopes(dim):
             p._dim = dim
         # Compute "fast" data in one call to PALP
         all_polars(rp)
-        # Construction of all points via PALP takes more points after the switch
+        # Construction of all points via PALP takes more time after the switch
         # to point collections, which is inconvenient for doctests and using
-        # reflexiv polytopes in general, turn it off for now - there was no
+        # reflexive polytopes in general, turn it off for now - there was no
         # promise in documentation that points are precomputed.
         # all_points(rp + [p._polar for p in rp])
         # TODO: improve faces representation so that we can uncomment
@@ -466,7 +463,7 @@ def is_LatticePolytope(x):
         False
         sage: p = LatticePolytope([(1,0), (0,1), (-1,-1)])
         sage: p
-        A lattice polytope: 2-dimensional, 3 vertices.
+        2-d reflexive polytope #0 in 2-d lattice M
         sage: is_LatticePolytope(p)
         True
     """
@@ -484,12 +481,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     - ``points`` -- a :class:`~sage.geometry.point_collection.PointCollection`;
 
-    - ``desc`` -- a string;
-
     - ``compute_vertices`` -- boolean.
     """
 
-    def __init__(self, points, desc, compute_vertices):
+    def __init__(self, points, compute_vertices):
         r"""
         Construct a lattice polytope.
 
@@ -498,10 +493,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         TESTS::
 
             sage: LatticePolytope([(1,2,3), (4,5,6)]) # indirect test
-            A lattice polytope: 1-dimensional, 2 vertices.
+            1-d lattice polytope in 3-d lattice M
         """
         self._vertices = points
-        self._desc = desc
         if compute_vertices:
             self._compute_dim(compute_vertices=True)
 
@@ -609,7 +603,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         state = self.__dict__.copy()
         state.pop('_vertices')
-        state.pop('_desc')
         state.pop('_distances', None)
         state.pop('_skeleton', None)
         try:
@@ -617,7 +610,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             state.pop('_points')
         except KeyError:
             pass
-        return (LatticePolytope, (self._vertices, self._desc, False, False), state)
+        return (LatticePolytope, (self._vertices, None, False), state)
 
     def __setstate__(self, state):
         r"""
@@ -1042,7 +1035,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             Traceback (most recent call last):
             ...
             ValueError: Cannot run "poly.x -f" for the zero-dimensional polytope!
-            Polytope: A lattice polytope: 0-dimensional, 1 vertices.
+            Polytope: 0-d lattice polytope in 1-d lattice M
 
             sage: p = LatticePolytope([(1,0,0), (0,1,0), (-1,0,0), (0,-1,0)])
             sage: p._palp("poly.x -f")
@@ -1094,9 +1087,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             "failed." in result or
             "increase" in result or
             "Unable" in result):
-            raise ValueError, ("Error executing \"%s\" for the given polytope!"
-                + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
-                self, self.vertices_pc(), result)
+            lines = ["Error executing '%s' for the given polytope!" % command,
+                     "Output:", result]
+            raise ValueError("\n".join(lines))
         return result
 
     def _pullback(self, data):
@@ -1214,7 +1207,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if self.is_reflexive():
             data.seek(pos)
             polar = LatticePolytope(read_palp_matrix(data).columns(),
-                                    "A polytope polar to " + str(self._desc),
                                     compute_vertices=False, lattice=N)
             polar._dim = self._dim
             polar.is_reflexive.set_cache(True)
@@ -1425,17 +1417,31 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     def _repr_(self):
         r"""
-        Return a string representation of this polytope.
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - a string.
 
         TESTS::
 
             sage: o = lattice_polytope.octahedron(3)
             sage: o._repr_()
-            'An octahedron: 3-dimensional, 6 vertices.'
+            '3-d reflexive polytope in 3-d lattice M'
         """
-        s = str(self._desc)
-        s += ": %d-dimensional, %d vertices." % (self.dim(), self.nvertices())
-        return s
+        parts = ["%d-d" % self.dim(), "lattice", "polytope", "in"]
+        try:
+            if self.is_reflexive():
+                parts[1] = "reflexive"
+                if self.dim() == 2 or self.index.is_in_cache():
+                    parts.insert(-1, "#%d" % self.index())
+        except ValueError:
+            pass
+        if is_ToricLattice(self.lattice()):
+            parts.append(str(self.lattice()))
+        else:
+            parts.append("%d-d lattice" % self.lattice_dim())
+        return " ".join(parts)
 
     def affine_transform(self, a=1, b=0):
         r"""
@@ -1812,7 +1818,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: p = LatticePolytope([(1,-1,1,3), (-1,-1,1,3), (0,0,0,0)])
             sage: p
-            A lattice polytope: 2-dimensional, 3 vertices.
+            2-d lattice polytope in 4-d lattice M
             sage: p.vertices_pc()
             M( 1, -1, 1, 3),
             M(-1, -1, 1, 3),
@@ -2052,6 +2058,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     # Dictionaries of normal forms
     _rp_dict = [None]*4
 
+    @cached_method
     def index(self):
         r"""
         Return the index of this polytope in the internal database of 2- or
@@ -2099,19 +2106,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
         """
-        if not hasattr(self, "_index"):
-            if not self.is_reflexive():
-                raise NotImplementedError, "only reflexive polytopes can be indexed!"
-            dim = self.dim()
-            if dim not in [2, 3]:
-                raise NotImplementedError, "only 2- and 3-dimensional polytopes can be indexed!"
-            if LatticePolytopeClass._rp_dict[dim] == None:
-                rp_dict = dict()
-                for n, p in enumerate(ReflexivePolytopes(dim)):
-                    rp_dict[str(p.normal_form())] = n
-                LatticePolytopeClass._rp_dict[dim] = rp_dict
-            self._index = LatticePolytopeClass._rp_dict[dim][str(self.normal_form())]
-        return self._index
+        if not self.is_reflexive():
+            raise NotImplementedError, "only reflexive polytopes can be indexed!"
+        dim = self.dim()
+        if dim not in [2, 3]:
+            raise NotImplementedError, "only 2- and 3-dimensional polytopes can be indexed!"
+        if LatticePolytopeClass._rp_dict[dim] == None:
+            rp_dict = dict()
+            for n, p in enumerate(ReflexivePolytopes(dim)):
+                rp_dict[str(p.normal_form())] = n
+            LatticePolytopeClass._rp_dict[dim] = rp_dict
+        return LatticePolytopeClass._rp_dict[dim][str(self.normal_form())]
 
     @cached_method
     def is_reflexive(self):
@@ -2277,7 +2282,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             Traceback (most recent call last):
             ...
             ValueError: The given polytope is not reflexive!
-            Polytope: A lattice polytope: 3-dimensional, 6 vertices.
+            Polytope: 3-d lattice polytope in 3-d lattice M
         """
         if not self.is_reflexive():
             raise ValueError, ("The given polytope is not reflexive!\n"
@@ -2829,12 +2834,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: cube
-            A polytope polar to An octahedron: 3-dimensional, 8 vertices.
+            3-d reflexive polytope in 3-d lattice N
 
         The polar polytope "remembers" the original one::
 
             sage: cube.polar()
-            An octahedron: 3-dimensional, 6 vertices.
+            3-d reflexive polytope in 3-d lattice M
             sage: cube.polar().polar() is cube
             True
 
@@ -2846,7 +2851,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             Traceback (most recent call last):
             ...
             ValueError: The given polytope is not reflexive!
-            Polytope: A lattice polytope: 3-dimensional, 6 vertices.
+            Polytope: 3-d lattice polytope in 3-d lattice M
         """
         if self.is_reflexive():
             return self._polar
@@ -2893,28 +2898,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: BIGO = lattice_polytope.octahedron(7)
             sage: BIGO
-            An octahedron: 7-dimensional, 14 vertices.
+            7-d lattice polytope in 7-d lattice M
             sage: BIGO.poly_x("e")      # possibly different output depending on your system
             Traceback (most recent call last):
             ...
-            ValueError: Error executing "poly.x -fe" for the given polytope!
-            Polytope: An octahedron: 7-dimensional, 14 vertices.
-            Vertices:
-            M( 1,  0,  0,  0,  0,  0,  0),
-            M( 0,  1,  0,  0,  0,  0,  0),
-            M( 0,  0,  1,  0,  0,  0,  0),
-            M( 0,  0,  0,  1,  0,  0,  0),
-            M( 0,  0,  0,  0,  1,  0,  0),
-            M( 0,  0,  0,  0,  0,  1,  0),
-            M( 0,  0,  0,  0,  0,  0,  1),
-            M(-1,  0,  0,  0,  0,  0,  0),
-            M( 0, -1,  0,  0,  0,  0,  0),
-            M( 0,  0, -1,  0,  0,  0,  0),
-            M( 0,  0,  0, -1,  0,  0,  0),
-            M( 0,  0,  0,  0, -1,  0,  0),
-            M( 0,  0,  0,  0,  0, -1,  0),
-            M( 0,  0,  0,  0,  0,  0, -1)
-            in 7-d lattice M
+            ValueError: Error executing 'poly.x -fe' for the given polytope!
             Output:
             Please increase POLY_Dmax to at least 7
 
@@ -3035,11 +3023,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.skeleton_show()
             Traceback (most recent call last):
             ...
-            ValueError: need a polytope in a 3-dimensional space! Got:
-            An octahedron: 2-dimensional, 4 vertices.
+            NotImplementedError: skeleton view is implemented only in 3-d space
         """
         if self.ambient_dim() != 3:
-            raise ValueError("need a polytope in a 3-dimensional space! Got:\n%s" % self)
+            raise NotImplementedError("skeleton view is implemented only in 3-d space")
         if normal == None:
             normal = [ZZ.random_element(20),ZZ.random_element(20),ZZ.random_element(20)]
         normal = matrix(QQ,3,1,list(normal))
@@ -4365,7 +4352,7 @@ def _create_octahedron(dim):
     for i in range(dim):
         m[i,i] = 1
         m[i,dim+i] = -1
-    return LatticePolytope(m.columns(), "An octahedron", compute_vertices=False)
+    return LatticePolytope(m.columns(), compute_vertices=False)
 
 _octahedrons = dict()       # Dictionary for storing created octahedrons
 
@@ -4668,8 +4655,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
         sage: lattice_polytope.all_nef_partitions([o, p])
         Traceback (most recent call last):
         ...
-        ValueError: The given polytope is not reflexive!
-        Polytope: A lattice polytope: 3-dimensional, 6 vertices.
+        ValueError: nef-partitions can be computed for reflexive polytopes only
     """
     keys = "-N -V -D -P -p"
     if keep_symmetric:
@@ -4678,7 +4664,8 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     result = open(result_name)
     for p in polytopes:
         if not p.is_reflexive():
-            raise ValueError, "The given polytope is not reflexive!\nPolytope: %s" % p
+            raise ValueError("nef-partitions can be computed for reflexive "
+                             "polytopes only")
         p._read_nef_partitions(result)
         p._nef_partitions_s = keep_symmetric
     result.close()
@@ -4745,7 +4732,7 @@ def all_polars(polytopes):
         sage: o = lattice_polytope.octahedron(3)
         sage: lattice_polytope.all_polars([o])
         sage: o.polar()
-        A polytope polar to An octahedron: 3-dimensional, 8 vertices.
+        3-d reflexive polytope in 3-d lattice N
     """
     result_name = _palp("poly.x -fe", polytopes)
     result = open(result_name)
@@ -4882,11 +4869,11 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
         sage: polytopes = Sequence([lattice_polytope.octahedron(n) for n in range(2, 7)], cr=True)
         sage: polytopes
         [
-        An octahedron: 2-dimensional, 4 vertices.,
-        An octahedron: 3-dimensional, 6 vertices.,
-        An octahedron: 4-dimensional, 8 vertices.,
-        An octahedron: 5-dimensional, 10 vertices.,
-        An octahedron: 6-dimensional, 12 vertices.
+        2-d reflexive polytope #3 in 2-d lattice M,
+        3-d reflexive polytope in 3-d lattice M,
+        4-d reflexive polytope in 4-d lattice M,
+        5-d reflexive polytope in 5-d lattice M,
+        6-d reflexive polytope in 6-d lattice M
         ]
 
     This filters octahedrons of dimension at least 4::
@@ -4992,7 +4979,7 @@ def octahedron(dim):
 
         sage: o = lattice_polytope.octahedron(3)
         sage: o
-        An octahedron: 3-dimensional, 6 vertices.
+        3-d reflexive polytope in 3-d lattice M
         sage: o.vertices_pc()
         M( 1,  0,  0),
         M( 0,  1,  0),
@@ -5003,7 +4990,7 @@ def octahedron(dim):
         in 3-d lattice M
         sage: o = lattice_polytope.octahedron(4)
         sage: o
-        An octahedron: 4-dimensional, 8 vertices.
+        4-d reflexive polytope in 4-d lattice M
         sage: o.vertices_pc()
         M( 1,  0,  0,  0),
         M( 0,  1,  0,  0),
@@ -5126,7 +5113,7 @@ def projective_space(dim):
         perhaps toric_varieties.P(n) is what you are looking for?
         See http://trac.sagemath.org/15240 for details.        
         sage: p
-        A simplex: 3-dimensional, 4 vertices.
+        3-d reflexive polytope in 3-d lattice M
         sage: p.vertices_pc()
         M( 1,  0,  0),
         M( 0,  1,  0),
@@ -5135,7 +5122,7 @@ def projective_space(dim):
         in 3-d lattice M
         sage: p = lattice_polytope.projective_space(4)
         sage: p
-        A simplex: 4-dimensional, 5 vertices.
+        4-d reflexive polytope in 4-d lattice M
         sage: p.vertices_pc()
         M( 1,  0,  0,  0),
         M( 0,  1,  0,  0),
@@ -5150,7 +5137,7 @@ def projective_space(dim):
     for i in range(dim):
         m[i,i] = 1
         m[i,dim] = -1
-    return LatticePolytope(m.columns(), "A simplex", compute_vertices=False)
+    return LatticePolytope(m.columns(), compute_vertices=False)
 
 
 def read_all_polytopes(file_name, desc=None):
@@ -5159,45 +5146,53 @@ def read_all_polytopes(file_name, desc=None):
 
     INPUT:
 
+    - ``file_name`` -- a string with the name of a file with VERTICES of
+      polytopes.
 
-    -  ``file_name`` - the name of a file with VERTICES of
-       polytopes
+    OUTPUT:
+   
+    - a sequence of polytopes.
 
-    -  ``desc`` - a string, that will be used for creating
-       polytope descriptions. By default it will be set to 'A lattice
-       polytope #%d from "filename"' + and will be used as ``desc %
-       n`` where ``n`` is the number of the polytope in
-       the file (*STARTING WITH ZERO*).
-
-
-    OUTPUT: a sequence of polytopes
-
-    EXAMPLES: We use poly.x to compute polar polytopes of 2- and
-    3-octahedrons and read them::
+    EXAMPLES:
+   
+    We use poly.x to compute two polar polytopes read them::
 
         sage: o2 = lattice_polytope.octahedron(2)
         sage: o3 = lattice_polytope.octahedron(3)
         sage: result_name = lattice_polytope._palp("poly.x -fe", [o2, o3])
-        sage: f = open(result_name)
-        sage: f.readlines()
-        ['4 2  Vertices of P-dual <-> Equations of P\n', '  -1   1\n', '   1   1\n', '  -1  -1\n', '   1  -1\n', '8 3  Vertices of P-dual <-> Equations of P\n', '  -1  -1   1\n', '   1  -1   1\n', '  -1   1   1\n', '   1   1   1\n', '  -1  -1  -1\n', '   1  -1  -1\n', '  -1   1  -1\n', '   1   1  -1\n']
+        sage: with open(result_name) as f:
+        ....:     print f.read()
+        4 2  Vertices of P-dual <-> Equations of P
+          -1   1
+           1   1
+          -1  -1
+           1  -1
+        8 3  Vertices of P-dual <-> Equations of P
+          -1  -1   1
+           1  -1   1
+          -1   1   1
+           1   1   1
+          -1  -1  -1
+           1  -1  -1
+          -1   1  -1
+           1   1  -1
         sage: f.close()
-        sage: lattice_polytope.read_all_polytopes(result_name, desc="Polytope from file %d")
+        sage: lattice_polytope.read_all_polytopes(result_name)
         [
-        Polytope from file 0: 2-dimensional, 4 vertices.,
-        Polytope from file 1: 3-dimensional, 8 vertices.
+        2-d reflexive polytope #14 in 2-d lattice M,
+        3-d reflexive polytope in 3-d lattice M
         ]
         sage: os.remove(result_name)
     """
-    if desc is None:
-        desc = r'A lattice polytope #%d from "'+file_name+'"'
+    if desc is not None:
+        deprecation(15240, "custom descriptions for lattice polytopes are "
+                           "deprecated and ignored!")
     polytopes = Sequence([], LatticePolytope, cr=True)
     f = open(file_name)
     n = 0
     m = read_palp_matrix(f)
     while m.nrows() != 0:
-        polytopes.append(LatticePolytope(m.columns(), desc=(desc % n),
-                                         compute_vertices=False))
+        polytopes.append(LatticePolytope(m.columns(), compute_vertices=False))
         n += 1
         m = read_palp_matrix(f)
     f.close()
@@ -5288,18 +5283,7 @@ def set_palp_dimension(d):
         sage: LatticePolytope(identity_matrix(8))
         Traceback (most recent call last):
         ...
-        ValueError: Error executing "poly.x -fv" for the given polytope!
-        Polytope: A lattice polytope: 7-dimensional, 8 vertices.
-        Vertices:
-        M( 0, 0, 0, 0, 0, 0, 0),
-        M(-1, 1, 0, 0, 0, 0, 0),
-        M(-1, 0, 1, 0, 0, 0, 0),
-        M(-1, 0, 0, 1, 0, 0, 0),
-        M(-1, 0, 0, 0, 1, 0, 0),
-        M(-1, 0, 0, 0, 0, 1, 0),
-        M(-1, 0, 0, 0, 0, 0, 1),
-        M(-1, 0, 0, 0, 0, 0, 0)
-        in 7-d lattice M
+        ValueError: Error executing 'poly.x -fv' for the given polytope!
         Output:
         Please increase POLY_Dmax to at least 7
 
@@ -5307,7 +5291,7 @@ def set_palp_dimension(d):
 
         sage: lattice_polytope.set_palp_dimension(11)
         sage: LatticePolytope(identity_matrix(8))
-        A lattice polytope: 7-dimensional, 8 vertices.
+        7-d lattice polytope in 8-d lattice M
 
     Let's go back to default settings::
 

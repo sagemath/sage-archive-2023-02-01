@@ -513,9 +513,8 @@ def CPRFanoToricVariety(Delta=None,
         ...         charts=bad_charts)
         Traceback (most recent call last):
         ...
-        ValueError: (0, 3) does not form a chart of a
-        subdivision of the face fan of A polytope polar
-        to An octahedron: 2-dimensional, 4 vertices.!
+        ValueError: (0, 3) does not form a chart of a subdivision of
+        the face fan of 2-d reflexive polytope #14 in 2-d lattice N!
 
         sage: bad_charts = charts[:-1]
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
@@ -1049,7 +1048,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: diamond = lattice_polytope.octahedron(2)
             sage: P1xP1 = CPRFanoToricVariety(Delta_polar=diamond)
             sage: P1xP1.Delta()
-            A polytope polar to An octahedron: 2-dimensional, 4 vertices.
+            2-d reflexive polytope #14 in 2-d lattice N
             sage: P1xP1.Delta() is diamond.polar()
             True
         """
@@ -1071,7 +1070,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: diamond = lattice_polytope.octahedron(2)
             sage: P1xP1 = CPRFanoToricVariety(Delta_polar=diamond)
             sage: P1xP1.Delta_polar()
-            An octahedron: 2-dimensional, 4 vertices.
+            2-d reflexive polytope #3 in 2-d lattice M
             sage: P1xP1.Delta_polar() is diamond
             True
             sage: P1xP1.Delta_polar() is P1xP1.Delta().polar()
@@ -1241,7 +1240,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             N+N( 0, -1, -1)
             in 3-d lattice N+N
             sage: P1xP2.Delta_polar()
-            A lattice polytope: 3-dimensional, 5 vertices.
+            3-d reflexive polytope in 3-d lattice N+N
         """
         if is_CPRFanoToricVariety(other):
             fan = self.fan().cartesian_product(other.fan())

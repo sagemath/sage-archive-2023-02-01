@@ -1423,7 +1423,7 @@ class ToricDivisor_generic(Divisor_generic):
 
             sage: lp = LatticePolytope([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
             sage: lp
-            A lattice polytope: 2-dimensional, 5 vertices.
+            2-d reflexive polytope #5 in 2-d lattice M
             sage: dP7 = ToricVariety( FaceFan(lp), 'x1, x2, x3, x4, x5')
             sage: AK = -dP7.K()
             sage: AK.sections()

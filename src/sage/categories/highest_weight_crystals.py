@@ -184,7 +184,7 @@ class HighestWeightCrystals(Category_singleton):
                                          self.module_generators, max_depth).__iter__()
 
         @cached_method
-        def q_dimension(self, q=None, **options):
+        def q_dimension(self, q=None, prec=None, use_product=False):
             r"""
             Return the `q`-dimension of ``self``.
 
@@ -220,15 +220,13 @@ class HighestWeightCrystals(Category_singleton):
 
             - ``q`` -- the (generic) parameter `q`
 
-            OPTIONS:
-
-            - ``use_product`` -- (default: ``False``) if we have a finite
-              crystal and ``True``, use the product formula
-
             - ``prec`` -- (default: ``None``) The precision of the power
               series ring to use if the crystal is not known to be finite
               (i.e. the number of terms returned).
               If ``None``, then the result is returned as a lazy power series.
+
+            - ``use_product`` -- (default: ``False``) if we have a finite
+              crystal and ``True``, use the product formula
 
             EXAMPLES::
 
@@ -241,6 +239,14 @@ class HighestWeightCrystals(Category_singleton):
                 True
                 sage: C.q_dimension(use_product=True) == qdim
                 True
+                sage: C.q_dimension(prec=20)
+                q^4 + 2*q^3 + 2*q^2 + 2*q + 1
+                sage: C.q_dimension(prec=2)
+                2*q + 1
+
+                sage: R.<t> = QQ[]
+                sage: C.q_dimension(q=t^2)
+                t^8 + 2*t^6 + 2*t^4 + 2*t^2 + 1
 
                 sage: C = CrystalOfTableaux(['A',2], shape=[5,2])
                 sage: C.q_dimension()
@@ -249,7 +255,8 @@ class HighestWeightCrystals(Category_singleton):
 
                 sage: C = CrystalOfTableaux(['B',2], shape=[2,1])
                 sage: qdim = C.q_dimension(); qdim
-                q^10 + 2*q^9 + 3*q^8 + 4*q^7 + 5*q^6 + 5*q^5 + 5*q^4 + 4*q^3 + 3*q^2 + 2*q + 1
+                q^10 + 2*q^9 + 3*q^8 + 4*q^7 + 5*q^6 + 5*q^5
+                 + 5*q^4 + 4*q^3 + 3*q^2 + 2*q + 1
                 sage: qdim == C.q_dimension(use_product=True)
                 True
 
@@ -259,23 +266,40 @@ class HighestWeightCrystals(Category_singleton):
                  + 16*q^10 + 18*q^9 + 18*q^8 + 18*q^7 + 16*q^6 + 13*q^5
                  + 10*q^4 + 7*q^3 + 4*q^2 + 2*q + 1
 
+            We check with a finite tensor product::
+
                 sage: TP = TensorProductOfCrystals(C, C)
                 sage: TP.cardinality()
                 25600
-                sage: qdim = TP.q_dimension(use_product=True); qdim
+                sage: qdim = TP.q_dimension(use_product=True); qdim # long time
                 q^32 + 2*q^31 + 8*q^30 + 15*q^29 + 34*q^28 + 63*q^27 + 110*q^26
                  + 175*q^25 + 276*q^24 + 389*q^23 + 550*q^22 + 725*q^21
                  + 930*q^20 + 1131*q^19 + 1362*q^18 + 1548*q^17 + 1736*q^16
                  + 1858*q^15 + 1947*q^14 + 1944*q^13 + 1918*q^12 + 1777*q^11
                  + 1628*q^10 + 1407*q^9 + 1186*q^8 + 928*q^7 + 720*q^6
                  + 498*q^5 + 342*q^4 + 201*q^3 + 117*q^2 + 48*q + 26
-                sage: qdim(1)
+                sage: qdim(1) # long time
                 25600
                 sage: TP.q_dimension() == qdim # long time
                 True
 
+            The `q`-dimensions of infinite crystals are returned
+            as formal power series::
+
                 sage: C = CrystalOfLSPaths(['A',2,1], [1,0,0])
-                sage: C.q_dimension(prec=20)
+                sage: C.q_dimension(prec=5)
+                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + O(q^5)
+                sage: C.q_dimension(prec=10)
+                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6
+                 + 9*q^7 + 13*q^8 + 16*q^9 + O(q^10)
+                sage: qdim = C.q_dimension(); qdim
+                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6
+                 + 9*q^7 + 13*q^8 + 16*q^9 + 22*q^10 + O(x^11)
+                sage: qdim.compute_coefficients(15)
+                sage: qdim
+                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6
+                 + 9*q^7 + 13*q^8 + 16*q^9 + 22*q^10 + 27*q^11
+                 + 36*q^12 + 44*q^13 + 57*q^14 + 70*q^15 + O(x^16)
 
             REFERENCES:
 
@@ -285,11 +309,13 @@ class HighestWeightCrystals(Category_singleton):
             from sage.rings.all import ZZ
             WLR = self.weight_lattice_realization()
             I = self.index_set()
+            mg = self.highest_weight_vectors()
+            max_deg = float('inf') if prec is None else prec - 1
 
-            def iter_by_deg(mg):
-                next = set([mg])
+            def iter_by_deg(gens):
+                next = set(gens)
                 deg = -1
-                while next:
+                while next and deg < max_deg:
                     deg += 1
                     yield len(next)
                     todo = next
@@ -307,41 +333,41 @@ class HighestWeightCrystals(Category_singleton):
                 if q is None:
                     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                     q = PolynomialRing(ZZ, 'q').gen(0)
-                P = q.parent()
 
-                rho = WLR.rho()
-                if options.get('use_product', False):
-                    # since we are in the classical case, all roots occur with multiplicity 1
+                if use_product:
+                    # Since we are in the classical case, all roots occur with multiplicity 1
                     pos_coroots = map(lambda x: x.associated_coroot(), WLR.positive_roots())
+                    rho = WLR.rho()
+                    P = q.parent()
                     ret = P.zero()
                     for v in self.highest_weight_vectors():
                         hw = v.weight()
                         ret += P.prod((1 - q**(rho+hw).scalar(ac)) / (1 - q**rho.scalar(ac))
                                       for ac in pos_coroots)
-                        # We do a cast since the result would otherwise live in the fraction field
+                    # We do a cast since the result would otherwise live in the fraction field
                     return P(ret)
 
-                ret = P.zero()
-                for v in self.highest_weight_vectors():
-                    ret += P.sum(c * q**deg for deg,c in enumerate(iter_by_deg(v)))
+            elif prec is None:
+                # If we're here, we may not be a finite crystal.
+                # In fact, we're probably infinite.
+                from sage.combinat.species.series import LazyPowerSeriesRing
+                if q is None:
+                    P = LazyPowerSeriesRing(ZZ, names='q')
+                else:
+                    P = q.parent()
+                if not isinstance(P, LazyPowerSeriesRing):
+                    raise TypeError("the parent of q must be a lazy power series ring")
+                ret = P(iter_by_deg(mg))
+                ret.compute_coefficients(10)
                 return ret
 
-            if options.get('prec', None) is None:
-                from sage.combinat.species.series import LazyPowerSeriesRing
-                R = LazyPowerSeriesRing(ZZ, 'q')
-                return R.sum(R(iter_by_deg(v)) for v in self.highest_weight_vectors())
-
+            from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic
             if q is None:
-                from sage.rings.power_series_ring import PowerSeriesRing
                 q = PowerSeriesRing(ZZ, 'q', default_prec=prec).gen(0)
             P = q.parent()
-            ret = P.zero()
-            for v in self.highest_weight_vectors():
-                it = iter_by_deg(v)
-                try:
-                    P.sum(it.next() * q**k for k in range(prec+1))
-                except StopIteration:
-                    pass
+            ret = P.sum(c * q**deg for deg,c in enumerate(iter_by_deg(mg)))
+            if ret.degree() == max_deg and isinstance(P, PowerSeriesRing_generic):
+                ret = P(ret, prec)
             return ret
 
     class ElementMethods:

@@ -1787,7 +1787,7 @@ class Partition(CombinatorialObject, Element):
         `(t - \left\lvert \lambda \right\rvert, \lambda_1, \lambda_2,
         \lambda_3, \ldots)` of `t`. This partition is denoted by `\lambda[t]`
         in [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_, and by `\lambda(t)`
-        in[CO10]_.
+        in [CO10]_.
 
         REFERENCES:
 
@@ -1827,13 +1827,13 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([4, 2, 2, 1]).t_completion(10)
             Traceback (most recent call last):
             ...
-            ValueError: 5-completion is not defined
+            ValueError: 10-completion is not defined
             sage: Partition([4, 2, 2, 1]).t_completion(5)
             Traceback (most recent call last):
             ...
             ValueError: 5-completion is not defined
         """
-        if not self._list and t <= self.size() + self._list[0]:
+        if self._list and t < self.size() + self._list[0]:
             raise ValueError("{}-completion is not defined".format(t))
         return Partition([t - self.size()] + self._list)
 

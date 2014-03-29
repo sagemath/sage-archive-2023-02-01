@@ -1415,22 +1415,26 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 result = comp_parent.zero()
                 for lam, a in comp_self:
                     # lam is a composition, a is an element of the base ring.
+                    lam_list = lam._list
                     if not lam._list:
                         # Special handling for the empty composition. The left-padded
                         # Kronecker product of 1 with any non-commutative symmetric
                         # function f is f.
                         result += a * comp_x
                         continue
+                    sum_lam = sum(lam_list)
                     for mu, b in comp_x:
                         # mu is a composition, b is an element of the base ring.
-                        if not mu._list:
+                        mu_list = mu._list
+                        if not mu_list:
                             # Special handling for the empty composition.
                             result += a * b * comp_parent(lam)
                             continue
                         # Now, both lam and mu are nonempty.
-                        stab = 1 + sum(lam) + sum(mu)
-                        S_lam_stabilized = comp_parent(_Compositions([stab - sum(lam)] + lam._list))
-                        S_mu_stabilized = comp_parent(_Compositions([stab - sum(mu)] + mu._list))
+                        sum_mu = sum(mu_list)
+                        stab = 1 + sum_lam + sum_mu
+                        S_lam_stabilized = comp_parent(_Compositions([stab - sum_lam] + lam_list))
+                        S_mu_stabilized = comp_parent(_Compositions([stab - sum_mu] + mu_list))
                         lam_star_mu = S_lam_stabilized.internal_product(S_mu_stabilized)
                         # lam_star_mu is now a non-commutative symmetric function
                         # in the S-basis.
@@ -1521,6 +1525,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
                 S_expansion = S(self)
                 return sum(S_expansion.coefficient(I)*S._to_symmetric_group_algebra_on_basis(I) for I in S_expansion.support())
+                # TODO:
+                # This is ugly (uses global sum function) and undefined if self
+                # is not homogeneous. Improve?
 
             def to_symmetric_function(self):
                 r"""
@@ -2489,7 +2496,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             n = I.size()
             minus_one = -self.base_ring().one()
-            return self.sum_of_terms( (compo, minus_one**(n-len(compo))) for compo in I.finer() )
+            return self.sum_of_terms( ( (compo, minus_one**(n-len(compo))) for compo in I.finer() ),
+                                      distinct=True )
 
         def dual(self):
             r"""
@@ -2843,7 +2851,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             n = I.size()
             minus_one = -self.base_ring().one()
-            return self.sum_of_terms( (compo, minus_one**(n-len(compo))) for compo in I.finer() )
+            return self.sum_of_terms( ( (compo, minus_one**(n-len(compo))) for compo in I.finer() ),
+                                      distinct=True )
 
         class Element(CombinatorialFreeModule.Element):
 
@@ -3258,7 +3267,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             I = self._basis_keys([n])
             # TODO: I being trivial, there is no refinement going on here, so
             # one can probably be a bit more explicit / fast
-            return self.sum_of_terms((J, one/coeff_pi(J,I)) for J in Compositions(n))
+            return self.sum_of_terms( ( (J, one/coeff_pi(J,I)) for J in Compositions(n) ),
+                                      distinct=True )
 
         def _from_complete_on_basis(self, I):
             r"""
@@ -3294,7 +3304,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # TODO: make this comment into a reference in the doctest (same thing elsewhere)
             # Proposition 4.5 of NCSF I article
             one = self.base_ring().one()
-            return self.sum_of_terms((J, one/coeff_pi(J,I)) for J in I.finer())
+            return self.sum_of_terms( ( (J, one/coeff_pi(J,I)) for J in I.finer() ),
+                                      distinct=True )
 
         def _to_complete_on_basis(self, I):
             r"""
@@ -3332,8 +3343,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # Proposition 4.5 of NCSF I article
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
-            return complete.sum_of_terms((J, minus_one**(len(J)+len(I))*coeff_lp(J,I))
-                                            for J in I.finer())
+            return complete.sum_of_terms( ( (J, minus_one**(len(J)+len(I))*coeff_lp(J,I))
+                                            for J in I.finer() ),
+                                          distinct=True )
 
         def internal_product_on_basis_by_bracketing(self, I, J):
             r"""
@@ -3433,9 +3445,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             if p == 1:
                 return Gamma(J)
 
-            # We now have all ordered set partitions
+            # We now need to sum over all ordered set partitions
             # `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`
-            # into `p` parts. We need to select only those such that 
+            # into `p` parts such that
             # each `0 \leq k < p` satisfies `|J_{K_k}| = I_k`.
             K = [[-1]]
             cur_sum = 0
@@ -3722,7 +3734,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             # Proposition 4.9 of NCSF I article
             one = self.base_ring().one()
-            return self.sum_of_terms((J, one / coeff_sp(J,I)) for J in I.finer())
+            return self.sum_of_terms( ( (J, one / coeff_sp(J,I)) for J in I.finer() ),
+                                      distinct=True )
 
         def _to_complete_on_basis(self, I):
             r"""
@@ -3760,8 +3773,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # Proposition 4.9 of NCSF I article
             minus_one = -self.base_ring().one()
             complete = self.realization_of().complete()
-            return complete.sum_of_terms((J, minus_one**(len(J)+len(I)) * prod(I) / coeff_ell(J,I))
-                                         for J in I.finer())
+            return complete.sum_of_terms( ( (J, minus_one**(len(J)+len(I)) * prod(I) / coeff_ell(J,I))
+                                            for J in I.finer() ),
+                                          distinct=True )
 
         class Element(CombinatorialFreeModule.Element):
 
@@ -4117,7 +4131,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S[1, 1, 1] - 2*S[1, 2] - S[2, 1] + 3*S[3]
             """
             S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
-            return sum( m_to_s_stat(self.base_ring(),I,K) * S(K) for K in Compositions(sum(I)) )
+            return S.sum_of_terms( ( (K, m_to_s_stat(self.base_ring(),I,K))
+                                     for K in Compositions(sum(I)) ),
+                                   distinct=True )
             # Note: sum(I) works both if I is a list and if I is a composition
             # (although the latter case doesn't work in IPython, cf.
             # :trac:`15163`).
@@ -4284,13 +4300,14 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: I._to_complete_on_basis(Composition([2,1,3]))
                 S[2, 1, 3] - S[2, 2, 2] + S[3, 2, 1] - S[3, 3] - S[4, 1, 1] + S[4, 2]
             """
-            if not alpha._list:
+            alpha_list = alpha._list
+            if not alpha_list:
                 return self._H([])
-            if alpha == [1]:
+            if alpha_list == [1]:
                 return self._H([1])
-            la = len(alpha)
-            return sum( sigma.signature()*self._H( [alpha[i]+sigma[i]-(i+1) for i in range(la)] )
-                        for sigma in Permutations(la))
+            la = len(alpha_list)
+            return sum( sigma.signature()*self._H( [alpha_list[i]+sigma[i]-(i+1) for i in range(la)] )
+                        for sigma in Permutations(la) )
 
         @cached_method
         def _from_complete_on_basis(self, comp_content):

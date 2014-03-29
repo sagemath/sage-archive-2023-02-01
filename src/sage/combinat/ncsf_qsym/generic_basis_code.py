@@ -1189,8 +1189,9 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
 
             .. MATH::
 
-                \langle f * g, h \rangle = \sum_i \langle f, h^{\prime}_i
-                \rangle \langle g, h^{\prime\prime}_i \rangle,
+                \langle f * g, h \rangle
+                = \sum_i \left\langle f, h^{\prime}_i \right\rangle
+                \left\langle g, h^{\prime\prime}_i \right\rangle,
 
             where we write `\Delta^{\times}(h)` as `\sum_i h^{\prime}_i
             \otimes h^{\prime\prime}_i`. Here, `f * g` denotes the internal
@@ -1251,7 +1252,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
               \Gamma_{J_{K_p}}` over all ordered set partitions
               `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`
               into `p` parts such that each `1 \leq k \leq p` satisfies
-              `|J_{K_k}| = i_k`.
+              `\left\lvert J_{K_k} \right\rvert = i_k`.
               (See
               :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition`
               for the meaning of "ordered set partition".)

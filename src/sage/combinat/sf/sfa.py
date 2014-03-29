@@ -1220,7 +1220,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR.zero()
         z_elt = {}
-        for part, c in element:
+        for part, c in element.monomial_coefficients().iteritems():
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
@@ -2436,7 +2436,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         p = parent.realization_of().power()
         cache = {}
         ip_pnu_g = parent._inner_plethysm_pnu_g
-        return sum(c*ip_pnu_g(p(x), cache, nu) for (nu, c) in p(self))
+        return parent.sum( c*ip_pnu_g(p(x), cache, nu)
+                           for (nu, c) in p(self).monomial_coefficients().iteritems() )
 
 
     def omega(self):
@@ -3088,22 +3089,26 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         result = comp_parent.zero()
         for lam, a in comp_self:
             # lam is a partition, a is an element of the base ring.
-            if not lam._list:
+            lam_list = lam._list
+            if not lam_list:
                 # Special handling for the empty partition. The reduced
                 # Kronecker product of 1 with any symmetric function f is
                 # f.
                 result += a * comp_x
                 continue
+            sum_lam = sum(lam_list)
             for mu, b in comp_x:
                 # mu is a partition, b is an element of the base ring.
-                if not mu._list:
+                mu_list = mu._list
+                if not mu_list:
                     # Special handling for the empty partition.
                     result += a * b * comp_parent(lam)
                     continue
                 # Now, both lam and mu are nonempty.
-                stab = lam[0] + mu[0] + sum(lam) + sum(mu)
-                s_lam_stabilized = schur_Q(_Partitions([stab - sum(lam)] + lam._list))
-                s_mu_stabilized = schur_Q(_Partitions([stab - sum(mu)] + mu._list))
+                sum_mu = sum(mu_list)
+                stab = lam_list[0] + mu_list[0] + sum_lam + sum_mu
+                s_lam_stabilized = schur_Q(_Partitions([stab - sum_lam] + lam_list))
+                s_mu_stabilized = schur_Q(_Partitions([stab - sum_mu] + mu_list))
                 lam_star_mu = s_lam_stabilized.itensor(s_mu_stabilized)
                 # lam_star_mu is now a symmetric function over QQ.
                 for nu, c in lam_star_mu:
@@ -3408,10 +3413,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         s = parent.realization_of().schur()
         from sage.categories.tensor import tensor
         result = tensor([parent.zero(), parent.zero()])
+        result_parent = result.parent()
         from sage.misc.cachefunc import cached_function
         @cached_function
         def hnimage(n):
-            return sum((tensor([parent(s(lam)), parent(s(lam))]) for lam in Partitions(n)))
+            return result_parent.sum((tensor([parent(s(lam)), parent(s(lam))]) for lam in Partitions(n)))
         for lam, a in h(self):
             result += a * prod((hnimage(i) for i in lam))
         return result

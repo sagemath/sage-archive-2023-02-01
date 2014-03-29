@@ -2535,8 +2535,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_fundamental_on_basis(self, comp):
             r"""
-            Maps the Fundamental quasi-symmetric function indexed by ``comp`` to the Quasisymmetric
-            Schur basis.
+            Maps the Fundamental quasi-symmetric function indexed by
+            ``comp`` to the Quasisymmetric Schur basis.
 
             INPUT:
 
@@ -2558,7 +2558,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return self.one()
             comps = compositions_order(comp.size())
             T = self._from_fundamental_transition_matrix(comp.size())
-            return self.sum_of_terms( zip(comps, T[comps.index(comp)]) )
+            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
+                                      distinct=True )
 
     QS = Quasisymmetric_Schur
 
@@ -2625,12 +2626,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return M([])
             C = Compositions()
             C_size = Compositions(J.size())
-            return M.sum_of_terms((C(I), number_of_fCT(C(I), J)) for I in C_size)
+            return M.sum_of_terms( ( (C(I), number_of_fCT(C(I), J)) for I in C_size ),
+                                   distinct=True )
 
         @cached_method
         def _matrix_monomial_to_dual_immaculate(self, n):
             r"""
-            This function caches the change of basis matrix from the quasisymmetric monomial basis to the dual immaculate basis.
+            This function caches the change of basis matrix from the
+            quasisymmetric monomial basis to the dual immaculate basis.
 
             INPUT:
 
@@ -2638,7 +2641,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - A list. Each entry in the list is a row in the change of basis matrix.
+            - A list. Each entry in the list is a row in the
+              change-of-basis matrix.
 
             EXAMPLES::
 
@@ -2690,8 +2694,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             C_n = Compositions(n)
             mat = self._matrix_monomial_to_dual_immaculate(n)
             column = C_n.list().index(J)
-            return self.sum_of_terms( (C(I), mat[C_n.list().index(I)][column])
-                                      for I in C_n )
+            return self.sum_of_terms( ( (C(I), mat[C_n.list().index(I)][column])
+                                        for I in C_n ),
+                                      distinct=True )
 
     dI = dualImmaculate
 

@@ -664,8 +664,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S = self.realization_of().S()
                 res = S.zero()
                 m = len(xs)
+                ys = [xs[i] - i - 1 for i in range(m)]
                 for s in Permutations(m):
-                    psco = [xs[i] + s[i] - i - 1 for i in range(m)]
+                    psco = [ys[i] + s[i] for i in range(m)]
                     if not all(j >= 0 for j in psco):
                         continue
                     psco2 = [j for j in psco if j != 0]
@@ -2602,6 +2603,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 [1, 2, 3] + [2, 1, 3] + [3, 1, 2]
                 sage: S._to_symmetric_group_algebra_on_basis(Composition([]))
                 []
+                sage: S._to_symmetric_group_algebra_on_basis(Composition([1]))
+                [1]
             """
             n = sum(I)
             from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
@@ -2611,10 +2614,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             sga = SymmetricGroupAlgebra(self.base_ring(),n)
             x = sga.zero()
             J = [j-1 for j in I.to_subset()]
-            for K in Set(J).subsets():
-                for p in Permutations(descents=(K,n)):
-                    x += sga(p)
-            return x
+            return sga.sum_of_monomials( p for K in Set(J).subsets()
+                                         for p in Permutations(descents=(K,n)) )
 
         def to_ncsym_on_basis(self, I):
             r"""
@@ -4273,7 +4274,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             S = NonCommutativeSymmetricFunctions(self.base_ring()).complete()
             if any( d < 0 for d in alpha ):
-                return 0
+                return S.zero()
             return S( [ d for d in alpha if d > 0 ] )
 
         @cached_method
@@ -4306,8 +4307,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             if alpha_list == [1]:
                 return self._H([1])
             la = len(alpha_list)
-            return sum( sigma.signature()*self._H( [alpha_list[i]+sigma[i]-(i+1) for i in range(la)] )
-                        for sigma in Permutations(la) )
+            S = NonCommutativeSymmetricFunctions(self.base_ring()).complete()
+            return S.sum( sigma.signature()*self._H( [alpha_list[i]+sigma[i]-(i+1) for i in range(la)] )
+                          for sigma in Permutations(la) )
 
         @cached_method
         def _from_complete_on_basis(self, comp_content):
@@ -4336,9 +4338,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             I = NonCommutativeSymmetricFunctions(self.base_ring()).I()
             if not comp_content._list:
                 return I([])
-            else:
-                return sum( number_of_fCT(comp_content,comp_shape) * I(comp_shape) \
-                            for comp_shape in Compositions(sum(comp_content)) )
+            return I.sum_of_terms( ( (comp_shape, number_of_fCT(comp_content, comp_shape))
+                                     for comp_shape in Compositions(sum(comp_content)) ),
+                                   distinct=True )
 
     I = Immaculate
 

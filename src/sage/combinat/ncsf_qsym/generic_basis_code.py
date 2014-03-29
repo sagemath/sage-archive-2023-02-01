@@ -1201,9 +1201,9 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
 
             Explicit formulas can be given for internal products of
             elements of the complete and the Psi bases. First, the formula
-            for the complete basis ([NCSF1]_ Proposition 5.1): If `I` and
+            for the Complete basis ([NCSF1]_ Proposition 5.1): If `I` and
             `J` are two compositions of lengths `p` and `q`, respectively,
-            then the corresponding complete homogeneous non-commutative
+            then the corresponding Complete homogeneous non-commutative
             symmetric functions `S^I` and `S^J` have internal product
 
             .. MATH::
@@ -1225,7 +1225,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
             The formula on the Psi basis ([NCSF2]_ Lemma 3.10) is more
             complicated. Let `I` and `J` be two compositions of lengths
             `p` and `q`, respectively, having the same size `|I| = |J|`.
-            We denote by `\Psi^K` the element of the Psi-basis
+            We denote by `\Psi^K` the element of the Psi basis
             corresponding to any composition `K`.
 
             - If `p > q`, then `\Psi^I * \Psi^J` is plainly `0`.
@@ -1242,11 +1242,11 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
               composition `K = (k_1, k_2, \ldots, k_s)`, denote by
               `\Gamma_K` the non-commutative symmetric function
               `k_1 [\ldots [[\Psi_{k_1}, \Psi_{k_2}], \Psi_{k_3}],
-              \ldots \Psi_{k_s}]`. For any subset `S` of
-              `\{ 1, 2, \ldots, q \}`, let `J_S` be the composition
+              \ldots \Psi_{k_s}]`. For any subset `A` of
+              `\{ 1, 2, \ldots, q \}`, let `J_A` be the composition
               obtained from `J` by removing the `r`-th parts for all
-              `r \notin S` (while keeping the `r`-th parts for all
-              `r \in S` in order). Then, `\Psi^I * \Psi^J` equals the
+              `r \notin A` (while keeping the `r`-th parts for all
+              `r \in A` in order). Then, `\Psi^I * \Psi^J` equals the
               sum of `\Gamma_{J_{K_1}} \Gamma_{J_{K_2}} \cdots
               \Gamma_{J_{K_p}}` over all ordered set partitions
               `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`

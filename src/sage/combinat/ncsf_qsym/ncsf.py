@@ -567,7 +567,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 If `\alpha` is any integer vector -- i.e., an element of
                 `\ZZ^m` for some `m \in \NN` --, the *immaculate function
-                corresponding to `\alpha`* is a non-commutative symmetric
+                corresponding to* `\alpha` is a non-commutative symmetric
                 function denoted by `\mathfrak{S}_{\alpha}`. One way to
                 define this function is by setting
 
@@ -599,7 +599,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 INPUT:
 
                 - ``xs`` -- list (or tuple or any iterable -- possibly a
-                  composition) of integers.
+                  composition) of integers
 
                 OUTPUT:
 
@@ -801,8 +801,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S = parent.realization_of().S()
                 C = parent._basis_keys
                 dct = {C(map(lambda i: i // n, I)): coeff
-                       for (I, coeff) in S(self).monomial_coefficients().items()
-                       if all(i % n == 0 for i in I)}
+                       for (I, coeff) in S(self) if all(i % n == 0 for i in I)}
                 return parent(S._from_dict(dct))
 
             def star_involution(self):
@@ -944,8 +943,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # involution componentwise, then convert back.
                 parent = self.parent()
                 S = parent.realization_of().S()
-                dct = {I.reversed(): coeff
-                       for (I, coeff) in S(self).monomial_coefficients().items()}
+                dct = {I.reversed(): coeff for (I, coeff) in S(self)}
                 return parent(S._from_dict(dct))
 
             def omega_involution(self):
@@ -1176,8 +1174,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # involution componentwise, then convert back.
                 parent = self.parent()
                 R = parent.realization_of().R()
-                dct = {I.complement(): coeff
-                       for (I, coeff) in R(self).monomial_coefficients().items()}
+                dct = {I.complement(): coeff for (I, coeff) in R(self)}
                 return parent(R._from_dict(dct))
 
             def left_padded_kronecker_product(self, x):
@@ -1198,18 +1195,20 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 `S^{\gamma}` in the internal product
                 `S^{\alpha} * S^{\beta}`.
                 For every composition `I = (i_1, i_2, \ldots, i_k)`
-                and every integer `n > \left| I \right|`, define the
+                and every integer `n > \left\lvert I \right\rvert`, define the
                 *`n`-completion of `I`* to be the composition
-                `(n - \left| I \right|, i_1, i_2, \ldots, i_k)`;
+                `(n - \left\lvert I \right\rvert, i_1, i_2, \ldots, i_k)`;
                 this `n`-completion is denoted by `I[n]`.
                 Then, for any compositions `\alpha` and `\beta` and every
-                integer `n > \left|\alpha\right| + \left|\beta\right|`,
-                we can write the internal product
-                `S^{\alpha[n]} * S^{\beta[n]}` in the form
+                integer `n > \left\lvert \alpha \right\rvert
+                + \left\lvert\beta\right\rvert`, we can write the
+                internal product `S^{\alpha[n]} * S^{\beta[n]}` in the form
 
                 .. MATH::
 
-                    S^{\alpha[n]} * S^{\beta[n]} = \sum_{\gamma} g^{\gamma[n]}_{\alpha[n], \beta[n]} S^{\gamma[n]}
+                    S^{\alpha[n]} * S^{\beta[n]} =
+                    \sum_{\gamma} g^{\gamma[n]}_{\alpha[n], \beta[n]}
+                    S^{\gamma[n]}
 
                 with `\gamma` ranging over all compositions. The
                 coefficients `g^{\gamma[n]}_{\alpha[n], \beta[n]}`
@@ -1220,7 +1219,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. MATH::
 
-                    \sum_{\gamma} \widetilde{g}^{\gamma}_{\alpha, \beta} S^{\gamma}
+                    \sum_{\gamma} \widetilde{g}^{\gamma}_{\alpha, \beta}
+                    S^{\gamma}
 
                 is said to be the *left-padded Kronecker product* of
                 `S^{\alpha}` and `S^{\beta}`. By bilinearity, this
@@ -1413,17 +1413,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 # Now, comp_self and comp_x are the same as self and x, but in the
                 # S (=complete homogeneous) basis, which we call comp_parent.
                 result = comp_parent.zero()
-                for lam, a in comp_self.monomial_coefficients().items():
+                for lam, a in comp_self:
                     # lam is a composition, a is an element of the base ring.
-                    if len(lam) == 0:
+                    if not lam._list:
                         # Special handling for the empty composition. The left-padded
                         # Kronecker product of 1 with any non-commutative symmetric
                         # function f is f.
                         result += a * comp_x
                         continue
-                    for mu, b in comp_x.monomial_coefficients().items():
+                    for mu, b in comp_x:
                         # mu is a composition, b is an element of the base ring.
-                        if len(mu) == 0:
+                        if not mu._list:
                             # Special handling for the empty composition.
                             result += a * b * comp_parent(lam)
                             continue
@@ -1434,7 +1434,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                         lam_star_mu = S_lam_stabilized.internal_product(S_mu_stabilized)
                         # lam_star_mu is now a non-commutative symmetric function
                         # in the S-basis.
-                        for nu, c in lam_star_mu.monomial_coefficients().items():
+                        for nu, c in lam_star_mu:
                             # nu is a composition of the integer stab, c is an element
                             # of the base ring.
                             nu_unstabilized = _Compositions(nu[1:])
@@ -1477,7 +1477,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S = NonCommutativeSymmetricFunctions(self.base_ring()).S()
                 S_expansion = S(self)
                 B = DescentAlgebra(self.base_ring(), n).B()
-                return B.sum(coeff * B[I] for I, coeff in S_expansion.monomial_coefficients().items() if sum(I) == n)
+                return B.sum(coeff * B[I] for I, coeff in S_expansion if sum(I) == n)
 
             def to_symmetric_group_algebra(self):
                 r"""
@@ -2112,9 +2112,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: R.product_on_basis(Composition([2,1]), Composition([1]))
                 R[2, 1, 1] + R[2, 2]
             """
-            if I == []:
+            if not I._list:
                 return self.monomial(J)
-            elif J == []:
+            elif not J._list:
                 return self.monomial(I)
             else:
                 return self.monomial(self._basis_keys(I[:] + J[:])) + \
@@ -2185,7 +2185,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             from sage.combinat.sf.sf import SymmetricFunctions
             s = SymmetricFunctions(self.base_ring()).schur()
-            if I == []:
+            if not I._list:
                 return s([])
             return s(I.to_skew_partition())
 
@@ -2404,8 +2404,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                dct = {I.reversed(): coeff
-                       for (I, coeff) in self.monomial_coefficients().items()}
+                dct = {I.reversed(): coeff for (I, coeff) in self}
                 return parent._from_dict(dct)
 
     R = ribbon = Ribbon
@@ -2659,7 +2658,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             from sage.combinat.ncsym.ncsym import SymmetricFunctionsNonCommutingVariables
             m = SymmetricFunctionsNonCommutingVariables(self.base_ring()).m()
-            if I == []:
+            if not I._list:
                 return m.one()
 
             from sage.combinat.set_partition import SetPartitions
@@ -3058,8 +3057,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                dct = {I.reversed(): coeff
-                       for (I, coeff) in self.monomial_coefficients().items()}
+                dct = {I.reversed(): coeff for (I, coeff) in self}
                 return parent._from_dict(dct)
 
             def psi_involution(self):
@@ -3349,13 +3347,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             very slow otherwise. Therefore it is not being used by
             default for internally multiplying Psi functions.
 
-            .. TODO::
-
-                Iterating through ``OrderedSetPartitions_sn`` is a waste.
-                Find a better algorithm. Check the running time of the
-                result and possibly redefine
-                :meth:`internal_product_on_basis` to use this.
-
             INPUT:
 
             - ``I``, ``J`` -- compositions
@@ -3374,12 +3365,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 0
                 sage: Psi.internal_product_on_basis_by_bracketing([1,2,1],[2,1,1])
                 4*Psi[1, 2, 1]
+                sage: Psi.internal_product_on_basis_by_bracketing([2,1,1],[1,2,1])
+                4*Psi[2, 1, 1]
                 sage: Psi.internal_product_on_basis_by_bracketing([1,2,1], [1,1,1,1])
                 0
                 sage: Psi.internal_product_on_basis_by_bracketing([3,1], [1,2,1])
                 -Psi[1, 2, 1] + Psi[2, 1, 1]
+                sage: Psi.internal_product_on_basis_by_bracketing([1,2,1], [3,1])
+                0
                 sage: Psi.internal_product_on_basis_by_bracketing([2,2],[1,2])
                 0
+                sage: Psi.internal_product_on_basis_by_bracketing([4], [1,2,1])
+                -Psi[1, 1, 2] + 2*Psi[1, 2, 1] - Psi[2, 1, 1]
 
             TESTS:
 
@@ -3401,7 +3398,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 True
             """
             # The algorithm used here is described in
-            # :meth:`~sage.combinat.ncsf_qsym.generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`.
+            # :meth:`generic_basis_code.GradedModulesWithInternalProduct.ElementMethods.internal_product`.
             if sum(I) != sum(J):
                 return self.zero()
             p = len(I)
@@ -3414,6 +3411,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 if Is != Js:
                     return 0
                 return Partition(Is).centralizer_size() * self[I]
+
             # If we're still here, we must have p < q.
             def Gamma(K):
                 r"""
@@ -3428,28 +3426,70 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     Psik = self[k]
                     res = res * Psik - Psik * res
                 return res
-            from sage.combinat.set_partition_ordered import OrderedSetPartitions_sn
-            from sage.sets.set import Set
-            set_q = Set(range(q))
+
+            # Special case when I = [n], there is exactly one ordered set
+            #   partition and letting this case through would mean another
+            #   case check during the backtracking algorithm
+            if p == 1:
+                return Gamma(J)
+
+            # We now have all ordered set partitions
+            # `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`
+            # into `p` parts. We need to select only those such that 
+            # each `0 \leq k < p` satisfies `|J_{K_k}| = I_k`.
+            K = [[-1]]
+            cur_sum = 0
+            base = set(range(q))
+
             result = self.zero()
-            for K in OrderedSetPartitions_sn(set_q, p):
-                # We now have all ordered set partitions
-                # `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`
-                # into `p` parts. We need to select only those such that 
-                # each `1 \leq k \leq p` satisfies `|J_{K_k}| = i_k`.
-                discard_this_K = False
-                for k, Kk in enumerate(K):
-                    if sum(J[i] for i in Kk) != I[k]:
-                        discard_this_K = True
+            while True:
+                part = K[-1]
+
+                # If we are too long or there is nothing more to add: backtrack
+                if len(K) > p or not base:
+                    base.union(K.pop()[:-1])
+                    # We don't need checks here since p > 0 and all parts
+                    #   have size > 0 or we couldn't have added everything to the first
+                    part = K[-1]
+                    base.add(part[-1])
+                    # Similarly, we can just continue on
+
+                # Find a part such that `|J_{K_k}| = I_k`
+                Ik = I[len(K) - 1] # -1 for indexing
+                cur_sum = sum(J[j] for j in part[:-1]) # The last entry hasn't been added yet
+
+                while cur_sum != Ik:
+                    part[-1] += 1
+                    # If we can't add the value (because it is too large
+                    #    for the base): backtrack
+                    if part[-1] >= q:
+                        part.pop()
+                        if not part:
+                            break
+                        base.add(part[-1])
+                        cur_sum -= J[part[-1]]
+                    elif part[-1] in base and cur_sum + J[part[-1]] <= Ik:
+                        cur_sum += J[part[-1]]
+                        base.remove(part[-1])
+                        if cur_sum < Ik: # Still more work to do
+                            part.append(part[-1])
+
+                # If the last part is empty (i.e. we didn't find a part): backtrack
+                if not part:
+                    K.pop()
+                    if not K:
                         break
-                if discard_this_K:
+                    base.add(K[-1][-1])
                     continue
-                addend = self.one()
-                for S in K:
-                    s = sorted(S)
-                    Ks = [J[i] for i in s]
-                    addend *= Gamma(Ks)
-                result += addend
+
+                if not base and len(K) == p:
+                    # We've found such a set partition
+                    result += self.prod(Gamma(tuple(J[j] for j in S)) for S in K)
+                    base.add(part[-1])
+                else:
+                    # Otherwise create a new part
+                    K.append([-1])
+
             return result
 
         class Element(CombinatorialFreeModule.Element):
@@ -3935,8 +3975,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                dct = {I.reversed(): coeff
-                       for (I, coeff) in self.monomial_coefficients().items()}
+                dct = {I.reversed(): coeff for (I, coeff) in self}
                 return parent._from_dict(dct)
 
             def psi_involution(self):
@@ -4007,8 +4046,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     True
                 """
                 parent = self.parent()
-                dct = {I: (-1) ** (I.size() - len(I)) * coeff
-                       for (I, coeff) in self.monomial_coefficients().items()}
+                dct = {I: (-1) ** (I.size() - len(I)) * coeff for (I, coeff) in self}
                 return parent._from_dict(dct)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
@@ -4058,13 +4096,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``self`` - the Monomial basis of non-commutative symmetric functions
-            - ``I`` - a composition
+            - ``I`` -- a composition
 
             OUTPUT:
 
-            - The expansion of the Monomial function indexed by ``I`` in the complete
-              basis.
+            - The expansion of the Monomial function indexed by ``I`` in
+              the complete basis.
 
             TESTS::
 
@@ -4200,8 +4237,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``self`` - The Immaculate basis
-            - ``alpha`` - a list
+            - ``alpha`` -- a list
 
             OUTPUT:
 
@@ -4232,9 +4268,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``self`` - the Immaculate basis of the non-commutative
-              symmetric functions
-            - ``alpha`` - a composition
+            - ``alpha`` -- a composition
 
             OUTPUT:
 
@@ -4250,11 +4284,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: I._to_complete_on_basis(Composition([2,1,3]))
                 S[2, 1, 3] - S[2, 2, 2] + S[3, 2, 1] - S[3, 3] - S[4, 1, 1] + S[4, 2]
             """
-            if alpha == []:
+            if not alpha._list:
                 return self._H([])
             if alpha == [1]:
                 return self._H([1])
-            return sum( sigma.signature()*self._H( [alpha[i]+sigma[i]-(i+1) for i in range(len(alpha))] ) for sigma in Permutations(len(alpha)))
+            la = len(alpha)
+            return sum( sigma.signature()*self._H( [alpha[i]+sigma[i]-(i+1) for i in range(la)] )
+                        for sigma in Permutations(la))
 
         @cached_method
         def _from_complete_on_basis(self, comp_content):
@@ -4264,7 +4300,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             INPUT:
 
-            - ``comp_content`` - a composition
+            - ``comp_content`` -- a composition
 
             OUTPUT:
 
@@ -4281,10 +4317,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 I[2, 1, 3] + I[2, 2, 2] + I[2, 3, 1] + I[2, 4] + I[3, 1, 2] + I[3, 2, 1] + 2*I[3, 3] + I[4, 1, 1] + 2*I[4, 2] + 2*I[5, 1] + I[6]
             """
             I = NonCommutativeSymmetricFunctions(self.base_ring()).I()
-            if comp_content == []:
+            if not comp_content._list:
                 return I([])
             else:
                 return sum( number_of_fCT(comp_content,comp_shape) * I(comp_shape) \
                             for comp_shape in Compositions(sum(comp_content)) )
 
     I = Immaculate
+

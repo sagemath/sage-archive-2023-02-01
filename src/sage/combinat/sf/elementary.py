@@ -108,26 +108,27 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
             *omega involution*. It sends the power-sum symmetric function
             `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-            The images of some bases under the omega automorphism are given
-            by
+            The images of some bases under the omega automorphism are given by
 
             .. MATH::
 
                 \omega(e_{\lambda}) = h_{\lambda}, \qquad
                 \omega(h_{\lambda}) = e_{\lambda}, \qquad
-                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)} p_{\lambda}, \qquad
+                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+                p_{\lambda}, \qquad
                 \omega(s_{\lambda}) = s_{\lambda^{\prime}},
 
             where `\lambda` is any partition, where `\ell(\lambda)` denotes
             the length (:meth:`~sage.combinat.partition.Partition.length`)
-            of the partition `\lambda`, where `\lambda^{\prime}' denotes the
+            of the partition `\lambda`, where `\lambda^{\prime}` denotes the
             conjugate partition
             (:meth:`~sage.combinat.partition.Partition.conjugate`) of
             `\lambda`, and where the usual notations for bases are used
             (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
             `s` = Schur).
 
-            ``omega_involution`` is a synonym for the ``omega`` method.
+            :meth:`omega_involution()` is a synonym for the :meth`omega()`
+            method.
 
             EXAMPLES::
 

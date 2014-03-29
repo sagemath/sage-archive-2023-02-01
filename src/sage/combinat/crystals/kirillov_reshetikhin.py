@@ -628,7 +628,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
         return KirillovReshetikhinTableaux(self.cartan_type(), self._r, self._s)
 
-    def q_dimension(self, q=None, use_product=False):
+    def q_dimension(self, q=None, prec=None, use_product=False):
         """
         Return the `q`-dimension of ``self``.
 
@@ -644,7 +644,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: KRC.q_dimension()
             q^10 + q^9 + 3*q^8 + 3*q^7 + 4*q^6 + 4*q^5 + 4*q^4 + 3*q^3 + 3*q^2 + q + 2
         """
-        return self.classical_decomposition().q_dimension(q, use_product)
+        return self.classical_decomposition().q_dimension(q, prec, use_product)
 
 class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement):
     """

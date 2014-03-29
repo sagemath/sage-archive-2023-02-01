@@ -189,13 +189,13 @@ class HighestWeightCrystals(Category_singleton):
             Return the `q`-dimension of ``self``.
 
             Let `B(\lambda)` denote a highest weight crystal. Recall that
-            the degree of the weight space `\mu` of `B(\lambda)` (under
+            the degree of the `\mu`-weight space of `B(\lambda)` (under
             the principal gradation) is equal to
             `\langle \rho^{\vee}, \lambda - \mu \rangle` where
             `\langle \rho^{\vee}, \alpha_i \rangle = 1` for all `i \in I`
             (in particular, take `\rho^{\vee} = \sum_{i \in I} h_i`).
 
-            The `q`-dimension of a highest weight crystal `B(\Lambda)` is
+            The `q`-dimension of a highest weight crystal `B(\lambda)` is
             defined as
 
             .. MATH::
@@ -214,7 +214,7 @@ class HighestWeightCrystals(Category_singleton):
 
             where `\Delta_+^{\vee}` denotes the set of positive coroots.
             Taking the limit as `q \to 1` gives the dimension of `B(\lambda)`.
-            Mor more information, see [Kac]_ (second edition) Section 10.10.
+            For more information, see [Kac]_ (second edition) Section 10.10.
 
             INPUT:
 

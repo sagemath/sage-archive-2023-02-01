@@ -1220,7 +1220,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR.zero()
         z_elt = {}
-        for part, c in element.monomial_coefficients().iteritems():
+        for part, c in element:
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
@@ -1841,7 +1841,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         #We handle the constant term case separately.  It should be
         #the case that p([]).inner_tensor(s(mu)) = s([ mu.size() ]).
         #Here, we get the degrees of the homogeneous pieces of
-        if len(nu) == 0:
+        if not nu._list:
             s = self.realization_of().s()
             degrees = [ part.size() for part in p_x.support() ]
             degrees = uniq(degrees)
@@ -2436,7 +2436,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         p = parent.realization_of().power()
         cache = {}
         ip_pnu_g = parent._inner_plethysm_pnu_g
-        return sum(c*ip_pnu_g(p(x), cache, nu) for (nu, c) in p(self).monomial_coefficients().iteritems())
+        return sum(c*ip_pnu_g(p(x), cache, nu) for (nu, c) in p(self))
 
 
     def omega(self):
@@ -2453,29 +2453,29 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         *omega involution*. It sends the power-sum symmetric function
         `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-        The images of some bases under the omega automorphism are given
-        by
+        The images of some bases under the omega automorphism are given by
 
         .. MATH::
 
             \omega(e_{\lambda}) = h_{\lambda}, \qquad
             \omega(h_{\lambda}) = e_{\lambda}, \qquad
-            \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)} p_{\lambda}, \qquad
+            \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+            p_{\lambda}, \qquad
             \omega(s_{\lambda}) = s_{\lambda^{\prime}},
 
         where `\lambda` is any partition, where `\ell(\lambda)` denotes
         the length (:meth:`~sage.combinat.partition.Partition.length`)
-        of the partition `\lambda`, where `\lambda^{\prime}' denotes the
+        of the partition `\lambda`, where `\lambda^{\prime}` denotes the
         conjugate partition
         (:meth:`~sage.combinat.partition.Partition.conjugate`) of
         `\lambda`, and where the usual notations for bases are used
         (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
         `s` = Schur).
 
-        The default implementation converts to the Schurs, then
+        The default implementation converts to the Schur basis, then
         performs the automorphism and changes back.
 
-        ``omega_involution`` is a synonym for the ``omega`` method.
+        :meth:`omega_involution()` is a synonym for the :meth:`omega()` method.
 
         EXAMPLES::
 
@@ -2756,7 +2756,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:                            # * meaning Kronecker product and \mu meaning the
             ....:                            # usual multiplication.
             ....:     result = w.parent().zero()
-            ....:     for partition_pair, coeff in w.coproduct().monomial_coefficients().iteritems():
+            ....:     for partition_pair, coeff in w.coproduct():
             ....:         result += coeff * w.parent()(u).itensor(partition_pair[0]) * w.parent()(v).itensor(partition_pair[1])
             ....:     return result
             sage: all( all( all( tensor_copr(e[u], s[v], m[w]) == (e[u] * s[v]).itensor(m[w])
@@ -2901,13 +2901,13 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
             comp_x = comp_parent(x)    # For simplicity, let self and x be in the same basis.
             result = comp_parent.zero()
-            for lam, a in comp_self.monomial_coefficients().items():
+            for lam, a in comp_self:
                 # lam is a partition, a is an element of the base ring.
-                for mu, b in comp_x.monomial_coefficients().items():
+                for mu, b in comp_x:
                     # mu is a partition, b is an element of the base ring.
                     lam_star_mu = corresponding_parent_over_QQ(lam).itensor(corresponding_parent_over_QQ(mu))
                     # lam_star_mu is now a symmetric function over QQ.
-                    for nu, c in lam_star_mu.monomial_coefficients().items():
+                    for nu, c in lam_star_mu:
                         # nu is a partition, c is an element of QQ.
                         result += a * b * comp_parent.base_ring()(c) * comp_parent(nu)
             return parent(result)    # just in case comp_parent != parent.
@@ -3086,17 +3086,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         schur_Q = comp_parent.corresponding_basis_over(QQ)
         # schur_Q is the Schur basis of the symmetric functions over QQ.
         result = comp_parent.zero()
-        for lam, a in comp_self.monomial_coefficients().items():
+        for lam, a in comp_self:
             # lam is a partition, a is an element of the base ring.
-            if len(lam) == 0:
+            if not lam._list:
                 # Special handling for the empty partition. The reduced
                 # Kronecker product of 1 with any symmetric function f is
                 # f.
                 result += a * comp_x
                 continue
-            for mu, b in comp_x.monomial_coefficients().items():
+            for mu, b in comp_x:
                 # mu is a partition, b is an element of the base ring.
-                if len(mu) == 0:
+                if not mu._list:
                     # Special handling for the empty partition.
                     result += a * b * comp_parent(lam)
                     continue
@@ -3106,7 +3106,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 s_mu_stabilized = schur_Q(_Partitions([stab - sum(mu)] + mu._list))
                 lam_star_mu = s_lam_stabilized.itensor(s_mu_stabilized)
                 # lam_star_mu is now a symmetric function over QQ.
-                for nu, c in lam_star_mu.monomial_coefficients().items():
+                for nu, c in lam_star_mu:
                     # nu is a partition of the integer stab, c is an element of QQ.
                     nu_unstabilized = _Partitions(nu[1:])
                     result += a * b * comp_parent.base_ring()(c) \
@@ -3140,7 +3140,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         .. MATH::
 
-            h_{\alpha[n]} * h_{\beta[n]} = \sum_{\gamma} g^{\gamma[n]}_{\alpha[n], \beta[n]} h_{\gamma[n]}
+            h_{\alpha[n]} * h_{\beta[n]} = \sum_{\gamma}
+            g^{\gamma[n]}_{\alpha[n], \beta[n]} h_{\gamma[n]}
 
         with `\gamma` ranging over all partitions. The
         coefficients `g^{\gamma[n]}_{\alpha[n], \beta[n]}`
@@ -3280,18 +3281,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         # We lift to the noncommutative symmetric functions.
         S = NonCommutativeSymmetricFunctions(R).S()
         result = h.zero()
-        for lam, a in h_self.monomial_coefficients().items():
+        for lam, a in h_self:
             # lam is a partition, a is an element of the base ring.
-            if len(lam) == 0:
+            if not lam._list:
                 # Special handling for the empty partition. The reduced
-                # Kronecker product of 1 with any symmetric function f is
-                # f.
+                # Kronecker product of 1 with any symmetric function f is f.
                 result += a * h_x
                 continue
             c_lam = _Compositions(lam)
-            for mu, b in h_x.monomial_coefficients().items():
+            for mu, b in h_x:
                 # mu is a partition, b is an element of the base ring.
-                if len(mu) == 0:
+                if not mu._list:
                     # Special handling for the empty partition.
                     result += a * b * h(lam)
                     continue
@@ -3369,7 +3369,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: m = SymmetricFunctions(FiniteField(29)).m()
             sage: def tensor_incopr(f, g, h):  # computes \sum_i \left< f, h'_i \right> \left< g, h''_i \right>
             ....:     result = h.base_ring().zero()
-            ....:     for partition_pair, coeff in h.internal_coproduct().monomial_coefficients().items():
+            ....:     for partition_pair, coeff in h.internal_coproduct():
             ....:         result += coeff * h.parent()(f).scalar(partition_pair[0]) * h.parent()(g).scalar(partition_pair[1])
             ....:     return result
             sage: all( all( all( tensor_incopr(e[u], s[v], m[w]) == (e[u].itensor(s[v])).scalar(m[w])  # long time (10s on sage.math, 2013)
@@ -3412,7 +3412,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         @cached_function
         def hnimage(n):
             return sum((tensor([parent(s(lam)), parent(s(lam))]) for lam in Partitions(n)))
-        for lam, a in h(self).monomial_coefficients().items():
+        for lam, a in h(self):
             result += a * prod((hnimage(i) for i in lam))
         return result
 
@@ -3525,10 +3525,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
         comp_x = comp_parent(x)
         result = comp_parent.zero()
-        for lam, a in comp_self.monomial_coefficients().items():
-            for mu, b in comp_x.monomial_coefficients().items():
+        for lam, a in comp_self:
+            for mu, b in comp_x:
                 lam_star_mu = corresponding_parent_over_QQ(lam).arithmetic_product(corresponding_parent_over_QQ(mu))
-                for nu, c in lam_star_mu.monomial_coefficients().items():
+                for nu, c in lam_star_mu:
                     result += a * b * comp_parent.base_ring()(c) * comp_parent(nu)
         return parent(result)
 
@@ -3975,7 +3975,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: all( all( all( (coeff == -1 or coeff == 1)
             ....:                and lam.core(n) == Partition([])
-            ....:                for lam, coeff in s([m]).frobenius(n).monomial_coefficients().items() )
+            ....:                for lam, coeff in s([m]).frobenius(n) )
             ....:           for n in range(2, 4) )
             ....:      for m in range(4) )
             True
@@ -4001,7 +4001,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         m = parent.realization_of().monomial()
         from sage.combinat.partition import Partition
         dct = {Partition(map(lambda i: n * i, lam)): coeff
-               for (lam, coeff) in m(self).monomial_coefficients().items()}
+               for (lam, coeff) in m(self)}
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
 
@@ -4135,10 +4135,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         # Verschiebung componentwise, then convert back.
         parent = self.parent()
         h = parent.realization_of().homogeneous()
-        h_coords_of_self = h(self).monomial_coefficients().items()
         from sage.combinat.partition import Partition
         dct = {Partition(map(lambda i: i // n, lam)): coeff
-               for (lam, coeff) in h_coords_of_self
+               for (lam, coeff) in h(self)
                if all( i % n == 0 for i in lam )}
         result_in_h_basis = h._from_dict(dct)
         return parent(result_in_h_basis)
@@ -4191,7 +4190,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             return resPR.zero()
         e = eval('symmetrica.compute_' + str(classical.translate[parent.basis_name()]).lower() + '_with_alphabet')
         def f(part):
-            if part == []:
+            if not part:
                 return resPR.one()
             else:
                 return resPR.zero() if condition(part) else resPR(e(part, n, alphabet))
@@ -4537,11 +4536,7 @@ def _lmax(x):
         sage: _lmax([])
         0
     """
-    if x == []:
-        return 0
-    else:
-        return max(x)
-
+    return max(x) if x else 0
 
 def _nonnegative_coefficients(x):
     r"""
@@ -4564,3 +4559,4 @@ def _nonnegative_coefficients(x):
         return all([ c >= 0 for c in x.coeffs() ])
     else:
         return x >= 0
+

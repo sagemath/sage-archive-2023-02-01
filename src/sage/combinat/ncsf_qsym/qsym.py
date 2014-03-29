@@ -968,7 +968,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: def int_copr_on_F_via_M(I):
                     ....:     result = tensor([F.zero(), F.zero()])
                     ....:     w = M(F(I)).internal_coproduct()
-                    ....:     for lam, a in w.monomial_coefficients().items():
+                    ....:     for lam, a in w:
                     ....:         (U, V) = lam
                     ....:         result += a * tensor([F(M(U)), F(M(V))])
                     ....:     return result
@@ -987,7 +987,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: def int_copr_of_e_in_M(mu):
                     ....:     result = tensor([M.zero(), M.zero()])
                     ....:     w = e(mu).internal_coproduct()
-                    ....:     for lam, a in w.monomial_coefficients().items():
+                    ....:     for lam, a in w:
                     ....:         (nu, kappa) = lam
                     ....:         result += a * tensor([M(e(nu)), M(e(kappa))])
                     ....:     return result
@@ -1011,7 +1011,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 F = parent.realization_of().F()
                 from sage.categories.tensor import tensor
                 result = tensor([parent.zero(), parent.zero()])
-                for lam, a in F(self).internal_coproduct().monomial_coefficients().items():
+                for lam, a in F(self).internal_coproduct():
                     (I, J) = lam
                     result += a * tensor([parent(F(I)), parent(F(J))])
                 return result
@@ -1116,7 +1116,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 M = parent.realization_of().M()
                 C = parent._basis_keys
                 dct = {C(map(lambda i: n * i, I)): coeff
-                       for (I, coeff) in M(self).monomial_coefficients().items()}
+                       for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
 
@@ -1193,8 +1193,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # involution componentwise, then convert back.
                 parent = self.parent()
                 M = parent.realization_of().M()
-                dct = {I.reversed(): coeff
-                       for (I, coeff) in M(self).monomial_coefficients().items()}
+                dct = {I.reversed(): coeff for (I, coeff) in M(self)}
                 return parent(M._from_dict(dct))
 
             def omega_involution(self):
@@ -1348,8 +1347,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 # involution componentwise, then convert back.
                 parent = self.parent()
                 F = parent.realization_of().F()
-                dct = {I.complement(): coeff
-                       for (I, coeff) in F(self).monomial_coefficients().items()}
+                dct = {I.complement(): coeff for (I, coeff) in F(self)}
                 return parent(F._from_dict(dct))
 
             def expand(self, n, alphabet='x'):
@@ -1707,8 +1705,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                                for k in lam])
             QQ_result *= (-1) ** n
             # QQ_result is now \lambda^n(M_I) over QQ.
-            result = self.sum_of_terms([(J, ZZ(coeff)) for (J, coeff) in
-                                        QQ_result.monomial_coefficients().items()],
+            result = self.sum_of_terms([(J, ZZ(coeff)) for (J, coeff) in QQ_result],
                                         distinct = True)
             return result
 
@@ -2293,7 +2290,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 result = F2.zero()
                 from sage.categories.tensor import tensor
                 from sage.combinat.permutation import Permutation
-                for I, a in self.monomial_coefficients().items():
+                for I, a in self:
                     # We must add a * \Delta^\times(F_I) to result.
                     from sage.combinat.permutation import descents_composition_last
                     pi = descents_composition_last(I)
@@ -2364,8 +2361,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     0
                 """
                 parent = self.parent()
-                dct = {I.reversed(): coeff
-                       for (I, coeff) in self.monomial_coefficients().items()}
+                dct = {I.reversed(): coeff for (I, coeff) in self}
                 return parent._from_dict(dct)
 
     F = Fundamental
@@ -2558,7 +2554,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 QS[1, 2, 1, 1] + QS[1, 3, 1] - QS[2, 2, 1]
             """
             comp = Composition(comp)
-            if comp == []:
+            if not comp._list:
                 return self.one()
             comps = compositions_order(comp.size())
             T = self._from_fundamental_transition_matrix(comp.size())
@@ -2625,7 +2621,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
             """
             M = self.realization_of().Monomial()
-            if J == []:
+            if not J._list:
                 return M([])
             C = Compositions()
             C_size = Compositions(J.size())

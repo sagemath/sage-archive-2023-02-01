@@ -1782,27 +1782,27 @@ class Partition(CombinatorialObject, Element):
 
         If `\lambda = (\lambda_1, \lambda_2, \lambda_3, \ldots)` is a
         partition and `t` is an integer greater or equal to
-        `\left| \lambda \right| + \lambda_1`, then the *`t`-completion of
-        `\lambda`* is defined as the partition
-        `(t - \left| \lambda \right|, \lambda_1, \lambda_2, \lambda_3,
-        \ldots)` of `t`. This partition is denoted by `\lambda[t]` in
-        [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_ and by `\lambda(t)` in
-        [CO10]_.
+        `\left\lvert \lambda \right\rvert + \lambda_1`, then the
+        `t`-*completion of* `\lambda` is defined as the partition
+        `(t - \left\lvert \lambda \right\rvert, \lambda_1, \lambda_2,
+        \lambda_3, \ldots)` of `t`. This partition is denoted by `\lambda[t]`
+        in [BOR09]_, by `\lambda_{[t]}` in [BdVO12]_, and by `\lambda(t)`
+        in[CO10]_.
 
         REFERENCES:
 
-        .. [BOR09] Emmanuel Briand, Rosa Orellana, Mercedes Rosas,
+        .. [BOR09] Emmanuel Briand, Rosa Orellana, Mercedes Rosas.
            *The stability of the Kronecker products of Schur
            functions*.
            :arxiv:`0907.4652v2`.
 
-        .. [CO10] Jonathan Comes, Viktor Ostrik,
-           *On blocks of Deligne's category
-           `\underline{\mathrm{Rep}}(S_t)`*.
+        .. [CO10] Jonathan Comes, Viktor Ostrik.
+           *On blocks of Deligne's category*
+           `\underline{\mathrm{Rep}}(S_t)`.
            :arxiv:`0910.5695v2`,
            http://pages.uoregon.edu/jcomes/blocks.pdf
 
-        .. [BdVO12] Christopher Bowman, Maud De Visscher, Rosa Orellana,
+        .. [BdVO12] Christopher Bowman, Maud De Visscher, Rosa Orellana.
            *The partition algebra and the Kronecker coefficients*.
            :arXiv:`1210.5579v6`.
 
@@ -1827,12 +1827,14 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([4, 2, 2, 1]).t_completion(10)
             Traceback (most recent call last):
             ...
-            ValueError: [1, 4, 2, 2, 1] is not an element of Partitions
+            ValueError: 5-completion is not defined
             sage: Partition([4, 2, 2, 1]).t_completion(5)
             Traceback (most recent call last):
             ...
-            ValueError: [-4, 4, 2, 2, 1] is not an element of Partitions
+            ValueError: 5-completion is not defined
         """
+        if not self._list and t <= self.size() + self._list[0]:
+            raise ValueError("{}-completion is not defined".format(t))
         return Partition([t - self.size()] + self._list)
 
     def larger_lex(self, rhs):
@@ -2002,17 +2004,17 @@ class Partition(CombinatorialObject, Element):
             True
         """
         from sage.combinat.dyck_word import DyckWord
-        if self == []:
+        if not self._list:
             if n is None:
                 return DyckWord([])
-            return DyckWord([1 for _ in range(n)] + [0 for _ in range(n)])
+            return DyckWord([1]*n + [0]*n)
         list_of_word = []
         if n is None:
             n = max(i + l + 1 for (i, l) in enumerate(self))
             # This n is also max(i+j for (i,j) in self.cells()) + 2.
         list_of_word.extend([1]*(n-self.length()))
         copy_part = list(self)
-        while copy_part != []:
+        while copy_part:
             c = copy_part.pop()
             list_of_word.extend([0]*c)
             for i in range(len(copy_part)):

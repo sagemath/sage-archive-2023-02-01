@@ -664,9 +664,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S = self.realization_of().S()
                 res = S.zero()
                 m = len(xs)
-                ys = [xs[i] - i - 1 for i in range(m)]
+                ys = [xs_i - i - 1 for i, xs_i in enumerate(xs)]
                 for s in Permutations(m):
-                    psco = [ys[i] + s[i] for i in range(m)]
+                    psco = [ys[i] + s_i for i, s_i in enumerate(s)]
                     if not all(j >= 0 for j in psco):
                         continue
                     psco2 = [j for j in psco if j != 0]
@@ -2612,7 +2612,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             if n == 0:
                 return SymmetricGroupAlgebra(self.base_ring(),n).one()
             sga = SymmetricGroupAlgebra(self.base_ring(),n)
-            x = sga.zero()
             J = [j-1 for j in I.to_subset()]
             return sga.sum_of_monomials( p for K in Set(J).subsets()
                                          for p in Permutations(descents=(K,n)) )
@@ -3451,13 +3450,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # into `p` parts such that
             # each `0 \leq k < p` satisfies `|J_{K_k}| = I_k`.
             K = [[-1]]
+            # K will be our ordered set partition, as a list of
+            # subsets (themselves encoded as lists, in increasing
+            # order, with every entry decremented by 1 so as to
+            # simplify indexing).
             cur_sum = 0
             base = set(range(q))
+            # base will be the set of elements that are currently
+            # not in K (again, all decremented by 1).
 
             result = self.zero()
             while True:
-                part = K[-1]
-
                 # If we are too long or there is nothing more to add: backtrack
                 if len(K) > p or not base:
                     base.union(K.pop()[:-1])
@@ -3466,8 +3469,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     part = K[-1]
                     base.add(part[-1])
                     # Similarly, we can just continue on
+                else:
+                    part = K[-1]
 
-                # Find a part such that `|J_{K_k}| = I_k`
+                # Find a part `K_k` such that `|J_{K_k}| = I_k`
                 Ik = I[len(K) - 1] # -1 for indexing
                 cur_sum = sum(J[j] for j in part[:-1]) # The last entry hasn't been added yet
 

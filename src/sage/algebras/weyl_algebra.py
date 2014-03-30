@@ -101,9 +101,9 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
     #ret = re.sub(r'-1(\.0+)?[\* ]', '-', ret)
     return ret
 
-class WeylAlgebraElement(AlgebraElement):
+class DifferentialWeylAlgebraElement(AlgebraElement):
     """
-    An element in a Weyl algebra.
+    An element in a differential Weyl algebra.
     """
     def __init__(self, parent, monomials):
         """
@@ -112,7 +112,7 @@ class WeylAlgebraElement(AlgebraElement):
         TESTS::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: elt = ((x^3-z)*dx + dy)^2
             sage: TestSuite(elt).run()
@@ -127,7 +127,7 @@ class WeylAlgebraElement(AlgebraElement):
         TESTS::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: ((x^3-z)*dx + dy)^2
             dy^2 + (3*x^5 - 3*x^2*z)*dx + (2*x^3 - 2*z)*dx*dy + (x^6 - 2*x^3*z + z^2)*dx^2
@@ -155,7 +155,7 @@ class WeylAlgebraElement(AlgebraElement):
 
             sage: R = PolynomialRing(QQ, 'x', 3)
             sage: x,y,z = R.gens()
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx0,dx1,dx2 = W.gens()
             sage: latex( ((x^3-z)*dx0 + dx1)^2 )
             \frac{\partial^{2}}{\partial x_{1}^{2}}
@@ -188,7 +188,7 @@ class WeylAlgebraElement(AlgebraElement):
         TESTS::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: dy*(x^3-y*z)*dx == -z*dx + x^3*dx*dy - y*z*dx*dy
             True
@@ -199,7 +199,7 @@ class WeylAlgebraElement(AlgebraElement):
             sage: W(x^3 - y*z) == x^3 - y*z
             True
         """
-        if not isinstance(rhs, WeylAlgebra.Element):
+        if not isinstance(rhs, DifferentialWeylAlgebra.Element):
             P = self.parent()
             c_term = tuple([0]*P.ngens())
             return self.__monomials.get(c_term, P.base_ring().zero()) == rhs
@@ -212,7 +212,7 @@ class WeylAlgebraElement(AlgebraElement):
         TESTS::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: dx != dy
             True
@@ -228,7 +228,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: dy - (3*x - z)*dx
             dy + (-3*x + z)*dx
@@ -242,7 +242,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: (dx*dy) + dz + x^3 - 2
             x^3 - 2 + dz + dx*dy
@@ -261,7 +261,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: ((x^3-z)*dx + dy) * (dx*dz^2 - 10*x)
             -10*x^3 + 10*z - 10*x*dy + (-10*x^4 + 10*x*z)*dx + dx*dy*dz^2 + (x^3 - z)*dx^2*dz^2
@@ -284,7 +284,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: (x*y + z) * dx
             (x*y + z)*dx
@@ -300,7 +300,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: dx*(x*y + z)
             y + (x*y + z)*dx
@@ -320,7 +320,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: list(dy - (3*x - z)*dx)
             [((0, 1, 0), 1), ((1, 0, 0), -3*x + z)]
@@ -334,7 +334,7 @@ class WeylAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: dx,dy,dz = W.gens()
             sage: elt = dy - (3*x - z)*dx
             sage: elt.list()
@@ -342,9 +342,9 @@ class WeylAlgebraElement(AlgebraElement):
         """
         return sorted(self.__monomials.items())
 
-class WeylAlgebra(Algebra, UniqueRepresentation):
+class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     r"""
-    The Weyl algebra of a polynomial ring.
+    The differential Weyl algebra of a polynomial ring.
 
     REFERENCES:
 
@@ -363,7 +363,7 @@ class WeylAlgebra(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: TestSuite(W).run()
         """
         if R not in Rings():
@@ -378,7 +378,7 @@ class WeylAlgebra(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: WeylAlgebra(R)
+            sage: DifferentialWeylAlgebra(R)
             The Weyl algebra of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         return "The Weyl algebra of {}".format(self.base_ring())
@@ -390,7 +390,7 @@ class WeylAlgebra(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: [W.gen(i) for i in range(3)]
             [dx, dy, dz]
         """
@@ -405,7 +405,7 @@ class WeylAlgebra(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: W.ngens()
             3
         """
@@ -419,7 +419,7 @@ class WeylAlgebra(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: W.one()
             1
         """
@@ -433,13 +433,13 @@ class WeylAlgebra(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: W = WeylAlgebra(R)
+            sage: W = DifferentialWeylAlgebra(R)
             sage: W.zero()
             0
         """
         return self.element_class(self, {})
 
-    Element = WeylAlgebraElement
+    Element = DifferentialWeylAlgebraElement
 
 # Helper function
 def expand_derivative(poly, exps):

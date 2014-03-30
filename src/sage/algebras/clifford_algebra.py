@@ -592,7 +592,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         Lift the matrix ``m`` to an algebra morphism of Clifford algebras.
 
         Given a linear map `m : W \to V`, we will construct `Cl(W, m(Q))`
-        and the corresponding algebra morphism `cl(m)` to `Cl(V, Q)`, which
+        and the corresponding algebra morphism `Cl(m)` to `Cl(V, Q)`, which
         is ``self``.
 
         INPUT:
@@ -688,9 +688,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: phi(d)
             2*x + y + z
             sage: phi(a*b*c + d*a)
-            -x*y - x*z + 2x + 7
+            -x*y - x*z + 21*x + 7
             sage: phi(a*b*c*d)
-            2x*y + 2x*z + 42
+            21*x*y + 21*x*z + 42
         """
         Q = self._quadratic_form(m)
 
@@ -734,15 +734,15 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: phi(x)
             a
             sage: phi(y)
-            x + y
+            a + b
             sage: phi(x*y)
-            x*y + 1
+            a*b + 1
             sage: phi(x) * phi(y)
-            x*y + 1
+            a*b + 1
             sage: phi(z*y)
-            x*y + 1
+            a*b - a*c - b*c
             sage: phi(z) * phi(y)
-            x*y + 1
+            a*b - a*c - b*c
             sage: phi(x + z) * phi(y + z) == phi((x + z) * (y + z))
             True
         """

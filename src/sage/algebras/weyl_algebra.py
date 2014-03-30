@@ -45,6 +45,16 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
         '0'
         sage: repr_from_monomials(d, lambda m: latex(m), True)
         '\\frac{4}{7} z + \\sqrt{2} y - 5 x'
+
+        sage: R.<x,y> = QQ[]
+        sage: A = CliffordAlgebra(QuadraticForm(R, 3, [x,0,-1,3,-4,5]))
+        sage: a,b,c = A.gens()
+        sage: a*b*c
+        e0*e1*e2
+        sage: (a*a + 2)
+        x + 2
+        sage: c*(a*a + 2)*b
+        (-x - 2)*e1*e2 - 4*x - 8
     """
     if len(monomials) == 0:
         return '0'
@@ -59,14 +69,17 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
             coeff = latex(c)
         else:
             coeff = repr(c)
+
         if len(term) == 0 or term == '1':
             term = coeff
-        else:
+        elif coeff == '-1':
+            term = '-' + term
+        elif coeff != '1':
             atomic_repr = c.parent()._repr_option('element_is_atomic')
-            if not atomic_repr and (coeff.find("+") != -1 or coeff.find("-") > 0):
+            if not atomic_repr and (coeff.find("+") != -1 or coeff.rfind("-") > 0):
                 if use_latex:
                     term = '\\left(' + coeff + '\\right) ' + term
-                else:
+                elif coeff not in ['', '-']:
                     term = '(' + coeff + ')*' + term
             else:
                 if use_latex:
@@ -83,9 +96,9 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
         else:
             ret = term
     import re
-    ret = ret.replace("+ -", "-")
-    ret = re.sub(r'1(\.0+)?[\* ]', '', ret)
-    ret = re.sub(r'-1(\.0+)?[\* ]', '-', ret)
+    ret = ret.replace("+ -", "- ")
+    #ret = re.sub(r'1(\.0+)?[\* ]', '', ret)
+    #ret = re.sub(r'-1(\.0+)?[\* ]', '-', ret)
     return ret
 
 class WeylAlgebraElement(AlgebraElement):

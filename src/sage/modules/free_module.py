@@ -2661,7 +2661,9 @@ class FreeModule_generic_pid(FreeModule_generic):
             [x/(x^3 - 6*x^2 + 11*x - 6)  2/15*x^2 - 17/75*x - 1/75]
             [                         0 x^3 - 11/5*x^2 - 3*x + 4/5]
 
-        Note that the ``base_ring`` can make a huge difference. We repeat the previous example over the fraction field of R and get a simpler vector space.::
+        Note that the ``base_ring`` can make a huge difference. We
+        repeat the previous example over the fraction field of R and
+        get a simpler vector space. ::
 
             sage: L2.span([[(x^2+x)/(x^2-3*x+2),1/5],[(x^2+2*x)/(x^2-4*x+3),x]],base_ring=R.fraction_field())
             Vector space of degree 2 and dimension 2 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
@@ -3657,7 +3659,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         All these complements are only done with respect to the inner
         product in the usual basis.  Over finite fields, this means
         we can get complements which are only isomorphic to a vector
-        space decomposition complement.
+        space decomposition complement. ::
 
             sage: F2 = GF(2,x)
             sage: V = F2^6

@@ -214,7 +214,7 @@ class HighestWeightCrystals(Category_singleton):
 
             where `\Delta_+^{\vee}` denotes the set of positive coroots.
             Taking the limit as `q \to 1` gives the dimension of `B(\lambda)`.
-            For more information, see [Kac]_ (second edition) Section 10.10.
+            For more information, see [Kac]_ Section 10.10.
 
             INPUT:
 
@@ -303,8 +303,8 @@ class HighestWeightCrystals(Category_singleton):
 
             REFERENCES:
 
-            .. [Kac] Victor Kac. *Infinite Dimensional Lie Algebras*.
-               Cambridge University Press.
+            .. [Kac] Victor G. Kac. *Infinite-dimensional Lie Algebras*.
+               Third edition. Cambridge University Press, Cambridge, 1990.
             """
             from sage.rings.all import ZZ
             WLR = self.weight_lattice_realization()

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Discrete Subgroups of $\\ZZ^n$.
+"""
+Discrete Subgroups of `\ZZ^n`.
 
 AUTHORS:
 
@@ -13,7 +14,7 @@ TESTS::
     sage: L = Lattice(random_matrix(ZZ, 10, 10))
     sage: TestSuite(L).run()
 """
-
+ 
 from copy import copy
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.lattices.lattice import Lattice
@@ -28,7 +29,8 @@ from sage.modules.vector_integer_dense import Vector_integer_dense
 from sage.structure.parent import Parent
 
 class IntegerLattice(Lattice):
-    """This class represents lattices over the integers.
+    """
+    This class represents lattices over the integers.
 
     Lattices are discrete subgroups of $\\RR^n$. However, here we restrict out
     attention to subgroups of $\\ZZ^n$, which are common in many applications.
@@ -57,7 +59,8 @@ class IntegerLattice(Lattice):
          (0, 1, 2, 0, 1, 2, -1, 0, -1, -1)
     """
     def __init__(self, basis, lll_reduce=True):
-        """Construct a new lattice.
+        """
+        Construct a new lattice.
 
         INPUT:
 
@@ -130,7 +133,8 @@ class IntegerLattice(Lattice):
 
     @cached_method
     def _inverse_of_basis(self):
-        """We cache ``~self.basis`` as it is used to test if a vector is in this
+        """
+        We cache ``~self.basis`` as it is used to test if a vector is in this
         lattice.
 
         EXAMPLE::
@@ -164,7 +168,8 @@ class IntegerLattice(Lattice):
             raise ValueError("Basis does not have full rank.")
 
     def _element_constructor_(self, x):
-        """Make sure x is a valid member of self, and return the constructed
+        """
+        Make sure x is a valid member of self, and return the constructed
         element.
 
         EXAMPLE::
@@ -212,22 +217,23 @@ class IntegerLattice(Lattice):
         return self.facade_for()[0].zero()
 
     def LLL(self, *args, **kwds):
-        """Run LLL on the current basis.
+        """
+        Run LLL on the current basis.
 
         A lattice basis `(b_1, b_2, ..., b_d)` is `(δ,η)`-LLL-reduced if the two
         following conditions hold:
 
-        -  For any `i>j`, we have `|μ_{i, j}| <= η`,
+        -  For any `i>j`, we have `|μ_{i, j}| ≦ η`,
 
-        -  For any `i<d`, we have `δ|b_i^*|^2 ≤ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
+        -  For any `i<d`, we have `δ|b_i^*|^2 ≦ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
 
         where `μ_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the `i`-th vector
         of the Gram-Schmidt orthogonalisation of `(b_1, b_2, …, b_d)`.
 
-        The default reduction parameters are `δ=3/4` and `eta=0.501`.
+        The default reduction parameters are `δ=3/4` and `η=0.501`.
 
-        The parameters `δ` and `η` must satisfy: `0.25 < δ <= 1.0` and
-        `0.5 <= η < sqrt(δ)`. Polynomial time complexity is only guaranteed
+        The parameters `δ` and `η` must satisfy: `0.25 < δ ≦ 1.0` and
+        `0.5 ≦ η < √δ`. Polynomial time complexity is only guaranteed
         for `δ < 1`.
 
         INPUT:
@@ -277,7 +283,8 @@ class IntegerLattice(Lattice):
         self._is_LLL_reduced = True
 
     def BKZ(self, *args, **kwds):
-        """Run Block Korkine-Zolotareff reduction on the current basis.
+        """
+        Run Block Korkine-Zolotareff reduction on the current basis.
 
         .. note::
 
@@ -311,18 +318,19 @@ class IntegerLattice(Lattice):
         self._is_LLL_reduced = True
 
     def HKZ(self, *args, **kwds):
-        """Hermite-Korkine-Zolotarev (HKZ) reduce the basis.
+        """
+        Hermite-Korkine-Zolotarev (HKZ) reduce the basis.
 
-        A basis `B` of a lattice `L`, with orthogonalized basis `B^∗` such
-        that `B = `M·B^∗` is HKZ reduced, if and only if, the following properties are
+        A basis `B` of a lattice `L`, with orthogonalized basis `B^*` such
+        that `B = M \cdot B^*` is HKZ reduced, if and only if, the following properties are
         satisfied:
         
         #. The basis `B` is size-reduced, i.e., all off-diagonal coefficients of
-           `M` satisfy `|μ_{i,j}| ≤ 1/2`
+           `M` satisfy `|μ_{i,j}| ≦ 1/2`
 
         #. The vector `b_1` realizes the first minimum `λ_1(L)`.
 
-        #. The projection of the vectors `b_2,…,b_r` orthogonally to` b_1` form
+        #. The projection of the vectors `b_2,…,b_r` orthogonally to `b_1` form
            an HKZ reduced basis.
        
         .. note::
@@ -350,7 +358,7 @@ class IntegerLattice(Lattice):
     @cached_method
     def gram_matrix(self):
         """
-        Return $B·B^T$ where $B$ is the current basis.
+        Return $B \cdot B^T$ where $B$ is the current basis.
 
         EXAMPLE::
 
@@ -394,7 +402,8 @@ class IntegerLattice(Lattice):
 
     @cached_method
     def volume(self):
-        """Return $vol(L)$ which is $\\sqrt(det(B·B^T))$ for any basis $B$.
+        """
+        Return $vol(L)$ which is $\\sqrt{\det(B \cdot B^T)}$ for any basis $B$.
 
         EXAMPLE::
 
@@ -409,8 +418,9 @@ class IntegerLattice(Lattice):
 
     @cached_method
     def discriminant(self):
-        """Return $|det(G)|$, i.e. the absolute value of the determinant of the
-        gram matrix $B·B^T$ for any basis $B$.
+        """
+        Return $|\det(G)|$, i.e. the absolute value of the determinant of the
+        gram matrix $B \cdot B^T$ for any basis $B$.
 
         EXAMPLE::
 
@@ -422,7 +432,8 @@ class IntegerLattice(Lattice):
 
     @cached_method
     def is_unimodular(self):
-        """Return True if this lattice is unimodular.
+        """
+        Return True if this lattice is unimodular.
 
         EXAMPLES::
 
@@ -435,7 +446,8 @@ class IntegerLattice(Lattice):
         return self.volume() == 1
 
     def base_ring(self):
-        """Return $\\ZZ$
+        """
+        Return $\\ZZ$
 
         TESTS::
 
@@ -447,6 +459,7 @@ class IntegerLattice(Lattice):
 
     def _repr_(self):
         """
+
         TESTS::
 
             sage: Lattice([[1,0,-2],[0,2,5], [0,0,7]]) #indirect doctest
@@ -461,7 +474,8 @@ class IntegerLattice(Lattice):
 
     @property
     def basis(self):
-        """Return the basis $B$.
+        """
+        Return the basis $B$.
 
         .. note::
 
@@ -479,7 +493,8 @@ class IntegerLattice(Lattice):
 
     @cached_method
     def shortest_vector(self, update_basis=True, algorithm="fplll", *args, **kwds):
-        """Return a shortest vector.
+        """
+        Return a shortest vector.
 
         INPUT:
 
@@ -530,7 +545,8 @@ class IntegerLattice(Lattice):
         return w
 
     def update_basis(self, w):
-        """Inject the vector w and run LLL to update the basis.
+        """
+        Inject the vector w and run LLL to update the basis.
 
         EXAMPLE::
 
@@ -590,14 +606,15 @@ class IntegerLattice(Lattice):
         return self.hermite_form_basis() == other.hermite_form_basis()
 
     def random_element(self, distribution="default", *args, **kwds):
-        """Return a random element from the lattice.
+        """
+        Return a random element from the lattice.
 
         Let $B$ be the current basis of this lattice. Then the following
         distributions are supported.
 
         DISTRIBUTIONS:
 
-        - ``default`` - return $v*B$ where $v$ is sampled by calling
+        - ``default`` - return $v \cdot B$ where $v$ is sampled by calling
           ``FreeModule(ZZ, B.rank()).random_element(*args, **kwds)``.
 
         INPUT:
@@ -711,7 +728,7 @@ class IntegerLattice(Lattice):
             INPUT:
 
             - ``ieq`` - an inequality in the form [c, a1, a2, ...]
-              meaning a1 * x1 + a2 * x2 + ... <= c
+              meaning a1 * x1 + a2 * x2 + ... ≦ c
 
             OUTPUT:
 

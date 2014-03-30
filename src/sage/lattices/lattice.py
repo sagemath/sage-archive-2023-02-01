@@ -1,5 +1,5 @@
 """
-Discrete Subgroups of $\\RR^n$.
+Discrete Subgroups of `\RR^n`.
 
 AUTHORS:
 

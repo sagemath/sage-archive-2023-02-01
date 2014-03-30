@@ -1,5 +1,9 @@
 """
 Lattice constructor
+
+AUTHORS:
+
+- Martin Albrecht (2014-03): initial version
 """
 
 #*****************************************************************************
@@ -23,7 +27,8 @@ Lattice constructor
 from integer_lattice import IntegerLattice
 
 def Lattice(basis, lll_reduce=True):
-    """Construct a new lattice from ``basis``.
+    """
+    Construct a new lattice from ``basis``.
 
     INPUT:
       - ``basis``

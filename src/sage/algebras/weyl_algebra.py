@@ -24,13 +24,15 @@ from sage.rings.ring import Algebra
 
 def repr_from_monomials(monomials, term_repr, use_latex=False):
     r"""
-    Return a representation from the dictionary ``monomials``.
+    Return a string representation of an element of a free module
+    from the dictionary ``monomials``.
 
     INPUT:
 
     - ``monomials`` -- a list of pairs ``[m, c]`` where ``m`` is the index
       and ``c`` is the coefficient
     - ``term_repr`` -- a function which returns a string given an index
+      (can be ``repr`` or ``latex``, for example)
     - ``use_latex`` -- (default: ``False``) if ``True`` then the output is
       in latex format
 
@@ -41,23 +43,69 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
         sage: d = [(z, 4/7), (y, sqrt(2)), (x, -5)]
         sage: repr_from_monomials(d, lambda m: repr(m))
         '4/7*z + sqrt(2)*y - 5*x'
+        sage: a = repr_from_monomials(d, lambda m: latex(m), True); a
+        \frac{4}{7} z + \sqrt{2} y - 5 x
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    The zero element::
+
         sage: repr_from_monomials([], lambda m: repr(m))
         '0'
-        sage: repr_from_monomials(d, lambda m: latex(m), True)
-        '\\frac{4}{7} z + \\sqrt{2} y - 5 x'
+        sage: a = repr_from_monomials([], lambda m: latex(m), True); a
+        0
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    A "unity" element::
+
+        sage: repr_from_monomials([(1, 1)], lambda m: repr(m))
+        '1'
+        sage: a = repr_from_monomials([(1, 1)], lambda m: latex(m), True); a
+        1
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    ::
+
+        sage: repr_from_monomials([(1, -1)], lambda m: repr(m))
+        '-1'
+        sage: a = repr_from_monomials([(1, -1)], lambda m: latex(m), True); a
+        -1
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    Leading minus signs are dealt with appropriately::
+
+        sage: d = [(z, -4/7), (y, -sqrt(2)), (x, -5)]
+        sage: repr_from_monomials(d, lambda m: repr(m))
+        '-4/7*z - sqrt(2)*y - 5*x'
+        sage: a = repr_from_monomials(d, lambda m: latex(m), True); a
+        -\frac{4}{7} z - \sqrt{2} y - 5 x
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    Indirect doctests using a class that uses this function::
 
         sage: R.<x,y> = QQ[]
         sage: A = CliffordAlgebra(QuadraticForm(R, 3, [x,0,-1,3,-4,5]))
         sage: a,b,c = A.gens()
         sage: a*b*c
         e0*e1*e2
+        sage: b*c
+        e1*e2
         sage: (a*a + 2)
         x + 2
         sage: c*(a*a + 2)*b
         (-x - 2)*e1*e2 - 4*x - 8
+        sage: latex(c*(a*a + 2)*b)
+        \left( - x - 2 \right)  e_{1} e_{2} - 4 x - 8
     """
     if len(monomials) == 0:
-        return '0'
+        if use_latex:
+            return latex(0)
+        else:
+            return '0'
 
     ret = ''
     for m,c in monomials:
@@ -95,8 +143,8 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
                 ret += ' + ' + term
         else:
             ret = term
-    import re
-    ret = ret.replace("+ -", "- ")
+    # import re
+    #ret = ret.replace("+ -", "- ")
     #ret = re.sub(r'1(\.0+)?[\* ]', '', ret)
     #ret = re.sub(r'-1(\.0+)?[\* ]', '-', ret)
     return ret

@@ -3369,6 +3369,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
               `NSym` indexed by ``I`` and ``J``, expressed in the Psi
               basis.
 
+            AUTHORS:
+
+            - Travis Scrimshaw, 29 Mar 2014
+
             EXAMPLES::
 
                 sage: N = NonCommutativeSymmetricFunctions(QQ)
@@ -3407,6 +3411,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: all( psi_int_test(i) for i in range(4) )
                 True
                 sage: psi_int_test(4)   # long time
+                True
+                sage: psi_int_test(5)   # long time
                 True
             """
             # The algorithm used here is described in
@@ -3449,20 +3455,31 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             # `(K_1, K_2, \ldots, K_p)` of `\{ 1, 2, \ldots, q \}`
             # into `p` parts such that
             # each `0 \leq k < p` satisfies `|J_{K_k}| = I_k`.
+            # To do so, we will encode such partitions as lists
+            # of subsets (which themselves are encoded as lists,
+            # in increasing order, with every entry decremented by
+            # 1 so as to simplify indexing).
+            # We create a variable K which traverses
+            # (among other things) these ordered set partitions in
+            # lexicographic order (on lists of lists of integers,
+            # NOT flattened). It follows a backtracking
+            # algorithm; when not backtracking, the last entry
+            # of its last part will be "exploring" different
+            # possible values.
             K = [[-1]]
-            # K will be our ordered set partition, as a list of
-            # subsets (themselves encoded as lists, in increasing
-            # order, with every entry decremented by 1 so as to
-            # simplify indexing).
             cur_sum = 0
-            base = set(range(q))
             # base will be the set of elements that are currently
-            # not in K (again, all decremented by 1).
+            # not in K (again, all decremented by 1). Here, the
+            # last entry of the last part of K does not count as
+            # being in K when we are between ordered set partitions.
+            base = set(range(q))
 
             result = self.zero()
             while True:
-                # If we are too long or there is nothing more to add: backtrack
+                # If K is too long or there is nothing more to add:
+                # backtrack by removing the last part of K.
                 if len(K) > p or not base:
+                    # Remove the last part from K.
                     base.union(K.pop()[:-1])
                     # We don't need checks here since p > 0 and all parts
                     #   have size > 0 or we couldn't have added everything to the first
@@ -3471,6 +3488,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     # Similarly, we can just continue on
                 else:
                     part = K[-1]
+                # part is now the last part of K.
 
                 # Find a part `K_k` such that `|J_{K_k}| = I_k`
                 Ik = I[len(K) - 1] # -1 for indexing

@@ -10,7 +10,7 @@ REFERENCES:
 .. [QSCHUR] Haglund, Luoto, Mason, van Willigenburg,
    *Quasisymmetric Schur functions*, J. Comb. Theory Ser. A 118 (2011), 463-490.
    http://www.sciencedirect.com/science/article/pii/S0097316509001745 ,
-   also :arXiv:`0810.2489v2`.
+   :arXiv:`0810.2489v2`.
 
 .. [Tev2007] Lenny Tevlin,
    *Noncommutative Analogs of Monomial Symmetric Functions,

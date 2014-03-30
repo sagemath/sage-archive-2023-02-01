@@ -5,7 +5,7 @@ Git the Hard Way
 ================
 
 For beginners to Sage development with no git experience, we recommend using
-the Sage development scripts as explained in :ref:`chapter-walk-through`, which
+the Sage development scripts as explained in :ref:`chapter-walkthrough`, which
 simplify using git and the trac server. However, you can use git
 directly to work on Sage if you want to take off the training
 wheels. This chapter will tell you how to do so assuming some

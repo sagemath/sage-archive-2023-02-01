@@ -363,7 +363,7 @@ Working on Tickets
 ==================
 
 If you manage to fix a bug or enhance Sage you are our hero. See
-:ref:`chapter-walk-through` for making changes to the Sage source
+:ref:`chapter-walkthrough` for making changes to the Sage source
 code, uploading them to the Sage trac server, and finally putting your
 new branch on the trac ticket. The following are some other relevant
 issues:

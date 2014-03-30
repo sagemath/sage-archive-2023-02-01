@@ -15,8 +15,21 @@ your new and modified code with other Sage users around the globe.
    :maxdepth: 3
 
    walk_through
+   dev_script
    git_setup
    trac
+
+
+Git and Sage Development
+========================
+
+.. toctree::
+   :maxdepth: 3
+
+   manual_git
+   git_background
+   advanced_git
+   workflows
 
 
 Writing Code for Sage
@@ -33,19 +46,6 @@ Writing Code for Sage
    packaging_old_spkgs
    doctesting
    sage_manuals
-
-
-
-Git and Sage Development
-========================
-
-.. toctree::
-   :maxdepth: 3
-
-   manual_git
-   git_background
-   advanced_git
-   workflows
 
 
 Sage Notebook Developer Guide

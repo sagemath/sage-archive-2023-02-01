@@ -491,7 +491,7 @@ class IncidenceStructure(object):
             v = len(self.points())
             blks = self.blocks()
             b = len(blks)
-            A = Matrix(ZZ, v, b)
+            A = Matrix(ZZ, v, b, sparse=True)
             for j, b in enumerate(blks):
                 for i in b:
                     A[i, j] = 1

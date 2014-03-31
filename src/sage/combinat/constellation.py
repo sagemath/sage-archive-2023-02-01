@@ -406,16 +406,21 @@ class Constellation_class(Element):
 
     def connected_components(self):
         """
+        PROBLEM HERE
         Returns the connected components ?
 
         EXAMPLES::
 
             sage: c = Constellation(['(0,1)(2)', None, '(0,1)(2)'], connected=False)
             sage: c.connected_components()
-            [Constellation of length 3 and degree 3
+            [Constellation of length 3 and degree 2
             g0 (0,1)(2)
             g1 (0)(1)(2)
-            g2 (0,1)(2)]
+            g2 (0,1)(2),
+            Constellation of length 3 and degree 1
+            g0 (0)
+            g1 (0)
+            g2 (0)]
 
             sage: c = Constellation(['(0,1,2)', None], connected=False)
             sage: c.connected_components()

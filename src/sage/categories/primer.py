@@ -20,13 +20,28 @@ Abstract
     - being built on top of (and not into) the standard Python object
       oriented and class hierarchy mechanism. This did not require
       changing the language, and could in principle be implemented in
-      any language allowing for dynamically creating new classes.
+      any language supporting the creation of new classes dynamically.
 
     The general philosophy is that *Building mathematical information
     into the system yields more expressive, more conceptual and, at
     the end, easier to maintain and faster code* (within a programming
     realm; this would not necessarily apply to specialized libraries
     like gmp!).
+
+One line pitch for mathematicians
+---------------------------------
+
+Categories in Sage provide a library of interrelated bookshelves, with
+each bookshelf containing algorithms, tests, documentation, or some
+mathematical facts about the objects of a given category (e.g. groups).
+
+One line pitch for programmers
+------------------------------
+
+Categories in Sage provide a large hierarchy of abstract classes for
+mathematical objects. To keep it maintainable, the inheritance
+information between the classes is not hardcoded but instead
+reconstructed dynamically from duplication free semantic information.
 
 Introduction: Sage as a library of objects and algorithms
 =========================================================
@@ -533,7 +548,7 @@ manipulate several kinds of objects:
 - and even the category of groups itself!
 
 Thus, on the group bookshelf, we want to put generic code for each of
-the above. We therefore need three parallel hierarchies of abstract
+the above. We therefore need three, parallel hierarchies of abstract
 classes:
 
 - Group, Monoid, Semigroup, Magma, ...
@@ -611,6 +626,7 @@ parallel to the hierarchy of categories::
      Category of semigroups,
      ...
      Category of magmas,
+     Category of sets,
      ...]
 
     sage: for cls in Groups().element_class.mro(): print cls
@@ -647,6 +663,30 @@ but an algebra over `\ZZ` is not (it is just a `\ZZ`-module)!
 
     For implementation details on how the hierarchy of classes for
     parents and elements is constructed, see :class:`Category`.
+
+
+.. _category-primer-subcategory:
+
+On the category hierarchy: subcategories and super categories
+-------------------------------------------------------------
+
+We have seen above that, for example, the category of groups is
+considered by Sage as a subcategory of the category of sets. For
+category purists, this is not quite correct: namely, a group is not a
+set; instead, one can recover the underlying set by forgetting the
+multiplicative structure. However, it would be impractical to have to
+explicitly forget the multiplicative structure whenever one wanted to
+apply on a group an operation defined on sets. In object oriented
+parlance, we really want the relation "a group *is a* set", so that
+groups can inherit code implemented on sets.
+
+Therefore, in Sage, as well as in most systems with a similar category
+framework, we use this slightly abusive definition of subcategory:
+
+A category ``Ds()`` is a *subcategory* of the category ``Cs()`` if, up
+to implicitly applying the appropriate forgetful functor, every object
+of ``Ds()`` is an object of ``Cs()``. Reciprocally, ``Cs()`` is in
+this case a *super category* of ``Ds()``.
 
 
 Categories are instances and have operations
@@ -1156,30 +1196,6 @@ subcategory of the objects of ``Cs`` satisfying the axiom
 models the subcategory of the objects of ``Ds`` satisfying the axiom
 ``A``. In most cases, it's a *full subcategory* (see
 :wikipedia:`Subcategory`).
-
-.. NOTE::
-
-    It should be said that Sage is using the word "subcategory"
-    in a very liberal sense, far from its original meaning in
-    category theory. In Sage, objects of a subcategory are
-    allowed to contain data which objects of the original
-    category do not; for existance, Sage considers the category
-    of graded `R`-modules to be a subcategory of the category
-    of `R`-modules, whereas in mathematics the opposite is the
-    case. In Sage, a "subcategory" of a category ``Cs`` is
-    merely a category whose objects, morphisms, subcategories
-    etc. can be coerced to objects, morphisms, subcategories
-    etc. of ``Cs``, respectively. In other words, it is a
-    category whose classes inherit from the respective classes
-    of ``Cs``.
-
-.. TODO::
-
-    Is this true?
-
-    How do I write a subcategory in Sage? Just write a category
-    and let it inherit from ``Cs``? Where do I put the coercions
-    which make elements of the subcategory into elements of ``Cs``?
 
 For example, the category of sets defines the ``Finite`` axiom, and
 this axiom is available in the subcategory of groups::

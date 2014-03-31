@@ -105,11 +105,15 @@ def import_statement_string(module, names, lazy):
         "lazy_import('sage.misc.dev_tools', 'import_statement_string', 'iss')"
         sage: dt.import_statement_string(modname, [('a','b'),('c','c'),('d','e')], False)
         'from sage.misc.dev_tools import a as b, c, d as e'
+        sage: dt.import_statement_string(modname, [(None,None)], False)
+        'import sage.misc.dev_tools'
     """
     if lazy:
         if len(names) == 1:
             name, alias = names[0]
             if name == alias:
+                if name is None:
+                    raise ValueError("can not lazy import modules")
                 return "lazy_import('%s', '%s')"%(module, name)
             else:
                 return "lazy_import('%s', '%s', '%s')"%(module, name, alias)
@@ -117,13 +121,22 @@ def import_statement_string(module, names, lazy):
         obj_aliases = "[" + ", ".join("'" + name[1] + "'" for name in names) + "]"
         return "lazy_import('%s', %s, %s)"%(module, obj_names, obj_aliases)
     else:
+        import_module = False
         name_list = []
         for name,alias in names:
             if name == alias:
+                if name is None:
+                    import_module = True
+                    continue
                 name_list.append(name)
             else:
                 name_list.append("%s as %s"%(name,alias))
-        return "from %s import %s"%(module, ', '.join(name_list))
+        res = []
+        if import_module:
+            res.append("import %s"%module)
+        if name_list:
+            res.append("from %s import %s"%(module, ', '.join(name_list)))
+        return "\n".join(res)
 
 def load_submodules(module=None, exclude_pattern=None):
     r"""
@@ -277,8 +290,6 @@ def find_object_modules(obj):
         {'sage.rings.real_mpfr': ['RR']}
         sage: find_object_modules(ZZ)
         {'sage.rings.integer_ring': ['Z', 'ZZ']}
-
-    Here we test some instances::
 
     .. NOTE::
 
@@ -442,7 +453,7 @@ def import_statements(*objects, **options):
         sage: import_statements('EnumeratedSetFromIterator')
         Traceback (most recent call last):
         ...
-        ValueError: no object whose name matches 'EnumeratedSetFromIterator' was found.
+        ValueError: no object matched by 'EnumeratedSetFromIterator' was found.
         sage: from sage.misc.dev_tools import load_submodules
         sage: load_submodules(sage.sets)
         load sage.sets.cartesian_product... suceeded
@@ -480,6 +491,10 @@ def import_statements(*objects, **options):
         from sage.symbolic.constants import NaN
         sage: import_statements(pi)
         from sage.symbolic.constants import pi
+        sage: import_statements('SAGE_ENV')
+        from sage.env import SAGE_ENV
+        sage: import_statements('graph_decompositions')
+        import sage.graphs.graph_decompositions
 
     .. NOTE::
 
@@ -491,9 +506,9 @@ def import_statements(*objects, **options):
     import inspect
     from sage.misc.lazy_import import LazyImport
 
-    answer = {}   # a dictionnary module -> things to be imported
-                  # a value None is interpreted as the fact that it is the
-                  # module that we want to import
+    answer = {}   # a dictionnary module -> [(name1,alias1), (name2,alias2) ...]
+                  # where "nameX" is an object in "module" that has to be
+                  # imported with the alias "aliasX"
 
     lazy = options.pop("lazy", False)
     verbose = options.pop("verbose", True)
@@ -503,7 +518,9 @@ def import_statements(*objects, **options):
         raise ValueError("Unexpected '%s' argument"%options.keys()[0])
 
     for obj in objects:
-        # if obj is a string use look for an object that goes by that name
+        name = None    # the name of the object
+
+        # 1. if obj is a string, we look for an object that has that name
         if isinstance(obj, str):
             name = obj
             obj = find_objects_from_name(name, 'sage')
@@ -531,17 +548,27 @@ def import_statements(*objects, **options):
                 for module_name in modules:
                     print "#   - %s"%module_name
 
+            # choose a random object among the potentially enormous list of
+            # objects we get from "name"
             obj = obj[0]
 
-        else: # otherwise we need to fix the name later
-            name = None
 
+        # 1'. if obj is a LazyImport we recover the real object
         if isinstance(obj, LazyImport):
             obj = obj._get_object()
 
-        # easy case: the object is a module
+
+        # 2. Find out in which modules obj lives
+        # and update answer with a couple of strings "(name,alias)" where "name" is
+        # the name of the object in the module and "alias" is the name of the
+        # object
+
+        # easy case: the object is itself a module
         if inspect.ismodule(obj):
-            raise ValueError("the object '%s' is a module"%obj)
+            module_name = obj.__name__
+            if module_name not in answer:
+                answer[module_name] = []
+            answer[module_name].append((None,None))
             continue
 
         modules = find_object_modules(obj)
@@ -551,7 +578,7 @@ def import_statements(*objects, **options):
         if not modules:
             raise ValueError("no import statement found for '%s'."%obj)
 
-        if len(modules) == 1:
+        if len(modules) == 1:  # the module is well defined
             module_name, obj_names = modules.items()[0]
             if name is None:
                 if verbose and len(obj_names) > 1:
@@ -569,7 +596,9 @@ def import_statements(*objects, **options):
             answer[module_name].append((name,alias))
             continue
 
-        # here we get several answers
+        # here modules contain several answers and we first try to see if there
+        # is a best one (i.e. the object "obj" is contained in the module and
+        # has name "name")
         if name is not None:
             good_modules = []
             for module_name in modules:
@@ -582,7 +611,8 @@ def import_statements(*objects, **options):
                 answer[module_name].append((name,name))
                 continue
 
-        # if the object is a class instance, we might prefer use the .all
+        # if the object is a class instance, it is likely that it is defined in
+        # some XYZ.all module
         from sageinspect import isclassinstance
         if isclassinstance(obj):
             module_name = type(obj).__module__
@@ -595,6 +625,9 @@ def import_statements(*objects, **options):
                 module_name = None
 
         if module_name is None:
+            # here, either "obj" is a class instance but there is no natural
+            # candidate for its module or "obj" is not a class instance.
+
             not_all_modules = [module_name for module_name in modules if not '.all_' in module_name and not module_name.endswith('.all')]
             if not(not_all_modules):
                 print "# ** Warning **: the object %s is only defined in .all modules"%obj
@@ -605,6 +638,7 @@ def import_statements(*objects, **options):
                     print "# ** Warning **: several modules for the object %s: %s"%(obj, ', '.join(modules.keys()))
                 module_name = not_all_modules[0]
 
+        # 3. Now that we found the module, we fix the problem of the alias
         if name is None:
             alias = name = modules[module_name][0]
         else:

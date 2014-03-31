@@ -60,12 +60,21 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: E.simon_two_descent()
         (1, 1, [(-1 : 0 : 1)])
 
+    An example with an elliptic curve defined over a relative number field::
+
+        sage: F.<a> = QuadraticField(29)
+        sage: x = QQ['x'].gen()
+        sage: K.<b> = F.extension(x^2-1/2*a+1/2)
+        sage: E = EllipticCurve(K,[1, 0, 5/2*a + 27/2, 0, 0]) # long time (about 3 s)
+        sage: E.simon_two_descent(lim1=2, limtriv=3)
+        (1, 1, ...)
+
     Check that :trac:`16022` is fixed::
 
         sage: K.<y> = NumberField(x^4 + x^2 - 7);
         sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
         sage: E.simon_two_descent(lim1=2, limtriv=3)  # long time (about 3 s)
-        (1, 1, [(-369/25*y^3 + 539/25*y^2 - 1178/25*y + 1718/25 : -27193/125*y^3 + 39683/125*y^2 - 86816/125*y + 126696/125 : 1)])
+        (1, 1, ...)
 
     """
     init()
@@ -76,10 +85,15 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     K_orig = K
     # The following is to correct the bug at \#5204: the gp script
     # fails when K is a number field whose generator is called 'x'.
-    if not K is QQ:
-        K = K.change_names('a')
+    # It also deals with relative number fields.
     E_orig = E
-    E = EllipticCurve(K,[K(list(a)) for a in E.ainvs()])
+    if not K is QQ:
+        K = K_orig.absolute_field('a')
+        from_K,to_K = K.structure()
+        E = E_orig.change_ring(to_K)
+    else:
+        from_K = lambda x:x
+        to_K = lambda x:x
     F = E.integral_model()
 
     if K != QQ:
@@ -119,6 +133,6 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
     inv_transform = F.isomorphism_to(E)
     ans[2] = [inv_transform(F(P)) for P in ans[2]]
-    ans[2] = [E_orig([K_orig(list(c)) for c in list(P)]) for P in ans[2]]
+    ans[2] = [E_orig([from_K(c) for c in list(P)]) for P in ans[2]]
     return ans
 

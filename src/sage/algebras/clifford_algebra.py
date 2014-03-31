@@ -1271,8 +1271,8 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
             sage: from sage.algebras.clifford_algebra import ExteriorAlgebraDifferential
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par1 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2):x, (2,0):y})
-            sage: par2 = ExteriorAlgebraDifferential(E, Family({(0,1): z, (1,2):x, (0,2):-y}))
-            sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {(2,):-1}, (1,2): {(0,):1}, (2,0):{(1,):1}})
+            sage: par2 = ExteriorAlgebraDifferential(E, {(0,1):z, (1,2):x, (0,2):-y})
+            sage: par3 = ExteriorAlgebraDifferential(E, {(0,1): {(2,):1}, (1,2): {(0,):1}, (2,0):{(1,):1}})
             sage: par1 is par2 and par2 is par3
             True
         """
@@ -1296,7 +1296,7 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
-            sage: TestSuite(d).run()
+            sage: TestSuite(par).run() # known bug - morphisms are properly in a category
         """
         self._s_coeff = s_coeff
 

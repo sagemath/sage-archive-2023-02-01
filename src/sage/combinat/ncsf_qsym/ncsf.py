@@ -1859,7 +1859,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             # @cached_method?
             def coproduct_on_generators(self, i):
-                """
+                r"""
                 Return the image of the `i^{th}` generator of the algebra under
                 the coproduct.
 
@@ -1877,11 +1877,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                     sage: S.coproduct_on_generators(3)
                     S[] # S[3] + S[1] # S[2] + S[2] # S[1] + S[3] # S[]
+
+                TESTS::
+
                     sage: S.coproduct_on_generators(0)
-                    'Not a positive integer: 0'
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: Not a positive integer: 0
                 """
-                if i<1:
-                    return "Not a positive integer: %s" % `i`
+                if i < 1:
+                    raise ValueError("Not a positive integer: {}".format(i))
                 def C(i): return self._basis_keys([i]) if i else self._basis_keys([])
                 T = self.tensor_square()
                 return T.sum_of_monomials( (C(j), C(i-j)) for j in range(0,i+1) )
@@ -1963,11 +1968,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: Psi=NonCommutativeSymmetricFunctions(QQ).Psi()
                     sage: Psi.antipode_on_generators(2)
                     -Psi[2]
+
+                TESTS::
+
                     sage: Psi.antipode_on_generators(0)
-                    'Not a positive integer: 0'
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: Not a positive integer: 0
                 """
-                if i<1:
-                    return "Not a positive integer: %s" % `i`
+                if i < 1:
+                    raise ValueError("Not a positive integer: {}".format(i))
                 return - self.algebra_generators()[i]
 
             def coproduct_on_generators(self, i):
@@ -1989,11 +1999,16 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
                     sage: Psi.coproduct_on_generators(3)
                     Psi[] # Psi[3] + Psi[3] # Psi[]
+
+                TESTS::
+                
                     sage: Psi.coproduct_on_generators(0)
-                    'Not a positive integer: 0'
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: Not a positive integer: 0
                 """
-                if i<1:
-                    return "Not a positive integer: %s" % `i`
+                if i < 1:
+                    raise ValueError("Not a positive integer: {}".format(i))
                 x = self.algebra_generators()[i]
                 from sage.categories.all import tensor
                 return tensor([self.one(), x]) + tensor([x, self.one()])

@@ -1411,7 +1411,7 @@ Adding an axiom ``A`` to a category ``Cs()`` not implementing it
 In this case, ``Cs().A()`` returns the join of:
 
 - ``Cs()``
-- ``Bs().A()`` for every super category ``Bs()`` of ``Cs()``
+- ``Bs().A()`` for every direct super category ``Bs()`` of ``Cs()``
 - the categories appearing in ``Cs().A_extra_super_categories()``
 
 This is a highly recursive process. In fact, as such, it would run

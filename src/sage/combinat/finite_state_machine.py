@@ -1693,6 +1693,7 @@ class FiniteStateMachine(SageObject):
         if is_FiniteStateMachine(other):
             return self.disjoint_union(other)
 
+    __add__ = __or__
 
     def __iadd__(self, other):
         """

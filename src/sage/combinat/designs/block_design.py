@@ -103,7 +103,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
       own implementation. In order to use GAP's implementation instead (i.e. its
       ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
-      GAP's "design" package must be available in this case.
+      GAP's "design" package must be available in this case, and that it can be
+      installed with the ``gap_packages`` spkg.
 
     EXAMPLES:
 
@@ -143,7 +144,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def ProjectivePlaneDesign(n, type="Desarguesian"):
+def ProjectivePlaneDesign(n, type="Desarguesian", algorithm=None):
     r"""
     Returns a projective plane of order `n`.
 
@@ -160,6 +161,12 @@ def ProjectivePlaneDesign(n, type="Desarguesian"):
       considering the 1- and 2- dimensional spaces of `F_n^3`.
 
       For the moment, no other value is available for this parameter.
+
+    - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
+      own implementation. In order to use GAP's implementation instead (i.e. its
+      ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
+      GAP's "design" package must be available in this case, and that it can be
+      installed with the ``gap_packages`` spkg.
 
     .. SEEALSO::
 
@@ -194,6 +201,8 @@ def ProjectivePlaneDesign(n, type="Desarguesian"):
         Traceback (most recent call last):
         ...
         ValueError: The value of 'type' must be 'Desarguesian'.
+        sage: designs.ProjectivePlaneDesign(2, algorithm="gap") # optional - gap_packages
+        Incidence structure with 7 points and 7 blocks
     """
     from sage.rings.arith import two_squares
 
@@ -215,7 +224,7 @@ def ProjectivePlaneDesign(n, type="Desarguesian"):
         raise ValueError("If such a projective plane exists, "
                          "we do not know how to build it.")
 
-    return ProjectiveGeometryDesign(2,1,F)
+    return ProjectiveGeometryDesign(2,1,F, algorithm=algorithm)
 
 def AffineGeometryDesign(n, d, F):
     r"""
@@ -308,14 +317,14 @@ def WittDesign(n):
 
         sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
         sage: BD.is_block_design()      # optional - gap_packages (design package)
-        (2, 9, 3, 1)
+        (True, [2, 9, 3, 1])
         sage: BD                   # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD             # optional - gap_packages (design package)
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
         sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
-        sage: BD.is_block_design()   # optional - gap_packages (design package)
-        (5, 12, 6, 1)
+        sage: BD.is_block_design()         # optional - gap_packages (design package)
+        (True, [5, 12, 6, 1])
     """
     from sage.interfaces.gap import gap, GapElement
     gap.load_package("design")

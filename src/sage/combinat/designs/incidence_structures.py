@@ -419,8 +419,8 @@ class IncidenceStructure(object):
             sage: PP = designs.ProjectivePlaneDesign(4)
             sage: PP.dual_design().is_block_design()
             (True, [2, 21, 5, 1])
-            sage: PP = designs.ProjectivePlaneDesign(4, algorithm="gap") # optional - gap_design
-            sage: PP.dual_design().is_block_design()                     # optional - gap_design
+            sage: PP = designs.ProjectivePlaneDesign(4)             # optional - gap_packages
+            sage: PP.dual_design(algorithm="gap").is_block_design() # optional - gap_packages
             (True, [2, 21, 5, 1])
 
         TESTS::
@@ -431,12 +431,12 @@ class IncidenceStructure(object):
             Incidence structure with 4 points and 3 blocks
             sage: D.dual_design()
             Incidence structure with 3 points and 4 blocks
-            sage: print D.dual_design(algorithm="gap")       # optional - gap_design
+            sage: print D.dual_design(algorithm="gap")       # optional - gap_packages
             IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
             sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
             sage: BD
             Incidence structure with 7 points and 7 blocks
-            sage: print BD.dual_design(algorithm="gap")         # optional - gap_design
+            sage: print BD.dual_design(algorithm="gap")         # optional - gap_packages
             IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
             sage: BD.dual_incidence_structure()
             Incidence structure with 7 points and 7 blocks

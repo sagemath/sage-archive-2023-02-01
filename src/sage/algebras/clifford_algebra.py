@@ -1036,6 +1036,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: E.boundary({(0,1): z, (1,2):x, (2,0):y})
+            Boundary endomorphism of The exterior algebra of rank 3 over Rational Field
         """
         return ExteriorAlgebraBoundary(self, s_coeff)
 
@@ -1051,6 +1052,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: E.coboundary({(0,1): z, (1,2):x, (2,0):y})
+            Coboundary endomorphism of The exterior algebra of rank 3 over Rational Field
         """
         return ExteriorAlgebraCoboundary(self, s_coeff)
 
@@ -1195,11 +1197,11 @@ class ExteriorAlgebra(CliffordAlgebra):
                 sage: (x - 3*y + z/3)^2
                 0
             """
-            zero = self.parent().zero()
+            zero = self.parent().base_ring().zero()
             d = {}
 
-            for ml,cl in self._monomial_coefficients.items():
-                for mr,cr in other._monomial_coefficients.items():
+            for ml,cl in self:
+                for mr,cr in other:
                     # Create the next term
                     t = list(mr)
                     for i in reversed(ml):
@@ -1253,8 +1255,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             """
             P = self.parent()
             return P.sum([c * cx * P.interior_product_on_basis(m, mx)
-                          for m,c in self._monomial_coefficients.items()
-                          for mx,cx in x._monomial_coefficients.items()])
+                          for m,c in self for mx,cx in x])
 
         antiderivation = interior_product
 
@@ -1344,7 +1345,77 @@ class ExteriorAlgebra(CliffordAlgebra):
 
 class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentation):
     r"""
-    The differential `\partial` of an exterior algebra `\Lambda(V)`.
+    A differential of an exterior algebra `\Lambda(L)` defined by the
+    structure coefficients of a Lie algebra `L`.
+    """
+    @staticmethod
+    def __classcall__(cls, E, s_coeff):
+        """
+        Standardizes the structure coeffcients to ensure a unique
+        representation.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import ExteriorAlgebraDifferential
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par1 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (2,0): y})
+            sage: par2 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (0,2): -y})
+            sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {(2,):-1}, (1,2): {(0,):1}, (2,0):{(1,):1}})
+            sage: par1 is par2 and par2 is par3
+            True
+        """
+        d = {}
+
+        for k,v in dict(s_coeff).items():
+            if v not in E:
+                v = E._from_dict({i:c for i,c in dict(v).items()})
+
+            if k[0] < k[1]:
+                d[tuple(k)] = v
+            else:
+                d[(k[1], k[0])] = -v
+
+        from sage.sets.family import Family
+        return super(ExteriorAlgebraDifferential, cls).__classcall__(cls, E, Family(d))
+
+    def __init__(self, E, s_coeff):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.boundary({(0,1): z, (1,2):x, (2,0):y})
+            sage: TestSuite(par).run() # known bug - morphisms are properly in a category
+        """
+        self._s_coeff = s_coeff
+
+        # Technically this preserves the grading but with a shift of -1
+        cat = AlgebrasWithBasis(E.base_ring())
+        ModuleMorphismByLinearity.__init__(self, domain=E, codomain=E, category=cat)
+
+    def homology(self, deg=None, **kwds):
+        """
+        Return the homology determined by ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.boundary({(0,1): z, (1,2): x, (2,0): y})
+            sage: par.homology()
+            {0: Vector space of dimension 1 over Rational Field,
+             1: Vector space of dimension 0 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field,
+             3: Vector space of dimension 1 over Rational Field}
+            sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
+            sage: d.homology()
+        """
+        return self.chain_complex().homology(deg, **kwds)
+
+class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
+    r"""
+    The boundary `\partial` of an exterior algebra `\Lambda(L)` defined
+    by the structure coefficients of `L`.
 
     Let `L` be a Lie algebra. We give an exterior algebra `E` a chain
     complex structure by considering a differential
@@ -1376,7 +1447,7 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
     product `\times` of `\RR^3`::
 
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-        sage: par = E.differential({(0,1): z, (1,2): x, (2,0): y})
+        sage: par = E.boundary({(0,1): z, (1,2): x, (2,0): y})
         sage: par(x)
         0
         sage: par(x*y)
@@ -1499,9 +1570,9 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
         sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
         sage: d(x)
-        0
+        y^z
         sage: d(x*y)
-        z
+        0
 
     We check that `d \circ d = 0`::
 
@@ -1516,14 +1587,14 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: par = E.coboundary({(0,1): z, (1,2):x, (2,0):y})
-            sage: TestSuite(par).run() # known bug - morphisms are properly in a category
+            sage: d = E.coboundary({(0,1): z, (1,2):x, (2,0):y})
+            sage: TestSuite(d).run() # known bug - morphisms are properly in a category
         """
         # Construct the dictionary of costructure coefficients, i.e. given
         # [x_j, x_k] = \sum_i s_{jk}^i x_i, we get x^i |-> \sum_{j<k} s_{jk}^i x^j x^k
         self._cos_coeff = {}
-        B = E.basis()
         zero = E.zero()
+        B = E.basis()
         for k,v in dict(s_coeff).items():
             k = B[k]
             for m,c in v:
@@ -1535,8 +1606,8 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         TESTS::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: par = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
-            sage: par._repr_type()
+            sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
+            sage: d._repr_type()
             'Coboundary'
         """
         return "Coboundary"

@@ -178,7 +178,8 @@ cdef public object subs_args_to_PyTuple(const GExMap& map, unsigned options, con
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>, 
-        <type 'long'>, <type 'sage.symbolic.expression.Expression'>]
+          <type 'int'>, 
+          <type 'sage.symbolic.expression.Expression'>]
         x
     """
     from sage.symbolic.ring import SR

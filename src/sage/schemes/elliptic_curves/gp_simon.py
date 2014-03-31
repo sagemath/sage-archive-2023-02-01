@@ -60,6 +60,13 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: E.simon_two_descent()
         (1, 1, [(-1 : 0 : 1)])
 
+    Check that :trac:`16022` is fixed::
+
+        sage: K.<y> = NumberField(x^4 + x^2 - 7);
+        sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
+        sage: E.simon_two_descent(lim1=2, limtriv=3)  # long time (about 3 s)
+        (1, 1, [(-369/25*y^3 + 539/25*y^2 - 1178/25*y + 1718/25 : -27193/125*y^3 + 39683/125*y^2 - 86816/125*y + 126696/125 : 1)])
+
     """
     init()
 

@@ -1740,25 +1740,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         firstgood=0
 
-        def parallelFunction(morphism):
+        def parallel_function(morphism):
             return morphism.possible_periods()
 
         # Calling possible_periods for each prime in parallel
-        parallelData = []
+        parallel_data = []
         for q in primes(primebound[0],primebound[1]+1):
             if not (q in badprimes):
                 F=self.change_ring(GF(q))
-                parallelData.append(((F,),{}))
+                parallel_data.append(((F,),{}))
 
-        parallelResults=list(parallel_iter(len(parallelData), parallelFunction, parallelData))
+        parallel_results=list(parallel_iter(len(parallel_data), parallel_function, parallel_data))
 
-        for result in parallelResults:
-            possiblePeriods = result[1]
+        for result in parallel_results:
+            possible_periods = result[1]
             if firstgood==0:
-                periods=set(possiblePeriods)
+                periods=set(possible_periods)
                 firstgood=1
             else:
-                periodsq=set(possiblePeriods)
+                periodsq=set(possible_periods)
                 periods=periods.intersection(periodsq)
 
         if firstgood==0:
@@ -2451,15 +2451,15 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         while points != []:
 
             # Finding the preimage of each point in parallel
-            parallelData = []
+            parallel_data = []
             for P in points:
-                parallelData.append(((self,P,),{}))
+                parallel_data.append(((self,P,),{}))
 
             points = []
 
-            parallelResults=list(parallel_iter(len(parallelData), self.rational_preimages, parallelData))
+            parallel_results=list(parallel_iter(len(parallel_data), self.rational_preimages, parallel_data))
 
-            for result in parallelResults:
+            for result in parallel_results:
                 preimages = result[1]
                 for p in preimages:
                     if not p in all_preimages:

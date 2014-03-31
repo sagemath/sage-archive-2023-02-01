@@ -446,12 +446,24 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl = CliffordAlgebra(Q)
             sage: TestSuite(Cl).run()
+
+        TESTS:
+
+        We check that the basis elements are indeed indexed by
+        *strictly increasing* tuples:
+
+            sage: Q = QuadraticForm(ZZ, 9)
+            sage: Cl = CliffordAlgebra(Q)
+            sage: ba = Cl.basis().keys()
+            sage: all( tuple(sorted(S)) in ba
+            ....:      for S in Subsets(range(9)) )
+            True
         """
         self._quadratic_form = Q
         R = Q.base_ring()
         if category is None:
             category = GradedAlgebrasWithBasis(R)
-        indices = map( tuple, Subsets(range(Q.dim())) )
+        indices = map( lambda x: tuple(sorted(x)), Subsets(range(Q.dim())) )
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 
@@ -855,6 +867,11 @@ class ExteriorAlgebra(CliffordAlgebra):
         of Hopf algebras, but this is not really correct, since it is a
         Hopf superalgebra with the odd-degree components forming the odd
         part. So use Hopf-algebraic methods with care!
+
+    .. TODO::
+
+        Add a category for Hopf superalgebras. (Once :trac:`10963`
+        is finished...)
 
     INPUT:
 

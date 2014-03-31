@@ -297,10 +297,10 @@ cdef class SymbolicRing(CommutativeRing):
 
         INPUT:
 
-        - ``x`` - a Python object
+        - ``x`` - a Python object.
 
         - ``force`` - bool, default ``False``, if True, the Python object
-          is takes as is without attempting coercion or list traversal
+          is taken as is without attempting coercion or list traversal.
 
         - ``recursive`` - bool, default ``True``, disables recursive
           traversal of lists.

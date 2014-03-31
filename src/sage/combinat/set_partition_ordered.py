@@ -44,10 +44,12 @@ class OrderedSetPartition(ClonableArray):
     """
     An ordered partition of a set.
 
-    An ordered set partition `p` of a set `s` is a partition of `s` into
-    subsets called parts and represented as a list of sets. By
+    An ordered set partition `p` of a set `s` is a list of pairwise
+    disjoint nonempty subsets of `s` such that the union of these
+    subsets is `s`. These subsets are called the parts of the partition.
+    We represent an ordered set partition as a list of sets. By
     extension, an ordered set partition of a nonnegative integer `n` is
-    the set partition of the integers from 1 to `n`. The number of
+    the set partition of the integers from `1` to `n`. The number of
     ordered set partitions of `n` is called the `n`-th ordered Bell
     number.
 
@@ -412,9 +414,9 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
         """
         Return the cardinality of ``self``.
 
-        The number of ordered partitions of a set of length `k` into `n` parts
-        is equal to `n! S(n,k)` where `S(n,k)` denotes the Stirling number
-        of the second kind.
+        The number of ordered partitions of a set of size `n` into `k`
+        parts is equal to `k! S(n,k)` where `S(n,k)` denotes the Stirling
+        number of the second kind.
 
         EXAMPLES::
 

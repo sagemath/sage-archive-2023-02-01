@@ -1003,7 +1003,7 @@ class Permutation(CombinatorialObject, Element):
 
     def _to_cycles_orig(self, singletons=True):
         r"""
-        Returns the permutation p as a list of disjoint cycles.
+        Returns the permutation ``self`` as a list of disjoint cycles.
 
         EXAMPLES::
 

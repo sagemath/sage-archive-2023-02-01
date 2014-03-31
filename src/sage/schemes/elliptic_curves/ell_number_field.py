@@ -1657,6 +1657,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [6, 6, 6, 6, 6, 6]
             sage: [E.torsion_order() for E in CDB.iter([14])]
             [6, 6, 2, 6, 2, 6]
+
+        An example over a relative number field (see :trac:`16011`)::
+
+            sage: R.<x> = QQ[]
+            sage: F.<a> = QuadraticField(5)
+            sage: K.<b> = F.extension(x^2-3)
+            sage: E = EllipticCurve(K,[0,0,0,b,1])
+            sage: E.torsion_subgroup().order()
+            1
+
         """
         E = self
         bound = 0
@@ -1678,7 +1688,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 if fqq == 1 or charqq**fqq < 3*number_of_places:
                     # check if the model is integral at the place
                     if min([K.ideal(a).valuation(qq) for a in E.a_invariants()]) >= 0:
-                        eqq = qq.ramification_index()
+                        eqq = qq.absolute_ramification_index()
                         # check if the formal group at the place is torsion-free
                         # if so the torsion injects into the reduction
                         if eqq < charqq - 1 and disc.valuation(qq) == 0:

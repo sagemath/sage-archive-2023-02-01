@@ -1716,7 +1716,7 @@ class FiniteStateMachine(SageObject):
     #*************************************************************************
 
 
-    def __add__(self, other):
+    def __or__(self, other):
         """
         Returns the disjoint union of the finite state machines self and other.
 
@@ -1730,7 +1730,7 @@ class FiniteStateMachine(SageObject):
 
         TESTS::
 
-            sage: FiniteStateMachine() + FiniteStateMachine([('A', 'B')])
+            sage: FiniteStateMachine() | FiniteStateMachine([('A', 'B')])
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -1738,6 +1738,7 @@ class FiniteStateMachine(SageObject):
         if is_FiniteStateMachine(other):
             return self.disjoint_union(other)
 
+    __add__ = __or__
 
     def __iadd__(self, other):
         """
@@ -1752,11 +1753,11 @@ class FiniteStateMachine(SageObject):
         raise NotImplementedError
 
 
-    def __mul__(self, other):
+    def __and__(self, other):
         """
         TESTS::
 
-            sage: FiniteStateMachine() * FiniteStateMachine([('A', 'B')])
+            sage: FiniteStateMachine() & FiniteStateMachine([('A', 'B')])
             Traceback (most recent call last):
             ...
             NotImplementedError

@@ -114,6 +114,7 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.libs.pari.all import pari
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -1760,9 +1761,10 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self._parent.laurent_series_ring()(self)
 
-    def ogf(self):
+    def egf_to_ogf(self):
         r"""
-        Returns the ordinary generating function associated to self.
+        Returns the ordinary generating function power series,
+        assuming self is an exponential generating function power series.
 
         This function is known as ``serlaplace`` in PARI/GP.
 
@@ -1770,14 +1772,15 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
-            sage: f.ogf()
+            sage: f.egf_to_ogf()
             t + t^2 + 2*t^3
         """
         return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
 
-    def egf(self):
+    def ogf_to_egf(self):
         r"""
-        Returns the exponential generating function associated to self.
+        Returns the exponential generating function power series,
+        assuming self is an ordinary generating function power series.
 
         This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.
 
@@ -1785,10 +1788,13 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: R.<t> = PowerSeriesRing(QQ)
             sage: f = t + t^2 + 2*t^3
-            sage: f.egf()
+            sage: f.ogf_to_egf()
             t + 1/2*t^2 + 1/3*t^3
         """
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+
+    ogf = deprecated_function_alias(15705, egf_to_ogf)
+    egf = deprecated_function_alias(15705, ogf_to_egf)
 
     def _pari_(self):
         """

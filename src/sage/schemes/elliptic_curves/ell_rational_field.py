@@ -1531,17 +1531,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             1
 
         """
-        verbose = int(verbose)
-        t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
-                              maxprob=maxprob, limbigprime=limbigprime)
-        if t=='fail':
-            raise RuntimeError, 'Run-time error in simon_two_descent.'
-        if verbose>0:
-            print "simon_two_descent returns", t
-        rank_low_bd = rings.Integer(t[0])
-        two_selmer_rank = rings.Integer(t[1])
-        pts = [self(P) for P in t[2]]
-        pts = [P for P in pts if P.has_infinite_order()]
+        t = EllipticCurve_number_field.simon_two_descent(self, verbose=verbose,
+                                                         lim1=lim1, lim3=lim3, limtriv=limtriv,
+                                                         maxprob=maxprob, limbigprime=limbigprime)
+        rank_low_bd = t[0]
+        two_selmer_rank = t[1]
+        pts = t[2]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
             if verbose>0:
                 print "Rank determined successfully, saturating..."

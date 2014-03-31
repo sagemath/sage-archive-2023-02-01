@@ -6,6 +6,9 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+# Delete any old version or setup.py refuses to overwrite it
+rm -rf "$SAGE_LOCAL/lib/python/site-packages/dot2tex"
+
 ls -al
 cd src
 

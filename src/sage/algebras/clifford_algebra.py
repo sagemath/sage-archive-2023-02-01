@@ -50,6 +50,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: ((x^3-z)*x + y)^2
             -2*x*y*z - x*z + 5*x - 4*y + 2*z + 2
+            sage: Cl.zero()
+            0
         """
         return repr_from_monomials(self.list(), self.parent()._repr_term)
 
@@ -73,29 +75,42 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         """
         Return ``self`` multiplied by ``other``.
 
+        INPUT:
+
+        - ``other`` -- element of the same Clifford algebra as ``self``
+
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: (x^3 - z*y)*x*(y*z + x*y*z)
             x*y*z + y*z - 24*x + 12*y + 2*z - 24
+            sage: y*x
+            -x*y + 2
+            sage: z*x
+            -x*z + 3
+            sage: z*z
+            6
+            sage: x*0
+            0
+            sage: 0*x
+            0
         """
         Q = self.parent()._quadratic_form
         zero = self.parent().base_ring().zero()
         d = {}
 
-        # Create the standard basis vectors for simplicity
-        e = []
-        for i in range(Q.dim()):
-            e.append([0]*Q.dim())
-            e[-1][i] = 1
-
         for ml,cl in self:
-            # Distribute the current term over the other
+            # Distribute the current term ``cl`` * ``ml`` over ``other``.
             cur = copy(other._monomial_coefficients) # The current distribution of the term
             for i in reversed(ml):
-                # Distribute the current factor
+                # Distribute the current factor ``e[i]`` (the ``i``-th
+                # element of the standard basis).
                 next = {}
+                # At the end of the following for-loop, ``next`` will be
+                # the dictionary describing the element
+                # ``e[i]`` * (the element described by the dictionary ``cur``)
+                # (where ``e[i]`` is the ``i``-th standard basis vector).
                 for mr,cr in cur.items():
                     # Commute the factor as necessary until we are in order
                     pos = 0
@@ -106,9 +121,10 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         t = list(mr)
                         t.pop(pos)
                         t = tuple(t)
-                        uv = [0] * Q.dim()
-                        uv[i] = uv[j] = 1
-                        next[t] = next.get(t, zero) + cr * (Q(uv) - Q(e[i]) - Q(e[j]))
+                        next[t] = next.get(t, zero) + cr * Q[i,j]
+                        # Note: ``Q[i,j] == Q(e[i]+e[j]) - Q(e[i]) - Q(e[j])`` for
+                        # ``i != j``, where ``e[k]`` is the ``k``-th standard
+                        # basis vector.
                         cr = -cr
                         if next[t] == 0:
                             del next[t]
@@ -118,10 +134,12 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                     t = list(mr)
                     if i in t:
                         t.remove(i)
-                        cr *= Q(e[i])
+                        cr *= Q[i,i]
+                        # Note: ``Q[i,i] == Q(e[i])`` where ``e[i]`` is the
+                        # ``i``-th standard basis vector.
                     else:
                         t.insert(pos, i)
-                        t.sort()
+                        # Note that ``t`` is now sorted.
                     t = tuple(t)
                     next[t] = next.get(t, zero) + cr
                     if next[t] == 0:
@@ -133,11 +151,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 d[index] = d.get(index, zero) + cl * coeff
                 if d[index] == 0:
                     del d[index]
+
         return self.__class__(self.parent(), d)
 
     def list(self):
         """
-        Return ``self`` as a list.
+        Return the list of monomials and their coefficients in ``self``
+        (as a list of `2`-tuples, each of which has the form
+        ``(monomial, coefficient)``).
 
         EXAMPLES::
 
@@ -147,11 +168,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: elt.list()
             [((0,), 5), ((1,), 1)]
         """
-        return sorted(self._monomial_coefficients.items(), key=lambda x: (-len(x[0]), x[0]))
+        return sorted(self._monomial_coefficients.items(), key=lambda (m,c) : (-len(m), m))
 
     def support(self):
         """
         Return the support of ``self``.
+
+        This is the list of all monomials which appear with nonzero
+        coefficient in ``self``.
 
         EXAMPLES::
 
@@ -168,12 +192,16 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         Return the image of the reflection automorphism on ``self``.
 
         The *reflection automorphism* of a Clifford algebra is defined
-        by
+        as the linear endomorphism of this algebra which maps
 
         .. MATH::
 
             x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
             (-1)^m x_1 \wedge x_2 \wedge \cdots \wedge x_m.
+
+        It is an algebra automorphism of the Clifford algebra.
+
+        :meth:`degree_negation` is an alias for :meth:`reflection`.
 
         EXAMPLES::
 
@@ -194,14 +222,16 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: all(x.reflection().reflection() == x for x in Cl.basis())
             True
         """
-        return self.__class__(self.parent(), {m: (-1)**len(m)*c for m,c in self})
+        return self.__class__(self.parent(), {m: (-1)**len(m) * c for m,c in self})
+
+    degree_negation = reflection
 
     def transpose(self):
         r"""
         Return the transpose of ``self``.
 
-        The transpose is an anti-algebra involution of a Clifford algebra and
-        is defined (using linearity) by
+        The transpose is an anti-algebra involution of a Clifford algebra
+        and is defined (using linearity) by
 
         .. MATH::
 
@@ -217,6 +247,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             -x*z + 5*x + y + 3
             sage: t.transpose() == elt
             True
+            sage: Cl.one().transpose()
+            1
 
         TESTS:
 
@@ -233,7 +265,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             True
         """
         P = self.parent()
-        if len(self._monomial_coefficients) == 0:
+        if not self._monomial_coefficients:
             return P.zero()
         g = P.gens()
         return P.sum(c * P.prod(g[i] for i in reversed(m)) for m,c in self)
@@ -242,7 +274,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         r"""
         Return the Clifford conjugate of ``self``.
 
-        The Clifford conjugate of `x` is defined by:
+        The Clifford conjugate of an element `x` of a Clifford algebra is
+        defined as
 
         .. MATH::
 
@@ -299,7 +332,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         i_k \leq n \},
 
     where `n = \dim(V)` and where `\{ e_1, e_2, \cdots, e_n \}` is any
-    basis of `V`. Hence
+    fixed basis of `V`. Hence
 
     .. MATH::
 
@@ -313,23 +346,39 @@ class CliffordAlgebra(CombinatorialFreeModule):
     This construction satisfies the following universal property. Let
     `i : V \to Cl(V, Q)` denote the natural inclusion (which is an
     embedding). Then for every associative `\mathbf{k}`-algebra `A`
-    and any `\mathbf{k}`-linear map `j : V \to A`, there exists a
-    unique `\mathbf{k}`-algebra homomorphism `f : Cl(V, Q) \to A` such
-    that `f \circ i = j`. This property determines the Clifford algebra
-    uniquely up to isomorphism.
+    and any `\mathbf{k}`-linear map `j : V \to A` satisfying
+
+    .. MATH::
+
+        j(v)^2 = Q(v) \cdot 1_A
+
+    for all `v \in V`, there exists a unique `\mathbf{k}`-algebra
+    homomorphism `f : Cl(V, Q) \to A` such that `f \circ i = j`.
+    This property determines the Clifford algebra uniquely up to
+    canonical isomorphism. The inclusion `i` is commonly used to
+    identify `V` with a vector subspace of `Cl(V)`.
 
     The Clifford algebra also can be considered as a covariant functor
-    by mapping any linear map `\phi : W \to V` to the algebra morphism
-    `Cl(\phi) : Cl(W, \phi(Q)) \to Cl(V, Q)` where `\phi(Q) = \phi^T \cdot
-    Q \cdot \phi` (we consider `\phi` as a matrix). This map `\phi`
-    preserves the quadratic form by
+    from the category of vector spaces equipped with quadratic forms
+    to the category of algebras. In fact, if `(V, Q)` and `(W, R)`
+    are two vector spaces endowed with quadratic forms, and if
+    `g : W \to V` is a linear map preserving the quadratic form,
+    then we can define an algebra morphism
+    `Cl(g) : Cl(W, R) \to Cl(V, Q)` by requiring that it send every
+    `w \in W` to `g(w) \in V`. In particular, if `(V, Q)` is a
+    vector space with a quadratic form, and `W` is another vector
+    space, and `\phi : W \to V` is any linear map, then we obtain an
+    algebra morphism `Cl(\phi) : Cl(W, \phi(Q)) \to Cl(V, Q)` where
+    `\phi(Q) = \phi^T \cdot Q \cdot \phi` (we consider `\phi` as a
+    matrix) is the quadratic form `Q` pulled back to `W`. In fact, the
+    map `\phi` preserves the quadratic form because of
 
     .. MATH::
 
         \phi(Q)(x) = x^T \cdot \phi^T \cdot Q \cdot \phi \cdot x
         = (\phi \cdot x)^T \cdot Q \cdot (\phi \cdot x) = Q(\phi(x)).
 
-    Hence we have `\phi(w)^2 = -Q(\phi(w)) = -\phi(Q)(w)` for all `w in W`.
+    Hence we have `\phi(w)^2 = Q(\phi(w)) = \phi(Q)(w)` for all `w in W`.
 
     REFERENCES:
 
@@ -342,8 +391,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     EXAMPLES:
 
-    To create a Clifford algebra, all one needs to do is specify a quadratic
-    form::
+    To create a Clifford algebra, all one needs to do is specify a
+    quadratic form::
 
         sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
         sage: Cl = CliffordAlgebra(Q)
@@ -799,6 +848,13 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     The exterior algebra of an `R`-module `V` is a `\ZZ`-graded connected
     Hopf superalgebra.
+
+    .. WARNING::
+
+        We initialize the exterior algebra as an object of the category
+        of Hopf algebras, but this is not really correct, since it is a
+        Hopf superalgebra with the odd-degree components forming the odd
+        part. So use Hopf-algebraic methods with care!
 
     INPUT:
 

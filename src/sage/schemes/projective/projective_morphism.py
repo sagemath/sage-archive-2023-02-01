@@ -2213,7 +2213,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2-3/4*y^2,y^2])
-            sage: f.rational_periodic_points(prime_bound=20,lifting_prime=7) # long time
+            sage: sorted(f.rational_periodic_points(prime_bound=20,lifting_prime=7)) # long time
             [(-1/2 : 1), (1 : 0), (3/2 : 1)]
 
         ::
@@ -2221,20 +2221,21 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
             sage: f = H([2*x^3 - 50*x*z^2 + 24*z^3,5*y^3 - 53*y*z^2 + 24*z^3,24*z^3])
-            sage: f.rational_periodic_points(prime_bound=[1,20]) # long time
-            [(-3 : 1 : 1), (3 : 1 : 1), (5 : 1 : 1), (-1 : 0 : 1), (3 : 3 : 1), (-3
-            : 3 : 1), (-1 : 3 : 1), (1 : 3 : 1), (-3 : -1 : 1), (5 : 3 : 1), (-1 :
-            -1 : 1), (1 : 1 : 1), (3 : 0 : 1), (-3 : 0 : 1), (5 : 0 : 1), (3 : -1 :
-            1), (1 : 0 : 0), (5 : -1 : 1), (-1 : 1 : 1), (1 : -1 : 1), (0 : 1 : 0),
-            (1 : 0 : 1)]
+            sage: sorted(f.rational_periodic_points(prime_bound=[1,20])) # long time
+            [(-3 : -1 : 1), (-3 : 0 : 1), (-3 : 1 : 1), (-3 : 3 : 1), (-1 : -1 : 1),
+            (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1), (1
+            : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1), (3 : 0 :
+            1), (3 : 1 : 1), (3 : 3 : 1), (5 : -1 : 1), (5 : 0 : 1), (5 : 1 : 1), (5
+            : 3 : 1)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([-5*x^2 + 4*y^2,4*x*y])
-            sage: f.rational_periodic_points() # long time
-            [(2/3 : 1), (-2 : 1), (1 : 0), (2 : 1), (-2/3 : 1)]
+            sage: sorted(f.rational_periodic_points()) # long time
+            [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
+
 
         .. TODO::
 
@@ -2283,7 +2284,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
 
-        # Finding the preimage of each point in parallel
+        # Finding the rational lift for each point in parallel
         parallel_data = []
         for P in pos_points:
             parallel_data.append(((self,[P],B,),{}))

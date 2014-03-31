@@ -55,6 +55,26 @@ from sage.misc.preparser import preparse
 class SageMagics(Magics):
 
     @line_magic
+    def crun(self, s):
+        r"""
+        Profile C function calls
+
+        :param s: file to be loaded
+        :type s: string
+
+        EXAMPLES::
+
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('%crun sum(1/(1+n^2) for n in range(100))')   # optional - gperftools
+            PROFILE: interrupts/evictions/bytes = ...
+            Using local file ...
+            Using local file ...
+        """
+        import sage.misc.gperftools
+        sage.misc.gperftools.crun(s, evaluator=self.shell.ex)
+
+    @line_magic
     def runfile(self, s):
         r"""
         Loads the code contained in the file ``s``. This is designed

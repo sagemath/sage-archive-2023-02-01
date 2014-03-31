@@ -2122,7 +2122,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     if not scale is None:
         try:
             scale = R(scale)
-        except StandardError:
+        except Exception:
             raise TypeError('scale parameter of elementary matrix must an element of {0}, not {1}'.format(R, scale))
 
     # determine type of matrix and adjust an identity matrix

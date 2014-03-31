@@ -36,7 +36,7 @@ from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgrou
 from sage.rings.all             import (ZZ, QQ, QQbar, LCM,
                                         divisors, Integer, prime_range)
 from sage.rings.ring import is_Ring
-from sage.modules.all           import is_FreeModule
+from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
@@ -605,7 +605,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 raise ValueError, "please specify a category"
             cat = ModularAbelianVarieties(F)
         if self is B:
-            return self.endomorphism_ring()
+            return self.endomorphism_ring(cat)
         else:
             return homspace.Homspace(self, B, cat)
 
@@ -1565,7 +1565,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         return self._ambient_dimension()
 
-    def endomorphism_ring(self):
+    def endomorphism_ring(self, category=None):
         """
         Return the endomorphism ring of self.
 
@@ -1590,7 +1590,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         except AttributeError:
             pass
 
-        self.__endomorphism_ring = homspace.EndomorphismSubring(self)
+        self.__endomorphism_ring = homspace.EndomorphismSubring(self, category=category)
         return self.__endomorphism_ring
 
     def sturm_bound(self):

@@ -97,7 +97,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         S = self.cipher_domain()
         try:
             return S.encoding(M)
-        except StandardError:
+        except Exception:
             raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
 
 class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
@@ -159,7 +159,7 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
         S = self.cipher_domain()
         try:
             return S.encoding(M)
-        except StandardError:
+        except Exception:
             raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
 
 def blum_blum_shub(length, seed=None, p=None, q=None,

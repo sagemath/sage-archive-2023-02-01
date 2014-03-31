@@ -26,8 +26,11 @@ exec </dev/null
 
 export MAKE="$MAKE -j1"  # force sequential build (1 job)
 
-CUR=`pwd`
+# workaround for configure braindamage, see Trac #15546
+export EMACS=no
 
+
+CUR=`pwd`
 
 cd src/
 

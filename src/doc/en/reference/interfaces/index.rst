@@ -62,6 +62,7 @@ and testing to make sure nothing funny is going on).
 
    sage/interfaces/expect
    sage/interfaces/axiom
+   sage/interfaces/ecm
    sage/interfaces/four_ti_2
    sage/interfaces/gap
    sage/interfaces/gap3

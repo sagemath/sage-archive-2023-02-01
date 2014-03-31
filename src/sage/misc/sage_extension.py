@@ -243,144 +243,14 @@ class SageMagics(Magics):
             assert(args_split[0] == "ascii_art"), "if a width is given then the mode must be `ascii_art`"
             try:
                 ascii_art.MAX_WIDTH = int(args_split[1])
-            except StandardError:
+            except Exception:
                 raise AttributeError("Second argument must be a non-negative integer")
         try:
             displayhook.SPTextFormatter.set_display(self._magic_display_status)
-        except StandardError:
+        except Exception:
             print mode, args_split
             raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
 
-# SageInputSplitter:
-#  Hopefully most or all of this code can go away when
-#  https://github.com/ipython/ipython/issues/2293 is resolved
-#  apparently we will have stateful transformations then.
-#  see also https://github.com/ipython/ipython/pull/2402
-from IPython.core.inputsplitter import (transform_ipy_prompt, transform_classic_prompt,
-                                        transform_help_end, transform_escaped,
-                                        transform_assign_system, transform_assign_magic,
-                                        cast_unicode,
-                                        IPythonInputSplitter)
-
-def first_arg(f):
-    def tm(arg1, arg2):
-        return f(arg1)
-    return tm
-
-class SageInputSplitter(IPythonInputSplitter):
-    """
-    We override the input splitter for two reasons:
-
-    1. to make the list of transforms a class attribute that can be modified
-
-    2. to pass the line number to transforms (we strip the line number off for IPython transforms)
-    """
-
-    # List of input transforms to apply
-    transforms = map(first_arg, [transform_ipy_prompt, transform_classic_prompt,
-                                 transform_help_end, transform_escaped,
-                                 transform_assign_system, transform_assign_magic])
-
-    # a direct copy of the IPython splitter, except that the
-    # transforms are called with the line numbers, and the transforms come from the class attribute
-    # and except that we add a .startswith('@') in the test to see if we should transform a line
-    # (see http://mail.scipy.org/pipermail/ipython-dev/2012-September/010329.html; the current behavior
-    # doesn't run the preparser on a 'def' line following an decorator.
-    def push(self, lines):
-        """Push one or more lines of IPython input.
-
-        This stores the given lines and returns a status code indicating
-        whether the code forms a complete Python block or not, after processing
-        all input lines for special IPython syntax.
-
-        Any exceptions generated in compilation are swallowed, but if an
-        exception was produced, the method returns True.
-
-        Parameters
-        ----------
-        lines : string
-          One or more lines of Python input.
-
-        Returns
-        -------
-        is_complete : boolean
-          True if the current input source (the result of the current input
-        plus prior inputs) forms a complete Python execution block.  Note that
-        this value is also stored as a private attribute (_is_complete), so it
-        can be queried at any time.
-        """
-        if not lines:
-            return super(IPythonInputSplitter, self).push(lines)
-
-        # We must ensure all input is pure unicode
-        lines = cast_unicode(lines, self.encoding)
-
-        # If the entire input block is a cell magic, return after handling it
-        # as the rest of the transformation logic should be skipped.
-        if lines.startswith('%%') and not \
-          (len(lines.splitlines()) == 1 and lines.strip().endswith('?')):
-            return self._handle_cell_magic(lines)
-
-        # In line mode, a cell magic can arrive in separate pieces
-        if self.input_mode == 'line' and self.processing_cell_magic:
-            return self._line_mode_cell_append(lines)
-
-        # The rest of the processing is for 'normal' content, i.e. IPython
-        # source that we process through our transformations pipeline.
-        lines_list = lines.splitlines()
-
-        # Transform logic
-        #
-        # We only apply the line transformers to the input if we have either no
-        # input yet, or complete input, or if the last line of the buffer ends
-        # with ':' (opening an indented block).  This prevents the accidental
-        # transformation of escapes inside multiline expressions like
-        # triple-quoted strings or parenthesized expressions.
-        #
-        # The last heuristic, while ugly, ensures that the first line of an
-        # indented block is correctly transformed.
-        #
-        # FIXME: try to find a cleaner approach for this last bit.
-
-        # If we were in 'block' mode, since we're going to pump the parent
-        # class by hand line by line, we need to temporarily switch out to
-        # 'line' mode, do a single manual reset and then feed the lines one
-        # by one.  Note that this only matters if the input has more than one
-        # line.
-        changed_input_mode = False
-
-        if self.input_mode == 'cell':
-            self.reset()
-            changed_input_mode = True
-            saved_input_mode = 'cell'
-            self.input_mode = 'line'
-
-        # Store raw source before applying any transformations to it.  Note
-        # that this must be done *after* the reset() call that would otherwise
-        # flush the buffer.
-        self._store(lines, self._buffer_raw, 'source_raw')
-
-        try:
-            push = super(IPythonInputSplitter, self).push
-            buf = self._buffer
-            for line in lines_list:
-                line_number = len(buf)
-                if (self._is_complete or not buf or
-                    buf[-1].rstrip().endswith((':', ',')) or buf[-1].lstrip().startswith('@')):
-                    for f in self.transforms:
-                        line = f(line, line_number)
-                else:
-                    for f in self.always_transform:
-                        line = f(line, line_number)
-                out = push(line)
-        finally:
-            if changed_input_mode:
-                self.input_mode = saved_input_mode
-        return out
-
-# END SageIPythonInputSplitter
-#
-#
 
 import displayhook
 class SageCustomizations(object):
@@ -419,15 +289,25 @@ from sage.misc.interpreter import sage_prompt
 
     def register_interface_magics(self):
         """Register magics for each of the Sage interfaces"""
-        interfaces = sorted([ obj.name()
-                              for obj in sage.interfaces.all.__dict__.values()
-                              if isinstance(obj, sage.interfaces.interface.Interface) ])
-        for name in interfaces:
-            def tmp(line,name=name):
-                self.shell.run_cell('%s.interact()'%name)
-            tmp.__doc__="Interact with %s"%name
-            self.shell.register_magic_function(tmp, magic_name=name)
+        from sage.misc.superseded import deprecation
+        interfaces = [(name, obj)
+                      for name, obj in sage.interfaces.all.__dict__.items()
+                      if isinstance(obj, sage.interfaces.interface.Interface)]
 
+        for real_name, obj in interfaces:
+            def tmp(line, name=real_name):
+                self.shell.run_cell('%s.interact()' % name)
+            tmp.__doc__ = "Interact with %s" % real_name
+            self.shell.register_magic_function(tmp, magic_name=real_name)
+
+            obj_name = obj.name()
+            if real_name != obj_name:
+                def tmp_deprecated(line, name=real_name, badname=obj_name):
+                    deprecation(6288, 'Use %%%s instead of %%%s.' % (name,
+                                                                     badname))
+                    self.shell.run_cell('%s.interact()' % name)
+                tmp_deprecated.__doc__ = "Interact with %s" % real_name
+                self.shell.register_magic_function(tmp_deprecated, magic_name=obj_name)
 
     def set_quit_hook(self):
         """
@@ -482,19 +362,15 @@ from sage.misc.interpreter import sage_prompt
         """
         Set up transforms (like the preparser).
         """
-        self.shell.input_splitter = SageInputSplitter()
         import sage
         import sage.all
-        from sage.misc.interpreter import (SagePromptDedenter, SagePromptTransformer,
-                                           MagicTransformer, SagePreparseTransformer)
-
-        p = SagePreparseTransformer()
-        self.shell.input_splitter.transforms = [SagePromptDedenter(),
-                                                SagePromptTransformer(),
-                                                MagicTransformer(),
-                                                p] + self.shell.input_splitter.transforms
-        self.shell.input_splitter.always_transform = [p]
-
+        from interpreter import (SagePreparseTransformer,
+                                 sage_prompt_transformer,
+                                 magic_transformer)
+        for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
+            s.physical_line_transforms.extend([sage_prompt_transformer()])
+            s.logical_line_transforms.insert(0, magic_transformer())
+            s.python_line_transforms.extend([SagePreparseTransformer()])
         preparser(True)
 
 

@@ -15,7 +15,7 @@ Support for symbolic functions.
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
-from sage.libs.ginac cimport *
+from ginac cimport *
 
 from sage.structure.sage_object cimport SageObject
 from expression cimport new_Expression_from_GEx, Expression
@@ -459,7 +459,7 @@ cdef class Function(SageObject):
                     else:
                         try:
                             nargs[i] = SR.coerce(carg)
-                        except StandardError:
+                        except Exception:
                             raise TypeError, "cannot coerce arguments: %s"%(err)
                 args = nargs
         else: # coerce == False
@@ -718,7 +718,7 @@ cdef class GinacFunction(BuiltinFunction):
             raise ValueError, "cannot find GiNaC function with name %s and %s arguments"%(fname, self._nargs)
 
         global sfunction_serial_dict
-        return sfunction_serial_dict.has_key(self._serial)
+        return self._serial in sfunction_serial_dict
 
     cdef _register_function(self):
         # We don't need to add anything to GiNaC's function registry
@@ -898,7 +898,7 @@ cdef class BuiltinFunction(Function):
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and sfunction_serial_dict.has_key(self._name) and \
+        if serial != -1 and self._name in sfunction_serial_dict and \
                 sfunction_serial_dict[self._name].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial
@@ -960,7 +960,7 @@ cdef class SymbolicFunction(Function):
             sage: class my_function(SymbolicFunction):
             ....:     def __init__(self):
             ....:         SymbolicFunction.__init__(self, 'foo', nargs=2)
-            ....:     def _evalf_(self, x, y, parent=None):
+            ....:     def _evalf_(self, x, y, parent=None, algorithm=None):
             ....:         return x*y*2r
             ....:     def _conjugate_(self, x, y):
             ....:         return x
@@ -1084,7 +1084,7 @@ cdef class SymbolicFunction(Function):
             sage: u(y,x)
             2*y
 
-            sage: def evalf_f(self, x, parent=None): return int(6)
+            sage: def evalf_f(self, x, **kwds): return int(6)
             sage: foo = function("foo", nargs=1, evalf_func=evalf_f)
             sage: foo.__getstate__()
             (2, 'foo', 1, None, {}, True, [None, "...", None, None, None, None, None, None, None, None, None])

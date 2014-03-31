@@ -22,6 +22,7 @@ Root Systems
    ../sage/combinat/root_system/weyl_group
 
    ../sage/combinat/root_system/weyl_characters
+   ../sage/combinat/root_system/branching_rules
 
    ../sage/combinat/root_system/type_affine
    ../sage/combinat/root_system/type_dual

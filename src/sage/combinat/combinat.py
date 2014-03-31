@@ -44,52 +44,12 @@ docstrings.
 
 .. WARNING::
 
-   The following functions are deprecated and will soon be removed.
-
-    - Combinations of a multiset, :func:`combinations`,
-      :func:`combinations_iterator`, and :func:`number_of_combinations`. These
-      are unordered selections without repetition of k objects from a multiset
-      S.
-
-    - Arrangements of a multiset, :func:`arrangements` and
-      :func:`number_of_arrangements` These are ordered selections without
-      repetition of k objects from a multiset S.
+   The following function is deprecated and will soon be removed.
 
     - Permutations of a multiset, :func:`permutations`,
       :func:`permutations_iterator`, :func:`number_of_permutations`. A
       permutation is a list that contains exactly the same elements but possibly
       in different order.
-
-**Partitions:**
-
--  Partitions of a set, :func:`partitions_set`,
-   :func:`number_of_partitions_set`. An unordered partition
-   of set S is a set of pairwise disjoint nonempty sets with union S
-   and is represented by a sorted list of such sets.
-
--  Partitions of an integer, :func:`Partitions`.
-   An unordered partition of n is an unordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
--  Ordered partitions of an integer,
-   :func:`ordered_partitions`,
-   :func:`number_of_ordered_partitions`. An ordered
-   partition of n is an ordered sum
-   `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
-   represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
-   nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
-
--  :func:`partitions_greatest` implements a special type
-   of restricted partition.
-
--  :func:`partitions_greatest_eq` is another type of
-   restricted partition.
-
--  Tuples of partitions, :class:`PartitionTuples`. A `k`-tuple of partitions is
-   represented by a list of all `k`-tuples of partitions which together form a
-   partition of `n`.
 
 **Related functions:**
 
@@ -199,7 +159,6 @@ from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.superseded import deprecation
 from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
@@ -1388,10 +1347,6 @@ class CombinatorialClass(Parent):
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
         """
         # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
-        if hasattr(self, "object_class"):
-            deprecation(5891, "Using object_class for specifying the class "
-                        "of the elements of a combinatorial class is "
-                        "deprecated. Please use Element instead.")
         return self.Element
 
     def _element_constructor_(self, x):
@@ -2196,161 +2151,8 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
                 yield c
             i+=1
 
-
-
-def hurwitz_zeta(s,x,N):
-    """
-    Returns the value of the `\zeta(s,x)` to `N`
-    decimals, where s and x are real.
-
-    The Hurwitz zeta function is one of the many zeta functions. It
-    defined as
-
-    .. math::
-
-             \zeta(s,x) = \sum_{k=0}^\infty (k+x)^{-s}.
-
-
-    When `x = 1`, this coincides with Riemann's zeta function.
-    The Dirichlet L-functions may be expressed as a linear combination
-    of Hurwitz zeta functions.
-
-    Note that if you use floating point inputs, then the results may be
-    slightly off.
-
-    EXAMPLES::
-
-        sage: hurwitz_zeta(3,1/2,6)
-        8.41439000000000
-        sage: hurwitz_zeta(11/10,1/2,6)
-        12.1041000000000
-        sage: hurwitz_zeta(11/10,1/2,50)
-        12.10381349568375510570907741296668061903364861809
-
-    REFERENCES:
-
-    - http://en.wikipedia.org/wiki/Hurwitz_zeta_function
-    """
-    maxima.eval('load ("bffac")')
-    s = maxima.eval("bfhzeta (%s,%s,%s)"%(s,x,N))
-
-    #Handle the case where there is a 'b' in the string
-    #'1.2000b0' means 1.2000 and
-    #'1.2000b1' means 12.000
-    i = s.rfind('b')
-    if i == -1:
-        return sage_eval(s)
-    else:
-        if s[i+1:] == '0':
-            return sage_eval(s[:i])
-        else:
-            return sage_eval(s[:i])*10**sage_eval(s[i+1:])
-
-    return s  ## returns an odd string
-
-
 #####################################################
 #### combinatorial sets/lists
-
-def combinations(mset,k):
-    r"""
-    A combination of a multiset (a list of objects which may contain
-    the same object several times) mset is an unordered selection
-    without repetitions and is represented by a sorted sublist of ``mset``.
-    Returns the set of all combinations of the multiset ``mset`` with ``k``
-    elements.
-
-    INPUT:
-
-    - ``mset`` -- (list) the multiset presented as a list of objects.
-
-    - ``k`` -- (integer) the size of each set.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        :func:`sage.combinat.combination.Combinations`. Use
-        ``Combinations(mset, k).list()`` directly to get the list of
-        combinations of ``mset``.
-
-    EXAMPLES::
-
-        sage: combinations([1,2,3], 2)
-        doctest:...: DeprecationWarning: Use Combinations(mset,k).list()
-        instead. See http://trac.sagemath.org/13821 for details.
-        [[1, 2], [1, 3], [2, 3]]
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: combinations(mset,2)
-        [[1, 1],
-         [1, 2],
-         [1, 3],
-         [1, 4],
-         [1, 5],
-         [2, 3],
-         [2, 4],
-         [2, 5],
-         [3, 4],
-         [3, 5],
-         [4, 4],
-         [4, 5]]
-         sage: mset = ["d","a","v","i","d"]
-         sage: combinations(mset,3)
-         [['d', 'd', 'a'],
-         ['d', 'd', 'v'],
-         ['d', 'd', 'i'],
-         ['d', 'a', 'v'],
-         ['d', 'a', 'i'],
-         ['d', 'v', 'i'],
-         ['a', 'v', 'i']]
-
-    It is possible to take combinations of Sage objects::
-
-        sage: combinations([vector([1,1]), vector([2,2]), vector([3,3])], 2)
-        [[(1, 1), (2, 2)], [(1, 1), (3, 3)], [(2, 2), (3, 3)]]
-    """
-    from sage.combinat.combination import Combinations
-    deprecation(13821, 'Use Combinations(mset,k).list() instead.')
-    return Combinations(mset, k).list()
-
-def combinations_iterator(mset, k=None):
-    """
-    An iterator for combinations of the elements of a multiset ``mset``.
-
-    INPUT:
-
-    - ``mset`` -- (list) the multiset presented as a list of objects.
-
-    - ``k`` -- (integer, default: None) the size of each set.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        :func:`sage.combinat.combination.Combinations`. Use
-        ``Combinations(mset, k)`` instead.
-
-    EXAMPLES::
-
-        sage: X = combinations_iterator([1,2,3,4,5],3)
-        doctest:...: DeprecationWarning: Use Combinations(mset,k) instead.
-        See http://trac.sagemath.org/13821 for details.
-        sage: [x for x in X]
-        [[1, 2, 3],
-         [1, 2, 4],
-         [1, 2, 5],
-         [1, 3, 4],
-         [1, 3, 5],
-         [1, 4, 5],
-         [2, 3, 4],
-         [2, 3, 5],
-         [2, 4, 5],
-         [3, 4, 5]]
-    """
-    # It is not possible to use deprecated_function_alias since it leads to
-    # a circular import of combinat from combination and
-    # combination.Combinations from combinat.
-    from sage.combinat.combination import Combinations
-    deprecation(13821, 'Use Combinations(mset,k) instead.')
-    return Combinations(mset, k)
 
 def number_of_combinations(mset,k):
     """
@@ -2366,71 +2168,9 @@ def number_of_combinations(mset,k):
         12
     """
     from sage.combinat.combination import Combinations
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use Combinations(mset,k).cardinality() instead.')
     return Combinations(mset,k).cardinality()
-
-def arrangements(mset,k):
-    r"""
-    An arrangement of ``mset`` is an ordered selection without repetitions
-    and is represented by a list that contains only elements from mset,
-    but maybe in a different order.
-
-    ``arrangements`` returns the set of arrangements of the
-    multiset ``mset`` that contain ``k`` elements.
-
-    INPUT:
-
-    - ``mset`` -- (list) the multiset presented as a list of objects.
-
-    - ``k`` -- (integer) the size of each set.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        :func:`sage.combinat.permutation.Arrangements`. Use
-        ``Arrangements(mset, k).list()`` directly to get the list of
-        arrangements of ``mset``.
-
-    EXAMPLES::
-
-        sage: arrangements([1,2,3], 2)
-        doctest:...: DeprecationWarning: Use Arrangements(mset,k).list()
-        instead. See http://trac.sagemath.org/13821 for details.
-        [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: arrangements(mset,2)
-        [[1, 1],
-         [1, 2],
-         [1, 3],
-         [1, 4],
-         [1, 5],
-         [2, 1],
-         [2, 3],
-         [2, 4],
-         [2, 5],
-         [3, 1],
-         [3, 2],
-         [3, 4],
-         [3, 5],
-         [4, 1],
-         [4, 2],
-         [4, 3],
-         [4, 4],
-         [4, 5],
-         [5, 1],
-         [5, 2],
-         [5, 3],
-         [5, 4]]
-         sage: arrangements( ["c","a","t"], 2 )
-         [['c', 'a'], ['c', 't'], ['a', 'c'],
-          ['a', 't'], ['t', 'c'], ['t', 'a']]
-         sage: arrangements( ["c","a","t"], 3 )
-         [['c', 'a', 't'], ['c', 't', 'a'], ['a', 'c', 't'],
-          ['a', 't', 'c'], ['t', 'c', 'a'], ['t', 'a', 'c']]
-    """
-    from sage.combinat.permutation import Arrangements
-    deprecation(13821, 'Use Arrangements(mset,k).list() instead.')
-    return Arrangements(mset, k).list()
 
 def number_of_arrangements(mset,k):
     """
@@ -2445,6 +2185,7 @@ def number_of_arrangements(mset,k):
         22
     """
     from sage.combinat.permutation import Arrangements
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use Arrangements(mset,k).cardinality() instead.')
     return Arrangements(mset, k).cardinality()
 
@@ -2627,6 +2368,7 @@ def permutations(mset):
         sage: permutations(rows)
         [[(1, 0), (1, 1)], [(1, 1), (1, 0)]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14772, 'Use the Permutations object instead.')
     from sage.combinat.permutation import Permutations
     ans = Permutations(mset)
@@ -2679,6 +2421,7 @@ def permutations_iterator(mset,n=None):
         sage: [x for x in X]
         [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use the Permutations object instead.')
     items = mset
     if n is None:
@@ -2720,6 +2463,7 @@ def number_of_permutations(mset):
         See http://trac.sagemath.org/14138 for details.
         10
     """
+    from sage.misc.superseded import deprecation
     deprecation(14138, 'Use the Permutations object instead.')
     from sage.combinat.permutation import Permutations
     return Permutations(mset).cardinality()
@@ -2758,6 +2502,7 @@ def cyclic_permutations(mset):
         sage: cyclic_permutations([1,1,1])
         [[1, 1, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14772, 'Use the CyclicPermutations object instead.')
     return list(cyclic_permutations_iterator(mset))
 
@@ -2794,6 +2539,7 @@ def cyclic_permutations_iterator(mset):
         sage: cyclic_permutations([1,1,1])
         [[1, 1, 1]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(14772, 'Use the CyclicPermutations object instead.')
     if len(mset) > 2:
         from sage.combinat.permutation import Permutations

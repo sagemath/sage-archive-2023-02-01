@@ -16,6 +16,7 @@ Symbolic Calculus
    sage/calculus/test_sympy
    sage/calculus/tests
    sage/symbolic/expression_conversions
+   sage/symbolic/complexity_measures
    sage/calculus/wester
    sage/calculus/desolvers
    sage/gsl/dwt

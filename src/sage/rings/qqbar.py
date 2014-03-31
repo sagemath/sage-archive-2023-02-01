@@ -361,7 +361,9 @@ fact that the third output is different than the first::
     # Verified
     AA(2)
 
-Just for fun, let's try ``sage_input`` on a very complicated expression::
+Just for fun, let's try ``sage_input`` on a very complicated expression. The
+output of this example changed with the rewritting of polynomial multiplication
+algorithms in #10255::
 
     sage: rt2 = sqrt(AA(2))
     sage: rt3 = sqrt(QQbar(3))
@@ -377,20 +379,17 @@ Just for fun, let's try ``sage_input`` on a very complicated expression::
     v2 = QQbar(sqrt(v1))
     v3 = QQbar(3)
     v4 = sqrt(v3)
-    v5 = v2*v4
-    v6 = (1 - v2)*(1 - v4) - 1 - v5
-    v7 = QQbar(sqrt(v1))
-    v8 = sqrt(v3)
-    si1 = v7*v8
-    cp = AA.common_polynomial(x^2 + ((1 - v7)*(1 + v8) - 1 + si1)*x - si1)
-    v9 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v10 = 1 - v9
-    v11 = v6 + (v10 - 1)
-    v12 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v13 = 1 + v12
-    v14 = v10*(v6 + v5) - (v6 - v5*v9)
-    si2 = v5*v9
-    AA.polynomial_root(AA.common_polynomial(x^4 + (v11 + (v13 - 1))*x^3 + (v14 + (v13*v11 - v11))*x^2 + (v13*(v14 - si2) - (v14 - si2*v12))*x - si2*v12), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    v5 = -v2 - v4
+    v6 = QQbar(sqrt(v1))
+    v7 = sqrt(v3)
+    cp = AA.common_polynomial(x^2 + (-v6 + v7)*x - v6*v7)
+    v8 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v9 = v5 - v8
+    v10 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v11 = v2*v4
+    v12 = v11 - v5*v8
+    si = v11*v8
+    AA.polynomial_root(AA.common_polynomial(x^4 + (v9 + v10)*x^3 + (v12 + v9*v10)*x^2 + (-si + v12*v10)*x - si*v10), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -960,6 +959,54 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
 
         return AlgebraicReal(ANRoot(poly, interval, multiplicity))
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the real algebraic field
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the real algebraic numbers into a unit
+          and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = AA[]
+            sage: AA._factor_univariate_polynomial(x)
+            x
+            sage: AA._factor_univariate_polynomial(2*x)
+            (2) * x
+            sage: AA._factor_univariate_polynomial((x^2 + 1)^2)
+            (x^2 + 1)^2
+            sage: AA._factor_univariate_polynomial(x^8 + 1)
+            (x^2 - 1.847759065022574?*x + 1.000000000000000?) * (x^2 - 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 1.847759065022574?*x + 1.000000000000000?)
+            sage: AA._factor_univariate_polynomial(R(3))
+            3
+            sage: AA._factor_univariate_polynomial(12*x^2 - 4)
+            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
+            sage: AA._factor_univariate_polynomial(12*x^2 + 4)
+            (12) * (x^2 + 0.3333333333333334?)
+            sage: AA._factor_univariate_polynomial(EllipticCurve('11a1').change_ring(AA).division_polynomial(5))
+            (5) * (x - 16.00000000000000?) * (x - 5.000000000000000?) * (x - 1.959674775249769?) * (x + 2.959674775249769?) * (x^2 - 2.854101966249685?*x + 15.47213595499958?) * (x^2 + 1.909830056250526?*x + 1.660606461254312?) * (x^2 + 3.854101966249685?*x + 6.527864045000421?) * (x^2 + 13.09016994374948?*x + 93.33939353874569?)
+
+        """
+        rr = f.roots()
+        cr = [(r,e) for r,e in f.roots(QQbar) if r.imag()>0]
+
+        from sage.structure.factorization import Factorization
+        return Factorization(
+            [(f.parent()([-r,1]),e) for r,e in rr] +
+            [(f.parent()([r.norm(),-2*r.real(),1]),e) for r,e in cr],
+            unit=f.leading_coefficient())
+
 def is_AlgebraicRealField(F):
     r"""
     Check whether ``F`` is an :class:`~AlgebraicRealField` instance. For internal use.
@@ -1355,6 +1402,46 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         # could we instead just compute one root "randomly"?
         m = sage.misc.prandom.randint(0, len(roots)-1)
         return roots[m]
+
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the algebraic field
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the algebraic numbers into a unit and
+          monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = QQbar[]
+            sage: QQbar._factor_univariate_polynomial(x)
+            x
+            sage: QQbar._factor_univariate_polynomial(2*x)
+            (2) * x
+            sage: QQbar._factor_univariate_polynomial((x^2 + 1)^2)
+            (x - I)^2 * (x + I)^2
+            sage: QQbar._factor_univariate_polynomial(x^8 - 1)
+            (x - 1) * (x - 0.7071067811865475? - 0.7071067811865475?*I) * (x - 0.7071067811865475? + 0.7071067811865475?*I) * (x - I) * (x + I) * (x + 0.7071067811865475? - 0.7071067811865475?*I) * (x + 0.7071067811865475? + 0.7071067811865475?*I) * (x + 1)
+            sage: QQbar._factor_univariate_polynomial(12*x^2 - 4)
+            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
+            sage: QQbar._factor_univariate_polynomial(R(-1))
+            -1
+            sage: QQbar._factor_univariate_polynomial(EllipticCurve('11a1').change_ring(QQbar).division_polynomial(5))
+            (5) * (x - 16) * (x - 5) * (x - 1.959674775249769?) * (x - 1.427050983124843? - 3.665468789467727?*I) * (x - 1.427050983124843? + 3.665468789467727?*I) * (x + 0.9549150281252629? - 0.8652998037182486?*I) * (x + 0.9549150281252629? + 0.8652998037182486?*I) * (x + 1.927050983124843? - 1.677599044300515?*I) * (x + 1.927050983124843? + 1.677599044300515?*I) * (x + 2.959674775249769?) * (x + 6.545084971874737? - 7.106423590645660?*I) * (x + 6.545084971874737? + 7.106423590645660?*I)
+
+        """
+        from sage.structure.factorization import Factorization
+        return Factorization([(f.parent()([-r,1]),e) for r,e in f.roots()], unit=f.leading_coefficient())
 
 def is_AlgebraicField(F):
     r"""
@@ -5792,7 +5879,7 @@ class AlgebraicPolynomialTracker(SageObject):
              -1.189207115002721?*I,
              1.189207115002721?*I]
         """
-        if self._roots_cache.has_key(multiplicity):
+        if multiplicity in self._roots_cache:
             roots = self._roots_cache[multiplicity]
             if roots[0] >= prec:
                 return roots[1]

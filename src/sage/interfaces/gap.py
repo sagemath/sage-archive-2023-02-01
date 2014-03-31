@@ -650,7 +650,7 @@ class Gap_generic(Expect):
             sage: import sage.tests.interrupt
             sage: try:
             ...     sage.tests.interrupt.interrupt_after_delay()
-            ...     while True: SymmetricGroup(8).conjugacy_classes_subgroups()
+            ...     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
             ... except KeyboardInterrupt:
             ...     pass
             Interrupting Gap...
@@ -857,8 +857,8 @@ class Gap_generic(Expect):
 
         EXAMPLES::
 
-            sage: gap.version()
-            '4.6.4'
+            sage: print gap.version()
+            4.7...
         """
         return self.eval('VERSION')[1:-1]
 
@@ -1508,6 +1508,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
+    g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
                 'toric', 'laguna', 'braid']:
@@ -1838,10 +1839,10 @@ def gap_version():
 
     EXAMPLES::
 
-        sage: gap_version()
+        sage: print gap_version()
         doctest:...: DeprecationWarning: use gap.version() instead
         See http://trac.sagemath.org/13211 for details.
-        '4.6.4'
+        4.7...
     """
     from sage.misc.superseded import deprecation
     deprecation(13211, 'use gap.version() instead')

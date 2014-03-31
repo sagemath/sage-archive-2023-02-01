@@ -24,7 +24,7 @@ They are intended to replace the ``history-search-backward`` command and the ``h
 provided by the GNU readline library used in Sage.
 
 To bind these commands with keys, insert the relevant lines into the IPython configuration file
-``$DOT_SAGE/ipython-0.12/profile_sage/ipython_config.py``.  Note that ``$DOT_SAGE`` is ``$HOME/.sage``
+``$DOT_SAGE/ipython-*/profile_sage/ipython_config.py``.  Note that ``$DOT_SAGE`` is ``$HOME/.sage``
 by default. For example,
 ::
 

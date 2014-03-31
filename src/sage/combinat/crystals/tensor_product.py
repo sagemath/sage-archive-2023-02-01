@@ -684,7 +684,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         category = Category.meet([crystal.category() for crystal in crystals])
         Parent.__init__(self, category = category)
         self.crystals = crystals
-        if options.has_key('cartan_type'):
+        if 'cartan_type' in options:
             self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
@@ -878,11 +878,24 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: t = T(b2, b1)
             sage: [t.phi(i) for i in B.index_set()]
             [1, 1, 4]
+
+        TESTS:
+
+        Check that :trac:`15462` is fixed::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: La = RootSystem(['A',2]).ambient_space().fundamental_weights()
+            sage: T = TensorProductOfCrystals(TCrystal(['A',2], La[1]+La[2]), B)
+            sage: t = T.an_element()
+            sage: t.phi(1)
+            2
+            sage: t.phi(2)
+            2
         """
         P = self[-1].parent().weight_lattice_realization()
         h = P.simple_coroots()
         omega = P(self.weight()).scalar(h[i])
-        return max([omega + self._sig(i, k) for k in range(len(self))])
+        return max([omega + self._sig(i, k) for k in range(1, len(self)+1)])
 
     @cached_in_parent_method
     def _sig(self,i,k):
@@ -1532,7 +1545,7 @@ class CrystalOfTableaux(CrystalOfWords):
         spin_shapes = tuple( tuple(shape) for shape in shapes )
         try:
             shapes = tuple( tuple(trunc(i) for i in shape) for shape in spin_shapes )
-        except StandardError:
+        except Exception:
             raise ValueError("shapes should all be partitions or half-integer partitions")
         if spin_shapes == shapes:
             return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
@@ -1570,7 +1583,7 @@ class CrystalOfTableaux(CrystalOfWords):
 
         INPUT:
 
-        - ``cartan_type`` - (data coercible into) a cartan type
+        - ``cartan_type`` - (data coercible into) a Cartan type
         - ``shapes``      - a list (or iterable) of shapes
         - ``shape` `      - a shape
 
@@ -1715,9 +1728,9 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         if len(args) == 1:
             if isinstance(args[0], Tableau):
                 options['rows'] = args[0]
-        if options.has_key('list'):
+        if 'list' in options:
             list = options['list']
-        elif options.has_key('rows'):
+        elif 'rows' in options:
             rows=options['rows']
 #            list=Tableau(rows).to_word_by_column()
             rows=Tableau(rows).conjugate()
@@ -1725,7 +1738,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             for col in rows:
                 col.reverse()
                 list+=col
-        elif options.has_key('columns'):
+        elif 'columns' in options:
             columns=options['columns']
             list=[]
             for col in columns:

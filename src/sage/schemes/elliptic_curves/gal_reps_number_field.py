@@ -15,11 +15,11 @@ EXAMPLES::
     False
     sage: rho.is_surjective(31) # See Section 5.10 of [Serre72].
     True
-    sage: rho.non_surjective()  # long time (8s on sage.math, 2013)
+    sage: rho.non_surjective()  # long time (4s on sage.math, 2014)
     [3, 5, 29]
 
     sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
-    sage: E.galois_representation().non_surjective()
+    sage: E.galois_representation().non_surjective()  # long time (2s on sage.math, 2014)
     [0]
 
 AUTHORS:
@@ -174,7 +174,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 + 3, 'a'); a = K.gen()
             sage: E = EllipticCurve([0, -1, 1, -10, -20]).change_ring(K) # X_0(11)
             sage: rho = E.galois_representation()
-            sage: rho.non_surjective()  # long time (8s on sage.math, 2013)
+            sage: rho.non_surjective()  # long time (4s on sage.math, 2014)
             [3, 5]
             sage: K = NumberField(x**2 + 1, 'a'); a = K.gen()
             sage: E = EllipticCurve_from_j(1728).change_ring(K) # CM
@@ -184,7 +184,7 @@ class GaloisRepresentation(SageObject):
             sage: K = NumberField(x**2 - 5, 'a'); a = K.gen()
             sage: E = EllipticCurve_from_j(146329141248*a - 327201914880) # CM
             sage: rho = E.galois_representation()
-            sage: rho.non_surjective() # long time - 11s
+            sage: rho.non_surjective() # long time (3s on sage.math, 2014)
             [0]
         """
         try:
@@ -350,7 +350,7 @@ def _exceptionals(E, L, patience=1000):
         elif (K.discriminant() % l) == 0:
             if not K['x'](cyclotomic_polynomial(l)).is_irreducible():
                 # I.E. if the action on lth roots of unity is not surjective
-                # (We want this since as a galois module, \wedge^2 E[l]
+                # (We want this since as a Galois module, \wedge^2 E[l]
                 # is isomorphic to the lth roots of unity.)
                 output.append(l)
 
@@ -367,7 +367,7 @@ def _exceptionals(E, L, patience=1000):
     # be contained. This information is stored as a triple whose elements
     # are True/False according to whether the mod l image could be contained
     # in:
-    #      0. A borel or normalizer of split Cartan subgroup.
+    #      0. A Borel or normalizer of split Cartan subgroup.
     #      1. A nonsplit Cartan subgroup or its normalizer.
     #      2. An exceptional subgroup of GL_2.
 
@@ -395,7 +395,7 @@ def _exceptionals(E, L, patience=1000):
 
             if tr == 0:
                 # I.E. if Frob_P could be contained in the normalizer of
-                # a cartan subgroup, but not in the cartan subgroup.
+                # a Cartan subgroup, but not in the Cartan subgroup.
                 continue
 
             if disc == 0:
@@ -404,13 +404,13 @@ def _exceptionals(E, L, patience=1000):
 
             if legendre_symbol(disc, l) == 1:
                 # If the matrix is diagonalizable over F_p, it can't be
-                # contained in a non-split cartan subgroup. Since we've
+                # contained in a non-split Cartan subgroup. Since we've
                 # gotten rid of the case where it is contained in the
-                # of a nonsplit cartan subgroup but not the cartan subgroup,
+                # of a nonsplit Cartan subgroup but not the Cartan subgroup,
                 D[l][1] = False
             else:
                 # If the matrix is not diagonalizable over F_p, it can't
-                # be contained borel subgroup.
+                # be contained Borel subgroup.
                 D[l][0] = False
 
             if det != 0: # c.f. [Serre72], Section 2.8, Prop. 19

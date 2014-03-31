@@ -25,7 +25,6 @@ from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
-from sage.combinat.permutation import Permutations
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 
@@ -126,7 +125,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         # ``i != j``, where ``e[k]`` is the ``k``-th standard
                         # basis vector.
                         cr = -cr
-                        if next[t] == 0:
+                        if next[t] == zero:
                             del next[t]
                         pos += 1
 
@@ -142,14 +141,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         # Note that ``t`` is now sorted.
                     t = tuple(t)
                     next[t] = next.get(t, zero) + cr
-                    if next[t] == 0:
+                    if next[t] == zero:
                         del next[t]
                 cur = next
 
             # Add the distributed terms to the total
             for index,coeff in cur.items():
                 d[index] = d.get(index, zero) + cl * coeff
-                if d[index] == 0:
+                if d[index] == zero:
                     del d[index]
 
         return self.__class__(self.parent(), d)
@@ -365,10 +364,13 @@ class CliffordAlgebra(CombinatorialFreeModule):
     `g : W \to V` is a linear map preserving the quadratic form,
     then we can define an algebra morphism
     `Cl(g) : Cl(W, R) \to Cl(V, Q)` by requiring that it send every
-    `w \in W` to `g(w) \in V`. In particular, if `(V, Q)` is a
-    vector space with a quadratic form, and `W` is another vector
-    space, and `\phi : W \to V` is any linear map, then we obtain an
-    algebra morphism `Cl(\phi) : Cl(W, \phi(Q)) \to Cl(V, Q)` where
+    `w \in W` to `g(w) \in V`. Since the quadratic form `R` on `W`
+    is uniquely determined by the quadratic form `Q` on `V` (due to
+    the assumption that `g` preserves the quadratic form), this fact
+    can be rewritten as follows: If `(V, Q)` is a vector space with a
+    quadratic form, and `W` is another vector space, and
+    `\phi : W \to V` is any linear map, then we obtain an algebra
+    morphism `Cl(\phi) : Cl(W, \phi(Q)) \to Cl(V, Q)` where
     `\phi(Q) = \phi^T \cdot Q \cdot \phi` (we consider `\phi` as a
     matrix) is the quadratic form `Q` pulled back to `W`. In fact, the
     map `\phi` preserves the quadratic form because of
@@ -493,7 +495,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl._repr_term((0,2))
             'x*z'
             sage: Cl._repr_term(())
-            ''
+            '1'
             sage: Cl._repr_term((1,))
             'y'
         """
@@ -673,19 +675,24 @@ class CliffordAlgebra(CombinatorialFreeModule):
         r"""
         Lift the matrix ``m`` to an algebra morphism of Clifford algebras.
 
-        Given a linear map `m : W \to V`, we will construct `Cl(W, m(Q))`
-        and the corresponding algebra morphism `Cl(m)` to `Cl(V, Q)`, which
-        is ``self``.
+        Given a linear map `m : W \to V` (here represented by a matrix
+        acting on column vectors), this method returns the algebra
+        morphism `Cl(m)` from `Cl(W, m(Q))` to `Cl(V, Q)`, where
+        `Cl(V, Q)` is the Clifford algebra ``self`` and where `m(Q)` is the
+        pullback of the quadratic form `Q` to `W`. See the documentation of
+        :class:`CliffordAlgebra` for how this pullback and the morphism
+        `Cl(m)` are defined.
 
         INPUT:
 
         - ``m`` -- a matrix
-        - ``names`` -- (default: ``'e'``) the names of the generators of the
-          domain Clifford algebra
+        - ``names`` -- (default: ``'e'``) the names of the generators of
+          the Clifford algebra of the domain of (the map represented by)
+          ``m``
 
         OUTPUT:
 
-        The algebra morphism from `Cl(W, m(Q))` to ``self``.
+        The algebra morphism `Cl(m)` from `Cl(W, m(Q))` to ``self``.
 
         EXAMPLES::
 
@@ -775,6 +782,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             21*x*y + 21*x*z + 42
         """
         Q = self._quadratic_form(m)
+        # If R is a quadratic form and m is a matrix, then R(m) returns
+        # the quadratic form m^t R m.
 
         if Q == self._quadratic_form and names is None:
             Cl = self
@@ -785,27 +794,34 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         n = self._quadratic_form.dim()
         f = lambda x: self.prod(self.sum_of_terms(((j,), m[j,i]) for j in range(n))
-                              for i in x)
+                                for i in x)
         return Cl.module_morphism(f, codomain=self,
                                   category=GradedAlgebrasWithBasis(self.base_ring()))
 
     def lift_isometry(self, m, names=None):
         r"""
-        Lift an isometry ``m`` of the quadratric form of ``self`` to a
-        Clifford algebra morphism.
+        Lift an invertible isometry ``m`` of the quadratric form of
+        ``self`` to a Clifford algebra morphism.
 
-        We define a Clifford algebra morphism `\phi : Cl(V, Q) \to
-        Cl(W, \phi^{-1}(Q))` where `\phi : V \to W` is an isometry of `Q`.
+        Given an invertible linear map `m : V \to W` (here represented by
+        a matrix acting on column vectors), this method returns the
+        algebra morphism `Cl(m)` from `Cl(V, Q)` to `Cl(W, m^{-1}(Q))`,
+        where `Cl(V, Q)` is the Clifford algebra ``self`` and where
+        `m^{-1}(Q)` is the pullback of the quadratic form `Q` to `W` along
+        the inverse map `m^{-1} : W \to V`. See the documentation of
+        :class:`CliffordAlgebra` for how this pullback and the morphism
+        `Cl(m)` are defined.
 
         INPUT:
 
         - ``m`` -- an isometry of the quadratic form of ``self``
-        - ``names`` -- (default: ``'e'``) the names of the generators of the
-          codomain Clifford algebra
+        - ``names`` -- (default: ``'e'``) the names of the generators of
+          the Clifford algebra of the codomain of (the map represented by)
+          ``m``
 
         OUTPUT:
 
-        The morphism `\phi` from ``self`` to `Cl(W, \phi^{-1}(Q)).
+        The algebra morphism `Cl(m)` from ``self`` to `Cl(W, m^{-1}(Q)).
 
         EXAMPLES::
 
@@ -830,7 +846,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         MS = m.parent()
         if not m.is_invertible():
-            raise ValueError('{} is not an isometry')
+            raise ValueError('{} is not invertible')
         Q = self._quadratic_form(MS(m.inverse()))
 
         if Q == self._quadratic_form and names is None:
@@ -853,9 +869,9 @@ class ExteriorAlgebra(CliffordAlgebra):
     An exterior algebra of a free module over a commutative ring.
 
     Let `V` be a module over a commutative ring `R`. The exterior algebra
-    (or Grassmann algebra) `\Lambda(V)` is defined as the quotient of
-    tensor algebra `T(V)` of `V` modulo the two-sided ideal generated by
-    all tensors of the form `x \otimes x` with `x \in V`. The
+    (or Grassmann algebra) `\Lambda(V)` of `V` is defined as the quotient
+    of the tensor algebra `T(V)` of `V` modulo the two-sided ideal
+    generated by all tensors of the form `x \otimes x` with `x \in V`. The
     multiplication on `\Lambda(V)` is denoted by `\wedge` (so
     `v_1 \wedge v_2 \wedge \cdots \wedge v_n` is the projection of
     `v_1 \otimes v_2 \otimes \cdots \otimes v_n` onto `\Lambda(V)`) and
@@ -867,13 +883,14 @@ class ExteriorAlgebra(CliffordAlgebra):
     subject to the relations `e_i^2 = 0` for all `i`, and
     `e_i e_j = - e_j e_i` for all `i < j`. As an `R`-module,
     `\Lambda(V)` then has a basis `(\bigwedge_{i \in I} e_i)` with `I`
-    `I \subseteq \{e_1, \ldots e_n\}` (where `\bigwedge_{i \in I} e_i`
-    is the wedge product of all elements of `I` from smallest to
-    largest), and hence is free of rank `2^n`.
+    ranging over the subsets of `\{1, 2, \ldots, n\}` (where
+    `\bigwedge_{i \in I} e_i` is the wedge product of `e_i` for `i`
+    running through all elements of `I` from smallest to largest), and
+    hence is free of rank `2^n`.
 
     The exterior algebra of an `R`-module `V` can also be realized
-    as the Clifford algebra of `V` and the quadratic form `Q(v) = 0`
-    for all vectors `v \in V`.
+    as the Clifford algebra of `V` for the quadratic form `Q` given by
+    `Q(v) = 0` for all vectors `v \in V`.
 
     The exterior algebra of an `R`-module `V` is a `\ZZ`-graded connected
     Hopf superalgebra.
@@ -923,6 +940,9 @@ class ExteriorAlgebra(CliffordAlgebra):
         E = super(ExteriorAlgebra, cls).__classcall__(cls, R, names)
         if s_coeff is not None:
             return ExteriorAlgebraWithDerivative(E, s_coeff)
+            # huh? ExteriorAlgebraWithDerivative is not defined...
+            # Do you really want to use ExteriorAlgebra as a factory class
+            # that can return a dga?
         return E
 
     def __init__(self, R, names):
@@ -1027,9 +1047,10 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     def degree_on_basis(self, m):
         r"""
-        Return the degree of the monomial index by ``m``.
+        Return the degree of the monomial indexed by ``m``.
 
-        The `\ZZ` grading of ``m`` is defined to be the length of ``m``.
+        The degree of ``m`` in the `\ZZ`-grading of ``self`` is defined
+        to be the length of ``m``.
 
         EXAMPLES::
 
@@ -1147,6 +1168,10 @@ class ExteriorAlgebra(CliffordAlgebra):
             """
             Return ``self`` multiplied by ``other``.
 
+            INPUT:
+
+            - ``other`` -- element of the same Clifford algebra as ``self``
+
             EXAMPLES::
 
                 sage: E.<x,y,z> = ExteriorAlgebra(QQ)
@@ -1161,6 +1186,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                 sage: (x - 3*y + z/3)^2
                 0
             """
+            zero = self.parent().zero()
             d = {}
 
             for ml,cl in self._monomial_coefficients.items():
@@ -1186,8 +1212,8 @@ class ExteriorAlgebra(CliffordAlgebra):
                         continue
 
                     t = tuple(t)
-                    d[t] = d.get(t, 0) + cl * cr
-                    if d[t] == 0:
+                    d[t] = d.get(t, zero) + cl * cr
+                    if d[t] == zero:
                         del d[t]
 
             return self.__class__(self.parent(), d)
@@ -1422,7 +1448,6 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
             sage: par._on_basis((0,1,2))
             0
         """
-        k = len(m)
         E = self.domain()
         sc = self._s_coeff
         keys = sc.keys()

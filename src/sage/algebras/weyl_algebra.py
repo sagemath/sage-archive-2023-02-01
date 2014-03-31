@@ -52,8 +52,40 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
 
         sage: repr_from_monomials([], lambda m: repr(m))
         '0'
-        sage: repr_from_monomials(d, lambda m: latex(m), True)
-        \frac{4}{7} z + \sqrt{2} y - 5 x
+        sage: a = repr_from_monomials([], lambda m: latex(m), True); a
+        0
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    A "unity" element::
+
+        sage: repr_from_monomials([(1, 1)], lambda m: repr(m))
+        '1'
+        sage: a = repr_from_monomials([(1, 1)], lambda m: latex(m), True); a
+        1
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    ::
+
+        sage: repr_from_monomials([(1, -1)], lambda m: repr(m))
+        '-1'
+        sage: a = repr_from_monomials([(1, -1)], lambda m: latex(m), True); a
+        -1
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    Leading minus signs are dealt with appropriately::
+
+        sage: d = [(z, -4/7), (y, -sqrt(2)), (x, -5)]
+        sage: repr_from_monomials(d, lambda m: repr(m))
+        '-4/7*z - sqrt(2)*y - 5*x'
+        sage: a = repr_from_monomials(d, lambda m: latex(m), True); a
+        -\frac{4}{7} z - \sqrt{2} y - 5 x
+        sage: type(a)
+        <class 'sage.misc.latex.LatexExpr'>
+
+    Indirect doctests using a class that uses this function::
 
         sage: R.<x,y> = QQ[]
         sage: A = CliffordAlgebra(QuadraticForm(R, 3, [x,0,-1,3,-4,5]))

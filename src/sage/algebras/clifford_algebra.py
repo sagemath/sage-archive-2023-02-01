@@ -492,6 +492,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl._repr_term((0,2))
             'x*z'
+            sage: Cl._repr_term(())
+            ''
+            sage: Cl._repr_term((1,))
+            'y'
         """
         if len(m) == 0:
             return '1'
@@ -523,7 +527,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     def gen(self, i):
         """
-        Return the ``i``-th generator of ``self``.
+        Return the ``i``-th standard generator of the algebra ``self``.
+
+        This is the ``i``-th basis vector of the vector space on which
+        the quadratic form defining ``self`` is defined, regarded as an
+        element of ``self``.
 
         EXAMPLES::
 
@@ -551,7 +559,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     def ngens(self):
         """
-        Return the number of generators of ``self``.
+        Return the number of algebra generators of ``self``.
 
         EXAMPLES::
 
@@ -593,6 +601,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         Return the quadratic form of ``self``.
 
+        This is the quadratic form used to define ``self``. The
+        quadratic form on ``self`` is yet to be implemented.
+
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
@@ -607,10 +618,13 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     def degree_on_basis(self, m):
         r"""
-        Return the degree of the monomial index by ``m``.
+        Return the degree of the monomial indexed by ``m``.
 
-        The `\ZZ_2` grading of ``m`` is defined to be the length of ``m``
-        taken mod 2.
+        This degree is either `0` or `1`, and should be interpreted as a
+        residue class modulo `2`, since ``self`` is only `\ZZ_2`-graded
+        (not `\ZZ`-graded). The degree of the monomial ``m`` in this
+        `\ZZ_2`-grading is defined to be the length of ``m`` taken mod
+        `2`.
 
         EXAMPLES::
 
@@ -626,6 +640,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
     def free_module(self):
         """
         Return the underlying free module `V` of ``self``.
+
+        This is the free module on which the quadratic form that was
+        used to construct ``self`` is defined.
 
         EXAMPLES::
 

@@ -4555,6 +4555,8 @@ cdef class Expression(CommutativeRingElement):
             <built-in function gt>
             sage: (x >= y).operator()
             <built-in function ge>
+            sage: SR._force_pyobject( (x, x + 1, x + 2) ).operator()
+            <type 'tuple'>
         """
         cdef operators o
         cdef unsigned serial
@@ -4599,6 +4601,8 @@ cdef class Expression(CommutativeRingElement):
                 res = FDerivativeOperator(res, parameter_set)
 
             return res
+        elif is_exactly_a_exprseq(self._gobj):
+            return tuple
 
         # self._gobj is either a symbol, constant or numeric
         return None

@@ -23,6 +23,7 @@ cdef extern from "ginac_wrap.h":
 
     # forward declaration of GEx
     ctypedef struct GEx "ex"
+    ctypedef struct GExprSeq "exprseq"
 
     ctypedef struct GBasic "basic":
         unsigned int gethash()
@@ -205,6 +206,8 @@ cdef extern from "ginac_wrap.h":
     GEx* GEx_construct_long "Construct_p<ex, long>" (void *mem, long n) except +
     GEx* GEx_construct_double "Construct_p<ex, double>" \
             (void *mem, double d) except +
+    GEx* GEx_construct_exprseq "Construct_p<ex, exprseq>" \
+            (void *mem, GExprSeq s)
 
     GEx* GEx_construct_pyobject "ASSIGN_WRAP" (GEx mem, object n)
 
@@ -230,6 +233,15 @@ cdef extern from "ginac_wrap.h":
         void push_back(GEx)
         int size()
         GEx at(int i)
+
+    ctypedef struct GExprSeq "exprseq":
+        pass
+
+    GExprSeq* GExprSeq_construct_exvector "Construct_p<exprseq, exvector>" \
+            (void *mem, GExVector m) except +
+    bint is_a_exprseq "is_a<exprseq>" (GEx e)
+    bint is_exactly_a_exprseq "is_exactly_a<exprseq>" (GEx e)
+
 
     ctypedef struct GExSetIter "std::set<ex, ex_is_less>::const_iterator":
         void inc "operator++" ()

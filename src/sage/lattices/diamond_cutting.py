@@ -41,8 +41,31 @@ def plane_inequality(v):
     return [c] + list(v)
 
 def jacobi(M):
-    """
-    Compute the Cholesky/Jacobi decomposition of M.
+    r"""
+    Compute the upper-triangular part of the Cholesky/Jacobi
+    decomposition of the symmetric matrix ``M``.
+
+    Let `M` be a symmetric `n \times n`-matrix over a field `F`.
+    Let `m_{i,j}` denote the `(i,j)`-th entry of `M` for any
+    `1 \leq i \leq n` and `1 \leq j \leq n`. Then, the
+    upper-triangular part computed by this method is the
+    upper-triangular `n \times n`-matrix `Q` whose
+    `(i,j)`-th entry `q_{i,j}` satisfies
+
+    .. MATH::
+
+        q_{i,j} = \frac{1}{q_{i,i}}
+                  \left( m_{i,j} - \sum_{r<i} q_{r,r} q_{r,i} q_{r,j} \right)
+                                \qquad \text{ when } i < j; \\
+        q_{i,j} = a_{i,j} - \sum_{r<i} q_{r,r} q_{r,i}^2
+                                \qquad \text{ when } i = j; \\
+        q_{i,j} = 0  \qquad \text{ when } i > j
+
+    for all `1 \leq i \leq n` and `1 \leq j \leq n`. (These
+    equalities determine the entries of `Q` uniquely by
+    recursion.) This matrix `Q` is defined for all `M` in a
+    certain Zariski-dense open subset of the set of all
+    `n \times n`-matrices.
     
     EXAMPLES::
     
@@ -51,6 +74,33 @@ def jacobi(M):
         [4 0 0]
         [0 4 0]
         [0 0 4]
+
+        sage: def testall(M):
+        ....:      Q = jacobi(M)
+        ....:      for j in range(3):
+        ....:          for i in range(j):
+        ....:              if Q[i,j] * Q[i,i] != M[i,j] - sum(Q[r,i] * Q[r,j] * Q[r,r] for r in range(i)):
+        ....:                  return False
+        ....:      for i in range(3):
+        ....:          if Q[i,i] != M[i,i] - sum(Q[r,i] ** 2 * Q[r,r] for r in range(i)):
+        ....:              return False
+        ....:          for j in range(i):
+        ....:              if Q[i,j] != 0:
+        ....:                  return False
+        ....:      return True
+
+        sage: M = Matrix(QQ, [[8,1,5], [1,6,0], [5,0,3]])
+        sage: Q = jacobi(M); Q
+        [    8   1/8   5/8]
+        [    0  47/8 -5/47]
+        [    0     0 -9/47]
+        sage: testall(M)
+        True
+
+        sage: M = Matrix(QQ, [[3,6,-1,7],[6,9,8,5],[-1,8,2,4],[7,5,4,0]])
+        sage: testall(M)
+        True
+
     """
     
     dim = M.dimensions()
@@ -63,7 +113,7 @@ def jacobi(M):
             q[i][j] = q[i][j] / q[i][i]
         for k in range(i + 1, dim):
             for l in range(k, dim):
-                q[k][l] = q[k][l] - q[k][i] * q[i][l]
+                q[k][l] -= q[k][i] * q[i][l]
     for i in range(1, dim):
         for j in range(i):
             q[i][j] = 0

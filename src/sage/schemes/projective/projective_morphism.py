@@ -2282,7 +2282,20 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         for i in range(len(all_points)):
             if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
-        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+
+        # Finding the preimage of each point in parallel
+        parallel_data = []
+        for P in pos_points:
+            parallel_data.append(((self,[P],B,),{}))
+
+        pos_points = []
+
+        parallel_results=list(parallel_iter(len(parallel_data), self.lift_to_rational_periodic, parallel_data))
+
+        periodic_points=[]
+        for result in parallel_results:
+            periodic_points.append(result[1][0])
+
         for P,n in periodic_points:
             for k in range(n):
                   P.normalize_coordinates()

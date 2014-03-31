@@ -494,8 +494,7 @@ class IncidenceStructure(object):
             A = Matrix(ZZ, v, b)
             for j, b in enumerate(blks):
                 for i in b:
-                    if i in b:
-                        A[i, j] = 1
+                    A[i, j] = 1
             self._incidence_matrix = A
             return A
 

@@ -2679,7 +2679,7 @@ class MPolynomialIdeal_singular_repr(
         try:
           TI = self.triangular_decomposition('singular:triangLfak')
           T = [list(each.gens()) for each in TI]
-        except TypeError, msg: # conversion to Singular not supported
+        except TypeError as msg: # conversion to Singular not supported
           if self.ring().term_order().is_global():
             verbose("Warning: falling back to very slow toy implementation.", level=0)
             T = toy_variety.triangular_factorization(self.groebner_basis())
@@ -3869,10 +3869,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if algorithm is '':
             try:
                 gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-            except (TypeError,NameError), msg: # conversion to Singular not supported
+            except (TypeError,NameError) as msg: # conversion to Singular not supported
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-                except (TypeError,NameError,NotImplementedError), msg: # conversion to Singular not supported
+                except (TypeError,NameError,NotImplementedError) as msg: # conversion to Singular not supported
                     if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 

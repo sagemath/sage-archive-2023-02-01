@@ -2299,7 +2299,7 @@ cdef class Parent(category_object.CategoryObject):
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
             return mor
-        except CoercionException, ex:
+        except CoercionException as ex:
             _record_exception()
             return None
         finally:

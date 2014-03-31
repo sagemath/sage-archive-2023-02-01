@@ -709,7 +709,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             lower = self.__lower_field._coerce_(x)
             upper = self.__upper_field._coerce_(x)
             return self(lower, upper)
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "no canonical coercion of element into self"
 
     def __cmp__(self, other):
@@ -3565,7 +3565,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         try:
             other_intv = self._parent(other)
             return mpfi_is_inside(other_intv.value, self.value)
-        except TypeError, msg:
+        except TypeError as msg:
             return False
 
     def contains_zero(self):

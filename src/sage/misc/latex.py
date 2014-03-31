@@ -1019,7 +1019,7 @@ class Latex(LatexCall):
             var = t[:j]
             try:
                 k = str(latex(sage_eval.sage_eval(var, locals)))
-            except Exception, msg:
+            except Exception as msg:
                 print msg
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]

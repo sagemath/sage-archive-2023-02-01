@@ -945,7 +945,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 try:
                     y = intmod_gap_to_sage(x)
                     return self.coerce(y)
-                except (ValueError, IndexError, TypeError), msg:
+                except (ValueError, IndexError, TypeError) as msg:
                     raise TypeError("{}\nerror coercing to finite field".format(msg))
 
             raise # Continue up with the original TypeError

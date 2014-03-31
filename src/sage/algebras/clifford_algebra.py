@@ -14,14 +14,18 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 
+from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
-from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
+from sage.categories.modules_with_basis import ModuleMorphismByLinearity
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
+from sage.combinat.permutation import Permutations
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 
@@ -77,6 +81,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             x*y*z + y*z - 24*x + 12*y + 2*z - 24
         """
         Q = self.parent()._quadratic_form
+        zero = self.parent().base_ring().zero()
         d = {}
 
         # Create the standard basis vectors for simplicity
@@ -85,7 +90,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             e.append([0]*Q.dim())
             e[-1][i] = 1
 
-        for ml,cl in self._monomial_coefficients.items():
+        for ml,cl in self:
             # Distribute the current term over the other
             cur = copy(other._monomial_coefficients) # The current distribution of the term
             for i in reversed(ml):
@@ -103,7 +108,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         t = tuple(t)
                         uv = [0] * Q.dim()
                         uv[i] = uv[j] = 1
-                        next[t] = next.get(t, 0) + cr * (Q(uv) - Q(e[i]) - Q(e[j]))
+                        next[t] = next.get(t, zero) + cr * (Q(uv) - Q(e[i]) - Q(e[j]))
                         cr = -cr
                         if next[t] == 0:
                             del next[t]
@@ -118,14 +123,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         t.insert(pos, i)
                         t.sort()
                     t = tuple(t)
-                    next[t] = next.get(t, 0) + cr
+                    next[t] = next.get(t, zero) + cr
                     if next[t] == 0:
                         del next[t]
                 cur = next
 
             # Add the distributed terms to the total
             for index,coeff in cur.items():
-                d[index] = d.get(index, 0) + cl * coeff
+                d[index] = d.get(index, zero) + cl * coeff
                 if d[index] == 0:
                     del d[index]
         return self.__class__(self.parent(), d)
@@ -189,8 +194,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: all(x.reflection().reflection() == x for x in Cl.basis())
             True
         """
-        I = self._monomial_coefficients.items()
-        return self.__class__(self.parent(), {m: (-1)**len(m)*c for m,c in I})
+        return self.__class__(self.parent(), {m: (-1)**len(m)*c for m,c in self})
 
     def transpose(self):
         r"""
@@ -228,11 +232,11 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Cl.zero().transpose() == Cl.zero()
             True
         """
+        P = self.parent()
         if len(self._monomial_coefficients) == 0:
-            return self.parent().zero()
-        g = self.parent().gens()
-        return sum(c * self.parent().prod(g[i] for i in reversed(m))
-                   for m,c in self._monomial_coefficients.items())
+            return P.zero()
+        g = P.gens()
+        return P.sum(c * P.prod(g[i] for i in reversed(m)) for m,c in self)
 
     def conjugate(self):
         r"""
@@ -805,7 +809,7 @@ class ExteriorAlgebra(CliffordAlgebra):
     - :wikipedia:`Exterior_algebra`
     """
     @staticmethod
-    def __classcall_private__(cls, R, names='e', n=None):
+    def __classcall_private__(cls, R, names='e', n=None, s_coeff=None):
         """
         Normalize arguments to ensure a unique representation.
 
@@ -826,7 +830,10 @@ class ExteriorAlgebra(CliffordAlgebra):
                 names = tuple( '{}{}'.format(names[0], i) for i in range(n) )
             else:
                 raise ValueError("the number of variables does not match the number of generators")
-        return super(ExteriorAlgebra, cls).__classcall__(cls, R, names)
+        E = super(ExteriorAlgebra, cls).__classcall__(cls, R, names)
+        if s_coeff is not None:
+            return ExteriorAlgebraWithDerivative(E, s_coeff)
+        return E
 
     def __init__(self, R, names):
         """
@@ -837,7 +844,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: TestSuite(E).run()
         """
-        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, HopfAlgebrasWithBasis(R))
+        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, GradedHopfAlgebrasWithBasis(R))
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a
         # Hopf superalgebra, not a Hopf algebra.
@@ -912,6 +919,21 @@ class ExteriorAlgebra(CliffordAlgebra):
             x^y^z
         """
         return self.element_class(self, {tuple(range(self.ngens())): self.base_ring().one()})
+
+    def differential(self, s_coeff):
+        r"""
+        Return the differential `\partial` defined by the structure
+        coefficients of a Lie algebra ``s_coeff``.
+
+        For more on the differential, see
+        :class:`ExteriorAlgebraDifferential`.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+        """
+        return ExteriorAlgebraDifferential(self, s_coeff)
 
     def degree_on_basis(self, m):
         r"""
@@ -996,7 +1018,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         return x.constant_coefficient()
 
-    def internal_product_on_basis(self, a, b):
+    def interior_product_on_basis(self, a, b):
         """
         Return the internal product of ``a`` on ``b``.
 
@@ -1006,15 +1028,15 @@ class ExteriorAlgebra(CliffordAlgebra):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: E.internal_product_on_basis((0,), (0,))
+            sage: E.interior_product_on_basis((0,), (0,))
             1
-            sage: E.internal_product_on_basis((0,2), (0,))
+            sage: E.interior_product_on_basis((0,2), (0,))
             z
-            sage: E.internal_product_on_basis((1,), (0,2))
+            sage: E.interior_product_on_basis((1,), (0,2))
             0
-            sage: E.internal_product_on_basis((0,2), (1,))
+            sage: E.interior_product_on_basis((0,2), (1,))
             0
-            sage: E.internal_product_on_basis((0,1,2), (0,2))
+            sage: E.interior_product_on_basis((0,1,2), (0,2))
             -y
         """
         sgn = 1
@@ -1080,27 +1102,36 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             return self.__class__(self.parent(), d)
 
-        def internal_product(self, x):
-            """
+        def interior_product(self, x):
+            r"""
             Return the internal product or antiderivation of ``self`` with
             respect to ``x``.
+
+            The *interior product* is a map `i_{\alpha} \colon \Lambda^k(V)
+            \to \Lambda^{k-1}(V)`, for a fixed `\alpha \in V^*` (thought of
+            as an element in `\Lambda^1(V)`, defined by
+
+            - `i_{\alpha}(v) = \alpha(v)` where `v \in V = \Lambda^1(V)`,
+            - `i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y + (-1)^{\deg x}
+              x \wedge (i_{\alpha} y)`, i.e. it is a graded derivation
+              of degree `-1`.
 
             EXAMPLES::
 
                 sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-                sage: x.internal_product(x)
+                sage: x.interior_product(x)
                 1
-                sage: (x + x*y).internal_product(2*y)
+                sage: (x + x*y).interior_product(2*y)
                 -2*x
-                sage: (x*z + x*y*z).internal_product(2*y - x)
+                sage: (x*z + x*y*z).interior_product(2*y - x)
                 -2*x^z - y^z - z
             """
             P = self.parent()
-            return P.sum([c * cx * P.internal_product_on_basis(m, mx)
+            return P.sum([c * cx * P.interior_product_on_basis(m, mx)
                           for m,c in self._monomial_coefficients.items()
                           for mx,cx in x._monomial_coefficients.items()])
 
-        antiderivation = internal_product
+        antiderivation = interior_product
 
         def hodge_dual(self):
             r"""
@@ -1137,7 +1168,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                  -w^x^y, -w^x^z, -w^y^z, -x^y^z, w^x^y^z]
             """
             volume_form = self.parent().volume_form()
-            return volume_form.internal_product(self)
+            return volume_form.interior_product(self)
 
         def constant_coefficient(self):
             """
@@ -1182,4 +1213,183 @@ class ExteriorAlgebra(CliffordAlgebra):
                 -2*x^y + 5*x^z + y^z
             """
             return (self.transpose() * other).constant_coefficient()
+
+class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentation):
+    r"""
+    The differential `\partial` of an exterior algebra `\Lambda(V)`.
+
+    Let `L` be a Lie algebra. We give an exterior algebra `E` a chain
+    complex structure by considering a differential
+    `\partial : \Lambda^{k+1}(L) \to \Lambda^k(L)` defined by
+
+    .. MATH::
+
+        \partial(x_1 \wedge \cdots x_{k+1}) = \sum_{i < j} (-1)^{i+j+1}
+        [x_i, x_j] \wedge x_1 \wedge \cdots \wedge \hat{x}_i \wedge \cdots
+        \wedge \hat{x}_j \wedge \cdots \wedge x_{k+1}
+
+    where `\hat{x}_i` denotes a missing index. The corresponding homology is
+    the Lie algebra homology.
+
+    INPUT:
+
+    - ``E`` -- an exterior algebra with basis indexed by `I`
+    - ``s_coeff`` -- a dictionary whose keys are in `I \times I` and whose
+      values are dictionaries of the resulting non-zero terms or an
+      item in ``E``
+
+    REFERENCES:
+
+    :wikipedia:`Exterior_algebra#Lie_algebra_homology`
+
+    EXAMPLES:
+
+    We consider the differential given by Lie algebra given by the cross
+    product `\times` of `\RR^3`::
+
+        sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+        sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+        sage: par(x)
+        0
+        sage: par(x*y)
+        z
+
+    We check that `\partial \circ \partial = 0`::
+
+        sage: p2 = par * par
+        sage: all(p2(b) == 0 for b in E.basis())
+        True
+    """
+    @staticmethod
+    def __classcall_private__(cls, E, s_coeff):
+        """
+        Standardizes the structure coeffcients to ensure a unique
+        representation.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import ExteriorAlgebraDifferential
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par1 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2):x, (2,0):y})
+            sage: par2 = ExteriorAlgebraDifferential(E, Family({(0,1): z, (1,2):x, (0,2):-y}))
+            sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {(2,):-1}, (1,2): {(0,):1}, (2,0):{(1,):1}})
+            sage: par1 is par2 and par2 is par3
+            True
+        """
+        d = {}
+        
+        for k,v in s_coeff.items():
+            v = dict(v)
+            if k[0] < k[1]:
+                d[tuple(k)] = E._from_dict({i:c for i,c in v.items()})
+            else:
+                d[(k[1], k[0])] = E._from_dict({i:-c for i,c in v.items()})
+
+        from sage.sets.family import Family
+        return super(ExteriorAlgebraDifferential, cls).__classcall__(cls, E, Family(d))
+
+    def __init__(self, E, s_coeff):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+            sage: TestSuite(d).run()
+        """
+        self._s_coeff = s_coeff
+
+        # Technically this preserves the grading but with a shift of -1
+        cat = AlgebrasWithBasis(E.base_ring())
+        ModuleMorphismByLinearity.__init__(self, domain=E, codomain=E, category=cat)
+
+    def _repr_type(self):
+        """
+        TESTS::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+            sage: par._repr_type()
+            'Differential'
+        """
+        return "Differential"
+
+    def _on_basis(self, m):
+        """
+        Return the differential on the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+            sage: par._on_basis((0,))
+            0
+            sage: par._on_basis((0,1))
+            z
+            sage: par._on_basis((0,2))
+            -y
+            sage: par._on_basis((0,1,2))
+            0
+        """
+        k = len(m)
+        E = self.domain()
+        sc = self._s_coeff
+        keys = sc.keys()
+        return E.sum((-1)**(b+1) * sc[(i,j)]
+                      * E.monomial(m[:a] + m[a+1:a+b] + m[a+b+1:])
+                     for a,i in enumerate(m) for b,j in enumerate(m[a:]) if (i,j) in keys)
+
+    @cached_method
+    def chain_complex(self):
+        """
+        Return the chain complex determined by ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+            sage: par.chain_complex()
+            Chain complex with at most 4 nonzero terms over Rational Field
+        """
+        from sage.homology.chain_complex import ChainComplex
+        from sage.matrix.constructor import Matrix
+        E = self.domain()
+        n = E.ngens()
+
+        # Group the basis into degrees
+        basis_by_deg = {deg: [] for deg in range(n+1)}
+        for b in E.basis().keys():
+            basis_by_deg[len(b)].append(b)
+
+        # Construct the transition matrices
+        data = {}
+        prev_basis = basis_by_deg[0]
+        for deg in range(n):
+            # Make sure within each basis we're sorted by lex
+            basis = sorted(basis_by_deg[deg+1])
+            mat = []
+            for b in basis:
+                ret = self._on_basis(b)
+                mat.append([ret[p] for p in prev_basis])
+            data[deg] = Matrix(mat)
+            prev_basis = basis
+
+        return ChainComplex(data)
+
+    def homology(self, deg=None, **kwds):
+        """
+        Return the homology determined by ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: par = E.differential({(0,1): z, (1,2):x, (2,0):y})
+            sage: par.homology()
+            {0: Vector space of dimension 1 over Rational Field,
+             1: Vector space of dimension 0 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field,
+             3: Vector space of dimension 1 over Rational Field}
+        """
+        return self.chain_complex().homology(deg, **kwds)
 

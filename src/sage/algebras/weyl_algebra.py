@@ -44,7 +44,7 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
         sage: repr_from_monomials([], lambda m: repr(m))
         '0'
         sage: repr_from_monomials(d, lambda m: latex(m), True)
-        '\\frac{4}{7} z + \\sqrt{2} y - 5 x'
+        \frac{4}{7} z + \sqrt{2} y - 5 x
 
         sage: R.<x,y> = QQ[]
         sage: A = CliffordAlgebra(QuadraticForm(R, 3, [x,0,-1,3,-4,5]))
@@ -88,17 +88,13 @@ def repr_from_monomials(monomials, term_repr, use_latex=False):
                     term = coeff + '*' + term
 
         # Append this term with the correct sign
-        if len(ret) != 0:
+        if ret:
             if term[0] == '-':
                 ret += ' - ' + term[1:]
             else:
                 ret += ' + ' + term
         else:
             ret = term
-    import re
-    ret = ret.replace("+ -", "- ")
-    #ret = re.sub(r'1(\.0+)?[\* ]', '', ret)
-    #ret = re.sub(r'-1(\.0+)?[\* ]', '-', ret)
     return ret
 
 class WeylAlgebraElement(AlgebraElement):

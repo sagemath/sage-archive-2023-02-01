@@ -868,7 +868,7 @@ class PeriodLattice_ell(PeriodLattice):
         if self.is_real():
             return Matrix([[w1,0],list(w2)])
         else:
-            return Matrix([list(w) for w in w1,w2])
+            return Matrix([list(w) for w in (w1,w2)])
 
     def complex_area(self, prec=None):
         """

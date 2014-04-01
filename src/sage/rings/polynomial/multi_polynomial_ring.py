@@ -745,9 +745,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
-            doctest:1: DeprecationWarning: MPolynomialRing is deprecated, use PolynomialRing instead!
-            See http://trac.sagemath.org/6500 for details.
+            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
             sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
@@ -755,7 +753,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         TESTS::
 
-            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(P(1), P(0))
             True
             sage: P.monomial_divides(P(1), x)

@@ -997,7 +997,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         hook length formula). In Sage, this integer can be computed by
         using :func:`sage.combinat.symmetric_group_algebra.kappa()`.
 
-        Let `T` be a standard tableau.
+        Let `T` be a standard tableau of size `n`.
 
         Let `a(T)` denote the formal sum (in `R S_n`) of all
         permutations in `S_n` which stabilize the rows of `T` (as
@@ -1052,7 +1052,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
                              \epsilon(\overline S) \pi_{T, S}
                              e(T) \epsilon(\overline T)
                            = \frac{1}{\kappa_{\mathrm{sh}(T)}}
-                             \epsilon(\overline S) a(T) \pi_{T, S}
+                             \epsilon(\overline S) a(S) \pi_{T, S}
                              b(T) \epsilon(\overline T).
 
         This element `\epsilon(T, S)` is called *Young's seminormal
@@ -1078,13 +1078,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             reverse of those given in some papers, for example [Ram1997]_.
             Using the other convention of multiplying permutations, we would
             instead have
-            `\epsilon(U, V) \epsilon(T, S) = \delta_{T, V} \epsilon(U, S).`
+            `\epsilon(U, V) \epsilon(T, S) = \delta_{T, V} \epsilon(U, S)`.
 
         In other words, Young's seminormal basis consists of the matrix
         units in a (particular) Artin-Wedderburn decomposition of `R S_n`
         into a direct product of matrix algebras over `\QQ`.
 
-        The output of ``seminormal_basis`` is a list of all
+        The output of :meth:`seminormal_basis` is a list of all
         elements of the seminormal basis of ``self``.
 
         INPUT:
@@ -1178,7 +1178,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         return matrix( [vector(b) for b in snb] ).inverse().transpose()
 
     def epsilon_ik(self, itab, ktab, star=0, mult='l2r'):
-        """
+        r"""
         Return the seminormal basis element of ``self`` corresponding to the
         pair of tableaux ``itab`` and ``ktab`` (or restrictions of these
         tableaux, if the optional variable ``star`` is set).
@@ -1212,6 +1212,102 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
             sage: QS3.dft()*vector(a)
             (0, 0, 0, 0, 1, 0)
+
+        Let us take some properties of the seminormal basis listed in
+        the docstring of :meth:`seminormal_basis`, and verify them on
+        the situation of `S_3`.
+
+        First, check the formula
+
+        .. MATH::
+
+            \epsilon(T) = \frac{1}{\kappa_{\mathrm{sh}(T)}}
+                          \epsilon(\overline{T})
+                          e(T) \epsilon(\overline{T}).
+
+        In fact::
+
+            sage: from sage.combinat.symmetric_group_algebra import e
+            sage: def test_sn1(n):
+            ....:     QSn = SymmetricGroupAlgebra(QQ, n)
+            ....:     QSn1 = SymmetricGroupAlgebra(QQ, n - 1)
+            ....:     for T in StandardTableaux(n):
+            ....:         TT = T.restrict(n-1)
+            ....:         eTT = QSn1.epsilon_ik(TT, TT)
+            ....:         eT = QSn.epsilon_ik(T, T)
+            ....:         kT = prod(T.shape().hooks())
+            ....:         if kT * eT != eTT * e(T) * eTT:
+            ....:             return False
+            ....:     return True
+            sage: test_sn1(3)
+            True
+            sage: test_sn1(4)   # long time
+            True
+
+        Next, we check the identity
+
+        .. MATH::
+
+            \epsilon(T, S) = \frac{1}{\kappa_{\mathrm{sh}(T)}}
+                             \epsilon(\overline S) \pi_{T, S}
+                             e(T) \epsilon(\overline T)
+
+        which we used to define `\epsilon(T, S)`. In fact::
+
+            sage: from sage.combinat.symmetric_group_algebra import e
+            sage: def test_sn2(n):
+            ....:     QSn = SymmetricGroupAlgebra(QQ, n)
+            ....:     mul = QSn.left_action_product
+            ....:     QSn1 = SymmetricGroupAlgebra(QQ, n - 1)
+            ....:     for lam in Partitions(n):
+            ....:         k = prod(lam.hooks())
+            ....:         for T in StandardTableaux(lam):
+            ....:             for S in StandardTableaux(lam):
+            ....:                 TT = T.restrict(n-1)
+            ....:                 SS = S.restrict(n-1)
+            ....:                 eTT = QSn1.epsilon_ik(TT, TT)
+            ....:                 eSS = QSn1.epsilon_ik(SS, SS)
+            ....:                 eTS = QSn.epsilon_ik(T, S)
+            ....:                 piTS = [0] * n
+            ....:                 for (i, j) in T.cells():
+            ....:                     piTS[T[i][j] - 1] = S[i][j]
+            ....:                 piTS = QSn(Permutation(piTS))
+            ....:                 if k * eTS != mul(mul(eSS, piTS), mul(e(T), eTT)):
+            ....:                     return False
+            ....:     return True
+            sage: test_sn2(3)
+            True
+            sage: test_sn2(4)   # long time
+            True
+
+        Let us finally check the identity
+
+        .. MATH::
+
+            \epsilon(T, S) \epsilon(U, V) = \delta_{T, V} \epsilon(U, S)
+
+        In fact::
+
+            sage: def test_sn3(lam):
+            ....:     n = lam.size()
+            ....:     QSn = SymmetricGroupAlgebra(QQ, n)
+            ....:     mul = QSn.left_action_product
+            ....:     for T in StandardTableaux(lam):
+            ....:         for S in StandardTableaux(lam):
+            ....:             for U in StandardTableaux(lam):
+            ....:                 for V in StandardTableaux(lam):
+            ....:                     lhs = mul(QSn.epsilon_ik(T, S), QSn.epsilon_ik(U, V))
+            ....:                     if T == V:
+            ....:                         rhs = QSn.epsilon_ik(U, S)
+            ....:                     else:
+            ....:                         rhs = QSn.zero()
+            ....:                     if rhs != lhs:
+            ....:                         return False
+            ....:     return True
+            sage: all( test_sn3(lam) for lam in Partitions(3) )
+            True
+            sage: all( test_sn3(lam) for lam in Partitions(4) )   # long time
+            True
         """
         it = Tableau(itab)
         kt = Tableau(ktab)

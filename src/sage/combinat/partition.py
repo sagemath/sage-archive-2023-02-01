@@ -311,7 +311,7 @@ import tableau
 import permutation
 import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
-from sage.combinat.partitions import ZS1_iterator
+from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -1124,7 +1124,7 @@ class Partition(CombinatorialObject, Element):
 
     def power(self, k):
         r"""
-        Returns the cycle type of the `k`-th power of any permutation
+        Return the cycle type of the `k`-th power of any permutation
         with cycle type ``self`` (thus describes the powermap of
         symmetric groups).
 
@@ -1141,8 +1141,6 @@ class Partition(CombinatorialObject, Element):
             [5, 1, 1, 1]
             sage: p.power(4)
             [5, 3]
-            sage: Partition([3,2,1]).power(3)
-            [2, 1, 1, 1, 1]
 
         Now let us compare this to the power map on `S_8`::
 
@@ -1156,6 +1154,11 @@ class Partition(CombinatorialObject, Element):
             (1,4,2,5,3)
             sage: g^4
             (1,5,4,3,2)(6,7,8)
+
+        ::
+
+            sage: Partition([3,2,1]).power(3)
+            [2, 1, 1, 1, 1]
         """
         res = []
         for i in self:
@@ -4792,8 +4795,11 @@ class Partitions(UniqueRepresentation, Parent):
             if len(kwargs) == 0:
                 return Partitions_n(n)
 
-            if len(kwargs) == 1 and 'max_part' in kwargs:
-                return PartitionsGreatestLE(n, kwargs['max_part'])
+            if len(kwargs) == 1:
+                if 'max_part' in kwargs:
+                    return PartitionsGreatestLE(n, kwargs['max_part'])
+                if 'length' in kwargs:
+                    return Partitions_nk(n, kwargs['length'])
 
             if (len(kwargs) > 1 and
                 ('parts_in' in kwargs or
@@ -5298,7 +5304,7 @@ class Partitions_n(Partitions):
 
     def __init__(self, n):
         """
-        Initialze ``self``.
+        Initialize ``self``.
 
         TESTS::
 
@@ -5359,7 +5365,7 @@ class Partitions_n(Partitions):
 
     def cardinality(self, algorithm='flint'):
         r"""
-        Returns the number of partitions of the specified size.
+        Return the number of partitions of the specified size.
 
         INPUT:
 
@@ -5370,9 +5376,6 @@ class Partitions_n(Partitions):
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
-
-        Use the function :meth:`partitions` to return a generator over all
-        partitions of `n`.
 
         It is possible to associate with every partition of the integer `n` a
         conjugacy class of permutations in the symmetric group on `n` points
@@ -5418,7 +5421,7 @@ class Partitions_n(Partitions):
 
         .. MATH::
 
-           \sum_{n=0}^{\infty} p_n x^n = \prod_{k=1}^{\infty} \left( \frac{1}{1-x^k} \right).
+           \sum_{n=0}^{\infty} p_n x^n = \prod_{k=1}^{\infty} \frac{1}{1-x^k}.
 
         We use Sage to verify that the first several coefficients do
         indeed agree::
@@ -5428,6 +5431,11 @@ class Partitions_n(Partitions):
             1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + 15*q^7 + 22*q^8 + O(q^9)
             sage: [Partitions(k).cardinality() for k in range(2,10)]
             [2, 3, 5, 7, 11, 15, 22, 30]
+
+        Another consistency test for ``n`` up to 500::
+
+            sage: len([n for n in [1..500] if Partitions(n).cardinality() != Partitions(n).cardinality(algorithm='pari')])
+            0
 
         REFERENCES:
 
@@ -5639,6 +5647,213 @@ class Partitions_n(Partitions):
             Partitions of the integer 5 starting with [3, 1]
         """
         return Partitions(self.n, **kwargs)
+
+class Partitions_nk(Partitions):
+    """
+    Partitions of the integer `n` of length equal to `k`.
+
+    TESTS::
+
+        sage: TestSuite( sage.combinat.partition.Partitions_nk(0,0) ).run()
+        sage: TestSuite( sage.combinat.partition.Partitions_nk(0,0) ).run()
+    """
+
+    def __init__(self, n, k):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: TestSuite(  Partitions(5, length=2) ).run()
+        """
+        Partitions.__init__(self)
+        self.n = n
+        self.k = k
+
+    def __contains__(self, x):
+        """
+        Check if ``x`` is contained in ``self``.
+
+        TESTS::
+
+            sage: p = Partitions(5, length=2)
+            sage: [2,1] in p
+            False
+            sage: [2,2,1] in p
+            False
+            sage: [3,2] in p
+            True
+            sage: [2,3] in p
+            False
+            sage: [4,1] in p
+            True
+            sage: [1,1,1,1,1] in p
+            False
+            sage: [5] in p
+            False
+        """
+        return x in _Partitions and sum(x) == self.n and len(x) == self.k
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: Partitions(5, length=2) # indirect doctest
+            Partitions of the integer 5 of length 2
+        """
+        return "Partitions of the integer {} of length {}".format(self.n, self.k)
+
+    def _an_element_(self):
+        """
+        Returns a partition in ``self``.
+
+        EXAMPLES::
+
+            sage: Partitions(4, length=1).an_element()  # indirect doctest
+            [4]
+            sage: Partitions(4, length=2).an_element()
+            [3, 1]
+            sage: Partitions(4, length=3).an_element()
+            [2, 1, 1]
+            sage: Partitions(4, length=4).an_element()
+            [1, 1, 1, 1]
+
+            sage: Partitions(1, length=1).an_element()
+            [1]
+
+            sage: Partitions(0, length=0).an_element()
+            []
+        """
+        if self.n == 0:
+            if self.k == 0:
+                lst = []
+            else:
+                from sage.categories.sets_cat import EmptySetError
+                raise EmptySetError
+        elif self.n >= self.k > 0:
+            lst = [self.n - self.k + 1] + [1] * (self.k-1)
+        else:
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError
+        return self.element_class(self, lst)
+
+    def __iter__(self):
+        """
+        An iterator for all partitions of `n` of length `k`.
+
+        EXAMPLES::
+
+            sage: p = Partitions(9, length=3)
+            sage: it = p.__iter__()
+            sage: list(it)
+            [[7, 1, 1], [6, 2, 1], [5, 3, 1], [5, 2, 2], [4, 4, 1], [4, 3, 2], [3, 3, 3]]
+
+            sage: p = Partitions(9, length=10)
+            sage: list(p.__iter__())
+            []
+
+            sage: p = Partitions(0, length=0)
+            sage: list(p.__iter__())
+            [[]]
+
+            sage: from sage.combinat.partition import number_of_partitions_length
+            sage: all( len(Partitions(n, length=k).list())
+            ....:      == number_of_partitions_length(n, k)
+            ....:      for n in range(9) for k in range(n+2) )
+            True
+        """
+        for p in ZS1_iterator_nk(self.n - self.k, self.k):
+            v = [i + 1 for i in p]
+            adds = [1] * (self.k - len(v))
+            yield self.element_class(self, v + adds)
+
+    def cardinality(self, algorithm='hybrid'):
+        r"""
+        Return the number of partitions of the specified size with the
+        specified length.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'hybrid'``) the algorithm to compute
+          the cardinality and can be one of the following:
+
+          * ``'hybrid'`` - use a hybrid algorithm which uses heuristics to
+            reduce the complexity
+          * ``'gap'`` - use GAP
+
+        EXAMPLES::
+
+            sage: v = Partitions(5, length=2).list(); v
+            [[4, 1], [3, 2]]
+            sage: len(v)
+            2
+            sage: Partitions(5, length=2).cardinality()
+            2
+
+        More generally, the number of partitions of `n` of length `2`
+        is `\left\lfloor \frac{n}{2} \right\rfloor`::
+
+            sage: all( Partitions(n, length=2).cardinality()
+            ....:      == n // 2 for n in range(10) )
+            True
+
+        The number of partitions of `n` of length `1` is `1` for `n`
+        positive::
+
+            sage: all( Partitions(n, length=1).cardinality() == 1
+            ....:      for n in range(1, 10) )
+            True
+
+        Further examples::
+
+            sage: Partitions(5, length=3).cardinality()
+            2
+            sage: Partitions(6, length=3).cardinality()
+            3
+            sage: Partitions(8, length=4).cardinality()
+            5
+            sage: Partitions(8, length=5).cardinality()
+            3
+            sage: Partitions(15, length=6).cardinality()
+            26
+            sage: Partitions(0, length=0).cardinality()
+            1
+            sage: Partitions(0, length=1).cardinality()
+            0
+            sage: Partitions(1, length=0).cardinality()
+            0
+            sage: Partitions(1, length=4).cardinality()
+            0
+
+        TESTS:
+
+        We check the hybrid approach gives the same results as GAP::
+
+            sage: N = [0, 1, 2, 3, 5, 10, 20, 500, 850]
+            sage: K = [0, 1, 2, 3, 5, 10, 11, 20, 21, 250, 499, 500]
+            sage: all(Partitions(n,length=k).cardinality() == Partitions(n,length=k).cardinality('gap')
+            ....:     for n in N for k in K)
+            True
+            sage: P = Partitions(4562, length=2800)
+            sage: P.cardinality() == P.cardinality('gap')
+            True
+        """
+        return number_of_partitions_length(self.n, self.k, algorithm)
+
+    def subset(self, **kwargs):
+        r"""
+        Return a subset of ``self`` with the additional optional arguments.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, length=2); P
+            Partitions of the integer 5 of length 2
+            sage: P.subset(max_part=3)
+            Partitions of the integer 5 satisfying constraints length=2, max_part=3
+        """
+        return Partitions(self.n, length=self.k, **kwargs)
 
 class Partitions_parts_in(Partitions):
     """
@@ -6257,11 +6472,14 @@ class OrderedPartitions(Partitions):
     The class of ordered partitions of `n`. If `k` is specified, then this
     contains only the ordered partitions of length `k`.
 
+    An *ordered partition* of a nonnegative integer `n` means a list of
+    positive integers whose sum is `n`. This is the same as a composition
+    of `n`.
+
     .. NOTE::
 
        It is recommended that you use :meth:`Compositions` instead as
-       :meth:`OrderedPartitions` wraps GAP. See also
-       :class:`ordered_partitions`.
+       :meth:`OrderedPartitions` wraps GAP.
 
     EXAMPLES::
 
@@ -6273,6 +6491,12 @@ class OrderedPartitions(Partitions):
         Ordered partitions of 3 of length 2
         sage: OrderedPartitions(3,2).list()
         [[2, 1], [1, 2]]
+
+        sage: OrderedPartitions(10,k=2).list()
+        [[9, 1], [8, 2], [7, 3], [6, 4], [5, 5], [4, 6], [3, 7], [2, 8], [1, 9]]
+        sage: OrderedPartitions(4).list()
+        [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+
     """
 
     @staticmethod
@@ -6371,6 +6595,10 @@ class OrderedPartitions(Partitions):
             4
             sage: OrderedPartitions(3,2).cardinality()
             2
+            sage: OrderedPartitions(10,2).cardinality()
+            9
+            sage: OrderedPartitions(15).cardinality()
+            16384
         """
         n = self.n
         k = self.k
@@ -6837,6 +7065,62 @@ def number_of_partitions(n, algorithm='default'):
         return bober_number_of_partitions(n)
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
+
+def number_of_partitions_length(n, k, algorithm='hybrid'):
+    r"""
+    Return the number of partitions of `n` with length `k`.
+
+    This is a wrapper for GAP's ``NrPartitions`` function.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition import number_of_partitions_length
+        sage: number_of_partitions_length(5, 2)
+        2
+        sage: number_of_partitions_length(10, 2)
+        5
+        sage: number_of_partitions_length(10, 4)
+        9
+        sage: number_of_partitions_length(10, 0)
+        0
+        sage: number_of_partitions_length(10, 1)
+        1
+        sage: number_of_partitions_length(0, 0)
+        1
+        sage: number_of_partitions_length(0, 1)
+        0
+    """
+    if algorithm == 'hybrid':
+        # Do the hybrid algorithm
+
+        # Special relations between n and k
+        if n < k:
+            return ZZ.zero()
+        if n == k and n >= 0:
+            return ZZ.one()
+
+        # Special case of n
+        if n <= 0:
+            # Note: we've already checked the case when n == k == 0
+            return ZZ.zero()
+
+        # Small values of k
+        if k <= 0:
+            return ZZ.zero()
+        if k == 1:
+            return ZZ.one()
+        if k == 2:
+            return n // 2
+
+        # We have one column of length `k` and all (inner) partitions of
+        #    size `n-k` can't have length more than `k`
+        if n <= k*2:
+            return number_of_partitions(n - k)
+
+        # Fall back to GAP
+
+    return ZZ(gap.eval( "NrPartitions({},{})".format(ZZ(n), ZZ(k)) ))
+
 
 ##########
 # trac 14225: Partitions() is frequently used, but only weakly cached. Hence,

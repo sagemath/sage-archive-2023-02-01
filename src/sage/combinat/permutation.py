@@ -4949,9 +4949,9 @@ class Permutations_setk(Permutations_set):
 
 class Arrangements(Permutations):
     r"""
-    An arrangement of ``mset`` is an ordered selection without repetitions
-    and is represented by a list that contains only elements from ``mset``,
-    but maybe in a different order.
+    An arrangement of a multiset ``mset`` is an ordered selection
+    without repetitions. It is represented by a list that contains
+    only elements from ``mset``, but maybe in a different order.
 
     ``Arrangements`` returns the combinatorial class of
     arrangements of the multiset ``mset`` that contain ``k`` elements.

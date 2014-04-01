@@ -1397,7 +1397,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError, "algorithm %s not defined"%algorithm
 
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
+                          maxprob=20, limbigprime=30, known_points=None):
         r"""
         Return lower and upper bounds on the rank of the Mordell-Weil
         group `E(\QQ)` and a list of points of infinite order.
@@ -1419,6 +1420,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``limbigprime`` - (default: 30) to distinguish between small
            and large prime numbers. Use probabilistic tests for large
            primes. If 0, don't any probabilistic tests.
+
+        - ``known_points`` -- (default: None) list of known points on
+          the curve
 
         OUTPUT: a triple ``(lower, upper, list)`` consisting of
 
@@ -1533,7 +1537,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         t = EllipticCurve_number_field.simon_two_descent(self, verbose=verbose,
                                                          lim1=lim1, lim3=lim3, limtriv=limtriv,
-                                                         maxprob=maxprob, limbigprime=limbigprime)
+                                                         maxprob=maxprob, limbigprime=limbigprime,
+                                                         known_points=known_points)
         rank_low_bd = t[0]
         two_selmer_rank = t[1]
         pts = t[2]
@@ -1758,63 +1763,54 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         return self.__rank[proof]
 
-    def gens(self, verbose=False, rank1_search=10,
-             algorithm='mwrank_lib',
-             only_use_mwrank=True,
-             proof = None,
-             use_database = True,
-             descent_second_limit=12,
-             sat_bound = 1000):
+    def gens(self, proof=None, **kwds):
         """
-        Compute and return generators for the Mordell-Weil group E(Q)
-        *modulo* torsion.
+        Return generators for the Mordell-Weil group E(Q) *modulo*
+        torsion.
 
         .. warning::
 
            If the program fails to give a provably correct result, it
            prints a warning message, but does not raise an
-           exception. Use the gens_certain command to find out if this
+           exception. Use :meth:`~gens_certain` to find out if this
            warning message was printed.
 
         INPUT:
 
+        - ``proof`` -- bool or None (default None), see
+          ``proof.elliptic_curve`` or ``sage.structure.proof``
 
-        -  ``verbose`` - (default: None), if specified changes
-           the verbosity of mwrank computations.
+        - ``verbose`` - (default: None), if specified changes the
+           verbosity of mwrank computations
 
-        -  ``rank1_search`` - (default: 10), if the curve has
-           analytic rank 1, try to find a generator by a direct search up to
-           this logarithmic height. If this fails the usual mwrank procedure
-           is called. algorithm -
+        - ``rank1_search`` - (default: 10), if the curve has analytic
+          rank 1, try to find a generator by a direct search up to
+          this logarithmic height.  If this fails, the usual mwrank
+          procedure is called.
 
-        -  ``- 'mwrank_shell' (default)`` - call mwrank shell
-           command
+        - algorithm -- one of the following:
 
-        -  ``- 'mwrank_lib'`` - call mwrank c library
+          - ``'mwrank_shell'`` (default) -- call mwrank shell command
 
-        -  ``only_use_mwrank`` - bool (default True) if
-           False, attempts to first use more naive, natively implemented
-           methods.
+          - ``'mwrank_lib'`` -- call mwrank C library
 
-        -  ``proof`` - bool or None (default None, see
-           proof.elliptic_curve or sage.structure.proof).
+        - ``only_use_mwrank`` -- bool (default True) if False, first
+          attempts to use more naive, natively implemented methods
 
-        -  ``use_database`` - bool (default True) if True,
-           attempts to find curve and gens in the (optional) database
+        - ``use_database`` -- bool (default True) if True, attempts to
+          find curve and gens in the (optional) database
 
-        -  ``descent_second_limit`` - (default: 12)- used in 2-descent
+        - ``descent_second_limit`` -- (default: 12) used in 2-descent
 
-        - ``sat_bound`` - (default: 1000) - bound on primes used in
-           saturation.  If the computed bound on the index of the
-           points found by two-descent in the Mordell-Weil group is
-           greater than this, a warning message will be displayed.
+        - ``sat_bound`` -- (default: 1000) bound on primes used in
+          saturation.  If the computed bound on the index of the
+          points found by two-descent in the Mordell-Weil group is
+          greater than this, a warning message will be displayed.
 
         OUTPUT:
 
-
-        -  ``generators`` - List of generators for the
-           Mordell-Weil group modulo torsion.
-
+        - ``generators`` - list of generators for the Mordell-Weil
+           group modulo torsion
 
         IMPLEMENTATION: Uses Cremona's mwrank C library.
 
@@ -1847,16 +1843,51 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # If the gens are already cached, return them:
         try:
             return list(self.__gens[proof])  # return copy so not changed
-        except AttributeError:
-            pass
         except KeyError:
             if proof is False and True in self.__gens:
-                return self.__gens[True]
+                return list(self.__gens[True])
 
-        # At this point, either self.__gens does not exist, or
-        # self.__gens[False] exists but not self.__gens[True], and
-        # proof is True
+        # At this point, self.__gens[True] does not exist, and in case
+        # proof is False, self.__gens[False] does not exist either.
 
+        result, proved = self._compute_gens(proof, **kwds)
+        self.__gens[proved] = result
+        self.__rank[proved] = len(result)
+        self._known_points = result
+        return list(result)
+
+    def _compute_gens(self, proof,
+                      verbose=False,
+                      rank1_search=10,
+                      algorithm='mwrank_lib',
+                      only_use_mwrank=True,
+                      use_database=True,
+                      descent_second_limit=12,
+                      sat_bound=1000):
+        """
+        Return generators for the Mordell-Weil group E(Q) *modulo*
+        torsion.
+
+        INPUT:
+
+        Same as for :meth:`~gens`, except ``proof`` must be either
+        ``True`` or ``False`` (not ``None``).
+
+        OUTPUT:
+
+        A tuple ``(generators, proved)``, where ``generators`` is a
+        probable list of generators for the Mordell-Weil group modulo
+        torsion, and ``proved`` is ``True`` or ``False`` depending on
+        whether the result is provably correct.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([-3/8, -2/3])
+            sage: gens, proved = E._compute_gens(proof=False)
+            sage: proved
+            True
+
+        """
         # If the optional extended database is installed and an
         # isomorphic curve is in the database then its gens will be
         # known; if only the default database is installed, the rank
@@ -1867,8 +1898,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 E = self.database_curve()
                 iso = E.isomorphism_to(self)
                 try:
-                    self.__gens[True] = [iso(P) for P in E.__gens[True]]
-                    return self.__gens[True]
+                    return [iso(P) for P in E.__gens[True]], True
                 except (KeyError,AttributeError): # database curve does not have the gens
                     pass
             except (RuntimeError, KeyError):  # curve or gens not in database
@@ -1884,8 +1914,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 misc.verbose("Got r = %s."%r)
                 if r == 0:
                     misc.verbose("Rank = 0, so done.")
-                    self.__gens[True] = []
-                    return self.__gens[True]
+                    return [], True
                 if r == 1 and rank1_search:
                     misc.verbose("Rank = 1, so using direct search.")
                     h = 6
@@ -1897,8 +1926,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                             misc.verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
                             misc.verbose("Computed saturation.")
-                            self.__gens[True] = G
-                            return self.__gens[True]
+                            return G, True
                         h += 2
                     misc.verbose("Direct search FAILED.")
             except RuntimeError:
@@ -1929,8 +1957,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 del self.__mwrank_curve
                 raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s, generators found=%s).  This could be because Sha(E/Q)[2] is nontrivial."%(C.rank(),G) + \
                       "\nTry increasing descent_second_limit then trying this command again."
-            else:
-                proof = C.certain()
+            proved = C.certain()
             G = [[x*xterm,y*yterm,z] for x,y,z in G]
         else:
             # when gens() calls mwrank it passes the command-line
@@ -1951,8 +1978,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     raise RuntimeError, '%s\n%s'%(X,msg)
                 else:
                     misc.verbose("Warning -- %s"%msg, level=1)
-            elif proof is False:
-                proof = True
+                proved = False
+            else:
+                proved = True
             G = []
             i = X.find('Generator ')
             while i != -1:
@@ -1961,11 +1989,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 G.append(eval(X[k:j].replace(':',',')))
                 X = X[j:]
                 i = X.find('Generator ')
-        ####
-        self.__gens[proof] = [self.point(x, check=True) for x in G]
-        self.__gens[proof].sort()
-        self.__rank[proof] = len(self.__gens[proof])
-        return self.__gens[proof]
+        G = [self.point(x, check=True) for x in G]
+        G.sort()
+        return G, proved
 
     def gens_certain(self):
         """

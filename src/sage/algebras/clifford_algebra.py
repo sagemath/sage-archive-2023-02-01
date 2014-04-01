@@ -22,7 +22,7 @@ from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.modules_with_basis import ModuleMorphismByLinearity
 from sage.rings.all import ZZ
-from sage.modules.free_module import FreeModule
+from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
@@ -416,7 +416,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         a*b*c*d + 4*b*c + a
     """
     @staticmethod
-    def __classcall_private__(cls, Q, names='e'):
+    def __classcall_private__(cls, Q, names=None):
         """
         Normalize arguments to ensure a unique representation.
 
@@ -431,6 +431,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         if not isinstance(Q, QuadraticForm):
             raise ValueError("{} is not a quadratic form".format(Q))
+        if names is None:
+            names = 'e'
         names = tuple(names)
         if len(names) != Q.dim():
             if len(names) == 1:
@@ -527,6 +529,107 @@ class CliffordAlgebra(CombinatorialFreeModule):
             term += ' ' + self.latex_variable_names()[i]
         return term
 
+    def _coerce_map_from_(self, V):
+        """
+        Return if there is the coerce map from ``V`` into ``self``.
+
+        The things which coerce into ``self`` are:
+
+        - Clifford algebras with the same generator names and an equal
+          quadratic form over the base ring of ``self``.
+        - The underlying free module of ``self``.
+        - The base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Qp = QuadraticForm(QQ, 3, [1,2,3,4,5,6])
+            sage: Cl = CliffordAlgebra(Q)
+            sage: Clp = CliffordAlgebra(Qp)
+            sage: Cl.has_coerce_map_from(Clp)
+            False
+            sage: Clp.has_coerce_map_from(Cl)
+            True
+
+        Check that we preserve the multiplicative structure::
+
+            sage: all(Clp(b)*Clp(b) == Clp(b*b) for b in Cl.basis())
+            True
+
+        Check from the underlying free module::
+
+            sage: M = ZZ^3
+            sage: Mp = QQ^3
+            sage: Cl.has_coerce_map_from(M)
+            True
+            sage: Cl.has_coerce_map_from(Mp)
+            False
+            sage: Clp.has_coerce_map_from(M)
+            True
+            sage: Clp.has_coerce_map_from(Mp)
+            True
+
+        Names matter::
+
+            sage: Cln = CliffordAlgebra(Q, names=['x','y','z'])
+            sage: Cln.has_coerce_map_from(Cl)
+            False
+            sage: Cl.has_coerce_map_from(Cln)
+            False
+        """
+        if isinstance(V, CliffordAlgebra):
+            Q = self._quadratic_form
+            try:
+                return (V.variable_names() == self.variable_names() and
+                        V._quadratic_form.base_change_to(self.base_ring()) == Q)
+            except Exception:
+                return False
+
+        if self.free_module().has_coerce_map_from(V):
+            return True
+
+        return super(CliffordAlgebra, self)._coerce_map_from_(V)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Qp = QuadraticForm(QQ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Clp = CliffordAlgebra(Qp, names=['x','y','z'])
+            sage: M = ZZ^3
+            sage: Mp = QQ^3
+            sage: Cl(2/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: do not know how to make x (= 2/3) an element of self ... 
+            sage: Clp(2/3)
+            2/3
+            sage: Clp(x)
+            x
+            sage: M = ZZ^3
+            sage: Clp( M((1,-3,2)) )
+            x - 3*y + 2*z
+        """
+        # This is the natural lift morphism of the underlying free module
+        if x in self.free_module():
+            if x.parent().base_ring() == self.base_ring():
+                return self.element_class(self, {(i,): c for i,c in x.iteritems()})
+            R = self.base_ring()
+            return self.element_class(self, {(i,): R(c) for i,c in x.iteritems()})
+
+        if isinstance(x, CliffordAlgebraElement):
+            if x.parent() is self:
+                return x
+            if self.has_coerce_map_from(x.parent()):
+                R = self.base_ring()
+                return self.element_class(self, {i: R(c) for i,c in x})
+
+        return super(CliffordAlgebra, self)._element_constructor_(x)
+
     def gen(self, i):
         """
         Return the ``i``-th standard generator of the algebra ``self``.
@@ -552,7 +655,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.gens()
+            sage: Cl.algebra_generators()
             (x, y, z)
         """
         return tuple(self.gen(i) for i in range(self.ngens()))
@@ -624,8 +727,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         This degree is either `0` or `1`, and should be interpreted as a
         residue class modulo `2`, since we consider ``self`` to be
-        `\ZZ_2`-graded (not `\ZZ`-graded). The degree of the monomial ``m``
-        in this `\ZZ_2`-grading is defined to be the length of ``m``
+        `\ZZ_2`-graded (not `\ZZ`-graded, although there is a natural
+        *filtration* by the length of ``m``). The degree of the monomial
+        ``m`` in this `\ZZ_2`-grading is defined to be the length of ``m``
         taken mod `2`.
 
         EXAMPLES::
@@ -639,6 +743,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         return len(m) % ZZ(2)
 
+    @cached_method
     def free_module(self):
         """
         Return the underlying free module `V` of ``self``.
@@ -671,24 +776,27 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         return ZZ(2)**self._quadratic_form.dim()
 
-    def lift_morphism(self, m, names=None):
+    def lift_module_morphism(self, m, names=None):
         r"""
         Lift the matrix ``m`` to an algebra morphism of Clifford algebras.
 
         Given a linear map `m : W \to V` (here represented by a matrix
         acting on column vectors), this method returns the algebra
-        morphism `Cl(m)` from `Cl(W, m(Q))` to `Cl(V, Q)`, where
-        `Cl(V, Q)` is the Clifford algebra ``self`` and where `m(Q)` is the
-        pullback of the quadratic form `Q` to `W`. See the documentation of
-        :class:`CliffordAlgebra` for how this pullback and the morphism
-        `Cl(m)` are defined.
+        morphism `Cl(m) : Cl(W, m(Q)) \to Cl(V, Q)`, where `Cl(V, Q)`
+        is the Clifford algebra ``self`` and where `m(Q)` is the pullback
+        of the quadratic form `Q` to `W`. See the documentation
+        of :class:`CliffordAlgebra` for how this pullback and the
+        morphism `Cl(m)` are defined.
+
+        .. NOTE::
+
+            This is a contravariant lift.
 
         INPUT:
 
         - ``m`` -- a matrix
         - ``names`` -- (default: ``'e'``) the names of the generators of the
           Clifford algebra of the domain of (the map represented by) ``m``
-          
 
         OUTPUT:
 
@@ -699,14 +807,14 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: m = matrix([[1,-1,-1],[0,1,-1],[1,1,1]])
-            sage: phi = Cl.lift_morphism(m, 'abc')
+            sage: phi = Cl.lift_module_morphism(m, 'abc')
             sage: phi
             Generic morphism:
-              From: The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients: 
+              From: The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients:
             [ 10 17 3 ]
             [ * 11 0 ]
             [ * * 5 ]
-              To:   The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients: 
+              To:   The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients:
             [ 1 2 3 ]
             [ * 4 5 ]
             [ * * 6 ]
@@ -750,7 +858,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         We can also lift arbitrary linear maps::
 
             sage: m = matrix([[1,1],[0,1],[1,1]])
-            sage: phi = Cl.lift_morphism(m, 'ab')
+            sage: phi = Cl.lift_module_morphism(m, 'ab')
             sage: a,b = phi.domain().gens()
             sage: phi(a)
             x + z
@@ -766,7 +874,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             -x*y + y*z + 12
 
             sage: m = matrix([[1,1,1,2], [0,1,1,1], [0,1,1,1]])
-            sage: phi = Cl.lift_morphism(m, 'abcd')
+            sage: phi = Cl.lift_module_morphism(m, 'abcd')
             sage: a,b,c,d = phi.domain().gens()
             sage: phi(a)
             x
@@ -788,12 +896,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if Q == self._quadratic_form and names is None:
             Cl = self
         else:
-            if names is None:
-                names = 'e'
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-        f = lambda x: self.prod(self.sum_of_terms(((j,), m[j,i]) for j in range(n))
+        f = lambda x: self.prod(self.sum_of_terms( ((j,), m[j,i]) for j in range(n)
+                                                   if m[j,i] != 0 )
                                 for i in x)
         return Cl.module_morphism(f, codomain=self,
                                   category=GradedAlgebrasWithBasis(self.base_ring()))
@@ -857,7 +964,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
-        f = lambda x: Cl.prod(Cl.sum_of_terms(((j,), m[j,i]) for j in range(n))
+        f = lambda x: Cl.prod(Cl.sum_of_terms(((j,), m[j,i]) for j in range(n) if m[j,i] != 0)
                               for i in x)
         return self.module_morphism(f, codomain=Cl,
                                     category=GradedAlgebrasWithBasis(self.base_ring()))
@@ -916,7 +1023,7 @@ class ExteriorAlgebra(CliffordAlgebra):
     - :wikipedia:`Exterior_algebra`
     """
     @staticmethod
-    def __classcall_private__(cls, R, names='e', n=None):
+    def __classcall_private__(cls, R, names=None, n=None):
         """
         Normalize arguments to ensure a unique representation.
 
@@ -928,9 +1035,18 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E1 is E2 and E2 is E3
             True
         """
-        if names in ZZ:
+        if names is None:
+            names = 'e'
+        elif names in ZZ:
             n = names
             names = 'e'
+
+        if isinstance(R, FreeModule_generic):
+            if n is not None and n != R.dimension():
+                raise ValueError("the number of variables does not match the dimension")
+            n = R.dimension()
+            R = R.base_ring()
+
         names = tuple(names)
         if n is not None and len(names) != n:
             if len(names) == 1:
@@ -1006,6 +1122,81 @@ class ExteriorAlgebra(CliffordAlgebra):
             term += ' ' + self.latex_variable_names()[i]
         return term
 
+
+    def lift_morphism(self, phi, names=None):
+        r"""
+        Lift the matrix ``m`` to an algebra morphism of exterior algebras.
+
+        Given a linear map `\phi : V \to W` (here represented by a matrix
+        acting on column vectors over the base ring of `V`), this method
+        returns the algebra morphism
+        `\Lambda(\phi) :\Lambda(V) \to \Lambda(W)`. This morphism is defined
+        on generators `v_i \in \Lambda(V)` by `v_i \mapsto \phi(v_i)`.
+
+        .. NOTE::
+
+            This is the covariant construction as opposed to
+            :meth:`lift_module_morphism()` for general Clifford algebras.
+
+        INPUT:
+
+        - ``phi`` -- a linear map from `V \to W`
+        - ``names`` -- (default: ``'e'``) the names of the generators of the
+          Clifford algebra of the domain of (the map represented by) ``m``
+
+        OUTPUT:
+
+        The algebra morphism `\Lambda(\phi)` from ``self`` to `\Lambda(W)`.
+
+        EXAMPLES::
+
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: phi = matrix([[0,1],[1,1],[1,2]]); phi
+            [0 1]
+            [1 1]
+            [1 2]
+            sage: L = E.lift_morphism(phi, ['a','b','c']); L
+            Generic morphism:
+              From: The exterior algebra of rank 2 over Rational Field
+              To:   The exterior algebra of rank 3 over Rational Field
+            sage: L(x)
+            b + c
+            sage: L(y)
+            a + b + 2*c
+            sage: L(x*y)
+            -a^b - a^c + b^c
+            sage: L(x)*L(y)
+            -a^b - a^c + b^c
+            sage: L(x + y)
+            a + 2*b + 3*c
+            sage: L(x) + L(y)
+            a + 2*b + 3*c
+            sage: L(1/2*x + 2)
+            1/2*b + 1/2*c + 2
+            sage: L(E(3))
+            3
+
+            sage: psi = matrix([[1, -3/2]]); psi
+            [   1 -3/2]
+            sage: Lp = E.lift_morphism(psi, ['a']); Lp
+            Generic morphism:
+              From: The exterior algebra of rank 2 over Rational Field
+              To:   The exterior algebra of rank 1 over Rational Field
+            sage: Lp(x)
+            a
+            sage: Lp(y)
+            -3/2*a
+            sage: Lp(x + 2*y + 3)
+            -2*a + 3
+        """
+        n = phi.nrows()
+        R = self.base_ring()
+        E = ExteriorAlgebra(R, names, n)
+        f = lambda x: self.prod(self.sum_of_terms( ((j,), phi[j,i]) for j in range(n)
+                                                   if phi[j,i] != 0)
+                                for i in x)
+        return self.module_morphism(f, codomain=E, category=GradedAlgebrasWithBasis(R))
+
     def volume_form(self):
         """
         Return the volume form of ``self``.
@@ -1032,10 +1223,16 @@ class ExteriorAlgebra(CliffordAlgebra):
         For more on the boundary operator, see
         :class:`ExteriorAlgebraBoundary`.
 
+        INPUT:
+
+        - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
+          `I` is the index set of the underlying vector space `V`, and whose
+          values can be coerced into 1-forms (degree 1 elements) in ``E``
+
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: E.boundary({(0,1): z, (1,2):x, (2,0):y})
+            sage: E.boundary({(0,1): z, (1,2): x, (2,0): y})
             Boundary endomorphism of The exterior algebra of rank 3 over Rational Field
         """
         return ExteriorAlgebraBoundary(self, s_coeff)
@@ -1048,10 +1245,16 @@ class ExteriorAlgebra(CliffordAlgebra):
         For more on the coboundary operator, see
         :class:`ExteriorAlgebraCoboundary`.
 
+        INPUT:
+
+        - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
+          `I` is the index set of the underlying vector space `V`, and whose
+          values can be coerced into 1-forms (degree 1 elements) in ``E``
+
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: E.coboundary({(0,1): z, (1,2):x, (2,0):y})
+            sage: E.coboundary({(0,1): z, (1,2): x, (2,0): y})
             Coboundary endomorphism of The exterior algebra of rank 3 over Rational Field
         """
         return ExteriorAlgebraCoboundary(self, s_coeff)
@@ -1142,7 +1345,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     def interior_product_on_basis(self, a, b):
         """
-        Return the internal product of ``a`` on ``b``.
+        Return the interior product of ``a`` on ``b``.
 
         This depends on the choice of basis of the vector space
         whose exterior algebra is ``self``.
@@ -1239,9 +1442,24 @@ class ExteriorAlgebra(CliffordAlgebra):
             as an element in `\Lambda^1(V)`, defined by
 
             - `i_{\alpha}(v) = \alpha(v)` where `v \in V = \Lambda^1(V)`,
-            - `i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y + (-1)^{\deg x}
-              x \wedge (i_{\alpha} y)`, i.e. it is a graded derivation
-              of degree `-1`.
+            - it is a graded derivation of degree `-1`:
+
+              .. MATH::
+
+                  i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y
+                  + (-1)^{\deg x} x \wedge (i_{\alpha} y)
+
+            It can also be defined by
+
+            .. MATH::
+
+                (i_{\alpha} \omega)(u_1, \ldots, u_k)
+                = \omega(\alpha, u_1, \ldots, u_k),
+
+            where `\omega \in \Lambda^k(V)` is thought of as an
+            alternating multilinear mapping from
+            `V^* \times \cdots \times V^* \to F` with `F` being the base
+            field of `V`.
 
             EXAMPLES::
 
@@ -1252,6 +1470,10 @@ class ExteriorAlgebra(CliffordAlgebra):
                 -2*x
                 sage: (x*z + x*y*z).interior_product(2*y - x)
                 -2*x^z - y^z - z
+
+            REFERENCES:
+
+            - :wikipedia:`Exterior_algebra#Interior_product
             """
             P = self.parent()
             return P.sum([c * cx * P.interior_product_on_basis(m, mx)
@@ -1360,15 +1582,24 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par1 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (2,0): y})
             sage: par2 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (0,2): -y})
-            sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {(2,):-1}, (1,2): {(0,):1}, (2,0):{(1,):1}})
+            sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {2:-1}, (1,2): {0:1}, (2,0):{1:1}})
             sage: par1 is par2 and par2 is par3
             True
         """
         d = {}
 
         for k,v in dict(s_coeff).items():
-            if v not in E:
-                v = E._from_dict({i:c for i,c in dict(v).items()})
+            if isinstance(v, dict):
+                R = E.base_ring()
+                v = E._from_dict({(i,): R(c) for i,c in v.items()})
+
+            # Make sure all elements are in ``E``
+            v = E(v)
+
+            # It's okay if v.degree results in an error
+            #   (we'd throw a similar error)
+            if v.degree() != 1:
+                raise ValueError("elements must be degree 1")
 
             if k[0] < k[1]:
                 d[tuple(k)] = v
@@ -1409,6 +1640,10 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
              3: Vector space of dimension 1 over Rational Field}
             sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
             sage: d.homology()
+            {0: Vector space of dimension 1 over Rational Field,
+             1: Vector space of dimension 0 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field,
+             3: Vector space of dimension 1 over Rational Field}
         """
         return self.chain_complex().homology(deg, **kwds)
 
@@ -1432,14 +1667,10 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
     INPUT:
 
-    - ``E`` -- an exterior algebra with basis indexed by `I`
-    - ``s_coeff`` -- a dictionary whose keys are in `I \times I` and whose
-      values are dictionaries of the resulting non-zero terms or an
-      item in ``E``
-
-    REFERENCES:
-
-    :wikipedia:`Exterior_algebra#Lie_algebra_homology`
+    - ``E`` -- an exterior algebra
+    - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
+      `I` is the index set of the underlying vector space `V`, and whose
+      values can be coerced into 1-forms (degree 1 elements) in ``E``
 
     EXAMPLES:
 
@@ -1458,6 +1689,10 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         sage: p2 = par * par
         sage: all(p2(b) == 0 for b in E.basis())
         True
+
+    REFERENCES:
+
+    - :wikipedia:`Exterior_algebra#Lie_algebra_homology`
     """
     def _repr_type(self):
         """
@@ -1510,8 +1745,13 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par = E.boundary({(0,1): z, (1,2): x, (2,0): y})
-            sage: par.chain_complex()
+            sage: C = par.chain_complex(); C
             Chain complex with at most 4 nonzero terms over Rational Field
+            sage: ascii_art(C)
+                                      [ 0  0  1]       [0]
+                                      [ 0 -1  0]       [0]
+                        [0 0 0]       [ 1  0  0]       [0]
+             0 <-- C_0 <-------- C_1 <----------- C_2 <---- C_3 <-- 0
         """
         from sage.homology.chain_complex import ChainComplex
         from sage.matrix.constructor import Matrix
@@ -1528,9 +1768,9 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         # Construct the transition matrices
         data = {}
         prev_basis = basis_by_deg[0]
-        for deg in range(n):
+        for deg in range(1,n+1):
             # Make sure within each basis we're sorted by lex
-            basis = sorted(basis_by_deg[deg+1])
+            basis = sorted(basis_by_deg[deg])
             mat = []
             for b in basis:
                 ret = self._on_basis(b)
@@ -1555,12 +1795,16 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
     The corresponding homology is the Lie algebra cohomology.
 
+    This can also be thought of as the exterior derivative, in which case
+    the resulting cohomology is the de Rham cohomology of a manifold whose
+    exterior algebra of differential forms is ``E``.
+
     INPUT:
 
-    - ``E`` -- an exterior algebra with basis indexed by `I`
-    - ``s_coeff`` -- a dictionary whose keys are in `I \times I` and whose
-      values are dictionaries of the resulting non-zero terms or an
-      item in ``E``
+    - ``E`` -- an exterior algebra
+    - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
+      `I` is the index set of the underlying vector space `V`, and whose
+      values can be coerced into 1-forms (degree 1 elements) in ``E``
 
     EXAMPLES:
 
@@ -1579,6 +1823,10 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         sage: d2 = d * d
         sage: all(d2(b) == 0 for b in E.basis())
         True
+
+    REFERENCES:
+
+    - :wikipedia:`Exterior_algebra#Differential_geometry`
     """
     def __init__(self, E, s_coeff):
         """

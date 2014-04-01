@@ -642,10 +642,10 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
 
         EXAMPLES::
 
-            sage: KRC = KirillovReshetikhinCrystal(['A',2,1], 2,2)
+            sage: KRC = crystals.KirillovReshetikhin(['A',2,1], 2,2)
             sage: KRC.q_dimension()
             q^4 + q^3 + 2*q^2 + q + 1
-            sage: KRC = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 2,1)
             sage: KRC.q_dimension()
             q^10 + q^9 + 3*q^8 + 3*q^7 + 4*q^6 + 4*q^5 + 4*q^4 + 3*q^3 + 3*q^2 + q + 2
         """

@@ -82,7 +82,7 @@ cdef extern from "ginac_wrap.h":
         bint find(GEx pattern, GExList s) except +
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
-        GEx subs_map "subs" (GExMap map) except +
+        GEx subs_map "subs" (GExMap map, unsigned options) except +
         GEx coeff(GEx expr, int n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
@@ -203,6 +203,8 @@ cdef extern from "ginac_wrap.h":
     GEx* GEx_construct_symbol "Construct_p<ex, symbol>" \
             (void *mem, GSymbol m) except +
     GEx* GEx_construct_ex "Construct_p<ex, ex>" (void *mem, GEx m) except +
+    void GExMap_destruct "Destruct<exmap>"(GExMap *mem) except +
+    GExMap* GEx_construct_exmap "Construct_p<exmap, exmap>" (void *mem, GExMap m) except +
     GEx* GEx_construct_long "Construct_p<ex, long>" (void *mem, long n) except +
     GEx* GEx_construct_double "Construct_p<ex, double>" \
             (void *mem, double d) except +
@@ -371,6 +373,7 @@ cdef extern from "ginac_wrap.h":
         unsigned get_nparams()
         void set_python_func()
         GFunctionOpt eval_func(object f)
+        GFunctionOpt subs_func(object f)
         GFunctionOpt evalf_func(object f)
         GFunctionOpt conjugate_func(object f)
         GFunctionOpt real_part_func(object f)
@@ -531,6 +534,7 @@ cdef extern from "ginac_wrap.h":
         GEx pyExpression_to_ex(object res) except *
         object ex_to_pyExpression(GEx juice)
         int py_get_ginac_serial()
+        object subs_args_to_PyTuple(GExMap map, unsigned options, GExVector seq)
 
         object py_get_sfunction_from_serial(unsigned s) except +
         unsigned py_get_serial_from_sfunction(object f) except +
@@ -539,7 +543,6 @@ cdef extern from "ginac_wrap.h":
 
         stdstring* py_print_function(unsigned id, object args) except +
         stdstring* py_latex_function(unsigned id, object args) except +
-
 
         GConstant py_get_constant(const_char_ptr name) except +
 

@@ -36,6 +36,7 @@ from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
+from sage.symbolic.substitution_map cimport SubstitutionMap, new_SubstitutionMap_from_GExMap
 from sage.symbolic.function import get_sfunction_from_serial
 from sage.symbolic.function cimport Function, parent_c
 from sage.symbolic.constants_c cimport PynacConstant
@@ -225,6 +226,34 @@ def get_ginac_serial():
         True
     """
     return py_get_ginac_serial()
+
+cdef public object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& seq):
+    """
+    Convert arguments from ``GiNaC::subs()`` to a PyTuple. 
+    
+    EXAMPLES::
+
+        sage: from sage.symbolic.function import BuiltinFunction
+        sage: class TFunc(BuiltinFunction):
+        ....:     def __init__(self):
+        ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
+        ....:
+        ....:     def _subs_(self, *args):
+        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         return args[-1]
+        sage: tfunc = TFunc()
+        sage: tfunc(x).subs(x=1)
+        len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>, 
+          <type 'int'>,        # 64-bit
+          <type 'long'>,       # 32-bit
+          <type 'sage.symbolic.expression.Expression'>]
+        x
+    """
+    from sage.symbolic.ring import SR
+    res = []
+    res.append(new_SubstitutionMap_from_GExMap(map))
+    res.append(options)
+    return tuple(res) + exvector_to_PyTuple(seq)
 
 #################################################################
 # Printing helpers
@@ -2202,6 +2231,7 @@ def init_function_table():
     py_funcs.exvector_to_PyTuple = &exvector_to_PyTuple
     py_funcs.pyExpression_to_ex = &pyExpression_to_ex
     py_funcs.ex_to_pyExpression = &ex_to_pyExpression
+    py_funcs.subs_args_to_PyTuple = &subs_args_to_PyTuple
     py_funcs.py_print_function = &py_print_function
     py_funcs.py_latex_function = &py_latex_function
     py_funcs.py_get_ginac_serial = &py_get_ginac_serial

@@ -145,18 +145,17 @@ cached:
 Types versus parents
 --------------------
 
-The type ``RingElement`` should not be confused with the mathematical
-notion of a ring element; for practical reasons, sometimes an object
-is an instance of ``RingElement`` although it does not belong to a
-ring:
+The type ``RingElement`` does not correspond perfectly to the
+mathematical notion of a ring element.  For example, although square
+matrices belong to a ring, they are not instances of ``RingElement``:
 
 ::
 
-    sage: M = Matrix(ZZ,2,3); M
-    [0 0 0]
-    [0 0 0]
+    sage: M = Matrix(ZZ,2,2); M
+    [0 0]
+    [0 0]
     sage: isinstance(M, RingElement)
-    True
+    False
 
 While *parents* are unique, equal *elements* of a parent in Sage are not
 necessarily identical. This is in contrast to the behaviour of Python

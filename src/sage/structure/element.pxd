@@ -113,7 +113,7 @@ cdef class Vector(ModuleElement):
     cdef bint is_dense_c(self)
 
 
-cdef class Matrix(AlgebraElement):
+cdef class Matrix(ModuleElement):
     # All matrix classes must be written in Cython
     cdef Py_ssize_t _nrows
     cdef Py_ssize_t _ncols

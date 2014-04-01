@@ -22,13 +22,13 @@ include "sage/ext/cdefs.pxi"
 from ginac cimport *
 
 from sage.rings.integer cimport Integer
-from sage.rings.real_mpfr import RealNumber
+from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.libs.pari.pari_instance cimport PariInstance
 from sage.misc.latex import latex_variable_name
-from sage.structure.element cimport RingElement, Element
+from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
@@ -283,7 +283,7 @@ cdef class SymbolicRing(CommutativeRing):
             return new_Expression_from_GEx(self, g_mInfinity)
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
-        elif isinstance(x, RingElement):
+        elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
         else:
             raise TypeError

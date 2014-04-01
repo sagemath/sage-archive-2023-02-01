@@ -886,6 +886,8 @@ cdef class BuiltinFunction(Function):
             sage: p3 = AFunction('p3', 3)
             sage: p3(x)
             x^3
+            sage: loads(dumps(cot)) == cot    # :trac:`15138`
+            True
         """
         # check if already defined
         cdef int serial = -1
@@ -898,17 +900,11 @@ cdef class BuiltinFunction(Function):
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and self._name in sfunction_serial_dict and \
-                sfunction_serial_dict[self._name].__class__ == self.__class__:
+        if serial != -1 and serial in sfunction_serial_dict and \
+                sfunction_serial_dict[serial].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial
                     return True
-
-        # search the function table to check if any of this type
-        for key, val in sfunction_serial_dict.iteritems():
-            if key == self._name and val.__class__ == self.__class__:
-                self._serial = key
-                return True
 
         return False
 

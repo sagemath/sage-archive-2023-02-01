@@ -1841,15 +1841,15 @@ class SparseGraphBackend(CGraphBackend):
 
         TEST::
 
-        sage: g = graphs.PetersenGraph()
-        sage: g.edges_incident([0,1,2])
-        [(0, 1, None),
-         (0, 4, None),
-         (0, 5, None),
-         (1, 2, None),
-         (1, 6, None),
-         (2, 3, None),
-         (2, 7, None)]
+            sage: g = graphs.PetersenGraph()
+            sage: g.edges_incident([0,1,2])
+            [(0, 1, None),
+             (0, 4, None),
+             (0, 5, None),
+             (1, 2, None),
+             (1, 6, None),
+             (2, 3, None),
+             (2, 7, None)]
         """
         cdef object u, v, l
         cdef int u_int, v_int, l_int

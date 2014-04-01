@@ -8,7 +8,7 @@ if you want to change it.
 
 EXAMPLES::
 
-    sage: from sage.misc.crun import Profiler
+    sage: from sage.misc.gperftools import Profiler
     sage: prof = Profiler()
     sage: prof.start()       # optional - gperftools
     sage: prof.stop()        # optional - gperftools
@@ -34,6 +34,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.misc.cachefunc import cached_method
 
 
 libc = None
@@ -53,7 +54,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: Profiler()
             Profiler logging to ...
         """        
@@ -73,7 +74,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof.filename()
             '.../tmp_....perf'
@@ -90,7 +91,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: Profiler()
             Profiler logging to .../tmp....perf
         """
@@ -106,7 +107,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: Profiler()._libc()
             <CDLL 'libc...', handle ... at ...>
         """
@@ -131,7 +132,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: Profiler()._libprofiler()    # optional - gperftools
             <CDLL 'libprofiler...', handle ... at ...>
         """
@@ -152,7 +153,7 @@ class Profiler(SageObject):
         
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
             sage: # do something
@@ -172,7 +173,7 @@ class Profiler(SageObject):
         
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
             sage: # do something
@@ -182,22 +183,37 @@ class Profiler(SageObject):
         profiler = self._libprofiler()
         profiler.ProfilerStop()
 
+    @cached_method
     def _pprof(self):
         """
         Return the name of the ``pprof`` binary.
 
         OUTPUT:
 
-        String.
+        String. The name of the gperftools ``pprof`` utility. A
+        ``OSError`` is raised if it cannot be found.
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
-            sage: prof._pprof()
+            sage: prof._pprof()     # random output
             'pprof'
         """
-        return 'pprof'
+        potential_names = ['pprof', 'google-pprof']
+        from subprocess import check_output, CalledProcessError
+        for name in potential_names:
+            try:
+                version = check_output([name, '--version'])
+            except (CalledProcessError, OSError):
+                continue
+            if 'gperftools' not in version:
+                from warnings import warn
+                warn('the "{0}" utility does not appear to be the gperftools profiler'
+                     .format(name), RuntimeWarning)
+                continue
+            return name
+        raise OSError('unable to run pprof, please install gperftools')
         
     def _executable(self):
         """
@@ -209,7 +225,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof._executable()
             '.../python'
@@ -230,7 +246,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof._call_pprof('--help')   # optional - gperftools
             Usage:
@@ -250,7 +266,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
             sage: # do something
@@ -284,7 +300,7 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.crun import Profiler
+            sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
             sage: prof.stop()     # optional - gperftools

@@ -320,7 +320,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
     `x_1 \otimes x_2 \otimes \cdots \otimes x_m \in T(V)` onto
     `T(V) / I_Q = Cl(V, Q)` by `x_1 \wedge x_2 \wedge \cdots \wedge x_m`.
     This is motivated by the fact that `Cl(V, Q)` is the exterior algebra
-    `\wedge V` when `Q = 0`.
+    `\wedge V` when `Q = 0` (one can also think of a Clifford algebra as
+    a quantization of the exterior algebra).
 
     From the definition, a basis of `Cl(V, Q)` is given by monomials of
     the form
@@ -380,7 +381,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         \phi(Q)(x) = x^T \cdot \phi^T \cdot Q \cdot \phi \cdot x
         = (\phi \cdot x)^T \cdot Q \cdot (\phi \cdot x) = Q(\phi(x)).
 
-    Hence we have `\phi(w)^2 = Q(\phi(w)) = \phi(Q)(w)` for all `w in W`.
+    Hence we have `\phi(w)^2 = Q(\phi(w)) = \phi(Q)(w)` for all `w \in W`.
 
     REFERENCES:
 
@@ -454,7 +455,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         TESTS:
 
         We check that the basis elements are indeed indexed by
-        *strictly increasing* tuples:
+        *strictly increasing* tuples::
 
             sage: Q = QuadraticForm(ZZ, 9)
             sage: Cl = CliffordAlgebra(Q)
@@ -790,7 +791,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         .. NOTE::
 
-            This is a contravariant lift.
+            This is a map into ``self``.
 
         INPUT:
 
@@ -928,7 +929,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         OUTPUT:
 
-        The algebra morphism `Cl(m)` from ``self`` to `Cl(W, m^{-1}(Q)).
+        The algebra morphism `Cl(m)` from ``self`` to `Cl(W, m^{-1}(Q))`.
 
         EXAMPLES::
 
@@ -1122,7 +1123,6 @@ class ExteriorAlgebra(CliffordAlgebra):
             term += ' ' + self.latex_variable_names()[i]
         return term
 
-
     def lift_morphism(self, phi, names=None):
         r"""
         Lift the matrix ``m`` to an algebra morphism of exterior algebras.
@@ -1130,19 +1130,20 @@ class ExteriorAlgebra(CliffordAlgebra):
         Given a linear map `\phi : V \to W` (here represented by a matrix
         acting on column vectors over the base ring of `V`), this method
         returns the algebra morphism
-        `\Lambda(\phi) :\Lambda(V) \to \Lambda(W)`. This morphism is defined
+        `\Lambda(\phi) : \Lambda(V) \to \Lambda(W)`. This morphism is defined
         on generators `v_i \in \Lambda(V)` by `v_i \mapsto \phi(v_i)`.
 
         .. NOTE::
 
-            This is the covariant construction as opposed to
-            :meth:`lift_module_morphism()` for general Clifford algebras.
+            This is the map going out of ``self`` as opposed to
+            :meth:`~sage.algebras.clifford_algebra.CliffordAlgebraElement.lift_module_morphism()`
+            for general Clifford algebras.
 
         INPUT:
 
         - ``phi`` -- a linear map from `V \to W`
         - ``names`` -- (default: ``'e'``) the names of the generators of the
-          Clifford algebra of the domain of (the map represented by) ``m``
+          Clifford algebra of the domain of (the map represented by) ``phi``
 
         OUTPUT:
 
@@ -1444,12 +1445,12 @@ class ExteriorAlgebra(CliffordAlgebra):
             - `i_{\alpha}(v) = \alpha(v)` where `v \in V = \Lambda^1(V)`,
             - it is a graded derivation of degree `-1`:
 
-              .. MATH::
+            .. MATH::
 
-                  i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y
-                  + (-1)^{\deg x} x \wedge (i_{\alpha} y)
+                i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y
+                + (-1)^{\deg x} x \wedge (i_{\alpha} y)
 
-            It can also be defined by
+            The interior product can also be defined by
 
             .. MATH::
 
@@ -1473,7 +1474,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             REFERENCES:
 
-            - :wikipedia:`Exterior_algebra#Interior_product
+            - :wikipedia:`Exterior_algebra#Interior_product`
             """
             P = self.parent()
             return P.sum([c * cx * P.interior_product_on_basis(m, mx)

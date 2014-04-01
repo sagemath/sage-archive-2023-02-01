@@ -396,9 +396,13 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
     INPUT:
 
-    -  ``R`` -- a (polynomial) ring
+    - ``R`` -- a (polynomial) ring
 
     EXAMPLES::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: W = DifferentialWeylAlgebra(R); W
+        The Weyl algebra of Multivariate Polynomial Ring in x, y, z over Rational Field
     """
     def __init__(self, R):
         r"""

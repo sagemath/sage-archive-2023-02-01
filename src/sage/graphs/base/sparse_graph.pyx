@@ -1869,7 +1869,7 @@ class SparseGraphBackend(CGraphBackend):
                                     l = None
                                 else:
                                     l = self.edge_labels[l_int]
-                                yield (v, u, l) if v<=u else (u, v, l)
+                                yield (v, u, l) if v<u else (u, v, l)
             else:
                 for v in self.iterator_verts():
                     v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
@@ -1878,7 +1878,7 @@ class SparseGraphBackend(CGraphBackend):
                         if u_int >= v_int:
                             u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                             for l_int in self._cg.all_arcs(v_int, u_int):
-                                yield (v, u) if v <= u else (u, v)
+                                yield (v, u) if v < u else (u, v)
         # One vertex
         elif len(vertices) == 1:
             v = vertices[0]
@@ -1893,12 +1893,12 @@ class SparseGraphBackend(CGraphBackend):
                             l = None
                         else:
                             l = self.edge_labels[l_int]
-                        yield (v, u, l) if v<=u else (u, v, l)
+                        yield (v, u, l) if v<u else (u, v, l)
             else:
                 for u_int in self._cg.out_neighbors(v_int):
                     u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                     for l_int in self._cg.all_arcs(v_int, u_int):
-                        yield (v, u) if v <= u else (u, v)
+                        yield (v, u) if v < u else (u, v)
 
         # Several vertices (nonempty list)
         elif vertices:
@@ -1916,7 +1916,7 @@ class SparseGraphBackend(CGraphBackend):
                                     l = None
                                 else:
                                     l = self.edge_labels[l_int]
-                                yield (v, u, l) if v<=u else (u, v, l)
+                                yield (v, u, l) if v<u else (u, v, l)
             else:
                 for v in vertices:
                     v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
@@ -1925,7 +1925,7 @@ class SparseGraphBackend(CGraphBackend):
                         if u_int >= v_int or u_int not in b_vertices:
                             u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
                             for l_int in self._cg.all_arcs(v_int, u_int):
-                                yield (v, u) if v <= u else (u, v)
+                                yield (v, u) if v < u else (u, v)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """

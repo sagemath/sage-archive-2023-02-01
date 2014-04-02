@@ -79,7 +79,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf
 
     .. [Schocker2004] Manfred Schocker, *The descent algebra of the
-       symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145–161.
+       symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.
        http://www.mathematik.uni-bielefeld.de/~ringel/schocker-neu.ps
 
     EXAMPLES::
@@ -173,7 +173,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         Occasionally this basis appears in literature but indexed by
         compositions of `n` rather than subsets of
         `\{1, 2, \ldots, n-1\}`. The equivalence between these two
-        indices is owed to the bijection from the power set of
+        indexings is owed to the bijection from the power set of
         `\{1, 2, \ldots, n-1\}` to the set of all compositions of `n`
         which sends every subset `\{i_1, i_2, \ldots, i_k\}` of
         `\{1, 2, \ldots, n-1\}` (with `i_1 < i_2 < \cdots < i_k`) to

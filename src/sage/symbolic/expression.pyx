@@ -58,7 +58,7 @@ the same::
     sage: (x^3 + x <= x - 17)  + (-x <= x - 10)
     x^3 <= 2*x - 27
 
-Here they aren't::
+Here they are not::
 
     sage: (x^3 + x <= x - 17)  + (-x >= x - 10)
     Traceback (most recent call last):
@@ -82,7 +82,7 @@ We mix Singular variables with symbolic variables::
 
 TESTS:
 
-Test Jacobian on Pynac expressions. #5546 ::
+Test Jacobian on Pynac expressions. (:trac:`5546`) ::
 
     sage: var('x,y')
     (x, y)
@@ -91,7 +91,7 @@ Test Jacobian on Pynac expressions. #5546 ::
     [1 1]
 
 
-Test if matrices work #5546 ::
+Test if matrices work :trac:`5546` ::
 
     sage: var('x,y,z')
     (x, y, z)
@@ -102,7 +102,7 @@ Test if matrices work #5546 ::
     sage: v*M
     (x^2 + y*z, 2*x*y)
 
-Test if comparison bugs from #6256 are fixed::
+Test if comparison bugs from :trac:`6256` are fixed::
 
     sage: t = exp(sqrt(x)); u = 1/t
     sage: t*u
@@ -112,7 +112,7 @@ Test if comparison bugs from #6256 are fixed::
     sage: t
     e^sqrt(x)
 
-Test if #9947 is fixed::
+Test if :trac:`9947` is fixed::
 
     sage: real_part(1+2*(sqrt(2)+1)*(sqrt(2)-1))
     3
@@ -152,11 +152,12 @@ from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.dynamic_class import dynamic_class
 
-LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
+# a small overestimate of log(10,2)
+LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
 
 cpdef bint is_Expression(x):
     """
-    Returns True if *x* is a symbolic Expression.
+    Return True if *x* is a symbolic Expression.
 
     EXAMPLES::
 
@@ -172,7 +173,7 @@ cpdef bint is_Expression(x):
 
 cpdef bint is_SymbolicEquation(x):
     """
-    Returns True if *x* is a symbolic equation.
+    Return True if *x* is a symbolic equation.
 
     EXAMPLES:
 
@@ -248,13 +249,13 @@ cdef class Expression(CommutativeRingElement):
             raise TypeError('Python infinity cannot have complex phase.')
 
         if not is_a_numeric(self._gobj):
-            raise TypeError, "self must be a numeric expression"
+            raise TypeError("self must be a numeric expression")
         return py_object_from_numeric(self._gobj)
 
     def __init__(self, SR, x=0):
         """
         Nearly all expressions are created by calling new_Expression_from_*,
-        but we need to make sure this at least doesn't leave self._gobj
+        but we need to make sure this at least does not leave self._gobj
         uninitialized and segfault.
 
         TESTS::
@@ -286,7 +287,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __getstate__(self):
         """
-        Returns a tuple describing the state of this expression for pickling.
+        Return a tuple describing the state of this expression for pickling.
 
         This should return all information that will be required to unpickle
         the object. The functionality for unpickling is implemented in
@@ -374,7 +375,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __setstate__(self, state):
         """
-        Initializes the state of the object from data saved in a pickle.
+        Initialize the state of the object from data saved in a pickle.
 
         During unpickling __init__ methods of classes are not called, the saved
         data is passed to the class via this function instead.
@@ -396,7 +397,7 @@ cdef class Expression(CommutativeRingElement):
         """
         # check input
         if state[0] != 0 or len(state) != 3:
-            raise ValueError, "unknown state information"
+            raise ValueError("unknown state information")
         # set parent
         self._set_parent(ring.SR)
         # get variables
@@ -505,7 +506,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(a+1)^x
             (a + 1)^x
 
-        Check if #7876 is fixed::
+        Check if :trac:`7876` is fixed::
 
             sage: (1/2-1/2*I )*sqrt(2)
             -(1/2*I - 1/2)*sqrt(2)
@@ -622,8 +623,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _gap_init_(self):
         """
-        Conversion of symbolic object to GAP always results in a GAP
-        string.
+        Convert symbolic object to GAP string.
 
         EXAMPLES::
 
@@ -634,8 +634,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _singular_init_(self):
         """
-        Conversion of a symbolic object to Singular always results in a
-        Singular string.
+        Conversion of a symbolic object to Singular string.
 
         EXAMPLES::
 
@@ -725,7 +724,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(SR(a+1)^x)
             \left(a + 1\right)^{x}
 
-        More powers, #7406::
+        More powers, :trac:`7406`::
 
             sage: latex((x^pi)^e)
             {\left(x^{\pi}\right)}^{e}
@@ -737,7 +736,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((a^b)^c)
             {\left(a^{b}\right)}^{c}
 
-        Separate coefficients to numerator and denominator, #7363::
+        Separate coefficients to numerator and denominator, :trac:`7363`::
 
             sage: latex(2/(x+1))
             \frac{2}{x + 1}
@@ -745,14 +744,14 @@ cdef class Expression(CommutativeRingElement):
             \frac{1}{2 \, {\left(x + 1\right)}}
 
         Check if rational function coefficients without a ``numerator()`` method
-        are printed correctly. #8491::
+        are printed correctly. :trac:`8491`::
 
             sage: latex(6.5/x)
             \frac{6.50000000000000}{x}
             sage: latex(Mod(2,7)/x)
             \frac{2}{x}
 
-        Check if we avoid extra parenthesis in rational functions (#8688)::
+        Check if we avoid extra parenthesis in rational functions (:trac:`8688`)::
 
             sage: latex((x+2)/(x^3+1))
             \frac{x + 2}{x^{3} + 1}
@@ -761,14 +760,14 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((x+2)/(x^3+1)/(x+1))
             \frac{x + 2}{{\left(x^{3} + 1\right)} {\left(x + 1\right)}}
 
-        Check that the sign is correct (#9086)::
+        Check that the sign is correct (:trac:`9086`)::
 
             sage: latex(-1/x)
             -\frac{1}{x}
             sage: latex(1/-x)
             -\frac{1}{x}
 
-        More tests for the sign (#9314)::
+        More tests for the sign (:trac:`9314`)::
 
             sage: latex(-2/x)
             -\frac{2}{x}
@@ -779,7 +778,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(-x/z/y)
             -\frac{x}{y z}
 
-        Check if #9394 is fixed::
+        Check if :trac:`9394` is fixed::
 
             sage: var('n')
             n
@@ -793,7 +792,7 @@ cdef class Expression(CommutativeRingElement):
             x - \left(2 i - 1\right) \, y
 
         Check if complex coefficients with denominators are displayed
-        correctly #10769::
+        correctly :trac:`10769`::
 
             sage: var('a x')
             (a, x)
@@ -803,7 +802,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(ratio)
             \frac{i \, x^{2}}{2 \, a}
 
-        Parenthesis in powers, #13262::
+        Parenthesis in powers, :trac:`13262`::
 
             sage: latex(1+x^(2/3)+x^(-2/3))
             x^{\frac{2}{3}} + \frac{1}{x^{\frac{2}{3}}} + 1
@@ -812,7 +811,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _mathml_(self):
         """
-        Returns a MathML representation of this object.
+        Return a MathML representation of this object.
 
         EXAMPLES::
 
@@ -860,7 +859,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             n = self.pyobject()
         except TypeError:
-            raise TypeError, "unable to convert x (=%s) to an integer"%(self)
+            raise TypeError("unable to convert x (=%s) to an integer" % self)
         if isinstance(n, sage.rings.integer.Integer):
             return n
         return sage.rings.integer.Integer(n)
@@ -892,13 +891,13 @@ cdef class Expression(CommutativeRingElement):
         try:
             rif_self = sage.rings.all.RIF(self)
         except TypeError:
-            raise ValueError, "cannot convert %s to int"%(self)
+            raise ValueError("cannot convert %s to int" % self)
         if rif_self > 0 or (rif_self.contains_zero() and self > 0):
             result = floor(self)
         else:
             result = ceil(self)
         if not isinstance(result, sage.rings.integer.Integer):
-            raise ValueError, "cannot convert %s to int"%(self)
+            raise ValueError("cannot convert %s to int" % self)
         else:
             return int(result)
 
@@ -936,7 +935,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             n = self.pyobject()
         except TypeError:
-            raise TypeError, "unable to convert %s to a rational"%self
+            raise TypeError("unable to convert %s to a rational" % self)
         if isinstance(n, sage.rings.rational.Rational):
             return n
         return sage.rings.rational.Rational(n)
@@ -988,7 +987,7 @@ cdef class Expression(CommutativeRingElement):
         if is_a_numeric(res):
             return R(py_object_from_numeric(res))
         else:
-            raise TypeError, "Cannot evaluate symbolic expression to a numeric value."
+            raise TypeError("Cannot evaluate symbolic expression to a numeric value.")
 
     cpdef _convert(self, kwds):
         """
@@ -1058,7 +1057,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _real_mpfi_(self, R):
         """
-        Returns this expression as a real interval.
+        Return this expression as a real interval.
 
         EXAMPLES::
 
@@ -1068,11 +1067,11 @@ cdef class Expression(CommutativeRingElement):
         try:
             return self._eval_self(R)
         except TypeError:
-            raise TypeError, "unable to simplify to a real interval approximation"
+            raise TypeError("unable to simplify to a real interval approximation")
 
     def _complex_mpfi_(self, R):
         """
-        Returns this expression as a complex interval.
+        Return this expression as a complex interval.
 
         EXAMPLES::
 
@@ -1082,7 +1081,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             return self._eval_self(R)
         except TypeError:
-            raise TypeError, "unable to simplify to a complex interval approximation"
+            raise TypeError("unable to simplify to a complex interval approximation")
 
     def _real_double_(self, R):
         """
@@ -1176,7 +1175,7 @@ cdef class Expression(CommutativeRingElement):
         try:
             return float(self._eval_self(float))
         except TypeError:
-            raise TypeError, "unable to simplify to float approximation"
+            raise TypeError("unable to simplify to float approximation")
 
     def __complex__(self):
         """
@@ -1190,11 +1189,11 @@ cdef class Expression(CommutativeRingElement):
         try:
             return self._eval_self(complex)
         except TypeError:
-            raise TypeError, "unable to simplify to complex approximation"
+            raise TypeError("unable to simplify to complex approximation")
 
     def _sympy_(self):
         """
-        Returns a Sympy version of this object.
+        Return a Sympy version of this object.
 
         EXAMPLES::
 
@@ -1289,7 +1288,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS:
 
         Test if hashes for fderivatives with different parameters collide.
-        #6243::
+        :trac:`6243`::
 
             sage: f = function('f'); t = f(x,y)
             sage: u = t.derivative(x); v = t.derivative(y)
@@ -1298,7 +1297,7 @@ cdef class Expression(CommutativeRingElement):
             sage: d = {u: 3, v: 5}; sorted(d.values())
             [3, 5]
 
-        More checks for fderivative hashes #6851 ::
+        More checks for fderivative hashes :trac:`6851` ::
 
             sage: hash(f(x).derivative(x)) == hash(f(x).derivative(x,2))
             False
@@ -1306,8 +1305,9 @@ cdef class Expression(CommutativeRingElement):
             sage: len(d.keys())
             5
 
-        We create a function with 10 arguments and test if there are hash
-        collisions between any of its derivatives of order at most 7. #7508::
+        We create a function with 10 arguments and test if there are
+        hash collisions between any of its derivatives of order at
+        most 7. :trac:`7508`::
 
             sage: num_vars = 10; max_order=7
             sage: X = var(' '.join(['x'+str(i) for i in range(num_vars)]))
@@ -1344,7 +1344,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x^2 > x
             x^2 > x
 
-        Testing trac #11309 which changes the behavior of comparison of
+        Testing :trac:`11309` which changes the behavior of comparison of
         comparisons::
 
             sage: (-x + y < 0) in [x - y < 0]
@@ -1501,12 +1501,12 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.assumptions import _assumptions
         from sage.calculus.calculus import maxima
         if not self.is_relational():
-            raise TypeError, "self (=%s) must be a relational expression"%self
+            raise TypeError("self (=%s) must be a relational expression" % self)
         if not self in _assumptions:
             m = self._maxima_init_assume_()
             s = maxima.assume(m)
             if str(s._sage_()[0]) in ['meaningless','inconsistent','redundant']:
-                raise ValueError, "Assumption is %s"%str(s._sage_()[0])
+                raise ValueError("Assumption is %s" % str(s._sage_()[0]))
             _assumptions.append(self)
 
     def forget(self):
@@ -1527,7 +1527,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if #7507 is fixed::
+        Check if :trac:`7507` is fixed::
 
             sage: forget()
             sage: n = var('n')
@@ -1548,7 +1548,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.assumptions import _assumptions
         from sage.calculus.calculus import maxima
         if not self.is_relational():
-            raise TypeError, "self (=%s) must be a relational expression"%self
+            raise TypeError("self (=%s) must be a relational expression" % self)
         m = self._maxima_init_assume_()
         maxima.forget(m)
         try:
@@ -1615,7 +1615,7 @@ cdef class Expression(CommutativeRingElement):
 
     def is_real(self):
         """
-        Returns True if this expression is known to be a real number.
+        Return True if this expression is known to be a real number.
 
         EXAMPLES::
 
@@ -1634,7 +1634,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (t0*x).is_real()
             False
 
-        The following is real, but we can't deduce that.::
+        The following is real, but we cannot deduce that.::
 
             sage: (x*x.conjugate()).is_real()
             False
@@ -1643,7 +1643,7 @@ cdef class Expression(CommutativeRingElement):
 
     def is_positive(self):
         """
-        Returns True if this expression is known to be positive.
+        Return True if this expression is known to be positive.
 
         EXAMPLES::
 
@@ -1729,7 +1729,7 @@ cdef class Expression(CommutativeRingElement):
 
         This function is intended to provide an interface to query the internal
         representation of the expression. In this sense, the word ``constant``
-        doesn't reflect the mathematical properties of the expression.
+        does not reflect the mathematical properties of the expression.
         Expressions which have no variables may return ``False``.
 
         EXAMPLES::
@@ -1874,13 +1874,13 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if we can handle derivatives. #6523::
+        Check if we can handle derivatives. :trac:`6523`::
 
             sage: f(x) = function('f',x)
             sage: f(x).diff(x).is_zero()
             False
 
-        Check if #11352 is fixed::
+        Check if :trac:`11352` is fixed::
 
             sage: el = -1/2*(2*x^2 - sqrt(2*x - 1)*sqrt(2*x + 1) - 1)
             sage: el.is_polynomial(x)
@@ -1934,7 +1934,7 @@ cdef class Expression(CommutativeRingElement):
             (x - 1)^2
         """
         if not self.is_relational():
-            raise ValueError, "self must be a relational expression"
+            raise ValueError("self must be a relational expression")
         return new_Expression_from_GEx(self._parent, self._gobj.lhs())
 
     lhs = left = left_hand_side
@@ -1956,7 +1956,7 @@ cdef class Expression(CommutativeRingElement):
             x^2 - 2*x + 3
         """
         if not self.is_relational():
-            raise ValueError, "self must be a relation"
+            raise ValueError("self must be a relation")
         return new_Expression_from_GEx(self._parent, self._gobj.rhs())
 
     rhs = right = right_hand_side
@@ -2098,8 +2098,8 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(x == 1)
             False
 
-        The following must be true, even though we don't
-        know for sure that x isn't 1, as symbolic comparisons
+        The following must be true, even though we do not
+        know for sure that x is not 1, as symbolic comparisons
         elsewhere rely on x!=y unless we are sure it is not
         true; there is no equivalent of Maxima's ``unknown``.
         Since it is False that x==1, it is True that x != 1.
@@ -2261,7 +2261,7 @@ cdef class Expression(CommutativeRingElement):
         cdef int k, eq_count = 0
         cdef bint is_interval
         if not self.is_relational():
-            raise ValueError, "self must be a relation"
+            raise ValueError("self must be a relation")
         cdef operators op = relational_operator(self._gobj)
         from sage.rings.real_mpfi import is_RealIntervalField
         from sage.rings.complex_interval_field import is_ComplexIntervalField
@@ -2295,7 +2295,7 @@ cdef class Expression(CommutativeRingElement):
         if len(vars) == 0:
             try:
                 val = domain(diff)
-            except (TypeError, ValueError, ArithmeticError), ex:
+            except (TypeError, ValueError, ArithmeticError) as ex:
                 pass
             else:
                 if self.operator()(val, zero):
@@ -2323,7 +2323,7 @@ cdef class Expression(CommutativeRingElement):
                         return False
                     if is_interval:
                         eq_count += <bint>val.contains_zero()
-                except (TypeError, ValueError, ArithmeticError, AttributeError), ex:
+                except (TypeError, ValueError, ArithmeticError, AttributeError) as ex:
                     errors += 1
                     if k == errors > 3 and is_ComplexIntervalField(domain):
                         domain = RIF.to_prec(domain.prec())
@@ -2344,7 +2344,7 @@ cdef class Expression(CommutativeRingElement):
 
     def negation(self):
         """
-        Returns the negated version of self, that is the relation that is
+        Return the negated version of self, that is the relation that is
         False iff self is True.
 
         EXAMPLES::
@@ -2357,7 +2357,7 @@ cdef class Expression(CommutativeRingElement):
             2*x < sqrt(2)
         """
         if not self.is_relational():
-            raise ValueError, "self must be a relation"
+            raise ValueError("self must be a relation")
         cdef operators op = relational_operator(self._gobj)
         if op == equal:
             falsify = operator.ne
@@ -2375,7 +2375,7 @@ cdef class Expression(CommutativeRingElement):
 
     def contradicts(self, soln):
         """
-        Returns ``True`` if this relation is violated by the given variable assignment(s).
+        Return ``True`` if this relation is violated by the given variable assignment(s).
 
         EXAMPLES::
 
@@ -2882,11 +2882,11 @@ cdef class Expression(CommutativeRingElement):
             else:
                 x = gdiv(left._gobj, _right._gobj)
             return new_Expression_from_GEx(left._parent, x)
-        except Exception, msg:
+        except Exception as msg:
             # TODO: change this to maybe cleverly do something involving Cython C++ exception handling.
             # See http://docs.cython.org/docs/wrapping_CPlusPlus.html
             if 'division by zero' in str(msg):
-                raise ZeroDivisionError, "Symbolic division by zero"
+                raise ZeroDivisionError("Symbolic division by zero")
             else:
                 raise
 
@@ -2915,7 +2915,7 @@ cdef class Expression(CommutativeRingElement):
         expressions when you do not want to get a formal inequality back.
 
         IMPORTANT: Both self and right *must* have the same type, or
-        this function won't be called.
+        this function will not be called.
 
         EXAMPLES::
 
@@ -3201,7 +3201,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (2*I)^(1/2)
             sqrt(2*I)
 
-        Test if we can take powers of elements of Q(i) #8659::
+        Test if we can take powers of elements of Q(i) :trac:`8659`::
 
             sage: t = I.pyobject().parent()(8)
             sage: t^(1/2)
@@ -3235,7 +3235,7 @@ cdef class Expression(CommutativeRingElement):
 
     def derivative(self, *args):
         """
-        Returns the derivative of this expressions with respect to the
+        Return the derivative of this expressions with respect to the
         variables supplied in args.
 
         Multiple variables and iteration counts may be supplied; see
@@ -3373,7 +3373,7 @@ cdef class Expression(CommutativeRingElement):
             ...
             ValueError: No differentiation variable specified.
 
-        Check if #6524 is fixed::
+        Check if :trac:`6524` is fixed::
 
             sage: f = function('f')
             sage: f(x)*f(x).derivative(x)*f(x).derivative(x,2)
@@ -3395,13 +3395,13 @@ cdef class Expression(CommutativeRingElement):
             elif sage.symbolic.callable.is_CallableSymbolicExpression(self):
                 return self.gradient()
             else:
-                raise ValueError, "No differentiation variable specified."
+                raise ValueError("No differentiation variable specified.")
         if not isinstance(deg, (int, long, sage.rings.integer.Integer)) \
                 or deg < 1:
-            raise TypeError, "argument deg should be an integer >= 1."
+            raise TypeError("argument deg should be an integer >= 1.")
         cdef Expression symbol = self.coerce_in(symb)
         if not is_a_symbol(symbol._gobj):
-            raise TypeError, "argument symb must be a symbol"
+            raise TypeError("argument symb must be a symbol")
         cdef GEx x
         sig_on()
         try:
@@ -3527,7 +3527,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if #8943 is fixed::
+        Check if :trac:`8943` is fixed::
 
             sage: ((1+arctan(x))**(1/x)).series(x==0, 3)
             (e) + (-1/2*e)*x + (1/8*e)*x^2 + Order(x^3)
@@ -3543,7 +3543,7 @@ cdef class Expression(CommutativeRingElement):
 
     def residue(self, symbol):
         """
-        Calculates the residue of ``self`` with respect to ``symbol``.
+        Calculate the residue of ``self`` with respect to ``symbol``.
 
         INPUT:
 
@@ -3596,7 +3596,7 @@ cdef class Expression(CommutativeRingElement):
 
     def taylor(self, *args):
         r"""
-        Expands this symbolic expression in a truncated Taylor or
+        Expand this symbolic expression in a truncated Taylor or
         Laurent series in the variable `v` around the point `a`,
         containing terms through `(x - a)^n`. Functions in more
         variables is also supported.
@@ -3648,7 +3648,8 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check that ticket #7472 is fixed (Taylor polynomial in more variables)::
+        Check that ticket :trac:`7472` is fixed (Taylor polynomial in
+        more variables)::
 
             sage: x,y=var('x y'); taylor(x*y^3,(x,1),(y,1),4)
             (x - 1)*(y - 1)^3 + 3*(x - 1)*(y - 1)^2 + (y - 1)^3 + 3*(x - 1)*(y - 1) + 3*(y - 1)^2 + x + 3*y - 3
@@ -3667,7 +3668,7 @@ cdef class Expression(CommutativeRingElement):
                 B=[A[0],SR(A[1])]
             B.append(Integer(A[len(A)-1]))
         except Exception:
-            raise NotImplementedError, "Wrong arguments passed to taylor. See taylor? for more details."
+            raise NotImplementedError("Wrong arguments passed to taylor. See taylor? for more details.")
         l = self._maxima_().taylor(B)
         return self.parent()(l)
 
@@ -3755,13 +3756,13 @@ cdef class Expression(CommutativeRingElement):
         """
         if side is not None:
             if not is_a_relational(self._gobj):
-                raise ValueError, "expansion on sides only makes sense for relations"
+                raise ValueError("expansion on sides only makes sense for relations")
             if side == 'left':
                 return self.operator()(self.lhs().expand(), self.rhs())
             elif side == 'right':
                 return self.operator()(self.lhs(), self.rhs().expand())
             else:
-                raise ValueError, "side must be 'left', 'right', or None"
+                raise ValueError("side must be 'left', 'right', or None")
 
         cdef GEx x
         sig_on()
@@ -3775,7 +3776,7 @@ cdef class Expression(CommutativeRingElement):
 
     def expand_trig(self, full=False, half_angles=False, plus=True, times=True):
         """
-        Expands trigonometric and hyperbolic functions of sums of angles
+        Expand trigonometric and hyperbolic functions of sums of angles
         and of multiple angles occurring in self. For best results, self
         should already be expanded.
 
@@ -3847,7 +3848,7 @@ cdef class Expression(CommutativeRingElement):
 
     def reduce_trig(self, var=None):
         r"""
-        Combines products and powers of trigonometric and hyperbolic
+        Combine products and powers of trigonometric and hyperbolic
         sin's and cos's of x into those of multiples of x. It also
         tries to eliminate these functions when they occur in
         denominators.
@@ -3992,8 +3993,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Find all occurrences of the given pattern in this expression.
 
-        Note that once a subexpression matches the pattern, the search doesn't
-        extend to subexpressions of it.
+        Note that once a subexpression matches the pattern, the search does
+        not extend to subexpressions of it.
 
         EXAMPLES::
 
@@ -4166,7 +4167,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 1/gamma(x).subs(x=-1)
             0
 
-            # verify that this operation does not modify the passed dictionary (#6622)
+            # verify that this operation does not modify the passed dictionary (:trac:`6622`)
             sage: var('v t')
             (v, t)
             sage: f = v*t
@@ -4176,7 +4177,7 @@ cdef class Expression(CommutativeRingElement):
             sage: D
             {v: 2}
 
-        Check if #9891 is fixed::
+        Check if :trac:`9891` is fixed::
 
             sage: exp(x).subs(x=log(x))
             x
@@ -4195,7 +4196,7 @@ cdef class Expression(CommutativeRingElement):
             if isinstance(in_dict, Expression):
                 return self._subs_expr(in_dict)
             if not isinstance(in_dict, dict):
-                raise TypeError, "subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression"
+                raise TypeError("subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression")
             sdict.update(in_dict)
 
         if kwds:
@@ -4208,7 +4209,7 @@ cdef class Expression(CommutativeRingElement):
             smap.insert(make_pair((<Expression>self.coerce_in(k))._gobj,
                                   (<Expression>self.coerce_in(v))._gobj))
 
-        return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap))
+        return new_Expression_from_GEx(self._parent, self._gobj.subs_map(smap, 0))
 
     subs = substitute
 
@@ -4323,7 +4324,7 @@ cdef class Expression(CommutativeRingElement):
             equations = [ x == eq_dict[x] for x in eq_dict.keys() ]
 
         if not all([is_SymbolicEquation(eq) for eq in equations]):
-            raise TypeError, "each expression must be an equation"
+            raise TypeError("each expression must be an equation")
 
         d = dict([(eq.lhs(), eq.rhs()) for eq in equations])
         return self.subs(d)
@@ -4332,7 +4333,7 @@ cdef class Expression(CommutativeRingElement):
 
     def substitute_function(self, original, new):
         """
-        Returns this symbolic expressions all occurrences of the
+        Return this symbolic expressions all occurrences of the
         function *original* replaced with the function *new*.
 
         EXAMPLES::
@@ -4348,7 +4349,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __call__(self, *args, **kwds):
         """
-        Calls the :meth:`subs` on this expression.
+        Call the :meth:`subs` on this expression.
 
         EXAMPLES::
 
@@ -4446,7 +4447,7 @@ cdef class Expression(CommutativeRingElement):
 
     def number_of_operands(self):
         """
-        Returns the number of arguments of this expression.
+        Return the number of arguments of this expression.
 
         EXAMPLES::
 
@@ -4467,7 +4468,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __len__(self):
         """
-        Returns the number of arguments of this expression.
+        Return the number of arguments of this expression.
 
         EXAMPLES::
 
@@ -4486,7 +4487,7 @@ cdef class Expression(CommutativeRingElement):
 
     def operands(self):
         """
-        Returns a list containing the operands of this expression.
+        Return a list containing the operands of this expression.
 
         EXAMPLES::
 
@@ -4505,7 +4506,7 @@ cdef class Expression(CommutativeRingElement):
 
     def operator(self):
         """
-        Returns the topmost operator in this expression.
+        Return the topmost operator in this expression.
 
         EXAMPLES::
 
@@ -4555,6 +4556,8 @@ cdef class Expression(CommutativeRingElement):
             <built-in function gt>
             sage: (x >= y).operator()
             <built-in function ge>
+            sage: SR._force_pyobject( (x, x + 1, x + 2) ).operator()
+            <type 'tuple'>
         """
         cdef operators o
         cdef unsigned serial
@@ -4581,7 +4584,7 @@ cdef class Expression(CommutativeRingElement):
             elif o == greater_or_equal:
                 return operator.ge
             else:
-                raise RuntimeError, "operator type not known, please report this as a bug"
+                raise RuntimeError("operator type not known, please report this as a bug")
         elif is_a_function(self._gobj):
             # get function id
             serial = ex_to_function(self._gobj).get_serial()
@@ -4590,7 +4593,7 @@ cdef class Expression(CommutativeRingElement):
             # find the python equivalent and return it
             res = get_sfunction_from_serial(serial)
             if res is None:
-                raise RuntimeError, "cannot find SFunction in table"
+                raise RuntimeError("cannot find SFunction in table")
 
             if is_a_fderivative(self._gobj):
                 from sage.symbolic.pynac import paramset_from_Expression
@@ -4599,6 +4602,8 @@ cdef class Expression(CommutativeRingElement):
                 res = FDerivativeOperator(res, parameter_set)
 
             return res
+        elif is_exactly_a_exprseq(self._gobj):
+            return tuple
 
         # self._gobj is either a symbol, constant or numeric
         return None
@@ -4627,7 +4632,7 @@ cdef class Expression(CommutativeRingElement):
             sage: list((x^y*z*(x+y)).iterator())
             [x + y, x^y, z]
 
-        Note that symbols, constants and numeric objects don't have operands,
+        Note that symbols, constants and numeric objects do not have operands,
         so the iterator function raises an error in these cases::
 
             sage: x.iterator()
@@ -4645,7 +4650,7 @@ cdef class Expression(CommutativeRingElement):
         """
         if is_a_symbol(self._gobj) or is_a_constant(self._gobj) or \
                 is_a_numeric(self._gobj):
-                    raise ValueError, "expressions containing only a numeric coefficient, constant or symbol have no operands"
+                    raise ValueError("expressions containing only a numeric coefficient, constant or symbol have no operands")
         return new_ExpIter_from_Expression(self)
 
     property op:
@@ -4675,7 +4680,7 @@ cdef class Expression(CommutativeRingElement):
             """
             if is_a_symbol(self._gobj) or is_a_constant(self._gobj) or \
                 is_a_numeric(self._gobj):
-                    raise TypeError, "expressions containing only a numeric coefficient, constant or symbol have no operands"
+                    raise TypeError("expressions containing only a numeric coefficient, constant or symbol have no operands")
             cdef OperandsWrapper res = OperandsWrapper.__new__(OperandsWrapper)
             res._expr = self
             return res
@@ -4725,7 +4730,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.n()
             +infinity
 
-        Some expressions can't be evaluated numerically::
+        Some expressions cannot be evaluated numerically::
 
             sage: n(sin(x))
             Traceback (most recent call last):
@@ -4738,7 +4743,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: cannot evaluate symbolic expression numerically
 
         Make sure we've rounded up log(10,2) enough to guarantee
-        sufficient precision (trac #10164)::
+        sufficient precision (:trac:`10164`)::
 
             sage: ks = 4*10**5, 10**6
             sage: all(len(str(e.n(digits=k)))-1 >= k for k in ks)
@@ -4809,14 +4814,14 @@ cdef class Expression(CommutativeRingElement):
         try:
             rif_self = sage.rings.all.RIF(self)
         except TypeError:
-            raise ValueError, "could not convert %s to a real number"%(self)
+            raise ValueError("could not convert %s to a real number" % self)
         half = 1 / sage.rings.integer.Integer(2)
         if rif_self < 0 or (rif_self.contains_zero() and self < 0):
             result = ceil(self - half)
         else:
             result = floor(self + half)
         if not isinstance(result, sage.rings.integer.Integer):
-            raise ValueError, "could not convert %s to a real number"%(self)
+            raise ValueError("could not convert %s to a real number" % self)
         else:
             return result
 
@@ -4883,7 +4888,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             R = CallableSymbolicExpressionRing(args, check=False)
             return R(self)
-        raise TypeError, "Must construct a function with a tuple (or list) of symbolic variables."
+        raise TypeError("Must construct a function with a tuple (or list) of symbolic variables.")
 
     ############################################################################
     # Basic arithmetic wrappers
@@ -4891,7 +4896,7 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     def power(self, exp, hold=False):
         """
-        Returns the current expression to the power ``exp``.
+        Return the current expression to the power ``exp``.
 
         To prevent automatic evaluation use the ``hold`` argument.
 
@@ -4986,7 +4991,7 @@ cdef class Expression(CommutativeRingElement):
     ############################################################################
     def coefficient(self, s, int n=1):
         """
-        Returns the coefficient of `s^n` in this symbolic expression.
+        Return the coefficient of `s^n` in this symbolic expression.
 
         INPUT:
 
@@ -5057,6 +5062,7 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ss = self.coerce_in(s)
         if n != 1 and not is_a_symbol(ss._gobj):
             raise TypeError("n != 1 only allowed for s being a variable")
+
         # the following is a temporary fix for GiNaC bug #9505
         if is_a_mul(ss._gobj): # necessarily n=1 here
             res = self
@@ -5069,7 +5075,7 @@ cdef class Expression(CommutativeRingElement):
 
     def coefficients(self, x=None):
         r"""
-        Coefficients of this symbolic expression as a polynomial in x.
+        Return the coefficients of this symbolic expression as a polynomial in x.
 
         INPUT:
 
@@ -5542,7 +5548,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        This shows that the issue at trac #5755 is fixed (attempting to
+        This shows that the issue at :trac:`5755` is fixed (attempting to
         coerce a symbolic expression to a non-symbolic polynomial ring
         caused an error::
 
@@ -5556,7 +5562,7 @@ cdef class Expression(CommutativeRingElement):
             sage: RR['xx'](2.0*xx)
             2.00000000000000*xx
 
-        This shows that the issue at trac #4246 is fixed (attempting to
+        This shows that the issue at :trac:`4246` is fixed (attempting to
         coerce an expression containing at least one variable that's not in
         `R` raises an error)::
 
@@ -5608,7 +5614,7 @@ cdef class Expression(CommutativeRingElement):
         """
         v = self.variables()
         if len(v) != 1:
-            raise ValueError, "self must be a polynomial in one variable but it is in the variables %s"%tuple([v])
+            raise ValueError("self must be a polynomial in one variable but it is in the variables %s" % tuple([v]))
         f = self.polynomial(base_ring)
         from sage.rings.all import PowerSeriesRing
         R = PowerSeriesRing(base_ring, names=f.parent().variable_names())
@@ -5748,7 +5754,7 @@ cdef class Expression(CommutativeRingElement):
             x^2*y^2*z^2 + x*(4*y + z) + 20*y^2 + 21*y*z + 4*z^2
 
         Here we do the same thing for `y` and `z`; however, note that
-        we don't factor the `y^{2}` and `z^{2}` terms before
+        we do not factor the `y^{2}` and `z^{2}` terms before
         collecting coefficients::
 
             sage: f.collect(y)
@@ -5806,12 +5812,28 @@ cdef class Expression(CommutativeRingElement):
 
     def collect_common_factors(self):
         """
+        This function does not perform a full factorization but only
+        looks for factors which are already explicitly present.
+
+        Polynomials can often be brought into a more compact form by
+        collecting common factors from the terms of sums. This is
+        accomplished by this function.
+
         EXAMPLES::
 
             sage: var('x')
             x
             sage: (x/(x^2 + x)).collect_common_factors()
             1/(x + 1)
+
+            sage: var('a,b,c,x,y')
+            (a, b, c, x, y)
+            sage: (a*x+a*y).collect_common_factors()
+            a*(x + y)
+            sage: (a*x^2+2*a*x*y+a*y^2).collect_common_factors()
+            (x^2 + 2*x*y + y^2)*a
+            sage: (a*(b*(a+c)*x+b*((a+c)*x+(a+c)*y)*y)).collect_common_factors()
+            ((x + y)*y + x)*(a + c)*a*b
         """
         cdef GEx x
         sig_on()
@@ -6029,7 +6051,7 @@ cdef class Expression(CommutativeRingElement):
 
     def norm(self):
         r"""
-        The complex norm of this symbolic expression, i.e.,
+        Return the complex norm of this symbolic expression, i.e.,
         the expression times its complex conjugate. If `c = a + bi` is a
         complex number, then the norm of `c` is defined as the product of
         `c` and its complex conjugate
@@ -7026,7 +7048,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Test if #6377 is fixed::
+        Test if :trac:`6377` is fixed::
 
             sage: SR(oo).exp()
             +Infinity
@@ -7235,7 +7257,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check if we handle zero correctly (#8561)::
+        Check if we handle zero correctly (:trac:`8561`)::
 
             sage: x.binomial(0)
             1
@@ -7253,7 +7275,7 @@ cdef class Expression(CommutativeRingElement):
 
     def Order(self, hold=False):
         """
-        Order, as in big oh notation.
+        Return the order of the expression, as in big oh notation.
 
         OUTPUT:
 
@@ -7425,7 +7447,7 @@ cdef class Expression(CommutativeRingElement):
 
     def combine(self):
         r"""
-        Returns a simplified version of this symbolic expression
+        Return a simplified version of this symbolic expression
         by combining all terms with the same denominator into a single
         term.
 
@@ -7470,7 +7492,7 @@ cdef class Expression(CommutativeRingElement):
 
     def numerator(self, bint normalize = True):
         """
-        Returns the numerator of this symbolic expression
+        Return the numerator of this symbolic expression
 
         INPUT:
 
@@ -7546,7 +7568,7 @@ cdef class Expression(CommutativeRingElement):
                 else:
                     power = oper.op(1)
                     if not is_a_numeric(power):
-                        raise TypeError, "self is not a rational expression"
+                        raise TypeError("self is not a rational expression")
                     elif ex_to_numeric(power).is_positive():
                         vec.push_back(oper)
             return new_Expression_from_GEx(self._parent,
@@ -7559,7 +7581,7 @@ cdef class Expression(CommutativeRingElement):
 
     def denominator(self, bint normalize=True):
         """
-        Returns the denominator of this symbolic expression
+        Return the denominator of this symbolic expression
 
         INPUT:
 
@@ -7630,7 +7652,7 @@ cdef class Expression(CommutativeRingElement):
                     ex = oper.op(0)
                     power = oper.op(1)
                     if not is_a_numeric(power):
-                        raise TypeError, "self is not a rational expression"
+                        raise TypeError("self is not a rational expression")
                     elif ex_to_numeric(power).is_negative():
                         vec.push_back(g_pow(ex, g_abs(power)))
             return new_Expression_from_GEx(self._parent,
@@ -7645,7 +7667,7 @@ cdef class Expression(CommutativeRingElement):
 
     def numerator_denominator(self, bint normalize=True):
         """
-        Returns the numerator and the denominator of this symbolic expression
+        Return the numerator and the denominator of this symbolic expression
 
         INPUT:
 
@@ -7719,7 +7741,7 @@ cdef class Expression(CommutativeRingElement):
                     ex = oper.op(0)
                     power = oper.op(1)
                     if not is_a_numeric(power):
-                        raise TypeError, "self is not a rational expression"
+                        raise TypeError("self is not a rational expression")
                     elif is_a_numeric(power):
                         power_num = ex_to_numeric(power)
                         if power_num.is_positive():
@@ -7790,7 +7812,7 @@ cdef class Expression(CommutativeRingElement):
 
     def maxima_methods(self):
         """
-        Provides easy access to maxima methods, converting the result to a
+        Provide easy access to maxima methods, converting the result to a
         Sage expression automatically.
 
         EXAMPLES::
@@ -7895,7 +7917,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify(self):
         """
-        Returns a simplified version of this symbolic expression.
+        Return a simplified version of this symbolic expression.
 
         .. note::
 
@@ -7919,7 +7941,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_full(self):
         """
-        Applies simplify_factorial, simplify_trig, simplify_rational,
+        Apply simplify_factorial, simplify_trig, simplify_rational,
         simplify_log, and again simplify_rational to self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
@@ -8066,7 +8088,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_trig(self,expand=True):
         r"""
-        Optionally expands and then employs identities such as
+        Optionally expand and then employ identities such as
         `\sin(x)^2 + \cos(x)^2 = 1`, `\cosh(x)^2 - \sinh(x)^2 = 1`,
         `\sin(x)\csc(x) = 1`, or `\tanh(x)=\sinh(x)/\cosh(x)`
         to simplify expressions containing tan, sec, etc., to sin,
@@ -8205,7 +8227,7 @@ cdef class Expression(CommutativeRingElement):
         elif algorithm == 'noexpand':
             maxima_method = 'xthru'
         else:
-            raise NotImplementedError, "unknown algorithm, see the help for available algorithms"
+            raise NotImplementedError("unknown algorithm, see the help for available algorithms")
         P = self_m.parent()
         self_str=self_m.str()
         if map:
@@ -8263,8 +8285,8 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check that the problem with applying full_simplify() to gamma functions (Trac 9240)
-        has been fixed::
+        Check that the problem with applying `full_simplify()` to gamma
+        functions (:trac:`9240`) has been fixed::
 
             sage: gamma(1/3)
             gamma(1/3)
@@ -8282,7 +8304,7 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_radical(self):
         r"""
-        Simplifies this symbolic expression, which can contain logs,
+        Simplify this symbolic expression, which can contain logs,
         exponentials, and radicals, by trying to convert it into a canonical
         form over a large class of expressions and a given ordering of
         variables.
@@ -8376,7 +8398,7 @@ cdef class Expression(CommutativeRingElement):
     @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_log(self,algorithm=None):
         r"""
-        Simplifies symbolic expression, which can contain logs.
+        Simplify symbolic expression, which can contain logs.
 
         Recursively scans the expression self, transforming
         subexpressions of the form `a1 \log(b1) + a2 \log(b2) + c` into
@@ -8480,8 +8502,8 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        This shows that the issue at trac #7334 is fixed. Maxima intentionally
-        keeps the expression inside the log factored::
+        This shows that the issue at :trac:`7334` is fixed. Maxima
+        intentionally keeps the expression inside the log factored::
 
             sage: log_expr = (log(sqrt(2)-1)+log(sqrt(2)+1))
             sage: log_expr.simplify_log('all')
@@ -8522,7 +8544,7 @@ cdef class Expression(CommutativeRingElement):
         elif algorithm == 'all':
             maxima.eval('logconfun(m):= true$')
         elif algorithm is not None:
-            raise NotImplementedError, "unknown algorithm, see the help for available algorithms"
+            raise NotImplementedError("unknown algorithm, see the help for available algorithms")
         res = self.parent()(self._maxima_().logcontract())
         if algorithm is not None:
             maxima.eval('logconcoeffp:false$')
@@ -8534,7 +8556,7 @@ cdef class Expression(CommutativeRingElement):
     @rename_keyword(deprecation=6094, method="algorithm")
     def expand_log(self,algorithm='products'):
         r"""
-        Simplifies symbolic expression, which can contain logs.
+        Simplify symbolic expression, which can contain logs.
 
         Expands logarithms of powers, logarithms of products and
         logarithms of quotients.  The option ``algorithm`` specifies
@@ -8642,7 +8664,7 @@ cdef class Expression(CommutativeRingElement):
         elif algorithm == 'all':
             maxima_method='super'
         else:
-            raise NotImplementedError, "unknown algorithm, see the help for available algorithms"
+            raise NotImplementedError("unknown algorithm, see the help for available algorithms")
         maxima.eval('logexpand:%s'%maxima_method)
         res = self._maxima_()
         res = res.sage()
@@ -8655,7 +8677,7 @@ cdef class Expression(CommutativeRingElement):
 
     def factor(self, dontfactor=[]):
         """
-        Factors self, containing any number of variables or functions, into
+        Factor the expression, containing any number of variables or functions, into
         factors irreducible over the integers.
 
         INPUT:
@@ -8716,7 +8738,7 @@ cdef class Expression(CommutativeRingElement):
 
     def factor_list(self, dontfactor=[]):
         """
-        Returns a list of the factors of self, as computed by the
+        Return a list of the factors of self, as computed by the
         factor command.
 
         INPUT:
@@ -8809,7 +8831,7 @@ cdef class Expression(CommutativeRingElement):
     ###################################################################
     def convert(self, target=None):
         """
-        Calls the convert function in the units package. For symbolic
+        Call the convert function in the units package. For symbolic
         variables that are not units, this function just returns the
         variable.
 
@@ -8830,7 +8852,7 @@ cdef class Expression(CommutativeRingElement):
             sage: units.mass.kilogram.convert(units.mass.pound)
             100000000/45359237*pound
 
-        We don't get anything new by converting an ordinary symbolic variable::
+        We do not get anything new by converting an ordinary symbolic variable::
 
             sage: a = var('a')
             sage: a - a.convert()
@@ -8891,7 +8913,7 @@ cdef class Expression(CommutativeRingElement):
     ###################################################################
     def roots(self, x=None, explicit_solutions=True, multiplicities=True, ring=None):
         r"""
-        Returns roots of ``self`` that can be found exactly,
+        Return roots of ``self`` that can be found exactly,
         possibly with multiplicities.  Not all roots are guaranteed to
         be found.
 
@@ -8991,7 +9013,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.roots(explicit_solutions=False)
             [((2^(8/9) + x^(8/9) - 2^(1/9) - x^(1/9))/(2^(8/9) - 2^(1/9)), 1)]
 
-        Another example, but involving a degree 5 poly whose roots don't
+        Another example, but involving a degree 5 poly whose roots do not
         get computed explicitly::
 
             sage: f = x^5 + x^3 + 17*x + 1
@@ -9004,7 +9026,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.roots(explicit_solutions=False, multiplicities=False)
             [x^5 + x^3 + 17*x + 1]
 
-        Now let's find some roots over different rings::
+        Now let us find some roots over different rings::
 
             sage: f.roots(ring=CC)
             [(-0.0588115223184..., 1), (-1.331099917875... - 1.52241655183732*I, 1), (-1.331099917875... + 1.52241655183732*I, 1), (1.36050567903502 - 1.51880872209965*I, 1), (1.36050567903502 + 1.51880872209965*I, 1)]
@@ -9029,7 +9051,7 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: unable to convert sqrt(3) to a rational
 
-        Check if #9538 is fixed::
+        Check if :trac:`9538` is fixed::
 
             sage: var('f6,f5,f4,x')
             (f6, f5, f4, x)
@@ -9047,7 +9069,7 @@ cdef class Expression(CommutativeRingElement):
 
         S, mul = self.solve(x, multiplicities=True, explicit_solutions=explicit_solutions)
         if len(mul) == 0 and explicit_solutions:
-            raise RuntimeError, "no explicit roots found"
+            raise RuntimeError("no explicit roots found")
         else:
             rt_muls = [(S[i].rhs(), mul[i]) for i in range(len(mul))]
         if multiplicities:
@@ -9281,13 +9303,13 @@ cdef class Expression(CommutativeRingElement):
                 try:
                     return(solve_ineq([self])) # trying solve_ineq_fourier
                 except Exception:
-                    raise NotImplementedError, "solving only implemented for equalities and few special inequalities, see solve_ineq"
+                    raise NotImplementedError("solving only implemented for equalities and few special inequalities, see solve_ineq")
             ex = self
         else:
             ex = (self == 0)
 
         if multiplicities and to_poly_solve:
-            raise NotImplementedError, "to_poly_solve does not return multiplicities"
+            raise NotImplementedError("to_poly_solve does not return multiplicities")
 
         # Take care of cases like solve([x^2-1], [x]) for consistency with
         # multiple variable input in sage.symbolic.relation.solve().
@@ -9307,7 +9329,7 @@ cdef class Expression(CommutativeRingElement):
             x = v[0]
 
         if not isinstance(x, Expression):
-            raise TypeError("%s is not a valid variable."%repr(x))
+            raise TypeError("%s is not a valid variable." % repr(x))
 
         m = ex._maxima_()
         P = m.parent()
@@ -9318,7 +9340,7 @@ cdef class Expression(CommutativeRingElement):
                 s = m.solve(x).str()
             else: # omit Maxima's solve command
                 s = str([])
-        except TypeError, mess: # if Maxima's solve has an error, we catch it
+        except TypeError as mess: # if Maxima's solve has an error, we catch it
             if "Error executing code in Maxima" in str(mess):
                 s = str([])
             else:
@@ -9374,7 +9396,7 @@ cdef class Expression(CommutativeRingElement):
                         X.remove(eq)
                         # replace with the new solutions
                         X.extend([y[0] for y in Y])
-                    except TypeError, mess:
+                    except TypeError as mess:
                         if "Error executing code in Maxima" in str(mess) or \
                                 "unable to make sense of Maxima expression" in\
                                 str(mess):
@@ -9512,7 +9534,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS:
 
         Test the special case that failed for the first attempt to fix
-        #3980::
+        :trac:`3980`::
 
             sage: t = var('t')
             sage: find_root(1/t - x,0,2)
@@ -9521,20 +9543,20 @@ cdef class Expression(CommutativeRingElement):
             NotImplementedError: root finding currently only implemented in 1 dimension.
         """
         if is_a_relational(self._gobj) and self.operator() is not operator.eq:
-            raise ValueError, "Symbolic equation must be an equality."
+            raise ValueError("Symbolic equation must be an equality.")
         from sage.numerical.optimize import find_root
         if self.number_of_arguments() == 0:
             if bool(self == 0):
                 return a
             else:
-                raise RuntimeError, "no zero in the interval, since constant expression is not 0."
+                raise RuntimeError("no zero in the interval, since constant expression is not 0.")
         elif self.number_of_arguments() == 1:
             f = self._fast_float_(self.default_variable())
             return find_root(f, a=a, b=b, xtol=xtol,
                              rtol=rtol,maxiter=maxiter,
                              full_output=full_output)
         else:
-            raise NotImplementedError, "root finding currently only implemented in 1 dimension."
+            raise NotImplementedError("root finding currently only implemented in 1 dimension.")
 
     def find_local_maximum(self, a, b, var=None, tol=1.48e-08, maxfun=500):
         r"""
@@ -9623,7 +9645,7 @@ cdef class Expression(CommutativeRingElement):
     ###################
     def _fast_float_(self, *vars):
         """
-        Returns an object which provides fast floating point
+        Return an object which provides fast floating point
         evaluation of this symbolic expression.
 
         See :mod:`sage.ext.fast_eval` for more information.
@@ -9742,7 +9764,7 @@ cdef class Expression(CommutativeRingElement):
             if is_CallableSymbolicExpression(self):
                 A = self.arguments()
                 if len(A) == 0:
-                    raise ValueError, "function has no input arguments"
+                    raise ValueError("function has no input arguments")
                 else:
                     param = A[0]
 
@@ -9804,7 +9826,7 @@ cdef class Expression(CommutativeRingElement):
     ############
     def sum(self, *args, **kwds):
         r"""
-        Returns the symbolic sum
+        Return the symbolic sum
         `\sum_{v = a}^b self`
 
         with respect to the variable `v` with endpoints
@@ -9906,7 +9928,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (a*q^k).sum(k, 0, oo)
             -a/(q - 1)
 
-        A divergent geometric series.  Don't forget
+        A divergent geometric series.  Do not forget
         to forget your assumptions::
 
             sage: forget()
@@ -9931,7 +9953,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional - maple
             (x + 1)^n
 
-        Check that the sum in #10682 is done right::
+        Check that the sum in :trac:`10682` is done right::
 
             sage: sum(binomial(n,k)*k^2, k, 2, n)
             1/4*(n^2 + n)*2^n - n
@@ -10086,7 +10108,7 @@ cdef class Expression(CommutativeRingElement):
 
     def add_to_both_sides(self, x):
         """
-        Returns a relation obtained by adding *x* to both sides of
+        Return a relation obtained by adding *x* to both sides of
         this relation.
 
         EXAMPLES::
@@ -10100,12 +10122,12 @@ cdef class Expression(CommutativeRingElement):
             x^2 + y^2 + z^2 + I <= (I + 1)
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self + x
 
     def subtract_from_both_sides(self, x):
         """
-        Returns a relation obtained by subtracting *x* from both sides
+        Return a relation obtained by subtracting *x* from both sides
         of this relation.
 
         EXAMPLES::
@@ -10117,12 +10139,12 @@ cdef class Expression(CommutativeRingElement):
             sqrt(3)*x*sin(x) + sqrt(2) - cos(sin(x)) > 0
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self - x
 
     def multiply_both_sides(self, x, checksign=None):
         """
-        Returns a relation obtained by multiplying both sides of this
+        Return a relation obtained by multiplying both sides of this
         relation by *x*.
 
         .. note::
@@ -10166,12 +10188,12 @@ cdef class Expression(CommutativeRingElement):
             -x^3 - 1 <= -2*sqrt(3)
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self * x
 
     def divide_both_sides(self, x, checksign=None):
         """
-        Returns a relation obtained by dividing both sides of this
+        Return a relation obtained by dividing both sides of this
         relation by *x*.
 
         .. note::
@@ -10191,7 +10213,7 @@ cdef class Expression(CommutativeRingElement):
             (x^3 + theta)/theta < sin(theta*x)/theta
         """
         if not is_a_relational(self._gobj):
-            raise TypeError, "this expression must be a relation"
+            raise TypeError("this expression must be a relation")
         return self / x
 
 
@@ -10410,7 +10432,7 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
     if lop == rop:
         return lop
     elif lop == not_equal or rop == not_equal:
-        raise TypeError, "incompatible relations"
+        raise TypeError("incompatible relations")
     elif lop == equal:
        return rop
     elif rop == equal:
@@ -10420,4 +10442,4 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
     elif lop in [greater, greater_or_equal] and rop in [greater, greater_or_equal]:
        return greater
     else:
-        raise TypeError, "incompatible relations"
+        raise TypeError("incompatible relations")

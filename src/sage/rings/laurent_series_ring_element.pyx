@@ -833,7 +833,7 @@ cdef class LaurentSeries(AlgebraElement):
             return LaurentSeries(self._parent,
                              self.__u / right.__u,
                              self.__n - right.__n)
-        except TypeError, msg:
+        except TypeError as msg:
             # todo: this could also make something in the formal fraction field.
             raise ArithmeticError, "division not defined"
 

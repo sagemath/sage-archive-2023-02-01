@@ -177,7 +177,7 @@ class RingHomset_generic(HomsetWithBase):
             return self._coerce_impl(im_gens)
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
@@ -261,7 +261,7 @@ class RingHomset_quo_ring(RingHomset_generic):
             pi = self.domain().cover()
             phi = pi.domain().hom(im_gens, check=check)
             return morphism.RingHomomorphism_from_quotient(self, phi)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:

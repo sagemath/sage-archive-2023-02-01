@@ -117,7 +117,7 @@ cdef class _lazy_attribute(object):
             if CM is None:
                 CM = {}
                 setattr(a, '__cached_methods', CM)
-        except AttributeError,msg:
+        except AttributeError as msg:
             CM = None
         if CM is not None:
             try:

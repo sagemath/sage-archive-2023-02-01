@@ -84,7 +84,7 @@ def install_all_optional_packages(force=True, dry_run=False):
             if not dry_run:
                 # only actually do the install of the package if dry_run is False
                 install_package(pkg, force=force)
-        except ValueError, msg:
+        except ValueError as msg:
             # An error occurred -- catch exception and record this in
             # the list of failed installed.
             print "*"*70
@@ -211,7 +211,7 @@ def standard_packages():
     try:
         i = X.index('INSTALLED:')
         j = X.index('NOT INSTALLED:')
-    except ValueError, msg:
+    except ValueError as msg:
         print R
         print "Standard package list (shown above) appears to be currently"
         print "not available or corrupted (network error?)."
@@ -253,7 +253,7 @@ def optional_packages():
     try:
         i = X.index('INSTALLED:')
         j = X.index('NOT INSTALLED:')
-    except ValueError, msg:
+    except ValueError as msg:
         print R
         print "Optional package list (shown above) appears to be currently not available or corrupted (network error?)."
         return [], []
@@ -294,7 +294,7 @@ def experimental_packages():
     try:
         i = X.index('INSTALLED:')
         j = X.index('NOT INSTALLED:')
-    except ValueError, msg:
+    except ValueError as msg:
         print R
         print "experimental package list (shown above) appears to be currently not available or corrupted (network error?)."
         return [], []

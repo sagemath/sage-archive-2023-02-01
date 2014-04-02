@@ -1716,7 +1716,7 @@ class FiniteStateMachine(SageObject):
     #*************************************************************************
 
 
-    def __add__(self, other):
+    def __or__(self, other):
         """
         Returns the disjoint union of the finite state machines self and other.
 
@@ -1730,7 +1730,7 @@ class FiniteStateMachine(SageObject):
 
         TESTS::
 
-            sage: FiniteStateMachine() + FiniteStateMachine([('A', 'B')])
+            sage: FiniteStateMachine() | FiniteStateMachine([('A', 'B')])
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -1738,6 +1738,7 @@ class FiniteStateMachine(SageObject):
         if is_FiniteStateMachine(other):
             return self.disjoint_union(other)
 
+    __add__ = __or__
 
     def __iadd__(self, other):
         """
@@ -1752,11 +1753,11 @@ class FiniteStateMachine(SageObject):
         raise NotImplementedError
 
 
-    def __mul__(self, other):
+    def __and__(self, other):
         """
         TESTS::
 
-            sage: FiniteStateMachine() * FiniteStateMachine([('A', 'B')])
+            sage: FiniteStateMachine() & FiniteStateMachine([('A', 'B')])
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -2050,7 +2051,7 @@ class FiniteStateMachine(SageObject):
 
         - ``transition`` - a transition
 
-        - ``format_function'' - a function formatting the labels
+        - ``format_function`` - a function formatting the labels
 
         OUTPUT:
 
@@ -3340,7 +3341,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``s`` -- s has to be a label of a state or :class:`FSMState`.
+        - ``s`` -- a label of a state or an :class:`FSMState`.
 
         OUTPUT:
 
@@ -3353,14 +3354,25 @@ class FiniteStateMachine(SageObject):
             sage: t2 = FSMTransition('B', 'B', 1)
             sage: F = FiniteStateMachine([t1, t2])
             sage: F.delete_state('A')
-            sage: F. transitions()
+            sage: F.transitions()
             [Transition from 'B' to 'B': 1|-]
+
+        TESTS::
+
+            sage: F._states_
+            ['B']
+            sage: F._states_dict_  # This shows that #16024 is fixed.
+            {'B': 'B'}
         """
         state = self.state(s)
         for transition in self.transitions():
             if transition.to_state == state:
                 self.delete_transition(transition)
         self._states_.remove(state)
+        try:
+            del self._states_dict_[state.label()]
+        except AttributeError:
+            pass
 
 
     def remove_epsilon_transitions(self):
@@ -4606,7 +4618,7 @@ class Automaton(FiniteStateMachine):
 
         - ``transition`` - a transition
 
-        - ``format_function'' - a function formatting the labels
+        - ``format_function`` - a function formatting the labels
 
         OUTPUT:
 
@@ -4941,11 +4953,13 @@ class Transducer(FiniteStateMachine):
 
         - ``transition`` - a transition
 
-        - ``format_function'' - a function formatting the labels
+        - ``format_function`` - a function formatting the labels
 
         OUTPUT:
 
         A string.
+
+        EXAMPLES::
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: F._latex_()

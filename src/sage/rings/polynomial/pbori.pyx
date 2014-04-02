@@ -355,7 +355,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             n = int(n)
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "Number of variables must be an integer"
 
         if n < 1:
@@ -780,7 +780,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     self._pbring.nVariables():
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
-                except NameError, msg:
+                except NameError as msg:
                     raise TypeError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 p = self._one_element
                 for i in other.iterindex():
@@ -799,7 +799,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                         return new_BP_from_PBPoly(self, _tmp)
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
-                    except NameError, msg:
+                    except NameError as msg:
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     for monom in other:
@@ -814,7 +814,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 (other.parent().ngens() <= self._pbring.nVariables()):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
-                    except NameError, msg:
+                    except NameError as msg:
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     exponents = other.exponents()
@@ -902,7 +902,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ((<BooleanMonomial>other)._pbmonom.deg() <= self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
             p = self._one_element
             for i in other.iterindex():
@@ -913,7 +913,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             for monom in other:
@@ -927,7 +927,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 self.base_ring().has_coerce_map_from(other.base_ring()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             exponents = other.exponents()
@@ -2029,7 +2029,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
-                except NameError, msg:
+                except NameError as msg:
                     raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 m = self._one_element
                 for i in other.iterindex():
@@ -2131,7 +2131,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
                     (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                         try:
                             var_mapping = get_var_mapping(self, other)
-                        except NameError, msg:
+                        except NameError as msg:
                             raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
                         t = (<BooleanPolynomial>other)._pbpoly.lead()
 
@@ -2147,7 +2147,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other)
-                except NameError, msg:
+                except NameError as msg:
                     raise ValueError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
                 m = self._one_element
                 for i in other:

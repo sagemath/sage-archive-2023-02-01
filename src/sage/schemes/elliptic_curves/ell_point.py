@@ -70,7 +70,7 @@ Arithmetic with a point over an extension of a finite field::
     sage: E = EllipticCurve(F,[1,0]);
     sage: P = E([2,1])
     sage: import sys
-    sage: n = sys.maxint
+    sage: n = sys.maxsize
     sage: P*(n+1)-P*n == P
     True
 

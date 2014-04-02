@@ -491,7 +491,7 @@ class Dokchitser(SageObject):
         k = Integer(k)
         try:
             z = self.gp()('Vec(Lseries(%s,,%s))'%(a,k-1))
-        except TypeError, msg:
+        except TypeError as msg:
             raise RuntimeError, "%s\nUnable to compute Taylor expansion (try lowering the number of terms)"%msg
         r = repr(z)
         if 'pole' in r:

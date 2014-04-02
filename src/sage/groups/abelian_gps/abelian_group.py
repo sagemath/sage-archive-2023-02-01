@@ -1360,7 +1360,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         X = ZZ**d
         try:
             elt_lattice = X.submodule_with_basis(elts)
-        except ValueError, e:
+        except ValueError as e:
             # can't happen?
             print "Vectors not LI: ", elts
             raise e

@@ -1240,7 +1240,7 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
     x = SR.var('x')
     try:
         f = SR(f); g = SR(g); a = SR(a)
-    except TypeError, msg:
+    except TypeError as msg:
         print msg[-200:]
         print "Unable to make sense of f,g, or a as symbolic expressions in single variable x."
         return

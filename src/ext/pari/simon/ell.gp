@@ -1776,8 +1776,11 @@ if( DEBUGLEVEL_ell >= 2, print("  reduced: Y^2 = ",lift(redq[1])));
 \\ Search for a point on the quartic
       point = nfratpoint(nf,pol,LIM1,1);
       found = point != [];
-\\ If no point is found, check if it is ELS
-      if( !found && !loc,
+      if( found,
+        loc = 1
+      );
+\\ If the quartic is not known to be ELS, check if it is
+      if( !loc,
         if( bigflag,
           loc = nflocallysoluble(nf,pol,r,a,b)
         , loc = nflocallysoluble(nf,pol,0,1,1)

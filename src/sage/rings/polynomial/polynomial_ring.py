@@ -2084,7 +2084,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         if not element_class:
             if implementation is None or implementation == 'FLINT':
                 import sys
-                if self.__modulus < sys.maxint:
+                if self.__modulus < sys.maxsize:
                     element_class = Polynomial_zmod_flint
                     self._implementation_names = (None, 'FLINT')
                     self._implementation_repr = ''
@@ -2164,7 +2164,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             self._implementation_repr = ' (using NTL)'
         elif implementation is None or implementation == 'FLINT':
             import sys
-            if __modulus < sys.maxint:
+            if __modulus < sys.maxsize:
                 self._implementation_names = (None, 'FLINT')
                 self._implementation_repr = ''
                 element_class = Polynomial_zmod_flint

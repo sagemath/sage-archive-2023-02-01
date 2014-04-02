@@ -964,7 +964,7 @@ cdef class FastDoubleFunc:
         else:
             try:
                 base = fast_float_constant(log(float(base)))
-            except TypeError, e:
+            except TypeError as e:
                 base = fast_float(base.log())
             return binop(self.cfunc(&log), base, DIV)
 

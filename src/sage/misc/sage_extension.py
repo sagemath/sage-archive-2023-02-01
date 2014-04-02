@@ -42,14 +42,11 @@ In contrast, input to the ``%time`` magic command is preparsed::
     2 * 3^3 * 11
 """
 
-from IPython.core.hooks import TryNext
 from IPython.core.magic import Magics, magics_class, line_magic
-import os
-import sys
-import sage
-import sage.all
-from sage.misc.interpreter import preparser
-from sage.misc.preparser import preparse
+
+import preparser
+
+from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
 
 @magics_class
 class SageMagics(Magics):
@@ -75,8 +72,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('a')
             2
         """
-        from sage.misc.preparser import load_wrap
-        return self.shell.ex(load_wrap(s, attach=False))
+        return self.shell.ex(preparser.load_wrap(s, attach=False))
 
     @line_magic
     def attach(self, s):
@@ -116,16 +112,15 @@ class SageMagics(Magics):
             []
             sage: os.remove(tmp)
         """
-        from sage.misc.preparser import load_wrap
-        return self.shell.ex(load_wrap(s, attach=True))
+        return self.shell.ex(preparser.load_wrap(s, attach=True))
 
     @line_magic
-    def iload(self, s):
+    def iload(self, args):
         """
         A magic command to interactively load a file as in MAGMA.
 
-        :param s: the file to be interactively loaded
-        :type s: string
+        :param args: the file to be interactively loaded
+        :type args: string
 
         .. note::
 
@@ -138,49 +133,35 @@ class SageMagics(Magics):
             sage: ip.magic_iload('/dev/null')  # not tested: works only in interactive shell
             Interactively loading "/dev/null"  # not tested: works only in interactive shell
         """
-        try:
-            name = str(eval(s))
-        except Exception:
-            name = s.strip()
+        content = self.shell.find_user_code(args).splitlines()
 
-        try:
-            F = open(name)
-        except IOError:
-            raise ImportError, 'could not open file "%s"'%name
+        # we create a stack so e.g. having an iload inside of an iload
+        # will process the inner iload and then resume the outer iload
+        orig_readline = self.shell.pre_readline
 
+        def pre_readline():
+            if self.shell.rl_next_input is None:
+                self.shell.rl_next_input = content.pop(0)
+                self.shell.rl_do_indent = False
+            orig_readline()
+            if not content:
+                # restore original hook
+                self.shell.readline_startup_hook(orig_readline)
+                self.shell.pre_readline = orig_readline
 
-        shell = self.shell
+        self.shell.readline_startup_hook(pre_readline)
+        self.shell.pre_readline = pre_readline
 
-        #We need to update the execution count so that the history for the
-        #iload command and the history for the first line of the loaded
-        #file are not written to the history database with the same line
-        #number (execution count).  This happens since the execution count
-        #is updated only after the magic command is run.
-        shell.execution_count += 1
+        print('Interactively loading "%s"'%args)
 
-        print 'Interactively loading "%s"'%name
-
-        # The following code is base on IPython's
-        # InteractiveShell.interact,
-        more = False
-        for line in F.readlines():
-            prompt = shell.prompt_manager.render('in' if not more else 'in2', color=True)
-            raw_input(prompt.encode('utf-8') + line.rstrip())
-
-            shell.input_splitter.push(line)
-            more = shell.input_splitter.push_accepts_more()
-            if not more:
-                source, source_raw = shell.input_splitter.source_raw_reset()
-                shell.run_cell(source_raw, store_history=True)
-
-    _magic_display_status = "simple"
+    _magic_display_status = 'simple'
     @line_magic
-    def display(self, mode):
+    def display(self, args):
         """
         A magic command to switch between simple display and ASCII art display.
 
-        :param mode: the mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
-        :type s: string
+        :param args: the mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
+        :type args: string
 
         How to use: if you want activate the ASCII art mod::
 
@@ -229,66 +210,70 @@ class SageMagics(Magics):
               2  4,   3  4,   3   ,   4   ,   4   ,   4 ]
             sage: shell.run_cell('%display simple')
         """
-        import displayhook, ascii_art
-        args_split = mode.split(" ")
-        if len(args_split) < 2:
-            if mode == "":
-                self._magic_display_status = "ascii_art" \
-                    if self._magic_display_status == "simple" else "simple"
-            else:
-                self._magic_display_status = mode
-            ascii_art.MAX_WIDTH = None
+        args = args.strip().split()
+        if not args:
+            # toggle
+            self._magic_display_status = ('ascii_art' if
+                    self._magic_display_status == 'simple' else 'simple')
         else:
-            self._magic_display_status =  args_split[0]
-            assert(args_split[0] == "ascii_art"), "if a width is given then the mode must be `ascii_art`"
+            mode = args[0]
+            if mode not in ('simple', 'ascii_art'):
+                raise ValueError('unrecognized display type "%s"'%mode)
+            self._magic_display_status = mode
+
+        if self._magic_display_status == 'ascii_art' and len(args) > 1:
             try:
-                ascii_art.MAX_WIDTH = int(args_split[1])
-            except Exception:
-                raise AttributeError("Second argument must be a non-negative integer")
-        try:
-            displayhook.SPTextFormatter.set_display(self._magic_display_status)
-        except Exception:
-            print mode, args_split
-            raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
+                max_width = int(args[1])
+            except ValueError:
+                max_width = 0
+            if max_width <= 0:
+                raise ValueError(
+                        "ascii_art max width must be a positive integer")
+            import ascii_art
+            ascii_art.MAX_WIDTH = max_width
 
+        self.shell.display_formatter.formatters['text/plain'].set_display(
+                self._magic_display_status)
 
-import displayhook
 class SageCustomizations(object):
-    startup_code = """from sage.all_cmdline import *
-"""
 
     def __init__(self, shell=None):
         """
         Initialize the Sage plugin.
         """
         self.shell = shell
+
         self.auto_magics = SageMagics(shell)
-        shell.register_magics(self.auto_magics)
-        displayhook.SPTextFormatter = displayhook.SagePlainTextFormatter(config=shell.config)
-        shell.display_formatter.formatters['text/plain'] = displayhook.SPTextFormatter
-        from sage.misc.edit_module import edit_devel
-        self.shell.set_hook('editor', edit_devel)
+        self.shell.register_magics(self.auto_magics)
+
+        import displayhook
+        self.shell.display_formatter.formatters['text/plain'] = (
+                displayhook.SagePlainTextFormatter(config=shell.config))
+
+        import edit_module
+        self.shell.set_hook('editor', edit_module.edit_devel)
+
         self.init_inspector()
         self.init_line_transforms()
+
+        import inputhook
+        inputhook.install()
+
+        import sage.all # until sage's import hell is fixed
+
+        self.shell.verbose_quit = True
+        self.set_quit_hook()
+
         self.register_interface_magics()
 
-        import sage.misc.inputhook
-        sage.misc.inputhook.install()
+        if SAGE_IMPORTALL == 'yes':
+            self.init_environment()
 
-        # right now, the shutdown hook calling quit_sage() doesn't
-        # work when we run doctests that involve creating test shells.
-        # The test run segfaults right when it exits, complaining
-        # about a bad memory access in the pari_close() function.
-        #self.set_quit_hook()
-
-        if os.environ.get('SAGE_IMPORTALL', 'yes') != 'yes':
-            return
-
-        self.init_environment()
 
     def register_interface_magics(self):
         """Register magics for each of the Sage interfaces"""
-        from sage.misc.superseded import deprecation
+        from superseded import deprecation
+        import sage.interfaces.all
         interfaces = [(name, obj)
                       for name, obj in sage.interfaces.all.__dict__.items()
                       if isinstance(obj, sage.interfaces.interface.Interface)]
@@ -310,50 +295,41 @@ class SageCustomizations(object):
 
     def set_quit_hook(self):
         """
-        Set the exit hook to cleanly exit Sage.  This does not work in all cases right now.
+        Set the exit hook to cleanly exit Sage.
         """
         def quit(shell):
-            import sage
-            sage.all.quit_sage()
+            import sage.all
+            sage.all.quit_sage(self.shell.verbose_quit)
         self.shell.set_hook('shutdown_hook', quit)
-
 
     def init_environment(self):
         """
         Set up Sage command-line environment
         """
-        try:
-            self.shell.run_cell('from sage.all import Integer, RealNumber')
-        except Exception:
-            import traceback
-            print "Error importing the Sage library"
-            traceback.print_exc()
-            print
-            print "To debug this, you can run:"
-            print 'sage -ipython -i -c "import sage.all"'
-            print 'and then type "%debug" to enter the interactive debugger'
-            sys.exit(1)
-        self.shell.run_cell(self.startup_code)
+        # import outside of cell so we don't get a traceback
+        import sage.all_cmdline as sage
+        self.shell.user_ns.update((key, getattr(sage, key))
+                for key in dir(sage) if key[0] != '_')
         self.run_init()
-
 
     def run_init(self):
         """
         Run Sage's initial startup file.
         """
-        startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
-        if os.path.exists(startup_file):
-            with open(startup_file, 'r') as f:
+        try:
+            with open(SAGE_STARTUP_FILE, 'r') as f:
                 self.shell.run_cell(f.read(), store_history=False)
+        except IOError:
+            pass
 
     def init_inspector(self):
         # Ideally, these would just be methods of the Inspector class
         # that we could override; however, IPython looks them up in
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
-        from sage.misc import sagedoc, sageinspect
+        import sagedoc, sageinspect
         import IPython.core.oinspect
-        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc #sagedoc.my_getdoc
+        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
         IPython.core.oinspect.getsource = sagedoc.my_getsource
         IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
 
@@ -361,27 +337,43 @@ class SageCustomizations(object):
         """
         Set up transforms (like the preparser).
         """
-        import sage
-        import sage.all
         from interpreter import (SagePreparseTransformer,
-                                 SagePromptTransformer)
+                                 SagePromptTransformer,
+                                 preparser)
+
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
             s.physical_line_transforms.append(SagePromptTransformer())
             s.python_line_transforms.append(SagePreparseTransformer())
-        preparser(True)
-
 
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps
-def run_once(f):
-    """Runs a function (successfully) only once.
+def run_once(func):
+    """
+    Runs a function (successfully) only once.
 
     The running can be reset by setting the `has_run` attribute to False
+
+    TEST::
+
+        sage: from sage.misc.sage_extension import run_once
+        sage: @run_once
+        ....: def foo(work):
+        ....:     if work:
+        ....:         return 'foo worked'
+        ....:     raise RuntimeError("foo didn't work")
+        sage: foo(False)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: foo didn't work
+        sage: foo(True)
+        'foo worked'
+        sage: foo(False)
+        sage: foo(True)
     """
-    @wraps(f)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         if not wrapper.has_run:
-            result = f(*args, **kwargs)
+            result = func(*args, **kwargs)
             wrapper.has_run = True
             return result
     wrapper.has_run = False

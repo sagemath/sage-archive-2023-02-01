@@ -40,9 +40,6 @@ this object can be retrieved by running::
 The :class:`SageInteractiveShell` provides the following
 customizations:
 
-  - Cleanly deinitialize the Sage library before exiting.  See
-    :meth:`~SageInteractiveShell.ask_exit`.
-
   - Modify the libraries before calling system commands. See
     :meth:`~SageInteractiveShell.system_raw`.
 
@@ -175,38 +172,6 @@ class SageInteractiveShell(TerminalInteractiveShell):
                 libraries += 'DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH";export DYLD_LIBRARY_PATH;'
             cmd = libraries+cmd
         return super(SageInteractiveShell, self).system_raw(cmd)
-
-    def ask_exit(self):
-        """
-        We need to run the :func:`sage.all.quit_sage` function when we
-        exit the shell.
-
-        EXAMPLES:
-
-        We install a fake :func:`sage.all.quit_sage`::
-
-            sage: import sage.all
-            sage: old_quit = sage.all.quit_sage
-            sage: def new_quit(): print "Quitter!!!"
-            sage: sage.all.quit_sage = new_quit
-
-        Now, we can check to see that this method works::
-
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.ask_exit()
-            Quitter!!!
-            sage: shell.exit_now
-            True
-
-        Clean up after ourselves::
-
-            sage: shell.exit_now = False
-            sage: sage.all.quit_sage = old_quit
-        """
-        from sage.all import quit_sage
-        quit_sage()
-        super(SageInteractiveShell, self).ask_exit()
 
 ###################################################################
 # Transformers used in the SageInputSplitter
@@ -450,6 +415,7 @@ def get_test_shell():
     app = SageTerminalApp.instance(config=copy.deepcopy(DEFAULT_SAGE_CONFIG))
     if app.shell is None:
         app.initialize(argv=[])
+    app.shell.verbose_quit = False
     return app.shell
 
 #######################

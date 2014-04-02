@@ -94,7 +94,7 @@ class VectorSpaces(Category_module):
             V = x.vector_space(self.base_field())
             if V.base_field() != self.base_field():
                 V = V.change_ring(self.base_field())
-        except (TypeError, AttributeError), msg:
+        except (TypeError, AttributeError) as msg:
             raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
         return V
 

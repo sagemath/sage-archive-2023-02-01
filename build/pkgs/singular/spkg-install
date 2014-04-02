@@ -20,8 +20,6 @@ if [ "$UNAME" != "Linux" ]; then
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
-    export MACOSX_DEPLOYMENT_TARGET=10.4
-
     # Singular needs $LD set to "libtool", not "ld" on Darwin.
     # If we unset it, Singular will figure it out correctly.
     unset LD

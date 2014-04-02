@@ -868,7 +868,7 @@ class PeriodLattice_ell(PeriodLattice):
         if self.is_real():
             return Matrix([[w1,0],list(w2)])
         else:
-            return Matrix([list(w) for w in w1,w2])
+            return Matrix([list(w) for w in (w1,w2)])
 
     def complex_area(self, prec=None):
         """
@@ -1300,7 +1300,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
-            sage: T = E.simon_two_descent()
+            sage: T = E.simon_two_descent(lim1=20,lim3=5,limtriv=20)
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])

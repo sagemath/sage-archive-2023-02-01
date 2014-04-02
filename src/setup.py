@@ -98,7 +98,7 @@ class CompileRecorder(object):
                 res = self._f(self._obj, *args)
             else:
                 res = self._f(*args)
-        except Exception, ex:
+        except Exception as ex:
             print ex
             res = ex
         t = time.time() - t
@@ -406,7 +406,7 @@ class sage_build_ext(build_ext):
             path = os.path.join(prefix, relative_ext_dir)
             try:
                 os.makedirs(path)
-            except OSError, e:
+            except OSError as e:
                 assert e.errno==errno.EEXIST, 'Cannot create %s.' % path
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):

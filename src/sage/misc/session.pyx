@@ -310,7 +310,7 @@ def save_session(name='sage_session', verbose=False):
             if verbose:
                 print "Saving %s"%k
             D[k] = x
-        except Exception, msg:
+        except Exception as msg:
             if verbose:
                 print "Not saving %s: %s"%(k, msg)
             pass

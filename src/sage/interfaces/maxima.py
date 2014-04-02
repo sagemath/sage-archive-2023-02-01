@@ -697,7 +697,7 @@ class Maxima(MaximaAbstract, Expect):
                 self._sendline(";")
                 self._expect_expr()
                 raise ValueError, msg
-        except KeyboardInterrupt, msg:
+        except KeyboardInterrupt as msg:
             #print self._expect.before
             i = 0
             while True:

@@ -1097,9 +1097,16 @@ class Partition(CombinatorialObject, Element):
             ##
             #####
             #####
+            sage: print Partition([]).ferrers_diagram()
+            -
+            sage: Partitions.global_options(diagram_str='-')
+            sage: print Partition([]).ferrers_diagram()
+            (/)
             sage: Partitions.global_options.reset()
         """
         diag_str = self.parent().global_options('diagram_str')
+        if not self._list:
+            return '-' if diag_str != '-' else "(/)"
         if self.parent().global_options('convention') == "English":
             return '\n'.join([diag_str*p for p in self])
         else:

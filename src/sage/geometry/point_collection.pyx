@@ -445,7 +445,7 @@ cdef class PointCollection(SageObject):
         EXAMPLES::
 
             sage: c = Cone([(0,0,1), (1,0,1), (0,1,1), (1,1,1)]).rays()
-            sage: matrix(c)
+            sage: matrix(c) # indirect doctest
             [0 0 1]
             [1 0 1]
             [0 1 1]

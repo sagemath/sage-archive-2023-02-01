@@ -3863,9 +3863,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=False, ordered=True):
         """
-        Returns the minimal genus of the graph. The genus of a compact
-        surface is the number of handles it has. The genus of a graph is
-        the minimal genus of the surface it can be embedded into.
+        Returns the minimal genus of the graph.
+
+        The genus of a compact surface is the number of handles it
+        has. The genus of a graph is the minimal genus of the surface
+        it can be embedded into.
 
         Note - This function uses Euler's formula and thus it is necessary
         to consider only connected graphs.
@@ -3952,7 +3954,7 @@ class GenericGraph(GenericGraph_pyx):
         minimal genus is ultimately computable for every connected graph -- but the
         embedding we obtain for the simple graph can't be easily converted to an
         embedding of a non-simple graph.  Also, the maximal genus of a multigraph does
-        not trivially correspond to that of its simple graph.
+        not trivially correspond to that of its simple graph. ::
 
             sage: G = DiGraph({ 0 : [0,1,1,1], 1 : [2,2,3,3], 2 : [1,3,3], 3:[0,3]})
             sage: G.genus()
@@ -3970,7 +3972,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
         We break graphs with cut vertices into their blocks, which greatly speeds up
-        computation of minimal genus.  This is not implemented for maximal genus.
+        computation of minimal genus.  This is not implemented for maximal genus. ::
 
             sage: K5 = graphs.CompleteGraph(5)
             sage: G = K5.copy()

@@ -789,7 +789,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         try:
             xy = self.canonical_coercion(x,y)
             return PyObject_CallObject(op, xy)
-        except TypeError, err:
+        except TypeError as err:
             if xy is not None:
                 # The error was in calling, not coercing
                 raise

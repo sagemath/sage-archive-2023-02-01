@@ -614,7 +614,7 @@ class FGP_Module_class(Module):
         if isinstance(x, (list,tuple)):
             try:
                 x = self.optimized()[0].V().linear_combination_of_basis(x)
-            except ValueError, msg:
+            except ValueError as msg:
                 raise TypeError, msg
         elif isinstance(x, FGP_Element):
             x = x.lift()
@@ -635,7 +635,7 @@ class FGP_Module_class(Module):
         """
         try:
             x = self.optimized()[0].V().linear_combination_of_basis(x)
-        except ValueError, msg:
+        except ValueError as msg:
             raise TypeError, msg
         return self.element_class(self, self._V(x))
 

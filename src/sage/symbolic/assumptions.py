@@ -122,7 +122,7 @@ class GenericDeclaration(SageObject):
 #            except TypeError, mess:
 #                if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
 #                    raise ValueError, "Assumption is inconsistent"
-            except RuntimeError, mess:
+            except RuntimeError as mess:
                 if 'inconsistent' in str(mess): # note Maxima doesn't tell you if declarations are redundant
                     raise ValueError, "Assumption is inconsistent"
                 else:

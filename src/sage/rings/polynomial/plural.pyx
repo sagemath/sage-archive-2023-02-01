@@ -1719,7 +1719,7 @@ cdef class NCPolynomial_plural(RingElement):
             try:
                 strat = I._groebner_strategy()
                 return strat.normal_form(self)
-            except (TypeError, NotImplementedError),msg:
+            except (TypeError, NotImplementedError) as msg:
                 pass
             I = I.gens()
 
@@ -1729,7 +1729,7 @@ cdef class NCPolynomial_plural(RingElement):
                    and <NCPolynomialRing_plural>(<NCPolynomial_plural>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
-                except TypeError, msg:
+                except TypeError as msg:
                     id_Delete(&_I,r)
                     raise TypeError(msg)
 

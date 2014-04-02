@@ -215,6 +215,30 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
                     del z_elt[key]
         return A._from_dict(z_elt)
 
+    def variables(self):
+        """
+        Return the variables used in ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(ZZ,3)
+            sage: elt = x + x*y + x^3*y
+            sage: elt.variables()
+            [x, y]
+            sage: elt = x + x^2 - x^4
+            sage: elt.variables()
+            [x]
+            sage: elt = x + z*y + z*x
+            sage: elt.variables()
+            [x, y, z]
+        """
+        v = set([])
+        for s in self._monomial_coefficients: # Only gets the keys
+            for var,exp in s:
+                v.add(var)
+        A = self.parent()
+        return sorted(map(A, v))
+
     def to_pbw_basis(self):
         """
         Return ``self`` in the Poincare-Birkhoff-Witt (PBW) basis.

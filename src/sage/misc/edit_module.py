@@ -143,7 +143,7 @@ def template_fields(template):
    while not(dummy):
       try:
          dummy=template.substitute(dict)
-      except KeyError, inst:
+      except KeyError as inst:
          dict[inst.args[0]]=None
    return dict.keys()
 

@@ -2464,7 +2464,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if len(prev_variables) > 0:
             try:
                 mpolys = [a._mpoly_dict_recursive(prev_variables, base_ring) for a in self]
-            except AttributeError, msg:
+            except AttributeError as msg:
                 pass
 
         if mpolys is None:
@@ -6016,29 +6016,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Power Series Ring in x over Integer Ring
         """
         return self.parent().completion(self.parent().gen())(self).add_bigoh(prec)
-
-    def name(self):
-        """
-        Note: This function is deprecated. It will be removed in a future
-        release of Sage. Please use the .variable_name() function
-        instead.
-
-        Return the string variable name of the indeterminate of this
-        polynomial.
-
-        EXAMPLES::
-
-            sage: R.<theta> = ZZ[];
-            sage: f = (2-theta)^3; f
-            -theta^3 + 6*theta^2 - 12*theta + 8
-            sage: f.name()
-            doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.
-            See http://trac.sagemath.org/4522 for details.
-            'theta'
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(4522, "This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.")
-        return self.parent().variable_name()
 
     def is_irreducible(self):
         """

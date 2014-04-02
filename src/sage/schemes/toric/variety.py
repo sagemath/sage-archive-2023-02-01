@@ -1313,8 +1313,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         if '_homogeneous_degrees_group' not in self.__dict__:
             fan = self.fan()
             from sage.modules.free_module import FreeModule
-            degrees_group = FreeModule(ZZ, fan.nrays()).quotient(
-                                                fan.rays().matrix().columns())
+            rays = fan.rays() + fan.virtual_rays()
+            degrees_group = FreeModule(ZZ, len(rays)).quotient(
+                                                        rays.matrix().columns())
             self._homogeneous_degrees_group = degrees_group
         degrees_group = self._homogeneous_degrees_group
         S = self.coordinate_ring()
@@ -2659,7 +2660,6 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         patch = patch_cover.subscheme(I)
         return patch
 
-
     def _orbit_closure_projection(self, cone, x):
         r"""
         Return the projection of ``x`` onto the quotient lattice of ``cone``.
@@ -2688,7 +2688,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
             Due to incomplete support of quotient lattices (as of 12-07-2011),
             this function actually operates with a generic toric lattice of the
-            same dimension as the qppropriate quotient lattice. This behaviour
+            same dimension as the appropriate quotient lattice. This behaviour
             is likely to change in the future releases of Sage.
 
         EXAMPLES::
@@ -2703,7 +2703,9 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         cone = self.fan().embed(cone)
         quot = cone.sublattice_quotient()
         if x in cone.lattice():
-            return vector(quot(x))
+            result = vector(ZZ, quot(x))
+            result.set_immutable()
+            return result
 
         assert is_Cone(x)
         rays = [ vector(quot(r)) for r in x.rays() ]
@@ -2714,7 +2716,6 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             #return quot(x)
         #assert is_Cone(x)
         #return Cone(x.rays(), lattice=quot)
-
 
     def orbit_closure(self, cone):
         r"""
@@ -2745,15 +2746,44 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: H = P1xP1.fan(1)[0]
-            sage: P1xP1.orbit_closure(H)
+            sage: V = P1xP1.orbit_closure(H);  V
             1-d toric variety covered by 2 affine patches
+            sage: V.embedding_morphism()
+            Scheme morphism:
+              From: 1-d toric variety covered by 2 affine patches
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined by embedding the torus closure associated to the 1-d
+                    cone of Rational polyhedral fan in 2-d lattice N.
+            sage: V.embedding_morphism().as_polynomial_map()
+            Scheme morphism:
+              From: 1-d toric variety covered by 2 affine patches
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1] to
+                    [0 : 1 : z1 : z0]
+
+        TESTS::
+
+            sage: A2 = toric_varieties.A2()
+            sage: A2.orbit_closure(A2.fan(2)[0])
+            0-d affine toric variety
         """
         cone = self.fan().embed(cone)
         cones = []
         for star_cone in cone.star_generators():
             cones.append( self._orbit_closure_projection(cone, star_cone) )
         from sage.geometry.fan import discard_faces
-        return ToricVariety(Fan(discard_faces(cones), check=False))
+        fan = Fan(discard_faces(cones), check=False)
+        orbit_closure = ToricVariety(fan)
+
+        star_rays = set()
+        for star_cone in cone.star_generators():
+            star_rays.update(star_cone.rays())
+        ray_map = dict( (ray, self._orbit_closure_projection(cone, ray)) for ray in star_rays)
+        from sage.schemes.toric.morphism import SchemeMorphism_orbit_closure_toric_variety
+        orbit_closure._embedding_morphism = \
+            SchemeMorphism_orbit_closure_toric_variety(orbit_closure.Hom(self), cone, ray_map)
+
+        return orbit_closure
 
     def count_points(self):
         r"""

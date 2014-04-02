@@ -295,7 +295,7 @@ def _get_from_cache(key):
     try:
         if key in _cache:
             return _cache[key]   # put () here to re-enable weakrefs
-    except TypeError, msg:
+    except TypeError as msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
     return None
 
@@ -315,7 +315,7 @@ def _save_in_cache(key, R):
         # We disable weakrefs since they cause segfault at the end of doctesting.
         #weakref.ref(R)
         _cache[key] = R
-    except TypeError, msg:
+    except TypeError as msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
 
 def _single_variate(base_ring, names, sparse):

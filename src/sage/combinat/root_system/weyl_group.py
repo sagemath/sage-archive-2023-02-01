@@ -247,6 +247,20 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         """
         return self.domain().cartan_type()
 
+    def coxeter_matrix(self):
+        """
+        Return the Coxeter matrix associated to ``self``.
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(['A',3])
+            sage: G.coxeter_matrix()
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+        """
+        return self.cartan_type().coxeter_matrix()
+
     @cached_method
     def index_set(self):
         """
@@ -597,11 +611,13 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
     Caveat: the interface is likely to change. The current main
     application is for plots.
 
-    TODO: implement:
-     - Parabolic subrootsystems
-     - Parabolic subgroups with a set of nodes as argument
-    """
+    .. TODO::
 
+        implement:
+
+        - Parabolic subrootsystems
+        - Parabolic subgroups with a set of nodes as argument
+    """
     @cached_method
     def cartan_type(self):
         """
@@ -932,11 +948,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
     def to_permutation_string(self):
         """
         EXAMPLES::
+
             sage: W = WeylGroup(["A",3])
             sage: s = W.simple_reflections()
             sage: (s[1]*s[2]*s[3]).to_permutation_string()
             '2341'
-
         """
         return "".join(str(i) for i in self.to_permutation())
 

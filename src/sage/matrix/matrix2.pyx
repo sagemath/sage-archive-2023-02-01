@@ -1170,7 +1170,7 @@ cdef class Matrix(matrix1.Matrix):
             # If the characteristic is prime and smaller than a machine
             # word, use PARI.
             ch = R.characteristic()
-            if ch.is_prime() and ch < (2*sys.maxint):
+            if ch.is_prime() and ch < (2*sys.maxsize):
                 d = R(self._pari_().matdet())
             else:
                 # Lift to ZZ and compute there.
@@ -2203,7 +2203,7 @@ cdef class Matrix(matrix1.Matrix):
                 K = self._base_ring.fraction_field()
                 H = self.change_ring(K)
                 H.hessenbergize()
-            except TypeError, msg:
+            except TypeError as msg:
                 raise TypeError, "%s\nHessenberg form only possible for matrices over a field"%msg
         else:
             H = self.__copy__()
@@ -5868,7 +5868,7 @@ cdef class Matrix(matrix1.Matrix):
         else:
             try:
                 a, d, p = self._echelon_form_PID()
-            except TypeError, msg:
+            except TypeError as msg:
                 raise NotImplementedError, "%s\nechelon form over %s not yet implemented"%(msg, self.base_ring())
 
             for c from 0 <= c < self.ncols():
@@ -6020,7 +6020,7 @@ cdef class Matrix(matrix1.Matrix):
                 if not (algorithm in ['classical', 'strassen']):
                     kwds['algorithm'] = algorithm
                 return self._echelonize_ring(**kwds)
-        except ArithmeticError, msg:
+        except ArithmeticError as msg:
             raise NotImplementedError, "%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring())
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
@@ -13601,7 +13601,7 @@ def _generic_clear_column(m):
         if a[k,0] not in I:
             try:
                 v = R.ideal(a[0,0], a[k,0]).gens_reduced()
-            except Exception, msg:
+            except Exception as msg:
                 raise ArithmeticError, "%s\nCan't create ideal on %s and %s" % (msg, a[0,0], a[k,0])
             if len(v) > 1:
                 raise ArithmeticError, "Ideal %s not principal" %  R.ideal(a[0,0], a[k,0])

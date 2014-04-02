@@ -261,7 +261,7 @@ cdef class Parent(parent.Parent):
             P = x.parent()   # todo -- optimize
             if P is self:
                 return x
-        except AttributeError, msg:
+        except AttributeError as msg:
             pass
         if HAS_DICTIONARY(self):
             return self._coerce_impl(x)
@@ -303,7 +303,7 @@ cdef class Parent(parent.Parent):
             try:
                 y = R._coerce_(x)
                 return self(y)
-            except (TypeError, AttributeError), msg:
+            except (TypeError, AttributeError) as msg:
                 pass
         raise TypeError, "no canonical coercion of element into self"
 
@@ -365,7 +365,7 @@ cdef class Parent(parent.Parent):
             self._coerce_c((<parent.Parent>S).an_element())
         except TypeError:
             return False
-        except NotImplementedError, msg:
+        except NotImplementedError as msg:
             raise NotImplementedError, "%s\nAlso, please make sure you have implemented has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%(msg,self)
         return True
 

@@ -973,7 +973,7 @@ class MapleElement(ExpectElement):
         try:
             if P.eval("evalb(%s %s %s)"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
                 return -1
-        except RuntimeError, e:
+        except RuntimeError as e:
             msg = str(e)
             if 'is not valid' in msg and 'to < or <=' in msg:
                 if (hash(str(self)) < hash(str(other))):
@@ -1021,7 +1021,7 @@ class MapleElement(ExpectElement):
         P = self._check_valid()
         try:
             return P.new('%s . %s'%(self._name, right._name))
-        except Exception, msg:
+        except Exception as msg:
             raise TypeError,msg
 
     def trait_names(self):

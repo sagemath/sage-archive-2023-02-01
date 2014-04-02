@@ -266,7 +266,7 @@ cdef class SymbolicRing(CommutativeRing):
             try:
                 from sage.calculus.calculus import symbolic_expression_from_string
                 return self(symbolic_expression_from_string(x))
-            except SyntaxError, err:
+            except SyntaxError as err:
                 msg, s, pos = err.args
                 raise TypeError, "%s: %s !!! %s" % (msg, s[:pos], s[pos:])
 
@@ -290,20 +290,90 @@ cdef class SymbolicRing(CommutativeRing):
 
         return new_Expression_from_GEx(self, exp)
 
-    def _force_pyobject(self, x):
+    def _force_pyobject(self, x, bint force=False, bint recursive=True):
         """
         Wrap the given Python object in a symbolic expression even if it
         cannot be coerced to the Symbolic Ring.
 
+        INPUT:
+
+        - ``x`` - a Python object.
+
+        - ``force`` - bool, default ``False``, if True, the Python object
+          is taken as is without attempting coercion or list traversal.
+
+        - ``recursive`` - bool, default ``True``, disables recursive
+          traversal of lists.
+
         EXAMPLES::
 
-            sage: t = SR._force_pyobject([3,4,5]); t
-            [3, 4, 5]
+            sage: t = SR._force_pyobject(QQ); t
+            Rational Field
             sage: type(t)
             <type 'sage.symbolic.expression.Expression'>
+
+        Testing tuples::
+
+            sage: t = SR._force_pyobject((1, 2, x, x+1, x+2)); t
+            (1, 2, x, x + 1, x + 2)
+            sage: t.subs(x = 2*x^2)
+            (1, 2, 2*x^2, 2*x^2 + 1, 2*x^2 + 2)
+            sage: t.op[0]
+            1
+            sage: t.op[2]
+            x
+
+        It also works if the argument is a ``list``::
+
+            sage: t = SR._force_pyobject([1, 2, x, x+1, x+2]); t
+            (1, 2, x, x + 1, x + 2)
+            sage: t.subs(x = 2*x^2)
+            (1, 2, 2*x^2, 2*x^2 + 1, 2*x^2 + 2)
+            sage: SR._force_pyobject((QQ, RR, CC))
+            (Rational Field, Real Field with 53 bits of precision, Complex Field with 53 bits of precision)
+            sage: t = SR._force_pyobject((QQ, (x, x + 1, x + 2), CC)); t
+            (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits of precision)
+            sage: t.subs(x=x^2)
+            (Rational Field, (x^2, x^2 + 1, x^2 + 2), Complex Field with 53 bits of precision)
+
+        If ``recursive`` is ``False`` the inner tuple is taken as a Python
+        object. This prevents substitution as above::
+
+            sage: t = SR._force_pyobject((QQ, (x, x + 1, x + 2), CC), recursive=False)
+            sage: t
+            (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits
+            of precision)
+            sage: t.subs(x=x^2)
+            (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits
+            of precision)
         """
         cdef GEx exp
-        GEx_construct_pyobject(exp, x)
+        cdef GExprSeq ex_seq
+        cdef GExVector ex_v
+        if force:
+            GEx_construct_pyobject(exp, x)
+
+        else:
+            # first check if we can do it the nice way
+            if isinstance(x, Expression):
+                return x
+            try:
+                return self._coerce_(x)
+            except TypeError:
+                pass
+
+            # tuples can be packed into exprseq
+            if isinstance(x, (tuple, list)):
+                for e in x:
+                    obj = SR._force_pyobject(e, force=(not recursive))
+                    ex_v.push_back( (<Expression>obj)._gobj )
+
+                GExprSeq_construct_exvector(&ex_seq, ex_v)
+
+                GEx_construct_exprseq(&exp, ex_seq)
+            else:
+                GEx_construct_pyobject(exp, x)
+
         return new_Expression_from_GEx(self, exp)
 
     def wild(self, unsigned int n=0):

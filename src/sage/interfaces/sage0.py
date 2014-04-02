@@ -221,7 +221,7 @@ class Sage(Expect):
                 os.killpg(pid, 9)
                 os.kill(pid, 9)
 
-            except (RuntimeError, OSError), msg:
+            except (RuntimeError, OSError) as msg:
                 pass
 
             try:

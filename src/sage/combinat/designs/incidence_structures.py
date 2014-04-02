@@ -36,12 +36,10 @@ Classes and methods
 #                    http://www.gnu.org/licenses/                          #
 #***************************************************************************
 
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial
 
 ###  utility functions  -------------------------------------------------------
-
 
 def coordinatewise_product(L):
     """
@@ -96,7 +94,6 @@ def IncidenceStructureFromMatrix(M, name=None):
                 B.append(j)
         blocks.append(B)
     return IncidenceStructure(range(v), blocks, name=nm)
-
 
 class IncidenceStructure(object):
     """
@@ -398,17 +395,34 @@ class IncidenceStructure(object):
 
     def dual_incidence_structure(self, algorithm=None):
         """
-        Wraps GAP Design's DualBlockDesign (see [1]). The dual of a block
-        design may not be a block design.
+        Returns the dual of the incidence structure.
+
+        Note that the dual of a block design may not be a block design.
+
+        INPUT:
+
+        - ``algorithm`` -- whether to use Sage's implementation
+          (``algorithm=None``, default) or use GAP's (``algorithm="gap"``).
+
+          .. NOTE::
+
+              The ``algorithm="gap"`` option requires GAP's Design package
+              (included in the gap_packages Sage spkg).
 
         Also can be called with ``dual_design``.
 
-        .. NOTE:
+        EXAMPLES:
 
-        The algorithm="gap" option requires GAP's Design package (included in
-        the gap_packages Sage spkg).
+        The dual of a projective plane is a projective plane::
 
-        EXAMPLES::
+            sage: PP = designs.ProjectivePlaneDesign(4)
+            sage: PP.dual_design().is_block_design()
+            (True, [2, 21, 5, 1])
+            sage: PP = designs.ProjectivePlaneDesign(4)             # optional - gap_packages
+            sage: PP.dual_design(algorithm="gap").is_block_design() # optional - gap_packages
+            (True, [2, 21, 5, 1])
+
+        TESTS::
 
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: D = BlockDesign(4, [[0,2],[1,2,3],[2,3]], test=False)
@@ -416,12 +430,12 @@ class IncidenceStructure(object):
             Incidence structure with 4 points and 3 blocks
             sage: D.dual_design()
             Incidence structure with 3 points and 4 blocks
-            sage: print D.dual_design(algorithm="gap")       # optional - gap_design
+            sage: print D.dual_design(algorithm="gap")       # optional - gap_packages
             IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
             sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
             sage: BD
             Incidence structure with 7 points and 7 blocks
-            sage: print BD.dual_design(algorithm="gap")         # optional - gap_design
+            sage: print BD.dual_design(algorithm="gap")         # optional - gap_packages
             IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
             sage: BD.dual_incidence_structure()
             Incidence structure with 7 points and 7 blocks
@@ -431,9 +445,8 @@ class IncidenceStructure(object):
         - Soicher, Leonard, Design package manual, available at
           http://www.gap-system.org/Manuals/pkg/design/htm/CHAP003.htm
         """
-        from sage.interfaces.gap import gap
-        from sage.misc.functional import transpose
         if algorithm == "gap":
+            from sage.interfaces.gap import gap
             gap.load_package("design")
             gD = self._gap_()
             gap.eval("DD:=DualBlockDesign("+gD+")")
@@ -443,10 +456,10 @@ class IncidenceStructure(object):
             for b in gblcks:
                 gB.append([x-1 for x in b])
             return IncidenceStructure(range(v), gB, name=None, test=False)
-        pts = self.blocks()
-        M = transpose(self.incidence_matrix())
-        blks = self.points()
-        return IncidenceStructure(pts, blks, M, name=None, test=False)
+        else:
+            M = self.incidence_matrix()
+            new_blocks = [list(r.dict(copy=False)) for r in M.rows()]
+            return IncidenceStructure(range(M.ncols()), new_blocks, name=None, test=False)
 
     dual_design = dual_incidence_structure  # to preserve standard terminology
 
@@ -473,16 +486,14 @@ class IncidenceStructure(object):
         if not self._incidence_matrix is None:
             return self._incidence_matrix
         else:
+            from sage.matrix.constructor import Matrix
             v = len(self.points())
             blks = self.blocks()
             b = len(blks)
-            MS = MatrixSpace(ZZ, v, b)
-            A = MS(0)
-            #A = NUM.zeros((v,b), NUM.Int)
-            for i in range(v):
-                for j, b in enumerate(blks):
-                    if i in b:
-                        A[i, j] = 1
+            A = Matrix(ZZ, v, b, sparse=True)
+            for j, b in enumerate(blks):
+                for i in b:
+                    A[i, j] = 1
             self._incidence_matrix = A
             return A
 
@@ -507,7 +518,6 @@ class IncidenceStructure(object):
         from sage.graphs.bipartite_graph import BipartiteGraph
         A = self.incidence_matrix()
         return BipartiteGraph(A)
-        #same as return Graph(block_matrix([[A*0,A],[A.transpose(),A*0]]))
 
     def is_block_design(self):
         """

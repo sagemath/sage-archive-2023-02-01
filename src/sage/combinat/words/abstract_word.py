@@ -1064,6 +1064,11 @@ class Word_class(SageObject):
 
         EXAMPLES::
 
+            sage: Word('123').iterated_right_palindromic_closure()
+            word: 1213121
+
+        ::
+
             sage: w = Word('abc')
             sage: w.iterated_right_palindromic_closure()
             word: abacaba
@@ -1116,6 +1121,11 @@ class Word_class(SageObject):
             sage: w = Word()
             sage: w.iterated_right_palindromic_closure()
             word:
+
+        The length-`1` word::
+
+            sage: Word('1').iterated_right_palindromic_closure()
+            word: 1
 
         If the word is finite, so is the result::
 

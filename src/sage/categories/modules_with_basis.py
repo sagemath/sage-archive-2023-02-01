@@ -159,7 +159,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             M = x.free_module()
             if M.base_ring() != self.base_ring():
                 M = M.change_ring(self.base_ring())
-        except (TypeError, AttributeError), msg:
+        except (TypeError, AttributeError) as msg:
             raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
         return M
 

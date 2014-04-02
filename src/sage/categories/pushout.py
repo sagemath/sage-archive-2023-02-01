@@ -3262,7 +3262,7 @@ def pushout(R, S):
 
     except CoercionException:
         raise
-    except (TypeError, ValueError, AttributeError, NotImplementedError), ex:
+    except (TypeError, ValueError, AttributeError, NotImplementedError) as ex:
         # We do this because we may be trying all kinds of things that don't
         # make sense, and in this case simply want to return that a pushout
         # couldn't be found.

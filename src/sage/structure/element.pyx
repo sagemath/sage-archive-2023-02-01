@@ -1403,7 +1403,7 @@ cdef class MonoidElement(Element):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
-        except TypeError, msg:
+        except TypeError as msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
             elif isinstance(right, (int, long)) and right==1:

@@ -383,7 +383,7 @@ class NumberFieldIdeal(Ideal_generic):
         V, from_V, to_V = K.absolute_vector_space()
         try:
             return self.free_module().coordinate_vector(to_V(K(x)))
-        except ArithmeticError,e:
+        except ArithmeticError as e:
             raise TypeError(e)
 
     def _contains_(self, x):

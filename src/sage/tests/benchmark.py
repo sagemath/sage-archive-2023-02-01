@@ -118,7 +118,7 @@ class Benchmark:
                     S, timeout)
             except AttributeError:
                 pass
-            except Exception, msg:
+            except Exception as msg:
                 print msg
 
     bench = run

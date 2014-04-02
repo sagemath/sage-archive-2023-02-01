@@ -732,7 +732,7 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))
-        except RuntimeError, error:
+        except RuntimeError as error:
             s = str(error)
             if "Divergent" in s or "divergent" in s:
 # in pexpect interface, one looks for this - e.g. integrate(1/x^3,x,-1,3) gives a principal value
@@ -779,7 +779,7 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
-        except RuntimeError, error:
+        except RuntimeError as error:
             s = str(error)
             if "divergent" in s:
 # in pexpect interface, one looks for this;
@@ -849,7 +849,7 @@ class MaximaLib(MaximaAbstract):
             elif dir == "minus":
                 L.append(max_minus)
             return max_to_sr(maxima_eval(([max_limit],L)))
-        except RuntimeError, error:
+        except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')

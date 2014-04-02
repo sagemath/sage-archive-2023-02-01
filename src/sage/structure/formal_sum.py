@@ -301,7 +301,7 @@ class FormalSum(ModuleElement):
             k = parent.base_ring()
             try:
                 self._data = [(k(t[0]), t[1]) for t in self._data]
-            except (IndexError, KeyError), msg:
+            except (IndexError, KeyError) as msg:
                 raise TypeError, "%s\nInvalid formal sum"%msg
 
     def __iter__(self):

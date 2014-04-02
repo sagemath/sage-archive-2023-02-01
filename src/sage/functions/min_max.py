@@ -154,12 +154,12 @@ class MinMax_base(BuiltinFunction):
         if len(args) == 1:
             try:
                 args=(SR._force_pyobject(iter(args[0])),)
-            except TypeError, e:
+            except TypeError as e:
                 raise e
 
         try:
             return BuiltinFunction.__call__(self, *args, **kwds)
-        except ValueError, e:
+        except ValueError as e:
             if e.args[0] == "return None":
                 return None
 

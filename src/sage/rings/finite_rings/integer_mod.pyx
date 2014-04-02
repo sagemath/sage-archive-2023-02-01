@@ -576,7 +576,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             try:
                 n = Integer(pari(cmd))
                 return n
-            except PariError, msg:
+            except PariError as msg:
                 raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
 
         else: # fall back on slower native implementation

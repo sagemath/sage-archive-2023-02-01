@@ -871,6 +871,6 @@ def _gen_names(elts):
             name = "sqrt%s" % m.groups()[0]
         try:
             _certify_names([name])
-        except ValueError, msg:
+        except ValueError as msg:
             name = it.next().string_rep()
         yield name

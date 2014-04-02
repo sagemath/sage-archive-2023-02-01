@@ -133,7 +133,7 @@ class Lisp(Expect):
                             M = M[len(L):]      # skip L in case it was echoed
                         x.append(M.strip())
                         self.__in_seq = s
-                    except TypeError, s:
+                    except TypeError as s:
                         return 'error evaluating "%s":\n%s'%(code,s)
             return '\n'.join(x)
 

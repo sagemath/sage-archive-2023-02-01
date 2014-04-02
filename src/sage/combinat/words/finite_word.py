@@ -4131,6 +4131,21 @@ exponent %s: the length of the word (%s) times the exponent \
             {'a': 1, 'c': 1, 'b': 3, 'd': 2}
             sage: Word().evaluation_dict()
             {}
+
+        ::
+
+            sage: f = Word('1213121').evaluation_dict() # keys appear in random order
+            {'1': 4, '2': 2, '3': 1}
+
+        TESTS::
+
+            sage: f = Word('1213121').evaluation_dict()
+            sage: f['1'] == 4
+            True
+            sage: f['2'] == 2
+            True
+            sage: f['3'] == 1
+            True
         """
         d = {}
         for a in self:
@@ -5793,7 +5808,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def standard_factorization(self):
         r"""
-        Returns the standard factorization of self.
+        Returns the standard factorization of ``self``.
 
         The *standard factorization* of a word `w` of length greater than 1 is
         the unique factorization: `w = uv` where `v` is the longest proper

@@ -122,8 +122,6 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
     assert (not check or Fm.divides(F))
     return [Fm, F // Fm]
 
-base_exponent = deprecated_function_alias(12116, lambda n: n.perfect_power())
-
 cpdef factor_aurifeuillian(n, check=True):
     r"""
     Return Aurifeuillian factors of `n` if `n = x^{(2k-1)x} \pw 1`

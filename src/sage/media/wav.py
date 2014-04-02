@@ -83,7 +83,7 @@ class Wave(SageObject):
                 self._nframes = kwds['nframes']
                 self._bytes = kwds['bytes']
                 self._channel_data = kwds['channel_data']
-            except KeyError, msg:
+            except KeyError as msg:
                 raise KeyError, msg + " invalid input to Wave initializer"
         else:
             raise ValueError, "Must give a filename"

@@ -1176,7 +1176,7 @@ def my_getsource(obj, is_binary):
     try:
         s = sageinspect.sage_getsource(obj, is_binary)
         return format_src(s)
-    except Exception, msg:
+    except Exception as msg:
         print 'Error getting source:', msg
         return None
 

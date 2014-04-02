@@ -9,7 +9,7 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 
-class Lattice(Parent):
+class RealLattice(Parent):
     """
     This class is a stub.
     """

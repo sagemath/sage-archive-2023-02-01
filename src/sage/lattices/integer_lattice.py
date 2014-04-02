@@ -11,16 +11,15 @@ AUTHORS:
 
 TESTS::
 
-    sage: L = Lattice(random_matrix(ZZ, 10, 10))
+    sage: L = RealLattice(random_matrix(ZZ, 10, 10))
     sage: TestSuite(L).run()
 """
  
 from copy import copy
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
-from sage.lattices.lattice import Lattice
+from sage.lattices.real_lattice import RealLattice
 from sage.libs.pari.pari_instance import pari
 from sage.rings.integer_ring import ZZ
-from sage.rings.number_field.number_field_element import OrderElement_absolute
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.method_decorator import MethodDecorator
@@ -28,7 +27,7 @@ from sage.modules.free_module_element import vector
 from sage.modules.vector_integer_dense import Vector_integer_dense
 from sage.structure.parent import Parent
 
-class IntegerLattice(Lattice):
+class IntegerLattice(RealLattice):
     """
     This class represents lattices over the integers.
 
@@ -42,7 +41,7 @@ class IntegerLattice(Lattice):
 
     EXAMPLE::
 
-         sage: L = Lattice(sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True)); L
+         sage: L = RealLattice(sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True)); L
          Lattice of degree 10 and rank 10 over Integer Ring
          Basis matrix:
          [ 0  1  2  0  1  2 -1  0 -1 -1]
@@ -74,14 +73,14 @@ class IntegerLattice(Lattice):
 
         EXAMPLES::
 
-            sage: Lattice([[1,0,-2],[0,2,5], [0,0,7]])
+            sage: RealLattice([[1,0,-2],[0,2,5], [0,0,7]])
             Lattice of degree 3 and rank 3 over Integer Ring
             Basis matrix:
             [ 1  0 -2]
             [ 1 -2  0]
             [ 2  2  1]
 
-            sage: Lattice(random_matrix(ZZ, 5, 5, x=-2^20, y=2^20))
+            sage: RealLattice(random_matrix(ZZ, 5, 5, x=-2^20, y=2^20))
             Lattice of degree 5 and rank 5 over Integer Ring
             Basis matrix:
             [  -7945 -381123   85872 -225065   12924]
@@ -95,7 +94,7 @@ class IntegerLattice(Lattice):
             sage: f = O.random_element(); f
             a^7 - a^6 + 4*a^5 - a^4 + a^3 + 1
 
-            sage: Lattice(f)
+            sage: RealLattice(f)
             Lattice of degree 8 and rank 8 over Integer Ring
             Basis matrix:
             [ 0  1  0  1  0  3  3  0]
@@ -113,9 +112,6 @@ class IntegerLattice(Lattice):
             cost for running LLL again, set ``lll_reduce=False`` and set
             :attr:`IntegerLattice._is_LLL_reduced` to ``True``.
         """
-        if isinstance(basis, OrderElement_absolute):
-            basis = basis.matrix()
-
         self._basis = matrix(ZZ, basis)
 
         if not lll_reduce and self._basis.nrows() > self._basis.ncols():
@@ -139,7 +135,7 @@ class IntegerLattice(Lattice):
 
         EXAMPLE::
 
-            sage: L = Lattice(Matrix(ZZ, 4, 4, [[2,1,0,-1],[1,7,3,1],[0,3,54,3],[-1,1,3,673]])); L
+            sage: L = RealLattice(Matrix(ZZ, 4, 4, [[2,1,0,-1],[1,7,3,1],[0,3,54,3],[-1,1,3,673]])); L
             Lattice of degree 4 and rank 4 over Integer Ring
             Basis matrix:
             [   2    1    0   -1]
@@ -155,7 +151,7 @@ class IntegerLattice(Lattice):
 
         TESTS::
 
-            sage: L = Lattice(random_matrix(ZZ, 5, 10))
+            sage: L = RealLattice(random_matrix(ZZ, 5, 10))
             sage: L._inverse_of_basis()
             Traceback (most recent call last):
             ...
@@ -174,7 +170,7 @@ class IntegerLattice(Lattice):
 
         EXAMPLE::
 
-            sage: L = Lattice(Matrix(ZZ, 4, 4, [[2,1,0,-1],[1,7,3,1],[0,3,54,3],[-1,1,3,673]])); L
+            sage: L = RealLattice(Matrix(ZZ, 4, 4, [[2,1,0,-1],[1,7,3,1],[0,3,54,3],[-1,1,3,673]])); L
             Lattice of degree 4 and rank 4 over Integer Ring
             Basis matrix:
             [   2    1    0   -1]
@@ -193,7 +189,7 @@ class IntegerLattice(Lattice):
 
         TESTS::
 
-            sage: L = Lattice(random_matrix(ZZ, 5, 10))
+            sage: L = RealLattice(random_matrix(ZZ, 5, 10))
             sage: L.shortest_vector() in L
             True
 
@@ -244,7 +240,7 @@ class IntegerLattice(Lattice):
         EXAMPLE::
 
             sage: A = random_matrix(ZZ, 10, 10, x=-2000, y=2000)
-            sage: L = Lattice(A, lll_reduce=False); L
+            sage: L = RealLattice(A, lll_reduce=False); L
             Lattice of degree 10 and rank 10 over Integer Ring
             Basis matrix:
             [ -645 -1037 -1775 -1619  1721 -1434  1766  1701  1669  1534]
@@ -299,7 +295,7 @@ class IntegerLattice(Lattice):
         EXAMPLE::
 
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=100, q=2^60, seed=42)
-            sage: L = Lattice(A, lll_reduce=False)
+            sage: L = RealLattice(A, lll_reduce=False)
             sage: min(v.norm().n() for v in L.basis)
             4.17330740711759e15
 
@@ -363,7 +359,7 @@ class IntegerLattice(Lattice):
         EXAMPLE::
 
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=100, q=2^60, seed=42)
-            sage: L = Lattice(A, lll_reduce=False)
+            sage: L = RealLattice(A, lll_reduce=False)
             sage: L.basis * L.basis.T == L.gram_matrix()
             True
 
@@ -381,7 +377,7 @@ class IntegerLattice(Lattice):
 
             sage: K.<a> = NumberField(x^8+1)
             sage: O = K.ring_of_integers()
-            sage: Lattice(O.random_element()).degree()
+            sage: RealLattice(O.random_element()).degree()
             8
         """
         return self._basis.ncols()
@@ -395,7 +391,7 @@ class IntegerLattice(Lattice):
 
             sage: K.<a> = NumberField(x^8+1)
             sage: O = K.ring_of_integers()
-            sage: Lattice(O.random_element()).rank()
+            sage: RealLattice(O.random_element()).rank()
             8
         """
         return self._basis.rank()
@@ -437,10 +433,10 @@ class IntegerLattice(Lattice):
 
         EXAMPLES::
 
-            sage: L = Lattice([[1, 0], [0, 1]])
+            sage: L = RealLattice([[1, 0], [0, 1]])
             sage: L.is_unimodular()
             True
-            sage: Lattice([[2, 0], [0, 3]]).is_unimodular()
+            sage: RealLattice([[2, 0], [0, 3]]).is_unimodular()
             False
         """
         return self.volume() == 1
@@ -451,7 +447,7 @@ class IntegerLattice(Lattice):
 
         TESTS::
 
-             sage: Lattice(random_matrix(ZZ, 2, 2)).base_ring()
+             sage: RealLattice(random_matrix(ZZ, 2, 2)).base_ring()
              Integer Ring
 
         """
@@ -462,7 +458,7 @@ class IntegerLattice(Lattice):
 
         TESTS::
 
-            sage: Lattice([[1,0,-2],[0,2,5], [0,0,7]]) #indirect doctest
+            sage: RealLattice([[1,0,-2],[0,2,5], [0,0,7]]) #indirect doctest
             Lattice of degree 3 and rank 3 over Integer Ring
             Basis matrix:
             [ 1  0 -2]
@@ -484,7 +480,7 @@ class IntegerLattice(Lattice):
 
         TESTS::
 
-            sage: Lattice([[1,0,-2],[0,2,5], [0,0,7]]).basis
+            sage: RealLattice([[1,0,-2],[0,2,5], [0,0,7]]).basis
             [ 1  0 -2]
             [ 1 -2  0]
             [ 2  2  1]
@@ -510,14 +506,14 @@ class IntegerLattice(Lattice):
         EXAMPLE::
 
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=30, q=2^40, seed=42)
-            sage: L = Lattice(A, lll_reduce=False)
+            sage: L = RealLattice(A, lll_reduce=False)
             sage: min(v.norm().n() for v in L.basis)
             6.03890756700000e10
 
             sage: L.shortest_vector().norm().n()
             3.74165738677394
 
-            sage: L = Lattice(A, lll_reduce=False)
+            sage: L = RealLattice(A, lll_reduce=False)
             sage: min(v.norm().n() for v in L.basis)
             6.03890756700000e10
 
@@ -551,7 +547,7 @@ class IntegerLattice(Lattice):
         EXAMPLE::
 
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=30, q=2^40, seed=42)
-            sage: L = Lattice(A)
+            sage: L = RealLattice(A)
             sage: B = L.basis
             sage: v = L.shortest_vector(update_basis=False)
             sage: L.update_basis(v)
@@ -574,7 +570,7 @@ class IntegerLattice(Lattice):
 
         EXAMPLES::
 
-            sage: Lattice(random_matrix(ZZ, 10, 11)).hermite_form_basis()
+            sage: RealLattice(random_matrix(ZZ, 10, 11)).hermite_form_basis()
             [           1            0            0            0            0            0            0            0            0 107070676021    440848398]
             [           0            1            0            0            0            0            0            0            0  96760618325    398398190]
             [           0            0            1            0            0            0            0            1            0  12932839669     53249143]
@@ -594,11 +590,11 @@ class IntegerLattice(Lattice):
         TESTS::
 
             sage: A = random_matrix(ZZ, 20, 10)
-            sage: L0 = Lattice(A)
-            sage: L1 = Lattice(L0.basis)
+            sage: L0 = RealLattice(A)
+            sage: L1 = RealLattice(L0.basis)
             sage: L0 == L1
             True
-            sage: L0 == Lattice(random_matrix(ZZ, 10, 10))
+            sage: L0 == RealLattice(random_matrix(ZZ, 10, 10))
             False
         """
         if not isinstance(other, IntegerLattice):
@@ -630,7 +626,7 @@ class IntegerLattice(Lattice):
             sage: O = K.ring_of_integers()
             sage: f = O.random_element(); f
             a^7 + 2*a^6 - a^5 + a^4 + 2*a - 8
-            sage: L = Lattice(f)
+            sage: L = RealLattice(f)
             sage: v = L.random_element(); v
             (-7, 5, -8, -9, 19, -1, 12, -38)
             sage: g = sum(v[i]*a^i for i in range(8))
@@ -662,14 +658,14 @@ class IntegerLattice(Lattice):
 
         EXAMPLES::
 
-            sage: L = Lattice([[1, 0], [0, 1]])
+            sage: L = RealLattice([[1, 0], [0, 1]])
             sage: V = L.voronoi_cell()
             sage: V.Vrepresentation()
             (A vertex at (1/2, -1/2), A vertex at (1/2, 1/2), A vertex at (-1/2, 1/2), A vertex at (-1/2, -1/2))
 
         The volume of the Voronoi cell is the square root of the discriminant of the lattice::
 
-            sage: L = Lattice(Matrix(ZZ, 4, 4, [[0,0,1,-1],[1,-1,2,1],[-6,0,3,3,],[-6,-24,-6,-5]])); L
+            sage: L = RealLattice(Matrix(ZZ, 4, 4, [[0,0,1,-1],[1,-1,2,1],[-6,0,3,3,],[-6,-24,-6,-5]])); L
             Lattice of degree 4 and rank 4 over Integer Ring
             Basis matrix:
             [  0   0   1  -1]
@@ -684,7 +680,7 @@ class IntegerLattice(Lattice):
 
         Lattices not having full dimension are handled as well::
 
-            sage: L = Lattice([[2, 0, 0], [0, 2, 0]])
+            sage: L = RealLattice([[2, 0, 0], [0, 2, 0]])
             sage: V = L.voronoi_cell()
             sage: V.Hrepresentation()
             (An inequality (-1, 0, 0) x + 1 >= 0, An inequality (0, -1, 0) x + 1 >= 0, An inequality (1, 0, 0) x + 1 >= 0, An inequality (0, 1, 0) x + 1 >= 0)
@@ -715,7 +711,7 @@ class IntegerLattice(Lattice):
 
         EXAMPLES::
 
-            sage: L = Lattice([[3, 0], [4, 0]])
+            sage: L = RealLattice([[3, 0], [4, 0]])
             sage: L.voronoi_relevant_vectors()
             [(-1, 0), (1, 0)]
         """
@@ -756,7 +752,7 @@ class IntegerLattice(Lattice):
 
         EXAMPLES::
 
-            sage: L = Lattice([[1, 0], [0, 1]])
+            sage: L = RealLattice([[1, 0], [0, 1]])
             sage: L.closest_vector((-6, 5/3))
             (-6, 2)
 

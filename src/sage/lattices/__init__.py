@@ -1,1 +1,1 @@
-from constructor import Lattice
+from constructor import RealLattice

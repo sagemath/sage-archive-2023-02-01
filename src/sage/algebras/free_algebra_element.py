@@ -38,7 +38,8 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.algebras.algebra_element import AlgebraElement
 
-class FreeAlgebraElement(CombinatorialFreeModuleElement):
+# We need to have AlgebraElement first to avoid a segfault...
+class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
     """
     A free algebra element.
     """
@@ -65,6 +66,12 @@ class FreeAlgebraElement(CombinatorialFreeModuleElement):
             raise TypeError("Argument x (= {}) is of the wrong type.".format(x))
 
         CombinatorialFreeModuleElement.__init__(self, A, x)
+
+    # ...however AlgebraElement has a default error raising version of these
+    #   so we must explicitly pull them from CombinatorialFreeModuleElement
+    _add_ = CombinatorialFreeModuleElement._add_
+    _sub_ = CombinatorialFreeModuleElement._sub_
+    _neg_ = CombinatorialFreeModuleElement._neg_
 
     def _repr_(self):
         """
@@ -183,6 +190,30 @@ class FreeAlgebraElement(CombinatorialFreeModuleElement):
         v = sorted(left._monomial_coefficients.items())
         w = sorted(right._monomial_coefficients.items())
         return cmp(v, w)
+
+    def _mul_(self, y):
+        """
+        Return the product of ``self`` and ``y`` (another free algebra
+        element with the same parent).
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(ZZ,3)
+            sage: (x+y+x*y)*(x+y+1)
+            x + y + x^2 + 2*x*y + y*x + y^2 + x*y*x + x*y^2
+        """
+        A = self.parent()
+        z_elt = {}
+        for mx, cx in self:
+            for my, cy in y:
+                key = mx*my
+                if key in z_elt:
+                    z_elt[key] += cx*cy
+                else:
+                    z_elt[key] = cx*cy
+                if not z_elt[key]:
+                    del z_elt[key]
+        return A._from_dict(z_elt)
 
     def to_pbw_basis(self):
         """

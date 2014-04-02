@@ -594,33 +594,6 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             return self.element_class(self, {})
         return self.element_class(self, {self.one_basis(): x})
 
-    def _coerce_impl(self, x):
-        r"""
-        """
-        try:
-            R = x.parent()
-
-            # monoid
-            if R is self._basis_keys:
-                return self(x)
-
-            # polynomial rings in the same variable over any base that coerces in:
-            if is_FreeAlgebra(R):
-                if R.variable_names() == self.variable_names():
-                    if self.has_coerce_map_from(R.base_ring()):
-                        return self(x)
-                    else:
-                        raise TypeError("no natural map between bases of free algebras")
-
-            if isinstance(R, PBWBasisOfFreeAlgebra) and self.has_coerce_map_from(R._alg):
-                return self(R.expansion(x))
-
-        except AttributeError:
-            pass
-
-        # any ring that coerces to the base ring of this free algebra.
-        return self._coerce_try(x, [self.base_ring()])
-
     def _coerce_map_from_(self, R):
         """
         Return ``True`` if there is a coercion from ``R`` into ``self`` and

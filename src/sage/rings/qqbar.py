@@ -4601,7 +4601,8 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def _floor_ceil(self, method):
         r"""
-        Helper method used by floor(), ceil(), round(), and trunc().
+        Helper method used by :meth:`floor()`, :meth:`ceil()`,
+        :meth:`round()`, and :meth:`trunc()`.
 
         TESTS::
 
@@ -4611,8 +4612,8 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: two = (a+b)^5 - 5*(a^4*b+a*b^4) - 10*(a^3*b^2+a^2*b^3)
             sage: one_half = 1/two
             sage: [[z.floor(), z.ceil(), z.round(), z.trunc()] # indirect doctest
-            ....: for z in [a, -a, b, -b, 6*(a+two),
-            ....:           AA(0), AA(1), AA(-1), AA(1/2), AA(-1/2)]]
+            ....:  for z in [a, -a, b, -b, 6*(a+two),
+            ....:            AA(0), AA(1), AA(-1), AA(1/2), AA(-1/2)]]
             [[0, 1, 1, 0], [-1, 0, -1, 0], [1, 2, 1, 1], [-2, -1, -1, -1],
             [17, 18, 18, 17], [0, 0, 0, 0], [1, 1, 1, 1], [-1, -1, -1, -1],
             [0, 1, 1, 0], [-1, 0, -1, 0]]
@@ -4628,13 +4629,14 @@ class AlgebraicReal(AlgebraicNumber_base):
             self._more_precision()
             # field elements are irrational by construction
             if i == 2 and not self._descr.is_field_element():
-                try: return method(self._rational_())
-                except ValueError, TypeError:
+                try:
+                    return method(self._rational_())
+                except (ValueError, TypeError):
                     pass
 
     def floor(self):
         r"""
-        Return the largest integer not greater than x.
+        Return the largest integer not greater than ``self``.
 
         EXAMPLES::
 
@@ -4657,7 +4659,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def ceil(self):
         r"""
-        Return the smallest integer not smaller than x.
+        Return the smallest integer not smaller than ``self``.
 
         EXAMPLES::
 
@@ -4672,7 +4674,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def round(self):
         r"""
-        Round self to the nearest integer.
+        Round ``self`` to the nearest integer.
 
         EXAMPLES::
 
@@ -4687,7 +4689,7 @@ class AlgebraicReal(AlgebraicNumber_base):
 
     def trunc(self):
         r"""
-        Round self to the nearest integer toward zero.
+        Round ``self`` to the nearest integer toward zero.
 
         EXAMPLES::
 

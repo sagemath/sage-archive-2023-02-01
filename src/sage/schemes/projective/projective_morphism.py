@@ -2295,7 +2295,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         periodic_points=[]
         for result in parallel_results:
-            periodic_points.append(result[1][0])
+            point = result[1]
+            if len(point) > 0:
+                periodic_points.append(point[0])
 
         for P,n in periodic_points:
             for k in range(n):
@@ -2561,7 +2563,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             return([]) #no rational preperiodic points
         else:
             p = kwds.pop("lifting_prime",23)
-            T=self.rational_periodic_points(prime_bound=primebound,lifting_prime=p,periods=periods,bad_primes=badprimes) #find the rationla preperiodic points
+            T=self.rational_periodic_points(prime_bound=primebound,lifting_prime=p,periods=periods,bad_primes=badprimes) #find the rational preperiodic points
             preper=self.all_rational_preimages(T) #find the preperiodic points
             preper=list(preper)
             return(preper)

@@ -58,7 +58,7 @@ class Rings(CategoryWithAxiom):
 
         def NoZeroDivisors(self):
             """
-            Returns the full subcategory of the objects of ``self`` having no zero divisors
+            Return the full subcategory of the objects of ``self`` having no zero divisors.
 
             EXAMPLES::
 
@@ -77,10 +77,10 @@ class Rings(CategoryWithAxiom):
 
         def Division(self):
             """
-            Returns the full subcategory of the *division* objects of ``self``
+            Return the full subcategory of the division objects of ``self``.
 
-            A ring satisfies the division axiom if all non-zero
-            elements have multiplicative inverse.
+            A ring satisfies the *division axiom* if all non-zero
+            elements have multiplicative inverses.
 
             .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital.Unital
 
@@ -911,7 +911,6 @@ def _gen_names(elts):
     """
     import re
     from sage.structure.parent_gens import _certify_names
-    from sage.symbolic.ring import is_SymbolicVariable
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
     it.next() # skip empty word

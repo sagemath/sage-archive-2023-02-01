@@ -17,8 +17,37 @@ experimental spkgs (and some legacy optional spkgs) that are just
 tarballs containing build scripts.
 
 
-Inclusion Procedure for New Packages
-====================================
+Inclusion Procedure for New and Updated Packages
+================================================
+Packages that are not part of Sage will first become optional or
+experimental (the latter if they will not build on all supported
+systems). After they have been in one of these two categories for
+a year without problems they can be proposed to be included as
+standard packages in Sage.
+
+To propose a package for optional/experimental inclusion please
+open a trac ticket with the respective ``Component:`` field set to
+either ``packages:experimental`` or ``packages:optional``. The associated
+code requirements are described in the following sections. In short,
+packages consist of a link to the original tarball with additional
+code under ``SAGE_ROOT/build/pkgs``.
+
+After the ticket was reviewed and included, experimental and optional
+packages stay in that status for at least a year, after which they
+can be proposed to be included as standard packages in Sage. For this
+a trac ticket is opened with the ``Component:`` field set to
+``packages:standard``. Note that the script in ``SAGE_ROOT/build/deps``
+is called when building Sage so please include the build command
+for your standard package there. Then make a proposal in the Google
+Group ``sage-devel``.
+
+Upgrading packages to new upstream versions or with additional
+patches includes opening a ticket in the respective category too,
+as described above.
+
+
+Prerequisites for New Packages
+==============================
 
 For a package to become part of Sage's standard distribution, it
 must meet the following requirements:

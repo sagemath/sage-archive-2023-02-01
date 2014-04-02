@@ -1701,7 +1701,7 @@ def e(tableau, star=0):
 
     .. SEEALSO::
 
-        :function:`e_hat`
+        :func:`e_hat`
     """
     # TODO:
     # The current method only computes the e's over QQ. There should be
@@ -1790,7 +1790,7 @@ def e_hat(tab, star=0):
 
     .. SEEALSO::
 
-        :function:`e`
+        :func:`e`
     """
     t = Tableau(tab)
     if star:

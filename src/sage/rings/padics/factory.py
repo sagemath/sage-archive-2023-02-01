@@ -1951,7 +1951,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
     TESTS::
 
         sage: R = Zq([(5,3)], names="alpha"); R
-        Unramified Extension of 5-adic Ring with capped absolute precision 20 in alpha defined by (1 + O(5^20))*x^3 + (3 + O(5^20))*x + (3 + O(5^20))
+        Unramified Extension of 5-adic Ring with capped absolute precision 20 in alpha defined by (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
         sage: Zq((5, 3), names="alpha") is R
         True
         sage: Zq(125.factor(), names="alpha") is R

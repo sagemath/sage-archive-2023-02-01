@@ -555,7 +555,7 @@ class TermOrder(SageObject):
         else:
             self.__dict__.update(dict)
 
-    def __init__(self, name='lex', n=0, blocks=True, force=False):
+    def __init__(self, name='lex', n=0, force=False):
         """
         Construct a new term order object.
 
@@ -566,8 +566,6 @@ class TermOrder(SageObject):
         - ``n`` - number of variables (default is `0`) weights for
           weighted degree orders. The weights are converted to
           integers and must be positive.
-
-        - ``blocks`` - this is deprecated.
 
         - ``force`` - ignore unknown term orders.
 

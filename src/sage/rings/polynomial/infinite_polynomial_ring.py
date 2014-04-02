@@ -1382,20 +1382,20 @@ class InfinitePolynomialGen(SageObject):
         EXAMPLES::
 
             sage: from sage.misc.latex import latex
-            sage: X.<x,x1> = InfinitePolynomialRing(QQ)
+            sage: X.<x,x1,xx> = InfinitePolynomialRing(QQ)
             sage: latex(x) # indirect doctest
             x_{\ast}
             sage: latex(x1) # indirect doctest
-            \mbox{x1}_{\ast}
+            \mathit{x1}_{\ast}
+            sage: latex(xx) # indirect doctest
+            \mathit{xx}_{\ast}
             sage: latex(x[2]) # indirect doctest
             x_{2}
             sage: latex(x1[3]) # indirect doctest
-            \mbox{x1}_{3}
-
+            \mathit{x1}_{3}
         """
-        if self._name[-1].isdigit() or self._name[0].isdigit():
-            return '\\mbox{'+self._name+'}_{\\ast}'
-        return self._name+'_{\\ast}'
+        from sage.misc.latex import latex_variable_name
+        return latex_variable_name(self._name + '_ast')
 
     def __getitem__(self, i):
         """

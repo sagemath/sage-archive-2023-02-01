@@ -1539,7 +1539,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         try:
             point = self._ambient_space_point(point)
-        except TypeError, ex:
+        except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a fan contains a point "
                               "from an incompatible lattice, this is False!",

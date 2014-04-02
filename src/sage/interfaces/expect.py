@@ -195,11 +195,11 @@ class Expect(Interface):
                 E.expect(self._prompt, timeout=wait)
             else:
                 E.expect(alternate_prompt, timeout=wait)
-        except pexpect.TIMEOUT, msg:
+        except pexpect.TIMEOUT as msg:
             return False, E.before
-        except pexpect.EOF, msg:
+        except pexpect.EOF as msg:
             return True, E.before
-        except Exception, msg:   # weird major problem!
+        except Exception as msg:   # weird major problem!
             return True, E.before
         return True, E.before
 
@@ -241,7 +241,7 @@ class Expect(Interface):
             except (AttributeError, TypeError):
                 self.__so_far = new
             return False, self.__so_far, new
-        except AttributeError, msg:   # no __so_far
+        except AttributeError as msg:   # no __so_far
             raise RuntimeError(msg)
 
     def is_remote(self):
@@ -441,7 +441,7 @@ If this all works, you can then make calls like:
         self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF), msg:
+        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.name())
@@ -476,9 +476,9 @@ If this all works, you can then make calls like:
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except Exception, msg:
+            except Exception as msg:
                 pass
-        except Exception, msg:
+        except Exception as msg:
             pass
 
     def quit(self, verbose=False, timeout=0.25):
@@ -517,7 +517,7 @@ If this all works, you can then make calls like:
             # In case of is_remote(), killing the local "ssh -t" also kills the remote process it initiated
             os.killpg(E.pid, 9)
             os.kill(E.pid, 9)
-        except (RuntimeError, OSError), msg:
+        except (RuntimeError, OSError) as msg:
             pass
         self._expect = None
         return
@@ -691,7 +691,7 @@ If this all works, you can then make calls like:
             tmp_to_use = self._remote_tmpfile()
         try:
             s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False, restart_if_needed=False)
-        except pexpect.EOF, msg:
+        except pexpect.EOF as msg:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
@@ -699,12 +699,12 @@ If this all works, you can then make calls like:
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
-                except RuntimeError, msg:
+                except RuntimeError as msg:
                     raise RuntimeError, '%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0])
                 except TypeError:
                     pass
             raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
-        except RuntimeError,msg:
+        except RuntimeError as msg:
             if self._quit_string() in line:
                 if self._expect is None or not self._expect.isalive():
                     return ''
@@ -715,7 +715,7 @@ If this all works, you can then make calls like:
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
                 except TypeError:
                     pass
-                except RuntimeError, msg:
+                except RuntimeError as msg:
                     raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
             if "Input/output error" in msg[0]: # This occurs on non-linux machines
                 raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
@@ -819,7 +819,7 @@ If this all works, you can then make calls like:
                 if wait_for_prompt == False:
                     return ''
 
-            except OSError, msg:
+            except OSError as msg:
                 if restart_if_needed:
                     # The subprocess most likely crashed.
                     # If it's really still alive, we fall through
@@ -847,7 +847,7 @@ If this all works, you can then make calls like:
                         E.expect(wait_for_prompt)
                     else:
                         E.expect(self._prompt)
-                except pexpect.EOF, msg:
+                except pexpect.EOF as msg:
                     try:
                         if self.is_local():
                             tmp_to_use = self._local_tmpfile()
@@ -882,7 +882,7 @@ If this all works, you can then make calls like:
         if self._restart_on_ctrlc:
             try:
                 self._expect.close(force=1)
-            except pexpect.ExceptionPexpect, msg:
+            except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect( "THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             self._start()
             raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
@@ -905,10 +905,10 @@ If this all works, you can then make calls like:
                     E.expect(self._prompt, timeout=timeout)
                     success= True
                     break
-                except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                except (pexpect.TIMEOUT, pexpect.EOF) as msg:
                     #print msg
                     pass
-        except Exception, msg:
+        except Exception as msg:
             pass
         if success:
             pass
@@ -1033,7 +1033,7 @@ If this all works, you can then make calls like:
                 v = self._expect.before
                 self.quit()
                 raise ValueError, "%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self)
-        except KeyboardInterrupt, msg:
+        except KeyboardInterrupt as msg:
             i = 0
             while True:
                 try:
@@ -1211,7 +1211,7 @@ If this all works, you can then make calls like:
         # DO NOT CATCH KeyboardInterrupt, as it is being caught
         # by _eval_line
         # In particular, do NOT call self._keyboard_interrupt()
-        except TypeError, s:
+        except TypeError as s:
             raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
     ############################################################
@@ -1291,7 +1291,7 @@ class ExpectElement(InterfaceElement):
                 self._name = parent._create(value, name=name)
             # Convert ValueError and RuntimeError to TypeError for
             # coercion to work properly.
-            except (RuntimeError, ValueError), x:
+            except (RuntimeError, ValueError) as x:
                 self._session_number = -1
                 raise TypeError, x, sys.exc_info()[2]
             except BaseException:
@@ -1334,7 +1334,7 @@ class ExpectElement(InterfaceElement):
                 if not (P is None):
                     P.clear(self._name)
 
-        except (RuntimeError, ExceptionPexpect), msg:    # needed to avoid infinite loops in some rare cases
+        except (RuntimeError, ExceptionPexpect) as msg:    # needed to avoid infinite loops in some rare cases
             #print msg
             pass
 

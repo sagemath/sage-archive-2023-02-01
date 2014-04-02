@@ -215,12 +215,6 @@ class PariRing(UniqueRepresentation, ring.Ring):
         from sage.all import ZZ
         return self(ZZ.random_element(x,y,distribution))
 
-    def random(self, bound=0):
-        """
-        Deprecated.  Use self.random_element() instead.
-        """
-        raise NotImplementedError, "Deprecated: use random_element() instead"
-
     def zeta(self):
         """
         Return -1.

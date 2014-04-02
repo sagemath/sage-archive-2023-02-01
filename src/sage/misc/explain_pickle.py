@@ -242,10 +242,10 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     if compress:
         try:
             p = comp.decompress(p)
-        except Exception, msg1:
+        except Exception as msg1:
             try:
                 p = comp_other.decompress(p)
-            except Exception, msg2:
+            except Exception as msg2:
                 # Maybe data is uncompressed?
                 pass
 

@@ -4216,7 +4216,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     and (<MPolynomial_libsingular>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
-                except TypeError, msg:
+                except TypeError as msg:
                     id_Delete(&fI,r)
                     id_Delete(&_I,r)
                     raise TypeError, msg
@@ -4314,7 +4314,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                    and (<MPolynomial_libsingular>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
-                except TypeError, msg:
+                except TypeError as msg:
                     id_Delete(&_I,r)
                     raise TypeError, msg
 

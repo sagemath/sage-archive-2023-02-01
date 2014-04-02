@@ -549,14 +549,11 @@ cdef class Map(Element):
         TESTS::
 
             sage: Q = QuadraticField(-5)
-            sage: phi = CDF._internal_coerce_map_from(Q); phi   # indirect doctest
+            sage: phi = CDF._internal_coerce_map_from(Q); phi
+            (map internal to coercion system -- copy before use)
             Composite map:
               From: Number Field in a with defining polynomial x^2 + 5
               To:   Complex Double Field
-            <BLANKLINE>
-                    WARNING: This map has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
             sage: del Q
             sage: import gc
             sage: _ = gc.collect()
@@ -574,11 +571,8 @@ cdef class Map(Element):
             if d != '':
                 s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
         else:
-            d = """
-WARNING: This map has apparently been used internally
-in the coercion system. It may become defunct in the next
-garbage collection. Please use a copy."""
-            s += "\n%s"%('\n        '.join(d.split('\n')))
+            d = "(map internal to coercion system -- copy before use)"
+            s = d + "\n" + s
         return s
 
     def _default_repr_(self):

@@ -590,9 +590,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ks(s[2,1,1])
         Traceback (most recent call last):
         ...
-        ValueError: s[2, 1, 1] is not in the image of Generic morphism:
-          From: 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
-          To:   Symmetric Functions over Rational Field in the Schur basis
+        ValueError: s[2, 1, 1] is not in the image
 
     The `k`-Schur functions are more generally defined with a parameter `t` and they are
     a basis of the subspace spanned by the Hall-Littlewood ``Qp`` symmetric functions
@@ -613,9 +611,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: ks(ks[2,1]*ks[1,1])
         Traceback (most recent call last):
         ...
-        ValueError: s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 1, 1] + s[3, 2] is not in the image of Generic morphism:
-          From: 3-bounded Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
-          To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the Schur basis
+        ValueError: s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 1, 1] + s[3, 2] is not in the image
         sage: ks[2,1]*ks[1,1]
         s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 1, 1] + s[3, 2]
         sage: ks6 = Sym.kBoundedSubspace(6).kschur()

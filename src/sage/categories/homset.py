@@ -607,24 +607,18 @@ class Homset(Set_generic):
               Defn:   Composite map:
                       From: Integer Ring
                       To:   Univariate Polynomial Ring in t over Integer Ring
-                      Defn:   Polynomial base injection morphism:
+                      Defn:   (map internal to coercion system -- copy before use)
+                            Polynomial base injection morphism:
                               From: Integer Ring
                               To:   Univariate Polynomial Ring in t over Integer Ring
-            <BLANKLINE>
-                                    WARNING: This morphism has apparently been used internally
-                                    in the coercion system. It may become defunct in the next
-                                    garbage collection. Please use a copy.
                             then
                               Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
                               Defn: t |--> 2*t
                     then
-                      Ring morphism:
+                      (map internal to coercion system -- copy before use)
+                    Ring morphism:
                       From: Univariate Polynomial Ring in t over Integer Ring
                       To:   Univariate Polynomial Ring in t over Rational Field
-            <BLANKLINE>
-                            WARNING: This morphism has apparently been used internally
-                            in the coercion system. It may become defunct in the next
-                            garbage collection. Please use a copy.
             sage: copy(H._generic_convert_map(f.parent())(f))
             Composite map:
               From: Integer Ring
@@ -694,25 +688,19 @@ class Homset(Set_generic):
               Defn:   Composite map:
                       From: Symmetric group of order 4! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
-                      Defn:   Call morphism:
+                      Defn:   (map internal to coercion system -- copy before use)
+                            Call morphism:
                               From: Symmetric group of order 4! as a permutation group
                               To:   Symmetric group of order 5! as a permutation group
-            <BLANKLINE>
-                                    WARNING: This morphism has apparently been used internally
-                                    in the coercion system. It may become defunct in the next
-                                    garbage collection. Please use a copy.
                             then
                               Coercion morphism:
                               From: Symmetric group of order 5! as a permutation group
                               To:   Symmetric group of order 6! as a permutation group
                     then
-                      Call morphism:
+                      (map internal to coercion system -- copy before use)
+                    Call morphism:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
-            <BLANKLINE>
-                            WARNING: This morphism has apparently been used internally
-                            in the coercion system. It may become defunct in the next
-                            garbage collection. Please use a copy.
 
       Also note that making a copy of the resulting map will automatically
       make strengthened copies of the composed maps::

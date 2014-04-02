@@ -1021,21 +1021,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: f, g = cm.coercion_maps(ZZ['x'], QQ)
             sage: print f
+            (map internal to coercion system -- copy before use)
             Ring morphism:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
             sage: print g
+            (map internal to coercion system -- copy before use)
             Polynomial base injection morphism:
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
 
             sage: cm.coercion_maps(QQ, GF(7)) == None
             True
@@ -1051,23 +1045,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             False
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.coercion_maps(V, W)
-            (None,
-             Call morphism:
+            (None, (map internal to coercion system -- copy before use)
+            Call morphism:
               From: Vector space of dimension 3 over Rational Field
-              To:   Vector space of dimension 3 over Rational Field
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.)
+              To:   Vector space of dimension 3 over Rational Field)
             sage: cm.coercion_maps(W, V)
-            (None,
-             Call morphism:
+            (None, (map internal to coercion system -- copy before use)
+            Call morphism:
               From: Vector space of dimension 3 over Rational Field
-              To:   Vector space of dimension 3 over Rational Field
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.)
+              To:   Vector space of dimension 3 over Rational Field)
             sage: v = V([1,2,3])
             sage: w = W([1,2,3])
             sage: parent(v+w) is V
@@ -1187,9 +1173,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If there is a coercion map either direction, use that::
 
             sage: cm.discover_coercion(ZZ, QQ)
-            (Natural morphism:
+            ((map internal to coercion system -- copy before use)
+            Natural morphism:
               From: Integer Ring
-              To:   Rational Field..., None)
+              To:   Rational Field, None)
             sage: cm.discover_coercion(RR, QQ)
             (None,
              Generic map:
@@ -1199,12 +1186,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Otherwise, try and compute an appropriate cover::
 
             sage: cm.discover_coercion(ZZ['x,y'], RDF)
-            (Call morphism:
+            ((map internal to coercion system -- copy before use)
+            Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
-              To:   Multivariate Polynomial Ring in x, y over Real Double Field...,
+              To:   Multivariate Polynomial Ring in x, y over Real Double Field,
              Polynomial base injection morphism:
               From: Real Double Field
-              To:   Multivariate Polynomial Ring in x, y over Real Double Field...)
+              To:   Multivariate Polynomial Ring in x, y over Real Double Field)
 
         Sometimes there is a reasonable "cover," but no canonical coercion::
 

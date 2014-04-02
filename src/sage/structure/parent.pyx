@@ -2238,13 +2238,10 @@ cdef class Parent(category_object.CategoryObject):
         by garbage collection::
 
             sage: ZZ._internal_coerce_map_from(int)
+            (map internal to coercion system -- copy before use)
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
             sage: copy(ZZ._internal_coerce_map_from(int))
             Native morphism:
               From: Set of Python objects of type 'int'
@@ -2259,13 +2256,10 @@ cdef class Parent(category_object.CategoryObject):
             sage: P = Sym.macdonald().P()
             sage: Ht = Sym.macdonald().Ht()
             sage: Ht._internal_coerce_map_from(P)
+            (map internal to coercion system -- copy before use)
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
-            <BLANKLINE>
-                    WARNING: This map has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
             sage: copy(Ht._internal_coerce_map_from(P))
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
@@ -2522,13 +2516,10 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: m = ZZ._internal_convert_map_from(QQ)
             sage: m
+            (map internal to coercion system -- copy before use)
             Generic map:
               From: Rational Field
               To:   Integer Ring
-            <BLANKLINE>
-                    WARNING: This map has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
             sage: m(-35/7)
             -5
             sage: parent(m(-35/7))

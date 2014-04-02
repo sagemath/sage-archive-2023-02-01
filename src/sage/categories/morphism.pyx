@@ -77,13 +77,10 @@ cdef class Morphism(Map):
             sage: K = CyclotomicField(12)
             sage: L = CyclotomicField(132)
             sage: phi = L._internal_coerce_map_from(K); phi
+            (map internal to coercion system -- copy before use)
             Generic morphism:
               From: Cyclotomic Field of order 12 and degree 4
               To:   Cyclotomic Field of order 132 and degree 40
-            <BLANKLINE>
-                    WARNING: This morphism has apparently been used internally
-                    in the coercion system. It may become defunct in the next
-                    garbage collection. Please use a copy.
 
             sage: del K
             sage: import gc
@@ -105,11 +102,8 @@ cdef class Morphism(Map):
             if d != '':
                 s += "\n  Defn: " + '\n        '.join(d.split('\n'))
         else:
-            d = """
-WARNING: This morphism has apparently been used internally
-in the coercion system. It may become defunct in the next
-garbage collection. Please use a copy."""
-            s += "\n" + '\n        '.join(d.split('\n'))
+            d = "(map internal to coercion system -- copy before use)"
+            s = d + "\n" + s
         return s
 
     def _default_repr_(self):

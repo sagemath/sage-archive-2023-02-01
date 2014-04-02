@@ -275,13 +275,10 @@ references to the domain. Such maps should only be used internally, and so a
 copy should be used instead (unless one knows what one is doing)::
 
     sage: QQ._internal_coerce_map_from(int)
+    (map internal to coercion system -- copy before use)
     Native morphism:
       From: Set of Python objects of type 'int'
       To:   Rational Field
-    <BLANKLINE>
-            WARNING: This morphism has apparently been used internally
-            in the coercion system. It may become defunct in the next
-            garbage collection. Please use a copy.
     sage: copy(QQ._internal_coerce_map_from(int))
     Native morphism:
      From: Set of Python objects of type 'int'

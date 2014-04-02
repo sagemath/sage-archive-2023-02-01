@@ -90,7 +90,7 @@ class FiniteFieldHomset(RingHomset_generic):
             return self._coerce_impl(im_gens)
         try:
             return FiniteFieldHomomorphism_generic(self, im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:

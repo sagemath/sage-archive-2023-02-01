@@ -4827,7 +4827,6 @@ class Graph(GenericGraph):
         v_repr = p.get_values(v_repr)
         flow = p.get_values(flow)
 
-
         for u,v in minor.edges(labels = False):
             used = False
             for C in H.edges(labels = False):
@@ -4853,16 +4852,33 @@ class Graph(GenericGraph):
 
     ### Cliques
 
-    def cliques_maximal(self):
+    def cliques_maximal(self, algorithm = "native"):
         """
         Returns the list of all maximal cliques, with each clique represented
         by a list of vertices. A clique is an induced complete subgraph, and a
         maximal clique is one not contained in a larger one.
 
+        INPUT:
+
+        - ``algorithm`` -- can be set to ``"native"`` (default) to use Sage's
+          own implementation, or to ``"NetworkX"`` to use NetworkX'
+          implementation of the Bron and Kerbosch Algorithm [BroKer1973]_.
+
+
         .. NOTE::
 
-            Currently only implemented for undirected graphs. Use to_undirected
-            to convert a digraph to an undirected graph.
+            This method sorts its output before returning it. If you prefer to
+            save the extra time, you can call
+            :class:`sage.graphs.independent_sets.IndependentSets` directly.
+
+        .. NOTE::
+
+            Sage's implementation of the enumeration of *maximal* independent
+            sets is not much faster than NetworkX' (expect a 2x speedup), which
+            is surprising as it is written in Cython. This being said, the
+            algorithm from NetworkX appears to be sligthly different from this
+            one, and that would be a good thing to explore if one wants to
+            improve the implementation.
 
         ALGORITHM:
 
@@ -4879,21 +4895,37 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.ChvatalGraph().cliques_maximal()
-            [[0, 1], [0, 4], [0, 6], [0, 9], [2, 1], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [5, 1], [5, 4], [5, 10], [5, 11], [7, 1], [7, 8], [7, 11], [8, 4], [8, 10], [10, 6], [10, 9], [11, 6], [11, 9]]
+            [[0, 1], [0, 4], [0, 6], [0, 9], [1, 2], [1, 5], [1, 7], [2, 3],
+             [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10],
+             [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_maximal()
             [[0, 1, 2], [0, 1, 3]]
             sage: C=graphs.PetersenGraph()
             sage: C.cliques_maximal()
-            [[0, 1], [0, 4], [0, 5], [2, 1], [2, 3], [2, 7], [3, 4], [3, 8], [6, 1], [6, 8], [6, 9], [7, 5], [7, 9], [8, 5], [9, 4]]
+            [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4],
+             [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
             sage: C = Graph('DJ{')
             sage: C.cliques_maximal()
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
 
+        Comparing the two implementations::
+
+            sage: g = graphs.RandomGNP(20,.7)
+            sage: s1 = Set(map(Set, g.cliques_maximal(algorithm="NetworkX")))
+            sage: s2 = Set(map(Set, g.cliques_maximal(algorithm="native")))
+            sage: s1 == s2
+            True
         """
-        import networkx
-        return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+        if algorithm == "native":
+            from sage.graphs.independent_sets import IndependentSets
+            return sorted(IndependentSets(self, maximal = True, complement = True))
+        elif algorithm == "NetworkX":
+            import networkx
+            return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+        else:
+            raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
     cliques = deprecated_function_alias(5739, cliques_maximal)
 
@@ -5057,7 +5089,7 @@ class Graph(GenericGraph):
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_number_of(cliques=E)
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
@@ -5085,6 +5117,8 @@ class Graph(GenericGraph):
         Returns a graph constructed with maximal cliques as vertices, and
         edges between maximal cliques with common members in the original
         graph.
+
+        For more information, see the :wikipedia:`Clique_graph`.
 
         .. NOTE::
 
@@ -5146,6 +5180,10 @@ class Graph(GenericGraph):
 
         Equivalently, an independent set is defined as the complement of a
         vertex cover.
+
+        For more information, see the
+        :wikipedia:`Independent_set_(graph_theory)` and the
+        :wikipedia:`Vertex_cover`.
 
         INPUT:
 
@@ -5518,7 +5556,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
@@ -5581,9 +5619,9 @@ class Graph(GenericGraph):
             {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_containing_vertex(cliques=E)
-            {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
+            {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
             sage: for v in sorted(X.iterkeys()):

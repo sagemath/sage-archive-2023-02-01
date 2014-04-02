@@ -1908,7 +1908,7 @@ class MaximaAbstractElement(InterfaceElement):
 
         try:
             return P.new('%s %s %s'%(self._name, operation, right._name))
-        except Exception, msg:
+        except Exception as msg:
             raise TypeError, msg
 
 

@@ -372,7 +372,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             singular.lib('brnoeth')
             try:
                 X1 = f.Adj_div()
-            except (TypeError, RuntimeError), s:
+            except (TypeError, RuntimeError) as s:
                 raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
 
             X2 = singular.NSplaces(1, X1)

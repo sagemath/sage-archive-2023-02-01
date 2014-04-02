@@ -614,8 +614,21 @@ class SageTerminalApp(TerminalIPythonApp):
 
 
     def load_config_file(self, *args, **kwds):
+        """
+        TESTS:
+
+        Test that :trac:`15972` has been fixed::
+
+            sage: from sage.misc.temporary_file import tmp_dir
+            sage: from sage.misc.interpreter import SageTerminalApp
+            sage: d = tmp_dir()
+            sage: IPYTHONDIR = os.environ['IPYTHONDIR']
+            sage: os.environ['IPYTHONDIR'] = d
+            sage: SageTerminalApp().load_config_file()
+            sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
+        """
         from IPython.config.loader import PyFileConfigLoader, ConfigFileNotFound
-        from IPython.core.profiledir import ProfileDir
+        from IPython.core.profiledir import ProfileDir, ProfileDirError
         from IPython.utils.path import get_ipython_dir
 
         conf = Config()
@@ -623,8 +636,13 @@ class SageTerminalApp(TerminalIPythonApp):
         conf._merge(self.command_line_config)
 
         # Get user config.
-        sage_profile_dir = ProfileDir.find_profile_dir_by_name(
-            get_ipython_dir(), 'sage').location
+        try:
+            sage_profile_dir = ProfileDir.find_profile_dir_by_name(
+                get_ipython_dir(), 'sage').location
+        except ProfileDirError:
+            d = ProfileDir.create_profile_dir_by_name(
+                get_ipython_dir(), 'sage')
+            sage_profile_dir = d.location
         try:
             cl = PyFileConfigLoader('ipython_config.py', sage_profile_dir)
             conf._merge(cl.load_config())

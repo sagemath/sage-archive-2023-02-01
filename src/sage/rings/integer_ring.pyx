@@ -1286,26 +1286,6 @@ def IntegerRing():
     """
     return ZZ
 
-def factor(*args, **kwds):
-    """
-    This function is deprecated.  To factor an Integer `n`, call
-    ``n.factor()``. For other objects, use the factor method from
-    :mod:`sage.rings.arith`.
-
-    EXAMPLES::
-
-        sage: sage.rings.integer_ring.factor(1)
-        doctest:...: DeprecationWarning: This function is deprecated...
-        1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(5945, "This function is deprecated.  Call the factor method of an Integer,"
-                +"or sage.arith.factor instead.")
-    #deprecated 4.6.2
-
-    late_import()
-    return arith.factor(*args, **kwds)
-
 import sage.misc.misc
 def crt_basis(X, xgcd=None):
     r"""

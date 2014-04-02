@@ -335,7 +335,7 @@ cdef void late_import():
         import sage.rings.arith
         arith = sage.rings.arith
 
-MAX_UNSIGNED_LONG = 2 * sys.maxint
+MAX_UNSIGNED_LONG = 2 * sys.maxsize
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
@@ -1643,7 +1643,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         Make sure it works when -<long>n would overflow::
 
-            sage: most_neg_long = int(-sys.maxint - 1)
+            sage: most_neg_long = int(-sys.maxsize - 1)
             sage: type(most_neg_long), type(-most_neg_long)
             (<type 'int'>, <type 'long'>)
             sage: 0 + most_neg_long == most_neg_long
@@ -1984,7 +1984,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return self
             elif mpz_cmp_si(_self.value, -1) == 0:
                 return self if n % 2 else -self
-            raise RuntimeError, "exponent must be at most %s" % sys.maxint
+            raise RuntimeError("exponent must be at most %s" % sys.maxsize)
 
         if nn == 0:
             return one
@@ -4188,8 +4188,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_perfect_square_p(self.value)
 
-    is_power = deprecated_function_alias(12116, is_perfect_power)
-
     def perfect_power(self):
         r"""
         Returns ``(a, b)``, where this integer is `a^b` and `b` is maximal.
@@ -4671,11 +4669,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: (-4).is_perfect_power()
             False
-
-            sage: (4).is_power()
-            doctest:...: DeprecationWarning: is_power is deprecated. Please use is_perfect_power instead.
-            See http://trac.sagemath.org/12116 for details.
-            True
 
         TESTS:
 
@@ -5229,29 +5222,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_off()
 
         return x
-
-    def sqrt_approx(self, prec=None, all=False):
-        """
-        EXAMPLES::
-
-            sage: 5.sqrt_approx(prec=200)
-            doctest:...: DeprecationWarning: This function is deprecated.  Use sqrt with a given number of bits of precision instead.
-            See http://trac.sagemath.org/10107 for details.
-            2.2360679774997896964091736687312762354406183596115257242709
-            sage: 5.sqrt_approx()
-            2.23606797749979
-            sage: 4.sqrt_approx()
-            2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(10107, "This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
-        try:
-            return self.sqrt(extend=False,all=all)
-        except ValueError:
-            pass
-        if prec is None:
-            prec = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
-        return self.sqrt(prec=prec, all=all)
 
     def sqrt(self, prec=None, extend=True, all=False):
         """

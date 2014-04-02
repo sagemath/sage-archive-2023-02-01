@@ -2299,7 +2299,7 @@ cdef class Parent(category_object.CategoryObject):
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
             return mor
-        except CoercionException, ex:
+        except CoercionException as ex:
             _record_exception()
             return None
         finally:
@@ -3020,7 +3020,7 @@ cdef class Set_PythonType_class(Set_generic):
             return two
         elif self._type is int:
             import sys
-            return two*sys.maxint + 2
+            return two * sys.maxsize + 2
         elif self._type is float:
             return 2 * two**52 * (two**11 - 1) + 3 # all NaN's are the same from Python's point of view
         else:

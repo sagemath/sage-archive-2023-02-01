@@ -1019,7 +1019,7 @@ class Latex(LatexCall):
             var = t[:j]
             try:
                 k = str(latex(sage_eval.sage_eval(var, locals)))
-            except Exception, msg:
+            except Exception as msg:
                 print msg
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]
@@ -2499,7 +2499,12 @@ common_varnames = ['alpha',
                    'psi',
                    'Psi',
                    'omega',
-                   'Omega']
+                   'Omega',
+                   'ast',
+                   'bullet',
+                   'circ',
+                   'times',
+                   'star']
 
 def latex_varify(a, is_fname=False):
     r"""
@@ -2523,20 +2528,30 @@ def latex_varify(a, is_fname=False):
         sage: latex_varify('w')
         'w'
         sage: latex_varify('aleph')
-        '\\mbox{aleph}'
+        '\\mathit{aleph}'
         sage: latex_varify('aleph', is_fname=True)
         '{\\rm aleph}'
         sage: latex_varify('alpha')
         '\\alpha'
+        sage: latex_varify('ast')
+        '\\ast'
+
+    TESTS:
+
+        sage: abc = var('abc')
+        sage: latex((abc/(abc+1)+42)/(abc-1))  # trac #15870
+        \frac{\frac{\mathit{abc}}{\mathit{abc} + 1} + 42}{\mathit{abc} - 1}
     """
     if a in common_varnames:
         return "\\" + a
+    elif len(a) == 0:
+        return ''
     elif len(a) == 1:
         return a
     elif is_fname is True:
         return '{\\rm %s}'%a
     else:
-        return '\\mbox{%s}'%a
+        return '\\mathit{%s}'%a
 
 def latex_variable_name(x, is_fname=False):
     r"""
@@ -2566,7 +2581,7 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('a')
         'a'
         sage: latex_variable_name('abc')
-        '\\mbox{abc}'
+        '\\mathit{abc}'
         sage: latex_variable_name('sigma')
         '\\sigma'
         sage: latex_variable_name('sigma_k')
@@ -2580,15 +2595,17 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('sigma_alpha')
         '\\sigma_{\\alpha}'
         sage: latex_variable_name('nothing1')
-        '\\mbox{nothing}_{1}'
+        '\\mathit{nothing}_{1}'
         sage: latex_variable_name('nothing1', is_fname=True)
         '{\\rm nothing}_{1}'
         sage: latex_variable_name('nothing_abc')
-        '\\mbox{nothing}_{\\mbox{abc}}'
+        '\\mathit{nothing}_{\\mathit{abc}}'
         sage: latex_variable_name('nothing_abc', is_fname=True)
         '{\\rm nothing}_{{\\rm abc}}'
         sage: latex_variable_name('alpha_beta_gamma12')
         '\\alpha_{\\beta_{\\gamma_{12}}}'
+        sage: latex_variable_name('x_ast')
+        'x_{\\ast}'
 
     AUTHORS:
 

@@ -151,7 +151,7 @@ class Interface(ParentWithBase):
         # DO NOT CATCH KeyboardInterrupt, as it is being caught
         # by _eval_line
         # In particular, do NOT call self._keyboard_interrupt()
-        except TypeError, s:
+        except TypeError as s:
             raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
     _eval_line = eval
@@ -201,14 +201,14 @@ class Interface(ParentWithBase):
             return self._coerce_from_special_method(x)
         except TypeError:
             raise
-        except AttributeError, msg:
+        except AttributeError as msg:
             pass
         try:
             return self._coerce_impl(x, use_special=False)
-        except TypeError, msg:
+        except TypeError as msg:
             try:
                 return cls(self, str(x), name=name)
-            except TypeError, msg2:
+            except TypeError as msg2:
                 raise TypeError, msg
 
     def _coerce_from_special_method(self, x):
@@ -238,7 +238,7 @@ class Interface(ParentWithBase):
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
-            except AttributeError, msg:
+            except AttributeError as msg:
                 pass
 
         if isinstance(x, (list, tuple)):
@@ -622,7 +622,7 @@ class InterfaceElement(RingElement):
         else:
             try:
                 self._name = parent._create(value, name=name)
-            except (TypeError, RuntimeError, ValueError), x:
+            except (TypeError, RuntimeError, ValueError) as x:
                 raise TypeError, x
 
     def _latex_(self):
@@ -1072,7 +1072,7 @@ class InterfaceElement(RingElement):
         P = self._check_valid()
         try:
             return P.new('%s %s %s'%(self._name, operation, right._name))
-        except Exception, msg:
+        except Exception as msg:
             raise TypeError, msg
 
     def _add_(self, right):

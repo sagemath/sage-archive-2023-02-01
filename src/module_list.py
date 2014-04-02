@@ -372,6 +372,9 @@ ext_modules = [
               sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cliquer/cl.c'],
               libraries = ['cliquer']),
 
+    Extension('sage.graphs.independent_sets',
+              sources = ['sage/graphs/independent_sets.pyx']),
+
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
 

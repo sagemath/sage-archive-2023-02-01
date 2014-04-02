@@ -203,7 +203,7 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         # Elements defining _lmul_ and _rmul_
         try:
             return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X, y, x)
-        except CoercionException, msg:
+        except CoercionException as msg:
             _record_exception()
     try:
         # Elements defining _act_on_

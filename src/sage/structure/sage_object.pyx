@@ -1223,10 +1223,10 @@ def loads(s, compress=True):
     if compress:
         try:
             s = comp.decompress(s)
-        except Exception, msg1:
+        except Exception as msg1:
             try:
                 s = comp_other.decompress(s)
-            except Exception, msg2:
+            except Exception as msg2:
                 # Maybe data is uncompressed?
                 pass
 
@@ -1433,7 +1433,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
                 if run_test_suite:
                     TestSuite(object).run(catch = False)
                 i += 1
-            except Exception, msg:
+            except Exception as msg:
                 j += 1
                 if run_test_suite:
                     print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)

@@ -755,7 +755,7 @@ class Magma(Expect):
         else:
             try:  # use try/except here, because if x is cdef'd we won't be able to set this.
                 x._magma_cache = {self:A}
-            except AttributeError, msg:
+            except AttributeError as msg:
                 # Unfortunately, we *have* do have this __cache
                 # attribute, which can lead to "leaks" in the working
                 # Magma session.  This is because it is critical that
@@ -1463,7 +1463,7 @@ class Magma(Expect):
                     for x in s.split('\n'):
                         i = x.find('(')
                         N.append(x[:i])
-                except RuntimeError, msg:  # weird internal problems in Magma type system
+                except RuntimeError as msg:  # weird internal problems in Magma type system
                     print 'Error -- %s'%msg
                     pass
             if verbose:

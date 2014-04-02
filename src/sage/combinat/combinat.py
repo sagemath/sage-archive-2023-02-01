@@ -627,11 +627,14 @@ def lucas_number2(n,P,Q):
     ans=gap.eval("Lucas(%s,%s,%s)[2]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n)))
     return sage_eval(ans)
 
-def stirling_number1(n,k):
-    """
-    Returns the n-th Stilling number `S_1(n,k)` of the first
-    kind (the number of permutations of n points with k cycles). Wraps
-    GAP's Stirling1.
+
+def stirling_number1(n, k):
+    r"""
+    Returns the `n`-th Stirling number `S_1(n,k)` of the first kind
+
+    This is the number of permutations of `n` points with `k` cycles.
+
+    This wraps GAP's Stirling1.
 
     EXAMPLES::
 
@@ -646,7 +649,9 @@ def stirling_number1(n,k):
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
-    return ZZ(gap.eval("Stirling1(%s,%s)"%(ZZ(n),ZZ(k))))
+    return Integer(gap.eval("Stirling1({0},{1})".format(Integer(n),
+                                                        Integer(k))))
+
 
 def stirling_number2(n, k, algorithm=None):
     """

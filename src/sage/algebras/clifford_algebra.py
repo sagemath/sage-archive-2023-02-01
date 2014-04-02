@@ -532,12 +532,13 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     def _coerce_map_from_(self, V):
         """
-        Return if there is the coerce map from ``V`` into ``self``.
+        Return if there is a coerce map from ``V`` into ``self``.
 
         The things which coerce into ``self`` are:
 
         - Clifford algebras with the same generator names and an equal
-          quadratic form over the base ring of ``self``.
+          quadratic form over a ring which coerces into the base
+          ring of ``self``.
         - The underlying free module of ``self``.
         - The base ring of ``self``.
 
@@ -1001,7 +1002,8 @@ class ExteriorAlgebra(CliffordAlgebra):
     `Q(v) = 0` for all vectors `v \in V`.
 
     The exterior algebra of an `R`-module `V` is a `\ZZ`-graded connected
-    Hopf superalgebra.
+    Hopf superalgebra. It is commutative in the super sense (i.e., the
+    odd elements anticommute and square to `0`).
 
     .. WARNING::
 
@@ -1083,7 +1085,8 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     def _repr_term(self, m):
         """
-        Return a string representation of the basis element indexed by ``m``.
+        Return a string representation of the basis element indexed by
+        ``m``.
 
         EXAMPLES::
 
@@ -1113,6 +1116,10 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.<x0,x1,x2> = ExteriorAlgebra(QQ)
             sage: E._latex_term((0,1,2))
             ' x_{0} \\wedge x_{1} \\wedge x_{2}'
+            sage: E._latex_term(())
+            '1'
+            sage: E._latex_term((0,))
+            ' x_{0}'
         """
         if len(m) == 0:
             return '1'
@@ -1653,13 +1660,14 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
     The boundary `\partial` of an exterior algebra `\Lambda(L)` defined
     by the structure coefficients of `L`.
 
-    Let `L` be a Lie algebra. We give an exterior algebra `E` a chain
-    complex structure by considering a differential
+    Let `L` be a Lie algebra. We give an exterior algebra `E = \Lambda(L)`
+    a chain complex structure by considering a differential
     `\partial : \Lambda^{k+1}(L) \to \Lambda^k(L)` defined by
 
     .. MATH::
 
-        \partial(x_1 \wedge \cdots x_{k+1}) = \sum_{i < j} (-1)^{i+j+1}
+        \partial(x_1 \wedge x_2 \wedge \cdots \wedge x_{k+1})
+        = \sum_{i < j} (-1)^{i+j+1}
         [x_i, x_j] \wedge x_1 \wedge \cdots \wedge \hat{x}_i \wedge \cdots
         \wedge \hat{x}_j \wedge \cdots \wedge x_{k+1}
 
@@ -1786,15 +1794,15 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     The coboundary `d` of an exterior algebra `\Lambda(V)` defined
     by the structure coefficients of `L`.
 
-    Let `L` be a Lie algebra. We give an exterior algebra `E` a cochain
-    complex structure by considering a differential
-    `d : \Lambda^k(L) \to \Lambda^{k+1}(L)` defined by
+    Let `L` be a Lie algebra. We endow its exterior algebra
+    `E = \Lambda(L)` with a cochain complex structure by considering a
+    differential `d : \Lambda^k(L) \to \Lambda^{k+1}(L)` defined by
 
     .. MATH::
 
         d x_i = \sum_{j < k} s_{jk}^i c_j c_k.
 
-    The corresponding homology is the Lie algebra cohomology.
+    The corresponding homology is the Lie algebra cohomology of `L`.
 
     This can also be thought of as the exterior derivative, in which case
     the resulting cohomology is the de Rham cohomology of a manifold whose
@@ -1802,15 +1810,17 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
     INPUT:
 
-    - ``E`` -- an exterior algebra
+    - ``E`` -- an exterior algebra (understood to be the exterior algebra
+      of `L`)
     - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
-      `I` is the index set of the underlying vector space `V`, and whose
-      values can be coerced into 1-forms (degree 1 elements) in ``E``
+      `I` is the index set of the underlying vector space of `L`, and
+      whose values can be coerced into 1-forms (degree 1 elements) in
+      ``E``
 
     EXAMPLES:
 
-    We consider the differential given by Lie algebra given by the cross
-    product `\times` of `\RR^3`::
+    We consider the differential coming from the Lie algebra given by the
+    cross product `\times` of `\RR^3`::
 
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
         sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})

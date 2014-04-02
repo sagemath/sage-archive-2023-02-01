@@ -3,10 +3,10 @@ Catalog Of Crystal Models For Kirillov-Reshetikhin Crystals
 
 We currently have the following models:
 
-* :func:`KashiwaraNakashimaTableaux <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
+* :func:`~sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux`
 * :func:`LSPaths <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths>`
 * :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
-* :class:`~sage.combinat.rigged_configurations.rigged_configurations.RiggedConfigurations`
+* :func:`~sage.combinat.crystals.catalog_kirillov_reshetikhin.RiggedConfigurations`
 """
 from kirillov_reshetikhin import KirillovReshetikhinCrystal as KashiwaraNakashimaTableaux
 from kirillov_reshetikhin import KirillovReshetikhinCrystalFromLSPaths as LSPaths
@@ -14,7 +14,11 @@ from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinT
 
 def RiggedConfigurations(cartan_type, r, s):
     """
-    Return the KR crystal `B^{r,s}` using rigged configurations.
+    Return the KR crystal `B^{r,s}` using
+    :class:`rigged configurations <RiggedConfigurations>`.
+
+    This is the set `RC(B^{r,s})` or with the
+    `L_i^{(a)} = \delta_{ar} \delta_{is}`.
 
     EXAMPLES::
 

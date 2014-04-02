@@ -50,7 +50,7 @@ REFERENCES:
 .. [L1995] P. Littelmann. *Paths and root operators in representation theory*.
    Ann. of Math. (2) 142 (1995), no. 3, 499-525.
 
-The Littelmann path model also lends itself as a model for to level zero
+The Littelmann path model also lends itself as a model for level zero
 crystals which are bi-infinite. To cut out a slice of these crystals, one
 can use the direction option in subcrystal::
 

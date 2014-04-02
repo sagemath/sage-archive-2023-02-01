@@ -985,8 +985,8 @@ class Composition(CombinatorialObject, Element):
             return [0]
 
         code = []
-        for i in range(len(self)):
-            code += [1] + [0]*(self[i]-1)
+        for i in self:
+            code += [1] + [0]*(i-1)
 
         return code
 
@@ -1651,10 +1651,10 @@ class Compositions(Parent, UniqueRepresentation):
         if isinstance(x, Composition):
             return True
         elif isinstance(x, __builtin__.list):
-            for i in range(len(x)):
-                if (not isinstance(x[i], (int, Integer))) and x[i] not in ZZ:
+            for i in x:
+                if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False
-                if x[i] < 0:
+                if i < 0:
                     return False
             return True
         else:

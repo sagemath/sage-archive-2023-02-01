@@ -2465,7 +2465,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         P = self._pari_()
         try:
             U = P.lllgramint()
-        except (RuntimeError, ArithmeticError), msg:
+        except (RuntimeError, ArithmeticError) as msg:
             raise ValueError("not a definite matrix")
         MS = matrix_space.MatrixSpace(ZZ,n)
         U = MS(U.python())

@@ -909,7 +909,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         negval = False
         try:
             a = self.base_ring()(a)
-        except ValueError, msg:
+        except ValueError as msg:
             if msg == "element has negative valuation.":
                 negval = True
             else:

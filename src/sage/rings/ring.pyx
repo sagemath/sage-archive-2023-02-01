@@ -1929,30 +1929,6 @@ cpdef bint _is_Field(x) except -2:
         x._refine_category_(_Fields)
     return result
 
-def is_Field(x):
-    """
-    Deprecated test of an object being a field.
-
-    NOTE:
-
-    For testing whether ``R`` is a field, use ``R in Fields()``,
-    not ``is_Field(R)``. See :trac:`13370`.
-
-    TESTS::
-
-        sage: from sage.rings.ring import is_Field
-        sage: is_Field(ZZ)
-        doctest:...: DeprecationWarning: use 'R in Fields()', not 'is_Field(R)'
-        See http://trac.sagemath.org/13370 for details.
-        False
-        sage: is_Field(ZZ.quotient(5))
-        True
-
-    """
-    deprecation(13370, "use 'R in Fields()', not 'is_Field(R)'")
-    return _is_Field(x)
-
-# This imports is_Field, so must be executed after is_Field is defined.
 from sage.categories.algebras import Algebras
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.fields import Fields

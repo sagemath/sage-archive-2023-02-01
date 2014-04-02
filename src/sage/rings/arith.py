@@ -3256,7 +3256,7 @@ def binomial(x, m, **kwds):
         if m < 0 or (x >= 0 and m > x):
             return ZZ.zero()
 
-        s = sys.maxint
+        s = sys.maxsize
         if m > s:
             m = x - m
             if m > s:

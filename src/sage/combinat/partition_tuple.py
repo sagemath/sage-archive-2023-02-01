@@ -9,18 +9,18 @@ A :class:`PartitionTuple` is a tuple of partitions. That is, an ordered
     n = \lvert \mu \rvert = \lvert \mu^{(1)} \rvert +
     \lvert \mu^{(2)} \rvert + \cdots + \lvert \mu^{(k)} \rvert
 
-then `\mu` is a `k`-partition of `n`.
+then we say that `\mu` is a `k`-partition of `n`.
 
 In representation theory partition tuples arise as the natural indexing
 set for the ordinary irreducible representations of:
 
-- the wreath products of cyclic groups with symmetric groups
+- the wreath products of cyclic groups with symmetric groups,
 - the Ariki-Koike algebras, or the cyclotomic Hecke algebras of
-  the complex reflection groups of type `G(r,1,n)`
-- the degenerate cyclotomic Hecke algebras of type `G(r,1,n)`
+  the complex reflection groups of type `G(r,1,n)`,
+- the degenerate cyclotomic Hecke algebras of type `G(r,1,n)`.
 
-When these algebras are not semisimple partition, tuples index an important
-class of modules for the algebras which are generalisations of the Specht
+When these algebras are not semisimple, partition tuples index an important
+class of modules for the algebras, which are generalisations of the Specht
 modules of the symmetric groups.
 
 Tuples of partitions also index the standard basis of the higher level
@@ -117,6 +117,17 @@ enumerated sets::
      ([], [1], [1]),
      ([], [], [2]),
      ([], [], [1, 1])]
+    sage: PartitionTuples(2,3).list()
+    [([3], []),
+     ([2, 1], []),
+     ([1, 1, 1], []),
+     ([2], [1]),
+     ([1, 1], [1]),
+     ([1], [2]),
+     ([1], [1, 1]),
+     ([], [3]),
+     ([], [2, 1]),
+     ([], [1, 1, 1])]
 
 One tuples of partitions are naturally in bijection with partitions and, as far
 as possible, partition tuples attempts to identify one tuples with partitions::

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NTL=ntl-6.0.0
+NTL=ntl-6.1.0
 
 
 SPKG_ROOT=`pwd`

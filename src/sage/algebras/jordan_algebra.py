@@ -130,6 +130,12 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     REFERENCES:
 
     - :wikipedia:`Jordan_algebra`
+
+    .. [Jacobson71] N. Jacobson. *Exceptional Lie Algebras*.
+       Marcel Dekker, Inc. New York. 1971. IBSN No. 0-8247-1326-5.
+
+    .. [Chu2012] Cho-Ho Chu. *Jordan Structures in Geometry and Analysis*.
+       Cambridge University Press, New York. 2012. IBSN 978-1-107-01617-0.
     """
     @staticmethod
     def __classcall_private__(self, arg0, arg1=None, names=None):

@@ -22,7 +22,7 @@ Inclusion Procedure for New and Updated Packages
 Packages that are not part of Sage will first become optional or
 experimental (the latter if they will not build on all supported
 systems). After they have been in one of these two categories for
-a year without problems they can be proposed to be included as
+some time without problems they can be proposed to be included as
 standard packages in Sage.
 
 To propose a package for optional/experimental inclusion please
@@ -32,7 +32,7 @@ code requirements are described in the following sections. In short,
 packages consist of a link to the original tarball with additional
 code under ``SAGE_ROOT/build/pkgs``.
 
-After the ticket was reviewed and included, experimental and optional
+After the ticket was reviewed and included, optional
 packages stay in that status for at least a year, after which they
 can be proposed to be included as standard packages in Sage. For this
 a trac ticket is opened with the ``Component:`` field set to

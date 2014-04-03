@@ -14,7 +14,23 @@ TESTS::
     sage: L = RealLattice(random_matrix(ZZ, 10, 10))
     sage: TestSuite(L).run()
 """
- 
+
+#*****************************************************************************
+#       Copyright (C) 2012 Jan Poeschko <jan@poeschko.com>
+#       Copyright (C) 2014 Martin Albrecht <martinralbecht@googlemail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from copy import copy
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.lattices.real_lattice import RealLattice

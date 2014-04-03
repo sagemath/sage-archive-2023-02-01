@@ -7,10 +7,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
-#       Copyright (C) 2014 Martin Albrecht <martinralbecht@googlemailc.om>
+#  Copyright (C) 2014 Martin Albrecht <martinralbecht@googlemail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

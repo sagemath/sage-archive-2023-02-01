@@ -499,6 +499,43 @@ class RationalField(_uniq, number_field_base.NumberField):
                     yield self(height/other)
                     yield self(-height/other)
 
+    def primes_of_bounded_norm_iter(self, B):
+        r"""
+        Iterator yielding all primes less than or equal to `B`.
+
+        INPUT:
+
+        - ``B`` - a positive integer; upper bound on the primes generated.
+
+        OUTPUT:
+
+        An iterator over all integer primes less than or equal to `B`.
+
+        .. note::
+
+        This function exists for compatibility with the related number
+        field method, though it returns prime integers, not ideals.
+
+        EXAMPLES::
+
+        sage: it = QQ.primes_of_bounded_norm_iter(10)
+        sage: list(it)
+        [2, 3, 5, 7]
+        sage: list(QQ.primes_of_bounded_norm_iter(1))
+        []
+        """
+        try:
+            B = ZZ(B.ceil())
+        except TypeError, AttributeError:
+            raise TypeError("%s is not valid bound on prime ideals" % B)
+
+        if B<2:
+            raise StopIteration
+
+        from sage.rings.arith import primes
+        for p in primes(B+1):
+            yield p
+
     def discriminant(self):
         """
         Return the discriminant of the field of rational numbers, which is 1.

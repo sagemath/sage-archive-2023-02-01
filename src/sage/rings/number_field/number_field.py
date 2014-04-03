@@ -2867,6 +2867,55 @@ class NumberField_generic(number_field_base.NumberField):
             raise ValueError, "No prime of degree %s above %s" % (degree, self.ideal(x))
         return ids[0]
 
+    def primes_of_bounded_norm_iter(self, B):
+        r"""
+        Iterator yielding all prime ideals with norm at most `B`.
+
+        INPUT:
+
+        - ``B`` - a positive integer; upper bound on the norms of the primes generated.
+
+        OUTPUT:
+
+        An iterator over all prime ideals of this number field of norm
+        at most `B`.
+
+        .. note::
+
+        The output is not sorted by norm, but by size of the underlying
+        rational prime.
+
+        EXAMPLES::
+
+        sage: K.<i>=QuadraticField(-1)
+        sage: it=K.primes_of_bounded_norm_iter(10)
+        sage: list(it)
+        [Fractional ideal (i + 1),
+        Fractional ideal (3),
+        Fractional ideal (-i - 2),
+        Fractional ideal (i - 2)]
+        sage: list(K.primes_of_bounded_norm_iter(1))
+        []
+        """
+        try:
+            B = ZZ(B.ceil())
+        except TypeError, AttributeError:
+            raise TypeError("%s is not valid bound on prime ideals" % B)
+
+        if B<2:
+            raise StopIteration
+
+        from sage.rings.arith import primes
+        if self is QQ:
+            for p in primes(B+1):
+                yield p
+        else:
+            for p in primes(B+1):
+                for pp in self.primes_above(p):
+                    if pp.norm() <= B:
+                        yield pp
+
+
     def primes_of_degree_one_iter(self, num_integer_primes=10000, max_iterations=100):
         r"""
         Return an iterator yielding prime ideals of absolute degree one and

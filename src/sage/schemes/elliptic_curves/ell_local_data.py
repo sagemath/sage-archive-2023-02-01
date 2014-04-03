@@ -484,8 +484,8 @@ class EllipticCurveLocalData(SageObject):
             return cp
         ks = self._KS
         if ks._roman==1 and ks._n%2==0 and ks._starred:
-            return 2
-        return 4
+            return ZZ(2)
+        return ZZ(4)
 
     def bad_reduction_type(self):
         r"""

@@ -2014,12 +2014,12 @@ cdef class InstructionStream:
                 # XXX bad for strict-mode floating-point constants
                 # (doesn't handle signed 0, NaN)
                 arg = args[i]
-                if arg in self._constant_locs:
-                    self._bytecode.append(self._constant_locs[arg])
+                if (arg,type(arg)) in self._constant_locs:
+                    self._bytecode.append(self._constant_locs[(arg,type(arg))])
                 else:
                     loc = len(self._constants)
                     self._constants.append(arg)
-                    self._constant_locs[arg] = loc
+                    self._constant_locs[(arg,type(arg))] = loc
                     self._bytecode.append(loc)
             elif spec.parameters[i] == 'args':
                 self._bytecode.append(args[i])

@@ -4984,6 +4984,15 @@ class FSMProcessIterator:
             Traceback (most recent call last):
             ...
             StopIteration
+
+        TESTS::
+
+            sage: Z = Transducer()
+            sage: s = Z.add_state(0)
+            sage: s.is_initial = True
+            sage: s.final_word_out = [1, 2]
+            sage: Z([])
+            (False, 0, [1, 2])
         """
         if hasattr(self, 'accept_input'):
             raise StopIteration
@@ -5035,6 +5044,8 @@ class FSMProcessIterator:
                 self.accept_input = False
             if not hasattr(self, 'accept_input'):
                 self.accept_input = True
+            if hasattr(self.current_state, 'final_word_out'):
+                self.write_word(self.current_state.final_word_out)
             raise StopIteration
 
         # return

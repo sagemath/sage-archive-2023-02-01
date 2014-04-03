@@ -660,8 +660,8 @@ class Function_gamma(GinacFunction):
             sage: gamma1(x/2)(x=5)
             3/4*sqrt(pi)
 
-            sage: gamma1(float(6))
-            120.0
+            sage: RealField(57)(gamma1(float(6)))
+            120.0000000000000
             sage: gamma1(x)
             gamma(x)
 

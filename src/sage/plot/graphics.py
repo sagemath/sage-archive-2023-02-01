@@ -51,7 +51,7 @@ def show_default(default=None):
     The default starts out as ``True`` in interactive use and
     ``False`` in doctests::
 
-        sage: show_default()
+        sage: show_default()  # long time
         doctest:1: DeprecationWarning: this is done automatically by the doctest framework
         See http://trac.sagemath.org/14469 for details.
         False
@@ -107,8 +107,8 @@ class Graphics(SageObject):
 
     We can change the scale of the axes in the graphics before displaying.::
 
-        sage: G = plot(exp, 1, 10)
-        sage: G.show(scale='semilogy')
+        sage: G = plot(exp, 1, 10) # long time
+        sage: G.show(scale='semilogy') # long time
 
     TESTS:
 
@@ -1517,7 +1517,7 @@ class Graphics(SageObject):
         the ``base`` argument will ignore any changes to the axis which is
         in linear scale.::
 
-            sage: G.show(scale='semilogy', base=2) # y axis as powers of 2
+            sage: G.show(scale='semilogy', base=2) # long time # y axis as powers of 2
 
         ::
 
@@ -1525,11 +1525,11 @@ class Graphics(SageObject):
 
         The scale can be also given as a 2-tuple or a 3-tuple.::
 
-            sage: G.show(scale=('loglog', 2.1)) # both x and y axes in base 2.1
+            sage: G.show(scale=('loglog', 2.1)) # long time # both x and y axes in base 2.1
 
         ::
 
-            sage: G.show(scale=('loglog', 2, 3)) # x in base 2, y in base 3
+            sage: G.show(scale=('loglog', 2, 3)) # long time # x in base 2, y in base 3
 
         The base need not be an integer, though it does have to be made
         a float.::
@@ -1539,8 +1539,8 @@ class Graphics(SageObject):
         Logarithmic scale can be used for various kinds of plots. Here are
         some examples.::
 
-            sage: G = list_plot(map(lambda i: 10**i, range(10)))
-            sage: G.show(scale='semilogy')
+            sage: G = list_plot(map(lambda i: 10**i, range(10))) # long time
+            sage: G.show(scale='semilogy') # long time
 
         ::
 
@@ -2150,9 +2150,9 @@ class Graphics(SageObject):
         By default, Sage 5.10 changes float objects to the `RealLiteral` type.
         The patch changes them to float before creating `matplotlib` objects.::
 
-            sage: f = lambda x, y : (abs(cos((x + I * y) ** 4)) - 1)
-            sage: g = implicit_plot(f,(-4, 4),(-3, 3),linewidth=0.6)
-            sage: gm = g.matplotlib() # without the patch, this goes BOOM -- er, TypeError
+            sage: f = lambda x, y : (abs(cos((x + I * y) ** 4)) - 1) # long time
+            sage: g = implicit_plot(f,(-4, 4),(-3, 3),linewidth=0.6) # long time
+            sage: gm = g.matplotlib() # long time # without the patch, this goes BOOM -- er, TypeError
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)

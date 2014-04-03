@@ -691,7 +691,7 @@ class Tachyon(SageObject):
         self._objects.append(FractalLandscape(res, scale, center, texture))
 
     def plot(self, f, xmin_xmax, ymin_ymax, texture, grad_f=None,
-                   max_bend=.7, max_depth=5, initial_depth=3, num_colors=None):
+             max_bend=.7, max_depth=5, initial_depth=3, num_colors=None):
         r"""
         INPUT:
 

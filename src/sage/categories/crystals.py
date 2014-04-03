@@ -551,7 +551,7 @@ class Crystals(Category_singleton):
             if self in HighestWeightCrystals:
                 f = lambda u_v_label: ({})
             else:
-                f = lambda u_v_label1: ({"backward":u_v_label1[2] ==0})
+                f = lambda u_v_label: ({"backward": u_v_label1[2] == 0})
 
             # Parse optional arguments
             if subset is None:

@@ -706,7 +706,7 @@ class ImplicitSuffixTree(SageObject):
         """
         (k, p) = k_p
         if p < k:
-            return (s,k)
+            return (s, k)
         else:
             ((kk,pp), ss) = self._find_transition(s, self._letters[k-1])
             while pp is not None and pp - kk <= p - k:

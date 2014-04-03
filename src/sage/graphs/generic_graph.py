@@ -4824,7 +4824,7 @@ class GenericGraph(GenericGraph_pyx):
         p = MixedIntegerLinearProgram(maximization = False, solver = solver)
 
         # Reorder an edge
-        R = lambda x_y7 : (x_y7[0],x_y7[1]) if x_y7[0]<x_y7[1] else (x_y7[1],x_y7[0])
+        R = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
         # edges used in the Steiner Tree
         edges = p.new_variable(binary=True)
@@ -4857,9 +4857,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # Objective
         if weighted:
-            w = lambda x_y3 : g.edge_label(x_y3[0],x_y3[1]) if g.edge_label(x_y3[0],x_y3[1]) is not None else 1
+            w = lambda x_y: g.edge_label(x_y[0], x_y[1]) if g.edge_label(x_y[0], x_y[1]) is not None else 1
         else:
-            w = lambda x_y4 : 1
+            w = lambda x_y: 1
 
         p.set_objective(p.sum([w(e)*edges[R(e)] for e in g.edges(labels = False)]))
 
@@ -4985,8 +4985,8 @@ class GenericGraph(GenericGraph_pyx):
         epsilon = 1/(3*(Integer(self.order())))
 
         if self.is_directed():
-            # Does nothing ot an edge.. Useful when out of "if self.directed"
-            S = lambda x_y5 : (x_y5[0],x_y5[1])
+            # Does nothing to an edge.. Useful when out of "if self.directed"
+            S = lambda x_y: x_y
 
             # An edge belongs to at most arborescence
             for e in self.edges(labels=False):
@@ -5021,7 +5021,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
 
             # Sort an edge
-            S = lambda x_y6 : (x_y6[0],x_y6[1]) if x_y6[0]<x_y6[1] else (x_y6[1],x_y6[0])
+            S = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
             # An edge belongs to at most one arborescence
             for e in self.edges(labels=False):
@@ -5518,7 +5518,7 @@ class GenericGraph(GenericGraph_pyx):
 
             p.set_objective( p.sum([ w(l) * cut[u,v] for u,v,l in self.edge_iterator() ]) )
 
-            for s,t in chain( combinations(vertices,2), map(lambda x_y : (x_y[1],x_y[0]), combinations(vertices,2))) :
+            for s,t in chain( combinations(vertices,2), map(lambda x_y: (x_y[1],x_y[0]), combinations(vertices,2))) :
                 # For each commodity, the source is at height 0
                 # and the destination is at height 1
                 p.add_constraint( height[(s,t),s], min = 0, max = 0)
@@ -5556,10 +5556,11 @@ class GenericGraph(GenericGraph_pyx):
         cut = p.get_values(cut)
 
         if self.is_directed():
-            return filter(lambda u_v_l : cut[u_v_l[0],u_v_l[1]] == 1, self.edge_iterator())
+            return filter(lambda u_v_l: cut[u_v_l[0], u_v_l[1]] == 1,
+                          self.edge_iterator())
 
-        else:
-            return filter(lambda u_v_l1 : cut[R(u_v_l1[0],u_v_l1[1])] ==1, self.edge_iterator())
+        return filter(lambda u_v_l: cut[R(u_v_l[0], u_v_l[1])] == 1,
+                      self.edge_iterator())
 
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
@@ -7189,7 +7190,8 @@ class GenericGraph(GenericGraph_pyx):
 
         # Rewrites a path as a list of edges labeled with their
         # available capacity
-        path_to_labelled_edges = lambda P : map(lambda x_y2 : (x_y2[0],x_y2[1],capacity[(x_y2[0],x_y2[1])]-flow[(x_y2[0],x_y2[1])] + flow[(x_y2[1],x_y2[0])]),path_to_edges(P))
+        path_to_labelled_edges = lambda P : map(lambda x_y: (x_y[0], x_y[1], capacity[(x_y[0], x_y[1])] - flow[(x_y[0], x_y[1])] + flow[(x_y[1], x_y[0])]),
+                                                path_to_edges(P))
 
         # Total flow going from s to t
         flow_intensity = 0

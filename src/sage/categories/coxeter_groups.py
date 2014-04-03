@@ -1217,7 +1217,7 @@ v            EXAMPLES::
                 return FiniteCombinatorialClass([])
             s = W.simple_reflections()
             def succ(u_v):
-                (u,v) = u_v
+                (u, v) = u_v
                 for i in v.descents(side = 'left'):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):

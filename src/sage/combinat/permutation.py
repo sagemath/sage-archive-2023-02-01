@@ -1594,7 +1594,7 @@ class Permutation(CombinatorialObject, Element):
             (ivA, A) = ivA_A
             (ivB, B) = ivB_B
             C = []
-            i,j = 0,0
+            i, j = 0, 0
             ivC = []
             lA, lB = len(A), len(B)
             while(i < lA and j < lB):

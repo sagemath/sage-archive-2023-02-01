@@ -616,14 +616,14 @@ def text3d(txt, x_y_z, **kwds):
 
     -  ``txt`` - some text
 
-    -  ``(x,y,z)`` - position
+    -  ``(x,y,z)`` - position tuple `(x,y,z)`
 
     -  ``**kwds`` - standard 3d graphics options
 
 
     .. note::
 
-       There is no way to change the font size or opacity yet.
+        There is no way to change the font size or opacity yet.
 
     EXAMPLES: We write the word Sage in red at position (1,2,3)::
 

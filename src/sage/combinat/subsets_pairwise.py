@@ -158,8 +158,7 @@ class PairwiseCompatibleSubsets(SearchForest):
             sage: P.post_process( ((4,5), ()) )
             {4, 5}
         """
-        (subset, rest) = subset_rest
-        return self._element_class(subset)
+        return self._element_class(subset_rest[0])
 
     def children(self, subset_rest):
         """

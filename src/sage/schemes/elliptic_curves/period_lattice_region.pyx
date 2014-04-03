@@ -4,7 +4,21 @@ of the period lattice of an elliptic curve, used in computing minimum height
 bounds.
 
 In particular, these are the approximating sets ``S^{(v)}`` in section 3.2 of
-Thotsaphon Thongjunthug's Ph.D. Thesis.
+Thotsaphon Thongjunthug's Ph.D. Thesis and paper [TT]_.
+
+AUTHORS:
+
+- Robert Bradshaw (2010): initial version
+
+- John Cremona (2014): added some docstrings and doctests
+
+REFERENCES:
+
+.. [TT] T. Thongjunthug, Computing a lower bound for the canonical
+height on elliptic curves over number fields, Math. Comp. 79 (2010),
+pages 2431-2449.
+
+
 """
 
 ##############################################################################
@@ -39,8 +53,9 @@ cdef class PeriodicRegion:
     # of parallelogram tiles that cover this region.
     cdef readonly data
 
-    # Whether bitmap represents the whole fundamental parallelogram,
-    # or only half (in which case it is symmetric about the center).
+    # Flag specifying whether bitmap represents the whole fundamental
+    # parallelogram, or only half (in which case it is symmetric about
+    # the center).
     cdef readonly bint full
 
     def __init__(self, w1, w2, data, full=True):
@@ -141,9 +156,34 @@ cdef class PeriodicRegion:
         return self.w1/m, self.w2/(n * (2-self.full))
 
     def verify(self, condition):
-        """
-        Given a condition that should hold for every line segment on the
-        boundary, verify that it actually does so.
+        r"""
+        Given a condition that should hold for every line segment on
+        the boundary, verify that it actually does so.
+
+        INPUT:
+
+        - ``condition`` (function) - a boolean-valued function on `\CC`.
+
+        OUTPUT:
+
+        True or False according to whether the condition holds for all
+        lines on the boundary.
+
+        EXAMPLES::
+
+            sage: import numpy as np
+            sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
+            sage: data = np.zeros((4, 4))
+            sage: data[1, 1] = True
+            sage: S = PeriodicRegion(CDF(1), CDF(I), data)
+            sage: S.border()
+            [(1, 1, 0), (2, 1, 0), (1, 1, 1), (1, 2, 1)]
+            sage: condition = lambda z: z.real().abs()<0.5
+            sage: S.verify(condition)
+            False
+            sage: condition = lambda z: z.real().abs()<1
+            sage: S.verify(condition)
+            True
         """
         for line in self.border(False):
             if not condition(line):
@@ -151,6 +191,36 @@ cdef class PeriodicRegion:
         return True
 
     def refine(self, condition=None, int times=1):
+        r"""
+        Recursive function to refine the current tiling.
+
+        INPUT:
+
+        - ``condition`` (function, default None) - if not None, only
+          keep tiles in the refinement which satisfy the condition.
+
+        - ``times`` (int, default 1) - the number of times to refine;
+          each refinement step halves the mesh size.
+
+        OUTPUT:
+
+        The refined PeriodicRegion.
+
+        EXAMPLES::
+
+            sage: import numpy as np
+            sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
+            sage: data = np.zeros((4, 4))
+            sage: S = PeriodicRegion(CDF(2), CDF(2*I), data, full=False)
+            sage: S.ds()
+            (0.5, 0.25*I)
+            sage: S = S.refine()
+            sage: S.ds()
+            (0.25, 0.125*I)
+            sage: S = S.refine(2)
+            sage: S.ds()
+            (0.125, 0.0625*I)
+        """
         if times <= 0:
             return self
         cdef int i, j, m, n

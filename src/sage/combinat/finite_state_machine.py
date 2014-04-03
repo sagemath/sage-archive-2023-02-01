@@ -4429,7 +4429,7 @@ class Automaton(FiniteStateMachine):
 
         For automata with epsilon-transitions, intersection is not well
         defined. But for automata, epsilon-transitions can be removed by
-        ``remove_epsilon_transitions``.
+        :meth:`.remove_epsilon_transitions`.
 
         ::
 
@@ -4449,15 +4449,17 @@ class Automaton(FiniteStateMachine):
             ...
             ValueError: An epsilon-transition (with empty input)
             was found.
+            sage: a1.remove_epsilon_transitions()  # not tested (since not implemented yet)
+            sage: a1.intersection(a2)  # not tested
         """
         if not is_Automaton(other):
             raise TypeError(
                  "Only an automaton can be intersected with an automaton.")
 
         def function(transition1, transition2):
-            if (transition1.word_in == []) or (transition2.word_in == []):
+            if not transition1.word_in or not transition2.word_in:
                 raise ValueError(
-                "An epsilon-transition (with empty input) was found.")
+                    "An epsilon-transition (with empty input) was found.")
             if transition1.word_in == transition2.word_in:
                 return (transition1.word_in, None)
             else:
@@ -4924,12 +4926,10 @@ class Transducer(FiniteStateMachine):
                 "Only a transducer can be intersected with a transducer.")
 
         def function(transition1, transition2):
-            if (transition1.word_in == []) \
-                    or (transition2.word_in == []) \
-                    or (transition1.word_out == []) \
-                    or (transition2.word_out == []):
-                raise ValueError(
-                "An epsilon-transition (with empty input or output) was found.")
+            if not transition1.word_in or not transition2.word_in \
+                    or not transition1.word_out or not transition2.word_out:
+                raise ValueError("An epsilon-transition "
+                                 "(with empty input or output) was found.")
             if transition1.word_in == transition2.word_in \
                     and transition1.word_out == transition2.word_out:
                 return (transition1.word_in, transition1.word_out)
@@ -4944,10 +4944,12 @@ class Transducer(FiniteStateMachine):
 
     def cartesian_product(self, other, only_accessible_components=True):
         """
-        The default output of this method is scheduled to change.
-        This docstring describes the new default behaviour, which can
-        already be achieved by setting ``FSMOldCodeTransducerCartesianProduct``
-        to ``False``.
+        .. WARNING::
+
+            The default output of this method is scheduled to change.
+            This docstring describes the new default behaviour, which can
+            already be achieved by setting
+            ``FSMOldCodeTransducerCartesianProduct`` to ``False``.
 
         Return a new transducer which can simultaneously process an input with
         ``self`` and ``other`` where the output labels are pairs of the
@@ -5006,8 +5008,7 @@ class Transducer(FiniteStateMachine):
 
         ::
 
-            sage: sage.combinat.finite_state_machine.\
-FSMOldCodeTransducerCartesianProduct = False
+            sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
             sage: result = transducer1.cartesian_product(transducer2)
             sage: result
             Transducer with 2 states
@@ -5015,12 +5016,12 @@ FSMOldCodeTransducerCartesianProduct = False
             [Transition from ('A', 0) to ('A', 1): 0|(0, 'b'),('-', 'c'),
              Transition from ('A', 0) to ('A', 0): 1|(1, 'b'),
              Transition from ('A', 1) to ('A', 1): 0|(0, 'a')]
-            sage: result([1,0,0])[2]
+            sage: result([1, 0, 0])[2]
             [(1, 'b'), (0, 'b'), ('-', 'c'),  (0, 'a')]
-            sage: (transducer1([1,0,0])[2], transducer2([1,0,0])[2])
+            sage: (transducer1([1, 0, 0])[2], transducer2([1, 0, 0])[2])
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
         """
-        if FSMOldCodeTransducerCartesianProduct == True:
+        if FSMOldCodeTransducerCartesianProduct:
             from sage.misc.superseded import deprecation
             deprecation(3333, "The output of Transducer.cartesian_product "
                               "will change. Please use "
@@ -5035,9 +5036,11 @@ FSMOldCodeTransducerCartesianProduct = False
                 max_length = max(len(transition1.word_out),
                                  len(transition2.word_out))
                 word_out1 = transition1.word_out \
-                    + (max_length-len(transition1.word_out))*[FSMEmptyWordSymbol]
+                    + (max_length - len(transition1.word_out)) \
+                    * [FSMEmptyWordSymbol]
                 word_out2 = transition2.word_out \
-                    + (max_length-len(transition2.word_out))*[FSMEmptyWordSymbol]
+                    + (max_length - len(transition2.word_out)) \
+                    * [FSMEmptyWordSymbol]
                 return (transition1.word_in, zip(word_out1, word_out2))
             else:
                 raise LookupError

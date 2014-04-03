@@ -4893,13 +4893,13 @@ class Transducer(FiniteStateMachine):
             [Transition from ('1', 'A') to ('2', 'A'): 1|0,
              Transition from ('2', 'A') to ('2', 'A'): 1|0]
 
-        In general, transducers are not closed under intersection. But for
-        transducer which do not have epsilon-transitions, intersection is well
-        defined (cf. "Finite State Transducers" by Javier Baliosian and Dina
-        Wonsever). However, in the next example the intersection of the two
-        transducers is not well defined. The intersection of the languages
-        consists of `(a^n, b^n c^n)`. This set is not recognizable by a
-        transducer.
+        In general, transducers are not closed under intersection. But
+        for transducer which do not have epsilon-transitions, the
+        intersection is well defined (cf. [BaWo2012]_). However, in
+        the next example the intersection of the two transducers is
+        not well defined. The intersection of the languages consists
+        of `(a^n, b^n c^n)`. This set is not recognizable by a
+        *finite* transducer.
 
         ::
 
@@ -4920,6 +4920,12 @@ class Transducer(FiniteStateMachine):
             ...
             ValueError: An epsilon-transition (with empty input or output)
             was found.
+
+        REFERENCES:
+
+        .. [BaWo2012] Javier Baliosian and Dina Wonsever, *Finite State
+           Transducers*, chapter in *Handbook of Finite State Based Models and
+           Applications*, edited by Jiacun Wang, Chapman and Hall/CRC, 2012.
         """
         if not is_Transducer(other):
             raise TypeError(

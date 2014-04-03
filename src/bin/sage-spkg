@@ -106,7 +106,7 @@ verify_checksum()
         actual=`md5sum $file | sed 's/[^0-9a-f].*//'`
     elif command -v md5 > /dev/null; then
         expected=`lookup_param md5 $checksums`
-        actual=`md5 $file | sed 's/[^0-9a-f].*//'`
+        actual=`md5 $file | sed 's/.*= *//'`
     else
         # POSIX; Note that Solaris is not compliant and its sed
 	# does not understand [[:space:]]

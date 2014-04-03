@@ -2389,7 +2389,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
             # give up for this branch
             return []
 
-    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+    except (ZeroDivisionError, TypeError, ValueError, OverflowError) as msg:
         sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
         # give up for this branch
         return []
@@ -2515,7 +2515,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 exceptions += 1
                 exception_indices.append(i)
 
-        except (ArithmeticError, TypeError, ValueError), msg:
+        except (ArithmeticError, TypeError, ValueError) as msg:
             sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
@@ -2527,7 +2527,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError), msg:
+                    except (ArithmeticError, TypeError, ValueError) as msg:
                         pass
                 else:
                     exceptions += 1
@@ -2542,7 +2542,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError), msg:
+                    except (ArithmeticError, TypeError, ValueError) as msg:
                         pass
                 else:
                     exceptions += 1

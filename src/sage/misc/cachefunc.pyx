@@ -1670,14 +1670,14 @@ cdef class CachedMethodCaller(CachedFunction):
         try:
             setattr(inst,self._cachedmethod._cachedfunc.__name__, Caller)
             return Caller
-        except AttributeError,msg:
+        except AttributeError as msg:
             pass
         try:
             if inst.__cached_methods is None:
                 inst.__cached_methods = {self._cachedmethod._cachedfunc.__name__ : Caller}
             else:
                 (<dict>inst.__cached_methods)[self._cachedmethod._cachedfunc.__name__] = Caller
-        except AttributeError,msg:
+        except AttributeError as msg:
             pass
         return Caller
 
@@ -1973,7 +1973,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         # This is for Parents or Elements that do not allow attribute assignment
         try:
             return (<dict>inst.__cached_methods)[self.__name__]
-        except (AttributeError,TypeError,KeyError),msg:
+        except (AttributeError,TypeError,KeyError) as msg:
             pass
         Caller = CachedMethodCallerNoArgs(inst, self.f, name=self.__name__)
         try:
@@ -1986,7 +1986,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
                 inst.__cached_methods = {self.__name__ : Caller}
             else:
                 (<dict>inst.__cached_methods)[self.__name__] = Caller
-        except AttributeError,msg:
+        except AttributeError as msg:
             pass
         return Caller
 
@@ -2257,7 +2257,7 @@ cdef class CachedMethod(object):
             name = self.__name__
         try:
             return (<dict>inst.__cached_methods)[name]
-        except (AttributeError,TypeError,KeyError),msg:
+        except (AttributeError,TypeError,KeyError) as msg:
             pass
         # Apparently we need to construct the caller.
         # Since we have an optimized version for functions that do not accept arguments,

@@ -567,7 +567,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             pass
         try:
             return element_ext_pari.FiniteField_ext_pariElement(self, integer.Integer(x))
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "%s\nno coercion defined"%msg
 
     def __len__(self):

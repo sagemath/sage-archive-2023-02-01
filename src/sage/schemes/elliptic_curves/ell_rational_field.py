@@ -1372,7 +1372,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 from sage.lfunctions.lcalc import lcalc
                 return lcalc.analytic_rank(L=self)
-            except TypeError,msg:
+            except TypeError as msg:
                 raise RuntimeError, "unable to compute analytic rank using rubinstein algorithm ('%s')"%msg
         elif algorithm == 'sympow':
             if leading_coefficient:
@@ -1397,52 +1397,51 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError, "algorithm %s not defined"%algorithm
 
 
-    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3, maxprob=20, limbigprime=30):
         r"""
-        Computes a lower bound for the rank of the Mordell-Weil group `E(Q)`,
-        the rank of the 2-Selmer group, and a list of points of infinite order on
-        `E(Q)`.
+        Return lower and upper bounds on the rank of the Mordell-Weil
+        group `E(\QQ)` and a list of points of infinite order.
 
         INPUT:
 
+        - ``self`` -- an elliptic curve `E` over `\QQ`
 
-        -  ``verbose`` - integer, 0,1,2,3; (default: 0), the
-           verbosity level
+        - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
 
-        -  ``lim1`` - (default: 5) limite des points triviaux
-           sur les quartiques
+        - ``lim1`` -- (default: 5) limit on trivial points on quartics
 
-        -  ``lim3`` - (default: 50) limite des points sur les
-           quartiques ELS
+        - ``lim3`` -- (default: 50) limit on points on ELS quartics
 
-        -  ``limtriv`` - (default: 10) limite des points
-           triviaux sur la courbe elliptique
+        - ``limtriv`` -- (default: 3) limit on trivial points on `E`
 
-        -  ``maxprob`` - (default: 20)
+        - ``maxprob`` -- (default: 20)
 
-        -  ``limbigprime`` - (default: 30) to distinguish
-           between small and large prime numbers. Use probabilistic tests for
-           large primes. If 0, don't any probabilistic tests.
+        - ``limbigprime`` - (default: 30) to distinguish between small
+           and large prime numbers. Use probabilistic tests for large
+           primes. If 0, don't any probabilistic tests.
 
+        OUTPUT: a triple ``(lower, upper, list)`` consisting of
 
-        OUTPUT:
+        - ``lower`` (integer) -- lower bound on the rank
 
+        - ``upper`` (integer) -- upper bound on the rank
 
-        -  ``integer`` - lower bound on the rank of self
+        - ``list`` -- list of points of infinite order in `E(\QQ)`
 
-        -  ``integer`` - the dimension of the 2-Selmer group.
-           This is an upper bound to the rank, but it is not sharp in general.
-
-        -  ``list`` - list of points of infinite order in `E(Q)`.
+        The integer ``upper`` is in fact an upper bound on the
+        dimension of the 2-Selmer group, hence on the dimension of
+        `E(\QQ)/2E(\QQ)`.  It is equal to the dimension of the
+        2-Selmer group except possibly if `E(\QQ)[2]` has dimension 1.
+        In that case, ``upper`` may exceed the dimension of the
+        2-Selmer group by an even number, due to the fact that the
+        algorithm does not perform a second descent.
 
         To obtain a list of generators, use E.gens().
-
 
         IMPLEMENTATION: Uses Denis Simon's PARI/GP scripts from
         http://www.math.unicaen.fr/~simon/
 
-        EXAMPLES: These computations use pseudo-random numbers, so we set
-        the seed for reproducible testing.
+        EXAMPLES:
 
         We compute the ranks of the curves of lowest known conductor up to
         rank `8`. Amazingly, each of these computations finishes
@@ -1451,19 +1450,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve('11a1')
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (2, 2, [(1 : 0 : 1), (-11/9 : 28/27 : 1)])
+            (2, 2, [(5/4 : 5/8 : 1), (-3/4 : 7/8 : 1)])
             sage: E = EllipticCurve('5077a1')
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (3, 3, [(1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1)])
 
@@ -1473,7 +1468,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (1, 1, [])
 
@@ -1483,23 +1477,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (4, 4, [(6 : -1 : 1), (4 : 3 : 1), (5 : -2 : 1), (8 : 7 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
-            sage: set_random_seed(0)
             sage: E.simon_two_descent()  # long time (9s on sage.math, 2011)
             (5, 5, [(7 : 11 : 1), (-1 : 20 : 1), (0 : 18 : 1), (3 : 11 : 1), (-3 : 23 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
-            sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (6, 6)
             sage: E = EllipticCurve([0, 0, 0, -10012, 346900])
-            sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
-            sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
 
@@ -1531,18 +1520,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.simon_two_descent()
             (1, 2, [(1 : 2 : 1)])
 
+        The upper bound on the 2-Selmer rank returned by this method
+        need not be sharp.  In following example, the upper bound
+        equals the actual 2-Selmer rank plus 2 (see :trac:`10735`)::
+
+            sage: E = EllipticCurve('438e1')
+            sage: E.simon_two_descent()
+            (0, 3, [])
+            sage: E.selmer_rank()  # uses mwrank
+            1
+
         """
-        verbose = int(verbose)
-        t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
-                              maxprob=maxprob, limbigprime=limbigprime)
-        if t=='fail':
-            raise RuntimeError, 'Run-time error in simon_two_descent.'
-        if verbose>0:
-            print "simon_two_descent returns", t
-        rank_low_bd = rings.Integer(t[0])
-        two_selmer_rank = rings.Integer(t[1])
-        pts = [self(P) for P in t[2]]
-        pts = [P for P in pts if P.has_infinite_order()]
+        t = EllipticCurve_number_field.simon_two_descent(self, verbose=verbose,
+                                                         lim1=lim1, lim3=lim3, limtriv=limtriv,
+                                                         maxprob=maxprob, limbigprime=limbigprime)
+        rank_low_bd = t[0]
+        two_selmer_rank = t[1]
+        pts = t[2]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
             if verbose>0:
                 print "Rank determined successfully, saturating..."

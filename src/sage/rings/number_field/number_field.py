@@ -1355,36 +1355,7 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             raise TypeError
 
-    def _set_structure(self, from_self, to_self, unsafe_force_change=False):
-        """
-        Internal function to set the structure fields of this number
-        field.
-
-        EXAMPLES::
-
-            sage: K.<a> = QuadraticField(-23)
-            sage: L.<b> = K.change_names()
-            sage: L.structure() # indirect doctest
-            (Isomorphism given by variable name change map:
-              From: Number Field in b with defining polynomial x^2 + 23
-              To:   Number Field in a with defining polynomial x^2 + 23, Isomorphism given by variable name change map:
-              From: Number Field in a with defining polynomial x^2 + 23
-              To:   Number Field in b with defining polynomial x^2 + 23)
-        """
-        # Note -- never call this on a cached number field, since
-        # that could eventually lead to problems.
-        if unsafe_force_change:
-            self.__from_self = from_self
-            self.__to_self = to_self
-            return
-        try:
-            self.__from_self
-        except AttributeError:
-            self.__from_self = from_self
-            self.__to_self = to_self
-        else:
-            raise ValueError, "number field structure is immutable."
-
+    @cached_method
     def structure(self):
         """
         Return fixed isomorphism or embedding structure on self.
@@ -1412,15 +1383,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: D_abs.structure()[0](y0)
             -a
         """
-        try:
-            if self.__to_self is not None:
-                return self.__from_self, self.__to_self
-            else:
-                return self.__from_self, self.__to_self
-        except AttributeError:
+        if self.__structure is None:
             f = self.hom(self)
-            self._set_structure(f,f)
-            return f, f
+            return f,f
+        else:
+            return self.__structure.from_field(), self.__structure.to_field()
 
     def completion(self, p, prec, extras={}):
         """

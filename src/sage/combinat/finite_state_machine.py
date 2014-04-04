@@ -4978,11 +4978,11 @@ class Transducer(FiniteStateMachine):
             sage: result
             Transducer with 2 states
             sage: result.transitions()
-            [Transition from ('A', 0) to ('A', 1): 0|(0, 'b'),('-', 'c'),
+            [Transition from ('A', 0) to ('A', 1): 0|(0, 'b'),(None, 'c'),
              Transition from ('A', 0) to ('A', 0): 1|(1, 'b'),
              Transition from ('A', 1) to ('A', 1): 0|(0, 'a')]
             sage: result([1, 0, 0])[2]
-            [(1, 'b'), (0, 'b'), ('-', 'c'),  (0, 'a')]
+            [(1, 'b'), (0, 'b'), (None, 'c'),  (0, 'a')]
             sage: (transducer1([1, 0, 0])[2], transducer2([1, 0, 0])[2])
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
         """
@@ -5002,10 +5002,10 @@ class Transducer(FiniteStateMachine):
                                  len(transition2.word_out))
                 word_out1 = transition1.word_out \
                     + (max_length - len(transition1.word_out)) \
-                    * [FSMEmptyWordSymbol]
+                    * [None]
                 word_out2 = transition2.word_out \
                     + (max_length - len(transition2.word_out)) \
-                    * [FSMEmptyWordSymbol]
+                    * [None]
                 return (transition1.word_in, zip(word_out1, word_out2))
             else:
                 raise LookupError

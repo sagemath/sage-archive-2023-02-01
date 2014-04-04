@@ -413,7 +413,7 @@ class Gap_generic(Expect):
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
             success = True
-        except (pexpect.TIMEOUT, pexpect.EOF), msg:
+        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
             # GAP died or hangs indefinitely
             # print 'GAP interrupt:', msg
             success = False
@@ -758,7 +758,7 @@ class Gap_generic(Expect):
                 out = out[:-1]
             return out
 
-        except (RuntimeError,TypeError),message:
+        except (RuntimeError,TypeError) as message:
             if 'EOF' in message[0] or E is None or not E.isalive():
                 print "** %s crashed or quit executing '%s' **"%(self, line)
                 print "Restarting %s and trying again"%self
@@ -1354,7 +1354,7 @@ class Gap(Gap_generic):
             line0 = 'Print( %s );'%line.rstrip().rstrip(';')
             try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
                 return Expect._eval_line_using_file(self, line0)
-            except RuntimeError, msg:
+            except RuntimeError as msg:
                 #if not ("Function call: <func> must return a value" in msg):
                 #    raise RuntimeError, msg
                 return ''
@@ -1515,7 +1515,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             if verbose:
                 print '*** %s'%msg
             pass

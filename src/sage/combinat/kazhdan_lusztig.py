@@ -1,5 +1,11 @@
-"""
+r"""
 Kazhdan-Lusztig Polynomials
+AUTHORS:
+
+- Daniel Bump (2008): initial version
+
+- Alan J.X. Guo (2014-03-18): R_tilde() method.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Daniel Bump <bump at match.stanford.edu>,
@@ -39,6 +45,12 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
     .. [KL79] D. Kazhdan and G. Lusztig. *Representations of Coxeter
        groups and Hecke algebras*. Invent. Math. **53** (1979).
        no. 2, 165--184. :doi:`10.1007/BF01390031` :mathscinet:`MR0560412`
+
+    .. [Dy93] M. J. Dyer. *Hecke algebras and shellings of Bruhat
+       intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
+
+    .. [BB05] A. Bjorner, F. Brenti. *Combinatorics of Coxeter
+       groups*. New York: Springer, 2005.
 
     EXAMPLES::
 
@@ -89,12 +101,12 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-           sage: R.<q>=QQ[]
-           sage: W = WeylGroup("A2", prefix="s")
-           sage: [s1,s2]=W.simple_reflections()
-           sage: KL = KazhdanLusztigPolynomial(W, q)
-           sage: [KL.R(x,s2*s1) for x in [1,s1,s2,s1*s2]]
-           [q^2 - 2*q + 1, q - 1, q - 1, 0]
+            sage: R.<q>=QQ[]
+            sage: W = WeylGroup("A2", prefix="s")
+            sage: [s1,s2]=W.simple_reflections()
+            sage: KL = KazhdanLusztigPolynomial(W, q)
+            sage: [KL.R(x,s2*s1) for x in [1,s1,s2,s1*s2]]
+            [q^2 - 2*q + 1, q - 1, q - 1, 0]
         """
         if x == 1:
             x = self._one
@@ -119,6 +131,47 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
             ret = (self._q-1)*self.R(s*x,y)+self._q*self.R(s*x,s*y)
             if self._trace:
                 print "  R(%s,%s)=%s"%(x, y, ret)
+            return ret
+
+    @cached_method
+    def R_tilde(self, x, y):
+        r"""
+        Return the Kazhdan-Lusztig `\tilde{R}` polynomial.
+
+        Information about the `\tilde{R}` polynomials can be found in
+        [Dy93]_ and [BB05]_.
+
+        INPUT:
+
+        - ``x``, ``y`` -- elements of the underlying Coxeter group
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: W = WeylGroup("A2", prefix="s")
+            sage: [s1,s2] = W.simple_reflections()
+            sage: KL = KazhdanLusztigPolynomial(W, q)
+            sage: [KL.R_tilde(x,s2*s1) for x in [1,s1,s2,s1*s2]]
+            [q^2, q, q, 0]
+        """
+        if x == 1:
+            x = self._one
+        if y == 1:
+            y = self._one
+        if not x.bruhat_le(y):
+            return self._base_ring.zero()
+        if x == y:
+            return self._base_ring.one()
+        s = self._coxeter_group.simple_reflection(y.first_descent(side="right"))
+        if (x * s).length() < x.length():
+            ret = self.R_tilde(x * s, y * s)
+            if self._trace:
+                print " R_tilde(%s,%s)=%s" % (x, y, ret)
+            return ret
+        else:
+            ret = self.R_tilde(x * s, y * s) + self._q * self.R_tilde(x, y * s)
+            if self._trace:
+                print " R_tilde(%s,%s)=%s" % (x, y, ret)
             return ret
 
     @cached_method

@@ -364,7 +364,7 @@ $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 $(INST)/$(SIX): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(SIX) 2>&1" "tee -a $(SAGE_LOGS)/$(SIX).log"
 
-$(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX)
+$(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(DATEUTIL) 2>&1" "tee -a $(SAGE_LOGS)/$(DATEUTIL).log"
 
 $(INST)/$(PYPARSING): $(INST)/$(PYTHON)

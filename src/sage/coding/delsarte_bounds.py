@@ -168,7 +168,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     A, p = _delsarte_LP_building(n, d, 0, q, False,  solver)
     try:
         bd=p.solve()
-    except MIPSolverException, exc:
+    except MIPSolverException as exc:
         print "Solver exception: ", exc, exc.args
         if return_data:
             return A,p,False
@@ -269,7 +269,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       A, p = _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, q_base**m)
       try:
         bd=p.solve()
-      except MIPSolverException, exc:
+      except MIPSolverException as exc:
         print "Solver exception: ", exc, exc.args
         if return_data:
            return A,p,False

@@ -4406,6 +4406,9 @@ class Automaton(FiniteStateMachine):
         (C, D), a)` in the new automaton if there are transitions `(A, C, a)`
         and `(B, D, a)` in the old automata.
 
+        The methods ``Automaton.intersection`` and
+        ``Automaton.cartesian_product`` are the same.
+
         EXAMPLES::
 
             sage: aut1 = Automaton([('1', '2', 1),
@@ -4426,6 +4429,12 @@ class Automaton(FiniteStateMachine):
             (True, False, False)
             sage: (aut1([1, 0])[0], aut2([1, 0])[0], res([1, 0])[0])
             (True, True, True)
+            sage: res.transitions()
+            [Transition from ('1', 'A') to ('2', 'A'): 1|-,
+             Transition from ('2', 'A') to ('2', 'B'): 0|-,
+             Transition from ('2', 'A') to ('2', 'A'): 1|-,
+             Transition from ('2', 'B') to ('2', 'B'): 0|-,
+             Transition from ('2', 'B') to ('2', 'A'): 1|-]
 
         For automata with epsilon-transitions, intersection is not well
         defined. But for automata, epsilon-transitions can be removed by
@@ -4470,57 +4479,7 @@ class Automaton(FiniteStateMachine):
             function,
             only_accessible_components=only_accessible_components)
 
-
-    def cartesian_product(self, other, only_accessible_components=True):
-        """
-        Return a automaton which accepts an input if it is accepted by both
-        given finite state machines.
-
-        INPUT:
-
-        - ``other`` -- a finite state machine
-
-        - ``only_accessible_components`` -- If ``True`` (default), then
-          the result is piped through ``accessible_components``. If no
-          ``new_input_alphabet`` is given, it is determined by
-          ``determine_alphabets``.
-
-        OUTPUT:
-
-        An automaton which accepts the intersection of the languages
-        of ``self`` and ``other``.  See :meth:`.intersection` for more
-        information.
-
-        If ``other`` is a transducer, ``other.cartesian_product(self)``
-        may be more useful.
-
-
-        EXAMPLES::
-
-            sage: aut1 = Automaton([('1', '2', 1),
-            ....:                   ('2', '2', 1),
-            ....:                   ('2', '2', 0)],
-            ....:                  initial_states=['1'],
-            ....:                  final_states=['2'],
-            ....:                  determine_alphabets=True)
-            sage: aut2 = Automaton([('A', 'A', 1),
-            ....:                   ('A', 'B', 1),
-            ....:                   ('B', 'B', 0),
-            ....:                   ('B', 'A', 0)],
-            ....:                  initial_states=['A'],
-            ....:                  final_states=['B'],
-            ....:                  determine_alphabets=True)
-            sage: res = aut1.cartesian_product(aut2)
-            sage: res.transitions()
-            [Transition from ('1', 'A') to ('2', 'A'): 1|-,
-             Transition from ('1', 'A') to ('2', 'B'): 1|-,
-             Transition from ('2', 'A') to ('2', 'A'): 1|-,
-             Transition from ('2', 'A') to ('2', 'B'): 1|-,
-             Transition from ('2', 'B') to ('2', 'B'): 0|-,
-             Transition from ('2', 'B') to ('2', 'A'): 0|-]
-        """
-        return self.intersection(other, only_accessible_components)
-
+    cartesian_product = intersection
 
     def determinisation(self):
         """
@@ -4963,7 +4922,7 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
-        - ``other`` - a finite state machine
+        - ``other`` - a transducer
 
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no

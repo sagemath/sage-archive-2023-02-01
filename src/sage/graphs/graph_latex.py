@@ -1326,14 +1326,14 @@ class GraphLatex(SageObject):
             sage: print g.latex_options().dot2tex_picture()  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-              \node (0+1) at (...bp,...bp) [draw,draw=none] {$\left(\text{0}, 1\right)$};
-              \node (0+0) at (...bp,...bp) [draw,draw=none] {$\left(\text{0}, 0\right)$};
-              \node (1+0) at (...bp,...bp) [draw,draw=none] {$\left(\text{1}, 0\right)$};
-              \node (1+1) at (...bp,...bp) [draw,draw=none] {$\left(\text{1}, 1\right)$};
-              \draw [->] (1+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (0+1);
-              \draw [->] (0+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (0+1);
-              \draw [->] (0+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (1+1);
-              \draw [->] (1+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (1+1);
+              \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
+              \node (node_2) at (...bp,...bp) [draw,draw=none] {$\left(1, 0\right)$};
+              \node (node_1) at (...bp,...bp) [draw,draw=none] {$\left(0, 1\right)$};
+              \node (node_0) at (...bp,...bp) [draw,draw=none] {$\left(0, 0\right)$};
+              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
+              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
+              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
+              \draw [black,->] (node_2) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_3);
             %
             \end{tikzpicture}
 

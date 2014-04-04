@@ -374,7 +374,9 @@ def trigonometric_properties_triangle(
     import math
 
     # Returns the distance between points (x1,y1) and (x2,y2)
-    def distance((x1, y1), (x2, y2)):
+    def distance(x1_y1, x2_y2):
+        (x1, y1) = x1_y1
+        (x2, y2) = x2_y2
         return sqrt((x2-x1)**2 + (y2-y1)**2)
 
     # Returns an angle (in radians) when sides a and b
@@ -545,11 +547,15 @@ def special_points(
         return (math.cos(p), math.sin(p))
 
     # Returns the distance between points (x1,y1) and (x2,y2)
-    def distance((x1, y1), (x2, y2)):
+    def distance(x1_y1, x2_y2):
+        (x1, y1) = x1_y1
+        (x2, y2) = x2_y2
         return math.sqrt((x2-x1)**2 + (y2-y1)**2)
 
     # Returns the line (graph) going through points (x1,y1) and (x2,y2)
-    def line_to_points((x1, y1), (x2, y2), **plot_kwargs):
+    def line_to_points(x1_y1, x2_y2, **plot_kwargs):
+        (x1, y1) = x1_y1 
+        (x2, y2) = x2_y2
         return plot((y2-y1) / (x2-x1) * (x-x1) + y1, (x,-3,3), **plot_kwargs)
 
     # Coordinates of the angles

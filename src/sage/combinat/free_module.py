@@ -156,7 +156,7 @@ class CombinatorialFreeModuleElement(Element):
         v = self._monomial_coefficients.items()
         try:
             v.sort(cmp = print_options['monomial_cmp'],
-                   key = lambda (monomial,coeff): monomial)
+                   key = lambda monomial_coeff: monomial_coeff[0])
         except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
@@ -2877,7 +2877,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         """
         assert i in self._sets_keys()
         module = self._sets[i]
-        return self._module_morphism(lambda (j,t): module.monomial(t) if i == j else module.zero(), codomain = module)
+        return self._module_morphism(lambda j_t: module.monomial(j_t[1]) if i == j_t[0] else module.zero(), codomain = module)
 
     def _cartesian_product_of_elements(self, elements):
         """

@@ -50,6 +50,7 @@ Miscellaneous
    sage/misc/messaging
    sage/misc/viewer
    sage/misc/session
+   sage/misc/sage_extension
 
 
 Profiling and Performance Testing

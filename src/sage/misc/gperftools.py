@@ -8,9 +8,10 @@ if you want to change it.
 
 EXAMPLES::
 
-    sage: from sage.misc.gperftools import Profiler
+    sage: from sage.misc.gperftools import Profiler, run_100ms
     sage: prof = Profiler()
     sage: prof.start()       # optional - gperftools
+    sage: run_100ms()
     sage: prof.stop()        # optional - gperftools
     PROFILE: interrupts/evictions/bytes = ...
 
@@ -33,6 +34,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import time
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -154,16 +156,17 @@ class Profiler(SageObject):
         
         EXAMPLES::
 
-            sage: from sage.misc.gperftools import Profiler
+            sage: from sage.misc.gperftools import Profiler, run_100ms
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
-            sage: # do something
+            sage: run_100ms()
             sage: prof.stop()     # optional - gperftools
             PROFILE: interrupts/evictions/bytes = ...
         """
         from signal import SIGPROF, SIG_DFL
         self._previous_sigprof_handler = self._libc().signal(SIGPROF, SIG_DFL)
         profiler = self._libprofiler()
+        self._t_start = time.time()
         rc = profiler.ProfilerStart(self.filename())
         if rc < 0:
             raise ValueError('profiler failed to start')
@@ -174,15 +177,20 @@ class Profiler(SageObject):
         
         EXAMPLES::
 
-            sage: from sage.misc.gperftools import Profiler
+            sage: from sage.misc.gperftools import Profiler, run_100ms
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
-            sage: # do something
+            sage: run_100ms()
             sage: prof.stop()     # optional - gperftools
             PROFILE: interrupts/evictions/bytes = ...
         """
         profiler = self._libprofiler()
         profiler.ProfilerStop()
+        self._t_stop = time.time()
+        if (self._t_stop - self._t_start) < 0.1:
+            from warnings import warn
+            warn('not enough samples, total runtime was '
+                 'less than 100ms', RuntimeWarning)
 
     @cached_method
     def _pprof(self):
@@ -301,12 +309,13 @@ class Profiler(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.gperftools import Profiler
+            sage: from sage.misc.gperftools import Profiler, run_100ms
             sage: prof = Profiler()
             sage: prof.start()    # optional - gperftools
+            sage: run_100ms()     # optional - gperftools
             sage: prof.stop()     # optional - gperftools
             PROFILE: interrupts/evictions/bytes = ...
-            sage: f = tmp_filename(ext='.txt')
+            sage: f = tmp_filename(ext='.txt')      # optional - gperftools
             sage: prof.save(f, verbose=False)       # optional - gperftools
         """
         args = []
@@ -342,9 +351,9 @@ def crun(s, evaluator):
 
     EXAMPLES::
 
-        sage: import sage.misc.gperftools
+        sage: import sage.misc.gperftools as gperf
         sage: ev = lambda ex:eval(ex, globals(), locals())
-        sage: sage.misc.gperftools.crun('1+1', evaluator=ev)   # optional - gperftools
+        sage: gperf.crun('gperf.run_100ms()', evaluator=ev)   # optional - gperftools
         PROFILE: interrupts/evictions/bytes = ...
         Using local file ...
         Using local file ...
@@ -357,3 +366,23 @@ def crun(s, evaluator):
     prof.stop()
     prof.top()
 
+
+def run_100ms():
+    """
+    Used for doctesting.
+
+    A function that performs some computation for more than (but not
+    that much more than) 100ms.
+
+    EXAMPLES::
+
+        sage: from sage.misc.gperftools import run_100ms
+        sage: run_100ms()
+    """
+    t0 = time.time()   # start
+    t1 = t0 + 0.1      # end
+    from sage.misc.functional import symbolic_sum
+    from sage.symbolic.ring import SR
+    while time.time() < t1:
+        sum(1/(1+SR(n) ** 2) for n in range(100))
+    

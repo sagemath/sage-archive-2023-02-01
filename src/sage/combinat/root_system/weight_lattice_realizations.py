@@ -752,7 +752,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             simple_reflections = W.simple_reflections()
             alphacheck = lattice_classical.alphacheck()
             rho = lattice_classical.rho()
-            word = W.unit()
+            word = W.one()
             signs = []
             for s in walk:
                 if ((alphacheck[s]).scalar((word).action(rho)) > 0):

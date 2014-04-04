@@ -414,6 +414,7 @@ def full_group_by(l, key=lambda x: x):
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
+FSMOldOutputProcess = False
 
 def FSMLetterSymbol(letter):
     """
@@ -4741,6 +4742,15 @@ class Automaton(FiniteStateMachine):
             sage: NAF.process([3])
             (False, 's')
         """
+        if FSMOldOutputProcess:
+            from sage.misc.superseded import deprecation
+            deprecation(33333, "The output of Automaton.process "
+                               "(and thus of Automaton.__call__) "
+                               "will change. Please use the corresponding "
+                               "functions from FiniteStateMachine "
+                               "for the original output.")
+            return super(Automaton, self).process(*args, **kwargs)
+
         if not kwargs.has_key('full_output'):
             kwargs['full_output'] = True
 
@@ -4995,6 +5005,15 @@ class Transducer(FiniteStateMachine):
             ...
             ValueError: Invalid input sequence.
         """
+        if FSMOldOutputProcess:
+            from sage.misc.superseded import deprecation
+            deprecation(33333, "The output of Transducer.process "
+                               "(and thus of Transducer.__call__) "
+                               "will change. Please use the corresponding "
+                               "functions from FiniteStateMachine "
+                               "for the original output.")
+            return super(Transducer, self).process(*args, **kwargs)
+
         if not kwargs.has_key('full_output'):
             kwargs['full_output'] = True
 

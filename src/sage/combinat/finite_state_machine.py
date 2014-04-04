@@ -1168,11 +1168,11 @@ class FiniteStateMachine(SageObject):
     - ``input_alphabet`` and ``output_alphabet`` -- the input and
       output alphabets of this machine
 
-    - ``determine_alphabets`` -- If True, then the function
-      ``determine_alphabets()`` is called after ``data`` was read and
+    - ``determine_alphabets`` -- If ``True``, then the function
+      :meth:`.determine_alphabets` is called after ``data`` was read and
       processed, if ``False``, then not. If it is ``None``, then it is
       decided during the construction of the finite state machine
-      whether ``determine_alphabets()`` should be called.
+      whether :meth:`.determine_alphabets` should be called.
 
     - ``store_states_dict`` -- If ``True``, then additionally the states
       are stored in an interal dictionary for speed up.
@@ -3342,7 +3342,7 @@ class FiniteStateMachine(SageObject):
         - ``only_accessible_components`` -- If true (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
-          ``determine_alphabets``.
+          :meth:`.determine_alphabets`.
 
         OUTPUT:
 
@@ -4394,7 +4394,7 @@ class Automaton(FiniteStateMachine):
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
-          ``determine_alphabets``.
+          :meth:`.determine_alphabets`.
 
         OUTPUT:
 
@@ -4406,8 +4406,8 @@ class Automaton(FiniteStateMachine):
         (C, D), a)` in the new automaton if there are transitions `(A, C, a)`
         and `(B, D, a)` in the old automata.
 
-        The methods ``Automaton.intersection`` and
-        ``Automaton.cartesian_product`` are the same.
+        The methods :meth:`.intersection` and
+        :meth:`.cartesian_product` are the same (for automata).
 
         EXAMPLES::
 
@@ -4820,7 +4820,7 @@ class Transducer(FiniteStateMachine):
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
-          ``determine_alphabets``.
+          :meth:`.determine_alphabets`.
 
         OUTPUT:
 
@@ -4927,7 +4927,7 @@ class Transducer(FiniteStateMachine):
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
-          ``determine_alphabets``.
+          :meth:`.determine_alphabets`.
 
         OUTPUT:
 

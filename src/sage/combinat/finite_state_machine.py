@@ -118,7 +118,7 @@ Alternatively, we could call that by
 
 ::
 
-    sage: NAF.process([0, -1, 0, 1])
+    Sage: NAF.process([0, -1, 0, 1])
     (True, 'B')
 
 which gives additionally the state in which we arrived.
@@ -1746,8 +1746,18 @@ class FiniteStateMachine(SageObject):
 
     def __call__(self, *args, **kwargs):
         """
+        .. WARNING::
+
+            The default output of this method is scheduled to change.
+            This docstring describes the new default behaviour, which can
+            already be achieved by setting
+            ``FSMOldOutputProcess`` to ``False``.
+
         Calls either method :meth:`.composition` or :meth:`.process`
         (with ``full_output=False``).
+
+        By setting ``FSMOldOutputProcess`` to ``False``
+        the new desired output is produced.
 
         EXAMPLES::
 
@@ -4675,6 +4685,13 @@ class Automaton(FiniteStateMachine):
 
     def process(self, *args, **kwargs):
         """
+        .. WARNING::
+
+            The default output of this method is scheduled to change.
+            This docstring describes the new default behaviour, which can
+            already be achieved by setting
+            ``FSMOldOutputProcess`` to ``False``.
+
         Returns whether the automaton accepts the input and the state
         where the computation stops.
 
@@ -4707,6 +4724,9 @@ class Automaton(FiniteStateMachine):
         this case the output can be wrong. Use
         :meth:`.determinisation` to get a deterministic automaton
         machine and try again.
+
+        By setting ``FSMOldOutputProcess`` to ``False``
+        the new desired output is produced.
 
         EXAMPLES::
 
@@ -4922,6 +4942,13 @@ class Transducer(FiniteStateMachine):
 
     def process(self, *args, **kwargs):
         """
+        .. WARNING::
+
+            The default output of this method is scheduled to change.
+            This docstring describes the new default behaviour, which can
+            already be achieved by setting
+            ``FSMOldOutputProcess`` to ``False``.
+
         Returns whether the transducer accepts the input, the state
         where the computation stops and which output is generated.
 
@@ -4957,6 +4984,9 @@ class Transducer(FiniteStateMachine):
         Note that in the case the transducer is not
         deterministic, one possible path is gone. This means, that in
         this case the output can be wrong.
+
+        By setting ``FSMOldOutputProcess`` to ``False``
+        the new desired output is produced.
 
         EXAMPLES::
 

@@ -4437,8 +4437,8 @@ class Automaton(FiniteStateMachine):
              Transition from ('2', 'B') to ('2', 'A'): 1|-]
 
         For automata with epsilon-transitions, intersection is not well
-        defined. But for automata, epsilon-transitions can be removed by
-        :meth:`.remove_epsilon_transitions`.
+        defined. But for any finite state machine, epsilon-transitions can be
+        removed by :meth:`.remove_epsilon_transitions`.
 
         ::
 

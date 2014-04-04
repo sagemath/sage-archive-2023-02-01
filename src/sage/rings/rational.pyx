@@ -3761,7 +3761,7 @@ cdef class Z_to_Q(Morphism):
               From: Rational Field
               To:   Integer Ring
         """
-        return Q_to_Z(self._codomain, self._domain)
+        return Q_to_Z(self._codomain, self.domain())
 
 cdef class Q_to_Z(Map):
     r"""

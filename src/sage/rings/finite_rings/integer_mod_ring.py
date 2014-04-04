@@ -1037,7 +1037,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:
                 pass
-        to_ZZ = integer_ring.ZZ.coerce_map_from(S)
+        to_ZZ = integer_ring.ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 

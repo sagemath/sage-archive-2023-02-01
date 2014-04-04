@@ -286,7 +286,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             raise ValueError("Cannot scale by 0")
         R=self.domain().coordinate_ring()
         if isinstance(R, QuotientRing_generic):
-            phi=R.coerce_map_from(self.domain().ambient_space().coordinate_ring())
+            phi=R._internal_coerce_map_from(self.domain().ambient_space().coordinate_ring())
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
                 self._polys[i]=phi(self._polys[i]*t).lift()
         else:

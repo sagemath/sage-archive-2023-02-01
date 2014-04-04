@@ -1002,7 +1002,7 @@ cdef class SymbolicFunction(Function):
             for fname in sfunctions_funcs:
                 real_fname = '_%s_'%fname
                 if hasattr(self, '%s'%real_fname):
-                    slist.append(hash(getattr(self, real_fname).func_code))
+                    slist.append(hash(getattr(self, real_fname).__code__))
                 else:
                     slist.append(' ')
             self.__hcache = hash(tuple(slist))

@@ -3116,9 +3116,9 @@ cdef class NamedBinopMethod:
         self._func = func
         if name is None:
             if isinstance(func, types.FunctionType):
-                name = func.func_name
+                name = func.__name__
             if isinstance(func, types.UnboundMethodType):
-                name = func.im_func.func_name
+                name = func.__func__.__name__
             else:
                 name = func.__name__
         self._name = name

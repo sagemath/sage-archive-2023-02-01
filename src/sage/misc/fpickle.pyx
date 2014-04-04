@@ -11,7 +11,7 @@ def code_ctor(*args):
     EXAMPLES:
     This indirectly tests this function.
         sage: def foo(a,b,c=10): return a+b+c
-        sage: sage.misc.fpickle.reduce_code(foo.func_code)
+        sage: sage.misc.fpickle.reduce_code(foo.__code__)
         (<built-in function code_ctor>, ...)
         sage: unpickle_function(pickle_function(foo))
         <function foo at ...>
@@ -22,7 +22,7 @@ def reduce_code(co):
     """
     EXAMPLES:
         sage: def foo(N): return N+1
-        sage: sage.misc.fpickle.reduce_code(foo.func_code)
+        sage: sage.misc.fpickle.reduce_code(foo.__code__)
         (<built-in function code_ctor>, ...)
     """
     if co.co_freevars or co.co_cellvars:
@@ -57,7 +57,7 @@ def pickle_function(func):
         sage: h(10)
         11
     """
-    return cPickle.dumps(func.func_code)
+    return cPickle.dumps(func.__code__)
 
 def unpickle_function(pickled):
     """

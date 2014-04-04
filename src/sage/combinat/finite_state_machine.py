@@ -492,6 +492,11 @@ class FSMState(SageObject):
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
 
+    - ``color`` -- (default: ``None``) In order to distinguish states,
+      they can be given an arbitrary "color" (an arbitrary object).
+      This is used in :meth:`equivalence_classes`: states of different
+      colors are never considered to be equivalent.
+
     OUTPUT:
 
     Returns a state of a finite state machine.
@@ -511,7 +516,7 @@ class FSMState(SageObject):
     """
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False,
-                 hook=None):
+                 hook=None, color=None):
         """
         See :class:`FSMState` for more information.
 
@@ -539,6 +544,8 @@ class FSMState(SageObject):
                 self.hook = hook
             else:
                 raise TypeError, 'Wrong argument for hook.'
+
+        self.color = color
 
 
     def __lt__(self, other):
@@ -641,6 +648,7 @@ class FSMState(SageObject):
                        self.is_initial, self.is_final)
         if hasattr(self, 'hook'):
             new.hook = deepcopy(self.hook, memo)
+        new.color = deepcopy(self.color, memo)
         return new
 
 
@@ -3758,6 +3766,9 @@ class FiniteStateMachine(SageObject):
 
         The labels of the transitions are defined by ``function``.
 
+        The color of a new state is the tuple of colors of the
+        constituent states of ``self`` and ``other``.
+
         EXAMPLES::
 
             sage: F = Automaton([('A', 'B', 1), ('A', 'A', 0), ('B', 'A', 2)],
@@ -3823,6 +3834,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
+            state.color = map(lambda s: s.color, state.label())
 
         if only_accessible_components:
             if new_input_alphabet is None:
@@ -3923,8 +3935,10 @@ class FiniteStateMachine(SageObject):
 
         A new transducer.
 
-        The labels of the new finite state machine are pairs
-        of states of the original finite state machines.
+        The labels of the new finite state machine are pairs of states
+        of the original finite state machines. The color of a new
+        state is the tuple of colors of the constituent states.
+
 
         EXAMPLES::
 
@@ -4111,6 +4125,7 @@ class FiniteStateMachine(SageObject):
         for state in F.states():
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
+            state.color = map(lambda s: s.color, state.label())
 
         return F
 
@@ -4491,7 +4506,7 @@ class FiniteStateMachine(SageObject):
 
         # initialize with 0-equivalence
         classes_previous = []
-        key_0 = lambda state: (state.is_final, state.word_out)
+        key_0 = lambda state: (state.is_final, state.color, state.word_out)
         states_grouped = full_group_by(self.states(), key=key_0)
         classes_current = [equivalence_class for
                            (key,equivalence_class) in states_grouped]
@@ -4531,6 +4546,9 @@ class FiniteStateMachine(SageObject):
         OUTPUT:
 
         A finite state machine.
+
+        The labels of the new states are tuples of states of the
+        ``self``, corresponding to ``classes``.
 
         Assume that `c` is a class, and `a` and `b` are states in
         `c`. Then there is a bijection `\varphi` between the
@@ -4608,6 +4626,8 @@ class FiniteStateMachine(SageObject):
                     "Class %s mixes final and non-final states" % (c,)
                 assert new_state.word_out == state.word_out, \
                     "Class %s mixes different word_out" % (c,)
+                assert new_state.color == state.color, \
+                    "Class %s mixes different colors" % (c,)
                 assert sorted_transitions == sorted(
                     [(state_mapping[t.to_state], t.word_in, t.word_out)
                      for t in state.transitions]), \
@@ -4990,8 +5010,9 @@ class Automaton(FiniteStateMachine):
 
         A new automaton, which is deterministic.
 
-        The labels of the states of the new automaton are frozensets of
-        states of ``self``.
+        The labels of the states of the new automaton are frozensets
+        of states of ``self``. The color of a new state is the
+        frozenset of colors of the constituent states of ``self``.
 
         The input alphabet must be specified. It is restricted to nice
         cases: input words have to have length at most `1`.
@@ -5084,7 +5105,7 @@ class Automaton(FiniteStateMachine):
         for state in result.states():
             if any(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-
+            state.color = frozenset(map(lambda s: s.color, state.label()))
 
         return result
 
@@ -5385,10 +5406,27 @@ class Transducer(FiniteStateMachine):
             ....:                initial_states=[0],
             ....:                final_states=['A', 'B', 'C'],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
-            sage: T.simplification().transitions()
-            [Transition from ('B', 'C') to ('A',): 1|0,
-             Transition from ('A',) to ('A',): 1/2|0,
-             Transition from ('A',) to ('B', 'C'): 1/2|1]
+            sage: sorted(T.simplification().transitions())
+            [Transition from ('A',) to ('A',): 1/2|0,
+             Transition from ('A',) to ('B', 'C'): 1/2|1,
+             Transition from ('B', 'C') to ('A',): 1|0]
+
+        Illustrating the use of colors in order to avoid identification of states::
+
+            sage: T = Transducer( [[0,0,0,0], [0,1,1,1],
+            ....:                  [1,0,0,0], [1,1,1,1]],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0,1])
+            sage: sorted(T.simplification().transitions())
+            [Transition from (0, 1) to (0, 1): 0|0,
+             Transition from (0, 1) to (0, 1): 1|1]
+            sage: T.state(0).color = 0
+            sage: T.state(0).color = 1
+            sage: sorted(T.simplification().transitions())
+            [Transition from (0,) to (0,): 0|0,
+             Transition from (0,) to (1,): 1|1,
+             Transition from (1,) to (0,): 0|0,
+             Transition from (1,) to (1,): 1|1]
         """
         fsm = deepcopy(self)
         fsm.prepone_output()

@@ -321,7 +321,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
     `T(V) / I_Q = Cl(V, Q)` by `x_1 \wedge x_2 \wedge \cdots \wedge x_m`.
     This is motivated by the fact that `Cl(V, Q)` is the exterior algebra
     `\wedge V` when `Q = 0` (one can also think of a Clifford algebra as
-    a quantization of the exterior algebra).
+    a quantization of the exterior algebra). See :class:`ExteriorAlgebra`
+    for the concept of an exterior algebra.
 
     From the definition, a basis of `Cl(V, Q)` is given by monomials of
     the form
@@ -929,10 +930,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-        f = lambda x: self.prod(self.sum_of_terms( ((j,), m[j,i]) for j in range(n)
-                                                   if m[j,i] != 0 )
+        f = lambda x: self.prod(self._from_dict( {(j,): m[j,i] for j in range(n)},
+                                                 remove_zeros=True )
                                 for i in x)
-        return Cl.module_morphism(f, codomain=self,
+        return Cl.module_morphism(on_basis=f, codomain=self,
                                   category=GradedAlgebrasWithBasis(self.base_ring()))
 
     def lift_isometry(self, m, names=None):
@@ -994,9 +995,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
-        f = lambda x: Cl.prod(Cl.sum_of_terms(((j,), m[j,i]) for j in range(n) if m[j,i] != 0)
+        f = lambda x: Cl.prod(Cl._from_dict( {(j,): m[j,i] for j in range(n)},
+                                             remove_zeros=True )
                               for i in x)
-        return self.module_morphism(f, codomain=Cl,
+        return self.module_morphism(on_basis=f, codomain=Cl,
                                     category=GradedAlgebrasWithBasis(self.base_ring()))
 
     Element = CliffordAlgebraElement
@@ -1027,11 +1029,15 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     The exterior algebra of an `R`-module `V` can also be realized
     as the Clifford algebra of `V` for the quadratic form `Q` given by
-    `Q(v) = 0` for all vectors `v \in V`.
+    `Q(v) = 0` for all vectors `v \in V`. See :class:`CliffordAlgebra`
+    for the notion of a Clifford algebra.
 
     The exterior algebra of an `R`-module `V` is a `\ZZ`-graded connected
     Hopf superalgebra. It is commutative in the super sense (i.e., the
     odd elements anticommute and square to `0`).
+
+    This class implements the exterior algebra `\Lambda(R^n)` for
+    `n` a nonnegative integer.
 
     .. WARNING::
 
@@ -1047,7 +1053,19 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     INPUT:
 
-    - ``R`` -- the base ring
+    - ``R`` -- the base ring, *or* the free module whose exterior algebra
+      is to be computed
+
+    - ``names`` -- a list of strings to name the generators of the
+      exterior algebra; this list can either have one entry only (in which
+      case the generators will be called ``e + '0'``, ``e + '1'``, ...,
+      ``e + 'n-1'``, with ``e`` being said entry), or have ``n`` entries
+      (in which case these entries will be used directly as names for the
+      generators)
+
+    - ``n`` -- the number of generators, i.e., the rank of the free
+      module whose exterior algebra is to be computed (this doesn't have
+      to be provided if it can be inferred from the rest of the input)
 
     REFERENCES:
 
@@ -1133,7 +1151,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     def _latex_term(self, m):
         r"""
-        Return a `\LaTeX` representation of of the basis element indexed
+        Return a `\LaTeX` representation of the basis element indexed
         by ``m``.
 
         EXAMPLES::
@@ -1176,9 +1194,11 @@ class ExteriorAlgebra(CliffordAlgebra):
 
         INPUT:
 
-        - ``phi`` -- a linear map from `V \to W`
-        - ``names`` -- (default: ``'e'``) the names of the generators of the
-          Clifford algebra of the domain of (the map represented by) ``phi``
+        - ``phi`` -- a linear map `\phi` from `V` to `W`, encoded as a
+          matrix
+        - ``names`` -- (default: ``'e'``) the names of the generators of
+          the Clifford algebra of the domain of (the map represented by)
+          ``phi``
 
         OUTPUT:
 
@@ -1199,6 +1219,12 @@ class ExteriorAlgebra(CliffordAlgebra):
             b + c
             sage: L(y)
             a + b + 2*c
+            sage: L.on_basis()((1,))
+            a + b + 2*c
+            sage: p = L(E.one()); p
+            1
+            sage: p.parent()
+            The exterior algebra of rank 3 over Rational Field
             sage: L(x*y)
             -a^b - a^c + b^c
             sage: L(x)*L(y)
@@ -1228,10 +1254,11 @@ class ExteriorAlgebra(CliffordAlgebra):
         n = phi.nrows()
         R = self.base_ring()
         E = ExteriorAlgebra(R, names, n)
-        f = lambda x: self.prod(self.sum_of_terms( ((j,), phi[j,i]) for j in range(n)
-                                                   if phi[j,i] != 0)
-                                for i in x)
-        return self.module_morphism(f, codomain=E, category=GradedAlgebrasWithBasis(R))
+        zero = R.zero()
+        f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
+                                           remove_zeros=True )
+                             for i in x)
+        return self.module_morphism(on_basis=f, codomain=E, category=GradedAlgebrasWithBasis(R))
 
     def volume_form(self):
         """
@@ -1470,7 +1497,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
         def interior_product(self, x):
             r"""
-            Return the internal product or antiderivation of ``self`` with
+            Return the interior product or antiderivation of ``self`` with
             respect to ``x``.
 
             The *interior product* is a map `i_{\alpha} \colon \Lambda^k(V)

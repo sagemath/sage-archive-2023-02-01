@@ -1033,7 +1033,7 @@ If this all works, you can then make calls like:
                 v = self._expect.before
                 self.quit()
                 raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
-        except KeyboardInterrupt as msg:
+        except KeyboardInterrupt as err:
             i = 0
             while True:
                 try:
@@ -1049,7 +1049,7 @@ If this all works, you can then make calls like:
                     pass
                 else:
                     break
-            raise KeyboardInterrupt(msg)
+            raise err
 
     def _sendstr(self, str):
         r"""

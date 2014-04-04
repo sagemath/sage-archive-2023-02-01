@@ -26,6 +26,16 @@ Combinatorics
    sage/combinat/composition_signed
    sage/combinat/composition
 
+**Integer lists/matrices/vectors**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/integer_list
+   sage/combinat/integer_matrices
+   sage/combinat/integer_vector
+   sage/combinat/integer_vector_weighted
+
 **Partitions**
 
 .. toctree::
@@ -49,6 +59,15 @@ Combinatorics
    sage/combinat/derangements
    sage/combinat/integer_vectors_mod_permgroup
    sage/combinat/enumeration_mod_permgroup
+
+**Symmetric functions**
+
+.. toctree::
+   :maxdepth: 1
+
+   symmetric_functions
+   ncsf_qsym
+   ncsym
 
 **Trees**
 
@@ -91,10 +110,6 @@ Combinatorics
    sage/combinat/finite_class
    sage/combinat/hall_polynomial
    sage/combinat/matrices/hadamard_matrix
-   sage/combinat/integer_list
-   sage/combinat/integer_matrices
-   sage/combinat/integer_vector
-   sage/combinat/integer_vector_weighted
    sage/combinat/restricted_growth
    sage/combinat/yang_baxter_graph
    sage/combinat/gelfand_tsetlin_patterns
@@ -118,9 +133,6 @@ Combinatorics
    sage/combinat/binary_recurrence_sequences
 
    tableaux
-   symmetric_functions
-   ncsf_qsym
-   ncsym
    root_systems
 
    sage/combinat/kazhdan_lusztig

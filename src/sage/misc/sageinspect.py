@@ -1292,7 +1292,7 @@ def sage_getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     elif isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)
@@ -1638,7 +1638,7 @@ def _sage_getsourcelines_name_with_dot(object):
             raise IOError('could not find class definition')
 
     if inspect.ismethod(object):
-        object = object.im_func
+        object = object.__func__
     if inspect.isfunction(object):
         object = object.func_code
     if inspect.istraceback(object):

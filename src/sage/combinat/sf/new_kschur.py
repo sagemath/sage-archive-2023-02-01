@@ -580,7 +580,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
     class ElementMethods:
 
-        __mul__ = Magmas.ElementMethods.__mul__.im_func
+        __mul__ = Magmas.ElementMethods.__mul__.__func__
 
         def _mul_(self, other):
             r"""
@@ -1002,10 +1002,10 @@ class kSchur(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.im_func
-    _convert_map_from_ = KBoundedSubspaceBases.ParentMethods._convert_map_from_.im_func
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.im_func
+    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
+    _convert_map_from_ = KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
+    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
     def _repr_(self):
@@ -1221,11 +1221,11 @@ class kHomogeneous(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.im_func
+    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
     _convert_map_from_ =\
-            KBoundedSubspaceBases.ParentMethods._convert_map_from_.im_func
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.im_func
+            KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
+    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
     def _repr_(self):
@@ -1299,9 +1299,9 @@ class K_kSchur(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.im_func
+    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
+    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
     def _repr_(self):

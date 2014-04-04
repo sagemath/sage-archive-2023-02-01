@@ -917,13 +917,13 @@ class EnumeratedSetFromIterator_method_decorator(object):
             else:
                 if hasattr(f, '__module__'):
                     self.__module__ = f.__module__
-                elif hasattr(f, 'im_func'):
-                    self.__module__ = f.im_func.__module__
+                elif hasattr(f, '__func__'):
+                    self.__module__ = f.__func__.__module__
 
                 if hasattr(f, '__name__'):
                     self.__name__ = f.__name__
-                elif hasattr(f, 'im_func'):
-                    self.__name__ = f.im_func.__name__
+                elif hasattr(f, '__func__'):
+                    self.__name__ = f.__func__.__name__
 
         self.options = options
 

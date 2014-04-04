@@ -578,6 +578,27 @@ class CliffordAlgebra(CombinatorialFreeModule):
             False
             sage: Cl.has_coerce_map_from(Cln)
             False
+
+        Non-injective homomorphisms of base rings don't cause zero
+        values in the coordinate dictionary (this had to be manually
+        ensured)::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Qp = QuadraticForm(Integers(3), 3, [1,2,3,4,5,6])
+            sage: Cl = CliffordAlgebra(Q)
+            sage: Clp = CliffordAlgebra(Qp)
+            sage: a = Cl.basis()[(1,2)]
+            sage: a
+            e1*e2
+            sage: Clp(a) # so far so good
+            e1*e2
+            sage: Clp(3*a) # but now
+            0
+            sage: Clp(3*a) == 0
+            True
+            sage: b = Cl.basis()[(0,2)]
+            sage: Clp(3*a-4*b)
+            2*e0*e2
         """
         if isinstance(V, CliffordAlgebra):
             Q = self._quadratic_form
@@ -615,20 +636,27 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: M = ZZ^3
             sage: Clp( M((1,-3,2)) )
             x - 3*y + 2*z
+
+        Zero coordinates are handled appropriately::
+
+            sage: Q3 = QuadraticForm(Integers(3), 3, [1,2,3,4,5,6])
+            sage: Cl3 = CliffordAlgebra(Q3, names='xyz')  # different syntax for a change
+            sage: Cl3( M((1,-3,2)) )
+            x + 2*z
         """
         # This is the natural lift morphism of the underlying free module
         if x in self.free_module():
-            if x.parent().base_ring() == self.base_ring():
-                return self.element_class(self, {(i,): c for i,c in x.iteritems()})
             R = self.base_ring()
-            return self.element_class(self, {(i,): R(c) for i,c in x.iteritems()})
+            if x.parent().base_ring() == R:
+                return self.element_class(self, {(i,): c for i,c in x.iteritems()})
+            return self.element_class(self, {(i,): R(c) for i,c in x.iteritems() if R(c) != R.zero()})
 
         if isinstance(x, CliffordAlgebraElement):
             if x.parent() is self:
                 return x
             if self.has_coerce_map_from(x.parent()):
                 R = self.base_ring()
-                return self.element_class(self, {i: R(c) for i,c in x})
+                return self.element_class(self, {i: R(c) for i,c in x if R(c) != R.zero()})
 
         return super(CliffordAlgebra, self)._element_constructor_(x)
 

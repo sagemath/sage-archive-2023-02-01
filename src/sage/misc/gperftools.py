@@ -112,7 +112,7 @@ class Profiler(SageObject):
 
             sage: from sage.misc.gperftools import Profiler
             sage: Profiler()._libc()
-            <CDLL 'libc...', handle ... at ...>
+            <CDLL '...libc...', handle ... at ...>
         """
         global libc
         if libc is not None:

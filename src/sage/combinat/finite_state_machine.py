@@ -79,6 +79,7 @@ or by
     sage: fsm
     Finite state machine with 2 states
 
+
 A simple Automaton (recognizing NAFs)
 ---------------------------------------
 
@@ -100,25 +101,28 @@ directly in the definition of ``NAF`` by ``initial_states=['A']`` and
 
 So let's test the automaton with some input::
 
-    sage: NAF([0])[0]
+    sage: NAF([0])
     True
-    sage: NAF([0, 1])[0]
+    sage: NAF([0, 1])
     True
-    sage: NAF([1, -1])[0]
+    sage: NAF([1, -1])
     False
-    sage: NAF([0, -1, 0, 1])[0]
+    sage: NAF([0, -1, 0, 1])
     True
-    sage: NAF([0, -1, -1, -1, 0])[0]
+    sage: NAF([0, -1, -1, -1, 0])
     False
-    sage: NAF([-1, 0, 0, 1, 1])[0]
+    sage: NAF([-1, 0, 0, 1, 1])
     False
 
 Alternatively, we could call that by
 
 ::
 
-    sage: NAF.process([-1, 0, 0, 1, 1])[0]
-    False
+    sage: NAF.process([0, -1, 0, 1])
+    (True, 'B')
+
+which gives additionally the state in which we arrived.
+
 
 A simple transducer (binary inverter)
 -------------------------------------
@@ -141,7 +145,7 @@ We can look at the states and transitions::
 Now we apply a word to it and see what the transducer does::
 
     sage: inverter([0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1])
-    (True, 'A', [1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0])
+    [1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0]
 
 ``True`` means, that we landed in a final state, that state is labeled
 ``'A'``, and we also got an output.
@@ -150,7 +154,7 @@ Now we apply a word to it and see what the transducer does::
 A transducer which performs division by `3` in binary
 -----------------------------------------------------
 
-Now we build a transducer, which divides a binary number by 3.
+Now we build a transducer, which divides a binary number by `3`.
 The labels of the states are the remainder of the division.
 The transition function is
 
@@ -165,6 +169,7 @@ The transition function is
     ....:         write = 1
     ....:     return (state_to, write)
 
+which assumes reading a binary number from left to right.
 We get the transducer with
 
 ::
@@ -172,13 +177,20 @@ We get the transducer with
     sage: D = Transducer(f, initial_states=[0], final_states=[0],
     ....:                input_alphabet=[0, 1])
 
-Now we want to divide 13 by 3::
+Let us try to divide `12` by `3`::
+
+    sage: D([1, 1, 0, 0])
+    [0, 1, 0, 0]
+
+Now we want to divide `13` by `3`::
 
     sage: D([1, 1, 0, 1])
-    (False, 1, [0, 1, 0, 0])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
 
-So we have 13 : 3 = 4 and the reminder is 1. ``False`` means 13 is not
-divisible by 3.
+So we have `13 : 3 = 4` and the reminder is `1`. The raised ``ValueError``
+means `13` is not divisible by `3`.
 
 
 Using the hook-functions
@@ -236,7 +248,7 @@ automaton. Anyhow, we can make usage of the hook functions to extend
 our finite automaton by a counter::
 
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
-    sage: C = Automaton()
+    sage: C = FiniteStateMachine()
     sage: def update_counter(state, process):
     ....:     l = process.read_letter()
     ....:     process.fsm.counter += 1 if l == 1 else -1
@@ -521,8 +533,6 @@ class FSMState(SageObject):
             sage: FSMState('final', is_final=True)
             'final'
         """
-        if label is None or label == "":
-            raise ValueError, "You have to specify a label for the state."
         self._label_ = label
 
         if isinstance(word_out, list):
@@ -1735,7 +1745,8 @@ class FiniteStateMachine(SageObject):
 
     def __call__(self, *args, **kwargs):
         """
-        Calls either method :meth:`.composition` or :meth:`.process`.
+        Calls either method :meth:`.composition` or :meth:`.process`
+        (with ``full_output=False``).
 
         EXAMPLES::
 
@@ -1743,7 +1754,7 @@ class FiniteStateMachine(SageObject):
             sage: A = FSMState('A', is_initial=True, is_final=True)
             sage: binary_inverter = Transducer({A:[(A, 0, 1), (A, 1, 0)]})
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
-            (True, 'A', [1, 0, 1, 1, 0, 0])
+            [1, 0, 1, 1, 0, 0]
 
         ::
 
@@ -1762,6 +1773,8 @@ class FiniteStateMachine(SageObject):
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
         if hasattr(args[0], '__iter__'):
+            if not kwargs.has_key('full_output'):
+                kwargs['full_output'] = False
             return self.process(*args, **kwargs)
         raise TypeError, "Do not know what to do with that arguments."
 
@@ -2710,10 +2723,12 @@ class FiniteStateMachine(SageObject):
 
         A triple, where
 
-        - the first entry is true if the input string is accepted,
+        - the first entry is ``True`` if the input string is accepted,
 
         - the second gives the reached state after processing the
-          input tape, and
+          input tape (This is a state with label ``None`` if the input
+          could not be processed, i.e., when at one point no
+          transition to go could be found.), and
 
         - the third gives a list of the output labels used during
           processing (in the case the finite state machine runs as
@@ -2721,15 +2736,13 @@ class FiniteStateMachine(SageObject):
 
         Note that in the case the finite state machine is not
         deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong. Use
-        :meth:`.determinisation` to get a deterministic finite state
-        machine and try again.
+        this case the output can be wrong.
 
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = FSMState('A', is_initial = True, is_final = True)
-            sage: binary_inverter = Transducer({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter = FiniteStateMachine({A:[(A, 0, 1), (A, 1, 0)]})
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
@@ -2742,20 +2755,27 @@ class FiniteStateMachine(SageObject):
 
             sage: NAF_ = FSMState('_', is_initial = True, is_final = True)
             sage: NAF1 = FSMState('1', is_final = True)
-            sage: NAF = Automaton(
+            sage: NAF = FiniteStateMachine(
             ....:     {NAF_: [(NAF_, 0), (NAF1, 1)], NAF1: [(NAF_, 0)]})
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
-            ....: [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
+            ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
-
         """
+        if not kwargs.has_key('full_output'):
+            kwargs['full_output'] = True
+
         it = self.iter_process(*args, **kwargs)
         for _ in it:
             pass
-        return (it.accept_input, it.current_state, it.output_tape)
+
+        # process output (is the same for the abstract finite state machine)
+        if kwargs['full_output']:
+            return (it.accept_input, it.current_state, it.output_tape)
+        else:
+            return (it.accept_input, it.current_state, it.output_tape)
 
 
-    def iter_process(self, input_tape=None, initial_state=None):
+    def iter_process(self, input_tape=None, initial_state=None, **kwargs):
         """
         See `process` for more informations.
 
@@ -2769,7 +2789,7 @@ class FiniteStateMachine(SageObject):
             sage: it.output_tape
             [1, 0, 0]
         """
-        return FSMProcessIterator(self, input_tape, initial_state)
+        return FSMProcessIterator(self, input_tape, initial_state, **kwargs)
 
 
     #*************************************************************************
@@ -4363,18 +4383,18 @@ class Automaton(FiniteStateMachine):
         ....:               initial_states=['P'], final_states=['Q'])
         sage: A
         Automaton with 2 states
-        sage: A([0])[0]
+        sage: A([0])
         True
-        sage: A([1,1,0])[0]
+        sage: A([1, 1, 0])
         True
-        sage: A([1,0,1])[0]
+        sage: A([1, 0, 1])
         False
 
-    Note that the full output of the commands above gives more
-    information and looks like this::
+    Note that the full output of the commands can be obtained by
+    calling :meth:`.process` and looks like this::
 
-        sage: A([1,0,1])
-        (False, 'P', [])
+        sage: A.process([1,0,1])
+        (False, 'P')
 
     TESTS::
 
@@ -4489,7 +4509,7 @@ class Automaton(FiniteStateMachine):
             sage: auto.is_deterministic()
             False
             sage: auto.process(list('aaab'))
-            (False, 'A', [])
+            (False, 'A')
             sage: auto.states()
             ['A', 'C', 'B']
             sage: auto.determinisation()
@@ -4652,6 +4672,89 @@ class Automaton(FiniteStateMachine):
         return self.quotient(self.equivalence_classes())
 
 
+    def process(self, *args, **kwargs):
+        """
+        Returns whether the automaton accepts the input and the state
+        where the computation stops.
+
+        INPUT:
+
+        - ``input_tape`` -- The input tape can be a list with entries from
+          the input alphabet.
+
+        - ``initial_state`` -- (default: ``None``) The state in which
+          to start. If this parameter is ``None`` and there is only
+          one initial state in the machine, then this state is taken.
+
+        - ``full_output`` -- (default: ``True``) If set, then the full
+          output is given, otherwise only if the sequence is accepted
+          or not (the first entry below only).
+
+        OUTPUT:
+
+        The full output is a pair, where
+
+        - the first entry is ``True`` if the input string is accepted and
+
+        - the second gives the reached state after processing the
+          input tape (This is a state with label ``None`` if the input
+          could not be processed, i.e., when at one point no
+          transition to go could be found.).
+
+        Note that in the case the automaton is not
+        deterministic, one possible path is gone. This means, that in
+        this case the output can be wrong. Use
+        :meth:`.determinisation` to get a deterministic automaton
+        machine and try again.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: NAF_ = FSMState('_', is_initial = True, is_final = True)
+            sage: NAF1 = FSMState('1', is_final = True)
+            sage: NAF = Automaton(
+            ....:     {NAF_: [(NAF_, 0), (NAF1, 1)], NAF1: [(NAF_, 0)]})
+            sage: [NAF.process(w) for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
+            ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
+            [(True, '_'), (True, '1'), (False, None),
+             (True, '1'), (False, None), (False, None)]
+
+        If we just want a condensed output, we use::
+
+            sage: [NAF.process(w, full_output=False)
+            ....:     for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
+            ....:               [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
+            [True, True, False, True, False, False]
+
+        It is equivalent to::
+
+            sage: [NAF(w) for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
+            ....:                   [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
+            [True, True, False, True, False, False]
+
+        TESTS::
+
+            sage: NAF.process([2, 2])
+            (False, None)
+            sage: NAF.add_transition(('_', 's', 3))
+            Transition from '_' to 's': 3|-
+            sage: NAF.process([3])
+            (False, 's')
+        """
+        if not kwargs.has_key('full_output'):
+            kwargs['full_output'] = True
+
+        it = self.iter_process(*args, **kwargs)
+        for _ in it:
+            pass
+
+        # process output
+        if kwargs['full_output']:
+            return (it.accept_input, it.current_state)
+        else:
+            return it.accept_input
+
+
 #*****************************************************************************
 
 
@@ -4694,10 +4797,10 @@ class Transducer(FiniteStateMachine):
         sage: T
         Transducer with 2 states
         sage: T([0])
-        (True, 'N', [1])
+        [1]
         sage: T([1,1,0])
-        (True, 'N', [0, 0, 1])
-        sage: ZZ(T(15.digits(base=2)+[0])[2], base=2)
+        [0, 0, 1]
+        sage: ZZ(T(15.digits(base=2)+[0]), base=2)
         16
 
     Note that we have padded the binary input sequence by a `0` so
@@ -4807,6 +4910,111 @@ class Transducer(FiniteStateMachine):
         return fsm.quotient(fsm.equivalence_classes())
 
 
+    def process(self, *args, **kwargs):
+        """
+        Returns whether the transducer accepts the input, the state
+        where the computation stops and which output is generated.
+
+        INPUT:
+
+        - ``input_tape`` -- The input tape can be a list with entries from
+          the input alphabet.
+
+        - ``initial_state`` -- (default: ``None``) The state in which
+          to start. If this parameter is ``None`` and there is only
+          one initial state in the machine, then this state is taken.
+
+        - ``full_output`` -- (default: ``True``) If set, then the full
+          output is given, otherwise only the generated output (the
+          third entry below only). If the input is not accepted, a
+          ``ValueError`` is raised.
+
+        OUTPUT:
+
+        The full output is a triple, where
+
+        - the first entry is ``True`` if the input string is accepted,
+
+        - the second gives the reached state after processing the
+          input tape (This is a state with label ``None`` if the input
+          could not be processed, i.e., when at one point no
+          transition to go could be found.), and
+
+        - the third gives a list of the output labels used during
+          processing (in the case the finite state machine runs as
+          transducer).
+
+        Note that in the case the transducer is not
+        deterministic, one possible path is gone. This means, that in
+        this case the output can be wrong.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = FSMState('A', is_initial = True, is_final = True)
+            sage: binary_inverter = Transducer({A:[(A, 0, 1), (A, 1, 0)]})
+            sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
+            (True, 'A', [1, 0, 1, 1, 0, 0])
+
+        Alternatively, we can invoke this function by::
+
+            sage: binary_inverter([0, 1, 0, 0, 1, 1])
+            [1, 0, 1, 1, 0, 0]
+
+        The following transducer transforms `0^n 1` to `1^n 2`::
+
+            sage: T = Transducer([(0, 0, 0, 1), (0, 1, 1, 2)])
+            sage: T.state(0).is_initial = True
+            sage: T.state(1).is_final = True
+
+        We can see the different possibilites of the output by::
+
+            sage: [T.process(w) for w in [[1], [0, 1], [0, 0, 1], [0, 1, 1],
+            ....:                         [0], [0, 0], [2, 0], [0, 1, 2]]]
+            [(True, 1, [2]), (True, 1, [1, 2]),
+             (True, 1, [1, 1, 2]), (False, None, None),
+             (False, 0, [1]), (False, 0, [1, 1]),
+             (False, None, None), (False, None, None)]
+
+        If we just want a condensed output, we use::
+
+            sage: [T.process(w, full_output=False)
+            ....:      for w in [[1], [0, 1], [0, 0, 1]]]
+            [[2], [1, 2], [1, 1, 2]]
+            sage: T.process([0, 1, 2], full_output=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+
+        It is equivalent to::
+
+            sage: [T(w) for w in [[1], [0, 1], [0, 0, 1]]]
+            [[2], [1, 2], [1, 1, 2]]
+            sage: T([0, 1, 2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+        """
+        if not kwargs.has_key('full_output'):
+            kwargs['full_output'] = True
+
+        it = self.iter_process(*args, **kwargs)
+        for _ in it:
+            pass
+
+        # process output
+        if kwargs['full_output']:
+            if it.current_state.label() is None:
+                return (it.accept_input, it.current_state, None)
+            else:
+                return (it.accept_input, it.current_state, it.output_tape)
+        else:
+            if not it.accept_input:
+                raise ValueError, "Invalid input sequence."
+            return it.output_tape
+
+
+
 #*****************************************************************************
 
 
@@ -4907,7 +5115,7 @@ class FSMProcessIterator:
         sage: it.accept_input
         True
     """
-    def __init__(self, fsm, input_tape=None, initial_state=None):
+    def __init__(self, fsm, input_tape=None, initial_state=None, **kwargs):
         """
         See :class:`FSMProcessIterator` for more information.
 
@@ -5014,7 +5222,7 @@ class FSMProcessIterator:
                 except StopIteration:
                     # this means input tape is finished
                     if len(next_word) > 0:
-                        self.accept_input = False
+                        self.current_state = FSMState(None)
                     raise StopIteration
 
             # process transition
@@ -5031,7 +5239,7 @@ class FSMProcessIterator:
             # this means, either input tape is finished or
             # someone has thrown StopIteration manually (in one
             # of the hooks)
-            if not self.current_state.is_final:
+            if self.current_state.label is None or not self.current_state.is_final:
                 self.accept_input = False
             if not hasattr(self, 'accept_input'):
                 self.accept_input = True
@@ -5127,7 +5335,8 @@ class FSMProcessIterator:
         OUTPUT:
 
         The next transition according to ``word_in``. It is assumed
-        that we are in state ``self.current_state``.
+        that we are in state ``self.current_state``. If no transition
+        matches, a ``ValueError`` is thorwn.
 
         EXAMPLES::
 
@@ -5137,11 +5346,15 @@ class FSMProcessIterator:
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
             sage: it.get_next_transition([0])
             Transition from 'A' to 'A': 0|1
+            sage: it.get_next_transition([2])
+            Traceback (most recent call last):
+            ...
+            ValueError: No transition with input [2] found.
         """
         for transition in self.current_state.transitions:
             if transition.word_in == word_in:
                 return transition
-        raise ValueError
+        raise ValueError, "No transition with input %s found." % (word_in,)
 
 
 #*****************************************************************************

@@ -1178,10 +1178,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Integer Ring
               To:   Rational Field, None)
             sage: cm.discover_coercion(RR, QQ)
-            (None,
+            (None, (map internal to coercion system -- copy before use)
              Generic map:
               From: Rational Field
-              To:   Real Field with 53 bits of precision...)
+              To:   Real Field with 53 bits of precision)
 
         Otherwise, try and compute an appropriate cover::
 

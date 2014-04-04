@@ -4615,6 +4615,120 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def merged_transitions(self):
+        """
+        Merges transitions which have the same ``from_state``,
+        ``to_state`` and ``word_out`` while adding their ``word_in``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A finite state machine with merged transitions. If no mergers occur,
+        return ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
+            sage: T = Transducer([[1, 2, 1/4, 1], [1, -2, 1/4, 1], [1, -2, 1/2, 1],
+            ....:                 [2, 2, 1/4, 1], [2, -2, 1/4, 1], [-2, -2, 1/4, 1],
+            ....:                 [-2, 2, 1/4, 1], [2, 3, 1/2, 1], [-2, 3, 1/2, 1]],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: T1 = T.merged_transitions()
+            sage: T1 is T
+            False
+            sage: sorted(T1.transitions())
+            [Transition from -2 to -2: 1/4|1,
+             Transition from -2 to 2: 1/4|1,
+             Transition from -2 to 3: 1/2|1,
+             Transition from 1 to 2: 1/4|1,
+             Transition from 1 to -2: 3/4|1,
+             Transition from 2 to -2: 1/4|1,
+             Transition from 2 to 2: 1/4|1,
+             Transition from 2 to 3: 1/2|1]
+
+        Applying the function again does not change the result::
+
+            sage: T2 = T1.merged_transitions()
+            sage: T2 is T1
+            True
+        """
+
+        def key(transition):
+            return (transition.to_state, transition.word_out)
+
+        new = self.empty_copy()
+        changed = False
+        state_dict = {}
+        memo = {}
+
+        for state in self.states():
+            new_state = deepcopy(state,memo)
+            state_dict[state] = new_state
+            new.add_state(new_state)
+
+        for state in self.states():
+            grouped_transitions = itertools.groupby(sorted(state.transitions, key=key), key=key)
+            for (to_state, word_out), transitions in grouped_transitions:
+                transition_list = list(transitions)
+                changed = changed or len(transition_list) > 1
+                word_in = 0
+                for transition in transition_list:
+                    if hasattr(transition.word_in, '__iter__') and len(transition.word_in) == 1:
+                        word_in += transition.word_in[0]
+                    else:
+                        raise TypeError('%s does not have a list of length 1 as word_in' % transition)
+                new.add_transition((state, to_state, word_in, word_out))
+
+        if changed:
+            return new
+        else:
+            return self
+
+
+    def markov_chain_simplification(self):
+        """
+        Consider ``self`` as Markov chain with probabilities as input labels
+        and simplify it.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        Simplified version of ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
+            sage: T = Transducer([[1, 2, 1/4, 0], [1, -2, 1/4, 0], [1, -2, 1/2, 0],
+            ....:                 [2, 2, 1/4, 1], [2, -2, 1/4, 1], [-2, -2, 1/4, 1],
+            ....:                 [-2, 2, 1/4, 1], [2, 3, 1/2, 2], [-2, 3, 1/2, 2]],
+            ....:                initial_states=[1],
+            ....:                final_states=[3],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: T1 = T.markov_chain_simplification()
+            sage: sorted(T1.transitions())
+            [Transition from ((1,),) to ((2, -2),): 1|0,
+             Transition from ((2, -2),) to ((2, -2),): 1/2|1,
+             Transition from ((2, -2),) to ((3,),): 1/2|2]
+        """
+        current = self.merged_transitions()
+        number_states = len(current.states())
+
+        while True:
+            current = current.simplification()
+            new_number_states = len(current.states())
+            new = current.merged_transitions()
+            if new is current and number_states == new_number_states:
+                return new
+            current = new
+            number_states = new_number_states
+
+
     # *************************************************************************
     # other
     # *************************************************************************

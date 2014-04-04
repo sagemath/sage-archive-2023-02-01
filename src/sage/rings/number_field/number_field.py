@@ -21,6 +21,8 @@ AUTHORS:
 
 - Christian Stump (2012-11): added conversion to universal cyclotomic field
 
+- Julian Rueth (2014-04-03): absolute number fields are unique parents
+
 .. note::
 
    Unlike in PARI/GP, class group computations *in Sage* do *not* by default
@@ -75,6 +77,7 @@ We do some arithmetic in a tower of relative number fields::
 """
 #*****************************************************************************
 #       Copyright (C) 2004, 2005, 2006, 2007 William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -90,6 +93,7 @@ import sage.interfaces.gap
 import sage.rings.arith
 
 import sage.rings.complex_field
+from sage.rings.polynomial.polynomial_element import is_Polynomial
 import sage.rings.real_mpfr
 import sage.rings.real_mpfi
 import sage.rings.complex_double
@@ -196,6 +200,7 @@ import sage.groups.abelian_gps.abelian_group
 import sage.rings.complex_interval_field
 
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.factory import UniqueFactory
 import number_field_element
 import number_field_element_quadratic
 from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
@@ -209,37 +214,32 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
-
-_nf_cache = {}
-def NumberField(polynomial, name=None, check=True, names=None, cache=True,
-                embedding=None, latex_name=None,
-                assume_disc_small=False,
-                maximize_at_primes=None):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None):
     r"""
-    Return *the* number field defined by the given irreducible
-    polynomial and with variable with the given name. If check is True
-    (the default), also verify that the defining polynomial is
-    irreducible and over `\QQ`.
+    Return *the* number field (or tower of number fields) defined by the
+    irreducible ``polynomial``.
 
     INPUT:
 
-        - ``polynomial`` - a polynomial over `\QQ` or a number field,
-          or a list of polynomials.
-        - ``name`` - a string (default: 'a'), the name of the generator
-        - ``check`` - bool (default: True); do type checking and
+        - ``polynomial`` - a polynomial over `\QQ` or a number field, or a list
+          of such polynomials.
+        - ``name`` - a string or a list of strings (default: ``'a'``), the
+          names of the generators
+        - ``check`` - a boolean (default: ``True``); do type checking and
           irreducibility checking.
-        - ``embedding`` - image of the generator in an ambient field
-          (default: None)
-        - ``assume_disc_small`` -- (default: False); if True, assume
-          that no square of a prime greater than PARI's primelimit
-          (which should be 500000); only applies for absolute fields
-          at present.
-        - ``maximize_at_primes`` -- (default: None) None or a list of
-          primes; if not None, then the maximal order is computed by
-          maximizing only at the primes in this list, which completely
-          avoids having to factor the discriminant, but of course can
-          lead to wrong results; only applies for absolute fields at
+        - ``embedding`` - ``None``, an element, or a list of elements, the
+          images of the generators in an ambient field (default: ``None``)
+        - ``latex_name`` - ``None``, a string, or a list of strings (default:
+          ``None``), how the generators are printed for latex output
+        - ``assume_disc_small`` -- a boolean (default: ``False``); if ``True``,
+          assume that no square of a prime greater than PARI's primelimit
+          (which should be 500000); only applies for absolute fields at
           present.
+        - ``maximize_at_primes`` -- ``None`` or a list of primes (default:
+          ``None``); if not ``None``, then the maximal order is computed by
+          maximizing only at the primes in this list, which completely avoids
+          having to factor the discriminant, but of course can lead to wrong
+          results; only applies for absolute fields at present.
 
     EXAMPLES::
 
@@ -278,14 +278,14 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     Number fields are globally unique::
 
-        sage: K.<a>= NumberField(x^3-5)
+        sage: K.<a> = NumberField(x^3-5)
         sage: a^3
         5
-        sage: L.<a>= NumberField(x^3-5)
+        sage: L.<a> = NumberField(x^3-5)
         sage: K is L
         True
 
-    Having different defining polynomials makes the fields different::
+    The variable name of the defining polynomial has no influence on equality of fields::
 
         sage: x = polygen(QQ, 'x'); y = polygen(QQ, 'y')
         sage: k.<a> = NumberField(x^2 + 3)
@@ -294,6 +294,8 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         Number Field in a with defining polynomial x^2 + 3
         sage: m
         Number Field in a with defining polynomial y^2 + 3
+        sage: k == m
+        True
 
     In case of conflict of the generator name with the name given by the preparser, the name given by the preparser takes precedence::
 
@@ -361,9 +363,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
           Defn: a -> b^2
 
     The ``QuadraticField`` and ``CyclotomicField`` constructors
-    create an embedding by default unless otherwise specified.
-
-    ::
+    create an embedding by default unless otherwise specified::
 
         sage: K.<zeta> = CyclotomicField(15)
         sage: CC(zeta)
@@ -399,11 +399,6 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     ::
 
-        sage: sage.rings.number_field.number_field._nf_cache = {}
-        sage: K.<x> = CyclotomicField(5)[]
-        sage: W.<a> = NumberField(x^2 + 1); W
-        Number Field in a with defining polynomial x^2 + 1 over its base field
-        sage: sage.rings.number_field.number_field._nf_cache = {}
         sage: W1 = NumberField(x^2+1,'a')
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
@@ -418,77 +413,116 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         sage: F(R) == L    # indirect doctest
         True
 
+    Check that :trac:`11670` has been fixed::
+
+        sage: K.<a> = NumberField(x^2 - x - 1)
+        sage: loads(dumps(K)) is K
+        True
+        sage: K.<a> = NumberField(x^3 - x - 1)
+        sage: loads(dumps(K)) is K
+        True
+        sage: K.<a> = CyclotomicField(7)
+        sage: loads(dumps(K)) is K
+        True
+
+    Another problem that was found while working on :trac:`11670`,
+    ``maximize_at_primes`` and ``assume_disc_small`` were lost when pickling::
+
+        sage: K.<a> = NumberField(x^3-2, assume_disc_small=True, maximize_at_primes=[2], latex_name='\\alpha', embedding=2^(1/3))
+        sage: L = loads(dumps(K))
+        sage: L._assume_disc_small
+        True
+        sage: L._maximize_at_primes
+        (2,)
+
     """
-    if name is None and names is None:
-        raise TypeError, "You must specify the name of the generator."
-    if not names is None:
+    if names is not None:
         name = names
+    if isinstance(polynomial, (list,tuple)):
+        return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
-    if isinstance(polynomial, (list, tuple)):
-        return NumberFieldTower(polynomial, name, embeddings=embedding)
+    return NumberField_factory(polynomial=polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
-    name = sage.structure.parent_gens.normalize_names(1, name)
+class NumberFieldFactory(UniqueFactory):
+    def create_key_and_extra_args(self, polynomial, name, check, embedding, latex_name, assume_disc_small, maximize_at_primes):
+        name = sage.structure.parent_gens.normalize_names(1, name)
 
-    if not isinstance(polynomial, polynomial_element.Polynomial):
-        try:
-            polynomial = polynomial.polynomial(QQ)
-        except (AttributeError, TypeError):
-            raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
+        if not is_Polynomial(polynomial):
+            try:
+                polynomial = polynomial.polynomial(QQ)
+            except (AttributeError, TypeError):
+                raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
 
-    # convert ZZ to QQ
-    R = polynomial.base_ring()
-    Q = polynomial.parent().base_extend(R.fraction_field())
-    polynomial = Q(polynomial)
+        # convert polynomial to a polynomial over a field
+        polynomial = polynomial.change_ring(polynomial.base_ring().fraction_field())
 
-    if cache:
-        key = (polynomial, polynomial.base_ring(), name, latex_name,
-               embedding, embedding.parent() if embedding is not None else None,
-               assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if _nf_cache.has_key(key):
-            K = _nf_cache[key]()
-            if not K is None: return K
+        # normalize name
+        if name is None:
+            name = 'a'
 
-    if isinstance(R, NumberField_generic):
-        S = R.extension(polynomial, name, check=check)
-        if cache:
-            _nf_cache[key] = weakref.ref(S)
-        return S
+        # normalize embedding
+        if isinstance(embedding, (list,tuple)):
+            if len(embedding) != 1:
+                raise TypeError, "embedding must be a list of length 1"
+            embedding = embedding[0]
 
-    if polynomial.degree() == 2:
-        K = NumberField_quadratic(polynomial, name, latex_name, check, embedding,
-             assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
-    else:
-        K = NumberField_absolute(polynomial, name, latex_name, check, embedding,
-             assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        # normalize latex_name
+        if isinstance(latex_name, (list, tuple)):
+            if len(latex_name) != 1:
+                raise TypeError, "latex_name must be a list of length 1"
+            latex_name = latex_name[0]
 
-    if cache:
-        _nf_cache[key] = weakref.ref(K)
-    return K
+        if maximize_at_primes is not None:
+            maximize_at_primes = tuple(maximize_at_primes)
 
+        return (polynomial, name, embedding, latex_name, maximize_at_primes), {"check":check, "assume_disc_small":assume_disc_small}
 
-def NumberFieldTower(v, names, check=True, embeddings=None):
+    def create_object(self, version, key, check, assume_disc_small):
+        polynomial, name, embedding, latex_name, maximize_at_primes = key
+
+        if isinstance(polynomial.base_ring(), NumberField_generic):
+            return polynomial.base_ring().extension(polynomial, name, check=check, embedding=embedding)
+        if polynomial.degree() == 2:
+            return NumberField_quadratic(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        else:
+            return NumberField_absolute(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+NumberField_factory = NumberFieldFactory("NumberField_factory")
+
+def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None):
     """
-    Return the tower of number fields defined by the polynomials or
-    number fields in the list v.
-
-    This is the field `K_0` generated by a root of ``v[0]`` over its base field
-    `K_1`, which is in turn generated by a root of ``v[1]`` over its base field
-    `K_2`, etc, until `K_d = \QQ` where `d` is the size of the list `v`.  If
-    all is False, then each ``v[i]`` must be irreducible over the previous
-    fields.  Otherwise a list of all possible fields defined by all those
-    polynomials is output.
-
-    If names defines a variable name a, say, then the generators of the
-    intermediate number fields are a0, a1, a2, ...
+    Create the tower of number fields defined by the polynomials in the list
+    ``polynomials``.
 
     INPUT:
 
-    -  ``v`` - a list of polynomials or number fields
-    -  ``names`` - variable names
-    -  ``check`` - bool (default: True) only relevant if all is False. Then
-       check irreducibility of each input polynomial.
+    - ``polynomials`` - a list of polynomials. Each entry must be polynomial
+      which is irreducible over the number field generated by the roots of the
+      following entries.
+    - ``names`` - a list of strings or a string, the names of the generators of
+      the relative number fields. If a single string, then names are generated
+      from that string.
+    - ``check`` - a boolean (default: ``True``), whether to check that the
+      polynomials are irreducible
+    - ``embeddings`` - a list of elemenst or ``None`` (default: ``None``),
+      embeddings of the relative number fields in an ambient field.
+    - ``latex_names`` - a list of strings or ``None`` (default: ``None``), names
+      used to print the generators for latex output.
+    - ``assume_disc_small`` -- a boolean (default: ``False``); if ``True``,
+      assume that no square of a prime greater than PARI's primelimit
+      (which should be 500000); only applies for absolute fields at
+      present.
+    - ``maximize_at_primes`` -- ``None`` or a list of primes (default:
+      ``None``); if not ``None``, then the maximal order is computed by
+      maximizing only at the primes in this list, which completely avoids
+      having to factor the discriminant, but of course can lead to wrong
+      results; only applies for absolute fields at present.
 
-    OUTPUT: a single number field or a list of number fields
+    OUTPUT:
+
+    Returns the relative number field generated by a root of the first entry of
+    ``polynomials`` over the relative number field generated by root of the
+    second entry of ``polynonmials`` ... over the number field over which the
+    last entry of ``polynomials`` is defined.
 
     EXAMPLES::
 
@@ -561,59 +595,34 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
         sage: NumberFieldTower([x^2 + 1, x^2 + 2], ['a','b'])
         Number Field in a with defining polynomial x^2 + 1 over its base field
     """
-    # there is an "all" option below -- we do not use it, since
-    # I couldn't get it to work with PARI reliably, and it isn't
-    # very useful in practice.
     try:
-        names = sage.structure.parent_gens.normalize_names(len(v), names)
+        names = sage.structure.parent_gens.normalize_names(len(polynomials), names)
     except IndexError:
         names = sage.structure.parent_gens.normalize_names(1, names)
-        if len(v) > 1:
-            names = ['%s%s'%(names[0], i) for i in range(len(v))]
+        if len(polynomials) > 1:
+            names = ['%s%s'%(names[0], i) for i in range(len(polynomials))]
 
     if embeddings is None:
-        embeddings = [None] * len(v)
+        embeddings = [None] * len(polynomials)
+    if latex_names is None:
+        latex_names = [None] * len(polynomials)
 
-    if not isinstance(v, (list, tuple)):
-        raise TypeError, "v must be a list or tuple"
-    if len(v) == 0:
+    if not isinstance(polynomials, (list, tuple)):
+        raise TypeError, "polynomials must be a list or tuple"
+
+    if len(polynomials) == 0:
         return QQ
-    if len(v) == 1:
-        #if all:
-        #    f = v[0]
-        #    if not isinstance(f, polynomial_element.Polynomial):
-        #        f = QQ['x'](v[0])
-        #    F = f.factor()
-        #    return [NumberField(F[i][0], names='%s%s'%(names[0],str(i))) for i in range(len(F))]
-        #else:
-        return NumberField(v[0], names=names, embedding=embeddings[0])
-    f = v[0]
-    w = NumberFieldTower(v[1:], names=names[1:], embeddings=embeddings[1:])
-    if isinstance(f, polynomial_element.Polynomial):
-        var = f.variable_name()
-    else:
-        var = 'x'
+    if len(polynomials) == 1:
+        return NumberField(polynomials[0], names=names, check=check, embedding=embeddings[0], latex_name=latex_names[0], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
+    # create the relative number field defined by f over the tower defined by polynomials[1:]
+    f = polynomials[0]
     name = names[0]
-    #if all:
-    #    R = w[0][var]  # polynomial ring
-    #else:
+    w = NumberFieldTower(polynomials[1:], names=names[1:], check=check, embeddings=embeddings[1:], latex_names=latex_names[1:], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+    var = f.variable_name() if is_Polynomial(f) else 'x'
+
     R = w[var]  # polynomial ring
-
-    f = R(f)
-    i = 0
-
-    sep = chr(ord(name[0]) + 1)
-    #if all:
-    #    z = []
-    #    for k in w:
-    #        for g, _ in f.factor():
-    #            z.append(k.extension(g, names='%s%s%s'%(name, sep, str(i)), check=False))
-    #            i += 1
-    #    return z
-    #else:
-    return w.extension(f, name, check=check, embedding=embeddings[0])
-
+    return w.extension(R(f), name, check=check, embedding=embeddings[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
 
 def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', **args):
     r"""
@@ -622,7 +631,6 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
     perfect square.
 
     INPUT:
-
 
     -  ``D`` - a rational number
 
@@ -780,9 +788,7 @@ def is_QuadraticField(x):
     """
     return isinstance(x, NumberField_quadratic)
 
-
-_cyclo_cache = {}
-def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
+class CyclotomicFieldFactory(UniqueFactory):
     r"""
     Return the `n`-th cyclotomic field, where n is a positive integer,
     or the universal cyclotomic field if ``n==0``.
@@ -897,25 +903,28 @@ def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
         sage: cf9(z3)
         zeta9^3
     """
-    n = ZZ(n)
-    if n == 0:
-        from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
-        return UniversalCyclotomicField(names=names, bracket=bracket, embedding=embedding)
-    if n < 0:
-        raise ValueError, "n (=%s) must be a positive integer"%n
+    def create_key(self, n=0, names=None, bracket="()", embedding=True):
+        n = ZZ(n)
+        if n < 0:
+            raise ValueError, "n (=%s) must be a positive integer"%n
+        if n > 0:
+            bracket = None
+            if embedding is True:
+                embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
+            if names is None:
+                names = "zeta%s"%n
+            names = sage.structure.parent_gens.normalize_names(1, names)
 
-    if names is None:
-        names = "zeta%s"%n
-    names = sage.structure.parent_gens.normalize_names(1, names)
-    if embedding is True:
-        embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
-    key = (n, names, embedding)
-    if _cyclo_cache.has_key(key):
-        K = _cyclo_cache[key]()
-        if not K is None: return K
-    K = NumberField_cyclotomic(n, names, embedding=embedding)
-    _cyclo_cache[key] = weakref.ref(K)
-    return K
+        return n, names, embedding, bracket
+
+    def create_object(self, version, key, **extra_args):
+        n, names, embedding, bracket = key
+        if n == 0:
+            from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
+            return UniversalCyclotomicField(names=names, bracket=bracket, embedding=embedding)
+        else:
+            return NumberField_cyclotomic(n, names, embedding=embedding)
+CyclotomicField = CyclotomicFieldFactory("CyclotomicField")
 
 def is_CyclotomicField(x):
     """
@@ -2410,7 +2419,7 @@ class NumberField_generic(number_field_base.NumberField):
             True
             sage: m = loads(dumps(k))
             sage: k is m
-            False
+            True
             sage: k == m
             True
 
@@ -4087,7 +4096,7 @@ class NumberField_generic(number_field_base.NumberField):
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return map(self, B)
 
-    def extension(self, poly, name=None, names=None, check=True, embedding=None):
+    def extension(self, poly, name=None, names=None, check=True, embedding=None, latex_name=None):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -4132,7 +4141,7 @@ class NumberField_generic(number_field_base.NumberField):
         if name is None:
             raise TypeError, "the variable name must be specified."
         from sage.rings.number_field.number_field_rel import NumberField_relative
-        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding)
+        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding, latex_name=latex_name)
 
     def factor(self, n):
         r"""
@@ -5966,25 +5975,29 @@ class NumberField_absolute(NumberField_generic):
             x -- a non number field element x, e.g., a list, integer,
             rational, or polynomial.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + 2/3)
             sage: K._coerce_non_number_field_element_in(-7/8)
             -7/8
             sage: K._coerce_non_number_field_element_in([1,2,3])
             3*a^2 + 2*a + 1
 
-        The list is just turned into a polynomial in the generator.
+        The list is just turned into a polynomial in the generator::
+
             sage: K._coerce_non_number_field_element_in([0,0,0,1,1])
             -2/3*a - 2/3
 
         Any polynomial whose coefficients can be coerced to rationals will
-        coerce, e.g., this one in characteristic 7.
+        coerce, e.g., this one in characteristic 7::
+
             sage: f = GF(7)['y']([1,2,3]); f
             3*y^2 + 2*y + 1
             sage: K._coerce_non_number_field_element_in(f)
             3*a^2 + 2*a + 1
 
-        But not this one over a field of order 27.
+        But not this one over a field of order 27::
+
             sage: F27.<g> = GF(27)
             sage: f = F27['z']([g^2, 2*g, 1]); f
             z^2 + 2*g*z + g^2
@@ -5994,7 +6007,8 @@ class NumberField_absolute(NumberField_generic):
             TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
 
         One can also coerce an element of the polynomial quotient ring
-        that's isomorphic to the number field:
+        that's isomorphic to the number field::
+
             sage: K.<a> = NumberField(x^3 + 17)
             sage: b = K.polynomial_quotient_ring().random_element()
             sage: K(b)
@@ -6214,21 +6228,6 @@ class NumberField_absolute(NumberField_generic):
             a
         """
         return self.gen()
-
-
-    def __reduce__(self):
-        """
-        TESTS::
-
-            sage: Z = var('Z')
-            sage: K.<w> = NumberField(Z^3 + Z + 1)
-            sage: L = loads(dumps(K))
-            sage: L
-            Number Field in w with defining polynomial Z^3 + Z + 1
-            sage: print L == K
-            True
-        """
-        return NumberField_absolute_v1, (self.polynomial(), self.variable_name(), self.latex_variable_name(), self.gen_embedding())
 
     def optimized_representation(self, names=None, both_maps=True):
         """
@@ -7901,19 +7900,6 @@ class NumberField_cyclotomic(NumberField_absolute):
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
 
-    def __reduce__(self):
-        """
-        TESTS::
-
-            sage: K.<zeta7> = CyclotomicField(7)
-            sage: L = loads(dumps(K))
-            sage: L
-            Cyclotomic Field of order 7 and degree 6
-            sage: L == K
-            True
-        """
-        return NumberField_cyclotomic_v1, (self.__n, self.variable_name(), self.gen_embedding())
-
     def construction(self):
         F,R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
@@ -9088,7 +9074,6 @@ class NumberField_quadratic(NumberField_absolute):
         # might be modified
         self._NumberField_generic__gen = self._element_class(self, parts)
 
-
         # NumberField_absolute.__init__(...) set _zero_element and
         # _one_element to NumberFieldElement_absolute values, which is
         # wrong (and dangerous; such elements can actually be used to
@@ -9183,22 +9168,6 @@ class NumberField_quadratic(NumberField_absolute):
                 return self.__disc
         else:
             return NumberField_generic.discriminant(self, v)
-
-    def __reduce__(self):
-        """
-        This is used in pickling quadratic number fields.
-
-        TESTS::
-
-            sage: K.<z7> = QuadraticField(7)
-            sage: L = loads(dumps(K))
-            sage: L
-            Number Field in z7 with defining polynomial x^2 - 7
-            sage: L == K
-            True
-        """
-        return NumberField_quadratic_v1, (self.polynomial(), self.variable_name(), self.gen_embedding())
-
 
     def is_galois(self):
         """

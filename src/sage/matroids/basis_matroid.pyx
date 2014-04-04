@@ -987,7 +987,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         if self.full_rank() != other.full_rank():
             return None
         if self.full_rank() == 0:
-            return {e:e for e in self.groundset()}
+            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}        
         if self.bases_count() != other.bases_count():
             return None
 

@@ -286,7 +286,7 @@ class KleberTreeNode(Element):
             \lambda^{(i+1)} \mid \overline{\Lambda}_a \right),
 
             p_i^{(a)} = \left( \alpha_a \mid \lambda^{(i)} \right)
-            - \sum_{j > i} max(j - i, 0) L_j^{(a)},
+            - \sum_{j > i} (j - i) L_j^{(a)},
 
         where `\lambda^{(i)}` is the weight node at depth `i` in the path
         to `x` from the root and we set `\lambda^{(j)} = \lambda` for all

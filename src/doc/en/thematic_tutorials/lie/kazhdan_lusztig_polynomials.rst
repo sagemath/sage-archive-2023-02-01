@@ -15,7 +15,7 @@ Kazhdan-Lusztig polynomials as follows::
     sage: P.<q> = LaurentPolynomialRing(QQ)
     sage: KL = KazhdanLusztigPolynomial(W,q)
     sage: KL.R(s2, s2*s1*s3*s2)
-    q^3 - 3*q^2 + 3*q - 1
+    -1 + 3*q - 3*q^2 + q^3
     sage: KL.P(s2, s2*s1*s3*s2)
     q + 1
 

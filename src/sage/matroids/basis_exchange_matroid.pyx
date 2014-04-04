@@ -1919,18 +1919,8 @@ cdef class BasisExchangeMatroid(Matroid):
         if self.full_rank() != other.full_rank():
             return None
         if self.full_rank() == 0 or self.full_corank() == 0:
-            return {e:e for e in self.groundset()}
-        if self.full_rank() == 1:
-            if len(self.loops()) == len(other.loops()):
-                return {e:e for e in self.groundset()}
-            else:
-                return None
-        if self.full_corank() == 1:
-            if len(self.coloops()) == len(other.coloops()):
-                return {e:e for e in self.groundset()}
-            else:
-                return None
-
+            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}
+        
         if self._weak_invariant() != other._weak_invariant():
             return None
         PS = self._weak_partition()

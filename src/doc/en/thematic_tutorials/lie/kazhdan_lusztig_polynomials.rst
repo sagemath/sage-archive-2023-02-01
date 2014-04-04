@@ -17,7 +17,7 @@ Kazhdan-Lusztig polynomials as follows::
     sage: KL.R(s2, s2*s1*s3*s2)
     -1 + 3*q - 3*q^2 + q^3
     sage: KL.P(s2, s2*s1*s3*s2)
-    q + 1
+    1 + q
 
 Thus we have the Kazhdan-Lusztig R and P polynomials.
 

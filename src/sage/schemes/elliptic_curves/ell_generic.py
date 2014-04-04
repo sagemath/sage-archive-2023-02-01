@@ -1228,16 +1228,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def base_extend(self, R):
         r"""
-        Returns a new curve with the same `a`-invariants but defined over a new ring.
+        Return the base extension of ``self`` to `R`.
 
         INPUT:
 
-        - ``R`` -- either a ring into which the curve's `a`-invariants
-          may be coerced, or a morphism which may be applied to them.
+        - ``R`` -- either a ring into which the `a`-invariants of
+          ``self`` may be converted, or a morphism which may be
+          applied to them.
 
         OUTPUT:
 
-        A new elliptic curve with the same `a`-invariants, defined over the new ring.
+        An elliptic curve over the new ring whose `a`-invariants are
+        the images of the `a`-invariants of ``self``.
 
         EXAMPLES::
 
@@ -1245,17 +1247,26 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 5
             sage: E1=E.base_extend(GF(125,'a')); E1
             Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field in a of size 5^3
+        """
+        return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
+
+    def change_ring(self, R):
+        """
+        Return the base change of ``self`` to `R`.
+
+        This has the same effect as ``self.base_extend(R)``.
+
+        EXAMPLES::
+
             sage: F2=GF(5^2,'a'); a=F2.gen()
             sage: F4=GF(5^4,'b'); b=F4.gen()
             sage: h=F2.hom([a.charpoly().roots(ring=F4,multiplicities=False)[0]],F4)
             sage: E=EllipticCurve(F2,[1,a]); E
             Elliptic Curve defined by y^2 = x^3 + x + a over Finite Field in a of size 5^2
-            sage: E.base_extend(h)
+            sage: E.change_ring(h)
             Elliptic Curve defined by y^2 = x^3 + x + (4*b^3+4*b^2+4*b+3) over Finite Field in b of size 5^4
         """
-        return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
-
-    change_ring = base_extend
+        return self.base_extend(R)
 
     def base_ring(self):
         r"""

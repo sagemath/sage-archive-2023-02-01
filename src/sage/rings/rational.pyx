@@ -2940,6 +2940,26 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def trunc(self):
+        """
+        Round this rational number to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: (5/3).trunc()
+            1
+            sage: (-5/3).trunc()
+            -1
+            sage: QQ(42).trunc()
+            42
+            sage: QQ(-42).trunc()
+            -42
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_tdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
+
     def round(Rational self, mode="away"):
         """
         Returns the nearest integer to ``self``, rounding away from 0 by

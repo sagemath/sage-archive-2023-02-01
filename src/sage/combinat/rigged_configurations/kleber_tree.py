@@ -327,9 +327,9 @@ class KleberTreeNode(Element):
         I = self.parent()._classical_ct.index_set()
         for a,m in self.up_root:
             p = self.weight[a]
-            for dim in self.parent().B:
-                if dim[0] == a and dim[1] > self.depth:
-                    p -= dim[1] - self.depth # Formula says this should just be 1
+            for r,s in self.parent().B:
+                if r == a and s > self.depth:
+                    p -= s - self.depth # Formula says this should just be 1
             mult *= binomial(m + p, m)
 
         prev_up_root = self.up_root
@@ -338,9 +338,9 @@ class KleberTreeNode(Element):
             root_diff = cur.up_root - prev_up_root
             for a,m in root_diff:
                 p = cur.weight[a]
-                for dim in self.parent().B:
-                    if dim[0] == a and dim[1] > cur.depth:
-                        p -= dim[1] - cur.depth
+                for r,s in self.parent().B:
+                    if r == a and s > cur.depth:
+                        p -= s - cur.depth
                 mult *= binomial(m + p, m)
             prev_up_root = cur.up_root
             cur = cur.parent_node
@@ -666,11 +666,11 @@ class KleberTree(Parent, UniqueRepresentation):
         for i in range(0, n):
             L.append([0])
 
-        for dim in B:
-            while len(L[0]) < dim[1]: # Add more columns if needed
+        for r,s in B:
+            while len(L[0]) < s: # Add more columns if needed
                 for row in L:
                     row.append(0)
-            L[dim[0] - 1][dim[1] - 1] += 1 # The -1 is b/c of indexing
+            L[r - 1][s - 1] += 1 # The -1 is b/c of indexing
 
         # Perform a special case of the algorithm for the root node
         weight_basis = self._classical_ct.root_system().weight_space().basis()

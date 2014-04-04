@@ -95,6 +95,41 @@ class CombinatorialFreeModuleElement(Element):
         """
         return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
 
+    @cached_method
+    def __hash__(self):
+        """
+        Return the hash value for ``self``.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: B = F.basis()
+            sage: f = B['a'] + 3*B['c']
+            sage: hash(f)
+            6429418278783588506           # 64-bit
+            726440090                     # 32-bit
+
+            sage: F = RootSystem(['A',2]).ambient_space()
+            sage: f = F.simple_root(0)
+            sage: hash(f)
+            6920829894162680369           # 64-bit
+            -528971215                    # 32-bit
+
+        This uses the recipe that was proposed for frozendicts in `PEP
+        0416 <http://legacy.python.org/dev/peps/pep-0416/>`_ (and adds
+        the hash of the parent). This recipe relies on the hash
+        function for frozensets which uses tricks to mix the hash
+        values of the items in case they are similar.
+
+        .. TODO::
+
+            It would be desirable to make the hash value depend on the
+            hash value of the parent. See :trac:`15959`.
+        """
+        return hash(frozenset(self._monomial_coefficients.items()))
+
     def monomial_coefficients(self):
         """
         Return the internal dictionary which has the combinatorial objects

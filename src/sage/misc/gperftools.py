@@ -206,8 +206,11 @@ class Profiler(SageObject):
 
             sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
-            sage: prof._pprof()     # random output
-            'pprof'
+            sage: try:
+            ....:     pp = prof._pprof()
+            ....:     assert isinstance(pp, basestring)
+            ....: except OSError:
+            ....:     pass    # not installed
         """
         potential_names = ['pprof', 'google-pprof']
         from subprocess import check_output, CalledProcessError

@@ -1254,7 +1254,6 @@ class ExteriorAlgebra(CliffordAlgebra):
         n = phi.nrows()
         R = self.base_ring()
         E = ExteriorAlgebra(R, names, n)
-        zero = R.zero()
         f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
                                            remove_zeros=True )
                              for i in x)

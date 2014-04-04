@@ -329,7 +329,7 @@ class KleberTreeNode(Element):
             p = self.weight[a]
             for r,s in self.parent().B:
                 if r == a and s > self.depth:
-                    p -= s - self.depth # Formula says this should just be 1
+                    p -= s - self.depth
             mult *= binomial(m + p, m)
 
         prev_up_root = self.up_root

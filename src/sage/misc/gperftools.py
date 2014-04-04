@@ -50,7 +50,8 @@ class Profiler(SageObject):
         
         INPUT:
     
-        - ``filename`` -- string or ``None`` (default). The file name to log to. By default, a if 
+        - ``filename`` -- string or ``None`` (default). The file name
+          to log to. By default, a new temporary file is created.
 
         EXAMPLES::
 

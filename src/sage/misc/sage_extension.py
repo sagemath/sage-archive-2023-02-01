@@ -59,8 +59,9 @@ class SageMagics(Magics):
         r"""
         Profile C function calls
 
-        :param s: file to be loaded
-        :type s: string
+        INPUT:
+        
+        - ``s`` -- string. Sage command to profile.
 
         EXAMPLES::
 

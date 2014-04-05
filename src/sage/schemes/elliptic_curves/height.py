@@ -1,5 +1,5 @@
 r"""
-Canonical heights for elliptic curves over number fields.
+Canonical heights for elliptic curves over number fields
 
 Also, rigorous lower bounds for the canonical height of non-torsion
 points, implementing the algorithms in [CS]_ (over `\QQ`) and [TT]_,
@@ -14,17 +14,17 @@ AUTHORS:
 REFERENCES:
 
 .. [CS] J.E.Cremona, and S. Siksek, Computing a Lower Bound for the
-Canonical Height on Elliptic Curves over `\QQ`, ANTS VII Proceedings:
-F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture Notes in
-Computer Science 4076 (2006), pages 275-286.
+   Canonical Height on Elliptic Curves over `\QQ`, ANTS VII
+   Proceedings: F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture
+   Notes in Computer Science 4076 (2006), pages 275-286.
 
 .. [TT] T. Thongjunthug, Computing a lower bound for the canonical
-height on elliptic curves over number fields, Math. Comp. 79 (2010),
-pages 2431-2449.
+   height on elliptic curves over number fields, Math. Comp. 79
+   (2010), pages 2431-2449.
 
 .. [CPS] J.E. Cremona, M. Prickett and S. Siksek, Height Difference
-Bounds For Elliptic Curves over Number Fields, Journal of Number
-Theory 116(1) (2006), pages 42-68.
+   Bounds For Elliptic Curves over Number Fields, Journal of Number
+   Theory 116(1) (2006), pages 42-68.
 
 """
 ##############################################################################
@@ -55,11 +55,11 @@ from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
 
-from period_lattice_region import PeriodicRegion
+from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
 
 class UnionOfIntervals:
     r"""
-    A class which represents a union of closed intervals in
+    A class representing a finite union of closed intervals in
     `\RR` which can be scaled, shifted, intersected, etc.
 
     The intervals are represented as an ordered list of their
@@ -76,6 +76,12 @@ class UnionOfIntervals:
         ([-Infinity, 1] U [2, 3])
         sage: ~R | (10*R + 100)
         ([-Infinity, 1] U [2, 3] U [110, 120] U [130, +Infinity])
+
+    .. TODO::
+
+        Unify :class:`UnionOfIntervals` with the class ``RealSet``
+        introduced by :trac:`13125`; see :trac:`16063`.
+
     """
     def __init__(self, endpoints):
         r"""
@@ -103,9 +109,9 @@ class UnionOfIntervals:
             ValueError: endpoints must be given in order
         """
         if len(endpoints) % 2:
-            raise ValueError, "an even number of endpoints must be given (got %s)" % len(endpoints)
+            raise ValueError("an even number of endpoints must be given (got %s)" % len(endpoints))
         if endpoints != sorted(endpoints):
-            raise ValueError, "endpoints must be given in order"
+            raise ValueError("endpoints must be given in order")
         self._endpoints = endpoints
 
     def finite_endpoints(self):
@@ -182,7 +188,7 @@ class UnionOfIntervals:
 
     def __mul__(left, right):
         r"""
-        Scale a union of inervals on the left or right.
+        Scale a union of intervals on the left or right.
 
         EXAMPLES::
 
@@ -233,11 +239,11 @@ class UnionOfIntervals:
 
     def __invert__(self):
         r"""
-        Return the closure of the compliment of self.
+        Return the closure of the complement of self.
 
         .. NOTE::
 
-        We take the closure because open intervals are not supported.
+            We take the closure because open intervals are not supported.
 
         EXAMPLES::
 
@@ -277,12 +283,12 @@ class UnionOfIntervals:
         OUTPUT:
 
         A new UnionOfIntervals instance representing the subset of
-        '\R' equal to those reals in any/all/condition of the
+        '\RR' equal to those reals in any/all/condition of the
         UnionOfIntervals in the list.
 
         .. NOTE::
 
-        This is a static method for the class.
+            This is a static method for the class.
 
         EXAMPLES::
 
@@ -329,7 +335,7 @@ class UnionOfIntervals:
 
         .. NOTE::
 
-        This is a class method.
+            This is a class method.
 
         EXAMPLES::
 
@@ -359,7 +365,7 @@ class UnionOfIntervals:
 
         .. NOTE::
 
-        This is a class method.
+            This is a class method.
 
         EXAMPLES::
 
@@ -646,11 +652,10 @@ def min_on_disk(f, tol, max_iter=10000):
                 bisect.insort(L, (-fs.lower(), fs.relative_diameter(), s, s_in_disk))
 
     # If we get here, then even after max_iter iterations the tolerance has not been reached.
-    raise ValueError, "too many iterations"
+    raise ValueError("too many iterations")
 
 two_pi_i_CDF = CDF(0, 2*RDF.pi())
 two_pi_i_CIF = CIF(0, 2*RIF.pi())
-i_CIF = CIF.gen()
 
 # Ideas: We know tau, so we know the direction of the diagonal.
 #        We can solve for x in p1, will this allow us to find the maxima exactly?
@@ -659,7 +664,7 @@ def rat_term_CIF(z, try_strict=True):
     r"""
     Compute the value of `u/(1-u)^2` in CIF.
 
-    Here, `\text{rat_term}(z) = u/(1-u)^2` where `u=exp(2*pi*i*z)`.
+    Here, `\text{rat_term}(z) = u/(1-u)^2` where `u=\exp(2\pi i z)`.
 
     INPUT:
 
@@ -755,8 +760,9 @@ def eps(err, is_real):
 
 
 class EllipticCurveCanonicalHeight:
-    r""" Class for computing canonical heights of points on elliptic
-    curves defined over number fields, including rigorous lower bounds for
+    r"""
+    Class for computing canonical heights of points on elliptic curves
+    defined over number fields, including rigorous lower bounds for
     the canonical height of non-torsion points.
 
     EXAMPLES::
@@ -813,9 +819,9 @@ class EllipticCurveCanonicalHeight:
             if is_NumberField(K):
                 self.K = K
             else:
-                raise ValueError, "EllipticCurveCanonicalHeight class can only be created from an elliptic curve defined over a number field"
+                raise ValueError("EllipticCurveCanonicalHeight class can only be created from an elliptic curve defined over a number field")
         else:
-            raise ValueError, "EllipticCurveCanonicalHeight class can only be created from an elliptic curve"
+            raise ValueError("EllipticCurveCanonicalHeight class can only be created from an elliptic curve")
 
     def __repr__(self):
         r"""
@@ -924,8 +930,9 @@ class EllipticCurveCanonicalHeight:
             sage: 3*alpha.log()
             0.347263296676126
         """
+        from sage.rings.polynomial.polynomial_ring import polygen
         b2, b4, b6, b8 = [v(b) for b in self.E.b_invariants()]
-        x = v.codomain()['x'].gen()
+        x = polygen(v.codomain())
         f = 4*x**3 + b2*x**2 + 2*b4*x + b6
         g = x**4 - b4*x**2 - 2*b6*x - b8
         F = f.reverse() << (4-f.degree())
@@ -1130,7 +1137,7 @@ class EllipticCurveCanonicalHeight:
         INPUT:
 
         - ``xi`` (real) - the real x-coordinate of a point on the
-          curve in the connected component with respoect to a real
+          curve in the connected component with respect to a real
           embedding.
 
         - ``v`` (embedding) - a real embedding of the number field.
@@ -1139,7 +1146,7 @@ class EllipticCurveCanonicalHeight:
 
         A real number in the interval [0.5,1] giving the elliptic
         logarithm of a point on `E` with `x`-coordinate ``xi``, on the
-        connected component with respect to the emnedding `v`, scaled
+        connected component with respect to the embedding `v`, scaled
         by the real period.
 
         EXAMPLES:
@@ -1180,7 +1187,7 @@ class EllipticCurveCanonicalHeight:
             return 1
         L = self.E.period_lattice(v)
         w1, w2 = L.basis()
-        from constructor import EllipticCurve
+        from sage.schemes.elliptic_curves.constructor import EllipticCurve
         ER = EllipticCurve([v(ai) for ai in self.E.a_invariants()])
         xP, yP = ER.lift_x(xi).xy()
         t = L.e_log_RC(xP,yP) / w1
@@ -1414,7 +1421,7 @@ class EllipticCurveCanonicalHeight:
           and raise an error for other fields.
 
         - ``N`` (int) - The number of terms to use in the
-         `q`-expansion of `\wp`.
+          `q`-expansion of `\wp`.
 
         - ``domain`` (complex field) - the model of `\CC` to use, for
           example ``CDF`` of ``CIF`` (default).
@@ -1460,7 +1467,7 @@ class EllipticCurveCanonicalHeight:
             if self.K is QQ:
                 v = QQ.hom(RR)
             else:
-                raise ValueError, "must specify embedding"
+                raise ValueError("must specify embedding")
         # pre-compute some constants
         tau = self.tau(v)
         const_term = 1/CC(12)
@@ -1514,7 +1521,7 @@ class EllipticCurveCanonicalHeight:
           and raise an error for other fields.
 
         - ``N`` (int, default 20) - The number of terms to use in the
-         `q`-expansion of `\wp`.
+          `q`-expansion of `\wp`.
 
         - ``abs_only`` (boolean, default False) - flag to determine
           whether (if True) the error adjustment should use the
@@ -1552,7 +1559,7 @@ class EllipticCurveCanonicalHeight:
             if self.K is QQ:
                 v = QQ.hom(RR)
             else:
-                raise ValueError, "must specify embedding"
+                raise ValueError("must specify embedding")
 
         tau = self.tau(v)
         fk, fk_err = self.fk_intervals(v, N)
@@ -1603,7 +1610,7 @@ class EllipticCurveCanonicalHeight:
         - ``v`` (embedding) - an embedding of the number field.
 
         - ``N`` (int) - The number of terms to use in the
-         `q`-expansion of `\wp`.
+          `q`-expansion of `\wp`.
 
         - ``half`` (boolean, default False) - if True, use an array of
           size `N\times N/2` instead of `N\times N`.
@@ -1784,9 +1791,9 @@ class EllipticCurveCanonicalHeight:
 
         .. note::
 
-           A ``True`` result is rigorous; ``False`` only means that
-           the attempt failed: trying again with larger `N` may yield
-           ``True``.
+            A ``True`` result is rigorous; ``False`` only means that
+            the attempt failed: trying again with larger `N` may yield
+            ``True``.
 
         EXAMPLE::
 
@@ -1804,7 +1811,7 @@ class EllipticCurveCanonicalHeight:
             True
 
         Using `N=5` we can prove that 0.1 is a lower bound (in fact we
-        only need n=2), but not that 0.2 is::
+        only need `N=2`), but not that 0.2 is::
 
             sage: H.test_mu(0.1, 5)
             B_1(0.100000000000000) = 1.51580969677387
@@ -1835,7 +1842,6 @@ class EllipticCurveCanonicalHeight:
         Bk = []
         for n in ZZ.range(1, N+1):
             b = self.B(n, mu)
-            b = RR(b)
             if verbose:
                 print "B_%s(%s) = %s" % (n, mu, b)
             if b < 1:
@@ -1874,7 +1880,8 @@ class EllipticCurveCanonicalHeight:
         curve (defined over its ground field), which has good
         reduction at all primes, has canonical height greater than
         `\mu`, and such that it is not possible (at least without
-        increasing ``n_max`` to prove the same for `\mu` *``tol``.
+        increasing ``n_max``) to prove the same for
+        `\mu\cdot\text{tol}`.
 
         EXAMPLES:
 
@@ -1959,8 +1966,8 @@ class EllipticCurveCanonicalHeight:
         rigorously that every point of infinite order on the elliptic
         curve (defined over its ground field) has canonical height
         greater than `\mu`, and such that it is not possible (at least
-        without increasing ``n_max`` to prove the same for `\mu`
-        *``tol``.
+        without increasing ``n_max``) to prove the same for
+        `\mu\cdot\text{tol}`.
 
         EXAMPLES:
 

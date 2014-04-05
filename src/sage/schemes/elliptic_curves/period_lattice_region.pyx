@@ -1,4 +1,6 @@
 r"""
+Regions in fundamental domains of period lattices
+
 This module is used to represent sub-regions of a fundamental parallelogram
 of the period lattice of an elliptic curve, used in computing minimum height
 bounds.
@@ -14,10 +16,9 @@ AUTHORS:
 
 REFERENCES:
 
-.. [TT] T. Thongjunthug, Computing a lower bound for the canonical
-height on elliptic curves over number fields, Math. Comp. 79 (2010),
-pages 2431-2449.
-
+.. [T] T. Thongjunthug, Computing a lower bound for the canonical
+   height on elliptic curves over number fields, Math. Comp. 79
+   (2010), pages 2431-2449.
 
 """
 
@@ -615,7 +616,8 @@ cdef class PeriodicRegion:
             sage: S.plot() + point(S.innermost_point())
         """
         if self.is_empty():
-            raise ValueError, "empty"
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("region is empty")
         inside = self
         while not inside.is_empty():
             self, inside = inside, inside.contract(corners=False)

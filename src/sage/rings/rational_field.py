@@ -505,7 +505,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         INPUT:
 
-        - ``B`` - a positive integer; upper bound on the primes generated.
+        - ``B`` -- a positive integer; upper bound on the primes generated.
 
         OUTPUT:
 
@@ -513,20 +513,20 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         .. note::
 
-        This function exists for compatibility with the related number
-        field method, though it returns prime integers, not ideals.
+            This function exists for compatibility with the related number
+            field method, though it returns prime integers, not ideals.
 
         EXAMPLES::
 
-        sage: it = QQ.primes_of_bounded_norm_iter(10)
-        sage: list(it)
-        [2, 3, 5, 7]
-        sage: list(QQ.primes_of_bounded_norm_iter(1))
-        []
+            sage: it = QQ.primes_of_bounded_norm_iter(10)
+            sage: list(it)
+            [2, 3, 5, 7]
+            sage: list(QQ.primes_of_bounded_norm_iter(1))
+            []
         """
         try:
             B = ZZ(B.ceil())
-        except TypeError, AttributeError:
+        except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
         if B<2:
@@ -619,17 +619,18 @@ class RationalField(_uniq, number_field_base.NumberField):
     def places(self, all_complex=False, prec=None):
         r"""
         Return the collection of all infinite places of self, which
-        in this case is just the embedding of self into $\R$.
+        in this case is just the embedding of self into `\RR`.
 
-        By default, this returns homomorphisms into RR. If prec is 
-        not None, we simply return places into RealField(prec)
-        (or RDF if prec=53).
+        By default, this returns homomorphisms into ``RR``.  If
+        ``prec`` is not None, we simply return homomorphisms into
+        ``RealField(prec)`` (or ``RDF`` if ``prec=53``).
 
-        There is an optional flag all_complex, which defaults to False. If
-        all_complex is True, then the real embeddings are returned as
-        embeddings into the corresponding complex field.
+        There is an optional flag ``all_complex``, which defaults to
+        False.  If ``all_complex`` is True, then the real embeddings
+        are returned as embeddings into the corresponding complex
+        field.
 
-        For consistancy with non-trivial number fields. 
+        For consistency with non-trivial number fields.
 
         EXAMPLES::
 
@@ -684,8 +685,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         return self.hom([CC(1)])
 
     def residue_field(self, p, check=True):
-        """
-        Return the residue field of `\Q` at the prime `p`, for
+        r"""
+        Return the residue field of `\QQ` at the prime `p`, for
         consistency with other number fields.
 
         INPUT:

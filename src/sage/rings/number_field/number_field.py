@@ -2873,7 +2873,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         INPUT:
 
-        - ``B`` - a positive integer; upper bound on the norms of the primes generated.
+        - ``B`` -- a positive integer; upper bound on the norms of the
+          primes generated.
 
         OUTPUT:
 
@@ -2882,24 +2883,24 @@ class NumberField_generic(number_field_base.NumberField):
 
         .. note::
 
-        The output is not sorted by norm, but by size of the underlying
-        rational prime.
+            The output is not sorted by norm, but by size of the
+            underlying rational prime.
 
         EXAMPLES::
 
-        sage: K.<i>=QuadraticField(-1)
-        sage: it=K.primes_of_bounded_norm_iter(10)
-        sage: list(it)
-        [Fractional ideal (i + 1),
-        Fractional ideal (3),
-        Fractional ideal (-i - 2),
-        Fractional ideal (i - 2)]
-        sage: list(K.primes_of_bounded_norm_iter(1))
-        []
+            sage: K.<i>=QuadraticField(-1)
+            sage: it=K.primes_of_bounded_norm_iter(10)
+            sage: list(it)
+            [Fractional ideal (i + 1),
+             Fractional ideal (3),
+             Fractional ideal (-i - 2),
+             Fractional ideal (i - 2)]
+            sage: list(K.primes_of_bounded_norm_iter(1))
+            []
         """
         try:
             B = ZZ(B.ceil())
-        except TypeError, AttributeError:
+        except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
         if B<2:

@@ -2196,7 +2196,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         """
         if not hasattr(self, '_height_function'):
-            from height import EllipticCurveCanonicalHeight
+            from sage.schemes.elliptic_curves.height import EllipticCurveCanonicalHeight
             self._height_function = EllipticCurveCanonicalHeight(self)
         return self._height_function
 

@@ -77,6 +77,13 @@ We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
       Defn: a |--> -2.645751311064591?*I
 
 
+REFERENCES:
+
+.. [CT] J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
+   elliptic curves over $\CC$ and complex elliptic logarithms.
+   Journal of Number Theory Volume 133, Issue 8, August 2013, pages
+   2813-2841.
+
 
 AUTHORS:
 
@@ -1226,12 +1233,9 @@ class PeriodLattice_ell(PeriodLattice):
         so that it is in the fundamental period parallelogram with
         respect to the normalised lattice basis.
 
-        ALGORITHM:   Uses the complex AGM.  See  [Cremona2010]_ for details.
+        ALGORITHM:
 
-        .. [Cremona2010] J. E. Cremona and T. Thongjunthug, The
-          Complex AGM, periods of elliptic curves over $\CC$ and
-          complex elliptic logarithms.  Journal of Number Theory
-          Volume 133, Issue 8, August 2013, pages 2813-2841.
+        Uses the complex AGM.  See [CT]_ for details.
 
         EXAMPLES::
 
@@ -1279,18 +1283,18 @@ class PeriodLattice_ell(PeriodLattice):
 
         Elliptic logs of complex points::
 
-        sage: v = K.complex_embeddings()[0]
-        sage: L = E.period_lattice(v)
-        sage: P = E.lift_x(1/3*a^2 + a + 5/3)
-        sage: L(P)
-        1.68207104397706 - 1.87873661686704*I
-        sage: xP, yP = [v(c) for c in P.xy()]
-        sage: L.e_log_RC(xP, yP)
-        1.68207104397706 - 1.87873661686704*I
-        sage: EC = EllipticCurve([v(ai) for ai in E.a_invariants()])
-        sage: xP, yP = EC.lift_x(0).xy()
-        sage: L.e_log_RC(xP, yP)
-        1.03355715602040 - 0.867257428417356*I
+            sage: v = K.complex_embeddings()[0]
+            sage: L = E.period_lattice(v)
+            sage: P = E.lift_x(1/3*a^2 + a + 5/3)
+            sage: L(P)
+            1.68207104397706 - 1.87873661686704*I
+            sage: xP, yP = [v(c) for c in P.xy()]
+            sage: L.e_log_RC(xP, yP)
+            1.68207104397706 - 1.87873661686704*I
+            sage: EC = EllipticCurve([v(ai) for ai in E.a_invariants()])
+            sage: xP, yP = EC.lift_x(0).xy()
+            sage: L.e_log_RC(xP, yP)
+            1.03355715602040 - 0.867257428417356*I
         """
         if prec is None:
             prec = RealField().precision()
@@ -1423,12 +1427,9 @@ class PeriodLattice_ell(PeriodLattice):
         in the fundamental period parallelogram with respect to the
         normalised lattice basis.
 
-        ALGORITHM:   Uses the complex AGM.  See  [Cremona2010]_ for details.
+        ALGORITHM:
 
-        .. [Cremona2010] J. E. Cremona and T. Thongjunthug, The
-          Complex AGM, periods of elliptic curves over $\CC$ and
-          complex elliptic logarithms.  Journal of Number Theory
-          Volume 133, Issue 8, August 2013, pages 2813-2841.
+        Uses the complex AGM.  See [CT]_ for details.
 
         EXAMPLES::
 

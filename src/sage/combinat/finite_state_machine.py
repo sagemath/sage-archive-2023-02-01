@@ -3663,7 +3663,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-            state.color = map(lambda s: s.color, state.label())
+            state.color = tuple(map(lambda s: s.color, state.label()))
 
         if only_accessible_components:
             if new_input_alphabet is None:
@@ -3965,7 +3965,7 @@ class FiniteStateMachine(SageObject):
         for state in F.states():
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-            state.color = map(lambda s: s.color, state.label())
+            state.color = tuple(map(lambda s: s.color, state.label()))
 
         return F
 

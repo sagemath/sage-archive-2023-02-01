@@ -192,12 +192,11 @@ class PermutationGroup_symalt(PermutationGroup_unique):
                 try:
                     domain = Integer(domain)
                 except TypeError:
-                    raise ValueError("domain (=%s) must be an integer >= 0 or a finite set (but domain has type %s)"%(domain, type(domain)))
+                    raise TypeError("domain (={}) must be an integer >= 0 or a finite set (but domain has type {})".format(domain, type(domain)))
 
                 if domain < 0:
-                    raise ValueError("domain (=%s) must be an integer >= 0 or a list"%domain)
-                else:
-                    domain = range(1, domain+1)
+                    raise ValueError("domain (={}) must be an integer >= 0 or a list".format(domain))
+                domain = range(1, domain+1)
             v = FiniteEnumeratedSet(domain)
         else:
             v = domain
@@ -217,11 +216,12 @@ class SymmetricGroup(PermutationGroup_symalt):
 
         INPUT:
 
-         - ``n`` - a positive integer, or list or tuple thereof
+        - ``n`` -- a positive integer, or list or tuple thereof
 
-        .. note::
+        .. NOTE::
 
-            This group is also available via ``groups.permutation.Symmetric()``.
+            This group is also available via
+            ``groups.permutation.Symmetric()``.
 
         EXAMPLES::
 
@@ -288,7 +288,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S._gap_init_()
             'SymmetricGroup(3)'
         """
-        return 'SymmetricGroup(%s)' % self.degree()
+        return 'SymmetricGroup({})'.format(self.degree())
 
     @cached_method
     def index_set(self):
@@ -329,7 +329,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = SymmetricGroup([2,3,7]); A
             Symmetric group of order 3! as a permutation group
         """
-        return "Symmetric group of order %s! as a permutation group" % self.degree()
+        return "Symmetric group of order {}! as a permutation group".format(self.degree())
 
     def cartan_type(self):
         r"""
@@ -446,7 +446,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             Alternating group of order 6!/2 as a permutation group
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
             sage: G = AlternatingGroup([1,2,4,5])
             sage: G
@@ -1035,7 +1035,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             sage: G = GeneralDihedralGroup([5,5,5])
             sage: G.order()
             250
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
         """
 
 
@@ -2303,7 +2303,7 @@ class PGL(PermutationGroup_plg):
 
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
         TESTS::
 
@@ -2370,7 +2370,7 @@ class PSL(PermutationGroup_plg):
 
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
         TESTS::
 

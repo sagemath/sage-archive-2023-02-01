@@ -4922,7 +4922,7 @@ class Transducer(FiniteStateMachine):
 
         INPUT:
 
-        - ``other`` - a transducer
+        - ``other`` - a finite state machine
 
         - ``only_accessible_components`` -- If ``True`` (default), then
           the result is piped through ``accessible_components``. If no
@@ -4985,6 +4985,50 @@ class Transducer(FiniteStateMachine):
             [(1, 'b'), (0, 'b'), (None, 'c'),  (0, 'a')]
             sage: (transducer1([1, 0, 0])[2], transducer2([1, 0, 0])[2])
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
+
+        If ``other`` is an automaton, then :meth:`.cartesian_product` returns
+        ``self`` where the input is restricted to the input accepted by
+        ``other``. 
+
+        For example, if the transducer transforms the standard
+        binary expansion into the non-adjacent form and the automaton
+        recognizes the binary expansion without adjacent `1`'s, then the
+        cartesian product of these two is a transducer which does not change
+        the input (except for changing `a` to `(a, None)` and ignoring a
+        leading `0`).
+
+        ::
+
+            sage: NAF = Transducer([(0, 1, 0, None),
+            ....:                   (0, 2, 1, None),
+            ....:                   (1, 1, 0, 0),
+            ....:                   (1, 2, 1, 0),
+            ....:                   (2, 1, 0, 1),
+            ....:                   (2, 3, 1, -1),
+            ....:                   (3, 2, 0, 0),
+            ....:                   (3, 3, 1, 0)],
+            ....:                  initial_states=[0],
+            ....:                  final_states=[1],
+            ....:                  determine_alphabets=True)
+            sage: aut11 = Automaton([(0, 0, 0), (0, 1, 1), (1, 0, 0)],
+            ....:                   initial_states=[0],
+            ....:                   final_states=[0, 1],
+            ....:                   determine_alphabets=True)
+            sage: res = NAF.cartesian_product(aut11)
+            sage: res([1, 0, 0, 1, 0, 1, 0])[2]
+            [(1, None), (0, None), (0, None), (1, None), (0, None), (1, None)]
+
+        This is obvious because if the standard binary expansion does not have
+        adjacent `1`'s, then it is the same as the non-adjacent form.
+
+        Be aware that :meth:`.cartesian_product` is not commutative.
+
+        ::
+
+            sage: aut11.cartesian_product(NAF)
+            Traceback (most recent call last):
+            ...
+            TypeError: Only an automaton can be intersected with an automaton.
         """
         if FSMOldCodeTransducerCartesianProduct:
             from sage.misc.superseded import deprecation

@@ -4964,7 +4964,7 @@ class Transducer(FiniteStateMachine):
             doctest:1: DeprecationWarning: The output of
             Transducer.cartesian_product will change.
             Please use Transducer.intersection for the original output.
-            See http://trac.sagemath.org/3333 for details.
+            See http://trac.sagemath.org/16061 for details.
             sage: result
             Transducer with 0 states
 
@@ -5032,7 +5032,7 @@ class Transducer(FiniteStateMachine):
         """
         if FSMOldCodeTransducerCartesianProduct:
             from sage.misc.superseded import deprecation
-            deprecation(3333, "The output of Transducer.cartesian_product "
+            deprecation(16061, "The output of Transducer.cartesian_product "
                               "will change. Please use "
                               "Transducer.intersection for the original "
                               "output.")

@@ -10,24 +10,24 @@ Functions
 
 def transversal_design(k,n,t=2,check=True):
     r"""
-    Return a transversal design of parameters `k,n`.
+    Return a transversal design of parameters `k,n,t`.
 
-    A transversal design of parameters `n, k` is a collection `\mathcal{S}`
-    of `k`-subsets of `V = V_1 \sqcup \cdots \sqcup V_k`
-    (where `|V_i| = n` for all `i`) such that:
+    A transversal design of parameters `k, n, t` is a collection `\mathcal{S}`
+    of subsets of `V = V_1 \sqcup \cdots \sqcup V_k` (where each *group* `V_i`
+    has cardinality `n`) such that:
 
-    * Any element `S \in \mathcal{S}` intersects each set `V_i` on exactly one
-      element.
+    * Any `S \in \mathcal{S}` has cardinality `k` and intersects each group on
+      exactly one element.
 
-    * Any two elements `v_i \in V_i, v_j\in V_j` with `i \neq j` belong to
-      exactly one element of `\mathcal{S}`.
+    * Any set ot `t` elements from distincts groups is contained in exactly one
+      element of `\mathcal{S}`.
 
     For more information on transversal designs, see
-    http://mathworld.wolfram.com/TransversalDesign.html.
+    `<http://mathworld.wolfram.com/TransversalDesign.html>`_.
 
     INPUT:
 
-    - `n,k,t` -- integers
+    - `n,k,t` -- integers. Only `t=2` is available at the moment.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -47,11 +47,11 @@ def transversal_design(k,n,t=2,check=True):
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
     """
-    if n == 12 and k <= 6:
+    if n == 12 and k <= 6 and t == 2:
         TD = [l[:k] for l in TD6_12()]
     else:
         # Section 6.6
-        OA = orthogonal_array(k,n, check = False)
+        OA = orthogonal_array(k,n,t, check = False)
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     if check:
@@ -143,6 +143,14 @@ def orthogonal_array(k,n,t=2,check=True):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
+    An orthogonal array of parameters `k,n,t` is a matrix with `k` columns
+    filled with integers from `[n]` in such a way that for any `t` columns, each
+    of the `n^t` possible rows occurs exactly once. In particular, the matrix
+    has `n^t` rows.
+
+    For more information on orthogonal arrays, see
+    :wikipedia:`Orthogonal_array`.
+
     INPUT:
 
     - ``k`` -- (integer) number of columns
@@ -156,9 +164,6 @@ def orthogonal_array(k,n,t=2,check=True):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
-    For more information on orthogonal arrays, see
-    :wikipedia:`Orthogonal_array`.
-
     .. NOTE::
 
         This method implements theorems from [Stinson2004]_. See the code's
@@ -170,8 +175,7 @@ def orthogonal_array(k,n,t=2,check=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import orthogonal_array
-        sage: orthogonal_array(5,5)
+        sage: designs.orthogonal_array(5,5)
         [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3], [0, 3, 1, 4, 2],
          [0, 4, 3, 2, 1], [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
          [1, 4, 2, 0, 3], [1, 0, 4, 3, 2], [2, 2, 2, 2, 2], [2, 3, 4, 0, 1],
@@ -184,6 +188,10 @@ def orthogonal_array(k,n,t=2,check=True):
 
         sage: designs.orthogonal_array(3,2)
         [[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 1]]
+        sage: designs.orthogonal_array(4,2)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: No Orthogonal Array exists when t=2 and k>n+1
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
@@ -192,10 +200,14 @@ def orthogonal_array(k,n,t=2,check=True):
     if t != 2:
         raise NotImplementedError("only implemented for t=2")
 
-    if k < 2:
+    elif k < 2:
         raise ValueError("undefined for k less than 2")
 
-    if k == t:
+    elif k > n+1:
+        from sage.categories.sets_cat import EmptySetError
+        raise EmptySetError("No Orthogonal Array exists when t=2 and k>n+1")
+
+    elif k == t:
         from itertools import product
         OA = map(list, product(range(n), repeat=k))
 
@@ -234,6 +246,7 @@ def orthogonal_array(k,n,t=2,check=True):
 
     if OA is None:
         raise NotImplementedError("I don't know how to build this orthogonal array!")
+
     if check:
         assert is_orthogonal_array(OA,k,n,t)
 

@@ -2674,6 +2674,70 @@ class FiniteStateMachine(SageObject):
                     return False
         return True
 
+    def is_complete(self):
+        """
+        Returns whether the finite state machine is complete.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        True or False.
+
+        A finite state machine is considered to be complete if
+        each transition has input label of length one and for each
+        pair `(q, a)` where `q` is a state and `a` is an element of the
+        input alphabet, there is exactly one transition from `q` with
+        input label `a`.
+
+        EXAMPLES::
+
+            sage: fsm = FiniteStateMachine([[0, 0, 0, 0],
+            ....:                           [0, 1, 1, 1],
+            ....:                           [1, 1, 0, 0]],
+            ....:                          determine_alphabets=False)
+            sage: fsm.is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling determine_alphabets().
+            sage: fsm.input_alphabet = [0, 1]
+            sage: fsm.is_complete()
+            False
+            sage: fsm.add_transition((1, 1, 1, 1))
+            Transition from 1 to 1: 1|1
+            sage: fsm.is_complete()
+            True
+            sage: fsm.add_transition((0, 0, 1, 0))
+            Transition from 0 to 0: 1|0
+            sage: fsm.is_complete()
+            False
+        """
+        if self.input_alphabet is None:
+            raise ValueError, ("No input alphabet is given. "
+                               "Try calling determine_alphabets().")
+
+        for state in self.states():
+            for transition in state.transitions:
+                if len(transition.word_in) != 1:
+                    return False
+
+            transition_classes_by_word_in = full_group_by(
+                state.transitions,
+                key=lambda t:t.word_in)
+
+            for key, transition_class in transition_classes_by_word_in:
+                if len(transition_class) > 1:
+                    return False
+
+            # all input labels are lists, extract the only element
+            outgoing_alphabet = [ key[0] for key, transition_class in
+                                  transition_classes_by_word_in ]
+            if not sorted(self.input_alphabet) == sorted(outgoing_alphabet):
+                return False
+
+        return True
 
     def is_connected(self):
         """

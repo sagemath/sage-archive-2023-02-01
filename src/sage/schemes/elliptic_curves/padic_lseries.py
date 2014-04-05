@@ -856,11 +856,11 @@ class pAdicLseriesOrdinary(pAdicLseries):
         n = ZZ(n)
         if n < 1:
             raise ValueError("n (=%s) must be a positive integer"%n)
-        if prec < 2:
+        if prec < 1:
             raise ValueError("Insufficient precision (%s)"%prec)
-        eta = ZZ(eta) % (self._p - 1)
 
         # check if the conditions on quadratic_twist are satisfied
+        eta = ZZ(eta) % (self._p - 1)
         D = ZZ(quadratic_twist)
         if D != 1:
             if eta != 0: raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
@@ -877,15 +877,38 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(),ell) > valuation(D,ell) :
                         raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
-
-
         p = self._p
+
         if p == 2 and self._normalize :
             print 'Warning : For p=2 the normalization might not be correct !'
         #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
-        bounds = self._prec_bounds(n,prec)
-        padic_prec = max(bounds[1:]) + 5
+        if prec == 1:
+            if eta == 0:
+                # trac 15737: if we only ask for the leading term we don't
+                # need to do any sum as L_p(E,0) = (1-1/alpha)^2 * m(0) (good case)
+                # set prec arbitrary to 20.
+                K = Qp(p, 20, print_mode='series')
+                R = PowerSeriesRing(K,'T',1)
+                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
+                if self._E.has_nonsplit_multiplicative_reduction(p):
+                    L *= 2
+                if self._E.has_split_multiplicative_reduction(p):
+                    L *= 0
+                else:
+                    chip = kronecker_symbol(D,p)
+                    L *= (1-chip/self.alpha())**2
+                L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+                #L.add_bigoh(1)
+                return R(L,1)
+            else:
+                # here we need some sums anyway
+                bounds = self._prec_bounds(n,prec)
+                padic_prec = 20
+        else:
+            bounds = self._prec_bounds(n,prec)
+            padic_prec = max(bounds[1:]) + 5
+
         verbose("using p-adic precision of %s"%padic_prec)
 
         res_series_prec = min(p**(n-1), prec)

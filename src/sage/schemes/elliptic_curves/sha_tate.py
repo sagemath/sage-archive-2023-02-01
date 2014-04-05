@@ -474,7 +474,7 @@ class Sha(SageObject):
         Good ordinary examples::
 
             sage: EllipticCurve('11a1').sha().an_padic(5)    # rank 0
-            1 + O(5^2)
+            1 + O(5^22)
             sage: EllipticCurve('43a1').sha().an_padic(5)    # rank 1
             1 + O(5)
             sage: EllipticCurve('389a1').sha().an_padic(5,4) # rank 2, long time (2s on sage.math, 2011)
@@ -483,23 +483,23 @@ class Sha(SageObject):
             Traceback (most recent call last):                           # 32-bit (see ticket :trac: `11211`)
             ...                                                          # 32-bit
             OverflowError: Python int too large to convert to C long     # 32-bit
-            7^2 + O(7^6) # 64-bit
+            7^2 + O(7^24) # 64-bit
             sage: EllipticCurve('300b2').sha().an_padic(3)   # 9 elements in sha, long time (2s on sage.math, 2011)
-            3^2 + O(3^6)
+            3^2 + O(3^24)
             sage: EllipticCurve('300b2').sha().an_padic(7, prec=6)  # long time
             2 + 7 + O(7^8)
 
         Exceptional cases::
 
             sage: EllipticCurve('11a1').sha().an_padic(11) # rank 0
-            1 + O(11^2)
+            1 + O(11^22)
             sage: EllipticCurve('130a1').sha().an_padic(5) # rank 1
             1 + O(5)
 
         Non-split, but rank 0 case (:trac:`7331`)::
 
             sage: EllipticCurve('270b1').sha().an_padic(5) # rank 0, long time (2s on sage.math, 2011)
-            1 + O(5^2)
+            1 + O(5^22)
 
         The output has the correct sign::
 
@@ -509,7 +509,7 @@ class Sha(SageObject):
         Supersingular cases::
 
             sage: EllipticCurve('34a1').sha().an_padic(5) # rank 0
-            1 + O(5^2)
+            1 + O(5^22)
             sage: EllipticCurve('53a1').sha().an_padic(5) # rank 1, long time (11s on sage.math, 2011)
             1 + O(5)
 
@@ -529,7 +529,7 @@ class Sha(SageObject):
             sage: E = EllipticCurve([-100,0])
             sage: s = E.sha()
             sage: s.an_padic(13)
-            1 + O(13^4)
+            1 + O(13^20)
         """
         try:
             return self.__an_padic[(p,prec)]
@@ -584,7 +584,8 @@ class Sha(SageObject):
             lstar = ms(0)/E.real_components()
             bsd = tam/tors
             if prec == 0:
-                prec = valuation(lstar/bsd, p)
+                #prec = valuation(lstar/bsd, p)
+                prec = 20
             shan = Qp(p,prec=prec+2)(lstar/bsd)
 
 
@@ -628,7 +629,7 @@ class Sha(SageObject):
 
             not_yet_enough_prec = True
             while not_yet_enough_prec:
-                lps = lp.series(n,quadratic_twist=D,prec=max(2,r+1))
+                lps = lp.series(n,quadratic_twist=D,prec=r+1)
                 lstar = lps[r]
                 if (lstar != 0) or (prec != 0):
                     not_yet_enough_prec = False
@@ -762,7 +763,7 @@ class Sha(SageObject):
             Traceback (most recent call last):                           # 32-bit
             ...                                                          # 32-bit
             OverflowError: Python int too large to convert to C long     # 32-bit
-            7^2 + O(7^6)                                                 # 64-bit
+            7^2 + O(7^24)                                                 # 64-bit
 
             sage: e = EllipticCurve('11a3')
             sage: e.sha().p_primary_bound(5)
@@ -770,7 +771,7 @@ class Sha(SageObject):
             ...
             ValueError: The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound.
             sage: e.sha().an_padic(5)
-            1 + O(5^2)
+            1 + O(5^22)
         """
         p = Integer(p)
         E = self.Emin

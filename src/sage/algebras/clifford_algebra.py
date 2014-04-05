@@ -1290,6 +1290,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
           `I` is the index set of the underlying vector space `V`, and whose
           values can be coerced into 1-forms (degree 1 elements) in ``E``
+          (usually, these values will just be elements of `V`)
 
         EXAMPLES::
 
@@ -1312,6 +1313,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
           `I` is the index set of the underlying vector space `V`, and whose
           values can be coerced into 1-forms (degree 1 elements) in ``E``
+          (usually, these values will just be elements of `V`)
 
         EXAMPLES::
 
@@ -1331,6 +1333,8 @@ class ExteriorAlgebra(CliffordAlgebra):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E.degree_on_basis(())
+            0
             sage: E.degree_on_basis((0,))
             1
             sage: E.degree_on_basis((0,1))
@@ -1347,9 +1351,14 @@ class ExteriorAlgebra(CliffordAlgebra):
         .. MATH::
 
             \Delta(e_{i_1} \wedge \cdots \wedge e_{i_m}) = \sum_{k=0}^m
-            \sum_{\sigma \in Sh_{k,m-k}} (-1)^{\sigma}
-            (e_{\sigma(i_1)} \wedge \cdots e_{\sigma(i_k)}) \otimes
-            (e_{\sigma(i_{k+1})} \wedge \cdots e_{\sigma(i_m)})
+            \sum_{\sigma \in Ush_{k,m-k}} (-1)^{\sigma}
+            (e_{i_{\sigma(1)}} \wedge \cdots \wedge e_{i_{\sigma(k)}}) \otimes
+            (e_{i_{\sigma(k+1)}} \wedge \cdots \wedge e_{i_{\sigma(m)}}),
+
+        where `Ush_{k,m-k}` denotes the set of all `(k,m-k)`-unshuffles
+        (i.e., permutations in `S_m` which are increasing on the interval
+        `\{1, 2, \ldots, k\}` and on the interval
+        `\{k+1, k+2, \ldots, k+m\}`).
 
         .. WARNING::
 
@@ -1363,15 +1372,30 @@ class ExteriorAlgebra(CliffordAlgebra):
             1 # x + x # 1
             sage: E.coproduct_on_basis((0,1))
             1 # x^y + x # y + x^y # 1 - y # x
+            sage: E.coproduct_on_basis((0,1,2))
+            1 # x^y^z + x # y^z + x^y # z + x^y^z # 1 - x^z # y - y # x^z + y^z # x + z # x^y
         """
-        from sage.combinat.words.word import Word
-        def shuffle(k):
-            sh = Word(a[:k]).shuffle(Word(a[k:]))
-            for w in sh:
-                descents = [i for i in range(len(w)-1) if w[i] > w[i+1]]
-                yield ((tuple(w[:k]), tuple(w[k:])), (-1)**len(descents))
-        return self.tensor_square().sum_of_terms([term for k in range(len(a)+1)
-                                                  for term in shuffle(k)])
+        from sage.misc.misc import powerset # somewhat lowlevel function, but it's all we need
+        one = self.base_ring().one()
+        n = len(a)
+        def unshuffle_iterator():
+            for I in powerset(range(n)):
+                sorted_I = tuple(sorted(I))
+                nonI = range(n)
+                for j in reversed(sorted_I): # probably optimizable
+                    nonI.pop(j)
+                sorted_nonI = tuple(nonI)
+                sign = True
+                for i in sorted_I:
+                    if i % 2:  # aka i % 2 == 1
+                        sign = not sign
+                if len(sorted_I) % 4 > 1:
+                    sign = not sign
+                yield ((tuple([a[i] for i in sorted_I]),
+                        tuple([a[i] for i in sorted_nonI])),
+                       (one if sign else - one))
+        return self.tensor_square().sum_of_terms(unshuffle_iterator(),
+                                                 distinct=True)
 
     def antipode_on_basis(self, m):
         r"""
@@ -1383,6 +1407,8 @@ class ExteriorAlgebra(CliffordAlgebra):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E.antipode_on_basis(())
+            1
             sage: E.antipode_on_basis((1,))
             -y
             sage: E.antipode_on_basis((1,2))
@@ -1394,7 +1420,8 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         Return the counit of ``x``.
 
-        The counit of a form `\omega` is the constant coefficient.
+        The counit of an element `\omega` of the exterior algebra
+        is its constant coefficient.
 
         EXAMPLES::
 

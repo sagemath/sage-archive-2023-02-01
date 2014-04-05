@@ -494,8 +494,10 @@ class FSMState(SageObject):
 
     - ``color`` -- (default: ``None``) In order to distinguish states,
       they can be given an arbitrary "color" (an arbitrary object).
-      This is used in :meth:`equivalence_classes`: states of different
-      colors are never considered to be equivalent.
+      This is used in :meth:`FiniteStateMachine.equivalence_classes`:
+      states of different colors are never considered to be
+      equivalent. Note that :meth:`Automaton.determinisation` requires
+      that ``color`` is hashable.
 
     OUTPUT:
 
@@ -512,6 +514,19 @@ class FSMState(SageObject):
         sage: B = FSMState('state 2')
         sage: A == B
         False
+
+    Note that :meth:`Automaton.determinisation` requires that ``color``
+    is hashable::
+
+        sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+        sage: A.state(0).color = []
+        sage: A.determinisation()
+        Traceback (most recent call last):
+        ...
+        TypeError: unhashable type: 'list'
+        sage: A.state(0).color = ()
+        sage: A.determinisation()
+        Automaton with 1 states
 
     """
     def __init__(self, label, word_out=None,
@@ -4720,6 +4735,8 @@ class Automaton(FiniteStateMachine):
         The labels of the states of the new automaton are frozensets
         of states of ``self``. The color of a new state is the
         frozenset of colors of the constituent states of ``self``.
+        Therefore, the colors of the constituent states have to be
+        hashable.
 
         The input alphabet must be specified. It is restricted to nice
         cases: input words have to have length at most `1`.
@@ -4750,6 +4767,18 @@ class Automaton(FiniteStateMachine):
             sage: A.determinisation().states()
             [frozenset(['A']), frozenset(['A', 'B']),
             frozenset(['A', 'C']), frozenset(['A', 'C', 'B'])]
+
+        Note that colors of states have to be hashable::
+
+            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+            sage: A.state(0).color = []
+            sage: A.determinisation()
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'list'
+            sage: A.state(0).color = ()
+            sage: A.determinisation()
+            Automaton with 1 states
 
         TESTS:
 

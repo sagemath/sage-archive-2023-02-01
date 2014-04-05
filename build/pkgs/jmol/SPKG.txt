@@ -2,7 +2,7 @@
 
 == Description ==
 
-This privides files necessary for Jmol(java) and JSmol
+This provides files necessary for Jmol(java) and JSmol
 (javascript) to operate from the command line and the 
 Notebook. It does not contain the Notebook javascript 
 library jmol_lib.js or changes to Notebook or Sage code.
@@ -30,7 +30,7 @@ GPLv2+
 === Jmol-14.0.11 (J. Gutow March 2014)===
   * This is the end of the changelog since it is also
     the conversion to the new SPKG format, where changes
-    are supposted to be logged by GIT.
+    are supposed to be logged by GIT.
 
 === jmol-12.3.27.p3 (Jonathan Gutow, Sept 15, 2012) ===
 

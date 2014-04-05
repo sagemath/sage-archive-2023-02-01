@@ -409,8 +409,8 @@ class FiniteFreeModule(UniqueRepresentation, Module):
                                                             latex_name='0')
 
         
-
     #### Methods required for any Parent 
+
     def _element_constructor_(self, comp=[], basis=None, name=None, 
                               latex_name=None):
         r"""
@@ -435,6 +435,8 @@ class FiniteFreeModule(UniqueRepresentation, Module):
             
     #### End of methods required for any Parent 
 
+    #### Methods to be redefined by derived classes ####
+
     def _repr_(self):
         r"""
         String representation of the object.
@@ -444,89 +446,6 @@ class FiniteFreeModule(UniqueRepresentation, Module):
             description += self.name + " "
         description += "over the " + str(self.ring)
         return description
-
-    def _latex_(self):
-        r"""
-        LaTeX representation of the object.
-        """
-        if self.latex_name is None:
-            return r'\mbox{' + str(self) + r'}'
-        else:
-           return self.latex_name
-
-    def rank(self):
-        r"""
-        Return the rank of the free module ``self``.
-        
-        Since the ring over which ``self`` is built is assumed to be 
-        commutative (and hence has the invariant basis number property), the 
-        rank is defined uniquely, as the cardinality of any basis of ``self``. 
-        
-        EXAMPLES:
-        
-        Rank of free modules over `\ZZ`::
-        
-            sage: M = FiniteFreeModule(ZZ, 3)
-            sage: M.rank()
-            3
-            sage: M.tensor_module(0,1).rank()
-            3
-            sage: M.tensor_module(0,2).rank()
-            9
-            sage: M.tensor_module(1,0).rank()
-            3
-            sage: M.tensor_module(1,1).rank()
-            9
-            sage: M.tensor_module(1,2).rank()
-            27
-            sage: M.tensor_module(2,2).rank()
-            81
-
-        """
-        return self._rank
-
-    def zero(self):
-        r"""
-        Return the zero element.
-        
-        EXAMPLES:
-        
-        Zero elements of free modules over `\ZZ`::
-        
-            sage: M = FiniteFreeModule(ZZ, 3, name='M')
-            sage: M.zero()
-            element zero of the rank-3 free module M over the Integer Ring
-            sage: M.zero().parent() is M
-            True
-            sage: M.zero() is M(0)
-            True
-            sage: T = M.tensor_module(1,1)
-            sage: T.zero()
-            type-(1,1) tensor zero on the rank-3 free module M over the Integer Ring
-            sage: T.zero().parent() is T
-            True
-            sage: T.zero() is T(0)
-            True
-
-        Components of the zero element with respect to some basis::
-        
-            sage: e = M.basis('e')
-            sage: M.zero().comp(e)[:]
-            [0, 0, 0]
-            sage: for i in M.irange(): print M.zero().comp(e)[i] == M.base_ring().zero(),
-            True True True
-            sage: T.zero().comp(e)[:]
-            [0 0 0]
-            [0 0 0]
-            [0 0 0]
-            sage: M.tensor_module(1,2).zero().comp(e)[:]
-            [[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-             [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-             [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
-
-        """
-        return self._zero_element
-
         
     def tensor_module(self, k, l):
         r"""
@@ -572,91 +491,6 @@ class FiniteFreeModule(UniqueRepresentation, Module):
         if (k,l) not in self._tensor_modules:
             self._tensor_modules[(k,l)] = TensorFreeModule(self, (k,l))
         return self._tensor_modules[(k,l)]
-
-    def dual(self):
-        r"""
-        Return the dual module.
-        
-        EXAMPLE:
-        
-        Dual of a free module over `\ZZ`::
-        
-            sage: M = FiniteFreeModule(ZZ, 3, name='M')
-            sage: M.dual()
-            dual of the rank-3 free module M over the Integer Ring
-            sage: latex(M.dual())
-            M^*
-            
-        The dual is a free module of the same rank as M::
-        
-            sage: isinstance(M.dual(), FiniteFreeModule)
-            True
-            sage: M.dual().rank()
-            3
-
-        It is formed by tensors of type (0,1), i.e. linear forms::
-        
-            sage: M.dual() is M.tensor_module(0,1)
-            True
-            sage: M.dual().an_element()
-            type-(0,1) tensor on the rank-3 free module M over the Integer Ring
-            sage: a = M.linear_form()
-            sage: a in M.dual()
-            True
-
-        The elements of a dual basis belong of course to the dual module::
-        
-            sage: e = M.basis('e')
-            sage: e.dual_basis()[0] in M.dual()
-            True
-
-        """
-        return self.tensor_module(0,1)
-
-    def irange(self, start=None):
-        r"""
-        Single index generator, labelling the elements of a basis.
-                
-        INPUT:
-        
-        - ``start`` -- (integer; default: None) initial value of the index; if none is 
-          provided, ``self.sindex`` is assumed
-
-        OUTPUT:
-        
-        - an iterable index, starting from ``start`` and ending at
-          ``self.sindex + self.rank() -1``
-
-        EXAMPLES:
-        
-        Index range on a rank-3 module::
-        
-            sage: M = FiniteFreeModule(ZZ, 3)
-            sage: for i in M.irange(): print i,
-            0 1 2
-            sage: for i in M.irange(start=1): print i,
-            1 2
-
-        The default starting value corresponds to the parameter ``start_index``
-        provided at the module construction (the default value being 0)::
-        
-            sage: M1 = FiniteFreeModule(ZZ, 3, start_index=1)
-            sage: for i in M1.irange(): print i,
-            1 2 3
-            sage: M2 = FiniteFreeModule(ZZ, 3, start_index=-4)
-            sage: for i in M2.irange(): print i,
-            -4 -3 -2
-
-        """
-        si = self.sindex
-        imax = self._rank + si
-        if start is None:
-            i = si
-        else:
-            i = start
-        while i < imax:
-            yield i
-            i += 1
 
     def basis(self, symbol=None, latex_symbol=None):
         r""" 
@@ -735,119 +569,8 @@ class FiniteFreeModule(UniqueRepresentation, Module):
                 if symbol == other.symbol:
                     return other
             return FreeModuleBasis(self, symbol, latex_symbol)
-    
-    def default_basis(self):
-        r"""
-        Return the default basis of the free module. 
-        
-        The *default basis* is simply a basis whose name can be skipped in 
-        methods requiring a basis as an argument. By default, it is the first
-        basis introduced on the module. It can be changed by the method 
-        :meth:`set_default_basis`. 
-        
-        OUTPUT:
-        
-        - instance of 
-          :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis` 
-          
-        EXAMPLES:
-        
-        At the module construction, no default basis is assumed::
-        
-            sage: M = FiniteFreeModule(ZZ, 2, name='M', start_index=1)
-            sage: M.default_basis()
-            No default basis has been defined on the rank-2 free module M over the Integer Ring
 
-        The first defined basis becomes the default one::
-        
-            sage: e = M.basis('e') ; e
-            basis (e_1,e_2) on the rank-2 free module M over the Integer Ring
-            sage: M.default_basis()
-            basis (e_1,e_2) on the rank-2 free module M over the Integer Ring
-            sage: f =  M.basis('f') ; f
-            basis (f_1,f_2) on the rank-2 free module M over the Integer Ring
-            sage: M.default_basis()
-            basis (e_1,e_2) on the rank-2 free module M over the Integer Ring
 
-        """
-        if self.def_basis is None:
-            print "No default basis has been defined on the " + str(self)
-        return self.def_basis
-        
-    def set_default_basis(self, basis):
-        r"""
-        Sets the default basis of the free module. 
-        
-        The *default basis* is simply a basis whose name can be skipped in 
-        methods requiring a basis as an argument. By default, it is the first
-        basis introduced on the module. 
-        
-        INPUT:
-        
-        - ``basis`` -- instance of 
-          :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis` 
-          representing a basis on ``self``
-          
-        EXAMPLES:
-        
-        Changing the default basis on a rank-3 free module::
-        
-            sage: M = FiniteFreeModule(ZZ, 3, name='M', start_index=1)
-            sage: e = M.basis('e') ; e
-            basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring
-            sage: f =  M.basis('f') ; f
-            basis (f_1,f_2,f_3) on the rank-3 free module M over the Integer Ring
-            sage: M.default_basis()
-            basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring
-            sage: M.set_default_basis(f)
-            sage: M.default_basis()
-            basis (f_1,f_2,f_3) on the rank-3 free module M over the Integer Ring
-
-        """
-        from free_module_basis import FreeModuleBasis
-        if not isinstance(basis, FreeModuleBasis):
-            raise TypeError("The argument is not a free module basis.")
-        if basis.fmodule is not self:
-            raise ValueError("The basis is not defined on the current module.")
-        self.def_basis = basis
-                
-    def view_bases(self):
-        r"""
-        Display the bases that have been defined on the free module.
-        
-        EXAMPLES:
-        
-        Bases on a rank-4 free module::
-        
-            sage: M = FiniteFreeModule(ZZ, 4, name='M', start_index=1)
-            sage: M.view_bases()
-            No basis has been defined on the rank-4 free module M over the Integer Ring
-            sage: e = M.basis('e')
-            sage: M.view_bases()
-            Bases defined on the rank-4 free module M over the Integer Ring:
-             - (e_1,e_2,e_3,e_4) (default basis)
-            sage: f = M.basis('f')
-            sage: M.view_bases()
-            Bases defined on the rank-4 free module M over the Integer Ring:
-             - (e_1,e_2,e_3,e_4) (default basis)
-             - (f_1,f_2,f_3,f_4)
-            sage: M.set_default_basis(f)
-            sage: M.view_bases()
-            Bases defined on the rank-4 free module M over the Integer Ring:
-             - (e_1,e_2,e_3,e_4)
-             - (f_1,f_2,f_3,f_4) (default basis)
-
-        """
-        if self.known_bases == []:
-            print "No basis has been defined on the " + str(self)
-        else:
-            print "Bases defined on the " + str(self) + ":"
-            for basis in self.known_bases:
-                item = " - " + basis.name
-                if basis is self.def_basis:
-                    item += " (default basis)"
-                print item
-    
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None, 
                antisym=None):
         r"""
@@ -855,15 +578,15 @@ class FiniteFreeModule(UniqueRepresentation, Module):
         
         INPUT:
         
-        - ``tensor_type`` -- pair (k,l) with k being the contravariant rank and l 
-          the covariant rank
+        - ``tensor_type`` -- pair (k,l) with k being the contravariant rank and
+          l the covariant rank
         - ``name`` -- (string; default: None) name given to the tensor
         - ``latex_name`` -- (string; default: None) LaTeX symbol to denote the 
           tensor; if none is provided, the LaTeX symbol is set to ``name``
-        - ``sym`` -- (default: None) a symmetry or a list of symmetries among the 
-          tensor arguments: each symmetry is described by a tuple containing 
-          the positions of the involved arguments, with the convention position=0
-          for the first argument. For instance:
+        - ``sym`` -- (default: None) a symmetry or a list of symmetries among 
+          the tensor arguments: each symmetry is described by a tuple 
+          containing the positions of the involved arguments, with the 
+          convention position=0 for the first argument. For instance:
 
           * sym=(0,1) for a symmetry between the 1st and 2nd arguments 
           * sym=[(0,2),(1,3,4)] for a symmetry between the 1st and 3rd
@@ -936,13 +659,13 @@ class FiniteFreeModule(UniqueRepresentation, Module):
         
         INPUT:
         
-        - ``tensor_type`` -- pair (k,l) with k being the contravariant rank and l 
-          the covariant rank
+        - ``tensor_type`` -- pair (k,l) with k being the contravariant rank 
+          and l the covariant rank
         - ``comp`` -- instance of :class:`~sage.tensor.modules.comp.Components` 
           representing the tensor components in a given basis
         - ``name`` -- (string; default: None) name given to the tensor
-        - ``latex_name`` -- (string; default: None) LaTeX symbol to denote the tensor; 
-          if none is provided, the LaTeX symbol is set to ``name``
+        - ``latex_name`` -- (string; default: None) LaTeX symbol to denote the 
+          tensor; if none is provided, the LaTeX symbol is set to ``name``
           
         OUTPUT:
         
@@ -1328,8 +1051,287 @@ class FiniteFreeModule(UniqueRepresentation, Module):
         from free_module_tensor_spec import FreeModuleSymBilinForm
         return FreeModuleSymBilinForm(self, name=name, latex_name=latex_name)
 
+    #### End of methods to be redefined by derived classes ####
         
+    def _latex_(self):
+        r"""
+        LaTeX representation of the object.
+        """
+        if self.latex_name is None:
+            return r'\mbox{' + str(self) + r'}'
+        else:
+           return self.latex_name
 
+    def rank(self):
+        r"""
+        Return the rank of the free module ``self``.
+        
+        Since the ring over which ``self`` is built is assumed to be 
+        commutative (and hence has the invariant basis number property), the 
+        rank is defined uniquely, as the cardinality of any basis of ``self``. 
+        
+        EXAMPLES:
+        
+        Rank of free modules over `\ZZ`::
+        
+            sage: M = FiniteFreeModule(ZZ, 3)
+            sage: M.rank()
+            3
+            sage: M.tensor_module(0,1).rank()
+            3
+            sage: M.tensor_module(0,2).rank()
+            9
+            sage: M.tensor_module(1,0).rank()
+            3
+            sage: M.tensor_module(1,1).rank()
+            9
+            sage: M.tensor_module(1,2).rank()
+            27
+            sage: M.tensor_module(2,2).rank()
+            81
 
+        """
+        return self._rank
+
+    def zero(self):
+        r"""
+        Return the zero element.
+        
+        EXAMPLES:
+        
+        Zero elements of free modules over `\ZZ`::
+        
+            sage: M = FiniteFreeModule(ZZ, 3, name='M')
+            sage: M.zero()
+            element zero of the rank-3 free module M over the Integer Ring
+            sage: M.zero().parent() is M
+            True
+            sage: M.zero() is M(0)
+            True
+            sage: T = M.tensor_module(1,1)
+            sage: T.zero()
+            type-(1,1) tensor zero on the rank-3 free module M over the Integer Ring
+            sage: T.zero().parent() is T
+            True
+            sage: T.zero() is T(0)
+            True
+
+        Components of the zero element with respect to some basis::
+        
+            sage: e = M.basis('e')
+            sage: M.zero().comp(e)[:]
+            [0, 0, 0]
+            sage: for i in M.irange(): print M.zero().comp(e)[i] == M.base_ring().zero(),
+            True True True
+            sage: T.zero().comp(e)[:]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: M.tensor_module(1,2).zero().comp(e)[:]
+            [[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+             [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+             [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+
+        """
+        return self._zero_element
+
+    def dual(self):
+        r"""
+        Return the dual module.
+        
+        EXAMPLE:
+        
+        Dual of a free module over `\ZZ`::
+        
+            sage: M = FiniteFreeModule(ZZ, 3, name='M')
+            sage: M.dual()
+            dual of the rank-3 free module M over the Integer Ring
+            sage: latex(M.dual())
+            M^*
+            
+        The dual is a free module of the same rank as M::
+        
+            sage: isinstance(M.dual(), FiniteFreeModule)
+            True
+            sage: M.dual().rank()
+            3
+
+        It is formed by tensors of type (0,1), i.e. linear forms::
+        
+            sage: M.dual() is M.tensor_module(0,1)
+            True
+            sage: M.dual().an_element()
+            type-(0,1) tensor on the rank-3 free module M over the Integer Ring
+            sage: a = M.linear_form()
+            sage: a in M.dual()
+            True
+
+        The elements of a dual basis belong of course to the dual module::
+        
+            sage: e = M.basis('e')
+            sage: e.dual_basis()[0] in M.dual()
+            True
+
+        """
+        return self.tensor_module(0,1)
+
+    def irange(self, start=None):
+        r"""
+        Single index generator, labelling the elements of a basis.
+                
+        INPUT:
+        
+        - ``start`` -- (integer; default: None) initial value of the index; if none is 
+          provided, ``self.sindex`` is assumed
+
+        OUTPUT:
+        
+        - an iterable index, starting from ``start`` and ending at
+          ``self.sindex + self.rank() -1``
+
+        EXAMPLES:
+        
+        Index range on a rank-3 module::
+        
+            sage: M = FiniteFreeModule(ZZ, 3)
+            sage: for i in M.irange(): print i,
+            0 1 2
+            sage: for i in M.irange(start=1): print i,
+            1 2
+
+        The default starting value corresponds to the parameter ``start_index``
+        provided at the module construction (the default value being 0)::
+        
+            sage: M1 = FiniteFreeModule(ZZ, 3, start_index=1)
+            sage: for i in M1.irange(): print i,
+            1 2 3
+            sage: M2 = FiniteFreeModule(ZZ, 3, start_index=-4)
+            sage: for i in M2.irange(): print i,
+            -4 -3 -2
+
+        """
+        si = self.sindex
+        imax = self._rank + si
+        if start is None:
+            i = si
+        else:
+            i = start
+        while i < imax:
+            yield i
+            i += 1
+
+    def default_basis(self):
+        r"""
+        Return the default basis of the free module. 
+        
+        The *default basis* is simply a basis whose name can be skipped in 
+        methods requiring a basis as an argument. By default, it is the first
+        basis introduced on the module. It can be changed by the method 
+        :meth:`set_default_basis`. 
+        
+        OUTPUT:
+        
+        - instance of 
+          :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis` 
+          
+        EXAMPLES:
+        
+        At the module construction, no default basis is assumed::
+        
+            sage: M = FiniteFreeModule(ZZ, 2, name='M', start_index=1)
+            sage: M.default_basis()
+            No default basis has been defined on the rank-2 free module M over the Integer Ring
+
+        The first defined basis becomes the default one::
+        
+            sage: e = M.basis('e') ; e
+            basis (e_1,e_2) on the rank-2 free module M over the Integer Ring
+            sage: M.default_basis()
+            basis (e_1,e_2) on the rank-2 free module M over the Integer Ring
+            sage: f =  M.basis('f') ; f
+            basis (f_1,f_2) on the rank-2 free module M over the Integer Ring
+            sage: M.default_basis()
+            basis (e_1,e_2) on the rank-2 free module M over the Integer Ring
+
+        """
+        if self.def_basis is None:
+            print "No default basis has been defined on the " + str(self)
+        return self.def_basis
+        
+    def set_default_basis(self, basis):
+        r"""
+        Sets the default basis of the free module. 
+        
+        The *default basis* is simply a basis whose name can be skipped in 
+        methods requiring a basis as an argument. By default, it is the first
+        basis introduced on the module. 
+        
+        INPUT:
+        
+        - ``basis`` -- instance of 
+          :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis` 
+          representing a basis on ``self``
+          
+        EXAMPLES:
+        
+        Changing the default basis on a rank-3 free module::
+        
+            sage: M = FiniteFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: e = M.basis('e') ; e
+            basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring
+            sage: f =  M.basis('f') ; f
+            basis (f_1,f_2,f_3) on the rank-3 free module M over the Integer Ring
+            sage: M.default_basis()
+            basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring
+            sage: M.set_default_basis(f)
+            sage: M.default_basis()
+            basis (f_1,f_2,f_3) on the rank-3 free module M over the Integer Ring
+
+        """
+        from free_module_basis import FreeModuleBasis
+        if not isinstance(basis, FreeModuleBasis):
+            raise TypeError("The argument is not a free module basis.")
+        if basis.fmodule is not self:
+            raise ValueError("The basis is not defined on the current module.")
+        self.def_basis = basis
+                
+
+    def view_bases(self):
+        r"""
+        Display the bases that have been defined on the free module.
+        
+        EXAMPLES:
+        
+        Bases on a rank-4 free module::
+        
+            sage: M = FiniteFreeModule(ZZ, 4, name='M', start_index=1)
+            sage: M.view_bases()
+            No basis has been defined on the rank-4 free module M over the Integer Ring
+            sage: e = M.basis('e')
+            sage: M.view_bases()
+            Bases defined on the rank-4 free module M over the Integer Ring:
+             - (e_1,e_2,e_3,e_4) (default basis)
+            sage: f = M.basis('f')
+            sage: M.view_bases()
+            Bases defined on the rank-4 free module M over the Integer Ring:
+             - (e_1,e_2,e_3,e_4) (default basis)
+             - (f_1,f_2,f_3,f_4)
+            sage: M.set_default_basis(f)
+            sage: M.view_bases()
+            Bases defined on the rank-4 free module M over the Integer Ring:
+             - (e_1,e_2,e_3,e_4)
+             - (f_1,f_2,f_3,f_4) (default basis)
+
+        """
+        if self.known_bases == []:
+            print "No basis has been defined on the " + str(self)
+        else:
+            print "Bases defined on the " + str(self) + ":"
+            for basis in self.known_bases:
+                item = " - " + basis.name
+                if basis is self.def_basis:
+                    item += " (default basis)"
+                print item
+    
 
 

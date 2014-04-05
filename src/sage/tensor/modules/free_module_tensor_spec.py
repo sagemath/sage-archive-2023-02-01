@@ -138,7 +138,7 @@ class FreeModuleEndomorphism(FreeModuleTensor):
         t = self.components[basis]
         v = vector.components[basis]
         fmodule = self.fmodule
-        result = FiniteFreeModuleElement(fmodule)
+        result = vector._new_instance()
         for i in fmodule.irange():
             res = 0
             for j in fmodule.irange():
@@ -229,14 +229,13 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
     def _new_instance(self):
         r"""
         Create a :class:`FreeModuleAutomorphism` instance. 
-        
         """
         return FreeModuleAutomorphism(self.fmodule)
         
     def _del_derived(self):
         r"""
         Delete the derived quantities
-        
+
         """
         # First delete the derived quantities pertaining to the mother class:
         FreeModuleEndomorphism._del_derived(self)
@@ -299,7 +298,7 @@ class FreeModuleAutomorphism(FreeModuleEndomorphism):
             for basis in self.components:
                 try:    
                     mat_self = matrix(
-                              [[self.comp(basis)[i, j]
+                              [[self.comp(basis)[[i, j]]
                               for j in range(si, nsi)] for i in range(si, nsi)])
                 except (KeyError, ValueError):
                     continue

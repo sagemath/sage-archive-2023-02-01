@@ -72,6 +72,14 @@ class FreeModuleAltForm(FreeModuleTensor):
         """
         FreeModuleTensor._del_derived(self)  
 
+    def _new_instance(self):
+        r"""
+        Create a :class:`FreeModuleAltForm` instance on the same module and of
+        the same degree.
+        
+        """
+        return FreeModuleAltForm(self.fmodule, self.tensor_rank)
+
     def _new_comp(self, basis): 
         r"""
         Create some components in the given basis. 
@@ -339,7 +347,7 @@ class FreeModuleAltForm(FreeModuleTensor):
                 ind_r = ind_s + ind_o
                 if len(ind_r) == len(set(ind_r)): # all indices are different
                     cmp_r[ind_r] += val_s * val_o
-        result = FreeModuleAltForm(fmodule, rank_r)
+        result = fmodule.alternating_form(rank_r)
         result.components[basis] = cmp_r
         if self.name is not None and other.name is not None:
             sname = self.name
@@ -438,6 +446,14 @@ class FreeModuleLinForm(FreeModuleAltForm):
             description += self.name + " " 
         description += "on the " + str(self.fmodule)
         return description
+
+    def _new_instance(self):
+        r"""
+        Create a :class:`FreeModuleLinForm` instance on the same module. 
+        
+        """
+        return FreeModuleLinForm(self.fmodule)
+
 
     def _new_comp(self, basis): 
         r"""

@@ -693,6 +693,11 @@ class Components(SageObject):
                                                        for i in range(si, nsi)]
         if self.nid == 2:
             try:
+                for i in range(self.dim):
+                    for j in range(self.dim):
+                        a = resu[i][j]
+                        if hasattr(a, 'express'):
+                            resu[i][j] = a.express
                 resu = matrix(resu)  # for a nicer output
             except TypeError:
                 pass
@@ -714,29 +719,42 @@ class Components(SageObject):
             return [self._gen_list(ind + [i], no_format, format_type) 
                                                        for i in range(si, nsi)] 
 
-    def __setitem__(self, indices, value):
+    def __setitem__(self, args, value):
         r"""
         Sets the component corresponding to the given indices.
 
         INPUT:
         
-        - ``indices`` -- list of indices (possibly a single integer if
+        - ``args`` -- list of indices (possibly a single integer if
           self is a 1-index object) ; if [:] is provided, all the components 
           are set. 
         - ``value`` -- the value to be set or a list of values if ``args``
           == ``[:]``
     
         """
-        if isinstance(indices, slice):
-            self._set_list(indices, value)
+        format_type = None # default value, possibly redefined below
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], slice):
+                indices = args[0]
+            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+                indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
+            else:
+                indices = tuple(args)
         else:
-            if isinstance(indices, list):    
-            # to ensure equivalence between [i,j,...] and [[i,j,...]] or 
-            # [[(i,j,...)]]
-                if isinstance(indices[0], tuple) or isinstance(indices[0], list):
-                    indices = indices[0]
-                else:
-                    indices = tuple(indices)
+            # Determining from the input the list of indices and the format
+            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+                indices = args
+            elif isinstance(args[0], slice):
+                indices = args[0]
+                format_type = args[1]
+            elif len(args) == self.nid:
+                indices = args
+            else:
+                format_type = args[-1]
+                indices = args[:-1]
+        if isinstance(indices, slice):
+            self._set_list(indices, format_type, value)
+        else:
             ind = self._check_indices(indices)
             if value == 0:
                 # if the component has been set previously, it is deleted,
@@ -744,9 +762,12 @@ class Components(SageObject):
                 if ind in self._comp:
                     del self._comp[ind]
             else:
-                self._comp[ind] = self.ring(value)
+                if format_type is None:
+                    self._comp[ind] = self.ring(value)
+                else:
+                    self._comp[ind] = self.ring(value, format_type)
 
-    def _set_list(self, ind_slice, values):
+    def _set_list(self, ind_slice, format_type, values):
         r"""
         Set the components from a list.
         
@@ -774,26 +795,28 @@ class Components(SageObject):
                 raise NotImplementedError("Function [start:stop:step] " +
                                               "not implemented.")
             for i in range(start, stop):
-                self[i] = values[i-start]
+                self[i, format_type] = values[i-start]
         else:
             if ind_slice.start is not None or ind_slice.stop is not None:
                 raise NotImplementedError("Function [start:stop] not " +
                           "implemented for components with " + str(self.nid) + 
                           " indices.")
             for i in range(si, nsi):
-                self._set_value_list([i], values[i-si])
+                self._set_value_list([i], format_type, values[i-si])
 
-    def _set_value_list(self, ind, val):
+    def _set_value_list(self, ind, format_type, val):
         r"""
         Recursive function to set a list of values to self
         """
         if len(ind) == self.nid:
+            if format_type is not None:
+                ind = tuple(ind + [format_type])
             self[ind] = val
         else:
             si = self.sindex
             nsi = si + self.dim
             for i in range(si, nsi):
-                self._set_value_list(ind + [i], val[i-si])
+                self._set_value_list(ind + [i], format_type, val[i-si])
 
     def swap_adjacent_indices(self, pos1, pos2, pos3):
         r"""
@@ -2093,29 +2116,42 @@ class CompWithSym(Components):
                         return self.output_formatter(
                                                 -self._comp[ind], format_type)
 
-    def __setitem__(self, indices, value):
+    def __setitem__(self, args, value):
         r"""
         Sets the component corresponding to the given indices.
 
         INPUT:
         
-        - ``indices`` -- list of indices (possibly a single integer if
+        - ``args`` -- list of indices (possibly a single integer if
           self is a 1-index object) ; if [:] is provided, all the components 
           are set. 
         - ``value`` -- the value to be set or a list of values if ``args``
           == ``[:]``
     
         """
-        if isinstance(indices, slice):
-            self._set_list(indices, value)
+        format_type = None # default value, possibly redefined below
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], slice):
+                indices = args[0]
+            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+                indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
+            else:
+                indices = tuple(args)
         else:
-            if isinstance(indices, list):    
-            # to ensure equivalence between [i,j,...] and [[i,j,...]] or 
-            # [[(i,j,...)]]
-                if isinstance(indices[0], tuple) or isinstance(indices[0], list):
-                    indices = indices[0]
-                else:
-                    indices = tuple(indices)
+            # Determining from the input the list of indices and the format
+            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+                indices = args
+            elif isinstance(args[0], slice):
+                indices = args[0]
+                format_type = args[1]
+            elif len(args) == self.nid:
+                indices = args
+            else:
+                format_type = args[-1]
+                indices = args[:-1]
+        if isinstance(indices, slice):
+            self._set_list(indices, format_type, value)
+        else:
             sign, ind = self._ordered_indices(indices)
             if sign == 0:
                 if value != 0:
@@ -2128,11 +2164,16 @@ class CompWithSym(Components):
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
-                if sign == 1:
-                    self._comp[ind] = self.ring(value)
-                else:   # sign = -1
-                    self._comp[ind] = -self.ring(value)
-
+                if format_type is None:
+                    if sign == 1:
+                        self._comp[ind] = self.ring(value)
+                    else:   # sign = -1
+                        self._comp[ind] = -self.ring(value)
+                else:
+                    if sign == 1:
+                        self._comp[ind] = self.ring(value, format_type)
+                    else:   # sign = -1
+                        self._comp[ind] = -self.ring(value, format_type)
 
     def swap_adjacent_indices(self, pos1, pos2, pos3):
         r"""
@@ -3405,7 +3446,7 @@ class CompFullySym(CompWithSym):
                     return self.output_formatter(self.ring.zero_element(), 
                                                  format_type) 
 
-    def __setitem__(self, indices, value):
+    def __setitem__(self, args, value):
         r"""
         Sets the component corresponding to the given indices.
 
@@ -3418,23 +3459,38 @@ class CompFullySym(CompWithSym):
           == ``[:]``
     
         """
-        if isinstance(indices, slice):
-            self._set_list(indices, value)
+        format_type = None # default value, possibly redefined below
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], slice):
+                indices = args[0]
+            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+                indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
+            else:
+                indices = tuple(args)
         else:
-            if isinstance(indices, list):    
-            # to ensure equivalence between [i,j,...] and [[i,j,...]] or 
-            # [[(i,j,...)]]
-                if isinstance(indices[0], tuple) or isinstance(indices[0], list):
-                    indices = indices[0]
-                else:
-                    indices = tuple(indices)
+            # Determining from the input the list of indices and the format
+            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+                indices = args
+            elif isinstance(args[0], slice):
+                indices = args[0]
+                format_type = args[1]
+            elif len(args) == self.nid:
+                indices = args
+            else:
+                format_type = args[-1]
+                indices = args[:-1]
+        if isinstance(indices, slice):
+            self._set_list(indices, format_type, value)
+        else:
             ind = self._ordered_indices(indices)[1]  # [0]=sign is not used
             if value == 0:
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
-                self._comp[ind] = self.ring(value)
-
+                if format_type is None:
+                    self._comp[ind] = self.ring(value)
+                else:
+                    self._comp[ind] = self.ring(value, format_type)
 
     def __add__(self, other):
         r"""

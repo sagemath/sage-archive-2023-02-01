@@ -84,52 +84,108 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         
     """
     def __init__(self, fmodule, symbol, latex_symbol=None):
-        from free_module_tensor import FiniteFreeModuleElement
         self.fmodule = fmodule
         self.name = "(" + \
-          ",".join([symbol + "_" + str(i) for i in self.fmodule.irange()]) +")"
+          ",".join([symbol + "_" + str(i) for i in fmodule.irange()]) +")"
         if latex_symbol is None:
             latex_symbol = symbol
-        self.latex_name = r"\left(" + \
-          ",".join([latex_symbol + "_" + str(i) 
-                    for i in self.fmodule.irange()]) + r"\right)"
+        self.latex_name = r"\left(" + ",".join([latex_symbol + "_" + str(i) 
+                                       for i in fmodule.irange()]) + r"\right)"
         self.symbol = symbol
+        self.latex_symbol = latex_symbol
         # The basis is added to the module list of bases
-        for other in self.fmodule.known_bases:
+        for other in fmodule.known_bases:
             if symbol == other.symbol:
                 raise ValueError("The " + str(other) + " already exist on the " +
-                                 str(self.fmodule))
-        self.fmodule.known_bases.append(self)
+                                 str(fmodule))
+        fmodule.known_bases.append(self)
         # The individual vectors:
         vl = list()
-        for i in self.fmodule.irange():
+        for i in fmodule.irange():
             v_name = symbol + "_" + str(i)
             v_symb = latex_symbol + "_" + str(i)
-            v = FiniteFreeModuleElement(self.fmodule, name=v_name, latex_name=v_symb)
-            for j in self.fmodule.irange():
-                v.set_comp(self)[j] = 0
-            v.set_comp(self)[i] = 1
+            v = fmodule.element_class(fmodule, name=v_name, latex_name=v_symb)
+            for j in fmodule.irange():
+                v.set_comp(self)[j] = fmodule.ring.zero()
+            v.set_comp(self)[i] = fmodule.ring.one()
             vl.append(v)
         self.vec = tuple(vl)
-        # The dual basis
-        self._dual_basis = FreeModuleCoBasis(self, symbol, 
-                                            latex_symbol=latex_symbol)
         # The first defined basis is considered as the default one
         # and is used to initialize the components of the zero elements of 
         # all tensor modules constructed up to now (including the base module 
         # itself, since it is considered as a type-(1,0) tensor module)
-        if self.fmodule.def_basis is None:
-            self.fmodule.def_basis = self
-            for t in self.fmodule._tensor_modules.values():
+        if fmodule.def_basis is None:
+            fmodule.def_basis = self
+            for t in fmodule._tensor_modules.values():
                 t._zero_element.components[self] = \
                                                 t._zero_element._new_comp(self)
                 # (since new components are initialized to zero)
+        # The dual basis:
+        self._dual_basis = self._init_dual_basis() 
+
+
+    ###### Methods to be redefined by derived classes of FreeModuleBasis ######
 
     def _repr_(self):
         r"""
         String representation of the object.
         """
         return "basis " + self.name + " on the " + str(self.fmodule)
+
+
+    def _init_dual_basis(self):
+        r""" 
+        Construct the basis dual to ``self``.
+        
+        OUTPUT:
+        
+        - instance of :class:`FreeModuleCoBasis` representing the dual of
+          ``self``
+        
+        """
+        return FreeModuleCoBasis(self, self.symbol, 
+                                                latex_symbol=self.latex_symbol)
+
+    ###### End of methods to be redefined by derived classes ######
+
+
+    def dual_basis(self):
+        r""" 
+        Return the basis dual to ``self``.
+        
+        OUTPUT:
+        
+        - instance of :class:`FreeModuleCoBasis` representing the dual of
+          ``self``
+
+        EXAMPLES:
+        
+        Dual basis on a rank-3 free module::
+        
+            sage: M = FiniteFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: e = M.basis('e') ; e
+            basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring
+            sage: f = e.dual_basis() ; f
+            dual basis (e^1,e^2,e^3) on the rank-3 free module M over the Integer Ring
+        
+        Let us check that the elements of f are tensors of type (0,1) on M::
+    
+            sage: f[1] in M.tensor_module(0,1)
+            True
+            sage: f[1]
+            linear form e^1 on the rank-3 free module M over the Integer Ring
+    
+        and that f is indeed the dual of e::
+        
+            sage: f[1](e[1]), f[1](e[2]), f[1](e[3])
+            (1, 0, 0)
+            sage: f[2](e[1]), f[2](e[2]), f[2](e[3])
+            (0, 1, 0)
+            sage: f[3](e[1]), f[3](e[2]), f[3](e[3])
+            (0, 0, 1)
+        
+        """
+        return self._dual_basis
 
     def _latex_(self):
         r"""
@@ -222,7 +278,9 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
             raise TypeError("The argument change_of_basis must be some " +
                             "instance of FreeModuleAutomorphism.")
         fmodule = self.fmodule
-        the_new_basis = FreeModuleBasis(fmodule, symbol, latex_symbol)
+        # self.__class__ is used instead of FreeModuleBasis for a correct
+        # construction in case of derived classes:
+        the_new_basis = self.__class__(fmodule, symbol, latex_symbol)
         transf = change_of_basis.copy()
         inv_transf = change_of_basis.inverse().copy()
         si = fmodule.sindex
@@ -260,43 +318,6 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         #
         return the_new_basis
 
-    def dual_basis(self):
-        r""" 
-        Return the basis dual to ``self``.
-        
-        OUTPUT:
-        
-        - instance of :class:`FreeModuleCoBasis` representing the dual of
-          ``self``
-
-        EXAMPLES:
-        
-        Dual basis on a rank-3 free module::
-        
-            sage: M = FiniteFreeModule(ZZ, 3, name='M', start_index=1)
-            sage: e = M.basis('e') ; e
-            basis (e_1,e_2,e_3) on the rank-3 free module M over the Integer Ring
-            sage: f = e.dual_basis() ; f
-            dual basis (e^1,e^2,e^3) on the rank-3 free module M over the Integer Ring
-        
-        Let us check that the elements of f are tensors of type (0,1) on M::
-    
-            sage: f[1] in M.tensor_module(0,1)
-            True
-            sage: f[1]
-            linear form e^1 on the rank-3 free module M over the Integer Ring
-    
-        and that f is indeed the dual of e::
-        
-            sage: f[1](e[1]), f[1](e[2]), f[1](e[3])
-            (1, 0, 0)
-            sage: f[2](e[1]), f[2](e[2]), f[2](e[3])
-            (0, 1, 0)
-            sage: f[3](e[1]), f[3](e[2]), f[3](e[3])
-            (0, 0, 1)
-        
-        """
-        return self._dual_basis
         
 #******************************************************************************
 
@@ -342,7 +363,6 @@ class FreeModuleCoBasis(SageObject):
 
     """
     def __init__(self, basis, symbol, latex_symbol=None):
-        from free_module_alt_form import FreeModuleLinForm
         self.basis = basis
         self.fmodule = basis.fmodule
         self.name = "(" + \
@@ -357,7 +377,7 @@ class FreeModuleCoBasis(SageObject):
         for i in self.fmodule.irange():
             v_name = symbol + "^" + str(i)
             v_symb = latex_symbol + "^" + str(i)
-            v = FreeModuleLinForm(self.fmodule, name=v_name, latex_name=v_symb)
+            v = self.fmodule.linear_form(name=v_name, latex_name=v_symb)
             for j in self.fmodule.irange():
                 v.set_comp(basis)[j] = 0
             v.set_comp(basis)[i] = 1

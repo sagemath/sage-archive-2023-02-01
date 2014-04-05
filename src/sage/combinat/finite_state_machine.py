@@ -3625,6 +3625,21 @@ class FiniteStateMachine(SageObject):
             ....:                                  only_accessible_components=False)
             sage: H.states()
             [(0, 0), (1, 0), (0, 1), (1, 1)]
+
+        TESTS:
+
+        Check that colors are correctly dealt with. In particular, the
+        new colors have to be hashable such that
+        :meth:`Automaton.determinisation` does not fail::
+
+            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+            sage: B = A.product_FiniteStateMachine(A,
+            ....:                                  lambda t1, t2: (0, None))
+            sage: B.states()[0].color
+            (None, None)
+            sage: B.determinisation()
+            Automaton with 1 states
+
         """
         result = self.empty_copy()
         if new_input_alphabet is not None:
@@ -3901,6 +3916,17 @@ class FiniteStateMachine(SageObject):
              Transition from ('B', 2) to ('B', 1): 1|1,
              Transition from ('B', 1) to ('B', 1): 0|0,
              Transition from ('B', 1) to ('B', 2): 1|0]
+
+        Check that colors are correctly dealt with. In particular, the
+        new colors have to be hashable such that
+        :meth:`Automaton.determinisation` does not fail::
+
+            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+            sage: B = A.composition(A, algorithm='explorative')
+            sage: B.states()[0].color
+            (None, None)
+            sage: B.determinisation()
+            Automaton with 1 states
 
         TODO:
 

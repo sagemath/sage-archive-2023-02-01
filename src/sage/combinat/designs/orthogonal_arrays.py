@@ -197,15 +197,19 @@ def orthogonal_array(k,n,t=2,check=True):
     from sage.rings.finite_rings.constructor import FiniteField
     OA = None
 
-    if t != 2:
-        raise NotImplementedError("only implemented for t=2")
-
-    elif k < 2:
+    if k < 2:
         raise ValueError("undefined for k less than 2")
 
-    elif k > n+1:
+    elif k >= n+t:
         from sage.categories.sets_cat import EmptySetError
-        raise EmptySetError("No Orthogonal Array exists when t=2 and k>n+1")
+        # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
+        # When t>2 the submatrix defined by the rows whose first t-2 elements
+        # are 0s yields a OA with t=2 and k-(t-2) columns. Thus k-(t-2) < n+2,
+        # i.e. k<n+t.
+        raise EmptySetError("No Orthogonal Array exists when k>=n+t")
+
+    elif t != 2:
+        raise NotImplementedError("only implemented for t=2")
 
     elif k == t:
         from itertools import product

@@ -541,6 +541,28 @@ class FSMState(SageObject):
                 raise TypeError, 'Wrong argument for hook.'
 
 
+    def __lt__(self, other):
+        """
+        Returns True if label of ``self`` is less than label of
+        ``other``.
+
+        INPUT:
+
+        - `other` -- a state.
+
+        OUTPUT:
+
+        True or False.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: FSMState(0) < FSMState(1)
+            True
+        """
+        return self.label() < other.label()
+
+
     def label(self):
         """
         Returns the label of the state.
@@ -884,6 +906,29 @@ class FSMTransition(SageObject):
                 self.hook = hook
             else:
                 raise TypeError, 'Wrong argument for hook.'
+
+
+    def __lt__(self, other):
+        """
+        Returns True if ``self`` is less than ``other`` with respect to the
+        key ``(self.from_state, self.word_in, self.to_state, self.word_out)``.
+
+        INPUT:
+
+        - `other` -- a transition.
+
+        OUTPUT:
+
+        True or False.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import FSMTransition
+            sage: FSMTransition(0,1,0,0) < FSMTransition(1,0,0,0)
+            True
+        """
+        return (self.from_state, self.word_in, self.to_state, self.word_out) < \
+            (other.from_state, other.word_in, other.to_state, other.word_out)
 
 
     def __copy__(self):
@@ -1637,6 +1682,64 @@ class FiniteStateMachine(SageObject):
         self._deepcopy_relabel_ = True
         new = deepcopy(self, memo)
         del self._deepcopy_relabel_
+        return new
+
+
+    def induced_sub_finite_state_machine(self, states):
+        """
+        Returns a sub-finite-state-machine of the finite state machine
+        induced by the given states.
+
+        INPUT:
+
+        - ``states`` -- states (labels or instances of
+          :class:`FSMState`) of the sub-finite-state-machine.
+
+        OUTPUT:
+
+        A new finite state machine. It consists of (deep copies) of
+        the given states and (deep copies) of all transitions of ``self``
+        between these states.
+
+        Currently, the implementation is not optimized, it is ``O(m^2)``
+        where ``m`` is the number of transitions.
+
+        EXAMPLE::
+
+            sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
+            ....:                           (1, 2, 0), (2, 0, 0)])
+            sage: sub_FSM = FSM.induced_sub_finite_state_machine([0, 1])
+            sage: sub_FSM.states()
+            [0, 1]
+            sage: sub_FSM.transitions()
+            [Transition from 0 to 1: 0|-]
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: sub_FSM.transitions()[0].from_state is sub_FSM.state(0)
+            True
+
+        """
+        good_states = set()
+        for state in states:
+            if not self.has_state(state):
+                raise ValueError("%s is not a state of this finite state machine")
+            good_states.add(self.state(state))
+
+        memo = {}
+        new = self.empty_copy(memo=memo)
+        for state in good_states:
+            s = deepcopy(state, memo)
+            new.add_state(s)
+
+        for state in good_states:
+            for transition in self.iter_transitions(state):
+                if transition.to_state in good_states:
+                    new.add_transition(deepcopy(transition, memo))
+
         return new
 
 
@@ -2674,6 +2777,70 @@ class FiniteStateMachine(SageObject):
                     return False
         return True
 
+    def is_complete(self):
+        """
+        Returns whether the finite state machine is complete.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        True or False.
+
+        A finite state machine is considered to be complete if
+        each transition has input label of length one and for each
+        pair `(q, a)` where `q` is a state and `a` is an element of the
+        input alphabet, there is exactly one transition from `q` with
+        input label `a`.
+
+        EXAMPLES::
+
+            sage: fsm = FiniteStateMachine([[0, 0, 0, 0],
+            ....:                           [0, 1, 1, 1],
+            ....:                           [1, 1, 0, 0]],
+            ....:                          determine_alphabets=False)
+            sage: fsm.is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling determine_alphabets().
+            sage: fsm.input_alphabet = [0, 1]
+            sage: fsm.is_complete()
+            False
+            sage: fsm.add_transition((1, 1, 1, 1))
+            Transition from 1 to 1: 1|1
+            sage: fsm.is_complete()
+            True
+            sage: fsm.add_transition((0, 0, 1, 0))
+            Transition from 0 to 0: 1|0
+            sage: fsm.is_complete()
+            False
+        """
+        if self.input_alphabet is None:
+            raise ValueError, ("No input alphabet is given. "
+                               "Try calling determine_alphabets().")
+
+        for state in self.states():
+            for transition in state.transitions:
+                if len(transition.word_in) != 1:
+                    return False
+
+            transition_classes_by_word_in = full_group_by(
+                state.transitions,
+                key=lambda t:t.word_in)
+
+            for key, transition_class in transition_classes_by_word_in:
+                if len(transition_class) > 1:
+                    return False
+
+            # all input labels are lists, extract the only element
+            outgoing_alphabet = [ key[0] for key, transition_class in
+                                  transition_classes_by_word_in ]
+            if not sorted(self.input_alphabet) == sorted(outgoing_alphabet):
+                return False
+
+        return True
 
     def is_connected(self):
         """
@@ -3897,6 +4064,60 @@ class FiniteStateMachine(SageObject):
                     transition.word_in[-1:],
                     transition.word_out))
         return new
+
+
+    def final_components(self):
+        """
+        Returns the final components of a finite state machine as finite
+        state machines.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of finite state machines, each representing a final
+        component of ``self``.
+
+        A final component of a transducer ``T`` is a strongly connected
+        component ``C`` such that there are no transitions of ``T``
+        leaving ``C``.
+
+        The final components are the only parts of a transducer which
+        influence the main terms of the asympotic behaviour of the sum
+        of output labels of a transducer, see [HKP2014]_ and [HKW2014]_.
+
+        EXAMPLES::
+
+            sage: T = Transducer([['A', 'B', 0, 0], ['B', 'C', 0, 1],
+            ....:                 ['C', 'B', 0, 1], ['A', 'D', 1, 0],
+            ....:                 ['D', 'D', 0, 0], ['D', 'B', 1, 0],
+            ....:                 ['A', 'E', 2, 0], ['E', 'E', 0, 0]])
+            sage: FC = T.final_components()
+            sage: sorted(FC[0].transitions())
+            [Transition from 'B' to 'C': 0|1,
+             Transition from 'C' to 'B': 0|1]
+            sage: FC[1].transitions()
+            [Transition from 'E' to 'E': 0|0]
+
+        REFERENCES:
+
+        .. [HKP2014] Clemens Heuberger, Sara Kropf and Helmut
+           Prodinger, *Asymptotic analysis of the sum of the output of
+           transducer*, in preparation.
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, in preparation.
+
+        """
+        DG = self.digraph()
+        condensation = DG.strongly_connected_components_digraph()
+        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
+                              condensation.vertices())
+        return [self.induced_sub_finite_state_machine(map(self.state, component))
+                for component in final_labels]
 
 
     # *************************************************************************

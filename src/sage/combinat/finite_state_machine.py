@@ -4002,6 +4002,60 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def final_components(self):
+        """
+        Returns the final components of a finite state machine as finite
+        state machines.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of finite state machines, each representing a final
+        component of ``self``.
+
+        A final component of a transducer ``T`` is a strongly connected
+        component ``C`` such that there are no transitions of ``T``
+        leaving ``C``.
+
+        The final components are the only parts of a transducer which
+        influence the main terms of the asympotic behaviour of the sum
+        of output labels of a transducer, see [HKP2014]_ and [HKW2014]_.
+
+        EXAMPLES::
+
+            sage: T = Transducer([['A', 'B', 0, 0], ['B', 'C', 0, 1],
+            ....:                 ['C', 'B', 0, 1], ['A', 'D', 1, 0],
+            ....:                 ['D', 'D', 0, 0], ['D', 'B', 1, 0],
+            ....:                 ['A', 'E', 2, 0], ['E', 'E', 0, 0]])
+            sage: FC = T.final_components()
+            sage: sorted(FC[0].transitions())
+            [Transition from 'B' to 'C': 0|1,
+             Transition from 'C' to 'B': 0|1]
+            sage: FC[1].transitions()
+            [Transition from 'E' to 'E': 0|0]
+
+        REFERENCES:
+
+        .. [HKP2014] Clemens Heuberger, Sara Kropf and Helmut
+           Prodinger, *Asymptotic analysis of the sum of the output of
+           transducer*, in preparation.
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, in preparation.
+
+        """
+        DG = self.digraph()
+        condensation = DG.strongly_connected_components_digraph()
+        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
+                              condensation.vertices())
+        return [self.induced_sub_finite_state_machine(map(self.state, component))
+                for component in final_labels]
+
+
     # *************************************************************************
     # simplifications
     # *************************************************************************

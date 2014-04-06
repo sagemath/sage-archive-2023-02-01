@@ -1155,7 +1155,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             else:
                 # here we need some sums anyway
                 bounds = self._prec_bounds(n,prec)
-                padic_prec = [[20,20]]
+                padic_prec = 20
         else:
             prec = min(p**(n-1), prec)
             bounds = self._prec_bounds(n,prec)

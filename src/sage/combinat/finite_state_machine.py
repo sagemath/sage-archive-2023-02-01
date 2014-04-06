@@ -1640,6 +1640,64 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def induced_sub_finite_state_machine(self, states):
+        """
+        Returns a sub-finite-state-machine of the finite state machine
+        induced by the given states.
+
+        INPUT:
+
+        - ``states`` -- states (labels or instances of
+          :class:`FSMState`) of the sub-finite-state-machine.
+
+        OUTPUT:
+
+        A new finite state machine. It consists of (deep copies) of
+        the given states and (deep copies) of all transitions of ``self``
+        between these states.
+
+        Currently, the implementation is not optimized, it is ``O(m^2)``
+        where ``m`` is the number of transitions.
+
+        EXAMPLE::
+
+            sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
+            ....:                           (1, 2, 0), (2, 0, 0)])
+            sage: sub_FSM = FSM.induced_sub_finite_state_machine([0, 1])
+            sage: sub_FSM.states()
+            [0, 1]
+            sage: sub_FSM.transitions()
+            [Transition from 0 to 1: 0|-]
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: sub_FSM.transitions()[0].from_state is sub_FSM.state(0)
+            True
+
+        """
+        good_states = set()
+        for state in states:
+            if not self.has_state(state):
+                raise ValueError("%s is not a state of this finite state machine")
+            good_states.add(self.state(state))
+
+        memo = {}
+        new = self.empty_copy(memo=memo)
+        for state in good_states:
+            s = deepcopy(state, memo)
+            new.add_state(s)
+
+        for state in good_states:
+            for transition in self.iter_transitions(state):
+                if transition.to_state in good_states:
+                    new.add_transition(deepcopy(transition, memo))
+
+        return new
+
+
     def __hash__(self):
         """
         Since finite state machines are mutable, they should not be

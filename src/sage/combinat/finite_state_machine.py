@@ -1607,6 +1607,18 @@ class FiniteStateMachine(SageObject):
             sage: F = FiniteStateMachine([('A', 'A', 0, 1), ('A', 'A', 1, 0)])
             sage: deepcopy(F)
             Finite state machine with 1 states
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: C = deepcopy(F)
+            sage: C.transitions()[0].from_state is C.state('A')
+            True
+            sage: C.transitions()[0].to_state is C.state('A')
+            True
+
         """
         return deepcopy(self, memo)
 

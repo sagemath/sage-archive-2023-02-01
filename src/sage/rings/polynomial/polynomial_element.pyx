@@ -76,6 +76,7 @@ from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidE
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
+from sage.rings.integer cimport smallInteger
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
@@ -7201,8 +7202,16 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f = (1+2*x^7)^5
             sage: f.degree()
             35
+
+        TESTS:
+
+        Check that :trac:`12552` is fixed::
+
+            sage: type(f.degree())
+            <type 'sage.rings.integer.Integer'>
+
         """
-        return len(self.__coeffs) - 1
+        return smallInteger(len(self.__coeffs) - 1)
 
     def shift(self, Py_ssize_t n):
         r"""

@@ -1375,26 +1375,9 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.coproduct_on_basis((0,1,2))
             1 # x^y^z + x # y^z + x^y # z + x^y^z # 1 - x^z # y - y # x^z + y^z # x + z # x^y
         """
-        from sage.misc.misc import powerset # somewhat lowlevel function, but it's all we need
+        from sage.combinat.combinat import unshuffle_iterator
         one = self.base_ring().one()
-        n = len(a)
-        def unshuffle_iterator():
-            for I in powerset(range(n)):
-                sorted_I = tuple(sorted(I))
-                nonI = range(n)
-                for j in reversed(sorted_I): # probably optimizable
-                    nonI.pop(j)
-                sorted_nonI = tuple(nonI)
-                sign = True
-                for i in sorted_I:
-                    if i % 2:  # aka i % 2 == 1
-                        sign = not sign
-                if len(sorted_I) % 4 > 1:
-                    sign = not sign
-                yield ((tuple([a[i] for i in sorted_I]),
-                        tuple([a[i] for i in sorted_nonI])),
-                       (one if sign else - one))
-        return self.tensor_square().sum_of_terms(unshuffle_iterator(),
+        return self.tensor_square().sum_of_terms(unshuffle_iterator(a, one),
                                                  distinct=True)
 
     def antipode_on_basis(self, m):

@@ -165,7 +165,7 @@ from combinat_cython import _stirling_number2
 def bell_number(n, algorithm='dobinski', **options):
     r"""
     Return the `n`-th Bell number (the number of ways to partition a set
-    of n elements into pairwise disjoint nonempty subsets). If `n \leq 0`,
+    of `n` elements into pairwise disjoint nonempty subsets). If `n \leq 0`,
     return `1`.
 
     INPUT:
@@ -368,7 +368,7 @@ def bell_number(n, algorithm='dobinski', **options):
 
 def catalan_number(n):
     r"""
-    Returns the n-th Catalan number
+    Return the `n`-th Catalan number.
 
     Catalan numbers: The `n`-th Catalan number is given
     directly in terms of binomial coefficients by
@@ -382,8 +382,8 @@ def catalan_number(n):
 
     Consider the set `S = \{ 1, ..., n \}`. A noncrossing
     partition of `S` is a partition in which no two blocks
-    "cross" each other, i.e., if a and b belong to one block and x and
-    y to another, they are not arranged in the order axby.
+    "cross" each other, i.e., if `a` and `b` belong to one block and
+    `x` and `y` to another, they are not arranged in the order `axby`.
     `C_n` is the number of noncrossing partitions of the set
     `S`. There are many other interpretations (see
     REFERENCES).
@@ -420,13 +420,12 @@ def catalan_number(n):
 
     -  http://www-history.mcs.st-andrews.ac.uk/~history/Miscellaneous/CatalanNumbers/catalan.html
     """
-    from sage.rings.arith import binomial
     n = ZZ(n)
     return binomial(2*n,n).divide_knowing_divisible_by(n+1)
 
 def euler_number(n):
     """
-    Returns the n-th Euler number
+    Return the `n`-th Euler number.
 
     IMPLEMENTATION: Wraps Maxima's euler.
 
@@ -454,7 +453,7 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns the n-th Fibonacci number. The Fibonacci sequence
+    Returns the `n`-th Fibonacci number. The Fibonacci sequence
     `F_n` is defined by the initial conditions
     `F_1=F_2=1` and the recurrence relation
     `F_{n+2} = F_{n+1} + F_n`. For negative `n` we
@@ -510,7 +509,7 @@ def fibonacci(n, algorithm="pari"):
 
 def lucas_number1(n,P,Q):
     """
-    Returns the n-th Lucas number "of the first kind" (this is not
+    Return the `n`-th Lucas number "of the first kind" (this is not
     standard terminology). The Lucas sequence `L^{(1)}_n` is
     defined by the initial conditions `L^{(1)}_1=0`,
     `L^{(1)}_2=1` and the recurrence relation
@@ -518,7 +517,7 @@ def lucas_number1(n,P,Q):
 
     Wraps GAP's Lucas(...)[1].
 
-    P=1, Q=-1 gives the Fibonacci sequence.
+    `P=1`, `Q=-1` gives the Fibonacci sequence.
 
     INPUT:
 
@@ -582,7 +581,7 @@ def lucas_number1(n,P,Q):
 
 def lucas_number2(n,P,Q):
     r"""
-    Returns the n-th Lucas number "of the second kind" (this is not
+    Return the `n`-th Lucas number "of the second kind" (this is not
     standard terminology). The Lucas sequence `L^{(2)}_n` is
     defined by the initial conditions `L^{(2)}_1=2`,
     `L^{(2)}_2=P` and the recurrence relation
@@ -618,7 +617,7 @@ def lucas_number2(n,P,Q):
         sage: type(n)
         <type 'sage.rings.rational.Rational'>
 
-    The case P=1, Q=-1 is the Lucas sequence in Brualdi's Introductory
+    The case `P=1`, `Q=-1` is the Lucas sequence in Brualdi's Introductory
     Combinatorics, 4th ed., Prentice-Hall, 2004::
 
         sage: [lucas_number2(n,1,-1) for n in range(10)]
@@ -630,7 +629,7 @@ def lucas_number2(n,P,Q):
 
 def stirling_number1(n, k):
     r"""
-    Returns the `n`-th Stirling number `S_1(n,k)` of the first kind
+    Return the `n`-th Stirling number `S_1(n,k)` of the first kind.
 
     This is the number of permutations of `n` points with `k` cycles.
 
@@ -655,9 +654,9 @@ def stirling_number1(n, k):
 
 def stirling_number2(n, k, algorithm=None):
     """
-    Returns the n-th Stirling number `S_2(n,k)` of the second
-    kind (the number of ways to partition a set of n elements into k
-    pairwise disjoint nonempty subsets). (The n-th Bell number is the
+    Return the `n`-th Stirling number `S_2(n,k)` of the second
+    kind (the number of ways to partition a set of `n` elements into `k`
+    pairwise disjoint nonempty subsets). (The `n`-th Bell number is the
     sum of the `S_2(n,k)`'s, `k=0,...,n`.)
 
     INPUT:
@@ -1201,7 +1200,6 @@ class CombinatorialClass(Parent):
             sage: Permutations().is_finite()
             False
         """
-        from sage.rings.all import infinity
         return self.cardinality() != infinity
 
     def __getitem__(self, i):
@@ -2231,10 +2229,18 @@ def number_of_derangements(mset):
 
 def tuples(S,k):
     """
-    An ordered tuple of length k of set is an ordered selection with
-    repetition and is represented by a list of length k containing
-    elements of set. tuples returns the set of all ordered tuples of
-    length k of the set.
+    Return a list of all `k`-tuples of elements of a given set ``S``.
+
+    This function accepts the set ``S`` in the form of any iterable
+    (list, tuple or iterator), and returns a list of `k`-tuples
+    (themselves encoded as lists). If ``S`` contains duplicate
+    entries, then you should expect the method to return tuples multiple
+    times!
+
+    Recall that `k`-tuples are ordered (in the sense that two `k`-tuples
+    differing in the order of their entries count as different) and
+    can have repeated entries (even if ``S`` is a list with no
+    repetition).
 
     EXAMPLES::
 
@@ -2277,7 +2283,7 @@ def tuples(S,k):
 
 def number_of_tuples(S,k):
     """
-    Returns the size of tuples(S,k). Wraps GAP's NrTuples.
+    Returns the size of ``tuples(S,k)``. Wraps GAP's NrTuples.
 
     EXAMPLES::
 
@@ -2332,6 +2338,64 @@ def number_of_unordered_tuples(S,k):
     """
     ans=gap.eval("NrUnorderedTuples(%s,%s)"%(S,ZZ(k)))
     return ZZ(ans)
+
+def unshuffle_iterator(a, one=1):
+    r"""
+    Iterate over the unshuffles of a list (or tuple) ``a``, also
+    yielding the signs of the respective permutations.
+
+    If `n` and `k` are integers satisfying `0 \leq k \leq n`, then
+    an *`(k, n-k)`-unshuffle* means a permutation `\pi \in S_n` such
+    that `\pi(1) < \pi(2) < \ldots < \pi(k)` and
+    `\pi(k+1) < \pi(k+2) < \ldots < \pi(n)`. This method provides,
+    for a list `a = (a_1, a_2, \ldots, a_n)` of length `n`, an iterator
+    yielding all pairs
+    `( ( (a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(k)}),
+         (a_{\pi(k+1)}, a_{\pi(k+2)}, \ldots, a_{\pi(n)}) ),
+       (-1)^{\pi} )`
+    for all `k \in \{0, 1, \ldots, n\}` and all `(k, n-k)`-unshuffles
+    `\pi`. The optional variable ``one`` can be set to a different
+    value which results in the `(-1)^{\pi}` component being multiplied
+    by said value.
+
+    The iterator does not yield these in order of increasing `k`.
+
+    EXAMPLES:
+
+        sage: from sage.combinat.combinat import unshuffle_iterator
+        sage: list(unshuffle_iterator([1, 3, 4]))
+        [(((), (1, 3, 4)), 1), (((1,), (3, 4)), 1), (((3,), (1, 4)), -1),
+         (((1, 3), (4,)), 1), (((4,), (1, 3)), 1), (((1, 4), (3,)), -1),
+         (((3, 4), (1,)), 1), (((1, 3, 4), ()), 1)]
+        sage: list(unshuffle_iterator([3, 1]))
+        [(((), (3, 1)), 1), (((3,), (1,)), 1), (((1,), (3,)), -1),
+         (((3, 1), ()), 1)]
+        sage: list(unshuffle_iterator([8]))
+        [(((), (8,)), 1), (((8,), ()), 1)]
+        sage: list(unshuffle_iterator([]))
+        [(((), ()), 1)]
+        sage: list(unshuffle_iterator([3, 1], 3/2))
+        [(((), (3, 1)), 3/2), (((3,), (1,)), 3/2), (((1,), (3,)), -3/2),
+         (((3, 1), ()), 3/2)]
+
+    """
+    from sage.misc.misc import powerset
+    n = len(a)
+    for I in powerset(range(n)):
+        sorted_I = tuple(sorted(I))
+        nonI = range(n)
+        for j in reversed(sorted_I): # probably optimizable
+            nonI.pop(j)
+        sorted_nonI = tuple(nonI)
+        sign = True
+        for i in sorted_I:
+            if i % 2:  # aka i % 2 == 1
+                sign = not sign
+        if len(sorted_I) % 4 > 1:
+            sign = not sign
+        yield ((tuple([a[i] for i in sorted_I]),
+                tuple([a[i] for i in sorted_nonI])),
+               (one if sign else - one))
 
 def permutations(mset):
     """

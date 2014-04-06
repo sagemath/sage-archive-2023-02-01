@@ -1437,7 +1437,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         Return the interior product `\iota_b a` of ``a`` with respect to
         ``b``.
 
-        See :meth:`CliffordAlgebra.Element.interior_product` for more
+        See :meth:`~sage.algebras.clifford_algebra.CliffordAlgebra.Element.interior_product` for more
         information.
 
         This depends on the choice of basis of the vector space

@@ -1434,7 +1434,11 @@ class ExteriorAlgebra(CliffordAlgebra):
 
     def interior_product_on_basis(self, a, b):
         """
-        Return the interior product of ``a`` on ``b``.
+        Return the interior product `\iota_b a` of ``a`` with respect to
+        ``b``.
+
+        See :meth:`CliffordAlgebra.Element.interior_product` for more
+        information.
 
         This depends on the choice of basis of the vector space
         whose exterior algebra is ``self``.
@@ -1453,15 +1457,16 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.interior_product_on_basis((0,1,2), (0,2))
             -y
         """
-        sgn = 1
+        sgn = True
         t = list(a)
         for i in b:
             if i not in t:
                 return self.zero()
-            sgn *= (-1)**t.index(i)
+            if t.index(i) % 2:
+                sgn = not sgn
             t.remove(i)
         R = self.base_ring()
-        return self.term(tuple(t), R(sgn))
+        return self.term(tuple(t), (R.one() if sgn else - R.one()))
 
     class Element(CliffordAlgebraElement):
         """
@@ -1526,19 +1531,27 @@ class ExteriorAlgebra(CliffordAlgebra):
             Return the interior product or antiderivation of ``self`` with
             respect to ``x``.
 
-            The *interior product* is a map `i_{\alpha} \colon \Lambda^k(V)
-            \to \Lambda^{k-1}(V)`, for a fixed `\alpha \in V^*` (thought of
-            as an element in `\Lambda^1(V)`, defined by
+            If `V` is an `R`-module, and if `\alpha` is a fixed element of
+            `V^*`, then the *interior product* with respect to `\alpha` is
+            an `R`-linear map
+            `i_{\alpha} \colon \Lambda(V) \to \Lambda(V)`, determined by
+            the following requirements:
 
-            - `i_{\alpha}(v) = \alpha(v)` where `v \in V = \Lambda^1(V)`,
-            - it is a graded derivation of degree `-1`:
+            - `i_{\alpha}(v) = \alpha(v)` for all `v \in V = \Lambda^1(V)`,
+            - it is a graded derivation of degree `-1`: all `x` and `y`
+              in `\Lambda(V)` satisfy
 
             .. MATH::
 
                 i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y
-                + (-1)^{\deg x} x \wedge (i_{\alpha} y)
+                + (-1)^{\deg x} x \wedge (i_{\alpha} y).
 
-            The interior product can also be defined by
+            It can be shown that this map `i_{\alpha}` is graded of
+            degree `-1` (that is, sends `\Lambda^k(V)` into
+            `\Lambda^{k-1}(V)` for every `k`).
+
+            When `V` is a finite free `R`-module, the interior product can
+            also be defined by
 
             .. MATH::
 
@@ -1547,8 +1560,20 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             where `\omega \in \Lambda^k(V)` is thought of as an
             alternating multilinear mapping from
-            `V^* \times \cdots \times V^* \to F` with `F` being the base
-            field of `V`.
+            `V^* \times \cdots \times V^*` to `R`.
+
+            Since Sage is only dealing with exterior powers of modules
+            of the form `R^d` for some nonnegative integer `d`, the
+            element `\alpha \in V^*` can be thought of as an element of
+            `V` (by identifying the standard basis of `V = R^d` with its
+            dual basis). This is how `\alpha` should be passed to this
+            method.
+
+            INPUT:
+
+            - ``x`` -- element of (or coercing into) `\Lambda^1(V)`
+              (for example, an element of `V`); this plays the role of
+              `\alpha` in the above definition
 
             EXAMPLES::
 
@@ -1741,9 +1766,9 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
     The boundary `\partial` of an exterior algebra `\Lambda(L)` defined
     by the structure coefficients of `L`.
 
-    Let `L` be a Lie algebra. We give an exterior algebra `E = \Lambda(L)`
-    a chain complex structure by considering a differential
-    `\partial : \Lambda^{k+1}(L) \to \Lambda^k(L)` defined by
+    Let `L` be a Lie algebra. We give the exterior algebra
+    `E = \Lambda(L)` a chain complex structure by considering a
+    differential `\partial : \Lambda^{k+1}(L) \to \Lambda^k(L)` defined by
 
     .. MATH::
 

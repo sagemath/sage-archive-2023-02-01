@@ -1461,7 +1461,7 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             INPUT:
 
-            - ``other`` -- element of the same Clifford algebra as ``self``
+            - ``other`` -- element of the same exterior algebra as ``self``
 
             EXAMPLES::
 
@@ -1472,10 +1472,14 @@ class ExteriorAlgebra(CliffordAlgebra):
                 -x^y
                 sage: z*y*x
                 -x^y^z
+                sage: (x*z)*y
+                -x^y^z
                 sage: (3*x + y)^2
                 0
                 sage: (x - 3*y + z/3)^2
                 0
+                sage: (x+y) * (y+z)
+                x^y + x^z + y^z
             """
             zero = self.parent().base_ring().zero()
             d = {}
@@ -1637,10 +1641,10 @@ class ExteriorAlgebra(CliffordAlgebra):
 
         def scalar(self, other):
             r"""
-            Return the Clifford scalar product of ``self`` with ``other``.
+            Return the standard scalar product of ``self`` with ``other``.
 
-            The Clifford scalar (inner) product of `x, y \in Cl(V, Q)` is
-            defined by `\langle x, y \rangle = \langle x^t y \rangle` where
+            The standard scalar product of `x, y \in \Lambda(V)` is
+            defined by `\langle x, y \rangle = \langle x^t y \rangle`, where
             `\langle a \rangle` denotes the degree 0 term of `a`.
 
             .. TODO::
@@ -1768,7 +1772,9 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
     - ``E`` -- an exterior algebra
     - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
       `I` is the index set of the underlying vector space `V`, and whose
-      values can be coerced into 1-forms (degree 1 elements) in ``E``
+      values can be coerced into 1-forms (degree 1 elements) in ``E``;
+      this dictionary will be used to define the coefficients
+      `s_{jk}^i` (TODO: how exactly?).
 
     EXAMPLES:
 
@@ -1880,8 +1886,8 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
 class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     r"""
-    The coboundary `d` of an exterior algebra `\Lambda(V)` defined
-    by the structure coefficients of `L`.
+    The coboundary `d` of an exterior algebra `\Lambda(L)` defined
+    by the structure coefficients of a Lie algebra `L`.
 
     Let `L` be a Lie algebra. We endow its exterior algebra
     `E = \Lambda(L)` with a cochain complex structure by considering a
@@ -1891,7 +1897,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
         d x_i = \sum_{j < k} s_{jk}^i c_j c_k.
 
-    The corresponding homology is the Lie algebra cohomology of `L`.
+    The corresponding cohomology is the Lie algebra cohomology of `L`.
 
     This can also be thought of as the exterior derivative, in which case
     the resulting cohomology is the de Rham cohomology of a manifold whose
@@ -1904,7 +1910,8 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
       `I` is the index set of the underlying vector space of `L`, and
       whose values can be coerced into 1-forms (degree 1 elements) in
-      ``E``
+      ``E``; this dictionary will be used to define the coefficients
+      `s_{jk}^i` (TODO: how exactly?).
 
     EXAMPLES:
 

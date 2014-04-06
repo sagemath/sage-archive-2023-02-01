@@ -7,7 +7,7 @@ The Sage Dev Scripts
 As an alternative to using git directly, Sage comes with a set of
 developer scripts which help you with common interactions with the bug
 tracker (see :ref:`chapter-sage-trac`) and with handling revisions of
-your code. The developer scripts use the git distributed revison
+your code. The developer scripts use the git distributed revision
 control system under the hood which you'll have to install (see
 :ref:`chapter-git-setup`), but you do not need to know anything about
 it (see :ref:`chapter-manual-git` only if you want to).
@@ -29,7 +29,7 @@ to your own opinion. Arguments are:
 * The dev scripts have bugs.
 
 * Chances are you'll eventually have to learn git anyways, so time
-  spent to learn about the dev scripts is ultimaltely wasted.
+  spent to learn about the dev scripts is ultimately wasted.
 
 * There is less documentation about the dev scripts than there is
   about git.
@@ -45,7 +45,7 @@ might have to replace ``sage`` by ``./sage`` or ``/path/to/sage`` in
 the following. You can also use the developer scripts from the Sage
 prompt. All commandline options to ``sage -dev`` are also available as
 methods of the ``dev`` object in a Sage session. That is, for example,
-to checkout a ticktet you can either run::
+to checkout a ticket you can either run::
 
     [user@localhost]$ sage -dev checkout --ticket 1729
     On ticket #1729 with associated local branch "ticket/1729".

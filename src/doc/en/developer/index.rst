@@ -15,13 +15,21 @@ your new and modified code with other Sage users around the globe.
    :maxdepth: 3
 
    walk_through
-   dev_script
+   git_trac
+
+
+Git and Trac Reference
+======================
+
+.. toctree::
+   :maxdepth: 3
+
    git_setup
    trac
 
 
-Git and Sage Development
-========================
+Git Tricks & Tips
+=================
 
 .. toctree::
    :maxdepth: 3
@@ -55,6 +63,15 @@ Sage Notebook Developer Guide
    :maxdepth: 3
 
    sagenb/index
+
+
+Sage Dev Scripts
+================
+
+.. toctree::
+   :maxdepth: 3
+
+   dev_script
 
 
 Indices and tables

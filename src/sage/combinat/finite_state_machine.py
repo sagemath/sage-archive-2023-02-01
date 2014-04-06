@@ -181,6 +181,120 @@ So we have 13 : 3 = 4 and the reminder is 1. ``False`` means 13 is not
 divisible by 3.
 
 
+Gray Code
+---------
+
+The Gray code is a binary numeral system where two successive values
+differ in only one bit, cf. the :wikipedia:`Gray_code`. The Gray code of
+an integer `n` is obtained by a bitwise xor between the binary expansion
+of `n` and the binary expansion of `\\lfloor n/2\\rfloor`; the latter
+corresponds to a left shift (for this example, the least significant
+digit is at the left-most position).
+
+The purpose of this example is to construct a transducer converting the
+standard binary expansion to the Gray code by translating this
+construction into operations with transducers.
+
+We first construct a transducer shifting the binary expansion to the
+left. This requires storing the previously read digit in a state.
+
+::
+
+    sage: def shift_left_transition(state, digit):
+    ....:     if state == 'I':
+    ....:         return(digit, None)
+    ....:     else:
+    ....:         return(digit, state)
+    sage: shift_left_transducer = Transducer(
+    ....:     shift_left_transition,
+    ....:     initial_states=['I'],
+    ....:     input_alphabet=[0, 1])
+    sage: shift_left_transducer.transitions()
+    [Transition from 'I' to 0: 0|-,
+     Transition from 'I' to 1: 1|-,
+     Transition from 0 to 0: 0|0,
+     Transition from 0 to 1: 1|0,
+     Transition from 1 to 0: 0|1,
+     Transition from 1 to 1: 1|1]
+
+Next, we construct the transducer performing the xor operation.  We
+also have to take ``None`` into account as our
+``shift_left_transducer`` waits one iteration until it starts writing
+output.
+
+::
+
+    sage: def xor_transition(state, digits):
+    ....:    if digits[0] is None or digits[1] is None:
+    ....:        return (0, None)
+    ....:    else:
+    ....:        return(0, digits[0].__xor__(digits[1]))
+    sage: xor_transducer = Transducer(
+    ....:    xor_transition,
+    ....:    initial_states=[0],
+    ....:    input_alphabet=[(None, 0), (None, 1), (0, 0), (0, 1), (1, 0), (1, 1)])
+    sage: xor_transducer.transitions()
+    [Transition from 0 to 0: (None, 0)|-,
+     Transition from 0 to 0: (None, 1)|-,
+     Transition from 0 to 0: (0, 0)|0,
+     Transition from 0 to 0: (0, 1)|1,
+     Transition from 0 to 0: (1, 0)|1,
+     Transition from 0 to 0: (1, 1)|0]
+
+Finally, we need the transducer realizing the identity map.
+
+::
+
+    sage: def identity_transition(state, input):
+    ....:    return(0, input)
+    sage: identity_transducer = Transducer(
+    ....:    identity_transition,
+    ....:    initial_states=[0],
+    ....:    input_alphabet=[0, 1])
+    sage: identity_transducer.transitions()
+    [Transition from 0 to 0: 0|0, Transition from 0 to 0: 1|1]
+
+The transducer computing the Gray code is then constructed as a
+cartesian product.  As described in :meth:`Transducer.cartesian_product`,
+we have to temporarily set
+``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
+``False`` in order to disable backwards compatible code.
+
+::
+
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+    sage: product_transducer = shift_left_transducer.cartesian_product(identity_transducer)
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+    sage: Gray_transducer = xor_transducer(product_transducer)
+    sage: Gray_transducer.transitions()
+    [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
+     Transition from (('I', 0), 0) to ((1, 0), 0): 1|-,
+     Transition from ((0, 0), 0) to ((0, 0), 0): 0|0,
+     Transition from ((0, 0), 0) to ((1, 0), 0): 1|1,
+     Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
+     Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
+
+Finally, we check that this indeed computes the Gray code of the first
+10 non-negative integers. Note that we add a trailing zero at the most
+significant position of the input in order to flush all output digits.
+This is due to the left shift which delays its output
+
+::
+
+    sage: for n in range(10):
+    ....:     Gray_transducer(ZZ(n).bits()+[0])[2]
+    []
+    [1]
+    [1, 1]
+    [0, 1]
+    [0, 1, 1]
+    [1, 1, 1]
+    [1, 0, 1]
+    [0, 0, 1]
+    [0, 0, 1, 1]
+    [1, 0, 1, 1]
+
+
 Using the hook-functions
 ------------------------
 

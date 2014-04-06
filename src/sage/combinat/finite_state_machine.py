@@ -4543,6 +4543,291 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
+    def output_sum_asymptotics(self):
+        """
+        Returns the main terms of expectation and variance of the sum
+        of output labels and its covariance with the sum of input
+        labels.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A dictionary consisting of
+
+        * ``expectation`` -- constant ``e``,
+        * ``variance`` -- constant ``v``,
+        * ``covariance`` -- constant ``c``.
+
+        Assume that all input and output labels are numbers and that
+        ``self`` is complete and has only one final component.  Assume
+        further that this final component is aperiodic.
+
+        Denote by ``X_n`` the sum of output labels written by the
+        finite state machine when reading a random input word of
+        length ``n`` over the input alphabet (assuming
+        equidistribution).
+
+        Then the expectation of ``X_n`` is ``en+O(1)``, the variance
+        of ``X_n`` is ``vn+O(1)`` and the covariance of ``X_n`` and
+        the sum of input labels is ``cn+O(1)``, cf. [HKW2014]_,
+        Theorem 2.
+
+        Currently, only the case of integer input and output labels is
+        implemented. For rational input and output labels, consider
+        rescaling to integers. This limitation comes from the fact
+        that determinants over polynomial rings can be computed much
+        more efficiently than over the symbolic ring.
+
+        EXAMPLES:
+
+        #.  A trivial example: write the negative of the input::
+
+                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1]])
+                sage: constants = T.output_sum_asymptotics()
+                sage: constants['expectation']
+                -1/2
+                sage: constants['variance']
+                1/4
+                sage: constants['covariance']
+                -1/4
+
+        #.  For the case of the Hamming weight of the non-adjacent-form (NAF) of
+            integers, cf. the :wikipedia:`Non-adjacent_form`, the following agrees
+            with the results in [HP2007]_.
+
+            We first use the transducer to convert the standard binary expansion
+            to the NAF given in [HP2007]_::
+
+                sage: NAF = Transducer([[0, 0, 0, 0], [0, '.1', 1, None],
+                ....:                   ['.1', 0, 0, [1, 0]], ['.1', 1, 1, [-1, 0]],
+                ....:                   [1, 1, 1, 0], [1, '.1', 0, None]],
+                ....:                  initial_states=[0], final_states=[0, 1, ".1"])
+
+            Next, we are only interested in the Hamming weight::
+
+                sage: def weight(state, input):
+                ....:     if input is None:
+                ....:         result = 0
+                ....:     else:
+                ....:         result = ZZ(input != 0)
+                ....:     return (0, result)
+                sage: weight_transducer = Transducer(weight,
+                ....:                                input_alphabet=[-1, 0, 1],
+                ....:                                initial_states=[0])
+                sage: NAFweight = weight_transducer.composition(
+                ....:     NAF,
+                ....:     algorithm='explorative').relabeled()
+                sage: sorted(NAFweight.transitions())
+                [Transition from 0 to 0: 0|0,
+                 Transition from 0 to 1: 1|-,
+                 Transition from 1 to 0: 0|1,0,
+                 Transition from 1 to 2: 1|1,0,
+                 Transition from 2 to 1: 0|-,
+                 Transition from 2 to 2: 1|0]
+
+            Now, we actually compute the asymptotic constants::
+
+                sage: constants = NAFweight.output_sum_asymptotics()
+                sage: constants['expectation']
+                1/3
+                sage: constants['variance']
+                2/27
+                sage: constants['covariance']
+                0
+
+        #.  This is Example 6.2 in [HKW2014]_, dealing with the
+            transducer converting the binary expansion of an integer
+            into Gray code (cf. the :wikipedia:`Gray_code`)::
+
+                sage: gray = Transducer([[1, 2, 0, None],
+                ....:                    [1, 3, 1, None],
+                ....:                    [2, 2, 0, 0],
+                ....:                    [2, 3, 1, 1],
+                ....:                    [3, 2, 0, 1],
+                ....:                    [3, 3, 1, 0]])
+                sage: constants = gray.output_sum_asymptotics()
+                sage: constants['expectation']
+                1/2
+                sage: constants['variance']
+                1/4
+                sage: constants['covariance']
+                0
+
+        #.  This is the first part of Example 6.3 in [HKW2014]_,
+            counting the number of 10 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block10 = Transducer([[0, 0, 0, 0],
+                ....:                       [0, 1, 1, 0],
+                ....:                       [1, 0, 0, 1],
+                ....:                       [1, 1, 1, 0]])
+                sage: constants = block10.output_sum_asymptotics()
+                sage: constants['expectation']
+                1/4
+                sage: constants['variance']
+                1/16
+                sage: constants['covariance']
+                0
+
+        #.  This is the second part of Example 6.3 in [HKW2014]_,
+            counting the number of 11 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block11 = Transducer([[0, 0, 0, 0],
+                ....:                       [0, 1, 1, 0],
+                ....:                       [1, 0, 0, 0],
+                ....:                       [1, 1, 1, 1]])
+                sage: constants = block11.output_sum_asymptotics()
+                sage: constants['expectation']
+                1/4
+                sage: constants['variance']
+                5/16
+                sage: correlation = constants['covariance']/(1/2*sqrt(constants['variance']))
+                sage: correlation
+                2/5*sqrt(5)
+
+        #.  This is Example 6.4 in [HKW2014]_, counting the number of
+            01 blocks minus the number of 10 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block_difference = Transducer([['I', 0, 0, 0],
+                ....:                                ['I', 1, 1, 0],
+                ....:                                [0, 0, 0, 0],
+                ....:                                [0, 1, 1, 1],
+                ....:                                [1, 0, 0, -1],
+                ....:                                [1, 1, 1, 0]])
+                sage: constants = block_difference.output_sum_asymptotics()
+                sage: constants['expectation']
+                0
+                sage: constants['variance']
+                0
+                sage: constants['covariance']
+                0
+
+        TESTS:
+
+        #.  An input alphabet must be given::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                determine_alphabets=False)
+                sage: T.output_sum_asymptotics()
+                Traceback (most recent call last):
+                ...
+                ValueError: No input alphabet is given.
+                Try calling determine_alphabets().
+
+        #.  The finite state machine must be complete::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                input_alphabet=[0, 1])
+                sage: T.output_sum_asymptotics()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: This finite state machine is
+                not complete.
+
+        #.  The finite state machine must have a unique final component::
+
+                sage: T = Transducer([[0, 1, 0, 0], [0, 2, 1, 0],
+                ....:                 [1, 1, 0, 0], [1, 1, 1, 1],
+                ....:                 [2, 2, 0, 0], [2, 2, 1, 1]])
+                sage: T.output_sum_asymptotics()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: output_sum_asymptotics is only
+                implemented for finite state machines with one final
+                component. Otherwise, the variance may be non-linear.
+
+        #.  The final component of the finite state machine must be
+            aperiodic::
+
+                sage: T = Transducer([[0, 1, 0, 0], [1, 0, 0, 0]])
+                sage: T.output_sum_asymptotics()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: output_sum_asymptotics is only
+                implemented for finite state machines whose unique final
+                component is aperiodic. Otherwise, the variance may be
+                non-linear.
+
+        #.  Non-integer input or output labels are not accepted::
+
+                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]])
+                sage: T.output_sum_asymptotics()
+                Traceback (most recent call last):
+                ...
+                TypeError: non-integral exponents not supported
+
+        ALGORITHM:
+
+        See [HKW2014]_, Theorem 2.
+
+        REFERENCES:
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, in preparation.
+
+        .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
+           Weight of the Non-Adjacent-Form under Various Input Statistics*,
+           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81–96,
+           :doi:`10.1007/s10998-007-3081-z`.
+        """
+        from sage.calculus.functional import derivative
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.rational_field import QQ
+
+        if self.input_alphabet is None:
+            raise ValueError, ("No input alphabet is given. "
+                               "Try calling determine_alphabets().")
+
+        if not self.is_complete():
+            raise NotImplementedError("This finite state machine is "
+                                      "not complete.")
+
+        final_components = self.final_components()
+        if len(final_components)!=1:
+            raise NotImplementedError("output_sum_asymptotics is only "
+                                      "implemented for finite state machines "
+                                      "with one final component. Otherwise, "
+                                      "the variance may be non-linear.")
+        final_component = final_components[0]
+
+        if not final_component.digraph().is_aperiodic():
+            raise NotImplementedError("output_sum_asymptotics is only "
+                                      "implemented for finite state machines "
+                                      "whose unique final component is "
+                                      "aperiodic. Otherwise, the variance "
+                                      "may be non-linear.")
+
+        K = len(self.input_alphabet)
+        R = PolynomialRing(QQ, ("x", "y", "z"))
+        R.inject_variables(verbose=False)
+        M = self.adjacency_matrix(
+            entry=lambda transition:
+            x**sum(transition.word_in)*y**sum(transition.word_out))
+        f = (M.parent().identity_matrix()-z/K*M).det()
+        f_x = derivative(f, x)(1, 1, 1)
+        f_y = derivative(f, y)(1, 1, 1)
+        f_z = derivative(f, z)(1, 1, 1)
+        f_xy = derivative(f, x, y)(1, 1, 1)
+        f_xz = derivative(f, x, z)(1, 1, 1)
+        f_yz = derivative(f, y, z)(1, 1, 1)
+        f_yy = derivative(f, y, y)(1, 1, 1)
+        f_zz = derivative(f, z, z)(1, 1, 1)
+
+        e_2 = f_y/f_z
+        v_2 = (f_y**2*(f_zz+f_z)+f_z**2*(f_yy+f_y)-2*f_y*f_z*f_yz)/f_z**3
+        c = (f_x*f_y*(f_zz+f_z)+f_z**2*f_xy-f_y*f_z*f_xz-f_x*f_z*f_yz)/f_z**3
+
+        return {'expectation': e_2, 'variance': v_2, 'covariance': c}
+
 
 #*****************************************************************************
 

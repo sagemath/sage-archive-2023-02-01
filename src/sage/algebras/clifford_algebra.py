@@ -648,7 +648,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         # This is the natural lift morphism of the underlying free module
         if x in self.free_module():
             R = self.base_ring()
-            if x.parent().base_ring() == R:
+            if x.parent().base_ring() is R:
                 return self.element_class(self, {(i,): c for i,c in x.iteritems()})
             return self.element_class(self, {(i,): R(c) for i,c in x.iteritems() if R(c) != R.zero()})
 

@@ -3323,7 +3323,8 @@ class DiGraph(GenericGraph):
         Return whether the current ``DiGraph`` is aperiodic.
 
         A directed graph is aperiodic if there is no integer ``k > 1``
-        that divides the length of every cycle in the graph.
+        that divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
 
         EXAMPLES:
 
@@ -3339,6 +3340,7 @@ class DiGraph(GenericGraph):
             sage: g = DiGraph({ 0: [1, 4], 1: [2], 2: [0], 4: [0]})
             sage: g.is_aperiodic()
             True
+
         """
         import networkx
         return networkx.is_aperiodic(self.networkx_graph(copy=False))

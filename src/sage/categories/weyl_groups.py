@@ -245,10 +245,11 @@ class WeylGroups(Category_singleton):
             factors of decreasing length, weighted by a statistic on
             Pieri factors.
 
-            See also:
-             * :meth:stanley_symmetric_function`
-             * :meth:`WeylGroups.ParentMethods.pieri_factors`
-             * :mod:`sage.combinat.root_system.pieri_factors`
+            .. SEEALSO::
+
+                * :meth:stanley_symmetric_function`
+                * :meth:`WeylGroups.ParentMethods.pieri_factors`
+                * :mod:`sage.combinat.root_system.pieri_factors`
 
             INPUT:
 
@@ -304,7 +305,7 @@ class WeylGroups(Category_singleton):
             R = QQ[','.join('x%s'%l for l in range(1,pieri_factors.max_length()+1))]
             x = R.gens()
             if self.is_one():
-                return R(1)
+                return R.one()
 
             return R(sum(2**(pieri_factors.stanley_symm_poly_weight(u))*x[u.length()-1] * v.stanley_symmetric_function_as_polynomial(max_length = u.length())
                            for (u,v) in self.left_pieri_factorizations(max_length)
@@ -323,6 +324,12 @@ class WeylGroups(Category_singleton):
             `w`. Stanley symmetric functions are defined as generating
             series of the factorizations of `w` into Pieri factors and
             weighted by a statistic on Pieri factors.
+
+            .. SEEALSO::
+
+                * :meth:stanley_symmetric_function_as_polynomial`
+                * :meth:`WeylGroups.ParentMethods.pieri_factors`
+                * :mod:`sage.combinat.root_system.pieri_factors`
 
             EXAMPLES::
 
@@ -354,17 +361,25 @@ class WeylGroups(Category_singleton):
                 + 2*m[3, 2, 2, 1] + 2*m[3, 3, 1, 1] + m[3, 3, 2] + 3*m[4, 1, 1, 1, 1] + 2*m[4, 2, 1, 1]
                 + m[4, 2, 2] + m[4, 3, 1]
 
-             * :meth:stanley_symmetric_function_as_polynomial`
-             * :meth:`WeylGroups.ParentMethods.pieri_factors`
-             * :mod:`sage.combinat.root_system.pieri_factors`
+            One more example (:trac:`14095`)::
+
+                sage: G = SymmetricGroup(4)
+                sage: w = G.from_reduced_word([3,2,3,1])
+                sage: w.stanley_symmetric_function()
+                3*m[1, 1, 1, 1] + 2*m[2, 1, 1] + m[2, 2] + m[3, 1]
 
             REFERENCES:
 
-                .. [BH1994] S. Billey, M. Haiman.  Schubert polynomials for the classical groups. J. Amer. Math. Soc., 1994.
-                .. [Lam2008] T. Lam. Schubert polynomials for the affine Grassmannian.  J. Amer. Math. Soc., 2008.
-                .. [LSS2009] T. Lam, A. Schilling, M. Shimozono. Schubert polynomials for the affine Grassmannian of the symplectic group. Mathematische Zeitschrift 264(4) (2010) 765-811 (arXiv:0710.2720 [math.CO])
-                .. [Pon2010] S. Pon. Types B and D affine Stanley symmetric functions, unpublished PhD Thesis, UC Davis, 2010.
-
+            .. [BH1994] S. Billey, M. Haiman. *Schubert polynomials for the
+               classical groups*. J. Amer. Math. Soc., 1994.
+            .. [Lam2008] T. Lam. *Schubert polynomials for the affine
+               Grassmannian*. J. Amer. Math. Soc., 2008.
+            .. [LSS2009] T. Lam, A. Schilling, M. Shimozono. *Schubert
+               polynomials for the affine Grassmannian of the symplectic
+               group*. Mathematische Zeitschrift 264(4) (2010) 765-811
+               (:arxiv:`math.CO/0710.2720`)
+            .. [Pon2010] S. Pon. *Types B and D affine Stanley symmetric
+               functions*, unpublished PhD Thesis, UC Davis, 2010.
             """
             import sage.combinat.sf
             m = sage.combinat.sf.sf.SymmetricFunctions(QQ).monomial()

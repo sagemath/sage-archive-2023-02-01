@@ -1343,7 +1343,7 @@ class BackslashOperator:
     """
     Implements Matlab-style backslash operator for solving systems::
 
-        A / b
+        A \\ b
 
     EXAMPLES::
 

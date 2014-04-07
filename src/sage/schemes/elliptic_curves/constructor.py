@@ -869,7 +869,7 @@ def chord_and_tangent(F, P):
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]
 
-        See :trac:`16068`::
+    See :trac:`16068`::
 
         sage: F = x**3 - 4*x**2*y - 65*x*y**2 + 3*x*y*z - 76*y*z**2
         sage: chord_and_tangent(F, [0, 1, 0])

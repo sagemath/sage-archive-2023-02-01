@@ -9,6 +9,8 @@ Generators for common finite state machines.
     :delim: |
 
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
+    :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
+    :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
 
 Functions and methods
@@ -29,6 +31,8 @@ class TransducerGenerators(object):
     The transducers currently in this class include:
 
     - :meth:`~Identity`
+    - :meth:`~add`
+    - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
 
     """
@@ -175,6 +179,116 @@ class TransducerGenerators(object):
         for s in T.iter_states():
             s.is_final = True
         return T
+
+    def _operator(self, operator, input_alphabet):
+        r"""
+        Returns a transducer which realizes the binary operator over
+        an input alphabet.
+
+        INPUT:
+
+        - ``operator`` -- binary operator to realize (a map
+          ``input_alphabet`` `\times ``input_alphabet`` `to`
+          ``input_alphabet``).
+        - ``input_alphabet``  -- input alphabet.
+
+        OUTPUT:
+
+        A transducer mapping `(i_0, i'_0)\ldots (i_k, i'_k)`
+        to `(i_0\odot i'_0)\ldots (i_k \odot i'_k)` where
+        `\odot` stands for the operator given.
+
+        EXAMPLE:
+
+        The following transducer realizes component-wise
+        addition::
+
+            sage: import operator
+            sage: T = transducers._operator(operator.add,
+            ....:                           [0, 1])
+            sage: T.transitions()
+            [Transition from 0 to 0: (0, 0)|0,
+             Transition from 0 to 0: (0, 1)|1,
+             Transition from 0 to 0: (1, 0)|1,
+             Transition from 0 to 0: (1, 1)|2]
+            sage: T.input_alphabet
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+        """
+        from itertools import product
+
+        def transition_function(state, (i, o)):
+            return(0, operator(i, o))
+        pairs = list(product(input_alphabet, repeat=2))
+        return Transducer(transition_function,
+                          input_alphabet=pairs,
+                          initial_states=[0])
+
+    def add(self, input_alphabet):
+        """
+        Returns a transducer which realizes the component-wise
+        addition over an input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- input alphabet.
+
+        OUTPUT:
+
+        A transducer mapping `(i_0, i'_0)\ldots (i_k, i'_k)`
+        to `(i_0 + i'_0)\ldots (i_k + i'_k)`.
+
+        EXAMPLE:
+
+        The following transducer realizes component-wise
+        addition::
+
+            sage: T = transducers.add([0, 1])
+            sage: T.transitions()
+            [Transition from 0 to 0: (0, 0)|0,
+             Transition from 0 to 0: (0, 1)|1,
+             Transition from 0 to 0: (1, 0)|1,
+             Transition from 0 to 0: (1, 1)|2]
+            sage: T.input_alphabet
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+        """
+        import operator
+        return self._operator(operator.add, input_alphabet)
+
+    def sub(self, input_alphabet):
+        """
+        Returns a transducer which realizes the component-wise
+        addition over an input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet``  -- input alphabet.
+
+        OUTPUT:
+
+        A transducer mapping `(i_0, i'_0)\ldots (i_k, i'_k)`
+        to `(i_0 - i'_0)\ldots (i_k - i'_k)`.
+
+        EXAMPLE:
+
+        The following transducer realizes component-wise
+        subtraction::
+
+            sage: T = transducers.sub([0, 1])
+            sage: T.transitions()
+            [Transition from 0 to 0: (0, 0)|0,
+             Transition from 0 to 0: (0, 1)|-1,
+             Transition from 0 to 0: (1, 0)|1,
+             Transition from 0 to 0: (1, 1)|0]
+            sage: T.input_alphabet
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        """
+        import operator
+        return self._operator(operator.sub, input_alphabet)
+
+
+
+
 
 # Easy access to the transducer generators from the command line:
 transducers = TransducerGenerators()

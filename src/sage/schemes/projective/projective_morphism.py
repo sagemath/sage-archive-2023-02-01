@@ -178,7 +178,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     self._fastpolys.append(fast_callable(poly,domain=ZZ))
             else:
                 self._fastpolys.append(fast_callable(poly,domain=poly.base_ring()))
-    
+
     def __call__(self, x,check=True):
         """
         Evaluate projective morphism at point described by list x.
@@ -188,8 +188,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
             sage: H=Hom(P,P)
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
-            sage: f._fast_eval([1,1,1])
-            [5,4,3]
+            sage: f([1,1,1])
+            (1 : 1/2 : 1)
 
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
@@ -213,7 +213,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H=Hom(P,P)
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f._fast_eval([1,1,1])
-            [5,4,3]
+            [2, 1, 2]
 
         """
         P = [f(*x) for f in self._fastpolys]
@@ -2756,10 +2756,10 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: H=Hom(P,P)
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f._fast_eval([1,1,1])
-            [2,1,2]
+            [2, 1, 2]
 
         """
-        if self._isPrimeFiniteField:
+        if self._is_prime_finite_field:
             p=self.base_ring().characteristic()
             P = [f(*x)%p for f in self._fastpolys]
         else:

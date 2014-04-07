@@ -4543,7 +4543,7 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
-    def output_sum_asymptotics(self):
+    def output_sum_asymptotics(self, verbose=True):
         """
         Returns the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input
@@ -4551,15 +4551,16 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        Nothing.
+        - ``verbose`` -- if ``True`` (as per default) and input or
+          output are non-integer, a warning is printed.
 
         OUTPUT:
 
         A dictionary consisting of
 
-        * ``expectation`` -- constant ``e``,
-        * ``variance`` -- constant ``v``,
-        * ``covariance`` -- constant ``c``.
+        - ``expectation`` -- constant ``e``,
+        - ``variance`` -- constant ``v``,
+        - ``covariance`` -- constant ``c``.
 
         Assume that all input and output labels are numbers and that
         ``self`` is complete and has only one final component.  Assume
@@ -4575,11 +4576,11 @@ class FiniteStateMachine(SageObject):
         the sum of input labels is ``cn+O(1)``, cf. [HKW2014]_,
         Theorem 2.
 
-        Currently, only the case of integer input and output labels is
-        implemented. For rational input and output labels, consider
-        rescaling to integers. This limitation comes from the fact
-        that determinants over polynomial rings can be computed much
-        more efficiently than over the symbolic ring.
+        In the case of non-integer input or output labels, performance
+        degrades significantly. For rational input and output labels,
+        consider rescaling to integers. This limitation comes from the
+        fact that determinants over polynomial rings can be computed
+        much more efficiently than over the symbolic ring.
 
         EXAMPLES:
 
@@ -4637,6 +4638,21 @@ class FiniteStateMachine(SageObject):
                 2/27
                 sage: constants['covariance']
                 0
+
+        #.  This is Example 3.1 in [HKW2014]_, where a transducer with
+            variable output labels is given::
+
+                sage: var('a_1, a_2, a_3, a_4')
+                (a_1, a_2, a_3, a_4)
+                sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
+                ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]])
+                sage: constants = T.output_sum_asymptotics()
+                Warning: Non-integer output weights lead to significant
+                performance degradation.
+                sage: constants['expectation']
+                1/4*a_1 + 1/4*a_2 + 1/4*a_3 + 1/4*a_4
+                sage: constants['covariance']
+                -1/4*a_1 + 1/4*a_2
 
         #.  This is Example 6.2 in [HKW2014]_, dealing with the
             transducer converting the binary expansion of an integer
@@ -4756,13 +4772,22 @@ class FiniteStateMachine(SageObject):
                 component is aperiodic. Otherwise, the variance may be
                 non-linear.
 
-        #.  Non-integer input or output labels are not accepted::
+        #.  Non-integer input or output labels lead to a warning::
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]])
-                sage: T.output_sum_asymptotics()
-                Traceback (most recent call last):
-                ...
-                TypeError: non-integral exponents not supported
+                sage: constants = T.output_sum_asymptotics()
+                Warning: Non-integer output weights lead to significant
+                performance degradation.
+
+            This warning can be silenced by setting ``verbose=False``::
+
+                sage: constants = T.output_sum_asymptotics(verbose=False)
+                sage: constants['expectation']
+                -1/4
+                sage: constants['variance']
+                1/16
+                sage: constants['covariance']
+                -1/8
 
         ALGORITHM:
 
@@ -4807,20 +4832,42 @@ class FiniteStateMachine(SageObject):
                                       "may be non-linear.")
 
         K = len(self.input_alphabet)
-        R = PolynomialRing(QQ, ("x", "y", "z"))
-        R.inject_variables(verbose=False)
-        M = self.adjacency_matrix(
-            entry=lambda transition:
-            x**sum(transition.word_in)*y**sum(transition.word_out))
+        try:
+            R = PolynomialRing(QQ, ("x", "y", "z"))
+            (x, y, z) = R.gens()
+            M = self.adjacency_matrix(
+                entry=lambda transition:
+                    x**sum(transition.word_in)*y**sum(transition.word_out))
+            def substitute_one(g):
+                # the result of the substitution shall live in QQ,
+                # not in the polynomial ring R, so the method
+                # subs does not achieve the result.
+                # Therefore, we need this helper function.
+                return g(1, 1, 1)
+        except TypeError:
+            if verbose:
+                print("Warning: Non-integer output weights lead to "
+                      "significant performance degradation.")
+            # fall back to symbolic ring
+            from sage.symbolic.ring import SR
+            x = SR.symbol()
+            y = SR.symbol()
+            z = SR.symbol()
+            M = self.adjacency_matrix(
+                entry=lambda transition:
+                    x**sum(transition.word_in)*y**sum(transition.word_out))
+            def substitute_one(g):
+                return g.subs({x: 1, y: 1, z: 1})
+
         f = (M.parent().identity_matrix()-z/K*M).det()
-        f_x = derivative(f, x)(1, 1, 1)
-        f_y = derivative(f, y)(1, 1, 1)
-        f_z = derivative(f, z)(1, 1, 1)
-        f_xy = derivative(f, x, y)(1, 1, 1)
-        f_xz = derivative(f, x, z)(1, 1, 1)
-        f_yz = derivative(f, y, z)(1, 1, 1)
-        f_yy = derivative(f, y, y)(1, 1, 1)
-        f_zz = derivative(f, z, z)(1, 1, 1)
+        f_x = substitute_one(derivative(f, x))
+        f_y = substitute_one(derivative(f, y))
+        f_z = substitute_one(derivative(f, z))
+        f_xy = substitute_one(derivative(f, x, y))
+        f_xz = substitute_one(derivative(f, x, z))
+        f_yz = substitute_one(derivative(f, y, z))
+        f_yy = substitute_one(derivative(f, y, y))
+        f_zz = substitute_one(derivative(f, z, z))
 
         e_2 = f_y/f_z
         v_2 = (f_y**2*(f_zz+f_z)+f_z**2*(f_yy+f_y)-2*f_y*f_z*f_yz)/f_z**3

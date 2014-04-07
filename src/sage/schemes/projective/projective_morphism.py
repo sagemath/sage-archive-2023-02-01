@@ -158,14 +158,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 raise ValueError("polys (=%s) must be of the same degree"%polys)
         
         # The remaining code is used to instantiate the _fastpolys
-        self._isPrimeFiniteField=is_PrimeFiniteField(polys[0].base_ring())
+        self._is_prime_finite_field=is_PrimeFiniteField(polys[0].base_ring())
         prime=polys[0].base_ring().characteristic()
         degree=polys[0].degree()
         self._fastpolys=[]
         for poly in polys:
             # These tests are in place because the float and integer domain evaluate
             # faster than using the base_ring
-            if self._isPrimeFiniteField:
+            if self._is_prime_finite_field:
                 coefficients=poly.coefficients()
                 height=max(coefficients).lift()
                 num_terms=len(coefficients)

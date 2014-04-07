@@ -376,7 +376,7 @@ $(INST)/$(TORNADO): $(INST)/$(PYTHON)
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
 		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
-		       $(INST)/$(PKGCONFIG) $(INST)/$(PYPARSING) \
+		       $(INST)/$(PKGCONF) $(INST)/$(PYPARSING) \
                        $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 

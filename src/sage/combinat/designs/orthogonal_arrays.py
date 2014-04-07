@@ -8,18 +8,18 @@ Functions
 ---------
 """
 
-def transversal_design(k,n,t=2,check=True):
+def transversal_design(k,n,check=True):
     r"""
-    Return a transversal design of parameters `k,n,t`.
+    Return a transversal design of parameters `k,n`.
 
-    A transversal design of parameters `k, n, t` is a collection `\mathcal{S}`
+    A transversal design of parameters `k, n` is a collection `\mathcal{S}`
     of subsets of `V = V_1 \sqcup \cdots \sqcup V_k` (where each *group* `V_i`
     has cardinality `n`) such that:
 
     * Any `S \in \mathcal{S}` has cardinality `k` and intersects each group on
       exactly one element.
 
-    * Any set ot `t` elements from distincts groups is contained in exactly one
+    * Any two elements from distincts groups are contained in exactly one
       element of `\mathcal{S}`.
 
     For more information on transversal designs, see
@@ -27,12 +27,17 @@ def transversal_design(k,n,t=2,check=True):
 
     INPUT:
 
-    - `n,k,t` -- integers. Only `t=2` is available at the moment.
+    - `n,k` -- integers.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
+
+    .. SEEALSO::
+
+        :func:`orthogonal_array` -- a tranversal design is an orthogonal array
+        with `t=2`.
 
     EXAMPLES::
 
@@ -47,11 +52,11 @@ def transversal_design(k,n,t=2,check=True):
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
     """
-    if n == 12 and k <= 6 and t == 2:
+    if n == 12 and k <= 6:
         TD = [l[:k] for l in TD6_12()]
     else:
         # Section 6.6
-        OA = orthogonal_array(k,n,t, check = False)
+        OA = orthogonal_array(k,n,t=2, check = False)
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     if check:
@@ -173,6 +178,11 @@ def orthogonal_array(k,n,t=2,check=True):
 
         Implement Wilson's construction. See page 146 of [Stinson2004]_.
 
+    .. SEEALSO::
+
+        :func:`transversal_design` -- when `t=2` an orthogonal array is also
+        called a transversal design.
+
     EXAMPLES::
 
         sage: designs.orthogonal_array(5,5)
@@ -191,7 +201,7 @@ def orthogonal_array(k,n,t=2,check=True):
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
-        EmptySetError: No Orthogonal Array exists when t=2 and k>n+1
+        EmptySetError: No Orthogonal Array exists when k>=n+t
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField

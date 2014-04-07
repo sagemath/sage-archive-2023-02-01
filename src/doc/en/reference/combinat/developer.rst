@@ -5,6 +5,7 @@ Developer Tools
    :maxdepth: 2
 
    ../sage/combinat/backtrack
+   ../sage/combinat/map_reduce
    ../sage/combinat/output
    ../sage/combinat/permutation_nk
    ../sage/combinat/split_nk

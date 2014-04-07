@@ -14,7 +14,119 @@ tree or graph structure.
 - :class:`TransitiveIdealGraded`: Breadth first search
   through a graph described by a ``neighbours`` relation.
 
-TODO:
+How to define a set using those classes ?
+-----------------------------------------
+
+Only two things are necessary to define a set using a
+:class:`SearchForest` object (the other classes being very similar) :
+
+.. MATH::
+
+    \begin{picture}(-300,0)(600,0)
+    % Root
+    \put(0,0){\circle*{7}}
+    \put(0,10){\makebox(0,10){``\ ''}}
+    % First Children
+    \put(-150,-60){\makebox(0,10){``a''}}
+    \put(0,-60){\makebox(0,10){``b''}}
+    \put(150,-60){\makebox(0,10){``c''}}
+    \multiput(-150,-70)(150,0){3}{\circle*{7}}
+    % Second children
+    \put(-200,-130){\makebox(0,10){``aa''}}
+    \put(-150,-130){\makebox(0,10){``ab''}}
+    \put(-100,-130){\makebox(0,10){``ac''}}
+    \put(-50,-130){\makebox(0,10){``ba''}}
+    \put(0,-130){\makebox(0,10){``bb''}}
+    \put(50,-130){\makebox(0,10){``bc''}}
+    \put(100,-130){\makebox(0,10){``ca''}}
+    \put(150,-130){\makebox(0,10){``cb''}}
+    \put(200,-130){\makebox(0,10){``cc''}}
+    \multiput(-200,-140)(50,0){9}{\circle*{7}}
+    % Legend
+    \put(100,-5){\makebox(0,10)[l]{1) An initial element}}
+    \put(-250,-5){\makebox(0,10)[l]{2) A function of an element enumerating}}
+    \put(-235,-20){\makebox(0,10)[l]{its children (if any)}}
+    % Arrows
+    \thicklines
+    \put(0,-10){\vector(0,-1){30}}
+    \put(-15,-5){\vector(-2,-1){110}}
+    \put(15,-5){\vector(2,-1){110}}
+    \multiput(-150,-80)(150,0){3}{\vector(0,-1){30}}
+    \multiput(-160,-80)(150,0){3}{\vector(-1,-1){30}}
+    \multiput(-140,-80)(150,0){3}{\vector(1,-1){30}}
+    \put(90,0){\vector(-1,0){70}}
+    \put(-215,-30){\vector(1,-1){40}}
+    \end{picture}
+
+For the previous example, the two necessary pieces of information are :
+
+- The initial element ``""``
+
+- The function ``lambda x : [x+letter for letter in ['a', 'b', 'c']``
+
+Err.. Well, this would actually describe an **infinite** set, as such rules
+describes "all words" on 3 letters. Hence, it is a good idea to replace the
+function by
+
+    ``lambda x : [x+letter for letter in ['a', 'b', 'c']] if len(x) < 2 else []``
+
+or even::
+
+    sage: def children(x):
+    ...      if len(x) < 2:
+    ...         for letter in ['a', 'b', 'c']:
+    ...            yield x+letter
+
+We can then create the :class:`SearchForest` object with either ::
+
+    sage: S = SearchForest( [''],
+    ...       lambda x: [x+letter for letter in ['a', 'b', 'c']]
+    ...                 if len(x) < 2 else [],
+    ...       category=FiniteEnumeratedSets())
+    sage: S.list()
+    ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
+
+Or::
+
+    sage: S = SearchForest( [''], children,
+    ...       category=FiniteEnumeratedSets())
+    sage: S.list()
+    ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
+
+Here is a little more involved example. We want to iterate through all
+permutations of a given set S. One solution is to take elements of S one by
+one an insert them at every positions. So a node of the generating tree
+contains two informations
+
+- the list ``lst`` of already inserted element;
+- the set ``st`` of the yet to be inserted element.
+
+We want to generate a permutation only if ``st`` is empty (leaves on the
+tree). Also suppose for the sake of the example, that instead of list we want
+to generate tuples. This selection of some nodes and final mapping of a
+function to the element is done by the ``post_process = f`` argument. The
+convention is that the generated elements are the ``s := f(n)``, except when
+``s`` not ``None`` when no element is generated at all. Here is the code::
+
+    sage: def children((lst, st)):
+    ...       st = set(st) # make a copy
+    ...       if st:
+    ...          el = st.pop()
+    ...          for i in range(0, len(lst)+1):
+    ...              yield (lst[0:i]+[el]+lst[i:], st)
+    sage: list(children(([1,2], {3,7,9})))
+    [([9, 1, 2], set([3, 7])), ([1, 9, 2], set([3, 7])), ([1, 2, 9], set([3, 7]))]
+    sage: S = SearchForest( [([], {1,3,6,8})],
+    ...       children,
+    ...       post_process = lambda (l, s): tuple(l) if not s else None,
+    ...       category=FiniteEnumeratedSets())
+    sage: S.list()
+    [(6, 3, 1, 8), (3, 6, 1, 8), (3, 1, 6, 8), (3, 1, 8, 6), (6, 1, 3, 8), (1, 6, 3, 8), (1, 3, 6, 8), (1, 3, 8, 6), (6, 1, 8, 3), (1, 6, 8, 3), (1, 8, 6, 3), (1, 8, 3, 6), (6, 3, 8, 1), (3, 6, 8, 1), (3, 8, 6, 1), (3, 8, 1, 6), (6, 8, 3, 1), (8, 6, 3, 1), (8, 3, 6, 1), (8, 3, 1, 6), (6, 8, 1, 3), (8, 6, 1, 3), (8, 1, 6, 3), (8, 1, 3, 6)]
+    sage: S.cardinality()
+    24
+
+Todo
+----
 
 #. Find a good and consistent naming scheme! Do we want to emphasize the
    underlying graph/tree structure? The branch & bound aspect? The transitive
@@ -393,6 +505,8 @@ class SearchForest(Parent):
         self._algorithm = algorithm
         Parent.__init__(self, facade = facade, category = EnumeratedSets().or_subcategory(category))
 
+    __len__ = None
+
     def _repr_(self):
         r"""
         TESTS::
@@ -646,6 +760,30 @@ class SearchForest(Parent):
                 return True
             stack.append( iter(self.children(node)) )
         return False
+
+    def map_reduce(self, map_function = None,
+                   reduce_function = None,
+                   reduce_init = None):
+        r"""
+        Apply en Map Reduce algorithm on ``self``
+
+        EXAMPLES::
+
+            sage: F = SearchForest( [([i],i, i) for i in range(1,10)],
+            ...     lambda (list, sum, last):
+            ...         [(list + [i], sum + i, i) for i in range(1,last)],
+            ...     lambda x: x)
+            sage: y = var('y')
+            sage: F.map_reduce(
+            ...    lambda (li, sum, _): y**sum, lambda x,y: x + y,  0 )
+            y^45 + y^44 + y^43 + 2*y^42 + 2*y^41 + 3*y^40 + 4*y^39 + 5*y^38 + 6*y^37 + 8*y^36 + 9*y^35 + 10*y^34 + 12*y^33 + 13*y^32 + 15*y^31 + 17*y^30 + 18*y^29 + 19*y^28 + 21*y^27 + 21*y^26 + 22*y^25 + 23*y^24 + 23*y^23 + 23*y^22 + 23*y^21 + 22*y^20 + 21*y^19 + 21*y^18 + 19*y^17 + 18*y^16 + 17*y^15 + 15*y^14 + 13*y^13 + 12*y^12 + 10*y^11 + 9*y^10 + 8*y^9 + 6*y^8 + 5*y^7 + 4*y^6 + 3*y^5 + 2*y^4 + 2*y^3 + y^2 + y
+        """
+        from sage.combinat.map_reduce import SearchForestMapReduce
+        return SearchForestMapReduce(forest = self,
+                                     map_function = map_function,
+                                     reduce_function = reduce_function,
+                                     reduce_init = reduce_init).run()
+
 
 class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
     r"""

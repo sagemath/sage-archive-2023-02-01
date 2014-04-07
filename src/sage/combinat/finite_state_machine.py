@@ -542,6 +542,28 @@ class FSMState(SageObject):
                 raise TypeError, 'Wrong argument for hook.'
 
 
+    def __lt__(self, other):
+        """
+        Returns True if label of ``self`` is less than label of
+        ``other``.
+
+        INPUT:
+
+        - `other` -- a state.
+
+        OUTPUT:
+
+        True or False.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: FSMState(0) < FSMState(1)
+            True
+        """
+        return self.label() < other.label()
+
+
     def label(self):
         """
         Returns the label of the state.
@@ -885,6 +907,29 @@ class FSMTransition(SageObject):
                 self.hook = hook
             else:
                 raise TypeError, 'Wrong argument for hook.'
+
+
+    def __lt__(self, other):
+        """
+        Returns True if ``self`` is less than ``other`` with respect to the
+        key ``(self.from_state, self.word_in, self.to_state, self.word_out)``.
+
+        INPUT:
+
+        - `other` -- a transition.
+
+        OUTPUT:
+
+        True or False.
+
+        EXAMPLE::
+
+            sage: from sage.combinat.finite_state_machine import FSMTransition
+            sage: FSMTransition(0,1,0,0) < FSMTransition(1,0,0,0)
+            True
+        """
+        return (self.from_state, self.word_in, self.to_state, self.word_out) < \
+            (other.from_state, other.word_in, other.to_state, other.word_out)
 
 
     def __copy__(self):

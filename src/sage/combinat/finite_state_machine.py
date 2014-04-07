@@ -4994,7 +4994,7 @@ class Transducer(FiniteStateMachine):
         binary expansion into the non-adjacent form and the automaton
         recognizes the binary expansion without adjacent `1`'s, then the
         cartesian product of these two is a transducer which does not change
-        the input (except for changing `a` to `(a, None)` and ignoring a
+        the input (except for changing ``a`` to ``(a, None)`` and ignoring a
         leading `0`).
 
         ::
@@ -5033,9 +5033,9 @@ class Transducer(FiniteStateMachine):
         if FSMOldCodeTransducerCartesianProduct:
             from sage.misc.superseded import deprecation
             deprecation(16061, "The output of Transducer.cartesian_product "
-                              "will change. Please use "
-                              "Transducer.intersection for the original "
-                              "output.")
+                               "will change. Please use "
+                               "Transducer.intersection for the original "
+                               "output.")
             return self.intersection(
                 other,
                 only_accessible_components=only_accessible_components)

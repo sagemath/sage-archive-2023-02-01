@@ -157,27 +157,27 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if not all([d == degs[0] for d in degs[1:]]):
                 raise ValueError("polys (=%s) must be of the same degree"%polys)
         
-        # The remaining code is used to instantiate the _fastPolys
+        # The remaining code is used to instantiate the _fastpolys
         self._isPrimeFiniteField=is_PrimeFiniteField(polys[0].base_ring())
         prime=polys[0].base_ring().characteristic()
         degree=polys[0].degree()
-        self._fastPolys=[]
+        self._fastpolys=[]
         for poly in polys:
             # These tests are in place because the float and integer domain evaluate
             # faster than using the base_ring
             if self._isPrimeFiniteField:
                 coefficients=poly.coefficients()
                 height=max(coefficients).lift()
-                numTerms=len(coefficients)
-                largest_value=numTerms*height*(prime-1)**degree
+                num_terms=len(coefficients)
+                largest_value=num_terms*height*(prime-1)**degree
                 # If the calculations will not overflow the float data type use domain float
                 # Else use domain integer
                 if largest_value < (2**27):
-                    self._fastPolys.append(fast_callable(poly,domain=float))
+                    self._fastpolys.append(fast_callable(poly,domain=float))
                 else:
-                    self._fastPolys.append(fast_callable(poly,domain=ZZ))
+                    self._fastpolys.append(fast_callable(poly,domain=ZZ))
             else:
-                self._fastPolys.append(fast_callable(poly,domain=poly.base_ring()))
+                self._fastpolys.append(fast_callable(poly,domain=poly.base_ring()))
     
     def __call__(self, x,check=True):
         """
@@ -216,7 +216,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [5,4,3]
 
         """
-        P = [f(*x) for f in self._fastPolys]
+        P = [f(*x) for f in self._fastpolys]
         return P
 
     def __eq__(self, right):
@@ -2761,9 +2761,9 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         """
         if self._isPrimeFiniteField:
             p=self.base_ring().characteristic()
-            P = [f(*x)%p for f in self._fastPolys]
+            P = [f(*x)%p for f in self._fastpolys]
         else:
-            P = [f(*x) for f in self._fastPolys]
+            P = [f(*x) for f in self._fastpolys]
         return P
 
     def orbit_structure(self, P):

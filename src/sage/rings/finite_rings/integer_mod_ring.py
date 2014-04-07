@@ -1197,7 +1197,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 a.append(2)
             elif r>2:
                 a.append(2**(r-2))
-        return int(LCM(a))
+        return LCM(a)
 
     def unit_group_order(self):
         """

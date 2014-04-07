@@ -512,8 +512,10 @@ cdef class FP_LLL:
                     
         cdef vector[Z_NR[mpz_t]] solCoord
         cdef vector[Z_NR[mpz_t]] solution
-        
+
+        sig_on()
         r = shortestVector(self._lattice[0], solCoord, method_)
+        sig_off()
         if r:
             raise RuntimeError("fpLLL's SVP solver returned an error (%d)"%r);
 

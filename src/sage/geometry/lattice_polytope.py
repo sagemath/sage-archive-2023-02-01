@@ -110,7 +110,7 @@ from sage.matrix.all import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
 from sage.misc.misc import SAGE_SHARE
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.modules.all import vector
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
@@ -4348,33 +4348,6 @@ class _PolytopeFace(SageObject):
         return self._vertices
 
 
-def _create_octahedron(dim):
-    r"""
-    Create an octahedron of the given dimension.
-
-    Since we know that we are passing vertices, we suppress their
-    computation.
-
-    TESTS::
-
-        sage: o = lattice_polytope._create_octahedron(3)
-        sage: o.vertices_pc()
-        M( 1,  0,  0),
-        M( 0,  1,  0),
-        M( 0,  0,  1),
-        M(-1,  0,  0),
-        M( 0, -1,  0),
-        M( 0,  0, -1)
-        in 3-d lattice M
-    """
-    m = matrix(ZZ, dim, 2*dim)
-    for i in range(dim):
-        m[i,i] = 1
-        m[i,dim+i] = -1
-    return LatticePolytope(m.columns(), compute_vertices=False)
-
-_octahedrons = dict()       # Dictionary for storing created octahedrons
-
 _palp_dimension = None
 
 def _palp(command, polytopes, reduce_dimension=False):
@@ -4857,6 +4830,41 @@ def convex_hull(points):
     vpoints = [p+p0 for p in vpoints]
     return vpoints
 
+
+def cross_polytope(dim):
+    r"""
+    Return a cross-polytope of the given dimension.
+    
+    INPUT:
+    
+    - ``dim`` -- an integer.
+    
+    OUTPUT:
+    
+    - a :class:`lattice polytope <LatticePolytopeClass>`.
+
+    EXAMPLES::
+
+        sage: o = lattice_polytope.cross_polytope(3)
+        sage: o
+        3-d reflexive polytope in 3-d lattice M
+        sage: o.vertices_pc()
+        M( 1,  0,  0),
+        M( 0,  1,  0),
+        M( 0,  0,  1),
+        M(-1,  0,  0),
+        M( 0, -1,  0),
+        M( 0,  0, -1)
+        in 3-d lattice M
+    """
+    M = ZZ**dim
+    vertices = list(M.gens())
+    vertices += [-v for v in vertices]
+    return LatticePolytope(vertices, compute_vertices=False)
+
+octahedron = deprecated_function_alias(15240, cross_polytope)
+
+
 def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
     r"""
     Use the function ``f`` to filter polytopes in a list.
@@ -4988,49 +4996,6 @@ def minkowski_sum(points1, points2):
         for p2 in points2:
             points.append(p1+p2)
     return convex_hull(points)
-
-
-def octahedron(dim):
-    r"""
-    Return an octahedron of the given dimension.
-
-    EXAMPLES: Here are 3- and 4-dimensional octahedrons::
-
-        sage: o = lattice_polytope.octahedron(3)
-        sage: o
-        3-d reflexive polytope in 3-d lattice M
-        sage: o.vertices_pc()
-        M( 1,  0,  0),
-        M( 0,  1,  0),
-        M( 0,  0,  1),
-        M(-1,  0,  0),
-        M( 0, -1,  0),
-        M( 0,  0, -1)
-        in 3-d lattice M
-        sage: o = lattice_polytope.octahedron(4)
-        sage: o
-        4-d reflexive polytope in 4-d lattice M
-        sage: o.vertices_pc()
-        M( 1,  0,  0,  0),
-        M( 0,  1,  0,  0),
-        M( 0,  0,  1,  0),
-        M( 0,  0,  0,  1),
-        M(-1,  0,  0,  0),
-        M( 0, -1,  0,  0),
-        M( 0,  0, -1,  0),
-        M( 0,  0,  0, -1)
-        in 4-d lattice M
-
-    There exists only one octahedron of each dimension::
-
-        sage: o is lattice_polytope.octahedron(4)
-        True
-    """
-    if dim in _octahedrons:
-        return _octahedrons[dim]
-    else:
-        _octahedrons[dim] = _create_octahedron(dim)
-        return _octahedrons[dim]
 
 
 def positive_integer_relations(points):

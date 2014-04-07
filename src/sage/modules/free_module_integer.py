@@ -49,12 +49,13 @@ def IntegerLattice(basis, lll_reduce=True):
     INPUT:
     
       - ``basis``
-        - a list of vectors or
-        - a matrix over the integers
-        - an element of an absolute order
 
-    - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
-      on construction
+       - a list of vectors or
+       - a matrix over the integers
+       - an element of an absolute order
+
+      - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
+        on construction
 
     EXAMPLES:
 

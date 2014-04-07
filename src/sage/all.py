@@ -102,7 +102,6 @@ from sage.matrix.all     import *
 import sage.symbolic.pynac
 
 from sage.modules.all    import *
-from sage.lattices import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *

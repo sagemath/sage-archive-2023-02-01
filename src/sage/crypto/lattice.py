@@ -44,7 +44,8 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
       for Regev's LWE bases [R05]_.
     * ``ntl`` - Set this flag if you want the lattice basis in NTL readable
       format.
-    * ``lattice`` - Set this flag if you want a :class:`IntegerLattice` object instead
+    * ``lattice`` - Set this flag if you want a
+      :class:`FreeModule_submodule_with_basis_integer` object instead
       of an integer matrix representing the basis.
 
     OUTPUT: ``B`` a unique size-reduced triangular (primal: lower_left,
@@ -158,8 +159,8 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         ]
 
         sage: sage.crypto.gen_lattice(m=10, q=11, seed=42, lattice=True)
-        Lattice of degree 10 and rank 10 over Integer Ring
-        Basis matrix:
+        Free module of degree 10 and rank 10 over Integer Ring
+        User basis matrix:
         [ 0  0  1  1  0 -1 -1 -1  1  0]
         [-1  1  0  1  0  1  1  0  1  1]
         [-1  0  0  0 -1  1  1 -2  0  0]
@@ -258,7 +259,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
     if ntl:
         return B._ntl_()
     elif lattice:
-        from sage.lattices.integer_lattice import IntegerLattice
+        from sage.modules.free_module_integer import IntegerLattice
         return IntegerLattice(B)
     else:
         return B

@@ -84,7 +84,6 @@ Groups, Monoids, Matrices, Modules
 * :doc:`Monoids <monoids/index>`
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
 * :doc:`Modules <modules/index>`
-* :doc:`Lattices <lattices/index>`
 
 Geometry and Topology
 ---------------------

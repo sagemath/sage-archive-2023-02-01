@@ -6,6 +6,7 @@ Modules
 
    sage/modules/module
    sage/modules/free_module
+   sage/modules/free_module_integer
    sage/modules/free_module_element
 
    sage/modules/complex_double_vector

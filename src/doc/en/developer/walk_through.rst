@@ -11,6 +11,11 @@ them in the git revision control system. In the following section on
 back to the Sage project.
 
 
+We also have a handy `one-page "cheat sheet"
+<http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
+of commonly used git commands that you can print out and leave on your
+desk.
+
 .. _section-walkthrough-setup-git:
 
 Configuring Git

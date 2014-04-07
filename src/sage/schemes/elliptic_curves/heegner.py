@@ -421,7 +421,8 @@ class RingClassField(SageObject):
             return ZZ(1)
 
         # Let K_c be the ring class field.  We have by class field theory that
-        #           Gal(K_c / H) = (O_K/c*O_K)^* / (Z/cZ)^*.
+        #           Gal(K_c / H) = (O_K / c O_K)^* / ((Z/cZ)^* M),
+        # where M is the image of the roots of unity of K in (O_K / c O_K)^*.
         #
         # To compute the cardinality of the above Galois group, we
         # first reduce to the case that c = p^e is a prime power

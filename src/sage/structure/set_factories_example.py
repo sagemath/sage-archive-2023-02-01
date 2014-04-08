@@ -21,7 +21,7 @@ several iterators could be written in a more efficient way.
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.set_factories import (
-    SetFactory, SetFactoryParent, TopMostParentPolicy)
+    SetFactory, ParentWithSetFactory, TopMostParentPolicy)
 from sage.sets.all import DisjointUnionEnumeratedSets
 from sage.sets.family import LazyFamily
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -82,15 +82,32 @@ class XYPairsFactory(SetFactory):
         This is a very crude implementation which ignore optional arguments.
         They will be handled directly by the factory :func:`XYPair`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.structure.set_factories_example import XYPairs
-            sage: XYPairs.add_constraints((3,), ((2,), {}))
-            (3, 2)
+            sage: XYPairs.add_constraints((3,None), ((2,), {}))
+            Traceback (most recent call last):
+            ...
+            ValueError: Duplicate value for constraints 'x': was 3 now 2
             sage: XYPairs.add_constraints((), ((2,), {}))
-            (2,)
+            (2, None)
+            sage: XYPairs.add_constraints((), ((2,), {'y':3}))
+            (2, 3)
         """
-        return cons+args
+        res = list(cons)
+        res += [None]*(2-len(res))
+        def set_args(argss):
+            for i, v in enumerate(argss):
+                if res[i] is not None and v is not None:
+                    raise ValueError, "Duplicate value for constraints '%s': was %s now %s"%(
+                        ['x','y'][i], res[i], v)
+                if v is not None: res[i] = v
+        set_args(args)
+        def parse_args(x=None,y=None): set_args((x,y))
+        parse_args(**opts)
+        if res == (None, None):
+            return ()
+        return tuple(res)
 
     @lazy_attribute
     def _default_policy(self):
@@ -148,7 +165,7 @@ class XYPair(ElementWrapper):
                 raise ValueError, "numbers must be in range(%s)"%MAX
         ElementWrapper.__init__(self, parent, value)
 
-class AllPairs(SetFactoryParent, DisjointUnionEnumeratedSets):
+class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
     This parent show how one can use set factories together with
     :class:`DisjointUnionEnumeratedSets`
@@ -166,7 +183,7 @@ class AllPairs(SetFactoryParent, DisjointUnionEnumeratedSets):
             sage: from sage.structure.set_factories_example import XYPairs
             sage: TestSuite(XYPairs()).run()
         """
-        SetFactoryParent.__init__(self, (), policy,
+        ParentWithSetFactory.__init__(self, (), policy,
             category = FiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, LazyFamily(range(MAX), self._single_pair),
@@ -207,7 +224,7 @@ class AllPairs(SetFactoryParent, DisjointUnionEnumeratedSets):
         """
         pass
 
-class PairsX_(SetFactoryParent, UniqueRepresentation):
+class PairsX_(ParentWithSetFactory, UniqueRepresentation):
     r"""
     The set of pair `(x, 0), (x, 1), ..., (x, 4)`
 
@@ -225,7 +242,7 @@ class PairsX_(SetFactoryParent, UniqueRepresentation):
             sage: TestSuite(XYPairs(0)).run()
         """
         self._x = x
-        SetFactoryParent.__init__(self, (x,), policy,
+        ParentWithSetFactory.__init__(self, (x,None), policy,
             category = FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -277,7 +294,7 @@ class PairsX_(SetFactoryParent, UniqueRepresentation):
 
 
 
-class Pairs_Y(SetFactoryParent, DisjointUnionEnumeratedSets):
+class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
     The set of pair `(0, y), (1, y), ..., (4, y)`
 
@@ -295,7 +312,7 @@ class Pairs_Y(SetFactoryParent, DisjointUnionEnumeratedSets):
             sage: TestSuite(XYPairs(y=1)).run()
         """
         self._y = y
-        SetFactoryParent.__init__(self, (None, y), policy,
+        ParentWithSetFactory.__init__(self, (None, y), policy,
             category = FiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, LazyFamily(range(MAX), self._single_pair),
@@ -349,7 +366,7 @@ class Pairs_Y(SetFactoryParent, DisjointUnionEnumeratedSets):
             raise ValueError, "Wrong second coordinate"
 
 
-class SingletonPair(SetFactoryParent, UniqueRepresentation):
+class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
     r"""
     TESTS::
 
@@ -365,7 +382,7 @@ class SingletonPair(SetFactoryParent, UniqueRepresentation):
             sage: TestSuite(XYPairs(0,1)).run()
         """
         self._xy = (x, y)
-        SetFactoryParent.__init__(self, (x, y), policy,
+        ParentWithSetFactory.__init__(self, (x, y), policy,
             category = FiniteEnumeratedSets())
 
     def _repr_(self):

@@ -76,8 +76,8 @@ Let's construct `S_2`, `S^3` and `S_2^3`::
 
 Set factories provide an alternative way to build subsets of an already
 constructed set: each set constructed by a factory has a method
-:meth:`~SetFactoryParent.subset` which accept new constraints. Set
-constructed by the factory or the :meth:`~SetFactoryParent.subset` methods are
+:meth:`~ParentWithSetFactory.subset` which accept new constraints. Set
+constructed by the factory or the :meth:`~ParentWithSetFactory.subset` methods are
 identical::
 
     sage: Sx2s = S.subset(x=2); Sx2 is Sx2s
@@ -90,7 +90,7 @@ It is not possible to change an already given constraints::
     sage: S23.subset(y=5)
     Traceback (most recent call last):
     ...
-    TypeError: __call__() got multiple values for keyword argument 'y'
+    ValueError: Duplicate value for constraints 'y': was 3 now 5
 
 .. RUBRIC:: Constructing custom elements: policies
 
@@ -207,8 +207,8 @@ Here are the currently implemented policies:
 .. RUBRIC:: Technicalities: how policies inform parents
 
 Parent built from factories should inherits from
-:class:`SetFactoryParent`. This class provide a few methods related to
-factories and policies. The ``__init__`` method of :class:`SetFactoryParent`
+:class:`ParentWithSetFactory`. This class provide a few methods related to
+factories and policies. The ``__init__`` method of :class:`ParentWithSetFactory`
 must be provided with the set of constraints and the policy. A parent built
 from a factory must creates element trough a call to the method
 ``_element_constructor_``. The current way policies inform parents how to
@@ -223,13 +223,13 @@ Here are the specifications:
 
 A parent built from a factory should
 
-- *inherit* from :class:`SetFactoryParent`. It should accept a ``policy``
+- *inherit* from :class:`ParentWithSetFactory`. It should accept a ``policy``
   argument and pass it verbatim to the ``__init__`` method of
-  :class:`SetFactoryParent` together with the set of constraints;
+  :class:`ParentWithSetFactory` together with the set of constraints;
 
 - *create its elements* trough calls to the method ``_element_constructor_``;
 
-- *define a method* :class:`SetFactoryParent.check_element` which checks if a
+- *define a method* :class:`ParentWithSetFactory.check_element` which checks if a
   built element indeed belongs to it. The method should accept an extra
   keyword parameter called ``check`` specifying which level of check should be
   performed. It will only be called when ``bool(check)`` evaluates to
@@ -325,7 +325,7 @@ class SetFactory(UniqueRepresentation, SageObject):
         TESTS::
 
             sage: from sage.structure.set_factories_example import XYPairs
-            sage: XYPairs.add_constraints((3,),((2,), {}))
+            sage: XYPairs.add_constraints((3,),((None, 2), {}))
             (3, 2)
         """
 
@@ -339,7 +339,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
     Abstract base class for policies.
 
     A policy is a device which is passed to a parent inheriting from
-    :class:`SetFactoryParent` in order to set-up the element construction
+    :class:`ParentWithSetFactory` in order to set-up the element construction
     framework.
 
     INPUT:
@@ -438,7 +438,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
 
         Should returns the attributes that are prerequisite for element
         construction. This is coordinated with
-        :meth:`SetFactoryParent._element_constructor_`. Currently to standard
+        :meth:`ParentWithSetFactory._element_constructor_`. Currently to standard
         attributes are provided in
         :meth:`_facade_element_constructor_attributes` and
         :meth:`_self_element_constructor_attributes`. You should returns to
@@ -720,7 +720,7 @@ class FacadeParentPolicy(SetFactoryPolicy):
 #                     Parent                       #
 ####################################################
 
-class SetFactoryParent(Parent):
+class ParentWithSetFactory(Parent):
     r"""
     Abstract class for parent belonging to a set factory
 
@@ -747,9 +747,9 @@ class SetFactoryParent(Parent):
         r"""
         TESTS::
 
-            sage: from sage.structure.set_factories import SetFactoryParent
+            sage: from sage.structure.set_factories import ParentWithSetFactory
             sage: from sage.structure.set_factories_example import XYPairs
-            sage: isinstance(XYPairs(3), SetFactoryParent)  # indirect doctest
+            sage: isinstance(XYPairs(3), ParentWithSetFactory)  # indirect doctest
             True
         """
         # assert(isinstance(constraints, tuple))
@@ -783,7 +783,7 @@ class SetFactoryParent(Parent):
             sage: XYPairs().constraints()
             ()
             sage: XYPairs(x=3).constraints()
-            (3,)
+            (3, None)
             sage: XYPairs(y=2).constraints()
             (None, 2)
         """
@@ -867,7 +867,7 @@ class SetFactoryParent(Parent):
         factory = self.factory()
         constr = factory.add_constraints(self._constraints,
                                          (args, options))
-        return factory(*constr, policy = self._policy, **options)
+        return factory(*constr, policy = self._policy)
 
     def _test_subset(self, **options):
         r"""

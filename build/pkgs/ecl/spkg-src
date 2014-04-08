@@ -21,17 +21,13 @@ fi
 # Exit on failure
 set -e
 
-# Clean an existing src/ and ecl/ directory
-rm -rf src ecl*
-
 # Untar ECL tarball
 ECLVERSION=12.12.1
-tar xf ../ecl-"$ECLVERSION".tgz
-mv ecl-"$ECLVERSION" src
+tar xf ecl-"$ECLVERSION".tgz
+cd ecl-"$ECLVERSION"
 
 # Remove unneeded files to save space
-cd src
-rm -rf msvc contrib/encodings contrib/unicode
+rm -rf msvc
 cd src
 rm -rf gc-unstable libffi
 
@@ -41,3 +37,4 @@ mv gmp gmp-remove
 mkdir gmp
 cp -p gmp-remove/config.* gmp-remove/configfsf.* gmp-remove/install*sh gmp
 rm -rf gmp-remove
+

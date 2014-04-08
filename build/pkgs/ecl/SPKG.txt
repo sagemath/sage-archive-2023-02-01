@@ -47,13 +47,6 @@ Website: http://ecls.sourceforge.net/
    - The directory src/src/libffi
    - Most of the contents of the src/src/gmp directory:
      everything except install-sh, config.*, configfsf.*
-   - The directory src/contrib/encodings/
-   - The directory src/contrib/unicode/
- * The directories src/contrib/encodings/ and src/contrib/unicode/ may
-   be removed because we build with --enable-unicode=no.
-   Building with --enable-unicode=yes, the default in the latest ECL
-   source, leads to problems with some strings in the Sage-Maxima-ECL
-   interface.
  * Note: for the time being, ECL is built single threaded library as it
    seems to interact badly with the pexpect interface and Sage's signal
    handling when built multithreaded.

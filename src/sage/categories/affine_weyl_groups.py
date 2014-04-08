@@ -80,12 +80,14 @@ class AffineWeylGroups(Category_singleton):
                 sage: [x.reduced_word() for x in W.affine_grassmannian_elements_of_given_length(3)]
                 [[2, 1, 0], [3, 1, 0], [2, 3, 0]]
 
-            SEE ALSO: :meth:`AffineWeylGroups.ElementMethods.is_affine_grassmannian`.
+            .. SEEALSO::
 
-            TODO: should return an enumerated set, with iterator, ...
+                :meth:`AffineWeylGroups.ElementMethods.is_affine_grassmannian`
+
+            .. TODO:: should return an enumerated set, with iterator, ...
             """
-            if k == 0:
-                return [self.unit()]
+            if not k:
+                return [self.one()]
             w = []
             s = self.simple_reflections()
             for x in self.affine_grassmannian_elements_of_given_length(k-1):

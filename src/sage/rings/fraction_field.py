@@ -271,8 +271,15 @@ class FractionField_generic(field.Field):
             sage: T = PolynomialRing(ZZ, 'x')
             sage: R.gen() + FractionField(T).gen()
             2*x
-            sage: 1/R.gen()
-            1/x
+            sage: 1/(R.gen() + 1)
+            1/(x + 1)
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x,y')
+            sage: FF = FractionField(PolynomialRing(ZZ, 'x,y'))
+            sage: prod(R.gens()) + prod(FF.gens())
+            2*x*y
+            sage: 1/(R.gen(0) + R.gen(1))
+            1/(x + y)
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ

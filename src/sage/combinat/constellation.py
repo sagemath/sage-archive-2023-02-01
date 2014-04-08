@@ -406,21 +406,26 @@ class Constellation_class(Element):
 
     def connected_components(self):
         """
-        PROBLEM HERE
-        Returns the connected components ?
+        Returns the connected components.
+
+        OUTPUT:
+
+        A list of connected constellations.
 
         EXAMPLES::
 
             sage: c = Constellation(['(0,1)(2)', None, '(0,1)(2)'], connected=False)
-            sage: c.connected_components()
+            sage: cc = c.connected_components(); cc
             [Constellation of length 3 and degree 2
-            g0 (0,1)(2)
-            g1 (0)(1)(2)
-            g2 (0,1)(2),
+            g0 (0,1)
+            g1 (0)(1)
+            g2 (0,1),
             Constellation of length 3 and degree 1
             g0 (0)
             g1 (0)
             g2 (0)]
+            sage: all(c2.is_connected() for c2 in cc)
+            True
 
             sage: c = Constellation(['(0,1,2)', None], connected=False)
             sage: c.connected_components()
@@ -431,6 +436,7 @@ class Constellation_class(Element):
         if self._connected:
             return [self]
         G = Graph()
+        G.add_vertices(range(self.degree()))
         for p in self._g:
             G.add_edges(enumerate(p))
         m = G.connected_components()

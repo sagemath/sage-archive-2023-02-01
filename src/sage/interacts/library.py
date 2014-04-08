@@ -1180,8 +1180,7 @@ def riemann_sum(
         b = interval_g[0][1]
     func = symbolic_expression(f).function(x)
     division = [a]+[a+random()*(b-a) for i in range(n-1)]+[b]
-    division = [i for i in division]
-    division.sort()
+    division = sorted([i for i in division])
     xs = [division[i]+random()*(division[i+1]-division[i]) for i in range(n)]
     ys = [func(x_val) for x_val in xs]
     rects = Graphics()

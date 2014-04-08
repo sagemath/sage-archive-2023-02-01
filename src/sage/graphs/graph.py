@@ -1362,8 +1362,7 @@ class Graph(GenericGraph):
                         assert False
                     else:
                         positions.append(tuple(NZ))
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
 
                     if data.nrows() != (2 if len(NZ) == 2 else 1):
                         desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]

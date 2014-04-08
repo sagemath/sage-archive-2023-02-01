@@ -737,8 +737,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # PARI curves are cached for this elliptic curve, but they
             # are not of the requested precision (or prec = None)
             if prec is None:
-                L = self._pari_mincurve.keys()
-                L.sort()
+                L = sorted(self._pari_mincurve.keys())
                 if factor == 1:
                     return self._pari_mincurve[L[-1]]
                 else:
@@ -4215,7 +4214,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
-        elif l != None and type(l) != list:
+        elif l != None and not isinstance(l, list):
             try:
                 if l.is_prime(proof=False):
                     return isogenies_sporadic_Q(self, l)
@@ -4229,7 +4228,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return isogs
             else:
                 return isogenies_sporadic_Q(self)
-        if type(l) == list:
+        if isinstance(l, list):
             isogs = []
             i = 0
             while i<len(l):
@@ -5660,8 +5659,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             x_int_points = self.integral_x_coords_in_interval((e1-b2_12).ceil(), (e2-b2_12).floor())
             if verbose:
                 print 'x-coords of points on compact component with ',(e1-b2_12).ceil(),'<=x<=',(e2-b2_12).floor()
-                L = list(x_int_points) # to have the order
-                L.sort()               # deterministic for doctests!
+                L = sorted(x_int_points) # to have the order
                 print L
                 sys.stdout.flush()
         else:
@@ -5674,8 +5672,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         x_int_points = x_int_points.union(x_int_points2)
         if verbose:
             print 'x-coords of points on non-compact component with ',x0,'<=x<=',x1-1
-            L = list(x_int_points2)
-            L.sort()
+            L = sorted(x_int_points2)
             print L
             sys.stdout.flush()
 
@@ -5686,8 +5683,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         x_int_points = x_int_points.union(x_int_points3)
         if verbose:
             print 'x-coords of extra integral points:'
-            L = list(x_int_points3)
-            L.sort()
+            L = sorted(x_int_points3)
             print L
             sys.stdout.flush()
 
@@ -6310,8 +6306,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         x_S_int_points = x_S_int_points.union(x_S_int_points1)
         if verbose:
             print 'x-coords of S-integral points via linear combination of mw_base and torsion:'
-            L = list(x_S_int_points1)
-            L.sort()
+            L = sorted(x_S_int_points1)
             print L
             sys.stdout.flush()
 
@@ -6332,8 +6327,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 x_S_int_points = x_S_int_points.union(x_S_int_points2)
                 if verbose:
                     print 'x-coords of points with bounded absolute value'
-                    L = list(x_S_int_points2)
-                    L.sort()
+                    L = sorted(x_S_int_points2)
                     print L
                     sys.stdout.flush()
 

@@ -1945,7 +1945,7 @@ class WeightRing(CombinatorialFreeModule):
                 sage: r.demazure([2])
                 b2(0,0) + b2(1,0) + b2(1,-2) + b2(-1,2)
             """
-            if type(w) is list:
+            if isinstance(w, list):
                 word = w
             else:
                 word = w.reduced_word()
@@ -2015,7 +2015,7 @@ class WeightRing(CombinatorialFreeModule):
                 rho = self.parent().space().from_vector_notation(self.parent().space().rho(),style="coroots")
                 inv = self.scale(-1)
                 return (-inv.shift(-rho).demazure([i]).shift(rho)+v*inv.demazure([i])).scale(-1)
-            elif type(i) is list:
+            elif isinstance(i, list):
                 if len(i) == 0:
                     return self
                 elif len(i) == 1:

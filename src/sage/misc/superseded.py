@@ -124,7 +124,7 @@ class DeprecatedFunctionAlias(object):
         self.trac_number  = trac_number
         self.instance = None # for use with methods
         self.__module__ = module
-        if type(func) == type(deprecation):
+        if isinstance(func, type(deprecation)):
             sphinxrole = "func"
         else:
             sphinxrole = "meth"

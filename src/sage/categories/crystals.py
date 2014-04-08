@@ -408,7 +408,7 @@ class Crystals(Category_singleton):
                 f_string = 'e_string'
 
             if acyclic:
-                if type(g) == dict:
+                if isinstance(g, dict):
                     g = g.__getitem__
 
                 def morphism(b):

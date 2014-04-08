@@ -1057,8 +1057,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         # To get uniform outputs for isomorphic inputs, we break
         # each inputted cyclic group into a direct product of cyclic
         # p-groups
-        simplified = [term[0]**term[1] for a in factors for term in a.factor()]
-        simplified.sort()
+        simplified = sorted([term[0]**term[1] for a in factors for term in a.factor()])
 
         gens = []
         # genx is an element of order two that turns each of the

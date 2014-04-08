@@ -1666,6 +1666,14 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: 2^I
             2^I
+            sage: K.<sqrt2> = QuadraticField(2) # :trac:`14895`
+            sage: 2^sqrt2
+            2^sqrt(2)
+            sage: K.<a> = NumberField(x^2+1)
+            sage: 2^a
+            Traceback (most recent call last):
+            ...
+            TypeError: An embedding into RR or CC must be specified.
         """
         if (PY_TYPE_CHECK(base, NumberFieldElement) and
             (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):

@@ -9,8 +9,11 @@ tree or graph structure.
   search through a tree described by a ``children`` function.
 - :class:`GenericBacktracker`: Depth first search through a tree
   described by a ``children`` function, with branch pruning, etc.
+- :class:`RecursiveSet`: Depth and breadth first search through a
+  graph (directed, not directed, graded, forest) described by a ``neighbours``
+  relation.
 
-Old classes:
+To be deprecated classes:
 
 - :class:`TransitiveIdeal`: Depth and breadth first search through a
   graph described by a ``neighbours`` relation.
@@ -125,7 +128,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
 
     - ``roots`` -- a list (or iterable)
     - ``children`` -- a function returning a list (or iterable)
-    - ``algorithm`` -- ``depth`` or ``breadth`` (default: ``depth``)
+    - ``algorithm`` -- ``'depth'`` or ``'breadth'`` (default: ``'depth'``)
 
     EXAMPLES:
 
@@ -216,7 +219,7 @@ class SearchForest(Parent):
     - ``children`` -- a function returning a list (or iterable, or iterator)
     - ``post_process`` -- a function defined over the nodes of the
       forest (default: no post processing)
-    - ``algorithm`` -- ``depth`` or ``breadth`` (default: ``depth``)
+    - ``algorithm`` -- ``'depth'`` or ``'breadth'`` (default: ``'depth'``)
     - ``category`` -- a category (default: :class:`EnumeratedSets`)
 
     The option ``post_process`` allows for customizing the nodes that
@@ -735,7 +738,512 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
         """
         return self.first()
 
-class TransitiveIdeal():
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+class RecursiveSet(SageObject):
+    r"""
+    Generic tool for constructing ideals of a relation.
+
+    INPUT:
+
+    - ``gens`` -- list (or iterable)
+    - ``succ`` -- function (or callable) returning a list (or iterable)
+    - ``structure`` -- string (default: ``None``), structure of the
+      set, possible values are:
+
+      - ``None`` -- nothing is known about the relation
+      - ``"forest"`` -- if the relation generates a forest
+      - ``"graded"`` -- if the relation is graded
+      - ``"symmetric"`` -- if the relation is symmetric
+
+    - ``algorithm`` -- ``'depth'``,``'breadth'``, ``'naive'`` or ``None`` (default: ``None``)
+    - ``max_depth`` -- integer (default: ``float("inf")``), only for
+      breadth first search
+    - ``post_process`` -- (default: ``None``), for forest only
+    - ``facade`` -- (default: ``None``), for forest only
+    - ``category`` -- (default: ``None``), for forest only
+
+    EXAMPLES:
+
+    A recursive set with no other information::
+
+        sage: from sage.combinat.backtrack import RecursiveSet
+        sage: f = lambda i: [mod(i+2,10)]
+        sage: C = RecursiveSet([0], f)
+        sage: C
+        A recursively enumerated set (naive search)
+        sage: list(C)
+        [0, 2, 4, 6, 8]
+
+    A recursive set with a forest structure::
+
+        sage: f = lambda a: [2*a,2*a+1]
+        sage: C = RecursiveSet([1], f, structure='forest')
+        sage: C
+        An enumerated set with a forest structure
+        sage: it = C.depth_first_search_iterator()
+        sage: [next(it) for _ in range(7)]
+        [1, 2, 4, 8, 16, 32, 64]
+        sage: it = C.breadth_first_search_iterator()
+        sage: [next(it) for _ in range(7)]
+        [1, 2, 3, 4, 5, 6, 7]
+
+    A recursive set given by a symmetric relation::
+
+        sage: f = lambda a: [a-1,a+1]
+        sage: C = RecursiveSet([10, 15], f, structure='symmetric')
+        sage: C
+        A recursively enumerated set with a symmetric structure (breadth first search)
+        sage: it = iter(C)
+        sage: [next(it) for _ in range(7)]
+        [10, 15, 16, 9, 11, 14, 8]
+
+    A recursive set given by a graded relation::
+
+        sage: f = lambda a: [a+1, a+I]
+        sage: C = RecursiveSet([0], f, structure='graded')
+        sage: C
+        A recursively enumerated set with a graded structure (breadth first search)
+        sage: it = iter(C)
+        sage: [next(it) for _ in range(7)]
+        [0, 1, I, I + 1, 2, 2*I, I + 2]
+
+    .. WARNING:: 
+
+        If you do not set the good structure, you might obtain bad results,
+        like elements generated twice::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: f = lambda a: [a-1,a+1]
+            sage: C = RecursiveSet([0], f, structure='graded')
+            sage: it = iter(C)
+            sage: [next(it) for _ in range(7)]
+            [0, 1, -1, 0, 2, -2, 1]
+
+    TESTS::
+
+        sage: f = lambda a: [a-1,a+1]
+        sage: C = RecursiveSet([1], f, structure='symmetric')
+        sage: isinstance(C, RecursiveSet)
+        True
+
+    ::
+
+        sage: C = RecursiveSet((1, 2, 3), factor)
+        sage: C._succ
+        <function factor at ...>
+        sage: C._gens
+        (1, 2, 3)
+        sage: loads(dumps(C))
+        A recursively enumerated set (naive search)
+    """
+    __metaclass__ = ClasscallMetaclass
+    @staticmethod
+    def __classcall_private__(cls, gens, succ, structure=None,
+            algorithm=None, max_depth=float("inf"), post_process=None,
+            facade=None, category=None):
+        r"""
+        EXAMPLES::
+
+        """
+        if structure is None:
+            if algorithm is None: algorithm = 'naive'
+            return typecall(RecursiveSet, gens, succ, algorithm, max_depth)
+        elif structure == 'symmetric':
+            if algorithm is None: algorithm = 'breadth'
+            return RecursiveSet_symmetric(gens, succ, algorithm, max_depth)
+        elif structure == 'forest':
+            if algorithm is None: algorithm = 'depth'
+            return SearchForest(roots=gens, children=succ, algorithm=algorithm,
+                 post_process=post_process, facade=facade, category=category)
+        elif structure == 'graded':
+            if algorithm is None: algorithm = 'breadth'
+            return RecursiveSet_graded(gens, succ, algorithm, max_depth)
+        else:
+            raise ValueError("Unknown value for structure (=%s)" % structure)
+    def __init__(self, gens, succ, algorithm='depth', max_depth=float("inf")):
+        r"""
+        TESTS::
+
+        """
+        self._gens = gens
+        self._succ = succ
+        assert algorithm in ['naive', 'depth', 'breadth'], "unknown algorithm(=%s)" % self._algorithm
+        self._algorithm = algorithm
+        self._max_depth = max_depth
+
+    def __iter__(self):
+        r"""
+        Return an iterator on the elements of ``self``. 
+        
+        The enumeration is done depth first or breadth first depending on
+        the value of ``self._algorithm``.
+
+        EXAMPLES::
+
+            sage: 4
+
+        """
+        if self._algorithm == 'naive':
+            return self.naive_search_iterator()
+        elif self._algorithm == 'breadth':
+            return self.breadth_first_search_iterator()
+        elif self._algorithm == 'depth':
+            return self.depth_first_search_iterator()
+        else:
+            raise ValueError("unknown value for algorithm(=%s)" % self._algorithm)
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: RecursiveSet([1], lambda x: [x+1, x+I], structure=None)
+            A recursively enumerated set (naive search)
+
+        ::
+
+            sage: RecursiveSet([1], lambda x: [x+1, x+I], structure='graded')
+            A recursively enumerated set with a graded structure (breadth first search)
+
+        ::
+
+            sage: RecursiveSet([1], lambda x: [x-1, x+1], structure='symmetric')
+            A recursively enumerated set with a symmetric structure (breadth first search)
+        """
+        if self._algorithm in ['depth', 'breadth']:
+            algo = "(%s first search)" % self._algorithm
+        else:
+            algo = "(%s search)" % self._algorithm
+        classname = self.__class__.__name__
+        if classname == 'RecursiveSet':
+            st = ""
+        elif classname == 'RecursiveSet_graded':
+            st = "with a graded structure"
+        elif classname == 'RecursiveSet_symmetric':
+            st = "with a symmetric structure"
+        else:
+            st = ""
+        return " ".join(["A recursively enumerated set", st, algo])
+
+    def breadth_first_search_iterator(self, max_depth=float("inf")):
+        r"""
+        Returns an iterator on the elements of self (breadth first).
+
+        INPUT:
+
+        - ``max_depth`` -- (Default: infinity) Specifies the
+            maximal depth to which elements are computed
+
+        TESTS::
+
+        """
+        current_level = self._gens
+        known = set(current_level)
+        depth = 0
+        while len(current_level) > 0 and depth <= max_depth:
+            next_level = set()
+            for x in current_level:
+                yield x
+                for y in self._succ(x):
+                    if y == None or y in known:
+                        continue
+                    next_level.add(y)
+                    known.add(y)
+            current_level = next_level
+            depth += 1
+    def naive_search_iterator(self):
+        r"""
+        Returns an iterator on the elements of self (in no particular order).
+
+        TESTS:
+
+        We compute all the permutations of 3::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: gens = [Permutation([1,2,3])]
+            sage: succ = attrcall("permutohedron_succ")
+            sage: R = RecursiveSet(gens, succ)
+            sage: list(R.naive_search_iterator())
+            [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 2, 1], [3, 1, 2]]
+
+        """
+        known = set(self._gens)
+        todo = known.copy()
+        while len(todo) > 0:
+            x = todo.pop()
+            yield x
+            for y in self._succ(x):
+                if y == None or y in known:
+                    continue
+                todo.add(y)
+                known.add(y)
+
+    def depth_first_search_iterator(self):
+        r"""
+        Returns an iterator on the elements of self (depth first).
+
+        TESTS::
+
+        TODO: implement this
+
+        """
+        raise NotImplementedError
+
+
+class RecursiveSet_symmetric(RecursiveSet):
+    r"""
+    Generic tool for constructing ideals of a symmetric relation.
+
+    INPUT:
+
+    - ``gens`` -- list (or iterable)
+    - ``succ`` -- function (or callable) returning a list (or iterable)
+    - ``algorithm`` -- ``'depth'``, ``'breadth'`` or ``None`` (default: ``None``)
+    - ``max_depth`` -- integer (default: ``float("inf")``)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.backtrack import RecursiveSet
+        sage: f = lambda a: [a-1,a+1]
+        sage: C = RecursiveSet([0], f, structure='symmetric')
+        sage: C
+        A recursively enumerated set with a symmetric structure (breadth first search)
+        sage: it = iter(C)
+        sage: [next(it) for _ in range(7)]
+        [0, 1, -1, 2, -2, 3, -3]
+
+    """
+    r"""
+    Returns an iterator on the elements of self (breadth first).
+
+    EXAMPLES::
+
+        sage: from sage.combinat.backtrack import RecursiveSet
+        sage: f = lambda a: [a-1,a+1]
+        sage: S = RecursiveSet([10], f, structure='symmetric')
+        sage: it = iter(S)
+        sage: [next(it) for _ in range(7)]
+        [10, 9, 11, 8, 12, 13, 7]
+    """
+    r"""
+    TESTS::
+
+        sage: from sage.combinat.backtrack import RecursiveSet
+        sage: f = lambda a: [a-1,a+1]
+        sage: C = RecursiveSet([0], f, structure='symmetric')
+        sage: C
+        A recursively enumerated set with a symmetric structure (breadth first search)
+        sage: C._succ
+        <function <lambda> at ...>
+        sage: C._gens
+        [0]
+
+    Fix this::
+
+        sage: loads(dumps(C))
+        Traceback (most recent call last):
+        ...
+        PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+
+    """
+    def breadth_first_search_iterator(self):
+        r"""
+        Returns an iterator on the elements of self (breadth first).
+
+        EXAMPLES::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: f = lambda a: [a+1, a+I]
+            sage: S = RecursiveSet([0], f, structure='symmetric')
+            sage: it = S.breadth_first_search_iterator()
+            sage: [next(it) for _ in range(7)]
+            [0, 1, I, I + 1, 2, 2*I, I + 2]
+        """
+        for level in self.level_iterator():
+            for a in level:
+                yield a
+
+    def elements_of_depth_iterator(self, depth=0):
+        r"""
+        Returns an iterator over the elements of ``self`` of given depth.
+        An element of depth `n` can be obtained applying `n` times the
+        children function from a root.
+
+        EXAMPLES::
+        """
+        pass
+
+    def level_iterator(self):
+        r"""
+        Returns an iterator over the levels of self.
+
+        OUTPUT:
+
+            an iterator of sets
+
+        EXAMPLES::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: f = lambda a: [a-1, a+1]
+            sage: S = RecursiveSet([10], f, structure='symmetric')
+            sage: it = S.level_iterator()
+            sage: [sorted(next(it)) for _ in range(5)]
+            [[10], [9, 11], [8, 12], [7, 13], [6, 14]]
+
+        Starting with two generators::
+
+            sage: f = lambda a: [a-1, a+1]
+            sage: S = RecursiveSet([5, 10], f, structure='symmetric')
+            sage: it = S.level_iterator()
+            sage: [sorted(next(it)) for _ in range(5)]
+            [[5, 10], [4, 6, 9, 11], [3, 7, 8, 12], [2, 13], [1, 14]]
+
+        Gaussian integers::
+
+            sage: f = lambda a: [a+1, a+I]
+            sage: S = RecursiveSet([0], f, structure='symmetric')
+            sage: it = S.level_iterator()
+            sage: [sorted(next(it)) for _ in range(7)]
+            [[0],
+             [I, 1],
+             [2*I, I + 1, 2],
+             [3*I, 2*I + 1, I + 2, 3],
+             [4*I, 3*I + 1, 2*I + 2, I + 3, 4],
+             [5*I, 4*I + 1, 3*I + 2, 2*I + 3, I + 4, 5],
+             [6*I, 5*I + 1, 4*I + 2, 3*I + 3, 2*I + 4, I + 5, 6]]
+        """
+        A = set()
+        B = self._gens
+        while len(B) > 0:
+            yield B
+            A,B = B, self._get_next_level(A, B)
+
+    def _get_next_level(self, A, B):
+        r"""
+        Return the set of elements of depth n+1.
+
+        INPUT:
+
+        - ``A`` -- set, the set of elements of depth n-1
+        - ``B`` -- set, the set of elements of depth n
+
+        OUTPUT:
+
+        - ``C`` -- set, the set of elements of depth n+1
+
+        EXAMPLES::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: f = lambda a: [a-1, a+1]
+            sage: S = RecursiveSet([5, 10], f, structure='symmetric')
+            sage: sorted(S._get_next_level([2,8], [3,7]))
+            [4, 6]
+            sage: sorted(S._get_next_level([3,7], [2,8]))
+            [1, 9]
+        """
+        C = set()
+        for x in B:
+            for y in self._succ(x):
+                if (y is None or y in A or y in B):
+                    continue
+                C.add(y)
+        return C
+
+class RecursiveSet_graded(RecursiveSet):
+    r"""
+    Generic tool for constructing ideals of a graded relation.
+
+    INPUT:
+
+    - ``gens`` -- list (or iterable)
+    - ``succ`` -- function (or callable) returning a list (or iterable)
+    - ``algorithm`` -- ``'depth'``, ``'breadth'`` or ``None`` (default: ``None``)
+    - ``max_depth`` -- integer (default: ``float("inf")``)
+
+    EXAMPLES::
+
+    """
+    def breadth_first_search_iterator(self, max_depth=float("inf")):
+        r"""
+        Return an iterator on the elements of self (breadth first).
+
+        INPUT:
+
+        - ``max_depth`` -- (Default: infinity) Specifies the
+            maximal depth to which elements are computed
+
+        EXAMPLES::
+
+        """
+        current_level = self._gens
+        depth = 0
+        while len(current_level) > 0 and depth <= max_depth:
+            next_level = set()
+            for x in current_level:
+                yield x
+                for y in self._succ(x):
+                    if y == None or y in next_level:
+                        continue
+                    next_level.add(y)
+            current_level = next_level
+            depth += 1
+    def _breadth_first_search_iterator_from_level_iterator(self):
+        r"""
+        Returns an iterator on the elements of self (breadth first).
+
+        .. NOTE:: 
+        
+            It should be slower the the other one since it must generates
+            the whole level before yielding the first element of each
+            level. It is used for test only.
+
+        TESTS::
+
+        """
+        for level in self.level_iterator():
+            for a in level:
+                yield a
+
+    def level_iterator(self):
+        r"""
+        Returns an iterator over the levels of self.
+
+        OUTPUT:
+
+            an iterator of sets
+
+        EXAMPLES::
+
+        """
+        B = self._gens
+        while len(B) > 0:
+            yield B
+            B = self._get_next_level(B)
+
+    def _get_next_level(self, B):
+        r"""
+        Return the set of elements of depth n+1.
+
+        INPUT:
+
+        - ``B`` -- set, the set of elements of depth n
+
+        OUTPUT:
+
+        - ``C`` -- set, the set of elements of depth n+1
+
+        EXAMPLES::
+
+        """
+        C = set()
+        for x in B:
+            for y in self._succ(x):
+                if (y is None or y in B):
+                    continue
+                C.add(y)
+        return C
+
+class TransitiveIdeal(RecursiveSet):
     r"""
     Generic tool for constructing ideals of a relation.
 
@@ -809,12 +1317,9 @@ class TransitiveIdeal():
             <function factor at ...>
             sage: C._generators
             (1, 2, 3)
-            sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
+            sage: loads(dumps(C))
+            A recursively enumerated set (depth first search)
         """
-        self._succ = succ
-        self._generators = generators
-
-    def __iter__(self):
         r"""
         Return an iterator on the elements of ``self`` (depth first).
 
@@ -825,89 +1330,64 @@ class TransitiveIdeal():
             []
 
         """
-        return self.depth_first_search_iterator()
-
-    def breadth_first_search_iterator(self, max_depth=float("inf")):
-        r"""
-        Returns an iterator on the elements of self (breadth first).
-
-        INPUT:
-
-        - ``max_depth`` -- (Default: infinity) Specifies the
-            maximal depth to which elements are computed
-
-        TESTS::
-
-            sage: C = TransitiveIdeal(lambda x: [1,2], ())
-            sage: list(C.breadth_first_search_iterator())
-            []
-
-        ::
-
-            sage: C = TransitiveIdeal(lambda x: [1,2], (1,))
-            sage: list(C.breadth_first_search_iterator())
-            [1, 2]
-
-        ::
-
-            sage: C = TransitiveIdeal(lambda x: [], (1,2))
-            sage: list(C.breadth_first_search_iterator())
-            [1, 2]
-
-        ::
-
-            sage: fn = lambda i: [i+1] if i<10 else []
-            sage: C = TransitiveIdeal(fn, [0])
-            sage: list(C.breadth_first_search_iterator(max_depth=1))
-            [0, 1]
-        """
-        current_level = self._generators
-        known = set(current_level)
-        depth = 0
-        while len(current_level) > 0 and depth <= max_depth:
-            next_level = set()
-            for x in current_level:
-                yield x
-                for y in self._succ(x):
-                    if y == None or y in known:
-                        continue
-                    next_level.add(y)
-                    known.add(y)
-            current_level = next_level
-            depth += 1
-    def depth_first_search_iterator(self):
-        r"""
-        Returns an iterator on the elements of self (depth first).
-
-        TESTS::
-
-            sage: C = TransitiveIdeal(lambda x: [1,2], ())
-            sage: list(C.depth_first_search_iterator())
-            []
-
-            sage: C = TransitiveIdeal(lambda x: [1,2], (1,))
-            sage: list(C.depth_first_search_iterator())
-            [1, 2]
-
-            sage: C = TransitiveIdeal(lambda x: [], (1,2))
-            sage: list(C.depth_first_search_iterator())
-            [1, 2]
-
-        """
-        known = set(self._generators)
-        todo = known.copy()
-        while len(todo) > 0:
-            x = todo.pop()
-            yield x
-            for y in self._succ(x):
-                if y == None or y in known:
-                    continue
-                todo.add(y)
-                known.add(y)
-        return
+        RecursiveSet.__init__(self, gens=generators, succ=succ, algorithm='depth')
+        self._generators = self._gens
 
 
-class TransitiveIdealGraded(TransitiveIdeal):
+    r"""
+    Returns an iterator on the elements of self (breadth first).
+
+    INPUT:
+
+    - ``max_depth`` -- (Default: infinity) Specifies the
+        maximal depth to which elements are computed
+
+    TESTS::
+
+        sage: C = TransitiveIdeal(lambda x: [1,2], ())
+        sage: list(C.breadth_first_search_iterator())
+        []
+
+    ::
+
+        sage: C = TransitiveIdeal(lambda x: [1,2], (1,))
+        sage: list(C.breadth_first_search_iterator())
+        [1, 2]
+
+    ::
+
+        sage: C = TransitiveIdeal(lambda x: [], (1,2))
+        sage: list(C.breadth_first_search_iterator())
+        [1, 2]
+
+    ::
+
+        sage: fn = lambda i: [i+1] if i<10 else []
+        sage: C = TransitiveIdeal(fn, [0])
+        sage: list(C.breadth_first_search_iterator(max_depth=1))
+        [0, 1]
+    """
+    r"""
+    Returns an iterator on the elements of self (depth first).
+
+    TESTS::
+
+        sage: C = TransitiveIdeal(lambda x: [1,2], ())
+        sage: list(C.depth_first_search_iterator())
+        []
+
+        sage: C = TransitiveIdeal(lambda x: [1,2], (1,))
+        sage: list(C.depth_first_search_iterator())
+        [1, 2]
+
+        sage: C = TransitiveIdeal(lambda x: [], (1,2))
+        sage: list(C.depth_first_search_iterator())
+        [1, 2]
+
+    """
+    depth_first_search_iterator = RecursiveSet.naive_search_iterator
+
+class TransitiveIdealGraded(RecursiveSet):
     r"""
     Generic tool for constructing ideals of a relation.
 
@@ -981,11 +1461,6 @@ class TransitiveIdealGraded(TransitiveIdeal):
             (1, 2, 3)
             sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
         """
-        self._succ = succ
-        self._generators = generators
-        self._max_depth = max_depth
-
-    def __iter__(self):
         r"""
         Return an iterator on the elements of ``self``.
 
@@ -1010,292 +1485,7 @@ class TransitiveIdealGraded(TransitiveIdeal):
             sage: list(C)
             [0, 1]
         """
-        return self.breadth_first_search_iterator(max_depth=self._max_depth)
+        RecursiveSet.__init__(self, gens=generators, succ=succ, algorithm='breadth', max_depth=max_depth)
+        self._generators = self._gens
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-class RecursiveSet(SageObject):
-    r"""
-    INPUT:
 
-    - ``roots``: list (or iterable)
-    - ``relation``: function (or callable) returning a list (or iterable)
-    - ``structure``: string (default: ``None``), structure of the
-      relation, possible values are:
-
-      - ``"graded"`` - if the relation is graded
-      - ``"symmetric"`` - if the relation is symmetric
-      - ``"forest"`` - if the relation generates a forest
-      - ``None`` - nothing is known about the relation
-
-    EXAMPLES:
-
-    A recursive set with no other information::
-
-        sage: from sage.combinat.backtrack import RecursiveSet
-        sage: f = lambda i: [mod(i+2,10)]
-        sage: C = RecursiveSet([0], f)
-        sage: C
-        <sage.combinat.backtrack.TransitiveIdeal instance at ...>
-        sage: list(C)
-        [0, 2, 4, 6, 8]
-
-    A recursive set with a forest structure::
-
-        sage: f = lambda a: [2*a,2*a+1]
-        sage: C = RecursiveSet([1], f, structure='forest')
-        sage: C
-        An enumerated set with a forest structure
-        sage: it = C.depth_first_search_iterator()
-        sage: [next(it) for _ in range(7)]
-        [1, 2, 4, 8, 16, 32, 64]
-        sage: it = C.breadth_first_search_iterator()
-        sage: [next(it) for _ in range(7)]
-        [1, 2, 3, 4, 5, 6, 7]
-
-    A recursive set given by a symmetric relation::
-
-        sage: f = lambda a: [a-1,a+1]
-        sage: C = RecursiveSet([10, 15], f, structure='symmetric')
-        sage: C
-        An enumerated set with a symmetric relation
-        sage: it = iter(C)
-        sage: [next(it) for _ in range(7)]
-        [10, 15, 16, 9, 11, 14, 8]
-
-    A recursive set given by a graded relation::
-
-        sage: f = lambda a: [a+1, a+I]
-        sage: C = RecursiveSet([0], f, structure='graded')
-        sage: C
-        An enumerated set with a graded relation
-        sage: it = iter(C)                  # todo: not implemented
-        sage: [next(it) for _ in range(7)]  # todo: not implemented
-        [0, 1, I, I + 1, 2, 2*I, I + 2]
-
-    TESTS::
-
-        sage: f = lambda a: [a-1,a+1]
-        sage: C = RecursiveSet([1], f, structure='symmetric')
-        sage: isinstance(C, RecursiveSet)
-        True
-
-    ::
-
-        sage: C = RecursiveSet((1, 2, 3), factor)
-        sage: C._succ
-        <function factor at ...>
-        sage: C._generators
-        (1, 2, 3)
-        sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
-    """
-    __metaclass__ = ClasscallMetaclass
-    @staticmethod
-    def __classcall_private__(cls, roots, relation, structure=None,
-            algorithm='depth', post_process=None, facade=None, category=None):
-        r"""
-        EXAMPLES::
-        """
-        if structure is None:
-            return TransitiveIdeal(relation, roots)
-        elif structure == 'symmetric':
-            return RecursiveSet_symmetric(roots, relation)
-        elif structure == 'forest':
-            return SearchForest(roots=roots, children=relation,
-                 post_process=post_process, algorithm=algorithm, facade=facade,
-                 category=category)
-        elif structure == 'graded':
-            return RecursiveSet_graded(roots, relation)
-        else:
-            raise ValueError("Unknown value for structure (=%s)" % structure)
-
-class RecursiveSet_symmetric(RecursiveSet):
-    r"""
-    Generic tool for constructing ideals of a symmetric relation.
-
-    INPUT:
-
-    - ``roots``: a list (or iterable)
-    - ``relation``: a function (or callable) returning a list (or iterable)
-
-    EXAMPLES::
-
-        sage: from sage.combinat.backtrack import RecursiveSet
-        sage: f = lambda a: [a-1,a+1]
-        sage: C = RecursiveSet([0], f, structure='symmetric')
-        sage: C
-        An enumerated set with a symmetric relation
-        sage: it = iter(C)
-        sage: [next(it) for _ in range(7)]
-        [0, 1, -1, 2, -2, 3, -3]
-
-    """
-    def __init__(self, roots, relation):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: f = lambda a: [a-1,a+1]
-            sage: C = RecursiveSet([0], f, structure='symmetric')
-            sage: C
-            An enumerated set with a symmetric relation
-            sage: C._relation
-            <function <lambda> at ...>
-            sage: C._roots
-            [0]
-
-        Fix this::
-
-            sage: loads(dumps(C))
-            Traceback (most recent call last):
-            ...
-            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
-
-        """
-        self._roots = roots
-        self._relation = relation
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: RecursiveSet([1], lambda x: [x+1], structure='symmetric')
-            An enumerated set with a symmetric relation
-        """
-        return "An enumerated set with a symmetric relation"
-    def __iter__(self):
-        r"""
-        Returns an iterator on the elements of self (breadth first).
-
-        EXAMPLES::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: f = lambda a: [a-1,a+1]
-            sage: S = RecursiveSet([10], f, structure='symmetric')
-            sage: it = iter(S)
-            sage: [next(it) for _ in range(7)]
-            [10, 9, 11, 8, 12, 13, 7]
-        """
-        return self.breadth_first_search_iterator()
-
-    def breadth_first_search_iterator(self):
-        r"""
-        Returns an iterator on the elements of self (breadth first).
-
-        EXAMPLES::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: f = lambda a: [a+1, a+I]
-            sage: S = RecursiveSet([0], f, structure='symmetric')
-            sage: it = iter(S)
-            sage: [next(it) for _ in range(7)]
-            [0, 1, I, I + 1, 2, 2*I, I + 2]
-        """
-        for level in self.level_iterator():
-            for a in level:
-                yield a
-
-    def elements_of_depth_iterator(self, depth=0):
-        r"""
-        Returns an iterator over the elements of ``self`` of given depth.
-        An element of depth `n` can be obtained applying `n` times the
-        children function from a root.
-
-        EXAMPLES::
-        """
-        pass
-
-    def level_iterator(self):
-        r"""
-        Returns an iterator over the levels of self.
-
-        OUTPUT:
-
-            an iterator of sets
-
-        EXAMPLES::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: f = lambda a: [a-1, a+1]
-            sage: S = RecursiveSet([10], f, structure='symmetric')
-            sage: it = S.level_iterator()
-            sage: [sorted(next(it)) for _ in range(5)]
-            [[10], [9, 11], [8, 12], [7, 13], [6, 14]]
-
-        Starting with two roots::
-
-            sage: f = lambda a: [a-1, a+1]
-            sage: S = RecursiveSet([5, 10], f, structure='symmetric')
-            sage: it = S.level_iterator()
-            sage: [sorted(next(it)) for _ in range(5)]
-            [[5, 10], [4, 6, 9, 11], [3, 7, 8, 12], [2, 13], [1, 14]]
-
-        Gaussian integers::
-
-            sage: f = lambda a: [a+1, a+I]
-            sage: S = RecursiveSet([0], f, structure='symmetric')
-            sage: it = S.level_iterator()
-            sage: [sorted(next(it)) for _ in range(7)]
-            [[0],
-             [1, I],
-             [I + 1, 2, 2*I],
-             [I + 2, 3, 2*I + 1, 3*I],
-             [I + 3, 4*I, 4, 3*I + 1, 2*I + 2],
-             [5*I, 5, I + 4, 3*I + 2, 2*I + 3, 4*I + 1],
-             [6*I, 2*I + 4, 4*I + 2, 5*I + 1, 6, I + 5, 3*I + 3]]
-        """
-        A = set()
-        B = self._roots
-        while len(B) > 0:
-            yield B
-            A,B = B, self._get_next_level(A, B)
-
-    def _get_next_level(self, A, B):
-        r"""
-        Return the set of elements of depth n+1.
-
-        INPUT:
-
-        - ``A`` - set, the set of elements of depth n-1
-        - ``B`` - set, the set of elements of depth n
-
-        OUTPUT:
-
-        - ``C`` - set, the set of elements of depth n+1
-
-        EXAMPLES::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: f = lambda a: [a-1, a+1]
-            sage: S = RecursiveSet([5, 10], f, structure='symmetric')
-            sage: sorted(S._get_next_level([2,8], [3,7]))
-            [4, 6]
-            sage: sorted(S._get_next_level([3,7], [2,8]))
-            [1, 9]
-        """
-        C = set()
-        for x in B:
-            for y in self._relation(x):
-                if (y is None or y in A or y in B):
-                    continue
-                C.add(y)
-        return C
-
-class RecursiveSet_graded(RecursiveSet):
-    def __init__(self, roots, relation):
-        r"""
-        TESTS::
-
-        """
-        self._roots = roots
-        self._relation = relation
-
-    def _repr_(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.backtrack import RecursiveSet
-            sage: RecursiveSet([1], lambda x: [x+1, x+I], structure='graded')
-            An enumerated set with a graded relation
-        """
-        return "An enumerated set with a graded relation"

@@ -449,7 +449,58 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     return NumberField_version2(polynomial=polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
 
 class NumberFieldFactory(UniqueFactory):
+    r"""
+    Factory for number fields.
+
+    This should usually not be called directly, use :meth:`NumberField`
+    instead.
+
+    INPUT:
+
+        - ``polynomial`` - a polynomial over `\QQ` or a number field.
+        - ``name`` - a string (default: ``'a'``), the name of the generator
+        - ``check`` - a boolean (default: ``True``); do type checking and
+          irreducibility checking.
+        - ``embedding`` - ``None`` or an element, the images of the generator
+          in an ambient field (default: ``None``)
+        - ``latex_name`` - ``None`` or a string (default: ``None``), how the
+          generator is printed for latex output
+        - ``assume_disc_small`` -- a boolean (default: ``False``); if ``True``,
+          assume that no square of a prime greater than PARI's primelimit
+          (which should be 500000); only applies for absolute fields at
+          present.
+        - ``maximize_at_primes`` -- ``None`` or a list of primes (default:
+          ``None``); if not ``None``, then the maximal order is computed by
+          maximizing only at the primes in this list, which completely avoids
+          having to factor the discriminant, but of course can lead to wrong
+          results; only applies for absolute fields at present.
+        - ``structure`` -- ``None`` or an instance of
+          :class:`structure.NumberFieldStructure` (default: ``None``),
+          internally used to pass in additional structural information, e.g.,
+          about the field from which this field is created as a subfield.
+
+    TESTS::
+
+        sage: from sage.rings.number_field.number_field import NumberFieldFactory
+        sage: nff = NumberFieldFactory("number_field_factory")
+        sage: R.<x> = QQ[]
+        sage: nff(x^2+1, name='a', check=False, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None)
+        Number Field in a with defining polynomial x^2 + 1
+
+    """
     def create_key_and_extra_args(self, polynomial, name, check, embedding, latex_name, assume_disc_small, maximize_at_primes, structure):
+        r"""
+        Create a unique key for the number field specified by the parameters.
+
+        TESTS::
+
+            sage: from sage.rings.number_field.number_field import NumberFieldFactory
+            sage: nff = NumberFieldFactory("number_field_factory")
+            sage: R.<x> = QQ[]
+            sage: nff.create_key_and_extra_args(x^2+1, name='a', check=False, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None)
+            ((Rational Field, x^2 + 1, ('a',), None, None, None, False, None), {'check': False})
+
+        """
         name = sage.structure.parent_gens.normalize_names(1, name)
 
         if not is_Polynomial(polynomial):
@@ -489,7 +540,18 @@ class NumberFieldFactory(UniqueFactory):
         return (polynomial.base_ring(), polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure), {"check":check}
 
     def create_object(self, version, key, check):
+        r"""
+        Create the unique number field defined by ``key``.
 
+        TESTS::
+
+            sage: from sage.rings.number_field.number_field import NumberFieldFactory
+            sage: nff = NumberFieldFactory("number_field_factory")
+            sage: R.<x> = QQ[]
+            sage: nff.create_object(None, (QQ, x^2 + 1, ('a',), None, None, None, False, None), check=False)
+            Number Field in a with defining polynomial x^2 + 1
+
+        """
         base, polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure = key
 
         if isinstance(base, NumberField_generic):
@@ -921,6 +983,16 @@ class CyclotomicFieldFactory(UniqueFactory):
         zeta9^3
     """
     def create_key(self, n=0, names=None, bracket="()", embedding=True):
+        r"""
+        Create the unique key for the cyclotomic field specified by the
+        parameters.
+
+        TESTS::
+
+            sage: CyclotomicField.create_key()
+            (0, None, True, '()')
+
+        """
         n = ZZ(n)
         if n < 0:
             raise ValueError, "n (=%s) must be a positive integer"%n
@@ -935,6 +1007,15 @@ class CyclotomicFieldFactory(UniqueFactory):
         return n, names, embedding, bracket
 
     def create_object(self, version, key, **extra_args):
+        r"""
+        Create the unique cyclotomic field defined by ``key``.
+
+        TESTS::
+
+            sage: CyclotomicField.create_object(None, (0, None, True, '()'))
+            Universal Cyclotomic Field
+
+        """
         n, names, embedding, bracket = key
         if n == 0:
             from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField

@@ -1680,7 +1680,7 @@ cdef class NumberFieldElement(FieldElement):
             # again. This would lead to infinite loops otherwise.
             from sage.symbolic.ring import SR
             try:
-                res = QQ(base)**exp
+                res = QQ(base)**QQ(exp)
             except TypeError:
                 pass
             else:

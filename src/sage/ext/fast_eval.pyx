@@ -1,79 +1,80 @@
 r"""
-    Fast Numerical Evaluation.
+Fast Numerical Evaluation.
 
-    For many applications such as numerical integration, differential
-    equation approximation, plotting a 3d surface, optimization problems,
-    monte-carlo simulations, etc., one wishes to pass around and evaluate
-    a single algebraic expression many, many times at various floating
-    point values. Doing this via recursive calls over a python
-    representation of the object (even if Maxima or other outside packages
-    are not involved) is extremely inefficient.
+For many applications such as numerical integration, differential
+equation approximation, plotting a 3d surface, optimization problems,
+monte-carlo simulations, etc., one wishes to pass around and evaluate
+a single algebraic expression many, many times at various floating
+point values. Doing this via recursive calls over a python
+representation of the object (even if Maxima or other outside packages
+are not involved) is extremely inefficient.
 
-    Up until now the solution has been to use lambda expressions, but this
-    is neither intuitive, Sage-like, nor efficient (compared to operating
-    on raw C doubles).  This module provides a representation of algebraic
-    expression in Reverse Polish Notation, and provides an efficient
-    interpreter on C double values as a callable python object. It does
-    what it can in C, and will call out to Python if necessary.
+Up until now the solution has been to use lambda expressions, but this
+is neither intuitive, Sage-like, nor efficient (compared to operating
+on raw C doubles).  This module provides a representation of algebraic
+expression in Reverse Polish Notation, and provides an efficient
+interpreter on C double values as a callable python object. It does
+what it can in C, and will call out to Python if necessary.
 
-    Essential to the understanding of this class is the distinction
-    between symbolic expressions and callable symbolic expressions (where
-    the latter binds argument names to argument positions). The
-    ``*vars`` parameter passed around encapsulates this information.
+Essential to the understanding of this class is the distinction
+between symbolic expressions and callable symbolic expressions (where
+the latter binds argument names to argument positions). The
+``*vars`` parameter passed around encapsulates this information.
 
-    See the function ``fast_float(f, *vars)`` to create a fast-callable
-    version of f.
+See the function ``fast_float(f, *vars)`` to create a fast-callable
+version of f.
 
-    NOTE: 
+..NOTE::
 
-    Sage temporarily has two implementations of this functionality;
-    one in this file, which will probably be deprecated soon, and one in
-    fast_callable.pyx.  The following instructions are for the old
-    implementation; you probably want to be looking at fast_callable.pyx
-    instead.
+Sage temporarily has two implementations of this functionality;
+one in this file, which will probably be deprecated soon, and one in
+fast_callable.pyx.  The following instructions are for the old
+implementation; you probably want to be looking at fast_callable.pyx
+instead.
 
-    To provide this interface for a class, implement ``fast_float_(self, *vars)``.  The basic building blocks are
-    provided by the functions ``fast_float_constant`` (returns a
-    constant function), ``fast_float_arg`` (selects the ``n``-th value
-    when called with ``\ge_n`` arguments), and ``fast_float_func`` which
-    wraps a callable Python function. These may be combined with the
-    standard Python arithmetic operators, and support many of the basic
-    math functions such ``sqrt``, ``exp``, and trig functions.
-    
-    EXAMPLES::
+To provide this interface for a class, implement ``fast_float_(self, *vars)``.  The basic building blocks are
+provided by the functions ``fast_float_constant`` (returns a
+constant function), ``fast_float_arg`` (selects the ``n``-th value
+when called with ``\ge_n`` arguments), and ``fast_float_func`` which
+wraps a callable Python function. These may be combined with the
+standard Python arithmetic operators, and support many of the basic
+math functions such ``sqrt``, ``exp``, and trig functions.
 
-        sage: from sage.ext.fast_eval import fast_float
-        sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
-        sage: f(1)
-        1.4142135623730951
-        sage: f.op_list()
-        ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
+EXAMPLES::
 
-    To interpret that last line, we load argument 0 (``x`` in this case) onto
-    the stack, push the constant 2.0 onto the stack, call the pow function
-    (which takes 2 arguments from the stack), push the constant 1.0, add the
-    top two arguments of the stack, and then call sqrt.
+   sage: from sage.ext.fast_eval import fast_float
+   sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
+   sage: f(1)
+   1.4142135623730951
+   sage: f.op_list()
+   ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
 
-    Here we take ``sin`` of the first argument and add it to ``f``::
+To interpret that last line, we load argument 0 (``x`` in this case) onto
+the stack, push the constant 2.0 onto the stack, call the pow function
+(which takes 2 arguments from the stack), push the constant 1.0, add the
+top two arguments of the stack, and then call sqrt.
 
-        sage: from sage.ext.fast_eval import fast_float_arg
-        sage: g = fast_float_arg(0).sin()
-        sage: (f+g).op_list()
-        ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
+Here we take ``sin`` of the first argument and add it to ``f``::
 
-    TESTS:
+    sage: from sage.ext.fast_eval import fast_float_arg
+    sage: g = fast_float_arg(0).sin()
+    sage: (f+g).op_list()
+    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
 
-    This used to segfault because of an assumption that assigning None to a
-    variable would raise a TypeError::
+TESTS:
 
-        sage: from sage.ext.fast_eval import fast_float_arg, fast_float
-        sage: fast_float_arg(0)+None
-        Traceback (most recent call last):
-        ...
-        TypeError
+This used to segfault because of an assumption that assigning None to a
+variable would raise a TypeError::
 
-    AUTHOR:
-    -- Robert Bradshaw (2008-10): Initial version
+    sage: from sage.ext.fast_eval import fast_float_arg, fast_float
+    sage: fast_float_arg(0)+None
+    Traceback (most recent call last):
+    ...
+    TypeError
+
+AUTHORS:
+
+- Robert Bradshaw (2008-10): Initial version
 """
 
 
@@ -496,8 +497,9 @@ cdef class FastDoubleFunc:
         ['push 1.5', 'load 0', 'dup', 'mul', 'mul', 'push 3.14', 'load 0', 'mul', 'add', 'push 7.0', 'add', 'load 1', 'load 1', 'call sin(1)', 'dup', 'mul', 'push 1.5', 'add', 'call sqrt(1)', 'div', 'sub']
 
 
-    AUTHOR:
-        -- Robert Bradshaw
+    AUTHORS:
+    
+    - Robert Bradshaw
     """
     def __init__(self, type, param, *args):
 
@@ -928,6 +930,7 @@ cdef class FastDoubleFunc:
     def _richcmp_(left, right, op):
         """
         Compare left and right.
+
         EXAMPLES::
 
             sage: from sage.ext.fast_eval import fast_float_arg
@@ -1256,6 +1259,7 @@ cdef FastDoubleFunc binop(_left, _right, char type):
         ['load 1', 'load 2', 'push 11.0', 'mul', 'add']
 
     Correctly calculates the maximum stack heights and number of arguments::
+
         sage: f.max_height
         1
         sage: g.max_height
@@ -1351,8 +1355,8 @@ def fast_float_func(f, *args):
 
     INPUT:
 
-        - ``f`` -- a callable python object
-        - ``args`` -- a list of FastDoubleFunc inputs
+    - ``f`` -- a callable python object
+    - ``args`` -- a list of FastDoubleFunc inputs
 
     EXAMPLES::
 
@@ -1399,9 +1403,9 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     Specifying the argument names is essential, as fast_float objects
     only distinguish between arguments by order.
-    
+
     ::
-    
+
         sage: f = fast_float(x-y, 'x','y')
         sage: f(1,2)
         -1.0

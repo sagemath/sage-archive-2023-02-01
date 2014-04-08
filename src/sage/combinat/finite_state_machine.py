@@ -4988,7 +4988,7 @@ class Transducer(FiniteStateMachine):
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
         ``self`` where the input is restricted to the input accepted by
-        ``other``. 
+        ``other``.
 
         For example, if the transducer transforms the standard
         binary expansion into the non-adjacent form and the automaton

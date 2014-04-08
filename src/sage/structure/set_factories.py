@@ -252,8 +252,9 @@ A factory should
 - *define a method* overloading :meth:`SetFactory.add_constraints` which is
   responsible of computing the union of two sets of constraints;
 
-- *optionally* define an attribute ``_default_policy`` used by call to pass to
-  the parent.
+- *optionally* define a method or an attribute ``_default_policy`` passed to
+   the :class:`ParentWithSetFactory` if no policy is given to the factory.
+
 
 .. TODO:: There is currently no support for dealing with sets of
     constraints. The set factory and the parents must cooperate to
@@ -312,6 +313,17 @@ class SetFactory(UniqueRepresentation, SageObject):
             sage: XYPairs(x=3)
             {(3, b) | b in range(5)}
 
+            sage: XYPairs(y=2)
+            {(a, 2) | a in range(5)}
+
+        TESTS::
+
+            sage: from sage.structure.set_factories import SetFactory
+            sage: F = SetFactory()
+            sage: F()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method __call__ at 0x...>
         """
 
     @abstract_method
@@ -322,11 +334,23 @@ class SetFactory(UniqueRepresentation, SageObject):
         Should return a set of constraints. Currently there is no
         specification on how constraints are passed as arguments.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.structure.set_factories_example import XYPairs
             sage: XYPairs.add_constraints((3,),((None, 2), {}))
             (3, 2)
+
+            sage: XYPairs.add_constraints((3,),((None, None), {'y': 2}))
+            (3, 2)
+
+        TESTS::
+
+            sage: from sage.structure.set_factories import SetFactory
+            sage: F = SetFactory()
+            sage: F.add_constraints(())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method add_constraints at 0x...>
         """
 
     # TODO ? default policy
@@ -537,7 +561,7 @@ class TopMostParentPolicy(SetFactoryPolicy):
     - ``Element`` -- a subclass of :class:`~.element.Element`
 
     Given a factory ``F`` and a class ``E``, returns a policy for parent ``P``
-    creating element in class ``E`` and parent ``factory(top_constraints)``.
+    creating element in class ``E`` and parent ``factory(*top_constraints, policy)``.
 
     EXAMPLES::
 
@@ -595,7 +619,7 @@ class TopMostParentPolicy(SetFactoryPolicy):
             Set factory policy for <class 'sage.structure.set_factories_example.XYPair'> with parent AllPairs[=Factory for XY pairs(())]
         """
         return "Set factory policy for %s with parent %s[=%s(%s)]"%(
-            self._Element, self._factory(self._top_constraints),
+            self._Element, self._factory(*self._top_constraints, policy=self),
             self._factory, self._top_constraints)
 
 

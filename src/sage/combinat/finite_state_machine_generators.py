@@ -188,7 +188,7 @@ class TransducerGenerators(object):
         INPUT:
 
         - ``operator`` -- binary operator to realize (a map
-          ``input_alphabet`` `\times ``input_alphabet`` `to`
+          ``input_alphabet`` `\times` ``input_alphabet`` `\to`
           ``input_alphabet``).
         - ``input_alphabet``  -- input alphabet.
 

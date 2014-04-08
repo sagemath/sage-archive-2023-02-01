@@ -3,10 +3,6 @@
  *  Interface to class of symbolic functions. */
 
 /*
- *  This file was generated automatically by function.pl.
- *  Please do not modify it directly, edit the perl script instead!
- *  function.pl options: $maxargs=14
- *
  *  GiNaC Copyright (C) 1999-2008 Johannes Gutenberg University Mainz, Germany
  *
  *  This program is free software; you can redistribute it and/or modify

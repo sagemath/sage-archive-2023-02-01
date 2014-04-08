@@ -663,10 +663,29 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
         """
         cdef LaurentPolynomial_univariate self = _self
-        right=int(r)
+        right = int(r)
         if right != r:
             raise ValueError("exponent must be an integer")
         return LaurentPolynomial_univariate(self._parent, self.__u**right, self.__n*right)
+
+    def __floordiv__(LaurentPolynomial_univariate self, RingElement rhs):
+        """
+        Perform division with remainder and return the quotient.
+
+        EXAMPLES::
+
+            sage: L.<x> = LaurentPolynomialRing(QQ)
+            sage: f = x**3 + x^-3
+            sage: g = x^-1 + x
+            sage: f // g
+            x^-2 - 1 + x^2
+            sage: g * (f // g) == f
+            True
+        """
+        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> rhs
+        return LaurentPolynomial_univariate(self._parent,
+                                            self.__u.__floordiv__(right.__u),
+                                            self.__n - right.__n)
 
     def shift(self, k):
         r"""

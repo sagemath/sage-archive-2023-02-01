@@ -146,7 +146,7 @@ class XYPair(ElementWrapper):
                 raise ValueError, "Value must be of length 2"
             if not all(int(x) in range(MAX) for x in value):
                 raise ValueError, "numbers must be in range(%s)"%MAX
-        ElementWrapper.__init__(self, value, parent)
+        ElementWrapper.__init__(self, parent, value)
 
 class AllPairs(SetFactoryParent, DisjointUnionEnumeratedSets):
     r"""

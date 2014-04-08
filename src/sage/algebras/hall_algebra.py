@@ -541,7 +541,7 @@ class HallAlgebraMonomials(CombinatorialFreeModule):
         (q^-8)*e[4, 2, 2, 1]
         sage: HLP = Sym.hall_littlewood(q).P()
         sage: H(I[2,1])
-        H[2, 1] + (q^2+q+1)*H[1, 1, 1]
+        H[2, 1] + (1+q+q^2)*H[1, 1, 1]
         sage: HLP(e[2,1])
         (1+q+q^2)*HLP[1, 1, 1] + HLP[2, 1]
         sage: all( e(H[lam]) == q**-sum([i * x for i, x in enumerate(lam)])

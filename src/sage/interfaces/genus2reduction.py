@@ -183,8 +183,7 @@ class ReductionData(SageObject):
     def _local_data_str(self):
         s = ''
         D = self.local_data
-        K = D.keys()
-        K.sort()
+        K = sorted(D.keys())
         for p in K:
             s += 'p=%s\n%s\n'%(p, D[p])
         s = '\t' + '\n\t'.join(s.split('\n'))

@@ -3294,8 +3294,8 @@ def verify_same(a, b):
     if is_Element(a):
         assert(a.parent() == b.parent())
     else:
-        assert(type(a) == type(b))
-    if type(a) == float:
+        assert(isinstance(a, type(b)))
+    if isinstance(a, float):
         # The IEEE floating-point standard recommends that NaN != NaN
         # Sage doesn't do this for RDF or RR, but Python does for floats.
         # So we need to consider the cases: a is/is not NaN, b is/is not NaN.

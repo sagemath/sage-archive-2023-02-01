@@ -979,7 +979,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A3(0,1,0).branch(C2,rule=br)
         C2(0,0) + C2(0,1)
     """
-    if type(rule) is str or type(rule) is list:
+    if isinstance(rule, str) or isinstance(rule, list):
         rule = branching_rule(R._cartan_type, S._cartan_type, rule)
     if hasattr(rule,"_S"):
         if rule._S != S.cartan_type():
@@ -1296,7 +1296,7 @@ def branching_rule(Rtype, Stype, rule="default"):
     sdim = Stype.root_system().ambient_space().dimension()
     if Rtype.is_compound():
         Rtypes = Rtype.component_types()
-        if type(rule) is str:
+        if isinstance(rule, str):
             if rule[:4] == "proj":
                 name = rule
                 proj = [int(j)-1 for j in rule[4:]]
@@ -2206,7 +2206,7 @@ def maximal_subgroups(ct, mode="print_rules"):
             [k, br] = line.split(":")
             br = eval(br)
             if k in d:
-                if type(d[k]) is not list:
+                if not isinstance(d[k], list):
                     d[k] = [d[k]]
                 d[k].append(br)
             else:

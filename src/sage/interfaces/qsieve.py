@@ -122,8 +122,7 @@ def data_to_list(out, n, time):
         t = ''
     Z = sage.rings.integer.Integer
     v = out.split()
-    v = list(set([Z(m) for m in v if Z(m) != n]))
-    v.sort()
+    v = sorted(set([Z(m) for m in v if Z(m) != n]))
     return v, t, verbose
 
 

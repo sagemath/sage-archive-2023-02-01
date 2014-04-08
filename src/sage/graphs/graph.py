@@ -1362,8 +1362,7 @@ class Graph(GenericGraph):
                         assert False
                     else:
                         positions.append(tuple(NZ))
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
 
                     if data.nrows() != (2 if len(NZ) == 2 else 1):
                         desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
@@ -3258,7 +3257,8 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict(map(lambda (x,y):(y,x), list(enumerate(vertices))))
+        vertices_id = dict(map(lambda x_y: (x_y[1], x_y[0]),
+                               list(enumerate(vertices))))
 
         b = {}
 
@@ -4198,7 +4198,7 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(solver=solver)
 
         # sorts an edge
-        S = lambda (x,y) : (x,y) if x<y else (y,x)
+        S = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
         # rs = Representative set of a vertex
         # for h in H, v in G is such that rs[h,v] == 1 if and only if v

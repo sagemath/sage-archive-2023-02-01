@@ -793,8 +793,7 @@ def _prime_powers(N):
 
     """
 
-    output =  [i**j for i,j in N.factor()]
-    output.sort()
+    output =  sorted([i**j for i,j in N.factor()])
     return output
 
 #This function finds the largest prime power divisor of an integer N

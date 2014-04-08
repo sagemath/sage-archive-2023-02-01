@@ -1123,7 +1123,7 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
 
     oneweight = False
     # convert single weight to list
-    if ((type(klist) == int) or (type(klist) == Integer)):
+    if ((isinstance(klist, int)) or (isinstance(klist, Integer))):
         klist = [klist]
         oneweight = True # input is single weight
 

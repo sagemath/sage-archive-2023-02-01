@@ -412,8 +412,7 @@ class QuotientFields(Category_singleton):
                 all = {}
                 for r in factors: all[r[0]] = 0
                 for r in factors: all[r[0]] += r[1]
-                factors = all.items()
-                factors.sort() # for doctest consistency
+                factors = sorted(all.items())
 
             # TODO(robertwb): Should there be a category of univariate polynomials?
             from sage.rings.fraction_field_element import FractionFieldElement_1poly_field

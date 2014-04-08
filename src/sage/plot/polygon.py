@@ -218,7 +218,7 @@ class Polygon(GraphicPrimitive_xydata):
         options = self._plot3d_options()
         options.update(kwds)
         zdata=[]
-        if type(z) is list:
+        if isinstance(z, list):
             zdata=z
         else:
             zdata=[z]*len(self.xdata)

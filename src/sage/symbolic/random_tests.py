@@ -47,8 +47,7 @@ def _mk_full_functions():
     random_expr will fail as well.  That's OK; just fix the doctest
     to match the new output.
     """
-    items = sage.symbolic.pynac.symbol_table['functions'].items()
-    items.sort()
+    items = sorted(sage.symbolic.pynac.symbol_table['functions'].items())
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and

@@ -349,7 +349,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             sage: B2 == ModularSymbols(17, 2).boundary_space()
             False
         """
-        if type(self) != type(other):
+        if not isinstance(self, type(other)):
             return cmp(type(self), type(other))
         else:
             return cmp( (self.group(), self.weight(), self.character()), (other.group(), other.weight(), other.character()) )

@@ -136,8 +136,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
             sage: print a.__repr__()
             2*s[] + s[3, 2, 1]
         """
-        v = self._monomial_coefficients.items()
-        v.sort()
+        v = sorted(self._monomial_coefficients.items())
         prefix = self.parent().prefix()
         retur = repr_lincomb( [(prefix + repr(m), c) for m,c in v ], strip_one = True)
 

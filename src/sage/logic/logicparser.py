@@ -398,13 +398,13 @@ def apply_func(tree, func):
         sage: logicparser.apply_func(t, f)
         ['|', ['&', 'c', 'a'], ['&', 'b', 'a']]
     """
-    if type(tree[1]) is ListType and type(tree[2]) is ListType:
+    if isinstance(tree[1], ListType) and isinstance(tree[2], ListType):
         lval = apply_func(tree[1], func)
         rval = apply_func(tree[2], func)
-    elif type(tree[1]) is ListType:
+    elif isinstance(tree[1], ListType):
         lval = apply_func(tree[1], func)
         rval = tree[2]
-    elif type(tree[2]) is ListType:
+    elif isinstance(tree[2], ListType):
         lval = tree[1]
         rval = apply_func(tree[2], func)
     else:

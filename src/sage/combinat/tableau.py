@@ -1314,8 +1314,7 @@ class Tableau(CombinatorialObject, Element):
             sage: Tableau([[5, 3], [2, 4]]).is_standard()
             False
         """
-        entries=self.entries()
-        entries.sort()
+        entries=sorted(self.entries())
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
 
     def is_increasing(self):

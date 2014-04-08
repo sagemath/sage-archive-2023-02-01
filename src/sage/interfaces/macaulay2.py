@@ -520,9 +520,8 @@ class Macaulay2(Expect):
                 s -> not match("^(o|sage)[0-9]+$", s))
             """)
         # Now split this string into separate names
-        r = r[1:-1].split(", ")
+        r = sorted(r[1:-1].split(", "))
         # Macaulay2 sorts things like A, a, B, b, ...
-        r.sort()
         return r
 
     def use(self, R):
@@ -849,8 +848,7 @@ class Macaulay2Element(ExpectElement):
                 currentClass = parent currentClass;
                 )
             toString total""" % self.name())
-        r = r[1:-1].split(", ")
-        r.sort()
+        r = sorted(r[1:-1].split(", "))
         return r
 
     def cls(self):

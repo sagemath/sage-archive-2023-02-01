@@ -416,7 +416,7 @@ class ComplexField_class(field.Field):
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
-            return complex_number.RRtoCC(RR, self) * RR.coerce_map_from(S)
+            return complex_number.RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
         if is_ComplexField(S) and S._prec >= self._prec:
             return self._generic_convert_map(S)
         late_import()

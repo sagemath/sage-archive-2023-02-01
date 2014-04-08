@@ -747,9 +747,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         looking_for = None
         if isinstance(degrees, MPolynomial) and degrees.parent() == self.parent() and degrees.is_monomial():
             looking_for = [e if e > 0 else None for e in degrees.exponents()[0]]
-        elif type(degrees) is list:
+        elif isinstance(degrees, list):
             looking_for = degrees
-        elif type(degrees) is dict:
+        elif isinstance(degrees, dict):
             poly_vars = self.parent().gens()
             looking_for = [None] * len(poly_vars)
             for d, exp in degrees.items():
@@ -1405,7 +1405,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
-        if type(self) is not type(right) or self.parent() is not right.parent():
+        if not isinstance(self, type(right)) or self.parent() is not right.parent():
             self, right = canonical_coercion(self, right)
             return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
@@ -1637,9 +1637,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         S = self._singular_().factorize()
         factors = S[1]
         exponents = S[2]
-        v = [(R(factors[i+1]), sage.rings.integer.Integer(exponents[i+1])) \
-                        for i in range(len(factors))]
-        v.sort()
+        v = sorted([(R(factors[i+1]), sage.rings.integer.Integer(exponents[i+1])) \
+                        for i in range(len(factors))])
         unit = R(1)
         for i in range(len(v)):
             if v[i][0].is_unit():
@@ -1724,7 +1723,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         ALGORITHM: Use Singular.
         """
-        if type(self) is not type(right) or self.parent() is not right.parent():
+        if not isinstance(self, type(right)) or self.parent() is not right.parent():
             self, right = canonical_coercion(self, right)
             return self.quo_rem(right)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         R = self.parent()

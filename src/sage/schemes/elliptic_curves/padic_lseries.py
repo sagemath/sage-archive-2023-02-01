@@ -516,7 +516,7 @@ class pAdicLseries(SageObject):
                 if a.valuation() < 1:
                     self._alpha[prec] = K(a)
                     return K(a)
-            raise ValueError("bug in p-adic L-function alpha")
+            raise RunTimeError("bug in p-adic L-function alpha")
         else: # supersingular case
             f = f.change_ring(Qp(p, prec, print_mode='series'))
             a = f.root_field('alpha', check_irreducible=False).gen()
@@ -825,7 +825,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L.series(3)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + O(3))*T^4 + O(T^5)
 
-        Checks if the precision can be changed (trac 5846)::
+        Checks if the precision can be changed (:trac: `5846`)::
 
             sage: L.series(3,prec=4)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + O(T^4)
@@ -856,9 +856,11 @@ class pAdicLseriesOrdinary(pAdicLseries):
         n = ZZ(n)
         if n < 1:
             raise ValueError("n (=%s) must be a positive integer"%n)
-        eta = ZZ(eta) % (self._p - 1)
+        if prec < 1:
+            raise ValueError("Insufficient precision (%s)"%prec)
 
         # check if the conditions on quadratic_twist are satisfied
+        eta = ZZ(eta) % (self._p - 1)
         D = ZZ(quadratic_twist)
         if D != 1:
             if eta != 0: raise NotImplementedError("quadratic twists only implemented for the 0th Teichmueller component")
@@ -875,15 +877,38 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(),ell) > valuation(D,ell) :
                         raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
-
-
         p = self._p
+
         if p == 2 and self._normalize :
             print 'Warning : For p=2 the normalization might not be correct !'
         #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
-        bounds = self._prec_bounds(n,prec)
-        padic_prec = max(bounds[1:]) + 5
+        if prec == 1:
+            if eta == 0:
+                # trac 15737: if we only ask for the leading term we don't
+                # need to do any sum as L_p(E,0) = (1-1/alpha)^2 * m(0) (good case)
+                # set prec arbitrary to 20.
+                K = Qp(p, 20, print_mode='series')
+                R = PowerSeriesRing(K,'T',1)
+                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
+                if self._E.has_nonsplit_multiplicative_reduction(p):
+                    L *= 2
+                if self._E.has_split_multiplicative_reduction(p):
+                    L *= 0
+                else:
+                    chip = kronecker_symbol(D,p)
+                    L *= (1-chip/self.alpha())**2
+                L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+                L = R(L, 1)
+                return L
+            else:
+                # here we need some sums anyway
+                bounds = self._prec_bounds(n,prec)
+                padic_prec = 20
+        else:
+            bounds = self._prec_bounds(n,prec)
+            padic_prec = max(bounds[1:]) + 5
+
         verbose("using p-adic precision of %s"%padic_prec)
 
         res_series_prec = min(p**(n-1), prec)
@@ -1072,10 +1097,20 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.alpha(2).parent()
             Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
             relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
+
+        An example where we only compute the leading term (:trac: `15737`)::
+
+            sage: E = EllipticCurve("17a1")
+            sage: L = E.padic_lseries(3)
+            sage: L.series(4,prec=1)
+            (O(3^18))*alpha^2 + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + ... + 3^18 + O(3^19))*alpha + (2*3^-1 + 1 + 3 + 3^2 + 3^3 + 3^4 + ... + 3^18 + O(3^19)) + O(T)
+
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError("n (=%s) must be a positive integer"%n)
+        if prec < 1:
+            raise ValueError("Insufficient precision (%s)"%prec)
 
         # check if the conditions on quadratic_twist are satisfied
         D = ZZ(quadratic_twist)
@@ -1094,13 +1129,38 @@ class pAdicLseriesSupersingular(pAdicLseries):
                         raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
 
         p = self._p
+        eta = ZZ(eta) % (p-1)
         if p == 2 and self._normalize :
             print 'Warning : for p == 2 the normalization might not be correct !'
-        eta = ZZ(eta) % (p-1)
 
-        prec = min(p**(n-1), prec)
-        bounds = self._prec_bounds(n,prec)
-        padic_prec = max(sum(bounds[1:],[])) + 5
+        if prec == 1:
+            if eta == 0:
+                # trac 15737: if we only ask for the leading term we don't
+                # need to do any sum as L_p(E,0) = (1-1/alpha)^2 * m(0) (good case)
+                # set prec arbitrary to 20.
+                alpha = self.alpha(prec=20)
+                K = alpha.parent()
+                R = PowerSeriesRing(K,'T',1)
+                L = self.modular_symbol(0, sign=+1, quadratic_twist= D)
+                if self._E.has_nonsplit_multiplicative_reduction(p):
+                    L *= 2
+                if self._E.has_split_multiplicative_reduction(p):
+                    L *= 0
+                else:
+                    chip = kronecker_symbol(D,p)
+                    L *= (1-chip/self.alpha())**2
+                L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+                L = R(L, 1)
+                return L
+            else:
+                # here we need some sums anyway
+                bounds = self._prec_bounds(n,prec)
+                padic_prec = 20
+        else:
+            prec = min(p**(n-1), prec)
+            bounds = self._prec_bounds(n,prec)
+            padic_prec = max(sum(bounds[1:],[])) + 5
+
         verbose("using p-adic precision of %s"%padic_prec)
         ans = self._get_series_from_cache(n, prec, quadratic_twist,eta)
         if not ans is None:

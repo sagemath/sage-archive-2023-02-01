@@ -27,36 +27,48 @@ cdef class DefaultConvertMap(Map):
         Map.__init__(self, domain, codomain)
         self._coerce_cost = 100
         self._force_use = force_use
-        if self._codomain._element_constructor is None:
-            raise RuntimeError, "BUG in coercion model, no element constructor for %s" % type(self._codomain)
+        if (<Parent>codomain)._element_constructor is None:
+            raise RuntimeError("BUG in coercion model, no element constructor for {}".format(type(codomain)))
         self._repr_type_str = "Coercion" if self._is_coercion else "Conversion"
 
+    cdef dict _extra_slots(self, dict _slots):
+        _slots['_force_use'] = self._force_use
+        _slots['_is_coercion'] = self._is_coercion
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        self._force_use = _slots['_force_use']
+        self._is_coercion = _slots['_is_coercion']
+        Map._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
+        cdef Parent C = self._codomain
         try:
-            return self._codomain._element_constructor(self._codomain, x)
+            return C._element_constructor(C, x)
         except Exception:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        cdef Parent C = self._codomain
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
                     # This line is apparently never used in any tests (hivert, 2009-04-28)
-                    return self._codomain._element_constructor(self._codomain, x)
+                    return C._element_constructor(C, x)
                 else:
-                    return self._codomain._element_constructor(self._codomain, x, **kwds)
+                    return C._element_constructor(C, x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return self._codomain._element_constructor(self._codomain, x, *args)
+                    return C._element_constructor(C, x, *args)
                 else:
-                    return self._codomain._element_constructor(self._codomain, x, *args, **kwds)
+                    return C._element_constructor(C, x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
 
@@ -73,30 +85,32 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
     argument is assumed to be bound to the codomain).
     """
     cpdef Element _call_(self, x):
+        cdef Parent C = self._codomain
         try:
-            return self._codomain._element_constructor(x)
+            return C._element_constructor(x)
         except Exception:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        cdef Parent C = self._codomain
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
-                    return self._codomain._element_constructor(x)
+                    return C._element_constructor(x)
                 else:
-                    return self._codomain._element_constructor(x, **kwds)
+                    return C._element_constructor(x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return self._codomain._element_constructor(x, *args)
+                    return C._element_constructor(x, *args)
                 else:
-                    return self._codomain._element_constructor(x, *args, **kwds)
+                    return C._element_constructor(x, *args, **kwds)
         except Exception:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
 
@@ -130,6 +144,58 @@ cdef class NamedConvertMap(Map):
         self.method_name = method_name
         self._repr_type_str = "Conversion via %s method" % self.method_name
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_maps import NamedConvertMap
+            sage: var('t')
+            t
+            sage: phi = NamedConvertMap(SR, QQ['t'], '_polynomial_')
+            sage: psi = copy(phi)    # indirect doctest
+            sage: psi
+            Conversion via _polynomial_ method map:
+              From: Symbolic Ring
+              To:   Univariate Polynomial Ring in t over Rational Field
+            sage: phi == psi         # todo: comparison not implemented
+            True
+            sage: psi(t^2/4+1)
+            1/4*t^2 + 1
+            sage: psi(t^2/4+1) == phi(t^2/4+1)
+            True
+        """
+        _slots['method_name'] = self.method_name
+        _slots['_force_use'] = self._force_use
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_maps import NamedConvertMap
+            sage: var('t')
+            t
+            sage: phi = NamedConvertMap(SR, QQ['t'], '_polynomial_')
+            sage: psi = copy(phi)    # indirect doctest
+            sage: psi
+            Conversion via _polynomial_ method map:
+              From: Symbolic Ring
+              To:   Univariate Polynomial Ring in t over Rational Field
+            sage: phi == psi         # todo: comparison not implemented
+            True
+            sage: psi(t^2/4+1)
+            1/4*t^2 + 1
+            sage: psi(t^2/4+1) == phi(t^2/4+1)
+            True
+        """
+        self.method_name = _slots['method_name']
+        self._force_use = _slots['_force_use']
+        Map._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         EXAMPLES::
@@ -144,20 +210,21 @@ cdef class NamedConvertMap(Map):
             sage: f(19).parent()
             Rational Field
         """
+        cdef Parent C = self._codomain
         try:
             method = getattr(x, self.method_name)
         except AttributeError:
             if print_warnings:
                 print type(x), x
-                print type(self._codomain), self._codomain
+                print type(C), C
                 print self.method_name
-            raise TypeError, "Cannot coerce %s to %s"%(x, self._codomain)
+            raise TypeError("Cannot coerce {} to {}".format(x, C))
         cdef Map m
-        cdef Element e = method(self._codomain)
+        cdef Element e = method(C)
         if e is None:
-            raise RuntimeError, "BUG in coercion model: %s method of %s returned None" % (self.method_name, type(x))
-        if e._parent is not self._codomain:
-            m = self._codomain.convert_map_from(e._parent)
+            raise RuntimeError("BUG in coercion model: {} method of {} returned None".format(self.method_name, type(x)))
+        if e._parent is not C:
+            m = C._internal_convert_map_from(e._parent)
             if m is None or m is self:
                 raise TypeError
             e = m._call_(e)
@@ -172,7 +239,8 @@ cdef class NamedConvertMap(Map):
             sage: f(x^2+1, check=True)
             x^2 + 1
         """
-        return self._codomain._element_constructor(self._call_(x), *args, **kwds)
+        cdef Parent C = self._codomain
+        return C._element_constructor(self._call_(x), *args, **kwds)
 
 
 # Perhaps this could be a method, extracting (<PyMethodDescrObject *>(<object>Parent).coerce_map_from).d_method.ml_meth and/or PyCFunction_GET_FUNCTION(method)
@@ -231,6 +299,44 @@ cdef class CallableConvertMap(Map):
         except AttributeError:
             self._repr_type_str = "Conversion via %s" % self._func
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_maps import CallableConvertMap
+            sage: def foo(P, x): return x^2
+            sage: f = CallableConvertMap(ZZ, ZZ, foo)
+            sage: g = copy(f)     # indirect doctest
+            sage: f == g          # todo: comparison not implemented
+            True
+            sage: f(3) == g(3)
+            True
+        """
+        _slots['_parent_as_first_arg'] = self._parent_as_first_arg
+        _slots['_func'] = self._func
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_maps import CallableConvertMap
+            sage: def foo(P, x): return x^2
+            sage: f = CallableConvertMap(ZZ, ZZ, foo)
+            sage: g = copy(f)     # indirect doctest
+            sage: f == g          # todo: comparison not implemented
+            True
+            sage: f(3) == g(3)
+            True
+        """
+        self._func = _slots['_func']
+        self._parent_as_first_arg = _slots['_parent_as_first_arg']
+        Map._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Because self._func may be anything we do a little bit of sanity
@@ -256,20 +362,21 @@ cdef class CallableConvertMap(Map):
             RuntimeError: BUG in coercion model: <function foo at ...> returned None
         """
         cdef Element y
+        cdef Parent C = self._codomain
         try:
             if self._parent_as_first_arg:
-                y = self._func(self._codomain, x)
+                y = self._func(C, x)
             else:
                 y = self._func(x)
         except Exception:
             if print_warnings:
                 print self._func
-                print self._codomain
+                print C
             raise
         if y is None:
-            raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
-        elif y._parent is not self._codomain:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+            raise RuntimeError("BUG in coercion model: {} returned None".format(self._func))
+        elif y._parent is not C:
+            raise RuntimeError("BUG in coercion model: {} returned element with wrong parent (expected {} got {})".format(self._func, C, y._parent))
         return y
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -412,6 +519,14 @@ cdef class ListMorphism(Map):
         self._real_morphism = real_morphism
         self._repr_type_str = "List"
 
+    cdef dict _extra_slots(self, dict _slots):
+        _slots['_real_morphism'] = self._real_morphism
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        self._real_morphism = _slots['_real_morphism']
+        Map._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         try:
             x = x._data
@@ -447,6 +562,50 @@ cdef class TryMap(Map):
             self._error_types = (ValueError, TypeError, AttributeError)
         else:
             self._error_types = error_types
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: map1 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x: 1/x)
+            sage: map2 = QQ.coerce_map_from(ZZ)
+            sage: map = sage.structure.coerce_maps.TryMap(map1, map2, error_types=(ZeroDivisionError,))
+            sage: cmap = copy(map)     # indirect doctest
+            sage: cmap == map          # todo: comparison not implemented
+            True
+            sage: map(3) == cmap(3)
+            True
+            sage: map(0) == cmap(0)
+            True
+        """
+        _slots['_map_p'] = self._map_p
+        _slots['_map_b'] = self._map_b
+        _slots['_error_types'] = self._error_types
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: map1 = sage.structure.coerce_maps.CallableConvertMap(ZZ, QQ, lambda parent, x: 1/x)
+            sage: map2 = QQ.coerce_map_from(ZZ)
+            sage: map = sage.structure.coerce_maps.TryMap(map1, map2, error_types=(ZeroDivisionError,))
+            sage: cmap = copy(map)     # indirect doctest
+            sage: cmap == map          # todo: comparison not implemented
+            True
+            sage: map(3) == cmap(3)
+            True
+            sage: map(0) == cmap(0)
+            True
+        """
+        self._map_p = _slots['_map_p']
+        self._map_b = _slots['_map_b']
+        self._error_types = _slots['_error_types']
+        Map._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """

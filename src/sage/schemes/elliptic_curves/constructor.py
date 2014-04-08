@@ -868,6 +868,12 @@ def chord_and_tangent(F, P):
         [<type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]
+
+    See :trac:`16068`::
+
+        sage: F = x**3 - 4*x**2*y - 65*x*y**2 + 3*x*y*z - 76*y*z**2
+        sage: chord_and_tangent(F, [0, 1, 0])
+        [0, 0, -1]
     """
     # check the input
     R = F.parent()
@@ -923,7 +929,7 @@ def chord_and_tangent(F, P):
 
     # first case: the third point is at t=infinity
     if Ft.is_constant():
-        return projective_point([dy, -dx, 0])
+        return projective_point([dy, -dx, K(0)])
     # second case: the third point is at finite t
     else:
         assert Ft.degree() == 1

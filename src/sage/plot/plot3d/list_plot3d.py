@@ -173,7 +173,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
                     l.append((i,j,v[i,j]))
             return list_plot3d_tuples(l,interpolation_type,texture,**kwds)
 
-    if type(v)==numpy.ndarray:
+    if isinstance(v, numpy.ndarray):
         return list_plot3d(matrix(v),interpolation_type,texture,**kwds)
 
     if isinstance(v, list):

@@ -892,8 +892,7 @@ class InfinitePolynomial_sparse(RingElement):
 
         """
         Indices = set([0]+[Integer(str(Y).split('_')[1]) for Y in self.variables()])
-        Indices = list(Indices)
-        Indices.sort()
+        Indices = sorted(Indices)
         P = lambda n: Indices.index(n) if Indices.__contains__(n) else n
         return self**P
 
@@ -1028,8 +1027,7 @@ class InfinitePolynomial_sparse(RingElement):
             return (rawcmp, 1, ltbig/ltsmall)
         # "not Fbig" is now impossible, because we only consider *global* monomial orderings.
         # These are the occurring shifts:
-        Lsmall = Fsmall.keys()
-        Lsmall.sort()
+        Lsmall = sorted(Fsmall.keys())
         Lbig   = Fbig.keys()
         Lbig.sort()
         P = range(Lbig[-1]+1)

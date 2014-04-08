@@ -1,15 +1,25 @@
-"""
+r"""
 A Sage extension which adds sage-specific features:
 
 * magics
-  - %loadfile
-  - %attach
-  - %mode (like %maxima, etc.)
+
+  - ``%loadfile``
+
+  - ``%attach``
+
+  - ``%mode`` (like ``%maxima``, etc.)
+
+  - ``%crun``
+
 * preparsing of input
-  - also make runfile and attach magics so that the '%' is optional, but encouraged
+  - also make runfile and attach magics so that the ``'%'`` is optional, but encouraged
+
 * loading Sage library
+
 * running init.sage
+
 * changing prompt to Sage prompt
+
 * Display hook
 
 TESTS:
@@ -24,7 +34,7 @@ We test that preparsing is off for ``%runfile``, on for ``%time``::
 
 The temporary directory should have a name of the form
 ``.../12345/...``, to demonstrate that file names are not
-preparsed when calling ``%runfile``. ::
+preparsed when calling ``%runfile`` ::
 
     sage: bool(re.search('/[0-9]+/', TMP))
     True
@@ -55,13 +65,35 @@ from sage.misc.preparser import preparse
 class SageMagics(Magics):
 
     @line_magic
+    def crun(self, s):
+        r"""
+        Profile C function calls
+
+        INPUT:
+        
+        - ``s`` -- string. Sage command to profile.
+
+        EXAMPLES::
+
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('%crun sum(1/(1+n^2) for n in range(100))')   # optional - gperftools
+            PROFILE: interrupts/evictions/bytes = ...
+            Using local file ...
+            Using local file ...
+        """
+        import sage.misc.gperftools
+        sage.misc.gperftools.crun(s, evaluator=self.shell.ex)
+
+    @line_magic
     def runfile(self, s):
         r"""
-        Loads the code contained in the file ``s``. This is designed
-        to be used from the command line as ``%runfile /path/to/file``.
+        Execute the code contained in the file ``s``. 
 
-        :param s: file to be loaded
-        :type s: string
+        This is designed to be used from the command line as
+        ``%runfile /path/to/file``.
+
+        - ``s`` -- string. The file to be loaded.
 
         EXAMPLES::
 
@@ -81,12 +113,12 @@ class SageMagics(Magics):
     @line_magic
     def attach(self, s):
         r"""
-        Attaches the code contained in the file ``s``. This is
-        designed to be used from the command line as
-        ``%attach /path/to/file``.
+        Attach the code contained in the file ``s``. 
 
-        :param s: file to be attached
-        :type s: string
+        This is designed to be used from the command line as ``%attach
+        /path/to/file``.
+
+        - ``s`` -- string. The file to be attached
 
         EXAMPLES::
 
@@ -124,8 +156,7 @@ class SageMagics(Magics):
         """
         A magic command to interactively load a file as in MAGMA.
 
-        :param s: the file to be interactively loaded
-        :type s: string
+        - ``s`` -- string. The file to be interactively loaded
 
         .. note::
 
@@ -179,8 +210,7 @@ class SageMagics(Magics):
         """
         A magic command to switch between simple display and ASCII art display.
 
-        :param mode: the mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
-        :type s: string
+        - ``mode`` -- string. The mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
 
         How to use: if you want activate the ASCII art mod::
 
@@ -288,7 +318,9 @@ from sage.misc.interpreter import sage_prompt
         self.init_environment()
 
     def register_interface_magics(self):
-        """Register magics for each of the Sage interfaces"""
+        """
+        Register magics for each of the Sage interfaces
+        """
         from sage.misc.superseded import deprecation
         interfaces = [(name, obj)
                       for name, obj in sage.interfaces.all.__dict__.items()
@@ -377,9 +409,10 @@ from sage.misc.interpreter import sage_prompt
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps
 def run_once(f):
-    """Runs a function (successfully) only once.
+    """
+    Run a function (successfully) only once.
 
-    The running can be reset by setting the `has_run` attribute to False
+    The running can be reset by setting the ``has_run`` attribute to False
     """
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -390,8 +423,11 @@ def run_once(f):
     wrapper.has_run = False
     return wrapper
 
+
 @run_once
 def load_ipython_extension(ip):
-    """Load the extension in IPython."""
+    """
+    Load the extension in IPython.
+    """
     # this modifies ip
     SageCustomizations(shell=ip)

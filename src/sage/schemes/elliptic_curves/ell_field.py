@@ -950,7 +950,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             from sage.rings.all import prime_range
             l = prime_range(max_l+1)
 
-        if type(l) != list:
+        if not isinstance(l, list):
             try:
                 l = rings.ZZ(l)
             except TypeError:

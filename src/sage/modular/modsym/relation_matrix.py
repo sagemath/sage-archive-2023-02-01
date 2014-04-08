@@ -288,8 +288,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     basis_mod2 = set([j for j,c in mod if c != 0])
 
     basis_set = basis_set.intersection(basis_mod2)
-    basis = list(basis_set)
-    basis.sort()
+    basis = sorted(basis_set)
 
     ONE = field(1)
 

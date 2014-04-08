@@ -171,7 +171,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
         """
-        if (type(children) is str):  # if the input is the repr of a binary tree
+        if (isinstance(children, str)):  # if the input is the repr of a binary tree
             children = children.replace(".","None")
             from ast import literal_eval
             children = literal_eval(children)

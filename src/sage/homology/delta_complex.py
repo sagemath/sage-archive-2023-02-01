@@ -441,8 +441,7 @@ class DeltaComplex(GenericCellComplex):
         for d in range(max_dim, -1, -1):
             # cells_to_add is the set of indices of d-cells in self to
             # add to new_dict.
-            cells_to_add = list(cells_to_add)
-            cells_to_add.sort()
+            cells_to_add = sorted(cells_to_add)
             # we add only these cells, so we need to translate their
             # indices from, for example, (0, 1, 4, 5) to (0, 1, 2, 3).
             # That is, when they appear as boundaries of (d+1)-cells,

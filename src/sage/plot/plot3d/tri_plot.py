@@ -232,8 +232,8 @@ class TrianglePlot:
         """
         return "".join([str(o) for o in self._objects])
 
-    def __init__(self, triangle_factory, f, (min_x, max_x), (min_y, max_y), g = None,
-                              min_depth=4, max_depth=8, num_colors = None, max_bend=.3):
+    def __init__(self, triangle_factory, f, min_x__max_x, min_y__max_y, g = None,
+                       min_depth=4, max_depth=8, num_colors = None, max_bend=.3):
         """
 
         TESTS::
@@ -244,6 +244,8 @@ class TrianglePlot:
             sage: t._f(1,1)
             2
         """
+        (min_x, max_x) = min_x__max_x 
+        (min_y, max_y) = min_y__max_y
         self._triangle_factory = triangle_factory
         self._f = f
         self._g = g

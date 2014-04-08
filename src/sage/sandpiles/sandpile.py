@@ -289,9 +289,9 @@ class Sandpile(DiGraph):
             sage: TestSuite(S).run()
         """
         # preprocess a graph, if necessary
-        if type(g) == dict and type(g.values()[0]) == dict:
+        if isinstance(g, dict) and isinstance(g.values()[0], dict):
             pass # this is the default format
-        elif type(g) == dict and type(g.values()[0]) == list:
+        elif isinstance(g, dict) and isinstance(g.values()[0], list):
             processed_g = {}
             for k in g.keys():
                 temp = {}
@@ -299,23 +299,23 @@ class Sandpile(DiGraph):
                     temp[vertex] = 1
                 processed_g[k] = temp
             g = processed_g
-        elif type(g) == Graph:
+        elif isinstance(g, Graph):
             processed_g = {}
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors(v):
-                    if type(g.edge_label(v,n)) == type(1) and g.edge_label(v,n) >=0:
+                    if isinstance(g.edge_label(v,n), type(1)) and g.edge_label(v,n) >=0:
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1
                 processed_g[v] = edges
             g = processed_g
-        elif type(g) == DiGraph:
+        elif isinstance(g, DiGraph):
             processed_g = {}
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors_out(v):
-                    if (type(g.edge_label(v,n)) == type(1)
+                    if (isinstance(g.edge_label(v,n), type(1))
                         and g.edge_label(v,n)>=0):
                         edges[n] = g.edge_label(v,n)
                     else:
@@ -2223,9 +2223,9 @@ class SandpileConfig(dict):
             True
         """
         if len(c)==S.num_verts()-1:
-            if type(c)==dict or type(c)==SandpileConfig:
+            if isinstance(c, dict) or isinstance(c, SandpileConfig):
                 dict.__init__(self,c)
-            elif type(c)==list:
+            elif isinstance(c, list):
                 c.reverse()
                 config = {}
                 for v in S.vertices():
@@ -2833,7 +2833,7 @@ class SandpileConfig(dict):
             True
         """
         c = dict(self)
-        if type(sigma)!=SandpileConfig:
+        if not isinstance(sigma, SandpileConfig):
             sigma = SandpileConfig(self._sandpile, sigma)
         sigma = sigma.values()
         for i in range(len(sigma)):
@@ -3447,7 +3447,7 @@ class SandpileDivisor(dict):
         if len(D)==S.num_verts():
             if type(D) in [dict, SandpileDivisor, SandpileConfig]:
                 dict.__init__(self,dict(D))
-            elif type(D)==list:
+            elif isinstance(D, list):
                 div = {}
                 for i in range(S.num_verts()):
                     div[S.vertices()[i]] = D[i]
@@ -3967,7 +3967,7 @@ class SandpileDivisor(dict):
             True
         """
         D = dict(self)
-        if type(sigma)!=SandpileDivisor:
+        if not isinstance(sigma, SandpileDivisor):
             sigma = SandpileDivisor(self._sandpile, sigma)
         sigma = sigma.values()
         for i in range(len(sigma)):

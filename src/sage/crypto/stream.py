@@ -62,7 +62,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         self._field = field
 
     def __eq__(self,right):
-        return type(self) == type(right) and self._field == right._field
+        return isinstance(self, type(right)) and self._field == right._field
 
     def __call__(self, key):
         """

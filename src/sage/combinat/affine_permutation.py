@@ -424,8 +424,7 @@ class AffinePermutationTypeA(AffinePermutation):
         #Type A.
         if not len(self)==k+1: raise ValueError("Length of list must be k+1="+str(k+1)+".")
         if not (binomial(k+2,2) == sum(self)): raise ValueError("Window does not sum to "+str(binomial((k+2),2))+".")
-        l=[i%(k+1) for i in self]
-        l.sort()
+        l=sorted([i%(k+1) for i in self])
         if not l == range(k+1): raise ValueError("Entries must have distinct residues.")
 
 
@@ -883,8 +882,7 @@ class AffinePermutationTypeA(AffinePermutation):
             sage: p.to_bounded_partition()
             [2, 1, 1, 1]
         """
-        c=list(self.to_lehmer_code(typ,side))
-        c.sort()
+        c=sorted(self.to_lehmer_code(typ,side))
         c.reverse()
         return Partition(c).conjugate()
 
@@ -934,8 +932,7 @@ class AffinePermutationTypeA(AffinePermutation):
             Type A affine permutation with window [3, 4, -1, 5, 0, 9, 6, 10]
         """
         if self.is_i_grassmannian(side=side): return self
-        c=list(self.to_lehmer_code(typ,side))
-        c.sort()
+        c=sorted(self.to_lehmer_code(typ,side))
         c.reverse()
         return self.parent().from_lehmer_code(c, typ, side)
 

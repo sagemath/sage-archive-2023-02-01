@@ -1133,8 +1133,7 @@ def format_search_as_html(what, r, search):
         i = L.find(':')
         if i != -1:
             files.add(L[:i])
-    files = list(files)
-    files.sort()
+    files = sorted(files)
     for F in files:
         if F.endswith('.html'):
             F = F.split('/', 2)[2]

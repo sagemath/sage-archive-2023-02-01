@@ -728,8 +728,7 @@ class CubeGroup(PermutationGroup_generic):
         elif isinstance(mv, dict):
             state = mv
             state_facets = []
-            keyss = state.keys()
-            keyss.sort()
+            keyss = sorted(state.keys())
             for k in keyss:
                 r = state[k][0]+state[k][1]+state[k][2]
                 r.remove(0)

@@ -260,9 +260,9 @@ class UnitGroup(AbelianGroupWithValues_class):
         if not S:
             S = self.__S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(K.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):

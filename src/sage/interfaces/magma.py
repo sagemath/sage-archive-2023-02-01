@@ -1,39 +1,31 @@
 r"""
 Interface to Magma
 
-.. note::
-
-   You must have ``magma`` installed on your
-   computer for this interface to work. Magma is not free, so it is
-   not included with Sage, but you can obtain it from
-   http://magma.maths.usyd.edu.au/.
-
-Type ``magma.[tab]`` for a list of all the functions
-available from your Magma install. Type
-``magma.[tab]?`` for Magma's help about a given
-function. Type ``magma(...)`` to create a new Magma
-object, and ``magma.eval(...)`` to run a string using
-Magma (and get the result back as a string).
-
 Sage provides an interface to the Magma computational algebra
 system. This system provides extensive functionality for number
 theory, group theory, combinatorics and algebra.
 
+.. note::
+
+   You must have Magma installed on your
+   computer for this interface to work. Magma is not free, so it is
+   not included with Sage, but you can obtain it from
+   http://magma.maths.usyd.edu.au/.
+
 The Magma interface offers three pieces of functionality:
 
+#. ``magma_console()`` - A function that dumps you into an interactive command-line Magma session.
 
-#. ``magma_console()`` - A function that dumps you
-   into an interactive command-line Magma session.
+#. ``magma.new(obj)`` and alternatively ``magma(obj)`` - Creation of a Magma object from a Sage object ``obj``.
+   This provides a Pythonic interface to Magma. For example, if ``f=magma.new(10)``, then
+   ``f.Factors()`` returns the prime factorization of 10 computed using Magma. If obj is a string containing
+   an arbitrary Magma expression, then the expression is evaluated in Magma to create a Magma object. An example
+   is ``magma.new('10 div 3')``, which returns Magma integer 3.
 
-#. ``magma(expr)`` - Evaluation of arbitrary Magma
-   expressions, with the result returned as a string.
+#. ``magma.eval(expr)`` - Evaluation of the Magma expression ``expr``, with the result returned as a string.
 
-#. ``magma.new(expr)`` - Creation of a Sage object that
-   wraps a Magma object. This provides a Pythonic interface to Magma.
-   For example, if ``f=magma.new(10)``, then
-   ``f.Factors()`` returns the prime factorization of
-   `10` computed using Magma.
-
+Type ``magma.[tab]`` for a list of all functions available from your Magma.
+Type ``magma.Function?`` for Magma's help about the Magma ``Function``.
 
 Parameters
 ----------
@@ -263,8 +255,8 @@ class Magma(Expect):
 
     Type ``magma.[tab]`` for a list of all the functions
     available from your Magma install. Type
-    ``magma.[tab]?`` for Magma's help about a given
-    function. Type ``magma(...)`` to create a new Magma
+    ``magma.Function?`` for Magma's help about a given ``Function``
+    Type ``magma(...)`` to create a new Magma
     object, and ``magma.eval(...)`` to run a string using
     Magma (and get the result back as a string).
 

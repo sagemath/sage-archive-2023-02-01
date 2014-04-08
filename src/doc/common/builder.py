@@ -291,7 +291,8 @@ class AllBuilder(object):
 Note: incremental documentation builds sometimes cause spurious
 error messages. To be certain that these are real errors, run
 "make doc-clean" first and try again.''')
-            raise
+            if ABORT_ON_ERROR:
+                raise
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 
@@ -493,7 +494,8 @@ class ReferenceBuilder(AllBuilder):
 Note: incremental documentation builds sometimes cause spurious
 error messages. To be certain that these are real errors, run
 "make doc-clean" first and try again.''')
-                raise
+                if ABORT_ON_ERROR:
+                    raise
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -1338,6 +1340,9 @@ def setup_parser():
     advanced.add_option("-U", "--update-mtimes", dest="update_mtimes",
                         default=False, action="store_true",
                         help="before building reference manual, update modification times for auto-generated ReST files")
+    advanced.add_option("-k", "--keep-going", dest="keep_going",
+                        default=False, action="store_true",
+                        help="Do not abort on errors but continue as much as possible after an error")
     parser.add_option_group(advanced)
 
     return parser
@@ -1458,6 +1463,8 @@ if __name__ == '__main__':
         WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
     if options.warn_links:
         ALLSPHINXOPTS += "-n "
+
+    ABORT_ON_ERROR = not options.keep_going
 
     # Make sure common/static exists.
     mkdir(os.path.join(SAGE_DOC, 'common', 'static'))

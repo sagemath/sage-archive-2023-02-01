@@ -3770,7 +3770,7 @@ class Graph(GenericGraph):
         except MIPSolverException:
             return False
 
-    def fractional_chromatic_index(self, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
         r"""
         Computes the fractional chromatic index of ``self``
 
@@ -3802,6 +3802,19 @@ class Graph(GenericGraph):
 
         INPUT:
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+          .. NOTE::
+
+              If you want exact results, i.e. a rational number, use
+              ``solver="PPL"``. This may be slower, though.
+
         - ``verbose_constraints`` -- whether to display which constraints are
           being generated.
 
@@ -3816,7 +3829,6 @@ class Graph(GenericGraph):
             just have to update the weights on the edges between each call to
             ``solve`` (and so avoiding the generation of all the constraints).
 
-
         EXAMPLE:
 
         The fractional chromatic index of a `C_5` is `5/2`::
@@ -3824,12 +3836,17 @@ class Graph(GenericGraph):
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
             2.5
+
+        With PPL::
+
+            sage: g.fractional_chromatic_index(solver="PPL")
+            5/2
         """
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         g = self.copy()
-        p = MixedIntegerLinearProgram(constraint_generation = True)
+        p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)

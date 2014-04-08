@@ -120,6 +120,7 @@ import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
 import maps
+import structure
 import number_field_morphisms
 from itertools import count, izip
 
@@ -214,7 +215,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
-def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None):
     r"""
     Return *the* number field (or tower of number fields) defined by the
     irreducible ``polynomial``.
@@ -240,6 +241,10 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
           maximizing only at the primes in this list, which completely avoids
           having to factor the discriminant, but of course can lead to wrong
           results; only applies for absolute fields at present.
+        - ``structure`` -- ``None``, a list or an instance of
+          :class:`structure.NumberFieldStructure` (default: ``None``),
+          internally used to pass in additional structural information, e.g.,
+          about the field from which this field is created as a subfield.
 
     EXAMPLES::
 
@@ -439,12 +444,12 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     if names is not None:
         name = names
     if isinstance(polynomial, (list,tuple)):
-        return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structure)
 
-    return NumberField_factory(polynomial=polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+    return NumberField_version2(polynomial=polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
 
 class NumberFieldFactory(UniqueFactory):
-    def create_key_and_extra_args(self, polynomial, name, check, embedding, latex_name, assume_disc_small, maximize_at_primes):
+    def create_key_and_extra_args(self, polynomial, name, check, embedding, latex_name, assume_disc_small, maximize_at_primes, structure):
         name = sage.structure.parent_gens.normalize_names(1, name)
 
         if not is_Polynomial(polynomial):
@@ -475,20 +480,26 @@ class NumberFieldFactory(UniqueFactory):
         if maximize_at_primes is not None:
             maximize_at_primes = tuple(maximize_at_primes)
 
-        return (polynomial, name, embedding, latex_name, maximize_at_primes), {"check":check, "assume_disc_small":assume_disc_small}
+        # normalize structure
+        if isinstance(structure, (list, tuple)):
+            if len(structure) != 1:
+                raise TypeError, "structure must be a list of length 1"
+            structure = structure[0]
+
+        return (polynomial.base_ring(), polynomial, name, embedding, latex_name, maximize_at_primes, structure), {"check":check, "assume_disc_small":assume_disc_small}
 
     def create_object(self, version, key, check, assume_disc_small):
-        polynomial, name, embedding, latex_name, maximize_at_primes = key
+        base, polynomial, name, embedding, latex_name, maximize_at_primes, structure = key
 
-        if isinstance(polynomial.base_ring(), NumberField_generic):
-            return polynomial.base_ring().extension(polynomial, name, check=check, embedding=embedding)
+        if isinstance(base, NumberField_generic):
+            return base.extension(polynomial, name, check=check, embedding=None, structure=structure) # relative number fields do not support embeddings
         if polynomial.degree() == 2:
-            return NumberField_quadratic(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+            return NumberField_quadratic(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         else:
-            return NumberField_absolute(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
-NumberField_factory = NumberFieldFactory("NumberField_factory")
+            return NumberField_absolute(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
+NumberField_version2 = NumberFieldFactory("sage.rings.number_field.number_field.NumberField_version2")
 
-def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None):
+def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None, structures=None):
     """
     Create the tower of number fields defined by the polynomials in the list
     ``polynomials``.
@@ -516,6 +527,9 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
       maximizing only at the primes in this list, which completely avoids
       having to factor the discriminant, but of course can lead to wrong
       results; only applies for absolute fields at present.
+    - ``structures`` -- ``None`` or a list (default: ``None``), internally used
+      to provide additional information about the number field such as the
+      field from which it was created.
 
     OUTPUT:
 
@@ -606,6 +620,8 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
         embeddings = [None] * len(polynomials)
     if latex_names is None:
         latex_names = [None] * len(polynomials)
+    if structures is None:
+        structures = [None] * len(polynomials)
 
     if not isinstance(polynomials, (list, tuple)):
         raise TypeError, "polynomials must be a list or tuple"
@@ -613,16 +629,16 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
     if len(polynomials) == 0:
         return QQ
     if len(polynomials) == 1:
-        return NumberField(polynomials[0], names=names, check=check, embedding=embeddings[0], latex_name=latex_names[0], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+        return NumberField(polynomials[0], names=names, check=check, embedding=embeddings[0], latex_name=latex_names[0], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structures[0])
 
     # create the relative number field defined by f over the tower defined by polynomials[1:]
     f = polynomials[0]
     name = names[0]
-    w = NumberFieldTower(polynomials[1:], names=names[1:], check=check, embeddings=embeddings[1:], latex_names=latex_names[1:], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+    w = NumberFieldTower(polynomials[1:], names=names[1:], check=check, embeddings=embeddings[1:], latex_names=latex_names[1:], assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structures[1:])
     var = f.variable_name() if is_Polynomial(f) else 'x'
 
     R = w[var]  # polynomial ring
-    return w.extension(R(f), name, check=check, embedding=embeddings[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
+    return w.extension(R(f), name, check=check, embedding=embeddings[0], structure=structures[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
 
 def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', **args):
     r"""
@@ -964,7 +980,7 @@ class NumberField_generic(number_field_base.NumberField):
     def __init__(self, polynomial, name,
                  latex_name=None, check=True, embedding=None,
                  category = None,
-                 assume_disc_small=False, maximize_at_primes=None):
+                 assume_disc_small=False, maximize_at_primes=None, structure=None):
         """
         Create a number field.
 
@@ -1018,6 +1034,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         self._assume_disc_small = assume_disc_small
         self._maximize_at_primes = maximize_at_primes
+        self._structure = structure
         from sage.categories.number_fields import NumberFields
         default_category = NumberFields()
         if category is None:
@@ -1392,11 +1409,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: D_abs.structure()[0](y0)
             -a
         """
-        if self.__structure is None:
+        if self._structure is None:
             f = self.hom(self)
             return f,f
         else:
-            return self.__structure.from_field(), self.__structure.to_field()
+            return self._structure.create_structure(self)
 
     def completion(self, p, prec, extras={}):
         """
@@ -1709,6 +1726,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return not self.is_absolute()
 
+    @cached_method
     def absolute_field(self, names):
         """
         Returns self as an absolute extension over QQ.
@@ -1730,16 +1748,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.absolute_field('a')
             Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1
         """
-        try:
-            return self.__absolute_field[names]
-        except KeyError:
-            pass
-        except AttributeError:
-            self.__absolute_field = {}
-        K = NumberField(self.defining_polynomial(), names, cache=False)
-        K._set_structure(maps.NameChangeMap(K, self), maps.NameChangeMap(self, K))
-        self.__absolute_field[names] = K
-        return K
+        return NumberField(self.defining_polynomial(), names, check=False, structure=structure.NameChange(self))
 
     def is_isomorphic(self, other):
         """
@@ -4096,7 +4105,7 @@ class NumberField_generic(number_field_base.NumberField):
         B = self.pari_bnf(proof).bnfisintnorm(n)
         return map(self, B)
 
-    def extension(self, poly, name=None, names=None, check=True, embedding=None, latex_name=None):
+    def extension(self, poly, name=None, names=None, check=True, embedding=None, latex_name=None, structure=None):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -4141,7 +4150,7 @@ class NumberField_generic(number_field_base.NumberField):
         if name is None:
             raise TypeError, "the variable name must be specified."
         from sage.rings.number_field.number_field_rel import NumberField_relative
-        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding, latex_name=latex_name)
+        return NumberField_relative(self, poly, str(name), check=check, embedding=embedding, latex_name=latex_name, structure=structure)
 
     def factor(self, n):
         r"""
@@ -5714,9 +5723,8 @@ class NumberField_generic(number_field_base.NumberField):
 
 
 class NumberField_absolute(NumberField_generic):
-
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
-                 assume_disc_small=False, maximize_at_primes=None):
+                 assume_disc_small=False, maximize_at_primes=None, structure=None):
         """
         Function to initialize an absolute number field.
 
@@ -5729,7 +5737,7 @@ class NumberField_absolute(NumberField_generic):
             sage: TestSuite(K).run()
         """
         NumberField_generic.__init__(self, polynomial, name, latex_name, check, embedding,
-                                     assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+                                     assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._element_class = number_field_element.NumberFieldElement_absolute
         self._zero_element = self(0)
         self._one_element =  self(1)
@@ -7154,7 +7162,7 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.places(prec=prec)[0:self.signature()[0]]
 
-    def relativize(self, alpha, names):
+    def relativize(self, alpha, names, structure=None):
         r"""
         Given an element in self or an embedding of a subfield into self,
         return a relative number field `K` isomorphic to self that is relative
@@ -7167,6 +7175,11 @@ class NumberField_absolute(NumberField_generic):
           self
         - ``names`` - 2-tuple of names of generator for output field K and the
           subfield QQ(alpha) names[0] generators K and names[1] QQ(alpha).
+        - ``structure`` -- an instance of
+          :class:`structure.NumberFieldStructure` or ``None`` (default:
+          ``None``), if ``None``, then the resulting field's :meth:`structure`
+          will return isomorphisms from and to this field. Otherwise, the field
+          will be equipped with ``strcture``.
 
         OUTPUT:
 
@@ -7368,25 +7381,10 @@ class NumberField_absolute(NumberField_generic):
         mp_in_self = self['x'](map(L_into_self, f.coeffs()))
         assert mp_in_self(a) == 0
 
-        M = L.extension(f, names[0])
-        beta = M(L.gen())
-        to_M = self.hom([M.gen(0)], M, check=True)  # be paranoid
-        assert to_M(alpha) == beta
-        # Bingo.
-        # We have now constructed a relative
-        # number field M, and an isomorphism
-        # self --> M that sends alpha to
-        # the generator of the intermediate field.
-
-        # this strange step avoids computing an embedding of the base_field L
-        # into self.
-        base_hom = L.hom([alpha], self)
-        from_M = M.Hom(self)([self.gen()], base_hom=base_hom, check=True)
-
-        # at some point in the future, we will worry about caching since relative
-        # number fields should be cached but aren't -- yet
-        M._set_structure(from_M, to_M)
-        return M
+        if structure is None:
+            from sage.rings.number_field.structure import RelativeFromAbsolute
+            structure = RelativeFromAbsolute(self, alpha)
+        return L.extension(f, names[0], structure=structure)
 
     # Synonyms so that terminology appropriate to relative number fields
     # can be applied to an absolute number field:
@@ -9021,7 +9019,7 @@ class NumberField_quadratic(NumberField_absolute):
         Number Field in b with defining polynomial x^2 + 4
     """
     def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
-                 assume_disc_small=False, maximize_at_primes=None):
+                 assume_disc_small=False, maximize_at_primes=None, structure=None):
         """
         Create a quadratic number field.
 
@@ -9047,7 +9045,7 @@ class NumberField_quadratic(NumberField_absolute):
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check,
                                       embedding=embedding, latex_name=latex_name,
-                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
+                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._standard_embedding = True
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]

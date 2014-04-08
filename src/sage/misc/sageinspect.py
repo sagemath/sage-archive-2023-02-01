@@ -187,16 +187,32 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
+    The following has been fixed in :trac:`13916`::
+
+        sage: cython('''cpdef test_funct(x,y): return''')
+        sage: print open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read()
+        <BLANKLINE>
+        include "interrupt.pxi"  # ctrl-c interrupt block support
+        include "stdsage.pxi"  # ctrl-c interrupt block support
+        <BLANKLINE>
+        include "cdefs.pxi"
+        cpdef test_funct(x,y): return
+
     AUTHORS:
 
     - William Stein
     - Extensions by Nick Alexander
+    - Extension for interactive Cython code by Simon King
     """
     if docstring is None:
         return None
     res = __embedded_position_re.match(docstring)
     if res is not None:
-        filename = os.path.join(SAGE_SRC, res.group('FILENAME'))
+        raw_filename = res.group('FILENAME')
+        filename = os.path.join(SAGE_SRC, raw_filename)
+        if not os.path.isfile(filename):
+            from sage.misc.misc import SPYX_TMP
+            filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
         lineno = int(res.group('LINENO'))
         original = res.group('ORIGINAL')
         return (original, filename, lineno)
@@ -1292,7 +1308,7 @@ def sage_getargspec(obj):
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = obj.__func__
     elif isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)
@@ -1324,7 +1340,7 @@ def sage_getargspec(obj):
 
     # Otherwise we're (hopefully!) plain Python, so use inspect
     try:
-        args, varargs, varkw = inspect.getargs(func_obj.func_code)
+        args, varargs, varkw = inspect.getargs(func_obj.__code__)
     except AttributeError:
         try:
             args, varargs, varkw = inspect.getargs(func_obj)
@@ -1333,7 +1349,7 @@ def sage_getargspec(obj):
             return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
             #return _sage_getargspec_from_ast(sage_getsource(obj))
     try:
-        defaults = func_obj.func_defaults
+        defaults = func_obj.__defaults__
     except AttributeError:
         defaults = tuple([])
     return inspect.ArgSpec(args, varargs, varkw, defaults)
@@ -1638,9 +1654,9 @@ def _sage_getsourcelines_name_with_dot(object):
             raise IOError('could not find class definition')
 
     if inspect.ismethod(object):
-        object = object.im_func
+        object = object.__func__
     if inspect.isfunction(object):
-        object = object.func_code
+        object = object.__code__
     if inspect.istraceback(object):
         object = object.tb_frame
     if inspect.isframe(object):

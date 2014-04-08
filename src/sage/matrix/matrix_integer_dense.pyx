@@ -4314,7 +4314,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         j = 0
         R = det
 
-        while 1:
+        while True:
             if j == nrows-1:
                 T_i_i = T_rows[i][i]
                 d = ai.c_xgcd_int(T_i_i, R, &u, &v)

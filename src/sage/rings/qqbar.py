@@ -53,10 +53,10 @@ An algebraic number can be coerced into ``ComplexIntervalField`` (or
 ``RealIntervalField``, for algebraic reals); every algebraic number has a
 cached interval of the highest precision yet calculated.
 
-Everything is done with intervals except for comparisons. By default,
-comparisons compute the two algebraic numbers with 128-bit precision
-intervals; if this does not suffice to prove that the numbers are different,
-then we fall back on exact computation.
+In most cases, computations that need to compare two algebraic numbers
+compute them with 128-bit precision intervals; if this does not suffice to
+prove that the numbers are different, then we fall back on exact
+computation.
 
 Note that division involves an implicit comparison of the divisor against
 zero, and may thus trigger exact computation.
@@ -482,6 +482,7 @@ Verify that :trac:`10981` is fixed::
     sage: P.partial_fraction_decomposition()
     (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
+import itertools
 
 import sage.rings.ring
 from sage.structure.sage_object import SageObject
@@ -4597,6 +4598,111 @@ class AlgebraicReal(AlgebraicNumber_base):
             raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
 
         return ZZ(self._descr.rational_value())
+
+    def _floor_ceil(self, method):
+        r"""
+        Helper method used by :meth:`floor()`, :meth:`ceil()`,
+        :meth:`round()`, and :meth:`trunc()`.
+
+        TESTS::
+
+            sage: x = polygen(QQ)
+            sage: a = AA.polynomial_root(x^5 - (1-2^(-80)), RIF((0,2)))
+            sage: b = AA.polynomial_root(x^5 - (1+2^(-80)), RIF((0,2)))
+            sage: two = (a+b)^5 - 5*(a^4*b+a*b^4) - 10*(a^3*b^2+a^2*b^3)
+            sage: one_half = 1/two
+            sage: [[z.floor(), z.ceil(), z.round(), z.trunc()] # indirect doctest
+            ....:  for z in [a, -a, b, -b, 6*(a+two),
+            ....:            AA(0), AA(1), AA(-1), AA(1/2), AA(-1/2)]]
+            [[0, 1, 1, 0], [-1, 0, -1, 0], [1, 2, 1, 1], [-2, -1, -1, -1],
+            [17, 18, 18, 17], [0, 0, 0, 0], [1, 1, 1, 1], [-1, -1, -1, -1],
+            [0, 1, 1, 0], [-1, 0, -1, 0]]
+            sage: [[z.floor(), z.ceil(), z.trunc()] for z in [two, a*b]] # long time
+            [[2, 2, 2], [0, 1, 0]]
+            sage: [one_half.round(), (-one_half).round()] # long time
+            [1, -1]
+        """
+        for i in itertools.count():
+            candidate = method(self._value.lower())
+            if candidate == method(self._value.upper()):
+                return candidate
+            self._more_precision()
+            # field elements are irrational by construction
+            if i == 2 and not self._descr.is_field_element():
+                try:
+                    return method(self._rational_())
+                except (ValueError, TypeError):
+                    pass
+
+    def floor(self):
+        r"""
+        Return the largest integer not greater than ``self``.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).floor()
+            1
+            sage: AA(-sqrt(2)).floor()
+            -2
+            sage: AA(42).floor()
+            42
+
+        TESTS:
+
+        Check that :trac:`15501` is fixed::
+
+            sage: a = QQbar((-1)^(1/4)).real()
+            sage: (floor(a-a) + a).parent()
+            Algebraic Real Field
+        """
+        return self._floor_ceil(lambda x: x.floor())
+
+    def ceil(self):
+        r"""
+        Return the smallest integer not smaller than ``self``.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).ceil()
+            2
+            sage: AA(-sqrt(2)).ceil()
+            -1
+            sage: AA(42).ceil()
+            42
+        """
+        return self._floor_ceil(lambda x: x.ceil())
+
+    def round(self):
+        r"""
+        Round ``self`` to the nearest integer.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).round()
+            1
+            sage: AA(1/2).round()
+            1
+            sage: AA(-1/2).round()
+            -1
+        """
+        return self._floor_ceil(lambda x: x.round())
+
+    def trunc(self):
+        r"""
+        Round ``self`` to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: AA(sqrt(2)).trunc()
+            1
+            sage: AA(-sqrt(2)).trunc()
+            -1
+            sage: AA(1).trunc()
+            1
+            sage: AA(-1).trunc()
+            -1
+        """
+        return self._floor_ceil(lambda x: x.trunc())
 
     def _rational_(self):
         """

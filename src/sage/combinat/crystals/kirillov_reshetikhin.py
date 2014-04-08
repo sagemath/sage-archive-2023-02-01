@@ -1197,7 +1197,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         dic_weight = {}
         for (weight, i) in dic.values():
             dic_weight[weight] = dic_weight.get(weight, []) + [i]
-        map_index = lambda (i, list) : max(list)+min(list)-i
+        map_index = lambda i_list: max(i_list[1]) + min(i_list[1]) - i_list[0]
         map_element = lambda x : tuple([self.automorphism_on_affine_weight(dic[x][0]), map_index((dic[x][1],dic_weight[dic[x][0]]))])
         return dict( (x, dic_inv[map_element(x)]) for x in dic.keys() )
 

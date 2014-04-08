@@ -258,7 +258,7 @@ class WeylGroups(Category_singleton):
             Returns the generating series for the Pieri factorizations
             `w = u_1 \cdots u_k`, where `u_i` is a Pieri factor for
             all `i`, `l(w) = \sum_{i=1}^k l(u_i)` and
-            ``max_length`` `\geq l(u_1) \geq \dots \geq l(u_k)`.
+            ``max_length`` `\geq l(u_1) \geq \cdots \geq l(u_k)`.
 
             A factorization `u_1 \cdots u_k` contributes a monomial of
             the form `\prod_i x_{l(u_i)}`, with coefficient given by

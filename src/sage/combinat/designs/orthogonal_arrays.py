@@ -7,8 +7,9 @@ to transversal designs.
 Functions
 ---------
 """
+from sage.misc.cachefunc import cached_function
 
-def transversal_design(k,n,check=True):
+def transversal_design(k,n,check=True,availability=False):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -34,6 +35,11 @@ def transversal_design(k,n,check=True):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
+    - ``availability`` (boolean) -- if ``availability`` is set to ``True``, the
+      function only returns boolean answers according to whether Sage knows how
+      to build such a design. This should be much faster than actually building
+      it.
+
     .. SEEALSO::
 
         :func:`orthogonal_array` -- a tranversal design is an orthogonal array
@@ -51,20 +57,40 @@ def transversal_design(k,n,check=True):
          [3, 6, 14, 17, 20], [3, 7, 11, 15, 24], [4, 9, 14, 19, 24],
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
+
+    TESTS:
+
+    Obtained through Wilson's decomposition::
+
+        sage: _ = designs.transversal_design(4,38)
+
     """
     if n == 12 and k <= 6:
         TD = [l[:k] for l in TD6_12()]
-    else:
-        # Section 6.6
-        OA = orthogonal_array(k,n,t=2, check = False)
+    # Section 6.6 of [Stinson2004]
+    elif orthogonal_array(k,n, check = False, availability = True):
+        if availability:
+            return True
+        OA = orthogonal_array(k,n, check = False)
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+
+    elif find_wilson_decomposition(k,n):
+        if availability:
+            return True
+        TD = wilson_construction(*find_wilson_decomposition(k,n), check = False)
+
+    else:
+        if availability:
+            return False
+        else:
+            raise NotImplementedError("I don't know how to build this Transversal Design !")
 
     if check:
         assert is_transversal_design(TD,k,n)
 
     return TD
 
-def is_transversal_design(B,k,n):
+def is_transversal_design(B,k,n, verbose=False):
     r"""
     Check that a given set of blocks ``B`` is a transversal design.
 
@@ -74,7 +100,11 @@ def is_transversal_design(B,k,n):
     INPUT:
 
     - ``B`` -- the list of blocks
+
     - ``k, n`` -- integers
+
+    - ``verbose`` (boolean) -- whether to display information about what is
+      going wrong.
 
     .. NOTE::
 
@@ -97,13 +127,63 @@ def is_transversal_design(B,k,n):
     m = g.size()
     for X in B:
         if len(X) != k:
+            if verbose:
+                print "A set has wrong size"
             return False
         g.add_edges(list(combinations(X,2)))
         if g.size() != m+(len(X)*(len(X)-1))/2:
+            if verbose:
+                print "A pair appears twice"
             return False
         m = g.size()
 
-    return g.is_clique()
+    if not g.is_clique():
+        if verbose:
+            print "A pair did not appear"
+        return False
+
+    return True
+
+@cached_function
+def find_wilson_decomposition(k,n):
+    r"""
+    Finds a wilson decomposition of `n`
+
+    This method looks for possible integers `m,t,u` satisfying that `mt+u=n` and
+    such that Sage knows how to build a `TD(k,m), TD(k,m+1),TD(k+1,t)` and a
+    `TD(k,u)`. These can then be used to feed :func:`wilson_construction`.
+
+    INPUT:
+
+    - `k,n` (integers)
+
+    OUTPUT:
+
+    Returns a 4-tuple `(n, m, t, u)` if it is found, and ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import find_wilson_decomposition
+        sage: find_wilson_decomposition(4,38)
+        (4, 7, 5, 3)
+        sage: find_wilson_decomposition(4,20)
+        False
+    """
+    for t in range(1,n-1):
+        # We ensure that 1<=u
+        if n%t == 0:
+            continue
+
+        m = n//t
+        u = n%t
+
+        if (transversal_design(k  ,m  , availability=True) and
+            transversal_design(k  ,m+1, availability=True) and
+            transversal_design(k+1,t  , availability=True) and
+            transversal_design(k  ,u  , availability=True)):
+            return k,m,t,u
+
+    return False
 
 def TD6_12():
     r"""
@@ -144,7 +224,102 @@ def TD6_12():
 
     return TD
 
-def orthogonal_array(k,n,t=2,check=True):
+def wilson_construction(k,m,t,u, check = True):
+    r"""
+    Returns a `TD(k,mt+u)` by Wilson's construction.
+
+    Wilson's construction builds a `TD(k,mt+u)` from the following designs :
+
+    * A `TD(k,m)`
+    * A `TD(k,m+1)`
+    * A `TD(k+1,t)`
+    * A `TD(k,u)`
+
+    For more information, see page 147 of [Stinson2004]_.
+
+    INPUT:
+
+    - ``k,m,t,u`` -- integers with `k\geq 2` and `1\leq u\leq t`.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
+        sage: from sage.combinat.designs.orthogonal_arrays import find_wilson_decomposition
+        sage: total = 0                                               # long time
+        sage: for k in range(3,8):                                    # long time
+        ....:    for n in range(1,30):                                # long time
+        ....:        if find_wilson_decomposition(k,n):               # long time
+        ....:            total += 1                                   # long time
+        ....:            k,m,t,u = find_wilson_decomposition(k,n)     # long time
+        ....:            _ = wilson_construction(k,m,t,u, check=True) # long time
+        sage: print total                                             # long time
+        32
+    """
+    # Raises a NotImplementedError if one of them does not exist.
+    TDkm = transversal_design(k,m,check=True)
+    TDkm1 = transversal_design(k,m+1,check=True)
+    TDk1t = transversal_design(k+1,t,check=True)
+    TDku = transversal_design(k,u,check=True)
+
+    # Truncaed TDk1t
+    truncated_TDk1t = [[x for x in B if x<k*t+u] for B in TDk1t]
+
+    # Making sure that [(i,m) for i in range(k)] is a block of TDkm1
+    B0 = sorted(TDkm1[0])
+    TDkm1 = [[x+m-(x%(m+1)) if x in B0 else
+              x-bool(B0[x//(m+1)] <= x)
+             for x in B]
+             for B in TDkm1]
+
+    # Remove first block
+    TDkm1.pop(0)
+
+    TD = []
+    for A in truncated_TDk1t:
+        # Case 1, |A|=k
+        if len(A) == k:
+            for B in TDkm:
+                BB = []
+                for x in B:
+                    # x//m is the group of x in TDkm
+                    # x%m is the element of x in its group
+                    ai = A[x//m]
+                    i = ai//t
+                    BB.append(i*(m*t+u)+(ai%t)*m+x%m)
+                TD.append(BB)
+
+        # Case 2, |A|=k+1
+        else:
+            A.sort()
+            a_k1 = A.pop(-1)
+            for B in TDkm1:
+                BB = []
+                for x in B:
+                    # x//(m+1) is the group of x in TDkm1
+                    # x%(m+1) is the element of x in its group
+                    ai = A[x//(m+1)]
+                    i = ai//t
+                    if (x+1)%(m+1) == 0:
+                        BB.append(i*(m*t+u)+m*t+(a_k1%t))
+                    else:
+                        BB.append(i*(m*t+u)+(ai%t)*m+x%(m+1))
+                TD.append(BB)
+
+    # "Finally, there exists [...]"
+    for A in TDku:
+        TD.append([(m*t+u)*(x//u)+m*t+x%u for x in A])
+
+    if check and not is_transversal_design(TD,k,m*t+u, verbose=True):
+        raise RuntimeError("Sage returns wrong results ! Please report the bug.")
+
+    return TD
+
+def orthogonal_array(k,n,t=2,check=True,availability=False):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -162,21 +337,25 @@ def orthogonal_array(k,n,t=2,check=True):
 
     - ``n`` -- (integer) number of symbols
 
-    - ``t`` -- (integer; default: 2) only ``t=2`` is available at the moment
+    - ``t`` -- (integer; default: 2) -- strength of the array
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
+    - ``availability`` (boolean) -- if ``availability`` is set to ``True``, the
+      function only returns boolean answers according to whether Sage knows how
+      to build such an array. This should be much faster than actually building
+      it.
+
+    For more information on orthogonal arrays, see
+    :wikipedia:`Orthogonal_array`.
+
     .. NOTE::
 
         This method implements theorems from [Stinson2004]_. See the code's
         documentation for details.
-
-    .. TODO::
-
-        Implement Wilson's construction. See page 146 of [Stinson2004]_.
 
     .. SEEALSO::
 
@@ -205,12 +384,15 @@ def orthogonal_array(k,n,t=2,check=True):
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
-    OA = None
+    from latin_squares import mutually_orthogonal_latin_squares
 
     if k < 2:
         raise ValueError("undefined for k less than 2")
 
     elif k >= n+t:
+        if availability:
+            return False
+
         from sage.categories.sets_cat import EmptySetError
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
         # When t>2 the submatrix defined by the rows whose first t-2 elements
@@ -218,15 +400,18 @@ def orthogonal_array(k,n,t=2,check=True):
         # i.e. k<n+t.
         raise EmptySetError("No Orthogonal Array exists when k>=n+t")
 
-    elif t != 2:
-        raise NotImplementedError("only implemented for t=2")
-
     elif k == t:
+        if availability:
+            return True
+
         from itertools import product
         OA = map(list, product(range(n), repeat=k))
 
     # Theorem 6.39 from [Stinson2004]
-    elif 2 <= k and k <= n and is_prime_power(n):
+    elif t == 2 and 2 <= k and k <= n and is_prime_power(n):
+        if availability:
+            return True
+
         M = []
         Fp = FiniteField(n,'x')
         vv = list(Fp)[:k]
@@ -238,7 +423,10 @@ def orthogonal_array(k,n,t=2,check=True):
         OA = M
 
     # Theorem 6.40 from [Stinson2004]
-    elif k == n+1 and is_prime_power(n):
+    elif t == 2 and k == n+1 and is_prime_power(n):
+        if availability:
+            return True
+
         if n == 2:
             OA = [[0,1,0],[0,0,1],[1,0,0],[1,1,1]]
         else:
@@ -248,18 +436,19 @@ def orthogonal_array(k,n,t=2,check=True):
             OA = M
 
     # Section 6.5.1 from [Stinson2004]
-    if OA is None:
-        from latin_squares import mutually_orthogonal_latin_squares
-        try:
-            mols = mutually_orthogonal_latin_squares(n,k-2)
-        except ValueError:
-            mols = None
-        if mols:
-            OA = [[i,j]+[m[i,j] for m in mols]
-                  for i in range(n) for j in range(n)]
+    elif t == 2 and mutually_orthogonal_latin_squares(n,k-2, availability=True):
+        if availability:
+            return True
 
-    if OA is None:
-        raise NotImplementedError("I don't know how to build this orthogonal array!")
+        mols = mutually_orthogonal_latin_squares(n,k-2)
+        OA = [[i,j]+[m[i,j] for m in mols]
+              for i in range(n) for j in range(n)]
+
+    else:
+        if availability:
+            return False
+        else:
+            raise NotImplementedError("I don't know how to build this orthogonal array!")
 
     if check:
         assert is_orthogonal_array(OA,k,n,t)

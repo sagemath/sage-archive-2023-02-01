@@ -61,8 +61,8 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
 
     .. SEEALSO::
 
-        * :meth:`steiner_triple_system`
-        * :meth:`v_4_1_bibd`
+        * :func:`steiner_triple_system`
+        * :func:`v_4_1_BIBD`
 
     TODO:
 
@@ -449,7 +449,7 @@ def _relabel_bibd(B,n):
 
 def PBD_4_5_8_9_12(v, check=True):
     """
-    Returns a `(v,\{4,5,8,9,12\})-PBD` on `v` elements.
+    Returns a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
 
     A `(v,\{4,5,8,9,12\})`-PBD exists if and only if `v\equiv 0,1 \pmod 4`. The
     construction implemented here appears page 168 in [Stinson2004]_.

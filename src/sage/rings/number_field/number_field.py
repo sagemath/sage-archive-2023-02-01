@@ -486,10 +486,11 @@ class NumberFieldFactory(UniqueFactory):
                 raise TypeError, "structure must be a list of length 1"
             structure = structure[0]
 
-        return (polynomial.base_ring(), polynomial, name, embedding, latex_name, maximize_at_primes, structure), {"check":check, "assume_disc_small":assume_disc_small}
+        return (polynomial.base_ring(), polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure), {"check":check}
 
-    def create_object(self, version, key, check, assume_disc_small):
-        base, polynomial, name, embedding, latex_name, maximize_at_primes, structure = key
+    def create_object(self, version, key, check):
+
+        base, polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure = key
 
         if isinstance(base, NumberField_generic):
             return base.extension(polynomial, name, check=check, embedding=None, structure=structure) # relative number fields do not support embeddings

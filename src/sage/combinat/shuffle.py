@@ -91,6 +91,15 @@ class SetShuffleProduct(SageObject):
 
     def __init__(self, l1, l2, elem_constructor=None):
         """
+        Construct the set of all possible shuffle product of two sets of iterable.
+        
+        INPUT:
+        
+        - ``l1``, ``l2`` -- iterable: the sets to shuffle
+
+        - ``elem_constructor``:  constructor for the returned elements
+        
+
         TESTS::
 
             sage: from sage.combinat.shuffle import SetShuffleProduct
@@ -99,6 +108,9 @@ class SetShuffleProduct(SageObject):
             sage: list(SetShuffleProduct({(1,2,3), (2,3,4)}, {(5,)}))
             [[2, 3, 4, 5], [2, 5, 3, 4], [5, 2, 3, 4], [2, 3, 5, 4], [1, 2, 3, 5], [1, 5, 2, 3],
              [5, 1, 2, 3], [1, 2, 5, 3]]
+             sage: list(SetShuffleProduct({(1,2,3), (2,3,4)}, {(5,)}))
+            [(2, 3, 4, 5), (2, 5, 3, 4), (5, 2, 3, 4), (2, 3, 5, 4), (1, 2, 3, 5), (1, 5, 2, 3),
+             (5, 1, 2, 3), (1, 2, 5, 3)]
 
         """
         assert(isinstance(l1, collections.Iterable) and
@@ -115,7 +127,7 @@ class SetShuffleProduct(SageObject):
             try:
                 e = iter(l1).next()
                 if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor"):
-                    self._element_constructor = e.parent()._element_constructor_
+                    self._element_constructor = e.parent()._element_constructor_ # <- y a pas un _ en trop ?
                 else:
                     self._element_constructor = list
             except StopIteration:
@@ -225,6 +237,15 @@ class ShuffleProduct(SageObject):
 
     def __init__(self, l1, l2, elem_constructor=None):
         """
+        Construct the shuffle product of two iterable.
+        
+        INPUT:
+        
+        - ``l1``, ``l2`` -- iterable: iterables to shuffle
+
+        - ``elem_constructor``:  constructor for the returned elements
+
+
         TESTS::
 
             sage: from sage.combinat.shuffle import ShuffleProduct
@@ -243,7 +264,7 @@ class ShuffleProduct(SageObject):
 
         if not elem_constructor:
             if hasattr(l1, "parent") and hasattr(l1.parent(), "_element_constructor"):
-                self._element_constructor = l1.parent()._element_constructor_
+                self._element_constructor = l1.parent()._element_constructor_ # <- pareil
             else:
                 self._element_constructor = list
         else:
@@ -290,7 +311,7 @@ class ShuffleProduct(SageObject):
         """
         Efficient iteration from a gray code on binary words in `B(n,k)`.
 
-        (with `B(n,k)` the number of binary words of sizez `n` with `k` one.
+        (with `B(n,k)` the number of binary words of size `n` with `k` one.
 
         TESTS::
 
@@ -379,6 +400,7 @@ class ShuffleProduct(SageObject):
             sage: [1,4,2,2,5,3] in sh
             False
         """
+
         # FIXME: if the elem_constructor is a function??
         ### for example: ShuffleProduct("a", "bc", elem_constructor="".join)
         #if li.__class__ != self._element_constructor:

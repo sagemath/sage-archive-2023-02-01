@@ -95,11 +95,18 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     A BIBD from a Finite Projective Plane::
 
         sage: _ = designs.BalancedIncompleteBlockDesign(21,5)
+
+    A trivial BIBD::
+
+        sage: designs.BalancedIncompleteBlockDesign(10,10)
+        Incidence structure with 10 points and 1 blocks
     """
     if ((binomial(v,2)%binomial(k,2) != 0) or
         (v-1)%(k-1) != 0):
         raise ValueError("No such design exists !")
 
+    if k == v:
+        return BlockDesign(v,[range(v)], test=False)
     if k == 2:
         from itertools import combinations
         return BlockDesign(v, combinations(range(v),2), test = False)

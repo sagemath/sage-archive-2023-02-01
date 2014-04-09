@@ -40,7 +40,7 @@ A seguir, calculamos a integral de uma função simples.
 
     sage: x = var('x')   # create a symbolic variable
     sage: integrate(sqrt(x)*sqrt(1+x), x)
-    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1)
+    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1)
 
 Agora vamos resolver uma equação quadrática com o Sage. O símbolo
 ``==`` representa igualdade no Sage.

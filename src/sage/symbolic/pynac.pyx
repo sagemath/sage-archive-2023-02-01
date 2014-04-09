@@ -114,11 +114,7 @@ def unpack_operands(Expression ex):
         sage: type(unpack_operands(t))
         <type 'tuple'>
         sage: map(type, unpack_operands(t))
-        [<type 'sage.rings.integer.Integer'>, 
-	 <type 'sage.rings.integer.Integer'>, 
-	 <type 'sage.symbolic.expression.Expression'>, 
-         <type 'sage.symbolic.expression.Expression'>, 
-	 <type 'sage.symbolic.expression.Expression'>]
+        [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
         sage: u = SR._force_pyobject((t, x^2))
         sage: unpack_operands(u)
         ((1, 2, x, x + 1, x + 2), x^2)

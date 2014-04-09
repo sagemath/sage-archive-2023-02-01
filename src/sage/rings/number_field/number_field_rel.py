@@ -712,6 +712,23 @@ class NumberField_relative(NumberField_generic):
             Number Field in w with defining polynomial Z^3 + Z + 1
             sage: print L == K
             True
+
+        The structure of a relative number field is lost when pickling, this is
+        a known bug, see :trac:`11670`::
+
+            sage: M.<u,v> = L.change_names()
+            sage: M.structure()
+            (Isomorphism given by variable name change map:
+              From: Number Field in u with defining polynomial x^3 + 2 over its base field
+              To:   Number Field in z with defining polynomial Z^3 + 2 over its base field,
+             Isomorphism given by variable name change map:
+              From: Number Field in z with defining polynomial Z^3 + 2 over its base field
+              To:   Number Field in u with defining polynomial x^3 + 2 over its base field)
+            sage: M = loads(dumps(M))
+            sage: M.structure()
+            (Ring Coercion endomorphism of Number Field in u with defining polynomial x^3 + 2 over its base field,
+             Ring Coercion endomorphism of Number Field in u with defining polynomial x^3 + 2 over its base field)
+
         """
         return NumberField_relative_v1, (self.__base_field, self.relative_polynomial(), self.variable_name(),
                                           self.latex_variable_name(), self.gen_embedding())

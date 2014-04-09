@@ -39,7 +39,7 @@ from sage.misc.misc import is_iterator
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 
-def Set(X):
+def Set(X=frozenset()):
     r"""
     Create the underlying set of ``X``.
 
@@ -121,6 +121,11 @@ def Set(X):
         <class 'sage.sets.set.Set_object_enumerated_with_category'>
         sage: S = Set([])
         sage: TestSuite(S).run()
+
+    Check that :trac:`16090` is fixed::
+
+        sage: Set()
+        {}
     """
     if is_Set(X):
         return X

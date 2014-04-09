@@ -26,17 +26,17 @@ associated digraph::
     sage: LS = crystals.LSPaths(2*La[1]); LS
     The crystal of LS paths of type ['C', 3, 1] and weight 2*Lambda[1]
     sage: C = LS.subcrystal(max_depth=3)
-    sage: [b for b in sorted(C)]
-    [(2*Lambda[1],),
-    (Lambda[0] - Lambda[1] + Lambda[2], Lambda[1]),
-    (Lambda[0] - Lambda[2] + Lambda[3], Lambda[1]),
-    (2*Lambda[0] - 2*Lambda[1] + 2*Lambda[2],),
-    (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[1]),
-    (Lambda[0] + Lambda[2] - Lambda[3], Lambda[1]),
-    (Lambda[0] - Lambda[2] + Lambda[3], Lambda[0] - Lambda[1] + Lambda[2]),
-    (-Lambda[0] + 2*Lambda[1] - Lambda[2] + Lambda[3], Lambda[1]),
-    (-Lambda[1] + 2*Lambda[2], Lambda[1]),
-    (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[0] - Lambda[1] + Lambda[2])]
+    sage: sorted(C, key=str)
+    [(-Lambda[0] + 2*Lambda[1] - Lambda[2] + Lambda[3], Lambda[1]),
+     (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[0] - Lambda[1] + Lambda[2]),
+     (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[1]),
+     (-Lambda[1] + 2*Lambda[2], Lambda[1]),
+     (2*Lambda[0] - 2*Lambda[1] + 2*Lambda[2],),
+     (2*Lambda[1],),
+     (Lambda[0] + Lambda[2] - Lambda[3], Lambda[1]),
+     (Lambda[0] - Lambda[1] + Lambda[2], Lambda[1]),
+     (Lambda[0] - Lambda[2] + Lambda[3], Lambda[0] - Lambda[1] + Lambda[2]),
+     (Lambda[0] - Lambda[2] + Lambda[3], Lambda[1])]
 
     sage: G = LS.digraph(subset = C)
     sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
@@ -50,7 +50,7 @@ REFERENCES:
 .. [L1995] P. Littelmann. *Paths and root operators in representation theory*.
    Ann. of Math. (2) 142 (1995), no. 3, 499-525.
 
-The Littelmann path model also lends itself as a model for to level zero
+The Littelmann path model also lends itself as a model for level zero
 crystals which are bi-infinite. To cut out a slice of these crystals, one
 can use the direction option in subcrystal::
 

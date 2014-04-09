@@ -43,7 +43,6 @@ from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors
 
-
 def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
     r"""
     Single column Kirillov-Reshetikhin crystals.
@@ -135,10 +134,10 @@ def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
     weight = s*La[r]
     return CrystalOfProjectedLevelZeroLSPaths(weight)
 
-
-def KirillovReshetikhinCrystal(cartan_type, r, s):
+def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
     r"""
-    Return the Kirillov-Reshetikhin crystal `B^{r,s}` of the given type.
+    Return the Kirillov-Reshetikhin crystal `B^{r,s}` of the given type
+    in the given model.
 
     For more information about general crystals see
     :mod:`sage.combinat.crystals.crystals`.
@@ -157,17 +156,34 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     Other Kirillov-Reshetikhin crystals are constructed using similarity methods.
     See Section 4 of [FOS09]_.
 
-    For an implementation of Kirillov-Reshetikhin crystals for `s = 1` from
-    crystals of LS paths, see
-    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths`.
+    There are a variety of models for Kirillov-Reshetikhin crystals. There is
+    one using the classical crystal with :func:`Kashiwara-Nakashima tableaux
+    <sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux>`.
+    There is one using :class:`rigged configurations <RiggedConfiguraitons>`.
+    Another tableaux model coming from the bijection called
+    :class:`Kirillov-Reshetikhin tableaux
+    <sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux>`
+    Lastly there is a model of Kirillov-Reshetikhin crystals for `s = 1` from
+    crystals of :func:`LS paths
+    <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths>`.
 
     INPUT:
 
-    - ``cartan_type`` -- Affine type and rank
+    - ``cartan_type`` -- an affine Cartan type
 
-    - ``r`` -- Label of finite Dynkin diagram
+    - ``r`` -- a label of finite Dynkin diagram
 
-    - ``s`` -- Positive integer
+    - ``s`` -- a positive integer
+
+    - ``model`` -- (default: ``'KN'``) can be one of the following:
+
+      * ``'KN'`` or ``'KashiwaraNakashimaTableaux'`` - use the
+        Kashiwara-Nakashima tableaux model
+      * ``'KR'`` or ``'KirillovReshetkihinTableaux'`` - use the
+        Kirillov-Reshetkihin tableaux model
+      * ``'RC'`` or ``'RiggedConfiguration'`` - use the rigged
+        configuration model
+      * ``'LSPaths'`` - use the LS path model
 
     EXAMPLES::
 
@@ -284,6 +300,26 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
         sage: [b for b in K if b.Epsilon() == 2*Lambda[0]] # long time
         [[[1]]]
 
+    We check the various models agree::
+
+        sage: KN = crystals.KirillovReshetikhin(['D',4,1], 2, 1)
+        sage: KR = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='KR')
+        sage: RC = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='RC')
+        sage: LS = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='LSPaths')
+        sage: G = KN.digraph()
+        sage: G.is_isomorphic(KR.digraph(), edge_labels=True)
+        True
+        sage: G.is_isomorphic(RC.digraph(), edge_labels=True)
+        True
+        sage: G.is_isomorphic(LS.digraph(), edge_labels=True)
+        True
+
+        sage: KN = crystals.KirillovReshetikhin(['D',4,1], 2, 1)
+        sage: KN2 = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='KN')
+        sage: KN3 = crystals.KirillovReshetikhin(['D',4,1], 2, 1, model='KashiwaraNakashimaTableaux')
+        sage: KN is KN2 and KN is KN3
+        True
+
     REFERENCES:
 
     .. [Shimozono02] M. Shimozono
@@ -310,6 +346,39 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
        "Affine crystals, one-dimensional sums and parabolic Lusztig
        `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
        819-865. :doi:`10.1007/s00209-011-0892-9`, :arxiv:`1002.3715`.
+    """
+    if model in ['KN', 'KashiwaraNakashimaTableaux']:
+        return KashiwaraNakashimaTableaux(cartan_type, r, s)
+    if model in ['KR', 'KirillovReshetikhinTableaux']:
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+        return KirillovReshetikhinTableaux(cartan_type, r, s)
+    if model in ['RC', 'RiggedConfigurations']:
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        return RiggedConfigurations(cartan_type, [[r,s]])
+    if model == 'LSPaths':
+        from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystalFromLSPaths
+        return KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s)
+
+    raise ValueError("invalid model")
+
+def KashiwaraNakashimaTableaux(cartan_type, r, s):
+    """
+    Return the Kashiwara-Nakashima model for the Kirillov-Reshetikhin crystal
+    `B^{r,s}` in the given type.
+
+    The Kashiwara-Nakashima (KN) model constructs the KR crystal from the
+    KN tableaux model for the corresponding classical crystals. This model
+    is named for the underlying KN tableaux.
+
+    For more information on Kirillov-Reshetikhin crystals, see
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`.
+
+    EXAMPLES::
+
+        sage: K = crystals.KirillovReshetikhin(['A',3,1], 2, 1)
+        sage: K2 = crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux(['A',3,1], 2, 1)
+        sage: K is K2
+        True
     """
     ct = CartanType(cartan_type)
     assert ct.is_affine()
@@ -357,7 +426,6 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
                 raise ValueError("wrong range of parameters")
         else:
             raise NotImplementedError
-
 
 class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
     r"""
@@ -642,10 +710,10 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
 
         EXAMPLES::
 
-            sage: KRC = KirillovReshetikhinCrystal(['A',2,1], 2,2)
+            sage: KRC = crystals.KirillovReshetikhin(['A',2,1], 2,2)
             sage: KRC.q_dimension()
             q^4 + q^3 + 2*q^2 + q + 1
-            sage: KRC = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 2,1)
             sage: KRC.q_dimension()
             q^10 + q^9 + 3*q^8 + 3*q^7 + 4*q^6 + 4*q^5 + 4*q^4 + 3*q^3 + 3*q^2 + q + 2
         """
@@ -1219,7 +1287,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         dic_weight = {}
         for (weight, i) in dic.values():
             dic_weight[weight] = dic_weight.get(weight, []) + [i]
-        map_index = lambda (i, list) : max(list)+min(list)-i
+        map_index = lambda i_list: max(i_list[1]) + min(i_list[1]) - i_list[0]
         map_element = lambda x : tuple([self.automorphism_on_affine_weight(dic[x][0]), map_index((dic[x][1],dic_weight[dic[x][0]]))])
         return dict( (x, dic_inv[map_element(x)]) for x in dic.keys() )
 
@@ -1320,7 +1388,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
             sage: K.ambient_crystal()
             Kirillov-Reshetikhin crystal of type ['B', 4, 1]^* with (r,s)=(2,3)
         """
-        return KirillovReshetikhinCrystal(['A',2*self.cartan_type().classical().rank()+1,2], self.r(), self.s())
+        return KashiwaraNakashimaTableaux(['A',2*self.cartan_type().classical().rank()+1,2], self.r(), self.s())
 
     @cached_method
     def ambient_dict_pm_diagrams(self):
@@ -2098,7 +2166,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             sage: K.ambient_crystal()
             Kirillov-Reshetikhin crystal of type ['B', 3, 1]^* with (r,s)=(3,2)
         """
-        return KirillovReshetikhinCrystal(['A', 2*self.cartan_type().classical().rank()-1,2], self.r(), self.s())
+        return KashiwaraNakashimaTableaux(['A', 2*self.cartan_type().classical().rank()-1,2], self.r(), self.s())
 
     @cached_method
     def highest_weight_dict(self):

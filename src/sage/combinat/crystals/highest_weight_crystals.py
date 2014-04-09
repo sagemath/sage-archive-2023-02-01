@@ -130,13 +130,14 @@ def HighestWeightCrystal(dominant_weight, model=None):
         sage: C = CartanType(['C',2,1])
         sage: La = C.root_system().weight_lattice().fundamental_weights()
         sage: T = crystals.HighestWeight(La[1])
-        sage: [p for p in T.subcrystal(max_depth=3)]
-        [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],),
+        sage: sorted(T.subcrystal(max_depth=3), key=str)
+        [(-Lambda[0] + 3*Lambda[1] - Lambda[2] - delta,),
          (-Lambda[0] + Lambda[1] + Lambda[2] - delta,),
-         (Lambda[0] + Lambda[1] - Lambda[2],),
-         (-Lambda[0] + 3*Lambda[1] - Lambda[2] - delta,),
+         (-Lambda[1] + 2*Lambda[2] - delta,),
          (2*Lambda[0] - Lambda[1],),
-         (-Lambda[1] + 2*Lambda[2] - delta,)]
+         (Lambda[0] + Lambda[1] - Lambda[2],),
+         (Lambda[0] - Lambda[1] + Lambda[2],),
+         (Lambda[1],)]
 
     Using the various models::
 
@@ -387,4 +388,3 @@ class FiniteDimensionalHighestWeightCrystal_TypeE7(FiniteDimensionalHighestWeigh
                                5 : TensorProductOfCrystals(B,B,B,generators=[[B([-6,5]),B([-7,6]),B([7])]]),
                                6 : TensorProductOfCrystals(B,B,generators=[[B([-7,6]),B([7])]])}
         FiniteDimensionalHighestWeightCrystal_TypeE.__init__(self, dominant_weight)
-

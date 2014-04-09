@@ -51,7 +51,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.tensor_product import CrystalOfWords
 from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
 from sage.combinat.crystals.kirillov_reshetikhin import horizontal_dominoes_removed, \
-  KirillovReshetikhinCrystal, KirillovReshetikhinGenericCrystalElement, \
+  KashiwaraNakashimaTableaux, KirillovReshetikhinGenericCrystalElement, \
   partitions_in_box, vertical_dominoes_removed
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
@@ -174,7 +174,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         [[1, 1], [2, -1]]
 
     We can go between
-    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`
+    :func:`~sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux`
     and
     :class:`~sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux`
     elements::
@@ -468,16 +468,16 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     @cached_method
     def kirillov_reshetikhin_crystal(self):
         """
-        Return the corresponding
-        :func:`Kirillov-Reshetikhin crystal
-        <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`.
+        Return the corresponding KR crystal in the 
+        :func:`Kashiwara-Nakashima model
+        <sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux>`.
 
         EXAMPLES::
 
             sage: crystals.KirillovReshetikhin(['A', 4, 1], 2, 1, model='KR').kirillov_reshetikhin_crystal()
             Kirillov-Reshetikhin crystal of type ['A', 4, 1] with (r,s)=(2,1)
         """
-        return KirillovReshetikhinCrystal(self._cartan_type, self._r, self._s)
+        return KashiwaraNakashimaTableaux(self._cartan_type, self._r, self._s)
 
     def classical_decomposition(self):
         """
@@ -1045,7 +1045,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
     def to_kirillov_reshetikhin_crystal(self):
         r"""
         Construct a
-        :func:`~sage.combinat.crystals.kirillov_reshetihkin.KirillovReshetikhinCrystal`
+        :func:`~sage.combinat.crystals.kirillov_reshetihkin.KashiwaraNakashimaTableaux`
         element from ``self``.
 
         We construct the Kirillov-Reshetikhin crystal element as follows:

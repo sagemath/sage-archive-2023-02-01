@@ -274,8 +274,7 @@ class Subsets_s(CombinatorialClass):
         lsubset = __builtin__.list(subset)
 
         try:
-            index_list = map(lambda x: lset.index(x), lsubset)
-            index_list.sort()
+            index_list = sorted(map(lambda x: lset.index(x), lsubset))
         except ValueError:
             return None
 
@@ -523,8 +522,7 @@ class Subsets_sk(CombinatorialClass):
         lsubset = __builtin__.list(subset)
 
         try:
-            index_list = map(lambda x: lset.index(x), lsubset)
-            index_list.sort()
+            index_list = sorted(map(lambda x: lset.index(x), lsubset))
         except ValueError:
             return None
 

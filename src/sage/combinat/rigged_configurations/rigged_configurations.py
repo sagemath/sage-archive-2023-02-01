@@ -94,6 +94,25 @@ RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     notation = dict(alt_name='convention')
 )
 
+# Used in the KR crystals catalog so there is a common iterface
+def KirillovReshetikhinCrystal(cartan_type, r, s):
+    """
+    Return the KR crystal `B^{r,s}` using
+    :class:`rigged configurations <RiggedConfigurations>`.
+
+    This is the rigged configurations `RC(B^{r,s})` or with the
+    `L_i^{(a)} = \delta_{ar} \delta_{is}`.
+
+    EXAMPLES::
+
+        sage: K1 = crystals.kirillov_reshetikhin.RiggedConfigurations(['A',6,2], 2, 1)
+        sage: K2 = crystals.kirillov_reshetikhin.LSPaths(['A',6,2], 2, 1)
+        sage: K1.digraph().is_isomorphic(K2.digraph(), edge_labels=True)
+        True
+    """
+    from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+    return RiggedConfigurations(cartan_type, [[r,s]])
+
 # Note on implementation, this class is used for simply-laced types only
 class RiggedConfigurations(Parent, UniqueRepresentation):
     r"""

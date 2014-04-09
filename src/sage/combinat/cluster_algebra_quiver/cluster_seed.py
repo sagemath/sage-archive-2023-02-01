@@ -92,7 +92,7 @@ class ClusterSeed(SageObject):
         from quiver import ClusterQuiver
 
         # constructs a cluster seed from a cluster seed
-        if type(data) is ClusterSeed:
+        if isinstance(data, ClusterSeed):
             if frozen:
                 print "The input \'frozen\' is ignored"
             self._M = copy( data._M )
@@ -106,7 +106,7 @@ class ClusterSeed(SageObject):
             self._is_principal = data._is_principal
 
         # constructs a cluster seed from a quiver
-        elif type(data) is ClusterQuiver:
+        elif isinstance(data, ClusterQuiver):
             if frozen:
                 print "The input \'frozen\' is ignored"
 
@@ -144,7 +144,7 @@ class ClusterSeed(SageObject):
             sage: S.__eq__( T )
             True
         """
-        return type( other ) is ClusterSeed and self._M == other._M and self._cluster == other._cluster
+        return isinstance(other, ClusterSeed) and self._M == other._M and self._cluster == other._cluster
 
     def _repr_(self):
         r"""
@@ -809,11 +809,11 @@ class ClusterSeed(SageObject):
             seq = [sequence]
         else:
             seq = sequence
-        if type( seq ) is tuple:
+        if isinstance(seq, tuple):
             seq = list( seq )
-        if not type( seq ) is list:
+        if not isinstance(seq, list):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
-        if not type(inplace) is bool:
+        if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
         if any( v not in V for v in seq ):
             v = filter( lambda v: v not in V, seq )[0]
@@ -1854,7 +1854,7 @@ class ClusterSeed(SageObject):
             False
         """
         mt = self.mutation_type()
-        if type(mt) is str:
+        if isinstance(mt, str):
             return False
         else:
             return mt.is_finite()
@@ -2261,7 +2261,7 @@ class ClusterVariable(FractionFieldElement):
         """
         if self._variable_type == 'frozen variable':
             raise ValueError('The variable is frozen.')
-        if type(self._mutation_type) is str:
+        if isinstance(self._mutation_type, str):
             raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())
         else:
             if self._mutation_type is None:

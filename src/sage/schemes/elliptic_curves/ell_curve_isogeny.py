@@ -121,7 +121,7 @@ def isogeny_determine_algorithm(E, kernel, codomain, degree, model):
 
     """
 
-    kernel_is_list = (type(kernel) == list)
+    kernel_is_list = (isinstance(kernel, list))
 
     if not kernel_is_list and kernel in E :
         kernel = [kernel]
@@ -350,7 +350,7 @@ def compute_codomain_kohel(E, kernel, degree):
         kernel_list = psi.list()
         poly_ring = psi.parent()
         x = psi.variables()[0]
-    elif (list == type(kernel)) and (kernel[0] in base_field):
+    elif (isinstance(kernel, list)) and (kernel[0] in base_field):
         kernel_list = kernel
         poly_ring = base_field.polynomial_ring()
         psi = poly_ring(kernel_list)
@@ -875,7 +875,7 @@ class EllipticCurveIsogeny(Morphism):
         if not is_EllipticCurve(E):
             raise ValueError, "E parameter must be an EllipticCurve."
 
-        if type(kernel) != type([1,1]) and kernel in E :
+        if not isinstance(kernel, type([1,1])) and kernel in E :
             # a single point was given, we put it in a list
             # the first condition assures that [1,1] is treated as x+1
             kernel = [kernel]
@@ -2781,7 +2781,7 @@ class EllipticCurveIsogeny(Morphism):
         WIdom = preWI.domain().codomain()
         WIcod = preWI.codomain().codomain()
 
-        if (type(preWI) != WeierstrassIsomorphism):
+        if (not isinstance(preWI, WeierstrassIsomorphism)):
             raise ValueError, "Invalid parameter: isomorphism must be of type Weierstrass isomorphism."
 
         if (self.__E1 != WIcod):
@@ -2845,7 +2845,7 @@ class EllipticCurveIsogeny(Morphism):
         WIdom = postWI.domain().codomain()
         WIcod = postWI.codomain().codomain()
 
-        if (type(postWI) != WeierstrassIsomorphism):
+        if (not isinstance(postWI, WeierstrassIsomorphism)):
             raise ValueError, "Invalid parameter: isomorphism must be of type Weierstrass isomorphism."
 
         if (self.__E2 != WIdom):

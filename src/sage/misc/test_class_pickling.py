@@ -53,7 +53,7 @@ class Metaclass(type):
     """
     def __eq__(self, other):
         print "calling __eq__ defined in Metaclass"
-        return (type(self) == type(other)) and (self.reduce_args == other.reduce_args)
+        return (isinstance(self, type(other))) and (self.reduce_args == other.reduce_args)
 
     def __reduce__(self):
         """

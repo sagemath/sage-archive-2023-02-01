@@ -261,7 +261,7 @@ class TestSuite(object):
         In conjonction with ``%pdb on``, this allows for the debbuger
         to jump directly to the first failure location.
         """
-        if type(skip) == str:
+        if isinstance(skip, str):
             skip = [skip]
         else:
             skip = tuple(skip)

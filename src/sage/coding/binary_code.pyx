@@ -123,7 +123,7 @@ def weight_dist(M):
     bitset_zero(word)
     i = 0
     j = 0
-    while 1:
+    while True:
         LL[bitset_hamming_weight(word)] += 1
         i ^= 1
         k = 0
@@ -298,7 +298,7 @@ cdef WordPermutation *create_word_perm(object list_perm):
         image = <codeword> 0
         parity = 0
         comb = 0
-        while 1:
+        while True:
             images_i[comb] = image
             parity ^= 1
             j = 0
@@ -346,7 +346,7 @@ cdef WordPermutation *create_array_word_perm(int *array, int start, int degree):
         image = <codeword> 0
         parity = 0
         comb = 0
-        while 1:
+        while True:
             images_i[comb] = image
             parity ^= 1
             j = 0
@@ -393,7 +393,7 @@ cdef WordPermutation *create_id_word_perm(int degree):
         image = <codeword> 0
         parity = 0
         comb = 0
-        while 1:
+        while True:
             images_i[comb] = image
             parity ^= 1
             j = 0
@@ -443,7 +443,7 @@ cdef WordPermutation *create_comp_word_perm(WordPermutation *g, WordPermutation 
         image = <codeword> 0
         parity = 0
         comb = 0
-        while 1:
+        while True:
             images_i[comb] = image
             parity ^= 1
             j = 0
@@ -655,7 +655,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n):
     word = 0
     parity = 0
     combo = 0
-    while 1:
+    while True:
         B.words[combo] = word
         parity ^= 1
         j = 0
@@ -761,7 +761,7 @@ cdef class BinaryCode:
             word = <codeword> 0
             parity = 0
             combination = 0
-            while 1:
+            while True:
                 self_words[combination] = word
                 parity ^= 1
                 j = 0
@@ -1137,7 +1137,7 @@ cdef class BinaryCode:
         word = 0
         parity = 0
         combination = 0
-        while 1:
+        while True:
             self.words[combination] = word
             parity ^= 1
             j = 0
@@ -2095,7 +2095,7 @@ cdef class PartitionStack:
         cdef int min_is_col = 1, radix = self.radix
         cdef int *self_col_lvls = self.col_lvls, *self_wd_lvls = self.wd_lvls
         cdef int *self_col_ents = self.col_ents, *self_wd_ents = self.wd_ents
-        while 1:
+        while True:
             if self_col_lvls[i] <= k:
                 if i != j and min > i - j + 1:
                     min = i - j + 1
@@ -2104,7 +2104,7 @@ cdef class PartitionStack:
             if self_col_lvls[i] == -1: break
             i += 1
 #        i = 0; j = 0
-#        while 1:
+#        while True:
 #            if self_wd_lvls[i] <= k:
 #                if i != j and min > i - j + 1:
 #                    min = i - j + 1
@@ -2123,7 +2123,7 @@ cdef class PartitionStack:
         for i from 0 <= i < ell:
             W[start+i] = 0
         if min_is_col:
-            while 1:
+            while True:
                 if self_col_lvls[j] <= k: break
                 j += 1
             # j now points to the last element of the cell
@@ -2133,7 +2133,7 @@ cdef class PartitionStack:
                 i += 1
             return self_col_ents[location]
         else:
-            while 1:
+            while True:
                 if self_wd_lvls[j] <= k: break
                 j += 1
             # j now points to the last element of the cell
@@ -2395,7 +2395,7 @@ cdef class PartitionStack:
     cdef int col_degree(self, BinaryCode CG, int col, int wd_ptr, int k):
         cdef int i = 0
         cdef int *self_wd_lvls = self.wd_lvls, *self_wd_ents = self.wd_ents
-        while 1:
+        while True:
             if CG.is_one(self_wd_ents[wd_ptr], col): i += 1
             if self_wd_lvls[wd_ptr] > k: wd_ptr += 1
             else: break
@@ -2662,7 +2662,7 @@ cdef class PartitionStack:
 #                    print self
                     i = j; s = 0
                     invariant += 8
-                    while 1:
+                    while True:
 #                        print 'col_i', self_col_ents[i]
 #                        print 'alpha[m]^flag', alpha[m]^flag
                         self_col_degs[i-j] = self.col_degree(CG, self_col_ents[i], alpha[m]^flag, k)
@@ -2682,7 +2682,7 @@ cdef class PartitionStack:
                                 break
                             q += 1
                         r = j
-                        while 1:
+                        while True:
                             if r == j or self.col_lvls[r-1] == k:
                                 if r != t:
                                     alpha[alpha_length] = r
@@ -2699,7 +2699,7 @@ cdef class PartitionStack:
 #                    print self
                     i = j; s = 0
                     invariant += 64
-                    while 1:
+                    while True:
 #                        print 'i', i
                         self_wd_degs[i-j] = self.wd_degree(CG, self_wd_ents[i], alpha[m], k, ham_wts)
 #                        print 'deg', self_wd_degs[i-j]
@@ -2719,7 +2719,7 @@ cdef class PartitionStack:
                             q += 1
                         j ^= flag
                         r = j
-                        while 1:
+                        while True:
                             if r == j or self.wd_lvls[r-1] == k:
                                 if r != t_w:
                                     alpha[alpha_length] = r^flag
@@ -4010,8 +4010,8 @@ cdef class BinaryCodeClassifier:
         radix_gate = (((<codeword>1) << log_2_radix) - 1)
 #        print 'gate:', ''.join(reversed(Integer(gate).binary().zfill(n)))
 #        print 'gate:', ''.join(reversed(Integer(nonzero_gate).binary().zfill(n)))
-        while 1:
-#            print '    while 1'
+        while True:
+#            print '    while True'
 #            print '    ' + ''.join(reversed(Integer(word).binary().zfill(n)))
             if nonzero_gate & word == nonzero_gate and \
               (ham_wts[word & 65535] + ham_wts[(word >> 16) & 65535])%d == 0:

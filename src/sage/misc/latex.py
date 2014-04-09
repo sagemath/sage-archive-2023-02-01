@@ -914,7 +914,7 @@ class LatexCall:
             return LatexExpr(x._latex_())
         try:
             f = latex_table[type(x)]
-            if type(x) == tuple:
+            if isinstance(x, tuple):
                 return LatexExpr(f(x, combine_all=combine_all))
             return LatexExpr(f(x))
         except KeyError:

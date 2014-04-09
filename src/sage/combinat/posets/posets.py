@@ -1116,22 +1116,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
             sage: print P._latex_() #optional - dot2tex graphviz
-            \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
-            \definecolor{cv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv1}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv1}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv1}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv0v1}{rgb}{0.0,0.0,0.0}
-            %
-            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$1$},x=0.0cm,y=0.0cm]{v0}
-            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$2$},x=5.0cm,y=5.0cm]{v1}
-            %
-            \Edge[lw=0.1cm,style={post, bend right,color=cv0v1,},](v0)(v1)
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            %%
+            \node (node_1) at (6bp,57bp) [draw,draw=none] {$2$};
+              \node (node_0) at (6bp,7bp) [draw,draw=none] {$1$};
+              \draw [black,<-] (node_1) ..controls (6bp,31.269bp) and (6bp,20.287bp)  .. (node_0);
             %
             \end{tikzpicture}
         """

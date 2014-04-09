@@ -337,7 +337,7 @@ def _dig6_to_digraph( dig6 ):
     """
     dig6, edges = dig6
     dg = DiGraph( dig6 )
-    if not type(edges) == dict:
+    if not isinstance(edges, dict):
         edges = dict( edges )
     for edge in dg._backend.iterator_in_edges(dg,False):
         if edge in edges:
@@ -486,7 +486,7 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
             return False
 
         # checks if all edge labels are 'None', positive integers or tuples of positive integers
-        if not all( i == None or ( i in ZZ and i > 0 ) or ( type(i) == tuple and len(i) == 2 and i[0] in ZZ and i[1] in ZZ ) for i in dg.edge_labels() ):
+        if not all( i == None or ( i in ZZ and i > 0 ) or ( isinstance(i, tuple) and len(i) == 2 and i[0] in ZZ and i[1] in ZZ ) for i in dg.edge_labels() ):
             print "The given digraph has edge labels which are not integral or integral 2-tuples."
             return False
 

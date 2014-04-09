@@ -98,8 +98,7 @@ def random_sublist_of_size(k, n):
         z = randrange(k)
         if not z in w:
             w.add(z)
-    w = list(w)
-    w.sort()
+    w = sorted(w)
     return w
 
 def solve_system_with_difficult_last_row(B, A):

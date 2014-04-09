@@ -690,8 +690,8 @@ class Tachyon(SageObject):
         """
         self._objects.append(FractalLandscape(res, scale, center, texture))
 
-    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,
-                  max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
+    def plot(self, f, xmin_xmax, ymin_ymax, texture, grad_f=None,
+             max_bend=.7, max_depth=5, initial_depth=3, num_colors=None):
         r"""
         INPUT:
 
@@ -762,6 +762,8 @@ class Tachyon(SageObject):
             ...
             ValueError: Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.
         """
+        (xmin, xmax) = xmin_xmax 
+        (ymin, ymax) = ymin_ymax
         factory = TachyonTriangleFactory(self,texture)
         plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
                              min_depth=initial_depth, max_depth=max_depth, max_bend=max_bend, num_colors = num_colors)

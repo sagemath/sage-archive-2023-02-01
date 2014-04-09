@@ -313,13 +313,20 @@ def configure(arch=None, isa_ext=None):
         if conf['Darwin?']:
             atlas_osnam = 'OSX'
         elif conf['CYGWIN?']:
-            atlas_osnam = 'WinNT'
+            if conf['64bit?']:
+                atlas_osnam = 'Win64'
+            else:
+                atlas_osnam = 'WinNT'
         else:
             atlas_osnam = conf['system']
         atlas_system = ATLAS_OSTYPE.index(atlas_osnam)
         cmd += ' -O '+str(atlas_system)
     except ValueError:
         pass
+
+    # use hard floats on ARM
+    if conf['ARM?']:
+        cmd += '-D c -DATL_ARM_HARDFP=1'
 
     # set machine architecture
     if arch is not None:

@@ -912,9 +912,9 @@ class KBoundedQuotientBasis(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
+    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.__func__
+    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.__func__
+    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.__func__
     _element_constructor = _element_constructor_
 
 class kMonomial(KBoundedQuotientBasis):

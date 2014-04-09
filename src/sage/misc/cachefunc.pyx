@@ -577,8 +577,8 @@ cdef class CachedFunction(object):
         self.f = f
         if name is not None:
             self.__name__ = name
-        elif hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        elif hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         else:
             self.__name__ = f.__name__
         try:
@@ -649,13 +649,12 @@ cdef class CachedFunction(object):
                available), or a toy implementation.
 
         """
+        from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
-        if hasattr(f, "func_doc"):
+        doc = f.__doc__ or ''
+        if _extract_embedded_position(doc.splitlines()[0]) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
-            except IOError:
-                sourcelines = None
-            if sourcelines is not None:
                 from sage.env import SAGE_SRC, SAGE_LIB
                 filename = sage_getfile(f)
                 # The following is a heuristics to get
@@ -666,11 +665,9 @@ cdef class CachedFunction(object):
                 elif filename.startswith(SAGE_LIB):
                     filename = filename[len(SAGE_LIB):]
                 file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
-                doc = file_info+(f.func_doc or '')
-            else:
-                doc = f.func_doc
-        else:
-            doc = f.__doc__
+                doc = file_info+doc
+            except IOError:
+                pass
         return doc
 
     def _sage_src_(self):

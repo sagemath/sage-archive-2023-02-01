@@ -872,8 +872,7 @@ class TableauTuple(CombinatorialObject,Element):
             sage: TableauTuple([[[1,2],[6,7]],[[4,8], [6, 9]],[]]).is_standard()
             False
         """
-        entries=self.entries()
-        entries.sort()
+        entries=sorted(self.entries())
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
 
     def cells_containing(self, m):
@@ -1357,8 +1356,7 @@ class StandardTableauTuple(TableauTuple):
             raise ValueError( 'tableaux must be column strict' )
 
         # Finally, the more costly check that the entries are {1,2...n}
-        entries=sum((s.entries() for s in t), [])
-        entries.sort()
+        entries=sorted(sum((s.entries() for s in t), []))
         if not entries==range(1,len(entries)+1):
             raise ValueError( 'entries must be in bijection with {1,2,...,n}' )
 

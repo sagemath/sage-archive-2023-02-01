@@ -4704,8 +4704,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if self.is_empty():
            return self
-        conjugates = self._conjugates_list()
-        conjugates.sort()
+        conjugates = sorted(self._conjugates_list())
         return self.parent()([x[x.length()-1] for x in conjugates])
 
     def iterated_left_palindromic_closure(self, f=None):

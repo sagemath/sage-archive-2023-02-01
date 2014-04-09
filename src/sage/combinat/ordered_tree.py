@@ -236,7 +236,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             sage: all(OrderedTree(repr(tr)) == tr for i in range(6) for tr in OrderedTrees(i))
             True
         """
-        if type(children) is str:
+        if isinstance(children, str):
             children = eval(children)
         if (children.__class__ is self.__class__ and
             children.parent() == parent):

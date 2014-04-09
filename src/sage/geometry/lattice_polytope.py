@@ -2733,8 +2733,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         skeleton = set([])
         for face in self.faces(dim=k):
             skeleton.update(face.points())
-        skeleton = list(skeleton)
-        skeleton.sort()
+        skeleton = sorted(skeleton)
         return skeleton
 
     def skeleton_show(self, normal=None):

@@ -524,15 +524,18 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             .. warning::
 
-                Returns an error unless the Cartan type is finite.
+                Raise an error if the Cartan type is not finite.
 
             EXAMPLES::
 
-                sage: RootSystem(['C',2]).root_lattice().positive_roots_by_height()
+                sage: L = RootSystem(['C',2]).root_lattice()
+                sage: L.positive_roots_by_height()
                 [alpha[1], alpha[2], alpha[1] + alpha[2], 2*alpha[1] + alpha[2]]
-                sage: RootSystem(['C',2]).root_lattice().positive_roots_by_height(increasing = False)
+                sage: L.positive_roots_by_height(increasing = False)
                 [2*alpha[1] + alpha[2], alpha[1] + alpha[2], alpha[1], alpha[2]]
-                sage: RootSystem(['A',2,1]).root_lattice().positive_roots_by_height()
+
+                sage: L = RootSystem(['A',2,1]).root_lattice()
+                sage: L.positive_roots_by_height()
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: Only implemented for finite Cartan type
@@ -552,7 +555,7 @@ class RootLatticeRealizations(Category_over_base_ring):
         @cached_method
         def positive_roots_parabolic(self, index_set = None):
             r"""
-            Returns the set of positive roots for the parabolic subsystem with Dynkin node set ``index_set``.
+            Return the set of positive roots for the parabolic subsystem with Dynkin node set ``index_set``.
 
             INPUT:
 
@@ -561,20 +564,16 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: lattice =  RootSystem(['A',3]).root_lattice()
-                sage: PhiP = lattice.positive_roots_parabolic((1,3))
-                sage: [x for x in PhiP]
+                sage: sorted(lattice.positive_roots_parabolic((1,3)), key=str)
                 [alpha[1], alpha[3]]
-                sage: PhiP = lattice.positive_roots_parabolic((2,3))
-                sage: [x for x in PhiP]
-                [alpha[2], alpha[3], alpha[2] + alpha[3]]
-                sage: PhiP = lattice.positive_roots_parabolic()
-                sage: [x for x in PhiP]
-                [alpha[1], alpha[2], alpha[3], alpha[1] + alpha[2], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]
+                sage: sorted(lattice.positive_roots_parabolic((2,3)), key=str)
+                [alpha[2], alpha[2] + alpha[3], alpha[3]]
+                sage: sorted(lattice.positive_roots_parabolic(), key=str)
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
 
             .. warning::
 
                 This returns an error if the Cartan type is not finite.
-
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError, "Only implemented for finite Cartan type"
@@ -599,9 +598,9 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: lattice =  RootSystem(['A',3]).root_lattice()
-                sage: lattice.positive_roots_nonparabolic((1,3))
-                [alpha[2], alpha[1] + alpha[2], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]
-                sage: lattice.positive_roots_nonparabolic((2,3))
+                sage: sorted(lattice.positive_roots_nonparabolic((1,3)), key=str)
+                [alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3]]
+                sage: sorted(lattice.positive_roots_nonparabolic((2,3)), key=str)
                 [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]]
                 sage: lattice.positive_roots_nonparabolic()
                 []
@@ -675,18 +674,20 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: Phi = RootSystem(['A',2]).root_poset(); Phi
                 Finite poset containing 3 elements
-                sage: Phi.cover_relations()
+                sage: sorted(Phi.cover_relations(), key=str)
                 [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
 
                 sage: Phi = RootSystem(['A',3]).root_poset(restricted=True); Phi
                 Finite poset containing 3 elements
-                sage: Phi.cover_relations()
+                sage: sorted(Phi.cover_relations(), key=str)
                 [[alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]], [alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]]
 
                 sage: Phi = RootSystem(['B',2]).root_poset(); Phi
                 Finite poset containing 4 elements
-                sage: Phi.cover_relations()
-                [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+                sage: sorted(Phi.cover_relations(), key=str)
+                [[alpha[1] + alpha[2], alpha[1] + 2*alpha[2]],
+                 [alpha[1], alpha[1] + alpha[2]],
+                 [alpha[2], alpha[1] + alpha[2]]]
             """
             from sage.combinat.posets.posets import Poset
             rels = []
@@ -1944,17 +1945,17 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: list(RootSystem(["A",2]).weight_lattice().plot_fundamental_weights())
+                sage: sorted(RootSystem(["A",2]).weight_lattice().plot_fundamental_weights(), key=str)
                 [Arrow from (0.0,0.0) to (0.0,1.0),
-                 Text '$\Lambda_{2}$' at the point (0.0,1.05),
                  Arrow from (0.0,0.0) to (1.0,0.0),
-                 Text '$\Lambda_{1}$' at the point (1.05,0.0)]
+                 Text '$\Lambda_{1}$' at the point (1.05,0.0),
+                 Text '$\Lambda_{2}$' at the point (0.0,1.05)]
 
-                 sage: list(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights())
-                 [Arrow from (0.0,0.0) to (-0.5,0.86...),
-                  Text '$\Lambda_{2}$' at the point (-0.525,0.90...),
-                  Arrow from (0.0,0.0) to (0.5,0.86...),
-                  Text '$\Lambda_{1}$' at the point (0.525,0.90...)]
+                 sage: sorted(RootSystem(["A",2]).ambient_lattice().plot_fundamental_weights(), key=str)
+                 [Arrow from (0.0,0.0) to (-0.5,0.866024518389),
+                  Arrow from (0.0,0.0) to (0.5,0.866024518389),
+                  Text '$\Lambda_{1}$' at the point (0.525,0.909325744308),
+                  Text '$\Lambda_{2}$' at the point (-0.525,0.909325744308)]
             """
             plot_options = self.plot_parse_options(**options)
             # We build the family of fundamental weights in this space,
@@ -3014,7 +3015,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = RootSystem(["A",3]).root_lattice()
-                sage: for alpha in L.positive_roots():
+                sage: positive_roots = L.positive_roots()
+                sage: for alpha in positive_roots:
                 ...       print alpha, alpha.to_simple_root()
                 alpha[1] 1
                 alpha[2] 2
@@ -3022,7 +3024,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 alpha[1] + alpha[2] 2
                 alpha[2] + alpha[3] 3
                 alpha[1] + alpha[2] + alpha[3] 3
-                sage: for alpha in L.positive_roots():
+                sage: for alpha in positive_roots:
                 ...        print alpha, alpha.to_simple_root(reduced_word=True)
                 alpha[1] (1, ())
                 alpha[2] (2, ())

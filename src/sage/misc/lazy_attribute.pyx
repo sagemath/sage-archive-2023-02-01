@@ -592,12 +592,12 @@ class lazy_attribute(_lazy_attribute):
             '__main__'
         """
         self.f = f
-        if hasattr(f, "func_doc"):
-            self.__doc__ = f.func_doc
+        if hasattr(f, "__doc__"):
+            self.__doc__ = f.__doc__
         elif hasattr(f, "__doc__"): # Needed to handle Cython methods
             self.__doc__ = f.__doc__
-        if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        if hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         elif hasattr(f, "__name__"): # Needed to handle Cython methods
             self.__name__ = f.__name__
         if hasattr(f, "__module__"):

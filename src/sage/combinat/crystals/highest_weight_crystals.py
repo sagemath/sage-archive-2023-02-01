@@ -84,10 +84,14 @@ def HighestWeightCrystal(dominant_weight):
         sage: C = CartanType(['C',2,1])
         sage: La = C.root_system().weight_lattice().fundamental_weights()
         sage: T = HighestWeightCrystal(La[1])
-        sage: [p for p in T.subcrystal(max_depth=3)]
-        [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + Lambda[1] + Lambda[2] - delta,),
-        (Lambda[0] + Lambda[1] - Lambda[2],), (-Lambda[0] + 3*Lambda[1] - Lambda[2] - delta,), (2*Lambda[0] - Lambda[1],),
-        (-Lambda[1] + 2*Lambda[2] - delta,)]
+        sage: sorted(T.subcrystal(max_depth=3), key=str)
+        [(-Lambda[0] + 3*Lambda[1] - Lambda[2] - delta,),
+         (-Lambda[0] + Lambda[1] + Lambda[2] - delta,),
+         (-Lambda[1] + 2*Lambda[2] - delta,),
+         (2*Lambda[0] - Lambda[1],),
+         (Lambda[0] + Lambda[1] - Lambda[2],),
+         (Lambda[0] - Lambda[1] + Lambda[2],),
+         (Lambda[1],)]
     """
     cartan_type = dominant_weight.parent().cartan_type()
     if cartan_type.is_finite() and cartan_type.type() in ['A','B','C','D']:

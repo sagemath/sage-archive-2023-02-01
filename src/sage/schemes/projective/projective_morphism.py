@@ -2428,18 +2428,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             p = next_prime(p + 1)
         B = e ** self.height_difference_bound()
 
-        f=self.change_ring(GF(p))
-        all_points=f.possible_periods(True) #return the list of points and their periods.
-        pos_points=[]
+        f = self.change_ring(GF(p))
+        all_points = f.possible_periods(True) #return the list of points and their periods.
+        pos_points = []
         for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
+            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
-        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+        periodic_points = self.lift_to_rational_periodic(pos_points,B)
         for p,n in periodic_points:
             for k in range(n):
                 p.normalize_coordinates()
                 periodic.add(p)
-                p=self(p)
+                p = self(p)
         return(list(periodic))
 
     def rational_preimages(self, Q):
@@ -2619,10 +2619,10 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         PS=self.domain()
         RPS=PS.base_ring()
-        preperiodic=set()
-        while points!=[]:
-            P=points.pop()
-            preimages=self.rational_preimages(P)
+        preperiodic = set()
+        while points != []:
+            P = points.pop()
+            preimages = self.rational_preimages(P)
             for i in range(len(preimages)):
                 if not preimages[i] in preperiodic:
                     points.append(preimages[i])

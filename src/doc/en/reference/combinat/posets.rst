@@ -10,3 +10,4 @@ Posets
    ../sage/combinat/posets/lattices
    ../sage/combinat/posets/linear_extensions
    ../sage/combinat/posets/poset_examples
+   ../sage/combinat/tamari_lattices

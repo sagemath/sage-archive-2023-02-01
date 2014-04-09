@@ -7,3 +7,4 @@ Partitions and Partition-like Objects
    sage/combinat/partition
    sage/combinat/partition_tuple
    sage/combinat/skew_partition
+   sage/combinat/core

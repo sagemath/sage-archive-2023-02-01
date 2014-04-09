@@ -2572,6 +2572,28 @@ class NumberField_generic(number_field_base.NumberField):
             return cmp(self.coerce_embedding()(self.gen()),
                        other.coerce_embedding()(other.gen()))
 
+    def __hash__(self):
+        r"""
+        Compute the hash value of this number field.
+
+        TESTS:
+
+        Since there is a custom implementation of :meth:`__cmp`, we need a
+        custom ``__hash__``. The number fields ``K`` and ``L`` in the following
+        example used to have different hashes prior to :trac:`11670`::
+
+            sage: R.<x> = QQ[]
+            sage: R.<y> = QQ[]
+            sage: K.<a> = NumberField(x^2+1)
+            sage: L.<a> = NumberField(y^2+1)
+            sage: K == L
+            True
+            sage: hash(K) == hash(L)
+            True
+
+        """
+        return hash(tuple(self.__polynomial))
+
     def _ideal_class_(self, n=0):
         """
         Return the Python class used in defining the zero ideal of the ring

@@ -101,7 +101,7 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
         # The main reason for this is it allows for lazy constructors who
         # compute the representation of an element (e.g., a q-expansion) in
         # terms of the basis only when needed.
-        raise NotImplementedError, "_compute_element *must* be defined in the derived class if element is set to None in constructor"
+        raise NotImplementedError("_compute_element *must* be defined in the derived class if element is set to None in constructor")
 
     def element(self):
         """

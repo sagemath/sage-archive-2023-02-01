@@ -98,7 +98,7 @@ class FastCrystal(UniqueRepresentation, Parent):
         cartan_type = CartanType(cartan_type)
         shape = tuple(shape)
         if len(shape) > 2:
-            raise ValueError, "The shape must have length <=2"
+            raise ValueError("The shape must have length <=2")
         shape = shape + (0,)*(2-len(shape))
         return super(FastCrystal, cls).__classcall__(cls, cartan_type, shape, format)
 

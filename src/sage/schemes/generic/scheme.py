@@ -544,7 +544,7 @@ class Scheme(Parent):
         try:
             return self._coordinate_ring
         except AttributeError:
-            raise ValueError, "This scheme has no associated coordinated ring (defined)."
+            raise ValueError("This scheme has no associated coordinated ring (defined).")
 
     def dimension_absolute(self):
         """
@@ -642,7 +642,7 @@ class Scheme(Parent):
             if is_Scheme(x):
                 return self.Hom(x).natural_map()
             else:
-                raise TypeError, "unable to determine codomain"
+                raise TypeError("unable to determine codomain")
         return self.Hom(Y)(x, check)
 
     def _Hom_(self, Y, category=None, check=True):

@@ -567,7 +567,7 @@ def xydata_from_point_list(points):
             pass
 
     if len(points)>0 and len(list(points[0]))!=2:
-        raise ValueError, "points must have 2 coordinates in a 2d line"
+        raise ValueError("points must have 2 coordinates in a 2d line")
 
 
     xdata = [float(z[0]) for z in points]
@@ -1562,7 +1562,7 @@ def parametric_plot(funcs, *args, **kwargs):
 
     num_vars=len(sage.plot.misc.unify_arguments(funcs)[0])
     if num_vars>num_ranges:
-        raise ValueError, "there are more variables than variable ranges"
+        raise ValueError("there are more variables than variable ranges")
 
     # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
     # Otherwise matplotlib complains.
@@ -1578,7 +1578,7 @@ def parametric_plot(funcs, *args, **kwargs):
     elif (num_funcs == 3 and num_ranges <= 2):
         return sage.plot.plot3d.parametric_plot3d.parametric_plot3d(funcs, *args, **kwargs)
     else:
-        raise ValueError, "the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots"
+        raise ValueError("the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots")
 
 @options(aspect_ratio=1.0)
 def polar_plot(funcs, *args, **kwds):
@@ -2203,9 +2203,9 @@ def var_and_list_of_values(v, plot_points):
     deprecation(7008, "var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
     plot_points = int(plot_points)
     if plot_points < 2:
-        raise ValueError, "plot_points must be greater than 1"
+        raise ValueError("plot_points must be greater than 1")
     if not isinstance(v, (tuple, list)):
-        raise TypeError, "v must be a tuple or list"
+        raise TypeError("v must be a tuple or list")
     if len(v) == 3:
         var = v[0]
         a, b = v[1], v[2]
@@ -2213,7 +2213,7 @@ def var_and_list_of_values(v, plot_points):
         var = None
         a, b = v
     else:
-        raise ValueError, "parametric value range must be a list or tuple of length 2 or 3."
+        raise ValueError("parametric value range must be a list or tuple of length 2 or 3.")
 
     a = float(a)
     b = float(b)

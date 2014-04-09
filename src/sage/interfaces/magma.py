@@ -408,7 +408,7 @@ class Magma(Expect):
             ''
         """
         if not isinstance(s, str):
-            raise RuntimeError, "Error evaluating object in %s:\n%s"%(self,s)
+            raise RuntimeError("Error evaluating object in %s:\n%s"%(self,s))
         # Chop off the annoying "Loading ... " message that Magma
         # always outputs no matter what.
         i = s.find('\n')
@@ -528,7 +528,7 @@ class Magma(Expect):
             x += ';'
         ans = Expect.eval(self, x, **kwds).replace('\\\n','')
         if 'Runtime error' in ans or 'User error' in ans:
-            raise RuntimeError, "Error evaluating Magma code.\nIN:%s\nOUT:%s"%(x, ans)
+            raise RuntimeError("Error evaluating Magma code.\nIN:%s\nOUT:%s"%(x, ans))
         return ans
 
     def _preparse(self, s):
@@ -591,7 +591,7 @@ class Magma(Expect):
         """
         out = self.eval("%s:=%s"%(var, value))
         if out.lower().find("error") != -1:
-            raise TypeError, "Error executing Magma code:\n%s"%out
+            raise TypeError("Error executing Magma code:\n%s"%out)
 
     def get(self, var):
         """
@@ -657,7 +657,7 @@ class Magma(Expect):
         value = self(value)
         out = self.eval("_zsage_<%s> := %s; %s := _zsage_"%(gens, value.name(), var))
         if out.lower().find("error") != -1:
-            raise TypeError, "Error executing Magma code:\n%s"%out
+            raise TypeError("Error executing Magma code:\n%s"%out)
         return self(var)
 
     def __call__(self, x, gens=None):
@@ -969,7 +969,7 @@ class Magma(Expect):
         """
         s = self.eval('AttachSpec("%s")'%filename)
         if s:
-            raise RuntimeError, s.strip()
+            raise RuntimeError(s.strip())
 
     AttachSpec = attach_spec
 
@@ -1167,7 +1167,7 @@ class Magma(Expect):
             ans = tuple([MagmaElement(self, x, is_name = True) for x in v])
 
         if out.lower().find("error") != -1:
-            raise TypeError, "Error executing Magma code:\n%s"%out
+            raise TypeError("Error executing Magma code:\n%s"%out)
         return ans
 
     def bar_call(self, left, name, gens, nvals=1):
@@ -1550,7 +1550,7 @@ class Magma(Expect):
             2
         """
         if level < 0:
-            raise TypeError, "level must be >= 0"
+            raise TypeError("level must be >= 0")
         self.eval('SetVerbose("%s",%d)'%(type,level))
 
     def get_verbose(self, type):
@@ -2079,7 +2079,7 @@ class MagmaElement(ExpectElement):
             IndexError: list index out of range
         """
         if n <= 0:
-            raise IndexError, "index must be positive since Magma indexes are 1-based"
+            raise IndexError("index must be positive since Magma indexes are 1-based")
         return self.gens()[n-1]
 
     def gens(self):

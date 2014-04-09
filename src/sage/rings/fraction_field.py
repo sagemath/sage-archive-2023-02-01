@@ -123,9 +123,9 @@ def FractionField(R, names=None):
         TypeError: R must be an integral domain.
     """
     if not ring.is_Ring(R):
-        raise TypeError, "R must be a ring"
+        raise TypeError("R must be a ring")
     if not R.is_integral_domain():
-        raise TypeError, "R must be an integral domain."
+        raise TypeError("R must be an integral domain.")
     return R.fraction_field()
 
 def is_FractionField(x):

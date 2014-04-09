@@ -221,9 +221,9 @@ class Homspace(HomsetWithBase):
             Category of modular abelian varieties over Rational Field
         """
         if not abelian_variety.is_ModularAbelianVariety(domain):
-            raise TypeError, "domain must be a modular abelian variety"
+            raise TypeError("domain must be a modular abelian variety")
         if not abelian_variety.is_ModularAbelianVariety(codomain):
-            raise TypeError, "codomain must be a modular abelian variety"
+            raise TypeError("codomain must be a modular abelian variety")
         self._gens = None
         HomsetWithBase.__init__(self, domain, codomain, category=cat)
 
@@ -322,16 +322,16 @@ class Homspace(HomsetWithBase):
             elif M.domain() == self.domain() and M.codomain() == self.codomain():
                 M = M.matrix()
             else:
-                raise ValueError, "cannot convert %s into %s" % (M, self)
+                raise ValueError("cannot convert %s into %s" % (M, self))
         elif is_Matrix(M):
             if M.base_ring() != ZZ:
                 M = M.change_ring(ZZ)
             if M.nrows() != 2*self.domain().dimension() or M.ncols() != 2*self.codomain().dimension():
-                raise TypeError, "matrix has wrong dimension"
+                raise TypeError("matrix has wrong dimension")
         elif self.matrix_space().has_coerce_map_from(parent(M)):
             M = self.matrix_space()(M)
         else:
-            raise TypeError, "can only coerce in matrices or morphisms"
+            raise TypeError("can only coerce in matrices or morphisms")
         return self.element_class(self, M)
 
     def _coerce_impl(self, x):
@@ -466,7 +466,7 @@ class Homspace(HomsetWithBase):
         """
         self.calculate_generators()
         if i > self.ngens():
-            raise ValueError, "self only has %s generators"%self.ngens()
+            raise ValueError("self only has %s generators"%self.ngens())
         return self.element_class(self, self._gens[i])
 
     def ngens(self):
@@ -844,9 +844,9 @@ class EndomorphismSubring(Homspace, Ring):
         """
         if check:
             if not isinstance(other, EndomorphismSubring):
-                raise ValueError, "other must be a subring of an endomorphism ring of an abelian variety."
+                raise ValueError("other must be a subring of an endomorphism ring of an abelian variety.")
             if not (self.abelian_variety() == other.abelian_variety()):
-                raise ValueError, "self and other must be endomorphisms of the same abelian variety"
+                raise ValueError("self and other must be endomorphisms of the same abelian variety")
 
         M = self.free_module()
         N = other.free_module()
@@ -948,7 +948,7 @@ class EndomorphismSubring(Homspace, Ring):
 
         A = self.abelian_variety()
         if not A.is_hecke_stable():
-            raise ValueError, "ambient variety is not Hecke stable"
+            raise ValueError("ambient variety is not Hecke stable")
 
         M = A.modular_symbols()
 

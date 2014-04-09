@@ -40,17 +40,17 @@ class AffineSpaceCurve_generic(Curve_generic, AlgebraicScheme_subscheme_affine):
 
     def __init__(self, A, X):
         if not is_AffineSpace(A):
-            raise TypeError, "A (=%s) must be an affine space"%A
+            raise TypeError("A (=%s) must be an affine space"%A)
         Curve_generic.__init__(self, A, X)
         d = self.dimension()
         if d != 1:
-            raise ValueError, "defining equations (=%s) define a scheme of dimension %s != 1"%(X,d)
+            raise ValueError("defining equations (=%s) define a scheme of dimension %s != 1"%(X,d))
 
 class AffineCurve_generic(Curve_generic):
     def __init__(self, A, f):
         P = f.parent()
         if not (is_AffineSpace(A) and A.dimension != 2):
-            raise TypeError, "Argument A (= %s) must be an affine plane."%A
+            raise TypeError("Argument A (= %s) must be an affine plane."%A)
         Curve_generic.__init__(self, A, [f])
 
     def _repr_type(self):
@@ -373,7 +373,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             try:
                 X1 = f.Adj_div()
             except (TypeError, RuntimeError) as s:
-                raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
+                raise RuntimeError(str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above).")
 
             X2 = singular.NSplaces(1, X1)
             R = X2[5][1][1]
@@ -395,8 +395,8 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             S_enum = self.rational_points(algorithm = "enum")
             S_bn = self.rational_points(algorithm = "bn")
             if S_enum != S_bn:
-                raise RuntimeError, "Bug in rational_points -- different algorithms give different answers for curve %s!"%self
+                raise RuntimeError("Bug in rational_points -- different algorithms give different answers for curve %s!"%self)
             return S_enum
 
         else:
-            raise ValueError, "No algorithm '%s' known"%algorithm
+            raise ValueError("No algorithm '%s' known"%algorithm)

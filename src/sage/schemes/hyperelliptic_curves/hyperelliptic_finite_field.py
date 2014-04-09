@@ -182,7 +182,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         f, h = self.hyperelliptic_polynomials()
         if h != 0:
             # need y^2 = f(x)
-            raise NotImplementedError("Only implemented for curves y^2 = f(x)")
+            raise NotImplementedError("only implemented for curves y^2 = f(x)")
 
         sign = 1
         if not f.is_monic():
@@ -1322,7 +1322,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         #checks
 
         if p == 2:
-            raise ValueError, "p must be odd";
+            raise ValueError("p must be odd");
 
 
         g = self.genus()
@@ -1331,17 +1331,17 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         f,h = self.hyperelliptic_polynomials()
         #This implementation only deals with h=0
         if h!=0:
-            raise ValueError, "E must be of the form y^2 = f(x)"
+            raise ValueError("E must be of the form y^2 = f(x)")
 
         d = f.degree()
         #this implementation is for odd degree only, even degree will be handled later.
         if d%2 == 0:
-            raise ValueError, "In this implementation the degree of f must be odd"
+            raise ValueError("In this implementation the degree of f must be odd")
         #Compute resultant to make sure no repeated roots
         df=f.derivative()
         R=df.resultant(f)
         if R == 0:
-            raise ValueError, "curve is not smooth"
+            raise ValueError("curve is not smooth")
 
         #computing F, since the entries of the matrix are c_i where F= \sum c_i x^i
 

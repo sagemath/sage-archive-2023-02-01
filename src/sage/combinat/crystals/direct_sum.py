@@ -112,7 +112,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         self._keepkey = keepkey
         self.crystals = crystals
         if len(crystals) == 0:
-            raise ValueError, "The direct sum is empty"
+            raise ValueError("The direct sum is empty")
         else:
             assert(crystal.cartan_type() == crystals[0].cartan_type() for crystal in crystals)
             self._cartan_type = crystals[0].cartan_type()

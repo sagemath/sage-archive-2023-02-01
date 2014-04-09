@@ -1118,7 +1118,7 @@ class EllipticCurveCanonicalHeight:
             0.777
         """
         K = self.K
-        B = exp(K.degree() * n**2 * mu - RR(self.DE(n))) / self.ME() ** 6
+        B = exp(K.degree() * n**2 * mu - RDF(self.DE(n))) / self.ME() ** 6
         for v in K.places():
             if v(K.gen()) in RR:
                 B *= self.alpha(v)
@@ -1712,7 +1712,7 @@ class EllipticCurveCanonicalHeight:
         # Note that we normalise w1, w2 differently from [TT]_!
         w2, w1 = self.E.period_lattice(v).normalised_basis()
         tau = w2/w1
-        bounds = [RR((B.sqrt() + abs(b2)/12) * abs(w1) ** 2) for B in Bk]
+        bounds = [RDF((B.sqrt() + abs(b2)/12) * abs(w1) ** 2) for B in Bk]
         vals = self.wp_on_grid(v, 30, half=use_half)
         wp = self.wp_intervals(v, abs_only=True)
 

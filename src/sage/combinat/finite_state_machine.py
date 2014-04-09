@@ -4992,7 +4992,7 @@ class Transducer(FiniteStateMachine):
 
         For example, if the transducer transforms the standard
         binary expansion into the non-adjacent form and the automaton
-        recognizes the binary expansion without adjacent `1`'s, then the
+        recognizes the binary expansion without adjacent ones, then the
         cartesian product of these two is a transducer which does not change
         the input (except for changing ``a`` to ``(a, None)`` and ignoring a
         leading `0`).
@@ -5019,7 +5019,7 @@ class Transducer(FiniteStateMachine):
             [(1, None), (0, None), (0, None), (1, None), (0, None), (1, None)]
 
         This is obvious because if the standard binary expansion does not have
-        adjacent `1`'s, then it is the same as the non-adjacent form.
+        adjacent ones, then it is the same as the non-adjacent form.
 
         Be aware that :meth:`.cartesian_product` is not commutative.
 

@@ -3912,8 +3912,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     if len(eigenvalues)!=len(dimensions):
         raise ValueError("each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.")
     #sort the dimensions in order of increasing size, and sort the eigenvalues list in an identical fashion, to maintain corresponding values.
-    dimensions_sort=zip(dimensions,eigenvalues)
-    dimensions_sort.sort()
+    dimensions_sort=sorted(zip(dimensions,eigenvalues))
     dimensions=[x[0] for x in dimensions_sort]
     eigenvalues=[x[1] for x in dimensions_sort]
     #Create the matrix of eigenvalues on the diagonal.  Use a lower limit and upper limit determined by the eigenvalue dimensions.

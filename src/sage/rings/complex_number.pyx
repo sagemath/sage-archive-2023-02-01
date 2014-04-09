@@ -2457,6 +2457,50 @@ cdef class RRtoCC(Map):
         self._zero = ComplexNumber(CC, 0)
         self._repr_type_str = "Natural"
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        A helper for pickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary
+
+        OUTPUT:
+
+        The given dictionary, with zero added.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_number import RRtoCC
+            sage: f = RRtoCC(RR, CC)
+            sage: g = copy(f) # indirect doctest
+            sage: g
+            Natural map:
+              From: Real Field with 53 bits of precision
+              To:   Complex Field with 53 bits of precision
+        """
+        _slots['_zero'] = self._zero
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        A helper for unpickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary providing values for the c(p)def slots of self.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_number import RRtoCC
+            sage: RRtoCC(RR, CC)
+            Natural map:
+              From: Real Field with 53 bits of precision
+              To:   Complex Field with 53 bits of precision
+        """
+        Map._update_slots(self, _slots)
+        self._zero = _slots['_zero']
+
     cpdef Element _call_(self, x):
         """
         EXAMPLES::

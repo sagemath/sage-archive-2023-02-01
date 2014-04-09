@@ -3165,8 +3165,7 @@ class PermutationGroup_generic(group.Group):
         if not S.is_subgroup(self):
             raise ValueError("%s is not a subgroup of %s" % (S, self))
 
-        group = copy(self.list())
-        group.sort()
+        group = sorted(copy(self.list()))
         subgroup = [self(s) for s in S.list()]
         subgroup.sort()
         decomposition = []

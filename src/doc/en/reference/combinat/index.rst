@@ -18,6 +18,24 @@ Combinatorics
    sage/combinat/dlx
    sage/combinat/matrices/dlxcpp
 
+**Combinatorial Objects**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/alternating_sign_matrix
+   sage/combinat/composition
+   sage/combinat/core
+   sage/combinat/knutson_tao_puzzles
+   sage/combinat/gelfand_tsetlin_patterns
+   sage/combinat/necklace
+   sage/combinat/non_decreasing_parking_function
+   sage/combinat/parking_functions
+   sage/combinat/perfect_matching
+   sage/combinat/six_vertex_model
+   sage/combinat/tamari_lattices
+   sage/combinat/yang_baxter_graph
+
 **Compositions**
 
 .. toctree::
@@ -36,7 +54,7 @@ Combinatorics
    sage/combinat/expnums
    sage/combinat/combinat
 
-**Integer lists/matrices/vectors**
+**Integer Lists/Matrices/Vectors**
 
 .. toctree::
    :maxdepth: 1
@@ -70,7 +88,39 @@ Combinatorics
    sage/combinat/integer_vectors_mod_permgroup
    sage/combinat/enumeration_mod_permgroup
 
-**Symmetric functions**
+**Polynomials**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/hall_polynomial
+   sage/combinat/kazhdan_lusztig
+
+**Posets**
+
+.. toctree::
+   :maxdepth: 1
+
+   posets
+
+**q-analogues**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/q_analogues
+   sage/combinat/q_bernoulli
+
+**Sequences**
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/combinat/binary_recurrence_sequences
+   sage/combinat/debruijn_sequence
+   sage/combinat/degree_sequences
+
+**Symmetric Functions**
 
 .. toctree::
    :maxdepth: 1
@@ -78,6 +128,14 @@ Combinatorics
    symmetric_functions
    ncsf_qsym
    ncsym
+
+**Tableaux**
+
+.. toctree::
+   :maxdepth: 1
+
+   tableaux
+   sage/combinat/rsk
 
 **Trees**
 
@@ -105,58 +163,39 @@ Combinatorics
    :maxdepth: 1
 
    sage/combinat/tutorial
-   sage/combinat/alternating_sign_matrix
+
    sage/combinat/cartesian_product
    sage/combinat/combination
-   sage/combinat/core
-   sage/combinat/debruijn_sequence
-   sage/combinat/degree_sequences
-   sage/combinat/tamari_lattices
    sage/combinat/e_one_star
    sage/combinat/finite_class
-   sage/combinat/hall_polynomial
    sage/combinat/matrices/hadamard_matrix
    sage/combinat/restricted_growth
-   sage/combinat/yang_baxter_graph
-   sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/graph_path
    sage/combinat/matrices/latin
-   sage/combinat/necklace
-   sage/combinat/non_decreasing_parking_function
-   sage/combinat/parking_functions
-   sage/combinat/perfect_matching
-   sage/combinat/q_analogues
-   sage/combinat/q_bernoulli
-   sage/combinat/rsk
    sage/combinat/sidon_sets
-   sage/combinat/six_vertex_model
    sage/combinat/similarity_class_type
    sage/combinat/subset
    sage/combinat/subsets_pairwise
-
    sage/combinat/tuple
 
-   sage/combinat/binary_recurrence_sequences
-
-   tableaux
    root_systems
-
-   sage/combinat/kazhdan_lusztig
-   sage/combinat/knutson_tao_puzzles
-
    crystals
-   posets
    rigged_configurations
    designs
    species
-   developer
+
    sage/combinat/finite_state_machine
 
+**Developer Tools**
+
+.. toctree::
+   :maxdepth: 1
 
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map
 
-
+   developer
 
 .. include:: ../footer.txt
+

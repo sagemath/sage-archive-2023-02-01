@@ -1398,7 +1398,7 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
                   Defn: x |--> x + 2*y
                         y |--> 3*x - y
         sage: F(f)(x*F(P).gen()^-2+y*F(P).gen()^3)
-        (3*x - y)*t^3 + (x + 2*y)*t^-2
+        (x + 2*y)*t^-2 + (3*x - y)*t^3
 
     """
     rank = 9

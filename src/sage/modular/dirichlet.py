@@ -1755,6 +1755,33 @@ class DirichletGroupFactory(UniqueFactory):
             sage: DirichletGroup.create_key(60)
             (Cyclotomic Field of order 4 and degree 2, 60, zeta4, 4)
 
+        An example to illustrate that ``base_ring`` is a part of the key::
+
+            sage: k = DirichletGroup.create_key(2, base_ring=QQ); k
+            (Rational Field, 2, 1, 1)
+            sage: l = DirichletGroup.create_key(2, base_ring=CC); l
+            (Complex Field with 53 bits of precision, 2, 1.00000000000000, 1)
+            sage: k == l
+            False
+            sage: G = DirichletGroup.create_object(None, k); G
+            Group of Dirichlet characters of modulus 2 over Rational Field
+            sage: H = DirichletGroup.create_object(None, l); H
+            Group of Dirichlet characters of modulus 2 over Complex Field with 53 bits of precision
+            sage: G == H
+            False
+
+        If ``base_ring`` was not be a part of the key, the keys would compare
+        equal and the caching would be broken::
+
+            sage: k = k[1:]; k
+            (2, 1, 1)
+            sage: l = l[1:]; l
+            (2, 1.00000000000000, 1)
+            sage: k == l
+            True
+            sage: DirichletGroup(2, base_ring=QQ) is DirichletGroup(2, base_ring=CC)
+            False
+
         """
         modulus = rings.Integer(modulus)
 

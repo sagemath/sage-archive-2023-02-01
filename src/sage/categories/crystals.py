@@ -642,10 +642,12 @@ class Crystals(Category_singleton):
                 sage: S = T.subcrystal(max_depth=3)
                 sage: G = T.digraph(subset=S); G
                 Digraph on 5 vertices
-                sage: G.vertices()
-                [(1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
-                (-Lambda[0] + 2*Lambda[1] - delta,), (Lambda[0] - 2*Lambda[1] + 2*Lambda[2] - delta,),
-                (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta), (Lambda[0],)]
+                sage: sorted(G.vertices(), key=str)
+                [(-Lambda[0] + 2*Lambda[1] - delta,),
+                 (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
+                 (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
+                 (Lambda[0] - 2*Lambda[1] + 2*Lambda[2] - delta,),
+                 (Lambda[0],)]
 
             Here is a way to construct a picture of a Demazure crystal using
             the ``subset`` option::
@@ -676,9 +678,9 @@ class Crystals(Category_singleton):
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             d = {}
             if self in HighestWeightCrystals:
-                f = lambda (u,v,label): ({})
+                f = lambda u_v_label: ({})
             else:
-                f = lambda (u,v,label): ({"backward":label ==0})
+                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
 
             # Parse optional arguments
             if subset is None:

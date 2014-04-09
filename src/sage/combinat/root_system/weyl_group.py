@@ -328,7 +328,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
             [-1/2  1/2  1/2 -1/2]
             [ 1/2  1/2 -1/2 -1/2]
             [ 1/2 -1/2  1/2 -1/2]
-            sage: s4^2 == W.unit()
+            sage: s4^2 == W.one()
             True
             sage: type(w) == W.element_class
             True
@@ -414,7 +414,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
         EXAMPLES::
             sage: W = WeylGroup(['A',3])
-            sage: e = W.unit(); e
+            sage: e = W.one(); e
             [1 0 0 0]
             [0 1 0 0]
             [0 0 1 0]
@@ -863,7 +863,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
             sage: W = WeylGroup(['A',3])
             sage: s = W.simple_reflections()
-            sage: [W.unit().has_descent(i) for i in W.domain().index_set()]
+            sage: [W.one().has_descent(i) for i in W.domain().index_set()]
             [False, False, False]
             sage: [s[1].has_descent(i) for i in W.domain().index_set()]
             [True, False, False]

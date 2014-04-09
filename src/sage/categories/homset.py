@@ -269,7 +269,6 @@ def Hom(X, Y, category=None):
         sage: S = sage.structure.parent.Set_PythonType(float)
         sage: Hom(R, S)
         Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
-
     """
     # This should use cache_function instead
     # However some special handling is currently needed for
@@ -294,7 +293,7 @@ def Hom(X, Y, category=None):
         H = Hom(X, Y, category)
     else:
         if not isinstance(category, Category):
-            raise TypeError, "Argument category (= %s) must be a category."%category
+            raise TypeError("Argument category (= {}) must be a category.".format(category))
         # See trac #14793: It can happen, that Hom(X,X) is called during
         # unpickling of an instance X of a Python class at a time when
         # X.__dict__ is empty.  In some of these cases, X.category() would
@@ -492,6 +491,12 @@ class Homset(Set_generic):
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.rings.integer.Integer' object has no attribute 'hom_category'
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([1/2*t])
+            sage: f.parent().domain()
+            Univariate Polynomial Ring in t over Integer Ring
+            sage: f.domain() is f.parent().domain()
+            True
         """
         self._domain = X
         self._codomain = Y
@@ -539,8 +544,8 @@ class Homset(Set_generic):
             sage: Hom(ZZ^2, QQ, category=Sets())._repr_()
             'Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Rational Field in Category of sets'
         """
-        return "Set of Morphisms from %s to %s in %s"%(
-            self._domain, self._codomain, self.__category)
+        return "Set of Morphisms from {} to {} in {}".format(self._domain,
+            self._codomain, self.__category)
 
     def __hash__(self):
         """
@@ -583,16 +588,38 @@ class Homset(Set_generic):
 
         A map (by default: a Call morphism) from ``S`` to ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        By :trac:`14711`, conversion and coerce maps should be copied
+        before using them outside of the coercion system::
 
             sage: H = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
             sage: P.<t> = ZZ[]
             sage: f = P.hom([2*t])
-            sage: H._generic_convert_map(f.parent())
+            sage: phi = H._generic_convert_map(f.parent()); phi
             Call morphism:
               From: Set of Homomorphisms from Univariate Polynomial Ring in t over Integer Ring to Univariate Polynomial Ring in t over Integer Ring
               To:   Set of Morphisms from Integer Ring to Univariate Polynomial Ring in t over Rational Field in Category of commutative additive groups
             sage: H._generic_convert_map(f.parent())(f)
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in t over Rational Field
+              Defn:   Composite map:
+                      From: Integer Ring
+                      To:   Univariate Polynomial Ring in t over Integer Ring
+                      Defn:   (map internal to coercion system -- copy before use)
+                            Polynomial base injection morphism:
+                              From: Integer Ring
+                              To:   Univariate Polynomial Ring in t over Integer Ring
+                            then
+                              Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+                              Defn: t |--> 2*t
+                    then
+                      (map internal to coercion system -- copy before use)
+                    Ring morphism:
+                      From: Univariate Polynomial Ring in t over Integer Ring
+                      To:   Univariate Polynomial Ring in t over Rational Field
+            sage: copy(H._generic_convert_map(f.parent())(f))
             Composite map:
               From: Integer Ring
               To:   Univariate Polynomial Ring in t over Rational Field
@@ -635,7 +662,7 @@ class Homset(Set_generic):
         return self.__category
 
     def __call__(self, x=None, y=None, check=True, **options):
-        """
+        r"""
         Construct a morphism in this homset from ``x`` if possible.
 
         EXAMPLES::
@@ -646,7 +673,39 @@ class Homset(Set_generic):
             Coercion morphism:
               From: Symmetric group of order 5! as a permutation group
               To:   Symmetric group of order 6! as a permutation group
+
+        When converting `\phi` into `H`, some coerce maps are applied. Note
+        that (in contrast to what is stated in the following string
+        representation) it is safe to use the resulting map, since a composite
+        map prevents the codomains of all constituent maps from garbage
+        collection, if there is a strong reference to its domain (which is the
+        case here)::
+
             sage: H(phi)
+            Composite map:
+              From: Symmetric group of order 4! as a permutation group
+              To:   Symmetric group of order 7! as a permutation group
+              Defn:   Composite map:
+                      From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 6! as a permutation group
+                      Defn:   (map internal to coercion system -- copy before use)
+                            Call morphism:
+                              From: Symmetric group of order 4! as a permutation group
+                              To:   Symmetric group of order 5! as a permutation group
+                            then
+                              Coercion morphism:
+                              From: Symmetric group of order 5! as a permutation group
+                              To:   Symmetric group of order 6! as a permutation group
+                    then
+                      (map internal to coercion system -- copy before use)
+                    Call morphism:
+                      From: Symmetric group of order 6! as a permutation group
+                      To:   Symmetric group of order 7! as a permutation group
+
+      Also note that making a copy of the resulting map will automatically
+      make strengthened copies of the composed maps::
+
+            sage: copy(H(phi))
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
@@ -712,12 +771,12 @@ class Homset(Set_generic):
                 return x
             else:
                 if x.domain() != self.domain():
-                    mor = x.domain().coerce_map_from(self.domain())
+                    mor = x.domain()._internal_coerce_map_from(self.domain())
                     if mor is None:
                         raise TypeError, "Incompatible domains: x (=%s) cannot be an element of %s"%(x,self)
                     x = x * mor
                 if x.codomain() != self.codomain():
-                    mor = self.codomain().coerce_map_from(x.codomain())
+                    mor = self.codomain()._internal_coerce_map_from(x.codomain())
                     if mor is None:
                         raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
                     x = mor * x
@@ -767,7 +826,6 @@ class Homset(Set_generic):
             True
             sage: H1 != H3 != H4 != H1
             True
-
         """
         if not isinstance(other, Homset):
             return cmp(type(self), type(other))
@@ -791,7 +849,6 @@ class Homset(Set_generic):
             True
             sage: f in Hom(ZZ['t'],QQ['t'], CommutativeAdditiveGroups())  # indirect doctest
             False
-
         """
         try:
             return x.parent() == self
@@ -819,7 +876,6 @@ class Homset(Set_generic):
             Traceback (most recent call last):
             ...
             TypeError: Natural coercion morphism from Univariate Polynomial Ring in t over Rational Field to Univariate Polynomial Ring in t over Finite Field of size 3 not defined.
-
         """
         return morphism.FormalCoercionMorphism(self)   # good default in many cases
 
@@ -845,7 +901,6 @@ class Homset(Set_generic):
             Ring Coercion morphism:
               From: Integer Ring
               To:   Rational Field
-
         """
         if self.is_endomorphism_set():
             return morphism.IdentityMorphism(self)
@@ -864,7 +919,6 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Integer Ring
             sage: f.domain() is f.parent().domain()
             True
-
         """
         return self._domain
 
@@ -880,7 +934,6 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Rational Field
             sage: f.codomain() is f.parent().codomain()
             True
-
         """
         return self._codomain
 
@@ -898,9 +951,12 @@ class Homset(Set_generic):
             sage: g = P.hom([2*t])
             sage: g.parent().is_endomorphism_set()
             True
-
         """
-        return self._domain is self._codomain
+        sD = self.domain()
+        sC = self.codomain()
+        if sC is None or sD is None:
+            raise RuntimeError("Domain or codomain of this homset have been deallocated")
+        return sD is sC
 
     def reversed(self):
         """
@@ -989,7 +1045,6 @@ def is_Homset(x):
         False
         sage: is_Homset(f.parent())
         True
-
     """
     return isinstance(x, Homset)
 
@@ -1007,7 +1062,6 @@ def is_Endset(x):
         sage: g = P.hom([2*t])
         sage: is_Endset(g.parent())
         True
-
     """
     return isinstance(x, Homset) and x.is_endomorphism_set()
 

@@ -65,14 +65,14 @@ class NumberFieldStructure(object):
     """
     def create_structure(self, field):
         r"""
-        Return structural information about ``field``.
+        Return a tuple encoding structural information about ``field``.
 
         OUTPUT:
 
-        There are no limitations on the format of the output. Typically, the
-        output is a pair of morphisms. The first one from ``field`` to a field
-        from which ``field`` has been constructed and the second one its
-        inverse.
+        Typically, the output is a pair of morphisms. The first one from
+        ``field`` to a field from which ``field`` has been constructed and the
+        second one its inverse. In this case, these morphisms are used as
+        conversion maps between the two fields.
 
         TESTS::
 
@@ -81,6 +81,20 @@ class NumberFieldStructure(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        The morphisms created by this method are used as conversion maps::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: L.<j> = K.change_names()
+            sage: isinstance(L._structure, NumberFieldStructure)
+            True
+            sage: from_L, to_L = L.structure()
+            sage: L._convert_map_from_(K) is to_L
+            True
+            sage: L(i)
+            j
+            sage: K(j)
+            i
 
         """
         raise NotImplementedError

@@ -1160,6 +1160,49 @@ class NumberField_generic(number_field_base.NumberField):
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
         self._populate_coercion_lists_(embedding=embedding)
 
+    def _convert_map_from_(self, other):
+        r"""
+        Additional conversion maps from ``other`` may be defined by
+        :meth:`structure`.
+
+        .. SEEALSO::
+
+            :meth:`structure.NumberFieldStructure.create_structure`
+
+        TESTS::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: L.<j> = K.change_names()
+            sage: L(i)
+            j
+            sage: K(j)
+            i
+
+        This also works for relative number fields and their absolute fields::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: L.<i> = K.extension(x^2 + 1)
+            sage: M.<b> = L.absolute_field()
+            sage: M(i)
+            1/6*b^3 + 1/6*b
+            sage: L(b)
+            i - a
+
+        """
+        from sage.categories.map import is_Map
+        if self._structure is not None:
+            structure = self.structure()
+            if len(structure) >= 2:
+                to_self = structure[1]
+                if is_Map(to_self) and to_self.domain() is other:
+                    return to_self
+        if isinstance(other, NumberField_generic) and other._structure is not None:
+            structure = other.structure()
+            if len(structure) >= 1:
+                from_other = structure[0]
+                if is_Map(from_other) and from_other.codomain() is self:
+                    return from_other
+
     @cached_method
     def _magma_polynomial_(self, magma):
         """

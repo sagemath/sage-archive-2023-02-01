@@ -2565,9 +2565,32 @@ class NumberField_generic(number_field_base.NumberField):
             False
             sage: QuadraticField(2, 'a', embedding=2) == QuadraticField(2, 'a', embedding=-2)
             False
+
+        A relative number field and its absolute field should not be equal (see
+        :trac:`11670`)::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: R.<x> = K[]
+            sage: L.<b> = K.extension(x^2+1)
+            sage: M.<b> = L.absolute_field()
+            sage: M == L
+            False
+
+        It sems convenient to have this return ``True`` but this causes all
+        kinds of trouble. If they were equal the following could return
+        ``True`` if ``M`` and ``L`` happened to have the same hash (polynomial
+        rings are cached). This actually lead to an infinite recursion when
+        factoring polynomials, since factorization over relative number fields
+        is reduced to factorization over absolute fields::
+
+            sage: M['x'] == L['x']
+            False
+
         """
         if not isinstance(other, NumberField_generic):
             return cmp(type(self), type(other))
+        c = cmp(self.base_field(), other.base_field())
+        if c: return c
         c = cmp(self.variable_name(), other.variable_name())
         if c: return c
         # compare coefficients so that the polynomial variable does not count
@@ -2605,7 +2628,7 @@ class NumberField_generic(number_field_base.NumberField):
             True
 
         """
-        return hash(tuple(self.__polynomial))
+        return hash((self.variable_name(), self.base_field(), tuple(self.__polynomial)))
 
     def _ideal_class_(self, n=0):
         """

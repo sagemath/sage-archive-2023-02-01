@@ -9,6 +9,7 @@ Generators for common finite state machines.
     :delim: |
 
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
+    :meth:`~TransducerGenerators.abs` | Returns a transducer realizing absolute value.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
@@ -31,6 +32,7 @@ class TransducerGenerators(object):
     The transducers currently in this class include:
 
     - :meth:`~Identity`
+    - :meth:`~abs`
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
@@ -287,8 +289,38 @@ class TransducerGenerators(object):
         return self._operator(operator.sub, input_alphabet)
 
 
+    def abs(self, input_alphabet):
+        """
+        Returns a transducer which realizes the component-wise
+        absolute value over an input alphabet.
 
+        INPUT:
 
+        - ``input_alphabet``  -- input alphabet.
+
+        OUTPUT:
+
+        A transducer mapping `i_0\ldots i_k`
+        to `|i_0|\ldots |i_k|`.
+
+        EXAMPLE:
+
+        The following transducer realizes component-wise
+        absolute value::
+
+            sage: T = transducers.abs([-1, 0, 1])
+            sage: T.transitions()
+            [Transition from 0 to 0: -1|1,
+             Transition from 0 to 0: 0|0,
+             Transition from 0 to 0: 1|1]
+            sage: T([-1, -1, 0, 1])[2]
+            [1, 1, 0, 1]
+
+        """
+        return Transducer(lambda state, input: (0, abs(input)),
+                          input_alphabet=input_alphabet,
+                          initial_states=[0],
+                          final_states=[0])
 
 # Easy access to the transducer generators from the command line:
 transducers = TransducerGenerators()

@@ -107,6 +107,7 @@ branch`` command::
 
     [user@localhost sage]$ git checkout master
     [user@localhost sage]$ git branch last_twin_prime
+    [user@localhost sage]$ git checkout last_twin_prime
 
 You can list all branches using::
 

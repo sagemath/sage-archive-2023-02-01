@@ -57,29 +57,38 @@ class MagmasAndAdditiveMagmas(Category_singleton):
             """
             Return the full subcategory of the objects of ``self`` where `*` is distributive on `+`.
 
+            A :class:`magma Magmas` and :class:`additive magma
+            AdditiveMagmas` `M` is *distributive* if, for all
+            `x,y,z\in M`,
+
+            .. MATH:: x * (y+z) = x*y + x*z \text{ and } (x+y) * z = x*z + y*z
+
             EXAMPLES::
 
                 sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
-                sage: C = MagmasAndAdditiveMagmas().Distributive()
-
-            Given that `Sage` does not know that
-            :class:`MagmasAndAdditiveMagmas` is the intersection of
-            :class:`Magmas` and :class:`AdditiveMagmas`, this method
-            is not available for
-
-                sage: Magmas() & AdditiveMagmas()
-                Join of Category of magmas and Category of additive magmas
-
-            Still, the natural syntax works::
-
-                sage: (Magmas() & AdditiveMagmas()).Distributive()
+                sage: C = MagmasAndAdditiveMagmas().Distributive(); C
                 Category of distributive magmas and additive magmas
 
-            thanks to a workaround implemented in
-            :meth:`Magmas.SubcategoryMethods.Distributive`::
+            .. NOTE::
 
-                sage: (Magmas() & AdditiveMagmas()).Distributive.__module__
-                'sage.categories.magmas'
+                Given that `Sage` does not know that
+                :class:`MagmasAndAdditiveMagmas` is the intersection
+                of :class:`Magmas` and :class:`AdditiveMagmas`, this
+                method is not available for::
+
+                    sage: Magmas() & AdditiveMagmas()
+                    Join of Category of magmas and Category of additive magmas
+
+                Still, the natural syntax works::
+
+                    sage: (Magmas() & AdditiveMagmas()).Distributive()
+                    Category of distributive magmas and additive magmas
+
+                thanks to a workaround implemented in
+                :meth:`Magmas.SubcategoryMethods.Distributive`::
+
+                    sage: (Magmas() & AdditiveMagmas()).Distributive.__module__
+                    'sage.categories.magmas'
 
             TESTS::
 

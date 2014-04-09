@@ -72,6 +72,13 @@ class Magmas(Category_singleton):
             """
             Return the full subcategory of the associative objects of ``self``.
 
+            A (multiplicative) :class:`magma Magmas` `M` is
+            *associative* if, for all `x,y,z\in M`,
+
+            .. MATH:: x * (y * z) = (x * y) * z
+
+            .. SEEALSO:: :wikipedia:`Associative_property`.
+
             EXAMPLES::
 
                 sage: Magmas().Associative()
@@ -89,6 +96,13 @@ class Magmas(Category_singleton):
         def Commutative(self):
             """
             Return the full subcategory of the commutative objects of ``self``.
+
+            A (multiplicative) :class:`magma Magmas` `M` is
+            *commutative* if, for all `x,y\in M`,
+
+            .. MATH:: x * y = y * x
+
+            .. SEEALSO:: :wikipedia:`Commutative_property`.
 
             EXAMPLES::
 
@@ -109,6 +123,17 @@ class Magmas(Category_singleton):
         def Unital(self):
             r"""
             Return the subcategory of the unital objects of ``self``.
+
+            A (multiplicative) :class:`magma Magmas` `M` is *unital*
+            if it admits an element `1`, called *unit*, such that for
+            all `x\in M`,
+
+            .. MATH:: 1 * x = x * 1 = x
+
+            This element is necessarily unique, and should be provided
+            as ``M.one()``.
+
+            .. SEEALSO:: :wikipedia:`Unital_magma#unital`
 
             EXAMPLES::
 
@@ -139,16 +164,17 @@ class Magmas(Category_singleton):
 
             - ``self`` -- a subcategory of :class:`Magmas` and :class:`AdditiveMagmas`
 
-            Given that Sage does not know that
+            Given that `Sage` does not yet know that the category
             :class:`MagmasAndAdditiveMagmas` is the intersection of
-            :class:`Magmas` and :class:`AdditiveMagmas`, the method
+            the categories :class:`Magmas` and
+            :class:`AdditiveMagmas`, the method
             :meth:`MagmasAndAdditiveMagmas.SubcategoryMethods.Distributive`
             is not available, as would be desirable, for this intersection.
 
-            As a workaround, this method checks that ``self`` is a
-            subcategory of both :class:`Magmas`() and
-            :class:`AdditiveMagmas`() and upgrades it to a subcategory
-            of :class:`MagmasAndAdditiveMagmas`() before applying the
+            This method is a workaround. It checks that ``self`` is a
+            subcategory of both :class:`Magmas` and
+            :class:`AdditiveMagmas` and upgrades it to a subcategory
+            of :class:`MagmasAndAdditiveMagmas` before applying the
             axiom. It complains overwise, since the ``Distributive``
             axiom does not make sense for a plain magma.
 

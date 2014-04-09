@@ -73,6 +73,13 @@ class AdditiveMagmas(Category_singleton):
             """
             Return the full subcategory of the additive associative objects of ``self``.
 
+            An :class:`additive magma AdditiveMagmas` `M` is
+            *associative* if, for all `x,y,z\in M`,
+
+            .. MATH:: x + (y + z) = (x + y) + z
+
+            .. SEEALSO:: :wikipedia:`Associative_property`.
+
             EXAMPLES::
 
                 sage: AdditiveMagmas().AdditiveAssociative()
@@ -90,6 +97,13 @@ class AdditiveMagmas(Category_singleton):
         def AdditiveCommutative(self):
             """
             Return the full subcategory of the commutative objects of ``self``.
+
+            An :class:`additive magma AdditiveMagmas` `M` is
+            *commutative* if, for all `x,y\in M`,
+
+            .. MATH:: x + y = y + x
+
+            .. SEEALSO:: :wikipedia:`Commutative_property`.
 
             EXAMPLES::
 
@@ -112,6 +126,17 @@ class AdditiveMagmas(Category_singleton):
         def AdditiveUnital(self):
             r"""
             Return the subcategory of the unital objects of ``self``.
+
+            An :class:`additive magma AdditiveMagmas` `M` is *unital*
+            if it admits an element `0`, called *neutral element*,
+            such that for all `x\in M`,
+
+            .. MATH:: 0 + x = x + 0 = x
+
+            This element is necessarily unique, and should be provided
+            as ``M.zero()``.
+
+            .. SEEALSO:: :wikipedia:`Unital_magma#unital`
 
             EXAMPLES::
 

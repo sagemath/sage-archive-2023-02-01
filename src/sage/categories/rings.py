@@ -57,21 +57,28 @@ class Rings(CategoryWithAxiom):
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):
-            """
-            Return the full subcategory of the objects of ``self`` having no zero divisors.
+            """Return the full subcategory of the objects of ``self`` having no nonzero zero divisors.
+
+            A *zero divisor* in a ring `R` is an element `x\in R` such
+            that there exists a nonzero element `y\in R` such that
+            `x*y=0` or `y*x=0` (see :wikipedia:`Zero_divisor`).
 
             EXAMPLES::
 
                 sage: Rings().NoZeroDivisors()
                 Category of domains
 
-            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
 
             TESTS::
 
                 sage: TestSuite(Rings().NoZeroDivisors()).run()
                 sage: Algebras(QQ).NoZeroDivisors.__module__
                 'sage.categories.rings'
+
             """
             return self._with_axiom('NoZeroDivisors')
 
@@ -82,7 +89,10 @@ class Rings(CategoryWithAxiom):
             A ring satisfies the *division axiom* if all non-zero
             elements have multiplicative inverses.
 
-            .. NOTE:: this could be generalized to MagmasAndAdditiveMagmas.Distributive.AdditiveUnital.Unital
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
 
             EXAMPLES::
 

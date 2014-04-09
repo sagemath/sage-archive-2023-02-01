@@ -14,7 +14,6 @@ Miscellaneous
    sage/misc/lazy_list
    sage/misc/classgraph
    sage/misc/dev_tools
-   sage/misc/profiler
    sage/misc/function_mangling
    sage/misc/exceptions
    sage/misc/misc
@@ -24,8 +23,6 @@ Miscellaneous
    sage/misc/package
    sage/misc/explain_pickle
    sage/misc/getusage
-   sage/misc/sage_timeit
-   sage/misc/sage_timeit_class
    sage/misc/mrange
    sage/misc/dist
    sage/misc/preparser
@@ -54,6 +51,20 @@ Miscellaneous
    sage/misc/viewer
    sage/misc/session
    sage/misc/indexed_generators
+   sage/misc/sage_extension
+
+
+Profiling and Performance Testing
+---------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/misc/sage_timeit
+   sage/misc/sage_timeit_class
+   sage/misc/profiler
+   sage/misc/gperftools
+
 
 LaTeX
 -----

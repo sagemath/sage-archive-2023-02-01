@@ -1324,8 +1324,7 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
         yield self.element_class(self, to_set_partition([], self.k))
         for n in range(1,self.k+1):
             for top in Subsets(positives, n):
-                t = list(top)
-                t.sort()
+                t = sorted(top)
                 for bottom in Subsets(negatives, n):
                     b = list(bottom)
                     b.sort(reverse=True)
@@ -1396,8 +1395,7 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
         yield self.element_class(self, to_set_partition([[self.k+1, -self.k-1]],k=self.k+1))
         for n in range(1,self.k+1):
             for top in Subsets(positives, n):
-                t = list(top)
-                t.sort()
+                t = sorted(top)
                 for bottom in Subsets(negatives, n):
                     b = list(bottom)
                     b.sort(reverse=True)

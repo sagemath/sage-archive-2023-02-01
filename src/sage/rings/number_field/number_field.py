@@ -487,6 +487,19 @@ class NumberFieldFactory(UniqueFactory):
         sage: nff(x^2+1, name='a', check=False, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None)
         Number Field in a with defining polynomial x^2 + 1
 
+    Pickling preserves the ``structure()`` of a number field::
+
+        sage: K.<a> = QuadraticField(2)
+        sage: L.<b> = K.change_names()
+        sage: M=loads(dumps(L))
+        sage: M.structure()
+        (Isomorphism given by variable name change map:
+          From: Number Field in b with defining polynomial x^2 - 2
+          To:   Number Field in a with defining polynomial x^2 - 2,
+         Isomorphism given by variable name change map:
+          From: Number Field in a with defining polynomial x^2 - 2
+          To:   Number Field in b with defining polynomial x^2 - 2)
+
     """
     def create_key_and_extra_args(self, polynomial, name, check, embedding, latex_name, assume_disc_small, maximize_at_primes, structure):
         r"""

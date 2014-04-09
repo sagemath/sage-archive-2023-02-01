@@ -1007,7 +1007,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             if len(rest) != 0:
                 raise ValueError("invalid number of arguments")
         else:
-            if len(rest) > 0 or type(c) is int or type(c) is Integer:
+            if len(rest) > 0 or isinstance(c, int) or isinstance(c, Integer):
                 c = C([c]+list(rest))
             else:
                 c = C(list(c))

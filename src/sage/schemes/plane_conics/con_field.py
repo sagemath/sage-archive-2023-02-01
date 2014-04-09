@@ -424,7 +424,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
 
         One of the following fields comes with an embedding into the complex
         numbers, one does not. Check that they are both handled correctly by
-        the Magma interface.::
+        the Magma interface. ::
 
             sage: K.<i> = QuadraticField(-1)
             sage: K.coerce_embedding()

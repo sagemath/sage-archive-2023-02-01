@@ -150,8 +150,7 @@ class IncidenceStructure(object):
                     if not(x in self.pnts):
                         raise ValueError('Point %s is not in the base set.' % x)
             try:
-                y = block[:]
-                y.sort()
+                y = sorted(block[:])
                 bs.append(y)
             except Exception:
                 bs.append(block)
@@ -340,8 +339,7 @@ class IncidenceStructure(object):
             sage: BD.blocks()
             [[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]
         """
-        B = self.blcks
-        B.sort()
+        B = sorted(self.blcks)
         return B
 
     def __eq__(self, other):

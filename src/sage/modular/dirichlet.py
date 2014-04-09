@@ -1736,6 +1736,15 @@ class DirichletGroupFactory(UniqueFactory):
         Group of Dirichlet characters of modulus 60 over Maximal Order in Cyclotomic Field of order 4 and degree 2
         sage: parent(DirichletGroup(60, integral=True).gens()[2].values_on_gens()[2])
         Maximal Order in Cyclotomic Field of order 4 and degree 2
+
+    TESTS:
+
+    Dirichlet groups are cached, creating two groups with the same parameters
+    yields the same object::
+
+        sage: DirichletGroup(60) is DirichletGroup(60)
+        True
+
     """
     def create_key(self, modulus, base_ring=None, zeta=None, zeta_order=None, names=None, integral=False):
         """

@@ -707,9 +707,9 @@ class NumberField_relative(NumberField_generic):
             sage: Z = var('Z')
             sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L.<z> = K.extension(Z^3 + 2)
-            sage: L = loads(dumps(K))
-            sage: print L
-            Number Field in w with defining polynomial Z^3 + Z + 1
+            sage: K = loads(dumps(L))
+            sage: print K
+            Number Field in z with defining polynomial Z^3 + 2 over its base field
             sage: print L == K
             True
 

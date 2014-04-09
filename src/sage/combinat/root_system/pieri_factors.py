@@ -339,25 +339,27 @@ class PieriFactors_affine_type(PieriFactors):
 
             sage: W = WeylGroup(['A',4,1])
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 4, 3, 2], [1, 0, 4, 3], [4, 3, 2, 1], [2, 1, 0, 4], [3, 2, 1, 0]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 4, 3, 2], [1, 0, 4, 3], [2, 1, 0, 4], [3, 2, 1, 0], [4, 3, 2, 1]]
 
             sage: W = WeylGroup(RootSystem(["C",3,1]).weight_space())
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0], [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0],
+             [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
 
             sage: W = WeylGroup(RootSystem(["B",3,1]).weight_space())
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 2, 3, 2, 0], [1, 0, 2, 3, 2], [2, 3, 2, 1, 0], [3, 2, 1, 0, 2], [1, 2, 3, 2, 1], [2, 1, 0, 2, 3]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 2, 3, 2, 0], [1, 0, 2, 3, 2], [1, 2, 3, 2, 1],
+             [2, 1, 0, 2, 3], [2, 3, 2, 1, 0], [3, 2, 1, 0, 2]]
 
             sage: W = WeylGroup(['D',4,1])
             sage: PF = W.pieri_factors()
-            sage: [w.reduced_word() for w in PF.maximal_elements()]
-            [[0, 2, 4, 3, 2, 0], [1, 0, 2, 4, 3, 2], [2, 4, 3, 2, 1, 0],
-            [1, 2, 4, 3, 2, 1], [2, 1, 0, 2, 4, 3], [4, 3, 2, 1, 0, 2],
-            [4, 2, 1, 0, 2, 4], [3, 2, 1, 0, 2, 3]]
+            sage: sorted([w.reduced_word() for w in PF.maximal_elements()], key=str)
+            [[0, 2, 4, 3, 2, 0], [1, 0, 2, 4, 3, 2], [1, 2, 4, 3, 2, 1],
+             [2, 1, 0, 2, 4, 3], [2, 4, 3, 2, 1, 0], [3, 2, 1, 0, 2, 3],
+             [4, 2, 1, 0, 2, 4], [4, 3, 2, 1, 0, 2]]
         """
         ct = self.W.cartan_type()
         s = ct.translation_factors()[1]
@@ -797,8 +799,9 @@ class PieriFactors_type_C_affine(PieriFactors_affine_type):
 
         sage: W = WeylGroup(['C',3,1])
         sage: PF = W.pieri_factors()
-        sage: [u.reduced_word() for u in PF.maximal_elements()]
-        [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0], [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
+        sage: sorted([u.reduced_word() for u in PF.maximal_elements()], key=str)
+        [[0, 1, 2, 3, 2, 1], [1, 0, 1, 2, 3, 2], [1, 2, 3, 2, 1, 0],
+         [2, 1, 0, 1, 2, 3], [2, 3, 2, 1, 0, 1], [3, 2, 1, 0, 1, 2]]
     """
 
     def __init__(self, W):
@@ -984,9 +987,11 @@ class PieriFactors_type_D_affine(PieriFactors_affine_type):
         True
         sage: W.from_reduced_word([2,0,1,3]) in PF
         True
-        sage: [u.reduced_word() for u in PF.maximal_elements()]
-        [[0, 2, 3, 5, 4, 3, 2, 0], [1, 0, 2, 3, 5, 4, 3, 2], [2, 3, 5, 4, 3, 2, 1, 0], [2, 1, 0, 2, 3, 5, 4, 3], [1, 2, 3, 5, 4, 3, 2, 1], [3, 5, 4, 3, 2, 1, 0, 2], [3, 2, 1, 0, 2, 3, 5, 4], [5, 4, 3, 2, 1, 0, 2, 3], [5, 3, 2, 1, 0, 2, 3, 5], [4, 3, 2, 1, 0, 2, 3, 4]]
-
+        sage: sorted([u.reduced_word() for u in PF.maximal_elements()], key=str)
+        [[0, 2, 3, 5, 4, 3, 2, 0], [1, 0, 2, 3, 5, 4, 3, 2], [1, 2, 3, 5, 4, 3, 2, 1],
+         [2, 1, 0, 2, 3, 5, 4, 3], [2, 3, 5, 4, 3, 2, 1, 0], [3, 2, 1, 0, 2, 3, 5, 4],
+         [3, 5, 4, 3, 2, 1, 0, 2], [4, 3, 2, 1, 0, 2, 3, 4], [5, 3, 2, 1, 0, 2, 3, 5],
+         [5, 4, 3, 2, 1, 0, 2, 3]]
     """
 
     def __init__(self, W):

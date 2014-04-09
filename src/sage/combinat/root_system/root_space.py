@@ -318,12 +318,18 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
 
             This implementation only handles finite Cartan types and assumes that ``self`` is a root.
 
+        .. TODO:: Rename to is_quantum_root
+
         EXAMPLES::
 
             sage: Q = RootSystem(['C',2]).root_lattice()
-            sage: [[x, x.quantum_root()] for x in Q.positive_roots_by_height()]
-            [[alpha[1], True], [alpha[2], True], [alpha[1] + alpha[2], False], [2*alpha[1] + alpha[2], True]]
-
+            sage: positive_roots = Q.positive_roots()
+            sage: for x in positive_roots:
+            ....:     print x, x.quantum_root()
+            alpha[1] True
+            alpha[2] True
+            2*alpha[1] + alpha[2] True
+            alpha[1] + alpha[2] False
         """
 
         return len(self.associated_reflection()) == -1 + (self.parent().positive_roots_nonparabolic_sum(())).scalar(self.associated_coroot())

@@ -598,7 +598,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             successors = 'quantum_bruhat_successors'
 
         #start at the identity
-        w = W.unit()
+        w = W.one()
         for i in self:
             t = prod( [ s[j] for j in  i.root.associated_reflection() ] )
             successor = w * t

@@ -836,8 +836,7 @@ class PiecewisePolynomial:
             raise TypeError, 'only one endpoint given'
 
         area = 0 # cumulative definite integral of parts to the left of the current interval
-        integrand_pieces = self.list()
-        integrand_pieces.sort()
+        integrand_pieces = sorted(self.list())
         new_pieces = []
 
         if x == None:
@@ -1629,8 +1628,7 @@ class PiecewisePolynomial:
         b = max(b1, b2)
         F = self.extend_by_zero_to(a,b)
         G = other.extend_by_zero_to(a,b)
-        endpts = list(set(F.end_points()).union(set(G.end_points())))
-        endpts.sort()
+        endpts = sorted(set(F.end_points()).union(set(G.end_points())))
         return F, G, zip(endpts, endpts[1:])
 
     def __add__(self,other):

@@ -1155,7 +1155,6 @@ class CliffordAlgebra(CombinatorialFreeModule):
         mats = [Matrix(R, [to_vector( B[i].supercommutator(B[j]) ) for j in K], sparse=True).transpose()
                 for i in K]
         m = Matrix.block(mats, ncols=1, subdivide=True)
-        print m.str()
         from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
         return tuple(map( from_vector, m.right_kernel().basis() ))
 

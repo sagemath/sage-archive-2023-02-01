@@ -72,10 +72,10 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
+    :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
-
 
 **Hard stuff:**
 
@@ -754,8 +754,7 @@ class DiGraph(GenericGraph):
                     if len(NZ) != 2:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
                         assert False
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
                     if L != [-1,0,1]:
                         msg += "Each column represents an edge: -1 goes to 1."
                         assert False
@@ -3316,6 +3315,33 @@ class DiGraph(GenericGraph):
 
         except AttributeError:
             return len(self.strongly_connected_components()) == 1
+
+    def is_aperiodic(self):
+        r"""
+        Return whether the current ``DiGraph`` is aperiodic.
+
+        A directed graph is aperiodic if there is no integer ``k > 1``
+        that divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``, so it is not aperiodic::
+
+            sage: g = DiGraph({ 0: [1], 1: [0] })
+            sage: g.is_aperiodic()
+            False
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it is aperiodic::
+
+            sage: g = DiGraph({ 0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.is_aperiodic()
+            True
+
+        """
+        import networkx
+        return networkx.is_aperiodic(self.networkx_graph(copy=False))
 
 import types
 

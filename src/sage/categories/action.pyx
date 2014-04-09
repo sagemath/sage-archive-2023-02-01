@@ -63,10 +63,12 @@ AUTHOR:
 from functor cimport Functor
 from morphism cimport Morphism
 from map cimport Map
+from sage.structure.parent cimport Parent
 
 import homset
 import sage.structure.element
 from weakref import ref
+from sage.misc.constant_function import ConstantFunction
 
 include "sage/ext/stdsage.pxi"
 
@@ -140,9 +142,9 @@ cdef class Action(Functor):
         The set on which the actor acts (it is not necessarily the codomain of
         the action).
 
-        NOTE:
+        .. NOTE::
 
-        Since this is a cdef'ed method, we can only provide an indirect doctest.
+            Since this is a cdef'ed method, we can only provide an indirect doctest.
 
         EXAMPLES::
 
@@ -182,7 +184,6 @@ cdef class Action(Functor):
             Traceback (most recent call last):
             ...
             RuntimeError: This action acted on a set that became garbage collected
-
         """
         S = self.US()
         if S is None:
@@ -268,22 +269,51 @@ cdef class InverseAction(Action):
         return "inverse action"
 
 cdef class PrecomposedAction(Action):
+    """
+    A precomposed action first applies given maps, and then applying an action
+    to the return values of the maps.
 
+    EXAMPLES:
+
+    We demonstrate that an example discussed on :trac:`14711` did not become a
+    problem::
+
+        sage: E = ModularSymbols(11).2
+        sage: s = E.modular_symbol_rep()
+        sage: del E,s
+        sage: import gc
+        sage: _ = gc.collect()
+        sage: E = ModularSymbols(11).2
+        sage: v = E.manin_symbol_rep()
+        sage: c,x = v[0]
+        sage: y = x.modular_symbol_rep()
+        sage: A = y.parent().get_action(QQ, self_on_left=False, op=operator.mul)
+        sage: A
+        Left scalar multiplication by Rational Field on Abelian Group of all
+        Formal Finite Sums over Rational Field
+        with precomposition on right by Conversion map:
+          From: Abelian Group of all Formal Finite Sums over Integer Ring
+          To:   Abelian Group of all Formal Finite Sums over Rational Field
+    """
     def __init__(self, Action action, Map left_precomposition, Map right_precomposition):
         left = action.left_domain()
         right = action.right_domain()
+        US = action.underlying_set()
+        cdef Parent lco, rco
         if left_precomposition is not None:
-            if left_precomposition._codomain is not left:
-                left_precomposition = homset.Hom(left_precomposition._codomain, left).natural_map() * left_precomposition
-            left = left_precomposition._domain
+            lco = left_precomposition._codomain
+            if lco is not left:
+                left_precomposition = homset.Hom(lco, left).natural_map() * left_precomposition
+            left = left_precomposition.domain()
         if right_precomposition is not None:
-            if right_precomposition._codomain is not right:
-              right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
-            right = right_precomposition._domain
+            rco = right_precomposition._codomain
+            if rco is not right:
+              right_precomposition = homset.Hom(rco, right).natural_map() * right_precomposition
+            right = right_precomposition.domain()
         if action._is_left:
-            Action.__init__(self, left, action.underlying_set(), 1)
+            Action.__init__(self, left, US, 1)
         else:
-            Action.__init__(self, right, action.underlying_set(), 0)
+            Action.__init__(self, right, US, 0)
         self._action = action
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition
@@ -312,19 +342,74 @@ cdef class PrecomposedAction(Action):
     def __repr__(self):
         s = repr(self._action)
         if self.left_precomposition is not None:
-            s += "\nwith precomposition on left by %r" % self.left_precomposition
+            s += "\nwith precomposition on left by %s" % self.left_precomposition._default_repr_()
         if self.right_precomposition is not None:
-            s += "\nwith precomposition on right by %r" % self.right_precomposition
+            s += "\nwith precomposition on right by %s" % self.right_precomposition._default_repr_()
         return s
 
 
 cdef class ActionEndomorphism(Morphism):
+    """
+    The endomorphism defined by the action of one element.
 
+    EXAMPLES::
+
+        sage: A = ZZ['x'].get_action(QQ, self_on_left=False, op=operator.mul)
+        sage: A
+        Left scalar multiplication by Rational Field on Univariate Polynomial
+        Ring in x over Integer Ring
+        sage: A(1/2)
+        Action of 1/2 on Univariate Polynomial Ring in x over Integer Ring
+        under Left scalar multiplication by Rational Field on Univariate
+        Polynomial Ring in x over Integer Ring.
+    """
     def __init__(self, Action action, g):
         Morphism.__init__(self, homset.Hom(action.underlying_set(),
                                            action.underlying_set()))
         self._action = action
         self._g = g
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: P.<x> = ZZ[]
+            sage: A = P.get_action(QQ, self_on_left=False, op=operator.mul)
+            sage: phi = A(1/2)
+            sage: psi = copy(phi)  # indirect doctest
+            sage: psi
+            Action of 1/2 on Univariate Polynomial Ring in x over
+            Integer Ring under Left scalar multiplication by Rational
+            Field on Univariate Polynomial Ring in x over Integer Ring.
+            sage: psi(x) == phi(x)
+            True
+        """
+        _slots['_action'] = self._action
+        _slots['_g'] = self._g
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: P.<x> = ZZ[]
+            sage: A = P.get_action(QQ, self_on_left=False, op=operator.mul)
+            sage: phi = A(1/2)
+            sage: psi = copy(phi)  # indirect doctest
+            sage: psi
+            Action of 1/2 on Univariate Polynomial Ring in x over
+            Integer Ring under Left scalar multiplication by Rational
+            Field on Univariate Polynomial Ring in x over Integer Ring.
+            sage: psi(x) == phi(x)
+            True
+        """
+        self._action = _slots['_action']
+        self._g = _slots['_g']
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         if self._action._is_left:

@@ -1229,9 +1229,6 @@ ext_modules = [
     Extension('sage.misc.lazy_attribute',
               sources = ['sage/misc/lazy_attribute.pyx']),
 
-    Extension('sage.misc.inputhook',
-              sources = ['sage/misc/inputhook.pyx']),
-
     Extension('sage.misc.lazy_import',
               sources = ['sage/misc/lazy_import.pyx']),
 
@@ -1253,10 +1250,6 @@ ext_modules = [
     Extension('sage.misc.randstate',
               sources = ['sage/misc/randstate.pyx'],
               libraries = ['gmp']),
-
-    Extension('sage.misc.readline_extra_commands',
-              sources = ['sage/misc/readline_extra_commands.pyx'],
-              libraries = ['readline']),
 
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']),
@@ -1477,6 +1470,19 @@ ext_modules = [
 
     Extension('sage.quadratic_forms.ternary',
               sources = ['sage/quadratic_forms/ternary.pyx']),
+
+    ################################
+    ##
+    ## sage.repl
+    ##
+    ################################
+
+    Extension('sage.repl.inputhook',
+              sources = ['sage/repl/inputhook.pyx']),
+
+    Extension('sage.repl.readline_extra_commands',
+              sources = ['sage/repl/readline_extra_commands.pyx'],
+              libraries = ['readline']),
 
     ################################
     ##

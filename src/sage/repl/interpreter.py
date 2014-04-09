@@ -66,13 +66,13 @@ import copy
 import os
 import re
 import sys
-from preparser import preparse
+from sage.misc.preparser import preparse
 
 from IPython import Config
 
 from sage.env import SAGE_LOCAL
 
-SAGE_EXTENSION = 'sage.misc.sage_extension'
+SAGE_EXTENSION = 'sage'
 
 DEFAULT_SAGE_CONFIG = Config(
     PromptManager = Config(
@@ -97,7 +97,7 @@ def embedded():
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import embedded
+        sage: from sage.repl.interpreter import embedded
         sage: embedded()
         False
     """
@@ -148,7 +148,7 @@ class SageInteractiveShell(TerminalInteractiveShell):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.system_raw('false')
             sage: shell.user_ns['_exit_code'] > 0
@@ -185,7 +185,7 @@ def SagePreparseTransformer(line):
     """
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import SagePreparseTransformer
+        sage: from sage.repl.interpreter import SagePreparseTransformer
         sage: spt = SagePreparseTransformer()
         sage: spt.push('1+1r+2.3^2.3r')
         "Integer(1)+1+RealNumber('2.3')**2.3"
@@ -204,7 +204,7 @@ def SagePreparseTransformer(line):
         Traceback (most recent call last):
         ...
         SyntaxError: Mismatched ']'
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell(bad_syntax)
           File "<string>", line unknown
@@ -223,7 +223,7 @@ def SagePromptTransformer():
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import SagePromptTransformer
+        sage: from sage.repl.interpreter import SagePromptTransformer
         sage: spt = SagePromptTransformer()
         sage: spt.push("sage: sage: 2 + 2")
         '2 + 2'
@@ -259,7 +259,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import interface_shell_embed
+            sage: from sage.repl.interpreter import interface_shell_embed
             sage: shell = interface_shell_embed(maxima)
             sage: ift = shell.prefilter_manager.transformers[0]
             sage: ift.temporary_objects
@@ -291,7 +291,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import interface_shell_embed, InterfaceShellTransformer
+            sage: from sage.repl.interpreter import interface_shell_embed, InterfaceShellTransformer
             sage: shell = interface_shell_embed(maxima)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.shell.ex('a = 3')
@@ -323,7 +323,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import interface_shell_embed, InterfaceShellTransformer
+            sage: from sage.repl.interpreter import interface_shell_embed, InterfaceShellTransformer
             sage: shell = interface_shell_embed(maxima)
             sage: ift = InterfaceShellTransformer(shell=shell, config=shell.config, prefilter_manager=shell.prefilter_manager)
             sage: ift.transform('2+2', False)   # note: output contains triple quotation marks
@@ -361,7 +361,7 @@ def interface_shell_embed(interface):
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import interface_shell_embed
+        sage: from sage.repl.interpreter import interface_shell_embed
         sage: shell = interface_shell_embed(gap)
         sage: shell.run_cell('List( [1..10], IsPrime )')
         [ false, true, true, false, true, false, true, false, false, false ]
@@ -398,16 +398,16 @@ def get_test_shell():
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell(); shell
-        <sage.misc.interpreter.SageInteractiveShell object at 0x...>
+        <sage.repl.interpreter.SageInteractiveShell object at 0x...>
 
     TESTS:
 
     Check that :trac:`14070` has been resolved::
 
         sage: from sage.tests.cmdline import test_executable
-        sage: cmd = 'from sage.misc.interpreter import get_test_shell; shell = get_test_shell()'
+        sage: cmd = 'from sage.repl.interpreter import get_test_shell; shell = get_test_shell()'
         sage: (out, err, ret) = test_executable(["sage", "-c", cmd])
         sage: out + err
         ''
@@ -432,10 +432,10 @@ class SageCrashHandler(IPAppCrashHandler):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import SageTerminalApp, SageCrashHandler
+            sage: from sage.repl.interpreter import SageTerminalApp, SageCrashHandler
             sage: app = SageTerminalApp.instance()
             sage: sch = SageCrashHandler(app); sch
-            <sage.misc.interpreter.SageCrashHandler object at 0x...>
+            <sage.repl.interpreter.SageCrashHandler object at 0x...>
             sage: sorted(sch.info.items())
             [('app_name', u'Sage'),
              ('bug_tracker', 'http://trac.sagemath.org'),
@@ -468,7 +468,7 @@ class SageTerminalApp(TerminalIPythonApp):
         Test that :trac:`15972` has been fixed::
 
             sage: from sage.misc.temporary_file import tmp_dir
-            sage: from sage.misc.interpreter import SageTerminalApp
+            sage: from sage.repl.interpreter import SageTerminalApp
             sage: d = tmp_dir()
             sage: IPYTHONDIR = os.environ['IPYTHONDIR']
             sage: os.environ['IPYTHONDIR'] = d
@@ -495,11 +495,11 @@ class SageTerminalApp(TerminalIPythonApp):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import SageTerminalApp, DEFAULT_SAGE_CONFIG
+            sage: from sage.repl.interpreter import SageTerminalApp, DEFAULT_SAGE_CONFIG
             sage: app = SageTerminalApp(config=DEFAULT_SAGE_CONFIG)
             sage: app.initialize(argv=[])  # indirect doctest
             sage: app.shell
-            <sage.misc.interpreter.SageInteractiveShell object at 0x...>
+            <sage.repl.interpreter.SageInteractiveShell object at 0x...>
         """
         # Shell initialization
         self.shell = SageInteractiveShell.instance(config=self.config,

@@ -102,8 +102,8 @@ def init_sage():
     debug.refine_category_hash_check = True
 
     # Disable IPython colors during doctests
-    from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
-    DEFAULT_SAGE_CONFIG['TerminalInteractiveShell']['colors'] = 'NoColor'
+    from sage.repl.interpreter import DEFAULT_SAGE_CONFIG
+    DEFAULT_SAGE_CONFIG.TerminalInteractiveShell.colors = 'NoColor'
 
     # We import readline before forking, otherwise Pdb doesn't work
     # os OS X: http://trac.sagemath.org/14289
@@ -1099,9 +1099,10 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         print(src)
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
-                    from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
+                    from sage.repl.interpreter import DEFAULT_SAGE_CONFIG
                     from IPython.terminal.embed import InteractiveShellEmbed
-                    cfg = DEFAULT_SAGE_CONFIG.copy()
+                    import copy
+                    cfg = copy.deepcopy(DEFAULT_SAGE_CONFIG)
                     prompt_config = cfg.PromptManager
                     prompt_config.in_template = 'debug: '
                     prompt_config.in2_template = '.....: '

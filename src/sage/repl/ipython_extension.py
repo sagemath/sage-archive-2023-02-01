@@ -17,7 +17,7 @@ TESTS:
 We test that preparsing is off for ``%runfile``, on for ``%time``::
 
     sage: import os, re
-    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.repl.interpreter import get_test_shell
     sage: from sage.misc.misc import tmp_dir
     sage: shell = get_test_shell()
     sage: TMP = tmp_dir()
@@ -44,7 +44,7 @@ In contrast, input to the ``%time`` magic command is preparsed::
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
-import preparser
+import sage.misc.preparser as preparser
 
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
 
@@ -63,7 +63,7 @@ class SageMagics(Magics):
         EXAMPLES::
 
             sage: import os
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: from sage.misc.misc import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
@@ -87,7 +87,7 @@ class SageMagics(Magics):
         EXAMPLES::
 
             sage: import os
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
             sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
@@ -100,7 +100,7 @@ class SageMagics(Magics):
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::
 
-            sage: shell.run_cell('from sage.misc.inputhook import sage_inputhook')
+            sage: shell.run_cell('from sage.repl.inputhook import sage_inputhook')
             sage: shell.run_cell('sage_inputhook()')
             ### reloading attached file run_cell.py modified at ... ###
             0
@@ -165,7 +165,7 @@ class SageMagics(Magics):
 
         How to use: if you want activate the ASCII art mod::
 
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('%display ascii_art')
 
@@ -229,7 +229,7 @@ class SageMagics(Magics):
             if max_width <= 0:
                 raise ValueError(
                         "ascii_art max width must be a positive integer")
-            import ascii_art
+            import sage.misc.ascii_art as ascii_art
             ascii_art.MAX_WIDTH = max_width
 
         self.shell.display_formatter.formatters['text/plain'].set_display(
@@ -246,11 +246,11 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import displayhook
+        import sage.misc.displayhook as displayhook
         self.shell.display_formatter.formatters['text/plain'] = (
                 displayhook.SagePlainTextFormatter(config=shell.config))
 
-        import edit_module
+        import sage.misc.edit_module as edit_module
         self.shell.set_hook('editor', edit_module.edit_devel)
 
         self.init_inspector()
@@ -272,7 +272,7 @@ class SageCustomizations(object):
 
     def register_interface_magics(self):
         """Register magics for each of the Sage interfaces"""
-        from superseded import deprecation
+        from sage.misc.superseded import deprecation
         import sage.interfaces.all
         interfaces = [(name, obj)
                       for name, obj in sage.interfaces.all.__dict__.items()
@@ -327,7 +327,8 @@ class SageCustomizations(object):
         # that we could override; however, IPython looks them up in
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
-        import sagedoc, sageinspect
+        import sage.misc.sagedoc as sagedoc
+        import sage.misc.sageinspect as sageinspect
         import IPython.core.oinspect
         IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
         IPython.core.oinspect.getsource = sagedoc.my_getsource
@@ -338,8 +339,7 @@ class SageCustomizations(object):
         Set up transforms (like the preparser).
         """
         from interpreter import (SagePreparseTransformer,
-                                 SagePromptTransformer,
-                                 preparser)
+                                 SagePromptTransformer)
 
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
             s.physical_line_transforms.append(SagePromptTransformer())
@@ -355,7 +355,7 @@ def run_once(func):
 
     TEST::
 
-        sage: from sage.misc.sage_extension import run_once
+        sage: from sage.repl.ipython_extension import run_once
         sage: @run_once
         ....: def foo(work):
         ....:     if work:

@@ -1105,16 +1105,31 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.center()
             (1,)
         """
+        R = self.base_ring()
         B = self.basis()
         K = list(B.keys())
-        R = self.base_ring()
-        M = FreeModule(R, len(K))
-        to_vector = lambda x: M([x[b] for b in K])
-        mats = [Matrix(R, [to_vector(B[i]*B[j] - B[j]*B[i]) for j in K], sparse=True).transpose()
-                for i in K]
-        m = Matrix.block(mats, ncols=1, subdivide=True)
+        k = len(K)
+        d = {}
+        for a,i in enumerate(K):
+            for b,j in enumerate(K):
+                for m,c in (B[i]*B[j] - B[j]*B[i]):
+                    d[(a, K.index(m)+k*b)] = c
+        m = Matrix(R, d, nrows=k, ncols=k**2, sparse=True)
         from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
-        return tuple(map( from_vector, m.right_kernel().basis() ))
+        return tuple(map( from_vector, m.kernel().basis() ))
+
+        # Dense version
+        # R = self.base_ring()
+        # B = self.basis()
+        # K = list(B.keys())
+        # eqns = [[] for dummy in range(k)]
+        # for a,i in enumerate(K):
+        #     for b,j in enumerate(K):
+        #         v = B[i]*B[j] - B[j]*B[i]
+        #         eqns[a].extend([v[k] for k in K])
+        # m = Matrix(R, eqns)
+        # from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        # return tuple(map( from_vector, m.kernel().basis() ))
 
     # Same as center except for superalgebras
     @cached_method
@@ -1147,16 +1162,31 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.supercenter()
             (1,)
         """
+        R = self.base_ring()
         B = self.basis()
         K = list(B.keys())
-        R = self.base_ring()
-        M = FreeModule(R, len(K))
-        to_vector = lambda x: M([x[b] for b in K])
-        mats = [Matrix(R, [to_vector( B[i].supercommutator(B[j]) ) for j in K], sparse=True).transpose()
-                for i in K]
-        m = Matrix.block(mats, ncols=1, subdivide=True)
+        k = len(K)
+        d = {}
+        for a,i in enumerate(K):
+            for b,j in enumerate(K):
+                for m,c in B[i].supercommutator(B[j]):
+                    d[(a, K.index(m)+k*b)] = c
+        m = Matrix(R, d, nrows=k, ncols=k**2, sparse=True)
         from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
-        return tuple(map( from_vector, m.right_kernel().basis() ))
+        return tuple(map( from_vector, m.kernel().basis() ))
+
+        # Dense version
+        # R = self.base_ring()
+        # B = self.basis()
+        # K = list(B.keys())
+        # eqns = [[] for dummy in range(k)]
+        # for a,i in enumerate(K):
+        #     for b,j in enumerate(K):
+        #         v = B[i].supercommutator(B[j])
+        #         eqns[a].extend([v[k] for k in K])
+        # m = Matrix(R, eqns)
+        # from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        # return tuple(map( from_vector, m.kernel().basis() ))
 
     Element = CliffordAlgebraElement
 

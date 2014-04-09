@@ -127,7 +127,7 @@ class Debug:
         except Exception:
             import sys
             t, v = sys.exc_info()[:2]
-            if type(t) == type(''):
+            if isinstance(t, type('')):
                 exc_type_name = t
             else:
                 exc_type_name = t.__name__

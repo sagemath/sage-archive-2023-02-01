@@ -926,7 +926,7 @@ class NumberFieldIdeal(Ideal_generic):
                 self.__integral_split = (self, ZZ(1))
             else:
                 factors = self.factor()
-                denom_list = filter(lambda (p,e): e < 0 , factors)
+                denom_list = filter(lambda p_e: p_e[1] < 0, factors)
                 denominator = prod([ p.smallest_integer()**(-e)
                                      for (p,e) in denom_list ])
                 ## Get a list of the primes dividing the denominator

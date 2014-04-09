@@ -363,7 +363,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         elif S is int:
             return rational.int_to_Q()
         elif ZZ.has_coerce_map_from(S):
-            return rational.Z_to_Q() * ZZ.coerce_map_from(S)
+            return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """

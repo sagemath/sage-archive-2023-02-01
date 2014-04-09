@@ -509,7 +509,7 @@ class LWE(SageObject):
             sage: lwe = LWE(n=20, q=next_prime(400), D=D, secret_dist=(-3, 3)); lwe
             LWE(20, 401, DiscreteGaussianSamplerRejection(3.000000, 53, 4), (-3, 3), None)
         """
-        if type(self.secret_dist) == str:
+        if isinstance(self.secret_dist, str):
             return "LWE(%d, %d, %s, '%s', %s)"%(self.n,self.K.order(),self.D,self.secret_dist, self.m)
         else:
             return "LWE(%d, %d, %s, %s, %s)"%(self.n,self.K.order(),self.D,self.secret_dist, self.m)
@@ -740,7 +740,7 @@ class RingLWE(SageObject):
             sage: RingLWE(N=16, q=next_prime(400), D=D);
             RingLWE(16, 401, DiscreteGaussianPolynomialSamplerRejection(8, 3.000000, 53, 4), x^8 + 1, 'uniform', None)
         """
-        if type(self.secret_dist) == str:
+        if isinstance(self.secret_dist, str):
             return "RingLWE(%d, %d, %s, %s, '%s', %s)"%(self.N, self.K.order(), self.D, self.poly, self.secret_dist, self.m)
         else:
             return "RingLWE(%d, %d, %s, %s, %s, %s)"%(self.N, self.K.order(), self.D, self.poly, self.secret_dist, self.m)
@@ -915,7 +915,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
     if isinstance(lwe, str):
         lwe = eval(lwe)
 
-    if type(lwe) == type:
+    if isinstance(lwe, type):
         lwe = lwe(n, m=m, **kwds)
     else:
         lwe = lwe
@@ -923,7 +923,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
             raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function."%(lwe.n, n))
 
     if balanced is False:
-        f = lambda (a,c): (a,c)
+        f = lambda a_c: a_c
     else:
         f = balance_sample
     return [f(lwe()) for _ in xrange(m)]

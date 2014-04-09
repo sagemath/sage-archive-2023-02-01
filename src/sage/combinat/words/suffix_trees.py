@@ -649,7 +649,7 @@ class ImplicitSuffixTree(SageObject):
         self._active_state = (s, (k, i+1))
         return
 
-    def _test_and_split(self, s, (k, p), letter):
+    def _test_and_split(self, s, k_p, letter):
         r"""
         Helper function for _process_letter. Tests to see whether an edge
         needs to be split. Returns ``(True, state)``, where ``state`` is the
@@ -664,6 +664,7 @@ class ImplicitSuffixTree(SageObject):
             sage: t._test_and_split(0, (4,5), w.parent().alphabet().rank("o"))
             (False, 3)
         """
+        (k, p) = k_p
         if k <= p:
             # find the transition from s that begins with k-th letter
             ((kk,pp), ss) = self._find_transition(s, self._letters[k-1])
@@ -684,7 +685,7 @@ class ImplicitSuffixTree(SageObject):
             else:
                 return (True, s)
 
-    def _canonize(self, s, (k, p)):
+    def _canonize(self, s, k_p):
         r"""
         Given an implicit or explicit reference pair for a node, returns
         the canonical reference pair.
@@ -703,8 +704,9 @@ class ImplicitSuffixTree(SageObject):
             sage: t._canonize(0,(2,5))
             (5, 3)
         """
+        (k, p) = k_p
         if p < k:
-            return (s,k)
+            return (s, k)
         else:
             ((kk,pp), ss) = self._find_transition(s, self._letters[k-1])
             while pp is not None and pp - kk <= p - k:

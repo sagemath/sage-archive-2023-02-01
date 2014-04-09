@@ -9463,7 +9463,7 @@ def NumberField_absolute_v1(poly, name, latex_name, canonical_embedding=None):
         sage: NumberField_absolute_v1(x^2 + 1, 'i', 'i')
         Number Field in i with defining polynomial x^2 + 1
     """
-    return NumberField_absolute(poly, name, latex_name, check=False, embedding=canonical_embedding)
+    return NumberField(polynomial=poly, name=name, latex_name=latex_name, check=False, embedding=canonical_embedding)
 
 NumberField_generic_v1 = NumberField_absolute_v1  # for historical reasons only (so old objects unpickle)
 
@@ -9479,7 +9479,7 @@ def NumberField_cyclotomic_v1(zeta_order, name, canonical_embedding=None):
         sage: NumberField_cyclotomic_v1(5,'a').variable_name()
         'a'
     """
-    return NumberField_cyclotomic(zeta_order, name, embedding=canonical_embedding)
+    return CyclotomicField(n=zeta_order, names=name, embedding=canonical_embedding)
 
 def NumberField_quadratic_v1(poly, name, canonical_embedding=None):
     """
@@ -9492,8 +9492,7 @@ def NumberField_quadratic_v1(poly, name, canonical_embedding=None):
         sage: NumberField_quadratic_v1(x^2 - 2, 'd')
         Number Field in d with defining polynomial x^2 - 2
     """
-    return NumberField_quadratic(poly, name, check=False, embedding=canonical_embedding)
-
+    return NumberField(polynomial=poly, name=name, check=False, embedding=canonical_embedding)
 
 def put_natural_embedding_first(v):
     """

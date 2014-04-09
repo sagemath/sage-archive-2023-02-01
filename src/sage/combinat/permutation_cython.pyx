@@ -85,7 +85,7 @@ cdef int next_swap(int n, int *c, int *o):
         return -1
     s = -1
 
-    while 1:
+    while True:
         #state 4
         q = c[j] + o[j]
         if q == j:

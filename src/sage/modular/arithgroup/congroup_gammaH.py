@@ -137,8 +137,7 @@ def _normalize_H(H, level):
     for h in H:
         if gcd(h, level) > 1:
             raise ArithmeticError, 'The generators %s must be units modulo %s'%(H, level)
-    H = list(set([h%level for h in H]))
-    H.sort()
+    H = sorted(set([h%level for h in H]))
     if 1 in H:
         H.remove(1)
     return H
@@ -1230,8 +1229,7 @@ def _list_subgroup(N, gens):
             gk = (gk * g)%N
             sbgrp.append(gk)
         H = set([(x*h)%N for x in sbgrp for h in H])
-    H = list(H)
-    H.sort()
+    H = sorted(H)
     return H
 
 def _GammaH_coset_helper(N, H):

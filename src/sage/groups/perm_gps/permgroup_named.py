@@ -90,7 +90,6 @@ from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method, weak_cached_function
-from sage.misc.classcall_metaclass import typecall
 from sage.misc.superseded import deprecated_function_alias
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -99,10 +98,10 @@ from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.sets.primes import Primes
+
 
 class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
     """
@@ -193,12 +192,11 @@ class PermutationGroup_symalt(PermutationGroup_unique):
                 try:
                     domain = Integer(domain)
                 except TypeError:
-                    raise ValueError("domain (=%s) must be an integer >= 0 or a finite set (but domain has type %s)"%(domain,type(domain)))
+                    raise TypeError("domain (={}) must be an integer >= 0 or a finite set (but domain has type {})".format(domain, type(domain)))
 
                 if domain < 0:
-                    raise ValueError("domain (=%s) must be an integer >= 0 or a list"%domain)
-                else:
-                    domain = range(1, domain+1)
+                    raise ValueError("domain (={}) must be an integer >= 0 or a list".format(domain))
+                domain = range(1, domain+1)
             v = FiniteEnumeratedSet(domain)
         else:
             v = domain
@@ -207,19 +205,23 @@ class PermutationGroup_symalt(PermutationGroup_unique):
 
     set = deprecated_function_alias(10335, PermutationGroup_generic.domain)
 
+
 class SymmetricGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
-        """
-        The full symmetric group of order $n!$, as a permutation group.
+        r"""
+        The full symmetric group of order `n!`, as a permutation group.
+
         If n is a list or tuple of positive integers then it returns the
         symmetric group of the associated set.
 
         INPUT:
 
-         - ``n`` - a positive integer, or list or tuple thereof
+        - ``n`` -- a positive integer, or list or tuple thereof
 
-        .. note::
-          This group is also available via ``groups.permutation.Symmetric()``.
+        .. NOTE::
+
+            This group is also available via
+            ``groups.permutation.Symmetric()``.
 
         EXAMPLES::
 
@@ -263,15 +265,15 @@ class SymmetricGroup(PermutationGroup_symalt):
 
         self._domain = domain
         self._deg = len(self._domain)
-        self._domain_to_gap = dict((key, i+1) for i, key in enumerate(self._domain))
-        self._domain_from_gap = dict((i+1, key) for i, key in enumerate(self._domain))
+        self._domain_to_gap = {key: i+1 for i, key in enumerate(self._domain)}
+        self._domain_from_gap = {i+1: key for i, key in enumerate(self._domain)}
 
         #Create the generators for the symmetric group
-        gens = [ tuple(self._domain) ]
+        gens = [tuple(self._domain)]
         if len(self._domain) > 2:
-            gens.append( tuple(self._domain[:2]) )
-        self._gens = [PermutationGroupElement(g, self, check=False) for g in gens]
-
+            gens.append(tuple(self._domain[:2]))
+        self._gens = [PermutationGroupElement(g, self, check=False)
+                      for g in gens]
 
     def _gap_init_(self, gap=None):
         """
@@ -286,7 +288,7 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S._gap_init_()
             'SymmetricGroup(3)'
         """
-        return 'SymmetricGroup(%s)'%self.degree()
+        return 'SymmetricGroup({})'.format(self.degree())
 
     @cached_method
     def index_set(self):
@@ -318,8 +320,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         if isinstance(x, SymmetricGroup):
             return cmp((self._deg, self._domain), (x._deg, x._domain))
-        else:
-            return PermutationGroup_generic.__cmp__(self, x)
+        return PermutationGroup_generic.__cmp__(self, x)
 
     def _repr_(self):
         """
@@ -328,10 +329,24 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = SymmetricGroup([2,3,7]); A
             Symmetric group of order 3! as a permutation group
         """
-        return "Symmetric group of order %s! as a permutation group"%self.degree()
+        return "Symmetric group of order {}! as a permutation group".format(self.degree())
+
+    def cartan_type(self):
+        r"""
+        Return the Cartan type of ``self``
+
+        The symmetric group `S_n` is a Coxeter group of type `A_{n-1}`.
+
+        EXAMPLES::
+
+            sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
+            ['A', 2]
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        return CartanType(['A', self.degree() - 1])
 
     def simple_reflection(self, i):
-        """
+        r"""
         For `i` in the index set of ``self``, this returns the
         elementary transposition `s_i=(i,i+1)`.
 
@@ -374,7 +389,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = []
         pos = 0
         for c in comp:
-            for i in range(c-1):
+            for i in range(c - 1):
                 gens.append(self((domain[pos + i], domain[pos + i + 1])))
             pos += c
 
@@ -409,6 +424,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.combinat.q_analogues import q_factorial
         return q_factorial(self.degree(), parameter)
 
+
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
         """
@@ -430,7 +446,7 @@ class AlternatingGroup(PermutationGroup_symalt):
             Alternating group of order 6!/2 as a permutation group
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
             sage: G = AlternatingGroup([1,2,4,5])
             sage: G
@@ -1019,7 +1035,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
             sage: G = GeneralDihedralGroup([5,5,5])
             sage: G.order()
             250
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
         """
 
 
@@ -1041,8 +1057,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         # To get uniform outputs for isomorphic inputs, we break
         # each inputted cyclic group into a direct product of cyclic
         # p-groups
-        simplified = [term[0]**term[1] for a in factors for term in a.factor()]
-        simplified.sort()
+        simplified = sorted([term[0]**term[1] for a in factors for term in a.factor()])
 
         gens = []
         # genx is an element of order two that turns each of the
@@ -2287,7 +2302,7 @@ class PGL(PermutationGroup_plg):
 
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
         TESTS::
 
@@ -2354,7 +2369,7 @@ class PSL(PermutationGroup_plg):
 
             sage: G.category()
             Category of finite permutation groups
-            sage: TestSuite(G).run()
+            sage: TestSuite(G).run() # long time
 
         TESTS::
 

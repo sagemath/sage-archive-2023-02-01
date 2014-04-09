@@ -1403,12 +1403,10 @@ class EllipticCurveCanonicalHeight:
             sage: H.wp_c(K.places()[0])
             2.66213425640096
         """
-        K = self.E.base_ring()
         # Note that we normalise w1, w2 differently from [TT]_!
         w2, w1 = self.E.period_lattice(v).normalised_basis()
-        series = list(self.E._pari_().ellwp(n=5))
-        c2, c3 = v(K(series[2])) * abs(w1) ** 4, v(K(series[4])) * abs(w1) ** 6
-        return max(RR(abs(c2)) ** 0.5, RR(abs(c3)) ** (1.0/3))
+        return max(abs(v(self.E.c4()/240)) ** 0.5,
+                   abs(v(self.E.c6()/6048)) ** (1.0/3)) * abs(w1)**2
 
     def fk_intervals(self, v=None, N=20, domain=CIF):
         r"""

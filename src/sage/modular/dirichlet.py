@@ -1588,51 +1588,39 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
 class DirichletGroupFactory(UniqueFactory):
     r"""
-    The group of Dirichlet characters modulo `N` with values in
-    the subgroup `\langle \zeta_n\rangle` of the
-    multiplicative group of the ``base_ring``. If the
-    base_ring is omitted then we use `\QQ(\zeta_n)`,
-    where `n` is the exponent of
-    `(\ZZ/N\ZZ)^*`. If `\zeta` is omitted
-    then we compute and use a maximal-order zeta in base_ring, if
-    possible.
+    The group of Dirichlet characters modulo `N` with values in the subgroup
+    `\langle \zeta_n\rangle` of the multiplicative group of the ``base_ring``.
+    If ``base_ring`` is omitted then we use `\QQ(\zeta_n)`, where `n` is the
+    exponent of `(\ZZ/N\ZZ)^*`. If `\zeta` is omitted then we compute and use a
+    maximal-order zeta in ``base_ring``, if possible.
 
     INPUT:
 
+    - ``N`` - an integer
 
-    -  ``modulus`` - int
+    - ``base_ring`` - a ring (optional), where characters take their values
+      (should be an integral domain)
 
-    -  ``base_ring`` - Ring (optional), where characters
-       take their values (should be an integral domain).
+    - ``zeta`` - an element (optional), a root of unity in ``base_ring``
 
-    -  ``zeta`` - Element (optional), element of
-       base_ring; zeta is a root of unity
+    - ``zeta_order`` - an integer (optional), the order of zeta
 
-    -  ``zeta_order`` - int (optional), the order of zeta
+    - ``names`` - ignored (needed so ``G.... = DirichletGroup(...)`` notation
+      works)
 
-    -  ``names`` - ignored (needed so G.... =
-       DirichletGroup(...) notation works)
-
-    -  ``integral`` - boolean (default:
-       ``False``). If ``True``, return the group
-       with base_ring the ring of integers in the smallest choice of
-       CyclotomicField. Ignored if base_ring is not
-       ``None``.
-
+    - ``integral`` - a boolean (default: ``False``). If ``True``, return the
+      group with ``base_ring`` the ring of integers in the smallest choice of
+      :meth:`sage.rings.number_field.number_field.CyclotomicField`. Ignored if
+      ``base_ring`` is not ``None``.
 
     OUTPUT:
 
-
-    -  ``DirichletGroup`` - a group of Dirichlet
-       characters.
-
+    a group of Dirichlet characters
 
     EXAMPLES:
 
     The default base ring is a cyclotomic field of order the exponent
-    of `(\ZZ/N\ZZ)^*`.
-
-    ::
+    of `(\ZZ/N\ZZ)^*`::
 
         sage: DirichletGroup(20)
         Group of Dirichlet characters of modulus 20 over Cyclotomic Field of order 4 and degree 2
@@ -1654,13 +1642,13 @@ class DirichletGroupFactory(UniqueFactory):
         [Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1, Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1, Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
 
     Next we construct the group of Dirichlet character mod 20, but with
-    values in Q(zeta_n)::
+    values in `\QQ(\zeta_n)`::
 
         sage: G = DirichletGroup(20)
         sage: G.1
         Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4
 
-    We next compute several invariants of G::
+    We next compute several invariants of ``G``::
 
         sage: G.gens()
         (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4)
@@ -1672,9 +1660,7 @@ class DirichletGroupFactory(UniqueFactory):
         4
 
     In this example we create a Dirichlet character with values in a
-    number field. We have to give zeta, but not its order.
-
-    ::
+    number field. We have to give ``zeta``, but not its order::
 
         sage: R.<x> = PolynomialRing(QQ)
         sage: K.<a> = NumberField(x^4 + 1)
@@ -1695,18 +1681,14 @@ class DirichletGroupFactory(UniqueFactory):
         sage: loads(G.dumps()) == G
         True
 
-    We compute a Dirichlet group over a large prime field.
-
-    ::
+    We compute a Dirichlet group over a large prime field::
 
         sage: p = next_prime(10^40)
         sage: g = DirichletGroup(19, GF(p)); g
         Group of Dirichlet characters of modulus 19 over Finite Field of size 10000000000000000000000000000000000000121
 
     Note that the root of unity has small order, i.e., it is not the
-    largest order root of unity in the field.
-
-    ::
+    largest order root of unity in the field::
 
         sage: g.zeta_order()
         2
@@ -1746,7 +1728,7 @@ class DirichletGroupFactory(UniqueFactory):
         True
 
     """
-    def create_key(self, modulus, base_ring=None, zeta=None, zeta_order=None, names=None, integral=False):
+    def create_key(self, N, base_ring=None, zeta=None, zeta_order=None, names=None, integral=False):
         """
         Create a key that uniquely determines a Dirichlet group.
 
@@ -1783,7 +1765,7 @@ class DirichletGroupFactory(UniqueFactory):
             False
 
         """
-        modulus = rings.Integer(modulus)
+        modulus = rings.Integer(N)
 
         if base_ring is None:
             if not (zeta is None and zeta_order is None):

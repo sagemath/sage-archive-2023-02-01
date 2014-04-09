@@ -23,6 +23,7 @@ from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWi
 from sage.categories.modules_with_basis import ModuleMorphismByLinearity
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
+from sage.matrix.constructor import Matrix
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
@@ -306,6 +307,48 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
     clifford_conjugate = conjugate
 
+    # TODO: This is a general function which should be moved to a
+    #   superalgebras category when one is implemented.
+    def supercommutator(self, x):
+        """
+        Return the supercommutator of ``self`` and ``x``.
+
+        Let `A` be a super algebra. The *supercommutator* of homogenous
+        element `x, y \in A` is defined by
+
+        .. MATH::
+
+            [x, y\} = x y - (-1)^{|x| |y|} y x
+
+        and extended to all elements by linearity.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: a = x*y - z
+            sage: b = x - y + y*z
+            sage: a.supercommutator(b)
+            -5*x*y + 8*x*z - 2*y*z - 6*x + 12*y - 5*z
+
+            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
+            sage: Cl.<x,y> = CliffordAlgebra(Q)
+            sage: [a.supercommutator(b) for a in Cl.basis() for b in Cl.basis()]
+            [0, 0, 0, 0, 0, -2, 1, -x - 2*y, 0, 1,
+             -6, 6*x + y, 0, x + 2*y, -6*x - y, 0]
+            sage: [a*b-b*a for a in Cl.basis() for b in Cl.basis()]
+            [0, 0, 0, 0, 0, 0, 2*x*y - 1, -x - 2*y, 0,
+             -2*x*y + 1, 0, 6*x + y, 0, x + 2*y, -6*x - y, 0]
+        """
+        P = self.parent()
+        ret = P.zero()
+        for ms,cs in self:
+            for mx,cx in x:
+                ret += P.term(ms, cs) * P.term(mx, cx)
+                s = (-1)**(P.degree_on_basis(ms) * P.degree_on_basis(mx))
+                ret -= s * P.term(mx, cx) * P.term(ms, cs)
+        return ret
+
 class CliffordAlgebra(CombinatorialFreeModule):
     r"""
     The Clifford algebra of a quadratic form.
@@ -503,11 +546,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl._repr_term((1,))
             'y'
         """
-        if len(m) == 0:
+        if not m:
             return '1'
         term = ''
         for i in m:
-            if len(term) != 0:
+            if term:
                 term += '*'
             term += self.variable_names()[i]
         return term
@@ -524,7 +567,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl._latex_term((0,2))
             ' x z'
         """
-        if len(m) == 0:
+        if not m:
             return '1'
         term = ''
         for i in m:
@@ -689,7 +732,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.algebra_generators()
             (x, y, z)
         """
-        return tuple(self.gen(i) for i in range(self.ngens()))
+        d = self._quadratic_form.dim()
+        return tuple(self.gen(i) for i in range(d))
 
     gens = algebra_generators
 
@@ -731,7 +775,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.is_commutative()
             False
         """
-        return self.ngens() < 2
+        return self._quadratic_form.dim() < 2
 
     def quadratic_form(self):
         """
@@ -806,6 +850,30 @@ class CliffordAlgebra(CombinatorialFreeModule):
             8
         """
         return ZZ(2)**self._quadratic_form.dim()
+
+    def pseudoscalar(self):
+        """
+        Return the unit pseudoscalar of ``self``.
+
+        Given the basis `e_1, e_2, \ldots, e_n` of the underlying
+        `R`-module, the unit pseudoscalar is defined as
+        `e_1 \cdot e_2 \cdots e_n`.
+
+        This depends on the choice of basis.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.pseudoscalar()
+            x*y*z
+
+        REFERENCES:
+
+        - :wikipedia:`Classification_of_Clifford_algebras#Pseudoscalar
+        """
+        d = self._quadratic_form.dim()
+        return self.element_class(self, {tuple(range(d)): self.base_ring().one()})
 
     def lift_module_morphism(self, m, names=None):
         r"""
@@ -1000,6 +1068,96 @@ class CliffordAlgebra(CombinatorialFreeModule):
                               for i in x)
         return self.module_morphism(on_basis=f, codomain=Cl,
                                     category=GradedAlgebrasWithBasis(self.base_ring()))
+
+    # This is a general method for finite dimensional algebras with bases
+    #   and should be moved to the corresponding category once there is
+    #   a category level method for getting the indexing set of the basis;
+    #   similar to #15289 but on a category level.
+    @cached_method
+    def center(self):
+        """
+        Return a list of elements which correspond to a basis for the center
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Z = Cl.center(); Z
+            (1, -2*x*y*z + 5*x - 3*y + 2*z)
+            sage: all(z*b - b*z == 0 for z in Z for b in Cl.basis())
+            True
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,-2,-3, 4, 2, 1])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Z = Cl.center(); Z
+            (1, -2*x*y*z + 2*x + 3*y - 2*z)
+            sage: all(z*b - b*z == 0 for z in Z for b in Cl.basis())
+            True
+
+            sage: Q = QuadraticForm(ZZ, 2, [1,-2,-3])
+            sage: Cl.<x,y> = CliffordAlgebra(Q)
+            sage: Cl.center()
+            (1,)
+
+            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
+            sage: Cl.<x,y> = CliffordAlgebra(Q)
+            sage: Cl.center()
+            (1,)
+        """
+        B = self.basis()
+        K = list(B.keys())
+        R = self.base_ring()
+        M = FreeModule(R, len(K))
+        to_vector = lambda x: M([x[b] for b in K])
+        mats = [Matrix(R, [to_vector(B[i]*B[j] - B[j]*B[i]) for j in K], sparse=True).transpose()
+                for i in K]
+        m = Matrix.block(mats, ncols=1, subdivide=True)
+        from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        return tuple(map( from_vector, m.right_kernel().basis() ))
+
+    # Same as center except for superalgebras
+    @cached_method
+    def supercenter(self):
+        """
+        Return a list of elements which correspond to a basis for the
+        supercenter of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: SZ = Cl.supercenter(); SZ
+            (1,)
+            sage: all(z.supercommutator(b) == 0 for z in SZ for b in Cl.basis())
+            True
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,-2,-3, 4, 2, 1])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.supercenter()
+            (1,)
+
+            sage: Q = QuadraticForm(ZZ, 2, [1,-2,-3])
+            sage: Cl.<x,y> = CliffordAlgebra(Q)
+            sage: Cl.center()
+            (1,)
+
+            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
+            sage: Cl.<x,y> = CliffordAlgebra(Q)
+            sage: Cl.supercenter()
+            (1,)
+        """
+        B = self.basis()
+        K = list(B.keys())
+        R = self.base_ring()
+        M = FreeModule(R, len(K))
+        to_vector = lambda x: M([x[b] for b in K])
+        mats = [Matrix(R, [to_vector( B[i].supercommutator(B[j]) ) for j in K], sparse=True).transpose()
+                for i in K]
+        m = Matrix.block(mats, ncols=1, subdivide=True)
+        print m.str()
+        from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        return tuple(map( from_vector, m.right_kernel().basis() ))
 
     Element = CliffordAlgebraElement
 
@@ -1275,7 +1433,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.volume_form()
             x^y^z
         """
-        return self.element_class(self, {tuple(range(self.ngens())): self.base_ring().one()})
+        d = self._quadratic_form.dim()
+        return self.element_class(self, {tuple(range(d)): self.base_ring().one()})
 
     def boundary(self, s_coeff):
         r"""
@@ -1420,8 +1579,8 @@ class ExteriorAlgebra(CliffordAlgebra):
         Return the interior product `\iota_b a` of ``a`` with respect to
         ``b``.
 
-        See :meth:`~sage.algebras.clifford_algebra.CliffordAlgebra.Element.interior_product` for more
-        information.
+        See :meth:`~sage.algebras.clifford_algebra.CliffordAlgebra.Element.interior_product`
+        for more information.
 
         This depends on the choice of basis of the vector space
         whose exterior algebra is ``self``.
@@ -1555,6 +1714,13 @@ class ExteriorAlgebra(CliffordAlgebra):
             `V` (by identifying the standard basis of `V = R^d` with its
             dual basis). This is how `\alpha` should be passed to this
             method.
+
+            We then extend the interior product to all
+            `\alpha \in \Lambda V^*` by
+
+            .. MATH::
+
+                i_{\beta \wedge \gamma} = i_{\gamma} \circ i_{\beta}.
 
             INPUT:
 
@@ -1774,7 +1940,8 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
       `I` is the index set of the underlying vector space `V`, and whose
       values can be coerced into 1-forms (degree 1 elements) in ``E``;
       this dictionary will be used to define the coefficients
-      `s_{jk}^i` (TODO: how exactly?).
+      `s_{jk}^i` by the key `(j, k)` reordered such that `j < k` (if swapped,
+      then it negates the value) and the coefficient of `i` in the value
 
     EXAMPLES:
 
@@ -1911,7 +2078,8 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
       `I` is the index set of the underlying vector space of `L`, and
       whose values can be coerced into 1-forms (degree 1 elements) in
       ``E``; this dictionary will be used to define the coefficients
-      `s_{jk}^i` (TODO: how exactly?).
+      `s_{jk}^i` by the key `(j, k)` reordered such that `j < k` (if swapped,
+      then it negates the value) and the coefficient of `i` in the value
 
     EXAMPLES:
 

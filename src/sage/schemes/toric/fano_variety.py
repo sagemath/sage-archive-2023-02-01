@@ -1498,7 +1498,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
 
     EXAMPLES::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: np = o.nef_partitions()[0]
         sage: np
         Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -1523,7 +1523,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -1621,7 +1621,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}

@@ -189,7 +189,7 @@ quotient singularities::
 
 In higher dimensions worse things can happen::
 
-    sage: TV3 = ToricVariety(NormalFan(lattice_polytope.octahedron(3)))
+    sage: TV3 = ToricVariety(NormalFan(lattice_polytope.cross_polytope(3)))
     sage: TV3.fan().rays()
     N(-1, -1,  1),
     N( 1, -1,  1),
@@ -1417,7 +1417,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P1xP1 = ToricVariety(fan1)
             sage: P1xP1.is_orbifold()
             True
-            sage: fan2 = NormalFan(lattice_polytope.octahedron(3))
+            sage: fan2 = NormalFan(lattice_polytope.cross_polytope(3))
             sage: TV = ToricVariety(fan2)
             sage: TV.is_orbifold()
             False
@@ -1724,7 +1724,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         Now let's "automatically" partially resolve a more complicated fan::
 
-            sage: fan = NormalFan(lattice_polytope.octahedron(3))
+            sage: fan = NormalFan(lattice_polytope.cross_polytope(3))
             sage: TV = ToricVariety(fan)
             sage: TV.is_smooth()
             False
@@ -1808,7 +1808,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         EXAMPLES::
 
-            sage: fan = NormalFan(lattice_polytope.octahedron(3))
+            sage: fan = NormalFan(lattice_polytope.cross_polytope(3))
             sage: TV = ToricVariety(fan)
             sage: TV.is_orbifold()
             False
@@ -2772,7 +2772,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: V = ToricVariety(FaceFan(o))
             sage: V2 = V.change_ring(GF(2))
             sage: V2.point_set().cardinality()

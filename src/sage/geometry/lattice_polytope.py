@@ -147,7 +147,7 @@ class SetOfAllLatticePolytopesClass(Set_generic):
         r"""
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: lattice_polytope.SetOfAllLatticePolytopesClass().__call__(o)
             3-d reflexive polytope in 3-d lattice M
         """
@@ -548,7 +548,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: hash(o) == hash(o)
             True
         """
@@ -598,7 +598,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc() == loads(o.dumps()).vertices_pc()
             True
         """
@@ -619,7 +619,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc() == loads(o.dumps()).vertices_pc()
             True
         """
@@ -719,7 +719,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: v = o.__dict__.pop("_faces", None) # faces may be cached already
             sage: "_faces" in o.__dict__
             False
@@ -787,7 +787,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o._compute_hodge_numbers()
             Traceback (most recent call last):
             ...
@@ -855,7 +855,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o._embed(o.vertices_pc()) == o.vertices_pc()
             True
             sage: m = matrix(ZZ, 3)
@@ -890,7 +890,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: e = o.faces(dim=1)[0]
             sage: v = e.__dict__.pop("_points", None) # points may be cached already
             sage: "_points" in e.__dict__
@@ -912,7 +912,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: c = lattice_polytope.octahedron(3).polar()
+            sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: f = c.facets()[0]
             sage: v = f.__dict__.pop("_interior_points", None)
             sage: "_interior_points" in f.__dict__
@@ -1000,7 +1000,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o._palp("poly.x -f")
             'M:7 6 N:27 8 Pic:17 Cor:0\n'
             sage: print o._palp("nef.x -f -N -p") # random time information
@@ -1086,7 +1086,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o._pullback(o.vertices_pc().column_matrix()) == o.vertices_pc().column_matrix()
             True
             sage: m = matrix(ZZ, 3)
@@ -1219,7 +1219,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: s = o.poly_x("i")
             sage: print s
             Incidences as binary numbers [F-vector=(6 12 8)]:
@@ -1308,7 +1308,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: s = o.nef_x("-p -N -Lv")
             sage: print s # random time values
             M:27 8 N:7 6  codim=2 #part=5
@@ -1405,7 +1405,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o._repr_()
             '3-d reflexive polytope in 3-d lattice M'
         """
@@ -1523,7 +1523,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: We create a 3-dimensional octahedron and check its
         ambient dimension::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.ambient_dim()
             3
         """
@@ -1536,7 +1536,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: We create a 3-dimensional octahedron and check its
         dimension::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.dim()
             3
 
@@ -1571,7 +1571,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: The matrix of distances for a 3-dimensional octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.distances()
             [0 0 2 2 2 0 1]
             [2 0 2 0 2 0 1]
@@ -1660,7 +1660,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: The octahedron has 12 edges::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: len(o.edges())
             12
             sage: o.edges()
@@ -1679,7 +1679,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: All faces of the 3-dimensional octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.faces()
             [
             [[0], [1], [2], [3], [4], [5]],
@@ -1757,7 +1757,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Let's take a look at facets of the octahedron and some polytopes
         inside it::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -1837,7 +1837,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         For reflexive polytopes all constants are 1::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -1890,7 +1890,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Let's take a look at facets of the octahedron and some polytopes
         inside it::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -1973,7 +1973,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Normals to facets of an octahedron are vertices of a cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -2024,7 +2024,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: All facets of the 3-dimensional octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.facets()
             [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
 
@@ -2112,7 +2112,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: The 3-dimensional octahedron is reflexive (and 4318 other
         3-polytopes)::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.is_reflexive()
             True
 
@@ -2142,7 +2142,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: lattice_polytope.octahedron(3).lattice()
+            sage: lattice_polytope.cross_polytope(3).lattice()
             3-d lattice M
         """
         return self._vertices.module()
@@ -2317,7 +2317,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: This call is used internally for computing
         nef-partitions::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: s = o.nef_x("-N -V -p")
             sage: s                      # output contains random time
             M:27 8 N:7 6  codim=2 #part=5
@@ -2338,7 +2338,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: The number of facets of the 3-dimensional octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.nfacets()
             8
 
@@ -2361,7 +2361,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.normal_form()
             doctest:1: DeprecationWarning: normal_form() output will change,
             please use normal_form_pc().column_matrix() instead
@@ -2451,7 +2451,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: The number of lattice points of the 3-dimensional
         octahedron and its polar cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.npoints()
             7
             sage: cube = o.polar()
@@ -2470,7 +2470,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: The number of vertices of the 3-dimensional octahedron
         and its polar cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.nvertices()
             6
             sage: cube = o.polar()
@@ -2522,7 +2522,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.parent()
             Set of all Lattice Polytopes
         """
@@ -2604,7 +2604,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: The default plot of a cube::
 
-            sage: c = lattice_polytope.octahedron(3).polar()
+            sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: c.plot3d()
 
         Plot without facets and points, shown without the frame::
@@ -2699,7 +2699,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.show3d()
         """
         self.plot3d().show(axis=False, frame=False)
@@ -2711,7 +2711,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: First few points are actually vertices::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -2745,7 +2745,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.points()
             doctest:1: DeprecationWarning: points() output will change,
             please use points_pc().column_matrix() instead or
@@ -2772,7 +2772,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Lattice points of the octahedron and its polar cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.points_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -2850,7 +2850,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: The polar polytope to the 3-dimensional octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: cube
             3-d reflexive polytope in 3-d lattice N
@@ -2899,7 +2899,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: This call is used for determining if a polytope is
         reflexive or not::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: print o.poly_x("e")
             8 3  Vertices of P-dual <-> Equations of P
               -1  -1   1
@@ -2978,7 +2978,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: We compute all skeleton points for the cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: c = o.polar()
             sage: c.skeleton_points()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 19, 21, 22, 23, 25, 26]
@@ -3032,7 +3032,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: Show a pretty picture of the octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.skeleton_show([1,2,4])
 
         Does not work for a diamond at the moment::
@@ -3089,7 +3089,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: Note that numeration starts with zero::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -3110,7 +3110,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: The lattice points of the 3-dimensional octahedron and
         its polar cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices()
             doctest:1: DeprecationWarning: vertices() output will change,
             please use vertices_pc().column_matrix() instead or
@@ -3142,7 +3142,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Vertices of the octahedron and its polar cube are in dual lattices::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: o.vertices_pc()
             M( 1,  0,  0),
             M( 0,  1,  0),
@@ -3184,7 +3184,7 @@ def is_NefPartition(x):
         sage: from sage.geometry.lattice_polytope import is_NefPartition
         sage: is_NefPartition(1)
         False
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: np = o.nef_partitions()[0]
         sage: np
         Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3279,7 +3279,7 @@ class NefPartition(SageObject,
     vertices belonging to the 1-st part, and 3-rd and 4-th vertices belonging
     to the 2-nd part::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: np = NefPartition([0,0,1,2,2,1], o)
         sage: np
         Nef-partition {0, 1} U {2, 5} U {3, 4}
@@ -3339,7 +3339,7 @@ class NefPartition(SageObject,
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: TestSuite(np).run()
         """
@@ -3372,7 +3372,7 @@ class NefPartition(SageObject,
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np == np
             True
@@ -3400,7 +3400,7 @@ class NefPartition(SageObject,
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: hash(np) == hash(np)
             True
@@ -3431,7 +3431,7 @@ class NefPartition(SageObject,
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np != np
             False
@@ -3457,7 +3457,7 @@ class NefPartition(SageObject,
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: latex(np) # indirect doctest
             \text{Nef-partition } \{0, 1, 3\} \sqcup \{2, 4, 5\}
@@ -3487,7 +3487,7 @@ class NefPartition(SageObject,
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: repr(np)  # indirect doctest
             'Nef-partition {0, 1, 3} U {2, 4, 5}'
@@ -3524,7 +3524,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3565,7 +3565,7 @@ class NefPartition(SageObject,
 
         EXAMPLE::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3587,7 +3587,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3641,7 +3641,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3715,7 +3715,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3769,7 +3769,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3801,7 +3801,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3844,7 +3844,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3871,7 +3871,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3894,7 +3894,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -3930,7 +3930,7 @@ class NefPartition(SageObject,
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
@@ -4090,7 +4090,7 @@ class _PolytopeFace(SageObject):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: f = o.facets()[0]
             sage: f._repr_()
             '[0, 1, 5]'
@@ -4105,7 +4105,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: Boundary lattice points of one of the facets of the
         3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.boundary_points()
@@ -4124,7 +4124,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: Facets containing one of the edges of the 3-dimensional
         octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: edge = o.faces(dim=1)[0]
             sage: edge.facets()
             [0, 1]
@@ -4148,7 +4148,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: Interior lattice points of one of the facets of the
         3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.interior_points()
@@ -4167,7 +4167,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The number of boundary lattice points of one of the
         facets of the 3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.nboundary_points()
@@ -4182,7 +4182,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The number of facets containing one of the edges of the
         3-dimensional octahedron::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: edge = o.faces(dim=1)[0]
             sage: edge.nfacets()
             2
@@ -4196,7 +4196,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The number of interior lattice points of one of the
         facets of the 3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.ninterior_points()
@@ -4214,7 +4214,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The number of lattice points of one of the facets of the
         3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.npoints()
@@ -4232,7 +4232,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The number of vertices generating one of the facets of
         the 3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.nvertices()
@@ -4250,7 +4250,7 @@ class _PolytopeFace(SageObject):
 
         EXAMPLE: We find all points along an edge of the cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: c = o.polar()
             sage: e = c.edges()[0]
             sage: e.vertices()
@@ -4283,7 +4283,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The lattice points of one of the facets of the
         3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.points()
@@ -4304,7 +4304,7 @@ class _PolytopeFace(SageObject):
 
         EXAMPLES::
 
-            sage: c = lattice_polytope.octahedron(3).polar()
+            sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: f = c.facets()[0]
             sage: f.vertices()
             [0, 2, 4, 6]
@@ -4338,7 +4338,7 @@ class _PolytopeFace(SageObject):
         EXAMPLES: The vertices generating one of the facets of the
         3-dimensional cube::
 
-            sage: o = lattice_polytope.octahedron(3)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: face.vertices()
@@ -4366,7 +4366,7 @@ def _palp(command, polytopes, reduce_dimension=False):
 
     TESTS::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: result_name = lattice_polytope._palp("poly.x -f", [o])
         sage: f = open(result_name)
         sage: f.readlines()
@@ -4434,7 +4434,7 @@ def _read_nef_x_partitions(data):
 
     TESTS::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: s = o.nef_x("-N -p")
         sage: print s # random
         M:27 8 N:7 6  codim=2 #part=5
@@ -4541,7 +4541,7 @@ def all_cached_data(polytopes):
     work with long sequences of polytopes. Of course, you can use short
     sequences as well::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: lattice_polytope.all_cached_data([o])
         sage: o.faces()
         [
@@ -4585,7 +4585,7 @@ def all_faces(polytopes):
     work with long sequences of polytopes. Of course, you can use short
     sequences as well::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: lattice_polytope.all_faces([o])
         sage: o.faces()
         [
@@ -4628,7 +4628,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
     work with long sequences of polytopes. Of course, you can use short
     sequences as well::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: lattice_polytope.all_nef_partitions([o])
         sage: o.nef_partitions()
         [
@@ -4676,7 +4676,7 @@ def all_points(polytopes):
     work with long sequences of polytopes. Of course, you can use short
     sequences as well::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: lattice_polytope.all_points([o])
         sage: o.points_pc()
         M( 1,  0,  0),
@@ -4720,7 +4720,7 @@ def all_polars(polytopes):
     work with long sequences of polytopes. Of course, you can use short
     sequences as well::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: lattice_polytope.all_polars([o])
         sage: o.polar()
         3-d reflexive polytope in 3-d lattice N
@@ -5141,7 +5141,7 @@ def read_all_polytopes(file_name, desc=None):
     We use poly.x to compute two polar polytopes read them::
 
         sage: o2 = lattice_polytope.octahedron(2)
-        sage: o3 = lattice_polytope.octahedron(3)
+        sage: o3 = lattice_polytope.cross_polytope(3)
         sage: result_name = lattice_polytope._palp("poly.x -fe", [o2, o3])
         sage: with open(result_name) as f:
         ....:     print f.read()
@@ -5305,7 +5305,7 @@ def skip_palp_matrix(data, n=1):
     but read only the second set::
 
         sage: o2 = lattice_polytope.octahedron(2)
-        sage: o3 = lattice_polytope.octahedron(3)
+        sage: o3 = lattice_polytope.cross_polytope(3)
         sage: result_name = lattice_polytope._palp("poly.x -fe", [o2, o3])
         sage: f = open(result_name)
         sage: f.readlines()
@@ -5367,7 +5367,7 @@ def write_palp_matrix(m, ofile=None, comment="", format=None):
 
     EXAMPLES::
 
-        sage: o = lattice_polytope.octahedron(3)
+        sage: o = lattice_polytope.cross_polytope(3)
         sage: lattice_polytope.write_palp_matrix(o.vertices_pc(), comment="3D Octahedron")
         3 6 3D Octahedron
          1  0  0 -1  0  0

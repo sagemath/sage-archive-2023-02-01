@@ -50,8 +50,8 @@ this tutorial we will use an easy way to get two fans assosiated to
 <sage.geometry.lattice_polytope.LatticePolytopeClass>`:
 :func:`FaceFan` and :func:`NormalFan`::
 
-    sage: fan1 = FaceFan(lattice_polytope.octahedron(3))
-    sage: fan2 = NormalFan(lattice_polytope.octahedron(3))
+    sage: fan1 = FaceFan(lattice_polytope.cross_polytope(3))
+    sage: fan2 = NormalFan(lattice_polytope.cross_polytope(3))
 
 Given such "automatic" fans, you may wonder what are their rays and cones::
 
@@ -195,7 +195,7 @@ a new fan.
 
 We can also make ``fan3`` smooth, but it will take a bit more work::
 
-    sage: cube = lattice_polytope.octahedron(3).polar()
+    sage: cube = lattice_polytope.cross_polytope(3).polar()
     sage: sk = cube.skeleton_points(2)
     sage: rays = [cube.point(p) for p in sk]
     sage: fan4 = fan3.subdivide(new_rays=rays)
@@ -2701,7 +2701,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         In fact, any fan in a two-dimensional ambient space is simplicial.
         This is no longer the case in dimension three::
 
-            sage: fan = NormalFan(lattice_polytope.octahedron(3))
+            sage: fan = NormalFan(lattice_polytope.cross_polytope(3))
             sage: fan.is_simplicial()
             False
             sage: fan.generating_cone(0).nrays()
@@ -2785,7 +2785,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         EXAMPLES::
 
-            sage: fan = NormalFan(lattice_polytope.octahedron(3))
+            sage: fan = NormalFan(lattice_polytope.cross_polytope(3))
             sage: fan.is_simplicial()
             False
             sage: fan.ngenerating_cones()
@@ -2873,7 +2873,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         EXAMPLES::
 
-            sage: fan = NormalFan(lattice_polytope.octahedron(3))
+            sage: fan = NormalFan(lattice_polytope.cross_polytope(3))
             sage: fan.is_simplicial()
             False
             sage: fan.ngenerating_cones()

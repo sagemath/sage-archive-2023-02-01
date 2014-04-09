@@ -642,7 +642,7 @@ class FanMorphism(FreeModuleMorphism):
         We check that Trac #10943 is fixed::
 
             sage: Sigma = Fan(rays=[(1,1,0), (1,-1,0)], cones=[(0,1)])
-            sage: Sigma_prime = FaceFan(lattice_polytope.octahedron(3))
+            sage: Sigma_prime = FaceFan(lattice_polytope.cross_polytope(3))
             sage: fm = FanMorphism(identity_matrix(3),
             ...                    Sigma, Sigma_prime, subdivide=True)
             sage: fm.domain_fan().rays()

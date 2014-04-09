@@ -2193,6 +2193,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def height_function(self):
         """
+        Return the canonical height function attached to self.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: E = EllipticCurve(K, '11a3')
+            sage: E.height_function()
+            EllipticCurveCanonicalHeight object associated to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in a with defining polynomial x^2 - 5
 
         """
         if not hasattr(self, '_height_function'):

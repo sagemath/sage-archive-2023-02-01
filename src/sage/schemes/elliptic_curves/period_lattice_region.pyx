@@ -656,6 +656,19 @@ cdef class PeriodicRegion:
 
 
 cdef frame_data(data, bint full=True):
+    """
+    Helper function for PeriodicRegion.expand() and
+    PeriodicRegion.border().  This makes "wrapping around" work
+    transparently for symmetric regions (full=False) as well.
+
+    Idea:
+
+    [[a, b, c]        [[a, b, c, a, c],
+     [d, e, f]   -->   [d, e, f, d, f],
+     [g, h, i]]        [g, h, i, g, i],
+                       [a, b, c, a, c],
+                       [g, h, i, g, i]]
+    """
     m, n = data.shape
     framed = np.empty((m+2, n+2), data.dtype)
     # center
@@ -673,6 +686,10 @@ cdef frame_data(data, bint full=True):
     return framed
 
 cdef unframe_data(framed, bint full=True):
+    """
+    Helper function for PeriodicRegion.expand().  This glues the
+    borders together using the "or" operator.
+    """
     framed = framed.copy()
     framed[ 0,:] |= framed[-2,:]
     framed[-3,:] |= framed[-1,:]

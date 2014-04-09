@@ -404,7 +404,7 @@ cdef class InnerGroup:
             loc_frob = 0
             min_pow = 0
 
-            while 1:
+            while True:
                 loc_frob += 1
                 y = y.frobenius(stab_pow[0])
                 if y == x:
@@ -754,7 +754,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         min_weight = self.len()
         max_weight = self.len()
 
-        while 1:  # compute an invariant set of (normalized) codewords which span the subspace
+        while True:  # compute an invariant set of (normalized) codewords which span the subspace
             try:
                 cw = iter.next()
             except StopIteration:

@@ -1170,15 +1170,18 @@ class BrandtModule_class(AmbientHeckeModule):
 
     def _ideal_products(self):
         """
-        Return all products of right ideals, which are used in computing the Brandt matrices.
+        Return all products of right ideals, which are used in computing
+        the Brandt matrices.
 
         This function is used internally by the Brandt matrices
         algorithms.
 
         OUTPUT:
-            list of ideals
+
+        - list of ideals
 
         EXAMPLES::
+
             sage: B = BrandtModule(37)
             sage: B._ideal_products()
             [[Fractional ideal (8 + 8*j + 8*k, 4*i + 8*j + 4*k, 16*j, 16*k)],
@@ -1188,13 +1191,15 @@ class BrandtModule_class(AmbientHeckeModule):
               Fractional ideal (8 + 4*i + 16*j + 28*k, 8*i + 16*j + 8*k, 32*j, 64*k),
               Fractional ideal (16 + 16*j + 16*k, 4*i + 24*j + 4*k, 32*j + 32*k, 64*k)]]
         """
-        try: return self.__ideal_products
-        except AttributeError: pass
+        try:
+            return self.__ideal_products
+        except AttributeError:
+            pass
 
         L = self.right_ideals()
         n = len(L)
         if n == 0:
-            return matrix(self.base_ring()[[`q`]],0)
+            return matrix(self.base_ring()[['q']], 0)
 
         # 1. Compute the theta series
         P = []

@@ -2830,7 +2830,7 @@ class Polyhedron_base(Element):
         parent = self.parent()
         try:
             return parent.element_class(parent, None, [new_ieqs, new_eqns])
-        except TypeError,msg:
+        except TypeError as msg:
             if self.base_ring() is ZZ:
                 parent = parent.base_extend(QQ)
                 return parent.element_class(parent, None, [new_ieqs, new_eqns])

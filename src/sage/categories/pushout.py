@@ -2454,7 +2454,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if type(self)!=type(other):
+        if not isinstance(self, type(other)):
             return None
         if self.names != other.names:
             return None
@@ -2559,7 +2559,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F1(QQ)
             Number Field in a with defining polynomial x^3 - x^2 + 1
             sage: F1(QQ).coerce_embedding()
-            sage: F2(QQ).coerce_embedding()
+            sage: phi = F2(QQ).coerce_embedding().__copy__(); phi
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 - x^2 + 1
               To:   Real Lazy Field
@@ -3262,7 +3262,7 @@ def pushout(R, S):
 
     except CoercionException:
         raise
-    except (TypeError, ValueError, AttributeError, NotImplementedError), ex:
+    except (TypeError, ValueError, AttributeError, NotImplementedError) as ex:
         # We do this because we may be trying all kinds of things that don't
         # make sense, and in this case simply want to return that a pushout
         # couldn't be found.

@@ -1133,8 +1133,7 @@ def format_search_as_html(what, r, search):
         i = L.find(':')
         if i != -1:
             files.add(L[:i])
-    files = list(files)
-    files.sort()
+    files = sorted(files)
     for F in files:
         if F.endswith('.html'):
             F = F.split('/', 2)[2]
@@ -1176,7 +1175,7 @@ def my_getsource(obj, is_binary):
     try:
         s = sageinspect.sage_getsource(obj, is_binary)
         return format_src(s)
-    except Exception, msg:
+    except Exception as msg:
         print 'Error getting source:', msg
         return None
 

@@ -163,11 +163,10 @@ def completions(s, globs, format=False, width=90, system="None"):
                     v = [obj + '.'+x for x in D if x and x[0] != '_']
                 else:
                     v = [obj + '.'+x for x in D if x[:n] == method]
-            except Exception, msg:
+            except Exception as msg:
                 v = []
-        v = list(set(v))   # make unique
-        v.sort()
-    except Exception, msg:
+        v = sorted(set(v))   # make unique
+    except Exception as msg:
         v = []
 
     if prepend:
@@ -289,7 +288,7 @@ def source_code(s, globs, system='sage'):
             output += src
         return output
 
-    except (TypeError, IndexError), msg:
+    except (TypeError, IndexError) as msg:
         print msg
         return "Source code for %s not available."%obj
 

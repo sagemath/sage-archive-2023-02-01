@@ -3256,7 +3256,7 @@ def binomial(x, m, **kwds):
         if m < 0 or (x >= 0 and m > x):
             return ZZ.zero()
 
-        s = sys.maxint
+        s = sys.maxsize
         if m > s:
             m = x - m
             if m > s:
@@ -3760,8 +3760,7 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    X = list(set([ZZ((a*a)%n) for a in range(n/2+1)]))
-    X.sort()
+    X = sorted(set([ZZ((a*a)%n) for a in range(n/2+1)]))
     return X
 
 ## This much slower than above, for obvious reasons.

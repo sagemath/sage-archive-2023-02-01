@@ -124,7 +124,7 @@ class DeprecatedFunctionAlias(object):
         self.trac_number  = trac_number
         self.instance = None # for use with methods
         self.__module__ = module
-        if type(func) == type(deprecation):
+        if isinstance(func, type(deprecation)):
             sphinxrole = "func"
         else:
             sphinxrole = "meth"
@@ -173,7 +173,7 @@ class DeprecatedFunctionAlias(object):
         def is_class(gc_ref):
             if not isinstance(gc_ref, dict):
                 return False
-            is_python_class = '__module__' in gc_ref
+            is_python_class = '__module__' in gc_ref or '__package__' in gc_ref
             is_cython_class = '__new__' in gc_ref
             return is_python_class or is_cython_class
         for ref in gc.get_referrers(self):

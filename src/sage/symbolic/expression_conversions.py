@@ -199,7 +199,7 @@ class Converter(object):
         try:
             obj = ex.pyobject()
             return self.pyobject(ex, obj)
-        except TypeError, err:
+        except TypeError as err:
             if 'self must be a numeric expression' not in err:
                 raise err
 

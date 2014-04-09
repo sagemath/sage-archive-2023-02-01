@@ -780,7 +780,7 @@ class Function_gamma(GinacFunction):
         # without specifying an explicit embedding into CC any more
         try:
             res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-        except TypeError, err:
+        except TypeError as err:
             # the __call__() method returns a TypeError for fast float arguments
             # as well, we only proceed if the error message says that
             # the arguments cannot be coerced to SR

@@ -3863,9 +3863,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=False, ordered=True):
         """
-        Returns the minimal genus of the graph. The genus of a compact
-        surface is the number of handles it has. The genus of a graph is
-        the minimal genus of the surface it can be embedded into.
+        Returns the minimal genus of the graph.
+
+        The genus of a compact surface is the number of handles it
+        has. The genus of a graph is the minimal genus of the surface
+        it can be embedded into.
 
         Note - This function uses Euler's formula and thus it is necessary
         to consider only connected graphs.
@@ -3952,7 +3954,7 @@ class GenericGraph(GenericGraph_pyx):
         minimal genus is ultimately computable for every connected graph -- but the
         embedding we obtain for the simple graph can't be easily converted to an
         embedding of a non-simple graph.  Also, the maximal genus of a multigraph does
-        not trivially correspond to that of its simple graph.
+        not trivially correspond to that of its simple graph. ::
 
             sage: G = DiGraph({ 0 : [0,1,1,1], 1 : [2,2,3,3], 2 : [1,3,3], 3:[0,3]})
             sage: G.genus()
@@ -3970,7 +3972,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
         We break graphs with cut vertices into their blocks, which greatly speeds up
-        computation of minimal genus.  This is not implemented for maximal genus.
+        computation of minimal genus.  This is not implemented for maximal genus. ::
 
             sage: K5 = graphs.CompleteGraph(5)
             sage: G = K5.copy()
@@ -4822,7 +4824,7 @@ class GenericGraph(GenericGraph_pyx):
         p = MixedIntegerLinearProgram(maximization = False, solver = solver)
 
         # Reorder an edge
-        R = lambda (x,y) : (x,y) if x<y else (y,x)
+        R = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
         # edges used in the Steiner Tree
         edges = p.new_variable(binary=True)
@@ -4855,9 +4857,9 @@ class GenericGraph(GenericGraph_pyx):
 
         # Objective
         if weighted:
-            w = lambda (x,y) : g.edge_label(x,y) if g.edge_label(x,y) is not None else 1
+            w = lambda x_y: g.edge_label(x_y[0], x_y[1]) if g.edge_label(x_y[0], x_y[1]) is not None else 1
         else:
-            w = lambda (x,y) : 1
+            w = lambda x_y: 1
 
         p.set_objective(p.sum([w(e)*edges[R(e)] for e in g.edges(labels = False)]))
 
@@ -4983,8 +4985,8 @@ class GenericGraph(GenericGraph_pyx):
         epsilon = 1/(3*(Integer(self.order())))
 
         if self.is_directed():
-            # Does nothing ot an edge.. Useful when out of "if self.directed"
-            S = lambda (x,y) : (x,y)
+            # Does nothing to an edge.. Useful when out of "if self.directed"
+            S = lambda x_y: x_y
 
             # An edge belongs to at most arborescence
             for e in self.edges(labels=False):
@@ -5019,7 +5021,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
 
             # Sort an edge
-            S = lambda (x,y) : (x,y) if x<y else (y,x)
+            S = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
             # An edge belongs to at most one arborescence
             for e in self.edges(labels=False):
@@ -5516,7 +5518,7 @@ class GenericGraph(GenericGraph_pyx):
 
             p.set_objective( p.sum([ w(l) * cut[u,v] for u,v,l in self.edge_iterator() ]) )
 
-            for s,t in chain( combinations(vertices,2), map(lambda (x,y) : (y,x), combinations(vertices,2))) :
+            for s,t in chain( combinations(vertices,2), map(lambda x_y: (x_y[1],x_y[0]), combinations(vertices,2))) :
                 # For each commodity, the source is at height 0
                 # and the destination is at height 1
                 p.add_constraint( height[(s,t),s], min = 0, max = 0)
@@ -5554,10 +5556,11 @@ class GenericGraph(GenericGraph_pyx):
         cut = p.get_values(cut)
 
         if self.is_directed():
-            return filter(lambda (u,v,l) : cut[u,v] == 1, self.edge_iterator())
+            return filter(lambda u_v_l: cut[u_v_l[0], u_v_l[1]] == 1,
+                          self.edge_iterator())
 
-        else:
-            return filter(lambda (u,v,l) : cut[R(u,v)] ==1, self.edge_iterator())
+        return filter(lambda u_v_l: cut[R(u_v_l[0], u_v_l[1])] == 1,
+                      self.edge_iterator())
 
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
@@ -7187,7 +7190,8 @@ class GenericGraph(GenericGraph_pyx):
 
         # Rewrites a path as a list of edges labeled with their
         # available capacity
-        path_to_labelled_edges = lambda P : map(lambda (x,y) : (x,y,capacity[(x,y)]-flow[(x,y)] + flow[(y,x)]),path_to_edges(P))
+        path_to_labelled_edges = lambda P : map(lambda x_y: (x_y[0], x_y[1], capacity[(x_y[0], x_y[1])] - flow[(x_y[0], x_y[1])] + flow[(x_y[1], x_y[0])]),
+                                                path_to_edges(P))
 
         # Total flow going from s to t
         flow_intensity = 0
@@ -9601,6 +9605,7 @@ class GenericGraph(GenericGraph_pyx):
             vertices = [vertices]
         else:
             vertices = [v for v in vertices if v in self]
+
         if ignore_direction and self._directed:
             from itertools import chain
             return chain(self._backend.iterator_out_edges(vertices, labels),
@@ -15719,26 +15724,30 @@ class GenericGraph(GenericGraph_pyx):
                     edge_size=edge_size, edge_size2=edge_size2, pos3d=pos3d,
                     color_by_label=color_by_label, **kwds).show()
 
+    @cached_method
     def _keys_for_vertices(self):
         """
-        Returns a function mapping each vertex to a unique and hopefully
-        readable string
+        Returns a function mapping each vertex to a unique identifier.
+
+        The identifier is stable iff all vertex labels are unique. It
+        is a string not starting with a number, as required by
+        dot2tex.
 
         EXAMPLE::
 
             sage: g = graphs.Grid2dGraph(5,5)
             sage: g._keys_for_vertices()
-            <function key at ...
+            <function get_label at ...>
         """
-        from sage.graphs.dot2tex_utils import key, key_with_hash
-        if len(set(key(v) for v in self)) < self.num_verts():
-            # There was a collision in the keys; we include a hash to be safe.
-            return key_with_hash
-        else:
-            return key
+        import hashlib
+        label = dict()
+        for i, v in enumerate(self.vertices()):
+            label[v] = 'node_{0}'.format(i)
+        def get_label(vertex):
+            return label[vertex]
+        return get_label
 
     ### String representation to be used by other programs
-
     @options(labels="string",
             vertex_labels=True,edge_labels=False,
             edge_color=None,edge_colors=None,
@@ -15786,15 +15795,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
             sage: print G.graphviz_string(edge_labels=True)
             graph {
-              "0" [label="0"];
-              "1" [label="1"];
-              "2" [label="2"];
-              "3" [label="3"];
+              node_0  [label="0"];
+              node_1  [label="1"];
+              node_2  [label="2"];
+              node_3  [label="3"];
             <BLANKLINE>
-              "0" -- "1";
-              "0" -- "2";
-              "1" -- "2";
-              "2" -- "3" [label="foo"];
+              node_0 -- node_1;
+              node_0 -- node_2;
+              node_1 -- node_2;
+              node_2 -- node_3 [label="foo"];
             }
 
         A variant, with the labels in latex, for post-processing with ``dot2tex``::
@@ -15802,15 +15811,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: print G.graphviz_string(edge_labels=True,labels = "latex")
             graph {
               node [shape="plaintext"];
-              "0" [label=" ", texlbl="$0$"];
-              "1" [label=" ", texlbl="$1$"];
-              "2" [label=" ", texlbl="$2$"];
-              "3" [label=" ", texlbl="$3$"];
+              node_0  [label=" ", texlbl="$0$"];
+              node_1  [label=" ", texlbl="$1$"];
+              node_2  [label=" ", texlbl="$2$"];
+              node_3  [label=" ", texlbl="$3$"];
             <BLANKLINE>
-              "0" -- "1";
-              "0" -- "2";
-              "1" -- "2";
-              "2" -- "3" [label=" ", texlbl="$\text{\texttt{foo}}$"];
+              node_0 -- node_1;
+              node_0 -- node_2;
+              node_1 -- node_2;
+              node_2 -- node_3 [label=" ", texlbl="$\text{\texttt{foo}}$"];
             }
 
         Same, with a digraph and a color for edges::
@@ -15818,16 +15827,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = DiGraph({0:{1:None,2:None}, 1:{2:None}, 2:{3:'foo'}, 3:{}} ,sparse=True)
             sage: print G.graphviz_string(edge_color="red")
             digraph {
-              "0" [label="0"];
-              "1" [label="1"];
-              "2" [label="2"];
-              "3" [label="3"];
+              node_0  [label="0"];
+              node_1  [label="1"];
+              node_2  [label="2"];
+              node_3  [label="3"];
             <BLANKLINE>
-              edge [color="red"];
-              "0" -> "1";
-              "0" -> "2";
-              "1" -> "2";
-              "2" -> "3";
+            edge [color="red"];
+              node_0 -> node_1;
+              node_0 -> node_2;
+              node_1 -> node_2;
+              node_2 -> node_3;
             }
 
         A digraph using latex labels for vertices and edges::
@@ -15840,76 +15849,76 @@ class GenericGraph(GenericGraph_pyx):
             sage: print G.graphviz_string(labels="latex",edge_labels=True)
             digraph {
               node [shape="plaintext"];
-              "2/3" [label=" ", texlbl="$\frac{2}{3}$"];
-              "1/3" [label=" ", texlbl="$\frac{1}{3}$"];
-              "1/2" [label=" ", texlbl="$\frac{1}{2}$"];
-              "1" [label=" ", texlbl="$1$"];
-              "1/4" [label=" ", texlbl="$\frac{1}{4}$"];
-              "4/5" [label=" ", texlbl="$\frac{4}{5}$"];
-              "-4" [label=" ", texlbl="$-4$"];
-              "2" [label=" ", texlbl="$2$"];
-              "-2" [label=" ", texlbl="$-2$"];
-              "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
-              "-1" [label=" ", texlbl="$-1$"];
+              node_7  [label=" ", texlbl="$\frac{2}{3}$"];
+              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
+              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_9  [label=" ", texlbl="$1$"];
+              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
+              node_8  [label=" ", texlbl="$\frac{4}{5}$"];
+              node_0  [label=" ", texlbl="$-4$"];
+              node_10  [label=" ", texlbl="$2$"];
+              node_1  [label=" ", texlbl="$-2$"];
+              node_3  [label=" ", texlbl="$-\frac{1}{2}$"];
+              node_2  [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              "1/2" -> "-2" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              "1/2" -> "2/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              "1" -> "-1" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              "1" -> "1/2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              "1/4" -> "-4" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              "1/4" -> "4/5" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              "2" -> "-1/2" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              "2" -> "1/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_6 -> node_1 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_6 -> node_7 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_9 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_9 -> node_6 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_4 -> node_0 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_4 -> node_8 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_10 -> node_3 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_10 -> node_5 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
             }
 
             sage: print G.graphviz_string(labels="latex",color_by_label=True)
             digraph {
               node [shape="plaintext"];
-              "2/3" [label=" ", texlbl="$\frac{2}{3}$"];
-              "1/3" [label=" ", texlbl="$\frac{1}{3}$"];
-              "1/2" [label=" ", texlbl="$\frac{1}{2}$"];
-              "1" [label=" ", texlbl="$1$"];
-              "1/4" [label=" ", texlbl="$\frac{1}{4}$"];
-              "4/5" [label=" ", texlbl="$\frac{4}{5}$"];
-              "-4" [label=" ", texlbl="$-4$"];
-              "2" [label=" ", texlbl="$2$"];
-              "-2" [label=" ", texlbl="$-2$"];
-              "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
-              "-1" [label=" ", texlbl="$-1$"];
+              node_7  [label=" ", texlbl="$\frac{2}{3}$"];
+              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
+              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_9  [label=" ", texlbl="$1$"];
+              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
+              node_8  [label=" ", texlbl="$\frac{4}{5}$"];
+              node_0  [label=" ", texlbl="$-4$"];
+              node_10  [label=" ", texlbl="$2$"];
+              node_1  [label=" ", texlbl="$-2$"];
+              node_3  [label=" ", texlbl="$-\frac{1}{2}$"];
+              node_2  [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              "1/2" -> "-2" [color = "#ff0000"];
-              "1/2" -> "2/3" [color = "#00ffff"];
-              "1" -> "-1" [color = "#ff0000"];
-              "1" -> "1/2" [color = "#00ffff"];
-              "1/4" -> "-4" [color = "#ff0000"];
-              "1/4" -> "4/5" [color = "#00ffff"];
-              "2" -> "-1/2" [color = "#ff0000"];
-              "2" -> "1/3" [color = "#00ffff"];
+              node_6 -> node_1 [color = "#ff0000"];
+              node_6 -> node_7 [color = "#00ffff"];
+              node_9 -> node_2 [color = "#ff0000"];
+              node_9 -> node_6 [color = "#00ffff"];
+              node_4 -> node_0 [color = "#ff0000"];
+              node_4 -> node_8 [color = "#00ffff"];
+              node_10 -> node_3 [color = "#ff0000"];
+              node_10 -> node_5 [color = "#00ffff"];
             }
 
             sage: print G.graphviz_string(labels="latex",color_by_label={ f: "red", g: "blue" })
             digraph {
               node [shape="plaintext"];
-              "2/3" [label=" ", texlbl="$\frac{2}{3}$"];
-              "1/3" [label=" ", texlbl="$\frac{1}{3}$"];
-              "1/2" [label=" ", texlbl="$\frac{1}{2}$"];
-              "1" [label=" ", texlbl="$1$"];
-              "1/4" [label=" ", texlbl="$\frac{1}{4}$"];
-              "4/5" [label=" ", texlbl="$\frac{4}{5}$"];
-              "-4" [label=" ", texlbl="$-4$"];
-              "2" [label=" ", texlbl="$2$"];
-              "-2" [label=" ", texlbl="$-2$"];
-              "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
-              "-1" [label=" ", texlbl="$-1$"];
+              node_7  [label=" ", texlbl="$\frac{2}{3}$"];
+              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
+              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_9  [label=" ", texlbl="$1$"];
+              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
+              node_8  [label=" ", texlbl="$\frac{4}{5}$"];
+              node_0  [label=" ", texlbl="$-4$"];
+              node_10  [label=" ", texlbl="$2$"];
+              node_1  [label=" ", texlbl="$-2$"];
+              node_3  [label=" ", texlbl="$-\frac{1}{2}$"];
+              node_2  [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              "1/2" -> "-2" [color = "red"];
-              "1/2" -> "2/3" [color = "blue"];
-              "1" -> "-1" [color = "red"];
-              "1" -> "1/2" [color = "blue"];
-              "1/4" -> "-4" [color = "red"];
-              "1/4" -> "4/5" [color = "blue"];
-              "2" -> "-1/2" [color = "red"];
-              "2" -> "1/3" [color = "blue"];
+              node_6 -> node_1 [color = "red"];
+              node_6 -> node_7 [color = "blue"];
+              node_9 -> node_2 [color = "red"];
+              node_9 -> node_6 [color = "blue"];
+              node_4 -> node_0 [color = "red"];
+              node_4 -> node_8 [color = "blue"];
+              node_10 -> node_3 [color = "red"];
+              node_10 -> node_5 [color = "blue"];
             }
 
         Edge-specific options can also be specified by providing a
@@ -15925,26 +15934,26 @@ class GenericGraph(GenericGraph_pyx):
             ...       return { "backward": u == 1 }
             sage: print G.graphviz_string(edge_options = edge_options)
             digraph {
-              "2/3" [label="2/3"];
-              "1/3" [label="1/3"];
-              "1/2" [label="1/2"];
-              "1" [label="1"];
-              "1/4" [label="1/4"];
-              "4/5" [label="4/5"];
-              "-4" [label="-4"];
-              "2" [label="2"];
-              "-2" [label="-2"];
-              "-1/2" [label="-1/2"];
-              "-1" [label="-1"];
+              node_7  [label="2/3"];
+              node_5  [label="1/3"];
+              node_6  [label="1/2"];
+              node_9  [label="1"];
+              node_4  [label="1/4"];
+              node_8  [label="4/5"];
+              node_0  [label="-4"];
+              node_10  [label="2"];
+              node_1  [label="-2"];
+              node_3  [label="-1/2"];
+              node_2  [label="-1"];
             <BLANKLINE>
-              "1/2" -> "-2";
-              "1/2" -> "2/3";
-              "-1" -> "1" [dir=back];
-              "1/2" -> "1" [dir=back];
-              "1/4" -> "-4";
-              "1/4" -> "4/5";
-              "2" -> "-1/2";
-              "2" -> "1/3";
+              node_6 -> node_1;
+              node_6 -> node_7;
+              node_2 -> node_9 [dir=back];
+              node_6 -> node_9 [dir=back];
+              node_4 -> node_0;
+              node_4 -> node_8;
+              node_10 -> node_3;
+              node_10 -> node_5;
             }
 
         We now test all options::
@@ -15959,26 +15968,26 @@ class GenericGraph(GenericGraph_pyx):
             ...       return options
             sage: print G.graphviz_string(edge_options = edge_options)
             digraph {
-              "2/3" [label="2/3"];
-              "1/3" [label="1/3"];
-              "1/2" [label="1/2"];
-              "1" [label="1"];
-              "1/4" [label="1/4"];
-              "4/5" [label="4/5"];
-              "-4" [label="-4"];
-              "2" [label="2"];
-              "-2" [label="-2"];
-              "-1/2" [label="-1/2"];
-              "-1" [label="-1"];
+              node_7  [label="2/3"];
+              node_5  [label="1/3"];
+              node_6  [label="1/2"];
+              node_9  [label="1"];
+              node_4  [label="1/4"];
+              node_8  [label="4/5"];
+              node_0  [label="-4"];
+              node_10  [label="2"];
+              node_1  [label="-2"];
+              node_3  [label="-1/2"];
+              node_2  [label="-1"];
             <BLANKLINE>
-              "1/2" -> "-2" [label="coucou", color = "red"];
-              "1/2" -> "2/3" [x=1,y=2, color = "blue"];
-              "1" -> "-1" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
-              "1" <- "1/2" [color = "blue"];
-              "1/4" -> "-4" [color = "red"];
-              "1/4" -> "4/5" [color = "blue"];
-              "2" -> "-1/2" [color = "red"];
-              "2" -> "1/3" [color = "blue"];
+              node_6 -> node_1 [label="coucou", color = "red"];
+              node_6 -> node_7 [x=1,y=2, color = "blue"];
+              node_9 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
+              node_9 <- node_6 [color = "blue"];
+              node_4 -> node_0 [color = "red"];
+              node_4 -> node_8 [color = "blue"];
+              node_10 -> node_3 [color = "red"];
+              node_10 -> node_5 [color = "blue"];
             }
 
         TESTS:
@@ -15987,15 +15996,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: print digraphs.ButterflyGraph(1).graphviz_string()
             digraph {
-              "1,1" [label="('1', 1)"];
-              "0,0" [label="('0', 0)"];
-              "1,0" [label="('1', 0)"];
-              "0,1" [label="('0', 1)"];
+              node_3  [label="('1', 1)"];
+              node_0  [label="('0', 0)"];
+              node_2  [label="('1', 0)"];
+              node_1  [label="('0', 1)"];
             <BLANKLINE>
-              "0,0" -> "1,1";
-              "0,0" -> "0,1";
-              "1,0" -> "1,1";
-              "1,0" -> "0,1";
+              node_0 -> node_3;
+              node_0 -> node_1;
+              node_2 -> node_3;
+              node_2 -> node_1;
             }
 
         The following digraph has vertices with newlines in their
@@ -16008,14 +16017,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = DiGraph({ m1: [m2] })
             sage: print g.graphviz_string()
             digraph {
-              "000000000" [label="[0 0 0]\n\
-              [0 0 0]\n\
-              [0 0 0]"];
-              "100010001" [label="[1 0 0]\n\
-              [0 1 0]\n\
-              [0 0 1]"];
+              node_0  [label="[0 0 0]\n\
+            [0 0 0]\n\
+            [0 0 0]"];
+              node_1  [label="[1 0 0]\n\
+            [0 1 0]\n\
+            [0 0 1]"];
             <BLANKLINE>
-              "000000000" -> "100010001";
+              node_0 -> node_1;
             }
 
         REFERENCES:
@@ -16024,7 +16033,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
-
+        
         if self.is_directed():
             graph_string = "digraph"
             default_edge_string = "->"
@@ -16045,7 +16054,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if options['color_by_label'] is not False:
             color_by_label = self._color_by_label(format = options['color_by_label'], as_function = True, default_color=default_color)
-            edge_option_functions.append(lambda (u,v,label): {"color": color_by_label(label)})
+            edge_option_functions.append(lambda u_v_label: {"color": color_by_label(u_v_label[2])})
         elif options['edge_colors'] is not None:
             if not isinstance(options['edge_colors'],dict):
                 raise ValueError("incorrect format for edge_colors")
@@ -16088,7 +16097,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 node_options = " [label=\"%s\"]" %quoted_str(v)
 
-            s += '  "%s"%s;\n'%(key(v),node_options)
+            s += '  %s %s;\n'%(key(v),node_options)
 
         s += "\n"
         if default_color is not None:
@@ -16126,7 +16135,7 @@ class GenericGraph(GenericGraph_pyx):
                 v,u = u,v
                 dot_options.append('dir=back')
 
-            s+= '  "%s" %s "%s"' % (key(u), edge_options['edge_string'], key(v))
+            s+= '  %s %s %s' % (key(u), edge_options['edge_string'], key(v))
             if len(dot_options) > 0:
                 s += " [" + ", ".join(dot_options)+"]"
             s+= ";\n"
@@ -16154,15 +16163,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.graphviz_to_file_named(tempfile, edge_labels=True)
             sage: print open(tempfile).read()
             graph {
-              "0" [label="0"];
-              "1" [label="1"];
-              "2" [label="2"];
-              "3" [label="3"];
+              node_0  [label="0"];
+              node_1  [label="1"];
+              node_2  [label="2"];
+              node_3  [label="3"];
             <BLANKLINE>
-              "0" -- "1";
-              "0" -- "2";
-              "1" -- "2";
-              "2" -- "3" [label="foo"];
+              node_0 -- node_1;
+              node_0 -- node_2;
+              node_1 -- node_2;
+              node_2 -- node_3 [label="foo"];
             }
         """
         return open(filename, 'wt').write(self.graphviz_string(**options))
@@ -16602,13 +16611,13 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: Non injective relabeling
 
-        But this test can be disabled, which leads to ... problems::
+        But this test can be disabled, which can lead to ... problems::
 
             sage: G.edges()
             [(0, 1, None), (1, 2, None)]
             sage: G.relabel(lambda i: 0, check_input = False)
             sage: G.edges()
-            [(0, 0, None)]
+            []
 
         Relabeling to simpler labels::
 

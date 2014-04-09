@@ -755,7 +755,7 @@ class Magma(Expect):
         else:
             try:  # use try/except here, because if x is cdef'd we won't be able to set this.
                 x._magma_cache = {self:A}
-            except AttributeError, msg:
+            except AttributeError as msg:
                 # Unfortunately, we *have* do have this __cache
                 # attribute, which can lead to "leaks" in the working
                 # Magma session.  This is because it is critical that
@@ -1463,13 +1463,12 @@ class Magma(Expect):
                     for x in s.split('\n'):
                         i = x.find('(')
                         N.append(x[:i])
-                except RuntimeError, msg:  # weird internal problems in Magma type system
+                except RuntimeError as msg:  # weird internal problems in Magma type system
                     print 'Error -- %s'%msg
                     pass
             if verbose:
                 print "Done! (%s seconds)"%sage.misc.misc.cputime(tm)
-            N = list(set(N))
-            N.sort()
+            N = sorted(set(N))
             print "Saving cache to '%s' for future instant use."%INTRINSIC_CACHE
             print "Delete the above file to force re-creation of the cache."
             sage.misc.persist.save(N, INTRINSIC_CACHE)
@@ -2490,8 +2489,7 @@ class MagmaElement(ExpectElement):
         for x in M:
             i = x.find('(')
             N.append(x[:i])
-        v = list(set(N + self.list_attributes()))
-        v.sort()
+        v = sorted(set(N + self.list_attributes()))
         return v
 
     def methods(self, any=False):

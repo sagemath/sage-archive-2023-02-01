@@ -657,6 +657,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         elif prec == 53:
             R = sage.rings.all.RDF
             C = sage.rings.all.CDF
+        elif prec == infinity.Infinity:
+            R = sage.rings.all.AA
+            C = sage.rings.all.QQbar
         else:
             R = sage.rings.all.RealField(prec)
             C = sage.rings.all.ComplexField(prec)

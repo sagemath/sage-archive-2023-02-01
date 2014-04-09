@@ -26,17 +26,17 @@ associated digraph::
     sage: LS = CrystalOfLSPaths(2*La[1]); LS
     The crystal of LS paths of type ['C', 3, 1] and weight 2*Lambda[1]
     sage: C = LS.subcrystal(max_depth=3)
-    sage: [b for b in sorted(C)]
-    [(2*Lambda[1],),
-    (Lambda[0] - Lambda[1] + Lambda[2], Lambda[1]),
-    (Lambda[0] - Lambda[2] + Lambda[3], Lambda[1]),
-    (2*Lambda[0] - 2*Lambda[1] + 2*Lambda[2],),
-    (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[1]),
-    (Lambda[0] + Lambda[2] - Lambda[3], Lambda[1]),
-    (Lambda[0] - Lambda[2] + Lambda[3], Lambda[0] - Lambda[1] + Lambda[2]),
-    (-Lambda[0] + 2*Lambda[1] - Lambda[2] + Lambda[3], Lambda[1]),
-    (-Lambda[1] + 2*Lambda[2], Lambda[1]),
-    (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[0] - Lambda[1] + Lambda[2])]
+    sage: sorted(C, key=str)
+    [(-Lambda[0] + 2*Lambda[1] - Lambda[2] + Lambda[3], Lambda[1]),
+     (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[0] - Lambda[1] + Lambda[2]),
+     (-Lambda[0] + Lambda[1] + Lambda[2], Lambda[1]),
+     (-Lambda[1] + 2*Lambda[2], Lambda[1]),
+     (2*Lambda[0] - 2*Lambda[1] + 2*Lambda[2],),
+     (2*Lambda[1],),
+     (Lambda[0] + Lambda[2] - Lambda[3], Lambda[1]),
+     (Lambda[0] - Lambda[1] + Lambda[2], Lambda[1]),
+     (Lambda[0] - Lambda[2] + Lambda[3], Lambda[0] - Lambda[1] + Lambda[2]),
+     (Lambda[0] - Lambda[2] + Lambda[3], Lambda[1])]
 
     sage: G = LS.digraph(subset = C)
     sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz

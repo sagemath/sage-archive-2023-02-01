@@ -161,10 +161,10 @@ class AbstractMethod(object):
         assert isinstance(optional, bool)
         self._f = f
         self._optional = optional
-        if hasattr(f, "func_doc"):
-            self.__doc__ = f.func_doc
-        if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        if hasattr(f, "__doc__"):
+            self.__doc__ = f.__doc__
+        if hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         else:
             self.__name__ = "..."
         if hasattr(f, "__module__"):

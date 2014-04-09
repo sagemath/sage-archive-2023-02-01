@@ -203,7 +203,7 @@ class Crystals(Category_singleton):
 
         def __iter__(self, index_set=None, max_depth=float('inf')):
             """
-            Returns the iterator of ``self``.
+            Return an iterator over the elements of ``self``.
 
             INPUT:
 
@@ -211,6 +211,10 @@ class Crystals(Category_singleton):
               then use the index set of the crystal
 
             - ``max_depth`` -- (Default: infinity) The maximum depth to build
+
+            The iteration order is not specified except that, if
+            ``max_depth`` is finite, then the iteration goes depth by
+            depth.
 
             EXAMPLES::
 
@@ -225,31 +229,19 @@ class Crystals(Category_singleton):
                 sage: g.next()
                 (Lambda[1] - Lambda[2] + delta,)
                 sage: g.next()
-                (Lambda[1] - Lambda[2],)
-                sage: g.next()
-                (Lambda[0] - Lambda[1],)
-                sage: h = C.__iter__(index_set=[1,2])
-                sage: h.next()
-                (-Lambda[0] + Lambda[2],)
-                sage: h.next()
-                (Lambda[1] - Lambda[2],)
-                sage: h.next()
-                (Lambda[0] - Lambda[1],)
-                sage: h.next()
-                Traceback (most recent call last):
-                ...
-                StopIteration
-                sage: g = C.__iter__(max_depth=1)
-                sage: g.next()
-                (-Lambda[0] + Lambda[2],)
+                (-Lambda[0] + Lambda[2] + delta,)
                 sage: g.next()
                 (Lambda[1] - Lambda[2],)
-                sage: g.next()
-                (Lambda[0] - Lambda[1] + delta,)
-                sage: h.next()
-                Traceback (most recent call last):
-                ...
-                StopIteration
+
+                sage: sorted(C.__iter__(index_set=[1,2]), key=str)
+                [(-Lambda[0] + Lambda[2],),
+                 (Lambda[0] - Lambda[1],),
+                 (Lambda[1] - Lambda[2],)]
+
+                sage: sorted(C.__iter__(max_depth=1), key=str)
+                [(-Lambda[0] + Lambda[2],),
+                 (Lambda[0] - Lambda[1] + delta,),
+                 (Lambda[1] - Lambda[2],)]
 
             """
             if index_set is None:
@@ -416,7 +408,7 @@ class Crystals(Category_singleton):
                 f_string = 'e_string'
 
             if acyclic:
-                if type(g) == dict:
+                if isinstance(g, dict):
                     g = g.__getitem__
 
                 def morphism(b):
@@ -515,10 +507,12 @@ class Crystals(Category_singleton):
                 sage: S = T.subcrystal(max_depth=3)
                 sage: G = T.digraph(subset=S); G
                 Digraph on 5 vertices
-                sage: G.vertices()
-                [(1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
-                (-Lambda[0] + 2*Lambda[1] - delta,), (Lambda[0] - 2*Lambda[1] + 2*Lambda[2] - delta,),
-                (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta), (Lambda[0],)]
+                sage: sorted(G.vertices(), key=str)
+                [(-Lambda[0] + 2*Lambda[1] - delta,),
+                 (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
+                 (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
+                 (Lambda[0] - 2*Lambda[1] + 2*Lambda[2] - delta,),
+                 (Lambda[0],)]
 
             Here is a way to construct a picture of a Demazure crystal using
             the ``subset`` option::
@@ -549,9 +543,9 @@ class Crystals(Category_singleton):
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             d = {}
             if self in HighestWeightCrystals:
-                f = lambda (u,v,label): ({})
+                f = lambda u_v_label: ({})
             else:
-                f = lambda (u,v,label): ({"backward":label ==0})
+                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
 
             # Parse optional arguments
             if subset is None:

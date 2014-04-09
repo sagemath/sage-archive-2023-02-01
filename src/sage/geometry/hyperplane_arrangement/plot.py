@@ -147,7 +147,7 @@ def plot(hyperplane_arrangement, **kwds):
     # handle extra keywords
     if 'hyperplane_colors' in kwds:
         hyp_colors = kwds.pop('hyperplane_colors')
-        if not type(hyp_colors) == list: # we assume its a single color then
+        if not isinstance(hyp_colors, list): # we assume its a single color then
             hyp_colors = [hyp_colors] * N
     else:
         HSV_tuples = [(i*1.0/N, 0.8, 0.9) for i in range(N)]
@@ -155,7 +155,7 @@ def plot(hyperplane_arrangement, **kwds):
     if 'hyperplane_labels' in kwds:
         hyp_labels = kwds.pop('hyperplane_labels')
         has_hyp_label = True
-        if not type(hyp_labels) == list: # we assume its a boolean then
+        if not isinstance(hyp_labels, list): # we assume its a boolean then
             hyp_labels = [hyp_labels] * N
         relabeled = []
         for i in range(N):
@@ -169,14 +169,14 @@ def plot(hyperplane_arrangement, **kwds):
     if 'label_colors' in kwds:
         label_colors = kwds.pop('label_colors')
         has_label_color = True
-        if not type(label_colors) == list: # we assume its a single color then
+        if not isinstance(label_colors, list): # we assume its a single color then
             label_colors = [label_colors] * N
     else:
         has_label_color = False
     if 'label_fontsize' in kwds:
         label_fontsize = kwds.pop('label_fontsize')
         has_label_fontsize = True
-        if not type(label_fontsize) == list: # we assume its a single size then
+        if not isinstance(label_fontsize, list): # we assume its a single size then
             label_fontsize = [label_fontsize] * N
     else:
         has_label_fontsize = False
@@ -189,12 +189,12 @@ def plot(hyperplane_arrangement, **kwds):
     if 'hyperplane_opacities' in kwds:
         hyperplane_opacities = kwds.pop('hyperplane_opacities')
         has_opacity = True
-        if not type(hyperplane_opacities) == list: # we assume a single number then
+        if not isinstance(hyperplane_opacities, list): # we assume a single number then
             hyperplane_opacities = [hyperplane_opacities] * N
     else:
         has_opacity = False
     point_sizes = kwds.pop('point_sizes', 50)
-    if not type(point_sizes) == list:
+    if not isinstance(point_sizes, list):
         point_sizes = [point_sizes] * N
     if 'ranges' in kwds:
         ranges_set = True
@@ -235,7 +235,7 @@ def plot(hyperplane_arrangement, **kwds):
         if has_hyp_label:
             newk['hyperplane_label'] = hyp_labels[i]
             if has_offsets:
-                if type(offsets) != list:
+                if not isinstance(offsets, list):
                     newk['label_offset'] = offsets
                 else:
                     newk['label_offset'] = offsets[i]

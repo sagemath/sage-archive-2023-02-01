@@ -128,7 +128,7 @@ class GaloisRepresentation(SageObject):
             sage: rho1 == 42
             False
         """
-        if not type(self) == type(other):
+        if not isinstance(self, type(other)):
             return False
         return self.E.is_isomorphic(other.E)
 
@@ -609,7 +609,7 @@ def _semistable_reducible_primes(E):
         # has CM and computing the set of CM j-invariants of K to check.
         # TODO: Is this the best value for this parameter?
 
-        while 1:
+        while True:
             P = deg_one_primes.next()
 
             if not P.is_principal():
@@ -644,8 +644,7 @@ def _semistable_reducible_primes(E):
                 if f(E.j_invariant()) in cm_j_invariants(f.codomain()):
                     raise ValueError, "The curve E should not have CM."
 
-    L = list(bad_primes)
-    L.sort()
+    L = sorted(bad_primes)
     return L
 
 
@@ -765,7 +764,7 @@ def _possible_normalizers(E, SA):
     # has CM and computing the set of CM j-invariants of K to check.
     # TODO: Is this the best value for this parameter?
 
-    while 1:
+    while True:
         P = deg_one_primes.next()
 
         k = P.residue_field()
@@ -788,7 +787,6 @@ def _possible_normalizers(E, SA):
                 for p in tr.prime_factors():
                     bad_primes.add(p)
 
-                bad_primes = list(bad_primes)
-                bad_primes.sort()
+                bad_primes = sorted(bad_primes)
                 return bad_primes
 

@@ -387,8 +387,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             v = singular('POINTS').sage_flattened_str_list()
             pnts = [self(int(v[3*i]), int(v[3*i+1])) for i in range(len(v)/3) if int(v[3*i+2])!=0]
             # remove multiple points
-            pnts = list(set(pnts))
-            pnts.sort()
+            pnts = sorted(set(pnts))
             return pnts
 
         elif algorithm == "all":

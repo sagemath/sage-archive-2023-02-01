@@ -229,16 +229,14 @@ def cyclotomic_cosets(q, n, t = None):
         raise TypeError,  "Inputs %s and %s must be relative prime."%(q,n)
     if t is not None and isinstance(t, Integer):
         S = Set([t*q**i%n for i in srange(n)])
-        L = list(S)
-        L.sort()
+        L = sorted(S)
         return L
     ccs = Set([])
     ccs_list = [[0]]
     for s in range(1,n):
         if not(s in ccs):
             S = Set([s*q**i%n for i in srange(n)])
-            L = list(S)
-            L.sort()
+            L = sorted(S)
             ccs = ccs.union(S)
             ccs_list.append(L)
     return ccs_list
@@ -446,7 +444,7 @@ def permutation_action(g,v):
     - David Joyner, licensed under the GPL v2 or greater.
     """
     v_type_list = False
-    if type(v) == list:
+    if isinstance(v, list):
         v_type_list = True
         v = Sequence(v)
     V = v.parent()

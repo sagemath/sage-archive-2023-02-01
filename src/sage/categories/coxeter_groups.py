@@ -1219,7 +1219,8 @@ v            EXAMPLES::
                 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
                 return FiniteEnumeratedSet([])
             s = W.simple_reflections()
-            def succ((u,v)):
+            def succ(u_v):
+                (u, v) = u_v
                 for i in v.descents(side = 'left'):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):

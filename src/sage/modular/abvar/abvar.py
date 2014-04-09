@@ -1772,8 +1772,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 return None
             N = [A.newform_level() for A in self.decomposition()]
             level = LCM([z[0] for z in N])
-            groups = list(set([z[1] for z in N]))
-            groups.sort()
+            groups = sorted(set([z[1] for z in N]))
             if len(groups) == 1:
                 groups = groups[0]
             self.__newform_level = level, groups

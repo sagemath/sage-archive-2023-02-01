@@ -561,7 +561,7 @@ class CartanTypeFactory(SageObject):
         if len(t) == 1: # Fix for trac #13774
             t = t[0]
 
-        if type(t)==str:
+        if isinstance(t, str):
             if "x" in t:
                 import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
@@ -574,7 +574,7 @@ class CartanTypeFactory(SageObject):
 
         t = list(t)
 
-        if type(t[0]) == str and t[1] in ZZ and t[1] >= 0:
+        if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
             if len(t) == 2:
                 if letter == "A":

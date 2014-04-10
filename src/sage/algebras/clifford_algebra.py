@@ -870,7 +870,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         REFERENCES:
 
-        - :wikipedia:`Classification_of_Clifford_algebras#Pseudoscalar
+        - :wikipedia:`Classification_of_Clifford_algebras#Pseudoscalar`
         """
         d = self._quadratic_form.dim()
         return self.element_class(self, {tuple(range(d)): self.base_ring().one()})

@@ -1,26 +1,77 @@
-"""
-Catalog of Crystals
+r"""
+Catalog Of Crystals
+
+Definition of a Crystal
+-----------------------
+
+Let `T` be a CartanType with index set `I`, and `W` be
+a realization of the type `T` weight lattice. Let `\alpha_i`
+and `\alpha^{\vee}_i` denote the corresponding simple roots
+and coroots respectively.
+
+A type `T` crystal `\mathcal{B}` is a set with maps
+`\operatorname{wt} : \mathcal{B} \to W`,
+`e_i, f_i : \mathcal{B} \to \mathcal{B} \cup \{0\}`, and
+`\varepsilon_i, \varphi_i : \mathcal{B} \to \ZZ \cup \{-\infty\}`
+for `i \in I` statisfying the properties:
+
+- `\varphi_i(b) = \varepsilon_i(b) + \langle \alpha^{\vee}_i,
+  \operatorname{wt}(b) \rangle`, where `h_i` is a simple coroot,
+
+- if `e_i b \in \mathcal{B}`, then:
+
+  * `\operatorname{wt}(e_i x) = \operatorname{wt}(b) + \alpha_i`,
+  * `\varepsilon_i(e_i b) = \varepsilon_i(b) - 1`,
+  * `\varphi_i(e_i b) = \varphi_i(b) + 1`,
+
+- if `f_i b \in \mathcal{B}`, then:
+
+  * `\operatorname{wt}(f_i b) = \operatorname{wt}(b) - \alpha_i`,
+  * `\varepsilon_i(f_i b) = \varepsilon_i(b) + 1`,
+  * `\varphi_i(f_i b) = \varphi_i(b) - 1`,
+
+- `f_i b^{\prime} = b` if and only if `e_i b = b^{\prime}`
+  for `b, b^{\prime} \in \mathcal{B}`,
+
+- if `\varphi_i(b) = -\infty` for `b \in \mathcal{B}`,
+  then `e_i b = f_i b = 0`,
+
+for all `i \in I`.
+
+.. SEEALSO::
+
+    - :mod:`sage.categories.crystals`
+    - :mod:`sage.combinat.crystals.crystals`
+
+Catalog
+-------
 
 This is a catalog of crystals that are currently in Sage:
 
-* :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
-* :class:`Tableaux <sage.combinat.crystals.tensor_product.CrystalOfTableaux>`
+* :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassical`
+* :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotion`
+* :class:`AffineFactorization <sage.combinat.crystals.affine_factorization.AffineFactorizationCrystal>`
+* :class:`AlcovePaths <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
+* :class:`FastRankTwo <sage.combinat.crystals.fast_crystals.FastCrystal>`
+* :class:`GeneralizedYoungWalls 
+  <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
-* :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
-* :class:`GeneralizedYoungWalls <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
+* :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
+* :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
+* :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
+* :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
+* :class:`ProjectedLevelZeroLSPaths
+  <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
 * :class:`Spins <sage.combinat.crystals.spins.CrystalOfSpins>`
 * :class:`SpinsPlus <sage.combinat.crystals.spins.CrystalOfSpinsPlus>`
 * :class:`SpinsMinus <sage.combinat.crystals.spins.CrystalOfSpinsMinus>`
-* :class:`FastRankTwo <sage.combinat.crystals.fast_crystals.FastCrystal>`
-* :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassical`
-* :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotion`
-* :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
+* :class:`Tableaux <sage.combinat.crystals.tensor_product.CrystalOfTableaux>`
 
 Functorial constructions:
 
-* :class:`tensor products <sage.combinat.crystals.tensor_product.TensorProductOfCrystals>`
-* :class:`direct sums <sage.combinat.crystals.direct_sum.DirectSumOfCrystals>`
+* :class:`TensorProduct <sage.combinat.crystals.tensor_product.TensorProductOfCrystals>`
+* :class:`DirectSum <sage.combinat.crystals.direct_sum.DirectSumOfCrystals>`
 
 Subcatalogs:
 

@@ -194,19 +194,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f(P([1,1,1]))
             (1 : 1/2 : 1)
-
-        """
-        """
-        Evaluate projective morphism at point described by list x.
-
-        EXAMPLES::
-
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
-            sage: f._fast_eval([1,1,1])
-            [5,4,3]
-
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:

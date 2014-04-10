@@ -181,6 +181,27 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter': word.Word_iter
             }
 
+    def _an_element_(self):
+        r"""
+        Return an element of self.
+
+        EXAMPLES::
+
+            sage: W = Words(4)
+            sage: W.an_element()
+            word:
+
+        TESTS:
+
+        Check that :trac:`16125` is fixed::
+
+            sage: W = Words(4)
+            sage: w = W([3,1,2,1])
+            sage: w in ZZ
+            False
+        """
+        return self([])
+
     def __call__(self, data=None, length=None, datatype=None, caching=True, **kwds):
         r"""
         Construct a new word object with parent self.

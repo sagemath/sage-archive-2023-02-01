@@ -922,15 +922,13 @@ class RecursiveSet(SageObject):
 
             sage: from sage.combinat.backtrack import RecursiveSet
             sage: f = lambda a: [a+3, a+5]
-            sage: it_naive = iter(RecursiveSet([0], f))
+            sage: it_naive = iter(RecursiveSet([0], f, algorithm='naive'))
             sage: it_depth = iter(RecursiveSet([0], f, algorithm='depth'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
             sage: it_breadth = iter(RecursiveSet([0], f, algorithm='breadth'))
             sage: [next(it_naive) for _ in range(10)]
             [0, 3, 8, 11, 5, 6, 9, 10, 12, 13]
-            sage: [next(it_depth) for _ in range(10)]  #todo: not implemented
+            sage: [next(it_depth) for _ in range(10)]
+            [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]
             sage: [next(it_breadth) for _ in range(10)]
             [0, 3, 5, 8, 10, 6, 9, 11, 13, 15]
 
@@ -940,7 +938,7 @@ class RecursiveSet(SageObject):
         elif self._algorithm == 'breadth':
             return self.breadth_first_search_iterator(max_depth=self._max_depth)
         elif self._algorithm == 'depth':
-            return self.depth_first_search_iterator(max_depth=self._max_depth)
+            return self.depth_first_search_iterator()
         else:
             raise ValueError("unknown value for algorithm(=%s)" % self._algorithm)
 
@@ -1028,6 +1026,8 @@ class RecursiveSet(SageObject):
 
         A level is a set of elements of the same depth.
 
+        It is currently implemented only for herited classes.
+
         OUTPUT:
 
             an iterator of sets
@@ -1079,6 +1079,41 @@ class RecursiveSet(SageObject):
             current_level = next_level
             depth += 1
 
+    def breadth_first_search_iterator_using_queue(self):
+        r"""
+        Returns an iterator on the elements of self (breadth first).
+
+        This code remembers every elements generated and uses queues.
+
+        See http://en.wikipedia.org/wiki/Breadth-first_search
+
+        TODO: merge this code into the other method using separators in the
+        queue.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.backtrack import RecursiveSet
+            sage: f = lambda a: [a+3, a+5]
+            sage: C = RecursiveSet([0], f)
+            sage: it = C.breadth_first_search_iterator_using_queue()
+            sage: [next(it) for _ in range(10)]
+            [0, 3, 5, 6, 8, 10, 9, 11, 13, 15]
+
+        """
+        known = set(self._seeds)
+        from Queue import Queue
+        q = Queue()
+        for s in self._seeds:
+            q.put(s)
+        while q.not_empty:
+            x = q.get()
+            yield x
+            for y in self._succ(x):
+                if y is None or y in known:
+                    continue
+                q.put(y)
+                known.add(y)
+
     def naive_search_iterator(self):
         r"""
         Returns an iterator on the elements of self (in no particular order).
@@ -1108,30 +1143,36 @@ class RecursiveSet(SageObject):
                 todo.add(y)
                 known.add(y)
 
-    def depth_first_search_iterator(self, max_depth=None):
+    def depth_first_search_iterator(self):
         r"""
         Returns an iterator on the elements of self (depth first).
 
         This code remembers every elements generated.
 
-        INPUT:
-
-        - ``max_depth`` -- (Default: ``None``) Specifies the
-            maximal depth to which elements are computed.
-            If None, the value of ``self._max_depth`` is used.
+        See http://en.wikipedia.org/wiki/Depth-first_search
 
         EXAMPLES::
 
             sage: from sage.combinat.backtrack import RecursiveSet
             sage: f = lambda a: [a+3, a+5]
             sage: C = RecursiveSet([0], f)
-            sage: it = C.depth_first_search_iterator()    # todo: not implemented
+            sage: it = C.depth_first_search_iterator()
+            sage: [next(it) for _ in range(10)]
+            [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]
 
         """
-        if max_depth is None:
-            max_depth = self._max_depth
-        raise NotImplementedError
-
+        stack = []    
+        for s in self._seeds:
+            stack.append(s)
+        known = set()
+        while stack:
+            x = stack.pop()
+            if x is None or x in known:
+                continue
+            yield x
+            known.add(x)
+            for y in self._succ(x):
+                stack.append(y)
 
 class RecursiveSet_symmetric(RecursiveSet):
     r"""

@@ -8034,6 +8034,69 @@ cdef class Expression(CommutativeRingElement):
     full_simplify = simplify_full
 
 
+    def simplify_hypergeometric(self, algorithm='maxima'):
+        """
+        Simplify an expression containing hypergeometric functions
+
+        INPUT:
+
+        - ``self`` -- symbolic expression
+ 
+        - ``algorithm`` -- (default: ``'maxima'``) the algorithm to use for
+          for simplification. Implemented are ``'maxima'``, which uses Maxima's
+          ``hgfred`` function, and ``'sage'``, which uses an algorithm
+          implemented in the hypergeometric module
+
+        ALIAS: :meth:`hypergeometric_simplify` and
+        :meth:`simplify_hypergeometric` are the same
+
+        EXAMPLES::
+
+            sage: hypergeometric((5, 4), (4, 1, 2, 3),
+            ....:                x).simplify_hypergeometric()
+            1/144*x^2*hypergeometric((), (3, 4), x) +...
+            1/3*x*hypergeometric((), (2, 3), x) + hypergeometric((), (1, 2), x)
+            sage: (2*hypergeometric((), (), x)).simplify_hypergeometric()
+            2*e^x
+            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
+            ....:  .simplify_hypergeometric())
+            laguerre(-laguerre(-e^x, x), x)
+            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
+            ....:  .simplify_hypergeometric(algorithm='sage'))
+            hypergeometric((hypergeometric((e^x,), (1,), x),), (1,), x)
+
+        """
+        from sage.functions.hypergeometric import hypergeometric, closed_form
+        from sage.calculus.calculus import maxima
+        try:
+            op = self.operator()
+        except RuntimeError:
+            return self
+        ops = self.operands()
+        if op == hypergeometric:
+            if algorithm == 'maxima':
+                return (self.parent()
+                        (maxima.hgfred(map(lambda o: o.simplify_hypergeometric(algorithm),
+                                           ops[0].operands()),
+                                       map(lambda o: o.simplify_hypergeometric(algorithm),
+                                           ops[1].operands()),
+                                       ops[2].simplify_hypergeometric(algorithm))))
+            elif algorithm == 'sage':
+                return (closed_form
+                        (hypergeometric(map(lambda o: o.simplify_hypergeometric(algorithm),
+                                            ops[0].operands()),
+                                        map(lambda o: o.simplify_hypergeometric(algorithm),
+                                            ops[1].operands()),
+                                        ops[2].simplify_hypergeometric(algorithm))))
+            else:
+                return NotImplementedError('unknown algorithm')
+        if not op:
+            return self
+        return op(*map(lambda o: o.simplify_hypergeometric(algorithm), ops))
+
+    hypergeometric_simplify = simplify_hypergeometric
+
+
     def simplify_rectform(self, complexity_measure = string_length):
         r"""
         Attempt to simplify this expression by expressing it in the

@@ -1692,13 +1692,15 @@ maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
-maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., %jacobi_cd
 
 sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
 polylog_ex = re.compile('li\[([0-9]+?)\]\(')
 
 maxima_polygamma = re.compile("psi\[(\d*)\]\(")  # matches psi[n]( where n is a number
+
+maxima_hyper = re.compile("\%f\[\d+,\d+\]")  # matches %f[m,n]
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     """
@@ -1785,15 +1787,17 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 pass
             else:
                 syms[X[2:]] = function_factory(X[2:])
-        s = s.replace("?%","")
+        s = s.replace("?%", "")
 
-    s = polylog_ex.sub('polylog(\\1,',s)
+    s = maxima_hyper.sub('hypergeometric', s)
+
+    s = polylog_ex.sub('polylog(\\1,', s)
     s = multiple_replace(symtable, s)
     s = s.replace("%","")
 
     s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
 
-    s = maxima_polygamma.sub('psi(\g<1>,',s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+    s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
 
     if equals_sub:
         s = s.replace('=','==')

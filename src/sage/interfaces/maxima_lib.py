@@ -1159,14 +1159,15 @@ max_op_dict[rat]=sage_rat
 
 
 ## Here we build dictionaries for operators needing special conversions.
-ratdisrep=EclObject("ratdisrep")
-mrat=EclObject("MRAT")
-mqapply=EclObject("MQAPPLY")
-max_li=EclObject("$LI")
-max_psi=EclObject("$PSI")
-max_array=EclObject("ARRAY")
-mdiff=EclObject("%DERIVATIVE")
-max_lambert_w=sage_op_dict[sage.functions.log.lambert_w]
+ratdisrep = EclObject("ratdisrep")
+mrat = EclObject("MRAT")
+mqapply = EclObject("MQAPPLY")
+max_li = EclObject("$LI")
+max_psi = EclObject("$PSI")
+max_hyper = EclObject("$%F")
+max_array = EclObject("ARRAY")
+mdiff = EclObject("%DERIVATIVE")
+max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
 
 def mrat_to_sage(expr):
     r"""
@@ -1222,10 +1223,14 @@ def mqapply_to_sage(expr):
     """
     if caaadr(expr) == max_li:
         return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
-                                           max_to_sr(caddr(expr)))
+                                          max_to_sr(caddr(expr)))
     if caaadr(expr) == max_psi:
         return sage.functions.other.psi(max_to_sr(cadadr(expr)),
-                                         max_to_sr(caddr(expr)))
+                                        max_to_sr(caddr(expr)))
+    if caaadr(expr) == max_hyper:
+        return sage.functions.hypergeometric.hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
+                                                            mlist_to_sage(car(cdr(cdr(cdr(expr))))),
+                                                            max_to_sr(car(cdr(cdr(cdr(cdr(expr)))))))
     else:
         op=max_to_sr(cadr(expr))
         max_args=cddr(expr)
@@ -1261,7 +1266,7 @@ def mlist_to_sage(expr):
 
     - ``expr`` - ECL object; a Maxima MLIST expression (i.e., a list)
 
-    OUTPUT: a python list of converted expressions.
+    OUTPUT: a Python list of converted expressions.
 
     EXAMPLES::
 
@@ -1480,6 +1485,8 @@ def sr_to_max(expr):
             return EclObject(l)
         elif (op in special_sage_to_max):
             return EclObject(special_sage_to_max[op](*[sr_to_max(o) for o in expr.operands()]))
+        elif op == tuple:
+            return maxima(expr.operands()).ecl()
         elif not (op in sage_op_dict):
             # Maxima does some simplifications automatically by default
             # so calling maxima(expr) can change the structure of expr

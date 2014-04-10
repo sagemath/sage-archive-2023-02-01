@@ -216,6 +216,8 @@ class Converter(object):
             return self.relation(ex, operator)
         elif isinstance(operator, FDerivativeOperator):
             return self.derivative(ex, operator)
+        elif operator == tuple:
+            return self.tuple(ex)
         else:
             return self.composition(ex, operator)
 
@@ -458,6 +460,20 @@ class InterfaceInit(Converter):
         """
         return "%s %s %s"%(self(ex.lhs()), self.relation_symbols[operator],
                            self(ex.rhs()))
+
+    def tuple(self, ex):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import InterfaceInit
+            sage: m = InterfaceInit(maxima)
+            sage: t = SR._force_pyobject((3, 4, e^x))
+            sage: m.tuple(t)
+            '[3,4,exp(x)]'
+        """
+        x = map(self, ex.operands())
+        X = ','.join(x)
+        return '%s%s%s'%(self.interface._left_list_delim(), X, self.interface._right_list_delim())
 
     def derivative(self, ex, operator):
         """
@@ -1418,6 +1434,18 @@ class FastCallableConverter(Converter):
         """
         return self.etb.call(function, *ex.operands())
 
+    def tuple(self, ex):
+        r"""
+        Given a symbolic tuple, return its elements as a Python list
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=['x'])
+            sage: SR._force_pyobject((2, 3, x^2))._fast_callable_(etb)
+            [2, 3, x^2]
+        """
+        return ex.operands()
 
 def fast_callable(ex, etb):
     """

@@ -10,21 +10,24 @@ Consider the following fields `L` and `M`::
     sage: L.<a> = QuadraticField(2)
     sage: M.<a> = L.absolute_field()
 
-Both produce the same extension of `\QQ`. However, they should not be identical because `M` carries additional information::
+Both produce the same extension of `\QQ`. However, they should not be
+identical because `M` carries additional information::
 
     sage: L.structure()
-    (Ring Coercion endomorphism of Number Field in a with defining polynomial x^2 - 2, Ring Coercion endomorphism of Number Field in a with defining polynomial x^2 - 2)
+    (Ring Coercion endomorphism of Number Field in a with defining polynomial x^2 - 2,
+     Ring Coercion endomorphism of Number Field in a with defining polynomial x^2 - 2)
     sage: M.structure()
     (Isomorphism given by variable name change map:
       From: Number Field in a with defining polynomial x^2 - 2
-      To:   Number Field in a with defining polynomial x^2 - 2, Isomorphism given by variable name change map:
+      To:   Number Field in a with defining polynomial x^2 - 2,
+     Isomorphism given by variable name change map:
       From: Number Field in a with defining polynomial x^2 - 2
       To:   Number Field in a with defining polynomial x^2 - 2)
 
 This used to cause trouble with caching and made (absolute) number fields not
 unique when they should have been. The underlying technical problem is that the
 morphisms returned by ``structure()`` can only be defined once the fields in
-question have been created. Therefore, these morphisms can not be part of a key
+question have been created. Therefore, these morphisms cannot be part of a key
 which uniquely identifies a number field.
 
 The classes defined in this file encapsulate information about these structure

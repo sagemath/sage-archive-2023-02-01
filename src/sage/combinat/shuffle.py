@@ -401,16 +401,17 @@ class ShuffleProduct(SageObject):
             False
         """
 
-        # FIXME: if the elem_constructor is a function??
-        ### for example: ShuffleProduct("a", "bc", elem_constructor="".join)
-        #if li.__class__ != self._element_constructor:
-        #    return False
         l1 = self._l1
         l2 = self._l2
         len_l1 = len(l1)
         len_l2 = len(l2)
         i_l2 = i_l1 = 0
         li = list(li)
+
+        # We want the same type for the tested object and the shuffled elements
+        if  type(li) != type(self._element_constructor_(l1)):
+            return False
+
         for i, el in enumerate(li):
             if l1[i_l1] == el:
                 i_l1 += 1
@@ -422,7 +423,7 @@ class ShuffleProduct(SageObject):
                 return li[i + 1:] == l2[i_l2:]
             if i_l2 == len_l2:
                 return li[i + 1:] == l1[i_l1:]
-        return (i_l1 + 1 == len(l1)) and (i_l2 + 1 == len(l2))
+            return (i_l1 + 1 == len(l1)) and (i_l2 + 1 == len(l2))
 
     def cardinality(self):
         """

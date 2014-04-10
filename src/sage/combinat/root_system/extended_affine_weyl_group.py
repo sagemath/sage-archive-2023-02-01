@@ -274,7 +274,7 @@ def ExtendedAffineWeylGroup(cartan_type, style="PW0", **print_options):
     ::
 
         sage: E.special_nodes()
-        [0, 1, 2]
+        (0, 1, 2)
         sage: F.family()
         Finite family {0: pi[0], 1: pi[1], 2: pi[2]}
 
@@ -733,7 +733,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: ExtendedAffineWeylGroup(['D',4,2]).realization_of().special_nodes()
-            [0, 3]
+            (0, 3)
 
         """
         return self.fundamental_group().special_nodes()

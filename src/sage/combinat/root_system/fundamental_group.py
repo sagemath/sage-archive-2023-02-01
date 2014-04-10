@@ -27,23 +27,139 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi'):
 
     INPUTS:
 
-        - `cartan_type`: a Cartan type that is either affine or finite, with the latter being a
+        - `cartan_type` -- a Cartan type that is either affine or finite, with the latter being a
         shorthand for the untwisted affinization
-        - `prefix` (default: 'pi'): string that labels the elements of the group, which are indexed
-        by the special nodes of the affine Dynkin diagram
+        - `prefix` (default: 'pi') -- string that labels the elements of the group
+
+    ..RUBRIC::
+
+    Associated to each affine Cartan type `\tilde{X}` is an extended affine Weyl group `E`.
+    Its subgroup of length-zero elements is called the fundamental group `F`.
+    The group `F` can be identified with a subgroup of the group of automorphisms of the
+    affine Dynkin diagram. As such, every element of `F` can be viewed as a permutation of the
+    set `I` of affine Dynkin nodes.
+
+    Let `0 \in I` be the distinguished affine node; it is the one whose removal produces the associated
+    finite Cartan type (call it `X`). A node `i \in I` is called *special*
+    if some automorphism of the affine Dynkin diagram, sends `0` to `i`.
+    The node `0` is always special due to the identity automorphism.
+    There is a bijection of the set of special nodes with the fundamental group. We denote the image of `i` by
+    `\pi_i`. The structure of `F` is determined as follows.
+
+    - `\tilde{X}` is untwisted -- `F` is isomorphic to `P^\vee/Q^\vee` where `P^\vee` and `Q^\vee` are the
+    coweight and coroot lattices of type `X`. The group `P^\vee/Q^\vee` consists of the cosets `\omega_i^\vee + Q^\vee`
+    for special nodes `i`, where `\omega_0^\vee = 0` by convention. In this case the special nodes `i`
+    are the *cominuscule* nodes, the ones such that ``omega_i^\vee(\alpha_j)`` is `0` or `1` for all `j\in I_0 = I \setminus \{0\}`.
+    For `i` special, addition by `\omega_i^\vee+Q^\vee` permutes `P^\vee/Q^\vee` and therefore permutes the set of special nodes.
+    This permutation extends uniquely to an automorphism of the affine Dynkin diagram.
+
+    - `\tilde{X}` is dual untwisted -- (that is, the dual of `\tilde{X}` is untwisted) `F` is isomorphic to `P/Q`
+    where `P` and `Q` are the weight and root lattices of type `X`. The group `P/Q` consists of the cosets
+    `\omega_i + Q` for special nodes `i`, where `\omega_0 = 0` by convention. In this case the special nodes `i`
+    are the *minuscule* nodes, the ones such that ``\alpha_j^\vee(omega_i)`` is `0` or `1` for all `j \in I_0`.
+    For `i` special, addition by `\omega_i+Q` permutes `P/Q` and therefore permutes the set of special nodes.
+    This permutation extends uniquely to an automorphism of the affine Dynkin diagram.
+
+    - `\tilde{X}` is mixed -- (that is, not of the above two types) `F` is the trivial group.
+
+    ..RUBRIC Duality
 
     EXAMPLES::
 
-        sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1]); F
-        Fundamental group of type ['A', 2, 1]
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup("A3"); F
+        Fundamental group of type ['A', 3, 1]
+        sage: F.cartan_type().dynkin_diagram()
+        0
+        O-------+
+        |       |
+        |       |
+        O---O---O
+        1   2   3
+        A3~
         sage: F.special_nodes()
-        [0, 1, 2]
+        (0, 1, 2, 3)
         sage: F(1)^2
         pi[2]
         sage: F(1)*F(2)
-        pi[0]
-        sage: F(2)^(-1)
+        pi[3]
+        sage: F(3)^(-1)
         pi[1]
+
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup("B3"); F
+        Fundamental group of type ['B', 3, 1]
+        sage: F.cartan_type().dynkin_diagram()
+            O 0
+            |
+            |
+        O---O=>=O
+        1   2   3
+        B3~
+        sage: F.special_nodes()
+        (0, 1)
+
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup("C2"); F
+        Fundamental group of type ['C', 2, 1]
+        sage: F.cartan_type().dynkin_diagram()
+        O=>=O=<=O
+        0   1   2
+        C2~
+        sage: F.special_nodes()
+        (0, 2)
+
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup("D4"); F
+        Fundamental group of type ['D', 4, 1]
+        sage: F.cartan_type().dynkin_diagram()
+            O 4
+            |
+            |
+        O---O---O
+        1   |2  3
+            |
+            O 0
+        D4~
+        sage: F.special_nodes()
+        (0, 1, 3, 4)
+        sage: (F(4), F(4)^2)
+        (pi[4], pi[0])
+
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup("D5"); F
+        Fundamental group of type ['D', 5, 1]
+        sage: F.cartan_type().dynkin_diagram()
+          0 O   O 5
+            |   |
+            |   |
+        O---O---O---O
+        1   2   3   4
+        D5~
+        sage: F.special_nodes()
+        (0, 1, 4, 5)
+        sage: (F(5), F(5)^2, F(5)^3, F(5)^4)
+        (pi[5], pi[1], pi[4], pi[0])
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup("E6"); F
+        Fundamental group of type ['E', 6, 1]
+        sage: F.cartan_type().dynkin_diagram()
+                O 0
+                |
+                |
+                O 2
+                |
+                |
+        O---O---O---O---O
+        1   3   4   5   6
+        E6~
+        sage: F.special_nodes()
+        (0, 1, 6)
+        sage: F(1)^2
+        pi[6]
+
+        sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['D',4,2]); F
+        Fundamental group of type ['C', 3, 1]^*
+        sage: F.cartan_type().dynkin_diagram()
+        O=<=O---O=>=O
+        0   1   2   3
+        C3~*
+        sage: F.special_nodes()
+        (0, 3)
 
     """
     cartan_type = CartanType(cartan_type)
@@ -66,6 +182,15 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
     def value(self):
         r"""
         Returns the special node which indexes the special automorphism `self`.
+
+        EXAMPLES::
+
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
+            sage: x = F.an_element(); x
+            f[2]
+            sage: x.value()
+            2
+
         """
         return self._value
 
@@ -174,7 +299,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             Q = RootSystem(cartan_type_classical).root_lattice()
             alpha = Q.simple_roots()
             theta = Q.highest_root()
-            self._special_nodes = [0] + [i for i in I if theta[i] == 1]
+            self._special_nodes = tuple([0] + [i for i in I if theta[i] == 1])
             om = RootSystem(cartan_type_classical).weight_lattice().fundamental_weights()
             W = Q.weyl_group(prefix="s")
             w0 = W.long_element()
@@ -204,18 +329,19 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             self._finite_action = Family(self._special_nodes, lambda i: finite_action_dict[i])
 
         if cartan_type.type() == "BC" or cartan_type.dual().type() == "BC":
-            self._special_nodes = [0]
+            self._special_nodes = tuple([0])
             self._action = Family({0:Family(cartan_type.index_set(), lambda i: i)})
             self._dual_node = Family({0:0})
             self._finite_action = Family({0:tuple([])})
 
-        Parent.__init__(self, category = Groups())
+        Parent.__init__(self, category = Groups().Finite().Commutative())
 
     def _element_constructor_(self, x):
         if isinstance(x, self.element_class) and x.parent() is self:
             return x
         return self.element_class(self, x)
 
+    @cached_method
     def one(self):
         r"""
         Returns the identity element of the fundamental group.
@@ -237,7 +363,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
             sage: F.special_nodes()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: F(2)*F(3)
             pi[1]
             sage: F(1)*F(3)^(-1)

@@ -1668,6 +1668,10 @@ class FiniteStateMachine(SageObject):
             [0, 1]
             sage: sub_FSM.transitions()
             [Transition from 0 to 1: 0|-]
+            sage: sub2_FSM = FSM.induced_sub_finite_state_machine([3])
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a state of this finite state machine.
 
         TESTS:
 
@@ -1681,7 +1685,7 @@ class FiniteStateMachine(SageObject):
         good_states = set()
         for state in states:
             if not self.has_state(state):
-                raise ValueError("%s is not a state of this finite state machine")
+                raise ValueError("%s is not a state of this finite state machine." % state)
             good_states.add(self.state(state))
 
         memo = {}

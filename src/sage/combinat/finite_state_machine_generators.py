@@ -182,7 +182,7 @@ class TransducerGenerators(object):
             s.is_final = True
         return T
 
-    def _operator(self, operator, input_alphabet):
+    def operator(self, operator, input_alphabet):
         r"""
         Returns a transducer which realizes the binary operator over
         an input alphabet.
@@ -190,7 +190,7 @@ class TransducerGenerators(object):
         INPUT:
 
         - ``operator`` -- binary operator to realize (a map
-          ``input_alphabet`` `\times ``input_alphabet`` `to`
+          ``input_alphabet`` `\times` ``input_alphabet`` `to`
           ``input_alphabet``).
         - ``input_alphabet``  -- input alphabet.
 
@@ -254,7 +254,7 @@ class TransducerGenerators(object):
             [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
         import operator
-        return self._operator(operator.add, input_alphabet)
+        return self.operator(operator.add, input_alphabet)
 
     def sub(self, input_alphabet):
         """
@@ -286,7 +286,7 @@ class TransducerGenerators(object):
 
         """
         import operator
-        return self._operator(operator.sub, input_alphabet)
+        return self.operator(operator.sub, input_alphabet)
 
 
     def abs(self, input_alphabet):

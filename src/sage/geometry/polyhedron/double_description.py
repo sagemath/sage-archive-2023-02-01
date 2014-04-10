@@ -1,6 +1,11 @@
 """
 Double Description Algorithm
 
+This module implements the double description algorithm for extremal
+vertex enumeration in a pointed cone. With a little bit of
+preprocessing (see :mod:`double_description_backend`) this defines a
+backend for polyhedral computations.
+
 EXAMPLES::
 
     sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
@@ -15,6 +20,18 @@ EXAMPLES::
     A = [ 0  1  1],   R = [-1/3  2/3 -1/3]
         [-1 -1  1]        [ 1/3  1/3  1/3]
 
+The implementation works over any field that is embedded in `\RR` ::
+
+    sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
+    sage: A = matrix(AA, [(1,0,1), (0,1,1), (-AA(2).sqrt(),-AA(3).sqrt(),1), 
+    ....:                 (-AA(3).sqrt(),-AA(2).sqrt(),1)])
+    sage: alg = StandardAlgorithm(A)
+    sage: alg.run().R
+    ((-0.4177376677004119?, 0.5822623322995881?, 0.4177376677004119?), 
+     (-0.2411809548974793?, -0.2411809548974793?, 0.2411809548974793?), 
+     (0.07665629029830300?, 0.07665629029830300?, 0.2411809548974793?), 
+     (0.5822623322995881?, -0.4177376677004119?, 0.4177376677004119?))
+
 REFERENCES:
 
 ..  Komei Fukuda , Alain Prodon:
@@ -22,6 +39,18 @@ REFERENCES:
     Combinatorics and Computer Science, volume 1120 of Lecture Notes
     in Computer Science, page 91-111. Springer (1996)
 """
+
+#*****************************************************************************
+#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -43,11 +72,7 @@ def test_random(d, n):
 
         sage: from sage.geometry.polyhedron.double_description import test_random
         sage: P = test_random(5, 10)
-        sage: P.run()
-        sage: DD, rem = P.initial_pair()
-        sage: DD.add_inequality(rem[0]).verify()
-        sage: DD.add_inequality(rem[1]).verify()
-
+        sage: P.run().verify()
     """
     from sage.matrix.constructor import random_matrix
     from sage.rings.all import QQ
@@ -57,9 +82,6 @@ def test_random(d, n):
             break
     return StandardAlgorithm(A)
     
-    
-
-
 
 class DoubleDescriptionPair(SageObject):
 
@@ -142,6 +164,9 @@ class DoubleDescriptionPair(SageObject):
 
     def verify(self):
         from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.rings.all import QQ
+        if self.problem.base_ring() != QQ:
+            return
         A_cone = self.cone()
         R_cone = Polyhedron(vertices=[[0]*self.problem.dim()], 
                             rays=self.R, base_ring=self.problem.base_ring())
@@ -241,24 +266,46 @@ class DoubleDescriptionPair(SageObject):
         A_Z12 = matrix(self.problem.base_ring(), list(Z_12))
         return A_Z12.rank() == self.problem.dim() - 2
 
-    def remove_unnecessary_inequalities(self):
+    def dual(self):
         """
-        Return a new double description pair with unnecessary inequalities
-        removed.
-        
+        Return the dual pair `(R^T, A^T)`
+
         EXAMPLES::
+        
+            sage: from sage.geometry.polyhedron.double_description import Problem
+            sage: A = matrix(QQ, [(0,1,0), (1,0,0), (0,-1,1), (-1,0,1)])
+            sage: DD, _ = Problem(A).initial_pair()
+            sage: DD
+            Double description pair (A, R) defined by
+                [ 0  1  0]        [0 1 0]
+            A = [ 1  0  0],   R = [1 0 0]
+                [ 0 -1  1]        [1 0 1]
+            sage: DD.dual()
+             Double description pair (A, R) defined by
+                [0 1 1]        [ 0  1  0]
+            A = [1 0 0],   R = [ 1  0 -1]
+                [0 0 1]        [ 0  0  1]
         """
-        supporting_hyperplanes = []
-        d = self.problem.dim()
-        ring = self.problem.base_ring()
-        for a in self.A:
-            R_perp = [r for r in self.R if r.inner_product(a) == 0]
-            if matrix(ring, R_perp).rank() == d - 1:
-                supporting_hyperplanes.append(a)
-        if len(supporting_hyperplanes) == len(self.A):
-            return self
-        else:
-            return self._make_new(supporting_hyperplanes, self.R)
+        return self._make_new(self.R, self.A)
+
+    # def remove_unnecessary_inequalities(self):
+    #     """
+    #     Return a new double description pair with unnecessary inequalities
+    #     removed.
+    #
+    #     EXAMPLES::
+    #     """
+    #     supporting_hyperplanes = []
+    #     d = self.problem.dim()
+    #     ring = self.problem.base_ring()
+    #     for a in self.A:
+    #         R_perp = [r for r in self.R if r.inner_product(a) == 0]
+    #         if matrix(ring, R_perp).rank() == d - 1:
+    #             supporting_hyperplanes.append(a)
+    #     if len(supporting_hyperplanes) == len(self.A):
+    #         return self
+    #     else:
+    #         return self._make_new(supporting_hyperplanes, self.R)
 
 
 
@@ -269,12 +316,12 @@ class Problem(SageObject):
 
     def __init__(self, A):
         """
-        Standard implementation of the double description algorithm
+        Base class for implementations of the double description algorithm
 
         INPUT:
 
         - ``A`` -- a matrix. The rows of the matrix are interpreted as
-          homogeneous inequalities `Ax \geq 0`.
+          homogeneous inequalities `Ax \geq 0`. Must have maximal rank.
         """
         assert A.rank() == A.ncols()    # implementation assumes maximal rank
         self._A = A
@@ -348,9 +395,12 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
             sage: A = matrix([(-1, 1, 0), (-1, 2, 1), (1/2, -1/2, -1)])
             sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
             sage: DD, _ = StandardAlgorithm(A).initial_pair()
-            sage: DD
             sage: newDD = DD.add_inequality(vector([1,0,0]));  newDD
-            sage: newDD.inner_product_matrix()
+            Double description pair (A, R) defined by
+                [  -1    1    0]        [   1    1    0    0]
+            A = [  -1    2    1],   R = [   1    1    1    1]
+                [ 1/2 -1/2   -1]        [   0   -1 -1/2   -2]
+                [   1    0    0]    
         """
         from sage.combinat.cartesian_product import CartesianProduct
         R_pos, R_nul, R_neg = self.R_by_sign(a)
@@ -397,5 +447,4 @@ class StandardAlgorithm(Problem):
             DD = DD.add_inequality(a)
             if check:
                 DD.verify()
-            # DD = DD.remove_unnecessary_inequalities()
         return DD

@@ -253,6 +253,11 @@ export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC="$SAGE_SRC/doc"
+
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
+fi 
 export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.

@@ -453,25 +453,24 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns the `n`-th Fibonacci number. The Fibonacci sequence
-    `F_n` is defined by the initial conditions
-    `F_1=F_2=1` and the recurrence relation
+    Return the `n`-th Fibonacci number.
+
+    The Fibonacci sequence `F_n` is defined by the initial
+    conditions `F_1 = F_2 = 1` and the recurrence relation
     `F_{n+2} = F_{n+1} + F_n`. For negative `n` we
     define `F_n = (-1)^{n+1}F_{-n}`, which is consistent with
     the recurrence relation.
 
     INPUT:
 
+    - ``algorithm`` -- a string:
 
-    -  ``algorithm`` - string:
+      * ``"pari"`` - (default) use the PARI C library's
+        fibo function
 
-    -  ``"pari"`` - (default) - use the PARI C library's
-       fibo function.
+      * ``"gap"`` - use GAP's Fibonacci function
 
-    -  ``"gap"`` - use GAP's Fibonacci function
-
-
-    .. note::
+    .. NOTE::
 
        PARI is tens to hundreds of times faster than GAP here;
        moreover, PARI works for every large input whereas GAP doesn't.
@@ -503,9 +502,9 @@ def fibonacci(n, algorithm="pari"):
     if algorithm == 'pari':
         return ZZ(pari(n).fibonacci())
     elif algorithm == 'gap':
-        return ZZ(gap.eval("Fibonacci(%s)"%n))
+        return ZZ(gap.eval("Fibonacci({})".format(n)))
     else:
-        raise ValueError, "no algorithm %s"%algorithm
+        raise ValueError("no algorithm {}".format(algorithm))
 
 def lucas_number1(n,P,Q):
     """
@@ -515,17 +514,15 @@ def lucas_number1(n,P,Q):
     `L^{(1)}_2=1` and the recurrence relation
     `L^{(1)}_{n+2} = P*L^{(1)}_{n+1} - Q*L^{(1)}_n`.
 
-    Wraps GAP's Lucas(...)[1].
+    Wraps GAP's ``Lucas(...)[1]``.
 
     `P=1`, `Q=-1` gives the Fibonacci sequence.
 
     INPUT:
 
+    -  ``n`` -- integer
 
-    -  ``n`` - integer
-
-    -  ``P, Q`` - integer or rational numbers
-
+    -  ``P, Q`` -- integer or rational numbers
 
     OUTPUT: integer or rational number
 
@@ -2163,9 +2160,8 @@ def tuples(S,k):
 
     This function accepts the set ``S`` in the form of any iterable
     (list, tuple or iterator), and returns a list of `k`-tuples
-    (themselves encoded as lists). If ``S`` contains duplicate
-    entries, then you should expect the method to return tuples multiple
-    times!
+    (themselves encoded as lists). If ``S`` contains duplicate entries,
+    then you should expect the method to return tuples multiple times!
 
     Recall that `k`-tuples are ordered (in the sense that two `k`-tuples
     differing in the order of their entries count as different) and
@@ -2284,7 +2280,7 @@ def unshuffle_iterator(a, one=1):
     .. MATH::
 
         \Bigl( \bigl( (a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(k)}),
-          (a_{\pi(k+1)}, a_{\pi(k+2)}, \ldots, a_{\pi(n)}) \bigl),
+        (a_{\pi(k+1)}, a_{\pi(k+2)}, \ldots, a_{\pi(n)}) \bigl),
         (-1)^{\pi} \Bigr)
 
     for all `k \in \{0, 1, \ldots, n\}` and all `(k, n-k)`-unshuffles
@@ -2294,7 +2290,7 @@ def unshuffle_iterator(a, one=1):
 
     The iterator does not yield these in order of increasing `k`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.combinat.combinat import unshuffle_iterator
         sage: list(unshuffle_iterator([1, 3, 4]))
@@ -2311,7 +2307,6 @@ def unshuffle_iterator(a, one=1):
         sage: list(unshuffle_iterator([3, 1], 3/2))
         [(((), (3, 1)), 3/2), (((3,), (1,)), 3/2), (((1,), (3,)), -3/2),
          (((3, 1), ()), 3/2)]
-
     """
     from sage.misc.misc import powerset
     n = len(a)

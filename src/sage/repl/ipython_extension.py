@@ -1,18 +1,21 @@
 r"""
+Sage's IPython Extension
+
 A Sage extension which adds sage-specific features:
 
 * magics
 
-  - ``%loadfile``
+  - ``%crun``
+
+  - ``%runfile``
 
   - ``%attach``
 
+  - ``%display``
+
   - ``%mode`` (like ``%maxima``, etc.)
 
-  - ``%crun``
-
 * preparsing of input
-  - also make runfile and attach magics so that the ``'%'`` is optional, but encouraged
 
 * loading Sage library
 

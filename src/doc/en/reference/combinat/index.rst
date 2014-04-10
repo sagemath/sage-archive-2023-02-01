@@ -87,6 +87,7 @@ Combinatorics
    sage/combinat/finite_state_machine
    words
 
+   sage/combinat/shuffle
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map

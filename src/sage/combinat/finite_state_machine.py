@@ -4562,9 +4562,9 @@ class FiniteStateMachine(SageObject):
         - ``variance`` -- constant ``v``,
         - ``covariance`` -- constant ``c``.
 
-        Assume that all input and output labels are numbers and that
-        ``self`` is complete and has only one final component.  Assume
-        further that this final component is aperiodic.
+        Assume that all input and output labels are numbers and that ``self``
+        is complete and has only one final component.  Assume further that
+        this final component is aperiodic.
 
         Denote by ``X_n`` the sum of output labels written by the
         finite state machine when reading a random input word of
@@ -4595,17 +4595,21 @@ class FiniteStateMachine(SageObject):
                 sage: constants['covariance']
                 -1/4
 
-        #.  For the case of the Hamming weight of the non-adjacent-form (NAF) of
-            integers, cf. the :wikipedia:`Non-adjacent_form`, the following agrees
-            with the results in [HP2007]_.
+        #.  For the case of the Hamming weight of the non-adjacent-form (NAF)
+            of integers, cf. the :wikipedia:`Non-adjacent_form`, the following
+            agrees with the results in [HP2007]_.
 
-            We first use the transducer to convert the standard binary expansion
-            to the NAF given in [HP2007]_::
+            We first use the transducer to convert the standard binary
+            expansion to the NAF given in [HP2007]_::
 
-                sage: NAF = Transducer([[0, 0, 0, 0], [0, '.1', 1, None],
-                ....:                   ['.1', 0, 0, [1, 0]], ['.1', 1, 1, [-1, 0]],
-                ....:                   [1, 1, 1, 0], [1, '.1', 0, None]],
-                ....:                  initial_states=[0], final_states=[0, 1, ".1"])
+                sage: NAF = Transducer([[0, 0, 0, 0],
+                ....:                   [0, '.1', 1, None],
+                ....:                   ['.1', 0, 0, [1, 0]],
+                ....:                   ['.1', 1, 1, [-1, 0]],
+                ....:                   [1, 1, 1, 0],
+                ....:                   [1, '.1', 0, None]],
+                ....:                  initial_states=[0],
+                ....:                  final_states=[0, 1, '.1'])
 
             Next, we are only interested in the Hamming weight::
 
@@ -4769,8 +4773,7 @@ class FiniteStateMachine(SageObject):
                 ...
                 NotImplementedError: output_sum_asymptotics is only
                 implemented for finite state machines whose unique final
-                component is aperiodic. Otherwise, the variance may be
-                non-linear.
+                component is aperiodic.
 
         #.  Non-integer input or output labels lead to a warning::
 
@@ -4778,6 +4781,12 @@ class FiniteStateMachine(SageObject):
                 sage: constants = T.output_sum_asymptotics()
                 Warning: Non-integer output weights lead to significant
                 performance degradation.
+                sage: constants['expectation']
+                -1/4
+                sage: constants['variance']
+                1/16
+                sage: constants['covariance']
+                -1/8
 
             This warning can be silenced by setting ``verbose=False``::
 
@@ -4828,8 +4837,7 @@ class FiniteStateMachine(SageObject):
             raise NotImplementedError("output_sum_asymptotics is only "
                                       "implemented for finite state machines "
                                       "whose unique final component is "
-                                      "aperiodic. Otherwise, the variance "
-                                      "may be non-linear.")
+                                      "aperiodic.")
 
         K = len(self.input_alphabet)
         try:

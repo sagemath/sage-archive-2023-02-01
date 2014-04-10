@@ -547,7 +547,7 @@ class TermOrder(SageObject):
             sage: t2._weights is None
             True
         """
-        if not dict.has_key('_weights'):
+        if '_weights' not in dict:
             name = dict['_TermOrder__name']
             n = dict['_TermOrder__length']
             t = TermOrder(name,n)
@@ -555,7 +555,7 @@ class TermOrder(SageObject):
         else:
             self.__dict__.update(dict)
 
-    def __init__(self, name='lex', n=0, blocks=True, force=False):
+    def __init__(self, name='lex', n=0, force=False):
         """
         Construct a new term order object.
 
@@ -566,8 +566,6 @@ class TermOrder(SageObject):
         - ``n`` - number of variables (default is `0`) weights for
           weighted degree orders. The weights are converted to
           integers and must be positive.
-
-        - ``blocks`` - this is deprecated.
 
         - ``force`` - ignore unknown term orders.
 
@@ -653,7 +651,7 @@ class TermOrder(SageObject):
                 if not isinstance(name, (tuple,list)):
                     name = name.list() # name may be a matrix
                 name = tuple(name)
-            except StandardError:
+            except Exception:
                 raise TypeError, "%s is not a valid term order"%(name,)
 
         self._blocks = tuple()
@@ -672,7 +670,7 @@ class TermOrder(SageObject):
                 if not isinstance(t, TermOrder):
                     try:
                         t = TermOrder(t,force=True)
-                    except StandardError:
+                    except Exception:
                         raise TypeError
                 if t.name() == 'block':
                     blocks = blocks + list(t.blocks())
@@ -1851,7 +1849,7 @@ class TermOrder(SageObject):
         if not isinstance(other, TermOrder):
             try:
                 other = TermOrder(other, force=True)
-            except StandardError:
+            except Exception:
                 return False
 
         return (self._name == other._name       # note that length is not considered.

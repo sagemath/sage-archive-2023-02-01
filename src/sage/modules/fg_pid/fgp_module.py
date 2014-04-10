@@ -614,7 +614,7 @@ class FGP_Module_class(Module):
         if isinstance(x, (list,tuple)):
             try:
                 x = self.optimized()[0].V().linear_combination_of_basis(x)
-            except ValueError, msg:
+            except ValueError as msg:
                 raise TypeError, msg
         elif isinstance(x, FGP_Element):
             x = x.lift()
@@ -635,7 +635,7 @@ class FGP_Module_class(Module):
         """
         try:
             x = self.optimized()[0].V().linear_combination_of_basis(x)
-        except ValueError, msg:
+        except ValueError as msg:
             raise TypeError, msg
         return self.element_class(self, self._V(x))
 
@@ -1428,17 +1428,26 @@ class FGP_Module_class(Module):
         phi = FGP_Morphism(homspace, f, check=DEBUG)
         return phi
 
-    def Hom(self, N):
+    def _Hom_(self, N, category=None):
         """
         EXAMPLES::
 
             sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ); W = V.span([V.0+2*V.1, 9*V.0+2*V.1, 4*V.2])
             sage: Q = V/W
-            sage: Q.Hom(Q)
+            sage: Q.Hom(Q)     # indirect doctest
             Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 16) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of modules over Integer Ring
             sage: M = V/V.zero_submodule()
-            sage: M.Hom(Q)
+            sage: H = M.Hom(Q); H
             Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (0, 0, 0) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of modules over Integer Ring
+            sage: Hom(M,Q) is H
+            True
+            sage: type(Hom(M,Q))
+            <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
+            sage: H.category()
+            Category of hom sets in Category of modules over Integer Ring
+            sage: H.homset_category()
+            Category of modules over Integer Ring
+
         """
         return FGP_Homset(self, N)
 

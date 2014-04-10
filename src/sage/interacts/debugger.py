@@ -124,10 +124,10 @@ class Debug:
         try:
             code = compile(line + '\n', '<stdin>', 'single')
             exec code in globals, locals
-        except StandardError:
+        except Exception:
             import sys
             t, v = sys.exc_info()[:2]
-            if type(t) == type(''):
+            if isinstance(t, type('')):
                 exc_type_name = t
             else:
                 exc_type_name = t.__name__

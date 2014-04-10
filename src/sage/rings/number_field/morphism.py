@@ -42,7 +42,7 @@ class NumberFieldHomset(RingHomset_generic):
             return self._coerce_impl(im_gens)
         try:
             return NumberFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
@@ -300,7 +300,7 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
         # try to get the cached transformation matrix and vector space isomorphisms if they exist
         try:
             M,LtoV,VtoK = self._transformation_data
-        except StandardError:
+        except Exception:
             # get the identifications of K and L with vector spaces over Q
             V,VtoL,LtoV = self.codomain().absolute_vector_space()
             V,VtoK,KtoV = self.domain().absolute_vector_space()
@@ -659,7 +659,7 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             return self._coerce_impl(im_gens)
         try:
             return CyclotomicFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError), err:
+        except (NotImplementedError, ValueError) as err:
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:

@@ -149,7 +149,7 @@ class ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         contours = options['contours']
-        if options.has_key('cmap'):
+        if 'cmap' in options:
             cmap = get_cmap(options['cmap'])
         elif fill or contours is None:
             cmap = get_cmap('gray')

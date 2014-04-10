@@ -151,7 +151,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
     def rank(self):
         """
-        Return the rank of this coxeter group, that is, the number of generators.
+        Return the rank of this Coxeter group, that is, the number of generators.
 
         EXAMPLES::
 
@@ -457,7 +457,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 sage: v.__cmp__(w)                                            # optional - coxeter3
                 1
             """
-            if type(self) is not type(other):
+            if not isinstance(self, type(other)):
                 return cmp(type(self), type(other))
             return cmp(list(self), list(other))
 

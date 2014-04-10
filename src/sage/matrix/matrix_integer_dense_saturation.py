@@ -2,7 +2,8 @@
 Saturation over ZZ
 """
 
-from sage.rings.all import ZZ, gcd, binomial, GF
+from sage.rings.all import ZZ, gcd, GF
+from sage.rings.arith import binomial
 from sage.matrix.constructor import identity_matrix, random_matrix
 from sage.misc.misc import verbose
 from sage.misc.randstate import current_randstate
@@ -97,8 +98,7 @@ def random_sublist_of_size(k, n):
         z = randrange(k)
         if not z in w:
             w.add(z)
-    w = list(w)
-    w.sort()
+    w = sorted(w)
     return w
 
 def solve_system_with_difficult_last_row(B, A):

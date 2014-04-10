@@ -353,13 +353,20 @@ if [ "$DOT_SAGE" = "" ]; then
     export DOT_SAGE
 fi
 
-
 if [ "$SAGE_STARTUP_FILE" = "" ]; then
     SAGE_STARTUP_FILE="$DOT_SAGE/init.sage"
     export SAGE_STARTUP_FILE
 fi
 
-export IPYTHONDIR="$DOT_SAGE/ipython-0.12"
+IPYTHONDIR=`find "$SAGE_SPKG_INST" -name "ipython*"`
+if [ -n "$IPYTHONDIR" ]; then
+    export IPYTHONDIR="$DOT_SAGE/${IPYTHONDIR##*/}"
+fi
+
+if [ "$PYTHON_EGG_CACHE" = "" ]; then
+    PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
+    export PYTHON_EGG_CACHE
+fi
 
 if [ -d "$SAGE_ROOT/local/lib/python" ]; then
     PYTHONPATH="$SAGE_ROOT/local/lib/python"
@@ -378,23 +385,13 @@ fi
 
 # Use a matplotlib config directory specific to Sage and specific to
 # the version number of matplotlib, by setting the environment
-# variable MPLCONFIGDIR.  See
-# http://trac.sagemath.org/sage_trac/ticket/6235 and
-# http://trac.sagemath.org/sage_trac/ticket/9221.  Find the version
-# number for matplotlib by reading the file
-# SAGE_LOCAL/lib/python/site-packages/matplotlib/__init__.py, and use
-# the version number in the name of the directory.  If that file
-# doesn't exist, matplotlib hasn't been installed yet, so don't set
-# MPLCONFIGDIR.
-MPLINITFILE="$SAGE_LOCAL/lib/python/site-packages/matplotlib/__init__.py"
-if [ -f "$MPLINITFILE" ]; then
-    MPLVERSION=`sed -n "/^__version__[ ]*=/s/[^']*'\([^']*\)'.*$/\1/p" "$MPLINITFILE"`
-    if [ "$MPLVERSION" != "" ]; then
-        MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
-    else
-        # MPLVERSION is empty, so no version found.
-        MPLCONFIGDIR="$DOT_SAGE/matplotlib"
-    fi
+# variable MPLCONFIGDIR. Note that we can't find the version number by
+# importing matplotlib, because that could create matplotlib's standard
+# config directory. So we use pkg_resources.
+"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
+if [ $? -eq 0 ]; then
+    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print pkg_resources.get_distribution("matplotlib").version'`
+    MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     export MPLCONFIGDIR
     # The directory is created when Sage starts (see sage.misc.misc).
 fi
@@ -479,10 +476,7 @@ if [ -z "$CXX" ]; then
     CXX=g++
 fi
 if [ -z "$FC" ]; then
-    if [ -n "$SAGE_FORTRAN" ]; then
-        # Deprecated, see #13349.
-        FC="$SAGE_FORTRAN"
-    elif command -v gfortran >/dev/null 2>/dev/null; then
+    if command -v gfortran >/dev/null 2>/dev/null; then
         FC=gfortran
     elif command -v g95 >/dev/null 2>/dev/null; then
         FC=g95

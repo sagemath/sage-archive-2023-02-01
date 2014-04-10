@@ -962,49 +962,43 @@ class MPolynomialIdeal_singular_repr(
     @libsingular_standard_options
     def complete_primary_decomposition(self, algorithm="sy"):
         r"""
-        Return a list of primary ideals and their associated primes such
-        that the intersection of the primary ideal `Q_i` is
-        `I` = ``self``.
+        Return a list of primary ideals such that their intersection
+        is ``self``, together with the associated prime ideals.
 
-        An ideal `Q` is called primary if it is a proper ideal of
-        the ring `R` and if whenever `ab \in Q` and
-        `a \not\in Q` then `b^n \in Q` for some
-        `n \in \ZZ`.
+        An ideal `Q` is called primary if it is a proper ideal of the
+        ring `R`, and if whenever `ab \in Q` and `a \not\in Q`, then
+        `b^n \in Q` for some `n \in \ZZ`.
 
-        If `Q` is a primary ideal of the ring `R`, then the
-        radical ideal `P` of `Q`, i.e.
-        `P = \{a \in R, a^n \in Q\}` for some
-        `n \in \ZZ`, is called the
-        *associated prime* of `Q`.
+        If `Q` is a primary ideal of the ring `R`, then the radical
+        ideal `P` of `Q` (i.e. the ideal consisting of all `a \in R`
+        with a^n \in Q` for some `n \in \ZZ`), is called the
+        associated prime of `Q`.
 
-        If `I` is a proper ideal of the ring `R` then there
-        exists a decomposition in primary ideals `Q_i` such that
+        If `I` is a proper ideal of a Noetherian ring `R`, then there
+        exists a finite collection of primary ideals `Q_i` such that
+        the following hold:
 
+        - the intersection of the `Q_i` is `I`;
 
-        -  their intersection is `I`
+        - none of the `Q_i` contains the intersection of the others;
 
-        -  none of the `Q_i` contains the intersection of the
-           rest, and
-
-        -  the associated prime ideals of `Q_i` are pairwise
-           different.
-
-
-        This method returns these `Q_i` and their associated
-        primes.
+        - the associated prime ideals `P_i` of the `Q_i` are pairwise
+          distinct.
 
         INPUT:
 
-        - ``algorithm`` - string:
+        - ``algorithm`` -- string:
 
-          -  ``'sy'`` - (default) use the shimoyama-yokoyama algorithm
+          - ``'sy'`` -- (default) use the Shimoyama-Yokoyama
+            algorithm
 
-          -  ``'gtz'`` - use the gianni-trager-zacharias algorithm
+          - ``'gtz'`` -- use the Gianni-Trager-Zacharias algorithm
 
         OUTPUT:
 
-        -  ``list`` - a list of primary ideals and their
-           associated primes [(primary ideal, associated prime), ...]
+        - a list of pairs `(Q_i, P_i)`, where the `Q_i` form a primary
+          decomposition of ``self`` and `P_i` is the associated prime
+          of `Q_i`.
 
         EXAMPLES::
 
@@ -1042,7 +1036,19 @@ class MPolynomialIdeal_singular_repr(
 
         .. note::
 
-           See [BW93]_ for an introduction to primary decomposition.
+            See [BW93]_ for an introduction to primary decomposition.
+
+        TESTS:
+
+        Check that :trac:`15745` is fixed::
+
+            sage: R.<x,y>= QQ[]
+            sage: I = Ideal(R(1))
+            sage: I.complete_primary_decomposition()
+            []
+            sage: I.is_prime()
+            False
+
         """
         try:
             return self.__complete_primary_decomposition[algorithm]
@@ -1050,6 +1056,10 @@ class MPolynomialIdeal_singular_repr(
             self.__complete_primary_decomposition = {}
         except KeyError:
             pass
+
+        # Avoid a bug in Singular (see #15745).
+        if self.is_one():
+            return []
 
         import sage.libs.singular
 
@@ -1072,36 +1082,42 @@ class MPolynomialIdeal_singular_repr(
     @require_field
     def primary_decomposition(self, algorithm='sy'):
         r"""
-        Return a list of primary ideals such that their intersection is
-        `I` = ``self``.
+        Return a list of primary ideals such that their intersection
+        is ``self``.
 
-        An ideal `Q` is called primary if it is a proper ideal of
-        the ring `R` and if whenever `ab \in Q` and
-        `a \not\in Q` then `b^n \in Q` for some
-        `n \in \ZZ`.
+        An ideal `Q` is called primary if it is a proper ideal of the
+        ring `R`, and if whenever `ab \in Q` and `a \not\in Q`, then
+        `b^n \in Q` for some `n \in \ZZ`.
 
-        If `I` is a proper ideal of the ring `R` then there
-        exists a decomposition in primary ideals `Q_i` such that
+        If `Q` is a primary ideal of the ring `R`, then the radical
+        ideal `P` of `Q` (i.e. the ideal consisting of all `a \in R`
+        with a^n \in Q` for some `n \in \ZZ`), is called the
+        associated prime of `Q`.
 
+        If `I` is a proper ideal of a Noetherian ring `R`, then there
+        exists a finite collection of primary ideals `Q_i` such that
+        the following hold:
 
-        -  their intersection is `I`
+        - the intersection of the `Q_i` is `I`;
 
-        -  none of the `Q_i` contains the intersection of the
-           rest, and
+        - none of the `Q_i` contains the intersection of the others;
 
-        -  the associated prime ideals of `Q_i` are pairwise
-           different.
-
-
-        This method returns these `Q_i`.
+        - the associated prime ideals of the `Q_i` are pairwise
+          distinct.
 
         INPUT:
 
-        -  ``algorithm`` - string:
+        - ``algorithm`` -- string:
 
-        -  ``'sy'`` - (default) use the shimoyama-yokoyama algorithm
+          - ``'sy'`` -- (default) use the Shimoyama-Yokoyama
+            algorithm
 
-          -  ``'gtz'`` - use the gianni-trager-zacharias algorithm
+          - ``'gtz'`` -- use the Gianni-Trager-Zacharias algorithm
+
+        OUTPUT:
+
+        - a list of primary ideals `Q_i` forming a primary
+          decomposition of ``self``.
 
         EXAMPLES::
 
@@ -1979,50 +1995,6 @@ class MPolynomialIdeal_singular_repr(
         S = syz(self)
         return matrix(self.ring(), S)
 
-    def reduced_basis(self):
-        r"""
-        .. warning::
-
-           This function is deprecated. It will be removed in a future
-           release of Sage. Please use the :meth:`interreduced_basis`
-           function instead.
-
-        If this ideal is spanned by `(f_1, ..., f_n)` this method
-        returns `(g_1, ..., g_s)` such that:
-
-        - `(f_1,...,f_n) = (g_1,...,g_s)`
-
-        - `LT(g_i) != LT(g_j)` for all `i != j`
-
-        - `LT(g_i)` does not divide `m` for all monomials `m`
-          of `\{g_1,...,g_{i-1},g_{i+1},...,g_s\}`
-
-        - `LC(g_i) == 1` for all `i`.
-
-        EXAMPLES::
-
-            sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
-            sage: I.reduced_basis()
-            doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.
-            See http://trac.sagemath.org/5058 for details.
-            [y^3 + z, x*y + z, x*z - z]
-
-            sage: R.<x,y,z> = PolynomialRing(QQ,order='negdegrevlex')
-            sage: I = Ideal([z*x+y^3,z+y^3,z+x*y])
-            sage: I.reduced_basis()
-            [z + x*y, x*y - y^3, x^2*y - y^3]
-
-        ALGORITHM:
-
-        Uses Singular's interred command or
-        ``toy_buchberger.inter_reduction`` if conversion to
-        Singular fails.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(5058, "This function is deprecated. It will be removed in a future release of Sage. Please use the interreduced_basis() function instead.")
-        return self.interreduced_basis()
-
     @singular_standard_options
     @libsingular_standard_options
     def interreduced_basis(self):
@@ -2663,7 +2635,7 @@ class MPolynomialIdeal_singular_repr(
         try:
           TI = self.triangular_decomposition('singular:triangLfak')
           T = [list(each.gens()) for each in TI]
-        except TypeError, msg: # conversion to Singular not supported
+        except TypeError as msg: # conversion to Singular not supported
           if self.ring().term_order().is_global():
             verbose("Warning: falling back to very slow toy implementation.", level=0)
             T = toy_variety.triangular_factorization(self.groebner_basis())
@@ -3315,7 +3287,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if other_new.groebner_basis.is_in_cache():
                 r = other_new.groebner_basis()
             elif len(other_new._gb_by_ordering) != 0:
-                r = other_new._gb_by_ordering.itervalues().next()
+                o, r = other_new._gb_by_ordering.iteritems().next()
+                l = self.change_ring(R.change_ring(order=o)).gens()
             else: # use easy GB otherwise
                 l = self.change_ring(R.change_ring(order="degrevlex")).gens()
                 r = other_new.change_ring(R.change_ring(order="degrevlex")).groebner_basis()
@@ -3394,7 +3367,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         R = self.ring()
         S = other.ring()
         if R is not S: # rings are unique
-            if type(R) == type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
+            if isinstance(R, type(S)) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
                 other = other.change_ring(R)
             else:
                 return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))
@@ -3852,10 +3825,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if algorithm is '':
             try:
                 gb = self._groebner_basis_libsingular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-            except (TypeError,NameError), msg: # conversion to Singular not supported
+            except (TypeError,NameError) as msg: # conversion to Singular not supported
                 try:
                     gb = self._groebner_basis_singular("groebner", deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
-                except (TypeError,NameError,NotImplementedError), msg: # conversion to Singular not supported
+                except (TypeError,NameError,NotImplementedError) as msg: # conversion to Singular not supported
                     if self.ring().term_order().is_global() and is_IntegerModRing(self.ring().base_ring()) and not self.ring().base_ring().is_field():
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 

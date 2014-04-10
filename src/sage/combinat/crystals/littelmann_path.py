@@ -90,10 +90,11 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
     For classical highest weight crystals we can also compare the results with the tableaux implementation::
 
         sage: C = CrystalOfLSPaths(['A',2],[1,1])
-        sage: list(set(C.list()))
-        [(-Lambda[1] - Lambda[2],), (-Lambda[1] + 1/2*Lambda[2], Lambda[1] - 1/2*Lambda[2]), (-Lambda[1] + 2*Lambda[2],),
-        (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2]), (Lambda[1] - 2*Lambda[2],), (-2*Lambda[1] + Lambda[2],),
-        (2*Lambda[1] - Lambda[2],), (Lambda[1] + Lambda[2],)]
+        sage: sorted(C, key=str)
+        [(-2*Lambda[1] + Lambda[2],), (-Lambda[1] + 1/2*Lambda[2], Lambda[1] - 1/2*Lambda[2]),
+         (-Lambda[1] + 2*Lambda[2],), (-Lambda[1] - Lambda[2],),
+         (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2]), (2*Lambda[1] - Lambda[2],),
+         (Lambda[1] + Lambda[2],), (Lambda[1] - 2*Lambda[2],)]
         sage: C.cardinality()
         8
         sage: B = CrystalOfTableaux(['A',2],shape=[2,1])
@@ -612,12 +613,12 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         sage: P = RootSystem(ct).weight_space()
         sage: La = P.fundamental_weights()
         sage: C = CrystalOfProjectedLevelZeroLSPaths(La[1])
-        sage: C.list()
+        sage: sorted(C, key=str)
         [(-Lambda[0] + Lambda[1],),
-        (Lambda[0] - Lambda[1],),
-        (Lambda[1] - 2*Lambda[2],),
-        (-Lambda[1] + 2*Lambda[2],),
-        (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2])]
+         (-Lambda[1] + 2*Lambda[2],),
+         (1/2*Lambda[1] - Lambda[2], -1/2*Lambda[1] + Lambda[2]),
+         (Lambda[0] - Lambda[1],),
+         (Lambda[1] - 2*Lambda[2],)]
     """
 
     @staticmethod
@@ -944,8 +945,16 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: c = b.e(0)
                 sage: c.energy_function()
                 1
-                sage: [c.energy_function() for c in sorted(LS.list())]
-                [0, 1, 0, 0, 0, 1, 0, 1, 0]
+                sage: for c in sorted(LS, key=str): print c,c.energy_function()
+                (-2*Lambda[0] + 2*Lambda[1],)                    0
+                (-2*Lambda[1] + 2*Lambda[2],)                    0
+                (-Lambda[0] + Lambda[1], -Lambda[1] + Lambda[2]) 1
+                (-Lambda[0] + Lambda[1], Lambda[0] - Lambda[2])  1
+                (-Lambda[1] + Lambda[2], -Lambda[0] + Lambda[1]) 0
+                (-Lambda[1] + Lambda[2], Lambda[0] - Lambda[2])  1
+                (2*Lambda[0] - 2*Lambda[2],)                     0
+                (Lambda[0] - Lambda[2], -Lambda[0] + Lambda[1])  0
+                (Lambda[0] - Lambda[2], -Lambda[1] + Lambda[2])  0
 
             The next test checks that the energy function is constant on classically connected components::
 

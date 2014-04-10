@@ -24,10 +24,10 @@ EXAMPLES::
 #       Copyright (C) 2008-2010 Sebastien Labbe <slabqc@gmail.com>,
 #                     2008-2010 Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
@@ -1064,6 +1064,11 @@ class Word_class(SageObject):
 
         EXAMPLES::
 
+            sage: Word('123').iterated_right_palindromic_closure()
+            word: 1213121
+
+        ::
+
             sage: w = Word('abc')
             sage: w.iterated_right_palindromic_closure()
             word: abacaba
@@ -1116,6 +1121,11 @@ class Word_class(SageObject):
             sage: w = Word()
             sage: w.iterated_right_palindromic_closure()
             word:
+
+        The length-`1` word::
+
+            sage: Word('1').iterated_right_palindromic_closure()
+            word: 1
 
         If the word is finite, so is the result::
 
@@ -1241,23 +1251,6 @@ class Word_class(SageObject):
         for p in self.prefixes_iterator(max_length):
             if p.is_palindrome():
                 yield p
-
-    def alphabet(self):
-        r"""
-        EXAMPLES::
-
-            sage: w = Word('abaccefa')
-            sage: w. alphabet()
-            doctest:1: DeprecationWarning: alphabet() is deprecated, use parent().alphabet() instead
-            See http://trac.sagemath.org/8429 for details.
-            Set of Python objects of type 'object'
-            sage: y = Words('456')('64654564')
-            sage: y.alphabet()
-            {'4', '5', '6'}
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(8429, "alphabet() is deprecated, use parent().alphabet() instead")
-        return self.parent().alphabet()
 
     def _partial_sums_iterator(self, start, mod=None):
         r"""

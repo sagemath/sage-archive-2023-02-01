@@ -464,7 +464,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             try:
                 from sage.misc.sage_eval import sage_eval
                 return self(sage_eval(x, self.gens_dict_recursive()))
-            except NameError, e:
+            except NameError as e:
                 raise TypeError, "unable to convert string"
 
         elif is_Macaulay2Element(x):
@@ -525,7 +525,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             do_coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if (kwds.has_key('coerce') and kwds['coerce']) or do_coerce:
+        if ('coerce' in kwds and kwds['coerce']) or do_coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
@@ -745,9 +745,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
-            doctest:1: DeprecationWarning: MPolynomialRing is deprecated, use PolynomialRing instead!
-            See http://trac.sagemath.org/6500 for details.
+            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
             sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
@@ -755,7 +753,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         TESTS::
 
-            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.<x,y,z>=PolynomialRing(ZZ,3, order='degrevlex')
             sage: P.monomial_divides(P(1), P(0))
             True
             sage: P.monomial_divides(P(1), x)

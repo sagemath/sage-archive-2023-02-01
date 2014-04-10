@@ -64,7 +64,8 @@ that shell.  The bulk of this functionality is provided through
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import os, log, re, new, sys
+import os, re, new, sys
+
 from IPython.utils.py3compat import cast_unicode
 from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
@@ -155,7 +156,7 @@ def sage_prompt():
 ####################
 # InteractiveShell #
 ####################
-from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 class SageInteractiveShell(TerminalInteractiveShell):
 
     def system_raw(self, cmd):
@@ -229,64 +230,52 @@ class SageInteractiveShell(TerminalInteractiveShell):
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################
-# These used to be part of the older PrefilterTransformer framework,
-# but that is not the modern way of doing things. For more details, see
-# http://mail.scipy.org/pipermail/ipython-dev/2011-March/007334.html
+from IPython.core.inputtransformer import (CoroutineInputTransformer,
+                                           StatelessInputTransformer,
+                                           _strip_prompts)
 
-class SagePreparseTransformer():
+@StatelessInputTransformer.wrap
+def SagePreparseTransformer(line):
     """
-    Preparse the line of code before it get evaluated by IPython.
+    EXAMPLES::
+
+        sage: from sage.misc.interpreter import SagePreparseTransformer
+        sage: spt = SagePreparseTransformer()
+        sage: spt.push('1+1r+2.3^2.3r')
+        "Integer(1)+1+RealNumber('2.3')**2.3"
+        sage: preparser(False)
+        sage: spt.push('2.3^2')
+        '2.3^2'
+
+    TESTS:
+
+    Check that syntax errors in the preparser do not crash IPython,
+    see :trac:`14961`. ::
+
+        sage: preparser(True)
+        sage: bad_syntax = "R.<t> = QQ{]"
+        sage: preparse(bad_syntax)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Mismatched ']'
+        sage: from sage.misc.interpreter import get_test_shell
+        sage: shell = get_test_shell()
+        sage: shell.run_cell(bad_syntax)
+          File "<string>", line unknown
+        SyntaxError: Mismatched ']'
+        <BLANKLINE>
     """
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
+    if do_preparse and not line.startswith('%'):
+        l = preparse(line)
+        return l
+    else:
+        return line
 
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SagePreparseTransformer
-            sage: spt = SagePreparseTransformer()
-            sage: spt('2', 0)
-            'Integer(2)'
-            sage: preparser(False)
-            sage: spt('2', 0)
-            '2'
-            sage: preparser(True)
-
-        TESTS:
-
-        Check that syntax errors in the preparser do not crash IPython,
-        see :trac:`14961`. ::
-
-            sage: bad_syntax = "R.<t> = QQ{]"
-            sage: preparse(bad_syntax)
-            Traceback (most recent call last):
-            ...
-            SyntaxError: Mismatched ']'
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.run_cell(bad_syntax)
-            SyntaxError: Mismatched ']'
-        """
-        if do_preparse and not line.startswith('%'):
-            # we use preparse_file instead of just preparse because preparse_file
-            # automatically prepends attached files
-            try:
-                return preparse(line, reset=(line_number==0))
-            except SyntaxError as err:
-                print "SyntaxError: {0}".format(err)
-            return ''
-        else:
-            return line
-
-class MagicTransformer():
+_magic_deprecations = {'load': '%runfile',
+                       'attach': '%attach',
+                       'time': '%time'}
+@StatelessInputTransformer.wrap
+def magic_transformer(line):
     r"""
     Handle input lines that start out like ``load ...`` or ``attach
     ...``.
@@ -295,132 +284,59 @@ class MagicTransformer():
     ``attach``, IPython's automagic will not transform these lines
     into ``%load ...`` and ``%attach ...``, respectively.  Thus, we
     have to do it manually.
-    """
-    deprecations = {'load': '%runfile',
-                    'attach': '%attach',
-                    'time': '%time'}
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
-
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        OUTPUT:
-
-        A string, the transformed line.
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell, MagicTransformer
-            sage: mt = MagicTransformer()
-            sage: mt('load /path/to/file', 0)
-            doctest:1: DeprecationWarning: Use %runfile instead of load.
+            sage: from sage.misc.interpreter import get_test_shell, magic_transformer
+            sage: mt = magic_transformer()
+            sage: mt.push('load /path/to/file')
+            doctest:...: DeprecationWarning: Use %runfile instead of load.
             See http://trac.sagemath.org/12719 for details.
             '%runfile /path/to/file'
-            sage: mt('attach /path/to/file', 0)
-            doctest:1: DeprecationWarning: Use %attach instead of attach.
+            sage: mt.push('attach /path/to/file')
+            doctest:...: DeprecationWarning: Use %attach instead of attach.
             See http://trac.sagemath.org/12719 for details.
             '%attach /path/to/file'
-            sage: mt('time 1+2', 0)
-            doctest:1: DeprecationWarning: Use %time instead of time.
+            sage: mt.push('time 1+2')
+            doctest:...: DeprecationWarning: Use %time instead of time.
             See http://trac.sagemath.org/12719 for details.
             '%time 1+2'
-        """
-        for old,new in self.deprecations.items():
-            if line.startswith(old+' '):
-                from sage.misc.superseded import deprecation
-                deprecation(12719, 'Use %s instead of %s.'%(new,old))
-                return new+line[len(old):]
-        return line
-
-class SagePromptTransformer():
     """
-    Remove Sage prompts from the input line.
+    global _magic_deprecations
+    for old,new in _magic_deprecations.items():
+        if line.startswith(old+' '):
+            from sage.misc.superseded import deprecation
+            deprecation(12719, 'Use %s instead of %s.'%(new,old))
+            return new+line[len(old):]
+    return line
+
+
+@CoroutineInputTransformer.wrap
+def sage_prompt_transformer():
     """
-    _sage_prompt_re = re.compile(r'(^[ \t]*sage: |^[ \t]*\.+:? )+')
+    Strip the sage:/... prompts of Sage.
 
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
+    EXAMPLES::
 
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SagePromptTransformer
-            sage: spt = SagePromptTransformer()
-            sage: spt("sage: sage: 2 + 2", 0)
-            '2 + 2'
-            sage: spt('', 0)
-            ''
-            sage: spt("      sage: 2+2", 0)
-            '2+2'
-            sage: spt("      ... 2+2", 0)
-            '2+2'
-        """
-        if not line or line.isspace() or line.strip() == '...':
-            # This allows us to recognize multiple input prompts separated by
-            # blank lines and pasted in a single chunk, very common when
-            # pasting doctests or long tutorial passages.
-            return ''
-        while True:
-            m = self._sage_prompt_re.match(line)
-            if m:
-                line = line[len(m.group(0)):]
-            else:
-                break
-        return line
-
-class SagePromptDedenter():
+        sage: from sage.misc.interpreter import sage_prompt_transformer
+        sage: spt = sage_prompt_transformer()
+        sage: spt.push("sage: sage: 2 + 2")
+        '2 + 2'
+        sage: spt.push('')
+        ''
+        sage: spt.push("sage: 2+2")
+        '2+2'
+        sage: spt.push("... .... ....: ...: 2+2")
+        '2+2'
     """
-    Remove leading spaces from the input line.
-    """
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
-
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SagePromptDedenter
-            sage: spd = SagePromptDedenter()
-            sage: spd('  1 + \\', 0)
-            '1 + \\'
-            sage: spd('  2', 1)
-            '2'
-            sage: spd('3', 2)   # try our best with incorrect indentation
-            '3'
-        """
-        if line_number == 0:
-            dedent_line = line.lstrip()
-            self._dedent = len(line) - len(dedent_line)
-            return dedent_line
-        else:
-            dedent = min(len(line)-len(line.lstrip()), self._dedent)
-            return line[dedent:]
+    _sage_prompt_re = re.compile(r'^(sage: |\.\.\.\.?:? )+')
+    return _strip_prompts(_sage_prompt_re)
 
 ###################
 # Interface shell #
 ###################
 from IPython.core.prefilter import PrefilterTransformer
-from IPython.frontend.terminal.embed import InteractiveShellEmbed
+from IPython.terminal.embed import InteractiveShellEmbed
 from IPython import Config
 
 class InterfaceShellTransformer(PrefilterTransformer):
@@ -638,7 +554,7 @@ def get_test_shell():
 #######################
 # IPython TerminalApp #
 #######################
-from IPython.frontend.terminal.ipapp import TerminalIPythonApp, IPAppCrashHandler
+from IPython.terminal.ipapp import TerminalIPythonApp, IPAppCrashHandler
 from IPython.core.crashhandler import CrashHandler
 from IPython import Config
 
@@ -698,9 +614,21 @@ class SageTerminalApp(TerminalIPythonApp):
 
 
     def load_config_file(self, *args, **kwds):
-        from IPython.frontend.terminal.ipapp import default_config_file_name
+        """
+        TESTS:
+
+        Test that :trac:`15972` has been fixed::
+
+            sage: from sage.misc.temporary_file import tmp_dir
+            sage: from sage.misc.interpreter import SageTerminalApp
+            sage: d = tmp_dir()
+            sage: IPYTHONDIR = os.environ['IPYTHONDIR']
+            sage: os.environ['IPYTHONDIR'] = d
+            sage: SageTerminalApp().load_config_file()
+            sage: os.environ['IPYTHONDIR'] = IPYTHONDIR
+        """
         from IPython.config.loader import PyFileConfigLoader, ConfigFileNotFound
-        from IPython.core.profiledir import ProfileDir
+        from IPython.core.profiledir import ProfileDir, ProfileDirError
         from IPython.utils.path import get_ipython_dir
 
         conf = Config()
@@ -708,10 +636,15 @@ class SageTerminalApp(TerminalIPythonApp):
         conf._merge(self.command_line_config)
 
         # Get user config.
-        sage_profile_dir = ProfileDir.find_profile_dir_by_name(
-            get_ipython_dir(), 'sage').location
         try:
-            cl = PyFileConfigLoader(default_config_file_name, sage_profile_dir)
+            sage_profile_dir = ProfileDir.find_profile_dir_by_name(
+                get_ipython_dir(), 'sage').location
+        except ProfileDirError:
+            d = ProfileDir.create_profile_dir_by_name(
+                get_ipython_dir(), 'sage')
+            sage_profile_dir = d.location
+        try:
+            cl = PyFileConfigLoader('ipython_config.py', sage_profile_dir)
             conf._merge(cl.load_config())
         except ConfigFileNotFound:
             pass

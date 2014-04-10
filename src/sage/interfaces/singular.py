@@ -1168,7 +1168,7 @@ class Singular(Expect):
         print "Interrupting %s..."%self
         try:
             self._expect.sendline(chr(4))
-        except pexpect.ExceptionPexpect, msg:
+        except pexpect.ExceptionPexpect as msg:
             raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
         self._start()
         raise KeyboardInterrupt, "Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self
@@ -1189,7 +1189,7 @@ class SingularElement(ExpectElement):
                 self._name = parent._create( value, type)
             # Convert SingularError to TypeError for
             # coercion to work properly.
-            except SingularError, x:
+            except SingularError as x:
                 self._session_number = -1
                 raise TypeError, x, sys.exc_info()[2]
             except BaseException:
@@ -1682,7 +1682,7 @@ class SingularElement(ExpectElement):
                     sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
-                    if not kcache.has_key(elem):
+                    if elem not in kcache:
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
@@ -1711,7 +1711,7 @@ class SingularElement(ExpectElement):
                     sage_repr[exp]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
-                    if not kcache.has_key(elem):
+                    if elem not in kcache:
                         kcache[elem] = k( elem )
                     sage_repr[ exp ]= kcache[elem]
 

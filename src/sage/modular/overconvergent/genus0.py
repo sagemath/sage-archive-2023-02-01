@@ -246,7 +246,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
     if int(prime) not in [2, 3, 5, 7, 13]:
         raise ValueError, "p must be one of {2, 3, 5, 7, 13}"
     key = (prime, weight, radius, base_ring, prec, char)
-    if __ocmfdict.has_key(key):
+    if key in __ocmfdict:
         w = __ocmfdict[key]
         M = w()
         if not (M is None):
@@ -601,7 +601,7 @@ class OverconvergentModularFormsSpace(Module_old):
             3-adic overconvergent modular form of weight-character 12 with q-expansion 27*q + 19829193012/61203943*q^2 + 146902585770/61203943*q^3 + ...
         """
         i = 0
-        while 1:
+        while True:
             yield self.gen(i)
             i += 1
 

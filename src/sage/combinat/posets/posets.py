@@ -544,7 +544,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         # Compute a linear extension of the poset (a topological sort).
         try:
             lin_ext = D.topological_sort()
-        except StandardError:
+        except Exception:
             raise ValueError, "Hasse diagram contains cycles."
 
     # Relabel using the linear_extension.
@@ -740,7 +740,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 facade = hasse_diagram in Sets().Facades()
             hasse_diagram = hasse_diagram._hasse_diagram
         else:
-            hasse_diagram = HasseDiagram(hasse_diagram)
+            hasse_diagram = HasseDiagram(hasse_diagram, data_structure="static_sparse")
             if elements is None:
                 elements = hasse_diagram.vertices()
             if facade is None:
@@ -1116,22 +1116,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
             sage: print P._latex_() #optional - dot2tex graphviz
-            \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
-            \definecolor{cv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv1}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv1}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv1}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv0v1}{rgb}{0.0,0.0,0.0}
-            %
-            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$1$},x=0.0cm,y=0.0cm]{v0}
-            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$2$},x=5.0cm,y=5.0cm]{v1}
-            %
-            \Edge[lw=0.1cm,style={post, bend right,color=cv0v1,},](v0)(v1)
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            %%
+            \node (node_1) at (6bp,57bp) [draw,draw=none] {$2$};
+              \node (node_0) at (6bp,7bp) [draw,draw=none] {$1$};
+              \draw [black,<-] (node_1) ..controls (6bp,31.269bp) and (6bp,20.287bp)  .. (node_0);
             %
             \end{tikzpicture}
         """
@@ -1477,21 +1466,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
-            sage: P.to_graph()
-            Graph on 4 vertices
-            sage: P = Poset()
             sage: G = P.to_graph(); G
+            Graph on 4 vertices
+            sage: S = Poset()
+            sage: H = S.to_graph(); H
             Graph on 0 vertices
 
-        Check that it is hashable::
+        Check that it is hashable and coincides with the Hasse diagram as a
+        graph::
 
             sage: hash(G) == hash(G)
             True
+            sage: G == Graph(P.hasse_diagram())
+            True
+
         """
         from sage.graphs.graph import Graph
-        G = Graph(self.hasse_diagram())
-        G._immutable = True
-        return G
+        return Graph(self.hasse_diagram(), immutable=True)
 
     def level_sets(self):
         """
@@ -4539,7 +4530,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         else:
             # Step MC2b in Britz-Fomin, Algorithm 7.2.
             for v in G.vertex_iterator():
-                if not X.has_key(v):
+                if v not in X:
                     pi[v] += 1
             p += 1
 

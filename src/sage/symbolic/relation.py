@@ -382,8 +382,6 @@ def test_relation_maxima(relation):
         True
         sage: test_relation_maxima(x!=1)
         False
-        sage: test_relation_maxima(x<>1) # alternate syntax for not equal
-        False
         sage: forget()
         sage: assume(x>0)
         sage: test_relation_maxima(x==0)
@@ -407,19 +405,19 @@ def test_relation_maxima(relation):
     if relation.operator() == operator.eq: # operator is equality
         try:
             s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError, msg:
+        except TypeError as msg:
             raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
 
     elif relation.operator() == operator.ne: # operator is not equal
         try:
             s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError, msg:
+        except TypeError as msg:
             raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
 
     else: # operator is < or > or <= or >=, which Maxima handles fine
         try:
             s = m.parent()._eval_line('is (%s)'%repr(m))
-        except TypeError, msg:
+        except TypeError as msg:
             raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
 
     if s == 'true':
@@ -441,7 +439,7 @@ def test_relation_maxima(relation):
             if repr( f() ).strip() == "0":
                 return True
                 break
-        except StandardError:
+        except Exception:
             pass
     return False
 
@@ -768,10 +766,10 @@ def solve(f, *args, **kwds):
 
     try:
         s = m.solve(variables)
-    except StandardError: # if Maxima gave an error, try its to_poly_solve
+    except Exception: # if Maxima gave an error, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except TypeError, mess: # if that gives an error, raise an error.
+        except TypeError as mess: # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
                 raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
             else:
@@ -780,13 +778,13 @@ def solve(f, *args, **kwds):
     if len(s)==0: # if Maxima's solve gave no solutions, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except StandardError: # if that gives an error, stick with no solutions
+        except Exception: # if that gives an error, stick with no solutions
             s = []
 
     if len(s)==0: # if to_poly_solve gave no solutions, try use_grobner
         try:
             s = m.to_poly_solve(variables,'use_grobner=true')
-        except StandardError: # if that gives an error, stick with no solutions
+        except Exception: # if that gives an error, stick with no solutions
             s = []
 
     sol_list = string_to_list_of_solutions(repr(s))

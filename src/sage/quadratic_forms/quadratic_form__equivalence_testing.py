@@ -331,7 +331,7 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     """
     ## Sanity Checks
     #if not isinstance(other, QuadraticForm):
-    if type(other) != type(self):
+    if not isinstance(other, type(self)):
         raise TypeError, "Oops!  The first argument must be of type QuadraticForm."
     if not is_prime(p):
         raise TypeError, "Oops!  The second argument must be a prime number."

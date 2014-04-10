@@ -370,7 +370,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         for i in range(len(X)):
             if cmp_pivots(best_pivots, list(X[i].pivots())) <= 0:
                 p = X[i].base_ring().order()
-                if not lifts.has_key(p):
+                if p not in lifts:
                     t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
                     lift = X[i].lift()
                     lifts[p] = (lift, p)
@@ -396,7 +396,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             E = L.rational_reconstruction(prod)
             L = 0  # free memory
             verbose('rational reconstruction completed', t, level=2, caller_name="multimod echelon")
-        except ValueError, msg:
+        except ValueError as msg:
             verbose(msg, level=2)
             verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2, caller_name="multimod echelon")
             M = prod * p*p*p

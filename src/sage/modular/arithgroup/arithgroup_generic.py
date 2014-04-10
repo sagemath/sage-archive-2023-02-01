@@ -159,7 +159,7 @@ class ArithmeticSubgroup(group.Group):
         """
         # Do not override this function! Derived classes should override
         # _contains_sl2.
-        if type(x) == type([]) and len(x) == 4:
+        if isinstance(x, type([])) and len(x) == 4:
             if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
                 return False
             a,b,c,d = map(ZZ, x)
@@ -1268,7 +1268,7 @@ class ArithmeticSubgroup(group.Group):
         Return self as an arithmetic subgroup defined in terms of the
         permutation action of `SL(2,\ZZ)` on its right cosets.
 
-        This method uses Todd-coxeter enumeration (via the method
+        This method uses Todd-Coxeter enumeration (via the method
         :meth:`~todd_coxeter`) which can be extremely slow for arithmetic
         subgroups with relatively large index in `SL(2,\ZZ)`.
 

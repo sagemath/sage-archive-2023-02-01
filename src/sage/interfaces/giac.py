@@ -889,7 +889,7 @@ class GiacElement(ExpectElement):
         try:
             if P.eval("evalb(%s %s %s)"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
                 return -1
-        except RuntimeError, e:
+        except RuntimeError as e:
             msg = str(e)
             if 'is not valid' in msg and 'to < or <=' in msg:
                 if (hash(str(self)) < hash(str(other))):
@@ -1048,7 +1048,7 @@ class GiacElement(ExpectElement):
             try:
                 from sage.symbolic.all import SR
                 return SR(result)
-            except StandardError:
+            except Exception:
                 raise NotImplementedError, "Unable to parse Giac output: %s" % result
         else:
             return [entry.sage() for entry in self]

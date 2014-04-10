@@ -22,7 +22,7 @@ see :trac:`12849`::
     sage: for line in open(docfilename):
     ...       if "#sage.symbolic.expression.Expression.N" in line:
     ...           print line
-    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em><big>)</big>...
+    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -1133,8 +1133,7 @@ def format_search_as_html(what, r, search):
         i = L.find(':')
         if i != -1:
             files.add(L[:i])
-    files = list(files)
-    files.sort()
+    files = sorted(files)
     for F in files:
         if F.endswith('.html'):
             F = F.split('/', 2)[2]
@@ -1176,7 +1175,7 @@ def my_getsource(obj, is_binary):
     try:
         s = sageinspect.sage_getsource(obj, is_binary)
         return format_src(s)
-    except Exception, msg:
+    except Exception as msg:
         print 'Error getting source:', msg
         return None
 
@@ -1454,7 +1453,13 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        python_help(module)
+        if hasattr(module, '_sage_doc_'):
+            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
+            docstr = 'Help on ' + str(module) + '\n'
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
+            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
+        else:
+            python_help(module)
     else:
         print """Welcome to Sage %s!
 

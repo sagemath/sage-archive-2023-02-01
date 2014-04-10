@@ -19,9 +19,9 @@ from sage.rings.integer import Integer
 
 class Crystals(Category_singleton):
     r"""
-    The category of crystals
+    The category of crystals.
 
-    See :mod:`sage.combinat.crystals` for an introduction to crystals.
+    See :mod:`sage.combinat.crystals.crystals` for an introduction to crystals.
 
     EXAMPLES::
 

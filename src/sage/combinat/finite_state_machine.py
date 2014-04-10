@@ -4543,7 +4543,7 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
-    def output_sum_asymptotics(self, verbose=True):
+    def asymptotic_moments(self, verbose=True):
         """
         Returns the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input
@@ -4587,7 +4587,7 @@ class FiniteStateMachine(SageObject):
         #.  A trivial example: write the negative of the input::
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1]])
-                sage: constants = T.output_sum_asymptotics()
+                sage: constants = T.asymptotic_moments()
                 sage: constants['expectation']
                 -1/2
                 sage: constants['variance']
@@ -4635,7 +4635,7 @@ class FiniteStateMachine(SageObject):
 
             Now, we actually compute the asymptotic constants::
 
-                sage: constants = NAFweight.output_sum_asymptotics()
+                sage: constants = NAFweight.asymptotic_moments()
                 sage: constants['expectation']
                 1/3
                 sage: constants['variance']
@@ -4650,7 +4650,7 @@ class FiniteStateMachine(SageObject):
                 (a_1, a_2, a_3, a_4)
                 sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
                 ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]])
-                sage: constants = T.output_sum_asymptotics()
+                sage: constants = T.asymptotic_moments()
                 Warning: Non-integer output weights lead to significant
                 performance degradation.
                 sage: constants['expectation']
@@ -4668,7 +4668,7 @@ class FiniteStateMachine(SageObject):
                 ....:                    [2, 3, 1, 1],
                 ....:                    [3, 2, 0, 1],
                 ....:                    [3, 3, 1, 0]])
-                sage: constants = gray.output_sum_asymptotics()
+                sage: constants = gray.asymptotic_moments()
                 sage: constants['expectation']
                 1/2
                 sage: constants['variance']
@@ -4685,7 +4685,7 @@ class FiniteStateMachine(SageObject):
                 ....:                       [0, 1, 1, 0],
                 ....:                       [1, 0, 0, 1],
                 ....:                       [1, 1, 1, 0]])
-                sage: constants = block10.output_sum_asymptotics()
+                sage: constants = block10.asymptotic_moments()
                 sage: constants['expectation']
                 1/4
                 sage: constants['variance']
@@ -4702,7 +4702,7 @@ class FiniteStateMachine(SageObject):
                 ....:                       [0, 1, 1, 0],
                 ....:                       [1, 0, 0, 0],
                 ....:                       [1, 1, 1, 1]])
-                sage: constants = block11.output_sum_asymptotics()
+                sage: constants = block11.asymptotic_moments()
                 sage: constants['expectation']
                 1/4
                 sage: constants['variance']
@@ -4722,7 +4722,7 @@ class FiniteStateMachine(SageObject):
                 ....:                                [0, 1, 1, 1],
                 ....:                                [1, 0, 0, -1],
                 ....:                                [1, 1, 1, 0]])
-                sage: constants = block_difference.output_sum_asymptotics()
+                sage: constants = block_difference.asymptotic_moments()
                 sage: constants['expectation']
                 0
                 sage: constants['variance']
@@ -4736,7 +4736,7 @@ class FiniteStateMachine(SageObject):
 
                 sage: T = Transducer([[0, 0, 0, 0]],
                 ....:                determine_alphabets=False)
-                sage: T.output_sum_asymptotics()
+                sage: T.asymptotic_moments()
                 Traceback (most recent call last):
                 ...
                 ValueError: No input alphabet is given.
@@ -4746,7 +4746,7 @@ class FiniteStateMachine(SageObject):
 
                 sage: T = Transducer([[0, 0, 0, 0]],
                 ....:                input_alphabet=[0, 1])
-                sage: T.output_sum_asymptotics()
+                sage: T.asymptotic_moments()
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: This finite state machine is
@@ -4757,10 +4757,10 @@ class FiniteStateMachine(SageObject):
                 sage: T = Transducer([[0, 1, 0, 0], [0, 2, 1, 0],
                 ....:                 [1, 1, 0, 0], [1, 1, 1, 1],
                 ....:                 [2, 2, 0, 0], [2, 2, 1, 1]])
-                sage: T.output_sum_asymptotics()
+                sage: T.asymptotic_moments()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: output_sum_asymptotics is only
+                NotImplementedError: asymptotic_moments is only
                 implemented for finite state machines with one final
                 component. Otherwise, the variance may be non-linear.
 
@@ -4768,17 +4768,17 @@ class FiniteStateMachine(SageObject):
             aperiodic::
 
                 sage: T = Transducer([[0, 1, 0, 0], [1, 0, 0, 0]])
-                sage: T.output_sum_asymptotics()
+                sage: T.asymptotic_moments()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: output_sum_asymptotics is only
+                NotImplementedError: asymptotic_moments is only
                 implemented for finite state machines whose unique final
                 component is aperiodic.
 
         #.  Non-integer input or output labels lead to a warning::
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]])
-                sage: constants = T.output_sum_asymptotics()
+                sage: constants = T.asymptotic_moments()
                 Warning: Non-integer output weights lead to significant
                 performance degradation.
                 sage: constants['expectation']
@@ -4790,7 +4790,7 @@ class FiniteStateMachine(SageObject):
 
             This warning can be silenced by setting ``verbose=False``::
 
-                sage: constants = T.output_sum_asymptotics(verbose=False)
+                sage: constants = T.asymptotic_moments(verbose=False)
                 sage: constants['expectation']
                 -1/4
                 sage: constants['variance']
@@ -4827,14 +4827,14 @@ class FiniteStateMachine(SageObject):
 
         final_components = self.final_components()
         if len(final_components)!=1:
-            raise NotImplementedError("output_sum_asymptotics is only "
+            raise NotImplementedError("asymptotic_moments is only "
                                       "implemented for finite state machines "
                                       "with one final component. Otherwise, "
                                       "the variance may be non-linear.")
         final_component = final_components[0]
 
         if not final_component.digraph().is_aperiodic():
-            raise NotImplementedError("output_sum_asymptotics is only "
+            raise NotImplementedError("asymptotic_moments is only "
                                       "implemented for finite state machines "
                                       "whose unique final component is "
                                       "aperiodic.")

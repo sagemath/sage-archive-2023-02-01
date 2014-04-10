@@ -1,5 +1,5 @@
 r"""
-Jacobi elliptic functions
+Jacobi Elliptic Functions
 
 This module implements the 12 Jacobi elliptic functions, along with their
 inverses and the Jacobi amplitude function.
@@ -21,7 +21,7 @@ Each of the corners of the rectangle are labeled, by convention, ``s``,
 ``c``, ``d``, and ``n``. The rectangle is understood to be lying on the complex
 plane, so that ``s`` is at the origin, ``c`` is on the real axis, and ``n`` is
 on the imaginary axis. The twelve Jacobian elliptic functions are
-then $\operatorname{pq}(x)$, where ``p`` and ``q`` are one of the letters
+then `\operatorname{pq}(x)`, where ``p`` and ``q`` are one of the letters
 ``s``, ``c``, ``d``, ``n``.
 
 The Jacobian elliptic functions are then the unique
@@ -36,45 +36,45 @@ three properties:
    from ``p`` to ``q``. `\operatorname{pq}(x)` is periodic in the other two
    directions as well, with a period such that the distance from ``p`` to one
    of the other corners is a quarter period.
-#. If the function $\operatorname{pq}(x)$ is expanded in terms of $x$ at one of
+#. If the function `\operatorname{pq}(x)` is expanded in terms of `x` at one of
    the corners, the leading term in the expansion has a coefficient of 1.
    In other words, the leading term of the expansion of `\operatorname{pq}(x)`
-   at the corner ``p`` is $x$; the leading term of the expansion at the corner
-   ``q`` is $1/x$, and the leading term of an expansion at the other two
+   at the corner ``p`` is `x`; the leading term of the expansion at the corner
+   ``q`` is `1/x`, and the leading term of an expansion at the other two
    corners is 1.
 
 We can write
 
-.. math::
+.. MATH::
 
-    \operatorname{pq}(x)=\frac{\operatorname{pr}(x)}{\operatorname{qr}(x)}
+    \operatorname{pq}(x) = \frac{\operatorname{pr}(x)}{\operatorname{qr}(x)}
 
 where ``p``, ``q``, and ``r`` are any of the
 letters ``s``, ``c``, ``d``, ``n``, with
-the understanding that `\mathrm{ss}=\mathrm{cc}=\mathrm{dd}=\mathrm{nn}=1`.
+the understanding that `\mathrm{ss} = \mathrm{cc} = \mathrm{dd}
+= \mathrm{nn} = 1`.
 
 Let
 
-.. math::
+.. MATH::
 
-    u=\int_0^\phi \frac{d\theta} {\sqrt {1-m \sin^2 \theta}}
+    u = \int_0^{\phi} \frac{d\theta} {\sqrt {1-m \sin^2 \theta}},
 
+then the *Jacobi elliptic function* `\operatorname{sn}(u)` is given by
 
-Then the *Jacobi elliptic function* `\operatorname{sn}(u)` is given by
-
-.. math::
+.. MATH::
 
     \operatorname{sn}{u} = \sin{\phi}
 
 and `\operatorname{cn}(u)` is given by
 
-.. math::
+.. MATH::
 
     \operatorname{cn}{u} = \cos{\phi}
 
 and
 
-.. math::
+.. MATH::
 
     \operatorname{dn}{u} = \sqrt{1 - m\sin^2 \phi}.
 
@@ -86,40 +86,35 @@ For a given `k` with `0 < k < 1` they therefore are
 solutions to the following nonlinear ordinary differential
 equations:
 
--  `\operatorname{sn}\,(x;k)` solves the differential equations
+- `\operatorname{sn}\,(x;k)` solves the differential equations
 
-  .. math::
+  .. MATH::
 
-      \frac{d^2 y}{dx^2} + (1+k^2) y - 2 k^2 y^3 = 0,
+      \frac{d^2 y}{dx^2} + (1+k^2) y - 2 k^2 y^3 = 0
+      \quad \text{ and } \quad
+      \left(\frac{dy}{dx}\right)^2 = (1-y^2) (1-k^2 y^2).
 
-  and
+- `\operatorname{cn}(x;k)` solves the differential equations
 
-  .. math::
+  .. MATH::
 
-     \left(\frac{dy}{dx}\right)^2 = (1-y^2) (1-k^2 y^2).
+      \frac{d^2 y}{dx^2} + (1-2k^2) y + 2 k^2 y^3 = 0
+      \quad \text{ and } \quad
+      \left(\frac{dy}{dx}\right)^2 = (1-y^2)(1-k^2 + k^2 y^2).
 
--  `\operatorname{cn}(x;k)` solves the differential equations
+- `\operatorname{dn}(x;k)` solves the differential equations
 
+  .. MATH::
 
-  .. math::
-
-     \frac{d^2 y}{dx^2} + (1-2k^2) y + 2 k^2 y^3 = 0,
-
-  and `\left(\frac{dy}{dx}\right)^2 = (1-y^2)(1-k^2 + k^2 y^2)`.
-
--  `\operatorname{dn}(x;k)` solves the differential equations
-
-  .. math::
-
-     \frac{d^2 y}{dx^2} - (2 - k^2) y + 2 y^3 = 0,
-
-  and `\left(\frac{dy}{dx}\right)^2= y^2 (1 - k^2 - y^2)`.
+      \frac{d^2 y}{dx^2} - (2 - k^2) y + 2 y^3 = 0
+      \quad \text{ and } \quad
+      \left(\frac{dy}{dx}\right)^2 = y^2 (1 - k^2 - y^2).
 
   If `K(m)` denotes the complete elliptic integral of the
   first kind (named ``elliptic_kc`` in Sage), the elliptic functions
   `\operatorname{sn}(x|m)` and `\operatorname{cn}(x|m)` have real periods
   `4K(m)`, whereas `\operatorname{dn}(x|m)` has a period
-  `2K(m)`. The limit `m\rightarrow 0` gives
+  `2K(m)`. The limit `m \rightarrow 0` gives
   `K(0) = \pi/2` and trigonometric functions:
   `\operatorname{sn}(x|0) = \sin{x}`, `\operatorname{cn}(x|0) = \cos{x}`,
   `\operatorname{dn}(x|0) = 1`. The limit `m \rightarrow 1` gives
@@ -130,17 +125,17 @@ equations:
 
 REFERENCES:
 
-- http://en.wikipedia.org/wiki/Jacobi's_elliptic_functions
+- :wikipedia:`Jacobi's_elliptic_functions`
 
-- A. Khare, U. Sukhatme, "Cyclic Identities Involving
-  Jacobi Elliptic Functions", Math ArXiv, math-ph/0201004
+.. [KhaSuk04] A. Khare and U. Sukhatme. "Cyclic Identities Involving
+   Jacobi Elliptic Functions". :arxiv:`math-ph/0201004`
 
 AUTHORS:
 
 - David Joyner (2006): initial version
 
-- Eviatar Bach (2013): complete rewrite, new numerical evaluation, and addition
-  of the Jacobi amplitude function
+- Eviatar Bach (2013): complete rewrite, new numerical evaluation, and
+  addition of the Jacobi amplitude function
 """
 
 #*****************************************************************************
@@ -172,9 +167,12 @@ HALF = QQ('1/2')
 
 
 class Jacobi(BuiltinFunction):
+    """
+    Base class for the Jacobi elliptic functions.
+    """
     def __init__(self, kind):
         r"""
-        Base class for the Jacobi elliptic functions
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -354,7 +352,7 @@ class Jacobi(BuiltinFunction):
                 return csch(x)
         return
 
-    def _evalf_(self, x, m, parent):
+    def _evalf_(self, x, m, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -362,7 +360,7 @@ class Jacobi(BuiltinFunction):
             -0.33260000892770027112809652714 + 1.7077912301715219199143891076e-33*I
             sage: jacobi_dn(I, I).n()
             0.874189950651018 + 0.667346865048825*I
-            """
+        """
         from mpmath import ellipfun
         return utils.call(ellipfun, self.kind, x, m, parent=parent)
 
@@ -370,8 +368,8 @@ class Jacobi(BuiltinFunction):
         r"""
         TESTS:
 
-        sn, cn, and dn are analytic for all real x, so we can check that the
-        derivatives are correct by computing the series::
+        sn, cn, and dn are analytic for all real ``x``, so we can check
+        that the derivatives are correct by computing the series::
 
             sage: from mpmath import almosteq
             sage: a = 0.9327542442482303
@@ -532,9 +530,12 @@ jacobi_cs = Jacobi('cs')
 
 
 class InverseJacobi(BuiltinFunction):
+    r"""
+    Base class for the inverse Jacobi elliptic functions.
+    """
     def __init__(self, kind):
         r"""
-        Base class for the inverse Jacobi elliptic functions
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -718,7 +719,7 @@ class InverseJacobi(BuiltinFunction):
                 return Integer(0)
         return
 
-    def _evalf_(self, x, m, parent):
+    def _evalf_(self, x, m, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -727,15 +728,14 @@ class InverseJacobi(BuiltinFunction):
             sage: inverse_jacobi_cd(3, 4).n(100)
             -0.67214752201235862490069823239 + 2.1565156474996432354386749988*I
         """
-        return utils.call(inverse_jacobi_f, self.kind, x, m,
-                          parent=parent)
+        return utils.call(inverse_jacobi_f, self.kind, x, m, parent=parent)
 
     def _derivative_(self, x, m, diff_param):
         r"""
         TESTS:
 
-        Check that dy/dx * dx/dy == 1, where y = jacobi_pq(x, m) and
-        x = inverse_jacobi_pq(y, m)::
+        Check that ``dy/dx * dx/dy == 1``, where ``y = jacobi_pq(x, m)`` and
+        ``x = inverse_jacobi_pq(y, m)``::
 
             sage: from mpmath import almosteq
             sage: a = 0.130103220857094
@@ -932,15 +932,15 @@ inverse_jacobi_cs = InverseJacobi('cs')
 
 def jacobi(kind, z, m, **kwargs):
     r"""
-    The 12 Jacobi elliptic functions
+    The 12 Jacobi elliptic functions.
 
     INPUT:
 
     - ``kind`` -- a string of the form ``'pq'``, where ``p``, ``q`` are in
       ``c``, ``d``, ``n``, ``s``
     - ``z`` -- a complex number
-    - ``m`` -- a complex number. Note that `m=k^2`, where `k` is the elliptic
-      modulus.
+    - ``m`` -- a complex number; note that `m = k^2`, where `k` is
+      the elliptic modulus
 
     EXAMPLES::
 
@@ -985,11 +985,12 @@ def jacobi(kind, z, m, **kwargs):
                          "'ds', 'dc', 'sn', 'sd', 'sc', 'cn', 'cd', 'cs'.")
 
 def inverse_jacobi(kind, x, m, **kwargs):
-    """
+    r"""
     The inverses of the 12 Jacobi elliptic functions. They have the property
     that
 
-    .. math::
+    .. MATH::
+
         \operatorname{pq}(\operatorname{arcpq}(x|m)|m) =
         \operatorname{pq}(\operatorname{pq}^{-1}(x|m)|m) = x.
 
@@ -998,8 +999,8 @@ def inverse_jacobi(kind, x, m, **kwargs):
     - ``kind`` -- a string of the form ``'pq'``, where ``p``, ``q`` are in
       ``c``, ``d``, ``n``, ``s``
     - ``x`` -- a real number
-    - ``m`` -- a real number. Note that `m=k^2`, where `k` is the elliptic
-      modulus.
+    - ``m`` -- a real number; note that `m = k^2`, where `k` is the elliptic
+      modulus
 
     EXAMPLES::
 
@@ -1062,8 +1063,8 @@ def inverse_jacobi(kind, x, m, **kwargs):
 class JacobiAmplitude(BuiltinFunction):
     r"""
     The Jacobi amplitude function
-    `\operatorname{am}(x|m)=\int_0^x \operatorname{dn}(t|m) dt`. For
-    `-K(m) \leq x \leq K(m)`, `F(\operatorname{am}(x|m)|m)=x.`
+    `\operatorname{am}(x|m) = \int_0^x \operatorname{dn}(t|m) dt` for
+    `-K(m) \leq x \leq K(m)`, `F(\operatorname{am}(x|m)|m) = x`.
     """
     def __init__(self):
         r"""
@@ -1100,7 +1101,7 @@ class JacobiAmplitude(BuiltinFunction):
             return Integer(0)
         return
 
-    def _evalf_(self, x, m, parent):
+    def _evalf_(self, x, m, parent, algorithm=None):
         r"""
         TESTS::
 
@@ -1149,17 +1150,16 @@ jacobi_am = JacobiAmplitude()
 
 
 def inverse_jacobi_f(kind, x, m):
-    """
+    r"""
     Internal function for numerical evaluation of a continous complex branch
-    of each inverse Jacobi function, as described in [Tee]_. Only accepts real
-    arguments.
+    of each inverse Jacobi function, as described in [Tee97]_. Only accepts
+    real arguments.
 
     REFERENCES:
 
-    .. [Tee] Tee, Garry J. "Continuous branches of inverses of the 12 Jacobi
-             elliptic functions for real argument". 1997.
-             https://researchspace.auckland.ac.nz/bitstream/handle/2292/5042/\
-390.pdf.
+    .. [Tee97] Tee, Garry J. "Continuous branches of inverses of the 12 Jacobi
+       elliptic functions for real argument". 1997.
+       https://researchspace.auckland.ac.nz/bitstream/handle/2292/5042/390.pdf.
 
     TESTS::
 
@@ -1287,7 +1287,6 @@ def inverse_jacobi_f(kind, x, m):
 
         sage: chop(ellipfun('ds', inverse_jacobi_f('ds', 4, 0.25), 0.25))
         mpf('4.0')
-
     """
     from mpmath import mp
 
@@ -1626,16 +1625,15 @@ def inverse_jacobi_f(kind, x, m):
 
 
 def jacobi_am_f(x, m):
-    """
+    r"""
     Internal function for numeric evaluation of the Jacobi amplitude function
-    for real arguments. Procedure described in [Ehrhardt]_.
+    for real arguments. Procedure described in [Ehrhardt13]_.
 
     REFERENCES:
 
-    .. [Ehrhardt] Ehrhardt, Wolfgang. "The AMath and DAMath Special Functions:
-                  Reference Manual and Implementation Notes, Version 1.3".
-                  2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
-
+    .. [Ehrhardt13] Ehrhardt, Wolfgang. "The AMath and DAMath Special
+       Functions: Reference Manual and Implementation Notes, Version 1.3".
+       2013. http://www.wolfgang-ehrhardt.de/specialfunctions.pdf.
 
     TESTS::
 
@@ -1707,3 +1705,4 @@ def jacobi_am_f(x, m):
                 return ctx.atan2(snz, cnz) + npi
     finally:
         ctx.prec = prec
+

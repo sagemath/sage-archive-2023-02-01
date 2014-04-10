@@ -18,7 +18,7 @@ EXAMPLES:
 Let's consider the face and normal fans of the "diamond" and the projection
 to the `x`-axis::
 
-    sage: diamond = lattice_polytope.octahedron(2)
+    sage: diamond = lattice_polytope.cross_polytope(2)
     sage: face = FaceFan(diamond, lattice=ToricLattice(2))
     sage: normal = NormalFan(diamond)
     sage: N = face.lattice()
@@ -147,7 +147,7 @@ class FanMorphism(FreeModuleMorphism):
     Here we consider the face and normal fans of the "diamond" and the
     projection to the `x`-axis::
 
-        sage: diamond = lattice_polytope.octahedron(2)
+        sage: diamond = lattice_polytope.cross_polytope(2)
         sage: face = FaceFan(diamond, lattice=ToricLattice(2))
         sage: normal = NormalFan(diamond)
         sage: N = face.lattice()
@@ -350,7 +350,7 @@ class FanMorphism(FreeModuleMorphism):
 
         TESTS::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: face = FaceFan(diamond)
             sage: normal = NormalFan(diamond)
             sage: N = face.lattice()
@@ -393,7 +393,7 @@ class FanMorphism(FreeModuleMorphism):
 
         TESTS::
 
-            sage: F = NormalFan(lattice_polytope.octahedron(2))
+            sage: F = NormalFan(lattice_polytope.cross_polytope(2))
             sage: N = F.lattice()
             sage: H = End(N)
             sage: phi = H([N.0, 0])
@@ -970,7 +970,7 @@ class FanMorphism(FreeModuleMorphism):
         We check that complete codomain fans are handled correctly, since a
         different algorithm is used in this case::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: face = FaceFan(diamond, lattice=ToricLattice(2))
             sage: normal = NormalFan(diamond)
             sage: N = face.lattice()

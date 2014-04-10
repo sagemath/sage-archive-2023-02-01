@@ -820,7 +820,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(2)
+            sage: o = lattice_polytope.cross_polytope(3)
             sage: p = LatticePolytope(o.vertices_pc())
             sage: p._copy_faces(o)
             sage: str(o.faces()) == str(p.faces())
@@ -1446,7 +1446,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(2)
+            sage: o = lattice_polytope.cross_polytope(2)
             sage: o.vertices_pc()
             M( 1,  0),
             M( 0,  1),
@@ -2056,14 +2056,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         EXAMPLES: We check what is the index of the "diamond" in the
         database::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.index()
+            sage: d = lattice_polytope.cross_polytope(2)
+            sage: d.index()
             3
 
         Note that polytopes with the same index are not necessarily the
         same::
 
-            sage: o.vertices_pc()
+            sage: d.vertices_pc()
             M( 1,  0),
             M( 0,  1),
             M(-1,  0),
@@ -2079,7 +2079,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         But they are in the same `GL(Z^n)` orbit and have the same
         normal form::
 
-            sage: o.normal_form_pc()
+            sage: d.normal_form_pc()
             M( 1,  0),
             M( 0,  1),
             M( 0, -1),
@@ -2178,10 +2178,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES:
 
-        Nef-partitions of the 4-dimensional octahedron::
+        Nef-partitions of the 4-dimensional cross-polytope::
 
-            sage: o = lattice_polytope.octahedron(4)
-            sage: o.nef_partitions()
+            sage: p = lattice_polytope.cross_polytope(4)
+            sage: p.nef_partitions()
             [
             Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
             Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
@@ -2195,7 +2195,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Now we omit projections::
 
-            sage: o.nef_partitions(keep_projections=False)
+            sage: p.nef_partitions(keep_projections=False)
             [
             Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
             Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
@@ -2208,7 +2208,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Currently Hodge numbers cannot be computed for a given nef-partition::
 
-            sage: o.nef_partitions()[1].hodge_numbers()
+            sage: p.nef_partitions()[1].hodge_numbers()
             Traceback (most recent call last):
             ...
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
@@ -2216,7 +2216,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         But they can be obtained from ``nef.x`` for all nef-partitions at once.
         Partitions will be exactly the same::
 
-            sage: o.nef_partitions(hodge_numbers=True)  # long time (2s on sage.math, 2011)
+            sage: p.nef_partitions(hodge_numbers=True)  # long time (2s on sage.math, 2011)
             [
             Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
             Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
@@ -2230,26 +2230,26 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Now it is possible to get Hodge numbers::
 
-            sage: o.nef_partitions(hodge_numbers=True)[1].hodge_numbers()
+            sage: p.nef_partitions(hodge_numbers=True)[1].hodge_numbers()
             (20,)
 
         Since nef-partitions are cached, their Hodge numbers are accessible
         after the first request, even if you do not specify
         ``hodge_numbers=True`` anymore::
 
-            sage: o.nef_partitions()[1].hodge_numbers()
+            sage: p.nef_partitions()[1].hodge_numbers()
             (20,)
 
         We illustrate removal of symmetric partitions on a diamond::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.nef_partitions()
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p.nef_partitions()
             [
             Nef-partition {0, 2} U {1, 3} (direct product),
             Nef-partition {0, 1} U {2, 3},
             Nef-partition {0, 1, 2} U {3} (projection)
             ]
-            sage: o.nef_partitions(keep_symmetric=True)
+            sage: p.nef_partitions(keep_symmetric=True)
             [
             Nef-partition {0, 1, 3} U {2} (projection),
             Nef-partition {0, 2, 3} U {1} (projection),
@@ -2490,10 +2490,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.origin()
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p.origin()
             4
-            sage: o.point(o.origin())
+            sage: p.point(p.origin())
             M(0, 0)
 
             sage: p = LatticePolytope(([1],[2]))
@@ -2618,7 +2618,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         It is also possible to plot lower dimensional polytops in 3D (let's
         also change labels of vertices)::
 
-            sage: lattice_polytope.octahedron(2).plot3d(vlabels=["A", "B", "C", "D"])
+            sage: lattice_polytope.cross_polytope(2).plot3d(vlabels=["A", "B", "C", "D"])
 
         TESTS::
 
@@ -2915,10 +2915,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         compilation, the following code is likely to fail, unless you
         change default settings of PALP::
 
-            sage: BIGO = lattice_polytope.octahedron(7)
-            sage: BIGO
+            sage: BIG = lattice_polytope.cross_polytope(7)
+            sage: BIG
             7-d lattice polytope in 7-d lattice M
-            sage: BIGO.poly_x("e")      # possibly different output depending on your system
+            sage: BIG.poly_x("e")      # possibly different output depending on your system
             Traceback (most recent call last):
             ...
             ValueError: Error executing 'poly.x -fe' for the given polytope!
@@ -2952,8 +2952,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES: We construct the one-skeleton graph for the "diamond"::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: g = o.skeleton()
+            sage: d = lattice_polytope.cross_polytope(2)
+            sage: g = d.skeleton()
             sage: g
             Graph on 4 vertices
             sage: g.edges()
@@ -3037,8 +3037,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         Does not work for a diamond at the moment::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.skeleton_show()
+            sage: d = lattice_polytope.cross_polytope(2)
+            sage: d.skeleton_show()
             Traceback (most recent call last):
             ...
             NotImplementedError: skeleton view is implemented only in 3-d space
@@ -3060,8 +3060,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         EXAMPLES:
 
-            sage: c = lattice_polytope.octahedron(2).polar()
-            sage: c.traverse_boundary()
+            sage: p = lattice_polytope.cross_polytope(2).polar()
+            sage: p.traverse_boundary()
             [0, 1, 3, 2]
         """
         if self.dim() != 2:
@@ -3682,13 +3682,13 @@ class NefPartition(SageObject,
         Currently, you need to request Hodge numbers when you compute
         nef-partitions::
 
-            sage: o = lattice_polytope.octahedron(5)
-            sage: np = o.nef_partitions()[0]  # long time (4s on sage.math, 2011)
+            sage: p = lattice_polytope.cross_polytope(5)
+            sage: np = p.nef_partitions()[0]  # long time (4s on sage.math, 2011)
             sage: np.hodge_numbers()  # long time
             Traceback (most recent call last):
             ...
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
-            sage: np = o.nef_partitions(hodge_numbers=True)[0]  # long time (13s on sage.math, 2011)
+            sage: np = p.nef_partitions(hodge_numbers=True)[0]  # long time (13s on sage.math, 2011)
             sage: np.hodge_numbers()  # long time
             (19, 19)
         """
@@ -4046,8 +4046,8 @@ class _PolytopeFace(SageObject):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: o.faces()
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p.faces()
             [
             [[0], [1], [2], [3]],
             [[0, 3], [2, 3], [0, 1], [1, 2]]
@@ -4064,8 +4064,8 @@ class _PolytopeFace(SageObject):
 
         TESTS::
 
-            sage: o = lattice_polytope.octahedron(2)
-            sage: f = o.facets()[0]
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: f = p.facets()[0]
             sage: fl = loads(f.dumps())
             sage: f.vertices() == fl.vertices()
             True
@@ -4495,12 +4495,17 @@ def _read_poly_x_incidences(data, dim):
 
     TESTS::
 
-        sage: o = lattice_polytope.octahedron(2)
-        sage: result_name = lattice_polytope._palp("poly.x -fi", [o])
-        sage: f = open(result_name)
-        sage: f.readlines()
-        ['Incidences as binary numbers [F-vector=(4 4)]:\n', "v[d][i]: sum_j Incidence(i'th dim-d-face, j-th vertex) x 2^j\n", 'v[0]: 1000 0001 0100 0010 \n', 'v[1]: 1001 1100 0011 0110 \n', "f[d][i]: sum_j Incidence(i'th dim-d-face, j-th facet) x 2^j\n", 'f[0]: 0011 0101 1010 1100 \n', 'f[1]: 0001 0010 0100 1000 \n']
-        sage: f.close()
+        sage: p = lattice_polytope.cross_polytope(2)
+        sage: result_name = lattice_polytope._palp("poly.x -fi", [p])
+        sage: with open(result_name) as f:
+        ....:     print f.read()
+        Incidences as binary numbers [F-vector=(4 4)]:
+        v[d][i]: sum_j Incidence(i'th dim-d-face, j-th vertex) x 2^j
+        v[0]: 1000 0001 0100 0010 
+        v[1]: 1001 1100 0011 0110 
+        f[d][i]: sum_j Incidence(i'th dim-d-face, j-th facet) x 2^j
+        f[0]: 0011 0101 1010 1100 
+        f[1]: 0001 0010 0100 1000         
         sage: f = open(result_name)
         sage: l = f.readline()
         sage: lattice_polytope._read_poly_x_incidences(f, 2)
@@ -4890,9 +4895,10 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
     ``f`` returns True) and are elements of subseq, if it
     is given.
 
-    EXAMPLES: Consider a sequence of octahedrons::
+    EXAMPLES: Consider a sequence of cross-polytopes::
 
-        sage: polytopes = Sequence([lattice_polytope.octahedron(n) for n in range(2, 7)], cr=True)
+        sage: polytopes = Sequence([lattice_polytope.cross_polytope(n)
+        ....:                       for n in range(2, 7)], cr=True)
         sage: polytopes
         [
         2-d reflexive polytope #3 in 2-d lattice M,
@@ -4902,9 +4908,12 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
         6-d reflexive polytope in 6-d lattice M
         ]
 
-    This filters octahedrons of dimension at least 4::
+    This filters polytopes of dimension at least 4::
 
         sage: lattice_polytope.filter_polytopes(lambda p: p.dim() >= 4, polytopes)
+        doctest:1: DeprecationWarning: filter_polytopes is deprecated,
+        use standard tools instead
+        See http://trac.sagemath.org/15240 for details.
         [2, 3, 4]
 
     For long tests you can see the current progress::
@@ -4925,6 +4934,8 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
         4
         [3, 4]
     """
+    deprecation(15240, "filter_polytopes is deprecated, "
+                       "use standard tools instead")
     if subseq == []:
         return []
     elif subseq == None:
@@ -5138,11 +5149,11 @@ def read_all_polytopes(file_name, desc=None):
 
     EXAMPLES:
    
-    We use poly.x to compute two polar polytopes read them::
+    We use poly.x to compute two polar polytopes and read them::
 
-        sage: o2 = lattice_polytope.octahedron(2)
-        sage: o3 = lattice_polytope.cross_polytope(3)
-        sage: result_name = lattice_polytope._palp("poly.x -fe", [o2, o3])
+        sage: d = lattice_polytope.cross_polytope(2)
+        sage: o = lattice_polytope.cross_polytope(3)
+        sage: result_name = lattice_polytope._palp("poly.x -fe", [d, o])
         sage: with open(result_name) as f:
         ....:     print f.read()
         4 2  Vertices of P-dual <-> Equations of P
@@ -5159,7 +5170,6 @@ def read_all_polytopes(file_name, desc=None):
            1  -1  -1
           -1   1  -1
            1   1  -1
-        sage: f.close()
         sage: lattice_polytope.read_all_polytopes(result_name)
         [
         2-d reflexive polytope #14 in 2-d lattice M,
@@ -5304,26 +5314,25 @@ def skip_palp_matrix(data, n=1):
     EXAMPLE: We create a file with vertices of the square and the cube,
     but read only the second set::
 
-        sage: o2 = lattice_polytope.octahedron(2)
-        sage: o3 = lattice_polytope.cross_polytope(3)
-        sage: result_name = lattice_polytope._palp("poly.x -fe", [o2, o3])
-        sage: f = open(result_name)
-        sage: f.readlines()
-        ['4 2  Vertices of P-dual <-> Equations of P\n',
-         '  -1   1\n',
-         '   1   1\n',
-         '  -1  -1\n',
-         '   1  -1\n',
-         '8 3  Vertices of P-dual <-> Equations of P\n',
-         '  -1  -1   1\n',
-         '   1  -1   1\n',
-         '  -1   1   1\n',
-         '   1   1   1\n',
-         '  -1  -1  -1\n',
-         '   1  -1  -1\n',
-         '  -1   1  -1\n',
-         '   1   1  -1\n']
-        sage: f.close()
+        sage: d = lattice_polytope.cross_polytope(2)
+        sage: o = lattice_polytope.cross_polytope(3)
+        sage: result_name = lattice_polytope._palp("poly.x -fe", [d, o])
+        sage: with open(result_name) as f:
+        ....:     print f.read()
+        4 2  Vertices of P-dual <-> Equations of P
+          -1   1
+           1   1
+          -1  -1
+           1  -1
+        8 3  Vertices of P-dual <-> Equations of P
+          -1  -1   1
+           1  -1   1
+          -1   1   1
+           1   1   1
+          -1  -1  -1
+           1  -1  -1
+          -1   1  -1
+           1   1  -1
         sage: f = open(result_name)
         sage: lattice_polytope.skip_palp_matrix(f)
         sage: lattice_polytope.read_palp_matrix(f)

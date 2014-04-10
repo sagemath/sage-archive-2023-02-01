@@ -288,15 +288,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 #            from sage.categories.morphism import CallMorphism
 #            from sage.categories.homset import Hom
 #            self.register_coercion(CallMorphism(Hom(base_ring,self)))
-            category = Algebras(base_ring)
+            category = Algebras(base_ring.category())
         else:
-            category = Modules(base_ring)
-        # One shouldn't fully initialise the category framework by default,
-        # since that's slow
-        #sage.structure.parent.Parent.__init__(self, category=category)
-        sage.structure.category_object.CategoryObject._init_category_(self, category)
+            category = Modules(base_ring.category())
+        sage.structure.parent.Parent.__init__(self, category=category)
+        #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
-    def full_category_initialisation(self):
+    def full_category_initialisation_disabled(self):
         """
         Make full use of the category framework.
 
@@ -314,36 +312,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
             sage: MS = MatrixSpace(QQ,8)
             sage: TestSuite(MS).run()
-            Failure in _test_category:
-            Traceback (most recent call last):
-            ...
-            AssertionError: category of self improperly initialized
-            ------------------------------------------------------------
-            The following tests failed: _test_category
-            sage: type(MS)
-            <class 'sage.matrix.matrix_space.MatrixSpace'>
-            sage: MS.full_category_initialisation()
-            sage: TestSuite(MS).run()
             sage: type(MS)
             <class 'sage.matrix.matrix_space.MatrixSpace_with_category'>
-
-        .. todo::
-
-            Add instead an optional argument to :func:`MatrixSpace` to
-            temporarily disable the category initialization in those
-            special cases where speed is critical::
-
-                sage: MS = MatrixSpace(QQ,7, init_category=False) # todo: not implemented
-                sage: TestSuite(MS).run()                         # todo: not implemented
-                Traceback (most recent call last):
-                ...
-                AssertionError: category of self improperly initialized
-
-            until someone recreates explicitly the same matrix space
-            without that optional argument::
-
-                sage: MS = MatrixSpace(QQ,7)                      # todo: not implemented
-                sage: TestSuite(MS).run()                         # todo: not implemented
         """
         if self.__dict__.get('_category_is_initialised'):
             # Apparently the category is already taken care of.

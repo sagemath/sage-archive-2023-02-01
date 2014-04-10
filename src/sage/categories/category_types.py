@@ -199,6 +199,26 @@ class Sequences(Category):
 # Category of objects over some base object
 #############################################################
 class Category_over_base(CategoryWithParameters):
+    """#
+    A base class for categories over some base object
+
+    INPUT:
+
+    - ``base`` -- a category `C` or an object of such a category
+
+    Assumption: the classes for the parents, elements, morphisms, of
+    ``self`` should only depend on `C`. See :trac:`11935` for details.
+
+    EXAMPLES::
+
+        sage: Algebras(GF(2)).element_class is Algebras(GF(3)).element_class
+        True
+
+        sage: C = GF(2).category()
+        sage: Algebras(GF(2)).parent_class is Algebras(C).parent_class
+        True
+    """
+
     def __init__(self, base, name=None):
         self.__base = base
         Category.__init__(self, name)
@@ -226,8 +246,8 @@ class Category_over_base(CategoryWithParameters):
         Return what the element/parent/... classes depend on.
 
         Since :trac:`11935`, the element and parent classes of a
-        category over base only depend on the categories of the base
-        ring.
+        category over base only depend on the category of the base (or
+        the base itself if it is a category).
 
         .. SEEALSO::
 
@@ -244,8 +264,13 @@ class Category_over_base(CategoryWithParameters):
             Category of schemes
             sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
             Category of quotient fields
+            sage: Algebras(Fields())._make_named_class_key('morphism_class')
+            Category of fields
         """
-        return self.__base.category()
+        if isinstance(self.__base, Category):
+            return self.__base
+        else:
+            return self.__base.category()
 
     @classmethod
     def an_instance(cls):
@@ -341,7 +366,9 @@ class AbelianCategory(Category):
 class Category_over_base_ring(Category_over_base):
     def __init__(self, base, name=None):
         from sage.categories.rings import Rings
-        assert base in Rings(), "base must be a ring"
+        if not (base in Rings or
+                isinstance(base, Category) and base.is_subcategory(Rings())):
+            raise ValueError, "base must be a ring or a subcategory of Rings()"
         Category_over_base.__init__(self, base, name)
 
     def base_ring(self):

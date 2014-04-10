@@ -15,7 +15,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.category import HomCategory
-from category import JoinCategory
+from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
 from tensor import TensorProductsCategory
 from dual import DualObjectsCategory
@@ -35,7 +35,7 @@ class Modules(Category_module):
 
     INPUT:
 
-      - ``base_ring`` -- a ring `R`
+      - ``base_ring`` -- a ring `R` or subcategory of ``Rings()``
       - ``dispatch`` -- a boolean (for internal use; default: ``True``)
 
     When the base ring is a field, the category of vector spaces is
@@ -47,6 +47,11 @@ class Modules(Category_module):
         Category of modules over Integer Ring
         sage: Modules(QQ)
         Category of vector spaces over Rational Field
+
+        sage: Modules(Rings())
+        Category of modules over Category of rings
+        sage: Modules(FiniteFields())
+        Category of vector spaces over Category of finite fields
 
         sage: Modules(Integers(9))
         Category of modules over Ring of integers modulo 9
@@ -108,7 +113,7 @@ class Modules(Category_module):
 
         """
         if dispatch:
-            if base_ring in _Fields:
+            if base_ring in _Fields or isinstance(base_ring, Category) and base_ring.is_subcategory(_Fields):
                 from vector_spaces import VectorSpaces
                 return VectorSpaces(base_ring, check=False)
         result = super(Modules, cls).__classcall__(cls, base_ring)
@@ -141,6 +146,8 @@ class Modules(Category_module):
 
             This implements a ``base_ring`` method for join categories
             which are subcategories of some ``Modules(K)``.
+
+            .. TODO:: handle base being a category
 
             .. NOTE::
 

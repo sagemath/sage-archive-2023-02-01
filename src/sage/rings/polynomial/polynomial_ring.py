@@ -257,15 +257,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
 
             sage: category(ZZ['x'])
-            Join of Category of unique factorization domains and Category of commutative algebras over Integer Ring
+            Join of Category of unique factorization domains and Category of commutative algebras over Category of euclidean domains
             sage: category(GF(7)['x'])
-            Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 7
-
+            Join of Category of euclidean domains and Category of commutative algebras over Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
         if category is None:
-            category = polynomial_default_category(base_ring,False)
+            category = polynomial_default_category(base_ring.category(),False)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -1368,7 +1367,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError, "Base ring %s must be a commutative ring."%repr(base_ring)
         # We trust that, if a category is given, that it is useful.
         if category is None:
-            category = polynomial_default_category(base_ring,False)
+            category = polynomial_default_category(base_ring.category(),False)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 

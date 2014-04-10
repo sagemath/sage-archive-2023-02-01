@@ -611,14 +611,13 @@ class Rings(CategoryWithAxiom):
             EXAMPLE::
 
                 sage: MS = MatrixSpace(QQ,2)
-                sage: MS.full_category_initialisation()
                 sage: I = MS*MS.gens()*MS
 
             ``MS`` is not an instance of :class:`~sage.rings.ring.Ring`.
-            But since its category was fully initalised (which is not
-            by default, by :trac:`11900`), it is an instance of
-            the parent class of the category of rings. The quotient
-            method is inherited from there::
+
+            However it is an instance of the parent class of the
+            category of rings. The quotient method is inherited from
+            there::
 
                 sage: isinstance(MS,sage.rings.ring.Ring)
                 False

@@ -2726,16 +2726,6 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
-        
-    def _fast_eval(self, x,check=True):
-        # Quickly evaluates a polynomial at point x
-        # Applies mod where necessary
-        if self._isPrimeFiniteField:
-            p=self.base_ring().characteristic()
-            P = [f(*x)%p for f in self._fastPolys]
-        else:
-            P = [f(*x) for f in self._fastPolys]
-        return P
 
     def _fast_eval(self, x, check=True):
         """
@@ -2748,7 +2738,6 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f._fast_eval([1,1,1])
             [2, 1, 2]
-
         """
         if self._is_prime_finite_field:
             p = self.base_ring().characteristic()

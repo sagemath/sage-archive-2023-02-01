@@ -26,6 +26,7 @@ from sage.misc.functional import is_even, is_odd
 from sage.functions.other import floor, ceil
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
+from sage.categories.crystals import CrystalMorphism
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.map import Map
@@ -2916,12 +2917,13 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             True
         """
         D = self.promotion_on_highest_weight_vectors()
-        return dict( (D[t],t) for t in D.keys())
+        return dict( (D[t],t) for t in D.keys() )
 
     @cached_method
     def promotion(self):
-        """
-        Returns the promotion operator on `B^{r,s}` of type `D_n^{(1)}` for `r=n-1,n`.
+        r"""
+        Return the promotion operator on `B^{r,s}` of type
+        `D_n^{(1)}` for `r=n-1,n`.
 
         EXAMPLES::
 
@@ -3307,6 +3309,74 @@ class AmbientRetractMap(Map):
                 return d
         return self._pdict_inv[x]
 
+class Promotion(CrystalMorphism):
+    """
+    The promotion operator.
+
+    INPUT:
+
+    - ``C`` -- a crystal
+    - ``on_gens`` -- a function for the images of the generators
+    """
+    def __init__(self, C, on_gens, automorphism=None, cache=True):
+        """
+        Construct the promotion operator.
+
+        TESTS::
+        """
+        if automorphism is None:
+            automorphism = lambda i: i
+        self._twist = automorphism
+        parent = Hom(C, C)
+
+        self._cache = {}
+        self._cache_result = bool(cache)
+        if isinstance(cache, dict):
+            self._cache = cache
+        ct = C.cartan_type()
+        CrystalMorphism.__init__(self, parent, ct, ct.index_set())
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` under ``self``.
+
+        EXAMPLES::
+
+            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: H = Hom(B, B)
+            sage: psi = H(B.module_generators)
+            sage: psi(B.highest_weight_vector())
+            [[1, 1], [2]]
+        """
+        # We do our own caching so we can take advantage of known images above us
+        if x in self._cache:
+            return self._cache[x]
+
+        ind = list(T.index_set())
+        ind.remove(1)
+        cur = x
+        path = []
+        while cur not in self._cache:
+            n = None
+            for i in ind:
+                n = cur.e(i)
+                if n is not None:
+                    path.append(self._twist(i))
+                    cur = n
+                    break
+
+            if n is None: # We're at a {2,...n}-highest weight element
+                break
+
+        if cur in self._cache:
+            cur = self._cache[cur]
+        else:
+            cur = self._on_gens(cur)
+
+        y = cur.f_string(reversed(path))
+        assert y is not None
+        self._cache[x] = y
+        return y
 
 # I'm keeping this here in case this is faster for constructing KR crystals
 #   than using the CrystalMorphism class

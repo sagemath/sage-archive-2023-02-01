@@ -224,8 +224,7 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
 
         - ``polynomial`` - a polynomial over `\QQ` or a number field, or a list
           of such polynomials.
-        - ``name`` - a string or a list of strings (default: ``'a'``), the
-          names of the generators
+        - ``name`` - a string or a list of strings, the names of the generators
         - ``check`` - a boolean (default: ``True``); do type checking and
           irreducibility checking.
         - ``embedding`` - ``None``, an element, or a list of elements, the
@@ -440,6 +439,13 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: L._maximize_at_primes
         (2,)
 
+    It is an error not to specify the generator::
+
+        sage: K = NumberField(x^2-2)
+        Traceback (most recent call last):
+        ...
+        TypeError: name of the generator must be specified
+
     """
     if names is not None:
         name = names
@@ -514,6 +520,8 @@ class NumberFieldFactory(UniqueFactory):
             ((Rational Field, x^2 + 1, ('a',), None, None, None, False, None), {'check': False})
 
         """
+        if name is None:
+            raise TypeError, "name of the generator must be specified"
         name = sage.structure.parent_gens.normalize_names(1, name)
 
         if not is_Polynomial(polynomial):
@@ -524,10 +532,6 @@ class NumberFieldFactory(UniqueFactory):
 
         # convert polynomial to a polynomial over a field
         polynomial = polynomial.change_ring(polynomial.base_ring().fraction_field())
-
-        # normalize name
-        if name is None:
-            name = 'a'
 
         # normalize embedding
         if isinstance(embedding, (list,tuple)):

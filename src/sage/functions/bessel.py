@@ -260,15 +260,11 @@ class Function_Bessel_J(BuiltinFunction):
         sage: bessel_J(1.0, 1.0) - A[0] < 1e-15
         True
 
-    Currently, integration is not supported (directly) since we cannot
-    yet convert hypergeometric functions to and from Maxima::
+    Integration is supported directly and through Maxima::
 
         sage: f = bessel_J(2, x)
         sage: f.integrate(x)
-        Traceback (most recent call last):
-        ...
-        TypeError: cannot coerce arguments: no canonical coercion from <type 'list'> to Symbolic Ring
-
+        1/24*x^3*hypergeometric((3/2,), (5/2, 3), -1/4*x^2)
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
         hypergeometric([3/2],[5/2,3],-x^2/4)*x^3/24

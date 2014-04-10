@@ -134,8 +134,11 @@ Arbitrary level of nesting for conversions::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (Integer, ZZ, QQ, Infinity, binomial,
-                            rising_factorial, factorial)
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import Infinity
+from sage.rings.arith import (binomial, rising_factorial, factorial)
 from sage.functions.other import sqrt, gamma, real_part
 from sage.functions.log import exp, log
 from sage.functions.trig import cos, sin
@@ -342,7 +345,7 @@ class Hypergeometric(BuiltinFunction):
 
         def sorted_parameters(cls, self, a, b, z):
             """
-            Return with parameters sorted in a canonical order
+            Return with parameters sorted in a canonical order.
 
             EXAMPLES::
 
@@ -356,7 +359,7 @@ class Hypergeometric(BuiltinFunction):
         def eliminate_parameters(cls, self, a, b, z):
             """
             Eliminate repeated parameters by pairwise cancellation of identical
-            terms in ``a`` and ``b``
+            terms in ``a`` and ``b``.
 
             EXAMPLES::
 
@@ -443,7 +446,7 @@ class Hypergeometric(BuiltinFunction):
             numerator parameters are nonnegative integers (with no
             preceding nonnegative denominator parameters), or z = 0.
 
-            If terminating, the series represents a polynomial of z
+            If terminating, the series represents a polynomial of z.
 
             EXAMPLES::
 
@@ -680,11 +683,11 @@ def closed_form(hyp):
         sage: closed_form(hypergeometric([], [3/2], 4))
         1/4*sinh(4)
         sage: closed_form(hypergeometric([], [5/2], 4))
-        -3/64*sinh(4) + 3/16*cosh(4)
+        3/16*cosh(4) - 3/64*sinh(4)
         sage: closed_form(hypergeometric([], [-3/2], 4))
-        -4*sinh(4) + 19/3*cosh(4)
+        19/3*cosh(4) - 4*sinh(4)
         sage: closed_form(hypergeometric([-3, 1], [var('a')], z))
-        -6*z^3/((a + 1)*(a + 2)*a) + 6*z^2/((a + 1)*a) - 3*z/a + 1
+        -3*z/a + 6*z^2/((a + 1)*a) - 6*z^3/((a + 2)*(a + 1)*a) + 1
         sage: closed_form(hypergeometric([-3, 1/3], [-4], z))
         7/162*z^3 + 1/9*z^2 + 1/4*z + 1
         sage: closed_form(hypergeometric([], [], z))
@@ -696,13 +699,13 @@ def closed_form(hyp):
         sage: closed_form(hypergeometric([2, 3], [1], x))
         -1/(x - 1)^3 + 3*x/(x - 1)^4
         sage: closed_form(hypergeometric([1/2], [3/2], -5))
-        1/10*sqrt(pi)*sqrt(5)*erf(sqrt(5))
+        1/10*sqrt(5)*sqrt(pi)*erf(sqrt(5))
         sage: closed_form(hypergeometric([2], [5], 3))
         4
         sage: closed_form(hypergeometric([2], [5], 5))
         48/625*e^5 + 612/625
         sage: closed_form(hypergeometric([1/2, 7/2], [3/2], z))
-        1/sqrt(-z + 1) + 2/3*z/(-z + 1)^(3/2) + 1/5*z^2/(-z + 1)^(5/2)
+        1/5*z^2/(-z + 1)^(5/2) + 2/3*z/(-z + 1)^(3/2) + 1/sqrt(-z + 1)
         sage: closed_form(hypergeometric([1/2, 1], [2], z))
         -2*(sqrt(-z + 1) - 1)/z
         sage: closed_form(hypergeometric([1, 1], [2], z))

@@ -2774,7 +2774,7 @@ class JoinCategory(CategoryWithParameters):
 
         EXAMPLE::
 
-            sage: QQ['x'].category().is_subcategory(Category.join([Rings(), VectorSpaces(QQ)]))  # indirect doctest
+            sage: QQ['x'].category().is_subcategory(Category.join([Rings(), VectorSpaces(QuotientFields())]))  # indirect doctest
             True
         """
         return all(category.is_subcategory(X) for X in self._super_categories)

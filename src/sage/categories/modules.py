@@ -49,9 +49,9 @@ class Modules(Category_module):
         Category of vector spaces over Rational Field
 
         sage: Modules(Rings())
-        Category of modules over Category of rings
+        Category of modules over rings
         sage: Modules(FiniteFields())
-        Category of vector spaces over Category of finite fields
+        Category of vector spaces over finite fields
 
         sage: Modules(Integers(9))
         Category of modules over Ring of integers modulo 9

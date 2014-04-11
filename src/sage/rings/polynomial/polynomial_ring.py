@@ -257,9 +257,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
 
             sage: category(ZZ['x'])
-            Join of Category of unique factorization domains and Category of commutative algebras over Category of euclidean domains
+            Join of Category of unique factorization domains and Category of commutative algebras over euclidean domains
             sage: category(GF(7)['x'])
-            Join of Category of euclidean domains and Category of commutative algebras over Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
+            Join of Category of euclidean domains and Category of commutative algebras over (finite fields and subquotients of monoids and quotients of semigroups)
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category

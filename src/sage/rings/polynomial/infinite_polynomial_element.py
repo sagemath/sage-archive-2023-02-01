@@ -407,7 +407,7 @@ class InfinitePolynomial_sparse(RingElement):
         try:
             return getattr(self._p,s)
         except AttributeError:
-            raise AttributeError, '%s has no attribute %s'%(self.__class__, s)
+            raise AttributeError('%s has no attribute %s'%(self.__class__, s))
 
     def ring(self):
         """
@@ -1145,7 +1145,7 @@ class InfinitePolynomial_sparse(RingElement):
             else:
                 return self
         else:
-            raise TypeError, "Objects of type %s have no coefficients in InfinitePolynomials"%(type(monomial))
+            raise TypeError("Objects of type %s have no coefficients in InfinitePolynomials"%(type(monomial)))
         return self.parent()(res)
 
     ## Essentials for Buchberger

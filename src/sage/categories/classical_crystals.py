@@ -250,7 +250,7 @@ class ClassicalCrystals(Category_singleton):
             if R == None:
                 R = WeylCharacterRing(self.cartan_type())
             if not R.cartan_type() == self.cartan_type():
-                raise ValueError, "Weyl character ring does not have the right Cartan type"
+                raise ValueError("Weyl character ring does not have the right Cartan type")
             assert R.basis().keys() == self.weight_lattice_realization()
 
             return R.sum_of_monomials( x.weight() for x in self.highest_weight_vectors() )

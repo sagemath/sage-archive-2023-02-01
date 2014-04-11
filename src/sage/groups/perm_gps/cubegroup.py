@@ -1452,7 +1452,7 @@ class RubiksCube(SageObject):
             return solver.solve(self._state)
 
         else:
-            raise ValueError, "Unrecognized algorithm: %s" % algorithm
+            raise ValueError("Unrecognized algorithm: %s" % algorithm)
 
     def scramble(self, moves=30):
         """

@@ -393,7 +393,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
         """
         # This check prevents extension to cohomology rings via coercion
         if isinstance(R,CohomologyRing):
-            raise TypeError, 'Coefficient ring cannot be a cohomology ring.'
+            raise TypeError('Coefficient ring cannot be a cohomology ring.')
         if self.base_ring().has_coerce_map_from(R):
             return self
         elif R.has_coerce_map_from(self.base_ring()):

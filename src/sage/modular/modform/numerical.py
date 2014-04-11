@@ -100,7 +100,7 @@ class NumericalEigenforms(SageObject):
         self._weight = Integer(weight)
         self._tp = tp
         if self._weight < 2:
-            raise ValueError, "weight must be at least 2"
+            raise ValueError("weight must be at least 2")
         self._eps = eps
         self._delta = delta
 
@@ -117,7 +117,7 @@ class NumericalEigenforms(SageObject):
             0
         """
         if not isinstance( other, NumericalEigenforms ):
-            raise ValueError, "%s is not a space of numerical eigenforms"%other
+            raise ValueError("%s is not a space of numerical eigenforms"%other)
         if self.modular_symbols() == other.modular_symbols():
             return 0
         else:
@@ -176,7 +176,7 @@ class NumericalEigenforms(SageObject):
             M = ModularSymbols(self._group,
                     self._weight, sign=1)
             if M.base_ring() != QQ:
-                raise ValueError, "modular forms space must be defined over QQ"
+                raise ValueError("modular forms space must be defined over QQ")
             self.__modular_symbols = M
             return M
 
@@ -395,7 +395,7 @@ class NumericalEigenforms(SageObject):
         """
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be a prime"
+            raise ValueError("p must be a prime")
         try:
             return self._ap[p]
         except AttributeError:
@@ -429,7 +429,7 @@ class NumericalEigenforms(SageObject):
         primes = [Integer(p) for p in primes]
         for p in primes:
             if not p.is_prime():
-                raise ValueError, 'each element of primes must be prime.'
+                raise ValueError('each element of primes must be prime.')
         phi_x, phi_x_inv, nzp, x_nzp = self._eigendata()
         B = self._eigenvectors()
         def phi(y):

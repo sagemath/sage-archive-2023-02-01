@@ -379,14 +379,14 @@ def ReflexivePolytope(dim, n):
     """
     if dim == 2:
         if n > 15:
-            raise ValueError, "there are only 16 reflexive polygons!"
+            raise ValueError("there are only 16 reflexive polygons!")
         return ReflexivePolytopes(2)[n]
     elif dim == 3:
         if n > 4318:
-            raise ValueError, "there are only 4319 reflexive 3-polytopes!"
+            raise ValueError("there are only 4319 reflexive 3-polytopes!")
         return ReflexivePolytopes(3)[n]
     else:
-        raise NotImplementedError, "only 2- and 3-dimensional reflexive polytopes are available!"
+        raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
 
 # Sequences of reflexive polytopes
 _rp = [None]*4
@@ -420,7 +420,7 @@ def ReflexivePolytopes(dim):
     """
     global _rp
     if dim not in [2, 3]:
-        raise NotImplementedError, "only 2- and 3-dimensional reflexive polytopes are available!"
+        raise NotImplementedError("only 2- and 3-dimensional reflexive polytopes are available!")
     if _rp[dim] == None:
         rp = read_all_polytopes(
             os.path.join(data_location, "reflexive_polytopes_%dd" % dim))
@@ -793,7 +793,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ...
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
         """
-        raise NotImplementedError, "use nef_partitions(hodge_numbers=True)!"
+        raise NotImplementedError("use nef_partitions(hodge_numbers=True)!")
 
     def _copy_faces(self, other, reverse=False):
         r"""
@@ -1026,8 +1026,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             'M:5 4 F:4\n'
         """
         if self.dim() <= 0:
-            raise ValueError, ("Cannot run \"%s\" for the zero-dimensional "
-                + "polytope!\nPolytope: %s") % (command, self)
+            raise ValueError(("Cannot run \"%s\" for the zero-dimensional "
+                + "polytope!\nPolytope: %s") % (command, self))
         if self.dim() < self.ambient_dim() and not reduce_dimension:
             raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
             "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
@@ -1052,7 +1052,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             stdin.close()
             err = stderr.read()
             if len(err) > 0:
-                raise RuntimeError, ("Error executing \"%s\" for the given polytope!"
+                raise RuntimeError(("Error executing \"%s\" for the given polytope!"
                     + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
                     self, self.vertices_pc(), err)
             result = stdout.read()
@@ -1271,7 +1271,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return
         try:
             if self._constructed_as_polar:
-                raise ValueError, ("Cannot read face structure for a polytope "
+                raise ValueError("Cannot read face structure for a polytope "
                     + "constructed as polar, use _compute_faces!")
         except AttributeError:
             pass
@@ -1356,7 +1356,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 partitions[i] = [trans[v] for v in p]
         line = data.readline()
         if line == "":
-            raise ValueError, "more data expected!"
+            raise ValueError("more data expected!")
         partitions = Sequence([], cr=True)
         while len(line) > 0 and line.find("np=") == -1:
             if line.find("V:") == -1:
@@ -1382,7 +1382,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             line = data.readline()
         start = line.find("np=")
         if start == -1:
-            raise ValueError, """Wrong data format, cannot find "np="!"""
+            raise ValueError("""Wrong data format, cannot find "np="!""")
 #         The following block seems to be unnecessary (and requires taking into
 #         account projections/products)
 #         # Compare the number of found partitions with statistic.
@@ -1732,7 +1732,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             elif dim == None and codim != None:
                 return self._faces[self.dim()-codim]
             else:
-                raise ValueError, "Both dim and codim are given!"
+                raise ValueError("Both dim and codim are given!")
         except AttributeError:
             self._compute_faces()
             return self.faces(dim, codim)
@@ -2093,10 +2093,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 2-d lattice M
         """
         if not self.is_reflexive():
-            raise NotImplementedError, "only reflexive polytopes can be indexed!"
+            raise NotImplementedError("only reflexive polytopes can be indexed!")
         dim = self.dim()
         if dim not in [2, 3]:
-            raise NotImplementedError, "only 2- and 3-dimensional polytopes can be indexed!"
+            raise NotImplementedError("only 2- and 3-dimensional polytopes can be indexed!")
         if LatticePolytopeClass._rp_dict[dim] == None:
             rp_dict = dict()
             for n, p in enumerate(ReflexivePolytopes(dim)):
@@ -2271,8 +2271,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             Polytope: 3-d lattice polytope in 3-d lattice M
         """
         if not self.is_reflexive():
-            raise ValueError, ("The given polytope is not reflexive!\n"
-                                + "Polytope: %s") % self
+            raise ValueError(("The given polytope is not reflexive!\n"
+                                + "Polytope: %s") % self)
         keys = "-N -V"
         if keep_symmetric:
             keys += " -s"
@@ -2628,7 +2628,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         dim = self.dim()
         amb_dim = self.ambient_dim()
         if dim > 3:
-            raise ValueError, "%d-dimensional polytopes can not be plotted in 3D!" % self.dim()
+            raise ValueError("%d-dimensional polytopes can not be plotted in 3D!" % self.dim())
         elif amb_dim > 3:
             return self._sublattice_polytope.plot3d(
                 show_facets, facet_opacity, facet_color,
@@ -2875,8 +2875,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if self.is_reflexive():
             return self._polar
         else:
-            raise ValueError, ("The given polytope is not reflexive!\n"
-                                + "Polytope: %s") % self
+            raise ValueError(("The given polytope is not reflexive!\n"
+                                + "Polytope: %s") % self)
 
     def poly_x(self, keys, reduce_dimension=False):
         r"""
@@ -3065,7 +3065,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0, 1, 3, 2]
         """
         if self.dim() != 2:
-            raise ValueError, "Boundary can be traversed only for 2-polytopes!"
+            raise ValueError("Boundary can be traversed only for 2-polytopes!")
         edges = self.edges()
         l = [0]
         for e in edges:
@@ -4259,7 +4259,7 @@ class _PolytopeFace(SageObject):
             [0, 15, 1]
         """
         if len(self.vertices()) != 2:
-            raise ValueError, "Order of points is defined for edges only!"
+            raise ValueError("Order of points is defined for edges only!")
         pcol = self._polytope.points_pc()
         start = pcol[self.vertices()[0]]
         end = pcol[self.vertices()[1]]
@@ -4312,7 +4312,7 @@ class _PolytopeFace(SageObject):
             [0, 4, 6, 2]
         """
         if self not in self._polytope.faces(dim=2):
-            raise ValueError, "Boundary can be traversed only for 2-faces!"
+            raise ValueError("Boundary can be traversed only for 2-faces!")
         edges = [e for e in self._polytope.edges() if e.vertices()[0] in self.vertices() and
                 e.vertices()[1] in self.vertices()]
         start = self.vertices()[0]
@@ -4410,8 +4410,8 @@ def _palp(command, polytopes, reduce_dimension=False):
     stdin, stdout, stderr = (p.stdin, p.stdout, p.stderr)
     err = stderr.read()
     if len(err) > 0:
-        raise RuntimeError, ("Error executing \"%s\" for a polytope sequence!"
-            + "\nOutput:\n%s") % (command, err)
+        raise RuntimeError(("Error executing \"%s\" for a polytope sequence!"
+            + "\nOutput:\n%s") % (command, err))
     os.remove(input_file_name)
     try:
         p.terminate()
@@ -4452,7 +4452,7 @@ def _read_nef_x_partitions(data):
         return partitions
     line = data.readline()
     if line == "":
-        raise ValueError, "Empty file!"
+        raise ValueError("Empty file!")
     partitions = []
     while len(line) > 0 and line.find("np=") == -1:
         if line.find("V:") == -1:
@@ -4469,10 +4469,10 @@ def _read_nef_x_partitions(data):
         end = line.find(" ", start)
         np = int(line[start:end])
         if False and np != len(partitions):
-            raise ValueError, ("Found %d partitions, expected %d!" %
+            raise ValueError("Found %d partitions, expected %d!" %
                                  (len(partitions), np))
     else:
-        raise ValueError, "Wrong data format, cannot find \"np=\"!"
+        raise ValueError("Wrong data format, cannot find \"np=\"!")
     return partitions
 
 def _read_poly_x_incidences(data, dim):
@@ -4516,7 +4516,7 @@ def _read_poly_x_incidences(data, dim):
     data.readline()
     lines = [data.readline().split() for i in range(dim)]
     if len(lines) != dim:
-        raise ValueError, "Not enough data!"
+        raise ValueError("Not enough data!")
     n = len(lines[0][1])     # Number of vertices or facets
     result = []
     for line in lines:
@@ -4698,7 +4698,7 @@ def all_points(polytopes):
     for p in polytopes:
         points = p._embed(read_palp_matrix(result))
         if points.nrows() == 0:
-            raise RuntimeError, ("Cannot read points of a polytope!"
+            raise RuntimeError("Cannot read points of a polytope!"
                                                         +"\nPolytope: %s" % p)
         M = p.lattice()
         points = map(M, points.columns())
@@ -5075,7 +5075,7 @@ def positive_integer_relations(points):
         c = [0]*(n+i) + [1] + [0]*(n_nonpivots - i - 1)
         x = maxima.linear_program(a, b, c)
         if x.str() == r'?Problem\not\feasible\!':
-            raise ValueError, "cannot find required relations"
+            raise ValueError("cannot find required relations")
         x = x.sage()[0][:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
@@ -5345,10 +5345,10 @@ def skip_palp_matrix(data, n=1):
     for i in range(n):
         line = data.readline()
         if line == "":
-            raise ValueError, "There are not enough data to skip!"
+            raise ValueError("There are not enough data to skip!")
         for j in range(int(line.split()[0])):
             if data.readline() == "":
-                raise ValueError, "There are not enough data to skip!"
+                raise ValueError("There are not enough data to skip!")
 
 
 def write_palp_matrix(m, ofile=None, comment="", format=None):

@@ -334,7 +334,7 @@ class SimplicialComplexExamples():
         """
         if g == 0:
             if not orientable:
-                raise ValueError, "No non-orientable surface of genus zero."
+                raise ValueError("No non-orientable surface of genus zero.")
             else:
                 return simplicial_complexes.Sphere(2)
         if orientable:

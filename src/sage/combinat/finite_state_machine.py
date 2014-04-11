@@ -527,7 +527,7 @@ class FSMState(SageObject):
             'final'
         """
         if label is None or label == "":
-            raise ValueError, "You have to specify a label for the state."
+            raise ValueError("You have to specify a label for the state.")
         self._label_ = label
 
         if isinstance(word_out, list):
@@ -543,7 +543,7 @@ class FSMState(SageObject):
             if hasattr(hook, '__call__'):
                 self.hook = hook
             else:
-                raise TypeError, 'Wrong argument for hook.'
+                raise TypeError('Wrong argument for hook.')
 
         self.color = color
 
@@ -913,7 +913,7 @@ class FSMTransition(SageObject):
             if hasattr(hook, '__call__'):
                 self.hook = hook
             else:
-                raise TypeError, 'Wrong argument for hook.'
+                raise TypeError('Wrong argument for hook.')
 
 
     def __lt__(self, other):
@@ -1040,7 +1040,7 @@ class FSMTransition(SageObject):
             TypeError: Transitions are mutable, and thus not hashable.
 
         """
-        raise TypeError, "Transitions are mutable, and thus not hashable."
+        raise TypeError("Transitions are mutable, and thus not hashable.")
 
 
     def _repr_(self):
@@ -1118,8 +1118,8 @@ class FSMTransition(SageObject):
             True
         """
         if not is_FSMTransition(right):
-            raise TypeError, 'Only instances of FSMTransition ' \
-                'can be compared.'
+            raise TypeError('Only instances of FSMTransition ' \
+                'can be compared.')
         return left.from_state == right.from_state \
             and left.to_state == right.to_state \
             and left.word_in == right.word_in \
@@ -1632,16 +1632,16 @@ class FiniteStateMachine(SageObject):
 
         if initial_states is not None:
             if not hasattr(initial_states, '__iter__'):
-                raise TypeError, 'Initial states must be iterable ' \
-                    '(e.g. a list of states).'
+                raise TypeError('Initial states must be iterable ' \
+                    '(e.g. a list of states).')
             for s in initial_states:
                 state = self.add_state(s)
                 state.is_initial = True
 
         if final_states is not None:
             if not hasattr(final_states, '__iter__'):
-                raise TypeError, 'Final states must be iterable ' \
-                    '(e.g. a list of states).'
+                raise TypeError('Final states must be iterable ' \
+                    '(e.g. a list of states).')
             for s in final_states:
                 state = self.add_state(s)
                 state.is_final = True
@@ -1687,7 +1687,7 @@ class FiniteStateMachine(SageObject):
                             L = [sf, transition]
                         self.add_transition(L)
                 else:
-                    raise TypeError, 'Wrong input data for transition.'
+                    raise TypeError('Wrong input data for transition.')
             if determine_alphabets is None and input_alphabet is None \
                     and output_alphabet is None:
                 determine_alphabets = True
@@ -1702,14 +1702,14 @@ class FiniteStateMachine(SageObject):
                 elif hasattr(transition, '__iter__'):
                     self.add_transition(transition)
                 else:
-                    raise TypeError, 'Wrong input data for transition.'
+                    raise TypeError('Wrong input data for transition.')
             if determine_alphabets is None and input_alphabet is None \
                     and output_alphabet is None:
                 determine_alphabets = True
         elif hasattr(data, '__call__'):
             self.add_from_transition_function(data)
         else:
-            raise TypeError, 'Cannot decide what to do with data.'
+            raise TypeError('Cannot decide what to do with data.')
 
         if determine_alphabets:
             self.determine_alphabets()
@@ -1888,8 +1888,8 @@ class FiniteStateMachine(SageObject):
         """
         if getattr(self, "_immutable", False):
             return hash((tuple(self.states()), tuple(self.transitions())))
-        raise TypeError, "Finite state machines are mutable, " \
-            "and thus not hashable."
+        raise TypeError("Finite state machines are mutable, " \
+            "and thus not hashable.")
 
 
     #*************************************************************************
@@ -1985,12 +1985,12 @@ class FiniteStateMachine(SageObject):
             [('A', 1), ('B', 1), ('B', 2)]
         """
         if len(args) == 0:
-            raise TypeError, "Called with too few arguments."
+            raise TypeError("Called with too few arguments.")
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
         if hasattr(args[0], '__iter__'):
             return self.process(*args, **kwargs)
-        raise TypeError, "Do not know what to do with that arguments."
+        raise TypeError("Do not know what to do with that arguments.")
 
 
     #*************************************************************************
@@ -2041,8 +2041,8 @@ class FiniteStateMachine(SageObject):
             False
         """
         if not is_FiniteStateMachine(right):
-            raise TypeError, 'Only instances of FiniteStateMachine ' \
-                'can be compared.'
+            raise TypeError('Only instances of FiniteStateMachine ' \
+                'can be compared.')
         if len(left._states_) != len(right._states_):
             return False
         for state in left.iter_states():
@@ -2764,8 +2764,7 @@ class FiniteStateMachine(SageObject):
                     return s
         except KeyError:
             pass
-        raise LookupError, \
-            "No state with label %s found." % (what(state, switch),)
+        raise LookupError("No state with label %s found." % (what(state, switch),))
 
 
     def transition(self, transition):
@@ -2800,7 +2799,7 @@ class FiniteStateMachine(SageObject):
         for s in self.iter_transitions(transition.from_state):
             if s == transition:
                 return s
-        raise LookupError, "No transition found."
+        raise LookupError("No transition found.")
 
 
     #*************************************************************************
@@ -2859,7 +2858,7 @@ class FiniteStateMachine(SageObject):
         """
         if is_FSMTransition(transition):
             return transition in self.iter_transitions()
-        raise TypeError, "Transition is not an instance of FSMTransition."
+        raise TypeError("Transition is not an instance of FSMTransition.")
 
 
     def has_initial_state(self, state):
@@ -3247,7 +3246,7 @@ class FiniteStateMachine(SageObject):
                 args = d
                 kwargs = {}
             else:
-                raise TypeError, "Cannot decide what to do with input."
+                raise TypeError("Cannot decide what to do with input.")
 
         data = dict(zip(
                 ('from_state', 'to_state', 'word_in', 'word_out', 'hook'),
@@ -3387,7 +3386,7 @@ class FiniteStateMachine(SageObject):
             TypeError: mutable vectors are unhashable
         """
         if self.input_alphabet is None:
-            raise ValueError, ("No input alphabet is given. "
+            raise ValueError("No input alphabet is given. "
                                "Try calling determine_alphabets().")
 
         if initial_states is None:
@@ -3399,10 +3398,10 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
                 not_done.append(state)
         else:
-            raise TypeError, 'Initial states must be iterable ' \
-                '(e.g. a list of states).'
+            raise TypeError('Initial states must be iterable ' \
+                '(e.g. a list of states).')
         if len(not_done) == 0:
-            raise ValueError, "No state is initial."
+            raise ValueError("No state is initial.")
         if explore_existing_states:
             ignore_done = self.states()
             for s in not_done:
@@ -4031,7 +4030,7 @@ class FiniteStateMachine(SageObject):
         elif algorithm == 'explorative':
             return self._composition_explorative_(other)
         else:
-            raise ValueError, "Unknown algorithm %s." % (algorithm,)
+            raise ValueError("Unknown algorithm %s." % (algorithm,))
 
 
     def _composition_direct_(self, other, only_accessible_components=True):
@@ -4791,7 +4790,7 @@ class FiniteStateMachine(SageObject):
         elif hasattr(edge_labels, '__call__'):
             label_fct = edge_labels
         else:
-            raise TypeError, 'Wrong argument for edge_labels.'
+            raise TypeError('Wrong argument for edge_labels.')
 
         graph_data = []
         isolated_vertices = []
@@ -5181,7 +5180,7 @@ class Automaton(FiniteStateMachine):
         elif algorithm == "Brzozowski" or (algorithm is None and not deterministic):
             return self._minimization_Brzozowski_()
         else:
-            raise NotImplementedError, "Algorithm '%s' is not implemented. Choose 'Moore' or 'Brzozowski'" % algorithm
+            raise NotImplementedError("Algorithm '%s' is not implemented. Choose 'Moore' or 'Brzozowski'" % algorithm)
 
 
     def _minimization_Brzozowski_(self):
@@ -5554,9 +5553,9 @@ class FSMProcessIterator:
             try:
                 self.current_state = fsm_initial_states[0]
             except IndexError:
-                raise ValueError, "No state is initial."
+                raise ValueError("No state is initial.")
             if len(fsm_initial_states) > 1:
-                raise ValueError, "Several initial states."
+                raise ValueError("Several initial states.")
         else:
             self.current_state = initial_state
         self.output_tape = []
@@ -5566,7 +5565,7 @@ class FSMProcessIterator:
             if hasattr(input_tape, '__iter__'):
                 self._input_tape_iter_ = iter(input_tape)
             else:
-                raise ValueError, "Given input tape is not iterable."
+                raise ValueError("Given input tape is not iterable.")
 
     def __iter__(self):
         """

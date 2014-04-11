@@ -267,7 +267,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
                 from sage.schemes.toric.morphism import SchemeMorphism_fan_toric_variety
                 return SchemeMorphism_fan_toric_variety(self, x, check=check)
 
-        raise TypeError, "x must be a fan morphism or a list/tuple of polynomials"
+        raise TypeError("x must be a fan morphism or a list/tuple of polynomials")
 
 
     def _an_element_(self):

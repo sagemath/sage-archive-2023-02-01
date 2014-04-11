@@ -2247,7 +2247,7 @@ class Polyhedron_base(Element):
                             print 'Failed for face: ' + str(a_face)
                             print 'Attempted simplicial face: ' + str(t_face)
                             print 'Attempted lifted vertices: ' + str(lifted_verts)
-                            raise RuntimeError, "triangulation failed"
+                            raise RuntimeError("triangulation failed")
                         normal_fdir = temp_poly.ieqs()[t_face[0]][-1]
                         if normal_fdir >= 0:
                             t_fac_verts = [temp_poly.vertices()[i] for i in t_face[1]]
@@ -3340,7 +3340,7 @@ class Polyhedron_base(Element):
             return proj.render_solid_3d(**kwds)
         if self.ambient_dim()==2:
             return proj.render_fill_2d(**kwds)
-        raise ValueError, "render_solid is only defined for 2 and 3 dimensional polyhedra."
+        raise ValueError("render_solid is only defined for 2 and 3 dimensional polyhedra.")
 
     def render_wireframe(self, **kwds):
         """
@@ -3359,7 +3359,7 @@ class Polyhedron_base(Element):
             return proj.render_wireframe_3d(**kwds)
         if self.ambient_dim()==2:
             return proj.render_outline_2d(**kwds)
-        raise ValueError, "render_wireframe is only defined for 2 and 3 dimensional polyhedra."
+        raise ValueError("render_wireframe is only defined for 2 and 3 dimensional polyhedra.")
 
     def schlegel_projection(self, projection_dir = None, height = 1.1):
         """
@@ -3809,7 +3809,7 @@ class Polyhedron_base(Element):
             in 2-d lattice M
         """
         if not self.is_compact():
-            raise NotImplementedError, 'Only compact lattice polytopes are allowed.'
+            raise NotImplementedError('Only compact lattice polytopes are allowed.')
 
         try:
             vertices = self.vertices_matrix(ZZ).columns()
@@ -3855,7 +3855,7 @@ class Polyhedron_base(Element):
             [M(0, 1), M(1, 0), M(1, 1), M(0, 0)]
         """
         if not self.is_compact():
-            raise ValueError, 'Can only enumerate points in a compact polyhedron.'
+            raise ValueError('Can only enumerate points in a compact polyhedron.')
         lp = self.lattice_polytope(True)
         # remove cached values to get accurate timings
         try:

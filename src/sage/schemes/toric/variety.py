@@ -2082,7 +2082,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         dim = self.dimension_relative()
         dVol = HH(self.fan().generating_cone(0)).part_of_degree(dim)
         if dVol.is_zero():
-            raise ValueError, 'Volume class does not exist.'
+            raise ValueError('Volume class does not exist.')
         return dVol
 
     def integrate(self, cohomology_class):
@@ -3171,7 +3171,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         self._variety = variety
 
         if not variety.is_orbifold():
-            raise NotImplementedError, 'Requires an orbifold toric variety.'
+            raise NotImplementedError('Requires an orbifold toric variety.')
 
         R = PolynomialRing(QQ, variety.variable_names())
         self._polynomial_ring = R
@@ -3548,7 +3548,7 @@ class CohomologyClass(QuotientRingElement):
             [1/2*z^2 + z + 1]
         """
         if not self.part_of_degree(0).is_zero():
-            raise ValueError, 'Must not have a constant part.'
+            raise ValueError('Must not have a constant part.')
         exp_x = self.parent().one()
         for d in range(1,self.parent()._variety.dimension()+1):
             exp_x += self**d / factorial(d)

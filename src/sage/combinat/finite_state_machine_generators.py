@@ -60,7 +60,8 @@ class TransducerGenerators(object):
             [0, 1]
             sage: T.output_alphabet
             [0, 1]
-            sage: T([0, 1, 0, 1, 1])[2]
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: T([0, 1, 0, 1, 1])
             [0, 1, 0, 1, 1]
 
         """
@@ -147,7 +148,8 @@ class TransducerGenerators(object):
                  Transition from (1, 0, 1) to (): 2|0]
                 sage: input =  [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2]
                 sage: output = [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-                sage: T(input)[2] == output
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T(input) == output
                 True
 
         """

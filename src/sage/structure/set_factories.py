@@ -939,7 +939,7 @@ class ParentWithSetFactory(Parent):
 
         This method may assume that ``x`` was properly constructed by
         ``self`` or a possible super-set of ``self`` for which
-        ``self`` is a facade. It should return nothing is ``x``
+        ``self`` is a facade. It should return nothing if ``x``
         verifies the constraints and raise a
         :exc:`~exceptions.ValueError` explaining which constraints
         ``x`` fails otherwise.

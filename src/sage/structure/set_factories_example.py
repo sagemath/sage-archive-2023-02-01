@@ -80,9 +80,8 @@ class XYPairsFactory(SetFactory):
         Add constraints to the set ``cons`` as per
         :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
 
-        This is a very crude implementation which ignore optional
-        arguments. They will be handled directly by the factory
-        :func:`XYPair`.
+        This is a crude implementation for the sake of the demonstration which
+        should not be taken as an example.
 
         EXAMPLES::
 

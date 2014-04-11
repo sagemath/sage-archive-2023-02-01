@@ -21,6 +21,7 @@ from sage.matrix.constructor import matrix
 from sage.modules.all import vector
 from sage.geometry.polyhedron.double_description import StandardAlgorithm as Algorithm
 
+DEBUG = True
 
 
 def homogenize_ine(A, b):
@@ -105,7 +106,26 @@ def H_to_V_representation(base_ring, dim, inequalities):
 
 
 
-class Hrep2Vrep(SageObject):
+class PivotedInequalities(SageObject):
+
+    def _pivot_inequalities(self, A):
+        self._linear_subspace = A.right_kernel()
+        self._pivots = A.pivots()
+        self._nonpivots = A.nonpivots()
+        return A.matrix_from_columns(self._pivots)
+
+    def _unpivot_ray(self, ray):
+        """
+        Undo the pivoting to go back to the original inequalities containing a linear subspace
+        """
+        result = [self.base_ring.zero()] * (self.dim + 1)
+        for r, i in zip(ray, self._pivots):
+            result[i] = r
+        return vector(self.base_ring, result)
+
+
+
+class Hrep2Vrep(PivotedInequalities):
     """
 
     EXAMPLES::
@@ -134,29 +154,18 @@ class Hrep2Vrep(SageObject):
     def __init__(self, base_ring, dim, inequalities):
         self.base_ring = base_ring
         self.dim = dim
-        A = self._init_inequalities(inequalities)
+        A = self._init_Vrep(inequalities)
         DD = Algorithm(A).run()
-        self._init_Vrep(DD)
-        self.verify(inequalities)
+        self._extract_Vrep(DD)
+        if DEBUG: 
+            self.verify(inequalities)
 
-    def _init_inequalities(self, inequalities):
+    def _init_Vrep(self, inequalities):
         """
         Split off the linear subspace from the inequalities and select pivots
         """
         A = matrix(self.base_ring, inequalities)
-        self._linear_subspace = A.right_kernel()
-        self._pivots = A.pivots()
-        self._nonpivots = A.nonpivots()
-        return A.matrix_from_columns(self._pivots)
-
-    def _unpivot_ray(self, ray):
-        """
-        Undo the pivoting to go back to the original inequalities containing a linear subspace
-        """
-        result = [self.base_ring.zero()] * (self.dim + 1)
-        for r, i in zip(ray, self._pivots):
-            result[i] = r
-        return vector(self.base_ring, result)
+        return self._pivot_inequalities(A)
 
     def _normalize_rays(self, rays, lines):
         """
@@ -249,7 +258,7 @@ class Hrep2Vrep(SageObject):
             l1 = L1.pop()
             return l1, L0 + [l-l[0]*l1 for l in L1]
 
-    def _init_Vrep(self, DD):
+    def _extract_Vrep(self, DD):
         """
         Extract the V-representation from the extremal rays of the homogeneous cone
 
@@ -302,8 +311,109 @@ class Hrep2Vrep(SageObject):
                        base_ring=QQ, ambient_dim=self.dim)
         Q = Polyhedron(ieqs=inequalities,
                        base_ring=QQ, ambient_dim=self.dim)
-        if not P == Q:
+        if (P != Q) or \
+           (len(self.vertices) != P.n_vertices()) or \
+           (len(self.rays) != P.n_rays()) or \
+           (len(self.lines) != P.n_lines()):
             print 'incorrect!', 
             print Q.Vrepresentation()
             print P.Hrepresentation()
         
+
+
+
+class Vrep2Hrep(PivotedInequalities):
+    """
+
+    EXAMPLES::
+    
+        sage: from sage.geometry.polyhedron.double_description_backend import Vrep2Hrep
+        sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [(-1/2,2/3), (1/2,-1/3)], [])
+        [1 2 3]
+        [2 4 3]
+        [-----]
+
+        #sage: Vrep2Hrep(QQ, 2, [(1,0), (-1/2,0)], [], [(1,-2/3)])
+        #[   0    0 -3/2]
+        #[ 1/3  2/3  1/2]
+        #[ 2/3 -2/3   -2]
+        #[--------------]
+
+        #sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [(1/2,0)], [(1,-2/3)])
+        #[   0    0 -3/2]
+        #[   1    0 -3/2]
+        #[   1    2  3/2]
+        #[--------------]
+
+        sage: Vrep2Hrep(QQ, 2, [(1,1), (0,4), (-2,-3)], [], [])
+        [ 8/13  7/13 -2/13]
+        [ 1/13 -4/13  3/13]
+        [ 4/13 -3/13 -1/13]
+        [-----------------]
+
+        sage: Vrep2Hrep(QQ, 2, [(-19/5,22/5), (-1/2,0)], [(2/33,-1/33), (1/11,-2/33)], [])
+        [10/11 -2/11 -4/11]
+        [ 66/5 132/5  99/5]
+        [ 2/11  4/11  6/11]
+        [-----------------]
+
+        sage: Vrep2Hrep(QQ, 2, [(0,0)], [(1/2,-1/3), (1/3,-1/6)], [])
+        [  0  -6 -12]
+        [  0  12  18]
+        [-----------]
+    """
+
+    def __init__(self, base_ring, dim, vertices, rays, lines):
+        assert len(lines) == 0    #todo
+        self.base_ring = base_ring
+        self.dim = dim
+        A = self._init_Vrep(vertices, rays, lines)
+        DD = Algorithm(A).run()
+        self._extract_Hrep(DD)
+        if DEBUG: 
+            self.verify(vertices, rays, lines)
+
+    def _init_Vrep(self, vertices, rays, lines):
+        """
+        Split off the linear subspace from the inequalities and select pivots
+        """
+        homogeneous = \
+            [ [1] + list(v) for v in vertices ] + \
+            [ [0] + list(r) for r in rays ] + \
+            [ [0] + list(l) for l in lines] + \
+            [ [0] + [-x for x in l] for l in lines]
+        A = matrix(self.base_ring, homogeneous)
+        return self._pivot_inequalities(A)
+
+    def _extract_Hrep(self, DD):
+        def is_trivial(ray):
+            # trivial Hrep output 1 >= 0
+            return ray[0] > 0 and all(r == 0 for r in ray[1:])
+        ieqs = map(self._unpivot_ray, DD.R)
+        self.inequalities = [r for r in ieqs if not is_trivial(r)]
+        self.equations = self._linear_subspace.matrix().rows()
+
+    def _repr_(self):
+        from sage.matrix.constructor import block_matrix
+        def make_matrix(cols):
+            return matrix(self.base_ring, len(cols), self.dim+1, cols)
+        I = make_matrix(self.inequalities)
+        E = make_matrix(self.equations)
+        return str(block_matrix([[I], [E]]))
+
+    def verify(self, vertices, rays, lines):
+        """
+        Debug: Compare result to PPL if the base ring is QQ
+        """
+        from sage.rings.all import QQ
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        if self.base_ring != QQ:
+            return
+        P = Polyhedron(vertices=vertices, rays=rays, lines=lines, 
+                       base_ring=QQ, ambient_dim=self.dim)
+        Q = Polyhedron(ieqs=self.inequalities, eqns=self.equations,
+                       base_ring=QQ, ambient_dim=self.dim)
+        if not P == Q:
+            print 'incorrect!', 
+            print Q.Vrepresentation()
+            print P.Hrepresentation()

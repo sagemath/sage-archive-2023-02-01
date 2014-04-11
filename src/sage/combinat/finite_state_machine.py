@@ -5011,13 +5011,7 @@ class FiniteStateMachine(SageObject):
             transducer converting the binary expansion of an integer
             into Gray code (cf. the :wikipedia:`Gray_code`)::
 
-                sage: gray = Transducer([[1, 2, 0, None],
-                ....:                    [1, 3, 1, None],
-                ....:                    [2, 2, 0, 0],
-                ....:                    [2, 3, 1, 1],
-                ....:                    [3, 2, 0, 1],
-                ....:                    [3, 3, 1, 0]])
-                sage: constants = gray.asymptotic_moments()
+                sage: constants = transducers.GrayCode().asymptotic_moments()
                 sage: constants['expectation']
                 1/2
                 sage: constants['variance']
@@ -5030,10 +5024,14 @@ class FiniteStateMachine(SageObject):
             expansion. The least significant digit is at the left-most
             position::
 
-                sage: block10 = Transducer([[0, 0, 0, 0],
-                ....:                       [0, 1, 1, 0],
-                ....:                       [1, 0, 0, 1],
-                ....:                       [1, 1, 1, 0]])
+                sage: block10 = transducers.CountSubblockOccurrences(
+                ....:     [1, 0],
+                ....:     [0, 1])
+                sage: sorted(block10.transitions())
+                [Transition from () to (): 0|0,
+                 Transition from () to (1,): 1|0,
+                 Transition from (1,) to (): 0|1,
+                 Transition from (1,) to (1,): 1|0]
                 sage: constants = block10.asymptotic_moments()
                 sage: constants['expectation']
                 1/4
@@ -5047,10 +5045,14 @@ class FiniteStateMachine(SageObject):
             expansion. The least significant digit is at the left-most
             position::
 
-                sage: block11 = Transducer([[0, 0, 0, 0],
-                ....:                       [0, 1, 1, 0],
-                ....:                       [1, 0, 0, 0],
-                ....:                       [1, 1, 1, 1]])
+                sage: block11 = transducers.CountSubblockOccurrences(
+                ....:     [1, 1],
+                ....:     [0, 1])
+                sage: sorted(block11.transitions())
+                [Transition from () to (): 0|0,
+                 Transition from () to (1,): 1|0,
+                 Transition from (1,) to (): 0|0,
+                 Transition from (1,) to (1,): 1|1]
                 sage: constants = block11.asymptotic_moments()
                 sage: constants['expectation']
                 1/4
@@ -5065,12 +5067,19 @@ class FiniteStateMachine(SageObject):
             expansion. The least significant digit is at the left-most
             position::
 
-                sage: block_difference = Transducer([['I', 0, 0, 0],
-                ....:                                ['I', 1, 1, 0],
-                ....:                                [0, 0, 0, 0],
-                ....:                                [0, 1, 1, 1],
-                ....:                                [1, 0, 0, -1],
-                ....:                                [1, 1, 1, 0]])
+                sage: block01 = transducers.CountSubblockOccurrences(
+                ....:     [0, 1],
+                ....:     [0, 1])
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+                sage: block_difference = transducers.sub([0,1])(block01.cartesian_product(block10)).simplification().relabeled()
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+                sage: block_difference.transitions()
+                [Transition from 0 to 1: 0|-1,
+                 Transition from 0 to 0: 1|0,
+                 Transition from 1 to 1: 0|0,
+                 Transition from 1 to 0: 1|1,
+                 Transition from 2 to 1: 0|0,
+                 Transition from 2 to 0: 1|0]
                 sage: constants = block_difference.asymptotic_moments()
                 sage: constants['expectation']
                 0

@@ -1089,57 +1089,62 @@ class CliffordAlgebra(CombinatorialFreeModule):
     #   a category level method for getting the indexing set of the basis;
     #   similar to #15289 but on a category level.
     @cached_method
-    def center(self):
+    def center_basis(self):
         """
         Return a list of elements which correspond to a basis for the center
         of ``self``.
 
-        This assumes that the ground ring is a field, as the
-        computation uses linear algebra.
+        This assumes that the ground ring can be used to compute the
+        kernel of a matrix.
 
         .. SEEALSO::
 
             :meth:`supercenter`,
             http://math.stackexchange.com/questions/129183/center-of-clifford-algebra-depending-on-the-parity-of-dim-v
 
+        .. TODO::
+
+            Deprecate this in favor of a method called `center()` once
+            subalgebras are properly implemented in Sage.
+
         EXAMPLES::
 
             sage: Q = QuadraticForm(QQ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Z = Cl.center(); Z
+            sage: Z = Cl.center_basis(); Z
             (1, -2/5*x*y*z + x - 3/5*y + 2/5*z)
             sage: all(z*b - b*z == 0 for z in Z for b in Cl.basis())
             True
 
             sage: Q = QuadraticForm(QQ, 3, [1,-2,-3, 4, 2, 1])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Z = Cl.center(); Z
+            sage: Z = Cl.center_basis(); Z
             (1, -x*y*z + x + 3/2*y - z)
             sage: all(z*b - b*z == 0 for z in Z for b in Cl.basis())
             True
 
             sage: Q = QuadraticForm(QQ, 2, [1,-2,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
-            sage: Cl.center()
+            sage: Cl.center_basis()
             (1,)
 
             sage: Q = QuadraticForm(QQ, 2, [-1,1,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
-            sage: Cl.center()
+            sage: Cl.center_basis()
             (1,)
 
         A degenerate case::
 
             sage: Q = QuadraticForm(QQ, 3, [4,4,-4,1,-2,1])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.center()
+            sage: Cl.center_basis()
             (1, x*y*z + x - 2*y - 2*z, x*y + x*z - 2*y*z)
 
         The most degenerate case (the exterior algebra)::
 
             sage: Q = QuadraticForm(QQ, 3)
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.center()
+            sage: Cl.center_basis()
             (1, x*y, x*z, y*z, x*y*z)
         """
         R = self.base_ring()
@@ -1174,60 +1179,65 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     # Same as center except for superalgebras
     @cached_method
-    def supercenter(self):
+    def supercenter_basis(self):
         """
         Return a list of elements which correspond to a basis for the
         supercenter of ``self``.
 
-        This assumes that the ground ring is a field, as the
-        computation uses linear algebra.
+        This assumes that the ground ring can be used to compute the
+        kernel of a matrix.
 
         .. SEEALSO::
 
             :meth:`center`,
             http://math.stackexchange.com/questions/129183/center-of-clifford-algebra-depending-on-the-parity-of-dim-v
 
+        .. TODO::
+
+            Deprecate this in favor of a method called `supercenter()` once
+            subalgebras are properly implemented in Sage.
+
         EXAMPLES::
 
             sage: Q = QuadraticForm(QQ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: SZ = Cl.supercenter(); SZ
+            sage: SZ = Cl.supercenter_basis(); SZ
             (1,)
             sage: all(z.supercommutator(b) == 0 for z in SZ for b in Cl.basis())
             True
 
             sage: Q = QuadraticForm(QQ, 3, [1,-2,-3, 4, 2, 1])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.supercenter()
+            sage: Cl.supercenter_basis()
             (1,)
 
             sage: Q = QuadraticForm(QQ, 2, [1,-2,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
-            sage: Cl.center()
+            sage: Cl.supercenter_basis()
             (1,)
 
             sage: Q = QuadraticForm(QQ, 2, [-1,1,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
-            sage: Cl.supercenter()
+            sage: Cl.supercenter_basis()
             (1,)
 
         Singular vectors of a quadratic form generate in the supercenter::
 
             sage: Q = QuadraticForm(QQ, 3, [1/2,-2,4,256/249,3,-185/8])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.supercenter()
+            sage: Cl.supercenter_basis()
             (1, x + 249/322*y + 22/161*z)
 
             sage: Q = QuadraticForm(QQ, 3, [4,4,-4,1,-2,1])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.supercenter()
+            sage: Cl.supercenter_basis()
             (1, x + 2*z, y + z, x*y + x*z - 2*y*z)
 
         The most degenerate case::
 
             sage: Q = QuadraticForm(QQ, 3)
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: Cl.supercenter()
+            sage: Cl.supercenter_basis()
             (1, x, y, z, x*y, x*z, y*z, x*y*z)
         """
         R = self.base_ring()

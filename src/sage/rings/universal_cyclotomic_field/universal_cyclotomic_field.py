@@ -1282,14 +1282,13 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 0.6180339887498949
 
                 sage: float(E(5))
-                Traceback (most recent call last)
+                Traceback (most recent call last):
                 ...
-                TypeError: E(5) is not real.
-
+                TypeError: E(5) is not real
             """
             if self.is_real():
                 return float(CDF(self).real_part())
-            raise TypeError("%s is not real."%str(self))
+            raise TypeError("{} is not real".format(self))
 
         def _rational_(self):
             r"""

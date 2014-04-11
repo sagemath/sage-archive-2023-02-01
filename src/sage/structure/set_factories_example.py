@@ -32,13 +32,13 @@ MAX = 5
 
 class XYPairsFactory(SetFactory):
     r"""
-    An example of factory for sets of pairs of integers
+    An example of factory for sets of pairs of integers.
 
     .. SEEALSO:: :mod:`.set_factories` for an introduction to factories.
     """
     def __call__(self, x=None, y=None, policy=None):
         r"""
-        Construct the subset from constraints
+        Construct the subset from constraints.
 
         Consider the set `S` of couple `(x,y)` with `x` and `y` in
         `I:=\{0,1,2,3,4\}`. Returns the subsets of element of `S` satisfying
@@ -77,10 +77,12 @@ class XYPairsFactory(SetFactory):
 
     def add_constraints(self, cons, (args, opts)):
         r"""
-        Add constraints to the set ``cons`` as per :meth:`SetFactory.add_constraints <.set_factories.SetFactory.add_constraints>`
+        Add constraints to the set ``cons`` as per
+        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
 
-        This is a very crude implementation which ignore optional arguments.
-        They will be handled directly by the factory :func:`XYPair`
+        This is a very crude implementation which ignore optional
+        arguments. They will be handled directly by the factory
+        :func:`XYPair`.
 
         EXAMPLES::
 
@@ -136,7 +138,7 @@ XYPairs.__doc__ = XYPairsFactory.__call__.__doc__
 
 class XYPair(ElementWrapper):
     r"""
-    A class for Element `(x,y)` with `x` and `y` in `\{0,1,2,3,4\}`
+    A class for Elements `(x,y)` with `x` and `y` in `\{0,1,2,3,4\}`.
 
     EXAMPLES::
 
@@ -167,8 +169,8 @@ class XYPair(ElementWrapper):
 
 class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
-    This parent show how one can use set factories together with
-    :class:`DisjointUnionEnumeratedSets`
+    This parent shows how one can use set factories together with
+    :class:`DisjointUnionEnumeratedSets`.
 
     TESTS::
 
@@ -226,7 +228,7 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
 
 class PairsX_(ParentWithSetFactory, UniqueRepresentation):
     r"""
-    The set of pair `(x, 0), (x, 1), ..., (x, 4)`
+    The set of pairs `(x, 0), (x, 1), ..., (x, 4)`.
 
     TESTS::
 
@@ -293,10 +295,13 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
             yield self._element_constructor_((self._x, i), check=False)
 
 
-
 class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
     r"""
-    The set of pair `(0, y), (1, y), ..., (4, y)`
+    The set of pairs `(0, y), (1, y), ..., (4, y)`.
+
+    .. warning:: 
+
+        Put a nice warning _singe_pair
 
     TESTS::
 
@@ -339,8 +344,10 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         """
         return self._element_constructor_((0, self._y), check=False)
 
-    def _single_pair(self, letter):
+    def single_pair(self, letter):
         r"""
+        Comment that and put link to ducmentation caveat....
+
         TESTS::
 
             sage: from sage.structure.set_factories_example import XYPairs

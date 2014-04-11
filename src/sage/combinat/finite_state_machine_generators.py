@@ -10,6 +10,7 @@ Generators for common finite state machines.
 
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
     :meth:`~TransducerGenerators.abs` | Returns a transducer realizing absolute value.
+    :meth:`~TransducerGenerators.operator` | Returns a transducer realizing a binary operation.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
@@ -33,6 +34,7 @@ class TransducerGenerators(object):
 
     - :meth:`~Identity`
     - :meth:`~abs`
+    - :meth:`~TransducerGenerators.operator`
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
@@ -189,9 +191,8 @@ class TransducerGenerators(object):
 
         INPUT:
 
-        - ``operator`` -- binary operator to realize (a map
-          ``input_alphabet`` `\times` ``input_alphabet`` `to`
-          ``input_alphabet``).
+        - ``operator`` -- binary operator to realize (a map defined on
+          ``input_alphabet`` `\times` ``input_alphabet``).
         - ``input_alphabet``  -- input alphabet.
 
         OUTPUT:

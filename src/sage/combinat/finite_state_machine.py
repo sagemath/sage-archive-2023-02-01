@@ -1656,9 +1656,6 @@ class FiniteStateMachine(SageObject):
         the given states and (deep copies) of all transitions of ``self``
         between these states.
 
-        Currently, the implementation is not optimized, it is ``O(m^2)``
-        where ``m`` is the number of transitions.
-
         EXAMPLE::
 
             sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
@@ -1668,7 +1665,7 @@ class FiniteStateMachine(SageObject):
             [0, 1]
             sage: sub_FSM.transitions()
             [Transition from 0 to 1: 0|-]
-            sage: sub2_FSM = FSM.induced_sub_finite_state_machine([3])
+            sage: FSM.induced_sub_finite_state_machine([3])
             Traceback (most recent call last):
             ...
             ValueError: 3 is not a state of this finite state machine.

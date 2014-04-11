@@ -2228,17 +2228,23 @@ def unordered_tuples(S,k):
     Return the set of all unordered tuples of length ``k`` of the
     set ``S``. Wraps GAP's ``UnorderedTuples``.
 
-    An unordered tuple of length `k` of set is a unordered selection with
-    repetitions of set and is represented by a sorted list of length `k`
-    containing elements from set.
+    An unordered tuple of length `k` of a set `S` is a unordered selection
+    with repetitions of elements of `S`, and is represented by a sorted
+    list of length `k` containing elements from `S`.
 
     .. WARNING::
 
-       Wraps GAP - hence ``S`` must be a list of objects that have
+       Wraps GAP -- hence ``S`` must be a list of objects that have
        string representations that can be interpreted by the GAP
-       interpreter. If mset consists of at all complicated Sage
+       interpreter. If ``S`` contains any complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
+
+    .. NOTE::
+
+        Repeated entries in ``S`` are being ignored -- i.e.,
+        ``unordered_tuples([1,2,3,3],2)`` doesn't return anything
+        different from ``unordered_tuples([1,2,3],2)``.
 
     EXAMPLES::
 

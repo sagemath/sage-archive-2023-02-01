@@ -313,8 +313,8 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         """
         Return the supercommutator of ``self`` and ``x``.
 
-        Let `A` be a super algebra. The *supercommutator* of homogenous
-        element `x, y \in A` is defined by
+        Let `A` be a superalgebra. The *supercommutator* of homogeneous
+        elements `x, y \in A` is defined by
 
         .. MATH::
 
@@ -330,6 +330,14 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: b = x - y + y*z
             sage: a.supercommutator(b)
             -5*x*y + 8*x*z - 2*y*z - 6*x + 12*y - 5*z
+            sage: a.supercommutator(Cl.one())
+            0
+            sage: Cl.one().supercommutator(a)
+            0
+            sage: Cl.zero().supercommutator(a)
+            0
+            sage: a.supercommutator(Cl.zero())
+            0
 
             sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
@@ -345,8 +353,10 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         for ms,cs in self:
             for mx,cx in x:
                 ret += P.term(ms, cs) * P.term(mx, cx)
-                s = (-1)**(P.degree_on_basis(ms) * P.degree_on_basis(mx))
-                ret -= s * P.term(mx, cx) * P.term(ms, cs)
+                if P.degree_on_basis(ms) and P.degree_on_basis(mx): # These degrees are 0 or 1.
+                    ret += P.term(mx, cx) * P.term(ms, cs)
+                else:
+                    ret -= P.term(mx, cx) * P.term(ms, cs)
         return ret
 
 class CliffordAlgebra(CombinatorialFreeModule):
@@ -868,6 +878,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.pseudoscalar()
             x*y*z
 
+            sage: Q = QuadraticForm(ZZ, 0, [])
+            sage: Cl = CliffordAlgebra(Q)
+            sage: Cl.pseudoscalar()
+            1
+
         REFERENCES:
 
         - :wikipedia:`Classification_of_Clifford_algebras#Pseudoscalar`
@@ -1079,31 +1094,53 @@ class CliffordAlgebra(CombinatorialFreeModule):
         Return a list of elements which correspond to a basis for the center
         of ``self``.
 
+        This assumes that the ground ring is a field, as the
+        computation uses linear algebra.
+
+        .. SEEALSO::
+
+            :meth:`supercenter`,
+            http://math.stackexchange.com/questions/129183/center-of-clifford-algebra-depending-on-the-parity-of-dim-v
+
         EXAMPLES::
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Q = QuadraticForm(QQ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Z = Cl.center(); Z
-            (1, -2*x*y*z + 5*x - 3*y + 2*z)
+            (1, -2/5*x*y*z + x - 3/5*y + 2/5*z)
             sage: all(z*b - b*z == 0 for z in Z for b in Cl.basis())
             True
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,-2,-3, 4, 2, 1])
+            sage: Q = QuadraticForm(QQ, 3, [1,-2,-3, 4, 2, 1])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Z = Cl.center(); Z
-            (1, -2*x*y*z + 2*x + 3*y - 2*z)
+            (1, -x*y*z + x + 3/2*y - z)
             sage: all(z*b - b*z == 0 for z in Z for b in Cl.basis())
             True
 
-            sage: Q = QuadraticForm(ZZ, 2, [1,-2,-3])
+            sage: Q = QuadraticForm(QQ, 2, [1,-2,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
             sage: Cl.center()
             (1,)
 
-            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
+            sage: Q = QuadraticForm(QQ, 2, [-1,1,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
             sage: Cl.center()
             (1,)
+
+        A degenerate case::
+
+            sage: Q = QuadraticForm(QQ, 3, [4,4,-4,1,-2,1])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.center()
+            (1, x*y*z + x - 2*y - 2*z, x*y + x*z - 2*y*z)
+
+        The most degenerate case (the exterior algebra)::
+
+            sage: Q = QuadraticForm(QQ, 3)
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.center()
+            (1, x*y, x*z, y*z, x*y*z)
         """
         R = self.base_ring()
         B = self.basis()
@@ -1114,8 +1151,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
             for b,j in enumerate(K):
                 for m,c in (B[i]*B[j] - B[j]*B[i]):
                     d[(a, K.index(m)+k*b)] = c
-        m = Matrix(R, d, nrows=k, ncols=k**2, sparse=True)
-        from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+                                                  distinct=True)
         return tuple(map( from_vector, m.kernel().basis() ))
 
         # Dense version
@@ -1128,7 +1166,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         #         v = B[i]*B[j] - B[j]*B[i]
         #         eqns[a].extend([v[k] for k in K])
         # m = Matrix(R, eqns)
-        # from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        #                                           distinct=True)
         # return tuple(map( from_vector, m.kernel().basis() ))
 
     # Same as center except for superalgebras
@@ -1138,29 +1177,55 @@ class CliffordAlgebra(CombinatorialFreeModule):
         Return a list of elements which correspond to a basis for the
         supercenter of ``self``.
 
+        This assumes that the ground ring is a field, as the
+        computation uses linear algebra.
+
+        .. SEEALSO::
+
+            :meth:`center`.
+
         EXAMPLES::
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Q = QuadraticForm(QQ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: SZ = Cl.supercenter(); SZ
             (1,)
             sage: all(z.supercommutator(b) == 0 for z in SZ for b in Cl.basis())
             True
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,-2,-3, 4, 2, 1])
+            sage: Q = QuadraticForm(QQ, 3, [1,-2,-3, 4, 2, 1])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.supercenter()
             (1,)
 
-            sage: Q = QuadraticForm(ZZ, 2, [1,-2,-3])
+            sage: Q = QuadraticForm(QQ, 2, [1,-2,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
             sage: Cl.center()
             (1,)
 
-            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
+            sage: Q = QuadraticForm(QQ, 2, [-1,1,-3])
             sage: Cl.<x,y> = CliffordAlgebra(Q)
             sage: Cl.supercenter()
             (1,)
+
+        Singular vectors of a quadratic form generate in the supercenter::
+
+            sage: Q = QuadraticForm(QQ, 3, [1/2,-2,4,256/249,3,-185/8])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.supercenter()
+            (1, x + 249/322*y + 22/161*z)
+
+            sage: Q = QuadraticForm(QQ, 3, [4,4,-4,1,-2,1])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.supercenter()
+            (1, x + 2*z, y + z, x*y + x*z - 2*y*z)
+
+        The most degenerate case::
+
+            sage: Q = QuadraticForm(QQ, 3)
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.supercenter()
+            (1, x, y, z, x*y, x*z, y*z, x*y*z)
         """
         R = self.base_ring()
         B = self.basis()
@@ -1169,10 +1234,15 @@ class CliffordAlgebra(CombinatorialFreeModule):
         d = {}
         for a,i in enumerate(K):
             for b,j in enumerate(K):
-                for m,c in B[i].supercommutator(B[j]):
+                if len(i) % 2 and len(j) % 2:
+                    supercommutator = B[i] * B[j] + B[j] * B[i]
+                else:
+                    supercommutator = B[i] * B[j] - B[j] * B[i]
+                for m,c in supercommutator:
                     d[(a, K.index(m)+k*b)] = c
-        m = Matrix(R, d, nrows=k, ncols=k**2, sparse=True)
-        from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+                                                  distinct=True)
         return tuple(map( from_vector, m.kernel().basis() ))
 
         # Dense version
@@ -1182,10 +1252,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
         # eqns = [[] for dummy in range(k)]
         # for a,i in enumerate(K):
         #     for b,j in enumerate(K):
-        #         v = B[i].supercommutator(B[j])
+        #         v = B[i].supercommutator(B[j])   # or better an if-loop as above
         #         eqns[a].extend([v[k] for k in K])
         # m = Matrix(R, eqns)
-        # from_vector = lambda x: self.sum_of_terms((K[i], c) for i,c in x.iteritems())
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        #                                           distinct=True)
         # return tuple(map( from_vector, m.kernel().basis() ))
 
     Element = CliffordAlgebraElement

@@ -32,7 +32,7 @@ def homogenize_ine(A, b):
 
         sage: A = matrix([[1,2,3], [4,5,6]])
         sage: b = vector([8,9])
-        sage: from sage.geometry.polyhedron.double_description_backend import homogenize_ine
+        sage: from sage.geometry.polyhedron.double_description_inhomogeneus import homogenize_ine
         sage: homogenize_ine(A, b)
         [-8| 1  2  3]
         [-9| 4  5  6]
@@ -56,7 +56,7 @@ def dehomogenize_ine(A):
     EXAMPLES::
 
         sage: A = matrix(ZZ, [[-8, 1, 2, 3], [-9, 4, 5, 6]])
-        sage: from sage.geometry.polyhedron.double_description_backend import dehomogenize_ine
+        sage: from sage.geometry.polyhedron.double_description_inhomogeneous import dehomogenize_ine
         sage: dehomogenize_ine(A)
         (
         [1 2 3]        
@@ -91,7 +91,7 @@ def H_to_V_representation(base_ring, dim, inequalities):
 
     EXAMPLES::
     
-        sage: from sage.geometry.polyhedron.double_description_backend import H_to_V_representation
+        sage: from sage.geometry.polyhedron.double_description_inhomogeneous import H_to_V_representation
         sage: ieqs = [(1, 1, -1, -1), (1, 1, 1, -1),   (1, 1, 1, 1),   (1, 1, -1, 1),
         ....:         (1, -1, -1, 1), (1, -1, -1, -1), (1, -1, 1, -1), (1, -1, 1, 1)]
         sage: H_to_V_representation(QQ, 3, ieqs)
@@ -130,7 +130,7 @@ class Hrep2Vrep(PivotedInequalities):
 
     EXAMPLES::
     
-        sage: from sage.geometry.polyhedron.double_description_backend import Hrep2Vrep
+        sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep
         sage: Hrep2Vrep(QQ, 2, [(1,2,3), (2,4,3)])
         [-1/2|-1/2  1/2|]
         [   0| 2/3 -1/3|]
@@ -151,7 +151,8 @@ class Hrep2Vrep(PivotedInequalities):
         [   0|-1/3 -1/6|]
     """
 
-    def __init__(self, base_ring, dim, inequalities):
+    def __init__(self, base_ring, dim, inequalities, equations=[]):
+        assert equations == []
         self.base_ring = base_ring
         self.dim = dim
         A = self._init_Vrep(inequalities)
@@ -194,7 +195,7 @@ class Hrep2Vrep(PivotedInequalities):
 
         EXAMPLES::
         
-            sage: from sage.geometry.polyhedron.double_description_backend import Hrep2Vrep
+            sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep
             sage: ieqs = [(1,2,3), (2,4,3)]
             sage: H = Hrep2Vrep(QQ, 2, [(1,2,3)])
             sage: r1 = vector([1,1,0])
@@ -235,7 +236,7 @@ class Hrep2Vrep(PivotedInequalities):
 
         EXAMPLES::
         
-            sage: from sage.geometry.polyhedron.double_description_backend import Hrep2Vrep
+            sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep
             sage: H = Hrep2Vrep(QQ, 2, [(1,2,3)])
             sage: H._split_linear_subspace()
             ((1, 0, -1/3), [(0, 1, -2/3)])
@@ -327,7 +328,7 @@ class Vrep2Hrep(PivotedInequalities):
 
     EXAMPLES::
     
-        sage: from sage.geometry.polyhedron.double_description_backend import Vrep2Hrep
+        sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Vrep2Hrep
         sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [(-1/2,2/3), (1/2,-1/3)], [])
         [1 2 3]
         [2 4 3]

@@ -623,11 +623,7 @@ class Polyhedron_base(Element):
         else:
             desc += 'A ' + repr(self.dim()) + '-dimensional polyhedron'
         desc += ' in '
-        if   self.base_ring() is QQ:  desc += 'QQ'
-        elif self.base_ring() is ZZ:  desc += 'ZZ'
-        elif self.base_ring() is RDF: desc += 'RDF'
-        else: assert False
-        desc += '^' + repr(self.ambient_dim())
+        desc += self.parent()._repr_ambient_module()
 
         if self.n_vertices()>0:
             desc += ' defined as the convex hull of '

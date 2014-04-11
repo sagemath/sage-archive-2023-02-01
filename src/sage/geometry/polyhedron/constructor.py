@@ -150,6 +150,7 @@ AUTHORS:
     - Volker Braun: refactoring, handle non-compact case, 2009 and 2010
     - Andrey Novoseltsev: added Hasse_diagram_from_incidences, 2010
     - Volker Braun: rewrite to use PPL instead of cddlib, 2011
+    - Volker Braun: Add support for arbitrary subfields of the reals
 """
 
 ########################################################################
@@ -222,10 +223,12 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         (:mod:`~sage.geometry.polyhedron.backend_cdd`) with `\QQ` or
         `\RDF` coefficients depending on ``base_ring``.
 
-
       * ``'ppl'``: use ppl
         (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\ZZ` or
         `\QQ` coefficients depending on ``base_ring``.
+
+      * ``'field'``: use python implementation
+        (:mod:`~sage.geometry.polyhedron.backend_field`) for any field
 
     Some backends support further optional arguments:
 
@@ -374,7 +377,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                     base_ring = QQ
                     convert = True
                 else:
-                    base_ring = RDF
+                    base_ring = values.universe()
                     convert = True
 
     # Add the origin if necesarry

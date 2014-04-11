@@ -3,8 +3,8 @@ Double Description Algorithm
 
 This module implements the double description algorithm for extremal
 vertex enumeration in a pointed cone. With a little bit of
-preprocessing (see :mod:`double_description_backend`) this defines a
-backend for polyhedral computations.
+preprocessing (see :mod:`double_description_inhomogeneous`) this
+defines a backend for polyhedral computations.
 
 EXAMPLES::
 

@@ -277,7 +277,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dy - (3*x - z)*dx
             dy + (-3*x + z)*dx
         """
-        return self.__class__(self.parent(), {m:-c for m,c in self.__monomials.items()})
+        return self.__class__(self.parent(), {m:-c for m,c in self.__monomials.iteritems()})
 
     def _add_(self, other):
         """
@@ -292,9 +292,10 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             x^3 - 2 + dz + dx*dy
         """
         d = copy(self.__monomials)
-        for m,c in other.__monomials.items():
-            d[m] = d.get(m, 0) + c
-            if d[m] == 0:
+        zero = self.parent().base_ring().zero()
+        for m,c in other.__monomials.iteritems():
+            d[m] = d.get(m, zero) + c
+            if d[m] == zero:
                 del d[m]
         return self.__class__(self.parent(), d)
 
@@ -311,13 +312,14 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             -10*x^3 + 10*z - 10*x*dy + (-10*x^4 + 10*x*z)*dx + dx*dy*dz^2 + (x^3 - z)*dx^2*dz^2
         """
         d = {}
-        for ml,cl in self.__monomials.items():
-            for mr,cr in other.__monomials.items():
-                for t,coeff in expand_derivative(cr, ml).items():
+        zero = self.parent().base_ring().zero()
+        for ml,cl in self.__monomials.iteritems():
+            for mr,cr in other.__monomials.iteritems():
+                for t,coeff in expand_derivative(cr, ml).iteritems():
                     # multiply the resulting term by the other term
                     t = tuple(v + mr[i] for i,v in enumerate(t))
-                    d[t] = d.get(t, 0) + cl * coeff
-                    if d[t] == 0:
+                    d[t] = d.get(t, zero) + cl * coeff
+                    if d[t] == zero:
                         del d[t]
         return self.__class__(self.parent(), d)
 
@@ -335,7 +337,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         if lhs == 0:
             return self.parent().zero()
-        return self.__class__(self.parent(), {m: lhs*c for m,c in self.__monomials.items()})
+        return self.__class__(self.parent(), {m: lhs*c for m,c in self.__monomials.iteritems()})
 
     def _lmul_(self, other):
         """
@@ -350,10 +352,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             y + (x*y + z)*dx
         """
         d = {}
-        for m,c in self.__monomials.items():
-            for t,coeff in expand_derivative(other, m).items():
-                d[t] = d.get(t, 0) + c * coeff
-                if d[t] == 0:
+        zero = self.parent().base_ring().zero()
+        for m,c in self.__monomials.iteritems():
+            for t,coeff in expand_derivative(other, m).iteritems():
+                d[t] = d.get(t, zero) + c * coeff
+                if d[t] == zero:
                     del d[t]
         return self.__class__(self.parent(), d)
 

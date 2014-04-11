@@ -453,25 +453,24 @@ def euler_number(n):
 
 def fibonacci(n, algorithm="pari"):
     """
-    Returns the `n`-th Fibonacci number. The Fibonacci sequence
-    `F_n` is defined by the initial conditions
-    `F_1=F_2=1` and the recurrence relation
+    Return the `n`-th Fibonacci number.
+
+    The Fibonacci sequence `F_n` is defined by the initial
+    conditions `F_1 = F_2 = 1` and the recurrence relation
     `F_{n+2} = F_{n+1} + F_n`. For negative `n` we
     define `F_n = (-1)^{n+1}F_{-n}`, which is consistent with
     the recurrence relation.
 
     INPUT:
 
+    - ``algorithm`` -- a string:
 
-    -  ``algorithm`` - string:
+      * ``"pari"`` - (default) use the PARI C library's
+        fibo function
 
-    -  ``"pari"`` - (default) - use the PARI C library's
-       fibo function.
+      * ``"gap"`` - use GAP's Fibonacci function
 
-    -  ``"gap"`` - use GAP's Fibonacci function
-
-
-    .. note::
+    .. NOTE::
 
        PARI is tens to hundreds of times faster than GAP here;
        moreover, PARI works for every large input whereas GAP doesn't.
@@ -503,9 +502,9 @@ def fibonacci(n, algorithm="pari"):
     if algorithm == 'pari':
         return ZZ(pari(n).fibonacci())
     elif algorithm == 'gap':
-        return ZZ(gap.eval("Fibonacci(%s)"%n))
+        return ZZ(gap.eval("Fibonacci({})".format(n)))
     else:
-        raise ValueError, "no algorithm %s"%algorithm
+        raise ValueError("no algorithm {}".format(algorithm))
 
 def lucas_number1(n,P,Q):
     """
@@ -515,17 +514,15 @@ def lucas_number1(n,P,Q):
     `L^{(1)}_2=1` and the recurrence relation
     `L^{(1)}_{n+2} = P*L^{(1)}_{n+1} - Q*L^{(1)}_n`.
 
-    Wraps GAP's Lucas(...)[1].
+    Wraps GAP's ``Lucas(...)[1]``.
 
     `P=1`, `Q=-1` gives the Fibonacci sequence.
 
     INPUT:
 
+    -  ``n`` -- integer
 
-    -  ``n`` - integer
-
-    -  ``P, Q`` - integer or rational numbers
-
+    -  ``P, Q`` -- integer or rational numbers
 
     OUTPUT: integer or rational number
 
@@ -2157,85 +2154,14 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
 #####################################################
 #### combinatorial sets/lists
 
-def number_of_combinations(mset,k):
-    """
-    Returns the size of combinations(mset,k). IMPLEMENTATION: Wraps
-    GAP's NrCombinations.
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: number_of_combinations(mset,2)
-        doctest:1: DeprecationWarning: Use Combinations(mset,k).cardinality() instead.
-        See http://trac.sagemath.org/14138 for details.
-        12
-    """
-    from sage.combinat.combination import Combinations
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use Combinations(mset,k).cardinality() instead.')
-    return Combinations(mset,k).cardinality()
-
-def number_of_arrangements(mset,k):
-    """
-    Returns the size of arrangements(mset,k).
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,3,4,4,5]
-        sage: number_of_arrangements(mset,2)
-        doctest:1: DeprecationWarning: Use Arrangements(mset,k).cardinality() instead.
-        See http://trac.sagemath.org/14138 for details.
-        22
-    """
-    from sage.combinat.permutation import Arrangements
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use Arrangements(mset,k).cardinality() instead.')
-    return Arrangements(mset, k).cardinality()
-
-def derangements(mset):
-    """
-    This is deprecated in :trac:`9005`. Use instead :class:`Derangements`.
-
-    EXAMPLES::
-
-        sage: mset = [1,2,3,4]
-        sage: D = derangements(mset); D
-        doctest:1: DeprecationWarning: derangements() is deprecated. Use Derangements instead.
-        See http://trac.sagemath.org/9005 for details.
-        Derangements of the set [1, 2, 3, 4]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9005,'derangements() is deprecated. Use Derangements instead.')
-    from sage.combinat.derangements import Derangements
-    return Derangements(mset)
-
-def number_of_derangements(mset):
-    """
-    This is deprecated in :trac:`9005`. Use :meth:`Derangements.cardinality()`
-    instead.
-
-    EXAMPLES::
-
-        sage: mset = [1,2,3,4]
-        sage: number_of_derangements(mset)
-        doctest:1: DeprecationWarning: number_of_derangements() is deprecated. Use Derangements.cardinality() instead.
-        See http://trac.sagemath.org/9005 for details.
-        9
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9005,'number_of_derangements() is deprecated. Use Derangements.cardinality() instead.')
-    from sage.combinat.derangements import Derangements
-    return Derangements(mset).cardinality()
-
 def tuples(S,k):
     """
     Return a list of all `k`-tuples of elements of a given set ``S``.
 
     This function accepts the set ``S`` in the form of any iterable
     (list, tuple or iterator), and returns a list of `k`-tuples
-    (themselves encoded as lists). If ``S`` contains duplicate
-    entries, then you should expect the method to return tuples multiple
-    times!
+    (themselves encoded as lists). If ``S`` contains duplicate entries,
+    then you should expect the method to return tuples multiple times!
 
     Recall that `k`-tuples are ordered (in the sense that two `k`-tuples
     differing in the order of their entries count as different) and
@@ -2283,7 +2209,7 @@ def tuples(S,k):
 
 def number_of_tuples(S,k):
     """
-    Returns the size of ``tuples(S,k)``. Wraps GAP's NrTuples.
+    Return the size of ``tuples(S,k)``. Wraps GAP's ``NrTuples``.
 
     EXAMPLES::
 
@@ -2299,20 +2225,26 @@ def number_of_tuples(S,k):
 
 def unordered_tuples(S,k):
     """
-    An unordered tuple of length k of set is a unordered selection with
-    repetitions of set and is represented by a sorted list of length k
-    containing elements from set.
+    Return the set of all unordered tuples of length ``k`` of the
+    set ``S``. Wraps GAP's ``UnorderedTuples``.
 
-    unordered_tuples returns the set of all unordered tuples of length
-    k of the set. Wraps GAP's UnorderedTuples.
+    An unordered tuple of length `k` of a set `S` is a unordered selection
+    with repetitions of elements of `S`, and is represented by a sorted
+    list of length `k` containing elements from `S`.
 
-    .. warning::
+    .. WARNING::
 
-       Wraps GAP - hence mset must be a list of objects that have
+       Wraps GAP -- hence ``S`` must be a list of objects that have
        string representations that can be interpreted by the GAP
-       interpreter. If mset consists of at all complicated Sage
+       interpreter. If ``S`` contains any complicated Sage
        objects, this function does *not* do what you expect. A proper
        function should be written! (TODO!)
+
+    .. NOTE::
+
+        Repeated entries in ``S`` are being ignored -- i.e.,
+        ``unordered_tuples([1,2,3,3],2)`` doesn't return anything
+        different from ``unordered_tuples([1,2,3],2)``.
 
     EXAMPLES::
 
@@ -2327,8 +2259,8 @@ def unordered_tuples(S,k):
 
 def number_of_unordered_tuples(S,k):
     """
-    Returns the size of unordered_tuples(S,k). Wraps GAP's
-    NrUnorderedTuples.
+    Return the size of ``unordered_tuples(S,k)``. Wraps GAP's
+    ``NrUnorderedTuples``.
 
     EXAMPLES::
 
@@ -2345,14 +2277,18 @@ def unshuffle_iterator(a, one=1):
     yielding the signs of the respective permutations.
 
     If `n` and `k` are integers satisfying `0 \leq k \leq n`, then
-    an *`(k, n-k)`-unshuffle* means a permutation `\pi \in S_n` such
-    that `\pi(1) < \pi(2) < \ldots < \pi(k)` and
-    `\pi(k+1) < \pi(k+2) < \ldots < \pi(n)`. This method provides,
+    a `(k, n-k)`-*unshuffle* means a permutation `\pi \in S_n` such
+    that `\pi(1) < \pi(2) < \cdots < \pi(k)` and
+    `\pi(k+1) < \pi(k+2) < \cdots < \pi(n)`. This method provides,
     for a list `a = (a_1, a_2, \ldots, a_n)` of length `n`, an iterator
-    yielding all pairs
-    `( ( (a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(k)}),
-         (a_{\pi(k+1)}, a_{\pi(k+2)}, \ldots, a_{\pi(n)}) ),
-       (-1)^{\pi} )`
+    yielding all pairs:
+
+    .. MATH::
+
+        \Bigl( \bigl( (a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(k)}),
+        (a_{\pi(k+1)}, a_{\pi(k+2)}, \ldots, a_{\pi(n)}) \bigl),
+        (-1)^{\pi} \Bigr)
+
     for all `k \in \{0, 1, \ldots, n\}` and all `(k, n-k)`-unshuffles
     `\pi`. The optional variable ``one`` can be set to a different
     value which results in the `(-1)^{\pi}` component being multiplied
@@ -2360,7 +2296,7 @@ def unshuffle_iterator(a, one=1):
 
     The iterator does not yield these in order of increasing `k`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.combinat.combinat import unshuffle_iterator
         sage: list(unshuffle_iterator([1, 3, 4]))
@@ -2377,7 +2313,6 @@ def unshuffle_iterator(a, one=1):
         sage: list(unshuffle_iterator([3, 1], 3/2))
         [(((), (3, 1)), 3/2), (((3,), (1,)), 3/2), (((1,), (3,)), -3/2),
          (((3, 1), ()), 3/2)]
-
     """
     from sage.misc.misc import powerset
     n = len(a)
@@ -2505,38 +2440,6 @@ def permutations_iterator(mset,n=None):
             for p in Permutations(rest, n-1):
                 yield v + list(p)
 
-def number_of_permutations(mset):
-    """
-    Do not use this function. It was deprecated in :trac:`14138`.
-    Use :class:`Permutations` instead. For example, instead of
-
-    ``number_of_permutations(mset)``
-
-    use
-
-    ``Permutations(mset).cardinality()``.
-
-    If you insist on using this now:
-
-    Returns the size of permutations(mset).
-
-    AUTHORS:
-
-    - Robert L. Miller
-
-    EXAMPLES::
-
-        sage: mset = [1,1,2,2,2]
-        sage: number_of_permutations(mset)
-        doctest:...: DeprecationWarning: Use the Permutations object instead.
-        See http://trac.sagemath.org/14138 for details.
-        10
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14138, 'Use the Permutations object instead.')
-    from sage.combinat.permutation import Permutations
-    return Permutations(mset).cardinality()
-
 def cyclic_permutations(mset):
     """
     This function is deprecated in :trac:`14772`. Use instead
@@ -2619,19 +2522,19 @@ def cyclic_permutations_iterator(mset):
 
 def bell_polynomial(n, k):
     r"""
-    This function returns the Bell Polynomial
+    Return the Bell Polynomial
 
-    .. math::
+    .. MATH::
 
        B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
-       =n} \frac{n!}{j_1!j_2!\ldots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
-       \ldots
+       =n} \frac{n!}{j_1!j_2!\cdots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
+       \cdots.
 
     INPUT:
 
-    - ``n`` - integer
+    - ``n`` -- integer
 
-    - ``k`` - integer
+    - ``k`` -- integer
 
     OUTPUT:
 
@@ -2670,21 +2573,19 @@ def bell_polynomial(n, k):
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""
-    Returns an iterator over the Fibonacci sequence, for all fibonacci
+    Return an iterator over the Fibonacci sequence, for all fibonacci
     numbers `f_n` from ``n = start`` up to (but
     not including) ``n = stop``
 
     INPUT:
 
+    -  ``start`` -- starting value
 
-    -  ``start`` - starting value
+    -  ``stop`` -- stopping value
 
-    -  ``stop`` - stopping value
-
-    -  ``algorithm`` - default (None) - passed on to
+    -  ``algorithm`` -- (default: ``None``) passed on to
        fibonacci function (or not passed on if None, i.e., use the
-       default).
-
+       default)
 
     EXAMPLES::
 
@@ -2697,7 +2598,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         sage: sum([i for i in fibonacci_sequence(100, 110)])
         69919376923075308730013
 
-    .. seealso::
+    .. SEEALSO::
 
        :func:`fibonacci_xrange`
 
@@ -2721,7 +2622,7 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
 
 def fibonacci_xrange(start, stop=None, algorithm='pari'):
     r"""
-    Returns an iterator over all of the Fibonacci numbers in the given
+    Return an iterator over all of the Fibonacci numbers in the given
     range, including ``f_n = start`` up to, but not
     including, ``f_n = stop``.
 
@@ -2749,7 +2650,7 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
         1089154
 
-    .. seealso::
+    .. SEEALSO::
 
        :func:`fibonacci_sequence`
 
@@ -2781,17 +2682,17 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
 
 def bernoulli_polynomial(x, n):
     r"""
-    Return the nth Bernoulli polynomial evaluated at x.
+    Return the ``n``-th Bernoulli polynomial evaluated at ``x``.
 
     The generating function for the Bernoulli polynomials is
 
-    .. math::
+    .. MATH::
 
        \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!},
 
     and they are given directly by
 
-    .. math::
+    .. MATH::
 
        B_n(x) = \sum_{i=0}^n \binom{n}{i}B_{n-i}x^i.
 
@@ -2823,17 +2724,16 @@ def bernoulli_polynomial(x, n):
         sage: 5*power_sum == bernoulli_polynomial(10, 5) - bernoulli(5)
         True
 
-
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Bernoulli_polynomials
+    - :wikipedia:`Bernoulli_polynomials`
     """
     try:
         n = ZZ(n)
         if n < 0:
             raise TypeError
     except TypeError:
-        raise ValueError, "The second argument must be a non-negative integer"
+        raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
         return ZZ(1)
@@ -2861,3 +2761,4 @@ def bernoulli_polynomial(x, n):
         xi *= x2
     s += xi - t*x*n/2
     return s
+

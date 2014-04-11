@@ -491,15 +491,28 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
 # Helper function
 def expand_derivative(poly, exps):
-    """
+    r"""
     Helper function that returns the expansion of ``poly`` by using
-    derivative with respect to ``mon`` and return a dictionary representing
-    an element in the Weyl algebra.
+    derivative with respect to the monomial given by ``exps``.
+
+    This function returns the expansion
+
+    .. MATH::
+
+        \frac{d}{dm} p(X) = \sum_{\alpha} c_{\alpha}(X) \frac{d}{d\alpha}
+
+    where `m` is a monomial (in the variables `X`) and the sum is over all
+    monomials `\alpha`.
 
     INPUT:
 
     - ``poly`` -- a polynomial
-    - ``exps`` -- the exponents of the derivatives
+    - ``exps`` -- the exponents of the derivatives given as a list
+      whose length is the number of variables
+
+    OUTPUT:
+
+    A dictionary representing an element in the Weyl algebra.
 
     EXAMPLES::
 

@@ -1933,7 +1933,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          n = int(n)
          if n < 2:
-             print "n must be at least 2"
+             raise ValueError("n must be at least 2")
 
          self.division_polynomial_0( -2, x, cache)
          self.division_polynomial_0(n-1, x, cache)
@@ -2000,7 +2000,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
          n = int(n)
          if n < 2:
-             print "n must be at least 2"
+             raise ValueError("n must be at least 2")
 
          self.division_polynomial_0(-2, x, cache)
          self.division_polynomial_0(n , x, cache)

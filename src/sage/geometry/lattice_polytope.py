@@ -1054,7 +1054,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             if len(err) > 0:
                 raise RuntimeError(("Error executing \"%s\" for the given polytope!"
                     + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
-                    self, self.vertices_pc(), err)
+                    self, self.vertices_pc(), err))
             result = stdout.read()
             # We program around an issue with subprocess (this so far seems to
             # only be an issue on Cygwin).

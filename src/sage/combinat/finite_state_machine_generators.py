@@ -317,7 +317,7 @@ class TransducerGenerators(object):
             [Transition from 0 to 0: -1|1,
              Transition from 0 to 0: 0|0,
              Transition from 0 to 0: 1|1]
-            sage: T([-1, -1, 0, 1])[2]
+            sage: T([-1, -1, 0, 1])
             [1, 1, 0, 1]
 
         """

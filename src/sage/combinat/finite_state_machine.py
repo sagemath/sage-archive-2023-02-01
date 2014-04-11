@@ -4798,6 +4798,24 @@ class FiniteStateMachine(SageObject):
                 sage: constants['covariance']
                 -1/8
 
+        #.  Check whether ``word_out`` of ``FSMState`` are correctly
+            dealt with::
+
+                sage: from sage.combinat.finite_state_machine import FSMState
+                sage: s = FSMState(0, word_out=2)
+                sage: T = Transducer([(s, s, 0, 1)])
+                sage: T.asymptotic_moments()['expectation']
+                3
+
+            The same test for non-integer output::
+
+                sage: from sage.combinat.finite_state_machine import FSMState
+                sage: s = FSMState(0, word_out=2/3)
+                sage: T = Transducer([(s, s, 0, 1/2)])
+                sage: T.asymptotic_moments()['expectation']
+                Warning: Non-integer output weights lead to significant performance degradation.
+                7/6
+
         ALGORITHM:
 
         See [HKW2014]_, Theorem 2.
@@ -4839,13 +4857,17 @@ class FiniteStateMachine(SageObject):
                                       "whose unique final component is "
                                       "aperiodic.")
 
+        def get_matrix(fsm, x, y):
+            return fsm.adjacency_matrix(
+                entry=lambda transition: x**sum(transition.word_in) * \
+                    y**(sum(transition.word_out) + sum(transition.from_state.word_out))
+                )
+
         K = len(self.input_alphabet)
         try:
             R = PolynomialRing(QQ, ("x", "y", "z"))
             (x, y, z) = R.gens()
-            M = self.adjacency_matrix(
-                entry=lambda transition:
-                    x**sum(transition.word_in)*y**sum(transition.word_out))
+            M = get_matrix(self, x, y)
             def substitute_one(g):
                 # the result of the substitution shall live in QQ,
                 # not in the polynomial ring R, so the method
@@ -4861,9 +4883,7 @@ class FiniteStateMachine(SageObject):
             x = SR.symbol()
             y = SR.symbol()
             z = SR.symbol()
-            M = self.adjacency_matrix(
-                entry=lambda transition:
-                    x**sum(transition.word_in)*y**sum(transition.word_out))
+            M = get_matrix(self, x, y)
             def substitute_one(g):
                 return g.subs({x: 1, y: 1, z: 1})
 

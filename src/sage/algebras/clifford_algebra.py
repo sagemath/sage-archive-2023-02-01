@@ -111,7 +111,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 # the dictionary describing the element
                 # ``e[i]`` * (the element described by the dictionary ``cur``)
                 # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr,cr in cur.items():
+                for mr,cr in cur.iteritems():
                     # Commute the factor as necessary until we are in order
                     pos = 0
                     for j in mr:
@@ -147,7 +147,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 cur = next
 
             # Add the distributed terms to the total
-            for index,coeff in cur.items():
+            for index,coeff in cur.iteritems():
                 d[index] = d.get(index, zero) + cl * coeff
                 if d[index] == zero:
                     del d[index]
@@ -1148,8 +1148,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
         k = len(K)
         d = {}
         for a,i in enumerate(K):
+            Bi = B[i]
             for b,j in enumerate(K):
-                for m,c in (B[i]*B[j] - B[j]*B[i]):
+                Bj = B[j]
+                for m,c in (Bi*Bj - Bj*Bi):
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
         from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
@@ -1182,7 +1184,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
         .. SEEALSO::
 
-            :meth:`center`.
+            :meth:`center`,
+            http://math.stackexchange.com/questions/129183/center-of-clifford-algebra-depending-on-the-parity-of-dim-v
 
         EXAMPLES::
 
@@ -1233,11 +1236,13 @@ class CliffordAlgebra(CombinatorialFreeModule):
         k = len(K)
         d = {}
         for a,i in enumerate(K):
+            Bi = B[i]
             for b,j in enumerate(K):
+                Bj = B[j]
                 if len(i) % 2 and len(j) % 2:
-                    supercommutator = B[i] * B[j] + B[j] * B[i]
+                    supercommutator = Bi * Bj + Bj * Bi
                 else:
-                    supercommutator = B[i] * B[j] - B[j] * B[i]
+                    supercommutator = Bi * Bj - Bj * Bi
                 for m,c in supercommutator:
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
@@ -1774,8 +1779,9 @@ class ExteriorAlgebra(CliffordAlgebra):
 
         def interior_product(self, x):
             r"""
-            Return the interior product or antiderivation of ``self`` with
-            respect to ``x``.
+            Return the interior product (also known as antiderivation) of
+            ``self`` with respect to ``x`` (that is, the element
+            `\iota_{x}(\text{self})` of the exterior algebra).
 
             If `V` is an `R`-module, and if `\alpha` is a fixed element of
             `V^*`, then the *interior product* with respect to `\alpha` is
@@ -1816,7 +1822,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             method.
 
             We then extend the interior product to all
-            `\alpha \in \Lambda V^*` by
+            `\alpha \in \Lambda (V^*)` by
 
             .. MATH::
 
@@ -1837,6 +1843,14 @@ class ExteriorAlgebra(CliffordAlgebra):
                 -2*x
                 sage: (x*z + x*y*z).interior_product(2*y - x)
                 -2*x^z - y^z - z
+                sage: x.interior_product(E.one())
+                x
+                sage: E.one().interior_product(x)
+                0
+                sage: x.interior_product(E.zero())
+                0
+                sage: E.zero().interior_product(x)
+                0
 
             REFERENCES:
 
@@ -1852,15 +1866,19 @@ class ExteriorAlgebra(CliffordAlgebra):
             r"""
             Return the Hodge dual of ``self``.
 
-            The Hodge dual `\ast` is defined on a basis element `\alpha` by
-            `i_{\alpha} \sigma` where `\sigma` is the volume form and
-            `i_{\alpha}` denotes the antiderivation function with respect
-            to `\alpha`.
+            The Hodge dual of an element `\alpha` of the exterior algebra is
+            defined as `i_{\alpha} \sigma`, where `\sigma` is the volume
+            form
+            (:meth:`~sage.algebras.clifford_algebra.ExteriorAlgebra.volume_form`)
+            and `i_{\alpha}` denotes the antiderivation function with
+            respect to `\alpha` (see :meth:`interior_product` for the
+            definition of this).
 
             .. NOTE::
 
-                The Hodge dual of the Hodge dual is constant on the `k`-th
-                graded part of `\Lambda(V)` up to a sign.
+                The Hodge dual of the Hodge dual of a homogeneous element
+                `p` of `\Lambda(V)` equals `(-1)^{k(n-k)} p`, where
+                `n = \dim V` and `k = \deg(p) = |p|`.
 
             EXAMPLES::
 
@@ -1911,7 +1929,10 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             The standard scalar product of `x, y \in \Lambda(V)` is
             defined by `\langle x, y \rangle = \langle x^t y \rangle`, where
-            `\langle a \rangle` denotes the degree 0 term of `a`.
+            `\langle a \rangle` denotes the degree-0 term of `a`, and where
+            `x^t` denotes the transpose
+            (:meth:`~sage.algebras.clifford_algebra.CliffordAlgebraElement.transpose`)
+            of `x`.
 
             .. TODO::
 
@@ -1955,10 +1976,10 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
         """
         d = {}
 
-        for k,v in dict(s_coeff).items():
+        for k,v in dict(s_coeff).iteritems():
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({(i,): R(c) for i,c in v.items()})
+                v = E._from_dict({(i,): R(c) for i,c in v.iteritems()})
 
             # Make sure all elements are in ``E``
             v = E(v)
@@ -2218,7 +2239,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         self._cos_coeff = {}
         zero = E.zero()
         B = E.basis()
-        for k,v in dict(s_coeff).items():
+        for k,v in dict(s_coeff).iteritems():
             k = B[k]
             for m,c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k

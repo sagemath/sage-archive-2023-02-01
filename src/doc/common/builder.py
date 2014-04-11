@@ -1056,7 +1056,7 @@ def get_builder(name):
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
-    elif 'reference' in name:
+    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC, 'en', name)):
         return ReferenceSubBuilder(name)
     elif name.endswith('website'):
         return WebsiteBuilder(name)

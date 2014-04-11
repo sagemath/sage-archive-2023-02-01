@@ -70,7 +70,8 @@ class TransducerGenerators(object):
             [0, 1]
             sage: T.output_alphabet
             [0, 1]
-            sage: T([0, 1, 0, 1, 1])[2]
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: T([0, 1, 0, 1, 1])
             [0, 1, 0, 1, 1]
 
         """
@@ -93,14 +94,14 @@ class TransducerGenerators(object):
 
         OUTPUT:
 
-        A transducer counting (in unary) the number of occurrences of a
+        A transducer counting (in unary) the number of occurrences of the given
         block in the input.  Overlapping occurrences are counted several
         times.
 
         Denoting the block by `b_0\ldots b_{k-1}`, the input word by
         `i_0\ldots i_L` and the output word by `o_0\ldots o_L`, we
-        have `o_j = 1` if and only `i_{j-k+1}\ldots i_{j} = b_0\ldots
-        b_k`. Otherwise, `o_j = 0`.
+        have `o_j = 1` if and only if `i_{j-k+1}\ldots i_{j} = b_0\ldots
+        b_{k-1}`. Otherwise, `o_j = 0`.
 
         EXAMPLES:
 
@@ -157,7 +158,8 @@ class TransducerGenerators(object):
                  Transition from (1, 0, 1) to (): 2|0]
                 sage: input =  [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2]
                 sage: output = [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-                sage: T(input)[2] == output
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T(input) == output
                 True
 
         """
@@ -169,7 +171,8 @@ class TransducerGenerators(object):
 
         def transition_function(read, input):
             current = read + (input, )
-            if starts_with(block_as_tuple, current) and len(block_as_tuple) > len(current):
+            if starts_with(block_as_tuple, current) \
+                    and len(block_as_tuple) > len(current):
                 return (current, 0)
             else:
                 k = 1
@@ -316,7 +319,7 @@ class TransducerGenerators(object):
             [Transition from 0 to 0: -1|1,
              Transition from 0 to 0: 0|0,
              Transition from 0 to 0: 1|1]
-            sage: T([-1, -1, 0, 1])[2]
+            sage: T([-1, -1, 0, 1])
             [1, 1, 0, 1]
 
         """

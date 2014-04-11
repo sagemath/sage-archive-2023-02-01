@@ -9,6 +9,8 @@ Generators for common finite state machines.
     :delim: |
 
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
+    :meth:`~TransducerGenerators.abs` | Returns a transducer realizing absolute value.
+    :meth:`~TransducerGenerators.operator` | Returns a transducer realizing a binary operation.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
@@ -31,6 +33,8 @@ class TransducerGenerators(object):
     The transducers currently in this class include:
 
     - :meth:`~Identity`
+    - :meth:`~abs`
+    - :meth:`~TransducerGenerators.operator`
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
@@ -64,7 +68,8 @@ class TransducerGenerators(object):
             [0, 1]
             sage: T.output_alphabet
             [0, 1]
-            sage: T([0, 1, 0, 1, 1])[2]
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: T([0, 1, 0, 1, 1])
             [0, 1, 0, 1, 1]
 
         """
@@ -87,14 +92,14 @@ class TransducerGenerators(object):
 
         OUTPUT:
 
-        A transducer counting (in unary) the number of occurrences of a
+        A transducer counting (in unary) the number of occurrences of the given
         block in the input.  Overlapping occurrences are counted several
         times.
 
         Denoting the block by `b_0\ldots b_{k-1}`, the input word by
         `i_0\ldots i_L` and the output word by `o_0\ldots o_L`, we
-        have `o_j = 1` if and only `i_{j-k+1}\ldots i_{j} = b_0\ldots
-        b_k`. Otherwise, `o_j = 0`.
+        have `o_j = 1` if and only if `i_{j-k+1}\ldots i_{j} = b_0\ldots
+        b_{k-1}`. Otherwise, `o_j = 0`.
 
         EXAMPLES:
 
@@ -151,7 +156,8 @@ class TransducerGenerators(object):
                  Transition from (1, 0, 1) to (): 2|0]
                 sage: input =  [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2]
                 sage: output = [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-                sage: T(input)[2] == output
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T(input) == output
                 True
 
         """
@@ -163,7 +169,8 @@ class TransducerGenerators(object):
 
         def transition_function(read, input):
             current = read + (input, )
-            if starts_with(block_as_tuple, current) and len(block_as_tuple) > len(current):
+            if starts_with(block_as_tuple, current) \
+                    and len(block_as_tuple) > len(current):
                 return (current, 0)
             else:
                 k = 1
@@ -180,16 +187,15 @@ class TransducerGenerators(object):
             s.is_final = True
         return T
 
-    def _operator(self, operator, input_alphabet):
+    def operator(self, operator, input_alphabet):
         r"""
         Returns a transducer which realizes the binary operator over
         an input alphabet.
 
         INPUT:
 
-        - ``operator`` -- binary operator to realize (a map
-          ``input_alphabet`` `\times` ``input_alphabet`` `\to`
-          ``input_alphabet``).
+        - ``operator`` -- binary operator to realize (a map defined on
+          ``input_alphabet`` `\times` ``input_alphabet``).
         - ``input_alphabet``  -- input alphabet.
 
         OUTPUT:
@@ -204,7 +210,7 @@ class TransducerGenerators(object):
         addition::
 
             sage: import operator
-            sage: T = transducers._operator(operator.add,
+            sage: T = transducers.operator(operator.add,
             ....:                           [0, 1])
             sage: T.transitions()
             [Transition from 0 to 0: (0, 0)|0,
@@ -252,7 +258,7 @@ class TransducerGenerators(object):
             [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
         import operator
-        return self._operator(operator.add, input_alphabet)
+        return self.operator(operator.add, input_alphabet)
 
     def sub(self, input_alphabet):
         """
@@ -284,11 +290,41 @@ class TransducerGenerators(object):
 
         """
         import operator
-        return self._operator(operator.sub, input_alphabet)
+        return self.operator(operator.sub, input_alphabet)
 
 
+    def abs(self, input_alphabet):
+        """
+        Returns a transducer which realizes the component-wise
+        absolute value over an input alphabet.
 
+        INPUT:
 
+        - ``input_alphabet``  -- input alphabet.
+
+        OUTPUT:
+
+        A transducer mapping `i_0\ldots i_k`
+        to `|i_0|\ldots |i_k|`.
+
+        EXAMPLE:
+
+        The following transducer realizes component-wise
+        absolute value::
+
+            sage: T = transducers.abs([-1, 0, 1])
+            sage: T.transitions()
+            [Transition from 0 to 0: -1|1,
+             Transition from 0 to 0: 0|0,
+             Transition from 0 to 0: 1|1]
+            sage: T([-1, -1, 0, 1])
+            [1, 1, 0, 1]
+
+        """
+        return Transducer(lambda state, input: (0, abs(input)),
+                          input_alphabet=input_alphabet,
+                          initial_states=[0],
+                          final_states=[0])
 
 # Easy access to the transducer generators from the command line:
 transducers = TransducerGenerators()

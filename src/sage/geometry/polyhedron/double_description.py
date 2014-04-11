@@ -55,7 +55,7 @@ REFERENCES:
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
-
+from sage.modules.free_module_element import vector
 
 
 def test_random(d, n):
@@ -288,6 +288,36 @@ class DoubleDescriptionPair(SageObject):
         """
         return self._make_new(self.R, self.A)
 
+    def first_coordinate_plane(self):
+        """
+        Restrict to the first coordinate plane
+
+        OUTPUT:
+
+        A new double description pair with constraint `x_0 = 0` added.
+
+        EXAMPLES::
+
+            sage: A = matrix([(1, 1), (-1, 1)])
+            sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
+            sage: DD, _ = StandardAlgorithm(A).initial_pair()
+            sage: DD
+            Double description pair (A, R) defined by
+            A = [ 1  1],   R = [ 1/2 -1/2]
+                [-1  1]        [ 1/2  1/2]
+            sage: DD.first_coordinate_plane()
+            Double description pair (A, R) defined by
+                [ 1  1]    
+            A = [-1  1],   R = [  0]
+                [-1  0]        [1/2]
+                [ 1  0]    
+        """
+        R = self.problem.base_ring()
+        d = self.problem.dim()
+        a_neg = vector(R, [-1] + [0] * (d - 1))
+        a_pos = vector(R, [+1] + [0] * (d - 1))
+        return self.add_inequality(a_neg).add_inequality(a_pos)
+
     # def remove_unnecessary_inequalities(self):
     #     """
     #     Return a new double description pair with unnecessary inequalities
@@ -383,6 +413,8 @@ class Problem(SageObject):
         I = identity_matrix(self.base_ring(), self.dim())
         R = matrix(A0).solve_right(I)
         return self.pair_class(self, A0, R.columns()), list(Ac)
+        
+
 
 
 

@@ -203,9 +203,9 @@ def is_CPRFanoToricVariety(x):
         ...     is_CPRFanoToricVariety)
         sage: is_CPRFanoToricVariety(1)
         False
-        sage: FTV = CPRFanoToricVariety(lattice_polytope.octahedron(2))
+        sage: FTV = toric_varieties.P2()
         sage: FTV
-        2-d CPR-Fano toric variety covered by 4 affine patches
+        2-d CPR-Fano toric variety covered by 3 affine patches
         sage: is_CPRFanoToricVariety(FTV)
         True
         sage: is_CPRFanoToricVariety(ProjectiveSpace(2))
@@ -307,7 +307,7 @@ def CPRFanoToricVariety(Delta=None,
 
     We start with the product of two projective lines::
 
-        sage: diamond = lattice_polytope.octahedron(2)
+        sage: diamond = lattice_polytope.cross_polytope(2)
         sage: diamond.vertices_pc()
         M( 1,  0),
         M( 0,  1),
@@ -707,7 +707,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
     TESTS::
 
         sage: P1xP1 = CPRFanoToricVariety(
-        ...       Delta_polar=lattice_polytope.octahedron(2))
+        ...       Delta_polar=lattice_polytope.cross_polytope(2))
         sage: P1xP1
         2-d CPR-Fano toric variety covered by 4 affine patches
     """
@@ -722,7 +722,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         TESTS::
 
             sage: P1xP1 = CPRFanoToricVariety(
-            ...       Delta_polar=lattice_polytope.octahedron(2))
+            ...       Delta_polar=lattice_polytope.cross_polytope(2))
             sage: P1xP1
             2-d CPR-Fano toric variety covered by 4 affine patches
         """
@@ -745,8 +745,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         TESTS::
 
-            sage: P1xP1 = CPRFanoToricVariety(
-            ...       Delta_polar=lattice_polytope.octahedron(2))
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: print P1xP1._latex_()
             \mathbb{P}_{\Delta^{2}_{14}}
         """
@@ -762,10 +761,9 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         TESTS::
 
-            sage: P1xP1 = CPRFanoToricVariety(
-            ...       Delta_polar=lattice_polytope.octahedron(2))
-            sage: P1xP1._repr_()
-            '2-d CPR-Fano toric variety covered by 4 affine patches'
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: print P1xP1._repr_()
+            2-d CPR-Fano toric variety covered by 4 affine patches
         """
         return ("%d-d CPR-Fano toric variety covered by %d affine patches"
                 % (self.dimension_relative(), self.fan().ngenerating_cones()))
@@ -938,8 +936,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         EXAMPLES::
 
-            sage: P1xP1 = CPRFanoToricVariety(
-            ...       Delta_polar=lattice_polytope.octahedron(2))
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1.base_ring()
             Rational Field
             sage: P1xP1_RR = P1xP1.change_ring(RR)
@@ -987,7 +984,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         EXAMPLES::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: FTV = CPRFanoToricVariety(diamond,
             ...         coordinate_points=[0,1,2,3,8])
             sage: FTV.coordinate_points()
@@ -1009,7 +1006,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         EXAMPLES::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: square = diamond.polar()
             sage: FTV = CPRFanoToricVariety(Delta_polar=square,
             ...         coordinate_points=[0,1,2,3,8])
@@ -1045,7 +1042,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         EXAMPLES::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: P1xP1 = CPRFanoToricVariety(Delta_polar=diamond)
             sage: P1xP1.Delta()
             2-d reflexive polytope #14 in 2-d lattice N
@@ -1067,7 +1064,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         EXAMPLES::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: P1xP1 = CPRFanoToricVariety(Delta_polar=diamond)
             sage: P1xP1.Delta_polar()
             2-d reflexive polytope #3 in 2-d lattice M
@@ -1286,7 +1283,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         EXAMPLES::
 
-            sage: diamond = lattice_polytope.octahedron(2)
+            sage: diamond = lattice_polytope.cross_polytope(2)
             sage: FTV = CPRFanoToricVariety(Delta=diamond)
             sage: FTV.coordinate_points()
             (0, 1, 2, 3)
@@ -1380,14 +1377,12 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
 
     EXAMPLES::
 
-        sage: P1xP1 = CPRFanoToricVariety(
-        ...       Delta_polar=lattice_polytope.octahedron(2))
+        sage: P1xP1 = toric_varieties.P1xP1()
         sage: import sage.schemes.toric.fano_variety as ftv
         sage: ftv.AnticanonicalHypersurface(P1xP1)
         Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
-          a1*z0^2*z1^2 + a0*z1^2*z2^2 + a6*z0*z1*z2*z3
-        + a3*z0^2*z3^2 + a2*z2^2*z3^2
+          a1*s^2*x^2 + a0*t^2*x^2 + a6*s*t*x*y + a3*s^2*y^2 + a2*t^2*y^2
 
     See :meth:`~CPRFanoToricVariety_field.anticanonical_hypersurface()` for a
     more elaborate example.
@@ -1400,14 +1395,12 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
 
         TESTS::
 
-            sage: P1xP1 = CPRFanoToricVariety(
-            ...       Delta_polar=lattice_polytope.octahedron(2))
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: import sage.schemes.toric.fano_variety as ftv
             sage: ftv.AnticanonicalHypersurface(P1xP1)
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
-              a1*z0^2*z1^2 + a0*z1^2*z2^2 + a6*z0*z1*z2*z3
-            + a3*z0^2*z3^2 + a2*z2^2*z3^2
+              a1*s^2*x^2 + a0*t^2*x^2 + a6*s*t*x*y + a3*s^2*y^2 + a2*t^2*y^2
 
         Check that finite fields are handled correctly :trac:`14899`::
 
@@ -1417,8 +1410,8 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
             ...                     coefficients=[1]*X.Delta().npoints())
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
-              z0^2*z1^2 + z0*z1^2*z2 + z1^2*z2^2 + z0^2*z1*z3 + z0*z1*z2*z3
-            + z1*z2^2*z3 + z0^2*z3^2 + z0*z2*z3^2 + z2^2*z3^2
+              s^2*x^2 + s*t*x^2 + t^2*x^2 + s^2*x*y + s*t*x*y
+            + t^2*x*y + s^2*y^2 + s*t*y^2 + t^2*y^2
         """
         if not is_CPRFanoToricVariety(P_Delta):
             raise TypeError("anticanonical hypersurfaces can only be "

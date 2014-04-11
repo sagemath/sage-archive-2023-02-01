@@ -119,7 +119,7 @@ Alternatively, we could call that by
 
 ::
 
-    Sage: NAF.process([0, -1, 0, 1])
+    sage: NAF.process([0, -1, 0, 1])
     (True, 'B')
 
 which gives additionally the state in which we arrived.
@@ -190,7 +190,7 @@ Now we want to divide `13` by `3`::
     ...
     ValueError: Invalid input sequence.
 
-So we have `13 : 3 = 4` and the reminder is `1`. The raised ``ValueError``
+The raised ``ValueError``
 means `13` is not divisible by `3`.
 
 
@@ -415,7 +415,7 @@ def full_group_by(l, key=lambda x: x):
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
-FSMOldProcessOutput = True  # See trac #33333 (depreciation).
+FSMOldProcessOutput = True  # See trac #33333 (deprecation).
 
 def FSMLetterSymbol(letter):
     """
@@ -2774,18 +2774,12 @@ class FiniteStateMachine(SageObject):
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
         """
-        if not kwargs.has_key('full_output'):
-            kwargs['full_output'] = True
-
         it = self.iter_process(*args, **kwargs)
         for _ in it:
             pass
 
         # process output (is the same for the abstract finite state machine)
-        if kwargs['full_output']:
-            return (it.accept_input, it.current_state, it.output_tape)
-        else:
-            return (it.accept_input, it.current_state, it.output_tape)
+        return (it.accept_input, it.current_state, it.output_tape)
 
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
@@ -4707,7 +4701,7 @@ class Automaton(FiniteStateMachine):
           one initial state in the machine, then this state is taken.
 
         - ``full_output`` -- (default: ``True``) If set, then the full
-          output is given, otherwise only if the sequence is accepted
+          output is given, otherwise only whether the sequence is accepted
           or not (the first entry below only).
 
         OUTPUT:
@@ -4716,13 +4710,13 @@ class Automaton(FiniteStateMachine):
 
         - the first entry is ``True`` if the input string is accepted and
 
-        - the second gives the reached state after processing the
+        - the second gives the state reached after processing the
           input tape (This is a state with label ``None`` if the input
           could not be processed, i.e., when at one point no
           transition to go could be found.).
 
         Note that in the case the automaton is not
-        deterministic, one possible path is gone. This means, that in
+        deterministic, one possible path is gone. This means that in
         this case the output can be wrong. Use
         :meth:`.determinisation` to get a deterministic automaton
         machine and try again.
@@ -4756,13 +4750,13 @@ class Automaton(FiniteStateMachine):
             ....:                   [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
 
-        TESTS::
+        ::
 
-            sage: NAF.process([2, 2])
+            sage: NAF.process([2])
             (False, None)
-            sage: NAF.add_transition(('_', 's', 3))
-            Transition from '_' to 's': 3|-
-            sage: NAF.process([3])
+            sage: NAF.add_transition(('_', 's', 2))
+            Transition from '_' to 's': 2|-
+            sage: NAF.process([2])
             (False, 's')
         """
         if FSMOldProcessOutput:
@@ -4981,8 +4975,7 @@ class Transducer(FiniteStateMachine):
           transition to go could be found.), and
 
         - the third gives a list of the output labels used during
-          processing (in the case the finite state machine runs as
-          transducer).
+          processing.
 
         Note that in the case the transducer is not
         deterministic, one possible path is gone. This means, that in
@@ -5000,7 +4993,7 @@ class Transducer(FiniteStateMachine):
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
             (True, 'A', [1, 0, 1, 1, 0, 0])
 
-        Alternatively, we can invoke this function by::
+        If we are only interested in the output, we can also use::
 
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
@@ -5078,15 +5071,13 @@ def is_FSMProcessIterator(PI):
     TESTS::
 
         sage: from sage.combinat.finite_state_machine import is_FSMProcessIterator, FSMProcessIterator
-        sage: is_FSMProcessIterator(FSMProcessIterator(FiniteStateMachine()))
-        Traceback (most recent call last):
-        ...
-        ValueError: No state is initial.
+        sage: is_FSMProcessIterator(FSMProcessIterator(FiniteStateMachine([[0, 0, 0, 0]], initial_states=[0])))
+        True
     """
     return isinstance(PI, FSMProcessIterator)
 
 
-class FSMProcessIterator:
+class FSMProcessIterator(SageObject):
     """
     This class is for processing an input string on a finite state
     machine.
@@ -5111,21 +5102,21 @@ class FSMProcessIterator:
       iterable.
 
     - ``initial_state`` -- The initial state in which the machine
-      starts. If this is ``None``, the unique inital state of the
-      finite state machine is takes. If there are several, an error is
-      reported.
+      starts. If this is ``None``, the unique inital state of the finite
+      state machine is takes. If there are several, a ``ValueError`` is
+      raised.
 
     The process (iteration) stops if there are no more input letters
     on the tape. In this case a StopIteration exception is thrown. As
     result the following attributes are available:
 
-    - ``accept_input`` -- Is True if the reached state is a final state.
+    - ``accept_input`` -- Is ``True`` if the reached state is a final state.
 
     - ``current_state`` -- The current/reached state in the process.
 
     - ``output_tape`` -- The written output.
 
-    Current values of those attribtes (except ``accept_input``) are
+    Current values of those attributes (except ``accept_input``) are
     (also) available during the iteration.
 
     OUTPUT:
@@ -5167,6 +5158,23 @@ class FSMProcessIterator:
         ('A', [1, 0, 0, 1, 0, 1, 0])
         sage: it.accept_input
         True
+
+    TESTS::
+
+        sage: T = Transducer([[0, 0, 0, 0]])
+        sage: T.process([])
+        Traceback (most recent call last):
+        ...
+        ValueError: No state is initial.
+
+    ::
+
+        sage: T = Transducer([[0, 1, 0, 0]], initial_states=[0, 1])
+        sage: T.process([])
+        Traceback (most recent call last):
+        ...
+        ValueError: Several initial states.
+
     """
     def __init__(self, fsm, input_tape=None, initial_state=None, **kwargs):
         """
@@ -5389,7 +5397,7 @@ class FSMProcessIterator:
 
         The next transition according to ``word_in``. It is assumed
         that we are in state ``self.current_state``. If no transition
-        matches, a ``ValueError`` is thorwn.
+        matches, a ``ValueError`` is thrown.
 
         EXAMPLES::
 

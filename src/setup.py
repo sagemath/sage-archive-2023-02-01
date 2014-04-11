@@ -159,14 +159,18 @@ for m in ext_modules:
         if lib in m.libraries:
             m.depends += lib_headers[lib]
 
-    # FIMXE: Do NOT link the following libraries to each and
-    #        every module (regardless of the language btw.):
-    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
+    # Make everything depend on *this* setup.py file
+    m.depends.append(__file__)
+
+    # Add csage as first library for all Cython extensions.
+    # The order is important, in particular for Cygwin.
+    m.libraries.insert(0, 'csage')
+    if m.language == 'c++':
+        m.libraries.append('stdc++')
 
     m.extra_compile_args += extra_compile_args
     m.extra_link_args += extra_link_args
-    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
-
+    m.library_dirs.append(os.path.join(SAGE_LOCAL, "lib"))
 
 
 #############################################

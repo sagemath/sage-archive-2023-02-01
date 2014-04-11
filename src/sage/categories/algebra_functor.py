@@ -65,13 +65,13 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
 
         sage: C = Monoids().Algebras(QQ); C
         Category of monoid algebras over Rational Field
-        sage: C = Group().Algebras(QQ); C
+        sage: C = Groups().Algebras(QQ); C
         Category of group algebras over Rational Field
 
         sage: C._short_name()
         'Algebras'
         sage: latex(C) # todo: improve that
-        \mathbf{Algebras}(\mathbf{Monoids})
+        \mathbf{Algebras}(\mathbf{Groups})
     """
 
     _functor_category = "Algebras"

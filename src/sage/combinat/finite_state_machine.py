@@ -1079,7 +1079,7 @@ class FSMTransition(SageObject):
 
     def __lt__(self, other):
         """
-        Returns True if ``self`` is less than ``other`` with respect to the 
+        Returns True if ``self`` is less than ``other`` with respect to the
         key ``(self.from_state, self.word_in, self.to_state, self.word_out)``.
 
         INPUT:

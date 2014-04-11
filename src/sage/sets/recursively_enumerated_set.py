@@ -10,9 +10,38 @@ See http://en.wikipedia.org/wiki/Recursively_enumerable_set
 
 AUTHORS:
 
-- Sébastien Labbé, April 2014, at Sage Days 57, Cernay-la-ville
+- Sebastien Labbe, April 2014, at Sage Days 57, Cernay-la-ville
 
-EXAMPLES::
+EXAMPLES:
+
+We construct a recursively enumerated set with symmetric structure and
+depth first search for default enumeration algorithm::
+
+    sage: succ = lambda a: [(a[0]-1,a[1]), (a[0],a[1]-1), (a[0]+1,a[1]), (a[0],a[1]+1)]
+    sage: seeds = [(0,0)]
+    sage: C = RecursivelyEnumeratedSet(seeds, succ, structure='symmetric', algorithm='depth')
+    sage: C
+    A recursively enumerated set with a symmetric structure (depth first search)
+
+In this case, depth first search is the default algorithm for iteration::
+
+    sage: it_depth = iter(C)
+    sage: [next(it_depth) for _ in range(10)]
+    [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9)]
+
+Breadth first search::
+
+    sage: it_breadth = C.breadth_first_search_iterator()
+    sage: [next(it_breadth) for _ in range(10)]
+    [(0, 0), (0, 1), (0, -1), (1, 0), (-1, 0), (-1, 1), (-2, 0), (0, 2), (2, 0), (-1, -1)]
+
+Level (elements of given depth) iterator::
+
+    sage: it_level = C.level_iterator()
+    sage: for _ in range(3): sorted(next(it_level))
+    [(0, 0)]
+    [(-1, 0), (0, -1), (0, 1), (1, 0)]
+    [(-2, 0), (-1, -1), (-1, 1), (0, -2), (0, 2), (1, -1), (1, 1), (2, 0)]
 
 """
 #*****************************************************************************
@@ -29,10 +58,10 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
-class RecursivelyEnumeratedSet(SageObject):
+class RecursivelyEnumeratedSet(Parent):
     r"""
     Return a recursively enumerated set.
 
@@ -70,8 +99,8 @@ class RecursivelyEnumeratedSet(SageObject):
     - ``max_depth`` -- integer (optional, default: ``float("inf")``), only
       for breadth first search
     - ``post_process`` -- (optional, default: ``None``), for forest only
-    - ``facade`` -- (optional, default: ``None``), for forest only
-    - ``category`` -- (optional, default: ``None``), for forest only
+    - ``facade`` -- (optional, default: ``None``)
+    - ``category`` -- (optional, default: ``None``)
 
     EXAMPLES:
 
@@ -131,13 +160,6 @@ class RecursivelyEnumeratedSet(SageObject):
 
     TESTS::
 
-        sage: f = lambda a: [a-1,a+1]
-        sage: C = RecursivelyEnumeratedSet([1], f, structure='symmetric')
-        sage: isinstance(C, RecursivelyEnumeratedSet)
-        True
-
-    ::
-
         sage: C = RecursivelyEnumeratedSet((1, 2, 3), factor)
         sage: C._succ
         <function factor at ...>
@@ -179,10 +201,12 @@ class RecursivelyEnumeratedSet(SageObject):
         """
         if structure is None:
             if algorithm is None: algorithm = 'naive'
-            return typecall(RecursivelyEnumeratedSet, seeds, succ, algorithm, max_depth)
+            return typecall(RecursivelyEnumeratedSet, seeds, succ,
+                    algorithm, max_depth, facade=facade, category=category)
         elif structure == 'symmetric':
             if algorithm is None: algorithm = 'breadth'
-            return RecursivelyEnumeratedSet_symmetric(seeds, succ, algorithm, max_depth)
+            return RecursivelyEnumeratedSet_symmetric(seeds, succ,
+                    algorithm, max_depth, facade=facade, category=category)
         elif structure == 'forest':
             if algorithm is None: algorithm = 'depth'
             from sage.combinat.backtrack import SearchForest
@@ -190,10 +214,13 @@ class RecursivelyEnumeratedSet(SageObject):
                  post_process=post_process, facade=facade, category=category)
         elif structure == 'graded':
             if algorithm is None: algorithm = 'breadth'
-            return RecursivelyEnumeratedSet_graded(seeds, succ, algorithm, max_depth)
+            return RecursivelyEnumeratedSet_graded(seeds, succ, algorithm,
+                    max_depth, facade=facade, category=category)
         else:
             raise ValueError("Unknown value for structure (=%s)" % structure)
-    def __init__(self, seeds, succ, algorithm='depth', max_depth=float("inf")):
+    def __init__(self, seeds, succ, 
+                 algorithm='depth', max_depth=float("inf"), 
+                 facade = None, category=None):
         r"""
         TESTS::
 
@@ -207,6 +234,12 @@ class RecursivelyEnumeratedSet(SageObject):
         assert algorithm in ['naive', 'depth', 'breadth'], "unknown algorithm(=%s)" % self._algorithm
         self._algorithm = algorithm
         self._max_depth = max_depth
+        Parent.__init__(self, facade=facade, category=EnumeratedSets().or_subcategory(category))
+
+    # Disable __len__ from Parent (#12955)
+    # Because Python assumes __len__ is fast and we can't have a fast
+    # default implmentation
+    __len__ = None
 
     def __iter__(self):
         r"""
@@ -237,7 +270,6 @@ class RecursivelyEnumeratedSet(SageObject):
             return self.depth_first_search_iterator()
         else:
             raise ValueError("unknown value for algorithm(=%s)" % self._algorithm)
-
     def _repr_(self):
         r"""
         TESTS::
@@ -257,12 +289,12 @@ class RecursivelyEnumeratedSet(SageObject):
         """
         L = ["A recursively enumerated set"]
         classname = self.__class__.__name__
-        if classname == 'RecursivelyEnumeratedSet':
-            pass
-        elif classname == 'RecursivelyEnumeratedSet_graded':
+        if classname.startswith('RecursivelyEnumeratedSet_graded'):
             L.append("with a graded structure")
-        elif classname == 'RecursivelyEnumeratedSet_symmetric':
+        elif classname.startswith('RecursivelyEnumeratedSet_symmetric'):
             L.append("with a symmetric structure")
+        elif classname.startswith('RecursivelyEnumeratedSet'):
+            pass
         else:
             pass
         if self._algorithm in ['depth', 'breadth']:
@@ -277,9 +309,9 @@ class RecursivelyEnumeratedSet(SageObject):
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) Specifies the
-            maximal depth to which elements are computed.
-            If None, the value of ``self._max_depth`` is used.
+        - ``max_depth`` -- (Default: ``None``) Specifies the maximal depth
+          to which elements are computed. If None, the value of
+          ``self._max_depth`` is used.
 
         .. NOTE:: 
         
@@ -312,7 +344,6 @@ class RecursivelyEnumeratedSet(SageObject):
             for a in level:
                 yield a
             i += 1
-
 
     def level_iterator(self):
         r"""
@@ -482,7 +513,7 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
         sage: [next(it) for _ in range(7)]
         [0, 1, -1, 2, -2, 3, -3]
 
-    TESTS::
+    TESTS:
 
     Do not use lambda functions for saving purposes::
 
@@ -564,7 +595,7 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
              [6*I, 5*I + 1, 4*I + 2, 3*I + 3, 2*I + 4, I + 5, 6]]
         """
         A = set()
-        B = self._seeds
+        B = set(self._seeds)
         while len(B) > 0:
             yield B
             A,B = B, self._get_next_level(A, B)
@@ -630,8 +661,8 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
         INPUT:
 
         - ``max_depth`` -- (Default: ``None``) Specifies the
-            maximal depth to which elements are computed.
-            If None, the value of ``self._max_depth`` is used.
+          maximal depth to which elements are computed.
+          If None, the value of ``self._max_depth`` is used.
 
         EXAMPLES::
 

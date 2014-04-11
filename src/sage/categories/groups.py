@@ -458,8 +458,13 @@ class Groups(CategoryWithAxiom):
 
                     sage: A = Groups().example().algebra(QQ); A
                     Group algebra of General Linear Group of degree 4 over Rational Field over Rational Field
+                    sage: A._name_= "foo"
+                    sage: A
                 """
-                return 'Group algebra of %s over %s'%(self.basis().keys(),self.base_ring())
+                if hasattr(self, "_name"):
+                    return self._name + " over %s"%self.base_ring()
+                else:
+                    return 'Group algebra of %s over %s'%(self.basis().keys(),self.base_ring())
 
             def group(self):
                 r"""

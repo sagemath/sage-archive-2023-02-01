@@ -44,9 +44,6 @@ include_dirs = [SAGE_INC,
                 SAGE_SRC,
                 os.path.join(SAGE_SRC, 'sage', 'ext')]
 
-# search for dependencies only
-extra_include_dirs = [ os.path.join(SAGE_INC,'python'+platform.python_version().rsplit('.', 1)[0]) ]
-
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
 extra_compile_args = [ "-fno-strict-aliasing" ]
@@ -149,28 +146,35 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
 # or explicitly touch them in the respective spkg's spkg-install.]
-lib_headers = { "gmp":     [ os.path.join(SAGE_INC,'gmp.h') ],   # cf. #8664, #9896
-                "gmpxx":   [ os.path.join(SAGE_INC,'gmpxx.h') ]
+lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #9896
+                "gmpxx":   [ os.path.join(SAGE_INC, 'gmpxx.h') ],
+                "ntl":     [ os.path.join(SAGE_INC, 'NTL', 'config.h') ]
               }
 
+# In the loop below, don't append to any list, since many of these
+# lists are actually identical Python objects. For every list, we need
+# to write (at least the first time):
+#
+#   list = list + [foo]
+#
 for m in ext_modules:
+    # Make everything depend on *this* setup.py file
+    m.depends = m.depends + [__file__]
 
-    for lib in lib_headers.keys():
+    # Add dependencies for the libraries
+    for lib in lib_headers:
         if lib in m.libraries:
             m.depends += lib_headers[lib]
 
-    # Make everything depend on *this* setup.py file
-    m.depends.append(__file__)
-
     # Add csage as first library for all Cython extensions.
     # The order is important, in particular for Cygwin.
-    m.libraries.insert(0, 'csage')
+    m.libraries = ['csage'] + m.libraries
     if m.language == 'c++':
         m.libraries.append('stdc++')
 
-    m.extra_compile_args += extra_compile_args
-    m.extra_link_args += extra_link_args
-    m.library_dirs.append(os.path.join(SAGE_LOCAL, "lib"))
+    m.extra_compile_args = m.extra_compile_args + extra_compile_args
+    m.extra_link_args = m.extra_link_args + extra_link_args
+    m.library_dirs = m.library_dirs + [os.path.join(SAGE_LOCAL, "lib")]
 
 
 #############################################
@@ -528,9 +532,6 @@ if not sdist:
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
         force = False
-
-    for ext_module in ext_modules:
-        ext_module.include_dirs += include_dirs
 
     ext_modules = cythonize(
         ext_modules,

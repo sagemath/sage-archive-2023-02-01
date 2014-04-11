@@ -1535,7 +1535,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         REFERENCES:
 
-        .. [MazurTate1991] Mazur, B., & Tate, J. (1991). The $ p $-adic sigma
+        .. [MazurTate1991] Mazur, B., & Tate, J. (1991). The `p`-adic sigma
         function. Duke Mathematical Journal, 62(3), 663-688.
 
         EXAMPLES::

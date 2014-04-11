@@ -419,6 +419,22 @@ class QuotientRingElement(ring_element.RingElement):
                                    "a multiple of the denominator.")
         return P(XY[0])
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        TESTS:
+
+        Ring homomorphisms whose domain is the fraction field of a
+        quotient ring work correctly (see :trac:`16135`)::
+
+            sage: R.<x, y> = QQ[]
+            sage: K = R.quotient(x^2 - y^3).fraction_field()
+            sage: L.<t> = FunctionField(QQ)
+            sage: f = K.hom((t^3, t^2))
+            sage: map(f, K.gens())
+            [t^3, t^2]
+
+        """
+        return self.lift()._im_gens_(codomain, im_gens)
 
     def __int__(self):
         """

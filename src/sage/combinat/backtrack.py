@@ -10,22 +10,12 @@ tree or graph structure.
 - :class:`GenericBacktracker`: Depth first search through a tree
   described by a ``children`` function, with branch pruning, etc.
 
-Deprecated classes:
+Deprecated classes (use :class:`RecursivelyEnumeratedSet` instead):
 
 - :class:`TransitiveIdeal`: Depth first search through a
   graph described by a ``neighbours`` relation.
 - :class:`TransitiveIdealGraded`: Breadth first search
   through a graph described by a ``neighbours`` relation.
-
-TODO:
-
-#. Find a good and consistent naming scheme! Do we want to emphasize the
-   underlying graph/tree structure? The branch & bound aspect? The transitive
-   closure of a relation point of view?
-
-#. Do we want ``TransitiveIdeal(relation, generators)`` or
-   ``TransitiveIdeal(generators, relation)``?  The code needs to be standardized once
-   the choice is made.
 
 """
 #*****************************************************************************
@@ -761,6 +751,9 @@ class TransitiveIdeal(RecursivelyEnumeratedSet):
     EXAMPLES::
 
         sage: [i for i in TransitiveIdeal(lambda i: [i+1] if i<10 else [], [0])]
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         sage: [i for i in TransitiveIdeal(lambda i: [mod(i+1,3)], [0])]
@@ -804,6 +797,9 @@ class TransitiveIdeal(RecursivelyEnumeratedSet):
         TESTS::
 
             sage: C = TransitiveIdeal(factor, (1, 2, 3))
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: C._succ
             <function factor at ...>
             sage: C._generators
@@ -820,6 +816,9 @@ class TransitiveIdeal(RecursivelyEnumeratedSet):
         TESTS::
 
             sage: C = TransitiveIdeal(lambda x: [1,2], ())
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(C) # indirect doctest
             []
 
@@ -866,6 +865,9 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet):
     EXAMPLES::
 
         sage: [i for i in TransitiveIdealGraded(lambda i: [i+1] if i<10 else [], [0])]
+        doctest:...: DeprecationWarning: This class soon will not be
+        available in that way anymore. Use RecursivelyEnumeratedSet
+        instead.  See http://trac.sagemath.org/6637 for details.
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     We now illustrate that the enumeration is done lazily, by breadth first search::
@@ -902,6 +904,9 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet):
         TESTS::
 
             sage: C = TransitiveIdealGraded(factor, (1, 2, 3))
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: C._succ
             <function factor at ...>
             sage: C._generators
@@ -918,6 +923,9 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet):
         TESTS::
 
             sage: C = TransitiveIdealGraded(lambda x: [1,2], ())
+            doctest:...: DeprecationWarning: This class soon will not be
+            available in that way anymore. Use RecursivelyEnumeratedSet
+            instead.  See http://trac.sagemath.org/6637 for details.
             sage: list(C) # indirect doctest
             []
 

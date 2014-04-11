@@ -35,12 +35,13 @@ Breadth first search::
     sage: [next(it_breadth) for _ in range(10)]
     [(0, 0), (0, 1), (0, -1), (1, 0), (-1, 0), (-1, 1), (-2, 0), (0, 2), (2, 0), (-1, -1)]
 
-Level (elements of given depth) iterator::
+Levels (elements of given depth)::
 
-    sage: it_level = C.level_iterator()
-    sage: for _ in range(3): sorted(next(it_level))
+    sage: sorted(C.level(0))
     [(0, 0)]
+    sage: sorted(C.level(1))
     [(-1, 0), (0, -1), (0, 1), (1, 0)]
+    sage: sorted(C.level(2))
     [(-2, 0), (-1, -1), (-1, 1), (0, -2), (0, 2), (1, -1), (1, 1), (2, 0)]
 
 """
@@ -234,6 +235,8 @@ class RecursivelyEnumeratedSet(Parent):
         assert algorithm in ['naive', 'depth', 'breadth'], "unknown algorithm(=%s)" % self._algorithm
         self._algorithm = algorithm
         self._max_depth = max_depth
+        self._level = None
+        self._level_it = None
         Parent.__init__(self, facade=facade, category=EnumeratedSets().or_subcategory(category))
 
     # Disable __len__ from Parent (#12955)
@@ -363,7 +366,86 @@ class RecursivelyEnumeratedSet(Parent):
             sage: C = RecursivelyEnumeratedSet([0], f)
             sage: it = C.level_iterator()    # todo: not implemented
         """
-        raise NotImplementedError
+        raise NotImplementedError("level_iterator method currently implemented only for graded or symmetric structure")
+
+    def level(self, depth):
+        r"""
+        Return the level of given depth. 
+        
+        It also remember each lower level.
+
+        A level is a set of elements of the same depth.
+
+        INPUT:
+
+        - ``depth`` -- integer
+
+        OUTPUT:
+
+            a set
+
+        EXAMPLES::
+
+            sage: f = lambda a: [a+3, a+5]
+            sage: C = RecursivelyEnumeratedSet([0], f)
+            sage: C.level(0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: level_iterator method currently implemented only for graded or symmetric structure
+
+        When the structure is symmetric::
+
+            sage: f = lambda a: [a-1,a+1]
+            sage: C = RecursivelyEnumeratedSet([10, 15], f, structure='symmetric')
+            sage: for i in range(5): sorted(C.level(i))
+            [10, 15]
+            [9, 11, 14, 16]
+            [8, 12, 13, 17]
+            [7, 18]
+            [6, 19]
+
+        When the structure is graded::
+
+            sage: f = lambda a: [a+1, a+I]
+            sage: C = RecursivelyEnumeratedSet([0], f, structure='graded')
+            sage: for i in range(5): sorted(C.level(i))
+            [0]
+            [I, 1]
+            [2*I, I + 1, 2]
+            [3*I, 2*I + 1, I + 2, 3]
+            [4*I, 3*I + 1, 2*I + 2, I + 3, 4]
+        """
+        if self._level is None:
+            self._level = []
+            self._level_it = self.level_iterator()
+        while len(self._level) <= depth:
+            self._level.append(next(self._level_it))
+        return self._level[depth]
+
+    def elements_of_depth_iterator(self, depth):
+        r"""
+        Returns an iterator over the elements of ``self`` of given depth.
+
+        An element of depth `n` can be obtained applying `n` times the
+        successor function to a seed.
+
+        INPUT:
+
+        - ``depth`` -- integer
+
+        OUTPUT:
+
+            an iterator
+
+        EXAMPLES::
+
+            sage: f = lambda a: [a-1, a+1]
+            sage: S = RecursivelyEnumeratedSet([5, 10], f, structure='symmetric')
+            sage: it = S.elements_of_depth_iterator(2)
+            sage: sorted(it)
+            [3, 7, 8, 12]
+        """
+        return iter(self.level(depth))
 
     def breadth_first_search_iterator(self, max_depth=None):
         r"""
@@ -535,22 +617,6 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
 
     """
     breadth_first_search_iterator = RecursivelyEnumeratedSet._breadth_first_search_iterator_from_level_iterator
-    def elements_of_depth_iterator(self, depth=0):
-        r"""
-        Returns an iterator over the elements of ``self`` of given depth.
-        An element of depth `n` can be obtained applying `n` times the
-        children function from a root.
-
-        EXAMPLES::
-
-            sage: f = lambda a: [a-1, a+1]
-            sage: S = RecursivelyEnumeratedSet([5, 10], f, structure='symmetric')
-            sage: it = S.elements_of_depth_iterator(2)    #todo: not implemented
-            sage: sorted(it)                              #todo: not implemented
-            [3, 7, 8, 12]
-        """
-        raise NotImplementedError
-
     def level_iterator(self):
         r"""
         Returns an iterator over the levels of self.

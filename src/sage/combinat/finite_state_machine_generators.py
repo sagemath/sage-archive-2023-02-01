@@ -14,6 +14,7 @@ Generators for common finite state machines.
     :meth:`~TransducerGenerators.add` | Returns a transducer realizing addition.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
+    :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
 
 Functions and methods
 ---------------------
@@ -38,6 +39,7 @@ class TransducerGenerators(object):
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
+    - :meth:`~GrayCode`
 
     """
 
@@ -322,6 +324,38 @@ class TransducerGenerators(object):
                           input_alphabet=input_alphabet,
                           initial_states=[0],
                           final_states=[0])
+
+    def GrayCode(self):
+        """
+        Returns a transducer converting the standard binary
+        expansion to Gray code.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A transducer converting the standard binary expansion
+        to Gray code, cf. the :wikipedia:`Gray_code`.
+
+        EXAMPLE::
+
+            sage: transducers.GrayCode()
+            Transducer with 3 states
+
+        Compare this with the documentation of :class:`FiniteStateMachine`,
+        where the Gray code transducer is derived from the algorithm
+        converting the binary expansion to the Gray code.
+        """
+
+        return Transducer([[0, 1, 0, None],
+                           [0, 2, 1, None],
+                           [1, 1, 0, 0],
+                           [1, 2, 1, 1],
+                           [2, 1, 0, 1],
+                           [2, 2, 1, 0]],
+                          initial_states=[0])
 
 # Easy access to the transducer generators from the command line:
 transducers = TransducerGenerators()

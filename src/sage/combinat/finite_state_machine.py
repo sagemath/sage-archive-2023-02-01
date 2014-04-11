@@ -4471,9 +4471,9 @@ class Automaton(FiniteStateMachine):
             ....:                  final_states=['B'],
             ....:                  determine_alphabets=True)
             sage: res = aut1.intersection(aut2)
-            sage: (aut1([1, 1])[0], aut2([1, 1])[0], res([1, 1])[0])
+            sage: (aut1([1, 1]), aut2([1, 1]), res([1, 1]))
             (True, False, False)
-            sage: (aut1([1, 0])[0], aut2([1, 0])[0], res([1, 0])[0])
+            sage: (aut1([1, 0]), aut2([1, 0]), res([1, 0]))
             (True, True, True)
             sage: res.transitions()
             [Transition from ('1', 'A') to ('2', 'A'): 1|-,
@@ -5130,9 +5130,9 @@ class Transducer(FiniteStateMachine):
             [Transition from ('A', 0) to ('A', 1): 0|(0, 'b'),(None, 'c'),
              Transition from ('A', 0) to ('A', 0): 1|(1, 'b'),
              Transition from ('A', 1) to ('A', 1): 0|(0, 'a')]
-            sage: result([1, 0, 0])[2]
+            sage: result([1, 0, 0])
             [(1, 'b'), (0, 'b'), (None, 'c'),  (0, 'a')]
-            sage: (transducer1([1, 0, 0])[2], transducer2([1, 0, 0])[2])
+            sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
@@ -5164,7 +5164,7 @@ class Transducer(FiniteStateMachine):
             ....:                   final_states=[0, 1],
             ....:                   determine_alphabets=True)
             sage: res = NAF.cartesian_product(aut11)
-            sage: res([1, 0, 0, 1, 0, 1, 0])[2]
+            sage: res([1, 0, 0, 1, 0, 1, 0])
             [(1, None), (0, None), (0, None), (1, None), (0, None), (1, None)]
 
         This is obvious because if the standard binary expansion does not have

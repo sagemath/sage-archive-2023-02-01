@@ -121,7 +121,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of modules over Integer Ring
+        Category of modules over euclidean domains
 
         sage: MatrixSpace(ZZ,10,2^31)
         Traceback (most recent call last):                                   # 32-bit
@@ -134,9 +134,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         ValueError: number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)           # 32-bit
         Full MatrixSpace of 2147483648 by 10 dense matrices over Integer Ring   # 64-bit
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of algebras over Integer Ring
+        Category of algebras over euclidean domains
         sage: MatrixSpace(QQ,10).category()
-        Category of algebras over Rational Field
+        Category of algebras over quotient fields
     """
     _no_generic_basering_coercion = True
 

@@ -16,7 +16,7 @@ This is placed in a separate file from categories.py to avoid circular imports
 
 from sage.misc.latex import latex
 from sage.misc.unknown import Unknown
-from category import Category, CategoryWithParameters
+from category import JoinCategory, Category, CategoryWithParameters
 from objects import Objects
 
 ####################################################################
@@ -293,7 +293,29 @@ class Category_over_base(CategoryWithParameters):
         return self.__base
 
     def _repr_object_names(self):
-        return Category._repr_object_names(self) + " over %s"%self.__base
+        r"""
+        Return the name of the objects of this category.
+
+        .. SEEALSO:: :meth:`Category._repr_object_names`
+
+        EXAMPLES::
+
+            sage: Algebras(QQ)._repr_object_names()
+            'algebras over Rational Field'
+            sage: Algebras(Fields())._repr_object_names()
+            'algebras over fields'
+            sage: Algebras(GF(2).category())._repr_object_names()
+            'algebras over (finite fields and subquotients of monoids and quotients of semigroups)'
+        """
+        base = self.__base
+        if isinstance(base, Category):
+            if isinstance(base, JoinCategory):
+                name = '('+' and '.join(C._repr_object_names() for C in base.super_categories())+')'
+            else:
+                name = base._repr_object_names()
+        else:
+            name = base
+        return Category._repr_object_names(self) + " over %s"%name
 
     def _latex_(self):
         r"""

@@ -180,13 +180,13 @@ class LatinSquare:
             [2 3]
         """
 
-        if len(args) == 1 and (type(args[0]) == Integer or type(args[0]) == int):
+        if len(args) == 1 and (isinstance(args[0], Integer) or isinstance(args[0], int)):
             self.square = matrix(ZZ, args[0], args[0])
             self.clear_cells()
-        elif len(args) == 2 and (type(args[0]) == Integer or type(args[0]) == int) and (type(args[1]) == Integer or type(args[1]) == int):
+        elif len(args) == 2 and (isinstance(args[0], Integer) or isinstance(args[0], int)) and (isinstance(args[1], Integer) or isinstance(args[1], int)):
             self.square = matrix(ZZ, args[0], args[1])
             self.clear_cells()
-        elif len(args) == 1 and type(args[0]) == Matrix_integer_dense:
+        elif len(args) == 1 and isinstance(args[0], Matrix_integer_dense):
             self.square = args[0]
         else:
             raise NotImplemented
@@ -1315,25 +1315,25 @@ def isotopism(p):
     """
 
     # Identity isotopism on p points:
-    if type(p) == Integer or type(p) == int:
+    if isinstance(p, Integer) or isinstance(p, int):
         return Permutation(range(1, p+1))
 
-    if type(p) == PermutationGroupElement:
+    if isinstance(p, PermutationGroupElement):
         # fixme Ask the Sage mailing list about the tuple/list issue!
         return Permutation(list(p.tuple()))
 
-    if type(p) == list:
+    if isinstance(p, list):
         # We expect a list like [0,3,2,1] which means
         # that 0 goes to 0, 1 goes to 3, etc.
         return Permutation(map(lambda x: x+1, p))
 
-    if type(p) == tuple:
+    if isinstance(p, tuple):
         # We have a single cycle:
-        if type(p[0]) == Integer:
+        if isinstance(p[0], Integer):
             return Permutation(tuple(map(lambda x: x+1, p)))
 
         # We have a tuple of cycles:
-        if type(p[0]) == tuple:
+        if isinstance(p[0], tuple):
             x = isotopism(p[0])
 
             for i in range(1, len(p)):

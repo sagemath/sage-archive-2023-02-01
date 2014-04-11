@@ -1468,8 +1468,7 @@ class Magma(Expect):
                     pass
             if verbose:
                 print "Done! (%s seconds)"%sage.misc.misc.cputime(tm)
-            N = list(set(N))
-            N.sort()
+            N = sorted(set(N))
             print "Saving cache to '%s' for future instant use."%INTRINSIC_CACHE
             print "Delete the above file to force re-creation of the cache."
             sage.misc.persist.save(N, INTRINSIC_CACHE)
@@ -2490,8 +2489,7 @@ class MagmaElement(ExpectElement):
         for x in M:
             i = x.find('(')
             N.append(x[:i])
-        v = list(set(N + self.list_attributes()))
-        v.sort()
+        v = sorted(set(N + self.list_attributes()))
         return v
 
     def methods(self, any=False):

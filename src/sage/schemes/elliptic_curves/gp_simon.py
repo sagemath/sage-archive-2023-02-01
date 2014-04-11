@@ -39,7 +39,8 @@ def init():
         gp.read("resultant3.gp")
 
 
-def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=20, limbigprime=30):
+def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
+                      maxprob=20, limbigprime=30, known_points=[]):
     """
     Interface to Simon's gp script for two-descent.
 
@@ -97,24 +98,23 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         K = K_orig.absolute_field('a')
         from_K,to_K = K.structure()
         E = E_orig.change_ring(to_K)
-    else:
-        from_K = lambda x:x
-        to_K = lambda x:x
-
-    if K != QQ:
+        known_points = [P.change_ring(to_K) for P in known_points]
         # Simon's program requires that this name be y.
         with localvars(K.polynomial().parent(), 'y'):
             gp.eval("K = bnfinit(%s);" % K.polynomial())
             if verbose >= 2:
-                print "K = bnfinit(%s);" % K.polynomial()
+                print("K = bnfinit(%s);" % K.polynomial())
         gp.eval("%s = Mod(y,K.pol);" % K.gen())
         if verbose >= 2:
-            print "%s = Mod(y,K.pol);" % K.gen()
+            print("%s = Mod(y,K.pol);" % K.gen())
+    else:
+        from_K = lambda x: x
+        to_K = lambda x: x
 
     # The block below mimicks the defaults in Simon's scripts, and needs to be changed
     # when these are updated.
-    if K == QQ:
-        cmd = 'ellrank([%s,%s,%s,%s,%s]);' % E.ainvs()
+    if K is QQ:
+        cmd = 'ellrank(%s, %s);' % (list(E.ainvs()), [P._pari_() for P in known_points])
         if lim1 is None:
             lim1 = 5
         if lim3 is None:
@@ -122,7 +122,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
         if limtriv is None:
             limtriv = 3
     else:
-        cmd = 'bnfellrank(K, [%s,%s,%s,%s,%s]);' % E.ainvs()
+        cmd = 'bnfellrank(K, %s, %s);' % (list(E.ainvs()), [P._pari_() for P in known_points])
         if lim1 is None:
             lim1 = 2
         if lim3 is None:
@@ -134,12 +134,12 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None, maxprob=
        verbose, lim1, lim3, limtriv, maxprob, limbigprime))
 
     if verbose >= 2:
-        print cmd
+        print(cmd)
     s = gp.eval('ans=%s;'%cmd)
     if s.find(" *** ") != -1:
         raise RuntimeError("\n%s\nAn error occurred while running Simon's 2-descent program"%s)
     if verbose > 0:
-        print s
+        print(s)
     v = gp.eval('ans')
     if v=='ans': # then the call to ellrank() or bnfellrank() failed
         raise RuntimeError("An error occurred while running Simon's 2-descent program")

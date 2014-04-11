@@ -416,7 +416,7 @@ def full_group_by(l, key=lambda x: x):
 
 FSMEmptyWordSymbol = '-'
 FSMOldCodeTransducerCartesianProduct = True
-FSMOldProcessOutput = True  # See trac #33333 (deprecation).
+FSMOldProcessOutput = True  # See trac #16132 (deprecation).
 
 def FSMLetterSymbol(letter):
     """
@@ -5137,7 +5137,7 @@ class Automaton(FiniteStateMachine):
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
-            deprecation(33333, "The output of Automaton.process "
+            deprecation(16132, "The output of Automaton.process "
                                "(and thus of Automaton.__call__) "
                                "will change. Please use the corresponding "
                                "functions from FiniteStateMachine "
@@ -5711,7 +5711,7 @@ class Transducer(FiniteStateMachine):
         """
         if FSMOldProcessOutput:
             from sage.misc.superseded import deprecation
-            deprecation(33333, "The output of Transducer.process "
+            deprecation(16132, "The output of Transducer.process "
                                "(and thus of Transducer.__call__) "
                                "will change. Please use the corresponding "
                                "functions from FiniteStateMachine "

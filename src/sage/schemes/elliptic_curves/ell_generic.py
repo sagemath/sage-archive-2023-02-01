@@ -28,10 +28,14 @@ AUTHORS:
 - Robert Bradshaw et al....
 
 - John Cremona (2008-01): isomorphisms, automorphisms and twists in all characteristics
+
+- Julian Rueth (2014-04-11): improved caching
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -58,7 +62,7 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.number_field.all import is_NumberField
 import sage.misc.misc as misc
-
+from sage.misc.cachefunc import cached_method
 
 # Schemes
 import sage.schemes.projective.projective_space as projective_space
@@ -1849,168 +1853,191 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     torsion_polynomial = division_polynomial
 
-    def _multiple_x_numerator(self, n, x=None, cache=None):
-         r"""
-         Returns the numerator of the `x`-coordinate of the `n\th` multiple of a
-         point, using torsion polynomials (division polynomials).
+    def _multiple_x_numerator(self, n, x=None):
+        r"""
+        Returns the numerator of the `x`-coordinate of the `n\th` multiple of a
+        point, using torsion polynomials (division polynomials).
 
-         INPUT:
+        INPUT:
 
-         -  ``n``, ``x``, ``cache`` --  as described in ``division_polynomial_0()``.
+        -  ``n``, ``x``, --  as described in :meth:`division_polynomial_0()`.
 
-         The result is cached.  This is so that on calling
-         ``P.division_points(n)`` for the same `n` and different
-         points `P` (on the same curve), we do not have to recompute
-         the polynomials.
+        The result is cached.  This is so that on calling
+        ``P.division_points(n)`` for the same `n` and different
+        points `P` (on the same curve), we do not have to recompute
+        the polynomials.
 
-         .. warning::
+        .. warning::
 
-            There may of course be cancellation between the numerator
-            and the denominator (_multiple_x_denominator()). Be
-            careful. E.g. if a point on an elliptic curve with
-            coefficients in ZZ reduces to a singular point modulo a
-            prime, then there will be cancellation, otherwise not, see
-            Chris Wuthrich' p-adic heights in families of elliptic
-            curves'.
+           There may of course be cancellation between the numerator and the
+           denominator (:meth:`_multiple_x_denominator`). Be careful. E.g. if
+           a point on an elliptic curve with coefficients in `\ZZ` reduces to
+           a singular point modulo a prime, then there will be cancellation,
+           otherwise not, see [Wuthrich2004]_.
 
-         .. seealso::
+        REFERENCES:
 
-            :meth:`_multiple_x_denominator`
+        .. [Wuthrich2004] Wuthrich, C. (2004). On p-adic heights in families of
+        elliptic curves. Journal of the London Mathematical Society, 70(1),
+        23-40.
 
-         AUTHORS:
+        .. seealso::
 
-         - David Harvey (2006-09-24)
+           :meth:`_multiple_x_denominator`
 
-         EXAMPLES::
+        AUTHORS:
 
-             sage: E = EllipticCurve("37a")
-             sage: P = E.gens()[0]
-             sage: x = P[0]
+        - David Harvey (2006-09-24)
 
-         ::
+        EXAMPLES::
 
-             sage: (35*P)[0]
-             -804287518035141565236193151/1063198259901027900600665796
-             sage: E._multiple_x_numerator(35, x)
-             -804287518035141565236193151
-             sage: E._multiple_x_denominator(35, x)
-             1063198259901027900600665796
+            sage: E = EllipticCurve("37a")
+            sage: P = E.gens()[0]
+            sage: x = P[0]
 
-         ::
+        ::
 
-             sage: (36*P)[0]
-             54202648602164057575419038802/15402543997324146892198790401
-             sage: E._multiple_x_numerator(36, x)
-             54202648602164057575419038802
-             sage: E._multiple_x_denominator(36, x)
-             15402543997324146892198790401
+            sage: (35*P)[0]
+            -804287518035141565236193151/1063198259901027900600665796
+            sage: E._multiple_x_numerator(35, x)
+            -804287518035141565236193151
+            sage: E._multiple_x_denominator(35, x)
+            1063198259901027900600665796
 
-         An example where cancellation occurs::
+        ::
 
-             sage: E = EllipticCurve("88a1")
-             sage: P = E([2,2])   # fixed choice of generator
-             sage: n = E._multiple_x_numerator(11, P[0]); n
-             442446784738847563128068650529343492278651453440
-             sage: d = E._multiple_x_denominator(11, P[0]); d
-             1427247692705959881058285969449495136382746624
-             sage: n/d
-             310
-             sage: 11*P
-             (310 : -5458 : 1)
-         """
-         if x is None:
-             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+            sage: (36*P)[0]
+            54202648602164057575419038802/15402543997324146892198790401
+            sage: E._multiple_x_numerator(36, x)
+            54202648602164057575419038802
+            sage: E._multiple_x_denominator(36, x)
+            15402543997324146892198790401
 
-         try:
-             return self._mul_x_num_cache[(n,x)]
-         except AttributeError:
-             self._mul_x_num_cache = {}
-         except KeyError:
-             pass
+        An example where cancellation occurs::
 
-         if cache is None:
-             cache = {}
+            sage: E = EllipticCurve("88a1")
+            sage: P = E([2,2])   # fixed choice of generator
+            sage: n = E._multiple_x_numerator(11, P[0]); n
+            442446784738847563128068650529343492278651453440
+            sage: d = E._multiple_x_denominator(11, P[0]); d
+            1427247692705959881058285969449495136382746624
+            sage: n/d
+            310
+            sage: 11*P
+            (310 : -5458 : 1)
 
-         n = int(n)
-         if n < 2:
-             raise ValueError("n must be at least 2")
+        """
+        if x is None:
+            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
-         self.division_polynomial_0( -2, x, cache)
-         self.division_polynomial_0(n-1, x, cache)
-         self.division_polynomial_0(n  , x, cache)
-         self.division_polynomial_0(n+1, x, cache)
+        n = int(n)
+        if n < 2:
+            raise ValueError("n must be at least 2")
 
-         if n % 2 == 0:
-             self._mul_x_num_cache[(n,x)] = x * cache[(-1,x)] * cache[(n,x)]**2 - cache[(n-1,x)] * cache[(n+1,x)]
-         else:
-             self._mul_x_num_cache[(n,x)] = x * cache[(n,x)]**2 - cache[(-1,x)] * cache[(n-1,x)] * cache[(n+1,x)]
-         return self._mul_x_num_cache[(n,x)]
+        return self.__multiple_x_numerator(n, x)
 
+    @cached_method
+    def __multiple_x_numerator(self, n, x):
+        r"""
+        Helper method for :meth:`_multiple_x_numerator` which adds caching.
+        Input and output are the same as for that method.
 
-    def _multiple_x_denominator(self, n, x=None, cache=None):
-         r"""
-         Returns the denominator of the x-coordinate of the nth multiple of
-         a point, using torsion polynomials (division polynomials).
+        TESTS:
 
-         INPUT:
+        Check that the results are cached::
 
-         -  ``n``, ``x``, ``cache`` --  as described in ``division_polynomial_0()``.
+            sage: E = EllipticCurve("88a1")
+            sage: P = E([2,2])
+            sage: E._multiple_x_numerator(11, P[0]) is E._multiple_x_numerator(11, P[0])
+            True
 
-         The result is cached.  This is so that calling
-         P.division_points(n) for the same n and different points P
-         (on the same curve) does not have to recompute the
-         polynomials.
+        """
+        cache = {}
 
-         .. seealso::
+        self.division_polynomial_0( -2, x, cache)
+        self.division_polynomial_0(n-1, x, cache)
+        self.division_polynomial_0(n  , x, cache)
+        self.division_polynomial_0(n+1, x, cache)
 
-            :meth:`multiple_x_numerator`
+        if n % 2 == 0:
+            return x * cache[(-1,x)] * cache[(n,x)]**2 - cache[(n-1,x)] * cache[(n+1,x)]
+        else:
+            return x * cache[(n,x)]**2 - cache[(-1,x)] * cache[(n-1,x)] * cache[(n+1,x)]
 
-         TODO: the numerator and denominator versions share a calculation,
-         namely squaring `\psi_n`. Maybe would be good to offer a
-         combined version to make this more efficient.
+    def _multiple_x_denominator(self, n, x=None):
+        r"""
+        Returns the denominator of the `x`-coordinate of the `n\th` multiple
+        of a point, using torsion polynomials (division polynomials).
 
-         EXAMPLES::
+        INPUT:
 
-             sage: E = EllipticCurve("43a")
-             sage: P = E.gens()[0]
-             sage: x = P[0]
-             sage: (31*P)[0]
-             -33058398375463796474831580/154693637754223970056975321
-             sage: E._multiple_x_numerator(31, x)
-             -33058398375463796474831580
-             sage: E._multiple_x_denominator(31, x)
-             154693637754223970056975321
+        -  ``n``, ``x`` --  as described in :meth:`division_polynomial_0`.
 
-         AUTHORS:
+        The result is cached.  This is so that calling
+        ``P.division_points(n)`` for the same `n` and different points `P` (on
+        the same curve) does not have to recompute the polynomials.
 
-         - David Harvey (2006-09-24)
-         """
-         if x is None:
-             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+        AUTHORS:
 
-         try:
-             return self._mul_x_den_cache[(n,x)]
-         except AttributeError:
-             self._mul_x_den_cache = {}
-         except KeyError:
-             pass
+        - David Harvey (2006-09-24)
 
-         if cache is None:
-             cache = {}
+        .. seealso::
 
-         n = int(n)
-         if n < 2:
-             raise ValueError("n must be at least 2")
+           :meth:`multiple_x_numerator`
 
-         self.division_polynomial_0(-2, x, cache)
-         self.division_polynomial_0(n , x, cache)
+        .. TODO::
 
-         if n % 2 == 0:
-             self._mul_x_den_cache[(n,x)] = cache[(-1,x)] * cache[(n,x)]**2
-         else:
-             self._mul_x_den_cache[(n,x)] = cache[(n,x)]**2
-         return self._mul_x_den_cache[(n,x)]
+            The numerator and denominator versions share a calculation, namely
+            squaring `\psi_n`. Maybe would be good to offer a combined version
+            to make this more efficient.
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve("43a")
+            sage: P = E.gens()[0]
+            sage: x = P[0]
+            sage: (31*P)[0]
+            -33058398375463796474831580/154693637754223970056975321
+            sage: E._multiple_x_numerator(31, x)
+            -33058398375463796474831580
+            sage: E._multiple_x_denominator(31, x)
+            154693637754223970056975321
+
+        """
+        if x is None:
+            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
+        n = int(n)
+        if n < 2:
+            raise ValueError("n must be at least 2")
+
+        return self.__multiple_x_denominator(n, x)
+
+    @cached_method
+    def __multiple_x_denominator(self, n, x):
+        r"""
+        Helper method for :meth:`_multiple_x_denominator` which adds caching.
+        Input and output are the same as for that method.
+
+        TESTS:
+
+        Check that the results are cached::
+
+            sage: E = EllipticCurve("88a1")
+            sage: P = E([2,2])
+            sage: E._multiple_x_denominator(11, P[0]) is E._multiple_x_denominator(11, P[0])
+            True
+
+        """
+        cache = {}
+
+        self.division_polynomial_0(-2, x, cache)
+        self.division_polynomial_0(n , x, cache)
+
+        if n % 2 == 0:
+            return cache[(-1,x)] * cache[(n,x)]**2
+        else:
+            return cache[(n,x)]**2
 
     def multiplication_by_m(self, m, x_only=False):
         r"""

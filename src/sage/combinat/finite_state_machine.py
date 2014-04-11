@@ -506,6 +506,10 @@ class FSMState(SageObject):
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
 
+    - ``allow_label_None`` -- (default: ``False``) If ``True`` allows also
+      ``None`` as label. Note that a state with label ``None`` is used in
+      :class:`FSMProcessIterator`.
+
     OUTPUT:
 
     Returns a state of a finite state machine.
@@ -522,10 +526,22 @@ class FSMState(SageObject):
         sage: A == B
         False
 
+    It is not allowed to use ``None`` as a label::
+
+        sage: from sage.combinat.finite_state_machine import FSMState
+        sage: FSMState(None)
+        Traceback (most recent call last):
+        ...
+        ValueError: Label None reserved for a special state, choose another label.
+
+    This can be overridden by::
+
+        sage: FSMState(None, allow_label_None=True)
+        None
     """
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False,
-                 hook=None):
+                 hook=None, allow_label_None=False):
         """
         See :class:`FSMState` for more information.
 
@@ -535,6 +551,9 @@ class FSMState(SageObject):
             sage: FSMState('final', is_final=True)
             'final'
         """
+        if not allow_label_None and label is None:
+            raise ValueError, "Label None reserved for a special state, " \
+                "choose another label."
         self._label_ = label
 
         if isinstance(word_out, list):
@@ -5283,7 +5302,8 @@ class FSMProcessIterator(SageObject):
                 except StopIteration:
                     # this means input tape is finished
                     if len(next_word) > 0:
-                        self.current_state = FSMState(None)
+                        self.current_state = FSMState(None,
+                                                      allow_label_None=True)
                     raise StopIteration
 
             # process transition

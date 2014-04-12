@@ -2,9 +2,10 @@
 
 import os, sys, time, errno, platform, subprocess
 from distutils.core import setup
-from distutils.extension import Extension
-from glob import glob, fnmatch
-from warnings import warn
+
+# Make sure stdout doesn't buffer output, otherwise output
+# like "Cythonizing foo.pyx" appears in the wrong order.
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 #########################################################
 ### List of Extensions
@@ -17,7 +18,6 @@ from warnings import warn
 
 from module_list import ext_modules
 import sage.ext.gen_interpreters
-import warnings
 from sage.env import *
 
 #########################################################
@@ -264,7 +264,7 @@ def execute_list_of_commands(command_list):
 
     print "Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread"))
     execute_list_of_commands_in_parallel(command_list, nthreads)
-    print "Time to execute %s: %s seconds"%(plural(len(command_list),"command"), time.time() - t)
+    print "Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t)
 
 
 ########################################################################
@@ -306,7 +306,6 @@ class sage_build_ext(build_ext):
             print "self.compiler.linker_so:"
             print self.compiler.linker_so
             # There are further interesting variables...
-            sys.stdout.flush()
 
 
         # At least on MacOS X, the library dir of the *original* Sage
@@ -345,7 +344,6 @@ class sage_build_ext(build_ext):
         if DEBUG:
             print "self.compiler.linker_so (after fixing library dirs):"
             print self.compiler.linker_so
-            sys.stdout.flush()
 
 
         # First, sanity-check the 'extensions' list
@@ -362,7 +360,7 @@ class sage_build_ext(build_ext):
 
         execute_list_of_commands(compile_commands)
 
-        print "Total time spent compiling C/C++ extensions: ", time.time() - t, "seconds."
+        print "Total time spent compiling C/C++ extensions: %.2f seconds." % (time.time() - t)
 
     def prepare_extension(self, ext):
         sources = ext.sources
@@ -516,9 +514,9 @@ if not sdist:
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
 
-    CYCACHE_DIR = os.environ.get('CYCACHE_DIR', os.path.join(DOT_SAGE,'cycache'))
-    if os.path.exists(os.path.join(CYCACHE_DIR, os.pardir)):
-        Cython.Compiler.Main.default_options['cache'] = CYCACHE_DIR
+    # Enable Cython caching (the cache is stored in ~/.cycache which is
+    # Cython's default).
+    Cython.Compiler.Main.default_options['cache'] = True
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
@@ -536,8 +534,7 @@ if not sdist:
         force=force)
 
     open(version_file, 'w').write(Cython.__version__)
-    print "Finished compiling Cython code (time = %s seconds)" % (time.time() - t)
-    sys.stdout.flush()
+    print "Finished Cythonizing, time: %.2f seconds." % (time.time() - t)
 
 
 #########################################################

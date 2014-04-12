@@ -5442,29 +5442,27 @@ class Transducer(FiniteStateMachine):
             sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
 
-
-        The following transducer counts the number of 01 blocks minus
+        The following transducer counts the number of 11 blocks minus
         the number of 10 blocks over the alphabet ``[0, 1]``.
 
         ::
 
-            sage: count_01 = transducers.CountSubblockOccurrences(
-            ....:     [0, 1],
+            sage: count_11 = transducers.CountSubblockOccurrences(
+            ....:     [1, 1],
             ....:     [0, 1])
             sage: count_10 = transducers.CountSubblockOccurrences(
             ....:     [1, 0],
             ....:     [0, 1])
-            sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
-            sage: T = transducers.sub([0,1])(count_01.cartesian_product(count_10)).simplification().relabeled()
+            sage: count_11x10 = count_11.cartesian_product(count_10)
+            sage: difference = transducers.sub([0,1])(count_11x10)
+            sage: T = difference.simplification().relabeled()
             sage: T.initial_states()
-            [2]
+            [1]
             sage: sorted(T.transitions())
             [Transition from 0 to 1: 0|-1,
-             Transition from 0 to 0: 1|0,
+             Transition from 0 to 0: 1|1,
              Transition from 1 to 1: 0|0,
-             Transition from 1 to 0: 1|1,
-             Transition from 2 to 1: 0|0,
-             Transition from 2 to 0: 1|0]
+             Transition from 1 to 0: 1|0]
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
         ``self`` where the input is restricted to the input accepted by

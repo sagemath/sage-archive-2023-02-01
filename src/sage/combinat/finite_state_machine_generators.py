@@ -221,6 +221,12 @@ class TransducerGenerators(object):
              Transition from 0 to 0: (1, 1)|2]
             sage: T.input_alphabet
             [(0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
+            [0, 1, 1, 2]
         """
         from itertools import product
 
@@ -229,7 +235,8 @@ class TransducerGenerators(object):
         pairs = list(product(input_alphabet, repeat=2))
         return Transducer(transition_function,
                           input_alphabet=pairs,
-                          initial_states=[0])
+                          initial_states=[0],
+                          final_states=[0])
 
     def add(self, input_alphabet):
         """
@@ -258,6 +265,12 @@ class TransducerGenerators(object):
              Transition from 0 to 0: (1, 1)|2]
             sage: T.input_alphabet
             [(0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
+            [0, 1, 1, 2]
         """
         import operator
         return self.operator(operator.add, input_alphabet)
@@ -289,7 +302,12 @@ class TransducerGenerators(object):
              Transition from 0 to 0: (1, 1)|0]
             sage: T.input_alphabet
             [(0, 0), (0, 1), (1, 0), (1, 1)]
-
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
+            sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
+            [0, -1, 1, 0]
         """
         import operator
         return self.operator(operator.sub, input_alphabet)
@@ -319,6 +337,10 @@ class TransducerGenerators(object):
             [Transition from 0 to 0: -1|1,
              Transition from 0 to 0: 0|0,
              Transition from 0 to 0: 1|1]
+            sage: T.initial_states()
+            [0]
+            sage: T.final_states()
+            [0]
             sage: T([-1, -1, 0, 1])
             [1, 1, 0, 1]
 

@@ -259,7 +259,7 @@ class Hypergeometric(BuiltinFunction):
             return Integer(1)                         # to avoid call to Maxima
         return
 
-    def _evalf_(self, a, b, z, parent):
+    def _evalf_(self, a, b, z, parent, algorithm=None):
         """
         TESTS::
 
@@ -597,10 +597,7 @@ class Hypergeometric(BuiltinFunction):
                 sage: x = hypergeometric([6, 1], [3, 4, 5], 10)
                 sage: y = x.deflated()
                 sage: y
-                hypergeometric((1,), (4, 5), 10) +...
-                1/2*hypergeometric((2,), (5, 6), 10) +...
-                1/12*hypergeometric((3,), (6, 7), 10) +...
-                1/252*hypergeometric((4,), (7, 8), 10)
+                1/252*hypergeometric((4,), (7, 8), 10) + 1/12*hypergeometric((3,), (6, 7), 10) + 1/2*hypergeometric((2,), (5, 6), 10) + hypergeometric((1,), (4, 5), 10)
                 sage: x.n(); y.n()
                 2.87893612686782
                 2.87893612686782
@@ -608,13 +605,7 @@ class Hypergeometric(BuiltinFunction):
                 sage: x = hypergeometric([6, 7], [3, 4, 5], 10)
                 sage: y = x.deflated()
                 sage: y
-                hypergeometric((), (5,), 10) +...
-                5*hypergeometric((), (6,), 10) +...
-                19/3*hypergeometric((), (7,), 10) +...
-                181/63*hypergeometric((), (8,), 10) +...
-                265/504*hypergeometric((), (9,), 10) +...
-                25/648*hypergeometric((), (10,), 10) +...
-                25/27216*hypergeometric((), (11,), 10)
+                25/27216*hypergeometric((), (11,), 10) + 25/648*hypergeometric((), (10,), 10) + 265/504*hypergeometric((), (9,), 10) + 181/63*hypergeometric((), (8,), 10) + 19/3*hypergeometric((), (7,), 10) + 5*hypergeometric((), (6,), 10) + hypergeometric((), (5,), 10)
                 sage: x.n(); y.n()
                 63.0734110716969
                 63.0734110716969

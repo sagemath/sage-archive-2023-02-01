@@ -419,8 +419,10 @@ def fast_callable(x, domain=None, vars=None,
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
+
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
+
     if isinstance(domain, RealField_class):
         import sage.ext.interpreters.wrapper_rr
         builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr

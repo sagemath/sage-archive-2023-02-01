@@ -247,11 +247,12 @@ class SimplicialComplexExamples():
         r"""
         A minimal triangulation of the torus.
 
-        This is a simplicial complex with 7 vertices, 21 edges and 14 faces.
+        This is a simplicial complex with 7 vertices, 21 edges and 14
+        faces. It is the unique triangulation of the torus with 7
+        vertices, and has been found by Möbius in 1861.
 
-        This is the combinatorial structure of the Császár polyhedron.
-
-        See :wikipedia:`Császár_polyhedron`
+        This is also the combinatorial structure of the Császár
+        polyhedron (see :wikipedia:`Császár_polyhedron`).
 
         EXAMPLES::
 
@@ -264,6 +265,10 @@ class SimplicialComplexExamples():
 
             sage: T.flip_graph().is_isomorphic(graphs.HeawoodGraph())
             True
+
+        REFERENCES:
+
+        .. [LutzCsas] `Császár's Torus <http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html>`_
         """
         return SimplicialComplex([[0,1,2], [1,2,4], [1,3,4], [1,3,6],
                                   [0,1,5], [1,5,6], [2,3,5], [2,4,5],

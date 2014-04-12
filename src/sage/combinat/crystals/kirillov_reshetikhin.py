@@ -29,6 +29,7 @@ from sage.structure.parent import Parent
 from sage.categories.crystals import CrystalMorphism
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
@@ -742,10 +743,12 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
 
     @cached_method
     def promotion(self):
-        """
-        Specifies the promotion operator used to construct the affine type A crystal.
-        For type A this corresponds to the Dynkin diagram automorphism which maps i to i+1 mod n+1,
-        where n is the rank.
+        r"""
+        Specifies the promotion operator used to construct the affine
+        type `A` crystal.
+
+        For type `A` this corresponds to the Dynkin diagram automorphism
+        which `i \mapsto i+1 \mod n+1`, where `n` is the rank.
 
         EXAMPLES::
 
@@ -754,14 +757,19 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
             sage: K.promotion()(b)
             [[1, 3], [2, 4]]
         """
-        return lambda x : self.classical_crystal(x.to_tableau().promotion(self._cartan_type[1]))
+        T = self.classical_crystal
+        return Promotion(T,
+                         lambda x: T(x.to_tableau().promotion(self._cartan_type[1])),
+                         cache=False)
 
     @cached_method
     def promotion_inverse(self):
-        """
-        Specifies the inverse promotion operator used to construct the affine type A crystal.
-        For type A this corresponds to the Dynkin diagram automorphism which maps i to i-1 mod n+1,
-        where n is the rank.
+        r"""
+        Specifies the inverse promotion operator used to construct the
+        affine type `A` crystal.
+
+        For type `A` this corresponds to the Dynkin diagram automorphism
+        which `i \mapsto i-1 \mod n+1`, where `n` is the rank.
 
         EXAMPLES::
 
@@ -773,14 +781,19 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
             sage: K.promotion_inverse()(K.promotion()(b))
             [[1, 2], [3, 3]]
         """
-        return lambda x : self.classical_crystal(x.to_tableau().promotion_inverse(self._cartan_type[1]))
+        T = self.classical_crystal
+        return PromotionInverse(T,
+                 lambda x: T(x.to_tableau().promotion_inverse(self._cartan_type[1])),
+                 cache=False)
 
     def dynkin_diagram_automorphism(self, i):
-        """
-        Specifies the Dynkin diagram automorphism underlying the promotion action on the crystal
-        elements. The automorphism needs to map node 0 to some other Dynkin node.
+        r"""
+        Specifies the Dynkin diagram automorphism underlying the promotion
+        action on the crystal elements. The automorphism needs to map node
+        0 to some other Dynkin node.
 
-        For type A we use the Dynkin diagram automorphism which maps i to i+1 mod n+1, where n is the rank.
+        For type `A` we use the Dynkin diagram automorphism which
+        `i \mapsto i+1 \mod n+1`, where `n` is the rank.
 
         EXAMPLES::
 
@@ -846,10 +859,12 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
     @cached_method
     def promotion(self):
         """
-        Specifies the promotion operator used to construct the affine type `D_n^{(1)}` etc. crystal.
-        This corresponds to the Dynkin diagram automorphism which interchanges nodes 0 and 1,
-        and leaves all other nodes unchanged. On the level of crystals it is constructed using
-        `\pm` diagrams.
+        Specifies the promotion operator used to construct the affine
+        type `D_n^{(1)}` etc. crystal.
+
+        This corresponds to the Dynkin diagram automorphism which
+        interchanges nodes 0 and 1, and leaves all other nodes unchanged.
+        On the level of crystals it is constructed using `\pm` diagrams.
 
         EXAMPLES::
 
@@ -868,14 +883,14 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         T = self.classical_decomposition()
         ind = list(T.index_set())
         ind.remove(1)
-        return T.crystal_morphism(self.promotion_on_highest_weight_vectors(),
-                                  codomain=T, index_set=ind, check=False)
+        return Promotion(T, self.promotion_on_highest_weight_vectors(), ind)
 
     def promotion_inverse(self):
         """
         Return inverse of promotion.
 
-        In this case promotion is an involution, so promotion inverse equals promotion.
+        In this case promotion is an involution, so promotion
+        inverse equals promotion.
 
         EXAMPLES::
 
@@ -889,11 +904,12 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
 
     def dynkin_diagram_automorphism(self, i):
         """
-        Specifies the Dynkin diagram automorphism underlying the promotion action on the crystal
-        elements. The automorphism needs to map node 0 to some other Dynkin node.
+        Specifies the Dynkin diagram automorphism underlying the promotion
+        action on the crystal elements. The automorphism needs to map
+        node 0 to some other Dynkin node.
 
-        Here we use the Dynkin diagram automorphism which interchanges nodes 0 and 1 and leaves
-        all other nodes unchanged.
+        Here we use the Dynkin diagram automorphism which interchanges
+        nodes 0 and 1 and leaves all other nodes unchanged.
 
         EXAMPLES::
 
@@ -928,8 +944,9 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
 
     def from_highest_weight_vector_to_pm_diagram(self, b):
         """
-        This gives the bijection between an element b in the classical decomposition
-        of the KR crystal that is `{2,3,..,n}`-highest weight and `\pm` diagrams.
+        This gives the bijection between an element ``b`` in the classical
+        decomposition of the KR crystal that is `{2, 3, \ldots, n}`-highest
+        weight and `\pm` diagrams.
 
         EXAMPLES::
 
@@ -958,8 +975,9 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
 
     def from_pm_diagram_to_highest_weight_vector(self, pm):
         """
-        This gives the bijection between a `\pm` diagram and an element b in the classical
-        decomposition of the KR crystal that is {2,3,..,n}-highest weight.
+        This gives the bijection between a `\pm` diagram and an element
+        ``b`` in the classical decomposition of the KR crystal that
+        is `{2, 3, \ldots, n}`-highest weight.
 
         EXAMPLES::
 
@@ -1148,8 +1166,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
     @cached_method
     def highest_weight_dict_inv(self):
         r"""
-        Returns a dictionary between a tuple of affine weights and a classical component, and
-        `{2,3,4,5,6}` highest weight elements.
+        Return a dictionary between a tuple of affine weights and a classical
+        component, and `{2,3,4,5,6}` highest weight elements.
 
         EXAMPLES::
 
@@ -1168,7 +1186,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
     def automorphism_on_affine_weight(self, weight):
         r"""
-        Acts with the Dynkin diagram automorphism on affine weights as outputted by the affine_weight method.
+        Acts with the Dynkin diagram automorphism on affine weights
+        as outputted by the ``affine_weight`` method.
 
         EXAMPLES::
 
@@ -1186,8 +1205,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
     @cached_method
     def promotion_on_highest_weight_vectors(self):
         r"""
-        Gives a dictionary of the promotion map on `{1,2,3,4,5}` highest weight elements to
-        `{2,3,4,5,6}` elements in self.
+        Gives a dictionary of the promotion map on `{1,2,3,4,5}` highest
+        weight elements to `{2,3,4,5,6}` elements in ``self``.
 
         EXAMPLES::
 
@@ -1206,7 +1225,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         for (weight, i) in dic.values():
             dic_weight[weight] = dic_weight.get(weight, []) + [i]
         map_index = lambda i_list: max(i_list[1]) + min(i_list[1]) - i_list[0]
-        map_element = lambda x : tuple([self.automorphism_on_affine_weight(dic[x][0]), map_index((dic[x][1],dic_weight[dic[x][0]]))])
+        map_element = lambda x : tuple([ self.automorphism_on_affine_weight(dic[x][0]),
+                                         map_index((dic[x][1], dic_weight[dic[x][0]])) ])
         return dict( (x, dic_inv[map_element(x)]) for x in dic.keys() )
 
     @cached_method
@@ -1226,8 +1246,9 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
     @cached_method
     def promotion(self):
-        """
-        Specifies the promotion operator used to construct the affine type `E_6^{(1)}` crystal.
+        r"""
+        Specifies the promotion operator used to construct the
+        affine type `E_6^{(1)}` crystal.
 
         EXAMPLES::
 
@@ -1242,17 +1263,14 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         """
         T = self.classical_decomposition()
         ind = [1,2,3,4,5]
-        return T.crystal_morphism(self.promotion_on_highest_weight_vectors(),
-                                  codomain=T,
-                                  automorphism=self.dynkin_diagram_automorphism,
-                                  index_set=ind,
-                                  check=False)
+        return Promotion(T, self.promotion_on_highest_weight_vectors(), ind,
+                         automorphism=self.dynkin_diagram_automorphism)
 
     @cached_method
     def promotion_inverse(self):
         r"""
-        Returns the inverse promotion. Since promotion is of order 3, the inverse promotion is the same
-        as promotion applied twice.
+        Return the inverse promotion. Since promotion is of order 3,
+        the inverse promotion is the same as promotion applied twice.
 
         EXAMPLES::
 
@@ -1263,8 +1281,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             True
         """
         p = self.promotion()
-        return lambda x : p(p(x))
-
+        #return lambda x : p(p(x))
+        return p * p
 
 class KR_type_C(KirillovReshetikhinGenericCrystal):
     r"""
@@ -2953,8 +2971,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return T.crystal_morphism(self.promotion_on_highest_weight_vectors(),
-                                  codomain=T, index_set=ind, check=False)
+        return Promotion(T, self.promotion_on_highest_weight_vectors(), ind)
 
     @cached_method
     def promotion_inverse(self):
@@ -2982,8 +2999,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return T.crystal_morphism(self.promotion_on_highest_weight_vectors_inverse(),
-                                  codomain=T, index_set=ind, check=False)
+        return Promotion(T, promotion_on_highest_weight_vectors_inverse(), ind)
 
 #####################################################################
 
@@ -3316,17 +3332,31 @@ class Promotion(CrystalMorphism):
     INPUT:
 
     - ``C`` -- a crystal
-    - ``on_gens`` -- a function for the images of the generators
+    - ``on_hw`` -- a function for the images of the ``index_set``-highest
+      weight elements
+    - ``index_set`` -- (default: the empty set) the index set
+    - ``automorphism`` -- (default: the identity) the twisting automorphism
+    - ``cache`` -- (default: True) cache the result
     """
-    def __init__(self, C, on_gens, automorphism=None, cache=True):
+    def __init__(self, C, on_hw, index_set=None, automorphism=None, cache=True):
         """
         Construct the promotion operator.
 
         TESTS::
+
+            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: p = K.promotion()
+            sage: TestSuite(p).run(skip=['_test_category', '_test_pickling'])
         """
         if automorphism is None:
             automorphism = lambda i: i
+        if index_set is None:
+            index_set = ()
         self._twist = automorphism
+        if isinstance(on_hw, dict):
+            self._on_hw = on_hw.__getitem__
+        else:
+            self._on_hw = on_hw
         parent = Hom(C, C)
 
         self._cache = {}
@@ -3334,7 +3364,7 @@ class Promotion(CrystalMorphism):
         if isinstance(cache, dict):
             self._cache = cache
         ct = C.cartan_type()
-        CrystalMorphism.__init__(self, parent, ct, ct.index_set())
+        CrystalMorphism.__init__(self, parent, ct, tuple(index_set))
 
     def _call_(self, x):
         """
@@ -3342,18 +3372,14 @@ class Promotion(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: H = Hom(B, B)
-            sage: psi = H(B.module_generators)
-            sage: psi(B.highest_weight_vector())
-            [[1, 1], [2]]
+            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: p = K.promotion()
         """
         # We do our own caching so we can take advantage of known images above us
         if x in self._cache:
             return self._cache[x]
 
-        ind = list(T.index_set())
-        ind.remove(1)
+        ind = self._index_set
         cur = x
         path = []
         while cur not in self._cache:
@@ -3365,18 +3391,46 @@ class Promotion(CrystalMorphism):
                     cur = n
                     break
 
-            if n is None: # We're at a {2,...n}-highest weight element
+            if n is None: # We're at a I-highest weight element
                 break
 
         if cur in self._cache:
             cur = self._cache[cur]
         else:
-            cur = self._on_gens(cur)
+            cur = self._on_hw(cur)
 
         y = cur.f_string(reversed(path))
         assert y is not None
         self._cache[x] = y
         return y
+
+    def _repr_type(self):
+        """
+        Return a string describing ``self``.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: K.promotion()._repr_type()
+            'Promotion'
+        """
+        return "Promotion"
+
+class PromotionInverse(Promotion):
+    r"""
+    The inverse promotion operator.
+    """
+    def _repr_type(self):
+        """
+        Return a string describing ``self``.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: K.promotion_inverse()._repr_type()
+            'Inverse promotion'
+        """
+        return "Inverse promotion"
 
 # I'm keeping this here in case this is faster for constructing KR crystals
 #   than using the CrystalMorphism class

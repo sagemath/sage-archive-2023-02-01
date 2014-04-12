@@ -103,7 +103,6 @@ class Scheme(Parent):
             sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements",
             ...                            "_test_some_elements", "_test_category"]) # See #7946
         """
-        from sage.schemes.generic.spec import is_Spec
         from sage.schemes.generic.morphism import is_SchemeMorphism
 
         if X is None:
@@ -333,8 +332,7 @@ class Scheme(Parent):
         """
         if S is None:
             S = self.base_ring()
-        from sage.schemes.generic.spec import Spec
-        SpecS = Spec(S, self.base_ring())
+        SpecS = AffineScheme(S, self.base_ring())
         from sage.schemes.generic.homset import SchemeHomset
         return SchemeHomset(SpecS, self)
 
@@ -478,8 +476,7 @@ class Scheme(Parent):
             if hasattr(self, '_base_morphism'):
                 self._base_scheme = self._base_morphism.codomain()
             elif hasattr(self, '_base_ring'):
-                from sage.schemes.generic.spec import Spec
-                self._base_scheme = Spec(self._base_ring)
+                self._base_scheme = AffineScheme(self._base_ring)
             else:
                 from sage.schemes.generic.spec import SpecZ
                 self._base_scheme = SpecZ
@@ -514,12 +511,12 @@ class Scheme(Parent):
             return self._base_morphism
         except AttributeError:
             from sage.categories.schemes import Schemes
-            from sage.schemes.generic.spec import Spec, SpecZ
+            from sage.schemes.generic.spec import SpecZ
             SCH = Schemes()
             if hasattr(self, '_base_scheme'):
                 self._base_morphism = self.Hom(self._base_scheme, category=SCH).natural_map()
             elif hasattr(self, '_base_ring'):
-                self._base_morphism = self.Hom(Spec(self._base_ring), category=SCH).natural_map()
+                self._base_morphism = self.Hom(AffineScheme(self._base_ring), category=SCH).natural_map()
             else:
                 self._base_morphism = self.Hom(SpecZ, category=SCH).natural_map()
             return self._base_morphism
@@ -1075,11 +1072,11 @@ class AffineScheme(Scheme):
         """
         from sage.categories.commutative_rings import CommutativeRings
         if R in CommutativeRings():
-            return Spec(self.coordinate_ring().base_extend(R), self.base_ring())
+            return AffineScheme(self.coordinate_ring().base_extend(R), self.base_ring())
         if not self.base_scheme() == R.base_scheme():
             raise ValueError('The new base scheme must be a scheme over the old base scheme.')
-        return Spec(self.coordinate_ring().base_extend(new_base.coordinate_ring()),
-                    self.base_ring())
+        return AffineScheme(self.coordinate_ring().base_extend(new_base.coordinate_ring()),
+                            self.base_ring())
 
     def _point_homset(self, *args, **kwds):
         """
@@ -1146,9 +1143,7 @@ class AffineScheme(Scheme):
         """
         if is_Scheme(x):
             return self.Hom(x).natural_map()
-        if Y is None:
-            if is_RingHomomorphism(x):
-                import spec
-                Y = spec.Spec(x.domain())
+        if Y is None and is_RingHomomorphism(x):
+            Y = AffineScheme(x.domain())
         return Scheme.hom(self, x, Y)
 

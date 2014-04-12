@@ -47,9 +47,7 @@ from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.commutative_ring import is_CommutativeRing
 
-
-from sage.schemes.generic.scheme import is_Scheme
-from sage.schemes.generic.spec import Spec, is_Spec
+from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
     SchemeMorphism,
     SchemeMorphism_structure_map,
@@ -160,19 +158,18 @@ class SchemeHomsetFactory(UniqueFactory):
              'X': Affine Space of dimension 3 over Rational Field,
              'base_ring': Integer Ring, 'check': False}
         """
-        if not is_Scheme(X) and is_CommutativeRing(X):
-            X = Spec(X)
-        if not is_Scheme(Y) and is_CommutativeRing(Y):
-            Y = Spec(Y)
-        if is_Spec(base):
+        if is_CommutativeRing(X):
+            X = AffineScheme(X)
+        if is_CommutativeRing(Y):
+            Y = AffineScheme(Y)
+        if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
         elif is_CommutativeRing(base):
-            base_spec = Spec(base)
+            base_spec = AffineScheme(base)
             base_ring = base
         else:
-            raise ValueError(
-                        'The base must be a commutative ring or its spectrum.')
+            raise ValueError('base must be a commutative ring or its spectrum')
         if not category:
             from sage.categories.schemes import Schemes
             category = Schemes(base_spec)
@@ -210,7 +207,7 @@ class SchemeHomsetFactory(UniqueFactory):
         X = extra_args.pop('X')
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
-        if is_Spec(X):
+        if is_AffineScheme(X):
             return Y._point_homset(X, Y, category=category, base=base_ring, **extra_args)
         try:
             return X._homset(X, Y, category=category, base=base_ring, **extra_args)
@@ -329,7 +326,7 @@ class SchemeHomset_generic(HomsetWithBase):
         """
         X = self.domain()
         Y = self.codomain()
-        if is_Spec(Y) and Y.coordinate_ring() == X.base_ring():
+        if is_AffineScheme(Y) and Y.coordinate_ring() == X.base_ring():
             return SchemeMorphism_structure_map(self)
         raise NotImplementedError
 
@@ -440,7 +437,7 @@ class SchemeHomset_points(SchemeHomset_generic):
             sage: SchemeHomset_points(Spec(QQ), AffineSpace(ZZ,2))
             Set of rational points of Affine Space of dimension 2 over Rational Field
         """
-        if check and not is_Spec(X):
+        if check and not is_AffineScheme(X):
             raise ValueError('The domain must be an affine scheme.')
         SchemeHomset_generic.__init__(self, X, Y, category=category, check=check, base=base)
 
@@ -549,8 +546,8 @@ class SchemeHomset_points(SchemeHomset_generic):
             Rational Field
         """
         dom = self.domain()
-        if not is_Spec(dom):
-            raise ValueError("value rings are defined for Spec domains only!")
+        if not is_AffineScheme(dom):
+            raise ValueError("value rings are defined for affine domains only")
         return dom.coordinate_ring()
 
     def cardinality(self):

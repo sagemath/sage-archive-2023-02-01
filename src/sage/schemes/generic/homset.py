@@ -352,7 +352,9 @@ class SchemeHomset_generic(HomsetWithBase):
               To:   Rational Field
 
             sage: H = Hom(Spec(QQ, ZZ), Spec(ZZ)); H
-            Set of rational points of Spectrum of Integer Ring
+            Set of morphisms
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
 
             sage: phi = H(f); phi
             Affine Scheme morphism:

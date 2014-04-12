@@ -299,6 +299,12 @@ should contain a section like this::
 
 which applies the patches to the sources.
 
+A special case where no patch would be necessary is when an author
+provides an already fine SPKG on the net which includes all files
+needed for `SAGE_ROOT/build/pkgs/foo` and the source in its `src/`
+subdirectory. Here it suffices to put all files except `src/` as
+branch in the ticket and give the web link to the package.
+
 
 .. _section-spkg-src:
 

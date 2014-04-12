@@ -1930,19 +1930,26 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: F = FiniteStateMachine([('A', 'B', 1, 2)])
+            sage: F = FiniteStateMachine([('A', 'B', 1, 2)],
+            ....:                        initial_states=['A'],
+            ....:                        final_states=['B'])
+            sage: F.state('A').initial_where='below'
             sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$ $} (v1);\n\\end{tikzpicture}'
+            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state, accepting] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$ $} (v1);\n\\end{tikzpicture}'
         """
-        result = "\\begin{tikzpicture}[auto]\n"
+        result = "\\begin{tikzpicture}[auto, initial text=]\n"
         j = 0;
         for vertex in self.states():
             if not hasattr(vertex, "coordinates"):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
             options = ""
-            if vertex in self.final_states():
-                options += ",accepting"
+            if vertex.is_final:
+                options += ", accepting"
+            if vertex.is_initial:
+                options += ", initial"
+            if hasattr(vertex, "initial_where"):
+                options += ", initial where=%s" % vertex.initial_where
             if hasattr(vertex, "format_label"):
                 label = vertex.format_label()
             elif hasattr(self, "format_state_label"):
@@ -4420,7 +4427,7 @@ class Automaton(FiniteStateMachine):
 
             sage: F = Automaton([('A', 'B', 1)])
             sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
+            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
 
         TESTS::
 
@@ -4745,7 +4752,7 @@ class Transducer(FiniteStateMachine):
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
+            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
 
         TESTS::
 

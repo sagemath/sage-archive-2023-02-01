@@ -163,6 +163,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         names = normalize_names(n, names)
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
+        AffineScheme.__init__(self, self.coordinate_ring(), R)
 
     def __iter__(self):
         """

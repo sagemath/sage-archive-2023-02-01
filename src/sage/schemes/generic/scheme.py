@@ -799,7 +799,7 @@ class AffineScheme(Scheme):
     """
     An abstract affine scheme.
     """
-    def __init__(self, R, S=None):
+    def __init__(self, R, S=None, category=None):
         """
         Construct the spectrum of the ring ``R``.
 
@@ -819,7 +819,7 @@ class AffineScheme(Scheme):
                 raise TypeError, "S (=%s) must be a commutative ring"%S
             if not R.has_coerce_map_from(S):
                 raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
-        AffineScheme.__init__(self, S)
+        Scheme.__init__(self, S, category=category)
 
     def _cmp_(self, X):
         """

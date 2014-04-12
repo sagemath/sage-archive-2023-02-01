@@ -3144,7 +3144,7 @@ class FiniteStateMachine(SageObject):
         True or False.
 
         A finite state machine is considered to be complete if
-        each transition has input label of length one and for each
+        each transition has an input label of length one and for each
         pair `(q, a)` where `q` is a state and `a` is an element of the
         input alphabet, there is exactly one transition from `q` with
         input label `a`.

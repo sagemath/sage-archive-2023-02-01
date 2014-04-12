@@ -244,13 +244,26 @@ class SimplicialComplexExamples():
         return SimplicialComplex([Simplex(n)], is_mutable=False)
 
     def Torus(self):
-        """
+        r"""
         A minimal triangulation of the torus.
+
+        This is a simplicial complex with 7 vertices, 21 edges and 14 faces.
+
+        This is the combinatorial structure of the Császár polyhedron.
+
+        See :wikipedia:`Császár_polyhedron`
 
         EXAMPLES::
 
-            sage: simplicial_complexes.Torus().homology(1)
+            sage: T = simplicial_complexes.Torus(); T.homology(1)
             Z x Z
+            sage: T.f_vector()
+            [1, 7, 21, 14]
+
+        TESTS::
+
+            sage: T.flip_graph().is_isomorphic(graphs.HeawoodGraph())
+            True
         """
         return SimplicialComplex([[0,1,2], [1,2,4], [1,3,4], [1,3,6],
                                   [0,1,5], [1,5,6], [2,3,5], [2,4,5],

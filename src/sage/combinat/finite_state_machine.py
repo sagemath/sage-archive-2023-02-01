@@ -4037,7 +4037,7 @@ class FiniteStateMachine(SageObject):
             sage: FC[1].transitions()
             [Transition from 'E' to 'E': 0|0]
 
-        Another example (cycle of length 2):
+        Another example (cycle of length 2)::
 
             sage: T = Automaton([[0, 1, 0], [1, 0, 0]])
             sage: len(T.final_components()) == 1

@@ -120,10 +120,10 @@ class SchemeTopologicalPoint_prime_ideal(SchemeTopologicalPoint):
         """
         INPUT:
 
+        - ``S`` -- an affine scheme
 
-        -  ``S`` - an affine scheme
-
-        -  ``P`` - a prime ideal of the coordinate ring of S
+        - ``P`` -- a prime ideal of the coordinate ring of `S`, or
+          anything that can be converted into such an ideal
 
         TESTS::
 
@@ -146,8 +146,9 @@ class SchemeTopologicalPoint_prime_ideal(SchemeTopologicalPoint):
             Point on Projective Space of dimension 2 over Rational Field defined by the Ideal (-x^2 + y*z) of Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         R = S.coordinate_ring()
-        from sage.rings.ideal import Ideal
-        P = Ideal(R, P)
+        from sage.rings.ideal import is_Ideal
+        if not (is_Ideal(P) and P.ring() is R):
+            P = R.ideal(P)
         # ideally we would have check=True by default, but
         # unfortunately is_prime() is only implemented in a small
         # number of cases

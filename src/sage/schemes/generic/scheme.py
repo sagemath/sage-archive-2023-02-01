@@ -645,7 +645,7 @@ class Scheme(Parent):
                 return self.Hom(x).natural_map()
             else:
                 raise TypeError, "unable to determine codomain"
-        return self.Hom(Y)(x, check)
+        return self.Hom(Y)(x, check=check)
 
     def _Hom_(self, Y, category=None, check=True):
         """
@@ -813,15 +813,14 @@ class AffineScheme(Scheme):
             sage: Spec(ZZ)
             Spectrum of Integer Ring
         """
-        if not is_CommutativeRing(R):
+        from sage.categories.commutative_rings import CommutativeRings
+        if not R in CommutativeRings():
             raise TypeError, "R (=%s) must be a commutative ring"%R
         self.__R = R
         if not S is None:
-            if not is_CommutativeRing(S):
+            if not S in CommutativeRings():
                 raise TypeError, "S (=%s) must be a commutative ring"%S
-            try:
-                S.hom(R)
-            except TypeError:
+            if not R.has_coerce_map_from(S):
                 raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
         AffineScheme.__init__(self, S)
 
@@ -988,8 +987,8 @@ class AffineScheme(Scheme):
         """
         if self.coordinate_ring() is ZZ:
             from sage.rings.arith import random_prime
-            return self(random_prime(1000))
-        return self(0)
+            return self(ZZ.ideal(random_prime(1000)))
+        return self(self.coordinate_ring().zero_ideal())
 
     def coordinate_ring(self):
         """
@@ -1074,7 +1073,8 @@ class AffineScheme(Scheme):
             sage: Spec_ZZ.base_extend(QQ)
             Spectrum of Rational Field
         """
-        if is_CommutativeRing(R):
+        from sage.categories.commutative_rings import CommutativeRings
+        if R in CommutativeRings():
             return Spec(self.coordinate_ring().base_extend(R), self.base_ring())
         if not self.base_scheme() == R.base_scheme():
             raise ValueError('The new base scheme must be a scheme over the old base scheme.')

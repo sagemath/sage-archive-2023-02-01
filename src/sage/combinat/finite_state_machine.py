@@ -5071,16 +5071,18 @@ class FiniteStateMachine(SageObject):
                 ....:     [0, 1],
                 ....:     [0, 1])
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
-                sage: block_difference = transducers.sub([0,1])(block01.cartesian_product(block10)).simplification().relabeled()
+                sage: product_01x10 = block01.cartesian_product(block10)
+                sage: block_difference = transducers.sub([0,1])(product_01x10)
+                sage: T = block_difference.simplification().relabeled()
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
-                sage: block_difference.transitions()
+                sage: T.transitions()
                 [Transition from 0 to 1: 0|-1,
                  Transition from 0 to 0: 1|0,
                  Transition from 1 to 1: 0|0,
                  Transition from 1 to 0: 1|1,
                  Transition from 2 to 1: 0|0,
                  Transition from 2 to 0: 1|0]
-                sage: constants = block_difference.asymptotic_moments()
+                sage: constants = T.asymptotic_moments()
                 sage: constants['expectation']
                 0
                 sage: constants['variance']

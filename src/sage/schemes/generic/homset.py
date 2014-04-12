@@ -121,7 +121,7 @@ class SchemeHomsetFactory(UniqueFactory):
     """
 
     def create_key_and_extra_args(self, X, Y, category=None, base=ZZ,
-                                  check=True):
+                                  check=True, as_point_homset=False):
         """
         Create a key that uniquely determines the Hom-set.
 
@@ -152,7 +152,7 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: SHOMfactory = SchemeHomsetFactory('test')
             sage: key, extra = SHOMfactory.create_key_and_extra_args(A3,A2,check=False)
             sage: key
-            (..., ..., Category of schemes over Integer Ring)
+            (..., ..., Category of schemes over Integer Ring, False)
             sage: extra
             {'Y': Affine Space of dimension 2 over Rational Field,
              'X': Affine Space of dimension 3 over Rational Field,
@@ -173,7 +173,7 @@ class SchemeHomsetFactory(UniqueFactory):
         if not category:
             from sage.categories.schemes import Schemes
             category = Schemes(base_spec)
-        key = tuple([id(X), id(Y), category])
+        key = tuple([id(X), id(Y), category, as_point_homset])
         extra = {'X':X, 'Y':Y, 'base_ring':base_ring, 'check':check}
         return key, extra
 
@@ -197,17 +197,18 @@ class SchemeHomsetFactory(UniqueFactory):
             True
             sage: from sage.schemes.generic.homset import SchemeHomsetFactory
             sage: SHOMfactory = SchemeHomsetFactory('test')
-            sage: SHOMfactory.create_object(0, [id(A3),id(A2),A3.category()], check=True,
-            ...                             X=A3, Y=A2, base_ring=QQ)
+            sage: SHOMfactory.create_object(0, [id(A3), id(A2), A3.category(), False],
+            ....:                           check=True, X=A3, Y=A2, base_ring=QQ)
             Set of morphisms
               From: Affine Space of dimension 3 over Rational Field
               To:   Affine Space of dimension 2 over Rational Field
         """
         category = key[2]
+        as_point_homset = key[3]
         X = extra_args.pop('X')
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
-        if is_AffineScheme(X):
+        if as_point_homset:
             return Y._point_homset(X, Y, category=category, base=base_ring, **extra_args)
         try:
             return X._homset(X, Y, category=category, base=base_ring, **extra_args)

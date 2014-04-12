@@ -334,7 +334,7 @@ class Scheme(Parent):
             S = self.base_ring()
         SpecS = AffineScheme(S, self.base_ring())
         from sage.schemes.generic.homset import SchemeHomset
-        return SchemeHomset(SpecS, self)
+        return SchemeHomset(SpecS, self, as_point_homset=True)
 
     def point(self, v, check=True):
         """

@@ -31,8 +31,6 @@ from sage.rings.all import (IntegerRing,
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.morphism import is_RingHomomorphism
 
-from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
-
 def is_Scheme(x):
     """
     Test whether ``x`` is a scheme.
@@ -917,7 +915,7 @@ class AffineScheme(Scheme):
         """
         return "\\mathrm{Spec}(%s)" % self.__R._latex_()
 
-    def __call__(self, x):
+    def __call__(self, *args):
         """
         Call syntax for Spec.
 
@@ -928,17 +926,13 @@ class AffineScheme(Scheme):
         - a prime ideal of the coordinate ring; the output will
           be the corresponding point of X
 
-        - an element (or list of elements) of the coordinate ring
-          which generates a prime ideal; the output will be the
-          corresponding point of X
-
         - a ring or a scheme S; the output will be the set X(S) of
           S-valued points on X
 
         EXAMPLES::
 
             sage: S = Spec(ZZ)
-            sage: P = S(3); P
+            sage: P = S(ZZ.ideal(3)); P
             Point on Spectrum of Integer Ring defined by the Principal ideal (3) of Integer Ring
             sage: type(P)
             <class 'sage.schemes.generic.point.SchemeTopologicalPoint_prime_ideal'>
@@ -959,13 +953,14 @@ class AffineScheme(Scheme):
             sage: S(S)
             Set of rational points of Spectrum of Integer Ring
         """
-        if is_CommutativeRing(x):
-            return self.point_homset(x)
-        from sage.schemes.all import is_Scheme
-        if is_Scheme(x):
-            return x.Hom(self)
+        if len(args) == 1:
+            from sage.rings.ideal import is_Ideal
+            x = args[0]
+            if is_Ideal(x) and x.ring() is self.coordinate_ring():
+                from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
+                return SchemeTopologicalPoint_prime_ideal(self, x)
 
-        return SchemeTopologicalPoint_prime_ideal(self, x)
+        return super(AffineScheme, self).__call__(*args)
 
     def _an_element_(self):
         r"""

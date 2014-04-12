@@ -56,6 +56,10 @@ from sage.matrix.constructor import matrix
 from sage.modules.all import vector
 from sage.geometry.polyhedron.double_description import StandardAlgorithm as Algorithm
 
+
+# Compare with PPL if the base ring is QQ. Can be left enabled since
+# we don't use the Python fallback for polyhedra over QQ unless you
+# construct one by hand.
 DEBUG = True
 
 

@@ -797,18 +797,66 @@ def is_AffineScheme(x):
 
 class AffineScheme(Scheme):
     """
-    An abstract affine scheme.
+    Class for general affine schemes.
+
+    TESTS::
+
+        sage: from sage.schemes.generic.scheme import AffineScheme
+        sage: A = QQ['t']
+        sage: X_abs = AffineScheme(A); X_abs
+        Spectrum of Univariate Polynomial Ring in t over Rational Field
+        sage: X_rel = AffineScheme(A, QQ); X_rel
+        Spectrum of Univariate Polynomial Ring in t over Rational Field
+
+        sage: X_abs == X_rel
+        True
+        sage: X_abs.base_ring()
+        Integer Ring
+        sage: X_rel.base_ring()
+        Rational Field
+
+    .. SEEALSO::
+
+        For affine spaces over a base ring and subschemes thereof, see
+        :class:`sage.schemes.generic.algebraic_scheme.AffineSpace`.
+
     """
     def __init__(self, R, S=None, category=None):
         """
-        Construct the spectrum of the ring ``R``.
+        Construct the affine scheme with coordinate ring `R`.
 
-        See :class:`Spec` for details.
+        INPUT:
+
+        - ``R`` -- commutative ring
+
+        - ``S`` -- (optional) commutative ring admitting a natural map
+          to ``R``
+
+        OUTPUT:
+
+        The spectrum of `R`, i.e. the unique affine scheme with
+        coordinate ring `R` as a scheme over the base ring `S`.
 
         EXAMPLES::
 
-            sage: Spec(ZZ)
+            sage: from sage.schemes.generic.scheme import AffineScheme
+            sage: A.<x, y> = PolynomialRing(QQ)
+            sage: X = AffineScheme(A, QQ)
+            sage: X
+            Spectrum of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: X.category()
+            Category of schemes over Rational Field
+
+        The standard way to construct an affine scheme is to use the
+        :func:`~sage.schemes.generic.spec.Spec` functor::
+
+            sage: S = Spec(ZZ)
+            sage: S
             Spectrum of Integer Ring
+            sage: S.category()
+            Category of Schemes
+            sage: type(S)
+            <class 'sage.schemes.generic.scheme.AffineScheme_with_category'>
         """
         from sage.categories.commutative_rings import CommutativeRings
         if not R in CommutativeRings():
@@ -836,10 +884,8 @@ class AffineScheme(Scheme):
         """
         Compare ``self`` and ``X``.
 
-        Spec's are compared with self using comparison of the
-        underlying rings.  If X is not a Spec, then the result is
-        platform-dependent (either self < X or X < self, but never
-        self == X).
+        Affine schemes are compared using comparison of the
+        underlying rings.
 
         INPUT:
 
@@ -896,7 +942,7 @@ class AffineScheme(Scheme):
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 
@@ -912,11 +958,11 @@ class AffineScheme(Scheme):
 
     def _latex_(self):
         """
-        LaTeX representation of this Spec.
+        Return a LaTeX representation of ``self``.
 
         OUTPUT:
 
-        String.
+        A string.
 
         EXAMPLES::
 

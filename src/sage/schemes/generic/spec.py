@@ -22,20 +22,17 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 def Spec(R, S=None):
     r"""
-    The spectrum of a commutative ring, as a scheme.
-
-    .. note::
-
-        Calling ``Spec(R)`` twice produces two distinct (but equal)
-        schemes, which is important for gluing to construct more
-        general schemes.
+    Apply the Spec functor to `R`.
 
     INPUT:
 
-    - ``R`` -- a commutative ring.
+    - ``R`` -- either a commutative ring or a ring homomorphism
 
-    - ``S`` -- a commutative ring (optional, default:`\ZZ`). The base
-      ring.
+    - ``S`` -- a commutative ring (optional), the base ring
+
+    OUTPUT:
+
+    - ``AffineScheme`` -- the affine scheme `\text{Spec}(R)`
 
     EXAMPLES::
 
@@ -47,8 +44,9 @@ def Spec(R, S=None):
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49,'a'), 3, 'x')); X
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
-        sage: TestSuite(X).run(skip = ["_test_an_element", "_test_elements",
-        ...                            "_test_some_elements"])
+        sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements", "_test_some_elements"])
+
+    Applying ``Spec`` twice gives equal but non-identical output::
 
         sage: A = Spec(ZZ); B = Spec(ZZ)
         sage: A is B
@@ -87,11 +85,18 @@ def Spec(R, S=None):
 
 class SpecFunctor(Functor, UniqueRepresentation):
     """
-    TODO
+    The Spec functor.
     """
     def __init__(self, base_ring=None):
         """
-        TODO
+        EXAMPLE::
+
+            sage: from sage.schemes.generic.spec import SpecFunctor
+            sage: SpecFunctor()
+            Spec functor from Category of commutative rings to Category of Schemes
+            sage: SpecFunctor(QQ)
+            Spec functor from Category of commutative rings to Category of schemes over Rational Field
+
         """
         from sage.categories.all import CommutativeAlgebras, CommutativeRings, Schemes
 
@@ -106,19 +111,72 @@ class SpecFunctor(Functor, UniqueRepresentation):
             domain = CommutativeRings()
             codomain = Schemes(AffineScheme(base_ring))
         else:
-            raise TypeError('base object (= %s) must be a commutative ring or a scheme')
+            raise TypeError('base (= %s) must be a commutative ring')
         self._base_ring = base_ring
         super(SpecFunctor, self).__init__(domain, codomain)
 
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.schemes.generic.spec import SpecFunctor
+            sage: SpecFunctor(QQ)
+            Spec functor from Category of commutative rings to Category of schemes over Rational Field
+
+        """
+        return 'Spec functor from %s to %s' % (self.domain(), self.codomain())
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        EXAMPLE::
+
+            sage: from sage.schemes.generic.spec import SpecFunctor
+            sage: latex(SpecFunctor())
+            \mathrm{Spec}\colon \mathbf{CommutativeRings} \longrightarrow \mathbf{Schemes}
+
+        """
+        return (r'\mathrm{Spec}\colon %s \longrightarrow %s'
+                % (self.domain()._latex_(), self.codomain()._latex_()))
+
     def _apply_functor(self, A):
         """
-        TODO
+        Apply the Spec functor to the commutative ring ``A``.
+
+        EXAMPLE::
+
+            sage: from sage.schemes.generic.spec import SpecFunctor
+            sage: F = SpecFunctor()
+            sage: F(RR)
+            Spectrum of Real Field with 53 bits of precision
+
         """
         return AffineScheme(A, self._base_ring)
 
     def _apply_functor_to_morphism(self, f):
         """
-        TODO
+        Apply the Spec functor to the ring homomorphism ``f``.
+
+        EXAMPLE::
+
+            sage: from sage.schemes.generic.spec import SpecFunctor
+            sage: F = SpecFunctor(GF(7))
+            sage: A.<x, y> = GF(7)[]
+            sage: B.<t> = GF(7)[]
+            sage: f = A.hom((t^2, t^3))
+            sage: Spec(f)
+            Affine Scheme morphism:
+              From: Spectrum of Univariate Polynomial Ring in t over Finite Field of size 7
+              To:   Spectrum of Multivariate Polynomial Ring in x, y over Finite Field of size 7
+              Defn: Ring morphism:
+                     From: Multivariate Polynomial Ring in x, y over Finite Field of size 7
+                     To:   Univariate Polynomial Ring in t over Finite Field of size 7
+                     Defn: x |--> t^2
+                           y |--> t^3
+
         """
         A = f.domain()
         B = f.codomain()

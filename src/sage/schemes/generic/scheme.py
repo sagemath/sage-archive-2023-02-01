@@ -821,6 +821,17 @@ class AffineScheme(Scheme):
                 raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
         Scheme.__init__(self, S, category=category)
 
+    def __setstate__(self, state):
+        """
+        Needed to unpickle old Spec objects.
+
+        The name-mangled attribute ``__R`` used to be in a class
+        called ``Spec``; we have to translate this mangled name.
+        """
+        if '_Spec__R' in state:
+            state['_AffineScheme__R'] = state.pop('_Spec__R')
+        super(AffineScheme, self).__setstate__(state)
+
     def _cmp_(self, X):
         """
         Compare ``self`` and ``X``.

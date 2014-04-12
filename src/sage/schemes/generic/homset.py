@@ -204,7 +204,7 @@ class SchemeHomsetFactory(UniqueFactory):
               To:   Affine Space of dimension 2 over Rational Field
         """
         category = key[2]
-        as_point_homset = key[3]
+        as_point_homset = key[3] if len(key) >= 4 else False
         X = extra_args.pop('X')
         Y = extra_args.pop('Y')
         base_ring = extra_args.pop('base_ring')
@@ -264,8 +264,8 @@ class SchemeHomset_generic(HomsetWithBase):
             sage: loads(Hom.dumps()) == Hom
             True
         """
-        #return SchemeHomset.reduce_data(self)
-        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category())
+        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category(),
+                              self.base_ring(), False, False)
 
     def __call__(self, *args, **kwds):
         r"""
@@ -443,6 +443,20 @@ class SchemeHomset_points(SchemeHomset_generic):
         if check and not is_AffineScheme(X):
             raise ValueError('The domain must be an affine scheme.')
         SchemeHomset_generic.__init__(self, X, Y, category=category, check=check, base=base)
+
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: Hom = A2(QQ)
+            sage: loads(Hom.dumps()) == Hom
+            True
+        """
+        return SchemeHomset, (self.domain(), self.codomain(), self.homset_category(),
+                              self.base_ring(), False, True)
 
     def _element_constructor_(self, *v, **kwds):
         """

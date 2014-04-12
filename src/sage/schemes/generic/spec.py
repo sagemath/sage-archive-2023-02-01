@@ -3,7 +3,7 @@ The Spec functor
 
 AUTHORS:
 
-- William Stein
+- William Stein (2006): initial implementation
 
 - Peter Bruin (2014): rewrite Spec as a functor
 
@@ -15,15 +15,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
+from sage.categories.functor import Functor
 from sage.rings.integer_ring import ZZ
-
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
+from sage.structure.unique_representation import UniqueRepresentation
 
-from sage.misc.superseded import deprecated_function_alias
-
-is_Spec = deprecated_function_alias(7946, is_AffineScheme)
-
-class Spec(AffineScheme):
+def Spec(R, S=None):
     r"""
     The spectrum of a commutative ring, as a scheme.
 
@@ -64,12 +61,11 @@ class Spec(AffineScheme):
         sage: Spec(5)
         Traceback (most recent call last):
         ...
-        TypeError: R (=5) must be a commutative ring
+        TypeError: x (=5) is not in Category of commutative rings
         sage: Spec(FreeAlgebra(QQ,2, 'x'))
         Traceback (most recent call last):
         ...
-        TypeError: R (=Free Algebra on 2 generators (x0, x1) over
-        Rational Field) must be a commutative ring
+        TypeError: x (=Free Algebra on 2 generators (x0, x1) over Rational Field) is not in Category of commutative rings
 
     TESTS::
 
@@ -87,6 +83,55 @@ class Spec(AffineScheme):
         sage: Spec(RDF,QQ).base_scheme()
         Spectrum of Rational Field
     """
-    pass
+    return SpecFunctor(S)(R)
+
+class SpecFunctor(Functor, UniqueRepresentation):
+    """
+    TODO
+    """
+    def __init__(self, base_ring=None):
+        """
+        TODO
+        """
+        from sage.categories.all import CommutativeAlgebras, CommutativeRings, Schemes
+
+        if base_ring is None:
+            domain = CommutativeRings()
+            codomain = Schemes()
+        elif base_ring in CommutativeRings():
+            # We would like to use CommutativeAlgebras(base_ring) as
+            # the domain; we use CommutativeRings() instead because
+            # currently many algebras are not yet considered to be in
+            # CommutativeAlgebras(base_ring) by the category framework.
+            domain = CommutativeRings()
+            codomain = Schemes(AffineScheme(base_ring))
+        else:
+            raise TypeError('base object (= %s) must be a commutative ring or a scheme')
+        self._base_ring = base_ring
+        super(SpecFunctor, self).__init__(domain, codomain)
+
+    def _apply_functor(self, A):
+        """
+        TODO
+        """
+        return AffineScheme(A, self._base_ring)
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        TODO
+        """
+        A = f.domain()
+        B = f.codomain()
+        return self(B).hom(f, self(A))
+
 
 SpecZ = Spec(ZZ)
+
+
+# Compatibility with older versions of this module
+
+from sage.misc.superseded import deprecated_function_alias
+is_Spec = deprecated_function_alias(7946, is_AffineScheme)
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.schemes.generic.spec', 'Spec', AffineScheme)

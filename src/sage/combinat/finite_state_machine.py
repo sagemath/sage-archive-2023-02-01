@@ -5463,6 +5463,10 @@ class Transducer(FiniteStateMachine):
              Transition from 0 to 0: 1|1,
              Transition from 1 to 1: 0|0,
              Transition from 1 to 0: 1|0]
+            sage: input =  [0, 1, 1,  0, 1,  0, 0, 0, 1, 1, 1,  0]
+            sage: output = [0, 0, 1, -1, 0, -1, 0, 0, 0, 1, 1, -1]
+            sage: T(input) == output
+            True
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
         ``self`` where the input is restricted to the input accepted by

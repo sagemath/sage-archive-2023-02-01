@@ -1,5 +1,5 @@
 """
-Python Backend for Polyhedra
+Double Description for Arbitrary Polyhedra
 
 This module is part of the python backend for polyhedra. It uses the
 double description method for cones
@@ -18,7 +18,7 @@ you to define polyhedra.
 
 .. note::
 
-    If you just want polyhedra over arbitrary fields then you shoud
+    If you just want polyhedra over arbitrary fields then you should
     just use the
     :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
     constructor.

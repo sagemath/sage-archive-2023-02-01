@@ -370,7 +370,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 else:
                     base_ring = QQ
                 convert = True
-            except TypeError:
+            except (TypeError, ValueError):
                 from sage.structure.sequence import Sequence
                 values = Sequence(values)
                 if QQ.has_coerce_map_from(values.universe()):

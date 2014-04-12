@@ -1,12 +1,24 @@
 """
 The Python backend
 
+While slower than specialized C/C++ implementations, the
+implementation is general and works with any exact field in Sage that
+allows you to define polyhedra.
+
 EXAMPLES::
 
     sage: p0 = (0, 0)
     sage: p1 = (1, 0)
     sage: p2 = (1/2, AA(3).sqrt()/2)
     sage: equilateral_triangle = Polyhedron([p0, p1, p2])
+    sage: equilateral_triangle.vertices()
+    (A vertex at (0, 0), 
+     A vertex at (1, 0), 
+     A vertex at (0.500000000000000?, 0.866025403784439?))
+    sage: equilateral_triangle.inequalities()
+    (An inequality (-1, -0.5773502691896258?) x + 1 >= 0,  
+     An inequality (1, -0.5773502691896258?) x + 0 >= 0, 
+     An inequality (0, 1.154700538379252?) x + 0 >= 0)
 """
 
 from sage.rings.all import ZZ, QQ
@@ -28,7 +40,7 @@ class Polyhedron_field(Polyhedron_base):
     EXAMPLES::
 
         sage: p = Polyhedron(vertices=[(0,0),(AA(2).sqrt(),0),(0,AA(3).sqrt())], 
-        ....:                rays=[(1,1)], lines=[], backend='field')
+        ....:                rays=[(1,1)], lines=[], backend='field', base_ring=AA)
         sage: TestSuite(p).run()
 
     TESTS::

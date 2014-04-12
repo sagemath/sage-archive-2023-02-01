@@ -1,13 +1,13 @@
 """
-Double Description Algorithm
+Double Description Algorithm for Cones
 
 This module implements the double description algorithm for extremal
 vertex enumeration in a pointed cone following [FukudaProdon]_. With a
 little bit of preprocessing (see
-:mod:`double_description_inhomogeneous`) this defines a backend for
-polyhedral computations. But as far as this module is concerned,
-"inequality" always means without a constant term and the origin is
-always a point of the cone.
+:mod:`~sage.geometry.polyhedron.double_description_inhomogeneous`)
+this defines a backend for polyhedral computations. But as far as this
+module is concerned, *inequality* always means without a constant term
+and the origin is always a point of the cone.
 
 EXAMPLES::
 
@@ -84,9 +84,9 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import QQ
 
 
-def test_random(d, n):
+def random_inequalities(d, n):
     """
-    Test random collections of inequalities.
+    Random collections of inequalities for testing purposes.
 
     INPUT:
 
@@ -94,10 +94,14 @@ def test_random(d, n):
 
     - ``n``  -- integer. The number of random inequalities to generate.
 
+    OUTPUT:
+
+    A random set of inequalites as a :class:`StandardAlgorithm` instance.
+
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.double_description import test_random
-        sage: P = test_random(5, 10)
+        sage: from sage.geometry.polyhedron.double_description import random_inequalities
+        sage: P = random_inequalities(5, 10)
         sage: P.run().verify()
     """
     from sage.matrix.constructor import random_matrix
@@ -111,7 +115,7 @@ def test_random(d, n):
 class DoubleDescriptionPair(SageObject):
 
     def __init__(self, problem, A_rows, R_cols):
-        """
+        r"""
         Base class for a double description pair `(A, R)`
 
         .. warning:: 
@@ -150,7 +154,7 @@ class DoubleDescriptionPair(SageObject):
         self.R = tuple(R_cols)
 
     def _make_new(self, A_rows, R_cols):
-        """
+        r"""
         Construct a new double description pair
 
         OUTPUT:
@@ -177,7 +181,7 @@ class DoubleDescriptionPair(SageObject):
         return self.__class__(self.problem, A_rows, R_cols)
 
     def _repr_(self):
-        """
+        r"""
         Return string representation
 
         OUTPUT:
@@ -269,7 +273,7 @@ class DoubleDescriptionPair(SageObject):
             return Polyhedron(ieqs=ieqs, base_ring=self.problem.base_ring(), backend='ppl')
 
     def verify(self):
-        """
+        r"""
         Validate the double description pair
         
         This method used the PPL backend to check that the double
@@ -312,8 +316,8 @@ class DoubleDescriptionPair(SageObject):
 
         OUTPUT:
 
-        A triple consisting of the rays (columns of `R`) that ar
-        epositive, zero, and negative on `a`. In that order.
+        A triple consisting of the rays (columns of `R`) that are
+        positive, zero, and negative on `a`. In that order.
 
         EXAMPLES::
 
@@ -356,7 +360,9 @@ class DoubleDescriptionPair(SageObject):
             sage: from sage.geometry.polyhedron.double_description import Problem
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: DD, _ = Problem(A).initial_pair()
-            sage: DD.zero_set(DD.R[0])
+            sage: r = DD.R[0];  r
+            (2/3, -1/3, 1/3)
+            sage: DD.zero_set(r)
             ((0, 1, 1), (-1, -1, 1))
         """
         return tuple(a for a in self.A if a.inner_product(ray) == 0)

@@ -3,7 +3,7 @@ Parents for Polyhedra
 """
 
 #*****************************************************************************
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -17,7 +17,6 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.commutative_ring import is_CommutativeRing
 from sage.rings.all import ZZ, QQ, RDF
 from sage.categories.fields import Fields
-_Fields = Fields()
 
 from sage.geometry.polyhedron.base import Polyhedron_base, is_Polyhedron
 from representation import Inequality, Equation, Vertex, Ray, Line
@@ -302,7 +301,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(QQ, 4).ambient_space()
             Vector space of dimension 4 over Rational Field
         """
-        if self.base_ring() in _Fields:
+        if self.base_ring() in Fields():
             from sage.modules.free_module import VectorSpace
             return VectorSpace(self.base_ring(), self.ambient_dim())
         else:
@@ -326,7 +325,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(ZZ, 2).Hrepresentation_space()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
-        if self.base_ring() in _Fields:
+        if self.base_ring() in Fields():
             from sage.modules.free_module import VectorSpace
             return VectorSpace(self.base_ring(), self.ambient_dim()+1)
         else:

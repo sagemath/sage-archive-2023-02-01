@@ -50,7 +50,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+DEBUG = True
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -456,7 +456,7 @@ class StandardAlgorithm(Problem):
     """
     pair_class = StandardDoubleDescriptionPair
 
-    def run(self, check=True):
+    def run(self):
         """
         OUTPUT:
 
@@ -477,6 +477,6 @@ class StandardAlgorithm(Problem):
         DD, remaining = self.initial_pair()
         for a in remaining:
             DD = DD.add_inequality(a)
-            if check:
+            if DEBUG:
                 DD.verify()
         return DD

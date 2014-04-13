@@ -481,11 +481,11 @@ And you can view it in three dimensions via jmol with ``show3d()``. ::
 
     sage: G.show3d()
 
-Or it can be rendered with `\mbox{\rm\LaTeX}`.  This requires the right
+Or it can be rendered with `\LaTeX`.  This requires the right
 additions to a standard `\mbox{\rm\TeX}` installation.  Then standard
 Sage commands, such as ``view(G)`` will display the graph, or
 ``latex(G)`` will produce a string suitable for inclusion in a
-`\mbox{\rm\LaTeX}` document.  More details on this are at
+`\LaTeX` document.  More details on this are at
 the :mod:`sage.graphs.graph_latex` module. ::
 
     sage: from sage.graphs.graph_latex import check_tkz_graph

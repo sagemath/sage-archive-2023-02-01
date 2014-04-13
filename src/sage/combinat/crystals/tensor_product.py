@@ -668,12 +668,12 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T2 = crystals.TensorProduct(C, C, cartan_type=['A',2])
             sage: T is T2
             True
-            sage: T3 = TensorProductOfCrystals(C, C, C)
-            sage: T3p = TensorProductOfCrystals(T, C)
+            sage: T3 = crystals.TensorProduct(C, C, C)
+            sage: T3p = crystals.TensorProduct(T, C)
             sage: T3 is T3p
             True
-            sage: B = InfinityCrystalOfTableaux(['A',2])
-            sage: T = TensorProductOfCrystals(B, B)
+            sage: B = crystals.infinity.Tableaux(['A',2])
+            sage: T = crystals.TensorProduct(B, B)
         """
         crystals = tuple(crystals)
         if "cartan_type" in options:
@@ -1764,7 +1764,7 @@ class CrystalOfTableaux(CrystalOfWords):
 
     def _element_constructor_(self, *args, **options):
         """
-        Returns a CrystalOfTableauxElement
+        Return a :class:`CrystalOfTableauxElement`.
 
         EXAMPLES::
 

@@ -96,8 +96,8 @@ class FiniteCrystals(Category):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                    sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
+                    sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                    sage: C = crystals.Tableaux(['A',2], ([2,1], [1,1]))
                     sage: psi = B.crystal_morphism(C.module_generators[:1], codomain=C)
                     sage: psi.is_embedding()
                     True
@@ -121,8 +121,8 @@ class FiniteCrystals(Category):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                    sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
+                    sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                    sage: C = crystals.Tableaux(['A',2], ([2,1], [1,1]))
                     sage: psi = B.crystal_morphism(C.module_generators[:1], codomain=C)
                     sage: psi.is_strict()
                     True
@@ -146,12 +146,12 @@ class FiniteCrystals(Category):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['A',2], shape=[1,1])
-                    sage: C = CrystalOfTableaux(['A',2], ([2,1], [1,1]))
+                    sage: B = crystals.Tableaux(['A',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['A',2], ([2,1], [1,1]))
                     sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
                     sage: psi.is_isomorphism()
                     False
-                    sage: K = KirillovReshetikhinCrystal(['A',2,1], 2,1)
+                    sage: K = crystals.KirillovReshetikhin(['A',2,1], 2,1)
                     sage: psi = K.crystal_morphism(B.module_generators, codomain=B, cartan_type=['A',2])
                     sage: psi.is_isomorphism()
                     True
@@ -164,8 +164,8 @@ class FiniteCrystals(Category):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['D',4], shape=[])
-                    sage: K = KirillovReshetikhinTableaux(['D',4,1], 2,1)
+                    sage: B = crystals.Tableaux(['D',4], shape=[])
+                    sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1, model='KR')
                     sage: psi = B.crystal_morphism(K.module_generators[:1], codomain=K, category=FiniteCrystals())
                     sage: S = psi.image()
                     sage: S
@@ -192,7 +192,7 @@ class FiniteCrystals(Category):
 
             EXAMPLES::
 
-                sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+                sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1)
                 sage: K.connected_components_generators()
                 ([[1], [2]],)
             """
@@ -211,7 +211,7 @@ class FiniteCrystals(Category):
 
             EXAMPLES::
 
-                sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+                sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1)
                 sage: B = K.classical_decomposition()
                 sage: B.is_isomorphic(K)
                 False

@@ -400,7 +400,7 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: H = B._Hom_(B)
                 sage: H
                 Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
@@ -444,8 +444,8 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = InfinityCrystalOfTableaux(['B',2])
-            sage: C = InfinityCrystalOfNakajimaMonomials(['B',2])
+            sage: B = crystals.infinity.Tableaux(['B',2])
+            sage: C = crystals.infinity.NakajimaMonomials(['B',2])
             sage: psi = B.crystal_morphism(C.module_generators)
         """
         if gens is None:
@@ -459,8 +459,8 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
 
         EXAMPLES::
 
-            sage: B = InfinityCrystalOfTableaux(['B',2])
-            sage: C = InfinityCrystalOfNakajimaMonomials(['B',2])
+            sage: B = crystals.infinity.Tableaux(['B',2])
+            sage: C = crystals.infinity.NakajimaMonomials(['B',2])
             sage: psi = B.crystal_morphism(C.module_generators)
             sage: b = B.highest_weight_vector()
             sage: psi(b)
@@ -500,7 +500,7 @@ class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
@@ -516,7 +516,7 @@ class HighestWeightTwistedCrystalMorphism(TwistedCrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
@@ -559,8 +559,8 @@ class HighestWeightVirtualCrystalMorphism(VirtualCrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
         """
@@ -576,8 +576,8 @@ class HighestWeightVirtualCrystalMorphism(VirtualCrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
             sage: psi(B.module_generators[0])
@@ -611,9 +611,9 @@ class HighestWeightCrystalHomset(CrystalHomset):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A', 2], shape=[2,1])
             sage: H = Hom(B, B)
-            sage: B = InfinityCrystalOfTableaux(['B',2])
+            sage: B = crystals.infinity.Tableaux(['B',2])
             sage: H = Hom(B, B)
         """
         if category is None:
@@ -623,3 +623,4 @@ class HighestWeightCrystalHomset(CrystalHomset):
     _generic = HighestWeightCrystalMorphism
     _twisted = HighestWeightTwistedCrystalMorphism
     _virtual = HighestWeightVirtualCrystalMorphism
+

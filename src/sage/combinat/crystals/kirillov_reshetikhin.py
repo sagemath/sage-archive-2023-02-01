@@ -3074,7 +3074,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return Promotion(T, promotion_on_highest_weight_vectors_inverse(), ind)
+        return Promotion(T, self.promotion_on_highest_weight_vectors_inverse(), ind)
 
 #####################################################################
 
@@ -3419,7 +3419,7 @@ class Promotion(CrystalMorphism):
 
         TESTS::
 
-            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: p = K.promotion()
             sage: TestSuite(p).run(skip=['_test_category', '_test_pickling'])
         """
@@ -3447,7 +3447,7 @@ class Promotion(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: p = K.promotion()
         """
         # We do our own caching so we can take advantage of known images above us
@@ -3485,7 +3485,7 @@ class Promotion(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: K.promotion()._repr_type()
             'Promotion'
         """
@@ -3501,7 +3501,7 @@ class PromotionInverse(Promotion):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
+            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: K.promotion_inverse()._repr_type()
             'Inverse promotion'
         """
@@ -3547,8 +3547,8 @@ def crystal_morphism(C, g, index_set=None, automorphism=lambda i: i,
     EXAMPLES::
 
         sage: from sage.combinat.crystals.kirillov_reshetikhin import crystal_morphism
-        sage: C2 = CrystalOfLetters(['A',2])
-        sage: C3 = CrystalOfLetters(['A',3])
+        sage: C2 = crystals.Letters(['A',2])
+        sage: C3 = crystals.Letters(['A',3])
         sage: g = {C2.module_generators[0] : C3.module_generators[0]}
         sage: g_full = crystal_morphism(C2, g)
         sage: g_full(C2(1))
@@ -3559,7 +3559,7 @@ def crystal_morphism(C, g, index_set=None, automorphism=lambda i: i,
         sage: g_full = crystal_morphism(C2, g, automorphism=lambda i: 3-i, direction_image='up')
         sage: [g_full(b) for b in C2]
         [3, 2, 1]
-        sage: T = CrystalOfTableaux(['A',2], shape = [2])
+        sage: T = crystals.Tableaux(['A',2], shape = [2])
         sage: g = {C2(1) : T(rows=[[1,1]])}
         sage: g_full = crystal_morphism(C2, g, similarity_factor={1:2, 2:2})
         sage: [g_full(b) for b in C2]
@@ -3569,10 +3569,10 @@ def crystal_morphism(C, g, index_set=None, automorphism=lambda i: i,
         sage: g_full(T(rows=[[2,2]]))
         2
 
-        sage: B1 = KirillovReshetikhinCrystal(['A',2,1],1,1)
-        sage: B2 = KirillovReshetikhinCrystal(['A',2,1],1,2)
-        sage: T = TensorProductOfCrystals(B1, B2)
-        sage: T1 = TensorProductOfCrystals(B2, B1)
+        sage: B1 = crystals.KirillovReshetikhin(['A',2,1],1,1)
+        sage: B2 = crystals.KirillovReshetikhin(['A',2,1],1,2)
+        sage: T = crystals.TensorProduct(B1, B2)
+        sage: T1 = crystals.TensorProduct(B2, B1)
         sage: La = T.weight_lattice_realization().fundamental_weights()
         sage: t = [b for b in T if b.weight() == -3*La[0] + 3*La[1]][0]
         sage: t1 = [b for b in T1 if b.weight() == -3*La[0] + 3*La[1]][0]

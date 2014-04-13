@@ -141,8 +141,8 @@ class Crystals(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['C',2], shape=[1,1])
-                    sage: C = CrystalOfTableaux(['C',2], ([2,1], [1,1]))
+                    sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
                     sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
                     sage: psi.is_isomorphism()
                     False
@@ -155,8 +155,8 @@ class Crystals(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['C',2], shape=[1,1])
-                    sage: C = CrystalOfTableaux(['C',2], ([2,1], [1,1]))
+                    sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
                     sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
                     sage: psi.is_embedding()
                     True
@@ -169,8 +169,8 @@ class Crystals(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: B = CrystalOfTableaux(['C',2], shape=[1,1])
-                    sage: C = CrystalOfTableaux(['C',2], ([2,1], [1,1]))
+                    sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+                    sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
                     sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
                     sage: psi.is_strict()
                     True
@@ -354,7 +354,7 @@ class Crystals(Category_singleton):
                 sage: len(S)
                 6
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)]))
-                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                [[[1, 4]], [[2, 4]], [[2, 3]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], max_depth=1))
                 [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='upper'))
@@ -444,7 +444,7 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = ElementaryCrystal(['A',2], 1)
+                sage: B = crystals.elementary.B(['A',2], 1)
                 sage: H = B._Hom_(B); H
                 Set of Crystal Morphisms from The 1-elementary crystal of type ['A', 2]
                  to The 1-elementary crystal of type ['A', 2]
@@ -500,9 +500,9 @@ class Crystals(Category_singleton):
             We construct the natural embedding of a crystal using tableaux
             into the tensor product of single boxes via the reading word::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: F = CrystalOfTableaux(['A',2], shape=[1])
-                sage: T = TensorProductOfCrystals(F, F, F)
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: F = crystals.Tableaux(['A',2], shape=[1])
+                sage: T = crystals.TensorProduct(F, F, F)
                 sage: mg = T.highest_weight_vectors()[2]; mg
                 [[[2]], [[1]], [[1]]]
                 sage: psi = B.crystal_morphism([mg], codomain=T); psi
@@ -543,8 +543,8 @@ class Crystals(Category_singleton):
             We construct a crystal morphism as classical crystals using a
             Kirillov-Reshetikhin crystal::
 
-                sage: B = CrystalOfTableaux(['D', 4], shape=[1,1])
-                sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,2)
+                sage: B = crystals.Tableaux(['D', 4], shape=[1,1])
+                sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,2)
                 sage: K.module_generators
                 [[], [[1], [2]], [[1, 1], [2, 2]]]
                 sage: v = K.module_generators[1]
@@ -895,7 +895,7 @@ class Crystals(Category_singleton):
 
         def dot_tex(self):
             r"""
-            Returns a dot_tex string representation of ``self``.
+            Return a dot_tex string representation of ``self``.
 
             EXAMPLES::
 
@@ -934,7 +934,7 @@ class Crystals(Category_singleton):
 
         def plot(self, **options):
             """
-            Returns the plot of self as a directed graph.
+            Return the plot of ``self`` as a directed graph.
 
             EXAMPLES::
 
@@ -946,7 +946,7 @@ class Crystals(Category_singleton):
 
         def plot3d(self, **options):
             """
-            Returns the 3-dimensional plot of self as a directed graph.
+            Return the 3-dimensional plot of ``self`` as a directed graph.
 
             EXAMPLES::
 
@@ -963,8 +963,8 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: C = CrystalOfLetters(['A',2])
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Letters(['A',2])
                 sage: B.direct_sum(C)
                 Direct sum of the crystals Family
                 (The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
@@ -992,9 +992,9 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(B,C)
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(B,C)
                 sage: T.connected_components_generators()
                 ([[[1, 1], [2]], 1], [[[1, 2], [2]], 1], [[[1, 2], [3]], 1])
             """
@@ -1005,9 +1005,9 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(B,C)
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(B,C)
                 sage: T.connected_components()
                 [Subcrystal of Full tensor product of the crystals
                  [The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]],
@@ -1028,9 +1028,9 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(B,C)
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(B,C)
                 sage: T.number_of_connected_components()
                 3
             """
@@ -1042,9 +1042,9 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(B,C)
+                sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(B,C)
                 sage: B.is_connected()
                 True
                 sage: T.is_connected()
@@ -1080,7 +1080,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def e(self, i):
             r"""
-            Returns `e_i(x)` if it exists or ``None`` otherwise.
+            Returns `e_i` of ``self`` if it exists or ``None`` otherwise.
 
             This method should be implemented by the element class of
             the crystal.
@@ -1097,7 +1097,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def f(self, i):
             r"""
-            Returns `f_i(x)` if it exists or ``None`` otherwise.
+            Returns `f_i` of ``self`` if it exists or ``None`` otherwise.
 
             This method should be implemented by the element class of
             the crystal.
@@ -1138,7 +1138,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def weight(self):
             r"""
-            Returns the weight of this crystal element
+            Return the weight of this crystal element.
 
             This method should be implemented by the element class of
             the crystal.
@@ -1152,9 +1152,10 @@ class Crystals(Category_singleton):
 
         def phi_minus_epsilon(self, i):
             """
-            Returns `\phi_i - \epsilon_i` of self. There are sometimes
-            better implementations using the weight for this. It is used
-            for reflections along a string.
+            Return `\phi_i - \epsilon_i` of ``self``.
+
+            There are sometimes better implementations using the weight
+            for this. It is used for reflections along a string.
 
             EXAMPLES::
 
@@ -1196,7 +1197,8 @@ class Crystals(Category_singleton):
 
         def f_string(self, list):
             r"""
-            Applies `f_{i_r} ... f_{i_1}` to self for `list = [i_1, ..., i_r]`
+            Applies `f_{i_r} \cdots f_{i_1}` to self for ``list`` as
+            `[i_1, ..., i_r]`
 
             EXAMPLES::
 
@@ -1215,7 +1217,8 @@ class Crystals(Category_singleton):
 
         def e_string(self, list):
             r"""
-            Applies `e_{i_r} ... e_{i_1}` to self for `list = [i_1, ..., i_r]`
+            Applies `e_{i_r} \cdots e_{i_1}` to self for ``list`` as
+            `[i_1, ..., i_r]`
 
             EXAMPLES::
 
@@ -1234,19 +1237,19 @@ class Crystals(Category_singleton):
 
         def s(self, i):
             r"""
-            Returns the reflection of ``self`` along its `i`-string
+            Return the reflection of ``self`` along its `i`-string.
 
             EXAMPLES::
 
                 sage: C = crystals.Tableaux(['A',2], shape=[2,1])
-                sage: b=C(rows=[[1,1],[3]])
+                sage: b = C(rows=[[1,1],[3]])
                 sage: b.s(1)
                 [[2, 2], [3]]
-                sage: b=C(rows=[[1,2],[3]])
+                sage: b = C(rows=[[1,2],[3]])
                 sage: b.s(2)
                 [[1, 2], [3]]
-                sage: T=crystals.Tableaux(['A',2],shape=[4])
-                sage: t=T(rows=[[1,2,2,2]])
+                sage: T = crystals.Tableaux(['A',2],shape=[4])
+                sage: t = T(rows=[[1,2,2,2]])
                 sage: t.s(1)
                 [[1, 1, 1, 2]]
             """
@@ -1419,7 +1422,7 @@ class Crystals(Category_singleton):
                 sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: elt = C(1,4)
                 sage: list(elt.subcrystal(index_set=[1,3]))
-                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                [[[1, 4]], [[2, 4]], [[2, 3]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], max_depth=1))
                 [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='upper'))
@@ -1454,7 +1457,7 @@ class CrystalMorphism(Morphism):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: H = Hom(B, B)
             sage: psi = H.an_element()
         """
@@ -1474,7 +1477,7 @@ class CrystalMorphism(Morphism):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: H = Hom(B, B)
             sage: psi = H.an_element()
             sage: psi._repr_type()
@@ -1494,7 +1497,7 @@ class CrystalMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: H = Hom(B, B)
             sage: psi = H.an_element()
             sage: psi.index_set()
@@ -1511,7 +1514,7 @@ class CrystalMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: psi = Hom(B, B).an_element()
             sage: psi.cartan_type()
             ['A', 2]
@@ -1524,7 +1527,7 @@ class CrystalMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: psi = Hom(B, B).an_element()
             sage: psi.is_injective()
             False
@@ -1540,9 +1543,9 @@ class CrystalMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: F = CrystalOfTableaux(['A',2], shape=[1])
-            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: F = crystals.Tableaux(['A',2], shape=[1])
+            sage: T = crystals.TensorProduct(F, F, F)
             sage: H = Hom(T, B)
             sage: b = B.module_generators[0]
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
@@ -1581,7 +1584,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: H = Hom(B, B)
             sage: psi = H.an_element()
         """
@@ -1616,15 +1619,15 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: C = CrystalOfTableaux(['A',2], shape=[4,2])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: C = crystals.Tableaux(['A',2], shape=[4,2])
             sage: B.crystal_morphism(C.module_generators, codomain=C) # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: invalid crystal morphism: weights do not match
 
             sage: La = RootSystem(['A',2]).ambient_space().fundamental_weights()
-            sage: T = TensorProductOfCrystals(TCrystal(['A',2], La[1]+La[2]), B)
+            sage: T = crystals.TensorProduct(crystals.elementary.T(['A',2], La[1]+La[2]), B)
             sage: psi = T.crystal_morphism(C.module_generators, codomain=C)
         """
         index_set = self._index_set
@@ -1649,7 +1652,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
             sage: H = Hom(B, B)
             sage: psi = H(B.module_generators)
             sage: psi(B.highest_weight_vector())
@@ -1683,7 +1686,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: B = ElementaryCrystal(['A',2], 2)
+            sage: B = crystals.elementary.Elementary(['A',2], 2)
             sage: psi = B.crystal_morphism(B.module_generators)
             sage: psi.to_module_generator(B(4))
             (0, ['f', 'f', 'f', 'f'], [2, 2, 2, 2])
@@ -1739,9 +1742,9 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: F = CrystalOfTableaux(['A',2], shape=[1])
-            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: F = crystals.Tableaux(['A',2], shape=[1])
+            sage: T = crystals.TensorProduct(F, F, F)
             sage: H = Hom(T, B)
             sage: b = B.highest_weight_vector()
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
@@ -1761,9 +1764,9 @@ class CrystalMorphismByGenerators(CrystalMorphism):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: F = CrystalOfTableaux(['A',2], shape=[1])
-            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: F = crystals.Tableaux(['A',2], shape=[1])
+            sage: T = crystals.TensorProduct(F, F, F)
             sage: H = Hom(T, B)
             sage: b = B.highest_weight_vector()
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
@@ -1797,7 +1800,7 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
@@ -1812,7 +1815,7 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x]) # indirect doctest
@@ -1839,7 +1842,7 @@ class TwistedCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['D',4], shape=[1])
+            sage: B = crystals.Tableaux(['D',4], shape=[1])
             sage: H = Hom(B, B)
             sage: d = {1:1, 2:2, 3:4, 4:3}
             sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
@@ -1890,8 +1893,8 @@ class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
         """
@@ -1915,8 +1918,8 @@ class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators) # indirect doctest
         """
@@ -1944,8 +1947,8 @@ class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
             sage: psi(B.highest_weight_vector())
@@ -1983,8 +1986,8 @@ class VirtualCrystalMorphismByGenerators(CrystalMorphismByGenerators):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
             sage: psi.image()
@@ -2061,9 +2064,9 @@ class CrystalHomset(Homset):
     We begin with the natural embedding of `B(2\Lambda_1)` into
     `B(\Lambda_1) \otimes B(\Lambda_1)` in type `A_1`::
 
-        sage: B = CrystalOfTableaux(['A',1], shape=[2])
-        sage: F = CrystalOfTableaux(['A',1], shape=[1])
-        sage: T = TensorProductOfCrystals(F, F)
+        sage: B = crystals.Tableaux(['A',1], shape=[2])
+        sage: F = crystals.Tableaux(['A',1], shape=[1])
+        sage: T = crystals.TensorProduct(F, F)
         sage: v = T.highest_weight_vectors()[0]; v
         [[[1]], [[1]]]
         sage: H = Hom(B, T)
@@ -2080,8 +2083,8 @@ class CrystalHomset(Homset):
     We now look at the decomposition of `B(\Lambda_1) \otimes B(\Lambda_1)`
     into `B(2\Lambda_1) \oplus B(0)`::
 
-        sage: B0 = CrystalOfTableaux(['A',1], shape=[])
-        sage: D = DirectSumOfCrystals([B, B0])
+        sage: B0 = crystals.Tableaux(['A',1], shape=[])
+        sage: D = crystals.DirectSum([B, B0])
         sage: H = Hom(T, D)
         sage: psi = H(D.module_generators)
         sage: psi
@@ -2100,8 +2103,8 @@ class CrystalHomset(Homset):
     We can always construct the trivial morphism which sends
     everything to `0`::
 
-        sage: Binf = InfinityCrystalOfTableaux(['B', 2])
-        sage: B = CrystalOfTableaux(['B',2], shape=[1])
+        sage: Binf = crystals.infinity.Tableaux(['B', 2])
+        sage: B = crystals.Tableaux(['B',2], shape=[1])
         sage: H = Hom(Binf, B)
         sage: psi = H(lambda x: None)
         sage: psi(Binf.highest_weight_vector())
@@ -2109,7 +2112,7 @@ class CrystalHomset(Homset):
     For Kirillov-Reshetikhin crystals, we consider the map to the
     corresponding classical crystal::
 
-        sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+        sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1)
         sage: B = K.classical_decomposition()
         sage: H = Hom(K, B)
         sage: psi = H(lambda x: x.lift(), cartan_type=['D',4])
@@ -2121,7 +2124,7 @@ class CrystalHomset(Homset):
     Next we consider a type `D_4` crystal morphism where we twist by
     `3 \leftrightarrow 4`::
 
-        sage: B = CrystalOfTableaux(['D',4], shape=[1])
+        sage: B = crystals.Tableaux(['D',4], shape=[1])
         sage: H = Hom(B, B)
         sage: d = {1:1, 2:2, 3:4, 4:3}
         sage: psi = H(B.module_generators, automorphism=lambda x: d[x])
@@ -2138,8 +2141,8 @@ class CrystalHomset(Homset):
     We construct the natural virtual embedding of a type `B_3` into a type
     `D_4` crystal::
 
-        sage: B = CrystalOfTableaux(['B',3], shape=[1])
-        sage: C = CrystalOfTableaux(['D',4], shape=[2])
+        sage: B = crystals.Tableaux(['B',3], shape=[1])
+        sage: C = crystals.Tableaux(['D',4], shape=[2])
         sage: H = Hom(B, C)
         sage: psi = H(C.module_generators)
         sage: psi
@@ -2162,9 +2165,9 @@ class CrystalHomset(Homset):
 
         TESTS::
 
-            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A', 2], shape=[2,1])
             sage: H = Hom(B, B)
-            sage: Binf = InfinityCrystalOfTableaux(['B',2])
+            sage: Binf = crystals.infinity.Tableaux(['B',2])
             sage: H = Hom(Binf, B)
         """
         if category is None:
@@ -2180,7 +2183,7 @@ class CrystalHomset(Homset):
         """
         TESTS::
 
-            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A', 2], shape=[2,1])
             sage: Hom(B, B)
             Set of Crystal Morphisms from The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
              to The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
@@ -2194,7 +2197,7 @@ class CrystalHomset(Homset):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[2,1])
+            sage: B = crystals.Tableaux(['B',3], shape=[2,1])
             sage: H = Hom(B, B)
             sage: H(H.an_element()) # indirect doctest
             ['B', 3] Crystal endomorphism of The crystal of tableaux of type ['B', 3] and shape(s) [[2, 1]]
@@ -2227,12 +2230,12 @@ class CrystalHomset(Homset):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
+            sage: B = crystals.Tableaux(['A', 2], shape=[2,1])
             sage: H = Hom(B, B)
             sage: psi = H(B.module_generators)
 
-            sage: F = CrystalOfTableaux(['A',3], shape=[1])
-            sage: T = TensorProductOfCrystals(F, F, F)
+            sage: F = crystals.Tableaux(['A',3], shape=[1])
+            sage: T = crystals.TensorProduct(F, F, F)
             sage: H = Hom(B, T)
             sage: v = T.highest_weight_vectors()[2]
             sage: psi = H([v], cartan_type=['A',2])
@@ -2275,8 +2278,8 @@ class CrystalHomset(Homset):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['A', 2], shape=[2,1])
-            sage: C = InfinityCrystalOfTableaux(['A', 2])
+            sage: B = crystals.Tableaux(['A', 2], shape=[2,1])
+            sage: C = crystals.infinity.Tableaux(['A', 2])
             sage: H = Hom(B, C)
             sage: H.an_element()
             ['A', 2] Crystal morphism:

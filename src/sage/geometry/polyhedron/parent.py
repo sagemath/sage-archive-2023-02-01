@@ -50,7 +50,7 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
 
         sage: from sage.geometry.polyhedron.parent import Polyhedra
         sage: Polyhedra(AA, 3)
-
+        Polyhedra in AA^3
         sage: Polyhedra(ZZ, 3)
         Polyhedra in ZZ^3
         sage: type(_)

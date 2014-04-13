@@ -23,10 +23,6 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/polyhedron/representation
    sage/geometry/polyhedron/library
    sage/geometry/polyhedron/plot
-   sage/geometry/polyhedron/base
-   sage/geometry/polyhedron/base_QQ
-   sage/geometry/polyhedron/base_ZZ
-   sage/geometry/polyhedron/base_RDF
    sage/geometry/polyhedron/face
    sage/geometry/polyhedron/cdd_file_format
    sage/geometry/pseudolines
@@ -54,7 +50,10 @@ Backends for Polyhedral Computations
    sage/geometry/polyhedron/backend_field
    sage/geometry/polyhedron/double_description
    sage/geometry/polyhedron/double_description_inhomogeneous
-
+   sage/geometry/polyhedron/base
+   sage/geometry/polyhedron/base_QQ
+   sage/geometry/polyhedron/base_ZZ
+   sage/geometry/polyhedron/base_RDF
    
 
 .. include:: ../footer.txt

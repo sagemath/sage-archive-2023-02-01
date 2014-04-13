@@ -29,7 +29,7 @@ from base import Polyhedron_base
 
 class Polyhedron_field(Polyhedron_base):
     """
-    Polyhedra over all field supported by Sage
+    Polyhedra over all fields supported by Sage
 
     INPUT:
 
@@ -45,8 +45,8 @@ class Polyhedron_field(Polyhedron_base):
 
     TESTS::
 
-        sage: p = Polyhedron([(0,sqrt(2))], base_ring=AA);  p
-        A 0-dimensional polyhedron in AA^2 defined as the convex hull of 1 vertex
+        sage: K.<sqrt3> = NumberField(x^2-3)
+        sage: p = Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
         sage: TestSuite(p).run()
     """
     def _is_zero(self, x):
@@ -138,9 +138,9 @@ class Polyhedron_field(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(backend='field')
+            sage: p = Polyhedron(ambient_dim=2, backend='field')
             sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
-            sage: Polyhedron_field._init_from_Vrepresentation(p, [], [], [])
+            sage: Polyhedron_field._init_from_Vrepresentation(p, [(0,0)], [], [])
         """
         from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep, Vrep2Hrep
         H = Vrep2Hrep(self.base_ring(), self.ambient_dim(), vertices, rays, lines)
@@ -166,15 +166,14 @@ class Polyhedron_field(Polyhedron_base):
         - ``verbose`` -- boolean (default: ``False``). Whether to print
           verbose output for debugging purposes.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: p = Polyhedron(backend='field')
+            sage: p = Polyhedron(ambient_dim=2, backend='field')
             sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
-            sage: Polyhedron_field._init_from_Hrepresentation(p, [], [])
+            sage: Polyhedron_field._init_from_Hrepresentation(p, [(1, 2, 3)], [])
         """
         from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep, Vrep2Hrep
-        assert len(eqns)==0   #TODO
-        V = Hrep2Vrep(self.base_ring(), self.ambient_dim(), ieqs)
+        V = Hrep2Vrep(self.base_ring(), self.ambient_dim(), ieqs, eqns)
         H = Vrep2Hrep(self.base_ring(), self.ambient_dim(), 
                       V.vertices, V.rays, V.lines)
         self._init_Vrepresentation_backend(V)

@@ -3961,8 +3961,10 @@ class Polyhedron_base(Element):
             sage: set(pts1) == set(pts2)
             True
 
-            sage: timeit('Polyhedron(v).integral_points()')   # random output
-            sage: timeit('LatticePolytope(v).points()')       # random output
+            sage: timeit('Polyhedron(v).integral_points()')   # not tested - random
+            625 loops, best of 3: 1.41 ms per loop
+            sage: timeit('LatticePolytope(v).points()')       # not tested - random
+            25 loops, best of 3: 17.2 ms per loop
         """
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')

@@ -1382,15 +1382,20 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NB
         NB = SetSystem(self._E)
-        if r < 0 or r > self.full_rank():
+        if r < 0 or r > self.size():
             return NB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)
         repeat = True
-        while repeat:
-            if not self.__is_independent(self._input):
+        if r > self.full_rank():
+            while repeat:
                 NB._append(self._input)
-            repeat = nxksrd(self._input, self._groundset_size, r, True)
+                repeat = nxksrd(self._input, self._groundset_size, r, True)
+        else:    
+            while repeat:
+                if not self.__is_independent(self._input):
+                    NB._append(self._input)
+                repeat = nxksrd(self._input, self._groundset_size, r, True)
         NB.resize()
         return NB
 

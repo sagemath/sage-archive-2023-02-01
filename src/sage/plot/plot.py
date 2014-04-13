@@ -1106,6 +1106,10 @@ def plot(funcs, *args, **kwds):
         sage: f(x)=x; f
         x |--> x
         sage: plot(f,(x,-1,1))
+
+    Check that :trac:`15030` is fixed::
+
+        sage: plot(abs(log(x)), x)
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 

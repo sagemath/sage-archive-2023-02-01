@@ -142,26 +142,12 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
     For more information about general crystals see
     :mod:`sage.combinat.crystals.crystals`.
 
-    Many Kirillov-Reshetikhin crystals are constructed from a
-    classical crystal together with an automorphism `p` on the level of
-    crystals which corresponds to a Dynkin diagram automorphism mapping
-    node 0 to some other node `i`. The action of `f_0` and `e_0` is then
-    constructed using `f_0 = p^{-1} \circ f_i \circ p`.
-
-    For example, for type `A_n^{(1)}` the Kirillov-Reshetikhin crystal `B^{r,s}`
-    is obtained from the classical crystal `B(s \omega_r)` using the
-    promotion operator. For other types, see [Shimozono02]_, [Schilling08]_,
-    and [JS2010]_.
-
-    Other Kirillov-Reshetikhin crystals are constructed using similarity methods.
-    See Section 4 of [FOS09]_.
-
     There are a variety of models for Kirillov-Reshetikhin crystals. There is
     one using the classical crystal with :func:`Kashiwara-Nakashima tableaux
     <sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux>`.
     There is one using :class:`rigged configurations <RiggedConfiguraitons>`.
-    Another tableaux model coming from the bijection called
-    :class:`Kirillov-Reshetikhin tableaux
+    Another tableaux model comes from the bijection between rigged configurations
+    and tensor products of tableaux called :class:`Kirillov-Reshetikhin tableaux
     <sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux>`
     Lastly there is a model of Kirillov-Reshetikhin crystals for `s = 1` from
     crystals of :func:`LS paths
@@ -369,6 +355,20 @@ def KashiwaraNakashimaTableaux(cartan_type, r, s):
     The Kashiwara-Nakashima (KN) model constructs the KR crystal from the
     KN tableaux model for the corresponding classical crystals. This model
     is named for the underlying KN tableaux.
+
+    Many Kirillov-Reshetikhin crystals are constructed from a
+    classical crystal together with an automorphism `p` on the level of
+    crystals which corresponds to a Dynkin diagram automorphism mapping
+    node 0 to some other node `i`. The action of `f_0` and `e_0` is then
+    constructed using `f_0 = p^{-1} \circ f_i \circ p`.
+
+    For example, for type `A_n^{(1)}` the Kirillov-Reshetikhin crystal `B^{r,s}`
+    is obtained from the classical crystal `B(s \omega_r)` using the
+    promotion operator. For other types, see [Shimozono02]_, [Schilling08]_,
+    and [JS2010]_.
+
+    Other Kirillov-Reshetikhin crystals are constructed using similarity methods.
+    See Section 4 of [FOS09]_.
 
     For more information on Kirillov-Reshetikhin crystals, see
     :func:`~sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal`.

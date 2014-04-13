@@ -292,13 +292,16 @@ cdef class PowerSeries(AlgebraElement):
         all coefficients up to the *minimum* of the precisions of each.
         Thus, e.g., `f=1+q+O(q^2)` is equal to `g=1+O(q)`.
         This is how PARI defines equality of power series, but not how
-        MAGMA defines equality. (MAGMA would declare f and g unequal.) I
-        side with PARI, because even if `g=1+q+O(q^2)`, we don't
-        really know whether f equals g, since we don't know the
-        coefficients of `q^2`.
+        MAGMA defines equality. (MAGMA would declare f and g unequal.) 
+
+        The PARI convention is consistent with the idea that `f+O(q)` 
+        and `g` should be considered equal, even though the coefficients  
+        of `q` are unknown for both series in that comparison. 
+
 
         Comparison is done in dictionary order from lowest degree to
-        highest degree coefficients (this is different than polynomials).
+        highest degree coefficients.  This is different than polynomial
+        comparison.
 
         EXAMPLES::
 
@@ -309,6 +312,23 @@ cdef class PowerSeries(AlgebraElement):
             True
             sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
             False
+
+
+        TESTS: 
+ 
+        Ticket #9457 is fixed:: 
+ 
+            sage: A.<t> = PowerSeriesRing(ZZ) 
+            sage: g = t + t^3 + t^5 + O(t^6); g 
+            t + t^3 + t^5 + O(t^6) 
+            sage: [g == g.add_bigoh(i) for i in range(7)] 
+            [True, True, True, True, True, True, True] 
+            sage: A(g.polynomial()) == g
+            True
+ 
+            sage: f = t + t^2 + O(t^10) 
+            sage: f == f.truncate() 
+            True 
         """
         # A very common case throughout code
         if PY_TYPE_CHECK(right, int):
@@ -320,7 +340,9 @@ cdef class PowerSeries(AlgebraElement):
         x = self.list()
         y = right.list()
         if not (prec is infinity):
-            x = x[:prec]
+            x += [0]*(prec - len(x)) # self.list() does not include trailing zeroes
+            x = x[:prec] # truncate x to common prec
+            y += [0]*(prec - len(y))
             y = y[:prec]
         return cmp(x,y)
 

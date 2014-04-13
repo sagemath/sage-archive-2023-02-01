@@ -28,7 +28,7 @@ def multiplicative_iterator(M):
     stop = list(M.generator_orders())
     for i in range(len(stop)):
         if stop[i] is infinity:
-            raise ArithmeticError, "%s is not finite."%M
+            raise ArithmeticError("%s is not finite."%M)
         stop[i] = stop[i] - 1
     n = 0
     z = M(1)
@@ -55,7 +55,7 @@ def abelian_iterator(M):
     stop = list(M.generator_orders())
     for i in range(len(stop)):
         if stop[i] is infinity:
-            raise ArithmeticError, "%s is not finite."%M
+            raise ArithmeticError("%s is not finite."%M)
         stop[i] = stop[i] - 1
     n = 0
     z = M(0)

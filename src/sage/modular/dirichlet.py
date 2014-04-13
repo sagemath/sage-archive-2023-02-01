@@ -121,7 +121,7 @@ def kronecker_character(d):
     """
     d = rings.Integer(d)
     if d == 0:
-        raise ValueError, "d must be nonzero"
+        raise ValueError("d must be nonzero")
 
     D = arith.fundamental_discriminant(d)
     G = DirichletGroup(abs(D), rings.RationalField())
@@ -144,7 +144,7 @@ def kronecker_character_upside_down(d):
     """
     d = rings.Integer(d)
     if d <= 0:
-        raise ValueError, "d must be positive"
+        raise ValueError("d must be positive")
 
     G = DirichletGroup(d, rings.RationalField())
     return G([arith.kronecker(u.lift(),d) for u in G.unit_gens()])
@@ -218,9 +218,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         self.__modulus = parent.modulus()
         if check:
             if len(x) != len(parent.unit_gens()):
-                raise ValueError, \
-                      "wrong number of values(=%s) on unit gens (want %s)"%( \
-                       x,len(parent.unit_gens()))
+                raise ValueError("wrong number of values(=%s) on unit gens (want %s)"%( \
+                       x,len(parent.unit_gens())))
             if free_module_element.is_FreeModuleElement(x):
                 self.__element = parent._module(x)
             else:
@@ -636,7 +635,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
 
         else:
-            raise ValueError, "algorithm = '%s' unknown"%algorithm
+            raise ValueError("algorithm = '%s' unknown"%algorithm)
 
         if cache:
             self.__bernoulli[k] = ber
@@ -750,7 +749,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             True
         """
         if M % self.modulus() != 0:
-            raise ArithmeticError, "M(=%s) must be a multiple of the modulus(=%s)"%(M,self.modulus())
+            raise ArithmeticError("M(=%s) must be a multiple of the modulus(=%s)"%(M,self.modulus()))
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
@@ -791,7 +790,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             TypeError: Galois orbits only defined if base ring is an integral domain
         """
         if not self.base_ring().is_integral_domain():
-            raise TypeError, "Galois orbits only defined if base ring is an integral domain"
+            raise TypeError("Galois orbits only defined if base ring is an integral domain")
         k = self.order()
         if k <= 2:
             return [self]
@@ -849,7 +848,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent()
         K = G.base_ring()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
+            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         g = 0
         m = G.modulus()
         L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
@@ -912,7 +911,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent()
         K = G.base_ring()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
+            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         phi = K.complex_embedding(prec)
         CC = phi.codomain()
 
@@ -1029,7 +1028,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         if check:
             if self.parent() != char.parent():
-                raise NotImplementedError, "Characters must be from the same Dirichlet Group."
+                raise NotImplementedError("Characters must be from the same Dirichlet Group.")
 
         return sum([self(x) * char(1-x) for x in rings.IntegerModRing(self.modulus())])
 
@@ -1069,7 +1068,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent()
         K = G.base_ring()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
+            raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         g = 0
         m = G.modulus()
         L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
@@ -1116,7 +1115,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent()
         K = G.base_ring()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError, "Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ."
+            raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         phi = K.complex_embedding(prec)
         CC = phi.codomain()
         g = 0
@@ -1405,9 +1404,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         M = int(M)
         if self.modulus()%M != 0:
-            raise ValueError, "M(=%s) must divide the modulus(=%s)"%(M,self.modulus())
+            raise ValueError("M(=%s) must divide the modulus(=%s)"%(M,self.modulus()))
         if M%self.conductor() != 0:
-            raise ValueError, "conductor(=%s) must divide M(=%s)"%(self.conductor(),M)
+            raise ValueError("conductor(=%s) must divide M(=%s)"%(self.conductor(),M))
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
@@ -1738,14 +1737,14 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
 
     if base_ring is None:
         if not (zeta is None and zeta_order is None):
-            raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
+            raise ValueError("zeta and zeta_order must be None if base_ring not specified.")
         e = rings.IntegerModRing(modulus).unit_group_exponent()
         base_ring = rings.CyclotomicField(e)
         if integral:
             base_ring = base_ring.ring_of_integers()
 
     if not is_Ring(base_ring):
-        raise TypeError, "base_ring (=%s) must be a ring"%base_ring
+        raise TypeError("base_ring (=%s) must be a ring"%base_ring)
 
     if zeta is None:
         e = rings.IntegerModRing(modulus).unit_group_exponent()
@@ -1852,7 +1851,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
 
         """
         if not R.has_coerce_map_from(self.base_ring()):
-            raise TypeError, "No coercion map from '%s' to '%s' is defined." % (self.base_ring(), R)
+            raise TypeError("No coercion map from '%s' to '%s' is defined." % (self.base_ring(), R))
         return DirichletGroup(self.modulus(), R, zeta=R(self.zeta()), zeta_order=self.zeta_order())
 
     def __call__(self, x):
@@ -1885,7 +1884,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             elif x.parent() == self:
                 return DirichletCharacter(self, x.values_on_gens())
             return self._coerce_in_dirichlet_character(x)
-        raise TypeError, "No coercion of %s into %s defined."%(x, self)
+        raise TypeError("No coercion of %s into %s defined."%(x, self))
 
     def _coerce_in_dirichlet_character(self, x):
         r"""
@@ -1910,9 +1909,9 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         """
 
         if self.modulus() % x.conductor() != 0:
-            raise TypeError, "conductor must divide modulus"
+            raise TypeError("conductor must divide modulus")
         elif not x.order().divides(self._zeta_order):
-            raise ValueError, "cannot coerce element of order %s into self"%x.order()
+            raise ValueError("cannot coerce element of order %s into self"%x.order())
         a = []
         R = self.base_ring()
         for u in self.unit_gens():
@@ -2109,7 +2108,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             Auts = [e for e in xrange(1,n) if arith.GCD(e,n) == 1]
         else:
             if not rings.ZZ(p).is_prime():
-                raise NotImplementedError, "Automorphisms for finite non-field base rings not implemented"
+                raise NotImplementedError("Automorphisms for finite non-field base rings not implemented")
             # The automorphisms in characteristic p are
             # k-th powering for
             #         k = 1, p, p^2, ..., p^(r-1),
@@ -2212,7 +2211,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         n = int(n)
         g = self.gens()
         if n<0 or n>=len(g):
-            raise IndexError, "n(=%s) must be between 0 and %s"%(n,len(g)-1)
+            raise IndexError("n(=%s) must be between 0 and %s"%(n,len(g)-1))
         return g[n]
 
     def gens(self):

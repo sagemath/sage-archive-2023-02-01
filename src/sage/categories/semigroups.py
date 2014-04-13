@@ -268,7 +268,7 @@ class Semigroups(Category_singleton):
             from sage.graphs.digraph import DiGraph
             from groups import Groups
             if not side in ["left", "right", "twosided"]:
-                raise ValueError, "option 'side' must be 'left', 'right' or 'twosided'"
+                raise ValueError("option 'side' must be 'left', 'right' or 'twosided'")
             if elements is None:
                 assert self.is_finite(), "elements should be specified for infinite semigroups"
                 elements = list(self)

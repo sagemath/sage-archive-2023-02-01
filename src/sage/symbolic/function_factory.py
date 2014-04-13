@@ -85,7 +85,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
         func = l.get(func_name+"_func", None)
         if func:
             if not callable(func):
-                raise ValueError, func_name + "_func" + " parameter must be callable"
+                raise ValueError(func_name + "_func" + " parameter must be callable")
             setattr(NewSymbolicFunction, '_%s_'%func_name, func)
 
     return NewSymbolicFunction()
@@ -300,7 +300,7 @@ def function(s, *args, **kwds):
         2*x
     """
     if not isinstance(s, (str, unicode)):
-        raise TypeError, "expect string as first argument"
+        raise TypeError("expect string as first argument")
 
     # create the function
     if ',' in s:

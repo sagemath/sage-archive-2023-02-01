@@ -448,7 +448,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
         start -= 1
         if start == -1:
             if require_delim:
-                raise SyntaxError, "Unbalanced or missing ()'s"
+                raise SyntaxError("Unbalanced or missing ()'s")
             else:
                 break
         if code[start] in openings:
@@ -466,7 +466,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
     while end < len(code):
         end += 1
         if end == len(code):
-            raise SyntaxError, "Unbalanced or missing ()'s"
+            raise SyntaxError("Unbalanced or missing ()'s")
         if code[end] == openings[p]:
             level += 1
         elif code[end] == closings[p]:
@@ -503,7 +503,7 @@ def parse_ellipsis(code, preparse_step=True):
     ix = code.find('..')
     while ix != -1:
         if ix == 0:
-            raise SyntaxError, "Cannot start line with ellipsis."
+            raise SyntaxError("Cannot start line with ellipsis.")
         elif code[ix-1]=='.':
             # '...' be valid Python in index slices
             code = code[:ix-1] + "Ellipsis" + code[ix+2:]

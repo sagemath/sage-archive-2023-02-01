@@ -174,7 +174,7 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
         return SpechtRepresentation(partition, ring=ring,
                 cache_matrices=cache_matrices)
     else:
-        raise NotImplementedError, "only seminormal, orthogonal and specht are implemented"
+        raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
 def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         cache_matrices=True):
@@ -248,7 +248,7 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
     elif implementation == "specht":
         return SpechtRepresentations(n, ring=ring)
     else:
-        raise NotImplementedError, "only seminormal, orthogonal and specht are implemented"
+        raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
 ##### Generic classes for symmetric group representations #################
 
@@ -476,7 +476,7 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
             Seminormal representation of the symmetric group corresponding to [2, 1]
         """
         if Partition(partition).size() != self._n:
-            raise TypeError, "not a partition of %s" % self._n
+            raise TypeError("not a partition of %s" % self._n)
         return self.object_class(partition, ring=self._ring,
                 cache_matrices=self._cache_matrices)
 

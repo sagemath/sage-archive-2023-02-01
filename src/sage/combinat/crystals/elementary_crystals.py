@@ -740,6 +740,20 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
         """
         return self.element_class(self, m)
 
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization used to express weights.
+
+        Since the weights lie in the root lattice, we return the root lattice.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.Elementary(['F',4], 2)
+            sage: B.weight_lattice_realization()
+            Root lattice of the Root system of type ['F', 4]
+        """
+        return self._cartan_type.root_system().root_lattice()
+
     class Element(Element):
         r"""
         Element of a `B_i` crystal.
@@ -921,7 +935,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
                 sage: B(-385).weight()
                 -385*alpha[12]
             """
-            Q = self.parent().cartan_type().root_system().root_lattice()
+            Q = self.parent().weight_lattice_realization()
             return self._m * Q.simple_root(self.parent()._i)
 
 class ComponentCrystal(Parent,UniqueRepresentation):

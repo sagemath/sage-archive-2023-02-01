@@ -162,9 +162,11 @@ case "$UNAME" in
         fi
         ;; # Linux
     CYGWIN)
-        # For the moment, Cygwin is only 32-bits
-        # and configure gets lost if the hardware is 64 bits
-        ABI=32
+        if uname -a | grep x86_64 ; then
+            ABI=64
+        else
+            ABI=32
+        fi
         ;;
     *) # e.g. AIX or HP-UX
         echo >&2 "Warning: Your platform ($UNAME) isn't yet explicitly supported" \

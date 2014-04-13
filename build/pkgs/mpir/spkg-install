@@ -14,21 +14,9 @@ cd src/
 # Apply patches (if any):
 ###############################################################################
 
-# Before applying patches, we manually move two wrongly named files,
-# rather than doing this with diff/patch which lacks the ability of properly
-# detecting filename changes. See Trac #13137.
-# This fix can (and will have to) be removed once integrated upstream.
-echo "Renaming *,asm files to *.asm..."
-mv mpn/x86/p6/addmul_1,asm mpn/x86/p6/addmul_1.asm &&
-mv mpn/x86/p6/submul_1,asm mpn/x86/p6/submul_1.asm
-if [ $? -ne 0 ]; then
-    echo >&2 "Error: moving *,asm files failed."
-    exit 1
-fi
-
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
+    patch -p1 <"$patch" || continue
     if [ $? -ne 0 ]; then
         echo >&2 "Error: '$patch' failed to apply."
         exit 1

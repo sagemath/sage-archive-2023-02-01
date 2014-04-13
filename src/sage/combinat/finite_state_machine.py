@@ -3040,14 +3040,12 @@ class FiniteStateMachine(SageObject):
         it = self.iter_process(*args, **kwargs)
         for _ in it:
             pass
-
-        # process output (is the same for the abstract finite state machine)
         return (it.accept_input, it.current_state, it.output_tape)
 
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
         """
-        See `process` for more informations.
+        See :meth:`.process` for more informations.
 
         EXAMPLES::
 
@@ -4657,7 +4655,7 @@ class Automaton(FiniteStateMachine):
     Note that the full output of the commands can be obtained by
     calling :meth:`.process` and looks like this::
 
-        sage: A.process([1,0,1])
+        sage: A.process([1, 0, 1])
         (False, 'P')
 
     TESTS::
@@ -5126,7 +5124,8 @@ class Automaton(FiniteStateMachine):
             ....:                   [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
 
-        ::
+        The following example illustrates the difference between 
+        non-existing paths and reaching a non-final state::
 
             sage: NAF.process([2])
             (False, None)

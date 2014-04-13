@@ -1328,7 +1328,7 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem BB
         BB = SetSystem(self._E)
-        if r < 0:
+        if r < 0 or r > self.full_rank():
             return BB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)
@@ -1382,7 +1382,7 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NB
         NB = SetSystem(self._E)
-        if r < 0:
+        if r < 0 or r > self.full_rank():
             return NB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)

@@ -182,7 +182,7 @@ from IPython.core.inputtransformer import (CoroutineInputTransformer,
 
 @StatelessInputTransformer.wrap
 def SagePreparseTransformer(line):
-    """
+    r"""
     EXAMPLES::
 
         sage: from sage.repl.interpreter import SagePreparseTransformer
@@ -218,7 +218,7 @@ def SagePreparseTransformer(line):
 
 @CoroutineInputTransformer.wrap
 def SagePromptTransformer():
-    """
+    r"""
     Strip the sage:/... prompts of Sage.
 
     EXAMPLES::
@@ -233,6 +233,15 @@ def SagePromptTransformer():
         '2+2'
         sage: spt.push("... .... ....: ...: 2+2")
         '2+2'
+
+    We test that the input transformer is enabled on the Sage command
+    line::
+
+        sage: from sage.repl.interpreter import get_test_shell
+        sage: shell = get_test_shell()
+        sage: shell.run_cell('sage: a = 123')              # single line
+        sage: shell.run_cell('sage: a = [\n... 123]')      # old-style multi-line
+        sage: shell.run_cell('sage: a = [\n....: 123]')    # new-style multi-line
     """
     _sage_prompt_re = re.compile(r'^((:?sage:|\.\.\.\.?:?) ?)+')
     return _strip_prompts(_sage_prompt_re)

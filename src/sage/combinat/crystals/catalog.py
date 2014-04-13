@@ -4,19 +4,20 @@ Catalog Of Crystals
 Definition of a Crystal
 -----------------------
 
-Let `T` be a CartanType with index set `I`, and `W` be
-a realization of the type `T` weight lattice. Let `\alpha_i`
+Let `C` be a CartanType with index set `I`, and `P` be
+the corresponding weight lattice of the type `C`. Let `\alpha_i`
 and `\alpha^{\vee}_i` denote the corresponding simple roots
-and coroots respectively.
+and coroots respectively. Let us give the axiomatic definition
+of a crystal.
 
-A type `T` crystal `\mathcal{B}` is a set with maps
-`\operatorname{wt} : \mathcal{B} \to W`,
+A type `C` crystal `\mathcal{B}` is a non-empty set with maps
+`\operatorname{wt} : \mathcal{B} \to P`,
 `e_i, f_i : \mathcal{B} \to \mathcal{B} \cup \{0\}`, and
 `\varepsilon_i, \varphi_i : \mathcal{B} \to \ZZ \cup \{-\infty\}`
-for `i \in I` statisfying the properties:
+for `i \in I` satisfying the following properties for all `i \in I`:
 
 - `\varphi_i(b) = \varepsilon_i(b) + \langle \alpha^{\vee}_i,
-  \operatorname{wt}(b) \rangle`, where `h_i` is a simple coroot,
+  \operatorname{wt}(b) \rangle`,
 
 - if `e_i b \in \mathcal{B}`, then:
 
@@ -34,9 +35,7 @@ for `i \in I` statisfying the properties:
   for `b, b^{\prime} \in \mathcal{B}`,
 
 - if `\varphi_i(b) = -\infty` for `b \in \mathcal{B}`,
-  then `e_i b = f_i b = 0`,
-
-for all `i \in I`.
+  then `e_i b = f_i b = 0`.
 
 .. SEEALSO::
 
@@ -53,7 +52,7 @@ This is a catalog of crystals that are currently in Sage:
 * :class:`AffineFactorization <sage.combinat.crystals.affine_factorization.AffineFactorizationCrystal>`
 * :class:`AlcovePaths <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
 * :class:`FastRankTwo <sage.combinat.crystals.fast_crystals.FastCrystal>`
-* :class:`GeneralizedYoungWalls 
+* :class:`GeneralizedYoungWalls
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
@@ -72,14 +71,14 @@ This is a catalog of crystals that are currently in Sage:
 
 Functorial constructions:
 
-* :class:`TensorProduct <sage.combinat.crystals.tensor_product.TensorProductOfCrystals>`
 * :class:`DirectSum <sage.combinat.crystals.direct_sum.DirectSumOfCrystals>`
+* :class:`TensorProduct <sage.combinat.crystals.tensor_product.TensorProductOfCrystals>`
 
 Subcatalogs:
 
-* :mod:`Kirillov-Reshetihkin crystals <sage.combinat.crystals.catalog_kirillov_reshetikhin>`
 * `B(\infty)` :mod:`(infinity) crystals <sage.combinat.crystals.catalog_infinity_crystals>`
 * :mod:`Elementary crystals <sage.combinat.crystals.catalog_elementary_crystals>`
+* :mod:`Kirillov-Reshetihkin crystals <sage.combinat.crystals.catalog_kirillov_reshetikhin>`
 """
 from letters import CrystalOfLetters as Letters
 from spins import CrystalOfSpins as Spins

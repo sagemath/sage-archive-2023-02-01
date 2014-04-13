@@ -54,7 +54,7 @@ lazy_import('sage.combinat.crystals.generalized_young_walls',
             ['InfinityCrystalOfGeneralizedYoungWalls', 'CrystalOfGeneralizedYoungWalls'],
             deprecation=(15882, "this is being removed from the global namespace. Use crystals.<tab> instead"))
 
-lazy_import('sage.combinat.crystalsmonomial_crystals',
+lazy_import('sage.combinat.crystals.monomial_crystals',
             ['InfinityCrystalOfNakajimaMonomials', 'CrystalOfNakajimaMonomials'],
             deprecation=(15882, "this is being removed from the global namespace. Use crystals.<tab> instead"))
 

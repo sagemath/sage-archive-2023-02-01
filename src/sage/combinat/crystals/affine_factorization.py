@@ -1,5 +1,5 @@
 r"""
-Type A crystal on affine factorizations
+Affine factorization crystal of type `A`
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Anne Schilling <anne at math.ucdavis.edu>

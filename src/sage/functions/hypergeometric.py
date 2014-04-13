@@ -249,6 +249,8 @@ class Hypergeometric(BuiltinFunction):
                 r"{} \right)").format(len(a), len(b), aa, bb, z)
 
     def _eval_(self, a, b, z, **kwargs):
+        if not isinstance(a,tuple) or not isinstance(b,tuple):
+            raise ValueError('First two parameters must be of type list.')
         coercion_model = get_coercion_model()
         co = reduce(lambda x, y: coercion_model.canonical_coercion(x, y)[0],
                     a + b + (z,))
@@ -269,6 +271,8 @@ class Hypergeometric(BuiltinFunction):
             2.7182818284590452353602874714
 
         """
+        if not isinstance(a,tuple) or not isinstance(b,tuple):
+            raise ValueError('First two parameters must be of type list.')
         from mpmath import hyper
         aa = [rational_param_as_tuple(c) for c in a]
         bb = [rational_param_as_tuple(c) for c in b]
@@ -334,13 +338,14 @@ class Hypergeometric(BuiltinFunction):
                 sage: from sage.ext.fast_callable import ExpressionTreeBuilder
                 sage: etb = ExpressionTreeBuilder(vars=['x'])
                 sage: h._fast_callable_(etb)
-                {CommutativeRings.element_class}(v_0)
+                {hypergeometric((), (), x)}(v_0)
 
                 sage: y = var('y')
                 sage: fast_callable(hypergeometric([y], [], x),
                 ....:               vars=[x, y])(3, 4)
                 hypergeometric((4,), (), 3)
             """
+            self.__name__ = self.__repr__()  # was clobbered by category mechanics
             return etb.call(self, *map(etb.var, etb._vars))
 
         def sorted_parameters(cls, self, a, b, z):

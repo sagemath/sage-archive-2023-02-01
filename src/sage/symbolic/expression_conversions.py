@@ -1135,6 +1135,7 @@ class FastFloatConverter(Converter):
                 vars = ex.variables()
 
             if vars:
+                from sage.misc.superseded import deprecation
                 deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
 
 

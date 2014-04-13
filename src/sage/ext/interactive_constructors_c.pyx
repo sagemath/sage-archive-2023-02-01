@@ -93,7 +93,7 @@ cdef _inject(X, do):
     return X
 
 cdef _do_inject(kwds):
-    if kwds.has_key('inject'):
+    if 'inject' in kwds:
         s = kwds['inject']
         del kwds['inject']
         return s == True

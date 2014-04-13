@@ -525,7 +525,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         singular.lib('brnoeth')
         try:
             X1 = f.Adj_div()
-        except (TypeError, RuntimeError), s:
+        except (TypeError, RuntimeError) as s:
             raise RuntimeError, str(s) + "\n\n ** Unable to use the\
                                           Brill-Noether Singular package to\
                                           compute all points (see above)."
@@ -598,7 +598,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         singular.lib('brnoeth')
         try:
             X1 = f.Adj_div()
-        except (TypeError, RuntimeError), s:
+        except (TypeError, RuntimeError) as s:
             raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
         X2 = singular.NSplaces(1, X1)
         # retrieve list of all computed closed points (possibly of degree >1)

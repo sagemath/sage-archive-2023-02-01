@@ -979,7 +979,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A3(0,1,0).branch(C2,rule=br)
         C2(0,0) + C2(0,1)
     """
-    if type(rule) is str or type(rule) is list:
+    if isinstance(rule, str) or isinstance(rule, list):
         rule = branching_rule(R._cartan_type, S._cartan_type, rule)
     if hasattr(rule,"_S"):
         if rule._S != S.cartan_type():
@@ -1081,7 +1081,7 @@ class BranchingRule(SageObject):
             composite branching rule A3 => (isomorphic) D3 => (symmetric) B2 => (levi) A1
             sage: d == e
             False
-            sage: b1 = BranchingRule("A2","A2",lambda x : [x[2], x[1], x[0]], "long weyl element conjugation")
+            sage: b1 = BranchingRule("A2","A2",lambda x : [x[2], x[1], x[0]], "long Weyl element conjugation")
             sage: b2 = BranchingRule("A2","A2",lambda x : x, "identity map")
             sage: b1 == b2
             False
@@ -1296,7 +1296,7 @@ def branching_rule(Rtype, Stype, rule="default"):
     sdim = Stype.root_system().ambient_space().dimension()
     if Rtype.is_compound():
         Rtypes = Rtype.component_types()
-        if type(rule) is str:
+        if isinstance(rule, str):
             if rule[:4] == "proj":
                 name = rule
                 proj = [int(j)-1 for j in rule[4:]]
@@ -1348,7 +1348,7 @@ def branching_rule(Rtype, Stype, rule="default"):
             if Stype.is_compound() and s == r-1:
                 try:
                     return branching_rule(Rtype, Stype, rule="levi")
-                except StandardError:
+                except Exception:
                     pass
             if Rtype[0] == "A":
                 if Stype[0] == "B" and r == 2*s:
@@ -1365,7 +1365,7 @@ def branching_rule(Rtype, Stype, rule="default"):
             if s == r-1:
                 try:
                     return branching_rule(Rtype, Stype, rule="levi")
-                except StandardError:
+                except Exception:
                     pass
         raise ValueError("No default rule found (you must specify the rule)")
     elif rule == "identity":
@@ -2205,8 +2205,8 @@ def maximal_subgroups(ct, mode="print_rules"):
         for line in rul:
             [k, br] = line.split(":")
             br = eval(br)
-            if d.has_key(k):
-                if type(d[k]) is not list:
+            if k in d:
+                if not isinstance(d[k], list):
                     d[k] = [d[k]]
                 d[k].append(br)
             else:

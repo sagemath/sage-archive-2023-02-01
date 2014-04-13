@@ -28,10 +28,10 @@ EXAMPLES::
 #                          Sébastien Labbé <slabqc@gmail.com>,
 #                          Franco Saliola <saliola@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
@@ -126,6 +126,11 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         NotImplementedError: infinite list
         sage: Words_all().cardinality()
         +Infinity
+
+        sage: isinstance(Words('ab'), Words_all)
+        True
+        sage: isinstance(33, Words_all)
+        False
 
     We would like the instance of this class to be unique::
 
@@ -713,6 +718,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             sage: W = Words_over_Alphabet(build_alphabet('ab'))
             sage: W.alphabet()
             {'a', 'b'}
+
+            sage: w = Word('abaccefa')
+            sage: w.parent().alphabet()
+            Set of Python objects of type 'object'
+            sage: Words('456').alphabet()
+            {'4', '5', '6'}
         """
         return self._alphabet
 
@@ -723,6 +734,8 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         EXAMPLES::
 
             sage: Words().size_of_alphabet()
+            +Infinity
+            sage: Word('abaccefa').parent().size_of_alphabet()
             +Infinity
         """
         return Infinity
@@ -839,6 +852,8 @@ class Words_over_Alphabet(Words_all):
             6
             sage: Words('').size_of_alphabet()
             0
+            sage: Words('456').size_of_alphabet()
+            3
         """
         return self.alphabet().cardinality()
 
@@ -1219,12 +1234,6 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             ...
             TypeError: codomain (=a) must be an instance of Words_over_OrderedAlphabet
 
-        The argument ``l`` is now deprecated::
-
-            sage: W = Words('ab')
-            sage: it = W.iter_morphisms(l=None)
-            doctest:...: DeprecationWarning: use the option 'arg' instead of 'l'
-            See http://trac.sagemath.org/10134 for details.
         """
         n = self.size_of_alphabet()
         # create an iterable of compositions (all "compositions" if arg is
@@ -1485,27 +1494,4 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             return iter(self)
         else:
             return iter([])
-
-###########################################################################
-##### DEPRECATION WARNINGS ################################################
-##### Added July 2009 #####################################################
-###########################################################################
-
-def is_Words(obj):
-    r"""
-    Returns True if obj is a word set and False otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.words.words import is_Words
-        sage: is_Words(33)
-        doctest:1: DeprecationWarning: is_Words is deprecated, use isinstance(your_object, Words_all) instead!
-        See http://trac.sagemath.org/6519 for details.
-        False
-        sage: is_Words(Words('ab'))
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6519, "is_Words is deprecated, use isinstance(your_object, Words_all) instead!")
-    return isinstance(obj, Words_all)
 

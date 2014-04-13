@@ -851,7 +851,7 @@ class GroebnerFan(SageObject):
             sage: gf.__eq__(gf2)
             True
         """
-        return type(self) == type(right) and self.ideal() == right.ideal()
+        return isinstance(self, type(right)) and self.ideal() == right.ideal()
 
     def ideal(self):
         """
@@ -1296,7 +1296,7 @@ class GroebnerFan(SageObject):
             r_lines = r_lines + line(x, rgbcolor = rgbcolor)
         if polyfill:
             vals = [polyfill(q) for q in self.reduced_groebner_bases()]
-            if type(vals[0]) == list or type(vals[0]) == tuple:
+            if isinstance(vals[0], list) or isinstance(vals[0], tuple):
                 if scale_colors:
                     vmins = [min([q[i] for q in vals]) for i in (0,1,2)]
                     vmaxs = [max([q[i] for q in vals]) for i in (0,1,2)]
@@ -1408,7 +1408,7 @@ class GroebnerFan(SageObject):
                 if j>i:
                     try:
                         edges.append([tpoints[i],tpoints[j]])
-                    except StandardError:
+                    except Exception:
                         print adj
                         print 'tpoints: ' + str(tpoints)
                         print 'fpoints: ' + str(fpoints)
@@ -1466,7 +1466,7 @@ class GroebnerFan(SageObject):
         for cone_data in cone_info:
             try:
                 cone_lines = self._4d_to_3d(cone_data)
-            except StandardError:
+            except Exception:
                 print cone_data._rays
                 raise RuntimeError
             for a_line in cone_lines:

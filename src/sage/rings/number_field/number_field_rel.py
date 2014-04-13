@@ -250,7 +250,7 @@ class NumberField_relative(NumberField_generic):
         if not isinstance(polynomial, polynomial_element.Polynomial):
             try:
                 polynomial = polynomial.polynomial(base)
-            except (AttributeError, TypeError), msg:
+            except (AttributeError, TypeError) as msg:
                 raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
         if name == base.variable_name():
             raise ValueError, "Base field and extension cannot have the same name"
@@ -1027,9 +1027,9 @@ class NumberField_relative(NumberField_generic):
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
             return self._generic_convert_map(R)
-        mor = self.base_field().coerce_map_from(R)
+        mor = self.base_field()._internal_coerce_map_from(R)
         if mor is not None:
-            return self.coerce_map_from(self.base_field()) * mor
+            return self._internal_coerce_map_from(self.base_field()) * mor
 
     def _rnfeltreltoabs(self, element, check=False):
         r"""
@@ -1351,7 +1351,7 @@ class NumberField_relative(NumberField_generic):
                 if self.is_totally_imaginary():
                     self.__is_CM_extension = True
                     self.__is_CM = True
-                    self.__max_tot_real_sub = [self.base_field(), self.coerce_map_from(self.base_field())]
+                    self.__max_tot_real_sub = [self.base_field(), self._internal_coerce_map_from(self.base_field())]
                     return True
         self.__is_CM_extension = False
         return False
@@ -1995,8 +1995,7 @@ class NumberField_relative(NumberField_generic):
 
         a = self_into_L(self.gen())
         abs_base_gens = map(self_into_L, self.base_field().gens())
-        v = [ self.hom([ L_into_self(aa(a)) ]) for aa in aas if all(aa(g) == g for g in abs_base_gens) ]
-        v.sort()
+        v = sorted([ self.hom([ L_into_self(aa(a)) ]) for aa in aas if all(aa(g) == g for g in abs_base_gens) ])
         put_natural_embedding_first(v)
         self.__automorphisms = Sequence(v, cr = (v != []), immutable=True,
                                         check=False, universe=self.Hom(self))

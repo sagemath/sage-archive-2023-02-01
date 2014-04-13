@@ -47,8 +47,6 @@ from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
                                         normalize_names)
 from sage.schemes.toric.fano_variety import CPRFanoToricVariety
-from sage.categories.fields import Fields
-_Fields = Fields()
 
 
 
@@ -1449,8 +1447,6 @@ class ToricVarietyFactory(SageObject):
                 names = normalize_names(names, m, DEFAULT_PREFIX)
             else:
                 raise TypeError("got an unexpected keyword argument %r" % key)
-        if base_ring not in _Fields:
-            raise TypeError("base_ring (=%r) must be a field" % base_ring)
 
         L = ToricLattice(m)
         L_sub = L.submodule([L(q)])

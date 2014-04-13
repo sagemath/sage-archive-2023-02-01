@@ -1343,7 +1343,7 @@ class BackslashOperator:
     """
     Implements Matlab-style backslash operator for solving systems::
 
-        A / b
+        A \\ b
 
     EXAMPLES::
 
@@ -1431,7 +1431,7 @@ def load_cython(name):
     cur = os.path.abspath(os.curdir)
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
-    except (IOError, OSError, RuntimeError), msg:
+    except (IOError, OSError, RuntimeError) as msg:
         print "Error compiling cython file:\n%s"%msg
         return ''
     import sys
@@ -1650,6 +1650,7 @@ def load(filename, globals, attach=False):
 
         sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
         hi from the net
+        5
 
     We can load files using secure http (https)::
 

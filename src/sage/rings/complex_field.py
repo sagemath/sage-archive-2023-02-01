@@ -106,7 +106,7 @@ def ComplexField(prec=53, names=None):
         -1.0000000000000000000000000000000000000000000000000000000000
     """
     global cache
-    if cache.has_key(prec):
+    if prec in cache:
         X = cache[prec]
         C = X()
         if not C is None:
@@ -416,7 +416,7 @@ class ComplexField_class(field.Field):
         """
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
-            return complex_number.RRtoCC(RR, self) * RR.coerce_map_from(S)
+            return complex_number.RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
         if is_ComplexField(S) and S._prec >= self._prec:
             return self._generic_convert_map(S)
         late_import()

@@ -272,10 +272,47 @@ class SymbolicLogic:
             print line
         print
 
-    #TODO: implement the combine function which returns
-    # two statements or'd together
     def combine(self, statement1, statement2):
-        x = 0
+        r"""
+        Return a new statement which contains the
+        two statements or'd together.
+
+        INPUT:
+
+        - ``statement1`` -- the first statement
+        - ``statement2`` -- the second statement
+
+        OUTPUT:
+
+        A new staement which or'd the given statements together.
+
+        EXAMPLES::
+
+            sage: log = SymbolicLogic()
+            sage: s1 = log.statement("(a&b)")
+            sage: s2 = log.statement("b")
+            sage: log.combine(s1,s2)
+            [['OPAREN',
+              'OPAREN',
+              'OPAREN',
+              'a',
+              'AND',
+              'b',
+              'CPAREN',
+              'CPAREN',
+              'OR',
+              'OPAREN',
+              'b',
+              'CPAREN',
+              'CPAREN'],
+             {'a': 'False', 'b': 'False'},
+             ['a', 'b', 'b']]       
+        """
+        toks = ['OPAREN'] + statement1[0] + ['OR'] + statement2[0] + ['CPAREN']
+        variables = dict(statement1[1].items() + statement2[1].items())
+        var_order = statement1[2] + statement2[2]
+        return [toks, variables, var_order]
+
 
     #TODO: implement the simplify function which calls
     #a c++ implementation of the ESPRESSO algorithm

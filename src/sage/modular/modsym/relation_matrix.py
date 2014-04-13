@@ -207,7 +207,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
             if w==2: already_seen.add(j)
             j0, s0 = mod[j]
             s0 = s*s0
-            if v.has_key(j0):
+            if j0 in v:
                 v[j0] += s0
             else:
                 v[j0] = s0
@@ -288,8 +288,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     basis_mod2 = set([j for j,c in mod if c != 0])
 
     basis_set = basis_set.intersection(basis_mod2)
-    basis = list(basis_set)
-    basis.sort()
+    basis = sorted(basis_set)
 
     ONE = field(1)
 
@@ -786,7 +785,7 @@ def sparse_2term_quotient(rels, n, F):
 ##         iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)
 ##         v = {i:ONE}
 ##         for j, s in iT_plus_iTT:
-##             if v.has_key(j):
+##             if j in v:
 ##                 v[j] += field(s)
 ##             else:
 ##                 v[j] = field(s)

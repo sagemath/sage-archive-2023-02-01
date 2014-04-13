@@ -546,7 +546,7 @@ class MupadElement(ExpectElement):
                 return P.new("%s::%s"%(self.name(),attrname))
             else:
                 return MupadFunctionElement(self, name)
-        except RuntimeError, err:
+        except RuntimeError as err:
             if 'Unknown slot' in str(err):
                 return MupadFunctionElement(self, attrname)
             else:

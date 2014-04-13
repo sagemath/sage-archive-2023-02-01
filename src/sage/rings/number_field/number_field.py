@@ -210,7 +210,8 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-_nf_cache = {}
+import weakref
+_nf_cache = weakref.WeakValueDictionary()
 def NumberField(polynomial, name=None, check=True, names=None, cache=True,
                 embedding=None, latex_name=None,
                 assume_disc_small=False,
@@ -300,9 +301,9 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         sage: K.<b> = NumberField(x^2 + 5, 'a'); K
         Number Field in b with defining polynomial x^2 + 5
 
-    One can also define number fields with specified embeddings, may be
-    used for arithmetic and deduce relations with other number fields
-    which would not be valid for an abstract number field::
+    One can also define number fields with specified embeddings, may be used
+    for arithmetic and deduce relations with other number fields which would
+    not be valid for an abstract number field. ::
 
         sage: K.<a> = NumberField(x^3-2, embedding=1.2)
         sage: RR.coerce_map_from(K)
@@ -399,11 +400,11 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     ::
 
-        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: sage.rings.number_field.number_field._nf_cache.clear()
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
         Number Field in a with defining polynomial x^2 + 1 over its base field
-        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: sage.rings.number_field.number_field._nf_cache.clear()
         sage: W1 = NumberField(x^2+1,'a')
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
@@ -444,14 +445,15 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         key = (polynomial, polynomial.base_ring(), name, latex_name,
                embedding, embedding.parent() if embedding is not None else None,
                assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if _nf_cache.has_key(key):
-            K = _nf_cache[key]()
-            if not K is None: return K
+        try:
+            return _nf_cache[key]
+        except KeyError:
+            pass
 
     if isinstance(R, NumberField_generic):
         S = R.extension(polynomial, name, check=check)
         if cache:
-            _nf_cache[key] = weakref.ref(S)
+            _nf_cache[key] = S
         return S
 
     if polynomial.degree() == 2:
@@ -462,7 +464,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
              assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
     if cache:
-        _nf_cache[key] = weakref.ref(K)
+        _nf_cache[key] = K
     return K
 
 
@@ -910,7 +912,7 @@ def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
     if embedding is True:
         embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
     key = (n, names, embedding)
-    if _cyclo_cache.has_key(key):
+    if key in _cyclo_cache:
         K = _cyclo_cache[key]()
         if not K is None: return K
     K = NumberField_cyclotomic(n, names, embedding=embedding)
@@ -2321,7 +2323,7 @@ class NumberField_generic(number_field_base.NumberField):
             from sage.rings.real_mpfr import mpfr_prec_min
             from sage.rings.complex_field import ComplexField
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                return embedding
+                 return embedding
 
     def gen_embedding(self):
         """
@@ -2767,8 +2769,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         if degree is not None:
             degree = ZZ(degree)
-        facs = [ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ]
-        facs.sort() # sorts on residue_class_degree(), lowest first
+        facs = sorted([ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ])
         if degree is None:
             return [ id for d, n, id in facs ]
         else:
@@ -5467,9 +5468,9 @@ class NumberField_generic(number_field_base.NumberField):
         if not S:
             S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(self.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):
@@ -6048,7 +6049,7 @@ class NumberField_absolute(NumberField_generic):
                 return self._element_class(self, x)
 
             return self._element_class(self, x._rational_())
-        except (TypeError, AttributeError), msg:
+        except (TypeError, AttributeError) as msg:
             pass
         raise TypeError, type(x)
 
@@ -6168,30 +6169,18 @@ class NumberField_absolute(NumberField_generic):
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
             return self._generic_convert_map(R)
-        if is_NumberField(R) and R != QQ:
-            if R.coerce_embedding() is not None:
-                if self.coerce_embedding() is not None:
-                    try:
-                        from sage.categories.pushout import pushout
-                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
-                        if ambient_field is not None:
-                            try:
-                                # the original ambient field
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field)
-                            except ValueError: # no embedding found
-                                # there might be one in the alg. completion
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field.algebraic_closure() if hasattr(ambient_field,'algebraic_closure') else ambient_field)
-                    except (ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
-                        # no success with the pushout
-                        try:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                        except (TypeError, ValueError):
-                            pass
-                else:
-                    # R is embedded, self isn't. So, we could only have
-                    # the forgetful coercion. But this yields to non-commuting
-                    # coercions, as was pointed out at ticket #8800
+        # R is not QQ by the above tests
+        if is_NumberField(R) and R.coerce_embedding() is not None:
+            if self.coerce_embedding() is not None:
+                try:
+                    return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
+                except ValueError: # no common embedding found
                     return None
+            else:
+                # R is embedded, self isn't. So, we could only have
+                # the forgetful coercion. But this yields to non-commuting
+                # coercions, as was pointed out at ticket #8800
+                return None
 
     def base_field(self):
         """
@@ -6737,7 +6726,7 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES:
 
-        For medium-sized galois groups of fields with small discriminants,
+        For medium-sized Galois groups of fields with small discriminants,
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2)
@@ -6764,7 +6753,7 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        # Compute degree of galois closure if possible
+        # Compute degree of Galois closure if possible
         try:
             deg = self.galois_group(type='pari').order()
         except NotImplementedError:
@@ -6879,8 +6868,7 @@ class NumberField_absolute(NumberField_generic):
             self.__embeddings = {}
         except KeyError:
             pass
-        embs = map(self, self.pari_nf().nfgaloisconj())
-        embs.sort()
+        embs = sorted(map(self, self.pari_nf().nfgaloisconj()))
         v = [ self.hom([ e ], check=False) for e in embs ]
         put_natural_embedding_first(v)
         self.__embeddings[self] = Sequence(v, cr=(v != []), immutable=True,

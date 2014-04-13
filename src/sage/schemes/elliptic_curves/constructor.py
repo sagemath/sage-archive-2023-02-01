@@ -868,6 +868,12 @@ def chord_and_tangent(F, P):
         [<type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]
+
+    See :trac:`16068`::
+
+        sage: F = x**3 - 4*x**2*y - 65*x*y**2 + 3*x*y*z - 76*y*z**2
+        sage: chord_and_tangent(F, [0, 1, 0])
+        [0, 0, -1]
     """
     # check the input
     R = F.parent()
@@ -923,7 +929,7 @@ def chord_and_tangent(F, P):
 
     # first case: the third point is at t=infinity
     if Ft.is_constant():
-        return projective_point([dy, -dx, 0])
+        return projective_point([dy, -dx, K(0)])
     # second case: the third point is at finite t
     else:
         assert Ft.degree() == 1
@@ -952,9 +958,10 @@ def projective_point(p):
         sage: projective_point([F(4), F(8), F(2)])
         [4, 8, 2]
     """
+    from sage.rings.integer import GCD_list, LCM_list
     try:
-        p_gcd = rings.integer.GCD_list([x.numerator() for x in p])
-        p_lcm = rings.integer.LCM_list([x.denominator() for x in p])
+        p_gcd = GCD_list([x.numerator() for x in p])
+        p_lcm = LCM_list([x.denominator() for x in p])
     except AttributeError:
         return p
     scale = p_lcm / p_gcd

@@ -187,7 +187,7 @@ class Dokchitser(SageObject):
 
     def __reduce__(self):
         D = copy.copy(self.__dict__)
-        if D.has_key('_Dokchitser__gp'):
+        if '_Dokchitser__gp' in D:
             del D['_Dokchitser__gp']
         return reduce_load_dokchitser, (D, )
 
@@ -491,7 +491,7 @@ class Dokchitser(SageObject):
         k = Integer(k)
         try:
             z = self.gp()('Vec(Lseries(%s,,%s))'%(a,k-1))
-        except TypeError, msg:
+        except TypeError as msg:
             raise RuntimeError, "%s\nUnable to compute Taylor expansion (try lowering the number of terms)"%msg
         r = repr(z)
         if 'pole' in r:

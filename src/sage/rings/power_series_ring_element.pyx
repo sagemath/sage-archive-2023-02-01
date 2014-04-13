@@ -288,16 +288,18 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Comparison of self and right.
 
-        We say two approximate power series are equal, if they agree for
+        We say two approximate power series are equal if they agree for
         all coefficients up to the *minimum* of the precisions of each.
-        Thus, e.g., `f=1+q+O(q^2)` is equal to `g=1+O(q)`.
+        Thus, e.g., `f = 1 + q + O(q^2)` is equal to `g = 1 + O(q)`.
+
         This is how PARI defines equality of power series, but not how
-        MAGMA defines equality. (MAGMA would declare f and g unequal.) 
-
-        The PARI convention is consistent with the idea that `f+O(q)` 
-        and `g` should be considered equal, even though the coefficients  
-        of `q` are unknown for both series in that comparison. 
-
+        Magma defines equality. (Magma would declare f and g unequal.)
+        The PARI/Sage convention is consistent with the idea that
+        comparison should take place after coercing both elements into
+        a common parent.  Hence, in the above example `f` is truncated
+        to `f + O(q)`, which is considered to be equal to `g`, even
+        though the coefficients of `q` are unknown for both series in
+        that comparison.
 
         Comparison is done in dictionary order from lowest degree to
         highest degree coefficients.  This is different than polynomial
@@ -313,29 +315,26 @@ cdef class PowerSeries(AlgebraElement):
             sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
             False
 
+        TESTS:
 
-        TESTS: 
- 
-        Ticket #9457 is fixed:: 
- 
-            sage: A.<t> = PowerSeriesRing(ZZ) 
-            sage: g = t + t^3 + t^5 + O(t^6); g 
-            t + t^3 + t^5 + O(t^6) 
-            sage: [g == g.add_bigoh(i) for i in range(7)] 
-            [True, True, True, True, True, True, True] 
+        Ticket :trac:`9457` is fixed::
+
+            sage: A.<t> = PowerSeriesRing(ZZ)
+            sage: g = t + t^3 + t^5 + O(t^6); g
+            t + t^3 + t^5 + O(t^6)
+            sage: [g == g.add_bigoh(i) for i in range(7)]
+            [True, True, True, True, True, True, True]
             sage: A(g.polynomial()) == g
             True
- 
-            sage: f = t + t^2 + O(t^10) 
-            sage: f == f.truncate() 
-            True 
+
+            sage: f = t + t^2 + O(t^10)
+            sage: f == f.truncate()
+            True
         """
         # A very common case throughout code
         if PY_TYPE_CHECK(right, int):
             return self.is_zero()
 
-        from sage.misc.stopgap import stopgap 
-        stopgap("Warning: Comparison of power series may be wrong if certain coefficients are zero. The padded_list method can be used to give correct comparisons.", 9457)
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
@@ -484,11 +483,11 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return the absolute precision of this series.
 
-        By definition, the absolute precision of 
+        By definition, the absolute precision of
         `...+O(x^r)` is `r`.
-        
+
         EXAMPLES::
-        
+
             sage: R.<t> = ZZ[[]]
             sage: (t^2 + O(t^3)).precision_absolute()
             3
@@ -500,14 +499,14 @@ cdef class PowerSeries(AlgebraElement):
     def precision_relative(self):
         """
         Return the relative precision of this series, that
-        is the difference between its absolute precision 
+        is the difference between its absolute precision
         and its valuation.
 
         By convension, the relative precision of `0` (or
         `O(x^r)` for any `r`) is `0`.
-        
+
         EXAMPLES::
-        
+
             sage: R.<t> = ZZ[[]]
             sage: (t^2 + O(t^3)).precision_relative()
             1

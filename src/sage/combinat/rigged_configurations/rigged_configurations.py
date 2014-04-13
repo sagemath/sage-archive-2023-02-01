@@ -94,14 +94,14 @@ RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
     notation = dict(alt_name='convention')
 )
 
-# Used in the KR crystals catalog so there is a common iterface
+# Used in the KR crystals catalog so that there is a common interface
 def KirillovReshetikhinCrystal(cartan_type, r, s):
     """
     Return the KR crystal `B^{r,s}` using
     :class:`rigged configurations <RiggedConfigurations>`.
 
-    This is the rigged configurations `RC(B^{r,s})` or with the
-    `L_i^{(a)} = \delta_{ar} \delta_{is}`.
+    This is the rigged configuration `RC(B^{r,s})` or `RC(L)` with
+    `L = (L_i^{(a)})` and `L_i^{(a)} = \delta_{a,r} \delta_{i,s}`.
 
     EXAMPLES::
 

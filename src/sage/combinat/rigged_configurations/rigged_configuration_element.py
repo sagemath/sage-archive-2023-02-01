@@ -374,29 +374,29 @@ class RiggedConfigurationElement(ClonableArray):
             {
             \begin{array}[t]{r|c|c|l}
             \cline{2-3} -1 &\phantom{|}&\phantom{|}& -1 \\
-             \cline{2-3} 
+             \cline{2-3}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} 2 &\phantom{|}&\phantom{|}&\phantom{|}& 2 \\
              \cline{2-4} 0 &\phantom{|}& \multicolumn{3 }{l}{ 0 } \\
-             \cline{2-2} 
+             \cline{2-2}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
-             \cline{2-4} 
+             \cline{2-4}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
-             \cline{2-4} 
+             \cline{2-4}
             \end{array}
             }
             sage: latex(RC(partition_list=[[],[],[],[]]))
@@ -700,7 +700,7 @@ class RiggedConfigurationElement(ClonableArray):
                     new_vac_nums[i] += 2
                     new_rigging[i] += 2
 
-                
+
                 if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
                     new_vac_nums[rigging_index] += 2
 

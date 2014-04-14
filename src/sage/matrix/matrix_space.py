@@ -54,6 +54,7 @@ import matrix_mpolynomial_dense
 
 
 # Sage imports
+from sage.misc.superseded import deprecation
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
 from sage.structure.unique_representation import UniqueRepresentation
@@ -294,7 +295,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
-    def full_category_initialisation_disabled(self):
+    def full_category_initialisation(self):
         """
         Make full use of the category framework.
 
@@ -314,13 +315,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: TestSuite(MS).run()
             sage: type(MS)
             <class 'sage.matrix.matrix_space.MatrixSpace_with_category'>
+            sage: MS.full_category_initialisation()
+            doctest:1: DeprecationWarning: the full_category_initialization method does nothing, as a matrix space now has its category systematically fully initialized
+            See http://trac.sagemath.org/15801 for details.
         """
-        if self.__dict__.get('_category_is_initialised'):
-            # Apparently the category is already taken care of.
-            return
-        category = self.category()
-        self._category_is_initialised = True
-        sage.structure.parent.Parent.__init__(self, category=category)
+        deprecation(15801, "the full_category_initialization method does nothing, as a matrix space now has its category systematically fully initialized")
 
     @lazy_attribute
     def _copy_zero(self):

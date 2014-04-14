@@ -189,7 +189,7 @@ SpecZ = Spec(ZZ)
 # Compatibility with older versions of this module
 
 from sage.misc.superseded import deprecated_function_alias
-is_Spec = deprecated_function_alias(7946, is_AffineScheme)
+is_Spec = deprecated_function_alias(16158, is_AffineScheme)
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.spec', 'Spec', AffineScheme)

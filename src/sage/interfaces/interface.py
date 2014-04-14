@@ -82,7 +82,7 @@ class Interface(ParentWithBase):
            Sage. Use sage(xxx) or interpretername(xxx) to pull objects
            in from sage to the interpreter.
         """
-        from sage.misc.interpreter import interface_shell_embed
+        from sage.repl.interpreter import interface_shell_embed
         shell = interface_shell_embed(self)
         try:
             ipython = get_ipython()

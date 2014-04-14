@@ -14,6 +14,9 @@ version of the book without exercises can be found on
 
 Preparation of this document was supported in part by NSF grants DMS--1001256 and OCI–1147247.
 
+I would like to thank Federico Castillo (who wrote a first version of the `n`-cube section)
+and Nicolas M. Thiery (who wrote a slightly different French version of the Tsetlin library section) for their help.
+
 .. toctree::
    :maxdepth: 2
 

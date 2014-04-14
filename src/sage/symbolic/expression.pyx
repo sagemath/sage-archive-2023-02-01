@@ -9800,7 +9800,7 @@ cdef class Expression(CommutativeRingElement):
                 A = self.variables()
                 if len(A) == 0:
                     #Here we handle the case where f is something
-                    #like 2*sin, which has takes arguments which
+                    #like ``sin``, which has takes arguments which
                     #aren't explicitly given
                     n = self.number_of_arguments()
                     f = self._plot_fast_callable()
@@ -9833,20 +9833,14 @@ cdef class Expression(CommutativeRingElement):
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
+
+        Check that :trac:`15030` is fixed::
+
+            sage: abs(log(x))._plot_fast_callable(x)(-0.2)
+            3.52985761682672
         """
-        try:
-            # First we try fast float.  However, this doesn't work on some
-            # input where fast_callable works fine.
-            return self._fast_float_(*vars)
-        except (TypeError, NotImplementedError):
-            # Now we try fast_callable as a fallback, since it works in some
-            # cases when fast_float doesn't, e.g., when I is anywhere in the
-            # expression fast_float doesn't work but fast_callable does in some
-            # cases when the resulting expression is real.
-            from sage.ext.fast_callable import fast_callable
-            # I tried calling self._fast_callable_ but that's too complicated
-            # of an interface so we just use the fast_callable function.
-            return fast_callable(self, vars=vars)
+        from sage.ext.fast_callable import fast_callable
+        return fast_callable(self, vars=vars, expect_one_var=True)
 
     ############
     # Calculus #

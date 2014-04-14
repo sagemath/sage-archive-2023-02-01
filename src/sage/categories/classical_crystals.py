@@ -94,10 +94,10 @@ class ClassicalCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: T = CrystalOfTableaux(['A',5],shape=[1])
+                sage: T = crystals.Tableaux(['A',5],shape=[1])
                 sage: T.opposition_automorphism()
                 doctest:...: DeprecationWarning: opposition_automorphism is deprecated.
-                 Use opposition_automorphism from the Cartan type instead.
+                Use opposition_automorphism from the Cartan type instead.
                 See http://trac.sagemath.org/15560 for details.
                 Finite family {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
             """
@@ -406,11 +406,14 @@ class ClassicalCrystals(Category_singleton):
 
         def lusztig_involution(self):
             r"""
-            Returns the Lusztig involution on the classical highest weight crystal self.
+            Return the Lusztig involution on the classical highest weight
+            crystal ``self``.
 
-            The Lusztig involution on a finite-dimensional highest weight crystal `B(\lambda)` of highest weight `\lambda`
-            maps the highest weight vector to the lowest weight vector and the Kashiwara operator `f_i` to
-            `e_{i^*}`, where `i^*` is defined as `\alpha_{i^*} = -w_0(\alpha_i)`. Here `w_0` is the longest element
+            The Lusztig involution on a finite-dimensional highest weight
+            crystal `B(\lambda)` of highest weight `\lambda` maps the
+            highest weight vector to the lowest weight vector and the
+            Kashiwara operator `f_i` to `e_{i^*}`, where `i^*` is defined as
+            `\alpha_{i^*} = -w_0(\alpha_i)`. Here `w_0` is the longest element
             of the Weyl group acting on the `i`-th simple root `\alpha_i`.
 
             EXAMPLES::
@@ -435,8 +438,8 @@ class ClassicalCrystals(Category_singleton):
                 [[[[1]], [[-1]]], [[[2]], [[-2]]], [[[3]], [[3]]], [[[-3]], [[-3]]],
                 [[[-2]], [[2]]], [[[-1]], [[1]]]]
 
-                sage: C=CartanType(['E',6])
-                sage: La=C.root_system().weight_lattice().fundamental_weights()
+                sage: C = CartanType(['E',6])
+                sage: La = C.root_system().weight_lattice().fundamental_weights()
                 sage: T = crystals.HighestWeight(La[1])
                 sage: t = T[3]; t
                 [(-4, 2, 5)]
@@ -445,6 +448,7 @@ class ClassicalCrystals(Category_singleton):
             """
             hw = self.to_highest_weight()[1]
             hw.reverse()
-            hw = [self.parent().opposition_automorphism()[i] for i in hw]
+            A = self.parent().cartan_type().opposition_automorphism()
+            hw = [A[i] for i in hw]
             return self.to_lowest_weight()[0].e_string(hw)
 

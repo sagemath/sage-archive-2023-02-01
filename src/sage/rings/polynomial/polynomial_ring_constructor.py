@@ -617,27 +617,33 @@ def polynomial_default_category(base_ring_category, multivariate):
 
     EXAMPLES::
 
-        sage: QQ['t'].category() is Category.join([EuclideanDomains(), CommutativeAlgebras(QQ.category())])
+        sage: from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default_category
+        sage: polynomial_default_category(Rings(), False) is Algebras(Rings())
         True
-        sage: QQ['s','t'].category() is Category.join([UniqueFactorizationDomains(), CommutativeAlgebras(QQ.category())])
+        sage: polynomial_default_category(Rings().Commutative(),False) is Algebras(Rings().Commutative()).Commutative()
         True
-        sage: QQ['s']['t'].category() is Category.join([UniqueFactorizationDomains(), CommutativeAlgebras(QQ['s'].category())])
+        sage: polynomial_default_category(Fields(),False) is EuclideanDomains() & Algebras(Fields())
+        True
+        sage: polynomial_default_category(Fields(),True) is UniqueFactorizationDomains() & CommutativeAlgebras(Fields())
         True
 
+        sage: QQ['t'].category() is EuclideanDomains() & CommutativeAlgebras(QQ.category())
+        True
+        sage: QQ['s','t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ.category())
+        True
+        sage: QQ['s']['t'].category() is UniqueFactorizationDomains() & CommutativeAlgebras(QQ['s'].category())
+        True
     """
     category = Algebras(base_ring_category)
-    if base_ring_category.is_subcategory(_Fields):
-        if multivariate:
-            return category & _UniqueFactorizationDomains
-        else:
-            return category & _EuclideanDomains
+    if base_ring_category.is_subcategory(_Fields) and not multivariate:
+        return category & _EuclideanDomains
     elif base_ring_category.is_subcategory(_UniqueFactorizationDomains):
         return category & _UniqueFactorizationDomains
     elif base_ring_category.is_subcategory(_IntegralDomains):
         return category & _IntegralDomains
     elif base_ring_category.is_subcategory(_CommutativeRings):
         return category & _CommutativeRings
-    return base_ring_category
+    return category
 
 def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     """

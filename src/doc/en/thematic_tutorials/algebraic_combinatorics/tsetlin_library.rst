@@ -167,20 +167,20 @@ The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`. D
 Conclusion
 ----------
 
-The Tsetlin library was studied from the viewpoint of monoids in [Bidigare_1997]_
-and [Brown_2000]_. Precise statements of the eigenvalues and the stationary distribution
+The Tsetlin library was studied from the viewpoint of monoids in [Bidigare1997]_
+and [Brown2000]_. Precise statements of the eigenvalues and the stationary distribution
 of the probability matrix as well as proofs of the statements are given in these papers.
 Generalizations of the Tsetlin library from the antichain to
-arbitrary posets was given in [AKS_2013]_.
+arbitrary posets was given in [AKS2013]_.
 
-.. [Bidigare_1997] Thomas Patrick Bidigare. *Hyperplane arrangement
+.. [Bidigare1997] Thomas Patrick Bidigare. *Hyperplane arrangement
     face algebras and their associated Markov chains*. ProQuest LLC,
     Ann Arbor, MI, 1997.  Thesis (Ph.D.) University of Michigan.
 
-.. [Brown_2000] Kenneth S. Brown. *Semigroups, rings, and Markov
+.. [Brown2000] Kenneth S. Brown. *Semigroups, rings, and Markov
    chains*. J. Theoret.  Probab., 13(3):871-938, 2000.
 
-.. [AKS_2013] Arvind Ayyer, Steven Klee, Anne Schilling.
+.. [AKS2013] Arvind Ayyer, Steven Klee, Anne Schilling.
     *Combinatorial Markov chains on linear extensions*
     J. Algebraic Combinatorics,
     :doi:`10.1007/s10801-013-0470-9`, :arXiv:`1205.7074`.

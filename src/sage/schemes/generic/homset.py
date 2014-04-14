@@ -396,7 +396,7 @@ class SchemeHomset_generic(HomsetWithBase):
         if is_RingHomomorphism(x):
             return SchemeMorphism_spec(self, x, check=check)
 
-        raise TypeError, "x must be a ring homomorphism, list or tuple"
+        raise TypeError("x must be a ring homomorphism, list or tuple")
 
 
 #*******************************************************************

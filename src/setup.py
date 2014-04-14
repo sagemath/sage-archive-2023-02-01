@@ -367,10 +367,9 @@ class sage_build_ext(build_ext):
     def prepare_extension(self, ext):
         sources = ext.sources
         if sources is None or type(sources) not in (ListType, TupleType):
-            raise DistutilsSetupError, \
-                  ("in 'ext_modules' option (extension '%s'), " +
+            raise DistutilsSetupError(("in 'ext_modules' option (extension '%s'), " +
                    "'sources' must be present and must be " +
-                   "a list of source filenames") % ext.name
+                   "a list of source filenames") % ext.name)
         sources = list(sources)
 
         fullname = self.get_ext_fullname(ext.name)

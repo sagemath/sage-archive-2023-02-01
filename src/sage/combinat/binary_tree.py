@@ -768,7 +768,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         from sage.combinat.dyck_word import DyckWord
         if usemap not in ["1L0R", "1R0L", "L1R0", "R1L0"]:
-            raise ValueError, "%s is not a correct map"%(usemap)
+            raise ValueError("%s is not a correct map"%(usemap))
         return DyckWord(self._to_dyck_word_rec(usemap))
 
     def _to_ordered_tree(self, bijection="left", root=None):

@@ -370,10 +370,10 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     try:
         name = normalize_names(1, name)
     except TypeError:
-        raise TypeError, "illegal variable name"
+        raise TypeError("illegal variable name")
 
     if name is None:
-        raise TypeError, "You must specify the name of the indeterminate of the Power series ring."
+        raise TypeError("You must specify the name of the indeterminate of the Power series ring.")
 
     key = (base_ring, name, default_prec, sparse)
     if PowerSeriesRing_generic.__classcall__.is_in_cache(key):
@@ -384,7 +384,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         name = name[0]
 
     if not (name is None or isinstance(name, str)):
-        raise TypeError, "variable name must be a string or None"
+        raise TypeError("variable name must be a string or None")
 
     if base_ring in _Fields:
         R = PowerSeriesRing_over_field(base_ring, name, default_prec, sparse=sparse)
@@ -393,7 +393,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     elif base_ring in _CommutativeRings:
         R = PowerSeriesRing_generic(base_ring, name, default_prec, sparse=sparse)
     else:
-        raise TypeError, "base_ring must be a commutative ring"
+        raise TypeError("base_ring must be a commutative ring")
     return R
 
 def _multi_variate(base_ring, num_gens=None, names=None,
@@ -420,7 +420,7 @@ def _multi_variate(base_ring, num_gens=None, names=None,
         default_prec = 12
 
     if base_ring not in commutative_rings.CommutativeRings():
-        raise TypeError, "base_ring must be a commutative ring"
+        raise TypeError("base_ring must be a commutative ring")
     from sage.rings.multi_power_series_ring import MPowerSeriesRing_generic
     R = MPowerSeriesRing_generic(base_ring, num_gens, names,
                                  order=order, default_prec=default_prec, sparse=sparse)
@@ -771,7 +771,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
                     else:
-                        raise TypeError, "no natural map between bases of power series rings"
+                        raise TypeError("no natural map between bases of power series rings")
 
         except AttributeError:
             pass
@@ -845,7 +845,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
         else:
-            raise TypeError, "no base extension defined"
+            raise TypeError("no base extension defined")
 
     def change_ring(self, R):
         """
@@ -884,7 +884,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             IndexError: generator n>0 not defined
         """
         if n != 0:
-            raise IndexError, "generator n>0 not defined"
+            raise IndexError("generator n>0 not defined")
         return self.__generator
 
     def uniformizer(self):

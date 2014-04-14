@@ -1045,6 +1045,7 @@ caaadr=EclObject("caaadr")
 cadadr=EclObject("cadadr")
 meval=EclObject("meval")
 NIL=EclObject("NIL")
+lisp_length=EclObject("length")
 
 ## Dictionaries for standard operators
 sage_op_dict = {
@@ -1363,7 +1364,8 @@ special_sage_to_max={
     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
     sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
     sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
-    sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X]
+    sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
+    sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]
 }
 
 
@@ -1486,7 +1488,7 @@ def sr_to_max(expr):
         elif (op in special_sage_to_max):
             return EclObject(special_sage_to_max[op](*[sr_to_max(o) for o in expr.operands()]))
         elif op == tuple:
-            return maxima(expr.operands()).ecl()
+            return EclObject( ([mlist],tuple(sr_to_max(op) for op in expr.operands())) )
         elif not (op in sage_op_dict):
             # Maxima does some simplifications automatically by default
             # so calling maxima(expr) can change the structure of expr

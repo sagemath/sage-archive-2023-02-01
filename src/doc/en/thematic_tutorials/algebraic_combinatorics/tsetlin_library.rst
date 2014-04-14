@@ -88,7 +88,7 @@ The graph is produced via::
 
     sage: G = L.markov_chain_digraph(labeling='source'); G
     Looped multi-digraph on 6 vertices
-    sage: view(G)  # optional, requires dot2tex
+    sage: view(G) # optional - dot2tex
 
 We can now look at the transition matrix and see whether we notice anything about
 its eigenvalue and eigenvectors::
@@ -103,7 +103,7 @@ its eigenvalue and eigenvectors::
     [       0       x2        0        0       x2 -x0 - x1]
 
 This matrix is normalized so that all columns add to 0. So we need to
-add `(x_0+x_1+x_2)` times the `6\times 6` identity matrix to get the
+add `(x_0 + x_1 + x_2)` times the `6\times 6` identity matrix to get the
 probability matrix::
 
     sage: x = M.base_ring().gens()
@@ -133,9 +133,9 @@ For the eigenvectors we obtain::
      (x1, [(0, 1, 0, 0, -1, 0)], 1),
      (x0, [(1, 0, -1, 0, 0, 0)], 1),
      (x0 + x1 + x2,
-     [(1, (x1 + x2)/(x0 + x2), x2/x1, (x1*x2 + x2^2)/(x0*x1 + x1^2), (x1*x2 + x2^2)/(x0^2 + x0*x2), (x1*x2 + x2^2)/(x0^2 + x0*x1))],
-     1),
-     (0, [(1, 0, -1, 0, -1, 1), (0, 1, -1, 1, -1, 0)], 2)]
+     [(1, (x1 + x2)/(x0 + x2), x2/x1, (x1*x2 + x2^2)/(x0*x1 + x1^2),
+      (x1*x2 + x2^2)/(x0^2 + x0*x2), (x1*x2 + x2^2)/(x0^2 + x0*x1))], 1),
+      (0, [(1, 0, -1, 0, -1, 1), (0, 1, -1, 1, -1, 0)], 2)]
 
 The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`. Do you see a pattern?
 
@@ -146,14 +146,14 @@ The stationary distribution is the eigenvector of eigenvalues `1=x_0+x_1+x_2`. D
 
     #.  For technical reasons, it is most practical in Sage to label the `n` books in the library by
         `0,1,\cdots,n-1`, and to represent each state in the Markov chain by a permutation
-	of the set `\{0,\dots,n-1\}` as a tuple. Construct the state space `\Omega_n` as::
+        of the set `\{0,\dots,n-1\}` as a tuple. Construct the state space `\Omega_n` as::
 
             sage: map(tuple, Permutations(range(3)))
-	    [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
+            [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
 
     #.  Write a function ``transition_operator(sigma, i)`` which implements the operator
         `\partial_i` which takes as input a tuple ``sigma`` and integer `i \in \{1,2,\ldots,n\}`
-	and outputs a new tuple. It might be useful to extract subtuples
+        and outputs a new tuple. It might be useful to extract subtuples
         (``sigma[i:j]``) and concatentation.
 
     #.  Write a function ``tsetlin_digraph(n)`` which constructs the
@@ -173,15 +173,14 @@ of the probability matrix as well as proofs of the statements are given in these
 Generalizations of the Tsetlin library from the antichain to
 arbitrary posets was given in [AKS_2013]_.
 
-.. [Bidigare_1997] Thomas Patrick Bidigare. Hyperplane arrangement
-    face algebras and their associated Markov chains. ProQuest LLC,
+.. [Bidigare_1997] Thomas Patrick Bidigare. *Hyperplane arrangement
+    face algebras and their associated Markov chains*. ProQuest LLC,
     Ann Arbor, MI, 1997.  Thesis (Ph.D.) University of Michigan.
 
-.. [Brown_2000] Kenneth S. Brown. Semigroups, rings, and Markov
-   chains. J. Theoret.  Probab., 13(3):871-938, 2000.
+.. [Brown_2000] Kenneth S. Brown. *Semigroups, rings, and Markov
+   chains*. J. Theoret.  Probab., 13(3):871-938, 2000.
 
 .. [AKS_2013] Arvind Ayyer, Steven Klee, Anne Schilling.
-    Combinatorial Markov chains on linear extensions
+    *Combinatorial Markov chains on linear extensions*
     J. Algebraic Combinatorics,
-    `doi:10.1007/s10801-013-0470-9 <http://link.springer.com/article/10.1007%2Fs10801-013-0470-9>`_,
-    ( :arXiv:`1205.7074` )
+    :doi:`10.1007/s10801-013-0470-9`, :arXiv:`1205.7074`.

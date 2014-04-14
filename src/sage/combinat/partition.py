@@ -812,7 +812,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_low()
             1^7, 2, 3^2, 7^3
+            sage: print Partition([])._repr_exp_low()
+            -
         """
+        if not self._list:
+            return '-'
         exp = self.to_exp()
         return '%s' % ', '.join('%s%s' % (m+1, '' if e==1 else '^%s'%e)
                                  for (m,e) in enumerate(exp) if e > 0)
@@ -826,8 +830,12 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_exp_high()
             7^3, 3^2, 2, 1^7
+
+            sage: print Partition([])._repr_exp_high()
+            -
         """
-        if len(self._list)==0: return ''  # exceptional case as max(self) fails
+        if not self._list:
+            return '-'
         exp = self.to_exp()[::-1]         # reversed list of exponents
         M=max(self)
         return '%s' % ', '.join('%s%s' % (M-m, '' if e==1 else '^%s'%e)
@@ -842,7 +850,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_low()
             1^7,2,3^2,7^3
+            sage: print Partition([])._repr_compact_low()
+            -
         """
+        if not self._list:
+            return '-'
         exp = self.to_exp()
         return '%s' % ','.join('%s%s' % (m+1, '' if e==1 else '^%s'%e)
                                  for (m,e) in enumerate(exp) if e > 0)
@@ -856,8 +868,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([7,7,7,3,3,2,1,1,1,1,1,1,1])._repr_compact_high()
             7^3,3^2,2,1^7
+            sage: print Partition([])._repr_compact_low()
+            -
         """
-        if len(self._list)==0: return ''  # exceptional case as max(self) fails
+        if not self._list:
+            return '-'
         exp = self.to_exp()[::-1]         # reversed list of exponents
         M=max(self)
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^%s'%e)
@@ -976,8 +991,10 @@ class Partition(CombinatorialObject, Element):
             \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }
+            sage: print Partition([])._latex_young_diagram()
+            {\emptyset}
         """
-        if len(self._list) == 0:
+        if not self._list:
             return "{\\emptyset}"
 
         from sage.combinat.output import tex_from_array
@@ -996,8 +1013,10 @@ class Partition(CombinatorialObject, Element):
             \lr{\ast}\\
             \end{array}$}
             }
+            sage: print Partition([])._latex_diagram()
+            {\emptyset}
         """
-        if len(self._list) == 0:
+        if not self._list:
             return "{\\emptyset}"
 
         entry = self.parent().global_options("latex_diagram_str")
@@ -1012,6 +1031,8 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([2, 1])._latex_list()
             [2, 1]
+            sage: print Partition([])._latex_list()
+            []
         """
         return repr(self._list)
 
@@ -1023,7 +1044,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([2,2,1])._latex_exp_low()
             1,2^{2}
+            sage: print Partition([])._latex_exp_low()
+            {\emptyset}
         """
+        if not self._list:
+            return "{\\emptyset}"
         exp = self.to_exp()
         return '%s' % ','.join('%s%s' % (m+1, '' if e==1 else '^{%s}'%e)
                                  for (m,e) in enumerate(exp) if e > 0)
@@ -1036,7 +1061,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: print Partition([2,2,1])._latex_exp_high()
             2^{2},1
+            sage: print Partition([])._latex_exp_high()
+            {\emptyset}
         """
+        if not self._list:
+            return "{\\emptyset}"
         exp = self.to_exp()[::-1]  # reversed list of exponents
         M = max(self)
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^{%s}'%e)
@@ -1068,9 +1097,16 @@ class Partition(CombinatorialObject, Element):
             ##
             #####
             #####
+            sage: print Partition([]).ferrers_diagram()
+            -
+            sage: Partitions.global_options(diagram_str='-')
+            sage: print Partition([]).ferrers_diagram()
+            (/)
             sage: Partitions.global_options.reset()
         """
         diag_str = self.parent().global_options('diagram_str')
+        if not self._list:
+            return '-' if diag_str != '-' else "(/)"
         if self.parent().global_options('convention') == "English":
             return '\n'.join([diag_str*p for p in self])
         else:

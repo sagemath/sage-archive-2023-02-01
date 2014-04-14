@@ -652,8 +652,7 @@ def uniq(x):
         sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
         True
     """
-    v = list(set(x))
-    v.sort()
+    v = sorted(set(x))
     return v
 
 
@@ -1797,7 +1796,7 @@ class lazy_prop(object):
         if obj is None:
             return self
         value = self._calculate(obj)
-        setattr(obj, self._calculate.func_name, value)
+        setattr(obj, self._calculate.__name__, value)
         return value
 
 def prop(f):
@@ -2352,7 +2351,7 @@ def inject_variable(name, value):
 
     Use with care!
     """
-    assert type(name) is str
+    assert isinstance(name, str)
     # Using globals() does not work, even in Cython, because
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.

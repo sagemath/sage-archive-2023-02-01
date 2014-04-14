@@ -84,8 +84,6 @@ from cython_c import cython
 pyrex = cython # synonym -- for now
 sagex = cython # synonym -- for now
 
-from prun import prun
-
 from persist import save, load, dumps, loads, db, db_save
 
 from func_persist import func_persist

@@ -1935,7 +1935,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=['B'])
             sage: F.state('A').initial_where='below'
             sage: F._latex_()
-            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state, accepting] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$ $} (v1);\n\\end{tikzpicture}'
+            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state, accepting] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);\n\\end{tikzpicture}'
         """
         result = "\\begin{tikzpicture}[auto, initial text=]\n"
         j = 0;
@@ -1984,17 +1984,27 @@ class FiniteStateMachine(SageObject):
                             transition, format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
+                    angle = atan2(
+                        target.coordinates[1] - source.coordinates[1],
+                        target.coordinates[0] - source.coordinates[0])*180/pi
                     if len(adjacent[target, source]) > 0:
-                        angle = atan2(
-                            target.coordinates[1] - source.coordinates[1],
-                            target.coordinates[0]-source.coordinates[0])*180/pi
-                        angle_source = ".%.2f" % ((angle+5).n(),)
-                        angle_target = ".%.2f" % ((angle+175).n(),)
+                        angle_source = ".%.2f" % ((angle + 5).n(),)
+                        angle_target = ".%.2f" % ((angle + 175).n(),)
                     else:
                         angle_source = ""
                         angle_target = ""
-                    result += "\\path[->] (v%d%s) edge node {$%s$} (v%d%s);\n" % (
-                        source._number_, angle_source, label,
+                    angle_label = angle
+                    anchor_label = "south"
+                    if angle > 90 or angle <= -90:
+                        angle_label = angle + 180
+                        if len(adjacent[target, source])>0:
+                            # if transitions in both directions, the transition to the
+                            # left has its label below the transition, otherwise above
+                            anchor_label = "north"
+                    result += "\\path[->] (v%d%s) edge node[rotate=%.2f, anchor=%s] {$%s$} (v%d%s);\n" % (
+                        source._number_, angle_source,
+                        angle_label, anchor_label,
+                        label,
                         target._number_, angle_target)
                 else:
                     result += "\\path[->] (v%d) edge[loop above] node {$%s$} ();\n" % (
@@ -4481,7 +4491,7 @@ class Automaton(FiniteStateMachine):
 
             sage: F = Automaton([('A', 'B', 1)])
             sage: F._latex_()
-            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
+            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
 
         TESTS::
 
@@ -4806,7 +4816,7 @@ class Transducer(FiniteStateMachine):
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: F._latex_()
-            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
+            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
 
         TESTS::
 

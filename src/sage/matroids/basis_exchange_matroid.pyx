@@ -1225,6 +1225,8 @@ cdef class BasisExchangeMatroid(Matroid):
         Compute a flat-element invariant of the matroid.
         """
         cdef bitset_t *flats, *todo
+        if self._groundset_size == 0:
+            return {}, tuple()
         flats = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
 
@@ -1456,6 +1458,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f
@@ -1503,6 +1507,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f, corank
@@ -1551,6 +1557,8 @@ cdef class BasisExchangeMatroid(Matroid):
 
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f, corank
@@ -1600,6 +1608,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f

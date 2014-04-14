@@ -75,7 +75,7 @@ class SageMagics(Magics):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('%crun sum(1/(1+n^2) for n in range(100))')   # optional - gperftools
             PROFILE: interrupts/evictions/bytes = ...

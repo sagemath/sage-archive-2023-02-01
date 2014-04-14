@@ -30,7 +30,7 @@ for patch in ../patches/*.patch; do
 done
 
 # Autotoolify bzip2
-cp -af ../autotools/* ./
+cp -r -f ../autotools/* ./
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then

@@ -16,7 +16,8 @@ cd src/
 
 echo "Applying patches to upstream sources..."
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch" || continue
+    [ -r "$patch" ] || continue # ignore non-readable / non-existent files
+    patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error: '$patch' failed to apply."
         exit 1

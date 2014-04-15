@@ -26,7 +26,6 @@ Miscellaneous
    sage/misc/mrange
    sage/misc/dist
    sage/misc/preparser
-   sage/misc/interpreter
    sage/misc/functional
    sage/misc/html
    sage/misc/table
@@ -51,7 +50,6 @@ Miscellaneous
    sage/misc/viewer
    sage/misc/session
    sage/misc/indexed_generators
-   sage/misc/sage_extension
 
 
 Profiling and Performance Testing

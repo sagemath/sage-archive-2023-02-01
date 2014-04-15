@@ -1126,7 +1126,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             if gcd(D,self._E.conductor())!= 1:
                 for ell in prime_divisors(D):
                     if valuation(self._E.conductor(),ell) > valuation(D,ell) :
-                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D) )
+                        raise ValueError("can not twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
 
         p = self._p
         eta = ZZ(eta) % (p-1)
@@ -1454,7 +1454,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                     gamma = gamma % p**dga
                     verbose("gamma_prec increased to %s\n gamma is now %s"%(dga,gamma))
                 else:
-                    raise RuntimeError,  "Bug: no delta or gamma can exist"
+                    raise RuntimeError("Bug: no delta or gamma can exist")
 
         # end of approximation of delta and gamma
         R = Qp(p,max(dpr,dga)+1)

@@ -659,7 +659,7 @@ class Gap_generic(Expect):
         """
         print "Interrupting %s..."%self
         self.quit()
-        raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+        raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
         """
@@ -741,7 +741,7 @@ class Gap_generic(Expect):
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
-                raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
+                raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
             if len(normal) == 0:
                 return ''
 
@@ -768,11 +768,11 @@ class Gap_generic(Expect):
                 else:
                     return ''
             else:
-                raise RuntimeError, message
+                raise RuntimeError(message)
 
         except KeyboardInterrupt:
             self._keyboard_interrupt()
-            raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def unbind(self, var):
         """
@@ -966,7 +966,7 @@ class GapElement_generic(ExpectElement):
         """
         s = ExpectElement.__repr__(self)
         if s.find('must have a value') != -1:
-            raise RuntimeError, "An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s)
+            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
         return s
 
     def bool(self):
@@ -1760,7 +1760,7 @@ def intmod_gap_to_sage(x):
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
         return Mod(m.group(1), m.group(2))
-    raise ValueError, "Unable to convert Gap element '%s'" % s
+    raise ValueError("Unable to convert Gap element '%s'" % s)
 
 #############
 

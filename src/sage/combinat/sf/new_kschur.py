@@ -86,10 +86,10 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: TestSuite(Sym.kBoundedSubspace(1)).run(skip=["_test_not_implemented_methods"])
         """
         if not isinstance(k, (int, Integer)) or (k < 1):
-            raise ValueError, "k must be a positive integer"
+            raise ValueError("k must be a positive integer")
 
         if not isinstance(Sym,SymmetricFunctions):
-            raise ValueError, "Sym must be an algebra of symmetric functions"
+            raise ValueError("Sym must be an algebra of symmetric functions")
 
         self.indices = ConstantFunction(Partitions_all_bounded(k))
 
@@ -196,7 +196,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             sage: TestSuite(kh3).run()
         """
         if self.t!=1:
-            raise ValueError, "This basis only exists for t=1"
+            raise ValueError("This basis only exists for t=1")
         return kHomogeneous(self)
 
     def K_kschur(self):
@@ -226,7 +226,7 @@ class KBoundedSubspace(UniqueRepresentation, Parent):
             ValueError: This basis only exists for t=1
         """
         if self.t!=1:
-            raise ValueError, "This basis only exists for t=1"
+            raise ValueError("This basis only exists for t=1")
         return K_kSchur(self)
 
 
@@ -1499,7 +1499,7 @@ class K_kSchur(CombinatorialFreeModule):
             ValueError: Partition should be 3-bounded
         """
         if la != [] and (la[0] > self.k):
-            raise  ValueError, "Partition should be %d-bounded"%self.k
+            raise  ValueError("Partition should be %d-bounded"%self.k)
         return self._DualGrothendieck(Partition(la))
 
     def K_k_Schur_non_commutative_variables(self,la):

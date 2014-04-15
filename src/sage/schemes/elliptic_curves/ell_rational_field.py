@@ -219,7 +219,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return
         EllipticCurve_number_field.__init__(self, Q, ainvs)
         if self.base_ring() != Q:
-            raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
+            raise TypeError("Base field (=%s) must be the Rational Field."%self.base_ring())
 
     def _set_rank(self, r):
         """
@@ -385,7 +385,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
         """
         if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+            raise ArithmeticError("p must be prime")
         if self.is_integral():
             return True
         return bool(misc.mul([x.valuation(p) >= 0 for x in self.ainvs()]))
@@ -576,11 +576,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             N3 = self.conductor("gp")
             N4 = self.conductor("generic")
             if N1 != N2 or N2 != N3 or N2 != N4:
-                raise ArithmeticError, "PARI, mwrank, gp and Sage compute different conductors (%s,%s,%s,%3) for %s"%(
-                    N1, N2, N3, N4, self)
+                raise ArithmeticError("PARI, mwrank, gp and Sage compute different conductors (%s,%s,%s,%3) for %s"%(
+                    N1, N2, N3, N4, self))
             return N1
         else:
-            raise RuntimeError, "algorithm '%s' is not known."%algorithm
+            raise RuntimeError("algorithm '%s' is not known."%algorithm)
 
     ####################################################################
     #  Access to PARI curves related to this curve.
@@ -774,7 +774,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 self.__database_curve = D.elliptic_curve_from_ainvs(ainvs)
             except RuntimeError:
-                raise RuntimeError, "Elliptic curve %s not in the database."%self
+                raise RuntimeError("Elliptic curve %s not in the database."%self)
             return self.__database_curve
 
 
@@ -985,7 +985,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         n = int(n)
         e = self.pari_mincurve()
         if n >= 2147483648:
-            raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
+            raise RuntimeError("anlist: n (=%s) must be < 2147483648."%n)
 
         v = [0] + e.ellan(n, python_ints=True)
         if not python_ints:
@@ -1367,20 +1367,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return rings.Integer(self.pari_curve().ellanalyticrank()[0])
         elif algorithm == 'rubinstein':
             if leading_coefficient:
-                raise NotImplementedError, "Cannot compute leading coefficient using rubinstein algorithm"
+                raise NotImplementedError("Cannot compute leading coefficient using rubinstein algorithm")
             try:
                 from sage.lfunctions.lcalc import lcalc
                 return lcalc.analytic_rank(L=self)
             except TypeError as msg:
-                raise RuntimeError, "unable to compute analytic rank using rubinstein algorithm ('%s')"%msg
+                raise RuntimeError("unable to compute analytic rank using rubinstein algorithm ('%s')"%msg)
         elif algorithm == 'sympow':
             if leading_coefficient:
-                raise NotImplementedError, "Cannot compute leading coefficient using sympow"
+                raise NotImplementedError("Cannot compute leading coefficient using sympow")
             from sage.lfunctions.sympow import sympow
             return sympow.analytic_rank(self)[0]
         elif algorithm == 'magma':
             if leading_coefficient:
-                raise NotImplementedError, "Cannot compute leading coefficient using magma"
+                raise NotImplementedError("Cannot compute leading coefficient using magma")
             from sage.interfaces.all import magma
             return rings.Integer(magma(self).AnalyticRank())
         elif algorithm == 'all':
@@ -1390,10 +1390,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 S = set([self.analytic_rank('pari'),
                     self.analytic_rank('rubinstein'), self.analytic_rank('sympow')])
             if len(S) != 1:
-                raise RuntimeError, "Bug in analytic_rank; algorithms don't agree! (E=%s)"%self
+                raise RuntimeError("Bug in analytic_rank; algorithms don't agree! (E=%s)"%self)
             return list(S)[0]
         else:
-            raise ValueError, "algorithm %s not defined"%algorithm
+            raise ValueError("algorithm %s not defined"%algorithm)
 
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
@@ -1728,7 +1728,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     print "curve then trying this command again.  You could also try rank"
                     print "with only_use_mwrank=False."
                     del E.__mwrank_curve
-                    raise RuntimeError, 'Rank not provably correct.'
+                    raise RuntimeError('Rank not provably correct.')
                 else:
                     misc.verbose("Warning -- rank not proven correct", level=1)
             self.__rank[proof] = r
@@ -1739,7 +1739,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 if proof:
                     X= "".join(X.split("\n")[-4:-2])
                     print X
-                    raise RuntimeError, 'Rank not provably correct.'
+                    raise RuntimeError('Rank not provably correct.')
                 else:
                     misc.verbose("Warning -- rank not proven correct", level=1)
 
@@ -1755,7 +1755,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     match = 'found points of rank'
                     i = X.find(match)
                     if i == -1:
-                        raise RuntimeError, "%s\nbug -- tried to find 'Rank =' or 'found points of rank' in mwrank output but couldn't."%X
+                        raise RuntimeError("%s\nbug -- tried to find 'Rank =' or 'found points of rank' in mwrank output but couldn't."%X)
                 j = i + X[i:].find('\n')
                 r = Integer(X[i+len(match)+1:j])
             self.__rank[proof] = r
@@ -1954,8 +1954,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             G = C.gens()
             if proof is True and C.certain() is False:
                 del self.__mwrank_curve
-                raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s, generators found=%s).  This could be because Sha(E/Q)[2] is nontrivial."%(C.rank(),G) + \
-                      "\nTry increasing descent_second_limit then trying this command again."
+                raise RuntimeError("Unable to compute the rank, hence generators, with certainty (lower bound=%s, generators found=%s).  This could be because Sha(E/Q)[2] is nontrivial."%(C.rank(),G) + \
+                      "\nTry increasing descent_second_limit then trying this command again.")
             proved = C.certain()
             G = [[x*xterm,y*yterm,z] for x,y,z in G]
         else:
@@ -1974,7 +1974,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'
                 if proof:
-                    raise RuntimeError, '%s\n%s'%(X,msg)
+                    raise RuntimeError('%s\n%s'%(X,msg))
                 else:
                     misc.verbose("Warning -- %s"%msg, level=1)
                 proved = False
@@ -2198,7 +2198,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         """
         if not isinstance(points, list):
-            raise TypeError, "points (=%s) must be a list."%points
+            raise TypeError("points (=%s) must be a list."%points)
         if len(points) == 0:
             return [], None, R(1)
 
@@ -2207,7 +2207,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if not isinstance(P, ell_point.EllipticCurvePoint_field):
                 P = self(P)
             elif P.curve() != self:
-                raise ArithmeticError, "point (=%s) must be %s."%(P,self)
+                raise ArithmeticError("point (=%s) must be %s."%(P,self))
 
         minimal = True
         if not self.is_minimal():
@@ -2293,7 +2293,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             field.
         """
         if not self.is_minimal():
-            raise RuntimeError, "curve must be minimal."
+            raise RuntimeError("curve must be minimal.")
         return self.mwrank_curve().CPS_height_bound()
 
 
@@ -2358,7 +2358,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         elif algorithm == 'mwrank':
             return self.mwrank_curve().silverman_bound()
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'"%algorithm)
 
 
 
@@ -2567,7 +2567,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [-2, -3, -2, -1, -5, -2, 0, 0, 2, 6, -4, -1, -9, 2, -9]
         """
         if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+            raise ArithmeticError("p must be prime")
         return Integer(self.pari_mincurve().ellap(p))
 
     def quadratic_twist(self, D):
@@ -2658,7 +2658,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [False, True, False, True, False, True, True, True, True]
         """
         if not p.is_prime():
-            raise ValueError,"p must be prime"
+            raise ValueError("p must be prime")
         if not self.is_p_integral(p):
             return False
         if p > 3:
@@ -2723,7 +2723,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             IV
         """
         if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+            raise ArithmeticError("p must be prime")
         try:
             self.__kodaira_type
         except AttributeError:
@@ -2771,7 +2771,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             3
         """
         if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+            raise ArithmeticError("p must be prime")
         try:
             return self.__tamagawa_number[p]
         except (AttributeError, KeyError):
@@ -2815,7 +2815,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             4
         """
         if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+            raise ArithmeticError("p must be prime")
         cp = self.tamagawa_number(p)
         if not cp==4:
             return cp
@@ -3365,7 +3365,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     from sage.interfaces.all import magma
                     m = rings.Integer(magma(self).ModularDegree())
                 else:
-                    raise ValueError, "unknown algorithm %s"%algorithm
+                    raise ValueError("unknown algorithm %s"%algorithm)
                 self.__modular_degree = m
                 return m
 
@@ -3499,7 +3499,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 self.__congruence_number = W.congruence_number(V)
                 if not m.divides(self.__congruence_number):
                     # We should never get here
-                    raise ValueError, "BUG in modular degree or congruence number computation of: %s" % self
+                    raise ValueError("BUG in modular degree or congruence number computation of: %s" % self)
             return self.__congruence_number
 
         # Case 2: M > 1
@@ -3550,7 +3550,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 X = self.database_curve()
             except RuntimeError:
-                raise RuntimeError, "Cremona label not known for %s."%self
+                raise RuntimeError("Cremona label not known for %s."%self)
             self.__cremona_label = X.__cremona_label
             return self.cremona_label(space)
 
@@ -3597,13 +3597,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
        """
        p = rings.Integer(p)
        if not p.is_prime():
-           raise AttributeError, "p must be prime."
+           raise AttributeError("p must be prime.")
        disc = self.discriminant()
        if not disc.valuation(p) == 0:
            local_data=self.local_data(p)
            if local_data.has_good_reduction():
                return local_data.minimal_model().change_ring(rings.GF(p))
-           raise AttributeError, "The curve must have good reduction at p."
+           raise AttributeError("The curve must have good reduction at p.")
        return self.change_ring(rings.GF(p))
 
     def torsion_order(self):
@@ -3872,7 +3872,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return CMJ[self.j_invariant()]
         except KeyError:
-            raise ValueError, "%s does not have CM"%self
+            raise ValueError("%s does not have CM"%self)
 
 
     def quadratic_twist(self, D):
@@ -4214,7 +4214,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
-        elif l != None and not isinstance(l, list):
+        elif l is not None and not isinstance(l, list):
             try:
                 if l.is_prime(proof=False):
                     return isogenies_sporadic_Q(self, l)
@@ -4290,9 +4290,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             False
         """
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if not other.base_field() is QQ:
-            raise ValueError, "If first argument is an elliptic curve over QQ then the second argument must be also."
+            raise ValueError("If first argument is an elliptic curve over QQ then the second argument must be also.")
 
         if self.is_isomorphic(other):
             return True
@@ -4579,7 +4579,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         from sage.databases.cremona import CremonaDatabase
 
         if self.conductor() > CremonaDatabase().largest_conductor():
-            raise NotImplementedError, "The Manin constant can only be evaluated for curves in Cremona's tables. If you have not done so, you may wish to install the optional large database."
+            raise NotImplementedError("The Manin constant can only be evaluated for curves in Cremona's tables. If you have not done so, you may wish to install the optional large database.")
 
         E = self.minimal_model()
         C = self.optimal_curve()
@@ -4900,7 +4900,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if check:
             if not arith.is_prime(p):
-                raise ValueError, "p must be prime"
+                raise ValueError("p must be prime")
         return self.conductor() % p != 0
 
 
@@ -5291,7 +5291,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self(xy)
         except TypeError:
-            raise ValueError, "approximated point not on the curve"
+            raise ValueError("approximated point not on the curve")
 
     def integral_x_coords_in_interval(self,xmin,xmax):
         r"""
@@ -5438,7 +5438,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         #####################################################################
         # INPUT CHECK #######################################################
         if not self.is_integral():
-            raise ValueError, "integral_points() can only be called on an integral model"
+            raise ValueError("integral_points() can only be called on an integral model")
 
         if mw_base=='auto':
             mw_base = self.gens()
@@ -5447,9 +5447,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 r = len(mw_base)
             except TypeError:
-                raise TypeError, 'mw_base must be a list'
+                raise TypeError('mw_base must be a list')
             if not all([P.curve() is self for P in mw_base]):
-                raise ValueError, "points are not on the correct curve"
+                raise ValueError("points are not on the correct curve")
 
         tors_points = self.torsion_points()
 
@@ -5628,7 +5628,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     c1_LLL = tmp
 
             if c1_LLL < 0:
-                raise RuntimeError, 'Unexpected intermediate result. Please try another Mordell-Weil base'
+                raise RuntimeError('Unexpected intermediate result. Please try another Mordell-Weil base')
 
             d_L_0 = R(b1_norm**2 / c1_LLL)
 
@@ -5854,21 +5854,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
         if not self.is_integral():
-            raise ValueError, "S_integral_points() can only be called on an integral model"
+            raise ValueError("S_integral_points() can only be called on an integral model")
         if not all([self.is_p_minimal(s) for s in S]):
-            raise ValueError, "%s must be p-minimal for all primes in S"%self
+            raise ValueError("%s must be p-minimal for all primes in S"%self)
 
         try:
             len_S = len(S)
             if len_S == 0:
                 return self.integral_points(mw_base, both_signs, verbose)
             if not all([s.is_prime() for s in S]):
-                raise ValueError, "All elements of S must be prime"
+                raise ValueError("All elements of S must be prime")
             S.sort()
         except TypeError:
-            raise TypeError, 'S must be a list of primes'
+            raise TypeError('S must be a list of primes')
         except AttributeError:#catches: <tuple>.sort(), <!ZZ>.is_prime()
-            raise AttributeError,'S must be a list of primes'
+            raise AttributeError('S must be a list of primes')
 
         if mw_base=='auto':
             if verbose:
@@ -5881,9 +5881,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             try:
                 r = len(mw_base)
             except TypeError:
-                raise TypeError, 'mw_base must be a list'
+                raise TypeError('mw_base must be a list')
             if not all([P.curve() is self for P in mw_base]):
-                raise ValueError, "mw_base-points are not on the correct curve"
+                raise ValueError("mw_base-points are not on the correct curve")
 
         #End Input-Check ######################################################
 
@@ -5915,7 +5915,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 if tmp > c1_LLL:
                     c1_LLL = tmp
             if c1_LLL < 0:
-                raise RuntimeError, 'Unexpected intermediate result. Please try another Mordell-Weil base'
+                raise RuntimeError('Unexpected intermediate result. Please try another Mordell-Weil base')
             d_L_0 = R(b1_norm**2 / c1_LLL)
 
             #Reducing of upper bound
@@ -6259,7 +6259,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 if tmp > c1_LLL:
                     c1_LLL = tmp
             if c1_LLL < 0:
-                raise RuntimeError, 'Unexpected intermediate result. Please try another Mordell-Weil base'
+                raise RuntimeError('Unexpected intermediate result. Please try another Mordell-Weil base')
             d_L_0 = R(b1_norm**2 / c1_LLL)
 
             #Reducing of upper bound

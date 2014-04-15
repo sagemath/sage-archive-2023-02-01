@@ -1585,17 +1585,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 except IndexError:
                     raise ValueError, "no roots F %s"%self
             if q % 2 == 0:
-                T = x
                 while True:
-                    C = T % self
+                    T = R.random_element(2*degree-1)
+                    if T == 0:
+                        continue
+                    T = T.monic()
+                    C = T
                     for i in range(degree-1):
                         C = T + pow(C,q,self)
                     h = self.gcd(C)
                     hd = h.degree()
-                    if hd == 0 or hd == self.degree():
-                        T = R.random_element(2*degree-1)
-                        #T = T * pow(x,q,self)
-                    else:
+                    if hd != 0 or hd != self.degree():
                         if 2*hd <= self.degree():
                             return h.any_root(ring, -degree, True)
                         else:

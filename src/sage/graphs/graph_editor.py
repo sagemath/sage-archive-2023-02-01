@@ -104,8 +104,8 @@ def graph_editor(graph=None, graph_name=None,
     if graph is None:
         graph = graphs.CompleteGraph(2)
 
-    if not EMBEDDED_MODE:
-        return "This graph editor only runs in the Sage notebook."
+    #if not EMBEDDED_MODE:
+    #    return "This graph editor only runs in the Sage notebook."
 
     graph.layout(save_pos = True, **layout_options)
 

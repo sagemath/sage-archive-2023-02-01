@@ -88,7 +88,7 @@ def parity(self, allow_rescaling_flag=True):
         ind = scale_pow_list.index(min_scale_pow)
     else:
         if min_scale_pow < 0:
-            raise TypeError, "Oops!  If rescaling is not allowed, then we require our form to have an integral Gram matrix."
+            raise TypeError("Oops!  If rescaling is not allowed, then we require our form to have an integral Gram matrix.")
         ind = scale_pow_list.index(0)
 
 
@@ -188,7 +188,7 @@ def conway_species_list_at_odd_prime(self, p):
     """
     ## Sanity Check:
     if not ((p>2) and is_prime(p)):
-        raise TypeError, "Oops!  We are assuming that p is an odd positive prime number."
+        raise TypeError("Oops!  We are assuming that p is an odd positive prime number.")
 
     ## Deal with the zero-dim'l form
     if self.dim() == 0:
@@ -364,7 +364,7 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
         else:
             B = self[ind, ind+1]
             if (B % 2 != 0):
-                raise RuntimeError, "Oops, we expected the mixed term to be even! "
+                raise RuntimeError("Oops, we expected the mixed term to be even! ")
 
             a = self[ind, ind]
             b = ZZ(B / ZZ(2))
@@ -383,7 +383,7 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
                 ind += 2
                 u = tmp_diag_vec[0]
             else:
-                raise RuntimeError, "Oops!  This should not happen -- the odd 2x2 blocks have disc 1 or 5 (mod 8)."
+                raise RuntimeError("Oops!  This should not happen -- the odd 2x2 blocks have disc 1 or 5 (mod 8).")
 
     ## Compute the octane
     octane = 0
@@ -393,7 +393,7 @@ def conway_octane_of_this_unimodular_Jordan_block_at_2(self):
         elif a % 4 == 3:
             octane += -1
         else:
-            raise RuntimeError, "Oops!  The diagonal elements should all be odd... =("
+            raise RuntimeError("Oops!  The diagonal elements should all be odd... =(")
 
     ## Return its value
     return octane % 8

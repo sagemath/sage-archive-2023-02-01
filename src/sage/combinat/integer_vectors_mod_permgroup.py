@@ -473,7 +473,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
+                raise ValueError('%s shoud be a Python list of integer'%(v))
         except Exception:
             return self.element_class(self, list(v), check=check)
 
@@ -719,7 +719,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             if v.parent() is self:
                 return v
             else:
-                raise ValueError, '%s shoud be a Python list of integer'%(v)
+                raise ValueError('%s shoud be a Python list of integer'%(v))
         except Exception:
             return self.element_class(self, list(v), check=check)
 

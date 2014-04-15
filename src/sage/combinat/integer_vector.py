@@ -1022,7 +1022,7 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
             True
         """
         if x not in self:
-            raise ValueError("argument is not a member of IntegerVectors({},{})".format(self.n, self.k))
+            raise ValueError, "argument is not a member of IntegerVectors(%d,%d)" % (self.n, self.k)
 
         n = self.n
         k = self.k
@@ -1465,14 +1465,50 @@ def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
     """
     EXAMPLES::
 
-        sage: sage.combinat.integer_vector.IntegerVectors_nkconstraints(3, 2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_nk instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors of length 2 that sum to 3
-        sage: sage.combinat.integer_vector.IntegerVectors_nkconstraints(3, 2, min_slope=0)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors of length 2 that sum to 3 with constraints: min_slope=0
+            sage: IntegerVectors(3, max_length=2).cardinality()
+            4
+            sage: IntegerVectors(3).cardinality()
+            +Infinity
+        """
+        if 'max_length' not in self.constraints:
+            return infinity
+        else:
+            return self._CombinatorialClass__cardinality_from_iterator()
+
+    def list(self):
+        """
+        EXAMPLES::
+
+            sage: IntegerVectors(3, max_length=2).list()
+            [[3], [2, 1], [1, 2], [0, 3]]
+            sage: IntegerVectors(3).list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: infinite list
+        """
+        if 'max_length' not in self.constraints:
+            raise NotImplementedError, "infinite list" # no list from infinite iter
+        else:
+            return list(self)
+
+
+class IntegerVectors_nnondescents(CombinatorialClass):
+    r"""
+    The combinatorial class of integer vectors v graded by two
+    parameters:
+
+    - n: the sum of the parts of v
+
+    - comp: the non descents composition of v
+
+    In other words: the length of v equals c[1]+...+c[k], and v is
+    decreasing in the consecutive blocs of length c[1], ..., c[k]
+
+    Those are the integer vectors of sum n which are lexicographically
+    maximal (for the natural left->right reading) in their orbit by the
+    young subgroup S_c_1 x x S_c_k. In particular, they form a set
+    of orbit representative of integer vectors w.r.t. this young
+    subgroup.
     """
     from sage.misc.superseded import deprecation
     if len(constraints) == 0:

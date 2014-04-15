@@ -22,6 +22,7 @@ Functions and methods
 """
 
 from sage.combinat.finite_state_machine import Transducer
+from sage.rings.integer_ring import ZZ
 
 class TransducerGenerators(object):
     r"""
@@ -328,6 +329,7 @@ class TransducerGenerators(object):
                           initial_states=[0],
                           final_states=[0])
 
+
     def GrayCode(self):
         """
         Returns a transducer converting the standard binary
@@ -339,26 +341,44 @@ class TransducerGenerators(object):
 
         OUTPUT:
 
-        A transducer converting the standard binary expansion
-        to Gray code, cf. the :wikipedia:`Gray_code`.
+        A transducer.
+
+        Cf. the :wikipedia:`Gray_code` for a description of the Gray code.
 
         EXAMPLE::
 
-            sage: transducers.GrayCode()
+            sage: G = transducers.GrayCode()
+            sage: G
             Transducer with 3 states
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: for v in srange(0,10):
+            ....:     print v, G(v.digits(base=2)+[0])
+            0 []
+            1 [1]
+            2 [1, 1]
+            3 [0, 1]
+            4 [0, 1, 1]
+            5 [1, 1, 1]
+            6 [1, 0, 1]
+            7 [0, 0, 1]
+            8 [0, 0, 1, 1]
+            9 [1, 0, 1, 1]
 
         Compare this with the documentation of :class:`FiniteStateMachine`,
         where the Gray code transducer is derived from the algorithm
         converting the binary expansion to the Gray code.
         """
+        z = ZZ(0)
+        o = ZZ(1)
+        return Transducer([[0, 1, z, None],
+                           [0, 2, o, None],
+                           [1, 1, z, z],
+                           [1, 2, o, o],
+                           [2, 1, z, o],
+                           [2, 2, o, z]],
+                          initial_states=[0],
+                          final_states=[1])
 
-        return Transducer([[0, 1, 0, None],
-                           [0, 2, 1, None],
-                           [1, 1, 0, 0],
-                           [1, 2, 1, 1],
-                           [2, 1, 0, 1],
-                           [2, 2, 1, 0]],
-                          initial_states=[0])
 
 # Easy access to the transducer generators from the command line:
 transducers = TransducerGenerators()

@@ -22,6 +22,8 @@ Basic Structures
    sage/structure/sequence
    sage/structure/element_wrapper
    sage/structure/global_options
+   sage/structure/set_factories
+   sage/structure/set_factories_example
 
    sage/sets/cartesian_product
    sage/sets/family

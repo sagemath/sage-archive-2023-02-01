@@ -66,7 +66,7 @@ def EtaGroup(level):
         ...
         ValueError: Level (=0) must be a positive integer
     """
-    if _cache.has_key(level):
+    if level in _cache:
         G = _cache[level]()
         if not G is None:
             return G
@@ -93,9 +93,9 @@ class EtaGroup_class(AbelianGroup):
         try:
             level = ZZ(level)
         except TypeError:
-            raise TypeError, "Level (=%s) must be a positive integer" % level
+            raise TypeError("Level (=%s) must be a positive integer" % level)
         if (level < 1):
-            raise ValueError, "Level (=%s) must be a positive integer" % level
+            raise ValueError("Level (=%s) must be a positive integer" % level)
         self._N = level
 
     def __reduce__(self):
@@ -385,7 +385,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
         for d in rdict.keys():
             if N % d:
-                raise ValueError, "%s does not divide %s" % (d, N)
+                raise ValueError("%s does not divide %s" % (d, N))
 
         for d in rdict.keys():
             if rdict[d] == 0:
@@ -397,13 +397,13 @@ class EtaGroupElement(MultiplicativeGroupElement):
             prod *= (N/d)**rdict[d]
 
         if sumR != 0:
-            raise ValueError, "sum r_d (=%s) is not 0" % sumR
+            raise ValueError("sum r_d (=%s) is not 0" % sumR)
         if (sumDR % 24) != 0:
-            raise ValueError, "sum d r_d (=%s) is not 0 mod 24" % sumDR
+            raise ValueError("sum d r_d (=%s) is not 0 mod 24" % sumDR)
         if (sumNoverDr % 24) != 0:
-            raise ValueError, "sum (N/d) r_d (=%s) is not 0 mod 24" % sumNoverDr
+            raise ValueError("sum (N/d) r_d (=%s) is not 0 mod 24" % sumNoverDr)
         if not is_square(prod):
-            raise ValueError, "product (N/d)^(r_d) (=%s) is not a square" % prod
+            raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
 
         self._sumDR = sumDR # this is useful to have around
         self._rdict = rdict
@@ -583,9 +583,9 @@ class EtaGroupElement(MultiplicativeGroupElement):
             -1
         """
         if not isinstance(cusp, CuspFamily):
-            raise TypeError, "Argument (=%s) should be a CuspFamily" % cusp
+            raise TypeError("Argument (=%s) should be a CuspFamily" % cusp)
         if cusp.level() != self.level():
-            raise ValueError, "Cusp not on right curve!"
+            raise ValueError("Cusp not on right curve!")
         return 1/ZZ(24)/gcd(cusp.width(), self.level()//cusp.width()) * sum( [ell*self.r(ell)/cusp.width() * (gcd(cusp.width(), self.level()//ell))**2  for ell in self._keys] )
 
     def divisor(self):
@@ -673,9 +673,9 @@ def num_cusps_of_width(N, d):
         assert d>0
         assert ((N % d) == 0)
     except TypeError:
-        raise TypeError, "N and d must be integers"
+        raise TypeError("N and d must be integers")
     except AssertionError:
-        raise AssertionError, "N and d must be positive integers with d|N"
+        raise AssertionError("N and d must be positive integers with d|N")
 
     return euler_phi(gcd(d, N//d))
 
@@ -698,9 +698,9 @@ def AllCusps(N):
         N = ZZ(N)
         assert N>0
     except TypeError:
-        raise TypeError, "N must be an integer"
+        raise TypeError("N must be an integer")
     except AssertionError:
-        raise AssertionError, "N must be positive"
+        raise AssertionError("N must be positive")
     c = []
     for d in divisors(N):
         n = num_cusps_of_width(N, d)
@@ -736,17 +736,17 @@ class CuspFamily(SageObject):
             N = ZZ(N)
             assert N>0
         except TypeError:
-            raise TypeError, "N must be an integer"
+            raise TypeError("N must be an integer")
         except AssertionError:
-            raise AssertionError, "N must be positive"
+            raise AssertionError("N must be positive")
         self._N = N
         self._width = width
         if (N % width):
-            raise ValueError, "Bad width"
+            raise ValueError("Bad width")
         if num_cusps_of_width(N, width) > 1 and label == None:
-            raise ValueError, "There are %s > 1 cusps of width %s on X_0(%s): specify a label" % (num_cusps_of_width(N,width), width, N)
+            raise ValueError("There are %s > 1 cusps of width %s on X_0(%s): specify a label" % (num_cusps_of_width(N,width), width, N))
         if num_cusps_of_width(N, width) == 1 and label != None:
-            raise ValueError, "There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N)
+            raise ValueError("There is only one cusp of width %s on X_0(%s): no need to specify a label" % (width, N))
         self.label = label
 
     def width(self):
@@ -920,7 +920,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
         [x1^3*x2 - 13*x1^3 - 4*x1^2*x2 - 4*x1*x2 - x2^2 + x2]
     """
     if len(eta_elements) > 2:
-        raise NotImplementedError, "Don't know how to find relations between more than two elements"
+        raise NotImplementedError("Don't know how to find relations between more than two elements")
 
     eta1, eta2 = eta_elements
 
@@ -937,9 +937,9 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     newgrob = _eta_relations_helper(eta1, eta2, degree, m+5, labels, verbose)
     if oldgrob != newgrob:
         if verbose:
-            raise ArithmeticError, "Answers different!"
+            raise ArithmeticError("Answers different!")
         else:
-            raise ArithmeticError, "Check: answers different!"
+            raise ArithmeticError("Check: answers different!")
     return newgrob
 
 def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):

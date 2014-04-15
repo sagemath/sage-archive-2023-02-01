@@ -434,12 +434,17 @@ cdef class Element(sage_object.SageObject):
             False
         """
         cls = self.__class__
-        res = cls.__new__(cls)
-        res._set_parent(self._parent)
+        cdef Element res = cls.__new__(cls)
+        res._parent = self._parent
         try:
-            res.__dict__ = self.__dict__.copy()
+            D = self.__dict__
         except AttributeError:
-            pass
+            return res
+        for k,v in D.iteritems():
+            try:
+                setattr(res, k, v)
+            except AttributeError:
+                pass
         return res
 
     def __hash__(self):
@@ -620,15 +625,15 @@ cdef class Element(sage_object.SageObject):
         # required to have the latter
         for i in xrange(0,ngens):
             gen=parent.gen(i)
-            if kwds.has_key(str(gen)):
+            if str(gen) in kwds:
                 variables.append(kwds[str(gen)])
-            elif in_dict and in_dict.has_key(gen):
+            elif in_dict and gen in in_dict:
                 variables.append(in_dict[gen])
             else:
                 variables.append(gen)
         return self(*variables)
 
-    def numerical_approx (self, prec=None, digits=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Return a numerical approximation of x with at least prec bits of
         precision.
@@ -641,11 +646,20 @@ cdef class Element(sage_object.SageObject):
             3.141592654
             sage: pi.n(prec=20)   # 20 bits
             3.1416
+
+        TESTS:
+
+        Check that :trac:`14778` is fixed::
+
+            sage: (0).n(algorithm='foo')
+            0.000000000000000
         """
         import sage.misc.functional
-        return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
-    n=numerical_approx
-    N=n
+        return sage.misc.functional.numerical_approx(self, prec=prec,
+                                                     digits=digits,
+                                                     algorithm=algorithm)
+    n = numerical_approx
+    N = n
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -1394,7 +1408,7 @@ cdef class MonoidElement(Element):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
-        except TypeError, msg:
+        except TypeError as msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
             elif isinstance(right, (int, long)) and right==1:
@@ -1846,26 +1860,6 @@ cdef class RingElement(ModuleElement):
             return self
         return 1/self
 
-
-    def order(self):
-        """
-        Return the additive order of self.
-
-        This is deprecated; use ``additive_order`` instead.
-
-        EXAMPLES::
-
-            sage: a = Integers(12)(5)
-            sage: a.order()
-            doctest... DeprecationWarning: The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.
-            See http://trac.sagemath.org/5716 for details.
-            12
-        """
-        # deprecation added 2009-05
-        from sage.misc.superseded import deprecation
-        deprecation(5716, "The function order is deprecated for ring elements; use additive_order or multiplicative_order instead.")
-        return self.additive_order()
-
     def additive_order(self):
         """
         Return the additive order of self.
@@ -1879,11 +1873,6 @@ cdef class RingElement(ModuleElement):
         """
         if not self.is_unit():
             raise ArithmeticError, "self (=%s) must be a unit to have a multiplicative order."
-        raise NotImplementedError
-
-    def is_unit(self):
-        if self == 1 or self == -1:
-            return True
         raise NotImplementedError
 
     def is_nilpotent(self):
@@ -2797,32 +2786,6 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             return coercion_model.bin_op(self, right, lcm)
         return self._lcm(right)
 
-    def gcd(self, right):
-        """
-        Returns the gcd of self and right, or 0 if both are 0.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, gcd)
-        return self._gcd(right)
-
-    def xgcd(self, right):
-        r"""
-        Return the extended gcd of self and other, i.e., elements `r, s, t` such that
-        .. math::
-
-           r = s \cdot self + t \cdot other.
-
-        .. note::
-
-           There is no guarantee on minimality of the cofactors.  In
-           the integer case, see documentation for Integer._xgcd() to
-           obtain minimal cofactors.
-        """
-        if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
-            return coercion_model.bin_op(self, right, xgcd)
-        return self._xgcd(right)
-
-
 # This is pretty nasty low level stuff. The idea is to speed up construction
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
 # calls up the inheritance tree.
@@ -2838,20 +2801,6 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def degree(self):
         raise NotImplementedError
-
-    def _gcd(self, other):
-        """
-        Return the greatest common divisor of self and other.
-
-        Algorithm 3.2.1 in Cohen, GTM 138.
-        """
-        A = self
-        B = other
-        while not B.is_zero():
-            Q, R = A.quo_rem(B)
-            A = B
-            B = R
-        return A
 
     def leading_coefficient(self):
         raise NotImplementedError
@@ -2937,15 +2886,6 @@ cdef class FieldElement(CommutativeRingElement):
         """
         return not not self
 
-    def _gcd(self, FieldElement other):
-        """
-        Return the greatest common divisor of self and other.
-        """
-        if self.is_zero() and other.is_zero():
-            return self
-        else:
-            return self._parent(1)
-
     def _lcm(self, FieldElement other):
         """
         Return the least common multiple of self and other.
@@ -2954,16 +2894,6 @@ cdef class FieldElement(CommutativeRingElement):
             return self
         else:
             return self._parent(1)
-
-    def _xgcd(self, FieldElement other):
-        R = self._parent
-        if not self.is_zero():
-            return R(1), ~self, R(0)
-        elif not other.is_zero():
-            return R(1), R(0), ~self
-        else: # both are 0
-            return self, self, self
-
 
     def quo_rem(self, right):
         r"""
@@ -3189,9 +3119,9 @@ cdef class NamedBinopMethod:
         self._func = func
         if name is None:
             if isinstance(func, types.FunctionType):
-                name = func.func_name
+                name = func.__name__
             if isinstance(func, types.UnboundMethodType):
-                name = func.im_func.func_name
+                name = func.__func__.__name__
             else:
                 name = func.__name__
         self._name = name
@@ -3404,7 +3334,7 @@ cdef generic_power_c(a, nn, one):
                     return a.parent().one()
                 except AttributeError:
                     return type(a)(1)
-            except StandardError:
+            except Exception:
                 return 1 #oops, the one sucks
         else:
             return one

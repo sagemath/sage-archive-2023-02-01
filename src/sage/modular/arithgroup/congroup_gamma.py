@@ -73,6 +73,19 @@ class Gamma_class(CongruenceSubgroup):
         """
         return "Congruence Subgroup Gamma(%s)"%self.level()
 
+    def _latex_(self):
+        r"""
+        Return the \LaTeX representation of self.
+        
+        EXAMPLES::
+
+            sage: Gamma(20)._latex_()
+            '\\Gamma(20)'
+            sage: latex(Gamma(20))
+            \Gamma(20)
+        """
+        return "\\Gamma(%s)"%self.level()
+
     def __reduce__(self):
         """
         Used for pickling self.
@@ -330,5 +343,5 @@ def _lift_pair(U,V,N):
             v = N
     while gcd(u, v) > 1:
         u = u+N
-        if u > N*v: raise ValueError, "(U, V, N) must be coprime"
+        if u > N*v: raise ValueError("(U, V, N) must be coprime")
     return (u, v)

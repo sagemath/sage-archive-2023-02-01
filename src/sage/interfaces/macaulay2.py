@@ -299,7 +299,7 @@ class Macaulay2(Expect):
         cmd = '%s=%s;'%(var,value)
         ans = Expect.eval(self, cmd)
         if ans.find("stdio:") != -1:
-            raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(cmd, ans)
+            raise RuntimeError("Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(cmd, ans))
 
     def _object_class(self):
         """
@@ -520,9 +520,8 @@ class Macaulay2(Expect):
                 s -> not match("^(o|sage)[0-9]+$", s))
             """)
         # Now split this string into separate names
-        r = r[1:-1].split(", ")
+        r = sorted(r[1:-1].split(", "))
         # Macaulay2 sorts things like A, a, B, b, ...
-        r.sort()
         return r
 
     def use(self, R):
@@ -625,7 +624,7 @@ class Macaulay2Element(ExpectElement):
         if 'stdio:' in X:
             if 'to external string' in X:
                 return P.eval('%s'%self.name())
-            raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, X)
+            raise RuntimeError("Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, X))
 
         s = multiple_replace({'\r':'', '\n':' '}, X)
         return s
@@ -667,7 +666,7 @@ class Macaulay2Element(ExpectElement):
         value = P(value)
         res = P.eval("%s # %s = %s"%(self.name(), index.name(), value.name()))
         if "assignment attempted to element of immutable list" in res:
-            raise TypeError, "item assignment not supported"
+            raise TypeError("item assignment not supported")
 
     def __call__(self, x):
         """
@@ -849,8 +848,7 @@ class Macaulay2Element(ExpectElement):
                 currentClass = parent currentClass;
                 )
             toString total""" % self.name())
-        r = r[1:-1].split(", ")
-        r.sort()
+        r = sorted(r[1:-1].split(", "))
         return r
 
     def cls(self):
@@ -1038,7 +1036,7 @@ class Macaulay2Element(ExpectElement):
 
                 # Check that we are dealing with default degrees, i.e. 1's.
                 if self.degrees().any("x -> x != {1}").to_sage():
-                    raise ValueError, "cannot convert Macaulay2 polynomial ring with non-default degrees to Sage"
+                    raise ValueError("cannot convert Macaulay2 polynomial ring with non-default degrees to Sage")
                 #Handle the term order
                 external_string = self.external_string()
                 order = None
@@ -1049,7 +1047,7 @@ class Macaulay2Element(ExpectElement):
                         if order_name in external_string:
                             order = inv_macaulay2_name_mapping[order_name]
                 if len(gens) > 1 and order is None:
-                    raise ValueError, "cannot convert Macaulay2's term order to a Sage term order"
+                    raise ValueError("cannot convert Macaulay2's term order to a Sage term order")
 
                 return PolynomialRing(base_ring, order=order, names=gens)
             elif cls_str == "GaloisField":
@@ -1097,8 +1095,8 @@ class Macaulay2Element(ExpectElement):
         from sage.misc.sage_eval import sage_eval
         try:
             return sage_eval(repr_str)
-        except StandardError:
-            raise NotImplementedError, "cannot convert %s to a Sage object"%repr_str
+        except Exception:
+            raise NotImplementedError("cannot convert %s to a Sage object"%repr_str)
 
 
 class Macaulay2Function(ExpectFunction):

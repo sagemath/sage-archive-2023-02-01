@@ -1227,6 +1227,28 @@ end_scene""" % (render_params.antialiasing,
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
 
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: f = tmp_filename() + '.png'
+            sage: G = sphere()
+            sage: G.save_image(f)
+        """
+        self.save(filename, *args, **kwds)
+
     def save(self, filename, **kwds):
         """
         Save the graphic to an image file (of type: PNG, BMP, GIF, PPM, or TIFF)
@@ -1276,7 +1298,7 @@ end_scene""" % (render_params.antialiasing,
                 opts['aspect_ratio'], opts['zoom']
             )
 
-            if ext == 'png':
+            if ext == '.png':
                 # No conversion is necessary
                 out_filename = filename
             else:
@@ -1284,7 +1306,7 @@ end_scene""" % (render_params.antialiasing,
                 out_filename = sage.misc.temporary_file.tmp_filename(ext=ext)
             tachyon_rt(T.tachyon(), out_filename, opts['verbosity'], True,
                 '-res %s %s' % (opts['figsize'][0]*100, opts['figsize'][1]*100))
-            if ext != 'png':
+            if ext != '.png':
                 import PIL.Image as Image
                 Image.open(out_filename).save(filename)
         else:
@@ -1780,7 +1802,7 @@ cdef class PrimitiveObject(Graphics3d):
     This is the base class for the non-container 3d objects.
     """
     def __init__(self, **kwds):
-        if kwds.has_key('texture'):
+        if 'texture' in kwds:
             self.texture = kwds['texture']
             if not is_Texture(self.texture):
                 self.texture = Texture(self.texture)

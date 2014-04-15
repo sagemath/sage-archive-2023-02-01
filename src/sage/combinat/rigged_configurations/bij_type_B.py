@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[2,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[2,1]])
     sage: from sage.combinat.rigged_configurations.bij_type_B import KRTToRCBijectionTypeB
     sage: bijection = KRTToRCBijectionTypeB(KRT(pathlist=[[-1,2]]))
     sage: TestSuite(bijection).run()
@@ -59,7 +59,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
         EXAMPLES::
 
             sage: from sage.combinat.rigged_configurations.bij_type_B import KRTToRCBijectionTypeB
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[2, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[2, 1]])
             sage: KRTToRCBijectionTypeB(KRT(pathlist=[[0,3]])).run()
             <BLANKLINE>
             0[ ]0
@@ -69,7 +69,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
             <BLANKLINE>
             0[]0
             <BLANKLINE>
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[3, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[3, 1]])
             sage: KRTToRCBijectionTypeB(KRT(pathlist=[[-2,3,1]])).run()
             <BLANKLINE>
             (/)
@@ -237,7 +237,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['B', 3, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_B import KRTToRCBijectionTypeB
             sage: bijection = KRTToRCBijectionTypeB(KRT(pathlist=[[-1,2]]))
             sage: bijection.cur_path.insert(0, [])
@@ -437,7 +437,7 @@ class KRTToRCBijectionTypeB(KRTToRCBijectionTypeC):
         if singular_max_width:
             try:
                 self.ret_rig_con.check()
-            except StandardError:
+            except Exception:
                 self.other_outcome(cp, pos_val, width_n)
 
     def other_outcome(self, rc, pos_val, width_n):

@@ -735,7 +735,7 @@ class Qepcad:
 
         if isinstance(formula, str):
             if varlist is None:
-                raise ValueError, "vars must be specified if formula is a string"
+                raise ValueError("vars must be specified if formula is a string")
 
             free_vars = len(varlist) - formula.count('(')
         else:
@@ -748,9 +748,9 @@ class Qepcad:
                 # Do some error-checking here.  Parse the given vars
                 # and ensure they match up with the variables in the formula.
                 if frozenset(varlist) != (fvars | frozenset(fqvars)):
-                    raise ValueError, "specified vars don't match vars in formula"
+                    raise ValueError("specified vars don't match vars in formula")
                 if len(fqvars) and varlist[-len(fqvars):] != fqvars:
-                    raise ValueError, "specified vars don't match quantified vars"
+                    raise ValueError("specified vars don't match quantified vars")
             free_vars = len(fvars)
             formula = repr(formula)
 
@@ -759,7 +759,7 @@ class Qepcad:
 
         varlist = [v.replace('_', '') for v in varlist]
         if len(frozenset(varlist)) != len(varlist):
-            raise ValueError, "variables collide after stripping underscores"
+            raise ValueError("variables collide after stripping underscores")
         formula = formula.replace('_', '')
 
         qex = Qepcad_expect(logfile=logfile)
@@ -812,9 +812,9 @@ class Qepcad:
         if not isinstance(assume, str):
             assume = qepcad_formula.formula(assume)
             if len(assume.qvars):
-                raise ValueError, "assumptions cannot be quantified"
+                raise ValueError("assumptions cannot be quantified")
             if not assume.vars.issubset(frozenset(self._varlist[:self._free_vars])):
-                raise ValueError, "assumption contains variables not present in formula"
+                raise ValueError("assumption contains variables not present in formula")
             assume = repr(assume)
         assume = assume.replace('_', '')
         result = self._eval_line("assume [%s]" % assume)
@@ -868,7 +868,7 @@ class Qepcad:
             y + x > 0 /\ y^2 + x^2 - 3 = 0
         """
         if kind == 'I':
-            raise ValueError, "Interactive solution construction not handled by Sage interface"
+            raise ValueError("Interactive solution construction not handled by Sage interface")
         result = self._eval_line('solution-extension %s'%kind)
         tagline = 'An equivalent quantifier-free formula:'
         loc = result.find(tagline)
@@ -947,7 +947,7 @@ class Qepcad:
             '-----------------------------------------------------------------------------\r\n0 Garbage collections, 0 Cells and 0 Arrays reclaimed, in 0 milliseconds.\r\n492514 Cells in AVAIL, 500000 Cells in SPACE.\r\n\r\nSystem time: 16 milliseconds.\r\nSystem time after the initialization: 4 milliseconds.\r\n-----------------------------------------------------------------------------\r\n'
         """
         if self.phase() != 'EXITED':
-            raise ValueError, "QEPCAD is not finished yet"
+            raise ValueError("QEPCAD is not finished yet")
         final = self._qex.expect().before
         match = re.search('\nAn equivalent quantifier-free formula:(.*)\n=+  The End  =+\r\n\r\n(.*)$', final, re.DOTALL)
 
@@ -1026,7 +1026,7 @@ class Qepcad:
             True
         """
         index_str = _format_cell_index(index)
-        if self._cell_cache.has_key(index_str):
+        if index_str in self._cell_cache:
             return self._cell_cache[index_str]
         else:
             c = self.make_cells(self.d_cell(index))[0]
@@ -1253,7 +1253,7 @@ class QepcadFunction(ExpectFunction):
                 args[0] = 'y' if args[0] else 'n'
 
         if special == 'interactive':
-            raise ValueError, "Cannot call %s through Sage interface... interactive commands not handled"
+            raise ValueError("Cannot call %s through Sage interface... interactive commands not handled")
 
         return self._parent._function_call(self._name, args)
 
@@ -1434,7 +1434,7 @@ def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwa
                 cells = qe.make_cells(qe.d_true_cells())
             qe.quit()
             if len(cells) == 0:
-                raise ValueError, "input formula is false everywhere"
+                raise ValueError("input formula is false everywhere")
             return cells[0].sample_point_dict()
         elif solution == 'cell-points':
             cells = qe.make_cells(qe.d_true_cells())
@@ -1445,10 +1445,10 @@ def qepcad(formula, assume=None, interact=False, solution=None, vars=None, **kwa
             qe.quit()
             for c in cells:
                 if c._dimension > 0:
-                    raise ValueError, "input formula is true for infinitely many points"
+                    raise ValueError("input formula is true for infinitely many points")
             return [c.sample_point_dict() for c in cells]
         else:
-            raise ValueError, "Unknown solution type (%s)" % solution
+            raise ValueError("Unknown solution type (%s)" % solution)
 
 
 import os
@@ -1648,7 +1648,7 @@ class qepcad_formula_factory:
         for f in formulas:
             vars = vars | f.vars
             if len(f.qvars):
-                raise ValueError, "QEPCAD formulas must be in prenex (quantifiers outermost) form"
+                raise ValueError("QEPCAD formulas must be in prenex (quantifiers outermost) form")
         return formula_strs, vars
 
     def atomic(self, lhs, op='=', rhs=0):
@@ -2014,7 +2014,7 @@ class qepcad_formula_factory:
         from sage.all import ZZ
         k = ZZ(k)
         if k < 0:
-            raise ValueError, "negative k in exactly_k quantifier"
+            raise ValueError("negative k in exactly_k quantifier")
 
         if k == 0:
             return self.forall(v, self.not_(formula))
@@ -2056,7 +2056,7 @@ class qepcad_formula_factory:
             form_str = '[' + form_str + ']'
         v = str(v)
         if not (v in formula.vars):
-            raise ValueError, "Attempting to quantify variable which does not occur in formula"
+            raise ValueError("Attempting to quantify variable which does not occur in formula")
         form_str = "(%s %s)%s" % (kind, v, form_str)
         return qformula(form_str, formula.vars - frozenset([v]), [v] + formula.qvars)
 
@@ -2105,7 +2105,7 @@ def _eval_qepcad_algebraic(text):
         if intv.lower().exact_rational() == lbound and intv.upper().exact_rational() == ubound:
             return AA.polynomial_root(p, intv)
 
-    raise ValueError, "%s or %s not an exact floating-point number"%(lbound, ubound)
+    raise ValueError("%s or %s not an exact floating-point number"%(lbound, ubound))
 
 class QepcadCell:
     r"""

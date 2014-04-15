@@ -174,7 +174,7 @@ def SymmetricGroupRepresentation(partition, implementation="specht",
         return SpechtRepresentation(partition, ring=ring,
                 cache_matrices=cache_matrices)
     else:
-        raise NotImplementedError, "only seminormal, orthogonal and specht are implemented"
+        raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
 def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
         cache_matrices=True):
@@ -248,7 +248,7 @@ def SymmetricGroupRepresentations(n, implementation="specht", ring=None,
     elif implementation == "specht":
         return SpechtRepresentations(n, ring=ring)
     else:
-        raise NotImplementedError, "only seminormal, orthogonal and specht are implemented"
+        raise NotImplementedError("only seminormal, orthogonal and specht are implemented")
 
 ##### Generic classes for symmetric group representations #################
 
@@ -321,8 +321,8 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             return False
         return (self._ring,self._partition)==(other._ring,other._partition)
 #        # both self and other must have caching enabled
-#        if self.__dict__.has_key('representation_matrix'):
-#            if not other.__dict__.has_key('representation_matrix'):
+#        if 'representation_matrix' in self.__dict__:
+#            if 'representation_matrix' not in other.__dict__:
 #                return False
 #            else:
 #                for key in self.__dict__:
@@ -332,7 +332,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
 #                else:
 #                    return True
 #        else:
-#            if other.__dict__.has_key('representation_matrix'):
+#            if 'representation_matrix' in other.__dict__:
 #                return False
 #            else:
 #                return self.__dict__.__eq__(other.__dict__)
@@ -476,7 +476,7 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
             Seminormal representation of the symmetric group corresponding to [2, 1]
         """
         if Partition(partition).size() != self._n:
-            raise TypeError, "not a partition of %s" % self._n
+            raise TypeError("not a partition of %s" % self._n)
         return self.object_class(partition, ring=self._ring,
                 cache_matrices=self._cache_matrices)
 

@@ -123,16 +123,6 @@ for display in the worksheet.  Affecting and controlling this
 process is discussed below in the section
 :ref:`sec-custom-generation`.
 
-The internal ``pretty_print()`` command illustrates the
-conversion of Sage objects to HTML code that employs MathJax in
-the notebook.  ::
-
-    sage: from sage.misc.latex import pretty_print
-    sage: pretty_print(x^12)
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
-    sage: pretty_print(integrate(sin(x), x))
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
-
 The notebook has two other features for employing TeX.
 The first is the "Typeset" button just above the first cell of a
 worksheet, to the right of the four drop-down boxes.  When

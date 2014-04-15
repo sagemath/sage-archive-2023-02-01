@@ -561,7 +561,7 @@ class HyperplaneArrangementElement(Element):
             sage: H(x) == 0
             False
         """
-        assert (type(self) is type(other)) and (self.parent() is other.parent()) # guaranteed by framework
+        assert (isinstance(self, type(other))) and (self.parent() is other.parent()) # guaranteed by framework
         return cmp(self._hyperplanes, other._hyperplanes)
 
     def union(self, other):

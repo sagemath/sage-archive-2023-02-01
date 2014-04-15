@@ -402,7 +402,6 @@ def full_group_by(l, key=lambda x: x):
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
-FSMOldCodeTransducerCartesianProduct = False
 
 def FSMLetterSymbol(letter):
     """

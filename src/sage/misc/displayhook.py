@@ -19,7 +19,7 @@ format (see :meth:`sage.structure.parent._repr_option` for details).
 With this displayhook there exists an other way for displaying object and more
 generally, all sage expression as an ASCII art object::
 
-    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.repl.interpreter import get_test_shell
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell('integral(x^2/pi^x, x)')
@@ -265,7 +265,7 @@ class DisplayHookBase(object):
         ``type`` objects and revert it to Python's standard string
         representation::
 
-            sage: shell=sage.misc.interpreter.get_test_shell()
+            sage: shell=sage.repl.interpreter.get_test_shell()
             sage: shell.displayhook(type)
             <type 'type'>
         """
@@ -297,7 +297,7 @@ class DisplayHookBase(object):
             [0 1 0]  [0 0 1 0]  [0 0 0 1 0]  [0 0 0 0 1 0]
             [0 0 1], [0 0 0 1], [0 0 0 0 1], [0 0 0 0 0 1]
             ]
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('%display ascii_art')   # indirect doctest
             sage: shell.run_cell("i = var('i')")
@@ -463,7 +463,7 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.display_formatter.formatters['text/plain']
         <...displayhook.SagePlainTextFormatter object at 0x...>
@@ -481,7 +481,7 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: fmt = shell.display_formatter.formatters['text/plain']
             sage: fmt

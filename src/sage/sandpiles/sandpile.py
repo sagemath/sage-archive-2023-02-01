@@ -323,7 +323,7 @@ class Sandpile(DiGraph):
                 processed_g[v] = edges
             g = processed_g
         else:
-            raise SyntaxError, g
+            raise SyntaxError(g)
 
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
@@ -414,7 +414,7 @@ class Sandpile(DiGraph):
                 self._set_points()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def version(self):
         r"""
@@ -1377,7 +1377,7 @@ class Sandpile(DiGraph):
             else:
                 return [r.values() for r in result]
         else:
-            raise UserWarning, "The underlying graph must be undirected."
+            raise UserWarning("The underlying graph must be undirected.")
 
     def canonical_divisor(self):
         r"""
@@ -1401,7 +1401,7 @@ class Sandpile(DiGraph):
         if self.is_undirected():
             return SandpileDivisor(self,[self.out_degree(v)-2 for v in self.vertices()])
         else:
-            raise UserWarning, "Only for undirected graphs."
+            raise UserWarning("Only for undirected graphs.")
 
     def _set_invariant_factors(self):
         r"""
@@ -2233,7 +2233,7 @@ class SandpileConfig(dict):
                         config[v] = c.pop()
                 dict.__init__(self,config)
         else:
-            raise SyntaxError, c
+            raise SyntaxError(c)
 
         self._sandpile = S
         self._vertices = S.nonsink_vertices()
@@ -2338,7 +2338,7 @@ class SandpileConfig(dict):
                 self._set_is_superstable()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -3453,7 +3453,7 @@ class SandpileDivisor(dict):
                     div[S.vertices()[i]] = D[i]
                     dict.__init__(self,div)
         else:
-            raise SyntaxError, D
+            raise SyntaxError(D)
 
         self._sandpile = S
         self._vertices = S.vertices()
@@ -3560,7 +3560,7 @@ class SandpileDivisor(dict):
                 self._set_life()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -5338,7 +5338,7 @@ def wilmes_algorithm(M):
                 L[k] = L[k] + v
         return L
     else:
-        raise UserWarning, 'matrix not of full rank'
+        raise UserWarning('matrix not of full rank')
 
 ######### Notes ################
 """

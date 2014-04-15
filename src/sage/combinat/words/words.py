@@ -108,7 +108,7 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
                 return InfiniteWords_over_OrderedAlphabet(alphabet)
         elif isinstance(length, (int,Integer)):
                 return FiniteWords_length_k_over_OrderedAlphabet(alphabet, length)
-    raise ValueError, "do not know how to make a combinatorial class of words from your input"
+    raise ValueError("do not know how to make a combinatorial class of words from your input")
 
 from sage.structure.unique_representation import UniqueRepresentation
 class Words_all(InfiniteAbstractCombinatorialClass):
@@ -180,6 +180,27 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             'Word_iter_with_caching': word.Word_iter_with_caching,
             'Word_iter': word.Word_iter
             }
+
+    def _an_element_(self):
+        r"""
+        Return an element of self.
+
+        EXAMPLES::
+
+            sage: W = Words(4)
+            sage: W.an_element()
+            word:
+
+        TESTS:
+
+        Check that :trac:`16125` is fixed::
+
+            sage: W = Words(4)
+            sage: w = W([3,1,2,1])
+            sage: w in ZZ
+            False
+        """
+        return self([])
 
     def __call__(self, data=None, length=None, datatype=None, caching=True, **kwds):
         r"""
@@ -475,7 +496,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif isinstance(data, WordDatatype):
                 data = data._data
             else:
-                raise TypeError, "Any instance of Word_class must be an instance of WordDatatype."
+                raise TypeError("Any instance of Word_class must be an instance of WordDatatype.")
 
         if data is None:
             data = []
@@ -493,16 +514,16 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif hasattr(data,"__iter__"):
                 datatype = "iter"
             else:
-                raise ValueError, "Cannot guess a datatype from data (=%s); please specify one"%data
+                raise ValueError("Cannot guess a datatype from data (=%s); please specify one"%data)
         else:
             # type check the datatypes
             if datatype == "iter" and not hasattr(data, "__iter__"):
-                raise ValueError, "Your data is not iterable"
+                raise ValueError("Your data is not iterable")
             elif datatype == "callable" and not callable(data):
-                raise ValueError, "Your data is not callable"
+                raise ValueError("Your data is not callable")
             elif datatype not in ("list", "tuple", "str",
                                 "callable", "iter", "pickled_function"):
-                raise ValueError, "Unknown datatype (=%s)" % datatype
+                raise ValueError("Unknown datatype (=%s)" % datatype)
 
         # If `data` is a pickled_function, restore the function
         if datatype == 'pickled_function':
@@ -532,12 +553,12 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             elif length in ZZ and length >= 0:
                 cls_str = 'FiniteWord_iter'
             else:
-                raise ValueError, "not a correct value for length (%s)" % length
+                raise ValueError("not a correct value for length (%s)" % length)
             if caching:
                 cls_str += '_with_caching'
             kwds = dict(parent=self,iter=data,length=length)
         else:
-            raise ValueError, "Not known datatype"
+            raise ValueError("Not known datatype")
 
         wordclass = self._element_classes
         cls = wordclass[cls_str]
@@ -569,7 +590,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         """
         for a in itertools.islice(w, length):
             if a not in self._alphabet:
-                raise ValueError, "%s not in alphabet!" % a
+                raise ValueError("%s not in alphabet!" % a)
 
     def _repr_(self):
         """
@@ -884,7 +905,7 @@ class Words_over_Alphabet(Words_all):
             NotImplementedError: size of alphabet must be finite
         """
         if self.size_of_alphabet() not in ZZ:
-            raise NotImplementedError, 'size of alphabet must be finite'
+            raise NotImplementedError('size of alphabet must be finite')
         from sage.combinat.words.morphism import WordMorphism
         return WordMorphism(dict((a,a) for a in self.alphabet()))
 
@@ -975,7 +996,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             TypeError: the parameter l (='a') must be an integer
         """
         if not isinstance(l, (int,Integer)):
-            raise TypeError, "the parameter l (=%r) must be an integer"%l
+            raise TypeError("the parameter l (=%r) must be an integer"%l)
         #if l == Integer(0):
         #    yield self()
         for w in xmrange([self.size_of_alphabet()]*l):
@@ -1260,7 +1281,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         if codomain is None:
             codomain = self
         elif not isinstance(codomain, Words_over_OrderedAlphabet):
-            raise TypeError, "codomain (=%s) must be an instance of Words_over_OrderedAlphabet"%codomain
+            raise TypeError("codomain (=%s) must be an instance of Words_over_OrderedAlphabet"%codomain)
 
         # iterate through the morphisms
         from sage.combinat.words.morphism import WordMorphism

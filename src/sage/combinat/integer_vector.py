@@ -614,7 +614,7 @@ class IntegerVectors_all(CombinatorialClass):
             ...
             NotImplementedError: infinite list
         """
-        raise NotImplementedError, "infinite list"  # can't use InfiniteAbstractCombinatorialClass
+        raise NotImplementedError("infinite list")  # can't use InfiniteAbstractCombinatorialClass
 
     def cardinality(self):
         """
@@ -812,7 +812,7 @@ class IntegerVectors_nk(CombinatorialClass):
         """
 
         if x not in self:
-            raise ValueError, "argument is not a member of IntegerVectors(%d,%d)" % (self.n, self.k)
+            raise ValueError("argument is not a member of IntegerVectors(%d,%d)" % (self.n, self.k))
 
         n = self.n
         k = self.k
@@ -1126,7 +1126,7 @@ class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
             NotImplementedError: infinite list
         """
         if 'max_length' not in self.constraints:
-            raise NotImplementedError, "infinite list" # no list from infinite iter
+            raise NotImplementedError("infinite list") # no list from infinite iter
         else:
             return list(self)
 

@@ -123,6 +123,7 @@ import power_series_ring_element
 from polynomial.all import is_MPolynomialRing, is_PolynomialRing
 from polynomial.polynomial_ring_constructor import PolynomialRing
 import laurent_series_ring
+import laurent_series_ring_element
 import commutative_ring
 import integral_domain
 import field
@@ -674,11 +675,26 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             1 - x + x^2 - x^3 + x^4 + O(x^5)
             sage: PowerSeriesRing(PowerSeriesRing(QQ,'x'),'x')(x).coefficients()
             [x]
+
+        Laurent series with non-negative valuation are accepted (see
+        :trac:`6431`)::
+
+            sage: L.<q> = LaurentSeriesRing(QQ)
+            sage: P = L.power_series_ring()
+            sage: P(q)
+            q
+            sage: P(1/q)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self is a not a power series
+
         """
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f
             f = f.truncate(prec)
+        elif isinstance(f, laurent_series_ring_element.LaurentSeries) and f.parent().power_series_ring() is self:
+            return self(f.power_series(), prec, check=check)
         elif isinstance(f, MagmaElement) and str(f.Type()) == 'RngSerPowElt':
             v = sage_eval(f.Eltseq())
             return self(v) * (self.gen(0)**f.Valuation())

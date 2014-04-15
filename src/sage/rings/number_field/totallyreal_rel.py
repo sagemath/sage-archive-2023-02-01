@@ -193,11 +193,11 @@ def integral_elements_in_box(K, C):
         i += 1
 
     from sage.geometry.lattice_polytope import LatticePolytope
-    P = LatticePolytope(matrix(M).transpose())
+    P = LatticePolytope(M)
     S = []
 
     try:
-        pts = P.points().transpose()
+        pts = P.points_pc()
     except ValueError:
         return []
 

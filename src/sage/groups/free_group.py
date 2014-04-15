@@ -315,9 +315,9 @@ class FreeGroupElement(ElementLibGAP):
 
         INPUT:
 
-        - ``gen`` : the generator with respect to which the derivative will be computed.
+        - ``gen`` -- the generator with respect to which the derivative will be computed.
         
-        - ``im_gens`` (optional) : the images of the generators.
+        - ``im_gens`` (optional) -- the images of the generators.
 
         OUTPUT:
 
@@ -326,7 +326,9 @@ class FreeGroupElement(ElementLibGAP):
         If ``im_gens`` are provided, the result lives in the algebra where im_gens live,
         and is given by the map determined by them.
 
-        EXAMPLES::
+        EXAMPLES:
+        
+        ::
 
             sage: G = FreeGroup(5)
             sage: G.inject_variables()

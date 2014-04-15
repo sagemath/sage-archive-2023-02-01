@@ -1004,7 +1004,11 @@ class Category(UniqueRepresentation, SageObject):
         Whenever speed matters, developers are advised to use this
         lazy attribute rather than calling :meth:`super_categories`.
 
-        .. NOTE:: this attribute is likely to eventually become a tuple.
+        .. NOTE::
+
+            This attribute is likely to eventually become a tuple.
+            When this happens, we might as well use :meth:`Category._sort`,
+            if not :meth:`Category_sort_uniq`.
 
         EXAMPLES::
 

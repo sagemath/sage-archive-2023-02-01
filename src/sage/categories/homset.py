@@ -244,7 +244,7 @@ def Hom(X, Y, category=None):
     join category, as in the following example::
 
         sage: PA = Parent(category=Algebras(QQ))
-        sage: PJ = Parent(category=Category.join([Fields(), ModulesWithBasis(QQ)]))
+        sage: PJ = Parent(category=Rings() & Modules(QQ))
         sage: Hom(PA,PJ)
         Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
         sage: Hom(PA,PJ).category()

@@ -243,7 +243,7 @@ class Function_erf(BuiltinFunction):
             sage: derivative(erf(c*x),x)
             2*c*e^(-c^2*x^2)/sqrt(pi)
             sage: erf(c*x).diff(x)._maxima_init_()
-            '((%pi)^(-1/2))*(c)*(exp(((c)^(2))*((x)^(2))*(-1)))*(2)'
+            '((%pi)^(-1/2))*(_SAGE_VAR_c)*(exp(((_SAGE_VAR_c)^(2))*((_SAGE_VAR_x)^(2))*(-1)))*(2)'
         """
         return 2*exp(-x**2)/sqrt(pi)
 
@@ -1286,7 +1286,7 @@ class Function_factorial(GinacFunction):
             sage: factorial._maxima_init_()
             'factorial'
             sage: maxima(factorial(z))
-            factorial(z)
+            factorial(_SAGE_VAR_z)
             sage: _.sage()
             factorial(z)
             sage: k = var('k')
@@ -1438,7 +1438,7 @@ class Function_binomial(GinacFunction):
 
             sage: n,k = var('n,k')
             sage: maxima(binomial(n,k))
-            binomial(n,k)
+            binomial(_SAGE_VAR_n,_SAGE_VAR_k)
             sage: _.sage()
             binomial(n, k)
             sage: binomial._maxima_init_()
@@ -1806,7 +1806,7 @@ class Function_arg(BuiltinFunction):
             sage: latex(arg(x))
             {\rm arg}\left(x\right)
             sage: maxima(arg(x))
-            atan2(0,x)
+            atan2(0,_SAGE_VAR_x)
             sage: maxima(arg(2+i))
             atan(1/2)
             sage: maxima(arg(sqrt(2)+i))

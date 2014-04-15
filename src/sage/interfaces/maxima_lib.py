@@ -255,7 +255,7 @@ def max_to_string(s):
         sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_string
         sage: ecl = maxima_lib(cos(x)).ecl()
         sage: max_to_string(ecl)
-        'cos(x)'
+        'cos(_SAGE_VAR_x)'
     """
     return maxprint(s).python()[1:-1]
 
@@ -561,7 +561,7 @@ class MaximaLib(MaximaAbstract):
             sage: maxima_lib._create(c,'m')
             'm'
             sage: maxima_lib.get('m')
-            'x+cos(19)'
+            '_SAGE_VAR_x+cos(19)'
         """
         name = self._next_var_name() if name is None else name
         if isinstance(value,EclObject):
@@ -912,7 +912,7 @@ class MaximaLibElement(MaximaAbstractElement):
         sage: maxima_lib(4)
         4
         sage: maxima_lib(log(x))
-        log(x)
+        log(_SAGE_VAR_x)
     """
 
     def ecl(self):
@@ -927,7 +927,7 @@ class MaximaLibElement(MaximaAbstractElement):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib(x+cos(19)).ecl()
-            <ECL: ((MPLUS SIMP) ((%COS SIMP) 19) $X)>
+            <ECL: ((MPLUS SIMP) ((%COS SIMP) 19) |$_SAGE_VAR_x|)>
         """
         try:
             return self._ecl
@@ -1198,9 +1198,9 @@ def mrat_to_sage(expr):
         (x, y, z)
         sage: c = maxima_lib((x+y^2+z^9)/x^6+z^8/y).rat()
         sage: c
-        (y*z^9+x^6*z^8+y^3+x*y)/(x^6*y)
+        (_SAGE_VAR_y*_SAGE_VAR_z^9+_SAGE_VAR_x^6*_SAGE_VAR_z^8+_SAGE_VAR_y^3+_SAGE_VAR_x*_SAGE_VAR_y)/(_SAGE_VAR_x^6*_SAGE_VAR_y)
         sage: c.ecl()
-        <ECL: ((MRAT SIMP ($X $Y $Z)
+        <ECL: ((MRAT SIMP (|$_SAGE_VAR_x| |$_SAGE_VAR_y| |$_SAGE_VAR_z|)
         ...>
         sage: mrat_to_sage(c.ecl())
         (x^6*z^8 + y*z^9 + y^3 + x*y)/(x^6*y)

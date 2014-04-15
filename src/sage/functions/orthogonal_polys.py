@@ -721,9 +721,9 @@ class Func_chebyshev_T(ChebyshevPolynomial):
             sage: var('n, x')
             (n, x)
             sage: chebyshev_T._maxima_init_evaled_(1,x)
-            'x'
+            '_SAGE_VAR_x'
             sage: maxima(chebyshev_T(n, chebyshev_T(n, x)))
-            chebyshev_t(n,chebyshev_t(n,x))
+            chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         return maxima.eval('chebyshev_t({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
 
@@ -1030,11 +1030,11 @@ class Func_chebyshev_U(ChebyshevPolynomial):
             sage: var('n, x')
             (n, x)
             sage: maxima(chebyshev_U(5,x))
-            32*x^5-32*x^3+6*x
+            32*_SAGE_VAR_x^5-32*_SAGE_VAR_x^3+6*_SAGE_VAR_x
             sage: maxima(chebyshev_U(n,x))
-            chebyshev_u(n,x)
+            chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
             sage: maxima(chebyshev_U(2,x))
-            4*x^2-1
+            4*_SAGE_VAR_x^2-1
         """
         return maxima.eval('chebyshev_u({0},{1})'.format(n._maxima_init_(), x._maxima_init_()))
 

@@ -475,10 +475,10 @@ class InterfaceInit(Converter):
             sage: a = f(x).diff(x); a
             D[0](f)(x)
             sage: print m.derivative(a, a.operator())
-            diff('f(x), x, 1)
+            diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 1)
             sage: b = f(x).diff(x, x)
             sage: print m.derivative(b, b.operator())
-            diff('f(x), x, 2)
+            diff('f(_SAGE_VAR_x), _SAGE_VAR_x, 2)
 
         We can also convert expressions where the argument is not just a
         variable, but the result is an "at" expression using temporary

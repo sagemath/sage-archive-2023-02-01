@@ -271,7 +271,7 @@ class Function_Bessel_J(BuiltinFunction):
 
         sage: m = maxima(bessel_J(2, x))
         sage: m.integrate(x)
-        hypergeometric([3/2],[5/2,3],-x^2/4)*x^3/24
+        hypergeometric([3/2],[5/2,3],-_SAGE_VAR_x^2/4)*_SAGE_VAR_x^3/24
 
     Visualization::
 
@@ -1005,9 +1005,9 @@ def Bessel(*args, **kwds):
         sage: x,y = var('x,y')
         sage: f = maxima(Bessel(typ='K')(x,y))
         sage: f.derivative('x')
-        %pi*csc(%pi*x)*('diff(bessel_i(-x,y),x,1)-'diff(bessel_i(x,y),x,1))/2-%pi*bessel_k(x,y)*cot(%pi*x)
+        %pi*csc(%pi*_SAGE_VAR_x)*('diff(bessel_i(-_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1)-'diff(bessel_i(_SAGE_VAR_x,_SAGE_VAR_y),_SAGE_VAR_x,1))/2-%pi*bessel_k(_SAGE_VAR_x,_SAGE_VAR_y)*cot(%pi*_SAGE_VAR_x)
         sage: f.derivative('y')
-        -(bessel_k(x+1,y)+bessel_k(x-1,y))/2
+        -(bessel_k(_SAGE_VAR_x+1,_SAGE_VAR_y)+bessel_k(_SAGE_VAR_x-1,_SAGE_VAR_y))/2
 
     Compute the particular solution to Bessel's Differential Equation that
     satisfies `y(1) = 1` and `y'(1) = 1`, then verify the initial conditions

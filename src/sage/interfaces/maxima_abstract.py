@@ -496,7 +496,7 @@ class MaximaAbstract(Interface):
              sage: var('x y')
              (x, y)
              sage: maxima(x == y)
-             x=y
+             _SAGE_VAR_x=_SAGE_VAR_y
         """
         return '='
 
@@ -513,7 +513,7 @@ class MaximaAbstract(Interface):
              sage: maxima._inequality_symbol()
              '#'
              sage: maxima((x != 1))
-             x#1
+             _SAGE_VAR_x#1
         """
         return '#'
 
@@ -1898,7 +1898,7 @@ class MaximaAbstractElement(InterfaceElement):
 
             sage: f = maxima.cos(x)
             sage: f._operation("+", f)
-            2*cos(x)
+            2*cos(_SAGE_VAR_x)
         """
         P = self._check_valid()
 
@@ -2188,16 +2188,16 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             sage: (f+maxima.cos(x))(2)
             sin(2)+cos(2)
             sage: (f+maxima.cos(y)) # This is a function with only ONE argument!
-            cos(y)+sin(x)
+            cos(_SAGE_VAR_y)+sin(x)
             sage: (f+maxima.cos(y))(2)
-            cos(y)+sin(2)
+            cos(_SAGE_VAR_y)+sin(2)
 
         ::
 
             sage: f = maxima.function('x','sin(x)')
             sage: g = -maxima.cos(x)
             sage: g+f
-            sin(x)-cos(x)
+            sin(x)-cos(_SAGE_VAR_x)
             sage: (g+f)(2) # The sum IS a function
             sin(2)-cos(2)
             sage: 2+f

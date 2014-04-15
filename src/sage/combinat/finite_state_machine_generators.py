@@ -1,7 +1,20 @@
 r"""
-Common Finite State Machines
+Common Transducers (Finite State Machines Generators)
 
-Generators for common finite state machines.
+Transducers in Sage can be built through the ``transducers``
+object. It contains generators for common finite state machines. For example,
+
+::
+
+    sage: I = transducers.Identity([0, 1, 2])
+
+generates an identity transducer on the alphabet `\{0, 1, 2\}`.
+
+To construct transducers manually, you can use the class
+:class:`Transducer`. See :mod:`~sage.combinat.finite_state_machine`
+for more details and a lot of examples.
+
+**Transducers**
 
 .. csv-table::
     :class: contentstable
@@ -11,10 +24,27 @@ Generators for common finite state machines.
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the identity map.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
 
+AUTHORS:
+
+- Clemens Heuberger (2014-04-07): initial version
+- Sara Kropf (2014-04-10): some changes in TransducerGenerator
+- Daniel Krenn (2014-04-15): improved common docstring during review
+
 Functions and methods
 ---------------------
 
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014 Sara Kropf <sara.kropf@aau.at>
+#                     2014 Daniel Krenn <devel@danielkrenn.at>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.combinat.finite_state_machine import Transducer
 
@@ -39,7 +69,7 @@ class TransducerGenerators(object):
 
         INPUT:
 
-        - ``input_alphabet`` -- the input alphabet.
+        - ``input_alphabet`` -- a list or other iterable.
 
         OUTPUT:
 
@@ -80,7 +110,7 @@ class TransducerGenerators(object):
         INPUT:
 
         - ``block`` -- a list (or other iterable) of letters.
-        - ``input_alphabet`` -- input alphabet.
+        - ``input_alphabet`` -- a list or other iterable.
 
         OUTPUT:
 
@@ -115,6 +145,12 @@ class TransducerGenerators(object):
                 sage: T.final_states()
                 [(), (1,)]
 
+            Check some sequence::
+
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T([0, 1, 0, 1, 1, 0])
+                [0, 0, 1, 0, 0, 1]
+
         #.  Counting the number of ``11`` blocks over the alphabet
             ``[0, 1]``::
 
@@ -126,6 +162,12 @@ class TransducerGenerators(object):
                  Transition from () to (1,): 1|0,
                  Transition from (1,) to (): 0|0,
                  Transition from (1,) to (1,): 1|1]
+
+            Check some sequence::
+
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T([0, 1, 0, 1, 1, 0])
+                [0, 0, 0, 0, 1, 0]
 
         #.  Counting the number of ``1010`` blocks over the
             alphabet ``[0, 1, 2]``::

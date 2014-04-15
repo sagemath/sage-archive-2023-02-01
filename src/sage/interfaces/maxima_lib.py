@@ -1488,7 +1488,7 @@ def sr_to_max(expr):
         elif (op in special_sage_to_max):
             return EclObject(special_sage_to_max[op](*[sr_to_max(o) for o in expr.operands()]))
         elif op == tuple:
-            return EclObject( ([mlist],tuple(sr_to_max(op) for op in expr.operands())) )
+            return EclObject( ([mlist],list(sr_to_max(op) for op in expr.operands())) )
         elif not (op in sage_op_dict):
             # Maxima does some simplifications automatically by default
             # so calling maxima(expr) can change the structure of expr

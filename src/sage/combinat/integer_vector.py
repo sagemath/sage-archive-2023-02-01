@@ -32,6 +32,7 @@ import misc
 import integer_list
 import cartesian_product
 import functools
+from itertools import combinations
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -382,7 +383,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
     if not(is_gale_ryser(p1,p2)):
         return False
 
-    if algorithm=="ryser": # ryser's algorithm
+    if algorithm == "ryser": # ryser's algorithm
         from sage.combinat.permutation import Permutation
 
         # Sorts the sequences if they are not, and remembers the permutation
@@ -410,29 +411,29 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
         if len(p2) != n:
             A0 = A0.transpose().stack(matrix([[0]*len(p1)]*(len(p2)-n))).transpose()
-            
-            # Applying the permutations to get a matrix satisfying the
-            # order given by the input
-            A0 = A0.matrix_from_rows_and_columns(r_permutation, s_permutation)
-            return A0
 
-        elif algorithm == "gale":
-          from sage.numerical.mip import MixedIntegerLinearProgram
-          k1, k2=len(p1), len(p2)
-          p = MixedIntegerLinearProgram()
-          b = p.new_variable(binary = True)
-          for (i,c) in enumerate(p1):
-              p.add_constraint(p.sum([b[i,j] for j in xrange(k2)]) ==c)
-          for (i,c) in enumerate(p2):
-              p.add_constraint(p.sum([b[j,i] for j in xrange(k1)]) ==c)
-          p.set_objective(None)
-          p.solve()
-          b = p.get_values(b)
-          M = [[0]*k2 for i in xrange(k1)]
-          for i in xrange(k1):
-              for j in xrange(k2):
-                  M[i][j] = int(b[i,j])
-          return matrix(M)
+        # Applying the permutations to get a matrix satisfying the
+        # order given by the input
+        A0 = A0.matrix_from_rows_and_columns(r_permutation, s_permutation)
+        return A0
+
+    elif algorithm == "gale":
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        k1, k2=len(p1), len(p2)
+        p = MixedIntegerLinearProgram()
+        b = p.new_variable(binary = True)
+        for (i,c) in enumerate(p1):
+            p.add_constraint(p.sum([b[i,j] for j in xrange(k2)]) ==c)
+        for (i,c) in enumerate(p2):
+            p.add_constraint(p.sum([b[j,i] for j in xrange(k1)]) ==c)
+        p.set_objective(None)
+        p.solve()
+        b = p.get_values(b)
+        M = [[0]*k2 for i in xrange(k1)]
+        for i in xrange(k1):
+            for j in xrange(k2):
+                M[i][j] = int(b[i,j])
+        return matrix(M)
 
     raise ValueError("The only two algorithms available are \"gale\" and \"ryser\"")
 
@@ -707,8 +708,8 @@ class IntegerVectors_all(IntegerVectors, UniqueRepresentation):
         n = 1
         while True:
             for k in range(1,n+1):
-                for x in IntegerVectors(n, k):
-                    yield self.element_class(self, list(x))
+                for v in integer_vectors_nk_fast_iter(n, k):
+                    yield self.element_class(self, v)
             n += 1
 
 class IntegerVectors_n(IntegerVectors, UniqueRepresentation):
@@ -733,7 +734,7 @@ class IntegerVectors_n(IntegerVectors, UniqueRepresentation):
             sage: IV
             Integer vectors that sum to 3
         """
-        return "Integer vectors that sum to %s"%self.n
+        return "Integer vectors that sum to {}".format(self.n)
 
     def __iter__(self):
         """
@@ -754,10 +755,13 @@ class IntegerVectors_n(IntegerVectors, UniqueRepresentation):
              [1, 2, 0],
              [1, 1, 1]]
         """
+        if not self.n:
+            yield self.element_class(self, [])
+
         k = 1
         while True:
-            for iv in IntegerVectors_nk(self.n, k):
-                yield self.element_class(self, list(iv))
+            for iv in integer_vectors_nk_fast_iter(self.n, k):
+                yield self.element_class(self, iv)
             k += 1
 
     def __contains__(self, x):
@@ -801,7 +805,7 @@ class IntegerVectors_k(IntegerVectors, UniqueRepresentation):
             sage: IV
             Integer vectors of length 2
         """
-        return "Integer vectors of length %s"%self.k
+        return "Integer vectors of length {}".format(self.k)
 
     def __iter__(self):
         """
@@ -824,8 +828,8 @@ class IntegerVectors_k(IntegerVectors, UniqueRepresentation):
         """
         n = 0
         while True:
-            for iv in IntegerVectors_nk(n, self.k):
-                yield self.element_class(self, list(iv))
+            for iv in integer_vectors_nk_fast_iter(n, self.k):
+                yield self.element_class(self, iv)
             n += 1
 
     def __contains__(self, x):
@@ -930,8 +934,8 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
         if self.n < 0:
             return
 
-        if self.k == 0:
-            if self.n == 0:
+        if not self.k:
+            if not self.n:
                 yield self.element_class(self, [])
             return
         elif self.k == 1:
@@ -940,8 +944,8 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
 
         for nbar in range(self.n+1):
             n = self.n - nbar
-            for rest in IntegerVectors_nk(nbar, self.k-1):
-                yield self.element_class(self, [n] + list(rest))
+            for rest in integer_vectors_nk_fast_iter(nbar, self.k-1):
+                yield self.element_class(self, [n] + rest)
 
     def _repr_(self):
         """
@@ -951,7 +955,7 @@ class IntegerVectors_nk(IntegerVectors, UniqueRepresentation):
             sage: IV
             Integer vectors of length 3 that sum to 2
         """
-        return "Integer vectors of length %s that sum to %s"%(self.k, self.n)
+        return "Integer vectors of length {} that sum to {}".format(self.k, self.n)
 
     def __contains__(self, x):
         """
@@ -1082,7 +1086,7 @@ class IntegerVectors_nnondescents(IntegerVectors, UniqueRepresentation):
             sage: IntegerVectors(4, [2])
             Integer vectors of 4 with non-descents composition [2]
         """
-        return "Integer vectors of %s with non-descents composition %s"%(self.n, list(self.comp))
+        return "Integer vectors of {} with non-descents composition {}".format(self.n, list(self.comp))
 
     def __iter__(self):
         """
@@ -1195,15 +1199,15 @@ class IntegerVectorsConstraints(IntegerVectors):
         """
         if self.k is not None:
             if self.n is not None:
-                base = "Integer vectors of length %s that sum to %s with constraints: "%(self.k, self.n)
+                base = "Integer vectors of length {} that sum to {} with constraints: ".format(self.k, self.n)
             else:
-                base = "Integer vectors of length %s with constraints: "%(self.k)
+                base = "Integer vectors of length {} with constraints: ".format(self.k)
         elif self.n is not None:
-            base ="Integer vectors that sum to %s with constraints: "%(self.n)
+            base ="Integer vectors that sum to {} with constraints: ".format(self.n)
         else:
             base = "Integer vectors with constraints: "
-        return base + ", ".join( "%s=%s"%(key, self.constraints[key]) \
-                                for key in sorted(self.constraints.keys()) )
+        return base + ", ".join( "{}={}".format(key, self.constraints[key])
+                                 for key in sorted(self.constraints.keys()) )
 
     def __eq__(self, rhs):
         """
@@ -1440,6 +1444,60 @@ class IntegerVectorsConstraints(IntegerVectors):
         for n in n_list:
             for x in integer_list.iterator(n, *self._parameters()):
                 yield self.element_class(self, x)
+
+def integer_vectors_nk_fast_iter(n, k):
+    """
+    A fast iterator for integer vectors of ``n`` of length ``k`` which
+    yeilds python lists filled with C int's.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
+        sage: list(integer_vectors_nk_fast_iter(3, 2))
+        [[3, 0], [2, 1], [1, 2], [0, 3]]
+        sage: list(integer_vectors_nk_fast_iter(2, 2))
+        [[2, 0], [1, 1], [0, 2]]
+        sage: list(integer_vectors_nk_fast_iter(1, 2))
+        [[1, 0], [0, 1]]
+
+    We check some corner cases::
+
+        sage: list(integer_vectors_nk_fast_iter(5, 1))
+        [[5]]
+        sage: list(integer_vectors_nk_fast_iter(1, 1))
+        [[1]]
+        sage: list(integer_vectors_nk_fast_iter(2, 0))
+        []
+        sage: list(integer_vectors_nk_fast_iter(0, 2))
+        [[0, 0]]
+        sage: list(integer_vectors_nk_fast_iter(0, 0))
+        [[]]
+    """
+    # "bad" input
+    if n < 0 or k < 0:
+        return
+
+    # Check some corner cases first
+    if not k:
+        if not n:
+            yield []
+        return
+    if k == 1:
+        yield [n]
+        return
+
+    if not n:
+        yield [0]*k
+        return
+
+    L = n + k - 1
+    # FIXME: This currently destroys why we want this to be an iterator
+    C = list(combinations(range(L),k-1))
+    for x in reversed(C):
+        l = [x[0]]
+        l += [x[i] - x[i-1] - 1 for i in range(1,k-1)]
+        l.append(L-x[-1]-1)
+        yield l
 
 def IntegerVectors_nconstraints(n, **constraints):
     """

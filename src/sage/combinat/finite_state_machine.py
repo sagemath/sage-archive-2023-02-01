@@ -5193,7 +5193,7 @@ class FiniteStateMachine(SageObject):
 
         .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
            *Combinatorial Characterization of Independent Transducers via
-           Functional Digraphs*, in preparation.
+           Functional Digraphs*, :arxiv:`1404.3680`.
 
         .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
            Weight of the Non-Adjacent-Form under Various Input Statistics*,

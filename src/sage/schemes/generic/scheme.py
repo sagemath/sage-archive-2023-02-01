@@ -858,13 +858,13 @@ class AffineScheme(Scheme):
         """
         from sage.categories.commutative_rings import CommutativeRings
         if not R in CommutativeRings():
-            raise TypeError, "R (=%s) must be a commutative ring"%R
+            raise TypeError("R (=%s) must be a commutative ring" % R)
         self.__R = R
         if not S is None:
             if not S in CommutativeRings():
-                raise TypeError, "S (=%s) must be a commutative ring"%S
+                raise TypeError("S (=%s) must be a commutative ring" % S)
             if not R.has_coerce_map_from(S):
-                raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
+                raise ValueError("There must be a natural map S --> R, but S = %s and R = %s" % (S, R))
         Scheme.__init__(self, S, category=category)
 
     def __setstate__(self, state):
@@ -974,7 +974,7 @@ class AffineScheme(Scheme):
 
     def __call__(self, *args):
         """
-        Call syntax for Spec.
+        Construct a scheme-valued or topological point of ``self``.
 
         INPUT/OUTPUT:
 

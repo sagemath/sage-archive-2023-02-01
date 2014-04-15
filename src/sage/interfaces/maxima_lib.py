@@ -739,10 +739,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Principal Value' in s:
                 raise ValueError("Integral is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-                j = s.find('Is ')
-                s = s[j:]
-                k = s.find(' ',4)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
+                self.missing_assumption(s)
             else:
                 raise error
 
@@ -787,10 +784,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Pole encountered' in s:
                 raise ValueError("Sum is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-                j = s.find('Is ')
-                s = s[j:]
-                k = s.find(' ',4)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
+                self.missing_assumption(s)
             else:
                 raise error
 
@@ -852,9 +846,7 @@ class MaximaLib(MaximaAbstract):
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
-                j = s.find('Is ')
-                s = s[j:]
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s)
+                self.missing_assumption(s)
             else:
                 raise error
 
@@ -874,7 +866,23 @@ class MaximaLib(MaximaAbstract):
         elif dir == "minus":
             L.append(max_minus)
         return max_to_sr(maxima_eval(([max_tlimit],L)))
-
+    
+    def missing_assumption(self,errstr):
+        """
+        Helper function for unified handling of failed computation because an
+        assumption was missing.
+        """
+        j = errstr.find('Is ')
+        errstr = errstr[j:]
+        jj = 2
+        if errstr[3] == ' ':
+            jj = 3
+        k = errstr.find(' ',jj+1)
+        
+        outstr = "Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume("\
+             + errstr[jj+1:k] +">0)', see `assume?` for more details)\n" + errstr
+        outstr = outstr.replace('_SAGE_VAR_','')
+        raise ValueError(outstr)
 
 def is_MaximaLibElement(x):
     r"""

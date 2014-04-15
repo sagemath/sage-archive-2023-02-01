@@ -398,7 +398,7 @@ class InterfaceInit(Converter):
             sage: m(sin(a))
             'sin((%pi)+(2))'
             sage: m(exp(x^2) + pi + 2)
-            '(%pi)+(exp((x)^(2)))+(2)'
+            '(%pi)+(exp((_SAGE_VAR_x)^(2)))+(2)'
 
         """
         self.name_init = "_%s_init_"%interface.name()
@@ -412,12 +412,18 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.symbol(x)
-            'x'
+            '_SAGE_VAR_x'
             sage: f(x) = x
             sage: m.symbol(f)
+            '_SAGE_VAR_x'
+            sage: ii = InterfaceInit(gp)
+            sage: ii.symbol(x)
             'x'
         """
-        return repr(SR(ex))
+        if self.interface.name()=='maxima':
+            return '_SAGE_VAR_'+repr(SR(ex))
+        else:
+            return repr(SR(ex))
 
     def pyobject(self, ex, obj):
         """
@@ -452,9 +458,9 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.relation(x==3, operator.eq)
-            'x = 3'
+            '_SAGE_VAR_x = 3'
             sage: m.relation(x==3, operator.lt)
-            'x < 3'
+            '_SAGE_VAR_x < 3'
         """
         return "%s %s %s"%(self(ex.lhs()), self.relation_symbols[operator],
                            self(ex.rhs()))
@@ -503,19 +509,21 @@ class InterfaceInit(Converter):
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i], params.count(i)) for i in set(params)]
             subs = ["%s = %s"%(t,a) for t,a in zip(temp_args,args)]
-            return "at(diff('%s(%s), %s), [%s])"%(f.name(),
+            outstr = "at(diff('%s(%s), %s), [%s])"%(f.name(),
                 ", ".join(map(repr,temp_args)),
                 ", ".join(params),
-                ", ".join(subs))
-
-        f = operator.function()
-        params = operator.parameter_set()
-        params = ["%s, %s"%(args[i], params.count(i)) for i in set(params)]
-
-        return "diff('%s(%s), %s)"%(f.name(),
-                                    ", ".join(map(repr, args)),
-                                    ", ".join(params))
-
+                ", ".join(subs))            
+        else:
+            f = operator.function()
+            params = operator.parameter_set()
+            def prep_sage(arg):
+                return '_SAGE_VAR_' + repr(arg)
+            params = ["%s, %s"%(prep_sage(args[i]), params.count(i)) for i in set(params)]
+            outstr = "diff('%s(%s), %s)"%(f.name(),
+                                        ", ".join(map(prep_sage, args)),
+                                        ", ".join(params))
+        return outstr
+    
     def arithmetic(self, ex, operator):
         """
         EXAMPLES::
@@ -524,7 +532,7 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.arithmetic(x+2, operator.add)
-            '(x)+(2)'
+            '(_SAGE_VAR_x)+(2)'
         """
         args = ["(%s)"%self(op) for op in ex.operands()]
         return arithmetic_operators[operator].join(args)
@@ -536,9 +544,9 @@ class InterfaceInit(Converter):
             sage: from sage.symbolic.expression_conversions import InterfaceInit
             sage: m = InterfaceInit(maxima)
             sage: m.composition(sin(x), sin)
-            'sin(x)'
+            'sin(_SAGE_VAR_x)'
             sage: m.composition(ceil(x), ceil)
-            'ceiling(x)'
+            'ceiling(_SAGE_VAR_x)'
 
             sage: m = InterfaceInit(mathematica)
             sage: m.composition(sin(x), sin)

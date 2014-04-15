@@ -1565,7 +1565,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x+2 > sqrt(3)
             sage: f._maxima_init_assume_()
-            '((x)+(2))>((3/1)^(1/2))'
+            '((_SAGE_VAR_x)+(2))>((3/1)^(1/2))'
         """
         from sage.calculus.calculus import maxima
 
@@ -1586,12 +1586,12 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x = var('x')
             sage: x._assume_str()
-            'x'
+            '_SAGE_VAR_x'
             sage: y = function('y', x)
             sage: y._assume_str()
             'y'
             sage: abs(x)._assume_str()
-            'abs(x)'
+            'abs(_SAGE_VAR_x)'
         """
         # if this is a function with a single argument which is a symbol, i.e.
         # this is of the form f(x), we pass the string 'f > 0'
@@ -3884,7 +3884,7 @@ cdef class Expression(CommutativeRingElement):
         if var is None:
             cmd = 'trigreduce(%s)'%(M.name())
         else:
-            cmd = 'trigreduce(%s,%s)'%(M.name(),str(var))
+            cmd = 'trigreduce(%s,%s)'%(M.name(),'_SAGE_VAR_'+str(var))
         ans = P(cmd)
         return self.parent()(ans)
 
@@ -8751,7 +8751,8 @@ cdef class Expression(CommutativeRingElement):
         if len(dontfactor) > 0:
             m = self._maxima_()
             name = m.name()
-            cmd = 'block([dontfactor:%s],factor(%s))'%(dontfactor, name)
+            varstr = ','.join(['_SAGE_VAR_'+str(v) for v in dontfactor])
+            cmd = 'block([dontfactor:[%s]],factor(%s))'%(varstr, name)
             return symbolic_expression_from_maxima_string(cmd)
         else:
             try:

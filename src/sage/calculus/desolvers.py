@@ -266,7 +266,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Some more types od ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == c + log(x), y(x) == c*e^x], 'factor']
+        [[y(x) == c*e^x, y(x) == c + log(x)], 'factor']
 
     ::
 
@@ -420,13 +420,14 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         if len(ivars) != 1:
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
-    def sanitize_var(exprs):
-        return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
     de00 = de._maxima_()
     P = de00.parent()
     dvar_str=P(dvar.operator()).str()
     ivar_str=P(ivar).str()
     de00 = de00.str()
+    def sanitize_var(exprs):
+        t = exprs.replace("'"+dvar_str+"(_SAGE_VAR_"+ivar_str+")",dvar_str)
+        return t.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
     de0 = sanitize_var(de00)
     ode_solver="ode2"
     cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
@@ -660,11 +661,15 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         ivar = ivars[0]
     ## verbatim copy from desolve - end
 
+    dvar_str = str(dvar)
     def sanitize_var(exprs):  # 'y(x) -> y(x)
-        return exprs.replace("'"+str(dvar),str(dvar))
+        t = exprs.replace("'"+dvar_str,dvar_str)
+        return t.replace("'_SAGE_VAR_"+dvar_str,dvar_str)
     de0=de._maxima_()
     P = de0.parent()
-    cmd = sanitize_var("desolve("+de0.str()+","+str(dvar)+")")
+    i = dvar_str.find('(')
+    dvar_str = dvar_str[:i+1] + '_SAGE_VAR_' + dvar_str[i+1:]
+    cmd = sanitize_var("desolve("+de0.str()+","+dvar_str+")")
     soln=P(cmd).rhs()
     if str(soln).strip() == 'false':
         raise NotImplementedError("Maxima was unable to solve this ODE.")
@@ -836,16 +841,17 @@ def desolve_system_strings(des,vars,ics=None):
         maxima.eval(cmd)
     desstr = "[" + ",".join(dess) + "]"
     d = len(vars)
-    varss = list("'" + vars[i] + "(" + vars[0] + ")" for i in range(1,d))
+    varss = list("'" + vars[i] + "(_SAGE_VAR_" + vars[0] + ")" for i in range(1,d))
     varstr = "[" + ",".join(varss) + "]"
     if ics is not None:
         #d = len(ics) ## must be same as len(des)
         for i in range(1,d):
-            ic = "atvalue('" + vars[i] + "("+vars[0] + ")," + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
+            ic = "atvalue('" + vars[i] + "(_SAGE_VAR_"+vars[0] + ")," + "_SAGE_VAR_"\
+             + str(vars[0]) + "=" + str(ics[0]) + "," + str(ics[i]) + ")"
             maxima.eval(ic)
     cmd = "desolve(" + desstr + "," + varstr + ");"
     soln = maxima(cmd)
-    return [f.rhs()._maxima_init_() for f in soln]
+    return [f.rhs()._maxima_init_().replace("_SAGE_VAR_"+vars[0],vars[0]) for f in soln]
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def eulers_method(f,x0,y0,h,x1,algorithm="table"):
@@ -1223,13 +1229,13 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     sol_1, sol_2 = [],[]
     if lower_bound<ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(de0.str(),str(dummy_dvar),str(ics[1]),str(ivar),str(ics[0]),lower_bound,-step)
+        "%(de0.str(),'_SAGE_VAR_'+str(dummy_dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),lower_bound,-step)
         sol_1=maxima(cmd).sage()
         sol_1.pop(0)
         sol_1.reverse()
     if upper_bound>ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(de0.str(),str(dummy_dvar),str(ics[1]),str(ivar),str(ics[0]),upper_bound,step)
+        "%(de0.str(),'_SAGE_VAR_'+str(dummy_dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),upper_bound,step)
         sol_2=maxima(cmd).sage()
         sol_2.pop(0)
     sol=sol_1
@@ -1343,13 +1349,13 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     sol_1, sol_2 = [],[]
     if lower_bound<ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(desstr,varstr,icstr,str(ivar),str(x0),lower_bound,-step)
+        "%(desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),lower_bound,-step)
         sol_1=maxima(cmd).sage()
         sol_1.pop(0)
         sol_1.reverse()
     if upper_bound>ics[0]:
         cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(desstr,varstr,icstr,str(ivar),str(x0),upper_bound,step)
+        "%(desstr,varstr,icstr,'_SAGE_VAR_'+str(ivar),str(x0),upper_bound,step)
         sol_2=maxima(cmd).sage()
         sol_2.pop(0)
     sol=sol_1

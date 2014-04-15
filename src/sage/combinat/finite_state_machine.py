@@ -4044,15 +4044,15 @@ class FiniteStateMachine(SageObject):
             True
             sage: T.final_components()[0].transitions()
             [Transition from 0 to 1: 0|-,
-            Transition from 1 to 0: 0|-]
+             Transition from 1 to 0: 0|-]
 
         REFERENCES:
 
-        .. [HKP2014] Clemens Heuberger, Sara Kropf and Helmut
+        .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
            Prodinger, *Asymptotic analysis of the sum of the output of
            transducer*, in preparation.
 
-        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+        .. [HKW2014] Clemens Heuberger, Sara Kropf, and Stephan Wagner,
            *Combinatorial Characterization of Independent Transducers via
            Functional Digraphs*, :arxiv:`1404.3680`.
 

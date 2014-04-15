@@ -353,20 +353,20 @@ def assert_strict_weak_order(a,b,c, cmp_func):
     msg += str(cmp)
 
     for i in range(0,3):   # irreflexivity
-        if cmp[i,i]: raise ValueError, msg
+        if cmp[i,i]: raise ValueError(msg)
 
     for i,j in indices:    # asymmetric
         if i==j: continue
         #if x[i] == x[j]: continue
-        if cmp[i,j] and cmp[j,i]: raise ValueError, msg
+        if cmp[i,j] and cmp[j,i]: raise ValueError(msg)
 
     for i,j,k in Permutations([0,1,2]):   # transitivity
-        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError, msg
+        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError(msg)
 
     def incomparable(i,j):
         return (not cmp[i,j]) and (not cmp[j,i])
     for i,j,k in Permutations([0,1,2]):   # transitivity of equivalence
-        if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError, msg
+        if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError(msg)
 
 def test_symbolic_expression_order(repetitions=100):
     r"""

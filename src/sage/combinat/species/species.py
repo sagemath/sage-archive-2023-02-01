@@ -260,7 +260,7 @@ class GenericCombinatorialSpecies(SageObject):
         """
         from sum_species import SumSpecies
         if not isinstance(g, GenericCombinatorialSpecies):
-            raise TypeError, "g must be a combinatorial species"
+            raise TypeError("g must be a combinatorial species")
         return SumSpecies(self, g)
 
     sum = __add__
@@ -277,7 +277,7 @@ class GenericCombinatorialSpecies(SageObject):
         """
         from product_species import ProductSpecies
         if not isinstance(g, GenericCombinatorialSpecies):
-            raise TypeError, "g must be a combinatorial species"
+            raise TypeError("g must be a combinatorial species")
         return ProductSpecies(self, g)
 
     product = __mul__
@@ -292,7 +292,7 @@ class GenericCombinatorialSpecies(SageObject):
         """
         from composition_species import CompositionSpecies
         if not isinstance(g, GenericCombinatorialSpecies):
-            raise TypeError, "g must be a combinatorial species"
+            raise TypeError("g must be a combinatorial species")
         return CompositionSpecies(self, g)
 
     composition = __call__
@@ -313,7 +313,7 @@ class GenericCombinatorialSpecies(SageObject):
         """
         from functorial_composition_species import FunctorialCompositionSpecies
         if not isinstance(g, GenericCombinatorialSpecies):
-            raise TypeError, "g must be a combinatorial species"
+            raise TypeError("g must be a combinatorial species")
         return FunctorialCompositionSpecies(self, g)
 
 
@@ -516,9 +516,9 @@ class GenericCombinatorialSpecies(SageObject):
             #The specified base ring must have maps from both
             #the rational numbers and the weight ring
             if not base_ring.has_coerce_map_from(QQ):
-                raise ValueError, "specified base ring does not contain the rationals"
+                raise ValueError("specified base ring does not contain the rationals")
             if not base_ring.has_coerce_map_from(self.weight_ring()):
-                raise ValueError, "specified base ring is incompatible with the weight ring of self"
+                raise ValueError("specified base ring is incompatible with the weight ring of self")
 
         series_ring = series_ring_class(base_ring)
 
@@ -676,7 +676,7 @@ class GenericCombinatorialSpecies(SageObject):
         for p in parents[1:]:
             common = cm.explain(common, p, verbosity=0)
             if common is None:
-                raise ValueError, "unable to find a common parent"
+                raise ValueError("unable to find a common parent")
         return common
 
     def digraph(self):

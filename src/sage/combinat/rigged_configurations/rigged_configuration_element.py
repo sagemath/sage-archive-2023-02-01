@@ -263,7 +263,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
-            sage: RC = InfinityCrystalOfRiggedConfigurations(['A', 4])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A', 4])
             sage: b = RC.module_generators[0].f_string([1,2,1,1,2,4,2,3,3,2])
             sage: b.check()
         """
@@ -512,9 +512,9 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1
             <BLANKLINE>
         """
-        if a not in self.parent()._cartan_type.index_set():
+        if a not in self.parent()._rc_index:
             raise ValueError("{} is not in the index set".format(a))
-        a = self.parent()._cartan_type.index_set().index(a)
+        a = self.parent()._rc_index.index(a)
 
         new_list = self[a][:]
         new_vac_nums = self[a].vacancy_numbers[:]
@@ -607,7 +607,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
         """
         # Check to make sure we will do something
-        if self.parent()._cartan_matrix[a][b] == 0:
+        if not self.parent()._cartan_matrix[a][b]:
             return self[b]
 
         new_list = self[b][:]
@@ -648,20 +648,20 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
-            sage: RC = InfinityCrystalOfRiggedConfigurations(['A', 3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A', 3])
             sage: nu0 = RC.module_generators[0]
             sage: nu0.f(2)
             <BLANKLINE>
             (/)
             <BLANKLINE>
-            -1[ ]-1
+            -2[ ]-1
             <BLANKLINE>
             (/)
             <BLANKLINE>
         """
-        if a not in self.parent()._cartan_type.index_set():
+        if a not in self.parent()._rc_index:
             raise ValueError("{} is not in the index set".format(a))
-        a = self.parent()._cartan_type.index_set().index(a)
+        a = self.parent()._rc_index.index(a)
 
         new_list = self[a][:]
         new_vac_nums = self[a].vacancy_numbers[:]
@@ -749,7 +749,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
         """
         # Check to make sure we will do something
-        if self.parent()._cartan_matrix[a][b] == 0:
+        if not self.parent()._cartan_matrix[a][b]:
             return self[b]
 
         new_list = self[b][:]
@@ -779,8 +779,8 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
         """
-        a = self.parent()._cartan_type.index_set().index(a)
-        if len(self[a]) == 0:
+        a = self.parent()._rc_index.index(a)
+        if not self[a]:
             return 0
         return -min(0, min(self[a].rigging))
 
@@ -796,9 +796,9 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
         """
-        a = self.parent()._cartan_type.index_set().index(a)
+        a = self.parent()._rc_index.index(a)
         p_inf = self.parent()._calc_vacancy_number(self, a, None)
-        if len(self[a]) == 0:
+        if not self[a]:
             return p_inf
         return p_inf - min(0, min(self[a].rigging))
 
@@ -817,7 +817,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: RC(partition_list=[[1], [2,1], [1], []]).get_vacancy_numbers(2)
             [-2, -1]
         """
-        a = self.parent()._cartan_type.index_set().index(a)
+        a = self.parent()._rc_index.index(a)
         return self[a].vacancy_numbers
 
     def get_vacancy_number(self, a, i):
@@ -840,7 +840,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: elt.get_vacancy_number(2, 1)
             -1
         """
-        a = self.parent()._cartan_type.index_set().index(a)
+        a = self.parent()._rc_index.index(a)
         partition = self[a]
         for k, val in enumerate(partition):
             if val == i:
@@ -881,7 +881,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 
     TESTS::
 
-        sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1])
+        sage: RC = crystals.infinity.RiggedConfigurations(['C',2,1])
         sage: elt = RC.module_generators[0].f_string([1,0,2,2,0,1]); elt
         <BLANKLINE>
         -2[ ][ ]-1
@@ -929,7 +929,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 
         EXAMPLES::
 
-            sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1])
+            sage: RC = crystals.infinity.RiggedConfigurations(['C',2,1])
             sage: elt = RC(partition_list=[[2],[1,1],[2]], rigging_list=[[-1],[-1,-1],[-1]])
             sage: ascii_art(elt.e(0))
             0[ ]0  0[ ]-1  -2[ ][ ]-1
@@ -964,7 +964,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 
         EXAMPLES::
 
-            sage: RC = InfinityCrystalOfRiggedConfigurations(['C',2,1])
+            sage: RC = crystals.infinity.RiggedConfigurations(['C',2,1])
             sage: elt = RC(partition_list=[[2],[1,1],[2]], rigging_list=[[-1],[-1,-1],[-1]])
             sage: ascii_art(elt.f(0))
             -4[ ][ ][ ]-2  0[ ]-1  -2[ ][ ]-1
@@ -997,7 +997,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
     TESTS::
 
         sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
-        sage: RC = CrystalOfRiggedConfigurations(['A',2,1], La[0])
+        sage: RC = crystals.RiggedConfigurations(['A',2,1], La[0])
         sage: elt = RC(partition_list=[[1,1],[1],[2]]); elt
         <BLANKLINE>
         -1[ ]-1
@@ -1017,7 +1017,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
         TESTS::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = CrystalOfRiggedConfigurations(['A',2,1], La[0])
+            sage: RC = crystals.RiggedConfigurations(['A',2,1], La[0])
             sage: elt = RC(partition_list=[[1,1],[1],[2]])
             sage: elt.check()
         """
@@ -1032,12 +1032,13 @@ class RCHighestWeightElement(RiggedConfigurationElement):
 
         This implements the method defined in [CrysStructSchilling06]_ which
         finds the value `k` which is  the length of the string with the
-        smallest nonpositive rigging of largest length. Then it adds a box from
-        a string of length `k` in the `a`-th rigged partition, keeping all
-        colabels fixed and decreasing the new label by one. If no such string
-        exists, then it adds a new string of length 1 with label `-1`. If any
-        of the resulting vacancy numbers are larger than the labels (i.e. it
-        is an invalid rigged configuration), then `f_a` is undefined.
+        smallest nonpositive rigging of largest length. Then it adds a box
+        from a string of length `k` in the `a`-th rigged partition, keeping
+        all colabels fixed and decreasing the new label by one. If no such
+        string exists, then it adds a new string of length 1 with label `-1`.
+        If any of the resulting vacancy numbers are larger than the labels
+        (i.e. it is an invalid rigged configuration), then `f_a` is
+        undefined.
 
         INPUT:
 
@@ -1050,7 +1051,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = CrystalOfRiggedConfigurations(['A',2,1], La[0])
+            sage: RC = crystals.RiggedConfigurations(['A',2,1], La[0])
             sage: elt = RC(partition_list=[[1,1],[1],[2]])
             sage: elt.f(0)
             <BLANKLINE>
@@ -1073,7 +1074,7 @@ class RCHighestWeightElement(RiggedConfigurationElement):
             <BLANKLINE>
             sage: elt.f(2)
         """
-        if self.phi(a) == 0:
+        if not self.phi(a):
             return None
         return RiggedConfigurationElement.f(self, a)
 
@@ -1084,9 +1085,10 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
     TESTS::
 
         sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-        sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0])
-        sage: elt = RC(partition_list=); elt
-
+        sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
+        sage: elt = RC(partition_list=[[1,1],[2],[2]]); ascii_art(elt)
+        -1[ ]-1  2[ ][ ]2  -2[ ][ ]-2
+        -1[ ]-1
         sage: TestSuite(elt).run()
     """
     def check(self):
@@ -1097,8 +1099,8 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
         TESTS::
 
             sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0])
-            sage: elt = RC(partition_list=)
+            sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
+            sage: elt = RC(partition_list=[[1,1],[2],[2]])
             sage: elt.check()
         """
         for partition in self:
@@ -1114,17 +1116,22 @@ class RCHWNonSimplyLacedElement(RCNonSimplyLacedElement):
 
         .. MATH::
 
-            \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
+            f^v_a = \prod_{j \in \iota(a)} \hat{f}_j^{\gamma_j}
 
         and pulling back.
 
         EXAMPLES::
 
             sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0])
-            sage: elt = RC(partition_list=)
+            sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
+            sage: elt = RC(partition_list=[[1,1],[2],[2]])
+            sage: elt.f(0)
+            sage: ascii_art(elt.f(1))
+            0[ ]0   0[ ][ ]0  -1[ ][ ]-1
+            0[ ]0  -1[ ]-1
+            sage: elt.f(2)
         """
-        if self.phi(a) == 0:
+        if not self.phi(a):
             return None
         return RCNonSimplyLacedElement.f(self, a)
 
@@ -1272,9 +1279,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         """
         if a not in self.parent()._cartan_type.index_set():
             raise ValueError("{} is not in the index set".format(a))
-        if a == 0:
+        if a == self.parent()._cartan_type.special_node():
             try:
-                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().e(0)
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().e(a)
                 if ret is None:
                     return None
                 return ret.to_rigged_configuration()
@@ -1284,9 +1291,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
                 #   crystal if there is no bijection.
                 return None
 
-        # -1 for indexing
-        # This is a slight abuse, but it works
-        return RiggedConfigurationElement.e(self, a-1)
+        return RiggedConfigurationElement.e(self, a)
 
     def f(self, a):
         r"""
@@ -1327,11 +1332,12 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             -1[ ]-1
             <BLANKLINE>
         """
-        if a not in self.parent()._cartan_type.index_set():
+        ct = self.parent()._cartan_type
+        if a not in ct.index_set():
             raise ValueError("{} is not in the index set".format(a))
-        if a == 0:
+        if a == ct.special_node():
             try:
-                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().f(0)
+                ret = self.to_tensor_product_of_kirillov_reshetikhin_tableaux().f(a)
                 if ret is None:
                     return None
                 return ret.to_rigged_configuration()
@@ -1341,12 +1347,10 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
                 #   crystal if there is no bijection.
                 return None
 
-        if self.phi(a) == 0:
+        if not self.phi(a):
             return None
 
-        # -1 for indexing
-        # This is a slight abuse, but it works
-        return RiggedConfigurationElement.f(self, a-1)
+        return RiggedConfigurationElement.f(self, a)
 
     def epsilon(self, a):
         r"""
@@ -1355,7 +1359,6 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         Let `x_{\ell}` be the smallest string of `\nu^{(a)}` or `0` if
         `\nu^{(a)} = \emptyset`, then we have
         `\varepsilon_a = -\min(0, x_{\ell})`.
-
 
         EXAMPLES::
 
@@ -1366,11 +1369,11 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             [3 0 0 0 0]
             [2 0 0 0 0]
         """
-        if a == 0:
-            return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().epsilon(0)
+        if a == self.parent()._cartan_type.special_node():
+            return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().epsilon(a)
 
-        a -= 1 # For indexing
-        if len(self[a]) == 0:
+        a = self.parent()._rc_index.index(a)
+        if not self[a]:
             return 0
         return -min(0, min(self[a].rigging))
 
@@ -1391,57 +1394,14 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             [1 0 1 0 0]
             [2 0 0 0 0]
         """
-        if a == 0:
-            return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(0)
+        if a == self.parent()._cartan_type.special_node():
+            return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
 
-        a -= 1 # For indexing
+        a = self.parent()._rc_index.index(a)
         p_inf = self.parent()._calc_vacancy_number(self, a, None)
-        if len(self[a]) == 0:
+        if not self[a]:
             return p_inf
         return p_inf - min(0, min(self[a].rigging))
-
-    def get_vacancy_numbers(self, a):
-        r"""
-        Return the list of all vacancy numbers of the rigged partition
-        `\nu^{(a)}` (with duplicates).
-
-        INPUT:
-
-        - ``a`` -- the index of the rigged partition
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[1], [2,1], [1], []]).get_vacancy_numbers(2)
-            [-2, -1]
-        """
-        # -1 for indexing
-        # This is a slight abuse, but it works
-        return super(KRRiggedConfigurationElement, self).get_vacancy_numbers(a-1)
-
-    def get_vacancy_number(self, a, i):
-        r"""
-        Return the vacancy number `p_i^{(a)}`.
-
-        INPUT:
-
-        - ``a`` -- the index of the rigged partition
-
-        - ``i`` -- the row of the rigged partition
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: elt = RC(partition_list=[[1], [2,1], [1], []])
-            sage: elt.get_vacancy_number(2, 3)
-            sage: elt.get_vacancy_number(2, 2)
-            -2
-            sage: elt.get_vacancy_number(2, 1)
-            -1
-        """
-        # -1 for indexing
-        # This is a slight abuse, but it works
-        return super(KRRiggedConfigurationElement, self).get_vacancy_number(a-1, i)
 
     @cached_method
     def classical_weight(self):
@@ -1493,8 +1453,10 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         wt = WLR.sum(La[r] * s for r,s in self.parent().dims)
 
         alpha = WLR.simple_roots()
+        rc_index = self.parent()._rc_index
         for a, nu in enumerate(self):
-            wt -= sum(nu) * alpha[a+1] # +1 for indexing
+            a = rc_index[a]
+            wt -= sum(nu) * alpha[a]
         return wt
 
     def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False):
@@ -1701,9 +1663,9 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
         sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [2,1], [1,1]])
         sage: elt = RC(partition_list=[[1], [1], []]); elt
         <BLANKLINE>
-        0[ ]-1
+        0[ ]0
         <BLANKLINE>
-        0[ ]-1
+        0[ ]0
         <BLANKLINE>
         (/)
         <BLANKLINE>
@@ -1818,10 +1780,10 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
             1[ ]0
             <BLANKLINE>
         """
-        if a == 0:
-            return KRRiggedConfigurationElement.e(self, 0)
+        if a == self.parent()._cartan_type.special_node():
+            return KRRiggedConfigurationElement.e(self, a)
 
-        if self.epsilon(a) == 0:
+        if not self.epsilon(a):
             return None
 
         vct = self.parent()._folded_ct
@@ -1866,10 +1828,10 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
              0[ ][ ]0
             <BLANKLINE>
         """
-        if a == 0:
-            return KRRiggedConfigurationElement.f(self, 0)
+        if a == self.parent()._cartan_type.special_node():
+            return KRRiggedConfigurationElement.f(self, a)
 
-        if self.phi(a) == 0:
+        if not self.phi(a):
             return None
 
         vct = self.parent()._folded_ct

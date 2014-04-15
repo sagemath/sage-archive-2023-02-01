@@ -6,15 +6,8 @@ AUTHORS:
 - Travis Scrimshaw (2010-09-26): Initial version
 
 We only consider the highest weight crystal structure, not the
-Kirillov-Reshetikhin structure, and we extend this to all types.
-
-INPUT:
-
-- ``cartan_type`` -- A Cartan type
-
-- ``wt`` -- the highest weight in the weight lattice
-        
-EXAMPLES::
+Kirillov-Reshetikhin structure, and we extend this to most
+symmetrizable types.
 """
 
 #*****************************************************************************
@@ -50,7 +43,8 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
     r"""
     A highest weight crystal of rigged configurations.
 
-    The crystal structure is given in [CrysStructSchilling06]_.
+    The crystal structure for finite simply-laced types
+    is given in [CrysStructSchilling06]_.
 
     INPUT:
 
@@ -87,6 +81,7 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         """
         self._cartan_type = wt.parent().cartan_type()
         self._wt = wt
+        self._rc_index = self._cartan_type.index_set()
         # We store the cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = self._cartan_type.cartan_matrix()
         if self._cartan_type.is_finite():
@@ -94,7 +89,7 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         else:
             category = (RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets())
         Parent.__init__(self, category=category)
-        n = len(self._cartan_type.index_set())
+        n = self._cartan_type.rank() #== len(self._cartan_type.index_set())
         self.module_generators = (self.element_class( self, partition_list=[[] for i in range(n)] ),)
 
     global_options = RiggedConfigurationOptions

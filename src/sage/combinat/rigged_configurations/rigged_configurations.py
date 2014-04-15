@@ -423,8 +423,10 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         """
         self._cartan_type = cartan_type
         self.dims = B
+        cl = cartan_type.classical()
+        self._rc_index = cl.index_set()
         # We store the Cartan matrix for the vacancy number calculations for speed
-        self._cartan_matrix = self._cartan_type.classical().cartan_matrix()
+        self._cartan_matrix = cl.cartan_matrix()
         Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
 
     def _repr_(self):

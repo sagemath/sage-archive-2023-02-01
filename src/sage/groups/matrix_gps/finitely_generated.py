@@ -585,7 +585,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         # doctests and/or architecture
         from sage.groups.perm_gps.permgroup import PermutationGroup
         if not self.is_finite():
-            raise NotImplementedError, "Group must be finite."
+            raise NotImplementedError("Group must be finite.")
         n = self.degree()
         MS = MatrixSpace(self.base_ring(), n, n)
         mats = [] # initializing list of mats by which the gens act on self
@@ -634,7 +634,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         from sage.misc.sage_eval import sage_eval
         F = self.base_ring()
         if not(F.is_finite()):
-            raise NotImplementedError, "Base ring must be finite."
+            raise NotImplementedError("Base ring must be finite.")
         q = F.cardinality()
         gens = self.gens()
         n = self.degree()

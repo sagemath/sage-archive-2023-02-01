@@ -1534,7 +1534,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             if self._graph.is_bipartite():
                 self._digraph = _bipartite_graph_to_digraph( self._graph )
             else:
-                raise ValueError, 'The QuiverMutationType does not have a Coxeter diagram.'
+                raise ValueError('The QuiverMutationType does not have a Coxeter diagram.')
 
         # in the other cases, the graph is constructed from the digraph
         if not self._graph:
@@ -2093,7 +2093,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     data = {}
     possible_types = ['Classical','ClassicalExceptional','Exceptional']
     if types not in possible_types:
-        raise ValueError, 'The third input must be either ClassicalExceptional (default), Classical, or Exceptional.'
+        raise ValueError('The third input must be either ClassicalExceptional (default), Classical, or Exceptional.')
 
     if types in possible_types[:2]:
         data.update(_construct_classical_mutation_classes(n))
@@ -2182,7 +2182,7 @@ def _bipartite_graph_to_digraph( g ):
         Digraph on 2 vertices
     """
     if not g.is_bipartite():
-        raise ValueError, 'The input graph is not bipartite.'
+        raise ValueError('The input graph is not bipartite.')
 
     order = g.bipartite_sets()
     dg = DiGraph()
@@ -2240,7 +2240,7 @@ def _mutation_type_error( data ):
     return_str += '\n            Elliptic type ? has the form [ \'?\', k, [i, j] ] (1 <= i,j <= 3) for rank k+2'
     return_str += '\n            For correct syntax in other types, please consult the documentation.'
 
-    raise ValueError, return_str
+    raise ValueError(return_str)
 
 def _edge_list_to_matrix( edges, n, m ):
     """

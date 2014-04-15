@@ -794,7 +794,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             self._cartan_type = CartanType(options['cartan_type'])
         else:
             if len(crystals) == 0:
-                raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
+                raise ValueError("you need to specify the Cartan type if the tensor product list is empty")
             else:
                 self._cartan_type = crystals[0].cartan_type()
         self.cartesian_product = CartesianProduct(*self.crystals)

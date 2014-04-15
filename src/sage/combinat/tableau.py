@@ -611,7 +611,7 @@ class Tableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError, "The cell (%d,%d) is not contained in %s"%(i,j,self)
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
 
     def level(self):
         """
@@ -1966,7 +1966,7 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         if not isinstance(right, Tableau):
-            raise TypeError, "right must be a Tableau"
+            raise TypeError("right must be a Tableau")
 
         row = len(right)
         product = copy.deepcopy(left)
@@ -2542,7 +2542,7 @@ class Tableau(CombinatorialObject, Element):
                 tab[r].append(m)
 
             else:
-                raise IndexError, '%s is not an addable cell of the tableau' % ((r,c),)
+                raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
 
         # attempt to return a tableau of the same type as self
         if tab in self.parent():

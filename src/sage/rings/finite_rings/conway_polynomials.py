@@ -301,7 +301,7 @@ def _find_pow_of_frobenius(p, n, x, y):
         if x == y: break
         y = y**p
     else:
-        raise RuntimeError, "No appropriate power of Frobenius found"
+        raise RuntimeError("No appropriate power of Frobenius found")
     return mod(i, n)
 
 def _crt_non_coprime(running, a):

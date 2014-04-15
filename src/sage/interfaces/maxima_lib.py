@@ -420,11 +420,13 @@ class MaximaLib(MaximaAbstract):
                 else:
                     statement = line[:ind_semi]
                     line = line[ind_semi+1:]
-                if statement: result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))
+                if statement:
+                    result = ((result + '\n') if result else '') + max_to_string(maxima_eval("#$%s$"%statement))                        
             else:
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
-                if statement: _ = maxima_eval("#$%s$"%statement)
+                if statement:
+                    _ = maxima_eval("#$%s$"%statement)
         if not reformat:
             return result
         return ''.join([x.strip() for x in result.split()])
@@ -564,10 +566,17 @@ class MaximaLib(MaximaAbstract):
             '_SAGE_VAR_x+cos(19)'
         """
         name = self._next_var_name() if name is None else name
-        if isinstance(value,EclObject):
-            maxima_eval([[msetq],cadadr("#$%s$#$"%name),value])
-        else:
-            self.set(name, value)
+        try:
+            if isinstance(value,EclObject):
+                maxima_eval([[msetq],cadadr("#$%s$#$"%name),value])
+            else:
+                self.set(name, value)
+        except RuntimeError as error:
+            s = str(error)
+            if "Is" in s: # Maxima asked for a condition
+                self.missing_assumption(s)
+            else:
+                raise error
         return name
 
     def _function_class(self):
@@ -649,10 +658,7 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
             Traceback (most recent call last):
             ...
-            ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before integral evaluation
-            *may* help (example of legal syntax is 'assume(a>0)', see
-            `assume?` for more details)
+            ValueError: Computation failed ...
             Is  a  positive or negative?
             sage: assume(a>0)
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
@@ -662,10 +668,7 @@ class MaximaLib(MaximaAbstract):
             sage: integral(x^n,x)
             Traceback (most recent call last):
             ...
-            ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before integral evaluation
-            *may* help (example of legal syntax is 'assume(n+1>0)',
-            see `assume?` for more details)
+            ValueError: Computation failed ...
             Is  n+1  zero or nonzero?
             sage: assume(n+1>0)
             sage: integral(x^n,x)
@@ -756,10 +759,7 @@ class MaximaLib(MaximaAbstract):
             sage: sum(a*q^k, k, 0, oo)
             Traceback (most recent call last):
             ...
-            ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before summation *may* help
-            (example of legal syntax is 'assume(abs(q)-1>0)', see `assume?`
-            for more details)
+            ValueError: Computation failed ...
             Is  abs(q)-1  positive, negative, or zero?
             sage: assume(q > 1)
             sage: sum(a*q^k, k, 0, oo)
@@ -806,17 +806,13 @@ class MaximaLib(MaximaAbstract):
             sage: limit(x^a,x=0)
             Traceback (most recent call last):
             ...
-            ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before limit evaluation
-            *may* help (see `assume?` for more details)
+            ValueError: Computation failed ...
             Is  a  positive, negative, or zero?
             sage: assume(a>0)
             sage: limit(x^a,x=0)
             Traceback (most recent call last):
             ...
-            ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before limit evaluation
-            *may* help (see `assume?` for more details)
+            ValueError: Computation failed ...
             Is a an integer?
             sage: assume(a,'integer')
             sage: assume(a,'even')  # Yes, Maxima will ask this too

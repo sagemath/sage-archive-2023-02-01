@@ -111,7 +111,7 @@ class NumberFields(Category_singleton):
         try:
             return x.number_field()
         except AttributeError:
-            raise  TypeError, "unable to canonically associate a number field to %s"%x
+            raise  TypeError("unable to canonically associate a number field to %s"%x)
 
 
     class ParentMethods:

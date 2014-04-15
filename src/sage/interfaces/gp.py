@@ -395,7 +395,7 @@ class Gp(Expect):
             verbose("automatically doubling the PARI stack and re-executing current input line")
             b = self.eval("allocatemem()")
             if b.find("Warning: not enough memory") != -1:
-                raise RuntimeError, a
+                raise RuntimeError(a)
             return self._eval_line(line, allow_use_file=allow_use_file,
                                    wait_for_prompt=wait_for_prompt)
         else:
@@ -508,7 +508,7 @@ class Gp(Expect):
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
         if out.find('***') != -1:
-            raise TypeError, "Error executing code in GP:\nCODE:\n\t%s\nPARI/GP ERROR:\n%s"%(cmd, out)
+            raise TypeError("Error executing code in GP:\nCODE:\n\t%s\nPARI/GP ERROR:\n%s"%(cmd, out))
 
 
     def get(self, var):

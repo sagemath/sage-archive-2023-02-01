@@ -129,9 +129,9 @@ class FreeMonoid_class(Monoid_class):
             sage: TestSuite(M).run()
         """
         if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "n (=%s) must be an integer."%n
+            raise TypeError("n (=%s) must be an integer."%n)
         if n < 0:
-            raise ValueError, "n (=%s) must be nonnegative."%n
+            raise ValueError("n (=%s) must be nonnegative."%n)
         self.__ngens = int(n)
         #self._assign_names(names)
         Monoid_class.__init__(self,names)
@@ -223,7 +223,7 @@ class FreeMonoid_class(Monoid_class):
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         return self.element_class(self,[(Integer(i),Integer(1))])
 
     def ngens(self):

@@ -202,9 +202,9 @@ class Rings(CategoryWithAxiom):
 
             """
             if category is not None and not category.is_subcategory(Rings()):
-                raise TypeError, "%s is not a subcategory of Rings()"%category
+                raise TypeError("%s is not a subcategory of Rings()"%category)
             if Y not in Rings():
-                raise TypeError, "%s is not a ring"%Y
+                raise TypeError("%s is not a ring"%Y)
             from sage.rings.homset import RingHomset
             return RingHomset(self, Y, category = category)
 
@@ -294,7 +294,7 @@ class Rings(CategoryWithAxiom):
                 elif side=='right':
                     return self.ideal(x,side='twosided')
             # duck typing failed
-            raise TypeError, "Don't know how to transform %s into an ideal of %s"%(x,self)
+            raise TypeError("Don't know how to transform %s into an ideal of %s"%(x,self))
 
         @cached_method
         def ideal_monoid(self):
@@ -458,7 +458,7 @@ class Rings(CategoryWithAxiom):
                             elif hasattr(first,'parent'):
                                 gens = [first]
                             else:
-                                raise ArithmeticError, "There is no coercion from %s to %s"%(first,self)
+                                raise ArithmeticError("There is no coercion from %s to %s"%(first,self))
                         except TypeError: # first may be a ring element
                             pass
                         break
@@ -688,7 +688,7 @@ class Rings(CategoryWithAxiom):
                 ...
                 TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
             """
-            raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
+            raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
         def __getitem__(self, arg):
             """

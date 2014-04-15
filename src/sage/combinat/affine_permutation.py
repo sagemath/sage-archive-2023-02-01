@@ -70,7 +70,7 @@ class AffinePermutation(ClonableArray):
         elif parent.cartan_type()[0]=='G':
             self.N=6
         else:
-            raise NotImplementedError, 'Unsupported Cartan Type.'
+            raise NotImplementedError('Unsupported Cartan Type.')
         ClonableArray.__init__(self, parent, lst, check)
 
     def _repr_(self):

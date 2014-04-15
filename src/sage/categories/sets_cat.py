@@ -276,7 +276,7 @@ class Sets(Category_singleton):
             from sage.categories.examples.sets_cat import PrimeNumbers_Wrapper
             return PrimeNumbers_Wrapper()
         else:
-            raise ValueError, "Unkown choice"
+            raise ValueError("Unkown choice")
 
     class SubcategoryMethods:
 

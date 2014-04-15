@@ -18,7 +18,7 @@ def j_invariant_qexp(prec=10, K=QQ):
         q^-1 + q^7 + q^15 + q^31 + q^47 + q^55 + q^71 + q^87 + O(q^100)
     """
     if prec <= -1:
-        raise ValueError, "the prec must be nonnegative."
+        raise ValueError("the prec must be nonnegative.")
     prec += 2
     g6 = -504*eisenstein_series_qexp(6, prec, K=QQ)
     Delta = delta_qexp(prec).change_ring(QQ)

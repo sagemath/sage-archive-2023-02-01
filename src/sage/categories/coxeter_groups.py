@@ -388,7 +388,7 @@ class CoxeterGroups(Category_singleton):
 
             """
             if not i in self.index_set():
-                raise ValueError, "%s is not in the Dynkin node set %s"%(i,self.index_set())
+                raise ValueError("%s is not in the Dynkin node set %s"%(i,self.index_set()))
             return self.one().apply_simple_reflection(i) # don't care about left/right
 
         @cached_method
@@ -489,7 +489,7 @@ class CoxeterGroups(Category_singleton):
 
             """
             if not (i in self.index_set() or i == 0):
-                raise ValueError, "%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set())
+                raise ValueError("%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set()))
             if toward_max is not None:
                 deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
                 length_increasing = toward_max
@@ -725,11 +725,11 @@ class CoxeterGroups(Category_singleton):
             :meth:`.has_left_descent` and :meth:`.has_right_descent`.
             """
             if not isinstance(positive, bool):
-                raise TypeError, "%s is not a boolean"%(bool)
+                raise TypeError("%s is not a boolean"%(bool))
             if side == 'right':
                 return self.has_right_descent(i) != positive
             if side != 'left':
-                raise ValueError, "%s is neither 'right' nor 'left'"%(side)
+                raise ValueError("%s is neither 'right' nor 'left'"%(side))
             return self.has_left_descent(i)  != positive
 
 #        @abstract_method(optional = True)
@@ -1661,7 +1661,7 @@ v            EXAMPLES::
 
             """
             if not have_same_parent(self, other):
-                raise TypeError, "%s and %s do not have the same parent"%(self, other)
+                raise TypeError("%s and %s do not have the same parent"%(self, other))
             # could first compare the length, when that information is cheap
             desc = other.first_descent()
             if desc is not None:
@@ -1725,7 +1725,7 @@ v            EXAMPLES::
                 ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
             """
             if not have_same_parent(self, other):
-                raise TypeError, "%s and %s do not have the same parent"%(self,other)
+                raise TypeError("%s and %s do not have the same parent"%(self,other))
             # could first compare the length, when that information is cheap
             prefix_side = 'left' if side == 'right' else 'right'
 
@@ -1825,10 +1825,10 @@ v            EXAMPLES::
                 if isinstance(element, (tuple)):
                     element = [x for x in element]
                 if not isinstance(element, (list)):
-                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                    raise TypeError("Bad Coxeter group element input: %s"%(element))
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
-                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                    raise ValueError("%s does not have all its members in the index set of the %s"%(element, self.parent()))
                 # the copy is so that if we need to reverse the list, the original will not
                 # get reversed
                 the_word = copy(element)
@@ -1866,10 +1866,10 @@ v            EXAMPLES::
             # else require that ``element`` is a list or tuple of index_set elements
             else:
                 if not isinstance(element, (tuple,list)):
-                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                    raise TypeError("Bad Coxeter group element input: %s"%(element))
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
-                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                    raise ValueError("%s does not have all its members in the index set of the %s"%(element, self.parent()))
                 the_word = element
             for i in the_word:
                 if self.has_descent(i, side = 'left'):
@@ -1915,11 +1915,11 @@ v            EXAMPLES::
             """
 
             if self != self.coset_representative(index_set):
-                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set)
+                raise ValueError("%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set))
             if w != w.coset_representative(index_set):
-                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set)
+                raise ValueError("%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set))
             if not self.bruhat_le(w):
-                raise ValueError, "Must have %s <= %s"%(self.reduced_word(), w.reduced_word())
+                raise ValueError("Must have %s <= %s"%(self.reduced_word(), w.reduced_word()))
             if w.is_one():
                 return w
             i = w.first_descent(side = 'left')
@@ -1964,7 +1964,7 @@ v            EXAMPLES::
             vmin = self.coset_representative(index_set)
             wmin = w.coset_representative(index_set)
             if not vmin.bruhat_le(wmin):
-                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set)
+                raise ValueError("Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set))
             vJ = vmin.inverse() * self
             dsp = vmin.deodhar_factor_element(wmin,index_set)
             return wmin * vJ.min_demazure_product_greater(dsp)
@@ -2000,7 +2000,7 @@ v            EXAMPLES::
             vmin = self.coset_representative(index_set)
             wmin = w.coset_representative(index_set)
             if not wmin.bruhat_le(vmin):
-                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set)
+                raise ValueError("Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set))
 
             vJ = vmin.inverse() * self
             dsp = wmin.deodhar_factor_element(vmin,index_set)

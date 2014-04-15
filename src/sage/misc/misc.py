@@ -461,7 +461,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
 
 def todo(mesg=""):
     caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError, "%s: todo -- %s"%(caller_name, mesg)
+    raise NotImplementedError("%s: todo -- %s"%(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -887,7 +887,7 @@ def newton_method_sizes(N):
 
     N = int(N)
     if N < 1:
-        raise ValueError, "N (=%s) must be a positive integer" % N
+        raise ValueError("N (=%s) must be a positive integer" % N)
 
     output = []
     while N > 1:
@@ -996,7 +996,7 @@ def self_compose(f, n):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError, "n must be a nonnegative integer, not %s." % n
+        raise ValueError("n must be a nonnegative integer, not %s." % n)
 
     return lambda x: nest(f, n, x)
 
@@ -1041,7 +1041,7 @@ def nest(f, n, x):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError, "n must be a nonnegative integer, not %s." % n
+        raise ValueError("n must be a nonnegative integer, not %s." % n)
 
     for i in xrange(n):
         x = f(x)
@@ -1191,7 +1191,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         start, end, step = universe(start), universe(end), universe(step)
 
     if step == Sequence([step]).universe()(0):
-        raise ValueError, "srange() step argument must not be zero"
+        raise ValueError("srange() step argument must not be zero")
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1286,7 +1286,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         start, end, step = universe(start), universe(end), universe(step)
 
     if step == Sequence([step]).universe()(0):
-        raise ValueError, "xsrange() step argument must not be zero"
+        raise ValueError("xsrange() step argument must not be zero")
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1426,7 +1426,7 @@ def ellipsis_range(*args, **kwds):
             skip = False
         elif args[i] is Ellipsis:
             if len(args) == i+1:
-                raise IndexError, "Ellipsis range must have an endpoint, use (n..) for infinite sequence."
+                raise IndexError("Ellipsis range must have an endpoint, use (n..) for infinite sequence.")
             start, end = args[i-1], args[i+1]
             if i < 2 or args[i-2] is not Ellipsis:
                 L.pop()
@@ -1755,7 +1755,7 @@ def typecheck(x, C, var="x"):
     error message.
     """
     if not isinstance(x, C):
-        raise TypeError, "%s (=%s) must be of type %s."%(var,x,C)
+        raise TypeError("%s (=%s) must be of type %s."%(var,x,C))
 
 #################################################################
 # This will likely eventually be useful.

@@ -161,7 +161,7 @@ class Fields(CategoryWithAxiom):
         try:
             return x.fraction_field()
         except AttributeError:
-            raise TypeError, "unable to associate a field to %s"%x
+            raise TypeError("unable to associate a field to %s"%x)
 
     Finite = LazyImport('sage.categories.finite_fields', 'FiniteFields', at_startup=True)
 
@@ -314,7 +314,7 @@ class Fields(CategoryWithAxiom):
             try:
                 other = P(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
             from sage.rings.integer_ring import ZZ
             if ZZ.is_subring(P):
                 try:
@@ -369,7 +369,7 @@ class Fields(CategoryWithAxiom):
             try:
                 other = P(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
             from sage.rings.integer_ring import ZZ
             if ZZ.is_subring(P):
                 try:

@@ -70,7 +70,7 @@ class HeckeModules(Category_module):
         """
         from commutative_rings import CommutativeRings
         if R not in CommutativeRings():
-            raise TypeError, "R (=%s) must be a commutative ring"%R
+            raise TypeError("R (=%s) must be a commutative ring"%R)
         Category_module.__init__(self, R)
 
     def super_categories(self):
@@ -142,7 +142,7 @@ class HeckeModules(Category_module):
             """
             # TODO: double check that it's the correct HeckeModules category below:
             if category is not None and not category.is_subcategory(HeckeModules(self.base_ring())):
-                raise TypeError, "%s is not a subcategory of %s"%(category, HeckeModules(self.base_ring()))
+                raise TypeError("%s is not a subcategory of %s"%(category, HeckeModules(self.base_ring())))
             from sage.modular.hecke.homspace import HeckeModuleHomspace
             return HeckeModuleHomspace(self, Y, category = category)
 

@@ -5124,7 +5124,7 @@ class Automaton(FiniteStateMachine):
             ....:                   [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
 
-        The following example illustrates the difference between 
+        The following example illustrates the difference between
         non-existing paths and reaching a non-final state::
 
             sage: NAF.process([2])

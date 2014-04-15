@@ -1734,7 +1734,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Return sorted (if necessary) ``faces`` as a tuple.
 
         This function ensures that one-dimensional faces are listed in
-        agreement with the order of corresponding rays.
+        agreement with the order of corresponding rays and facets with
+        facet normals.
 
         INPUT:
 
@@ -1758,6 +1759,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             if faces[0].nrays() == 1:
                 faces = tuple(sorted(faces,
                                      key=lambda f: f._ambient_ray_indices))
+            elif faces[0].dim() == self.dim() - 1 and \
+                    self.facet_normals.is_in_cache():
+                # If we already have facet normals, sort according to them
+                faces = set(faces)
+                sorted_faces = [None] * len(faces)
+                for i, n in enumerate(self.facet_normals()):
+                    for f in faces:
+                        if n*f.rays() == 0:
+                            sorted_faces[i] = f
+                            faces.remove(f)
+                            break
+                faces = tuple(sorted_faces)
         return faces
 
     @cached_method
@@ -2438,15 +2451,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if "_faces" not in self.__dict__:
             self._faces = tuple(map(self._sort_faces,
                                     self.face_lattice().level_sets()))
-            # To avoid duplication and ensure order consistency
-            if len(self._faces) > 1:
-                self._facets = self._faces[-2]
         if dim is None:
             return self._faces
         else:
             lsd = self.linear_subspace().dimension()
             return self._faces[dim - lsd] if lsd <= dim <= self.dim() else ()
 
+    @cached_method
     def facet_normals(self):
         r"""
         Return inward normals to facets of ``self``.
@@ -2461,8 +2472,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                to the linear subspace of ``self``, i.e. they always will be
                elements of the dual cone of ``self``.
 
-            #. The order of normals is random and may be different from the
-               one in :meth:`facets`.
+            #. The order of normals is random, but consistent with
+               :meth:`facets`.
 
         OUTPUT:
 
@@ -2532,19 +2543,35 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Empty collection
             in 2-d lattice M
         """
-        if "_facet_normals" not in self.__dict__:
-            cone = self._PPL_cone()
-            normals = []
-            for c in cone.minimized_constraints():
-                assert c.inhomogeneous_term() == 0
-                if c.is_inequality():
-                    normals.append(c.coefficients())
-            M = self.dual_lattice()
-            normals = tuple(map(M, normals))
-            for n in normals:
-                n.set_immutable()
-            self._facet_normals = PointCollection(normals, M)
-        return self._facet_normals
+        cone = self._PPL_cone()
+        normals = []
+        for c in cone.minimized_constraints():
+            assert c.inhomogeneous_term() == 0
+            if c.is_inequality():
+                normals.append(c.coefficients())
+        M = self.dual_lattice()
+        normals = tuple(map(M, normals))
+        for n in normals:
+            n.set_immutable()
+        if len(normals) > 1:
+            # Sort normals if they are rays
+            if self.dim() == 2 and normals[0]*self.ray(0) != 0:
+                normals = (normals[1], normals[0])
+            else:
+                try:    # or if we have combinatorial faces already
+                    facets = self._faces[-2]
+                    normals = set(normals)
+                    sorted_normals = [None] * len(normals)
+                    for i, f in enumerate(facets):
+                        for n in normals:
+                            if n*f.rays() == 0:
+                                sorted_normals[i] = n
+                                normals.remove(n)
+                                break
+                    normals = tuple(sorted_normals)
+                except AttributeError:
+                    pass
+        return PointCollection(normals, M)
 
     def facet_of(self):
         r"""
@@ -2600,11 +2627,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (1-d face of 2-d cone in 2-d lattice N,
              1-d face of 2-d cone in 2-d lattice N)
         """
-        if "_facets" not in self.__dict__:
-            L = self._ambient._face_lattice_function()
-            H = L.hasse_diagram()
-            self._facets = self._sort_faces(H.neighbors_in(L(self)))
-        return self._facets
+        return self.faces(codim=1)
 
     def intersection(self, other):
         r"""

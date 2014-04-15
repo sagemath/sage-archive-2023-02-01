@@ -167,8 +167,7 @@ def _normal_label(g, comb_emb, external_face):
 
     labels = {}
 
-    external_vertices = [external_face[0][0], external_face[1][0], external_face[2][0]]
-    external_vertices.sort()
+    external_vertices = sorted([external_face[0][0], external_face[1][0], external_face[2][0]])
     v1,v2,v3 = external_vertices
     v1_neighbors = Set(g.neighbors(v1))
 
@@ -190,7 +189,7 @@ def _normal_label(g, comb_emb, external_face):
     while g.order() > 3:
         try:
             v = contractible.pop()
-        except StandardError:
+        except Exception:
             raise RuntimeError('Contractible list is empty but graph still has %d vertices.  (Expected 3.)'%g.order())
 
             break

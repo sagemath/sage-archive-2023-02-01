@@ -56,7 +56,7 @@ def benchmark(n=-1):
         try:
             desc, t = eval("bench%s()"%n)
         except NameError:
-            raise RuntimeError, "no benchmark %s"%n
+            raise RuntimeError("no benchmark %s"%n)
         print desc
         print "Time: %s seconds"%t
         return (n, t, desc)

@@ -115,15 +115,15 @@ class Spec(AffineScheme):
             Spectrum of Integer Ring
         """
         if not is_CommutativeRing(R):
-            raise TypeError, "R (=%s) must be a commutative ring"%R
+            raise TypeError("R (=%s) must be a commutative ring"%R)
         self.__R = R
         if not S is None:
             if not is_CommutativeRing(S):
-                raise TypeError, "S (=%s) must be a commutative ring"%S
+                raise TypeError("S (=%s) must be a commutative ring"%S)
             try:
                 S.hom(R)
             except TypeError:
-                raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
+                raise ValueError("There must be a natural map S --> R, but S = %s and R = %s"%(S,R))
         AffineScheme.__init__(self, S)
 
     def _cmp_(self, X):

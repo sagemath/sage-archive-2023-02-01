@@ -90,7 +90,7 @@ def CongruenceSubgroup_constructor(*args):
     if is_MatrixGroup(args[0]):
         G = args[0]
 
-    elif type(args[0]) == type([]):
+    elif isinstance(args[0], type([])):
         G = MatrixGroup(args[0])
 
     elif args[0] in ZZ:
@@ -99,10 +99,10 @@ def CongruenceSubgroup_constructor(*args):
 
     R = G.matrix_space().base_ring()
     if not hasattr(R, "cover_ring") or R.cover_ring() != ZZ:
-        raise TypeError, "Ring of definition must be Z / NZ for some N"
+        raise TypeError("Ring of definition must be Z / NZ for some N")
 
     if not all([x.matrix().det() == 1 for x in G.gens()]):
-        raise ValueError, "Group must be contained in SL(2, Z / N)"
+        raise ValueError("Group must be contained in SL(2, Z / N)")
     GG = _minimize_level(G)
     if GG in ZZ:
         from all import Gamma
@@ -152,7 +152,7 @@ class CongruenceSubgroupBase(ArithmeticSubgroup):
         """
         level = ZZ(level)
         if level <= 0:
-            raise ArithmeticError, "Congruence groups only defined for positive levels."
+            raise ArithmeticError("Congruence groups only defined for positive levels.")
         self.__level = level
         ArithmeticSubgroup.__init__(self)
 
@@ -503,7 +503,7 @@ class CongruenceSubgroup(CongruenceSubgroupFromGroup):
         from all import Gamma0, Gamma1, GammaH
         N = self.level()
         if (level%N) and (N%level):
-            raise ValueError, "one level must divide the other"
+            raise ValueError("one level must divide the other")
         if is_Gamma0(self):
             return Gamma0(level)
         elif is_Gamma1(self):

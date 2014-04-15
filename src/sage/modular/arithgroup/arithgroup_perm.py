@@ -392,7 +392,7 @@ def ArithmeticSubgroup_Permutation(
     if len(gens) == 0:
         S2 = S3 = L = R = ''
     elif len(gens) < 2:
-        raise ValueError, "Need at least two generators"
+        raise ValueError("Need at least two generators")
 
     if S2 is not None:
         S2 = PermutationGroupElement(S2,check=check)
@@ -437,15 +437,15 @@ def ArithmeticSubgroup_Permutation(
             R = S3 * S2
 
     if check and (L != ~S3 * ~S2 or R != S3 * S2):
-        raise ValueError, "Wrong relations between generators"
+        raise ValueError("Wrong relations between generators")
 
     inv = S2*S2
 
     if check:
         if inv != S3*S3*S3:
-            raise ValueError, "S2^2 does not equal to S3^3"
+            raise ValueError("S2^2 does not equal to S3^3")
         elif not (inv*inv).is_one():
-            raise ValueError, "S2^2 = S3^3 must have order 1 or 2"
+            raise ValueError("S2^2 = S3^3 must have order 1 or 2")
 
         # Check transitivity. This is the most expensive check, so we do it
         # last.
@@ -453,7 +453,7 @@ def ArithmeticSubgroup_Permutation(
 
         G = PermutationGroup(gens)
         if not G.is_transitive():
-            raise ValueError, "Permutations do not generate a transitive group"
+            raise ValueError("Permutations do not generate a transitive group")
 
     s2 = [i-1 for i in S2.domain()]
     s3 = [i-1 for i in S3.domain()]
@@ -2087,7 +2087,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             elif e[2] == 's3':
                 gens.append(self(reps[e[0]] * S3m * ~reps[e[1]]))
             else:
-                raise ValueError, "this should not happen"
+                raise ValueError("this should not happen")
 
         return reps, gens, self._S2[:], self._S3[:]
 
@@ -2134,7 +2134,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             elif e[2] == 's':
                 gens.append(self(reps[e[0]] * S2m * ~reps[e[1]]))
             else:
-                raise ValueError, "this should not happen"
+                raise ValueError("this should not happen")
 
         return reps, gens, self._L[:], self._S2[:]
 
@@ -2401,7 +2401,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             True
         """
         if self.nu2() != 0:
-            raise ValueError, "Group contains an element of order 4, hence no index 2 odd subgroups"
+            raise ValueError("Group contains an element of order 4, hence no index 2 odd subgroups")
         n = self.index()
         s2old, s3old = self.S2(), self.S3()
         s2cycs = s2old.cycle_tuples() # no singletons can exist

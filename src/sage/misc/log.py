@@ -61,7 +61,7 @@ AUTHORS:
 import os
 import time
 
-import interpreter
+import sage.repl.interpreter as interpreter
 import latex
 import misc
 

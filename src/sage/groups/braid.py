@@ -172,15 +172,15 @@ class Braid(FinitelyPresentedGroupElement):
             Defining s0, s1, s2
             sage: b = s0*s1/s2/s1
             sage: b.burau_matrix()
-            [     -t + 1           0    -t^2 + t         t^2]
-            [          1           0           0           0]
-            [          0           0           1           0]
-            [          0        t^-2 t^-1 - t^-2    1 - t^-1]
+            [       1 - t            0      t - t^2          t^2]
+            [           1            0            0            0]
+            [           0            0            1            0]
+            [           0         t^-2 -t^-2 + t^-1    -t^-1 + 1]
             sage: s2.burau_matrix('x')
-            [     1      0      0      0]
-            [     0      1      0      0]
-            [     0      0 -x + 1      x]
-            [     0      0      1      0]
+            [    1     0     0     0]
+            [    0     1     0     0]
+            [    0     0 1 - x     x]
+            [    0     0     1     0]
             sage: s0.burau_matrix(reduced=True)
             [-t  0  0]
             [-t  1  0]
@@ -265,17 +265,17 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([1,2,1,2])
             sage: b.alexander_polynomial(normalized=False)
-            t^2 - t + 1
+            1 - t + t^2
             sage: b.alexander_polynomial()
-            1 - t^-1 + t^-2
+            t^-2 - t^-1 + 1
 
         Next we construct the figure 8 knot::
 
             sage: b = B([-1,2,-1,2])
             sage: b.alexander_polynomial(normalized=False)
-            -1 + 3*t^-1 - t^-2
+            -t^-2 + 3*t^-1 - 1
             sage: b.alexander_polynomial()
-            1 - 3*t^-1 + t^-2
+            t^-2 - 3*t^-1 + 1
 
         Our last example is the Kinoshita-Terasaka knot::
 

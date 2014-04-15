@@ -1390,14 +1390,14 @@ class ToricLattice_quotient(FGP_Module_class):
             point_quotient = self(positive_point)
             scalar_product = quotient_generator.vector()[0] * point_quotient.vector()[0]
             if scalar_product==0:
-                raise ValueError, str(positive_point)+' is zero in the quotient.'
+                raise ValueError(str(positive_point)+' is zero in the quotient.')
         elif (positive_point==None) and (positive_dual_point!=None):
             assert positive_dual_point in lattice.dual(), 'positive_dual_point must be a dual lattice point.'
             scalar_product = quotient_generator.lift() * positive_dual_point
             if scalar_product==0:
-                raise ValueError, str(positive_dual_point)+' is zero on the lift of the quotient generator.'
+                raise ValueError(str(positive_dual_point)+' is zero on the lift of the quotient generator.')
         else:
-            raise ValueError, 'You may not specify both positive_point and positive_dual_point.'
+            raise ValueError('You may not specify both positive_point and positive_dual_point.')
         self._flip_sign_of_generator = (scalar_product<0)
 
     def gens(self):

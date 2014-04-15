@@ -678,23 +678,23 @@ def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     """
     if letter is not None:
         if t[0] != letter:
-            raise ValueError, "t[0] must be = '%s'"%letter
+            raise ValueError("t[0] must be = '%s'"%letter)
 
     if length is not None:
         if len(t) != length:
-            raise ValueError, "len(t) must be = %s"%length
+            raise ValueError("len(t) must be = %s"%length)
 
     if affine is not None:
         try:
             if t[2] != affine:
-                raise ValueError, "t[2] must be = %s"%affine
+                raise ValueError("t[2] must be = %s"%affine)
         except IndexError:
-            raise ValueError, "t[2] must be = %s"%affine
+            raise ValueError("t[2] must be = %s"%affine)
 
     if n_ge is not None:
         if t[1] < n_ge:
-            raise ValueError, "t[1] must be >= %s"%n_ge
+            raise ValueError("t[1] must be >= %s"%n_ge)
 
     if n is not None:
         if t[1] != n:
-            raise ValueError, "t[1] must be = %s"%n
+            raise ValueError("t[1] must be = %s"%n)

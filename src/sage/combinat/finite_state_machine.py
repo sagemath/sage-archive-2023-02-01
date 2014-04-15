@@ -1937,6 +1937,20 @@ class FiniteStateMachine(SageObject):
             sage: F._latex_()
             '\\begin{tikzpicture}[auto, initial text=]\n\\node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}};\n\\node[state, accepting] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}};\n\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);\n\\end{tikzpicture}'
         """
+        def label_rotation(angle, both_directions):
+            """ Given an angle of a transition, compute the TikZ string to rotate the
+            label"""
+
+            angle_label = angle
+            anchor_label = "south"
+            if angle > 90 or angle <= -90:
+                angle_label = angle + 180
+                if both_directions:
+                    # if transitions in both directions, the transition to the
+                    # left has its label below the transition, otherwise above
+                    anchor_label = "north"
+            return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
         result = "\\begin{tikzpicture}[auto, initial text=]\n"
         j = 0;
         for vertex in self.states():
@@ -1993,17 +2007,10 @@ class FiniteStateMachine(SageObject):
                     else:
                         angle_source = ""
                         angle_target = ""
-                    angle_label = angle
-                    anchor_label = "south"
-                    if angle > 90 or angle <= -90:
-                        angle_label = angle + 180
-                        if len(adjacent[target, source])>0:
-                            # if transitions in both directions, the transition to the
-                            # left has its label below the transition, otherwise above
-                            anchor_label = "north"
-                    result += "\\path[->] (v%d%s) edge node[rotate=%.2f, anchor=%s] {$%s$} (v%d%s);\n" % (
+                    both_directions = len(adjacent[target, source])>0
+                    result += "\\path[->] (v%d%s) edge node[%s] {$%s$} (v%d%s);\n" % (
                         source._number_, angle_source,
-                        angle_label, anchor_label,
+                        label_rotation(angle, both_directions),
                         label,
                         target._number_, angle_target)
                 else:

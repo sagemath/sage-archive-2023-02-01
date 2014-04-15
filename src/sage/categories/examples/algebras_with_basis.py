@@ -77,7 +77,7 @@ class FreeAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        Returns the generators of this algebra, as per :meth:`Algebras.ParentMethods.algebra_generators`.
+        Return the generators of this algebra, as per :meth:`~.magmatic_algebras.MagmaticAlgebras.ParentMethods.algebra_generators`.
 
         EXAMPLES::
 

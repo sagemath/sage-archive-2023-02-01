@@ -9,6 +9,7 @@ Weyl Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.rings.infinity import infinity
@@ -56,6 +57,8 @@ class WeylGroups(Category_singleton):
             [Category of coxeter groups]
         """
         return [CoxeterGroups()]
+
+    Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:
 

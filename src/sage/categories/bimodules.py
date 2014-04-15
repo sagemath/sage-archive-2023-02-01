@@ -11,7 +11,6 @@ Bimodules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.unknown import Unknown
 from sage.categories.category import Category, CategoryWithParameters
 from sage.categories.left_modules import LeftModules
 from sage.categories.right_modules import RightModules

@@ -10,12 +10,12 @@ Vector Spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
-from category_types import Category_module
-from sage.categories.fields import Fields
+from sage.categories.category_types import Category_module
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.dual import DualObjectsCategory
-from sage.misc.cachefunc import cached_method
 from sage.categories.fields import Fields
+from sage.categories.modules import Modules
+from sage.categories.modules_with_basis import ModulesWithBasis
 _Fields = Fields()
 
 class VectorSpaces(Category_module):
@@ -118,7 +118,6 @@ class VectorSpaces(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_field()
-        from sage.categories.modules import Modules
         return [Modules(R, dispatch = False)]
 
     class ParentMethods:
@@ -126,6 +125,23 @@ class VectorSpaces(Category_module):
 
     class ElementMethods:
         pass
+
+    class WithBasis(CategoryWithAxiom_over_base_ring):
+
+        _call_ = ModulesWithBasis.__dict__["_call_"]
+
+        def is_abelian(self):
+            """
+            Returns whether this category is abelian.
+
+            This is always True since the base ring is a field.
+
+            EXAMPLES::
+
+                sage: VectorSpaces(QQ).WithBasis().is_abelian()
+                True
+            """
+            return True
 
     class DualObjects(DualObjectsCategory):
 

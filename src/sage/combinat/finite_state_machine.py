@@ -1647,7 +1647,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``states`` -- a list (or iterator) of states (either labels or
+        - ``states`` -- a list (or an iterator) of states (either labels or
           instances of :class:`FSMState`) of the sub-finite-state-machine.
 
         OUTPUT:

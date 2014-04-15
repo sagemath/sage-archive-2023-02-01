@@ -495,8 +495,10 @@ class FSMState(SageObject):
 
     - ``color`` -- (default: ``None``) In order to distinguish states,
       they can be given an arbitrary "color" (an arbitrary object).
-      This is used in :meth:`equivalence_classes`: states of different
-      colors are never considered to be equivalent.
+      This is used in :meth:`FiniteStateMachine.equivalence_classes`:
+      states of different colors are never considered to be
+      equivalent. Note that :meth:`Automaton.determinisation` requires
+      that ``color`` is hashable.
 
     OUTPUT:
 
@@ -513,6 +515,19 @@ class FSMState(SageObject):
         sage: B = FSMState('state 2')
         sage: A == B
         False
+
+    Note that :meth:`Automaton.determinisation` requires that ``color``
+    is hashable::
+
+        sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+        sage: A.state(0).color = []
+        sage: A.determinisation()
+        Traceback (most recent call last):
+        ...
+        TypeError: unhashable type: 'list'
+        sage: A.state(0).color = ()
+        sage: A.determinisation()
+        Automaton with 1 states
 
     """
     def __init__(self, label, word_out=None,
@@ -3812,6 +3827,21 @@ class FiniteStateMachine(SageObject):
             ....:                                  only_accessible_components=False)
             sage: H.states()
             [(0, 0), (1, 0), (0, 1), (1, 1)]
+
+        TESTS:
+
+        Check that colors are correctly dealt with. In particular, the
+        new colors have to be hashable such that
+        :meth:`Automaton.determinisation` does not fail::
+
+            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+            sage: B = A.product_FiniteStateMachine(A,
+            ....:                                  lambda t1, t2: (0, None))
+            sage: B.states()[0].color
+            (None, None)
+            sage: B.determinisation()
+            Automaton with 1 states
+
         """
         result = self.empty_copy()
         if new_input_alphabet is not None:
@@ -3835,7 +3865,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-            state.color = map(lambda s: s.color, state.label())
+            state.color = tuple(map(lambda s: s.color, state.label()))
 
         if only_accessible_components:
             if result.input_alphabet is None:
@@ -4037,6 +4067,17 @@ class FiniteStateMachine(SageObject):
              Transition from ('B', 1) to ('B', 1): 0|0,
              Transition from ('B', 1) to ('B', 2): 1|0]
 
+        Check that colors are correctly dealt with. In particular, the
+        new colors have to be hashable such that
+        :meth:`Automaton.determinisation` does not fail::
+
+            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+            sage: B = A.composition(A, algorithm='explorative')
+            sage: B.states()[0].color
+            (None, None)
+            sage: B.determinisation()
+            Automaton with 1 states
+
         TODO:
 
         The explorative algorithm should be re-implemented using the
@@ -4074,7 +4115,7 @@ class FiniteStateMachine(SageObject):
         for state in F.states():
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-            state.color = map(lambda s: s.color, state.label())
+            state.color = tuple(map(lambda s: s.color, state.label()))
 
         return F
 
@@ -5062,6 +5103,8 @@ class Automaton(FiniteStateMachine):
         The labels of the states of the new automaton are frozensets
         of states of ``self``. The color of a new state is the
         frozenset of colors of the constituent states of ``self``.
+        Therefore, the colors of the constituent states have to be
+        hashable.
 
         The input alphabet must be specified. It is restricted to nice
         cases: input words have to have length at most `1`.
@@ -5092,6 +5135,18 @@ class Automaton(FiniteStateMachine):
             sage: A.determinisation().states()
             [frozenset(['A']), frozenset(['A', 'B']),
             frozenset(['A', 'C']), frozenset(['A', 'C', 'B'])]
+
+        Note that colors of states have to be hashable::
+
+            sage: A = Automaton([[0, 0, 0]], initial_states=[0])
+            sage: A.state(0).color = []
+            sage: A.determinisation()
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'list'
+            sage: A.state(0).color = ()
+            sage: A.determinisation()
+            Automaton with 1 states
 
         TESTS:
 

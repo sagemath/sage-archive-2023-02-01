@@ -1485,7 +1485,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if ring is None:
                 allowed_deg_mult = Integer(1)
             else:
-                if not self.base_ring().is_prime_field():
+                if not (self.base_ring().is_field() and self.base_ring().is_finite()):
                     raise NotImplementedError
                 if ring.characteristic() != self.base_ring().characteristic():
                     raise ValueError, "ring must be an extension of the base ring"
@@ -1512,7 +1512,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             break
                         while d < allowed_deg_mult:
                             d = d+1
-                            xq = xq**q % self
+                            xq = xq**q
                             if d.divides(allowed_deg_mult):
                                 break
                         A = self.gcd(xq-x)
@@ -1537,7 +1537,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             while True:
                                 # we waste a little effort here in computing the xq again.
                                 d = d+1
-                                xq = xq**q % self
+                                xq = xq**q
                                 if allowed_deg_mult.divides(d):
                                     break
                             A = self.gcd(xq-x)
@@ -1559,7 +1559,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             raise ValueError, "no roots D %s"%self
                         break
                     d = d+1
-                    xq = xq**q % self
+                    xq = pow(xq,q,self)
                     if d == degree:
                         break
                     A = self.gcd(xq-x)
@@ -1586,27 +1586,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise ValueError, "no roots F %s"%self
             if q % 2 == 0:
                 T = x
+                cnt = 0
                 while True:
-                    C = T
+                    C = T % self
                     for i in range(degree-1):
-                        C = T + C**q % self
+                        C = T + pow(C,q,self)
                     h = self.gcd(C)
                     hd = h.degree()
                     if hd == 0 or hd == self.degree():
-                        T = T * x**q
+                        T = R.random_element(2*degree-1)
+                        #T = T * pow(x,q,self)
                     else:
                         if 2*hd <= self.degree():
                             return h.any_root(ring, -degree, True)
                         else:
                             return (self//h).any_root(ring, -degree, True)
             else:
-                from sage.rings.arith import power_mod
                 while True:
                     T = R.random_element(2*degree-1)
                     if T == 0:
                         continue
                     T = T.monic()
-                    h = self.gcd(power_mod(T, Integer((q**degree-1)/2), self)-1)
+                    h = self.gcd(pow(T, Integer((q**degree-1)/2), self)-1)
                     hd = h.degree()
                     if hd != 0 and hd != self.degree():
                         if 2*hd <= self.degree():

@@ -73,8 +73,6 @@ lazy_import('sage.misc.attached_files', [
         'attach', 'detach', 'attached_files', 'load_attach_path',
         'reset_load_attach_path', 'load_attach_mode'])
 
-from interpreter import preparser
-
 from sage_eval import sage_eval, sageobj
 
 from sage_input import sage_input

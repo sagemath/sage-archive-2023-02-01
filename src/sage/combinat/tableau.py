@@ -611,7 +611,7 @@ class Tableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError, "The cell (%d,%d) is not contained in %s"%(i,j,self)
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
 
     def level(self):
         """
@@ -1966,7 +1966,7 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         if not isinstance(right, Tableau):
-            raise TypeError, "right must be a Tableau"
+            raise TypeError("right must be a Tableau")
 
         row = len(right)
         product = copy.deepcopy(left)
@@ -2542,7 +2542,7 @@ class Tableau(CombinatorialObject, Element):
                 tab[r].append(m)
 
             else:
-                raise IndexError, '%s is not an addable cell of the tableau' % ((r,c),)
+                raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
 
         # attempt to return a tableau of the same type as self
         if tab in self.parent():
@@ -3067,7 +3067,7 @@ class Tableau(CombinatorialObject, Element):
             sage: sorted(t._segments().items())
             [((0, 2), 2), ((0, 3), 3), ((0, 5), 4), ((1, 3), 1), ((1, 5), 2), ((2, 4), 1)]
 
-            sage: B = CrystalOfTableaux("A4", shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4", shape=[4,3,2,1])
             sage: t = B[31].to_tableau()
             sage: sorted(t._segments().items())
             [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
@@ -3101,7 +3101,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t.seg()
             6
 
-            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
             sage: t = B[31].to_tableau()
             sage: t.seg()
             3
@@ -3129,7 +3129,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t.flush()
             3
 
-            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
             sage: t = B[32].to_tableau()
             sage: t.flush()
             4

@@ -272,7 +272,7 @@ class FreeAlgebraFactory(UniqueFactory):
                             raise TypeError
                     else:
                         raise TypeError
-            except (TypeError, NotImplementedError):
+            except (TypeError, NotImplementedError) as msg:
                 raise NotImplementedError("The letterplace implementation is not available for the free algebra you requested")
         if PolRing is not None:
             if degrees is None:

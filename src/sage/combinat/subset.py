@@ -100,7 +100,7 @@ def Subsets(s, k=None, submultiset=False):
 
     if isinstance(s, (int, Integer)):
         if s < 0:
-            raise ValueError, "s must be non-negative"
+            raise ValueError("s must be non-negative")
         s = Set(range(1,s+1))
 
 #    if len(Set(s)) != len(s):

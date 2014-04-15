@@ -1647,12 +1647,12 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``states`` -- states (labels or instances of
-          :class:`FSMState`) of the sub-finite-state-machine.
+        - ``states`` -- a list (or iterator) of states (either labels or
+          instances of :class:`FSMState`) of the sub-finite-state-machine.
 
         OUTPUT:
 
-        A new finite state machine. It consists of (deep copies) of
+        A new finite state machine. It consists (of deep copies) of
         the given states and (deep copies) of all transitions of ``self``
         between these states.
 

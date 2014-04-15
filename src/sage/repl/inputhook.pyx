@@ -49,7 +49,7 @@ def install():
 
     EXAMPLES::
 
-        sage: from sage.misc.inputhook import install
+        sage: from sage.repl.inputhook import install
         sage: install()
     """
     global PyOS_InputHook
@@ -61,7 +61,7 @@ def uninstall():
 
     EXAMPLES::
 
-        sage: from sage.misc.inputhook import uninstall
+        sage: from sage.repl.inputhook import uninstall
         sage: uninstall()
     """
     global PyOS_InputHook
@@ -77,7 +77,7 @@ def sage_inputhook():
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: tmp = tmp_filename(ext='.py')
         sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
@@ -90,7 +90,7 @@ def sage_inputhook():
     Note that the doctests are never really at the command prompt, so
     we call the input hook manually::
 
-        sage: shell.run_cell('from sage.misc.inputhook import sage_inputhook')
+        sage: shell.run_cell('from sage.repl.inputhook import sage_inputhook')
         sage: shell.run_cell('sage_inputhook()')
         ### reloading attached file tmp_....py modified at ... ###
         0

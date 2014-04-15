@@ -164,12 +164,12 @@ def install_package(package=None, force=False):
             print "Possible names of non-installed packages starting with '%s':"%(package)
         for P in L:
             print " ", P
-        raise ValueError, "There is more than one package name starting with '%s'. Please specify!"%(package)
+        raise ValueError("There is more than one package name starting with '%s'. Please specify!"%(package))
     if len(L)==0:
         if not force:
             if is_package_installed(package):
-                raise ValueError, "Package is already installed. Try install_package('%s',force=True)"%(package)
-        raise ValueError, "There is no package name starting with '%s'."%(package)
+                raise ValueError("Package is already installed. Try install_package('%s',force=True)"%(package))
+        raise ValueError("There is no package name starting with '%s'."%(package))
     # len(L)==1, i.e. exactly one package matches the given one.
     os.system('sage -f "%s"'%(L[0]))
     __installed_packages = None

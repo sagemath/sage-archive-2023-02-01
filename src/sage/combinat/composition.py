@@ -1733,7 +1733,7 @@ class Compositions(Parent, UniqueRepresentation):
                 return self.element_class(self, [n])
 
         if n <= d[-1]:
-            raise ValueError, "S (=%s) is not a subset of {1, ..., %s}" % (d,n-1)
+            raise ValueError("S (=%s) is not a subset of {1, ..., %s}" % (d,n-1))
         else:
             d.append(n)
 

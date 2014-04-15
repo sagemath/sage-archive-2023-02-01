@@ -983,7 +983,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
         rule = branching_rule(R._cartan_type, S._cartan_type, rule)
     if hasattr(rule,"_S"):
         if rule._S != S.cartan_type():
-            raise ValueError,"rule has wrong target Cartan type"        
+            raise ValueError("rule has wrong target Cartan type")        
     mdict = {}
     for k in chi.weight_multiplicities():
         # TODO: Could this use the new from_vector of ambient_space ?
@@ -1120,7 +1120,7 @@ class BranchingRule(SageObject):
             f  = lambda x : other._f(self._f(x))
             return BranchingRule(self._R, other._S, f, "composite", intermediate_types=intermediates, intermediate_names=internames)
         else:
-            raise ValueError, "unable to define composite: source and target don't agree"
+            raise ValueError("unable to define composite: source and target don't agree")
 
     def Rtype(self):
         """
@@ -1180,7 +1180,7 @@ class BranchingRule(SageObject):
         Rspace = RootSystem(self._R).ambient_space()
         Sspace = RootSystem(self._S).ambient_space()
         if self._R.is_compound():
-            raise ValueError,"Cannot describe branching rule from reducible type"
+            raise ValueError("Cannot describe branching rule from reducible type")
         if not no_r:
             print "\n%s"%(self._R.affine().dynkin_diagram()).__repr__()
         if self._S.is_compound():
@@ -1370,7 +1370,7 @@ def branching_rule(Rtype, Stype, rule="default"):
         raise ValueError("No default rule found (you must specify the rule)")
     elif rule == "identity":
         if Rtype is not Stype:
-            raise ValueError, "Cartan types must match for identity rule"
+            raise ValueError("Cartan types must match for identity rule")
         return BranchingRule(Rtype, Stype, lambda x : x, "identity")
     elif rule == "levi":
         if not s == r-1:

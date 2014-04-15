@@ -4485,6 +4485,33 @@ cdef class Expression(CommutativeRingElement):
         """
         return self.number_of_operands()
 
+    def _unpack_operands(self):
+        """
+        Unpack the operands of this expression converting each to a Python
+        object if possible.
+
+        This corresponds to the conversion performed when arguments of a
+        function are unpacked as they are being passed to custom methods of
+        a symbolic function.
+
+        EXAMPLES::
+
+            sage: t = SR._force_pyobject((1, 2, x, x+1, x+2))
+            sage: t._unpack_operands()
+            (1, 2, x, x + 1, x + 2)
+            sage: type(t._unpack_operands())
+            <type 'tuple'>
+            sage: map(type, t._unpack_operands())
+            [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
+            sage: u = SR._force_pyobject((t, x^2))
+            sage: u._unpack_operands()
+            ((1, 2, x, x + 1, x + 2), x^2)
+            sage: type(u._unpack_operands()[0])
+            <type 'tuple'>
+        """
+        from sage.symbolic.pynac import unpack_operands
+        return unpack_operands(self)
+
     def operands(self):
         """
         Return a list containing the operands of this expression.
@@ -9773,7 +9800,7 @@ cdef class Expression(CommutativeRingElement):
                 A = self.variables()
                 if len(A) == 0:
                     #Here we handle the case where f is something
-                    #like 2*sin, which has takes arguments which
+                    #like ``sin``, which has takes arguments which
                     #aren't explicitly given
                     n = self.number_of_arguments()
                     f = self._plot_fast_callable()
@@ -9806,20 +9833,14 @@ cdef class Expression(CommutativeRingElement):
             sage: abs((I*10+1)^4)
             10201
             sage: plot(s)
+
+        Check that :trac:`15030` is fixed::
+
+            sage: abs(log(x))._plot_fast_callable(x)(-0.2)
+            3.52985761682672
         """
-        try:
-            # First we try fast float.  However, this doesn't work on some
-            # input where fast_callable works fine.
-            return self._fast_float_(*vars)
-        except (TypeError, NotImplementedError):
-            # Now we try fast_callable as a fallback, since it works in some
-            # cases when fast_float doesn't, e.g., when I is anywhere in the
-            # expression fast_float doesn't work but fast_callable does in some
-            # cases when the resulting expression is real.
-            from sage.ext.fast_callable import fast_callable
-            # I tried calling self._fast_callable_ but that's too complicated
-            # of an interface so we just use the fast_callable function.
-            return fast_callable(self, vars=vars)
+        from sage.ext.fast_callable import fast_callable
+        return fast_callable(self, vars=vars, expect_one_var=True)
 
     ############
     # Calculus #
@@ -10267,7 +10288,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=1)
         ....:
         ....:     class EvaluationMethods:
-        ....:         def argp1(self, x):
+        ....:         def argp1(fn, self, x):
         ....:             '''
         ....:             Some documentation about a bogus function.
         ....:             '''
@@ -10312,7 +10333,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=2)
         ....:
         ....:     class EvaluationMethods:
-        ....:         def argsum(self, x, y):
+        ....:         def argsum(fn, self, x, y):
         ....:             return x + y
         ....:
         sage: tfunc2 = TFunc2()
@@ -10330,13 +10351,15 @@ cdef get_dynamic_class_for_function(unsigned serial):
             # callable methods need to be wrapped to extract the operands
             # and pass them as arguments
             from sage.symbolic.function_factory import eval_on_operands
-            from sage.structure.parent import getattr_from_other_class
+            from sage.structure.misc import getattr_from_other_class
             for name in dir(eval_methods):
-                m = getattr_from_other_class(func_class, eval_methods, name)
+                m = getattr(eval_methods(), name)
                 if callable(m):
-                    setattr(eval_methods, name, eval_on_operands(m))
+                    new_m = eval_on_operands(getattr_from_other_class(
+                        func_class, eval_methods, name))
+                    setattr(eval_methods, name, new_m)
             cls = dynamic_class('Expression_with_dynamic_methods',
-                    (eval_methods, Expression))
+                    (Expression,), eval_methods)
         else:
             cls = Expression
 

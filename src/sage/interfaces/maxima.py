@@ -524,7 +524,7 @@ class Maxima(MaximaAbstract, Expect):
         SAGE_MAXIMA_DIR = os.path.join(DOT_SAGE,"maxima")
 
         if not os.path.exists(STARTUP):
-            raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
+            raise RuntimeError('You must get the file local/bin/sage-maxima.lisp')
 
         #self.__init_code = init_code
         if init_code is None:
@@ -688,7 +688,7 @@ class Maxima(MaximaAbstract, Expect):
                 #Note that this depends on the order of self._prompt_wait
                 if expr is self._prompt_wait and i > len(self._ask):
                     self.quit()
-                    raise ValueError, "%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v
+                    raise ValueError("%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v)
 
                 j = v.find('Is ')
                 v = v[j:]
@@ -696,7 +696,7 @@ class Maxima(MaximaAbstract, Expect):
                 msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[4:k] +""">0')" before integral or limit evaluation, for example):\n""" + v + self._ask[i-1]
                 self._sendline(";")
                 self._expect_expr()
-                raise ValueError, msg
+                raise ValueError(msg)
         except KeyboardInterrupt as msg:
             #print self._expect.before
             i = 0
@@ -714,7 +714,7 @@ class Maxima(MaximaAbstract, Expect):
                     pass
                 else:
                     break
-            raise KeyboardInterrupt, msg
+            raise KeyboardInterrupt(msg)
 
     def _eval_line(self, line, allow_use_file=False,
                    wait_for_prompt=True, reformat=True, error_check=True, restart_if_needed=False):
@@ -919,7 +919,7 @@ class Maxima(MaximaAbstract, Expect):
             Maxima ERROR:
                 Principal Value
         """
-        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out.replace('-- an error.  To debug this try debugmode(true);',''))
+        raise TypeError("Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out.replace('-- an error.  To debug this try debugmode(true);','')))
 
     ###########################################
     # Direct access to underlying lisp interpreter.

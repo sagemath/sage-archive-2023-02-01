@@ -449,7 +449,7 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError, "n (=%s) must be a nonnegative integer"%n
+        raise ValueError("n (=%s) must be a nonnegative integer"%n)
     return ZZ(maxima.eval("euler(%s)"%n))
 
 def fibonacci(n, algorithm="pari"):
@@ -506,7 +506,7 @@ def fibonacci(n, algorithm="pari"):
     elif algorithm == 'gap':
         return ZZ(gap.eval("Fibonacci(%s)"%n))
     else:
-        raise ValueError, "no algorithm %s"%algorithm
+        raise ValueError("no algorithm %s"%algorithm)
 
 def lucas_number1(n,P,Q):
     """
@@ -1188,7 +1188,7 @@ class CombinatorialClass(Parent):
             ...
             AttributeError: __len__ has been removed; use .cardinality() instead
         """
-        raise AttributeError, "__len__ has been removed; use .cardinality() instead"
+        raise AttributeError("__len__ has been removed; use .cardinality() instead")
 
     def is_finite(self):
         """
@@ -1334,7 +1334,7 @@ class CombinatorialClass(Parent):
         if x in self:
             return self._element_constructor_(x)
         else:
-            raise ValueError, "%s not in %s"%(x, self)
+            raise ValueError("%s not in %s"%(x, self))
 
     Element = CombinatorialObject # mostly for backward compatibility
     @lazy_attribute
@@ -1527,7 +1527,7 @@ class CombinatorialClass(Parent):
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:
-            raise NotImplementedError, "iterator called but not implemented"
+            raise NotImplementedError("iterator called but not implemented")
 
     def __unrank_from_iterator(self, r):
         """
@@ -1545,7 +1545,7 @@ class CombinatorialClass(Parent):
             if counter == r:
                 return u
             counter += 1
-        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+        raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
 
     #Set the default implementation of unrank
     unrank = __unrank_from_iterator
@@ -1582,7 +1582,7 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: Deprecated: use random_element() instead
         """
-        raise NotImplementedError, "Deprecated: use random_element() instead"
+        raise NotImplementedError("Deprecated: use random_element() instead")
 
     def __rank_from_iterator(self, obj):
         """
@@ -1705,7 +1705,7 @@ class CombinatorialClass(Parent):
             [[1, 2], [2, 1], [1]]
         """
         if not isinstance(right_cc, CombinatorialClass):
-            raise TypeError, "right_cc must be a CombinatorialClass"
+            raise TypeError("right_cc must be a CombinatorialClass")
         return UnionCombinatorialClass(self, right_cc, name=name)
 
     def map(self, f, name=None):
@@ -2126,7 +2126,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
             ...
             NotImplementedError: infinite list
         """
-        raise NotImplementedError, "infinite list"
+        raise NotImplementedError("infinite list")
 
     def __iter__(self):
         """
@@ -2769,7 +2769,7 @@ def bernoulli_polynomial(x, n):
         if n < 0:
             raise TypeError
     except TypeError:
-        raise ValueError, "The second argument must be a non-negative integer"
+        raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
         return ZZ(1)

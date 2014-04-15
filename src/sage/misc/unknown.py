@@ -151,6 +151,6 @@ class UnknownClass(UniqueRepresentation, SageObject):
             if other: return -1
             else:     return +1
         else:
-            raise ValueError, "Unable to compare %s with %s"%(self, other)
+            raise ValueError("Unable to compare %s with %s"%(self, other))
 
 Unknown = UnknownClass()

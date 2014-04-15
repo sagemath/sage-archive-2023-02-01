@@ -103,6 +103,26 @@ cdef public object exprseq_to_PyTuple(GEx seq):
             res.append(new_Expression_from_GEx(SR, seq.op(i)))
     return tuple(res)
 
+def unpack_operands(Expression ex):
+    """
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import unpack_operands
+        sage: t = SR._force_pyobject((1, 2, x, x+1, x+2))
+        sage: unpack_operands(t)
+        (1, 2, x, x + 1, x + 2)
+        sage: type(unpack_operands(t))
+        <type 'tuple'>
+        sage: map(type, unpack_operands(t))
+        [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
+        sage: u = SR._force_pyobject((t, x^2))
+        sage: unpack_operands(u)
+        ((1, 2, x, x + 1, x + 2), x^2)
+        sage: type(unpack_operands(u)[0])
+        <type 'tuple'>
+    """
+    return exprseq_to_PyTuple(ex._gobj)
+
 cdef public object exvector_to_PyTuple(GExVector seq):
     """
     Converts arguments list given to a function to a PyTuple.

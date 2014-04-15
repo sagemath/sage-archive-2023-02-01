@@ -85,6 +85,7 @@ from sage.ext.c_lib import AlarmInterrupt, SignalError
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.repl.all       import *
 
 from sage.misc.sh import sh
 

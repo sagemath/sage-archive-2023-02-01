@@ -501,6 +501,6 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     if 'covering not in database' in s:   #not found
         str = "no (%d,%d,%d) covering design in database\n"%(v,k,t)
-        raise ValueError, str
+        raise ValueError(str)
 
     return sage_eval(s)

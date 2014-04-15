@@ -63,7 +63,7 @@ class Ellipse(GraphicPrimitive):
         self.r1 = float(r1)
         self.r2 = float(r2)
         if self.r1 <= 0 or self.r2 <= 0:
-            raise ValueError, "both radii must be positive"
+            raise ValueError("both radii must be positive")
         self.angle = fmod(angle,2*pi)
         if self.angle < 0: self.angle += 2*pi
         GraphicPrimitive.__init__(self, options)
@@ -315,4 +315,4 @@ def ellipse(center, r1, r2, angle=0, **options):
     if len(center)==2:
         return g
     elif len(center)==3:
-        raise NotImplementedError, "plotting ellipse in 3D is not implemented"
+        raise NotImplementedError("plotting ellipse in 3D is not implemented")

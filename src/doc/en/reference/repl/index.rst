@@ -9,7 +9,9 @@ The Sage Command Line
    environ
    sage/misc/trace
 
-   sage/misc/readline_extra_commands
+   sage/repl/readline_extra_commands
+   sage/repl/interpreter
+   sage/repl/ipython_extension
 
 For more details about how to use the Sage command line once it starts up, see the Sage tutorial and the documentation for IPython.
 

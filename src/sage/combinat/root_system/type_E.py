@@ -66,7 +66,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                          self.root(4,5,p1=1),
                          self.root(5,6,p1=1)]
         else:
-            raise NotImplementedError, "Type \'E\' root systems only come in flavors 6, 7, 8.  Please make another choice"
+            raise NotImplementedError("Type \'E\' root systems only come in flavors 6, 7, 8.  Please make another choice")
 
     def dimension(self):
         """

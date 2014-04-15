@@ -642,7 +642,7 @@ def _semistable_reducible_primes(E):
                 # We suspect that E has CM, so we check:
                 f = K.structure()[0]
                 if f(E.j_invariant()) in cm_j_invariants(f.codomain()):
-                    raise ValueError, "The curve E should not have CM."
+                    raise ValueError("The curve E should not have CM.")
 
     L = sorted(bad_primes)
     return L
@@ -781,7 +781,7 @@ def _possible_normalizers(E, SA):
                 if patience == 0:
                     # We suspect E has CM, so we check:
                     if E.j_invariant() in cm_j_invariants(K):
-                        raise ValueError, "The curve E should not have CM."
+                        raise ValueError("The curve E should not have CM.")
 
             else:
                 for p in tr.prime_factors():

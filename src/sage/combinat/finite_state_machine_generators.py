@@ -280,7 +280,7 @@ class TransducerGenerators(object):
         Note that for a unary operator the input letters of the
         new transducer are tuples of length `1`::
 
-            sage: T = transducers.operator(lambda i: abs(i),
+            sage: T = transducers.operator(abs,
             ....:                          [-1, 0, 1],
             ....:                          number_of_operands=1)
             sage: T([-1, 1, 0])

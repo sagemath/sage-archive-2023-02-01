@@ -114,7 +114,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
 
     We explicitly import and check we get the same crystal::
 
-        sage: from sage.combinat.rigged_configurations import KirillovReshetikhinCrystal
+        sage: from sage.combinat.rigged_configurations.rigged_configurations import KirillovReshetikhinCrystal
         sage: K1 = crystals.kirillov_reshetikhin.RiggedConfigurations(['A',6,2], 2, 1)
         sage: K1 is KirillovReshetikhinCrystal(['A',6,2], 2, 1)
         True

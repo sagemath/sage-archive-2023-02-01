@@ -887,8 +887,8 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
         <BLANKLINE>
         -2[ ][ ]-1
         <BLANKLINE>
-        0[ ]-1
-        0[ ]-1
+        -2[ ]-1
+        -2[ ]-1
         <BLANKLINE>
         -2[ ][ ]-1
         <BLANKLINE>
@@ -933,13 +933,13 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
             sage: RC = crystals.infinity.RiggedConfigurations(['C',2,1])
             sage: elt = RC(partition_list=[[2],[1,1],[2]], rigging_list=[[-1],[-1,-1],[-1]])
             sage: ascii_art(elt.e(0))
-            0[ ]0  0[ ]-1  -2[ ][ ]-1
-                   0[ ]-1
+            0[ ]0  -2[ ]-1  -2[ ][ ]-1
+                   -2[ ]-1
             sage: ascii_art(elt.e(1))
-            -3[ ][ ]-2  2[ ]1  -3[ ][ ]-2
+            -3[ ][ ]-2  0[ ]1  -3[ ][ ]-2
             sage: ascii_art(elt.e(2))
-            -2[ ][ ]-1  0[ ]-1  0[ ]0
-                        0[ ]-1
+            -2[ ][ ]-1  -2[ ]-1  0[ ]0
+                        -2[ ]-1
         """
         vct = self.parent()._folded_ct
         L = []
@@ -968,14 +968,14 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
             sage: RC = crystals.infinity.RiggedConfigurations(['C',2,1])
             sage: elt = RC(partition_list=[[2],[1,1],[2]], rigging_list=[[-1],[-1,-1],[-1]])
             sage: ascii_art(elt.f(0))
-            -4[ ][ ][ ]-2  0[ ]-1  -2[ ][ ]-1
-                           0[ ]-1
+            -4[ ][ ][ ]-2  -2[ ]-1  -2[ ][ ]-1
+                           -2[ ]-1
             sage: ascii_art(elt.f(1))
-            -1[ ][ ]0  2[ ][ ]-2  -1[ ][ ]0
-                       0[ ]-1   
+            -1[ ][ ]0  -2[ ][ ]-2  -1[ ][ ]0
+                       -2[ ]-1   
             sage: ascii_art(elt.f(2))
-            -2[ ][ ]-1  0[ ]-1  -4[ ][ ][ ]-2
-                        0[ ]-1
+            -2[ ][ ]-1  -2[ ]-1  -4[ ][ ][ ]-2
+                        -2[ ]-1
         """
         vct = self.parent()._folded_ct
         L = []

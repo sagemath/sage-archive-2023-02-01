@@ -43,14 +43,53 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
     r"""
     A highest weight crystal of rigged configurations.
 
-    The crystal structure for finite simply-laced types
-    is given in [CrysStructSchilling06]_.
+    The crystal structure for finite simply-laced types is given
+    in [CrysStructSchilling06]_. These were then shown to be the crystal
+    operators in all finite types in [SchScr]_ and all simply-laced and
+    a large class of foldings of simply-laced types in [SalScr]_.
 
     INPUT:
 
-    - ``cartan_type`` -- a (simply-laced) Cartan type
+    - ``cartan_type`` -- (optional) a Cartan type
 
     - ``wt`` -- the highest weight vector in the weight lattice
+
+    EXAMPLES:
+
+    For simplicity, we display the rigged configurations horizontally::
+
+        sage: RiggedConfigurations.global_options(display='horizontal')
+
+    We start with a simply-laced finite type::
+
+        sage: La = RootSystem(['A', 2]).weight_lattice().fundamental_weights()
+        sage: RC = crystals.RiggedConfigurations(La[1] + La[2])
+        sage: mg = RC.highest_weight_vector()
+        sage: mg.f_string([1,2])
+        0[ ]0   0[ ]-1
+        sage: mg.f_string([1,2,2])
+        0[ ]0   -2[ ][ ]-2
+        sage: mg.f_string([1,2,2,2])
+        sage: mg.f_string([2,1,1,2])
+        -1[ ][ ]-1   -1[ ][ ]-1
+        sage: RC.cardinality()
+        8
+        sage: T = crystals.Tableaux(['A', 2], shape=[2,1])
+        sage: RC.digraph().is_isomorphic(T.digraph(), edge_labels=True)
+        True
+
+    We reset the global options::
+
+        sage: RiggedConfigurations.global_options.reset()
+
+    REFERENCES:
+
+    .. [SchScr] Anne Schilling and Travis Scrimshaw.
+       *Virtual rigged configurations and the filling map for
+       non-exceptional affine types*. In preparation.
+
+    .. [SalScr] Ben Salisbury and Travis Scrimshaw.
+       *A rigged configuration model for* `B(\infty)`. In preparation.
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, wt=None):
@@ -58,6 +97,12 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         Normalize the input arguments to ensure unique representation.
 
         EXAMPLES::
+
+            sage: La = RootSystem(['A', 2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1])
+            sage: RC2 = crystals.RiggedConfigurations(['A', 2], La[1])
+            sage: RC is RC2
+            True
         """
         if wt is None:
             wt = cartan_type
@@ -78,6 +123,14 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         Initialize ``self``.
 
         EXAMPLES::
+
+            sage: La = RootSystem(['A', 2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1] + La[2])
+            sage: TestSuite(RC).run()
+
+            sage: La = RootSystem(['A', 2, 1]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[0])
+            sage: TestSuite(RC).run() # long time
         """
         self._cartan_type = wt.parent().cartan_type()
         self._wt = wt
@@ -97,6 +150,12 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['A', 3]).weight_lattice().fundamental_weights()
+            sage: crystals.RiggedConfigurations(La[1])
+            Crystal of rigged configurations of type ['A', 3] and weight Lambda[1]
         """
         return "Crystal of rigged configurations of type {0} and weight {1}".format(
                 self._cartan_type, self._wt)
@@ -110,6 +169,21 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         should use the iterator.
 
         EXAMPLES::
+
+            sage: La = RootSystem(['A', 2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1] + La[2])
+            sage: RC(partition_list=[[1],[1]], rigging_list=[[0],[-1]])
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            0[ ]-1
+            <BLANKLINE>
+            sage: RC(partition_list=[[1],[2]])
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            -2[ ][ ]-2
+            <BLANKLINE>
         """
         return self.element_class(self, list(lst), **options)
 
@@ -118,8 +192,8 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         Calculate the vacancy number of the `i`-th row of the `a`-th rigged
         partition.
 
-        This assumes that `\gamma_a = 1` for all `a` and `(\alpha_a \mid
-        \alpha_b ) = A_{ab}`.
+        This assumes that `\gamma_a = 1` for all `a` and
+        `(\alpha_a | \alpha_b ) = A_{ab}`.
 
         INPUT:
 
@@ -130,6 +204,12 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         - ``i`` -- the row index of the `a`-th rigged partition
 
         TESTS::
+
+            sage: La = RootSystem(['A', 2]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1] + La[2])
+            sage: elt = RC(partition_list=[[1],[2]])
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            -2
         """
         vac_num = self._wt[self.index_set()[a]]
 
@@ -155,9 +235,9 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = CrystalOfRiggedConfigurations(['C',2,1], La[0]); RC
-            Rigged configurations of type ['C', 2, 1]
+            sage: La = RootSystem(['C', 3]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[1])
+            sage: TestSuite(RC).run()
          """
         self._folded_ct = vct
         CrystalOfRiggedConfigurations.__init__(self, wt)
@@ -169,8 +249,8 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
+            sage: La = RootSystem(['C', 2, 1]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[0])
             sage: RC
             Crystal of rigged configurations of type ['C', 2, 1] and weight Lambda[0]
             sage: RC.virtual
@@ -197,12 +277,12 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
         TESTS::
 
-            sage: La = RootSystem(['C',2]).weight_lattice().fundamental_weights()
-            sage: RC = crystals.RiggedConfigurations(La[1])
-            sage: elt = RC(partition_list=[[1], [1]])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
-            0
+            sage: La = RootSystem(['C', 3]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[2])
+            sage: elt = RC(partition_list=[[], [1], [1]])
             sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            0
+            sage: RC._calc_vacancy_number(elt.nu(), 2, 0)
             -1
         """
         I = self.index_set()
@@ -232,8 +312,28 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
+            sage: La = RootSystem(['C', 3]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[2])
+            sage: elt = RC(partition_list=[[], [1], [1]]); elt
+            <BLANKLINE>
+            (/)
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            sage: RC.to_virtual(elt)
+            <BLANKLINE>
+            (/)
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            -2[ ][ ]-2
+            <BLANKLINE>
+            0[ ]0
+            <BLANKLINE>
+            (/)
+            <BLANKLINE>
         """
         gamma = map(int, self._folded_ct.scaling_factors())
         sigma = self._folded_ct._orbit
@@ -241,17 +341,13 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
         vindex = self._folded_ct._folding.index_set()
         partitions = [None] * n
         riggings = [None] * n
-        vac_nums = [None] * n
-        # -1 for indexing
         for a, rp in enumerate(rc):
             for i in sigma[a]:
                 k = vindex.index(i)
                 partitions[k] = [row_len*gamma[a] for row_len in rp._list]
                 riggings[k] = [rig_val*gamma[a] for rig_val in rp.rigging]
-                vac_nums[k] = [vac_num*gamma[a] for vac_num in rp.vacancy_numbers]
         return self.virtual.element_class(self.virtual, partition_list=partitions,
-                            rigging_list=riggings,
-                            vacancy_numbers_list=vac_nums)
+                                          rigging_list=riggings)
 
     def from_virtual(self, vrc):
         """
@@ -264,8 +360,11 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
-            sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
+            sage: La = RootSystem(['C', 3]).weight_lattice().fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[2])
+            sage: elt = RC(partition_list=[[0], [1], [1]])
+            sage: elt == RC.from_virtual(RC.to_virtual(elt))
+            True
         """
         gamma = list(self._folded_ct.scaling_factors()) #map(int, self._folded_ct.scaling_factors())
         sigma = self._folded_ct._orbit
@@ -274,14 +373,11 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
         riggings = [None] * n
         vac_nums = [None] * n
         vindex = self._folded_ct._folding.index_set()
-        # TODO: Handle special cases for A^{(2)} even and its dual?
         for a in range(n):
             index = vindex.index(sigma[a][0])
             partitions[a] = [row_len // gamma[a] for row_len in vrc[index]._list]
             riggings[a] = [rig_val / gamma[a] for rig_val in vrc[index].rigging]
-            vac_nums[a] = [vac_val / gamma[a] for vac_val in vrc[index].vacancy_numbers]
-        return self.element_class(self, partition_list=partitions,
-                                  rigging_list=riggings, vacancy_numbers_list=vac_nums)
+        return self.element_class(self, partition_list=partitions, rigging_list=riggings)
 
     Element = RCHWNonSimplyLacedElement
 

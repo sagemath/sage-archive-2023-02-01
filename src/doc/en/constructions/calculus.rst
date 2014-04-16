@@ -99,8 +99,8 @@ Taylor series:
     sage: g = f0/sinh(k*x)^4
     sage: g.taylor(x, 0, 3)
     -62/945*f0*k^2*x^2 + 11/45*f0 - 2/3*f0/(k^2*x^2) + f0/(k^4*x^4)
-    sage: maxima(g).powerseries('x',0)
-    16*f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*k^(2*i1-1)*_SAGE_VAR_x^(2*i1-1)/factorial(2*i1),i1,0,inf))^4
+    sage: maxima(g).powerseries('_SAGE_VAR_x',0)    # TODO: write this without maxima
+    16*_SAGE_VAR_f0*('sum((2^(2*i1-1)-1)*bern(2*i1)*_SAGE_VAR_k^(2*i1-1)*_SAGE_VAR_x^(2*i1-1)/factorial(2*i1),i1,0,inf))^4
 
 Of course, you can view the LaTeX-ed version of this using
 ``view(g.powerseries('x',0))``.
@@ -115,7 +115,7 @@ The Maclaurin and power series of
     -1/467775*x^10 - 1/37800*x^8 - 1/2835*x^6 - 1/180*x^4 - 1/6*x^2
     sage: [bernoulli(2*i) for i in range(1,7)]
     [1/6, -1/30, 1/42, -1/30, 5/66, -691/2730]
-    sage: maxima(f).powerseries(x,0)
+    sage: maxima(f).powerseries(x,0)    # TODO: write this without maxima
     'sum((-1)^i2*2^(2*i2-1)*bern(2*i2)*_SAGE_VAR_x^(2*i2)/(i2*factorial(2*i2)),i2,1,inf)
 
 .. index::

@@ -479,6 +479,42 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
         return KashiwaraNakashimaTableaux(self._cartan_type, self._r, self._s)
 
+    def tensor(self, *crystals, **options):
+        """
+        Return the tensor product of ``self`` with ``crystals``.
+
+        If ``crystals`` is a list of rigged configurations of the same
+        Cartan type, then this returns a new :class:`RiggedConfiguraitons`.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinTableaux(['A', 3, 1], 2, 2)
+            sage: TP = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,3],[3,1]])
+            sage: K.tensor(TP, K)
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1]
+             and factor(s) ((2, 2), (1, 3), (3, 1), (2, 2))
+
+            sage: C = KirillovReshetikhinCrystal(['A',3,1], 3, 1)
+            sage: K.tensor(K, C)
+            Full tensor product of the crystals
+             [Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),
+              Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(3,1)]
+        """
+        ct = self._cartan_type
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux \
+                import TensorProductOfKirillovReshetikhinTableaux
+        if all(isinstance(B, (KirillovReshetikhinTableaux, TensorProductOfKirillovReshetikhinTableaux))
+               and B.cartan_type() == ct for B in crystals):
+            dims = [[self._r, self._s]]
+            for B in crystals:
+                if isinstance(B, TensorProductOfKirillovReshetikhinTableaux):
+                    dims += B.dims
+                elif isinstance(B, KirillovReshetikhinTableaux):
+                    dims.append([B._r, B._s])
+            return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
+        return super(KirillovReshetikhinTableaux, self).tensor(*crystals, **options)
+
 class KRTableauxRectangle(KirillovReshetikhinTableaux):
     r"""
     Kirillov-Reshetkhin tableaux `B^{r,s}` whose module generator is a single

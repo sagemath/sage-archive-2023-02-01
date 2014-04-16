@@ -251,7 +251,7 @@ def text(string, xy, **options):
         x, y = xy
     except ValueError:
         if isinstance(xy, (list, tuple)) and len(xy) == 3:
-            raise ValueError, "use text3d instead for text in 3d"
+            raise ValueError("use text3d instead for text in 3d")
         raise
     from sage.plot.all import Graphics
     options['rgbcolor'] = to_mpl_color(options['rgbcolor'])

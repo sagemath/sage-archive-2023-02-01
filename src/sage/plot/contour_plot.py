@@ -684,7 +684,7 @@ def implicit_plot(f, xrange, yrange, **options):
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
         if f.operator() != operator.eq:
-            raise ValueError, "input to implicit plot must be function or equation"
+            raise ValueError("input to implicit plot must be function or equation")
         f = f.lhs() - f.rhs()
     linewidths = options.pop('linewidth', None)
     linestyles = options.pop('linestyle', None)

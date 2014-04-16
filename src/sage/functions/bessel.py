@@ -1183,7 +1183,7 @@ def _bessel_I(nu,z,algorithm = "pari",prec=53):
         return K(pari(nu).besseli(z, precision=prec))
     elif algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.iv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -1193,10 +1193,10 @@ def _bessel_I(nu,z,algorithm = "pari",prec=53):
         return real(ans) if z in RR else ans # Return real value when arg is real
     elif algorithm == "maxima":
         if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
+            raise ValueError("for the maxima algorithm the precision must be 53")
         return sage_eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def _bessel_J(nu,z,algorithm="pari",prec=53):
     r"""
@@ -1277,7 +1277,7 @@ def _bessel_J(nu,z,algorithm="pari",prec=53):
         return K(pari(nu).besselj(z, precision=prec))
     elif algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.jv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -1287,11 +1287,11 @@ def _bessel_J(nu,z,algorithm="pari",prec=53):
         return real(ans) if z in RR else ans
     elif algorithm == "maxima":
         if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
+            raise ValueError("for the maxima algorithm the precision must be 53")
         f = maxima.function('n,z', 'bessel_j(n, z)')
         return f(nu, z)
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def _bessel_K(nu,z,algorithm="pari",prec=53):
     r"""
@@ -1337,7 +1337,7 @@ def _bessel_K(nu,z,algorithm="pari",prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.kv(float(nu),float(z)))
         ans = ans.replace("(","")
@@ -1359,9 +1359,9 @@ def _bessel_K(nu,z,algorithm="pari",prec=53):
         K = z.parent()
         return K(pari(nu).besselk(z, precision=prec))
     elif algorithm == 'maxima':
-        raise NotImplementedError, "The K-Bessel function is only implemented for the pari and scipy algorithms"
+        raise NotImplementedError("The K-Bessel function is only implemented for the pari and scipy algorithms")
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 
 def _bessel_Y(nu,z,algorithm="maxima", prec=53):
@@ -1404,7 +1404,7 @@ def _bessel_Y(nu,z,algorithm="maxima", prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.yv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -1414,12 +1414,12 @@ def _bessel_Y(nu,z,algorithm="maxima", prec=53):
         return real(ans) if z in RR else ans
     elif algorithm == "maxima":
         if prec != 53:
-            raise ValueError, "for the maxima algorithm the precision must be 53"
+            raise ValueError("for the maxima algorithm the precision must be 53")
         return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
     elif algorithm == "pari":
-        raise NotImplementedError, "The Y-Bessel function is only implemented for the maxima and scipy algorithms"
+        raise NotImplementedError("The Y-Bessel function is only implemented for the maxima and scipy algorithms")
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 class _Bessel():
     """
@@ -1499,7 +1499,7 @@ class _Bessel():
             ValueError: typ must be one of I, J, K, Y
         """
         if not (typ in ['I', 'J', 'K', 'Y']):
-            raise ValueError, "typ must be one of I, J, K, Y"
+            raise ValueError("typ must be one of I, J, K, Y")
 
         # Did the user ask for the default algorithm?
         if algorithm is None:
@@ -1513,7 +1513,7 @@ class _Bessel():
         self._type = typ
         prec = int(prec)
         if prec < 0:
-            raise ValueError, "prec must be a positive integer"
+            raise ValueError("prec must be a positive integer")
         self._prec = int(prec)
 
     def __str__(self):

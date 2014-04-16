@@ -197,12 +197,13 @@ means `13` is not divisible by `3`.
 Gray Code
 ---------
 
-The Gray code is a binary numeral system where two successive values
-differ in only one bit, cf. the :wikipedia:`Gray_code`. The Gray code of
-an integer `n` is obtained by a bitwise xor between the binary expansion
-of `n` and the binary expansion of `\\lfloor n/2\\rfloor`; the latter
-corresponds to a left shift (for this example, the least significant
-digit is at the left-most position).
+The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
+where two successive values differ in only one bit, cf. the
+:wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
+a bitwise xor between the binary expansion of `n` and the binary
+expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a left
+shift (for this example, the least significant digit is at the
+left-most position).
 
 The purpose of this example is to construct a transducer converting the
 standard binary expansion to the Gray code by translating this
@@ -215,9 +216,9 @@ left. This requires storing the previously read digit in a state.
 
     sage: def shift_left_transition(state, digit):
     ....:     if state == 'I':
-    ....:         return(digit, None)
+    ....:         return (digit, None)
     ....:     else:
-    ....:         return(digit, state)
+    ....:         return (digit, state)
     sage: shift_left_transducer = Transducer(
     ....:     shift_left_transition,
     ....:     initial_states=['I'],
@@ -230,6 +231,11 @@ left. This requires storing the previously read digit in a state.
      Transition from 0 to 1: 1|0,
      Transition from 1 to 0: 0|1,
      Transition from 1 to 1: 1|1]
+    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+    sage: shift_left_transducer([0, 1, 1])
+    [0, 1]
+    sage: shift_left_transducer([1, 0, 0])
+    [1, 0]
 
 Next, we construct the transducer performing the xor operation.  We
 also have to take ``None`` into account as our
@@ -242,12 +248,13 @@ output.
     ....:    if digits[0] is None or digits[1] is None:
     ....:        return (0, None)
     ....:    else:
-    ....:        return(0, digits[0].__xor__(digits[1]))
+    ....:        return (0, digits[0].__xor__(digits[1]))
+    sage: from itertools import product
     sage: xor_transducer = Transducer(
     ....:    xor_transition,
     ....:    initial_states=[0],
     ....:    final_states=[0],
-    ....:    input_alphabet=[(None, 0), (None, 1), (0, 0), (0, 1), (1, 0), (1, 1)])
+    ....:    input_alphabet=list(product([None, 0, 1], [0, 1])))
     sage: xor_transducer.transitions()
     [Transition from 0 to 0: (None, 0)|-,
      Transition from 0 to 0: (None, 1)|-,
@@ -255,6 +262,8 @@ output.
      Transition from 0 to 0: (0, 1)|1,
      Transition from 0 to 0: (1, 0)|1,
      Transition from 0 to 0: (1, 1)|0]
+    sage: xor_transducer([(0, 0), (0, 1), (1, 0), (1, 1)])
+    [0, 1, 1, 0]
 
 The transducer computing the Gray code is then constructed as a
 cartesian product.  As described in :meth:`Transducer.cartesian_product`,
@@ -289,9 +298,8 @@ This is due to the left shift which delays its output
 
 ::
 
-    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-    sage: for n in range(10):
-    ....:     Gray_transducer(ZZ(n).bits()+[0])
+    sage: for n in srange(10):
+    ....:     Gray_transducer(n.bits() + [0])
     []
     [1]
     [1, 1]

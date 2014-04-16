@@ -3,7 +3,7 @@
        "Creating a Viable Open Source Alternative to
           Magma, Maple, Mathematica, and MATLAB"
 
-    Copyright (C) 2005-2012 William Stein and the Sage Development Team
+    Copyright (C) 2005-2014 William Stein and the Sage Development Team
 
         http://www.sagemath.org
 

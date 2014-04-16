@@ -91,6 +91,7 @@ from sage.rings.ideal import is_Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.misc.cachefunc import cached_function
 
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
@@ -5003,20 +5004,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.power_series_ring import is_PowerSeriesRing
         if self.is_zero():
             return self.parent().zero_element()
-        poly = self
+        n = self.degree()
         base_ring = self.parent().base_ring()
         if (is_MPolynomialRing(base_ring) or
             is_PowerSeriesRing(base_ring)):
             # It is often cheaper to compute discriminant of simple
             # multivariate polynomial and substitute the real
             # coefficients into that result (see #16014).
-            ex = self.exponents()
-            pr1 = PolynomialRing(ZZ, "x", len(ex))
-            pr2 = PolynomialRing(pr1, "y")
-            y = pr2.gen()
-            poly = sum(v*(y**e) for v, e in zip(pr1.gens(), ex))
-        n = poly.degree()
-        d = poly.derivative()
+            return universal_discriminant(n)(list(self))
+        d = self.derivative()
         k = d.degree()
 
         r = n % 4
@@ -5024,20 +5020,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if r == 0 or r == 1:
             u = 1
         try:
-            an = poly[n]**(n - k - 2)
+            an = self[n]**(n - k - 2)
         except ZeroDivisionError:
             assert(n-k-2 == -1)
             # Rather than dividing the resultant by the leading coefficient,
             # we alter the Sylvester matrix (see #11782).
-            mat = poly.sylvester_matrix(d)
-            mat[0, 0] = poly.base_ring()(1)
-            mat[n - 1, 0] = poly.base_ring()(n)
-            res = u * mat.determinant()
+            mat = self.sylvester_matrix(d)
+            mat[0, 0] = self.base_ring()(1)
+            mat[n - 1, 0] = self.base_ring()(n)
+            return u * mat.determinant()
         else:
-            res = poly.base_ring()(u * poly.resultant(d) * an)
-        if poly is not self:
-            res = res(self.coefficients())
-        return res
+            return self.base_ring()(u * self.resultant(d) * an)
 
     def reverse(self, degree=None):
         """
@@ -7413,6 +7406,42 @@ cdef class Polynomial_generic_dense(Polynomial):
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)
+
+@cached_function
+def universal_discriminant(n):
+    r"""
+    Return the discriminant of the 'universal' univariate polynomial
+    `a_n x^n + \cdots + a_1 x + a_0` in `\ZZ[a_0, \ldots, a_n][x]`.
+
+    INPUT:
+
+    - ``n`` - degree of the polynomial
+
+    OUTPUT:
+
+    The discriminant as a polynomial in `n + 1` variables over `\ZZ`.
+    The result will be cached, so subsequent computations of
+    discriminants of the same degree will be faster.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_element import universal_discriminant
+        sage: universal_discriminant(1)
+        1
+        sage: universal_discriminant(2)
+        a1^2 - 4*a0*a2
+        sage: universal_discriminant(3)
+        a1^2*a2^2 - 4*a0*a2^3 - 4*a1^3*a3 + 18*a0*a1*a2*a3 - 27*a0^2*a3^2
+        sage: universal_discriminant(4).degrees()
+        (3, 4, 4, 4, 3)
+
+    .. SEEALSO::
+        :meth:`Polynomial.discriminant`
+    """
+    pr1 = PolynomialRing(ZZ, n + 1, 'a')
+    pr2 = PolynomialRing(pr1, 'x')
+    p = pr2(list(pr1.gens()))
+    return (1 - (n&2))*p.resultant(p.derivative())//pr1.gen(n)
 
 cdef class ConstantPolynomialSection(Map):
     """

@@ -910,10 +910,10 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfTableaux(['A',3], shape=[3,1])
-            sage: D = CrystalOfTableaux(['A',3], shape=[1])
-            sage: E = CrystalOfTableaux(['A',3], shape=[2,2,2])
-            sage: T = TensorProductOfCrystals(C,D,E)
+            sage: C = crystals.Tableaux(['A',3], shape=[3,1])
+            sage: D = crystals.Tableaux(['A',3], shape=[1])
+            sage: E = crystals.Tableaux(['A',3], shape=[2,2,2])
+            sage: T = crystals.TensorProduct(C,D,E)
             sage: print T.module_generators[0]._repr_diagram()
               1  1  1 (X)   1 (X)   1  1
               2                     2  2
@@ -952,10 +952,10 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: C = CrystalOfTableaux(['A',3], shape=[3,1])
-            sage: D = CrystalOfTableaux(['A',3], shape=[1])
-            sage: E = CrystalOfTableaux(['A',3], shape=[2,2,2])
-            sage: T = TensorProductOfCrystals(C,D,E)
+            sage: C = crystals.Tableaux(['A',3], shape=[3,1])
+            sage: D = crystals.Tableaux(['A',3], shape=[1])
+            sage: E = crystals.Tableaux(['A',3], shape=[2,2,2])
+            sage: T = crystals.TensorProduct(C,D,E)
             sage: T.module_generators[0].pp()
               1  1  1 (X)   1 (X)   1  1
               2                     2  2
@@ -1798,7 +1798,8 @@ class CrystalOfTableaux(CrystalOfWords):
 
     def _element_constructor_(self, *args, **options):
         """
-        Returns a CrystalOfTableauxElement
+        Return a
+        :class:`~sage.combinat.crystals.tensor_product.CrystalOfTableauxElement`.
 
         EXAMPLES::
 
@@ -1910,7 +1911,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
         EXAMPLES::
 
-            sage: C = CrystalOfTableaux(['A', 4], shape=[4,2,1])
+            sage: C = crystals.Tableaux(['A', 4], shape=[4,2,1])
             sage: elt = C(rows=[[1,1,1,2], [2,3], [4]])
             sage: print elt._repr_diagram()
               1  1  1  2

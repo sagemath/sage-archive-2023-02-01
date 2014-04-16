@@ -729,7 +729,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
 
         EXAMPLES::
 
-            sage: C = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
             sage: print C(2,1)._repr_diagram()
               1
               2
@@ -742,11 +742,11 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
 
         EXAMPLES::
 
-            sage: C = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
             sage: C(2,1).pp()
               1
               2
-            sage: C = KirillovReshetikhinCrystal(['B',3,1], 3,3)
+            sage: C = crystals.KirillovReshetikhin(['B',3,1], 3,3)
             sage: C.module_generators[0].pp()
             + (X)   1
             +
@@ -787,7 +787,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
 
         EXAMPLES::
 
-            sage: C = KirillovReshetikhinCrystal(['D',4,1], 2,1)
+            sage: C = crystals.KirillovReshetikhin(['D',4,1], 2,1)
             sage: t = C(2,1).to_tableau(); t
             [[1], [2]]
             sage: type(t)

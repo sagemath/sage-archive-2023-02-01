@@ -337,7 +337,7 @@ class Spin(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfSpins(['B',3])
+            sage: C = crystals.Spins(['B',3])
             sage: b = C([1,1,-1])
             sage: print b._repr_diagram()
             +
@@ -352,7 +352,7 @@ class Spin(LetterTuple):
 
         EXAMPLES::
 
-            sage: C = CrystalOfSpins(['B',3])
+            sage: C = crystals.Spins(['B',3])
             sage: b = C([1,1,-1])
             sage: b.pp()
             +

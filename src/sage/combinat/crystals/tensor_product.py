@@ -904,6 +904,65 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
                 return False
         return False
 
+    def _repr_diagram(self):
+        r"""
+        Return a string representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfTableaux(['A',3], shape=[3,1])
+            sage: D = CrystalOfTableaux(['A',3], shape=[1])
+            sage: E = CrystalOfTableaux(['A',3], shape=[2,2,2])
+            sage: T = TensorProductOfCrystals(C,D,E)
+            sage: print T.module_generators[0]._repr_diagram()
+              1  1  1 (X)   1 (X)   1  1
+              2                     2  2
+                                    3  3
+        """
+        pplist = []
+        max_widths = []
+        num_cols = len(self)
+        for c in self:
+            try:
+                pplist.append(c._repr_diagram().split('\n'))
+            except AttributeError:
+                pplist.append(c._repr_().split('\n'))
+            max_widths.append(max(map(len, pplist[-1])))
+        num_rows = max(map(len, pplist))
+        ret = ""
+        for i in range(num_rows):
+            if i > 0:
+                ret += '\n'
+            for j in range(num_cols):
+                if j > 0:
+                    if i == 0:
+                        ret += ' (X) '
+                    else:
+                        ret += '     '
+                if i < len(pplist[j]):
+                    ret += pplist[j][i]
+                    ret += ' '*(max_widths[j] - len(pplist[j][i]))
+                else:
+                    ret += ' '*max_widths[j]
+        return ret
+
+    def pp(self):
+        """
+        Pretty print ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfTableaux(['A',3], shape=[3,1])
+            sage: D = CrystalOfTableaux(['A',3], shape=[1])
+            sage: E = CrystalOfTableaux(['A',3], shape=[2,2,2])
+            sage: T = TensorProductOfCrystals(C,D,E)
+            sage: T.module_generators[0].pp()
+              1  1  1 (X)   1 (X)   1  1
+              2                     2  2
+                                    3  3
+        """
+        print(self._repr_diagram())
+
     def weight(self):
         r"""
         Return the weight of ``self``.
@@ -1289,8 +1348,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(K,K,K)
             sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
             sage: for b in hw:
-            ...      print b, b.energy_function()
-            ...
+            ....:    print b, b.energy_function()
             [[[1]], [[1]], [[1]]] 0
             [[[1]], [[2]], [[1]]] 2
             [[[2]], [[1]], [[1]]] 1
@@ -1845,6 +1903,21 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             '[[1, 2], [3, 4]]'
         """
         return repr(self.to_tableau())
+
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfTableaux(['A', 4], shape=[4,2,1])
+            sage: elt = C(rows=[[1,1,1,2], [2,3], [4]])
+            sage: print elt._repr_diagram()
+              1  1  1  2
+              2  3
+              4
+        """
+        return self.to_tableau()._repr_diagram()
 
     def pp(self):
         """

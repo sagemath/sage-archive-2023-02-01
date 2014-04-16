@@ -1335,6 +1335,13 @@ class Function_exp_integral(BuiltinFunction):
         sage: Ei(-3 - 0.1*I)
         -0.0129379427181693 - 3.13993830250942*I
 
+    The precision for the result is deduced from the precision of the
+    input. Convert the input to a higher precision explicitly if a
+    result with higher precision is desired::
+        
+        sage: Ei(RealField(300)(1.1))
+        2.16737827956340282358378734233807621497112737591639704719499002090327541763352339357795426
+        
     ALGORITHM: Uses mpmath.
 
     TESTS:
@@ -1412,33 +1419,6 @@ class Function_exp_integral(BuiltinFunction):
         """
         import mpmath
         return mpmath_utils_call(mpmath.ei, x, parent=parent)
-
-    def __call__(self, x, prec=None, coerce=True, hold=False ):
-        """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.
-
-        EXAMPLES::
-
-            sage: t = Ei(RealField(100)(2.5)); t
-            7.0737658945786007119235519625
-            sage: t.prec()
-            100
-
-            sage: Ei(1.1, prec=300)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.
-            See http://trac.sagemath.org/7748 for details.
-            2.16737827956340306615064476647912607220394065907142504328679588538509331805598360907980986
-        """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7748, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example Ei(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., Ei(1).n(300), instead.")
-            import mpmath
-            return mpmath_utils_call(mpmath.ei, x, prec=prec)
-
-        return BuiltinFunction.__call__(self, x, coerce=coerce, hold=hold)
 
     def _derivative_(self, x, diff_param=None):
         """

@@ -1604,15 +1604,6 @@ cdef class Expression(CommutativeRingElement):
                         return self.operator().name()
         return self._maxima_init_()
 
-
-    _is_real     = deprecated_function_alias(10859, is_real)
-    _is_positive = deprecated_function_alias(10859, is_positive)
-    _is_negative = deprecated_function_alias(10859, is_negative)
-    _is_integer  = deprecated_function_alias(10859, is_integer)
-    _is_symbol   = deprecated_function_alias(10859, is_symbol)
-    _is_constant = deprecated_function_alias(10859, is_constant)
-    _is_numeric  = deprecated_function_alias(10859, is_numeric)
-
     def is_real(self):
         """
         Return True if this expression is known to be a real number.
@@ -8166,7 +8157,6 @@ cdef class Expression(CommutativeRingElement):
 
     trig_simplify = simplify_trig
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_rational(self,algorithm='full', map=False):
         r"""
         Simplify rational expressions.
@@ -8422,7 +8412,6 @@ cdef class Expression(CommutativeRingElement):
     radical_simplify = simplify_radical
     simplify_exp = exp_simplify = simplify_radical
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def simplify_log(self,algorithm=None):
         r"""
         Simplify symbolic expression, which can contain logs.
@@ -8580,7 +8569,6 @@ cdef class Expression(CommutativeRingElement):
 
     log_simplify = simplify_log
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def expand_log(self,algorithm='products'):
         r"""
         Simplify symbolic expression, which can contain logs.
@@ -9663,9 +9651,6 @@ cdef class Expression(CommutativeRingElement):
             var = self.default_variable()
         return find_local_minimum(self._fast_float_(var),
                                         a=a, b=b, tol=tol, maxfun=maxfun )
-
-    find_maximum_on_interval = deprecated_function_alias(2607, find_local_maximum)
-    find_minimum_on_interval = deprecated_function_alias(2607, find_local_minimum)
 
     ###################
     # Fast Evaluation #

@@ -742,37 +742,28 @@ class Function_gamma(GinacFunction):
                 ginac_name='tgamma',
                 conversions={'mathematica':'Gamma','maple':'GAMMA'})
 
-    def __call__(self, x, prec=None, coerce=True, hold=False):
+    def __call__(self, x, coerce=True, hold=False):
         """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.::
+        The precision for the result is deduced from the precision of the
+        input. Convert the input to a higher precision explicitly if a result
+        with higher precision is desired.::
 
             sage: t = gamma(RealField(100)(2.5)); t
             1.3293403881791370204736256125
             sage: t.prec()
             100
 
-            sage: gamma(6, prec=53)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.
-            See http://trac.sagemath.org/7490 for details.
-            120.000000000000
+            sage: gamma(6)
+            120
 
         TESTS::
 
-            sage: gamma(pi,prec=100)
+            sage: gamma(pi).n(100)
             2.2880377953400324179595889091
 
-            sage: gamma(3/4,prec=100)
+            sage: gamma(3/4).n(100)
             1.2254167024651776451290983034
         """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example gamma(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., gamma(1).n(300), instead.")
-            import mpmath
-            return mpmath_utils.call(mpmath.gamma, x, prec=prec)
-
         # this is a kludge to keep
         #     sage: Q.<i> = NumberField(x^2+1)
         #     sage: gamma(i)
@@ -788,8 +779,7 @@ class Function_gamma(GinacFunction):
                 raise
 
             from sage.misc.superseded import deprecation
-            deprecation(7490, "Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.")
-            parent = RR if prec is None else RealField(prec)
+            parent = RR
             try:
                 x = parent(x)
             except (ValueError, TypeError):
@@ -1030,8 +1020,6 @@ def gamma(a, *args, **kwds):
 
             sage: Q.<i> = NumberField(x^2+1)
             sage: gamma(i)
-            doctest:...: DeprecationWarning: Calling symbolic functions with arguments that cannot be coerced into symbolic expressions is deprecated.
-            See http://trac.sagemath.org/7490 for details.
             -0.154949828301811 - 0.498015668118356*I
 
         We make an exception for elements of AA or QQbar, which cannot be

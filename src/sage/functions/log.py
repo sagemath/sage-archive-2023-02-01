@@ -64,6 +64,17 @@ class Function_exp(GinacFunction):
             sage: exp(7*pi*I/2)
             -I
 
+        The precision for the result is deduced from the precision of
+        the input. Convert the input to a higher precision explicitly
+        if a result with higher precision is desired::
+
+            sage: t = exp(RealField(100)(2)); t
+            7.3890560989306502272304274606
+            sage: t.prec()
+            100
+            sage: exp(2).n(100)
+            7.3890560989306502272304274606
+
         TEST::
 
             sage: latex(exp(x))
@@ -109,44 +120,6 @@ class Function_exp(GinacFunction):
         """
         GinacFunction.__init__(self, "exp", latex_name=r"\exp",
                                    conversions=dict(maxima='exp'))
-
-    def __call__(self, x, coerce=True, hold=False, prec=None,
-            dont_call_method_on_arg=False):
-        """
-        Note that the ``prec`` argument is deprecated. The precision for
-        the result is deduced from the precision of the input. Convert
-        the input to a higher precision explicitly if a result with higher
-        precision is desired.::
-
-            sage: t = exp(RealField(100)(2)); t
-            7.3890560989306502272304274606
-            sage: t.prec()
-            100
-
-        TESTS::
-
-            sage: exp(2,prec=100)
-            doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
-            See http://trac.sagemath.org/7490 for details.
-            7.3890560989306502272304274606
-
-        Ensure that :trac:`13608` is fixed::
-
-            sage: import mpmath
-            sage: a = mpmath.mpf('0.5')
-            sage: exp(a)
-            mpf('1.6487212707001282')
-            sage: a.exp
-            -1
-        """
-        if prec is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(7490, "The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.")
-            x = GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                    dont_call_method_on_arg=dont_call_method_on_arg)
-            return x.n(prec)
-        return GinacFunction.__call__(self, x, coerce=coerce, hold=hold,
-                dont_call_method_on_arg=dont_call_method_on_arg)
 
 exp = Function_exp()
 

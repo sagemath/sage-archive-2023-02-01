@@ -1,3 +1,8 @@
+# TODO: move to catalog
+from kleshchev import KleshchevCrystal
+from multisegments import InfinityCrystalOfMultisegments
+from affinization import AffinizationCrystal
+
 import catalog as crystals
 
 from sage.misc.lazy_import import lazy_import

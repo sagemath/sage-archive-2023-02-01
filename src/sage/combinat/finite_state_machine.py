@@ -233,14 +233,19 @@ left. This requires storing the previously read digit in a state.
      Transition from 1 to 0: 0|1,
      Transition from 1 to 1: 1|1]
     sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-    sage: shift_left_transducer([0, 1, 1])
-    [0, 1]
+    sage: shift_left_transducer([0, 1, 1, 0])
+    [0, 1, 1]
     sage: shift_left_transducer([1, 0, 0])
     [1, 0]
 
 Note that only `0` is listed as a final state as we have to enforce
 that a most significant zero is read as the last input letter
-in order to flush the last digit.
+in order to flush the last digit::
+
+    sage: shift_left_transducer([1, 0, 1])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
 
 Next, we construct the transducer performing the xor operation.  We
 also have to take ``None`` into account as our

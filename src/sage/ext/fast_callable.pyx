@@ -482,6 +482,8 @@ def function_name(fn):
         sage: function_name(factorial)
         '{factorial}'
     """
+    if isinstance(fn, Expression):
+        return "{%r}" % fn
     builtins = get_builtin_functions()
     if fn in builtins:
         return builtins[fn]

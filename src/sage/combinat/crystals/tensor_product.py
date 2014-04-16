@@ -677,8 +677,8 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: B1 is B2 and B2 is B3
             True
 
-            sage: B = InfinityCrystalOfTableaux(['A',2])
-            sage: T = TensorProductOfCrystals(B, B)
+            sage: B = crystals.infinity.Tableaux(['A',2])
+            sage: T = crystals.TensorProduct(B, B)
             sage: T.category()
             Join of Category of infinite enumerated sets and Category of highest weight crystals
         """

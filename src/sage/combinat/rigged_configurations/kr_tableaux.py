@@ -488,13 +488,13 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinTableaux(['A', 3, 1], 2, 2)
-            sage: TP = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,3],[3,1]])
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
+            sage: TP = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[1,3],[3,1]])
             sage: K.tensor(TP, K)
             Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1]
              and factor(s) ((2, 2), (1, 3), (3, 1), (2, 2))
 
-            sage: C = KirillovReshetikhinCrystal(['A',3,1], 3, 1)
+            sage: C = crystals.KirillovReshetikhin(['A',3,1], 3, 1, model='KN')
             sage: K.tensor(K, C)
             Full tensor product of the crystals
              [Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and shape (2, 2),

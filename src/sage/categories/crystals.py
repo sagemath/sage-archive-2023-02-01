@@ -836,8 +836,8 @@ class Crystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 3])
-                sage: B = InfinityCrystalOfTableaux(['A',2])
+                sage: C = crystals.Letters(['A', 3])
+                sage: B = crystals.infinity.Tableaux(['A',2])
                 sage: T = C.tensor(C, B); T
                 Full tensor product of the crystals
                  [The crystal of letters for type ['A', 3],
@@ -846,7 +846,7 @@ class Crystals(Category_singleton):
                 sage: tensor([C, C, B]) is T
                 True
 
-                sage: C = CrystalOfLetters(['A',2])
+                sage: C = crystals.Letters(['A',2])
                 sage: T = C.tensor(C, C, generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]]); T
                 The tensor product of the crystals
                  [The crystal of letters for type ['A', 2],

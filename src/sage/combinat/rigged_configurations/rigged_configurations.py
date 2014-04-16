@@ -1012,7 +1012,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             Rigged configurations of type ['A', 3, 1]
              and factor(s) ((2, 1), (1, 3), (1, 1), (3, 3), (1, 1), (3, 3))
 
-            sage: K = KirillovReshetikhinTableaux(['A', 3, 1], 2, 2)
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 2, 2, model='KR')
             sage: RC.tensor(K)
             Full tensor product of the crystals
              [Rigged configurations of type ['A', 3, 1] and factor(s) ((2, 1), (1, 3)),

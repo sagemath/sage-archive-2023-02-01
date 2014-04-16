@@ -193,6 +193,7 @@ Now we want to divide `13` by `3`::
 The raised ``ValueError``
 means `13` is not divisible by `3`.
 
+.. _finite_state_machine_gray_code_example:
 
 Gray Code
 ---------

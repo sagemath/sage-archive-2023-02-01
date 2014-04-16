@@ -364,9 +364,12 @@ class TransducerGenerators(object):
             8 [0, 0, 1, 1]
             9 [1, 0, 1, 1]
 
-        Compare this with the documentation of :class:`FiniteStateMachine`,
-        where the Gray code transducer is derived from the algorithm
-        converting the binary expansion to the Gray code.
+        In the example :ref:`Gray Code <finite_state_machine_gray_code_example>`
+        in the documentation of the
+        :mod:`~sage.combinat.finite_state_machine` module, the Gray code
+        transducer is derived from the algorithm converting the binary
+        expansion to the Gray code. The result is the same as the one
+        given here.
         """
         z = ZZ(0)
         o = ZZ(1)

@@ -80,7 +80,7 @@ def install_all_optional_packages(force=True, dry_run=False):
     # install each one
     for pkg in v:
         try:
-            print("Installing {0}...".format(pkg))
+            print("Installing {}...".format(pkg))
             if not dry_run:
                 # only actually do the install of the package if dry_run is False
                 install_package(pkg, force=force)
@@ -88,7 +88,7 @@ def install_all_optional_packages(force=True, dry_run=False):
             # An error occurred -- catch exception and record this in
             # the list of failed installed.
             print("*"*70)
-            print("FAILED to install '{0}'".format(pkg))
+            print("FAILED to install '{}'".format(pkg))
             print("*"*70)
             failed.append(pkg)
     return failed
@@ -137,7 +137,7 @@ def install_package(package=None, force=False):
     if os.uname()[0][:6] == 'CYGWIN' and package is not None:
         print("install_package may not work correctly under Microsoft Windows")
         print("since you can't change an opened file.  Quit all")
-        print("instances of Sage and use 'sage -i {0}' instead or".format(package))
+        print("instances of Sage and use 'sage -i {}' instead or".format(package))
         print("use the force option to install_package().")
 
     if package is None:
@@ -157,21 +157,21 @@ def install_package(package=None, force=False):
     O.extend([P for P in optional_packages()[1] if P.startswith(package)])
     E.extend([P for P in experimental_packages()[1] if P.startswith(package)])
     L = S+O+E
-    if len(L)>1:
+    if len(L) > 1:
         if force:
-            print("Possible package names starting with '{0}' are:".format(package))
+            print("Possible package names starting with '{}' are:".format(package))
         else:
-            print("Possible names of non-installed packages starting with '{0}':".format(package))
+            print("Possible names of non-installed packages starting with '{}':".format(package))
         for P in L:
             print(" ", P)
-        raise ValueError("There is more than one package name starting with '{0}'. Please specify!".format(package))
-    if len(L)==0:
+        raise ValueError("There is more than one package name starting with '{}'. Please specify!".format(package))
+    if len(L) == 0:
         if not force:
             if is_package_installed(package):
-                raise ValueError("Package is already installed. Try install_package('{0}',force=True)".format(package))
-        raise ValueError("There is no package name starting with '{0}'.".format(package))
-    # len(L)==1, i.e. exactly one package matches the given one.
-    os.system('sage -f "{0}"'.format(L[0]))
+                raise ValueError("Package is already installed. Try install_package('{}',force=True)".format(package))
+        raise ValueError("There is no package name starting with '{}'.".format(package))
+    # len(L) == 1, i.e. exactly one package matches the given one.
+    os.system('sage -f "{}"'.format(L[0]))
     __installed_packages = None
 
 

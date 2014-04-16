@@ -131,7 +131,7 @@ def random_testing(fn):
             used_seed = initial_seed()
             if 'print_seed' in kwargs:
                 if kwargs['print_seed']:
-                    print("Random seed: {0}".format(used_seed))
+                    print("Random seed: {}".format(used_seed))
                     del kwargs['print_seed']
                 # I don't know if this line is necessary, but it can't
                 # hurt; and it would be a real pity to lose the
@@ -152,7 +152,7 @@ def random_testing(fn):
                 print("Please report this bug!  You may be the first")
                 print("person in the world to have seen this problem.")
                 print("Please include this random seed in your bug report:")
-                print("Random seed: {0}".format(used_seed))
+                print("Random seed: {}".format(used_seed))
                 print(repr(e))
     return wrapped_fun
 
@@ -180,7 +180,7 @@ def test_add_commutes(trials, verbose=False):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
-            print("a == {0}, b == {1} ...".format(a, b))
+            print("a == {}, b == {} ...".format(a, b))
         assert(a+b == b+a)
         if verbose:
             print("Passes!")
@@ -253,7 +253,7 @@ def test_add_is_mul(trials, verbose=False):
         a = QQ.random_element()
         b = QQ.random_element()
         if verbose:
-            print("a == {0}, b == {1} ...".format(a, b))
+            print("a == {}, b == {} ...".format(a, b))
         assert(a+b == a*b)
         if verbose:
             print("Passes!")

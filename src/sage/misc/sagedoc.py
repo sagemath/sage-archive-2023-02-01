@@ -744,9 +744,9 @@ You can build these with 'sage -docbuild DOCUMENT html',
 where DOCUMENT is one of""", end=' ')
                 for s in missing:
                     if s.find('en') != -1:
-                        print("'{0}',".format(os.path.split(s)[-1]), end=' ')
+                        print("'{}',".format(os.path.split(s)[-1]), end=' ')
                     else:
-                        print("'{0}',".format(os.path.join(
+                        print("'{}',".format(os.path.join(
                             os.path.split(os.path.split(s)[0])[-1],
                             os.path.split(s)[-1])), end=' ')
                 print("""
@@ -760,7 +760,7 @@ or you can use 'sage -docbuild all html' to build all of the missing documentati
                         os.path.split(os.path.split(s)[0])[-1],
                         os.path.split(s)[-1])
                 print("""
-You can build this with 'sage -docbuild {0} html'.""".format(s))
+You can build this with 'sage -docbuild {} html'.""".format(s))
 
     strip = len(base_path)
     results = ''
@@ -1351,7 +1351,7 @@ class _sage_doc:
             from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
-            raise ValueError("output type {0} not recognized".format(output))
+            raise ValueError("output type {} not recognized".format(output))
 
     def _open(self, name, testing=False):
         """
@@ -1462,7 +1462,7 @@ def help(module=None):
         else:
             python_help(module)
     else:
-        print("""Welcome to Sage {0}!
+        print("""Welcome to Sage {}!
 
 To view the Sage tutorial in your web browser, type "tutorial()", and
 to view the (very detailed) Sage reference manual, type "manual()".

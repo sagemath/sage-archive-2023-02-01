@@ -1746,7 +1746,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             # This is for data that are pickled in an old format
             CACHE = getattr(inst, cachename)
             if len(CACHE) > 1:
-                raise TypeError("Apparently you are opening a pickle in which '{0}' was a method accepting arguments".format(name))
+                raise TypeError("Apparently you are opening a pickle in which '{}' was a method accepting arguments".format(name))
             if len(CACHE) == 1:
                 self.cache = CACHE.values()[0]
             else:
@@ -2598,7 +2598,9 @@ cdef class CachedInParentMethod(CachedMethod):
         except AttributeError:
             pass
         if not hasattr(P,'__cached_methods'):
-            raise TypeError("The parent of this element does not allow attribute assignment\n    and does not descend from the Parent base class.\n    Can not use CachedInParentMethod.")
+            raise TypeError("The parent of this element does not allow attribute assignment\n" +
+                            "    and does not descend from the Parent base class.\n" +
+                            "    Can not use CachedInParentMethod.")
         if P.__cached_methods is None:
             P.__cached_methods = {}
         return (<dict>P.__cached_methods).setdefault(self._cache_name, {})
@@ -3143,13 +3145,13 @@ class ClearCacheOnPickle(object):
         def clear_list(T):
             L = []
             for x in T:
-                if isinstance(x,list):
+                if isinstance(x, list):
                     L.append(clear_list(x))
-                elif isinstance(x,tuple):
+                elif isinstance(x, tuple):
                     L.append(clear_tuple(x))
-                elif isinstance(x,dict):
+                elif isinstance(x, dict):
                     L.append(clear_dict(x))
-                elif not isinstance(x,CachedFunction):
+                elif not isinstance(x, CachedFunction):
                     L.append(x)
             return L
         def clear_tuple(T):
@@ -3157,21 +3159,21 @@ class ClearCacheOnPickle(object):
         def clear_dict(T):
             D = {}
             for key,value in T.iteritems():
-                if not ((isinstance(key,str) and key[0:8] == '_cache__') or
-                            isinstance(value,CachedFunction)):
-                    if isinstance(value,list):
+                if not ((isinstance(key, str) and key[0:8] == '_cache__') or
+                            isinstance(value, CachedFunction)):
+                    if isinstance(value, list):
                         D[key] = clear_list(value)
-                    elif isinstance(value,tuple):
+                    elif isinstance(value, tuple):
                         D[key] = clear_tuple(value)
-                    elif isinstance(value,dict):
+                    elif isinstance(value, dict):
                         D[key] = clear_dict(value)
                     else:
                         D[key] = value
             return D
-        if isinstance(OrigState,tuple):
+        if isinstance(OrigState, tuple):
             return clear_tuple(OrigState)
-        if isinstance(OrigState,list):
+        if isinstance(OrigState, list):
             return clear_list(OrigState)
-        if isinstance(OrigState,dict):
+        if isinstance(OrigState, dict):
             return clear_dict(OrigState)
         return OrigState

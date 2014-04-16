@@ -52,13 +52,13 @@ def benchmark(n=-1):
         return v, cputime(t)
 
     if n != -1:
-        print("Running benchmark {0}".format(n))
+        print("Running benchmark {}".format(n))
         try:
-            desc, t = eval("bench{0}()".format(n))
+            desc, t = eval("bench{}()".format(n))
         except NameError:
-            raise RuntimeError("no benchmark {0}".format(n))
+            raise RuntimeError("no benchmark {}".format(n))
         print(desc)
-        print("Time: {0} seconds".format(t))
+        print("Time: {} seconds".format(t))
         return (n, t, desc)
 
     t = cputime()

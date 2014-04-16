@@ -461,7 +461,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
 
 def todo(mesg=""):
     caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError("{0}: todo -- {1}".format(caller_name, mesg))
+    raise NotImplementedError("{}: todo -- {}".format(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -887,7 +887,7 @@ def newton_method_sizes(N):
 
     N = int(N)
     if N < 1:
-        raise ValueError("N (={0}) must be a positive integer".format(N))
+        raise ValueError("N (={}) must be a positive integer".format(N))
 
     output = []
     while N > 1:
@@ -996,7 +996,7 @@ def self_compose(f, n):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError("n must be a nonnegative integer, not {0}.".format(n))
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     return lambda x: nest(f, n, x)
 
@@ -1041,7 +1041,7 @@ def nest(f, n, x):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError("n must be a nonnegative integer, not {0}.".format(n))
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     for i in xrange(n):
         x = f(x)
@@ -1755,7 +1755,7 @@ def typecheck(x, C, var="x"):
     error message.
     """
     if not isinstance(x, C):
-        raise TypeError("{0} (={1}) must be of type {2}.".format(var,x,C))
+        raise TypeError("{} (={}) must be of type {}.".format(var, x, C))
 
 #################################################################
 # This will likely eventually be useful.

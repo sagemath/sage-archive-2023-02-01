@@ -1825,7 +1825,7 @@ class PickleExplainer(object):
             result: 0
         """
         if not 0 <= proto <= 2:
-            raise ValueError("unsupported pickle protocol: {0}".format(proto))
+            raise ValueError("unsupported pickle protocol: {}".format(proto))
 
     def PUT(self, n):
         r"""
@@ -2956,7 +2956,7 @@ class TestBuildSetstate(TestBuild):
             setting state from ({'x': 3}, {'y': 4})
             TestBuild: x=4; y=3
         """
-        print("setting state from {0}".format(state,))
+        print("setting state from {}".format(state))
         # Swap x and y, just for fun
         self.x = state[1]['y']
         self.y = state[0]['x']

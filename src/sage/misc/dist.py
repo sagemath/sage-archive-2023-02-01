@@ -85,15 +85,15 @@ def install_scripts(directory=None, ignore_existing=False):
         return
 
     if not os.path.exists(directory):
-        print("Error: '{0}' does not exist.".format(directory))
+        print("Error: '{}' does not exist.".format(directory))
         return
 
     if not os.path.isdir(directory):
-        print("Error: '{0}' is not a directory.".format(directory))
+        print("Error: '{}' is not a directory.".format(directory))
         return
 
     if not (os.access(directory, os.W_OK) and os.access(directory, os.X_OK)):
-        print("Error: you do not have write permission for '{0}'.".format(directory))
+        print("Error: you do not have write permission for '{}'.".format(directory))
         return
 
     from sage.misc.sage_ostools import have_program
@@ -110,35 +110,35 @@ def install_scripts(directory=None, ignore_existing=False):
                             os.path.samefile(d, SAGE_BIN)])
     for cmd in ['gap', 'gp', 'hg', 'ipython', 'maxima',
               'mwrank', 'R', 'singular', 'sqlite3', 'M2', 'kash']:
-        print("Checking that Sage has the command '{0}' installed".format(cmd))
+        print("Checking that Sage has the command '{}' installed".format(cmd))
         # Check to see if Sage includes cmd.
         cmd_inside_sage = have_program(cmd, path=SAGE_BIN)
         cmd_outside_sage = have_program(cmd, path=PATH)
         if not cmd_inside_sage:
-            print(("The command '{0}' is not available as part ".format(cmd)
-                   + "of Sage; not creating script."))
+            print("The command '{}' is not available as part ".format(cmd)
+                   + "of Sage; not creating script.")
             print()
             continue
         if cmd_outside_sage:
-            print("The command '{0}' is installed outside of Sage;".format(cmd), end=' ')
+            print("The command '{}' is installed outside of Sage;".format(cmd), end=' ')
             if not ignore_existing:
                 print("not creating script.")
                 print()
                 continue
             print("trying to create script anyway...")
         else:
-            print("Creating script for '{0}'...".format(cmd))
+            print("Creating script for '{}'...".format(cmd))
         # Install shortcut.
         target = os.path.join(directory, cmd)
         if os.path.exists(target):
-            print("The file '{0}' already exists; not adding script.".format(target))
+            print("The file '{}' already exists; not adding script.".format(target))
         else:
             o = open(target,'w')
             o.write('#!/bin/sh\n')
             o.write('exec sage --%s "$@"\n'%cmd)
             o.close()
-            print("Created script '{0}'".format(target))
-            os.system('chmod a+rx {0}'.format(target))
+            print("Created script '{}'".format(target))
+            os.system('chmod a+rx {}'.format(target))
             script_created = True
         print()
 
@@ -147,10 +147,10 @@ def install_scripts(directory=None, ignore_existing=False):
         print()
         print("You need not do this again even if you upgrade or move Sage.")
         print("The only requirement is that your PATH contains both")
-        print("'{0}' and the directory containing the command 'sage'.".format(directory))
+        print("'{}' and the directory containing the command 'sage'.".format(directory))
         if not dir_in_path:
             print()
-            print("Warning: '{0}' is not currently in your PATH.".format(directory))
+            print("Warning: '{}' is not currently in your PATH.".format(directory))
             print()
     else:
         print("No scripts created.")

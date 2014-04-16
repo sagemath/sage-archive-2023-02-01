@@ -1012,5 +1012,5 @@ cdef class LookupNameMaker:
         except KeyError:
             if self.fallback is not None:
                 return self.fallback(name)
-            raise NameError("Unknown variable: '{0}'".format(name))
+            raise NameError("Unknown variable: '{}'".format(name))
 

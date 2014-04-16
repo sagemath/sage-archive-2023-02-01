@@ -195,7 +195,7 @@ def characteristic_polynomial(x, var='x'):
     try:
         return x.charpoly(var)
     except AttributeError:
-        raise NotImplementedError("computation of charpoly of x (={0}) not implemented".format(x))
+        raise NotImplementedError("computation of charpoly of x (={}) not implemented".format(x))
 
 charpoly = characteristic_polynomial
 

@@ -154,6 +154,6 @@ class UnknownClass(UniqueRepresentation, SageObject):
             else:
                 return +1
         else:
-            raise ValueError("Unable to compare {0} with {1}".format(self, other))
+            raise ValueError("Unable to compare {} with {}".format(self, other))
 
 Unknown = UnknownClass()

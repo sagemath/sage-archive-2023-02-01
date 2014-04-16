@@ -721,30 +721,30 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     # if png output + latex, check to see if dvipng or convert is installed.
     if png:
         if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
-            print("")
+            print()
             print("Error: neither dvipng nor convert (from the ImageMagick suite)")
             print("appear to be installed. Displaying LaTeX, PDFLaTeX output")
             print("requires at least one of these programs, so please install")
             print("and try again.")
-            print("")
+            print()
             print("Go to http://sourceforge.net/projects/dvipng/ and")
             print("http://www.imagemagick.org to download these programs.")
             return "Error"
     # if png output + pdflatex, check to see if convert is installed.
         elif engine == "pdflatex" and not have_convert():
-            print("")
+            print()
             print("Error: convert (from the ImageMagick suite) does not")
             print("appear to be installed. Displaying PDFLaTeX output")
             print("requires this program, so please install and try again.")
-            print("")
+            print()
             print("Go to http://www.imagemagick.org to download it.")
             return "Error"
         elif engine == "xelatex" and not have_convert():
-            print("")
+            print()
             print("Error: convert (from the ImageMagick suite) does not")
             print("appear to be installed. Displaying XeLaTeX output")
             print("requires this program, so please install and try again.")
-            print("")
+            print()
             print("Go to http://www.imagemagick.org to download it.")
             return "Error"
     # check_validity: check to see if the dvi file is okay by trying
@@ -1343,7 +1343,7 @@ class Latex(LatexCall):
         assert isinstance(file_name, str)
         if not self.has_file(file_name):
             print("""
-Warning: `{0}` is not part of this computer's TeX installation.""".format(file_name))
+Warning: `{}` is not part of this computer's TeX installation.""".format(file_name))
             if more_info:
                 print(more_info)
 
@@ -1984,10 +1984,10 @@ class MathJax:
             # what happened here?
             raise ValueError("mode must be either 'display' or 'inline'")
 
-        return MathJaxExpr('<html><script type="math/tex{0}">'.format(modecode)
+        return MathJaxExpr('<html><script type="math/tex{}">'.format(modecode)
                          + ''.join(sage_configurable_latex_macros)
                          + _Latex_prefs._option['macros']
-                         + '{0}</script></html>'.format(x))
+                         + '{}</script></html>'.format(x))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
@@ -2164,7 +2164,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
-            print('<html><img src="{0}"></html>'.format(png_link))  # put comma at end of line?
+            print('<html><img src="{}"></html>'.format(png_link))  # put comma at end of line?
         return
     # command line or notebook with viewer
     tmp = tmp_dir('sage_viewer')
@@ -2186,7 +2186,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     if not viewer.startswith('sage-native-execute '):
         viewer = 'sage-native-execute ' + viewer
     if debug:
-        print('viewer: "{0}"'.format(viewer))
+        print('viewer: "{}"'.format(viewer))
     subprocess.call('%s %s' % (viewer, output_file), shell=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return

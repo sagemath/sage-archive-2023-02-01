@@ -693,9 +693,9 @@ class table(SageObject):
         if len(rows) > 0:
             # If the table has < 100 rows, don't truncate the output in the notebook
             if len(rows) <= 100:
-                print("<html>\n<div class=\"notruncate\">\n<table {0} class=\"table_form\">\n<tbody>".format(frame))
+                print("<html>\n<div class=\"notruncate\">\n<table {} class=\"table_form\">\n<tbody>".format(frame))
             else:
-                print("<html>\n<div class=\"truncate\">\n<table {0} class=\"table_form\">\n<tbody>".format(frame))
+                print("<html>\n<div class=\"truncate\">\n<table {} class=\"table_form\">\n<tbody>".format(frame))
 
             # First row:
             if header_row:
@@ -706,7 +706,7 @@ class table(SageObject):
 
             # Other rows:
             for row_class, row in zip(cycle(["row-a", "row-b"]), rows):
-                print("<tr class =\"{0}\">".format(row_class))
+                print("<tr class =\"{}\">".format(row_class))
                 self._html_table_row(row, header=False)
                 print("</tr>")
             print("</tbody>\n</table>\n</div>\n</html>")

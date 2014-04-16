@@ -101,7 +101,7 @@ class Log:
         self._stopped = False
         self._viewer = viewer
         loggers.append(self)
-        print(('Now logging to ' + self._filename))
+        print('Now logging to ' + self._filename)
         self._update()
         self.view()
 

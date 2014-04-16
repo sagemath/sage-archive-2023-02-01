@@ -132,14 +132,14 @@ You can work with subcones that form faces of other cones::
     sage: face
     2-d face of 3-d cone in 3-d lattice N
     sage: face.rays()
-    N(1,  1, 1),
-    N(1, -1, 1)
+    N(-1, -1, 1),
+    N(-1,  1, 1)
     in 3-d lattice N
     sage: face.ambient_ray_indices()
-    (0, 1)
+    (2, 3)
     sage: four_rays.rays(face.ambient_ray_indices())
-    N(1,  1, 1),
-    N(1, -1, 1)
+    N(-1, -1, 1),
+    N(-1,  1, 1)
     in 3-d lattice N
 
 If you need to know inclusion relations between faces, you can use ::
@@ -1959,8 +1959,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: cone = Cone([(1,0), (-1,3)])
             sage: cone.dual().rays()
-            M(3, 1),
-            M(0, 1)
+            M(0, 1),
+            M(3, 1)
             in 2-d lattice M
 
         Now let's look at a more complicated case::
@@ -1996,8 +1996,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             M(0, -1)
             in 2-d lattice M
             sage: Cone([(1,0),(0,1)], lattice=N).dual().rays()  # strictly convex cone
-            M(1, 0),
-            M(0, 1)
+            M(0, 1),
+            M(1, 0)
             in 2-d lattice M
             sage: Cone([(1,0),(-1,0),(0,1)], lattice=N).dual().rays()  # half space
             M(0, 1)
@@ -2490,8 +2490,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: cone = Cone([(1,0), (-1,3)])
             sage: cone.facet_normals()
-            M(3, 1),
-            M(0, 1)
+            M(0, 1),
+            M(3, 1)
             in 2-d lattice M
 
         Now let's look at a more complicated case::
@@ -2515,8 +2515,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A lattice that does not have a ``dual()`` method::
 
             sage: Cone([(1,1),(0,1)], lattice=ZZ^2).facet_normals()
-            ( 1, 0),
-            (-1, 1)
+            (-1, 1),
+            ( 1, 0)
             in Ambient free module of rank 2
             over the principal ideal domain Integer Ring
 
@@ -2533,8 +2533,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Empty collection
             in 2-d lattice M
             sage: Cone([(1,0),(0,1)], lattice=N).facet_normals()  # strictly convex cone
-            M(1, 0),
-            M(0, 1)
+            M(0, 1),
+            M(1, 0)
             in 2-d lattice M
             sage: Cone([(1,0),(-1,0),(0,1)], lattice=N).facet_normals()  # half space
             M(0, 1)
@@ -3626,7 +3626,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: rho = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
             sage: rho.orthogonal_sublattice()
             Sublattice <M(0, 0, 3, -1)>
-            sage: sigma = rho.facets()[2]
+            sage: sigma = rho.facets()[1]
             sage: sigma.orthogonal_sublattice()
             Sublattice <M(0, 1, 1, 0), M(0, 0, 3, -1)>
             sage: sigma.is_face_of(rho)

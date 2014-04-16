@@ -233,8 +233,8 @@ class TransducerGenerators(object):
 
     def operator(self, operator, input_alphabet, number_of_operands=2):
         r"""
-        Returns a transducer which realizes a letter-wise
-        operation of an input word over the given input alphabet.
+        Returns a transducer which realizes an operation
+        on tuples over the given input alphabet.
 
         INPUT:
 
@@ -309,8 +309,8 @@ class TransducerGenerators(object):
 
     def add(self, input_alphabet):
         """
-        Returns a transducer which realizes the letter-wise
-        addition of an input word over the given input alphabet.
+        Returns a transducer which realizes addition on pairs over the
+        given input alphabet.
 
         INPUT:
 
@@ -350,8 +350,8 @@ class TransducerGenerators(object):
 
     def sub(self, input_alphabet):
         """
-        Returns a transducer which realizes the letter-wise
-        subtraction of an input word over the given input alphabet.
+        Returns a transducer which realizes subtraction on pairs over
+        the given input alphabet.
 
         INPUT:
 

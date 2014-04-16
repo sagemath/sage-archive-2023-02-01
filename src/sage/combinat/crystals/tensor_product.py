@@ -640,9 +640,9 @@ class TensorProductOfCrystals(CrystalOfWords):
         sage: T = crystals.TensorProduct(B,C,D)
         sage: T
         Full tensor product of the crystals
-        [Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1] and highest weight Lambda[0] + Lambda[1].,
-         Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1] and highest weight 2*Lambda[2].,
-         Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1] and highest weight 3*Lambda[0] + Lambda[2].]
+        [Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1] and highest weight Lambda[0] + Lambda[1],
+         Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1] and highest weight 2*Lambda[2],
+         Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1] and highest weight 3*Lambda[0] + Lambda[2]]
 
     There is also a global option for setting the convention (by default Sage
     uses anti-Kashiwara)::

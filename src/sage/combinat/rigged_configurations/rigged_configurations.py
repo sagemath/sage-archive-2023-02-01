@@ -109,6 +109,15 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
         sage: K2 = crystals.kirillov_reshetikhin.LSPaths(['A',6,2], 2, 1)
         sage: K1.digraph().is_isomorphic(K2.digraph(), edge_labels=True)
         True
+
+    TESTS:
+
+    We explicitly import and check we get the same crystal::
+
+        sage: from sage.combinat.rigged_configurations import KirillovReshetikhinCrystal
+        sage: K1 = crystals.kirillov_reshetikhin.RiggedConfigurations(['A',6,2], 2, 1)
+        sage: K1 is KirillovReshetikhinCrystal(['A',6,2], 2, 1)
+        True
     """
     from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
     return RiggedConfigurations(cartan_type, [[r,s]])

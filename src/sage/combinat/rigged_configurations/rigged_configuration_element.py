@@ -477,6 +477,7 @@ class RiggedConfigurationElement(ClonableArray):
         """
         return list(self)
 
+    # TODO: Change e/f to work for all types
     def e(self, a):
         r"""
         Return the action of the crystal operator `e_a` on ``self``.
@@ -923,7 +924,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 
         .. MATH::
 
-            \hat{e}_a = \prod_{j \in \iota(a)} e_j^{\gamma_j}
+            e^v_a = \prod_{j \in \iota(a)} \hat{e}_j^{\gamma_j}
 
         and pulling back.
 
@@ -958,7 +959,7 @@ class RCNonSimplyLacedElement(RiggedConfigurationElement):
 
         .. MATH::
 
-            \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
+            f^v_a = \prod_{j \in \iota(a)} \hat{f}_j^{\gamma_j}
 
         and pulling back.
 
@@ -1402,6 +1403,36 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         if not self[a]:
             return p_inf
         return p_inf - min(0, min(self[a].rigging))
+
+    def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['E', 6, 1], [[2,2]])
+            sage: map(lambda x: x.weight(), RC.module_generators)
+            [-4*Lambda[0] + 2*Lambda[2], -2*Lambda[0] + Lambda[2], 0]
+            sage: KR = crystals.KirillovReshetikhin(['E',6,1], 2,2)
+            sage: map(lambda x: x.weight(), KR.module_generators)
+            [0, -2*Lambda[0] + Lambda[2], -4*Lambda[0] + 2*Lambda[2]]
+
+            sage: RC = RiggedConfigurations(['D', 6, 1], [[4,2]])
+            sage: map(lambda x: x.weight(), RC.module_generators)
+            [-4*Lambda[0] + 2*Lambda[4], -4*Lambda[0] + Lambda[2] + Lambda[4],
+             -2*Lambda[0] + Lambda[4], -4*Lambda[0] + 2*Lambda[2],
+             -2*Lambda[0] + Lambda[2], 0]
+        """
+        try:
+            return super(KRRiggedConfigurationElement, self).weight()
+        except NotImplementedError:
+            # The error gets raised from the bijection not being implemented.
+            # Maybe we want to do this for all types for speed?
+            WLR = self.parent().weight_lattice_realization()
+            La = WLR.fundamental_weights()
+            cl_index = self.parent()._cartan_type.classical().index_set()
+            wt = WLR.sum((self.phi(i) - self.epsilon(i)) * La[i] for i in cl_index)
+            return -wt.level() * La[0] + wt
 
     @cached_method
     def classical_weight(self):

@@ -172,9 +172,9 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
             sage: La = RootSystem(['C',2,1]).weight_lattice().fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(['C',2,1], La[0])
             sage: RC
-            B infinity rigged configurations of type ['C', 3]
+            Crystal of rigged configurations of type ['C', 2, 1] and weight Lambda[0]
             sage: RC.virtual
-            B infinity rigged configurations of type ['A', 3]
+            Crystal of rigged configurations of type ['A', 3, 1] and weight 2*Lambda[0]
         """
         P = self._folded_ct._folding.root_system().weight_lattice()
         gamma = self._folded_ct.scaling_factors()

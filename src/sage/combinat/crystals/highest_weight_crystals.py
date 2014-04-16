@@ -150,6 +150,8 @@ def HighestWeightCrystal(dominant_weight, model=None):
          Cartan type ['F', 4] and highest weight Lambda[1] + Lambda[4].
         sage: crystals.HighestWeight(wt, model='AlcovePaths')
         Highest weight crystal of alcove paths of type ['F', 4] and weight Lambda[1] + Lambda[4]
+        sage: crystals.HighestWeight(wt, model='RiggedConfigurations')
+        Crystal of rigged configurations of type ['F', 4] and weight Lambda[1] + Lambda[4]
     """
     cartan_type = dominant_weight.parent().cartan_type()
     if model is None:
@@ -210,7 +212,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
 
     if model == 'RiggedConfigurations':
         # Make sure it's in the weight lattice
-        P = dominant_weight.parent().root_system.weight_space()
+        P = dominant_weight.parent().root_system.weight_lattice()
         wt = P.sum_of_terms((i, c) for i,c in dominant_weight)
         return CrystalOfRiggedConfigurations(cartan_type, wt)
 

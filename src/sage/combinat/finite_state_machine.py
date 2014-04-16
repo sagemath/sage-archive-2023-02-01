@@ -193,6 +193,7 @@ Now we want to divide `13` by `3`::
 The raised ``ValueError``
 means `13` is not divisible by `3`.
 
+.. _finite_state_machine_gray_code_example:
 
 Gray Code
 ---------
@@ -223,7 +224,7 @@ left. This requires storing the previously read digit in a state.
     ....:     shift_left_transition,
     ....:     initial_states=['I'],
     ....:     input_alphabet=[0, 1],
-    ....:     final_states=['I', 0, 1])
+    ....:     final_states=[0])
     sage: shift_left_transducer.transitions()
     [Transition from 'I' to 0: 0|-,
      Transition from 'I' to 1: 1|-,
@@ -236,6 +237,10 @@ left. This requires storing the previously read digit in a state.
     [0, 1]
     sage: shift_left_transducer([1, 0, 0])
     [1, 0]
+
+Note that only `0` is listed as a final state as we have to enforce
+that a most significant zero is read as the last input letter
+in order to flush the last digit.
 
 Next, we construct the transducer performing the xor operation.  We
 also have to take ``None`` into account as our
@@ -285,16 +290,27 @@ we have to temporarily set
      Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
      Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
 
-There is a prepackaged transducer for Gray code, let's see whether they
-agree::
+There is a prepackaged transducer for Gray code, let's see whether
+they agree. We have to use :meth:`~FiniteStateMachine.relabeled` to
+relabel our states with integers. Note that equality of finite state
+machines does not compare initial and final states, so we have to do
+it on our own here.
 
-    sage: Gray_transducer.relabeled() == transducers.GrayCode()
+::
+
+    sage: constructed = Gray_transducer.relabeled()
+    sage: packaged = transducers.GrayCode()
+    sage: constructed == packaged
+    True
+    sage: constructed.initial_states() == packaged.initial_states()
+    True
+    sage: constructed.final_states() == packaged.final_states()
     True
 
 Finally, we check that this indeed computes the Gray code of the first
 10 non-negative integers. Note that we add a trailing zero at the most
 significant position of the input in order to flush all output digits.
-This is due to the left shift which delays its output
+This is due to the left shift which delays its output.
 
 ::
 

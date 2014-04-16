@@ -155,7 +155,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
         sage: wt = La[0] + La[2]
         sage: crystals.HighestWeight(wt, model='GeneralizedYoungWalls')
         Highest weight crystal of generalized Young walls of
-         Cartan type ['A', 3, 1] and highest weight Lambda[0] + Lambda[2].
+         Cartan type ['A', 3, 1] and highest weight Lambda[0] + Lambda[2]
         sage: crystals.HighestWeight(wt, model='KleshchevPartitions')
         The crystal of multipartitions of type ['A', 4, 1] and residues (0, 2)
     """

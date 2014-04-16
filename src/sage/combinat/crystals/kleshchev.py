@@ -28,7 +28,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 
 class KleshchevCrystal(Parent, UniqueRepresentation):
     r"""
-    The Kleshchev partition (tuple) crystal.
+    The Kleshchev multipartition (or partition tuple) crystal.
 
     We consider type `A_n^{(1)}` crystals, and let `r = (r_i \mid r_i \in
     \ZZ / n \ZZ)` be a finite sequence of length `k` (often called the level)
@@ -67,7 +67,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
     We first do an example of a level 1 crystal::
 
-        sage: C = KleshchevCrystal(2, [0])
+        sage: C = crystals.KleshchevPartitions(2, [0])
         sage: C
         The crystal of multipartitions of type ['A', 2, 1] and residues (0,)
         sage: mg = C.module_generators[0]
@@ -83,7 +83,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         [2, 2]
         sage: S = C.subcrystal(max_depth=5)
         sage: G = C.digraph(subset=S)
-        sage: B = CrystalOfLSPaths(['A',2,1], [1,0,0])
+        sage: B = crystals.LSPaths(['A',2,1], [1,0,0])
         sage: SB = B.subcrystal(max_depth=5)
         sage: GB = B.digraph(subset=SB)
         sage: G.is_isomorphic(GB, edge_labels=True)
@@ -91,7 +91,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
     Now a higher level crystal::
 
-        sage: C = KleshchevCrystal(2, [0,2])
+        sage: C = crystals.KleshchevPartitions(2, [0,2])
         sage: mg = C.module_generators[0]
         sage: mg
         ([], [])
@@ -107,7 +107,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
         ([2], [2])
         sage: S = C.subcrystal(max_depth=3)
         sage: G = C.digraph(subset=S)
-        sage: B = CrystalOfLSPaths(['A',2,1], [1,0,1])
+        sage: B = crystals.LSPaths(['A',2,1], [1,0,1])
         sage: SB = B.subcrystal(max_depth=3)
         sage: GB = B.digraph(subset=SB)
         sage: G.is_isomorphic(GB, edge_labels=True)
@@ -116,7 +116,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
     The ordering of the residues gives a different representation of the
     higher level crystals (but it is still isomorphic)::
 
-        sage: C2 = KleshchevCrystal(2, [2,0])
+        sage: C2 = crystals.KleshchevPartitions(2, [2,0])
         sage: mg2 = C2.highest_weight_vector()
         sage: mg2.f_string([0,1,2,0])
         ([2], [2])
@@ -157,8 +157,8 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: C1 = KleshchevCrystal(2, [0,2])
-            sage: C2 = KleshchevCrystal(2, (0,2))
+            sage: C1 = crystals.KleshchevPartitions(2, [0,2])
+            sage: C2 = crystals.KleshchevPartitions(2, (0,2))
             sage: C1 is C2
             True
         """
@@ -174,7 +174,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: C = KleshchevCrystal(2, [0,2])
+            sage: C = crystals.KleshchevPartitions(2, [0,2])
             sage: TestSuite(C).run() # long time
         """
         self._cartan_type = CartanType(['A', n, 1])
@@ -188,7 +188,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KleshchevCrystal(2, [0,2])
+            sage: crystals.KleshchevPartitions(2, [0,2])
             The crystal of multipartitions of type ['A', 2, 1] and residues (0, 2)
         """
         return "The crystal of multipartitions of type {} and residues {}".format(self._cartan_type, self._r)
@@ -207,7 +207,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = KleshchevCrystal(2, [0,2])
+                sage: C = crystals.KleshchevPartitions(2, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
                 sage: x.e(2)
                 ([5, 4, 1], [3, 1, 1, 1])
@@ -244,7 +244,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = KleshchevCrystal(2, [0,2])
+                sage: C = crystals.KleshchevPartitions(2, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
                 sage: x.e(2)
                 ([5, 4, 1], [3, 1, 1, 1])
@@ -283,7 +283,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = KleshchevCrystal(2, [0,2])
+                sage: C = crystals.KleshchevPartitions(2, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
                 sage: x.epsilon(2)
                 1
@@ -313,7 +313,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = KleshchevCrystal(2, [0,2])
+                sage: C = crystals.KleshchevPartitions(2, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
                 sage: x.phi(2)
                 1
@@ -339,7 +339,7 @@ class KleshchevCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: C = KleshchevCrystal(2, [0,2])
+                sage: C = crystals.KleshchevPartitions(2, [0,2])
                 sage: x = C(PartitionTuple([[5,4,1],[3,2,1,1]]))
                 sage: x.weight()
                 3*Lambda[0] - Lambda[1]

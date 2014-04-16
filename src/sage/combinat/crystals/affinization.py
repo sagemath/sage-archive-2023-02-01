@@ -54,14 +54,14 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
     We first construct a Kirillov-Reshetikhin crystal and then take it's
     corresponding affinization::
 
-        sage: K = KirillovReshetikhinCrystal(['A',2,1], 2, 2)
+        sage: K = crystals.KirillovReshetikhin(['A',2,1], 2, 2)
         sage: A = K.affinization()
 
     Next we construct an affinization crystal from a tensor product of KR
     crystals::
 
-        sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
-        sage: A = AffinizationCrystal(KT)
+        sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
+        sage: A = crystals.Affinization(KT)
 
     REFERENCES:
 
@@ -73,7 +73,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+            sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
             sage: TestSuite(A).run() # long time
         """
         if not B.cartan_type().is_affine():
@@ -90,7 +90,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: KirillovReshetikhinCrystal(['A',2,1], 1, 1).affinization()
+            sage: crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
             Affinization of Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
         """
         return "Affinization of {}".format(self._B)
@@ -101,7 +101,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = KirillovReshetikhinCrystal(['A',2,1], 1, 1).affinization()
+            sage: A = crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
             sage: A.weight_lattice_realization()
             Ambient space of the Root system of type ['A', 2, 1]
         """
@@ -115,7 +115,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+            sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
             sage: S = A.subcrystal(max_depth=3)
             sage: G = A.digraph(subset=S)
         """
@@ -135,7 +135,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: TestSuite(mg).run()
             """
@@ -149,11 +149,11 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: A.module_generators[0]
                 [[1, 1], [2, 2]](0)
-                sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
-                sage: A = AffinizationCrystal(KT)
+                sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
+                sage: A = crystals.Affinization(KT)
                 sage: A.module_generators[0]
                 [[1, 1]] (X) [[1], [2]](0)
             """
@@ -165,7 +165,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: latex(A.module_generators[0])
                 {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
                 \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
@@ -183,12 +183,12 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg == mg
                 True
-                sage: KT = TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
-                sage: A = AffinizationCrystal(KT)
+                sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
+                sage: A = crystals.Affinization(KT)
                 sage: A(KT.module_generators[3], 1).f(0) == A.module_generators[0]
                 True
             """
@@ -203,7 +203,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2, 2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg != mg.f(2)
                 True
@@ -222,7 +222,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2,2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg.e(0)
                 [[1, 2], [2, 3]](1)
@@ -247,7 +247,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2,2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg.f(2)
                 [[1, 1], [2, 3]](0)
@@ -275,7 +275,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2,2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg.epsilon(0)
                 2
@@ -294,7 +294,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2,2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg.phi(0)
                 0
@@ -317,7 +317,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: A = KirillovReshetikhinCrystal(['A',2,1], 2,2).affinization()
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2,2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg.weight()
                 2*e[0] + 2*e[1]

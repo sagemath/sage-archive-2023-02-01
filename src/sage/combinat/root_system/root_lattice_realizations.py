@@ -2521,14 +2521,14 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: B = CrystalOfLSPaths(['A',2], [1,1])
+                sage: B = crystals.LSPaths(['A',2], [1,1])
                 sage: L = RootSystem(['A',2]).ambient_space()
-                sage: L.plot_fundamental_weights() + B.plot_ls_paths(L)
+                sage: L.plot_fundamental_weights() + L.plot_ls_paths(B)
 
             This also works in 3 dimensions::
 
-                sage: B = CrystalOfLSPaths(['B',3], [2,0,0])\
-                sage: L = B.RootSystem(['B',3]).ambient_space()
+                sage: B = crystals.LSPaths(['B',3], [2,0,0])
+                sage: L = RootSystem(['B',3]).ambient_space()
                 sage: L.plot_ls_paths(B)
             """
             if not isinstance(paths, (list, tuple, set)):
@@ -2594,16 +2594,16 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES::
 
                 sage: L = RootSystem(['A',2]).ambient_space()
-                sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: L.plot_crystal(C)
-                sage: C = CrystalOfTableaux(['A',2], shape=[8,4])
+                sage: C = crystals.Tableaux(['A',2], shape=[8,4])
                 sage: p = L.plot_crystal(C, plot_labels='circles')
                 sage: p.show(figsize=15)
 
             A 3-dimensional example::
 
                 sage: L = RootSystem(['B',3]).ambient_space()
-                sage: C = CrystalOfTableaux(['B',3], shape=[2,1])
+                sage: C = crystals.Tableaux(['B',3], shape=[2,1])
                 sage: L.plot_crystal(C, plot_labels='circles', edge_labels=True)
             """
             from sage.plot.arrow import arrow

@@ -976,12 +976,6 @@ def Bessel(*args, **kwds):
         _order = args[0]
         _type = args[1]
         _nargs = 1
-    else:
-        from sage.misc.superseded import deprecation
-        deprecation(4102, 'precision argument is deprecated; algorithm '
-                          'argument is currently deprecated, but will be '
-                          'available as a named keyword in the future')
-        return _Bessel(*args, **kwds)
 
     # check for type inconsistency
     if _type is not None and 'typ' in kwds and _type != kwds['typ']:

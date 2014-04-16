@@ -193,6 +193,140 @@ Now we want to divide `13` by `3`::
 The raised ``ValueError``
 means `13` is not divisible by `3`.
 
+.. _finite_state_machine_gray_code_example:
+
+Gray Code
+---------
+
+The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
+where two successive values differ in only one bit, cf. the
+:wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
+a bitwise xor between the binary expansion of `n` and the binary
+expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a left
+shift (for this example, the least significant digit is at the
+left-most position).
+
+The purpose of this example is to construct a transducer converting the
+standard binary expansion to the Gray code by translating this
+construction into operations with transducers.
+
+We first construct a transducer shifting the binary expansion to the
+left. This requires storing the previously read digit in a state.
+
+::
+
+    sage: def shift_left_transition(state, digit):
+    ....:     if state == 'I':
+    ....:         return (digit, None)
+    ....:     else:
+    ....:         return (digit, state)
+    sage: shift_left_transducer = Transducer(
+    ....:     shift_left_transition,
+    ....:     initial_states=['I'],
+    ....:     input_alphabet=[0, 1],
+    ....:     final_states=[0])
+    sage: shift_left_transducer.transitions()
+    [Transition from 'I' to 0: 0|-,
+     Transition from 'I' to 1: 1|-,
+     Transition from 0 to 0: 0|0,
+     Transition from 0 to 1: 1|0,
+     Transition from 1 to 0: 0|1,
+     Transition from 1 to 1: 1|1]
+    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+    sage: shift_left_transducer([0, 1, 1])
+    [0, 1]
+    sage: shift_left_transducer([1, 0, 0])
+    [1, 0]
+
+Note that only `0` is listed as a final state as we have to enforce
+that a most significant zero is read as the last input letter
+in order to flush the last digit.
+
+Next, we construct the transducer performing the xor operation.  We
+also have to take ``None`` into account as our
+``shift_left_transducer`` waits one iteration until it starts writing
+output.
+
+::
+
+    sage: def xor_transition(state, digits):
+    ....:    if digits[0] is None or digits[1] is None:
+    ....:        return (0, None)
+    ....:    else:
+    ....:        return (0, digits[0].__xor__(digits[1]))
+    sage: from itertools import product
+    sage: xor_transducer = Transducer(
+    ....:    xor_transition,
+    ....:    initial_states=[0],
+    ....:    final_states=[0],
+    ....:    input_alphabet=list(product([None, 0, 1], [0, 1])))
+    sage: xor_transducer.transitions()
+    [Transition from 0 to 0: (None, 0)|-,
+     Transition from 0 to 0: (None, 1)|-,
+     Transition from 0 to 0: (0, 0)|0,
+     Transition from 0 to 0: (0, 1)|1,
+     Transition from 0 to 0: (1, 0)|1,
+     Transition from 0 to 0: (1, 1)|0]
+    sage: xor_transducer([(0, 0), (0, 1), (1, 0), (1, 1)])
+    [0, 1, 1, 0]
+
+The transducer computing the Gray code is then constructed as a
+cartesian product.  As described in :meth:`Transducer.cartesian_product`,
+we have to temporarily set
+``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
+``False`` in order to disable backwards compatible code.
+
+::
+
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+    sage: product_transducer = shift_left_transducer.cartesian_product(transducers.Identity([0, 1]))
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+    sage: Gray_transducer = xor_transducer(product_transducer)
+    sage: Gray_transducer.transitions()
+    [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
+     Transition from (('I', 0), 0) to ((1, 0), 0): 1|-,
+     Transition from ((0, 0), 0) to ((0, 0), 0): 0|0,
+     Transition from ((0, 0), 0) to ((1, 0), 0): 1|1,
+     Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
+     Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
+
+There is a prepackaged transducer for Gray code, let's see whether
+they agree. We have to use :meth:`~FiniteStateMachine.relabeled` to
+relabel our states with integers. Note that equality of finite state
+machines does not compare initial and final states, so we have to do
+it on our own here.
+
+::
+
+    sage: constructed = Gray_transducer.relabeled()
+    sage: packaged = transducers.GrayCode()
+    sage: constructed == packaged
+    True
+    sage: constructed.initial_states() == packaged.initial_states()
+    True
+    sage: constructed.final_states() == packaged.final_states()
+    True
+
+Finally, we check that this indeed computes the Gray code of the first
+10 non-negative integers. Note that we add a trailing zero at the most
+significant position of the input in order to flush all output digits.
+This is due to the left shift which delays its output.
+
+::
+
+    sage: for n in srange(10):
+    ....:     Gray_transducer(n.bits() + [0])
+    []
+    [1]
+    [1, 1]
+    [0, 1]
+    [0, 1, 1]
+    [1, 1, 1]
+    [1, 0, 1]
+    [0, 0, 1]
+    [0, 0, 1, 1]
+    [1, 0, 1, 1]
+
 
 Using the hook-functions
 ------------------------

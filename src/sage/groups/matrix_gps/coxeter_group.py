@@ -379,6 +379,19 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                     G.add_edge(self._index_set[i], self._index_set[i+1+j], infinity)
         return G
 
+    def canonical_representation(self):
+        r"""
+        Return the canonical faithful representation of ``self``, which
+        is ``self``.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup([[1,3],[3,1]])
+            sage: W.canonical_representation() is W
+            True
+        """
+        return self
+
     def simple_reflection(self, i):
         """
         Return the simple reflection `s_i`.
@@ -440,4 +453,21 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             i = self.parent()._index_set.index(i)
             col = self.matrix().column(i)
             return all(x <= 0 for x in col)
+
+        def canonical_matrix(self):
+            r"""
+            Return the matrix of ``self`` in the canonical faithful
+            representation, which is ``self`` as a matrix.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',3], implementation="reflection")
+                sage: a,b,c = W.gens()
+                sage: elt = a*b*c
+                sage: elt.canonical_matrix()
+                [ 0  0 -1]
+                [ 1  0 -1]
+                [ 0  1 -1]
+            """
+            return self.matrix()
 

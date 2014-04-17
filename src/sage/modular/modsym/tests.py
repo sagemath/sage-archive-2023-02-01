@@ -63,9 +63,9 @@ class Test:
         self.levels = levels
         self.weights = weights
         if len(levels) < 1:
-            raise RuntimeError, "levels must have positive length"
+            raise RuntimeError("levels must have positive length")
         if len(weights) < 1:
-            raise RuntimeError, "weights must have positive length"
+            raise RuntimeError("weights must have positive length")
         self.current_space = None
         self.onlyg0 = onlyg0
         self.onlyg1 = onlyg1

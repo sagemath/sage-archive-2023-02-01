@@ -1362,8 +1362,7 @@ class Graph(GenericGraph):
                         assert False
                     else:
                         positions.append(tuple(NZ))
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
 
                     if data.nrows() != (2 if len(NZ) == 2 else 1):
                         desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
@@ -2912,12 +2911,12 @@ class Graph(GenericGraph):
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable()
+        b = p.new_variable(binary=True)
 
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
         if bounds is None:
-            raise ValueError,"The `bounds` keyword can not be equal to None"
+            raise ValueError("The `bounds` keyword can not be equal to None")
         elif isinstance(bounds,dict):
             f_bounds = lambda x: bounds[x]
         else:
@@ -2935,7 +2934,6 @@ class Graph(GenericGraph):
             p.add_constraint(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]), min=minimum, max=maximum)
 
         p.set_objective(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
-        p.set_binary(b)
 
         try:
             p.solve(log=verbose)
@@ -3120,9 +3118,9 @@ class Graph(GenericGraph):
         # and indicates whether the edge uv
         # with u<v goes from u to v ( equal to 0 )
         # or from v to u ( equal to 1)
-        orientation = p.new_variable(binary = True)
+        orientation = p.new_variable(binary=True)
 
-        degree = p.new_variable()
+        degree = p.new_variable(nonnegative=True)
 
         # Whether an edge adjacent to a vertex u counts
         # positively or negatively
@@ -3259,7 +3257,8 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict(map(lambda (x,y):(y,x), list(enumerate(vertices))))
+        vertices_id = dict(map(lambda x_y: (x_y[1], x_y[0]),
+                               list(enumerate(vertices))))
 
         b = {}
 
@@ -3755,7 +3754,7 @@ class Graph(GenericGraph):
         if core:
 
             # the value of m is one if the corresponding vertex of h is used.
-            m = p.new_variable()
+            m = p.new_variable(nonnegative=True)
             for uh in H:
                 for ug in self:
                     p.add_constraint(b[ug,uh] <= m[uh])
@@ -3833,7 +3832,7 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(constraint_generation = True)
 
         # One variable per edge
-        r = p.new_variable()
+        r = p.new_variable(nonnegative=True)
         R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
@@ -3946,8 +3945,8 @@ class Graph(GenericGraph):
 
         p = MixedIntegerLinearProgram(maximization=True, solver = solver)
 
-        d = p.new_variable()
-        one = p.new_variable()
+        d = p.new_variable(nonnegative=True)
+        one = p.new_variable(nonnegative=True)
 
         # Reorders u and v so that uv and vu are not considered
         # to be different edges
@@ -4059,7 +4058,7 @@ class Graph(GenericGraph):
 
         # Boolean variable indicating whether the vertex
         # is the representative of some set
-        vertex_taken=p.new_variable()
+        vertex_taken=p.new_variable(binary=True)
 
         # Boolean variable in two dimension whose first
         # element is a vertex and whose second element
@@ -4090,8 +4089,6 @@ class Graph(GenericGraph):
             p.add_constraint(vertex_taken[u]+vertex_taken[v],max=1)
 
         p.set_objective(None)
-
-        p.set_binary(vertex_taken)
 
         try:
             p.solve(log=verbose)
@@ -4201,7 +4198,7 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(solver=solver)
 
         # sorts an edge
-        S = lambda (x,y) : (x,y) if x<y else (y,x)
+        S = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
         # rs = Representative set of a vertex
         # for h in H, v in G is such that rs[h,v] == 1 if and only if v
@@ -4232,7 +4229,7 @@ class Graph(GenericGraph):
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
-        r_edges = p.new_variable()
+        r_edges = p.new_variable(nonnegative=True)
 
         for h in H:
             for u,v in self.edges(labels=None):
@@ -4243,7 +4240,7 @@ class Graph(GenericGraph):
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
-        h_edges = p.new_variable()
+        h_edges = p.new_variable(nonnegative=True)
 
         for h1, h2 in H.edges(labels=None):
 
@@ -4830,7 +4827,6 @@ class Graph(GenericGraph):
         v_repr = p.get_values(v_repr)
         flow = p.get_values(flow)
 
-
         for u,v in minor.edges(labels = False):
             used = False
             for C in H.edges(labels = False):
@@ -4856,16 +4852,33 @@ class Graph(GenericGraph):
 
     ### Cliques
 
-    def cliques_maximal(self):
+    def cliques_maximal(self, algorithm = "native"):
         """
         Returns the list of all maximal cliques, with each clique represented
         by a list of vertices. A clique is an induced complete subgraph, and a
         maximal clique is one not contained in a larger one.
 
+        INPUT:
+
+        - ``algorithm`` -- can be set to ``"native"`` (default) to use Sage's
+          own implementation, or to ``"NetworkX"`` to use NetworkX'
+          implementation of the Bron and Kerbosch Algorithm [BroKer1973]_.
+
+
         .. NOTE::
 
-            Currently only implemented for undirected graphs. Use to_undirected
-            to convert a digraph to an undirected graph.
+            This method sorts its output before returning it. If you prefer to
+            save the extra time, you can call
+            :class:`sage.graphs.independent_sets.IndependentSets` directly.
+
+        .. NOTE::
+
+            Sage's implementation of the enumeration of *maximal* independent
+            sets is not much faster than NetworkX' (expect a 2x speedup), which
+            is surprising as it is written in Cython. This being said, the
+            algorithm from NetworkX appears to be sligthly different from this
+            one, and that would be a good thing to explore if one wants to
+            improve the implementation.
 
         ALGORITHM:
 
@@ -4882,21 +4895,37 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.ChvatalGraph().cliques_maximal()
-            [[0, 1], [0, 4], [0, 6], [0, 9], [2, 1], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [5, 1], [5, 4], [5, 10], [5, 11], [7, 1], [7, 8], [7, 11], [8, 4], [8, 10], [10, 6], [10, 9], [11, 6], [11, 9]]
+            [[0, 1], [0, 4], [0, 6], [0, 9], [1, 2], [1, 5], [1, 7], [2, 3],
+             [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10],
+             [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_maximal()
             [[0, 1, 2], [0, 1, 3]]
             sage: C=graphs.PetersenGraph()
             sage: C.cliques_maximal()
-            [[0, 1], [0, 4], [0, 5], [2, 1], [2, 3], [2, 7], [3, 4], [3, 8], [6, 1], [6, 8], [6, 9], [7, 5], [7, 9], [8, 5], [9, 4]]
+            [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4],
+             [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
             sage: C = Graph('DJ{')
             sage: C.cliques_maximal()
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
 
+        Comparing the two implementations::
+
+            sage: g = graphs.RandomGNP(20,.7)
+            sage: s1 = Set(map(Set, g.cliques_maximal(algorithm="NetworkX")))
+            sage: s2 = Set(map(Set, g.cliques_maximal(algorithm="native")))
+            sage: s1 == s2
+            True
         """
-        import networkx
-        return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+        if algorithm == "native":
+            from sage.graphs.independent_sets import IndependentSets
+            return sorted(IndependentSets(self, maximal = True, complement = True))
+        elif algorithm == "NetworkX":
+            import networkx
+            return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+        else:
+            raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
     cliques = deprecated_function_alias(5739, cliques_maximal)
 
@@ -5060,7 +5089,7 @@ class Graph(GenericGraph):
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_number_of(cliques=E)
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
@@ -5088,6 +5117,8 @@ class Graph(GenericGraph):
         Returns a graph constructed with maximal cliques as vertices, and
         edges between maximal cliques with common members in the original
         graph.
+
+        For more information, see the :wikipedia:`Clique_graph`.
 
         .. NOTE::
 
@@ -5149,6 +5180,10 @@ class Graph(GenericGraph):
 
         Equivalently, an independent set is defined as the complement of a
         vertex cover.
+
+        For more information, see the
+        :wikipedia:`Independent_set_(graph_theory)` and the
+        :wikipedia:`Vertex_cover`.
 
         INPUT:
 
@@ -5448,7 +5483,7 @@ class Graph(GenericGraph):
 
             from sage.numerical.mip import MixedIntegerLinearProgram
             p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-            b = p.new_variable()
+            b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
             p.set_objective(p.sum([b[v] for v in g.vertices()]))
@@ -5456,8 +5491,6 @@ class Graph(GenericGraph):
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
-
-            p.set_binary(b)
 
             if value_only:
                 size_cover_g = p.solve(objective_only=True, log=verbosity)
@@ -5523,7 +5556,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
@@ -5586,9 +5619,9 @@ class Graph(GenericGraph):
             {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_containing_vertex(cliques=E)
-            {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
+            {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
             sage: for v in sorted(X.iterkeys()):

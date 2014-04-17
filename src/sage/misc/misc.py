@@ -12,7 +12,15 @@ AUTHORS:
 
 TESTS:
 
-Check the fix from trac #8323::
+The following test, verifying that :trac:`16181` has been resolved, needs
+to stay at the beginning of this file so that its context is not
+poisoned by other tests::
+
+    sage: sage.misc.misc.inject_variable('a', 0)
+    sage: a
+    0
+
+Check the fix from :trac:`8323`::
 
     sage: 'name' in globals()
     False
@@ -2311,7 +2319,7 @@ def get_main_globals():
     depth = 0
     while True:
         G = sys._getframe(depth).f_globals
-        if G["__name__"] == "__main__" and G["__package__"] is None:
+        if G["__name__"] == "__main__" and G.get("__package__", None) is None:
             break
         depth += 1
     return G

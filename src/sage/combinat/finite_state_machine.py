@@ -6056,7 +6056,7 @@ class Transducer(FiniteStateMachine):
                 return (it.accept_input, it.current_state, it.output_tape)
         else:
             if not it.accept_input:
-                raise ValueError, "Invalid input sequence."
+                raise ValueError("Invalid input sequence.")
             return it.output_tape
 
 
@@ -6416,7 +6416,7 @@ class FSMProcessIterator(SageObject):
         for transition in self.current_state.transitions:
             if transition.word_in == word_in:
                 return transition
-        raise ValueError, "No transition with input %s found." % (word_in,)
+        raise ValueError("No transition with input %s found." % (word_in,))
 
 
 #*****************************************************************************

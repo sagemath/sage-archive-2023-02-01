@@ -12,7 +12,7 @@ Commands:
   ODE via Maxima.
 
 - ``desolve_laplace`` - Solve an ODE using laplace transforms via
-  Maxima. Initials conditions are optional.
+  Maxima. Initial conditions are optional.
 
 - ``desolve_rk4`` - Solve numerically IVP for one first order
   equation, return list of points or plot.
@@ -24,7 +24,7 @@ Commands:
   differential equations using ``odeint`` from scipy.integrate module.
 
 - ``desolve_system`` - Solve any size system of 1st order odes using
-  Maxima. Initials conditions are optional.
+  Maxima. Initial conditions are optional.
 
 - ``eulers_method`` - Approximate solution to a 1st order DE,
   presented as a table.
@@ -191,7 +191,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         [[[y(x) == 0, (b*x^(n - 2) + a/x^2)*c^2*u == 0]], 'riccati']
 
 
-    Higher ordered, not involving independent variable::
+    Higher ordered equations, not involving independent variable::
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y).expand()
         1/6*y(x)^3 + k1*y(x) == k2 + x
@@ -554,7 +554,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
 def desolve_laplace(de, dvar, ics=None, ivar=None):
     """
-    Solve an ODE using laplace transforms. Initials conditions are optional.
+    Solve an ODE using laplace transforms. Initial conditions are optional.
 
     INPUT:
 
@@ -678,7 +678,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 
 def desolve_system(des, vars, ics=None, ivar=None):
     """
-    Solve any size system of 1st order ODE's. Initials conditions are optional.
+    Solve any size system of 1st order ODE's. Initial conditions are optional.
 
     Onedimensional systems are passed to :meth:`desolve_laplace`.
 
@@ -762,7 +762,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
 def desolve_system_strings(des,vars,ics=None):
     r"""
-    Solve any size system of 1st order ODE's. Initials conditions are optional.
+    Solve any size system of 1st order ODE's. Initial conditions are optional.
 
     This function is obsolete, use desolve_system.
 

@@ -107,7 +107,7 @@ Third-party packages in Sage consists of two parts:
 
 #. The tarball as it is distributed by the third party, or as close as
    possible. Valid reasons for modifying the tarball are deleting
-   unnecessary files to keeep the download size manageable or
+   unnecessary files to keep the download size manageable or
    regenerating auto-generated files if necessary. But the actual code
    must be unmodified. See also :ref:`section-spkg-src`.
 
@@ -129,6 +129,9 @@ Sage, we create a subdirectory containing the following::
     |-- spkg-install
     |-- spkg-src
     `-- SPKG.txt
+
+When installing Sage these files are used to patch the tarball and
+to start the build and install process of the package.
 
 We discuss the individual files in the following.
 
@@ -303,9 +306,7 @@ A special case where no patch would be necessary is when an author
 provides an already fine SPKG on the net which includes all files
 needed for ``SAGE_ROOT/build/pkgs/foo`` and the source in its ``src/``
 subdirectory. Here it suffices to put the web link to the package
-into the ticket. Alternatively, you would have to ask the author to
-make a tarball of the ``src/`` subdirectory, and upload a branch with
-``SAGE_ROOT/build/pkgs/foo``.
+into the ticket.
 
 
 .. _section-spkg-src:
@@ -333,12 +334,12 @@ tarball in the ``SAGE_ROOT/upstream/`` directory and run::
     [user@localhost]$ sage -sh sage-fix-pkg-checksums
 
 
-Testing
-=======
+Manual package build and installation
+=====================================
 
 If you have a new tarball that is not yet distributed with Sage, then
-you have to manually place it in the ``SAGE_ROOT/upstream/`
-directory. Then you can run the istallation via ``sage -f
+you have to manually place it in the ``SAGE_ROOT/upstream/``
+directory. Then you can run the installation via ``sage -f
 package_name``. If your package contains any
 :ref:`section-spkg-check`, run::
 

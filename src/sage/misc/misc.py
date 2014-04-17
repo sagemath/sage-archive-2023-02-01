@@ -14,9 +14,9 @@ TESTS:
 
 Check the fix from trac #8323::
 
-    sage: globals().has_key('name')
+    sage: 'name' in globals()
     False
-    sage: globals().has_key('func')
+    sage: 'func' in globals()
     False
 
 """
@@ -461,7 +461,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
 
 def todo(mesg=""):
     caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError, "%s: todo -- %s"%(caller_name, mesg)
+    raise NotImplementedError("%s: todo -- %s"%(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -652,8 +652,7 @@ def uniq(x):
         sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
         True
     """
-    v = list(set(x))
-    v.sort()
+    v = sorted(set(x))
     return v
 
 
@@ -888,7 +887,7 @@ def newton_method_sizes(N):
 
     N = int(N)
     if N < 1:
-        raise ValueError, "N (=%s) must be a positive integer" % N
+        raise ValueError("N (=%s) must be a positive integer" % N)
 
     output = []
     while N > 1:
@@ -910,7 +909,7 @@ def assert_attribute(x, attr, init=None):
     If the object x has the attribute attr, do nothing. If not, set
     x.attr to init.
     """
-    if x.__dict__.has_key(attr): return
+    if attr in x.__dict__: return
     if attr[:2] == "__":
         z = str(x.__class__).split("'")
         if len(z) > 1:
@@ -997,7 +996,7 @@ def self_compose(f, n):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError, "n must be a nonnegative integer, not %s." % n
+        raise ValueError("n must be a nonnegative integer, not %s." % n)
 
     return lambda x: nest(f, n, x)
 
@@ -1042,7 +1041,7 @@ def nest(f, n, x):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError, "n must be a nonnegative integer, not %s." % n
+        raise ValueError("n must be a nonnegative integer, not %s." % n)
 
     for i in xrange(n):
         x = f(x)
@@ -1192,7 +1191,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         start, end, step = universe(start), universe(end), universe(step)
 
     if step == Sequence([step]).universe()(0):
-        raise ValueError, "srange() step argument must not be zero"
+        raise ValueError("srange() step argument must not be zero")
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1287,7 +1286,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         start, end, step = universe(start), universe(end), universe(step)
 
     if step == Sequence([step]).universe()(0):
-        raise ValueError, "xsrange() step argument must not be zero"
+        raise ValueError("xsrange() step argument must not be zero")
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1427,7 +1426,7 @@ def ellipsis_range(*args, **kwds):
             skip = False
         elif args[i] is Ellipsis:
             if len(args) == i+1:
-                raise IndexError, "Ellipsis range must have an endpoint, use (n..) for infinite sequence."
+                raise IndexError("Ellipsis range must have an endpoint, use (n..) for infinite sequence.")
             start, end = args[i-1], args[i+1]
             if i < 2 or args[i-2] is not Ellipsis:
                 L.pop()
@@ -1633,7 +1632,7 @@ def is_iterator(it):
     # see trac #7398 for a discussion
     try:
         return it is iter(it)
-    except StandardError:
+    except Exception:
         return False
 
 
@@ -1756,7 +1755,7 @@ def typecheck(x, C, var="x"):
     error message.
     """
     if not isinstance(x, C):
-        raise TypeError, "%s (=%s) must be of type %s."%(var,x,C)
+        raise TypeError("%s (=%s) must be of type %s."%(var,x,C))
 
 #################################################################
 # This will likely eventually be useful.
@@ -1797,7 +1796,7 @@ class lazy_prop(object):
         if obj is None:
             return self
         value = self._calculate(obj)
-        setattr(obj, self._calculate.func_name, value)
+        setattr(obj, self._calculate.__name__, value)
         return value
 
 def prop(f):
@@ -2352,7 +2351,7 @@ def inject_variable(name, value):
 
     Use with care!
     """
-    assert type(name) is str
+    assert isinstance(name, str)
     # Using globals() does not work, even in Cython, because
     # inject_variable is called not only from the interpreter, but
     # also from functions in various modules.

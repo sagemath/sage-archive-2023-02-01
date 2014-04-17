@@ -169,7 +169,7 @@ check if you can do necessary things using lattice polytopes and polyhedra
 corresponding to cones::
 
     sage: four_rays.lattice_polytope()
-    A lattice polytope: 3-dimensional, 5 vertices.
+    3-d lattice polytope in 3-d lattice N
     sage: four_rays.polyhedron()
     A 3-dimensional polyhedron in ZZ^3 defined as
     the convex hull of 1 vertex and 4 rays
@@ -872,6 +872,7 @@ class IntegralRayCollection(SageObject,
         """
         return self._lattice
 
+    @cached_method
     def dual_lattice(self):
         r"""
         Return the dual of the ambient lattice of ``self``.
@@ -880,7 +881,7 @@ class IntegralRayCollection(SageObject,
 
         - lattice. If possible (that is, if :meth:`lattice` has a
           ``dual()`` method), the dual lattice is returned. Otherwise,
-          `\ZZ^n` is returned, where `n` is the dimension of ``self``.
+          `\ZZ^n` is returned, where `n` is the dimension of :meth:`lattice`.
 
         EXAMPLES::
 
@@ -891,12 +892,10 @@ class IntegralRayCollection(SageObject,
             Ambient free module of rank 3
             over the principal ideal domain Integer Ring
         """
-        if '_dual_lattice' not in self.__dict__:
-            try:
-                self._dual_lattice = self.lattice().dual()
-            except AttributeError:
-                self._dual_lattice = ZZ**self.lattice_dim()
-        return self._dual_lattice
+        try:
+            return self.lattice().dual()
+        except AttributeError:
+            return ZZ**self.lattice_dim()
 
     def lattice_dim(self):
         r"""
@@ -1512,7 +1511,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         try:
             point = self._ambient_space_point(point)
-        except TypeError, ex:
+        except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a cone contains a point "
                               "from an incompatible lattice, this is False!",
@@ -2938,6 +2937,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._is_strictly_convex = convex
         return self._is_strictly_convex
 
+    @cached_method
     def lattice_polytope(self):
         r"""
         Return the lattice polytope associated to ``self``.
@@ -2959,24 +2959,24 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: lp = quadrant.lattice_polytope()
             sage: lp
-            A lattice polytope: 2-dimensional, 3 vertices.
-            sage: lp.vertices()
-            [1 0 0]
-            [0 1 0]
+            2-d lattice polytope in 2-d lattice N
+            sage: lp.vertices_pc()
+            N(1, 0),
+            N(0, 1),
+            N(0, 0)
+            in 2-d lattice N
 
             sage: line = Cone([(1,0), (-1,0)])
             sage: lp = line.lattice_polytope()
             sage: lp
-            A lattice polytope: 1-dimensional, 2 vertices.
-            sage: lp.vertices()
-            [ 1 -1]
-            [ 0  0]
+            1-d lattice polytope in 2-d lattice N
+            sage: lp.vertices_pc()
+            N( 1, 0),
+            N(-1, 0)
+            in 2-d lattice N
         """
-        if "_lattice_polytope" not in self.__dict__:
-            self._lattice_polytope = LatticePolytope(
-                                tuple(self.rays()) + (self.lattice().zero(),),
-                                compute_vertices=not self.is_strictly_convex())
-        return self._lattice_polytope
+        return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
+                               compute_vertices=not self.is_strictly_convex())
 
     def line_set(self):
         r"""

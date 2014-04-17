@@ -1,7 +1,20 @@
 r"""
-Common Finite State Machines
+Common Transducers (Finite State Machines Generators)
 
-Generators for common finite state machines.
+Transducers in Sage can be built through the ``transducers``
+object. It contains generators for common finite state machines. For example,
+
+::
+
+    sage: I = transducers.Identity([0, 1, 2])
+
+generates an identity transducer on the alphabet `\{0, 1, 2\}`.
+
+To construct transducers manually, you can use the class
+:class:`Transducer`. See :mod:`~sage.combinat.finite_state_machine`
+for more details and a lot of examples.
+
+**Transducers**
 
 .. csv-table::
     :class: contentstable
@@ -15,10 +28,27 @@ Generators for common finite state machines.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
 
+AUTHORS:
+
+- Clemens Heuberger (2014-04-07): initial version
+- Sara Kropf (2014-04-10): some changes in TransducerGenerator
+- Daniel Krenn (2014-04-15): improved common docstring during review
+
 Functions and methods
 ---------------------
 
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014 Sara Kropf <sara.kropf@aau.at>
+#                     2014 Daniel Krenn <devel@danielkrenn.at>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from sage.combinat.finite_state_machine import Transducer
 
@@ -47,7 +77,7 @@ class TransducerGenerators(object):
 
         INPUT:
 
-        - ``input_alphabet`` -- the input alphabet.
+        - ``input_alphabet`` -- a list or other iterable.
 
         OUTPUT:
 
@@ -88,7 +118,8 @@ class TransducerGenerators(object):
         INPUT:
 
         - ``block`` -- a list (or other iterable) of letters.
-        - ``input_alphabet`` -- input alphabet.
+
+        - ``input_alphabet`` -- a list or other iterable.
 
         OUTPUT:
 
@@ -123,6 +154,12 @@ class TransducerGenerators(object):
                 sage: T.final_states()
                 [(), (1,)]
 
+            Check some sequence::
+
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T([0, 1, 0, 1, 1, 0])
+                [0, 0, 1, 0, 0, 1]
+
         #.  Counting the number of ``11`` blocks over the alphabet
             ``[0, 1]``::
 
@@ -134,6 +171,12 @@ class TransducerGenerators(object):
                  Transition from () to (1,): 1|0,
                  Transition from (1,) to (): 0|0,
                  Transition from (1,) to (1,): 1|1]
+
+            Check some sequence::
+
+                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+                sage: T([0, 1, 0, 1, 1, 0])
+                [0, 0, 0, 0, 1, 0]
 
         #.  Counting the number of ``1010`` blocks over the
             alphabet ``[0, 1, 2]``::
@@ -187,26 +230,35 @@ class TransducerGenerators(object):
             s.is_final = True
         return T
 
-    def operator(self, operator, input_alphabet):
+
+    def operator(self, operator, input_alphabet, number_of_operands=2):
         r"""
-        Returns a transducer which realizes the binary operator over
-        an input alphabet.
+        Returns a transducer which realizes a letter-wise
+        operation of an input word over the given input alphabet.
 
         INPUT:
 
-        - ``operator`` -- binary operator to realize (a map defined on
-          ``input_alphabet`` `\times` ``input_alphabet``).
-        - ``input_alphabet``  -- input alphabet.
+        - ``operator`` -- operator to realize. It is a function which
+          takes ``number_of_operands`` input arguments (each out of
+          ``input_alphabet``).
+
+        - ``input_alphabet``  -- a list or other iterable.
+
+        - ``number_of_operands`` -- (default: `2`) it specifies the number
+          of input arguments the operator takes.
 
         OUTPUT:
 
-        A transducer mapping `(i_0, i'_0)\ldots (i_k, i'_k)`
-        to `(i_0\odot i'_0)\ldots (i_k \odot i'_k)` where
-        `\odot` stands for the operator given.
+        A transducer mapping an input letter `(i_1, \dots, i_n)` to
+        `\mathrm{operator}(i_1, \dots, i_n)`. Here, `n` equals
+        ``number_of_operands``.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of ``number_of_operands`` copies of ``input_alphabet``.
 
         EXAMPLE:
 
-        The following transducer realizes component-wise
+        The following binary transducer realizes component-wise
         addition::
 
             sage: import operator
@@ -225,34 +277,51 @@ class TransducerGenerators(object):
             [0]
             sage: T([(0, 0), (0, 1), (1, 0), (1, 1)])
             [0, 1, 1, 2]
+
+        Note that for a unary operator the input letters of the
+        new transducer are tuples of length `1`::
+
+            sage: T = transducers.operator(lambda i: abs(i),
+            ....:                          [-1, 0, 1],
+            ....:                          number_of_operands=1)
+            sage: T([-1, 1, 0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input sequence.
+            sage: T([(-1,), (1,), (0,)])
+            [1, 1, 0]
         """
         from itertools import product
 
-        def transition_function(state, (i, o)):
-            return(0, operator(i, o))
-        pairs = list(product(input_alphabet, repeat=2))
+        def transition_function(state, operands):
+            return (0, operator(*operands))
+        pairs = list(product(input_alphabet, repeat=number_of_operands))
         return Transducer(transition_function,
                           input_alphabet=pairs,
                           initial_states=[0],
                           final_states=[0])
 
+
     def add(self, input_alphabet):
         """
-        Returns a transducer which realizes the component-wise
-        addition over an input alphabet.
+        Returns a transducer which realizes the letter-wise
+        addition of an input word over the given input alphabet.
 
         INPUT:
 
-        - ``input_alphabet``  -- input alphabet.
+        - ``input_alphabet``  -- a list or other iterable.
 
         OUTPUT:
 
-        A transducer mapping `(i_0, i'_0)\ldots (i_k, i'_k)`
-        to `(i_0 + i'_0)\ldots (i_k + i'_k)`.
+        A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
+        to the word `(i_0 + i'_0)\ldots (i_k + i'_k)`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of two copies of ``input_alphabet``.
 
         EXAMPLE:
 
-        The following transducer realizes component-wise
+        The following transducer realizes letter-wise
         addition::
 
             sage: T = transducers.add([0, 1])
@@ -273,23 +342,27 @@ class TransducerGenerators(object):
         import operator
         return self.operator(operator.add, input_alphabet)
 
+
     def sub(self, input_alphabet):
         """
-        Returns a transducer which realizes the component-wise
-        addition over an input alphabet.
+        Returns a transducer which realizes the letter-wise
+        subtraction of an input word over the given input alphabet.
 
         INPUT:
 
-        - ``input_alphabet``  -- input alphabet.
+        - ``input_alphabet``  -- a list or other iterable.
 
         OUTPUT:
 
-        A transducer mapping `(i_0, i'_0)\ldots (i_k, i'_k)`
-        to `(i_0 - i'_0)\ldots (i_k - i'_k)`.
+        A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
+        to the word `(i_0 - i'_0)\ldots (i_k - i'_k)`.
+
+        The input alphabet of the generated transducer is the cartesian
+        product of two copies of ``input_alphabet``.
 
         EXAMPLE:
 
-        The following transducer realizes component-wise
+        The following transducer realizes letter-wise
         subtraction::
 
             sage: T = transducers.sub([0, 1])
@@ -313,12 +386,12 @@ class TransducerGenerators(object):
 
     def abs(self, input_alphabet):
         """
-        Returns a transducer which realizes the component-wise
-        absolute value over an input alphabet.
+        Returns a transducer which realizes the letter-wise
+        absolute value of an input word over the given input alphabet.
 
         INPUT:
 
-        - ``input_alphabet``  -- input alphabet.
+        - ``input_alphabet``  -- a list or other iterable.
 
         OUTPUT:
 
@@ -327,7 +400,7 @@ class TransducerGenerators(object):
 
         EXAMPLE:
 
-        The following transducer realizes component-wise
+        The following transducer realizes letter-wise
         absolute value::
 
             sage: T = transducers.abs([-1, 0, 1])
@@ -347,6 +420,7 @@ class TransducerGenerators(object):
                           input_alphabet=input_alphabet,
                           initial_states=[0],
                           final_states=[0])
+
 
 # Easy access to the transducer generators from the command line:
 transducers = TransducerGenerators()

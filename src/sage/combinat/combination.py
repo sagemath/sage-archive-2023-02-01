@@ -17,7 +17,8 @@ Combinations
 #*****************************************************************************
 
 from sage.interfaces.all import gap
-from sage.rings.all import ZZ, Integer, binomial
+from sage.rings.all import ZZ, Integer
+from sage.rings.arith import binomial
 from combinat import CombinatorialClass
 from choose_nk import rank, from_rank
 from integer_vector import IntegerVectors
@@ -25,9 +26,13 @@ from sage.misc.misc import uniq
 
 def Combinations(mset, k=None):
     """
-    Returns the combinatorial class of combinations of mset. If k is
-    specified, then it returns the combinatorial class of combinations
-    of mset of size k.
+    Return the combinatorial class of combinations of the multiset
+    ``mset``. If ``k`` is specified, then it returns the combinatorial
+    class of combinations of ``mset`` of size ``k``.
+
+    A *combination* of a multiset `M` is an unordered selection of `k`
+    objects of `M`, where every object can appear at most as many
+    times as it appears in `M`.
 
     The combinatorial classes correctly handle the cases where mset has
     duplicate elements.
@@ -80,6 +85,60 @@ def Combinations(mset, k=None):
          [1, 2, 3],
          [2, 2, 3],
          [1, 2, 2, 3]]
+
+    ::
+
+        sage: Combinations([1,2,3], 2).list()
+        [[1, 2], [1, 3], [2, 3]]
+
+    ::
+
+        sage: mset = [1,1,2,3,4,4,5]
+        sage: Combinations(mset,2).list()
+        [[1, 1],
+         [1, 2],
+         [1, 3],
+         [1, 4],
+         [1, 5],
+         [2, 3],
+         [2, 4],
+         [2, 5],
+         [3, 4],
+         [3, 5],
+         [4, 4],
+         [4, 5]]
+
+    ::
+
+        sage: mset = ["d","a","v","i","d"]
+        sage: Combinations(mset,3).list()
+        [['d', 'd', 'a'],
+         ['d', 'd', 'v'],
+         ['d', 'd', 'i'],
+         ['d', 'a', 'v'],
+         ['d', 'a', 'i'],
+         ['d', 'v', 'i'],
+         ['a', 'v', 'i']]
+
+    ::
+
+        sage: X = Combinations([1,2,3,4,5],3)
+        sage: [x for x in X]
+        [[1, 2, 3],
+         [1, 2, 4],
+         [1, 2, 5],
+         [1, 3, 4],
+         [1, 3, 5],
+         [1, 4, 5],
+         [2, 3, 4],
+         [2, 3, 5],
+         [2, 4, 5],
+         [3, 4, 5]]
+
+    It is possible to take combinations of Sage objects::
+
+        sage: Combinations([vector([1,1]), vector([2,2]), vector([3,3])], 2).list()
+        [[(1, 1), (2, 2)], [(1, 1), (3, 3)], [(2, 2), (3, 3)]]
     """
 
 

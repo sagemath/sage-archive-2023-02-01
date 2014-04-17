@@ -970,7 +970,7 @@ class MaximaAbstract(Interface):
         # n is not squarefree.)
         n = Integer(n).squarefree_part()
         if n < 1:
-            raise ValueError, "n (=%s) must be >= 1"%n
+            raise ValueError("n (=%s) must be >= 1"%n)
         s = repr(self('qunit(%s)'%n)).lower()
         r = re.compile('sqrt\(.*\)')
         s = r.sub('a', s)
@@ -1575,7 +1575,7 @@ class MaximaAbstractElement(InterfaceElement):
             return I(var)
         else:
             if max is None:
-                raise ValueError, "neither or both of min/max must be specified."
+                raise ValueError("neither or both of min/max must be specified.")
             return I(var, min, max)
 
     integrate = integral
@@ -1600,7 +1600,7 @@ class MaximaAbstractElement(InterfaceElement):
         try:
             return float(repr(self.numer()))
         except ValueError:
-            raise TypeError, "unable to coerce '%s' to float"%repr(self)
+            raise TypeError("unable to coerce '%s' to float"%repr(self))
 
     def __len__(self):
         """
@@ -1670,7 +1670,7 @@ class MaximaAbstractElement(InterfaceElement):
         """
         n = int(n)
         if n < 0 or n >= len(self):
-            raise IndexError, "n = (%s) must be between %s and %s"%(n, 0, len(self)-1)
+            raise IndexError("n = (%s) must be between %s and %s"%(n, 0, len(self)-1))
         # If you change the n+1 to n below, better change __iter__ as well.
         return InterfaceElement.__getitem__(self, n+1)
 
@@ -1763,7 +1763,7 @@ class MaximaAbstractElement(InterfaceElement):
         P = self.parent()
         s = P._eval_line('tex(%s);'%self.name(), reformat=False)
         if not '$$' in s:
-            raise RuntimeError, "Error texing Maxima object."
+            raise RuntimeError("Error texing Maxima object.")
         i = s.find('$$')
         j = s.rfind('$$')
         s = s[i+2:j]
@@ -1908,8 +1908,8 @@ class MaximaAbstractElement(InterfaceElement):
 
         try:
             return P.new('%s %s %s'%(self._name, operation, right._name))
-        except Exception, msg:
-            raise TypeError, msg
+        except Exception as msg:
+            raise TypeError(msg)
 
 
 class MaximaAbstractFunctionElement(InterfaceFunctionElement):

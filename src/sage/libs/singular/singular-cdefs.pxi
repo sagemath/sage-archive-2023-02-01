@@ -338,6 +338,7 @@ cdef extern from "libsingular.h":
         void* data
         #data is some union, so this might be very dangerous, but I am lazy now
         attr *attribute
+        void (* Copy)(leftv*)
         void (* Init)()
         void (* CleanUp)(ring *r)
         int  rtyp
@@ -953,6 +954,7 @@ cdef extern from "libsingular.h":
     #
     # INTERPRETER
     #
+    leftv iiRETURNEXPR
 
     cdef omBin* sleftv_bin
 
@@ -960,7 +962,7 @@ cdef extern from "libsingular.h":
 
     idhdl* ggetid(char *n)
 
-    leftv * iiMake_proc(idhdl *pn, package *pack, leftv *sl)
+    bint iiMake_proc(idhdl *pn, package *pack, leftv *sl)
 
     bint iiExprArith1(leftv *res, leftv* a, int op)
     bint iiExprArith2(leftv *res, leftv* a, int op, leftv *b, bint proc_call)

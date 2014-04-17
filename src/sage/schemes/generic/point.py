@@ -152,7 +152,7 @@ class SchemeTopologicalPoint_prime_ideal(SchemeTopologicalPoint):
         # unfortunately is_prime() is only implemented in a small
         # number of cases
         if check and not P.is_prime():
-            raise ValueError, "The argument %s must be a prime ideal of %s"%(P, R)
+            raise ValueError("The argument %s must be a prime ideal of %s"%(P, R))
         SchemeTopologicalPoint.__init__(self, S)
         self.__P = P
 

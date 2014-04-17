@@ -210,22 +210,27 @@ The purpose of this example is to construct a transducer converting the
 standard binary expansion to the Gray code by translating this
 construction into operations with transducers.
 
+Instead of constructing a left shift of the input and taking it xor
+with the input, it is easier to shift everything to the right first,
+i.e., we take the input xor with the right shift of the input and
+forget the first letter.
+
 We first construct a transducer shifting the binary expansion to the
-left. This requires storing the previously read digit in a state.
+right. This requires storing the previously read digit in a state.
 
 ::
 
-    sage: def shift_left_transition(state, digit):
+    sage: def shift_right_transition(state, digit):
     ....:     if state == 'I':
     ....:         return (digit, None)
     ....:     else:
     ....:         return (digit, state)
-    sage: shift_left_transducer = Transducer(
-    ....:     shift_left_transition,
+    sage: shift_right_transducer = Transducer(
+    ....:     shift_right_transition,
     ....:     initial_states=['I'],
     ....:     input_alphabet=[0, 1],
     ....:     final_states=[0])
-    sage: shift_left_transducer.transitions()
+    sage: shift_right_transducer.transitions()
     [Transition from 'I' to 0: 0|-,
      Transition from 'I' to 1: 1|-,
      Transition from 0 to 0: 0|0,
@@ -233,24 +238,24 @@ left. This requires storing the previously read digit in a state.
      Transition from 1 to 0: 0|1,
      Transition from 1 to 1: 1|1]
     sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
-    sage: shift_left_transducer([0, 1, 1, 0])
+    sage: shift_right_transducer([0, 1, 1, 0])
     [0, 1, 1]
-    sage: shift_left_transducer([1, 0, 0])
+    sage: shift_right_transducer([1, 0, 0])
     [1, 0]
 
 Note that only `0` is listed as a final state as we have to enforce
 that a most significant zero is read as the last input letter
 in order to flush the last digit::
 
-    sage: shift_left_transducer([1, 0, 1])
+    sage: shift_right_transducer([0, 1, 0, 1])
     Traceback (most recent call last):
     ...
     ValueError: Invalid input sequence.
 
-Next, we construct the transducer performing the xor operation.  We
-also have to take ``None`` into account as our
-``shift_left_transducer`` waits one iteration until it starts writing
-output.
+Next, we construct the transducer performing the xor operation.  We also
+have to take ``None`` into account as our ``shift_right_transducer``
+waits one iteration until it starts writing output. This corresponds
+with our intention to forget the first letter.
 
 ::
 
@@ -272,19 +277,31 @@ output.
      Transition from 0 to 0: (0, 1)|1,
      Transition from 0 to 0: (1, 0)|1,
      Transition from 0 to 0: (1, 1)|0]
-    sage: xor_transducer([(0, 0), (0, 1), (1, 0), (1, 1)])
+    sage: xor_transducer([(None, 0), (None, 1), (0, 0), (0, 1), (1, 0), (1, 1)])
     [0, 1, 1, 0]
+    sage: xor_transducer([(0, None)])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
 
 The transducer computing the Gray code is then constructed as a
-cartesian product.  As described in :meth:`Transducer.cartesian_product`,
-we have to temporarily set
+:meth:`cartesian product <Transducer.cartesian_product>` between the
+shifted version and the original input (represented here by the
+``shift_right_transducer`` and the :meth:`identity transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.Identity>`,
+respectively). This cartesian product is then fed into the
+``xor_transducer`` as a :meth:`composition
+<FiniteStateMachine.composition>` of transducers.
+
+As described in :meth:`Transducer.cartesian_product`, we have to
+temporarily set
 ``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
 ``False`` in order to disable backwards compatible code.
 
 ::
 
     sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
-    sage: product_transducer = shift_left_transducer.cartesian_product(transducers.Identity([0, 1]))
+    sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
     sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
     sage: Gray_transducer = xor_transducer(product_transducer)
     sage: Gray_transducer.transitions()
@@ -295,11 +312,12 @@ we have to temporarily set
      Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
      Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
 
-There is a prepackaged transducer for Gray code, let's see whether
-they agree. We have to use :meth:`~FiniteStateMachine.relabeled` to
-relabel our states with integers. Note that equality of finite state
-machines does not compare initial and final states, so we have to do
-it on our own here.
+There is a :meth:`prepackaged transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.GrayCode>`
+for Gray code, let's see whether they agree. We have to use
+:meth:`~FiniteStateMachine.relabeled` to relabel our states with
+integers. Note that equality of finite state machines does not compare
+initial and final states, so we have to do it on our own here.
 
 ::
 

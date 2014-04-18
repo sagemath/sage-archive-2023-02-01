@@ -12,7 +12,7 @@ if not os.environ.has_key("SAGE_SERVER"):
      sys.exit(1)
 
 PKG_SERVER = urlparse.urljoin(os.environ['SAGE_SERVER'],'packages')
-print "Using SAGE Server %s"%PKG_SERVER
+print "Using Sage Server %s"%PKG_SERVER
 
 url_path = os.path.join('packages', sys.argv[1], 'list')
 url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))

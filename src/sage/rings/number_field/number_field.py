@@ -3478,7 +3478,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L.<a,b> = NumberField([x^2 + 1, x^2 - 5])
             sage: p = L.ideal((-1/2*b - 1/2)*a + 1/2*b - 1/2)
             sage: W = L.S_units([p]); [x.norm() for x in W]
-            [9, 1, 1]
+            [1, 1, 9]
 
         Our generators should have the correct parent (:trac:`9367`)::
 
@@ -3488,8 +3488,21 @@ class NumberField_generic(number_field_base.NumberField):
             sage: p[0].parent()
             Number Field in alpha with defining polynomial x^3 + x + 1
 
+        TEST::
+
+        This checks that the multiple entries issue at :trac:`9341` is fixed::
+
+            sage: _.<t> = QQ[]
+            sage: K.<T> = NumberField(t-1)
+            sage: I = K.ideal(2)
+            sage: K.S_units([I])
+            [2, -1]
+            sage: K.S_units([I, I])
+            [2, -1]
+
         """
-        return self._S_class_group_and_units(tuple(S), proof=proof)[0]
+        from sage.misc.all import uniq
+        return uniq(self._S_class_group_and_units(tuple(S), proof=proof)[0])
 
     @cached_method
     def _S_class_group_and_units(self, S, proof=True):

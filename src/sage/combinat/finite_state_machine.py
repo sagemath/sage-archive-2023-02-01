@@ -5772,12 +5772,12 @@ class Transducer(FiniteStateMachine):
 
             sage: count_11 = transducers.CountSubblockOccurrences(
             ....:     [1, 1],
-            ....:     [0, 1])
+            ....:     input_alphabet=[0, 1])
             sage: count_10 = transducers.CountSubblockOccurrences(
             ....:     [1, 0],
-            ....:     [0, 1])
+            ....:     input_alphabet=[0, 1])
             sage: count_11x10 = count_11.cartesian_product(count_10)
-            sage: difference = transducers.sub([0,1])(count_11x10)
+            sage: difference = transducers.sub([0, 1])(count_11x10)
             sage: T = difference.simplification().relabeled()
             sage: T.initial_states()
             [1]

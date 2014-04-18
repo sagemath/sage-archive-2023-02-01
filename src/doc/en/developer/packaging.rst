@@ -19,18 +19,17 @@ tarballs containing build scripts.
 
 Inclusion Procedure for New and Updated Packages
 ================================================
+
 Packages that are not part of Sage will first become optional or
 experimental (the latter if they will not build on all supported
-systems). After they have been in one of these two categories for
+systems). After they have been in optional for
 some time without problems they can be proposed to be included as
 standard packages in Sage.
 
 To propose a package for optional/experimental inclusion please
 open a trac ticket with the respective ``Component:`` field set to
 either ``packages:experimental`` or ``packages:optional``. The associated
-code requirements are described in the following sections. In short,
-packages consist of a link to the original tarball with additional
-code under ``SAGE_ROOT/build/pkgs``.
+code requirements are described in the following sections.
 
 After the ticket was reviewed and included, optional
 packages stay in that status for at least a year, after which they
@@ -116,8 +115,10 @@ Third-party packages in Sage consists of two parts:
    with a lower-case version of the upstream project name. 
 
 As an example, let us consider a hypothetical FoO project. They
-(upstream) distribute a tarball ``foo-1.3.tar.gz``. to package it in
-Sage, we create a subdirectory containing the following::
+(upstream) distribute a tarball ``foo-1.3.tar.gz`` (that will be
+automatically placed in ``SAGE_ROOT/upstream`` during the installation 
+process). To package it in Sage, we create a subdirectory containing
+the following::
 
     SAGE_ROOT/build/pkgs/foo
     |-- patches
@@ -334,18 +335,6 @@ tarball in the ``SAGE_ROOT/upstream/`` directory and run::
     [user@localhost]$ sage -sh sage-fix-pkg-checksums
 
 
-Manual package build and installation
-=====================================
-
-If you have a new tarball that is not yet distributed with Sage, then
-you have to manually place it in the ``SAGE_ROOT/upstream/``
-directory. Then you can run the installation via ``sage -f
-package_name``. If your package contains any
-:ref:`section-spkg-check`, run::
-
-    [user@localhost]$ SAGE_CHECK=yes sage -f package_name
-
-
 License Information
 ===================
 
@@ -355,3 +344,20 @@ its ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
 example, if you are producing an spkg which upgrades the vanilla
 source to a new version, check whether the license changed between
 versions.
+
+
+Manual package build and installation
+=====================================
+
+At this stage you have a new tarball that is not yet distributed
+with Sage. Now you need to manually place it in the ``SAGE_ROOT/upstream/``
+directory. Then you can run the installation via ``sage -f
+package_name``. If your package contains any
+:ref:`section-spkg-check`, run::
+
+    [user@localhost]$ sage -i -c PACKAGE_NAME
+
+If all went fine, open a ticket, put a link to the original tarball
+in the ticket and upload a branch with the code under
+``SAGE_ROOT/build/pkgs``.
+

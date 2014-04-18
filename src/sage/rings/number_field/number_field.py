@@ -3478,7 +3478,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L.<a,b> = NumberField([x^2 + 1, x^2 - 5])
             sage: p = L.ideal((-1/2*b - 1/2)*a + 1/2*b - 1/2)
             sage: W = L.S_units([p]); [x.norm() for x in W]
-            [1, 1, 9]
+            [9, 1, 1]
 
         Our generators should have the correct parent (:trac:`9367`)::
 
@@ -3497,12 +3497,13 @@ class NumberField_generic(number_field_base.NumberField):
             sage: I = K.ideal(2)
             sage: K.S_units([I])
             [2, -1]
-            sage: K.S_units([I, I])
+            sage: J = K.ideal(-2)
+            sage: K.S_units([I, J, I])
             [2, -1]
 
         """
         from sage.misc.all import uniq
-        return uniq(self._S_class_group_and_units(tuple(S), proof=proof)[0])
+        return self._S_class_group_and_units(tuple(uniq(S)), proof=proof)[0]
 
     @cached_method
     def _S_class_group_and_units(self, S, proof=True):

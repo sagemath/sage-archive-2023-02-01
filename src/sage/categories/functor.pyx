@@ -253,7 +253,7 @@ cdef class Functor(SageObject):
         """
         try:
             return self(f.domain()).hom(f, self(f.codomain()))
-        except StandardError:
+        except Exception:
             raise TypeError, 'unable to transform %s into a morphism in %s'%(f,self.codomain())
 
     def _coerce_into_domain(self, x):

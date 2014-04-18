@@ -1502,11 +1502,12 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  (use "sage --dev commit" to commit your merge)
 
-        Alice and Bob make non-conflicting changes simultaneously::
+        Alice and Bob make non-conflicting changes simultaneously (and alice
+        adds some characters that need escaping)::
 
             sage: with open("tracked", "w") as f: f.write("alice")
             sage: alice.git.super_silent.add("tracked")
-            sage: alice.git.super_silent.commit(message="alice: modified tracked")
+            sage: alice.git.super_silent.commit(message="alice: modified tracked {} {{0}} {1}")
 
             sage: bob._chdir()
             sage: open("tracked2", "w").close()
@@ -1521,7 +1522,7 @@ class SageDev(MercurialPatchMixin):
             sage: alice.push()
             Local commits that are not on the remote branch "u/alice/ticket/1":
             <BLANKLINE>
-                ...: alice: modified tracked
+                ...: alice: modified tracked {} {{0}} {1}
                 ...: bob: modified tracked
             <BLANKLINE>
             Push to remote branch? [Yes/no] y
@@ -1556,7 +1557,7 @@ class SageDev(MercurialPatchMixin):
             Local commits that are not on the remote branch "u/bob/ticket/1":
             <BLANKLINE>
                 ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
-                ...: alice: modified tracked
+                ...: alice: modified tracked {} {{0}} {1}
             <BLANKLINE>
             Push to remote branch? [Yes/no] y
             The branch field of ticket #1 needs to be updated from its current value
@@ -1768,7 +1769,7 @@ class SageDev(MercurialPatchMixin):
                         if remote_branch_exists:
                             commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
                             self._UI.show(['Local commits that are not on the remote branch "{0}":', ''] +
-                                          ['    ' + c for c in commits.splitlines()] +
+                                          ['    ' + c.replace('{','{{').replace('}','}}') for c in commits.splitlines()] +
                                           [''], remote_branch)
                             if not self._UI.confirm('Push to remote branch?', default=True):
                                 raise OperationCancelledError("user requested")

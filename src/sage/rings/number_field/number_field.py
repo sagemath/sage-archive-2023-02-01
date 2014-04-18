@@ -210,7 +210,8 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-_nf_cache = {}
+import weakref
+_nf_cache = weakref.WeakValueDictionary()
 def NumberField(polynomial, name=None, check=True, names=None, cache=True,
                 embedding=None, latex_name=None,
                 assume_disc_small=False,
@@ -300,9 +301,9 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         sage: K.<b> = NumberField(x^2 + 5, 'a'); K
         Number Field in b with defining polynomial x^2 + 5
 
-    One can also define number fields with specified embeddings, may be
-    used for arithmetic and deduce relations with other number fields
-    which would not be valid for an abstract number field::
+    One can also define number fields with specified embeddings, may be used
+    for arithmetic and deduce relations with other number fields which would
+    not be valid for an abstract number field. ::
 
         sage: K.<a> = NumberField(x^3-2, embedding=1.2)
         sage: RR.coerce_map_from(K)
@@ -399,11 +400,11 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     ::
 
-        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: sage.rings.number_field.number_field._nf_cache.clear()
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
         Number Field in a with defining polynomial x^2 + 1 over its base field
-        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: sage.rings.number_field.number_field._nf_cache.clear()
         sage: W1 = NumberField(x^2+1,'a')
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
@@ -420,7 +421,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     """
     if name is None and names is None:
-        raise TypeError, "You must specify the name of the generator."
+        raise TypeError("You must specify the name of the generator.")
     if not names is None:
         name = names
 
@@ -433,7 +434,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         try:
             polynomial = polynomial.polynomial(QQ)
         except (AttributeError, TypeError):
-            raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
+            raise TypeError("polynomial (=%s) must be a polynomial."%repr(polynomial))
 
     # convert ZZ to QQ
     R = polynomial.base_ring()
@@ -444,14 +445,15 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         key = (polynomial, polynomial.base_ring(), name, latex_name,
                embedding, embedding.parent() if embedding is not None else None,
                assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if _nf_cache.has_key(key):
-            K = _nf_cache[key]()
-            if not K is None: return K
+        try:
+            return _nf_cache[key]
+        except KeyError:
+            pass
 
     if isinstance(R, NumberField_generic):
         S = R.extension(polynomial, name, check=check)
         if cache:
-            _nf_cache[key] = weakref.ref(S)
+            _nf_cache[key] = S
         return S
 
     if polynomial.degree() == 2:
@@ -462,7 +464,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
              assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
     if cache:
-        _nf_cache[key] = weakref.ref(K)
+        _nf_cache[key] = K
     return K
 
 
@@ -575,7 +577,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
         embeddings = [None] * len(v)
 
     if not isinstance(v, (list, tuple)):
-        raise TypeError, "v must be a list or tuple"
+        raise TypeError("v must be a list or tuple")
     if len(v) == 0:
         return QQ
     if len(v) == 1:
@@ -724,7 +726,7 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
     D = QQ(D)
     if check:
         if D.is_square():
-            raise ValueError, "D must not be a perfect square."
+            raise ValueError("D must not be a perfect square.")
     R = QQ['x']
     f = R([-D, 0, 1])
     if embedding is True:
@@ -902,7 +904,7 @@ def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
         from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
         return UniversalCyclotomicField(names=names, bracket=bracket, embedding=embedding)
     if n < 0:
-        raise ValueError, "n (=%s) must be a positive integer"%n
+        raise ValueError("n (=%s) must be a positive integer"%n)
 
     if names is None:
         names = "zeta%s"%n
@@ -910,7 +912,7 @@ def CyclotomicField(n=0, names=None, bracket="()", embedding=True):
     if embedding is True:
         embedding = (2 * CLF.pi() * CLF.gen() / n).exp()
     key = (n, names, embedding)
-    if _cyclo_cache.has_key(key):
+    if key in _cyclo_cache:
         K = _cyclo_cache[key]()
         if not K is None: return K
     K = NumberField_cyclotomic(n, names, embedding=embedding)
@@ -1018,15 +1020,15 @@ class NumberField_generic(number_field_base.NumberField):
 
         ParentWithGens.__init__(self, QQ, name, category=category)
         if not isinstance(polynomial, polynomial_element.Polynomial):
-            raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
+            raise TypeError("polynomial (=%s) must be a polynomial"%repr(polynomial))
 
         if check:
             if not polynomial.parent().base_ring() == QQ:
-                raise TypeError, "polynomial must be defined over rational field"
+                raise TypeError("polynomial must be defined over rational field")
             if not polynomial.is_monic():
-                raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
+                raise NotImplementedError("number fields for non-monic polynomials not yet implemented.")
             if not polynomial.is_irreducible():
-                raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
+                raise ValueError("defining polynomial (%s) must be irreducible"%polynomial)
 
         self._assign_names(name)
         if latex_name is None:
@@ -1238,7 +1240,7 @@ class NumberField_generic(number_field_base.NumberField):
                 (isinstance(x, sage.modules.free_module_element.FreeModuleElement) and
                  self.base_ring().has_coerce_map_from(x.parent().base_ring())):
             if len(x) != self.relative_degree():
-                raise ValueError, "Length must be equal to the degree of this number field"
+                raise ValueError("Length must be equal to the degree of this number field")
             result = x[0]
             for i in xrange(1,self.relative_degree()):
                 result += x[i]*self.gen(0)**i
@@ -1383,7 +1385,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__from_self = from_self
             self.__to_self = to_self
         else:
-            raise ValueError, "number field structure is immutable."
+            raise ValueError("number field structure is immutable.")
 
     def structure(self):
         """
@@ -1446,7 +1448,7 @@ class NumberField_generic(number_field_base.NumberField):
                     return QQ.completion(p, prec, extras)
                 elif gen_image in CDF:
                     return QQ.completion(p, prec, extras).algebraic_closure()
-            raise ValueError, "No embedding into the complex numbers has been specified."
+            raise ValueError("No embedding into the complex numbers has been specified.")
         else:
             raise NotImplementedError
 
@@ -1694,7 +1696,7 @@ class NumberField_generic(number_field_base.NumberField):
         alpha = self(alpha)
         K, from_K = self.subfield(alpha, name=name)
         if K.degree() != self.degree():
-            raise ValueError, "alpha must generate a field of degree %s, but alpha generates a subfield of degree %s"%(self.degree(), K.degree())
+            raise ValueError("alpha must generate a field of degree %s, but alpha generates a subfield of degree %s"%(self.degree(), K.degree()))
         # Now compute to_K, which is an isomorphism
         # from self to K such that from_K(to_K(x)) == x for all x,
         # and to_K(from_K(y)) == y.
@@ -1790,7 +1792,7 @@ class NumberField_generic(number_field_base.NumberField):
             False
         """
         if not isinstance(other, NumberField_generic):
-            raise ValueError, "other must be a generic number field."
+            raise ValueError("other must be a generic number field.")
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
         return t != 0
 
@@ -2321,7 +2323,7 @@ class NumberField_generic(number_field_base.NumberField):
             from sage.rings.real_mpfr import mpfr_prec_min
             from sage.rings.complex_field import ComplexField
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                return embedding
+                 return embedding
 
     def gen_embedding(self):
         """
@@ -2767,8 +2769,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         if degree is not None:
             degree = ZZ(degree)
-        facs = [ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ]
-        facs.sort() # sorts on residue_class_degree(), lowest first
+        facs = sorted([ (id.residue_class_degree(), id.absolute_norm(), id) for id in self.prime_factors(x) ])
         if degree is None:
             return [ id for d, n, id in facs ]
         else:
@@ -2864,7 +2865,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         ids = self.primes_above(x, degree)
         if not ids:
-            raise ValueError, "No prime of degree %s above %s" % (degree, self.ideal(x))
+            raise ValueError("No prime of degree %s above %s" % (degree, self.ideal(x)))
         return ids[0]
 
     def primes_of_degree_one_iter(self, num_integer_primes=10000, max_iterations=100):
@@ -3095,7 +3096,7 @@ class NumberField_generic(number_field_base.NumberField):
             [y^2 - 100000000000000000000...]
         """
         if self.absolute_polynomial().denominator() != 1:
-            raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
+            raise TypeError("Unable to coerce number field defined by non-integral polynomial to PARI.")
         try:
             return self.__pari_nf
         except AttributeError:
@@ -3196,7 +3197,7 @@ class NumberField_generic(number_field_base.NumberField):
             bnf = self.__pari_bnf
         except AttributeError:
             if self.absolute_polynomial().denominator() != 1:
-                raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
+                raise TypeError("Unable to coerce number field defined by non-integral polynomial to PARI.")
             f = self.pari_polynomial("y")
             if units:
                 self.__pari_bnf = f.bnfinit(1)
@@ -3206,7 +3207,7 @@ class NumberField_generic(number_field_base.NumberField):
         # Certify if needed
         if proof and not getattr(self, "__pari_bnf_certified", False):
             if bnf.bnfcertify() != 1:
-                raise ValueError, "The result is not correct according to bnfcertify"
+                raise ValueError("The result is not correct according to bnfcertify")
             self.__pari_bnf_certified = True
         return bnf
 
@@ -3230,7 +3231,7 @@ class NumberField_generic(number_field_base.NumberField):
             8
         """
         if L.base_field() != self:
-            raise ValueError, "L must be an extension of self"
+            raise ValueError("L must be an extension of self")
 
         relpoly = L.defining_polynomial()
         Kbnf = self.pari_bnf(proof=proof)
@@ -3268,7 +3269,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         """
         if not self.is_absolute():
-            raise NotImplementedError, "Currently, only simple algebraic extensions are implemented in gap"
+            raise NotImplementedError("Currently, only simple algebraic extensions are implemented in gap")
         G = sage.interfaces.gap.gap
         q = self.polynomial()
         if q.variable_name()!='E':
@@ -3797,7 +3798,7 @@ class NumberField_generic(number_field_base.NumberField):
                     b |--> b, None)]
         """
         if not isinstance(other, NumberField_generic):
-            raise TypeError, "other must be a number field."
+            raise TypeError("other must be a number field.")
 
         sv = self.variable_name(); ov = other.variable_name()
         if names is None:
@@ -4089,10 +4090,10 @@ class NumberField_generic(number_field_base.NumberField):
             [1, 0, 0, 0, 1, 0, 0, 0, 1]
         """
         if not len(b) == self.degree():
-            raise ValueError, 'Not a basis of the number field.'
+            raise ValueError('Not a basis of the number field.')
         M = self.trace_pairing(b)
         if not M.is_invertible():
-            raise ValueError, 'Not a basis of the number field.'
+            raise ValueError('Not a basis of the number field.')
         return [sum([v[i]*b[i] for i in xrange(len(b))]) for v in M.inverse()]
 
     def elements_of_norm(self, n, proof=None):
@@ -4157,13 +4158,13 @@ class NumberField_generic(number_field_base.NumberField):
             try:
                 poly = poly.polynomial(self)
             except (AttributeError, TypeError):
-                raise TypeError, "polynomial (=%s) must be a polynomial."%repr(poly)
+                raise TypeError("polynomial (=%s) must be a polynomial."%repr(poly))
         if not names is None:
             name = names
         if isinstance(name, tuple):
             name = name[0]
         if name is None:
-            raise TypeError, "the variable name must be specified."
+            raise TypeError("the variable name must be specified.")
         from sage.rings.number_field.number_field_rel import NumberField_relative
         return NumberField_relative(self, poly, str(name), check=check, embedding=embedding)
 
@@ -4268,7 +4269,7 @@ class NumberField_generic(number_field_base.NumberField):
             IndexError: Only one generator.
         """
         if n != 0:
-            raise IndexError, "Only one generator."
+            raise IndexError("Only one generator.")
         try:
             return self.__gen
         except AttributeError:
@@ -4409,7 +4410,7 @@ class NumberField_generic(number_field_base.NumberField):
         elif type=="gap":
             return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group=False, algorithm=algorithm), self)
         else:
-            raise ValueError, "Galois group type must be None, 'pari', or 'gap'."
+            raise ValueError("Galois group type must be None, 'pari', or 'gap'.")
 
     def _normalize_prime_list(self, v):
         """
@@ -4553,7 +4554,7 @@ class NumberField_generic(number_field_base.NumberField):
                 if all([ p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p,e in zip(m[0],m[1]) ]):
                     B = f.nfbasis(fa = m)
                 else:
-                    raise RuntimeError, "Unable to factor discriminant with trial division"
+                    raise RuntimeError("Unable to factor discriminant with trial division")
             else:
                 B = f.nfbasis()
 
@@ -4796,10 +4797,10 @@ class NumberField_generic(number_field_base.NumberField):
             ValueError: bounds must be positive
         """
         if C[0] < 0:
-            raise ValueError, "bounds must be positive"
+            raise ValueError("bounds must be positive")
 
         if not self.is_totally_real():
-            raise NotImplementedError, "exact computation of LLL reduction only implemented in the totally real case"
+            raise NotImplementedError("exact computation of LLL reduction only implemented in the totally real case")
 
         Z_F = self.maximal_order()
         B = self.reduced_basis()
@@ -5120,7 +5121,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         if is_NumberFieldIdeal(prime) and prime.number_field() is not self:
-            raise ValueError, "%s is not an ideal of %s"%(prime,self)
+            raise ValueError("%s is not an ideal of %s"%(prime,self))
         # This allows principal ideals to be specified using a generator:
         try:
             prime = self.ideal(prime)
@@ -5128,9 +5129,9 @@ class NumberField_generic(number_field_base.NumberField):
             pass
 
         if not is_NumberFieldIdeal(prime) or prime.number_field() is not self:
-            raise ValueError, "%s is not an ideal of %s"%(prime,self)
+            raise ValueError("%s is not an ideal of %s"%(prime,self))
         if check and not prime.is_prime():
-            raise ValueError, "%s is not a prime ideal"%prime
+            raise ValueError("%s is not a prime ideal"%prime)
         from sage.rings.residue_field import ResidueField
         return ResidueField(prime, names=names, check=False)
 
@@ -5467,9 +5468,9 @@ class NumberField_generic(number_field_base.NumberField):
         if not S:
             S = ()
         else:
-            if type(S)==list:
+            if isinstance(S, list):
                 S = tuple(S)
-            if not type(S)==tuple:
+            if not isinstance(S, tuple):
                 try:
                     S = tuple(self.ideal(S).prime_factors())
                 except (NameError, TypeError, ValueError):
@@ -5573,7 +5574,7 @@ class NumberField_generic(number_field_base.NumberField):
         K = self
         n = ZZ(n)
         if n <= 0:
-            raise ValueError, "n (=%s) must be positive"%n
+            raise ValueError("n (=%s) must be positive"%n)
         if n == 1:
             if all:
                 return [K(1)]
@@ -5595,7 +5596,7 @@ class NumberField_generic(number_field_base.NumberField):
             if all:
                 return []
             else:
-                raise ValueError, "There are no %s roots of unity in self."%n.ordinal_str()
+                raise ValueError("There are no %s roots of unity in self."%n.ordinal_str())
 
     def zeta_order(self):
         r"""
@@ -5926,13 +5927,13 @@ class NumberField_absolute(NumberField_generic):
             F = LF
             Kgen = F(Kgen)
         else:
-            raise TypeError, "No compatible natural embeddings found for %s and %s"%(KF,LF)
+            raise TypeError("No compatible natural embeddings found for %s and %s"%(KF,LF))
 
         # List of candidates for K(x)
         f = x.minpoly()
         ys = f.roots(ring=K, multiplicities=False)
         if not ys:
-            raise ValueError, "Cannot convert %s to %s (regardless of embeddings)"%(x,K)
+            raise ValueError("Cannot convert %s to %s (regardless of embeddings)"%(x,K))
 
         # Define a function are_roots_equal to determine whether two
         # roots of f are equal.  A simple a == b does not suffice for
@@ -5989,7 +5990,7 @@ class NumberField_absolute(NumberField_generic):
             emb_y = y.polynomial()(Kgen)
             if are_roots_equal(emb_x, emb_y):
                 return y
-        raise ValueError, "Cannot convert %s to %s (using the specified embeddings)"%(x,K)
+        raise ValueError("Cannot convert %s to %s (using the specified embeddings)"%(x,K))
 
     def _coerce_non_number_field_element_in(self, x):
         """
@@ -6048,9 +6049,9 @@ class NumberField_absolute(NumberField_generic):
                 return self._element_class(self, x)
 
             return self._element_class(self, x._rational_())
-        except (TypeError, AttributeError), msg:
+        except (TypeError, AttributeError) as msg:
             pass
-        raise TypeError, type(x)
+        raise TypeError(type(x))
 
     def _coerce_from_str(self, x):
         r"""
@@ -6168,30 +6169,18 @@ class NumberField_absolute(NumberField_generic):
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
             return self._generic_convert_map(R)
-        if is_NumberField(R) and R != QQ:
-            if R.coerce_embedding() is not None:
-                if self.coerce_embedding() is not None:
-                    try:
-                        from sage.categories.pushout import pushout
-                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
-                        if ambient_field is not None:
-                            try:
-                                # the original ambient field
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field)
-                            except ValueError: # no embedding found
-                                # there might be one in the alg. completion
-                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field.algebraic_closure() if hasattr(ambient_field,'algebraic_closure') else ambient_field)
-                    except (ValueError, TypeError, NotImplementedError, sage.structure.coerce_exceptions.CoercionException),msg:
-                        # no success with the pushout
-                        try:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                        except (TypeError, ValueError):
-                            pass
-                else:
-                    # R is embedded, self isn't. So, we could only have
-                    # the forgetful coercion. But this yields to non-commuting
-                    # coercions, as was pointed out at ticket #8800
+        # R is not QQ by the above tests
+        if is_NumberField(R) and R.coerce_embedding() is not None:
+            if self.coerce_embedding() is not None:
+                try:
+                    return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
+                except ValueError: # no common embedding found
                     return None
+            else:
+                # R is embedded, self isn't. So, we could only have
+                # the forgetful coercion. But this yields to non-commuting
+                # coercions, as was pointed out at ticket #8800
+                return None
 
     def base_field(self):
         """
@@ -6737,7 +6726,7 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES:
 
-        For medium-sized galois groups of fields with small discriminants,
+        For medium-sized Galois groups of fields with small discriminants,
         this computation is feasible::
 
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2)
@@ -6764,7 +6753,7 @@ class NumberField_absolute(NumberField_generic):
         except AttributeError:
             pass
 
-        # Compute degree of galois closure if possible
+        # Compute degree of Galois closure if possible
         try:
             deg = self.galois_group(type='pari').order()
         except NotImplementedError:
@@ -6879,8 +6868,7 @@ class NumberField_absolute(NumberField_generic):
             self.__embeddings = {}
         except KeyError:
             pass
-        embs = map(self, self.pari_nf().nfgaloisconj())
-        embs.sort()
+        embs = sorted(map(self, self.pari_nf().nfgaloisconj()))
         v = [ self.hom([ e ], check=False) for e in embs ]
         put_natural_embedding_first(v)
         self.__embeddings[self] = Sequence(v, cr=(v != []), immutable=True,
@@ -7365,7 +7353,7 @@ class NumberField_absolute(NumberField_generic):
         if is_Map(alpha):
             # alpha better be a morphism with codomain self
             if alpha.codomain() != self:
-                raise ValueError, "Co-domain of morphism must be self"
+                raise ValueError("Co-domain of morphism must be self")
             L = alpha.domain()
             alpha = alpha(L.gen()) # relativize over phi's domain
             f = L.defining_polynomial() # = alpha.minpoly()
@@ -7746,7 +7734,7 @@ class NumberField_absolute(NumberField_generic):
         from sage.rings.morphism import is_RingHomomorphism
         if is_RingHomomorphism(P):
             if not P.domain() == self:
-                raise ValueError, "Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self)
+                raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()
             from sage.rings.complex_field import is_ComplexField
             from sage.rings.complex_interval_field import is_ComplexIntervalField
@@ -7756,7 +7744,7 @@ class NumberField_absolute(NumberField_generic):
             if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
                                          codom is CDF or codom is QQbar:
                 if P(self.gen()).imag() == 0:
-                    raise ValueError, "Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P
+                    raise ValueError("Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P)
                 return 1
             if is_RealField(codom) or codom is RDF or codom is AA:
                 if P(a) > 0 or P(b) > 0:
@@ -7765,9 +7753,9 @@ class NumberField_absolute(NumberField_generic):
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)
         if not P.number_field() == self:
-            raise ValueError, "P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field())
+            raise ValueError("P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field()))
         if not P.is_prime():
-            raise ValueError, "Non-prime ideal P (=%s) in hilbert_symbol" % P
+            raise ValueError("Non-prime ideal P (=%s) in hilbert_symbol" % P)
         return pari(self).nfhilbert(a, b, P.pari_prime())
 
     def hilbert_conductor(self,a,b):
@@ -8488,7 +8476,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                     if z == x:
                         return self.zeta(m)**(r+1)
                     z *= y
-            raise TypeError, "Cannot coerce %s into %s"%(x,self)
+            raise TypeError("Cannot coerce %s into %s"%(x,self))
         return self._element_class(self, g)
 
 
@@ -9002,7 +8990,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                 z = -z**((m+1)//2) # -z
                 m = 2*m
             if m % n != 0:
-                raise ValueError, "n (=%s) does not divide order of generator"%n
+                raise ValueError("n (=%s) does not divide order of generator"%n)
                 # use generic method (factor cyclotomic polynomial)
                 #  -- this is potentially really slow, so don't do it.
                 #return field.Field.zeta(self, n, all=all)
@@ -9380,7 +9368,7 @@ class NumberField_quadratic(NumberField_absolute):
         D = self.discriminant()
 
         if D > 0:
-            raise NotImplementedError, "Hilbert class polynomial is not implemented for real quadratic fields."
+            raise NotImplementedError("Hilbert class polynomial is not implemented for real quadratic fields.")
 
         from sage.schemes.elliptic_curves.all import hilbert_class_polynomial as HCP
         return QQ[name](HCP(D))

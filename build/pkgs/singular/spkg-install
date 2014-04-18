@@ -14,17 +14,12 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
-# singular's build system uses the output of grep
-unset GREP_OPTIONS
-
 # disable the dynamic kernel, except on Linux
 if [ "$UNAME" != "Linux" ]; then
     SINGULAR_CONFIGURE="--without-dynamic-kernel $SINGULAR_CONFIGURE"
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
-    export MACOSX_DEPLOYMENT_TARGET=10.4
-
     # Singular needs $LD set to "libtool", not "ld" on Darwin.
     # If we unset it, Singular will figure it out correctly.
     unset LD
@@ -221,6 +216,10 @@ build_libsingular()
         echo >&2 "Unable to build and install libsingular."
         return 1
     fi
+
+    # singular does not install this header
+    cp Singular/sing_dbm.h $SAGE_LOCAL/include/singular/
+
     export CFLAGS="$OLD_CFLAGS"
     export CXXFLAGS="$OLD_CXXFLAGS"
 }

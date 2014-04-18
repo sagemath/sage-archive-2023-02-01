@@ -119,7 +119,7 @@ def restore(vars=None):
         NameError: name 'ww' is not defined
     """
     G = globals()  # this is the reason the code must be in Cython.
-    if not G.has_key('sage_mode'):
+    if 'sage_mode' not in G:
         import sage.all
         D = sage.all.__dict__
     else:
@@ -148,7 +148,7 @@ def _restore(G, D, vars):
             else:
                 vars = vars.split()
         for k in vars:
-            if D.has_key(k):
+            if k in D:
                 G[k] = D[k]
             else:
                 try:

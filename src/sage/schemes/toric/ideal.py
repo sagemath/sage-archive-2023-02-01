@@ -262,7 +262,7 @@ class ToricIdeal(MPolynomialIdeal):
         if algorithm=='HostenSturmfels':
             ideal = self._ideal_HostenSturmfels()
         else:
-            raise ValueError, 'Algorithm = '+str(algorithm)+' is not known!'
+            raise ValueError('Algorithm = '+str(algorithm)+' is not known!')
 
         gens = [ ring(x) for x in ideal.gens() ]
         MPolynomialIdeal.__init__(self, ring, gens, coerce=False)

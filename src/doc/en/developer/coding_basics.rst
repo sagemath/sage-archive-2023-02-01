@@ -192,7 +192,7 @@ The top of each Sage code file should follow this format::
     #
     # This program is free software: you can redistribute it and/or modify
     # it under the terms of the GNU General Public License as published by
-    # the Free Software Foundation, either version 3 of the License, or
+    # the Free Software Foundation, either version 2 of the License, or
     # (at your option) any later version.
     #                  http://www.gnu.org/licenses/
     #*****************************************************************************
@@ -204,9 +204,8 @@ repository (see the output of ``git blame``). Nevertheless, it is
 sometimes useful to have a very rough overview over the history,
 especially if a lot of people have been working on that source file.
 
-All code included with Sage must be licensed under the GPLv3+ or a
-compatible, that is, less restrictive license (e.g. GPLv2+ or the BSD
-license).
+All code included with Sage must be licensed under the GPLv2+ or a
+compatible, that is, less restrictive license (e.g. the BSD license).
 
 
 .. _section-docstrings:

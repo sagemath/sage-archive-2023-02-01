@@ -130,5 +130,5 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             ValueError: Space cannot be defined over Rational Field
         """
         if not R.has_coerce_map_from(self.__M.base_ring()):
-            raise ValueError, "Space cannot be defined over %s" % R
+            raise ValueError("Space cannot be defined over %s" % R)
         return ModularFormsAmbient_R(self.__M, R)

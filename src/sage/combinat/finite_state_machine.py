@@ -5276,22 +5276,22 @@ class FiniteStateMachine(SageObject):
 
         A dictionary consisting of
 
-        - ``expectation`` -- constant ``e``,
-        - ``variance`` -- constant ``v``,
-        - ``covariance`` -- constant ``c``.
+        - ``expectation`` -- constant `e`,
+        - ``variance`` -- constant `v`,
+        - ``covariance`` -- constant `c`.
 
         Assume that all input and output labels are numbers and that ``self``
-        is complete and has only one final component.  Assume further that
+        is complete and has only one final component. Assume further that
         this final component is aperiodic.
 
-        Denote by ``X_n`` the sum of output labels written by the
+        Denote by `X_n` the sum of output labels written by the
         finite state machine when reading a random input word of
-        length ``n`` over the input alphabet (assuming
+        length `n` over the input alphabet (assuming
         equidistribution).
 
-        Then the expectation of ``X_n`` is ``en+O(1)``, the variance
-        of ``X_n`` is ``vn+O(1)`` and the covariance of ``X_n`` and
-        the sum of input labels is ``cn+O(1)``, cf. [HKW2014]_,
+        Then the expectation of `X_n` is `en+O(1)`, the variance
+        of `X_n` is `vn+O(1)` and the covariance of `X_n` and
+        the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
         Theorem 2.
 
         In the case of non-integer input or output labels, performance
@@ -5304,7 +5304,7 @@ class FiniteStateMachine(SageObject):
 
         #.  A trivial example: write the negative of the input::
 
-                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1]])
+                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, -1)])
                 sage: constants = T.asymptotic_moments()
                 sage: constants['expectation']
                 -1/2
@@ -5320,12 +5320,12 @@ class FiniteStateMachine(SageObject):
             We first use the transducer to convert the standard binary
             expansion to the NAF given in [HP2007]_::
 
-                sage: NAF = Transducer([[0, 0, 0, 0],
-                ....:                   [0, '.1', 1, None],
-                ....:                   ['.1', 0, 0, [1, 0]],
-                ....:                   ['.1', 1, 1, [-1, 0]],
-                ....:                   [1, 1, 1, 0],
-                ....:                   [1, '.1', 0, None]],
+                sage: NAF = Transducer([(0, 0, 0, 0),
+                ....:                   (0, '.1', 1, None),
+                ....:                   ('.1', 0, 0, [1, 0]),
+                ....:                   ('.1', 1, 1, [-1, 0]),
+                ....:                   (1, 1, 1, 0),
+                ....:                   (1, '.1', 0, None)],
                 ....:                  initial_states=[0],
                 ....:                  final_states=[0, 1, '.1'])
 
@@ -5395,7 +5395,7 @@ class FiniteStateMachine(SageObject):
 
                 sage: block10 = transducers.CountSubblockOccurrences(
                 ....:     [1, 0],
-                ....:     [0, 1])
+                ....:     input_alphabet=[0, 1])
                 sage: sorted(block10.transitions())
                 [Transition from () to (): 0|0,
                  Transition from () to (1,): 1|0,
@@ -5416,7 +5416,7 @@ class FiniteStateMachine(SageObject):
 
                 sage: block11 = transducers.CountSubblockOccurrences(
                 ....:     [1, 1],
-                ....:     [0, 1])
+                ....:     input_alphabet=[0, 1])
                 sage: sorted(block11.transitions())
                 [Transition from () to (): 0|0,
                  Transition from () to (1,): 1|0,
@@ -5427,7 +5427,8 @@ class FiniteStateMachine(SageObject):
                 1/4
                 sage: constants['variance']
                 5/16
-                sage: correlation = constants['covariance']/(1/2*sqrt(constants['variance']))
+                sage: correlation = (constants['covariance'] /
+                ....:                (1/2 * sqrt(constants['variance'])))
                 sage: correlation
                 2/5*sqrt(5)
 
@@ -5438,10 +5439,10 @@ class FiniteStateMachine(SageObject):
 
                 sage: block01 = transducers.CountSubblockOccurrences(
                 ....:     [0, 1],
-                ....:     [0, 1])
+                ....:     input_alphabet=[0, 1])
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
                 sage: product_01x10 = block01.cartesian_product(block10)
-                sage: block_difference = transducers.sub([0,1])(product_01x10)
+                sage: block_difference = transducers.sub([0, 1])(product_01x10)
                 sage: T = block_difference.simplification().relabeled()
                 sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
                 sage: T.transitions()
@@ -5531,8 +5532,12 @@ class FiniteStateMachine(SageObject):
             dealt with::
 
                 sage: from sage.combinat.finite_state_machine import FSMState
-                sage: s = FSMState(0, word_out=2)
+                sage: s = FSMState(0, word_out=2,
+                ....:              is_initial=True,
+                ....:              is_final=True)
                 sage: T = Transducer([(s, s, 0, 1)])
+                sage: T([0, 0])
+                [2, 1, 2, 1, 2]
                 sage: T.asymptotic_moments()['expectation']
                 3
 
@@ -5573,7 +5578,7 @@ class FiniteStateMachine(SageObject):
                                       "not complete.")
 
         final_components = self.final_components()
-        if len(final_components)!=1:
+        if len(final_components) != 1:
             raise NotImplementedError("asymptotic_moments is only "
                                       "implemented for finite state machines "
                                       "with one final component. Otherwise, "
@@ -5588,35 +5593,37 @@ class FiniteStateMachine(SageObject):
 
         def get_matrix(fsm, x, y):
             return fsm.adjacency_matrix(
-                entry=lambda transition: x**sum(transition.word_in) * \
-                    y**(sum(transition.word_out) + sum(transition.from_state.word_out))
-                )
+                entry=lambda transition: x**sum(transition.word_in) *
+                                         y**(sum(transition.word_out) +
+                                         sum(transition.from_state.word_out)))
 
         K = len(self.input_alphabet)
+        R = PolynomialRing(QQ, ("x", "y", "z"))
+        (x, y, z) = R.gens()
         try:
-            R = PolynomialRing(QQ, ("x", "y", "z"))
-            (x, y, z) = R.gens()
             M = get_matrix(self, x, y)
-            def substitute_one(g):
-                # the result of the substitution shall live in QQ,
-                # not in the polynomial ring R, so the method
-                # subs does not achieve the result.
-                # Therefore, we need this helper function.
-                return g(1, 1, 1)
         except TypeError:
             if verbose:
                 print("Warning: Non-integer output weights lead to "
                       "significant performance degradation.")
             # fall back to symbolic ring
             from sage.symbolic.ring import SR
-            x = SR.symbol()
-            y = SR.symbol()
-            z = SR.symbol()
+            R = SR
+            x = R.symbol()
+            y = R.symbol()
+            z = R.symbol()
             M = get_matrix(self, x, y)
             def substitute_one(g):
                 return g.subs({x: 1, y: 1, z: 1})
+        else:
+            def substitute_one(g):
+                # the result of the substitution shall live in QQ,
+                # not in the polynomial ring R, so the method
+                # subs does not achieve the result.
+                # Therefore, we need this helper function.
+                return g(1, 1, 1)
 
-        f = (M.parent().identity_matrix()-z/K*M).det()
+        f = (M.parent().identity_matrix() - z/K*M).det()
         f_x = substitute_one(derivative(f, x))
         f_y = substitute_one(derivative(f, y))
         f_z = substitute_one(derivative(f, z))
@@ -5626,9 +5633,11 @@ class FiniteStateMachine(SageObject):
         f_yy = substitute_one(derivative(f, y, y))
         f_zz = substitute_one(derivative(f, z, z))
 
-        e_2 = f_y/f_z
-        v_2 = (f_y**2*(f_zz+f_z)+f_z**2*(f_yy+f_y)-2*f_y*f_z*f_yz)/f_z**3
-        c = (f_x*f_y*(f_zz+f_z)+f_z**2*f_xy-f_y*f_z*f_xz-f_x*f_z*f_yz)/f_z**3
+        e_2 = f_y / f_z
+        v_2 = (f_y**2 * (f_zz+f_z) + f_z**2 * (f_yy+f_y)
+               - 2*f_y*f_z*f_yz) / f_z**3
+        c = (f_x * f_y * (f_zz+f_z) + f_z**2 * f_xy - f_y*f_z*f_xz
+             - f_x*f_z*f_yz) / f_z**3
 
         return {'expectation': e_2, 'variance': v_2, 'covariance': c}
 

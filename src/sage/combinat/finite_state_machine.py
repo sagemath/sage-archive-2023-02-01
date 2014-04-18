@@ -2716,8 +2716,8 @@ class FiniteStateMachine(SageObject):
             False
         """
         if self.input_alphabet is None:
-            raise ValueError, ("No input alphabet is given. "
-                               "Try calling determine_alphabets().")
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
 
         for state in self.iter_states():
             for transition in state.transitions:

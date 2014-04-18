@@ -5565,8 +5565,8 @@ class FiniteStateMachine(SageObject):
         from sage.rings.rational_field import QQ
 
         if self.input_alphabet is None:
-            raise ValueError, ("No input alphabet is given. "
-                               "Try calling determine_alphabets().")
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
 
         if not self.is_complete():
             raise NotImplementedError("This finite state machine is "

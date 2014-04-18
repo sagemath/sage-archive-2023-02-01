@@ -4691,11 +4691,6 @@ class FiniteStateMachine(SageObject):
         .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
            Prodinger, *Asymptotic analysis of the sum of the output of
            transducer*, in preparation.
-
-        .. [HKW2014] Clemens Heuberger, Sara Kropf, and Stephan Wagner,
-           *Combinatorial Characterization of Independent Transducers via
-           Functional Digraphs*, :arxiv:`1404.3680`.
-
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()

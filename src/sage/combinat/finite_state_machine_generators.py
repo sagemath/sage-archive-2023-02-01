@@ -262,8 +262,7 @@ class TransducerGenerators(object):
         addition::
 
             sage: import operator
-            sage: T = transducers.operator(operator.add,
-            ....:                           [0, 1])
+            sage: T = transducers.operator(operator.add, [0, 1])
             sage: T.transitions()
             [Transition from 0 to 0: (0, 0)|0,
              Transition from 0 to 0: (0, 1)|1,

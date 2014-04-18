@@ -38,19 +38,16 @@ except (OSError, IOError), msg:
     print "\n\n"
     sys.exit(1)
 
-do_have = []
 dont_have = []
 for pkg_name in pkg_list_file.readlines():
     pkg_name = pkg_name.rstrip()  # get rid of \n
-    if pkg_name in installed:
-        do_have.append(pkg_name)
-    else:
-        dont_have.append(pkg_name)
+    if pkg_name not in installed:
+         dont_have.append(pkg_name)
 print " ***********************************"
 print "    ***  %s Packages   ***"%sys.argv[1]
 print " ***********************************\n"
-print "INSTALLED:\n" + '\n'.join(do_have)
-print "\nNOT INSTALLED:\n" + '\n'.join(dont_have)
+print "INSTALLED:\n" + '\n'.join(sorted(installed))
+print "\nNOT INSTALLED:\n" + '\n'.join(sorted(dont_have))
 print "\nType 'sage -i package_name' to download and install a package."
 
 pkg_list_file.close()

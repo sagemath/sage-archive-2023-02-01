@@ -410,9 +410,9 @@ def import_statements(*objects, **options):
     If the object has several names, an other way to get the import
     statement you expect is to use a string instead of the object::
 
-        sage: import_statements(cached_function)
-        # ** Warning **: several names for that object: CachedFunction, cached_function
-        from sage.misc.cachefunc import CachedFunction
+        sage: import_statements(matrix)
+        # ** Warning **: several names for that object: Matrix, matrix
+        from sage.matrix.constructor import Matrix
 
         sage: import_statements('cached_function')
         from sage.misc.cachefunc import cached_function

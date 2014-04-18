@@ -274,7 +274,7 @@ class Sets(Category_singleton):
             from sage.categories.examples.sets_cat import PrimeNumbers_Wrapper
             return PrimeNumbers_Wrapper()
         else:
-            raise ValueError, "Unkown choice"
+            raise ValueError("Unkown choice")
 
     class ParentMethods:
 #         # currently overriden by the default implementation in sage.structure.Parent
@@ -604,7 +604,7 @@ class Sets(Category_singleton):
             We test a non transitive equality::
 
                 sage: R = Zp(3)
-                sage: Sets().ParentMethods._test_elements_eq_transitive.im_func(R,elements=[R(3,2),R(3,1),R(0)])
+                sage: Sets().ParentMethods._test_elements_eq_transitive.__func__(R,elements=[R(3,2),R(3,1),R(0)])
                 Traceback (most recent call last):
                 ...
                 AssertionError: non transitive equality:

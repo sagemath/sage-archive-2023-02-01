@@ -1224,7 +1224,7 @@ cdef class NumberFieldElement(FieldElement):
         if L.is_galois_relative():
             return False, None
 
-        # The following gives the galois closure of K/QQ, but the galois
+        # The following gives the Galois closure of K/QQ, but the Galois
         # closure of K/self.parent() would suffice.
         M = L.galois_closure('a')
         from sage.functions.log import log
@@ -1666,6 +1666,14 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: 2^I
             2^I
+            sage: K.<sqrt2> = QuadraticField(2) # :trac:`14895`
+            sage: 2^sqrt2
+            2^sqrt(2)
+            sage: K.<a> = NumberField(x^2+1)
+            sage: 2^a
+            Traceback (most recent call last):
+            ...
+            TypeError: An embedding into RR or CC must be specified.
         """
         if (PY_TYPE_CHECK(base, NumberFieldElement) and
             (PY_TYPE_CHECK(exp, Integer) or PY_TYPE_CHECK_EXACT(exp, int) or exp in ZZ)):
@@ -1680,7 +1688,7 @@ cdef class NumberFieldElement(FieldElement):
             # again. This would lead to infinite loops otherwise.
             from sage.symbolic.ring import SR
             try:
-                res = QQ(base)**exp
+                res = QQ(base)**QQ(exp)
             except TypeError:
                 pass
             else:
@@ -2463,7 +2471,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
             t = self.number_field()._multiplicative_order_table()
             f = self.polynomial()
-            if t.has_key(f):
+            if f in t:
                 self.__multiplicative_order = t[f]
                 return self.__multiplicative_order
             else:

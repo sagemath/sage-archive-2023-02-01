@@ -243,22 +243,22 @@ class NumberField_relative(NumberField_generic):
             ValueError: defining polynomial (x^2 + 2) must be irreducible
         """
         if embedding is not None:
-            raise NotImplementedError, "Embeddings not implemented for relative number fields"
+            raise NotImplementedError("Embeddings not implemented for relative number fields")
         if not names is None: name = names
         if not is_NumberField(base):
-            raise TypeError, "base (=%s) must be a number field"%base
+            raise TypeError("base (=%s) must be a number field"%base)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             try:
                 polynomial = polynomial.polynomial(base)
-            except (AttributeError, TypeError), msg:
-                raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
+            except (AttributeError, TypeError) as msg:
+                raise TypeError("polynomial (=%s) must be a polynomial."%repr(polynomial))
         if name == base.variable_name():
-            raise ValueError, "Base field and extension cannot have the same name"
+            raise ValueError("Base field and extension cannot have the same name")
         if polynomial.parent().base_ring() != base:
             polynomial = polynomial.change_ring(base)
             #raise ValueError, "The polynomial must be defined over the base field"
         if not polynomial.is_monic():
-            raise NotImplementedError, "Number fields for non-monic polynomials not yet implemented."
+            raise NotImplementedError("Number fields for non-monic polynomials not yet implemented.")
 
         # Generate the nf and bnf corresponding to the base field
         # defined as polynomials in y, e.g. for rnfisfree
@@ -280,7 +280,7 @@ class NumberField_relative(NumberField_generic):
         self._element_class = number_field_element.NumberFieldElement_relative
 
         if check and not self.pari_relative_polynomial().polisirreducible():
-            raise ValueError, "defining polynomial (%s) must be irreducible"%polynomial
+            raise ValueError("defining polynomial (%s) must be irreducible"%polynomial)
 
         self.__gens = [None]
 
@@ -497,7 +497,7 @@ class NumberField_relative(NumberField_generic):
             a
         """
         if n < 0 or n >= len(self.__gens):
-            raise IndexError, "invalid generator %s"%n
+            raise IndexError("invalid generator %s"%n)
         return self.__gens[n]
 
     def galois_closure(self, names=None):
@@ -564,7 +564,7 @@ class NumberField_relative(NumberField_generic):
               None]]
         """
         if not isinstance(other, NumberField_generic):
-            raise TypeError, "other must be a number field."
+            raise TypeError("other must be a number field.")
         if names is None:
             sv = self.variable_name(); ov = other.variable_name()
             names = sv + (ov if ov != sv else "")
@@ -635,7 +635,7 @@ class NumberField_relative(NumberField_generic):
             ...
             NotImplementedError: For a relative number field you must use relative_degree or absolute_degree as appropriate
         """
-        raise NotImplementedError, "For a relative number field you must use relative_degree or absolute_degree as appropriate"
+        raise NotImplementedError("For a relative number field you must use relative_degree or absolute_degree as appropriate")
 
     def maximal_order(self, v=None):
         """
@@ -794,7 +794,7 @@ class NumberField_relative(NumberField_generic):
         if f.degree() <= 0:
             return self._element_class(self, f[0])
         # todo: more general coercion if embedding have been asserted
-        raise TypeError, "Cannot coerce element into this number field"
+        raise TypeError("Cannot coerce element into this number field")
 
     def _coerce_non_number_field_element_in(self, x):
         r"""
@@ -1001,7 +1001,7 @@ class NumberField_relative(NumberField_generic):
                 return self._element_class(self, x._rational_())
             except AttributeError:
                 pass
-            raise TypeError, type(x)
+            raise TypeError(type(x))
 
     def _coerce_map_from_(self, R):
         """
@@ -1027,9 +1027,9 @@ class NumberField_relative(NumberField_generic):
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
             return self._generic_convert_map(R)
-        mor = self.base_field().coerce_map_from(R)
+        mor = self.base_field()._internal_coerce_map_from(R)
         if mor is not None:
-            return self.coerce_map_from(self.base_field()) * mor
+            return self._internal_coerce_map_from(self.base_field()) * mor
 
     def _rnfeltreltoabs(self, element, check=False):
         r"""
@@ -1184,7 +1184,7 @@ class NumberField_relative(NumberField_generic):
             ...
             NotImplementedError: For a relative number field L you must use either L.is_galois_relative() or L.is_galois_absolute() as appropriate
         """
-        raise NotImplementedError, "For a relative number field L you must use either L.is_galois_relative() or L.is_galois_absolute() as appropriate"
+        raise NotImplementedError("For a relative number field L you must use either L.is_galois_relative() or L.is_galois_absolute() as appropriate")
 
     def is_galois_relative(self):
         r"""
@@ -1351,7 +1351,7 @@ class NumberField_relative(NumberField_generic):
                 if self.is_totally_imaginary():
                     self.__is_CM_extension = True
                     self.__is_CM = True
-                    self.__max_tot_real_sub = [self.base_field(), self.coerce_map_from(self.base_field())]
+                    self.__max_tot_real_sub = [self.base_field(), self._internal_coerce_map_from(self.base_field())]
                     return True
         self.__is_CM_extension = False
         return False
@@ -1449,7 +1449,7 @@ class NumberField_relative(NumberField_generic):
             NotImplementedError: For a relative number field L you must use either L.relative_vector_space() or L.absolute_vector_space() as appropriate
 
         """
-        raise NotImplementedError, "For a relative number field L you must use either L.relative_vector_space() or L.absolute_vector_space() as appropriate"
+        raise NotImplementedError("For a relative number field L you must use either L.relative_vector_space() or L.absolute_vector_space() as appropriate")
 
     def absolute_base_field(self):
         r"""
@@ -1832,7 +1832,7 @@ class NumberField_relative(NumberField_generic):
             ...
             NotImplementedError: For a relative number field L you must use either L.relative_polynomial() or L.absolute_polynomial() as appropriate
         """
-        raise NotImplementedError, "For a relative number field L you must use either L.relative_polynomial() or L.absolute_polynomial() as appropriate"
+        raise NotImplementedError("For a relative number field L you must use either L.relative_polynomial() or L.absolute_polynomial() as appropriate")
 
     def base_field(self):
         """
@@ -1995,8 +1995,7 @@ class NumberField_relative(NumberField_generic):
 
         a = self_into_L(self.gen())
         abs_base_gens = map(self_into_L, self.base_field().gens())
-        v = [ self.hom([ L_into_self(aa(a)) ]) for aa in aas if all(aa(g) == g for g in abs_base_gens) ]
-        v.sort()
+        v = sorted([ self.hom([ L_into_self(aa(a)) ]) for aa in aas if all(aa(g) == g for g in abs_base_gens) ])
         put_natural_embedding_first(v)
         self.__automorphisms = Sequence(v, cr = (v != []), immutable=True,
                                         check=False, universe=self.Hom(self))
@@ -2098,7 +2097,7 @@ class NumberField_relative(NumberField_generic):
             ...
             NotImplementedError: For a relative number field you must use relative_different or absolute_different as appropriate
         """
-        raise NotImplementedError, "For a relative number field you must use relative_different or absolute_different as appropriate"
+        raise NotImplementedError("For a relative number field you must use relative_different or absolute_different as appropriate")
 
     def absolute_discriminant(self, v=None):
         r"""
@@ -2171,7 +2170,7 @@ class NumberField_relative(NumberField_generic):
             ...
             NotImplementedError: For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate
         """
-        raise NotImplementedError, "For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate"
+        raise NotImplementedError("For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate")
 
     def disc(self):
         """
@@ -2187,7 +2186,7 @@ class NumberField_relative(NumberField_generic):
             ...
             NotImplementedError: For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate
         """
-        raise NotImplementedError, "For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate"
+        raise NotImplementedError("For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate")
 
     def order(self, *gens, **kwds):
         """
@@ -2267,7 +2266,7 @@ class NumberField_relative(NumberField_generic):
         """
 
         if type is None:
-            raise NotImplementedError, "Galois groups of relative extensions not implemented (use the corresponding absolute field)"
+            raise NotImplementedError("Galois groups of relative extensions not implemented (use the corresponding absolute field)")
         else:
             # silly bug in cached_method
             return NumberField_generic.galois_group.f(self, type, algorithm, names)
@@ -2333,7 +2332,7 @@ class NumberField_relative(NumberField_generic):
         # Now we should have a polynomial in the variable y.
         # Otherwise we're not in the base field.
         if r.type() != "t_POL" or str(r.variable()) != 'y':
-            raise ValueError, "The element %s is not in the base field"%element
+            raise ValueError("The element %s is not in the base field"%element)
         return self.base_field()(r)
 
     def relativize(self, alpha, names):
@@ -2483,7 +2482,7 @@ class NumberField_relative(NumberField_generic):
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)
         if not P.is_maximal():
-            raise ValueError, "P (=%s) must be a nonzero prime."%P
+            raise ValueError("P (=%s) must be a nonzero prime."%P)
         abs = self.absolute_field('a')
         from_abs = abs.structure()[0]
         return from_abs(abs.uniformizer(P.absolute_ideal(), others=others))

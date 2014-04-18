@@ -1034,10 +1034,10 @@ Environment variables dealing with specific Sage packages:
   own version of ATLAS, set this variable to be the directory containing your
   ATLAS installation.
   It should contain the files :file:`libatlas`, :file:`liblapack`,
-  :file:`libcblas`, :file:`libptcblas`, :file:`libf77blas`, and
-  :file:`libptf77blas`, with extensions ``.a``, ``.so``, or ``.dylib``.
-  For backward compatibility, the libraries may also be in the subdirectory
-  :file:`SAGE_ATLAS_LIB/lib/`.
+  :file:`libcblas`, :file:`libf77blas` (and optionally :file:`libptcblas` and
+  :file:`libptf77blas` for multi-threaded computations), with extensions ``.a``,
+  ``.so``, or ``.dylib``.  For backward compatibility, the libraries may also be
+  in the subdirectory :file:`SAGE_ATLAS_LIB/lib/`.
 
 - :envvar:`SAGE_MATPLOTLIB_GUI` - if set to anything non-empty except ``no``,
   then Sage will attempt to build the graphical backend when it builds the
@@ -1088,18 +1088,6 @@ Some standard environment variables which are used by Sage:
   the C compiler, the C++ compiler and the Fortran compiler, respectively.
   The same comments apply to these: setting them may cause problems, because
   they are not universally respected among the Sage packages.
-
-The following Fortran-related environment variables are **deprecated** since
-Sage 5.3 and support for these will likely be removed.
-They are still recognized, but should not be used for new setups.
-
-- :envvar:`SAGE_FORTRAN` - the path to the Fortran compiler.
-  Deprecated, use :envvar:`FC` instead.
-
-- :envvar:`SAGE_FORTRAN_LIB` - the path to the Fortran runtime library.
-  Normally, you don't need to set this.
-  If you really need to, you can add the directory containing the library to
-  :envvar:`LIBRARY_PATH` and/or :envvar:`LD_LIBRARY_PATH`.
 
 Sage uses the following environment variables when it runs:
 

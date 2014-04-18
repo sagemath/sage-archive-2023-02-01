@@ -16,7 +16,6 @@ import sage.structure.sage_object
 import sage.misc.latex
 import sage.misc.pager
 
-import sage.misc.sagedoc as sagedoc
 import sage.misc.sageinspect as sageinspect
 
 from sage.misc.preparser import preparse
@@ -163,11 +162,10 @@ def completions(s, globs, format=False, width=90, system="None"):
                     v = [obj + '.'+x for x in D if x and x[0] != '_']
                 else:
                     v = [obj + '.'+x for x in D if x[:n] == method]
-            except Exception, msg:
+            except Exception as msg:
                 v = []
-        v = list(set(v))   # make unique
-        v.sort()
-    except Exception, msg:
+        v = sorted(set(v))   # make unique
+    except Exception as msg:
         v = []
 
     if prepend:
@@ -272,7 +270,7 @@ def source_code(s, globs, system='sage'):
     try:
         try:
             return obj._sage_src_()
-        except StandardError:
+        except Exception:
             pass
         newline = "\n\n"  # blank line to start new paragraph
         indent = "    "   # indent source code to mark it as a code block
@@ -280,7 +278,8 @@ def source_code(s, globs, system='sage'):
         filename = sageinspect.sage_getfile(obj)
         lines, lineno = sageinspect.sage_getsourcelines(obj, is_binary=False)
         src = indent.join(lines)
-        src = indent + sagedoc.format_src(src)
+        from sage.misc.sagedoc import format_src
+        src = indent + format_src(src)
         if not lineno is None:
             output = "**File:** %s"%filename
             output += newline
@@ -289,7 +288,7 @@ def source_code(s, globs, system='sage'):
             output += src
         return output
 
-    except (TypeError, IndexError), msg:
+    except (TypeError, IndexError) as msg:
         print msg
         return "Source code for %s not available."%obj
 

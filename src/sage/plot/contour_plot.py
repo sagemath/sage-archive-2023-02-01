@@ -149,7 +149,7 @@ class ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         contours = options['contours']
-        if options.has_key('cmap'):
+        if 'cmap' in options:
             cmap = get_cmap(options['cmap'])
         elif fill or contours is None:
             cmap = get_cmap('gray')
@@ -684,7 +684,7 @@ def implicit_plot(f, xrange, yrange, **options):
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
         if f.operator() != operator.eq:
-            raise ValueError, "input to implicit plot must be function or equation"
+            raise ValueError("input to implicit plot must be function or equation")
         f = f.lhs() - f.rhs()
     linewidths = options.pop('linewidth', None)
     linestyles = options.pop('linestyle', None)

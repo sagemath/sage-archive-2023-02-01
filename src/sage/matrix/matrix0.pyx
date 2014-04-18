@@ -1784,7 +1784,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             if callable(rep_mapping):
                 rep = rep_mapping(x)
             # avoid hashing entries, especially algebraic numbers
-            elif rep_mapping and rep_mapping.has_key(x):
+            elif rep_mapping and x in rep_mapping:
                 rep = rep_mapping.get(x)
             else:
                 rep = repr(x)
@@ -4134,17 +4134,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             (32, 38, 44, 50)
             sage: (v * m).parent() is m.row(0).parent()
             True
+
+        TESTS:
+
+        Check that :trac:`8198` is fixed::
+
+            sage: R = Qp(5, 5)
+            sage: x = R(5).add_bigoh(1)
+            sage: I = matrix(R, [[1, 0], [0, 1]])
+            sage: v = vector(R, [1, x])
+            sage: v*I
+            (1 + O(5^5), O(5))
+
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if self.nrows() != v.degree():
             raise ArithmeticError("number of rows of matrix must equal degree of vector")
-        s = M(0)
-        zero = self.base_ring()(0)
         cdef Py_ssize_t i
-        for i from 0 <= i < self._nrows:
-            if v[i] != zero:
-                s += v[i]*self.row(i, from_list=True)
-        return s
+        return sum([v[i] * self.row(i, from_list=True)
+                    for i in xrange(self._nrows)], M(0))
 
     cdef Vector _matrix_times_vector_(self, Vector v):
         """
@@ -4160,17 +4168,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             (8, 26, 44, 62)
             sage: (m * v).parent() is m.column(0).parent()
             True
+
+        TESTS:
+
+        Check that :trac:`8198` is fixed::
+
+            sage: R = Qp(5, 5)
+            sage: x = R(5).add_bigoh(1)
+            sage: I = matrix(R, [[1, 0], [0, 1]])
+            sage: v = vector(R, [1, x])
+            sage: I*v
+            (1 + O(5^5), O(5))
+
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
-        s = M(0)
-        for i in xrange(self.ncols()):
-            if v[i] != 0:
-                s = s + self.column(i, from_list=True)*v[i]
-        return s
+        cdef Py_ssize_t i
+        return sum([self.column(i, from_list=True) * v[i]
+                    for i in xrange(self._ncols)], M(0))
 
     def iterates(self, v, n, rows=True):
         r"""

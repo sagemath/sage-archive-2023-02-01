@@ -328,7 +328,7 @@ class Category_over_base(CategoryWithParameters):
 
     def _subcategory_hook_(self, C):
         """
-        A quick test whether a category ``C`` may be subcategory of
+        A quick test whether a category ``C`` may be a subcategory of
         this category.
 
         INPUT:
@@ -350,6 +350,13 @@ class Category_over_base(CategoryWithParameters):
             False
             sage: VectorSpaces(QQ)._subcategory_hook_(Algebras(ZZ))
             False
+
+        .. WARNING:: This test currently includes some false negatives::
+
+                sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields().Finite()))
+                False
+                sage: Modules(Rings())._subcategory_hook_(Modules(GroupAlgebras(Rings())))
+                False
 
         The answer is unknown if ``C`` is not a category over base::
 

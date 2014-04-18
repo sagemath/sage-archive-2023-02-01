@@ -455,152 +455,152 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         return self.J_inv_ZZ()(self._qseries_ring.gen()/self._d)
 
     @cached_method
-    def F_rho_ZZ(self):
+    def f_rho_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``F_rho``,
+        Return the rational Fourier expansion of ``f_rho``,
         where ``d`` is replaced by ``1``.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).F_rho_ZZ()
+            sage: MFSeriesConstructor(prec=3).f_rho_ZZ()
             1 + 5/36*q + 5/6912*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_rho_ZZ()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_rho_ZZ()
             1 + 7/100*q + 21/160000*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_rho_ZZ().parent()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_rho_ZZ().parent()
             Power Series Ring in q over Rational Field
         """
 
         q = self._ZZseries_ring.gen()
         n = self.hecke_n()
         temp_expr = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()*(self.J_inv_ZZ()-1))).power_series()
-        F_rho_ZZ = (temp_expr.log()/(n-2)).exp()
-        return F_rho_ZZ
+        f_rho_ZZ = (temp_expr.log()/(n-2)).exp()
+        return f_rho_ZZ
 
     @cached_method
-    def F_rho(self):
+    def f_rho(self):
         r"""
-        Return the Fourier expansion of ``F_rho``.
+        Return the Fourier expansion of ``f_rho``.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3, fix_d=True).F_rho()
+            sage: MFSeriesConstructor(prec=3, fix_d=True).f_rho()
             1 + 240*q + 2160*q^2 + O(q^3)
 
-            sage: MFSeriesConstructor(prec=3).F_rho_ZZ() == MFSeriesConstructor(prec=3, set_d=1).F_rho()
+            sage: MFSeriesConstructor(prec=3).f_rho_ZZ() == MFSeriesConstructor(prec=3, set_d=1).f_rho()
             True
 
-            sage: MFSeriesConstructor(group=5, prec=3).F_rho()
+            sage: MFSeriesConstructor(group=5, prec=3).f_rho()
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_rho()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_rho()
             1.00000000000000 + 9.92593243510795*q + 2.63903932249093*q^2 + O(q^3)
 
-            sage: MFSeriesConstructor(group=5, prec=3).F_rho().parent()
+            sage: MFSeriesConstructor(group=5, prec=3).f_rho().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_rho().parent()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_rho().parent()
             Power Series Ring in q over Real Field with 53 bits of precision
         """
 
-        return self.F_rho_ZZ()(self._qseries_ring.gen()/self._d)
+        return self.f_rho_ZZ()(self._qseries_ring.gen()/self._d)
 
     @cached_method
-    def F_i_ZZ(self):
+    def f_i_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``F_i``,
+        Return the rational Fourier expansion of ``f_i``,
         where ``d`` is replaced by ``1``.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).F_i_ZZ()
+            sage: MFSeriesConstructor(prec=3).f_i_ZZ()
             1 - 7/24*q - 77/13824*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_i_ZZ()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_i_ZZ()
             1 - 13/40*q - 351/64000*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_i_ZZ().parent()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_i_ZZ().parent()
             Power Series Ring in q over Rational Field
         """
 
         q = self._ZZseries_ring.gen()
         n = self.hecke_n()
         temp_expr = ((-q*self.J_inv_ZZ().derivative())**n/(self.J_inv_ZZ()**(n-1)*(self.J_inv_ZZ()-1))).power_series()
-        F_i_ZZ = (temp_expr.log()/(n-2)).exp()
-        return F_i_ZZ
+        f_i_ZZ = (temp_expr.log()/(n-2)).exp()
+        return f_i_ZZ
 
     @cached_method
-    def F_i(self):
+    def f_i(self):
         r"""
-        Return the Fourier expansion of ``F_i``.
+        Return the Fourier expansion of ``f_i``.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3, fix_d=True).F_i()
+            sage: MFSeriesConstructor(prec=3, fix_d=True).f_i()
             1 - 504*q - 16632*q^2 + O(q^3)
-            sage: MFSeriesConstructor(prec=3).F_i_ZZ() == MFSeriesConstructor(prec=3, set_d=1).F_i()
+            sage: MFSeriesConstructor(prec=3).f_i_ZZ() == MFSeriesConstructor(prec=3, set_d=1).f_i()
             True
 
-            sage: MFSeriesConstructor(group=5, prec=3).F_i()
+            sage: MFSeriesConstructor(group=5, prec=3).f_i()
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_i()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_i()
             1.00000000000000 - 46.0846863058583*q - 110.274143118371*q^2 + O(q^3)
 
-            sage: MFSeriesConstructor(group=5, prec=3).F_i().parent()
+            sage: MFSeriesConstructor(group=5, prec=3).f_i().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_i().parent()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_i().parent()
             Power Series Ring in q over Real Field with 53 bits of precision
         """
 
-        return self.F_i_ZZ()(self._qseries_ring.gen()/self._d)
+        return self.f_i_ZZ()(self._qseries_ring.gen()/self._d)
 
     @cached_method
-    def F_inf_ZZ(self):
+    def f_inf_ZZ(self):
         r"""
-        Return the rational Fourier expansion of ``F_inf``,
+        Return the rational Fourier expansion of ``f_inf``,
         where ``d`` is replaced by ``1``.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).F_inf_ZZ()
+            sage: MFSeriesConstructor(prec=3).f_inf_ZZ()
             q - 1/72*q^2 + 7/82944*q^3 + O(q^4)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_inf_ZZ()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_inf_ZZ()
             q - 9/200*q^2 + 279/640000*q^3 + O(q^4)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_inf_ZZ().parent()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_inf_ZZ().parent()
             Power Series Ring in q over Rational Field
         """
 
         q = self._ZZseries_ring.gen()
         n = self.hecke_n()
         temp_expr  = ((-q*self.J_inv_ZZ().derivative())**(2*n)/(self.J_inv_ZZ()**(2*n-2)*(self.J_inv_ZZ()-1)**n)/q**(n-2)).power_series()
-        F_inf_ZZ = (temp_expr.log()/(n-2)).exp()*q
-        return F_inf_ZZ
+        f_inf_ZZ = (temp_expr.log()/(n-2)).exp()*q
+        return f_inf_ZZ
 
     @cached_method
-    def F_inf(self):
+    def f_inf(self):
         r"""
-        Return the Fourier expansion of ``F_inf``.
+        Return the Fourier expansion of ``f_inf``.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3, fix_d=True).F_inf()
+            sage: MFSeriesConstructor(prec=3, fix_d=True).f_inf()
             q - 24*q^2 + 252*q^3 + O(q^4)
-            sage: MFSeriesConstructor(prec=3).F_inf_ZZ() == MFSeriesConstructor(prec=3, set_d=1).F_inf()
+            sage: MFSeriesConstructor(prec=3).f_inf_ZZ() == MFSeriesConstructor(prec=3, set_d=1).f_inf()
             True
 
-            sage: MFSeriesConstructor(group=5, prec=3).F_inf()
+            sage: MFSeriesConstructor(group=5, prec=3).f_inf()
             q - 9/(200*d)*q^2 + 279/(640000*d^2)*q^3 + O(q^4)
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_inf()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_inf()
             0.000000000000000 + 1.00000000000000*q - 6.38095656542654*q^2 + 8.76538060684488*q^3 + O(q^4)
 
-            sage: MFSeriesConstructor(group=5, prec=3).F_inf().parent()
+            sage: MFSeriesConstructor(group=5, prec=3).f_inf().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).F_inf().parent()
+            sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_inf().parent()
             Power Series Ring in q over Real Field with 53 bits of precision
         """
 
-        return self._d*self.F_inf_ZZ()(self._qseries_ring.gen()/self._d)
+        return self._d*self.f_inf_ZZ()(self._qseries_ring.gen()/self._d)
 
     @cached_method
     def G_inv_ZZ(self):
@@ -621,7 +621,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         n = self.hecke_n()
         if (ZZ(2).divides(n)):
-            return self.F_i_ZZ()*(self.F_rho_ZZ()**(ZZ(n/ZZ(2))))/self.F_inf_ZZ()
+            return self.f_i_ZZ()*(self.f_rho_ZZ()**(ZZ(n/ZZ(2))))/self.f_inf_ZZ()
         else:
             #return self._qseries_ring([])
             raise Exception("G_inv doesn't exist for n={}.".format(self.hecke_n()))
@@ -810,7 +810,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         """
 
         q = self._ZZseries_ring.gen()
-        E2_ZZ = (q*self.F_inf_ZZ().derivative())/self.F_inf_ZZ()
+        E2_ZZ = (q*self.f_inf_ZZ().derivative())/self.f_inf_ZZ()
         return E2_ZZ
 
     @cached_method

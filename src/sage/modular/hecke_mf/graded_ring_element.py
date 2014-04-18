@@ -66,10 +66,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     def __init__(self, parent, rat):
         r"""
         Element of a FormsRing ``parent`` corresponding to the rational
-        function ``rat`` evaluated at ``x=F_rho``, ``y=F_i``, ``z=E2``
+        function ``rat`` evaluated at ``x=f_rho``, ``y=f_i``, ``z=E2``
         and ``d`` by the formal parameter from ``parent.coeff_ring()``.
 
-        The functions ``F_rho, F_i, E2`` can be obtained from
+        The functions ``f_rho, f_i, E2`` can be obtained from
         ``self.parent().graded_ring()``.
 
         INPUT:
@@ -305,7 +305,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: x,y,z,d = var("x,y,z,d")
             sage: QModularFormsRing()(x+y).weight() is None
             True
-            sage: ModularForms(group=18).F_i().weight()
+            sage: ModularForms(group=18).f_i().weight()
             9/4
         """
 
@@ -322,7 +322,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: x,y,z,d = var("x,y,z,d")
             sage: QModularFormsRing()(x+y).ep() is None
             True
-            sage: ModularForms(group=18).F_i().ep()
+            sage: ModularForms(group=18).f_i().ep()
             -1
         """
 
@@ -341,7 +341,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: x,y,z,d = var("x,y,z,d")
             sage: QModularFormsRing()(x+y).degree() == (None, None)
             True
-            sage: ModularForms(group=18).F_i().degree()
+            sage: ModularForms(group=18).f_i().degree()
             (9/4, -1)
         """
 
@@ -361,7 +361,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
             sage: QModularFormsRing(group=5)(x^2+y-d+z).is_modular()
             False
-            sage: QModularForms(group=18).F_i().is_modular()
+            sage: QModularForms(group=18).f_i().is_modular()
             True
             sage: QModularForms(group=18).E2().is_modular()
             False
@@ -407,7 +407,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
             sage: QMModularForms(group=18).J_inv().is_holomorphic()
             False
-            sage: QMModularForms(group=18).F_i().is_holomorphic()
+            sage: QMModularForms(group=18).f_i().is_holomorphic()
             True
         """
 
@@ -430,7 +430,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             True
             sage: QModularForms(group=18).Delta().is_cuspidal()
             True
-            sage: QModularForms(group=18).F_rho().is_cuspidal()
+            sage: QModularForms(group=18).f_rho().is_cuspidal()
             False
         """
 
@@ -833,7 +833,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                              of differential operators generated
                              by ``X, Y, Z, dX, dY, DZ``, where e.g. ``X``
                              corresponds to the multiplication by ``x``
-                             (resp. ``F_rho``) and ``dX`` corresponds to ``d/dx``.
+                             (resp. ``f_rho``) and ``dX`` corresponds to ``d/dx``.
 
                              To expect a homogeneous result after applying
                              the operator to a homogeneous element it should
@@ -921,19 +921,19 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: n = MR.hecke_n()
             sage: E2 = MR.E2().full_reduce()
             sage: E6 = MR.E6().full_reduce()
-            sage: F_rho = MR.F_rho().full_reduce()
-            sage: F_i = MR.F_i().full_reduce()
-            sage: F_inf = MR.F_inf().full_reduce()
+            sage: f_rho = MR.f_rho().full_reduce()
+            sage: f_i = MR.f_i().full_reduce()
+            sage: f_inf = MR.f_inf().full_reduce()
 
-            sage: derivative(F_rho) == 1/n * (F_rho*E2 - F_i)
+            sage: derivative(f_rho) == 1/n * (f_rho*E2 - f_i)
             True
-            sage: derivative(F_i)   == 1/2 * (F_i*E2 - F_rho**(n-1))
+            sage: derivative(f_i)   == 1/2 * (f_i*E2 - f_rho**(n-1))
             True
-            sage: derivative(F_inf) == F_inf * E2
+            sage: derivative(f_inf) == f_inf * E2
             True
-            sage: derivative(F_inf).parent()
+            sage: derivative(f_inf).parent()
             QuasiCuspForms(n=7, k=38/5, ep=-1) over Integer Ring
-            sage: derivative(E2)    == (n-2)/(4*n) * (E2**2 - F_rho**(n-2))
+            sage: derivative(E2)    == (n-2)/(4*n) * (E2**2 - f_rho**(n-2))
             True
             sage: derivative(E2).parent()
             QuasiModularForms(n=7, k=4, ep=1) over Integer Ring
@@ -965,15 +965,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: E2 = MR.E2().full_reduce()
             sage: E4 = MR.E4().full_reduce()
             sage: E6 = MR.E6().full_reduce()
-            sage: F_rho = MR.F_rho().full_reduce()
-            sage: F_i = MR.F_i().full_reduce()
-            sage: F_inf = MR.F_inf().full_reduce()
+            sage: f_rho = MR.f_rho().full_reduce()
+            sage: f_i = MR.f_i().full_reduce()
+            sage: f_inf = MR.f_inf().full_reduce()
 
-            sage: F_rho.serre_derivative() == -1/n * F_i
+            sage: f_rho.serre_derivative() == -1/n * f_i
             True
-            sage: F_i.serre_derivative()   == -1/2 * E4 * F_rho
+            sage: f_i.serre_derivative()   == -1/2 * E4 * f_rho
             True
-            sage: F_inf.serre_derivative() == 0
+            sage: f_inf.serre_derivative() == 0
             True
             sage: E2.serre_derivative()    == -(n-2)/(4*n) * (E2^2 + E4)
             True
@@ -1249,10 +1249,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             # would instead give "prec" many significant coefficients:
             # prec += self.order_inf()
 
-        #dhom  = self.rat_field().hom([SC.F_rho_ZZ(), SC.F_i_ZZ(), SC.E2_ZZ(), SC.d()],SC.coeff_ring())
+        #dhom  = self.rat_field().hom([SC.f_rho_ZZ(), SC.f_i_ZZ(), SC.E2_ZZ(), SC.d()],SC.coeff_ring())
         SC    = MFSeriesConstructor(self.group(), self.base_ring(), prec, fix_d, set_d, d_num_prec)
-        X     = SC.F_rho()
-        Y     = SC.F_i()
+        X     = SC.f_rho()
+        Y     = SC.f_i()
         D     = SC.d()
         q     = SC._qseries_ring.gen()
         if (self.parent().is_modular()):
@@ -1468,10 +1468,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         #. Else:
 
-           #. Evaluate ``F_rho, F_i, E2`` at ``tau``
+           #. Evaluate ``f_rho, f_i, E2`` at ``tau``
               using the above procedures.
 
-           #. Substitute ``x=F_rho(tau), y=F_i(tau), z=E2(tau)``
+           #. Substitute ``x=f_rho(tau), y=f_i(tau), z=E2(tau)``
               and the numerical value of ``d`` for ``d``
               in ``self.rat()``.
 
@@ -1480,18 +1480,18 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: from sage.modular.hecke_mf.graded_ring import QMModularFormsRing
             sage: MR = QMModularFormsRing(group=5, red_hom=True)
-            sage: F_rho = MR.F_rho().full_reduce()
-            sage: F_i   = MR.F_i().full_reduce()
-            sage: F_inf = MR.F_inf().full_reduce()
+            sage: f_rho = MR.f_rho().full_reduce()
+            sage: f_i   = MR.f_i().full_reduce()
+            sage: f_inf = MR.f_inf().full_reduce()
             sage: E2    = MR.E2().full_reduce()
             sage: E4    = MR.E4().full_reduce()
             sage: rho   = MR.group().rho()
 
-            sage: F_rho(rho)  # rel tol 1e-8
+            sage: f_rho(rho)  # rel tol 1e-8
             7.92477417022042e-10 + 3.21684682133615e-16*I
-            sage: F_i(i)      # rel tol 1e-8
+            sage: f_i(i)      # rel tol 1e-8
             6.07291994469961e-14
-            sage: F_inf(infinity)
+            sage: f_inf(infinity)
             0
 
             sage: z = -1/(-1/(2*i+30)-1)
@@ -1514,7 +1514,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             0
             sage: (1/(E2^2-E4))(infinity)
             +Infinity
-            sage: ((E2^2-E4)/F_inf)(infinity)
+            sage: ((E2^2-E4)/f_inf)(infinity)
             -3/(10*d)
         """
 
@@ -1555,8 +1555,8 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             E2_cor_term = 4*self.group().lam()/(2*pi*i).n(num_prec)*self.hecke_n()/(self.hecke_n()-2) * A[1][0]*(A[1][0]*w + A[1][1])
             return E2_wvalue*aut_factor + E2_cor_term
         else:
-            F_rho = self.parent().graded_ring().F_rho()
-            F_i   = self.parent().graded_ring().F_i()
+            f_rho = self.parent().graded_ring().f_rho()
+            f_i   = self.parent().graded_ring().f_i()
             E2    = self.parent().graded_ring().E2()
             dval  = self.parent().group().dvalue().n(num_prec)
-            return self._rat.subs(x=F_rho(tau), y=F_i(tau), z=E2(tau), d=dval)
+            return self._rat.subs(x=f_rho(tau), y=f_i(tau), z=E2(tau), d=dval)

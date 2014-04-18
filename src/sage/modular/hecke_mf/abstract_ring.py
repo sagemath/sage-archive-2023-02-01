@@ -307,14 +307,14 @@ class FormsRing_abstract(Parent):
             0.00000000000000000000000000000
 
             sage: MF = ModularForms(group=5, k=4/3)
-            sage: F_rho = MF.F_rho()
-            sage: F_rho.q_expansion(prec=2)[1]
+            sage: f_rho = MF.f_rho()
+            sage: f_rho.q_expansion(prec=2)[1]
             7/(100*d)
             sage: MF.default_num_prec(10)
-            sage: F_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-1
+            sage: f_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-1
             9.9
             sage: MF.default_num_prec(100)
-            sage: F_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-25
+            sage: f_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-25
             9.9259324351079591527601778294
         """
 
@@ -922,13 +922,13 @@ class FormsRing_abstract(Parent):
         return self.extend_type("weak", ring=True)(1/d*x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
     @cached_method
-    def F_rho(self):
+    def f_rho(self):
         r"""
-        Return the generator ``F_rho`` of the graded ring of ``self``.
-        Up to the group action ``F_rho`` has exactly one simple zero at ``rho``. ``F_rho`` is
+        Return the generator ``f_rho`` of the graded ring of ``self``.
+        Up to the group action ``f_rho`` has exactly one simple zero at ``rho``. ``f_rho`` is
         normalized such that its first nontrivial Fourier coefficient is ``1``.
 
-        The polynomial variable ``x`` exactly corresponds to ``F_rho``.
+        The polynomial variable ``x`` exactly corresponds to ``f_rho``.
 
         It lies in a (cuspidal) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -938,32 +938,32 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.hecke_mf.graded_ring import QMModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing(group=7)
-            sage: F_rho = MR.F_rho()
-            sage: F_rho in MR
+            sage: f_rho = MR.f_rho()
+            sage: f_rho in MR
             True
-            sage: CuspFormsRing(group=7).F_rho() == F_rho
+            sage: CuspFormsRing(group=7).f_rho() == f_rho
             True
-            sage: F_rho
+            sage: f_rho
             f_rho
-            sage: QMModularFormsRing(group=7).F_rho() == QMModularFormsRing(group=7)(F_rho)
+            sage: QMModularFormsRing(group=7).f_rho() == QMModularFormsRing(group=7)(f_rho)
             True
 
             sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
             sage: MF = ModularForms(group=5, k=4/3)
-            sage: F_rho = MF.F_rho()
-            sage: F_rho in MF
+            sage: f_rho = MF.f_rho()
+            sage: f_rho in MF
             True
-            sage: ModularFormsRing(group=5, red_hom=True).F_rho() == F_rho
+            sage: ModularFormsRing(group=5, red_hom=True).f_rho() == f_rho
             True
-            sage: CuspForms(group=5, k=12).F_rho() == F_rho
+            sage: CuspForms(group=5, k=12).f_rho() == f_rho
             True
             sage: MF.disp_prec(3)
-            sage: F_rho
+            sage: f_rho
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
 
-            sage: ModularForms(k=4).F_rho() == ModularForms(k=4).E4()
+            sage: ModularForms(k=4).f_rho() == ModularForms(k=4).E4()
             True
-            sage: ModularForms(k=4).F_rho()
+            sage: ModularForms(k=4).f_rho()
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
         """
 
@@ -971,13 +971,13 @@ class FormsRing_abstract(Parent):
         return self.extend_type("holo", ring=True)(x).reduce()
 
     @cached_method
-    def F_i(self):
+    def f_i(self):
         r"""
-        Return the generator ``F_i`` of the graded ring of ``self``.
-        Up to the group action ``F_i`` has exactly one simple zero at ``i``. ``F_i`` is
+        Return the generator ``f_i`` of the graded ring of ``self``.
+        Up to the group action ``f_i`` has exactly one simple zero at ``i``. ``f_i`` is
         normalized such that its first nontrivial Fourier coefficient is ``1``.
 
-        The polynomial variable ``y`` exactly corresponds to ``F_i``.
+        The polynomial variable ``y`` exactly corresponds to ``f_i``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -987,32 +987,32 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.hecke_mf.graded_ring import QMModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing(group=7)
-            sage: F_i = MR.F_i()
-            sage: F_i in MR
+            sage: f_i = MR.f_i()
+            sage: f_i in MR
             True
-            sage: CuspFormsRing(group=7).F_i() == F_i
+            sage: CuspFormsRing(group=7).f_i() == f_i
             True
-            sage: F_i
+            sage: f_i
             f_i
-            sage: QMModularFormsRing(group=7).F_i() == QMModularFormsRing(group=7)(F_i)
+            sage: QMModularFormsRing(group=7).f_i() == QMModularFormsRing(group=7)(f_i)
             True
 
             sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
             sage: MF = ModularForms(group=5, k=10/3)
-            sage: F_i = MF.F_i()
-            sage: F_i in MF
+            sage: f_i = MF.f_i()
+            sage: f_i in MF
             True
-            sage: ModularFormsRing(group=5, red_hom=True).F_i() == F_i
+            sage: ModularFormsRing(group=5, red_hom=True).f_i() == f_i
             True
-            sage: CuspForms(group=5, k=12).F_i() == F_i
+            sage: CuspForms(group=5, k=12).f_i() == f_i
             True
             sage: MF.disp_prec(3)
-            sage: F_i
+            sage: f_i
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
 
-            sage: ModularForms(k=6).F_i() == ModularForms(k=4).E6()
+            sage: ModularForms(k=6).f_i() == ModularForms(k=4).E6()
             True
-            sage: ModularForms(k=6).F_i()
+            sage: ModularForms(k=6).f_i()
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 + O(q^5)
         """
 
@@ -1020,11 +1020,11 @@ class FormsRing_abstract(Parent):
         return self.extend_type("holo", ring=True)(y).reduce()
 
     @cached_method
-    def F_inf(self):
+    def f_inf(self):
         r"""
-        Return the first nontrivial cusp form ``F_inf`` of the graded ring of ``self``.
-        Up to the group action ``F_inf`` has exactly one simple zero at ``infinity``.
-        ``F_inf`` is normalized such that its first nontrivial Fourier coefficient is ``1``.
+        Return the first nontrivial cusp form ``f_inf`` of the graded ring of ``self``.
+        Up to the group action ``f_inf`` has exactly one simple zero at ``infinity``.
+        ``f_inf`` is normalized such that its first nontrivial Fourier coefficient is ``1``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1034,30 +1034,30 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.hecke_mf.graded_ring import QMModularFormsRing, CuspFormsRing
             sage: MR = CuspFormsRing(group=7)
-            sage: F_inf = MR.F_inf()
-            sage: F_inf in MR
+            sage: f_inf = MR.f_inf()
+            sage: f_inf in MR
             True
-            sage: F_inf
+            sage: f_inf
             f_rho^7*d - f_i^2*d
-            sage: QMModularFormsRing(group=7).F_inf() == QMModularFormsRing(group=7)(F_inf)
+            sage: QMModularFormsRing(group=7).f_inf() == QMModularFormsRing(group=7)(f_inf)
             True
 
             sage: from sage.modular.hecke_mf.space import CuspForms
             sage: MF = CuspForms(group=5, k=20/3)
-            sage: F_inf = MF.F_inf()
-            sage: F_inf in MF
+            sage: f_inf = MF.f_inf()
+            sage: f_inf in MF
             True
-            sage: CuspFormsRing(group=5, red_hom=True).F_inf() == F_inf
+            sage: CuspFormsRing(group=5, red_hom=True).f_inf() == f_inf
             True
-            sage: CuspForms(group=5, k=0).F_inf() == F_inf
+            sage: CuspForms(group=5, k=0).f_inf() == f_inf
             True
             sage: MF.disp_prec(3)
-            sage: F_inf
+            sage: f_inf
             q - 9/(200*d)*q^2 + O(q^3)
 
-            sage: CuspForms(k=12).F_inf() == CuspForms(k=12).Delta()
+            sage: CuspForms(k=12).f_inf() == CuspForms(k=12).Delta()
             True
-            sage: CuspForms(k=12).F_inf()
+            sage: CuspForms(k=12).f_inf()
             q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)
         """
 
@@ -1172,7 +1172,7 @@ class FormsRing_abstract(Parent):
     def E4(self):
         r"""
         Return the normalized Eisenstein series of weight ``4`` of the graded ring of ``self``.
-        It is equal to ``F_rho^(n-2)``.
+        It is equal to ``f_rho^(n-2)``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1205,7 +1205,7 @@ class FormsRing_abstract(Parent):
             sage: E4
             1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
 
-            sage: ModularForms(k=4).F_rho() == ModularForms(k=4).E4()
+            sage: ModularForms(k=4).f_rho() == ModularForms(k=4).E4()
             True
             sage: ModularForms(k=4).E4()
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + O(q^5)
@@ -1218,7 +1218,7 @@ class FormsRing_abstract(Parent):
     def E6(self):
         r"""
         Return the normalized Eisenstein series of weight ``6`` of the graded ring of ``self``,
-        It is equal to ``F_rho^(n-3) * F_i``.
+        It is equal to ``f_rho^(n-3) * f_i``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
@@ -1251,7 +1251,7 @@ class FormsRing_abstract(Parent):
             sage: E6
             1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
 
-            sage: ModularForms(k=6).F_i() == ModularForms(k=6).E6()
+            sage: ModularForms(k=6).f_i() == ModularForms(k=6).E6()
             True
             sage: ModularForms(k=6).E6()
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 + O(q^5)
@@ -1300,7 +1300,7 @@ class FormsRing_abstract(Parent):
             sage: Delta == (d*(ModularForms(group=5).E4()^3-ModularForms(group=5).E6()^2))
             True
 
-            sage: CuspForms(k=12).F_inf() == CuspForms(k=12).Delta()
+            sage: CuspForms(k=12).f_inf() == CuspForms(k=12).Delta()
             True
             sage: CuspForms(k=12).Delta()
             q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)
@@ -1347,8 +1347,8 @@ class FormsRing_abstract(Parent):
             sage: E2
             1 - 9/(200*d)*q - 369/(320000*d^2)*q^2 + O(q^3)
 
-            sage: F_inf = MF.F_inf()
-            sage: E2 == F_inf.derivative() / F_inf
+            sage: f_inf = MF.f_inf()
+            sage: E2 == f_inf.derivative() / f_inf
             True
 
             sage: QModularForms(k=2).E2()

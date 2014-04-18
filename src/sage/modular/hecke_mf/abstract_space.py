@@ -664,7 +664,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         parameters ``l1=self._l1`` and ``l2=self._l2``. If the element does not lie in
         ``self`` the type of its parent is extended accordingly.
 
-        The main part of the element is given by a power (``l1``) of ``F_inf``,
+        The main part of the element is given by a power (``l1``) of ``f_inf``,
         up to a small holomorphic correction factor.
 
         EXAMPLES::
@@ -674,7 +674,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.disp_prec(1)
             sage: MF.F_simple()
             q^-3 + 16/(81*d)*q^-2 - 4775/(104976*d^2)*q^-1 - 14300/(531441*d^3) + O(q)
-            sage: MF.F_simple() == MF.F_inf()^MF._l1 * MF.F_rho()^MF._l2 * MF.F_i()
+            sage: MF.F_simple() == MF.f_inf()^MF._l1 * MF.f_rho()^MF._l2 * MF.f_i()
             True
 
             sage: from sage.modular.hecke_mf.space import CuspForms
@@ -936,7 +936,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         OUTPUT:
 
-        A polynomial in ``x,y,z,d``, corresponding to ``F_rho, F_i, E2``
+        A polynomial in ``x,y,z,d``, corresponding to ``f_rho, f_i, E2``
         and the (possibly) transcendental parameter ``d``.
 
         EXAMPLES::

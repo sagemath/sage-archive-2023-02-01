@@ -152,7 +152,7 @@ class QWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "weak"])
 
-# TODO: a quasi modular form here means that it is a polynomial in F_rho, F_i, E2
+# TODO: a quasi modular form here means that it is a polynomial in f_rho, f_i, E2
 class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) quasi modular forms
@@ -770,7 +770,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: MF.default_prec(4)
             sage: MF.dimension()
             2
-            sage: el = MF(MF.F_i()*MF.Delta())
+            sage: el = MF(MF.f_i()*MF.Delta())
             sage: el
             q - 1/(288*d)*q^2 - 96605/(1327104*d^2)*q^3 + O(q^4)
             sage: vec = el.coordinate_vector()

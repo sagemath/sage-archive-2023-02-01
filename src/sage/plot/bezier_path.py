@@ -112,7 +112,7 @@ class BezierPath(GraphicPrimitive_xydata):
             del options['thickness']
         if 'fill' in options:
             if options['fill']:
-                raise NotImplementedError, "Invalid 3d fill style.  Must set fill to False."
+                raise NotImplementedError("Invalid 3d fill style.  Must set fill to False.")
             del options['fill']
         if 'linestyle' in options:
             if options['linestyle'] not in ('solid', '-'):

@@ -67,7 +67,7 @@ def MeetSemilattice(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_meet_semilattice():
-        raise ValueError, "Not a meet semilattice."
+        raise ValueError("Not a meet semilattice.")
     return FiniteMeetSemilattice(P)
 
 class FiniteMeetSemilattice(FinitePoset):
@@ -191,7 +191,7 @@ def JoinSemilattice(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_join_semilattice():
-        raise ValueError, "Not a join semilattice."
+        raise ValueError("Not a join semilattice.")
     return FiniteJoinSemilattice(P)
 
 class FiniteJoinSemilattice(FinitePoset):
@@ -328,7 +328,7 @@ def LatticePoset(data, *args, **options):
         return data
     P = Poset(data, *args, **options)
     if not P.is_lattice():
-        raise ValueError, "Not a lattice."
+        raise ValueError("Not a lattice.")
 
     return FiniteLatticePoset(P, category = FiniteLatticePosets(), facade = P._is_facade)
 

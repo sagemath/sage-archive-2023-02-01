@@ -652,7 +652,7 @@ class FiniteDimensionalAlgebra(Algebra):
             ValueError: algebra is not local
         """
         if self.degree() == 0:
-            raise ValueError, "the zero algebra is not local"
+            raise ValueError("the zero algebra is not local")
         if not(self.is_unitary() and self.is_commutative()
                and (self._assume_associative or self.is_associative())):
             raise TypeError("algebra must be unitary, commutative and associative")

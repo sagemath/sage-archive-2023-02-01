@@ -354,4 +354,4 @@ def circle(center, radius, **options):
     elif len(center)==3:
         return g[0].plot3d(z=center[2])
     else:
-        raise ValueError, 'The center of a plotted circle should have two or three coordinates.'
+        raise ValueError('The center of a plotted circle should have two or three coordinates.')

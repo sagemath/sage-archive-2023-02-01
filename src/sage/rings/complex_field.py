@@ -504,7 +504,7 @@ class ComplexField_class(field.Field):
             1.00000000000000*I
         """
         if n != 0:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
         return complex_number.ComplexNumber(self, 0, 1)
 
     def is_field(self, proof = True):

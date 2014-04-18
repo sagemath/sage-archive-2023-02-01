@@ -356,7 +356,7 @@ class Polynomial_generic_sparse(Polynomial):
         value = self.base_ring()(value)
         x = self.__coeffs
         if n < 0:
-            raise IndexError, "polynomial coefficient index must be nonnegative"
+            raise IndexError("polynomial coefficient index must be nonnegative")
         if value == 0:
             if n in x:
                 del x[n]
@@ -611,7 +611,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         """
         P = self.parent()
         if other.is_zero():
-            raise ZeroDivisionError, "other must be nonzero"
+            raise ZeroDivisionError("other must be nonzero")
 
         # This is algorithm 3.1.1 in Cohen GTM 138
         A = self

@@ -498,7 +498,7 @@ class Category(UniqueRepresentation, SageObject):
                 self._label = s
                 self.__repr_object_names = s
             else:
-                raise TypeError, "Argument string must be a string."
+                raise TypeError("Argument string must be a string.")
         self.__class__ = dynamic_class("%s_with_category"%self.__class__.__name__,
                                        (self.__class__, self.subcategory_class, ),
                                        cache = False, reduction = None,
@@ -1574,7 +1574,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         categories = tuple(categories)
         if len(categories) == 0:
-            raise ValueError, "The meet of an empty list of categories is not implemented"
+            raise ValueError("The meet of an empty list of categories is not implemented")
         result = categories[0]
         for category in categories[1:]:
             result = result._meet_(category)
@@ -2414,7 +2414,7 @@ class HomCategory(Category):
         for C in self._all_super_categories_proper:
             if isinstance(C,Category_over_base):
                 return C.base()
-        raise AttributeError, "This hom category has no base"
+        raise AttributeError("This hom category has no base")
 
     def super_categories(self):
         """

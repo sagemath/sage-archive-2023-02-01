@@ -503,7 +503,7 @@ def check_dtrs_protocols(input_name, input_pv):
     ipv_major, ipv_minor = input_pv.split('.')
     if ppv_major != ipv_major or int(ppv_minor) < int(ipv_minor):
         msg = ('''Incompatible dtrs_protocols: program: %s %s: %s''' % (program_pv, input_name, input_pv))
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
 def open_extrep_file(fname):
     """
@@ -717,7 +717,7 @@ class XTree(object):
                             return grandchild
         msg = '"%s" is not found in attributes of %s or its children.' % \
               (attr, self)
-        raise AttributeError, msg
+        raise AttributeError(msg)
 
     def __getitem__(self, i):
         """
@@ -901,7 +901,7 @@ class XTreeProcessor(object):
                     elif children[0][0] == 'd':
                         convert = float
                     else:
-                        raise NotImplementedError, 'rational numbers'
+                        raise NotImplementedError('rational numbers')
                     ps = []
                     for x in children:
                         ps.append(convert(''.join(x[2])))

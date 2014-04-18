@@ -276,7 +276,7 @@ class Sets(Category_singleton):
             from sage.categories.examples.sets_cat import PrimeNumbers_Wrapper
             return PrimeNumbers_Wrapper()
         else:
-            raise ValueError, "Unkown choice"
+            raise ValueError("Unkown choice")
 
     class SubcategoryMethods:
 
@@ -318,26 +318,37 @@ class Sets(Category_singleton):
 
             A parent `A` in ``As()`` is further in ``As().Subquotients()`` if
             there is a distinguished parent `B` in ``As()``, called the
-            *ambient space*, a subspace `B'` of `B` and a pair of *structure
-            preserving* maps:
+            *ambient set*, a subset `B'` of `B`, and a pair of maps:
 
             .. math::
 
-                l: A \mapsto B'  \text{ and }  r: B' \mapsto A
+                l: A \to B'  \text{ and }  r: B' \to A
 
-            called respectively the *lifting map* and *retract map* such that
-            `r \circ l` is the identity of `A`. What exactly *structure
-            preserving* means is explicited in each category; this typically
-            states that, for each operation `op` of the category, there is a
-            commutative diagram such that:
+            called respectively the *lifting map* and *retract map*
+            such that `r \circ l` is the identity of `A` and `r` is
+            *structure preserving*. What exactly *structure
+            preserving* means is explicited in each category; this
+            typically states that, for each operation `op` of the
+            category, there is a commutative diagram such that:
 
                 for all `e\in A`, one has `op_A(e) = r(op_B(l(e)))`
 
             This allows for deriving the operations on `A` from those on `B`.
 
-            Note: this is a slightly weaker definition than that found on
-            http://en.wikipedia.org/wiki/Subquotient: B' is not necessarily
-            required to be a subobject of B.
+            The two most common use cases are:
+
+             - *homomorphic images* (or *quotients* by *kernels*),
+               when `A'=A`, `r` is an homomorphism from `B` to `A`
+               (typically a canonical quotient map), and `l` a section
+               of it.
+
+             - *subobjects*, when `l` is an embedding from `B` into `A`.
+
+            .. NOTE::
+
+                This is a slightly weaker definition than that found
+                on :wikipedia:`Subquotient`; indeed `B'` is not
+                necessarily required to be a subobject of `B`.
 
             Assumptions:
 
@@ -357,7 +368,7 @@ class Sets(Category_singleton):
             - If the user (or a program) calls ``As().Subquotients()``, then it is
               assumed that subquotients are well defined in this category. This is not
               checked, and probably never will. Note that, if a category `As()` does
-              not specify anything about its subquotients, then it's subquotient
+              not specify anything about its subquotients, then its subquotient
               category looks like this::
 
                  sage: EuclideanDomains().Subquotients()
@@ -381,12 +392,6 @@ class Sets(Category_singleton):
 
             .. TODO:: use a more interesting example, like `\ZZ/n\ZZ`.
 
-            The two most common use cases are:
-
-             - *quotients*, when `A'=A` and `r` is a morphism; then `r` is a
-               canonical quotient map from `A` to `B`.
-             - *subobjects*, when `l` is an embedding from `B` into `A`.
-
             .. SEEALSO::
 
                 - :meth:`Quotients`, :meth:`Subobjects`, :meth:`IsomorphicObjects`
@@ -405,9 +410,10 @@ class Sets(Category_singleton):
             Return the full subcategory of the objects of ``self`` constructed as quotients.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
-            ``Sets()``), ``As().Quotients()`` returns the category of objects
-            of ``As()`` endowed with a distinguished description as
-            quotient of some other object of ``As()``.
+            ``Sets()``), ``As().Quotients()`` returns the category of
+            objects of ``As()`` endowed with a distinguished
+            description as quotient (in fact homomorphic image) of
+            some other object of ``As()``.
 
             .. SEEALSO::
 

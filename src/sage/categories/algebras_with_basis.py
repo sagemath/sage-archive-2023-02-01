@@ -222,7 +222,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             if len(mcs) == 1 and one in mcs:
                 return self.parent()( ~mcs[ one ] )
             else:
-                raise ValueError, "cannot invert self (= %s)"%self
+                raise ValueError("cannot invert self (= %s)"%self)
 
 
     class CartesianProducts(CartesianProductsCategory):

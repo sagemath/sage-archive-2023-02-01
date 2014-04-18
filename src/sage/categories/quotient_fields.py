@@ -111,7 +111,7 @@ class QuotientFields(Category_singleton):
             try:
                 other = self.parent()(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -190,7 +190,7 @@ class QuotientFields(Category_singleton):
             try:
                 other = self.parent()(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()

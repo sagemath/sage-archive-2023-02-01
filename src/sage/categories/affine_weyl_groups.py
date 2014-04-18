@@ -158,7 +158,7 @@ class AffineWeylGroups(Category_singleton):
             from sage.combinat.partition import Partition
             from sage.combinat.core import Core
             if not self.is_affine_grassmannian() or not self.parent().cartan_type().letter == 'A':
-                raise ValueError, "Error! this only works on type 'A' affine Grassmannian elements"
+                raise ValueError("Error! this only works on type 'A' affine Grassmannian elements")
             out = Partition([])
             rword = self.reduced_word()
             kp1 = self.parent().n

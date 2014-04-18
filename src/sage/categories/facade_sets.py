@@ -36,7 +36,7 @@ class FacadeSets(CategoryWithAxiom):
         elif choice == 'subset':
             return examples.PositiveIntegerMonoid()
         else:
-            raise TypeError, "choice should be 'union' or 'subset'"
+            raise TypeError("choice should be 'union' or 'subset'")
 
     class ParentMethods:
 
@@ -98,7 +98,7 @@ class FacadeSets(CategoryWithAxiom):
                         return parent(element)
                     except Exception:
                         pass
-            raise ValueError, "Can't coerce `%s` in any parent `%s` is a facade for"%(element, self)
+            raise ValueError("Can't coerce `%s` in any parent `%s` is a facade for"%(element, self))
 
         def facade_for(self):
             """

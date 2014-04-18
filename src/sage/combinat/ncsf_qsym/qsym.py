@@ -1453,7 +1453,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     M = self.parent().realization_of().Monomial()
                     return M( self ).to_symmetric_function()
                 else:
-                    raise ValueError, "%s is not a symmetric function"%self
+                    raise ValueError("%s is not a symmetric function"%self)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1923,7 +1923,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     return m.sum_of_terms([(I, coeff) for (I, coeff) in self
                         if list(I) in _Partitions], distinct=True)
                 else:
-                    raise ValueError, "%s is not a symmetric function"%self
+                    raise ValueError("%s is not a symmetric function"%self)
 
     M = Monomial
 

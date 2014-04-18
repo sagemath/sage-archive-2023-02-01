@@ -160,7 +160,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if M.base_ring() != self.base_ring():
                 M = M.change_ring(self.base_ring())
         except (TypeError, AttributeError) as msg:
-            raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
+            raise TypeError("%s\nunable to coerce x (=%s) into %s"%(msg,x,self))
         return M
 
     def is_abelian(self):
@@ -485,7 +485,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if len(self) == 1:
                 return self.support()[0]
             else:
-                raise ValueError, "%s is not a single term"%(self)
+                raise ValueError("%s is not a single term"%(self))
 
         def leading_support(self, cmp=None):
             r"""
@@ -1092,7 +1092,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: B = HopfAlgebrasWithBasis(QQ).example(); B
                     An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
                     sage: A.an_element(), B.an_element()
-                    (B[word: ] + 2*B[word: a] + 3*B[word: b], B[()] + 2*B[(2,3)] + 3*B[(1,2)] + B[(1,2,3)])
+                    (2*B[word: ] + 2*B[word: a] + 3*B[word: b], B[()] + 2*B[(2,3)] + 3*B[(1,2)] + B[(1,2,3)])
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """
@@ -1736,7 +1736,7 @@ class TriangularModuleMorphism(ModuleMorphismByLinearity):
             1/2*B[2] - 1/2*B[3]
         """
         if not self._invertible:
-            raise ValueError, "Non invertible morphism"
+            raise ValueError("Non invertible morphism")
         else:
             return self.section()
 

@@ -155,8 +155,7 @@ class ChooseNK(CombinatorialClass):
             sage: ChooseNK(5,2).random_element()
             [0, 2]
         """
-        r = rnd.sample(xrange(self._n),self._k)
-        r.sort()
+        r = sorted(rnd.sample(xrange(self._n),self._k))
         return r
 
     def unrank(self, r):
@@ -169,7 +168,7 @@ class ChooseNK(CombinatorialClass):
             True
         """
         if r < 0 or r >= self.cardinality():
-            raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.cardinality()-1)
+            raise ValueError("rank must be between 0 and %s (inclusive)"%(self.cardinality()-1))
         return from_rank(r, self._n, self._k)
 
     def rank(self, x):
@@ -217,7 +216,7 @@ def rank(comb, n):
 
     k = len(comb)
     if k > n:
-        raise ValueError, "len(comb) must be <= n"
+        raise ValueError("len(comb) must be <= n")
 
     #Generate the combinadic from the
     #combination
@@ -285,9 +284,9 @@ def from_rank(r, n, k):
         [0, 1, 2]
     """
     if k < 0:
-        raise ValueError, "k must be > 0"
+        raise ValueError("k must be > 0")
     if k > n:
-        raise ValueError, "k must be <= n"
+        raise ValueError("k must be <= n")
 
     a = n
     b = k

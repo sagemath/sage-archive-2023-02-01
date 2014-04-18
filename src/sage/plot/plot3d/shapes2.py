@@ -134,7 +134,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     """
     points = list(points)
     if len(points) < 2:
-        raise ValueError, "there must be at least 2 points"
+        raise ValueError("there must be at least 2 points")
     for i in range(len(points)):
         x, y, z = points[i]
         points[i] = float(x), float(y), float(z)
@@ -144,7 +144,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         return L
     else:
         v = []
-        if kwds.has_key('texture'):
+        if 'texture' in kwds:
             kwds = kwds.copy()
             texture = kwds.pop('texture')
         else:
@@ -490,7 +490,7 @@ def ruler(start, end, ticks=4, sub_ticks=4, absolute=False, snap=False, **kwds):
 
     if absolute:
         if dir[0]*dir[1] or dir[1]*dir[2] or dir[0]*dir[2]:
-            raise ValueError, "Absolute rulers only valid for axis-aligned paths"
+            raise ValueError("Absolute rulers only valid for axis-aligned paths")
         m = max(dir[0], dir[1], dir[2])
         if dir[0] == m:
             off = start[0]
@@ -607,7 +607,7 @@ def sphere(center=(0,0,0), size=1, **kwds):
     H._set_extra_kwds(kwds)
     return H
 
-def text3d(txt, (x,y,z), **kwds):
+def text3d(txt, x_y_z, **kwds):
     r"""
     Display 3d text.
 
@@ -616,14 +616,14 @@ def text3d(txt, (x,y,z), **kwds):
 
     -  ``txt`` - some text
 
-    -  ``(x,y,z)`` - position
+    -  ``(x,y,z)`` - position tuple `(x,y,z)`
 
     -  ``**kwds`` - standard 3d graphics options
 
 
     .. note::
 
-       There is no way to change the font size or opacity yet.
+        There is no way to change the font size or opacity yet.
 
     EXAMPLES: We write the word Sage in red at position (1,2,3)::
 
@@ -644,7 +644,8 @@ def text3d(txt, (x,y,z), **kwds):
 
         sage: text3d("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text3d("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
     """
-    if not kwds.has_key('color') and not kwds.has_key('rgbcolor'):
+    (x, y, z) = x_y_z 
+    if 'color' not in kwds and 'rgbcolor' not in kwds:
         kwds['color'] = (0,0,0)
     G = Text(txt, **kwds).translate((x,y,z))
     G._set_extra_kwds(kwds)
@@ -797,7 +798,7 @@ class Line(PrimitiveObject):
             ([(1, 2, 3), (1, 2, 2), (-1, 2, 2), (-1, 3, 2)], False)
         """
         if len(points) < 2:
-            raise ValueError, "there must be at least 2 points"
+            raise ValueError("there must be at least 2 points")
         PrimitiveObject.__init__(self, **kwds)
         self.points = points
         self.thickness = thickness
@@ -963,7 +964,9 @@ class Line(PrimitiveObject):
             cur, prev_dir = next, next_dir
 
             # quicker than making them vectors first
-            def dot((x0,y0,z0), (x1,y1,z1)):
+            def dot(x0_y0_z0, x1_y1_z1):
+                (x0, y0, z0) = x0_y0_z0
+                (x1, y1, z1) = x1_y1_z1
                 return x0*x1 + y0*y1 + z0*z1
 
             for next in self.points[2:]:

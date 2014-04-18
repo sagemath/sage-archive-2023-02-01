@@ -35,7 +35,7 @@ character-by-character::
     sage: load_attach_mode(attach_debug=False)
     sage: try:
     ....:     attach(src)
-    ....: except StandardError:
+    ....: except Exception:
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
@@ -47,7 +47,7 @@ character-by-character::
     sage: load_attach_mode(attach_debug=True)
     sage: try:
     ....:     attach(src)
-    ....: except StandardError:
+    ....: except Exception:
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
@@ -550,7 +550,7 @@ def reload_attached_files_if_modified():
     EXAMPLES::
 
         sage: sage.misc.attached_files.reset()
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: tmp = tmp_filename(ext='.py')
         sage: open(tmp, 'w').write('a = 2\n')

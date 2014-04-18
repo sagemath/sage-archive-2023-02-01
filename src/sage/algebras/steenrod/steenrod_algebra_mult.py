@@ -640,7 +640,7 @@ def multinomial_odd(list,p):
         index += 1
     return answer
 
-# adem relations, serre-cartan basis, admissible sequences
+# Adem relations, Serre-Cartan basis, admissible sequences
 
 def binomial_mod2(n,k):
     r"""

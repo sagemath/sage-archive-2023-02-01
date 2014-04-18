@@ -21,7 +21,6 @@ from sage.rings.real_mpfr import is_RealField
 from constructor import EllipticCurve
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
-from ell_wp import weierstrass_p
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
@@ -142,15 +141,15 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     while len((x**2-D).roots())>0:
                         D = K.random_element()
             else:
-                raise ValueError, "twisting parameter D must be specified over infinite fields."
+                raise ValueError("twisting parameter D must be specified over infinite fields.")
         else:
             try:
                 D=K(D)
             except ValueError:
-                raise ValueError, "twisting parameter D must be in the base field."
+                raise ValueError("twisting parameter D must be in the base field.")
 
             if char!=2 and D.is_zero():
-                raise ValueError, "twisting parameter D must be nonzero when characteristic is not 2"
+                raise ValueError("twisting parameter D must be nonzero when characteristic is not 2")
 
         if char!=2:
             b2,b4,b6,b8=self.b_invariants()
@@ -167,7 +166,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             assert E0.a4()==K(0)
             return EllipticCurve(K,[1,E0.a2()+D,0,0,E0.a6()])
         else:
-            raise ValueError, "Quadratic twist not implemented in char 2 when j=0"
+            raise ValueError("Quadratic twist not implemented in char 2 when j=0")
 
     def two_torsion_rank(self):
         r"""
@@ -237,13 +236,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         D=K(D)
 
         if char==2 or char==3:
-            raise ValueError, "Quartic twist not defined in chars 2,3"
+            raise ValueError("Quartic twist not defined in chars 2,3")
 
         if self.j_invariant() !=K(1728):
-            raise ValueError, "Quartic twist not defined when j!=1728"
+            raise ValueError("Quartic twist not defined when j!=1728")
 
         if D.is_zero():
-            raise ValueError, "quartic twist requires a nonzero argument"
+            raise ValueError("quartic twist requires a nonzero argument")
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,-27*c4,0]
@@ -282,13 +281,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         D=K(D)
 
         if char==2 or char==3:
-            raise ValueError, "Sextic twist not defined in chars 2,3"
+            raise ValueError("Sextic twist not defined in chars 2,3")
 
         if self.j_invariant() !=K(0):
-            raise ValueError, "Sextic twist not defined when j!=0"
+            raise ValueError("Sextic twist not defined when j!=0")
 
         if D.is_zero():
-            raise ValueError, "Sextic twist requires a nonzero argument"
+            raise ValueError("Sextic twist requires a nonzero argument")
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,0,-54*c6]
@@ -390,7 +389,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         E = self
         F = other
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-            raise ValueError, "arguments are not elliptic curves"
+            raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
         zero = K.zero_element()
         if not K == F.base_ring():
@@ -407,10 +406,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         char=K.characteristic()
 
         if char==2:
-            raise NotImplementedError, "not implemented in characteristic 2"
+            raise NotImplementedError("not implemented in characteristic 2")
         elif char==3:
             if j==0:
-                raise NotImplementedError, "not implemented in characteristic 3 for curves of j-invariant 0"
+                raise NotImplementedError("not implemented in characteristic 3 for curves of j-invariant 0")
             D = E.b2()/F.b2()
 
         else:
@@ -489,7 +488,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         E = self
         F = other
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-            raise ValueError, "arguments are not elliptic curves"
+            raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
         zero = K.zero_element()
         if not K == F.base_ring():
@@ -504,9 +503,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         char=K.characteristic()
 
         if char==2:
-            raise NotImplementedError, "not implemented in characteristic 2"
+            raise NotImplementedError("not implemented in characteristic 2")
         elif char==3:
-            raise NotImplementedError, "not implemented in characteristic 3"
+            raise NotImplementedError("not implemented in characteristic 3")
         else:
             # now char!=2,3:
             D = F.c4()/E.c4()
@@ -558,7 +557,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         E = self
         F = other
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-            raise ValueError, "arguments are not elliptic curves"
+            raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
         zero = K.zero_element()
         if not K == F.base_ring():
@@ -573,9 +572,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         char=K.characteristic()
 
         if char==2:
-            raise NotImplementedError, "not implemented in characteristic 2"
+            raise NotImplementedError("not implemented in characteristic 2")
         elif char==3:
-            raise NotImplementedError, "not implemented in characteristic 3"
+            raise NotImplementedError("not implemented in characteristic 3")
         else:
             # now char!=2,3:
             D = F.c6()/E.c6()
@@ -639,7 +638,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             None
         """
         if not K.is_field():
-            raise TypeError, "Input must be a field."
+            raise TypeError("Input must be a field.")
         if self.base_field()==K:
             return self
         j = self.j_invariant()
@@ -653,20 +652,20 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         elif f == None:
             embeddings = K.embeddings(self.base_field())
             if len(embeddings) == 0:
-                raise TypeError, "Input must be a subfield of the base field of the curve."
+                raise TypeError("Input must be a subfield of the base field of the curve.")
             for g in embeddings:
                 try:
                     jbase = g.preimage(j)
                     f = g
                     break
-                except StandardError:
+                except Exception:
                     pass
             if f == None:
                 return None
         else:
             try:
                 jbase = f.preimage(j)
-            except StandardError:
+            except Exception:
                 return None
         E = EllipticCurve(j=jbase)
         E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
@@ -694,7 +693,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if Etwist.is_isomorphic(self):
             try:
                 Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
-            except StandardError:
+            except Exception:
                 return None
             else:
                 return Eout
@@ -940,32 +939,32 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         """
         F = self.base_ring()
         if is_RealField(F):
-            raise NotImplementedError, "This code could be implemented for general real fields, but has not been yet."
+            raise NotImplementedError("This code could be implemented for general real fields, but has not been yet.")
         if is_ComplexField(F):
-            raise NotImplementedError, "This code could be implemented for general complex fields, but has not been yet."
+            raise NotImplementedError("This code could be implemented for general complex fields, but has not been yet.")
         if F == rings.QQbar:
-            raise NotImplementedError, "This code could be implemented for QQbar, but has not been yet."
+            raise NotImplementedError("This code could be implemented for QQbar, but has not been yet.")
 
         from isogeny_small_degree import isogenies_prime_degree
         if l is None:
             from sage.rings.all import prime_range
             l = prime_range(max_l+1)
 
-        if type(l) != list:
+        if not isinstance(l, list):
             try:
                 l = rings.ZZ(l)
             except TypeError:
-                raise ValueError, "%s is not prime."%l
+                raise ValueError("%s is not prime."%l)
             if l.is_prime():
                 return isogenies_prime_degree(self, l)
             else:
-                raise ValueError, "%s is not prime."%l
+                raise ValueError("%s is not prime."%l)
 
         L = list(set(l))
         try:
             L = [rings.ZZ(l) for l in L]
         except TypeError:
-            raise ValueError, "%s is not a list of primes."%l
+            raise ValueError("%s is not a list of primes."%l)
 
         L.sort()
         return sum([isogenies_prime_degree(self,l) for l in L],[])
@@ -1017,11 +1016,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         """
         from ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         else:
-            raise NotImplementedError, "Only implemented for isomorphic curves over general fields."
+            raise NotImplementedError("Only implemented for isomorphic curves over general fields.")
 
     def weierstrass_p(self, prec=20, algorithm=None):
         r"""
@@ -1051,35 +1050,15 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: Esh = E.short_weierstrass_model()
             sage: Esh.weierstrass_p(prec=8)
             z^-2 + 13392/5*z^2 + 1080432/7*z^4 + 59781888/25*z^6 + O(z^8)
-
-            sage: E.weierstrass_p(prec=8, algorithm='pari')
-            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
-            sage: E.weierstrass_p(prec=8, algorithm='quadratic')
-            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + O(z^8)
-
-            sage: k = GF(101)
-            sage: E = EllipticCurve(k, [2,3])
-            sage: E.weierstrass_p(prec=30)
-            z^-2 + 40*z^2 + 14*z^4 + 62*z^6 + 15*z^8 + 47*z^10 + 66*z^12 + 61*z^14 + 79*z^16 + 98*z^18 + 93*z^20 + 82*z^22 + 15*z^24 + 71*z^26 + 27*z^28 + O(z^30)
-
-            sage: k = GF(11)
-            sage: E = EllipticCurve(k, [1,1])
-            sage: E.weierstrass_p(prec=6, algorithm='fast')
-            z^-2 + 2*z^2 + 3*z^4 + O(z^6)
-            sage: E.weierstrass_p(prec=7, algorithm='fast')
-            Traceback (most recent call last):
-            ...
-            ValueError: For computing the Weierstrass p-function via the fast algorithm, the characteristic (11) of the underlying field must be greater than prec + 4 = 11.
-            sage: E.weierstrass_p(prec=8 ,algorithm='pari')
-            z^-2 + 2*z^2 + 3*z^4 + 5*z^6 + O(z^8)
-            sage: E.weierstrass_p(prec=9, algorithm='pari')
-            Traceback (most recent call last):
-            ...
-            ValueError: For computing the Weierstrass p-function via pari, the characteristic (11) of the underlying field must be greater than prec + 2 = 11.
-
+            sage: E.weierstrass_p(prec=20, algorithm='fast')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
+            sage: E.weierstrass_p(prec=20, algorithm='pari')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
+            sage: E.weierstrass_p(prec=20, algorithm='quadratic')
+            z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
         """
+        from ell_wp import weierstrass_p
         return weierstrass_p(self, prec=prec, algorithm=algorithm)
-
 
     def hasse_invariant(self):
         r"""

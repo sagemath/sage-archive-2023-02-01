@@ -547,7 +547,7 @@ def _matrix_constructor(*args, **kwds):
     if len(args) >= 1 and is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
-            raise ValueError, "Specified rings are not the same"
+            raise ValueError("Specified rings are not the same")
         else:
             ring = args[0]
             args.pop(0)
@@ -563,7 +563,7 @@ def _matrix_constructor(*args, **kwds):
             nrows = int(args[0])
             args.pop(0)
             if kwds.get('nrows', nrows) != nrows:
-                raise ValueError, "Number of rows specified in two places and they are not the same"
+                raise ValueError("Number of rows specified in two places and they are not the same")
         except TypeError:
             nrows = kwds.get('nrows', None)
     else:
@@ -578,7 +578,7 @@ def _matrix_constructor(*args, **kwds):
             ncols = int(args[0])
             args.pop(0)
             if kwds.get('ncols', ncols) != ncols:
-                raise ValueError, "Number of columns specified in two places and they are not the same"
+                raise ValueError("Number of columns specified in two places and they are not the same")
         except TypeError:
             ncols = kwds.get('ncols', None)
     else:
@@ -597,7 +597,7 @@ def _matrix_constructor(*args, **kwds):
     elif len(args) == 1:
         if isinstance(args[0], (types.FunctionType, types.LambdaType, types.MethodType)):
             if ncols is None and nrows is None:
-                raise ValueError, "When passing in a callable, the dimensions of the matrix must be specified"
+                raise ValueError("When passing in a callable, the dimensions of the matrix must be specified")
             if ncols is None:
                 ncols = nrows
             elif nrows is None:
@@ -615,16 +615,16 @@ def _matrix_constructor(*args, **kwds):
                 # Ensure we have a list of lists, each inner list having the same number of elements
                 first_len = len(args[0][0])
                 if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
-                    raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
+                    raise ValueError("List of rows is not valid (rows are wrong types or lengths)")
                 # We have a list of rows or vectors
                 if nrows is None:
                     nrows = len(args[0])
                 elif nrows != len(args[0]):
-                    raise ValueError, "Number of rows does not match up with specified number."
+                    raise ValueError("Number of rows does not match up with specified number.")
                 if ncols is None:
                     ncols = len(args[0][0])
                 elif ncols != len(args[0][0]):
-                    raise ValueError, "Number of columns does not match up with specified number."
+                    raise ValueError("Number of columns does not match up with specified number.")
 
                 entries = []
                 for v in args[0]:
@@ -639,9 +639,9 @@ def _matrix_constructor(*args, **kwds):
                     if ncols is None:
                         ncols = len(args[0]) // nrows
                     elif ncols != len(args[0]) // nrows:
-                        raise ValueError, "entries has the wrong length"
+                        raise ValueError("entries has the wrong length")
                 elif len(args[0]) > 0:
-                    raise ValueError, "entries has the wrong length"
+                    raise ValueError("entries has the wrong length")
 
                 entries = args[0]
 
@@ -710,9 +710,9 @@ def _matrix_constructor(*args, **kwds):
                     entry_ring = args[0].parent()
                 entries = args[0]
             else:
-                raise ValueError, "Invalid matrix constructor.  Type matrix? for help"
+                raise ValueError("Invalid matrix constructor.  Type matrix? for help")
     else:
-        raise ValueError, "Invalid matrix constructor.  Type matrix? for help"
+        raise ValueError("Invalid matrix constructor.  Type matrix? for help")
 
     if nrows is None:
         nrows = 0
@@ -804,7 +804,7 @@ def prepare(w):
     elif ring is complex:
         ring = rings.CDF
     elif not is_Ring(ring):
-        raise TypeError, "unable to find a common ring for all elements"
+        raise TypeError("unable to find a common ring for all elements")
     return entries, ring
 
 def prepare_dict(w):
@@ -2122,7 +2122,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     if not scale is None:
         try:
             scale = R(scale)
-        except StandardError:
+        except Exception:
             raise TypeError('scale parameter of elementary matrix must an element of {0}, not {1}'.format(R, scale))
 
     # determine type of matrix and adjust an identity matrix
@@ -3912,8 +3912,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     if len(eigenvalues)!=len(dimensions):
         raise ValueError("each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.")
     #sort the dimensions in order of increasing size, and sort the eigenvalues list in an identical fashion, to maintain corresponding values.
-    dimensions_sort=zip(dimensions,eigenvalues)
-    dimensions_sort.sort()
+    dimensions_sort=sorted(zip(dimensions,eigenvalues))
     dimensions=[x[0] for x in dimensions_sort]
     eigenvalues=[x[1] for x in dimensions_sort]
     #Create the matrix of eigenvalues on the diagonal.  Use a lower limit and upper limit determined by the eigenvalue dimensions.

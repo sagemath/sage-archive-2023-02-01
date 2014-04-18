@@ -210,7 +210,7 @@ class FreeAlgebraElement(AlgebraElement):
 ##         if isinstance(y, (int, long, Integer)):
 ##             z_elt = dict(self.__monomial_coefficients)
 ##             e = A.monoid()(1)
-##             if z_elt.has_key(e):
+##             if e in z_elt:
 ##                 z_elt[e] += A.base_ring()(y)
 ##             else:
 ##                 z_elt[e] = A.base_ring()(y)
@@ -265,7 +265,7 @@ class FreeAlgebraElement(AlgebraElement):
 ##         if isinstance(y, (int, long, Integer)):
 ##             z_elt = dict(self.__monomial_coefficients)
 ##             e = A.monoid()(1)
-##             if z_elt.has_key(e):
+##             if e in z_elt:
 ##                 z_elt[e] += A.base_ring()(-y)
 ##             else:
 ##                 z_elt[e] = A.base_ring()(-y)

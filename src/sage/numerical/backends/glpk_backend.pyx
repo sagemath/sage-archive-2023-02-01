@@ -386,6 +386,8 @@ cdef class GLPKBackend(GenericBackend):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x,y = p[0], p[1]
+            doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+            See http://trac.sagemath.org/15521 for details.
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
             sage: p.set_objective(x + y + 7)
@@ -805,6 +807,8 @@ cdef class GLPKBackend(GenericBackend):
         The user can ask sage to solve via ``simplex`` or ``intopt``.
         The default solver is ``intopt``, so we get integer solutions.
 
+        EXAMPLE::
+
             sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
             sage: x, y = lp[0], lp[1]
             sage: lp.add_constraint(-2*x + y <= 1)
@@ -819,6 +823,8 @@ cdef class GLPKBackend(GenericBackend):
             [1.0, 1.0]
 
         If we switch to ``simplex``, we get continuous solutions.
+
+        EXAMPLE::
 
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
             sage: lp.solve()

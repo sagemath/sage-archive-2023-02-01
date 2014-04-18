@@ -2221,9 +2221,10 @@ class FiniteStateMachine(SageObject):
             \end{tikzpicture}
         """
         def label_rotation(angle, both_directions):
-            """ Given an angle of a transition, compute the TikZ string to rotate the
-            label"""
-
+            """
+            Given an angle of a transition, compute the TikZ string to
+            rotate the label.
+            """
             angle_label = angle
             anchor_label = "south"
             if angle > 90 or angle <= -90:
@@ -2284,13 +2285,13 @@ class FiniteStateMachine(SageObject):
                     angle = atan2(
                         target.coordinates[1] - source.coordinates[1],
                         target.coordinates[0] - source.coordinates[0])*180/pi
-                    if len(adjacent[target, source]) > 0:
+                    both_directions = len(adjacent[target, source]) > 0
+                    if both_directions:
                         angle_source = ".%.2f" % ((angle + 5).n(),)
                         angle_target = ".%.2f" % ((angle + 175).n(),)
                     else:
                         angle_source = ""
                         angle_target = ""
-                    both_directions = len(adjacent[target, source])>0
                     result += "\\path[->] (v%d%s) edge node[%s] {$%s$} (v%d%s);\n" % (
                         source._number_, angle_source,
                         label_rotation(angle, both_directions),

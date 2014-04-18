@@ -193,6 +193,163 @@ Now we want to divide `13` by `3`::
 The raised ``ValueError``
 means `13` is not divisible by `3`.
 
+.. _finite_state_machine_gray_code_example:
+
+Gray Code
+---------
+
+The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
+where two successive values differ in only one bit, cf. the
+:wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
+a bitwise xor between the binary expansion of `n` and the binary
+expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a left
+shift (for this example, the least significant digit is at the
+left-most position).
+
+The purpose of this example is to construct a transducer converting the
+standard binary expansion to the Gray code by translating this
+construction into operations with transducers.
+
+Instead of constructing a left shift of the input and taking it xor
+with the input, it is easier to shift everything to the right first,
+i.e., we take the input xor with the right shift of the input and
+forget the first letter.
+
+We first construct a transducer shifting the binary expansion to the
+right. This requires storing the previously read digit in a state.
+
+::
+
+    sage: def shift_right_transition(state, digit):
+    ....:     if state == 'I':
+    ....:         return (digit, None)
+    ....:     else:
+    ....:         return (digit, state)
+    sage: shift_right_transducer = Transducer(
+    ....:     shift_right_transition,
+    ....:     initial_states=['I'],
+    ....:     input_alphabet=[0, 1],
+    ....:     final_states=[0])
+    sage: shift_right_transducer.transitions()
+    [Transition from 'I' to 0: 0|-,
+     Transition from 'I' to 1: 1|-,
+     Transition from 0 to 0: 0|0,
+     Transition from 0 to 1: 1|0,
+     Transition from 1 to 0: 0|1,
+     Transition from 1 to 1: 1|1]
+    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+    sage: shift_right_transducer([0, 1, 1, 0])
+    [0, 1, 1]
+    sage: shift_right_transducer([1, 0, 0])
+    [1, 0]
+
+Note that only `0` is listed as a final state as we have to enforce
+that a most significant zero is read as the last input letter
+in order to flush the last digit::
+
+    sage: shift_right_transducer([0, 1, 0, 1])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
+
+Next, we construct the transducer performing the xor operation.  We also
+have to take ``None`` into account as our ``shift_right_transducer``
+waits one iteration until it starts writing output. This corresponds
+with our intention to forget the first letter.
+
+::
+
+    sage: def xor_transition(state, digits):
+    ....:    if digits[0] is None or digits[1] is None:
+    ....:        return (0, None)
+    ....:    else:
+    ....:        return (0, digits[0].__xor__(digits[1]))
+    sage: from itertools import product
+    sage: xor_transducer = Transducer(
+    ....:    xor_transition,
+    ....:    initial_states=[0],
+    ....:    final_states=[0],
+    ....:    input_alphabet=list(product([None, 0, 1], [0, 1])))
+    sage: xor_transducer.transitions()
+    [Transition from 0 to 0: (None, 0)|-,
+     Transition from 0 to 0: (None, 1)|-,
+     Transition from 0 to 0: (0, 0)|0,
+     Transition from 0 to 0: (0, 1)|1,
+     Transition from 0 to 0: (1, 0)|1,
+     Transition from 0 to 0: (1, 1)|0]
+    sage: xor_transducer([(None, 0), (None, 1), (0, 0), (0, 1), (1, 0), (1, 1)])
+    [0, 1, 1, 0]
+    sage: xor_transducer([(0, None)])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
+
+The transducer computing the Gray code is then constructed as a
+:meth:`cartesian product <Transducer.cartesian_product>` between the
+shifted version and the original input (represented here by the
+``shift_right_transducer`` and the :meth:`identity transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.Identity>`,
+respectively). This cartesian product is then fed into the
+``xor_transducer`` as a :meth:`composition
+<FiniteStateMachine.composition>` of transducers.
+
+As described in :meth:`Transducer.cartesian_product`, we have to
+temporarily set
+``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
+``False`` in order to disable backwards compatible code.
+
+::
+
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+    sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+    sage: Gray_transducer = xor_transducer(product_transducer)
+    sage: Gray_transducer.transitions()
+    [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
+     Transition from (('I', 0), 0) to ((1, 0), 0): 1|-,
+     Transition from ((0, 0), 0) to ((0, 0), 0): 0|0,
+     Transition from ((0, 0), 0) to ((1, 0), 0): 1|1,
+     Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
+     Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
+
+There is a :meth:`prepackaged transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.GrayCode>`
+for Gray code, let's see whether they agree. We have to use
+:meth:`~FiniteStateMachine.relabeled` to relabel our states with
+integers. Note that equality of finite state machines does not compare
+initial and final states, so we have to do it on our own here.
+
+::
+
+    sage: constructed = Gray_transducer.relabeled()
+    sage: packaged = transducers.GrayCode()
+    sage: constructed == packaged
+    True
+    sage: constructed.initial_states() == packaged.initial_states()
+    True
+    sage: constructed.final_states() == packaged.final_states()
+    True
+
+Finally, we check that this indeed computes the Gray code of the first
+10 non-negative integers. Note that we add a trailing zero at the most
+significant position of the input in order to flush all output digits.
+This is due to the left shift which delays its output.
+
+::
+
+    sage: for n in srange(10):
+    ....:     Gray_transducer(n.bits() + [0])
+    []
+    [1]
+    [1, 1]
+    [0, 1]
+    [0, 1, 1]
+    [1, 1, 1]
+    [1, 0, 1]
+    [0, 0, 1]
+    [0, 0, 1, 1]
+    [1, 0, 1, 1]
+
 
 Using the hook-functions
 ------------------------
@@ -1913,6 +2070,64 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def induced_sub_finite_state_machine(self, states):
+        """
+        Returns a sub-finite-state-machine of the finite state machine
+        induced by the given states.
+
+        INPUT:
+
+        - ``states`` -- states (labels or instances of
+          :class:`FSMState`) of the sub-finite-state-machine.
+
+        OUTPUT:
+
+        A new finite state machine. It consists of (deep copies) of
+        the given states and (deep copies) of all transitions of ``self``
+        between these states.
+
+        Currently, the implementation is not optimized, it is ``O(m^2)``
+        where ``m`` is the number of transitions.
+
+        EXAMPLE::
+
+            sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
+            ....:                           (1, 2, 0), (2, 0, 0)])
+            sage: sub_FSM = FSM.induced_sub_finite_state_machine([0, 1])
+            sage: sub_FSM.states()
+            [0, 1]
+            sage: sub_FSM.transitions()
+            [Transition from 0 to 1: 0|-]
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: sub_FSM.transitions()[0].from_state is sub_FSM.state(0)
+            True
+
+        """
+        good_states = set()
+        for state in states:
+            if not self.has_state(state):
+                raise ValueError("%s is not a state of this finite state machine")
+            good_states.add(self.state(state))
+
+        memo = {}
+        new = self.empty_copy(memo=memo)
+        for state in good_states:
+            s = deepcopy(state, memo)
+            new.add_state(s)
+
+        for state in good_states:
+            for transition in self.iter_transitions(state):
+                if transition.to_state in good_states:
+                    new.add_transition(deepcopy(transition, memo))
+
+        return new
+
+
     def __hash__(self):
         """
         Since finite state machines are mutable, they should not be
@@ -3028,7 +3243,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
 
         A finite state machine is considered to be deterministic if
         each transition has input label of length one and for each
@@ -3052,18 +3267,84 @@ class FiniteStateMachine(SageObject):
             sage: fsm.is_deterministic()
             False
         """
-        for state in self.states():
+        for state in self.iter_states():
             for transition in state.transitions:
                 if len(transition.word_in) != 1:
                     return False
 
             transition_classes_by_word_in = full_group_by(
                 state.transitions,
-                key=lambda t:t.word_in)
+                key=lambda t: t.word_in)
 
             for key,transition_class in transition_classes_by_word_in:
                 if len(transition_class) > 1:
                     return False
+        return True
+
+
+    def is_complete(self):
+        """
+        Returns whether the finite state machine is complete.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        A finite state machine is considered to be complete if
+        each transition has an input label of length one and for each
+        pair `(q, a)` where `q` is a state and `a` is an element of the
+        input alphabet, there is exactly one transition from `q` with
+        input label `a`.
+
+        EXAMPLES::
+
+            sage: fsm = FiniteStateMachine([(0, 0, 0, 0),
+            ....:                           (0, 1, 1, 1),
+            ....:                           (1, 1, 0, 0)],
+            ....:                          determine_alphabets=False)
+            sage: fsm.is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling determine_alphabets().
+            sage: fsm.input_alphabet = [0, 1]
+            sage: fsm.is_complete()
+            False
+            sage: fsm.add_transition((1, 1, 1, 1))
+            Transition from 1 to 1: 1|1
+            sage: fsm.is_complete()
+            True
+            sage: fsm.add_transition((0, 0, 1, 0))
+            Transition from 0 to 0: 1|0
+            sage: fsm.is_complete()
+            False
+        """
+        if self.input_alphabet is None:
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
+
+        for state in self.iter_states():
+            for transition in state.transitions:
+                if len(transition.word_in) != 1:
+                    return False
+
+            transition_classes_by_word_in = full_group_by(
+                state.transitions,
+                key=lambda t: t.word_in)
+
+            for key, transition_class in transition_classes_by_word_in:
+                if len(transition_class) > 1:
+                    return False
+
+            # all input labels are lists, extract the only element
+            outgoing_alphabet = [key[0] for key, transition_class in
+                                 transition_classes_by_word_in]
+            if not sorted(self.input_alphabet) == sorted(outgoing_alphabet):
+                return False
+
         return True
 
 
@@ -4359,6 +4640,69 @@ class FiniteStateMachine(SageObject):
                     transition.word_in[-1:],
                     transition.word_out))
         return new
+
+
+    def final_components(self):
+        """
+        Returns the final components of a finite state machine as finite
+        state machines.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of finite state machines, each representing a final
+        component of ``self``.
+
+        A final component of a transducer ``T`` is a strongly connected
+        component ``C`` such that there are no transitions of ``T``
+        leaving ``C``.
+
+        The final components are the only parts of a transducer which
+        influence the main terms of the asympotic behaviour of the sum
+        of output labels of a transducer, see [HKP2014]_ and [HKW2014]_.
+
+        EXAMPLES::
+
+            sage: T = Transducer([['A', 'B', 0, 0], ['B', 'C', 0, 1],
+            ....:                 ['C', 'B', 0, 1], ['A', 'D', 1, 0],
+            ....:                 ['D', 'D', 0, 0], ['D', 'B', 1, 0],
+            ....:                 ['A', 'E', 2, 0], ['E', 'E', 0, 0]])
+            sage: FC = T.final_components()
+            sage: sorted(FC[0].transitions())
+            [Transition from 'B' to 'C': 0|1,
+             Transition from 'C' to 'B': 0|1]
+            sage: FC[1].transitions()
+            [Transition from 'E' to 'E': 0|0]
+
+        Another example (cycle of length 2)::
+
+            sage: T = Automaton([[0, 1, 0], [1, 0, 0]])
+            sage: len(T.final_components()) == 1
+            True
+            sage: T.final_components()[0].transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 1 to 0: 0|-]
+
+        REFERENCES:
+
+        .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
+           Prodinger, *Asymptotic analysis of the sum of the output of
+           transducer*, in preparation.
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf, and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, :arxiv:`1404.3680`.
+
+        """
+        DG = self.digraph()
+        condensation = DG.strongly_connected_components_digraph()
+        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
+                              condensation.vertices())
+        return [self.induced_sub_finite_state_machine(map(self.state, component))
+                for component in final_labels]
 
 
     # *************************************************************************
@@ -5764,6 +6108,32 @@ class Transducer(FiniteStateMachine):
             [(1, 'b'), (0, 'b'), (None, 'c'),  (0, 'a')]
             sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
+
+        The following transducer counts the number of 11 blocks minus
+        the number of 10 blocks over the alphabet ``[0, 1]``.
+
+        ::
+
+            sage: count_11 = transducers.CountSubblockOccurrences(
+            ....:     [1, 1],
+            ....:     [0, 1])
+            sage: count_10 = transducers.CountSubblockOccurrences(
+            ....:     [1, 0],
+            ....:     [0, 1])
+            sage: count_11x10 = count_11.cartesian_product(count_10)
+            sage: difference = transducers.sub([0,1])(count_11x10)
+            sage: T = difference.simplification().relabeled()
+            sage: T.initial_states()
+            [1]
+            sage: sorted(T.transitions())
+            [Transition from 0 to 1: 0|-1,
+             Transition from 0 to 0: 1|1,
+             Transition from 1 to 1: 0|0,
+             Transition from 1 to 0: 1|0]
+            sage: input =  [0, 1, 1,  0, 1,  0, 0, 0, 1, 1, 1,  0]
+            sage: output = [0, 0, 1, -1, 0, -1, 0, 0, 0, 1, 1, -1]
+            sage: T(input) == output
+            True
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
         ``self`` where the input is restricted to the input accepted by

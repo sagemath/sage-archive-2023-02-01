@@ -482,7 +482,8 @@ def function_name(fn):
         sage: function_name(factorial)
         '{factorial}'
     """
-    if isinstance(fn, Expression):
+    from sage.structure.dynamic_class import DynamicMetaclass
+    if isinstance(type(fn), DynamicMetaclass):
         return "{%r}" % fn
     builtins = get_builtin_functions()
     if fn in builtins:

@@ -37,7 +37,7 @@ def canonical_parameters(ambient_space, basis):
 
         sage: from sage.modular.hecke_mf.subspace import canonical_parameters
         sage: from sage.modular.hecke_mf.space import ModularForms
-        sage: MF = ModularForms(group=6, k=12, ep=1)
+        sage: MF = ModularForms(n=6, k=12, ep=1)
         sage: canonical_parameters(MF, [MF.Delta().as_ring_element(), MF.gen(0)])
         (ModularForms(n=6, k=12, ep=1) over Integer Ring,
          (q + 30*q^2 + 333*q^3 + 1444*q^4 + O(q^5),
@@ -64,7 +64,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
             sage: from sage.modular.hecke_mf.subspace import (canonical_parameters, SubSpaceForms)
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=12, ep=1)
+            sage: MF = ModularForms(n=6, k=12, ep=1)
             sage: (ambient_space, basis) = canonical_parameters(MF, [MF.Delta().as_ring_element(), MF.gen(0)])
             sage: SubSpaceForms(MF, [MF.Delta().as_ring_element(), MF.gen(0)]) == SubSpaceForms(ambient_space, basis)
             True
@@ -89,7 +89,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: MF
             ModularForms(n=6, k=20, ep=1) over Integer Ring
             sage: MF.dimension()
@@ -124,7 +124,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             False
         """
 
-        FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep())
+        FormsSpace_abstract.__init__(self, group=ambient_space.group(), base_ring=ambient_space.base_ring(), k=ambient_space.weight(), ep=ambient_space.ep(), n=ambient_space.hecke_n())
         Module.__init__(self, base=self.coeff_ring())
 
         self._ambient_space = ambient_space
@@ -143,7 +143,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: subspace
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Integer Ring
@@ -160,7 +160,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
             sage: subspace.change_ring(CC)
             Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
@@ -176,7 +176,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.basis()
             [q + 78*q^2 + 2781*q^3 + 59812*q^4 + O(q^5), 1 + 360360*q^4 + O(q^5)]
@@ -194,7 +194,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.gens()
             [q + 78*q^2 + 2781*q^3 + 59812*q^4 + O(q^5), 1 + 360360*q^4 + O(q^5)]
@@ -212,7 +212,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.dimension()
             2
@@ -229,7 +229,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.degree()
             4
@@ -246,7 +246,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.rank()
             2
@@ -275,14 +275,14 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([(MF.Delta()*MF.E4()^2).as_ring_element(), MF.gen(0)])
             sage: subspace.coordinate_vector(MF.gen(0) + MF.Delta()*MF.E4()^2).parent()
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: subspace.coordinate_vector(MF.gen(0) + MF.Delta()*MF.E4()^2)
             (1, 1)
 
-            sage: MF = ModularForms(group=4, k=24, ep=-1)
+            sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: subspace = MF.subspace([MF.gen(0), MF.gen(2)])
             sage: subspace.coordinate_vector(subspace.gen(0)).parent()
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring

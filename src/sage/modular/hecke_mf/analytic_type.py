@@ -331,9 +331,9 @@ class AnalyticType(FiniteLatticePoset):
     So the analytic type of ``el`` is ``quasi holomorphic`` despite the fact
     that the sum (``el``) describes a function which is zero at infinity.
 
-        sage: from sage.modular.hecke_mf.space import QModularForms
+        sage: from sage.modular.hecke_mf.space import QuasiModularForms
         sage: x,y,z,d = var("x,y,z,d")
-        sage: el = QModularForms(group=3, k=6, ep=-1)(y-z^3)
+        sage: el = QuasiModularForms(n=3, k=6, ep=-1)(y-z^3)
         sage: el.analytic_type()
         quasi modular
 
@@ -343,7 +343,7 @@ class AnalyticType(FiniteLatticePoset):
 
         sage: from sage.modular.hecke_mf.graded_ring import WeakModularFormsRing
         sage: x,y,z,d = var("x,y,z,d")
-        sage: el2 = WeakModularFormsRing(group=3)(x/(x^3-y^2)-y/(x^3-y^2))
+        sage: el2 = WeakModularFormsRing(n=3)(x/(x^3-y^2)-y/(x^3-y^2))
         sage: el2.analytic_type()
         weakly holomorphic modular
     """

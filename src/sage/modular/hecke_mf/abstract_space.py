@@ -39,7 +39,7 @@ class FormsSpace_abstract(FormsRing_abstract):
     from element import FormsElement
     Element = FormsElement
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Abstract (Hecke) forms space.
 
@@ -59,7 +59,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=5, base_ring=ZZ, k=6, ep=-1)
+            sage: MF = ModularForms(n=5, base_ring=ZZ, k=6, ep=-1)
             sage: MF
             ModularForms(n=5, k=6, ep=-1) over Integer Ring
             sage: MF.group()
@@ -76,10 +76,10 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        from space import canonical_parameters
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
+        #from space import canonical_parameters
+        #(group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
 
-        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True)
+        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
         #self.register_embedding(self.hom(lambda f: f.parent().graded_ring()(f), codomain=self.graded_ring()))
 
         self._weight = k
@@ -94,8 +94,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: QModularForms(group=4, k=2, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: QuasiModularForms(n=4, k=2, ep=-1)
             QuasiModularForms(n=4, k=2, ep=-1) over Integer Ring
         """
 
@@ -107,8 +107,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QWeakModularForms
-            sage: latex(QWeakModularForms())
+            sage: from sage.modular.hecke_mf.space import QuasiWeakModularForms
+            sage: latex(QuasiWeakModularForms())
             QM^!_{ n=3 }(0,\ 1)(\Bold{Z})
         """
 
@@ -121,12 +121,12 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import MModularFormsRing
+            sage: from sage.modular.hecke_mf.graded_ring import MeromorphicModularFormsRing
             sage: from sage.modular.hecke_mf.space import ModularForms
             sage: MF = ModularForms(k=12, ep=1)
             sage: (x,y,z,d) = MF.pol_ring().gens()
 
-            sage: Delta = MModularFormsRing().Delta()
+            sage: Delta = MeromorphicModularFormsRing().Delta()
             sage: Delta.parent()
             MeromorphicModularFormsRing(n=3) over Integer Ring
             sage: MF(Delta)
@@ -219,12 +219,12 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QWeakModularForms, ModularForms, CuspForms, ZeroForm
-            sage: MF1 = QWeakModularForms(group=4, base_ring=CC, k=0, ep=1)
-            sage: MF2 = ModularForms(group=4, k=4, ep=1)
-            sage: MF3 = ModularForms(group=4, k=4, ep=-1)
-            sage: MF4 = CuspForms(group=4, k=0, ep=1)
-            sage: MF5 = ZeroForm(group=4, k=10, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiWeakModularForms, ModularForms, CuspForms, ZeroForm
+            sage: MF1 = QuasiWeakModularForms(n=4, base_ring=CC, k=0, ep=1)
+            sage: MF2 = ModularForms(n=4, k=4, ep=1)
+            sage: MF3 = ModularForms(n=4, k=4, ep=-1)
+            sage: MF4 = CuspForms(n=4, k=0, ep=1)
+            sage: MF5 = ZeroForm(n=4, k=10, ep=-1)
             sage: subspace = MF3.subspace([MF3.gen(0)])
 
             sage: MF2.has_coerce_map_from(MF3)
@@ -387,7 +387,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import CuspForms
-            sage: CuspForms(group=5, k=24).change_ring(CC)
+            sage: CuspForms(n=5, k=24).change_ring(CC)
             CuspForms(n=5, k=24, ep=1) over Complex Field with 53 bits of precision
         """
 
@@ -399,8 +399,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLE:: 
 
-        sage: from sage.modular.hecke_mf.space import QModularForms
-        sage: QModularForms(group=4, k=2, ep=1, base_ring=CC).construction()
+        sage: from sage.modular.hecke_mf.space import QuasiModularForms
+        sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
         (QuasiModularFormsFunctor(n=4, k=2, ep=1),
          BaseFacade(Complex Field with 53 bits of precision))
 
@@ -425,8 +425,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: QModularForms(group=16, k=16/7, ep=-1).weight()
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: QuasiModularForms(n=16, k=16/7, ep=-1).weight()
             16/7
         """
 
@@ -439,8 +439,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: QModularForms(group=16, k=16/7, ep=-1).ep()
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: QuasiModularForms(n=16, k=16/7, ep=-1).ep()
             -1
         """
 
@@ -533,8 +533,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QMModularForms
-            sage: MF = QMModularForms(group=6, k=4)
+            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: MF = QuasiMeromorphicModularForms(n=6, k=4)
             sage: MF == MF.homogeneous_space(4,1)
             True
         """
@@ -556,8 +556,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import MModularForms
-            sage: MF = MModularForms(group=18, k=-7, ep=-1)
+            sage: from sage.modular.hecke_mf.space import MeromorphicModularForms
+            sage: MF = MeromorphicModularForms(n=18, k=-7, ep=-1)
             sage: MF.weight_parameters()
             (-3, 17)
             sage: (MF._l1, MF._l2) == MF.weight_parameters()
@@ -568,7 +568,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=5, k=12, ep=1)
+            sage: MF = ModularForms(n=5, k=12, ep=1)
             sage: MF.weight_parameters()
             (1, 4)
             sage: (MF._l1, MF._l2) == MF.weight_parameters()
@@ -618,7 +618,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=8, k=4, ep=1)
+            sage: MF = ModularForms(n=8, k=4, ep=1)
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
             sage: T = MF.group().T()
             sage: S = MF.group().S()
@@ -637,7 +637,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: fact == full_factor(A,w)
             True
 
-            sage: MF = ModularForms(group=7, k=14/5, ep=-1)
+            sage: MF = ModularForms(n=7, k=14/5, ep=-1)
             sage: T = MF.group().T()
             sage: S = MF.group().S()
             sage: z = AlgebraicField()(1+i/2)
@@ -670,7 +670,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import WeakModularForms
-            sage: MF = WeakModularForms(group=18, k=-7, ep=-1)
+            sage: MF = WeakModularForms(n=18, k=-7, ep=-1)
             sage: MF.disp_prec(1)
             sage: MF.F_simple()
             q^-3 + 16/(81*d)*q^-2 - 4775/(104976*d^2)*q^-1 - 14300/(531441*d^3) + O(q)
@@ -678,7 +678,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
 
             sage: from sage.modular.hecke_mf.space import CuspForms
-            sage: MF = CuspForms(group=5, k=2, ep=-1)
+            sage: MF = CuspForms(n=5, k=2, ep=-1)
             sage: MF._l1
             -1
             sage: MF.F_simple().parent()
@@ -732,7 +732,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import WeakModularForms
-            sage: MF = WeakModularForms(group=5, k=62/3, ep=-1)
+            sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.weight_parameters()
             (2, 3)
 
@@ -764,7 +764,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.Faber_pol(2)(MF.J_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1, set_d=1)
             q^-2 + O(q^3)
 
-            sage: MF = WeakModularForms(group=4, k=-2)
+            sage: MF = WeakModularForms(n=4, k=-2)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -850,7 +850,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import WeakModularForms
-            sage: MF = WeakModularForms(group=5, k=62/3, ep=-1)
+            sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.weight_parameters()
             (2, 3)
 
@@ -871,7 +871,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: (MF.faber_pol(2)(MF.j_inv())*MF.F_simple()).q_expansion(prec=MF._l1+1)
             q^-2 + O(q^3)
 
-            sage: MF = WeakModularForms(group=4, k=-2)
+            sage: MF = WeakModularForms(n=4, k=-2)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -942,7 +942,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import WeakModularForms
-            sage: MF = WeakModularForms(group=5, k=62/3, ep=-1)
+            sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.weight_parameters()
             (2, 3)
 
@@ -964,7 +964,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF(MF.F_basis_pol(2)).parent()
             WeakModularForms(n=5, k=62/3, ep=-1) over Integer Ring
 
-            sage: MF = WeakModularForms(group=4, k=-2)
+            sage: MF = WeakModularForms(n=4, k=-2)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -1011,7 +1011,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
-            sage: MF = WeakModularForms(group=5, k=62/3, ep=-1)
+            sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.disp_prec(MF._l1+2)
             sage: MF.weight_parameters()
             (2, 3)
@@ -1027,7 +1027,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.F_basis(2).parent() == MF
             True
 
-            sage: MF = CuspForms(group=4, k=-2)
+            sage: MF = CuspForms(n=4, k=-2)
             sage: MF.weight_parameters()
             (-1, 3)
 
@@ -1085,16 +1085,16 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
 
             sage: from sage.modular.hecke_mf.space import WeakModularForms
-            sage: J_inv = WeakModularForms(group=7).J_inv()
+            sage: J_inv = WeakModularForms(n=7).J_inv()
             sage: qexp = J_inv.q_expansion(prec=1)
             sage: qexp.parent()
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: qexp
             d*q^-1 + 151/392 + O(q)
-            sage: WeakModularForms(group=7).construct_form(qexp) == J_inv
+            sage: WeakModularForms(n=7).construct_form(qexp) == J_inv
             True
 
-            sage: MF = WeakModularForms(group=5, k=62/3, ep=-1)
+            sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.default_prec(MF._l1+1)
             sage: d = MF.coeff_ring().gen()
             sage: MF.weight_parameters()
@@ -1105,7 +1105,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: qexp
             q^-2 + 2*q + d*q^2 + O(q^3)
-            sage: WeakModularForms(group=5, k=62/3, ep=-1).construct_form(qexp) == fun
+            sage: WeakModularForms(n=5, k=62/3, ep=-1).construct_form(qexp) == fun
             True
         """
 
@@ -1135,8 +1135,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QMModularForms
-            sage: el = QMModularForms(k=2, ep=-1).an_element()
+            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: el = QuasiMeromorphicModularForms(k=2, ep=-1).an_element()
             sage: el.parent()
             QuasiMeromorphicModularForms(n=3, k=2, ep=-1) over Integer Ring
             sage: el.is_zero()
@@ -1158,8 +1158,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QMModularForms
-            sage: QMModularForms(k=2, ep=-1).dimension()
+            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: QuasiMeromorphicModularForms(k=2, ep=-1).dimension()
             +Infinity
         """
 
@@ -1172,7 +1172,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=4, k=24, ep=-1)
+            sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.rank()
             3
             sage: MF.subspace([MF.gen(0), MF.gen(2)]).rank()
@@ -1188,7 +1188,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=4, k=24, ep=-1)
+            sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.degree()
             3
             sage: MF.subspace([MF.gen(0), MF.gen(2)]).degree() # defined in subspace.py
@@ -1210,7 +1210,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=4, k=24, ep=-1)
+            sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.coordinate_vector(MF.gen(0)).parent() # defined in space.py
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MF.coordinate_vector(MF.gen(0))          # defined in space.py
@@ -1237,7 +1237,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=4, k=24, ep=-1)
+            sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.ambient_coordinate_vector(MF.gen(0)).parent()
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MF.ambient_coordinate_vector(MF.gen(0))

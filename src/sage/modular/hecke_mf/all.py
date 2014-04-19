@@ -16,12 +16,12 @@ AUTHORS:
 
 from hecke_triangle_groups import HeckeTriangleGroup
 
-from graded_ring import ( QMModularFormsRing, QWeakModularFormsRing, QModularFormsRing,\
-                          QCuspFormsRing, MModularFormsRing, WeakModularFormsRing,\
+from graded_ring import ( QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing, QuasiModularFormsRing,\
+                          QuasiCuspFormsRing, MeromorphicModularFormsRing, WeakModularFormsRing,\
                           ModularFormsRing, CuspFormsRing )
 
-from space       import ( QMModularForms, QWeakModularForms, QModularForms, QCuspForms,\
-                          MModularForms, WeakModularForms, ModularForms, CuspForms,\
+from space       import ( QuasiMeromorphicModularForms, QuasiWeakModularForms, QuasiModularForms, QuasiCuspForms,\
+                          MeromorphicModularForms, WeakModularForms, ModularForms, CuspForms,\
                           ZeroForm ) 
 
 #from subspace    import SubSpaceForms

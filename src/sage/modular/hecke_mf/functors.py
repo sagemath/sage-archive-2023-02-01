@@ -145,7 +145,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
             sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: ambient_space_functor
             ModularFormsFunctor(n=4, k=12, ep=1)
@@ -175,7 +175,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
             sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor, BaseFacade)
             sage: from sage.modular.hecke_mf.space import CuspForms
-            sage: ambient_space = CuspForms(group=4, k=12, ep=1)
+            sage: ambient_space = CuspForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("cusp", group=4, k=12, ep=1)
             sage: el = ambient_space.gen(0)
             sage: F = FormsSubSpaceFunctor(ambient_space_functor, [el])
@@ -213,7 +213,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
             sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: FormsSubSpaceFunctor(ambient_space_functor, ambient_space.gens())
             FormsSubSpaceFunctor with 2 basis elements for the ModularFormsFunctor(n=4, k=12, ep=1)
@@ -243,7 +243,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
             sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: ambient_space_functor2 = FormsSpaceFunctor("cusp", group=4, k=12, ep=1)
             sage: ss_functor1 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(0)])
@@ -294,7 +294,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
             sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: ambient_space = ModularForms(group=4, k=12, ep=1)
+            sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: ss_functor1 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(0)])
             sage: ss_functor2 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(1)])
@@ -357,7 +357,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
         from space import canonical_parameters
-        (self._group, R, self._k, self._ep) = canonical_parameters(group, ZZ, k, ep)
+        (self._group, R, self._k, self._ep, n) = canonical_parameters(group, ZZ, k, ep)
 
         self._analytic_type = self.AT(analytic_type)
 
@@ -545,7 +545,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         Functor.__init__(self, Rings(), Rings())
         from graded_ring import canonical_parameters
-        (self._group, R, red_hom) = canonical_parameters(group, ZZ, red_hom)
+        (self._group, R, red_hom, n) = canonical_parameters(group, ZZ, red_hom)
         self._red_hom = bool(red_hom)
         self._analytic_type = self.AT(analytic_type)
 

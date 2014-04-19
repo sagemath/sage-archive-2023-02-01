@@ -240,7 +240,7 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
     """
 
     from space import canonical_parameters
-    (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
+    (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep)
 
     from analytic_type import AnalyticType
     AT = AnalyticType()
@@ -263,8 +263,8 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
                 from space import WeakModularForms
                 return WeakModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
         else:
-            from space import MModularForms
-            return MModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
+            from space import MeromorphicModularForms
+            return MeromorphicModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
     elif analytic_type <= AT(["mero", "quasi"]):
         if analytic_type <= AT(["weak", "quasi"]):
             if analytic_type <= AT(["holo", "quasi"]):
@@ -274,17 +274,17 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
                         from space import ZeroForm
                         return ZeroForm(group=group, base_ring=base_ring, k=k, ep=ep)
                     else:
-                        from space import QCuspForms
-                        return QCuspForms(group=group, base_ring=base_ring, k=k, ep=ep)
+                        from space import QuasiCuspForms
+                        return QuasiCuspForms(group=group, base_ring=base_ring, k=k, ep=ep)
                 else:
-                    from space import QModularForms
-                    return QModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
+                    from space import QuasiModularForms
+                    return QuasiModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
             else:
-                from space import QWeakModularForms
-                return QWeakModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
+                from space import QuasiWeakModularForms
+                return QuasiWeakModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
         else:
-            from space import QMModularForms
-            return QMModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
+            from space import QuasiMeromorphicModularForms
+            return QuasiMeromorphicModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
     else:
         raise NotImplementedError
 
@@ -346,7 +346,7 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
     """
 
     from graded_ring import canonical_parameters
-    (group, base_ring, red_hom) = canonical_parameters(group, base_ring, red_hom)
+    (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom)
 
     from analytic_type import AnalyticType
     AT = AnalyticType()
@@ -365,22 +365,22 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
                 from graded_ring import WeakModularFormsRing
                 return WeakModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
         else:
-            from graded_ring import MModularFormsRing
-            return MModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+            from graded_ring import MeromorphicModularFormsRing
+            return MeromorphicModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
     elif analytic_type <= AT(["mero", "quasi"]):
         if analytic_type <= AT(["weak", "quasi"]):
             if analytic_type <= AT(["holo", "quasi"]):
                 if analytic_type <= AT(["cusp", "quasi"]):
-                    from graded_ring import QCuspFormsRing
-                    return QCuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+                    from graded_ring import QuasiCuspFormsRing
+                    return QuasiCuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
                 else:
-                    from graded_ring import QModularFormsRing
-                    return QModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+                    from graded_ring import QuasiModularFormsRing
+                    return QuasiModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
             else:
-                from graded_ring import QWeakModularFormsRing
-                return QWeakModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+                from graded_ring import QuasiWeakModularFormsRing
+                return QuasiWeakModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
         else:
-            from graded_ring import QMModularFormsRing
-            return QMModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
+            from graded_ring import QuasiMeromorphicModularFormsRing
+            return QuasiMeromorphicModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
     else:
         raise NotImplementedError

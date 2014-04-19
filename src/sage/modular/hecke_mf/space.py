@@ -28,7 +28,7 @@ from sage.misc.cachefunc import cached_method
 from hecke_triangle_groups import HeckeTriangleGroup
 from abstract_space import FormsSpace_abstract
 
-def canonical_parameters(group, base_ring, k, ep):
+def canonical_parameters(group, base_ring, k, ep, n=None):
     r"""
     Return a canonical version of the parameters.
 
@@ -36,8 +36,11 @@ def canonical_parameters(group, base_ring, k, ep):
 
         sage: from sage.modular.hecke_mf.space import canonical_parameters
         sage: canonical_parameters(5, ZZ, 20/3, int(1))
-        (Hecke triangle group for n = 5, Integer Ring, 20/3, 1)
+        (Hecke triangle group for n = 5, Integer Ring, 20/3, 1, 5)
     """
+
+    if not (n is None):
+        group = n
 
     if (group == infinity):
         group = HeckeTriangleGroup(infinity)
@@ -58,40 +61,40 @@ def canonical_parameters(group, base_ring, k, ep):
     except TypeError:
         raise Exception("Invalid resp. non-occuring weight!")
 
-    return (group, base_ring, k, ep)
+    return (group, base_ring, k, ep, n)
 
 
-class QMModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
+class QuasiMeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) quasi meromorphic modular forms
     for the given group, base ring, weight and multiplier
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QMModularForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(5, ZZ, 20/3, int(1))
-            sage: QMModularForms(5, ZZ, 20/3, int(1)) == QMModularForms(group, base_ring, k, ep)
+            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QuasiMeromorphicModularForms)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(5, ZZ, 20/3, int(1))
+            sage: QuasiMeromorphicModularForms(5, ZZ, 20/3, int(1)) == QuasiMeromorphicModularForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) quasi meromorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QMModularForms
-            sage: MF = QMModularForms(5, ZZ, 20/3, 1)
+            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: MF = QuasiMeromorphicModularForms(5, ZZ, 20/3, 1)
             sage: MF
             QuasiMeromorphicModularForms(n=5, k=20/3, ep=1) over Integer Ring
             sage: MF.analytic_type()
@@ -102,42 +105,41 @@ class QMModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "mero"])
 
-# TODO: a quasi weak form here means that the denominator is at most a power of delta
-class QWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
+class QuasiWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) quasi weakly holomorphic modular forms
     for the given group, base ring, weight and multiplier
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QWeakModularForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(4, ZZ, 8, -1)
-            sage: QWeakModularForms(4, ZZ, 8, -1) == QWeakModularForms(group, base_ring, k, ep)
+            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QuasiWeakModularForms)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(4, ZZ, 8, -1)
+            sage: QuasiWeakModularForms(4, ZZ, 8, -1) == QuasiWeakModularForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) quasi weakly holomorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QWeakModularForms
-            sage: MF = QWeakModularForms(4, ZZ, 8, 1)
+            sage: from sage.modular.hecke_mf.space import QuasiWeakModularForms
+            sage: MF = QuasiWeakModularForms(4, ZZ, 8, 1)
             sage: MF
             QuasiWeakModularForms(n=4, k=8, ep=1) over Integer Ring
             sage: MF.analytic_type()
@@ -148,42 +150,41 @@ class QWeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "weak"])
 
-# TODO: a quasi modular form here means that it is a polynomial in f_rho, f_i, E2
-class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
+class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) quasi modular forms
     for the given group, base ring, weight and multiplier
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QModularForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(5, ZZ, 10/3, -1)
-            sage: QModularForms(5, ZZ, 10/3) == QModularForms(group, base_ring, k, ep)
+            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QuasiModularForms)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(5, ZZ, 10/3, -1)
+            sage: QuasiModularForms(5, ZZ, 10/3) == QuasiModularForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) quasi modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: MF = QModularForms(5, ZZ, 20/3, 1)
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: MF = QuasiModularForms(5, ZZ, 20/3, 1)
             sage: MF
             QuasiModularForms(n=5, k=20/3, ep=1) over Integer Ring
             sage: MF.analytic_type()
@@ -194,7 +195,7 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "holo"])
 
@@ -206,8 +207,8 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: MF = QModularForms(group=5, k=6, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
             sage: MF.default_prec(2)
             sage: MF.dimension()
             3
@@ -246,8 +247,8 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: MF = QModularForms(group=5, k=6, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
             sage: MF.default_prec(2)
             sage: MF.gens()
             [1 - 37/(200*d)*q + O(q^2),
@@ -268,8 +269,8 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QModularForms
-            sage: MF = QModularForms(group=5, k=6, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: MF = QuasiModularForms(n=5, k=6, ep=-1)
             sage: MF.dimension()
             3
             sage: len(MF.gens()) == MF.dimension()
@@ -291,38 +292,37 @@ class QModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     # and it is expected to be hard(er) to write an algorithm to determine
     # the form by its fourier coefficients
 
-# TODO: a cusp form here means that delta divides it...
-class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
+class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) quasi cusp forms
     for the given group, base ring, weight and multiplier
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QCuspForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(8, ZZ, 16/3, None)
-            sage: QCuspForms(8, ZZ, 16/3) == QCuspForms(group, base_ring, k, ep)
+            sage: from sage.modular.hecke_mf.space import (canonical_parameters, QuasiCuspForms)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(8, ZZ, 16/3, None)
+            sage: QuasiCuspForms(8, ZZ, 16/3) == QuasiCuspForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) quasi cusp forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QCuspForms
-            sage: MF = QCuspForms(8, ZZ, 16/3)
+            sage: from sage.modular.hecke_mf.space import QuasiCuspForms
+            sage: MF = QuasiCuspForms(8, ZZ, 16/3)
             sage: MF
             QuasiCuspForms(n=8, k=16/3, ep=1) over Integer Ring
             sage: MF.analytic_type()
@@ -333,7 +333,7 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["quasi", "cusp"])
 
@@ -345,8 +345,8 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QCuspForms, CuspForms
-            sage: MF = QCuspForms(group=5, k=18, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiCuspForms, CuspForms
+            sage: MF = QuasiCuspForms(n=5, k=18, ep=-1)
             sage: MF.default_prec(4)
             sage: MF.dimension()
             8
@@ -364,9 +364,9 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: MF.quasi_part_gens(r=5)
             [q - 1/(5*d)*q^2 + 4017/(640000*d^2)*q^3 + O(q^4)]
 
-            sage: MF.quasi_part_gens(r=1)[0] == MF.E2() * CuspForms(group=5, k=16, ep=1).gen(0)
+            sage: MF.quasi_part_gens(r=1)[0] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(0)
             True
-            sage: MF.quasi_part_gens(r=1)[1] == MF.E2() * CuspForms(group=5, k=16, ep=1).gen(1)
+            sage: MF.quasi_part_gens(r=1)[1] == MF.E2() * CuspForms(n=5, k=16, ep=1).gen(1)
             True
             sage: MF.quasi_part_gens(r=3)[0] == MF.E2()^3 * MF.Delta()
             True
@@ -391,8 +391,8 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QCuspForms
-            sage: MF = QCuspForms(group=8, k=46/3, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiCuspForms
+            sage: MF = QuasiCuspForms(n=8, k=46/3, ep=-1)
             sage: MF.default_prec(4)
             sage: MF.dimension()
             7
@@ -419,8 +419,8 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QCuspForms
-            sage: MF = QCuspForms(group=8, k=46/3, ep=-1)
+            sage: from sage.modular.hecke_mf.space import QuasiCuspForms
+            sage: MF = QuasiCuspForms(n=8, k=46/3, ep=-1)
             sage: MF.default_prec(3)
             sage: MF.dimension()
             7
@@ -437,37 +437,37 @@ class QCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
     # TODO: it is possible to define coordinate_vector! (see above)
 
-class MModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
+class MeromorphicModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     r"""
     Module of (Hecke) meromorphic modular forms
     for the given group, base ring, weight and multiplier
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import (canonical_parameters, MModularForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(3, ZZ, 0, 1)
-            sage: MModularForms() == MModularForms(group, base_ring, k, ep)
+            sage: from sage.modular.hecke_mf.space import (canonical_parameters, MeromorphicModularForms)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(3, ZZ, 0, 1)
+            sage: MeromorphicModularForms() == MeromorphicModularForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) meromorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import MModularForms
-            sage: MF = MModularForms()
+            sage: from sage.modular.hecke_mf.space import MeromorphicModularForms
+            sage: MF = MeromorphicModularForms()
             sage: MF
             MeromorphicModularForms(n=3, k=0, ep=1) over Integer Ring
             sage: MF.analytic_type()
@@ -478,7 +478,7 @@ class MModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["mero"])
 
@@ -489,22 +489,22 @@ class WeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import (canonical_parameters, WeakModularForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(5, CC, 20/3, None)
-            sage: WeakModularForms(5, CC, 20/3) == WeakModularForms(group, base_ring, k, ep)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(5, CC, 20/3, None)
+            sage: WeakModularForms(5, CC, 20/3) == WeakModularForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) weakly holomorphic modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
@@ -521,7 +521,7 @@ class WeakModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             Category of vector spaces over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["weak"])
 
@@ -532,22 +532,22 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import (canonical_parameters, ModularForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(3, ZZ, 0, None)
-            sage: ModularForms() == ModularForms(group, base_ring, k, ep)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(3, ZZ, 0, None)
+            sage: ModularForms() == ModularForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) modular forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
@@ -570,7 +570,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type = self.AT(["holo"])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
@@ -583,7 +583,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: MF.dimension()
             4
             sage: MF.gens()
@@ -603,7 +603,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: MF.dimension()
             4
             sage: len(MF.gens()) == MF.dimension()
@@ -634,7 +634,7 @@ class ModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import ModularForms
-            sage: MF = ModularForms(group=6, k=20, ep=1)
+            sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: MF.dimension()
             4
             sage: el = MF.E4()^2*MF.Delta()
@@ -663,22 +663,22 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import (canonical_parameters, CuspForms)
-            sage: (group, base_ring, k, ep) = canonical_parameters(6, ZZ, 6, 1)
-            sage: CuspForms(6, ZZ, 6, 1) == CuspForms(group, base_ring, k, ep)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(6, ZZ, 6, 1)
+            sage: CuspForms(6, ZZ, 6, 1) == CuspForms(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the Module of (Hecke) cusp forms
         of weight ``k`` with multiplier ``ep`` for the given ``group`` and ``base_ring``.
@@ -701,7 +701,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT(["cusp"])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
@@ -714,7 +714,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import CuspForms
-            sage: MF=CuspForms(group=12, k=72/5, ep=1)
+            sage: MF=CuspForms(n=12, k=72/5, ep=1)
             sage: MF
             CuspForms(n=12, k=72/5, ep=1) over Integer Ring
             sage: MF.dimension()
@@ -735,7 +735,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import CuspForms
-            sage: MF = CuspForms(group=12, k=72/5, ep=1)
+            sage: MF = CuspForms(n=12, k=72/5, ep=1)
             sage: MF.dimension()
             3
             sage: len(MF.gens()) == MF.dimension()
@@ -766,7 +766,7 @@ class CuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import CuspForms
-            sage: MF = CuspForms(group=12, k=72/5, ep=-1)
+            sage: MF = CuspForms(n=12, k=72/5, ep=-1)
             sage: MF.default_prec(4)
             sage: MF.dimension()
             2
@@ -797,22 +797,22 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
     """
             
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None):
+    def __classcall__(cls, group = HeckeTriangleGroup(3), base_ring = ZZ, k=QQ(0), ep=None, n=None):
         r"""
         Return a (cached) instance with canonical parameters.
 
         EXAMPLES::
 
             sage: from sage.modular.hecke_mf.space import (canonical_parameters, ZeroForm)
-            sage: (group, base_ring, k, ep) = canonical_parameters(6, CC, 3, -1)
-            sage: ZeroForm(6, CC, 3, -1) == ZeroForm(group, base_ring, k, ep)
+            sage: (group, base_ring, k, ep, n) = canonical_parameters(6, CC, 3, -1)
+            sage: ZeroForm(6, CC, 3, -1) == ZeroForm(group, base_ring, k, ep, n)
             True
         """
 
-        (group, base_ring, k, ep) = canonical_parameters(group, base_ring, k, ep)
-        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep)
+        (group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
+        return super(FormsSpace_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
 
-    def __init__(self, group, base_ring, k, ep):
+    def __init__(self, group, base_ring, k, ep, n):
         r"""
         Return the zero Module for the zero form of weight ``k`` with multiplier ``ep``
         for the given ``group`` and ``base_ring``.
@@ -837,7 +837,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
             True
         """
 
-        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep)
+        FormsSpace_abstract.__init__(self, group=group, base_ring=base_ring, k=k, ep=ep, n=n)
         Module.__init__(self, base=self.coeff_ring())
         self._analytic_type=self.AT([])
         self._module = FreeModule(self.coeff_ring(), self.dimension())

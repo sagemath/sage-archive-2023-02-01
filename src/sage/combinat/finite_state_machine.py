@@ -5365,7 +5365,12 @@ class FiniteStateMachine(SageObject):
                 0
 
         #.  This is Example 3.1 in [HKW2014]_, where a transducer with
-            variable output labels is given::
+            variable output labels is given. There, the aim was to
+            choose the output labels of this very simple transducer such
+            that the input and output sum are asymptotically
+            independent, i.e., the constant `c` vanishes.
+
+            ::
 
                 sage: var('a_1, a_2, a_3, a_4')
                 (a_1, a_2, a_3, a_4)
@@ -5378,6 +5383,9 @@ class FiniteStateMachine(SageObject):
                 1/4*a_1 + 1/4*a_2 + 1/4*a_3 + 1/4*a_4
                 sage: constants['covariance']
                 -1/4*a_1 + 1/4*a_2
+
+            Therefore, the asymptotic covariance vanishes if and only if
+            `a_2=a_1`.
 
         #.  This is Example 6.2 in [HKW2014]_, dealing with the
             transducer converting the binary expansion of an integer

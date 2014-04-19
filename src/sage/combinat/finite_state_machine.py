@@ -5299,7 +5299,11 @@ class FiniteStateMachine(SageObject):
         degrades significantly. For rational input and output labels,
         consider rescaling to integers. This limitation comes from the
         fact that determinants over polynomial rings can be computed
-        much more efficiently than over the symbolic ring.
+        much more efficiently than over the symbolic ring. In fact, we
+        compute (parts) of a trivariate generating function where the
+        input and output labels are exponents of some indeterminates,
+        see [HKW2014]_, Theorem 2 for details. If those exponents are
+        integers, we can use a polynomial ring.
 
         EXAMPLES:
 

@@ -5500,28 +5500,6 @@ class FiniteStateMachine(SageObject):
                 sage: constants['covariance']
                 0
 
-        TESTS:
-
-        #.  An input alphabet must be given::
-
-                sage: T = Transducer([[0, 0, 0, 0]],
-                ....:                determine_alphabets=False)
-                sage: T.asymptotic_moments()
-                Traceback (most recent call last):
-                ...
-                ValueError: No input alphabet is given.
-                Try calling determine_alphabets().
-
-        #.  The finite state machine must be complete::
-
-                sage: T = Transducer([[0, 0, 0, 0]],
-                ....:                input_alphabet=[0, 1])
-                sage: T.asymptotic_moments()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: This finite state machine is
-                not complete.
-
         #.  The finite state machine must have a unique final component::
 
                 sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
@@ -5567,6 +5545,28 @@ class FiniteStateMachine(SageObject):
 
             So this example shows that the result may be of a different
             form when the final component is not aperiodic.
+
+        TESTS:
+
+        #.  An input alphabet must be given::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                determine_alphabets=False)
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: No input alphabet is given.
+                Try calling determine_alphabets().
+
+        #.  The finite state machine must be complete::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                input_alphabet=[0, 1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: This finite state machine is
+                not complete.
 
         #.  Non-integer input or output labels lead to a warning::
 

@@ -5524,26 +5524,49 @@ class FiniteStateMachine(SageObject):
 
         #.  The finite state machine must have a unique final component::
 
-                sage: T = Transducer([[0, 1, 0, 0], [0, 2, 1, 0],
-                ....:                 [1, 1, 0, 0], [1, 1, 1, 1],
-                ....:                 [2, 2, 0, 0], [2, 2, 1, 1]])
+                sage: T = Transducer([(0, 1, 0, 0), (0, 2, 1, 0),
+                ....:                 (1, 1, 0, 0), (1, 1, 1, 1),
+                ....:                 (2, 2, 0, 2), (2, 2, 1, 1)],
+                ....:                initial_states=[0],
+                ....:                final_states=[0, 1, 2])
                 sage: T.asymptotic_moments()
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: asymptotic_moments is only
                 implemented for finite state machines with one final
-                component. Otherwise, the variance may be non-linear.
+                component.
+
+            In this particular example, the first letter of the input
+            decides whether we reach the loop at `1` or the loop at `2`.
+            In the first case, we have `X_n = n/2 + O(1)`, while we
+            have `X_n = 3n/2 + O(1)` in the second case. Therefore, the
+            expectation `E(X_n)` of `X_n` is `E(X_n) = n+O(1)`. We get
+            `(X_n-E(X_n))^2 = n^2/4  + O(n)` in all cases, which
+            results in a variance of `1/4 n^2 + O(n)`.
+
+            So this example shows that the variance may be non-linear if
+            there is more than one final component.
 
         #.  The final component of the finite state machine must be
             aperiodic::
 
-                sage: T = Transducer([[0, 1, 0, 0], [1, 0, 0, 0]])
+                sage: T = Transducer([(0, 1, 0, 2), (1, 0, 0, -2)],
+                ....:                initial_states=[0], final_states=[0])
+                sage: T([0, 0, 0, 0])
+                [2, -2, 2, -2]
                 sage: T.asymptotic_moments()
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: asymptotic_moments is only
                 implemented for finite state machines whose unique final
                 component is aperiodic.
+
+            In this particular example, we have `X_n = 0` for even `n` and
+            `X_n = 2` for odd `n`. Thus we have `X_n = 1 - (-1)^n` for all `n`.
+            Therefore, the expectation is `1 - (-1)^n`, too.
+
+            So this example shows that the result may be of a different
+            form when the final component is not aperiodic.
 
         #.  Non-integer input or output labels lead to a warning::
 
@@ -5624,8 +5647,7 @@ class FiniteStateMachine(SageObject):
         if len(final_components) != 1:
             raise NotImplementedError("asymptotic_moments is only "
                                       "implemented for finite state machines "
-                                      "with one final component. Otherwise, "
-                                      "the variance may be non-linear.")
+                                      "with one final component.")
         final_component = final_components[0]
 
         if not final_component.digraph().is_aperiodic():

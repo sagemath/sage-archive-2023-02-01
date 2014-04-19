@@ -85,6 +85,7 @@ Combinatorics
    species
    developer
    sage/combinat/finite_state_machine
+   sage/combinat/finite_state_machine_generators
    words
 
    sage/combinat/dict_addition

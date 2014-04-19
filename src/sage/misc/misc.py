@@ -2275,7 +2275,7 @@ def is_in_string(line, pos):
 
 def get_main_globals():
     """
-    Return the main global namespace
+    Return the main global namespace.
 
     EXAMPLES::
 
@@ -2295,9 +2295,9 @@ def get_main_globals():
     from any function, even if it is in a Python module::
 
         sage: def f():
-        ...       G = get_main_globals()
-        ...       assert G['bli'] == 14
-        ...       G['blo'] = 42
+        ....:     G = get_main_globals()
+        ....:     assert G['bli'] == 14
+        ....:     G['blo'] = 42
         sage: bli = 14
         sage: f()
         sage: blo
@@ -2319,7 +2319,7 @@ def get_main_globals():
     depth = 0
     while True:
         G = sys._getframe(depth).f_globals
-        if G["__name__"] == "__main__" and G.get("__package__", None) is None:
+        if G.get("__name__", None) == "__main__": # and G.get("__package__", None) is None:
             break
         depth += 1
     return G
@@ -2327,11 +2327,12 @@ def get_main_globals():
 
 def inject_variable(name, value):
     """
-    inject a variable into the main global namespace
+    Inject a variable into the main global namespace.
 
     INPUT:
-     - ``name``  - a string
-     - ``value`` - anything
+
+    - ``name``  -- a string
+    - ``value`` -- anything
 
     EXAMPLES::
 

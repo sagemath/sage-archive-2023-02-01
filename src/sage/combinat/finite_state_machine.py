@@ -5305,7 +5305,11 @@ class FiniteStateMachine(SageObject):
 
         #.  A trivial example: write the negative of the input::
 
-                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, -1)])
+                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, -1)],
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T([0, 1, 1])
+                [0, -1, -1]
                 sage: constants = T.asymptotic_moments()
                 sage: constants['expectation']
                 -1/2
@@ -5330,7 +5334,23 @@ class FiniteStateMachine(SageObject):
                 ....:                   (1, 1, 1, 0),
                 ....:                   (1, '.1', 0, None)],
                 ....:                  initial_states=[0],
-                ....:                  final_states=[0, 1, '.1'])
+                ....:                  final_states=[0])
+
+            As an example, we compute the NAF of `27` by this
+            transducer. Note that we have to add two trailing (at the
+            most significant positions) digits `0` in order to be sure
+            to reach the final state.
+
+            ::
+
+                sage: binary_27 = 27.bits()
+                sage: binary_27
+                [1, 1, 0, 1, 1]
+                sage: NAF_27 = NAF(binary_27+[0, 0])
+                sage: NAF_27
+                [-1, 0, -1, 0, 0, 1, 0]
+                sage: ZZ(NAF_27, base=2)
+                27
 
             Next, we are only interested in the Hamming weight::
 
@@ -5342,7 +5362,8 @@ class FiniteStateMachine(SageObject):
                 ....:     return (0, result)
                 sage: weight_transducer = Transducer(weight,
                 ....:                                input_alphabet=[-1, 0, 1],
-                ....:                                initial_states=[0])
+                ....:                                initial_states=[0],
+                ....:                                final_states=[0])
                 sage: NAFweight = weight_transducer.composition(
                 ....:     NAF,
                 ....:     algorithm='explorative').relabeled()
@@ -5353,6 +5374,8 @@ class FiniteStateMachine(SageObject):
                  Transition from 1 to 2: 1|1,0,
                  Transition from 2 to 1: 0|-,
                  Transition from 2 to 2: 1|0]
+                sage: NAFweight(binary_27 + [0, 0])
+                [1, 0, 1, 0, 0, 1, 0]
 
             Now, we actually compute the asymptotic constants::
 

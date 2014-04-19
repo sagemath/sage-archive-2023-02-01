@@ -2213,8 +2213,12 @@ class FiniteStateMachine(SageObject):
             ....:                        initial_states=['A'],
             ....:                        final_states=['B'])
             sage: F.state('A').initial_where='below'
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}};\n\\node[state, accepting] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}};\n\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);\n\\end{tikzpicture}'
+            sage: print(F._latex_())
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
+            \node[state, accepting] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
+            \end{tikzpicture}
         """
         def label_rotation(angle, both_directions):
             """ Given an angle of a transition, compute the TikZ string to rotate the
@@ -4958,8 +4962,12 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Automaton([('A', 'B', 1)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}};\n\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}};\n\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
+            sage: print(F._latex_())
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
+            \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
+            \end{tikzpicture}
 
         TESTS::
 
@@ -5394,8 +5402,12 @@ class Transducer(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Transducer([('A', 'B', 1, 2)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto, initial text=]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}};\n\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}};\n\\path[->] (v0) edge node[rotate=360.00, anchor=south] {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
+            sage: print(F._latex_())
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
+            \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
+            \end{tikzpicture}
 
         TESTS::
 

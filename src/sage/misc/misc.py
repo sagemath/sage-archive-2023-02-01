@@ -93,7 +93,7 @@ sage_makedirs(DOT_SAGE)
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
 _desired_mode = 040700     # drwx------
 if _mode != _desired_mode:
-    print "Setting permissions of DOT_SAGE directory so only you can read and write it."
+    print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.
     os.chmod(DOT_SAGE, _desired_mode)
 
@@ -454,14 +454,14 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         s = "verbose %s (%s: %s, %s) %s"%(level, lineno, short_file_name, caller_name, mesg)
     if t!=0:
         s = s + " (time = %s)"%cputime(t)
-    print s
+    print(s)
     sys.stdout.flush()
     #open(LOGFILE,"a").write(s+"\n")
     return cputime()
 
 def todo(mesg=""):
     caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError("%s: todo -- %s"%(caller_name, mesg))
+    raise NotImplementedError("{}: todo -- {}".format(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -887,7 +887,7 @@ def newton_method_sizes(N):
 
     N = int(N)
     if N < 1:
-        raise ValueError("N (=%s) must be a positive integer" % N)
+        raise ValueError("N (={}) must be a positive integer".format(N))
 
     output = []
     while N > 1:
@@ -996,7 +996,7 @@ def self_compose(f, n):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError("n must be a nonnegative integer, not %s." % n)
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     return lambda x: nest(f, n, x)
 
@@ -1041,7 +1041,7 @@ def nest(f, n, x):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError("n must be a nonnegative integer, not %s." % n)
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     for i in xrange(n):
         x = f(x)
@@ -1755,7 +1755,7 @@ def typecheck(x, C, var="x"):
     error message.
     """
     if not isinstance(x, C):
-        raise TypeError("%s (=%s) must be of type %s."%(var,x,C))
+        raise TypeError("{} (={}) must be of type {}.".format(var, x, C))
 
 #################################################################
 # This will likely eventually be useful.

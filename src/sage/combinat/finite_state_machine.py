@@ -492,6 +492,7 @@ from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.calculus.var import var
 from sage.misc.latex import latex
+from sage.misc.misc import verbose
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
 
@@ -5262,7 +5263,7 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
-    def asymptotic_moments(self, verbose=True):
+    def asymptotic_moments(self):
         """
         Returns the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input
@@ -5270,8 +5271,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``verbose`` -- if ``True`` (as per default) and input or
-          output are non-integer, a warning is printed.
+        Nothing.
 
         OUTPUT:
 
@@ -5403,9 +5403,9 @@ class FiniteStateMachine(SageObject):
                 (a_1, a_2, a_3, a_4)
                 sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
                 ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]])
-                sage: constants = T.asymptotic_moments()
-                Warning: Non-integer output weights lead to significant
-                performance degradation.
+                sage: constants = T.asymptotic_moments() # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
                 sage: constants['expectation']
                 1/4*a_1 + 1/4*a_2 + 1/4*a_3 + 1/4*a_4
                 sage: constants['covariance']
@@ -5548,25 +5548,27 @@ class FiniteStateMachine(SageObject):
         #.  Non-integer input or output labels lead to a warning::
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]])
+                sage: constants = T.asymptotic_moments() # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                sage: constants['expectation']
+                -1/4
+                sage: constants['variance']
+                1/16
+                sage: constants['covariance']
+                -1/8
+
+            This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
+
+                sage: set_verbose(-1, "finite_state_machine.py")
                 sage: constants = T.asymptotic_moments()
-                Warning: Non-integer output weights lead to significant
-                performance degradation.
                 sage: constants['expectation']
                 -1/4
                 sage: constants['variance']
                 1/16
                 sage: constants['covariance']
                 -1/8
-
-            This warning can be silenced by setting ``verbose=False``::
-
-                sage: constants = T.asymptotic_moments(verbose=False)
-                sage: constants['expectation']
-                -1/4
-                sage: constants['variance']
-                1/16
-                sage: constants['covariance']
-                -1/8
+                sage: set_verbose(0, "finite_state_machine.py")
 
         #.  Check whether ``word_out`` of ``FSMState`` are correctly
             dealt with::
@@ -5586,8 +5588,9 @@ class FiniteStateMachine(SageObject):
                 sage: from sage.combinat.finite_state_machine import FSMState
                 sage: s = FSMState(0, word_out=2/3)
                 sage: T = Transducer([(s, s, 0, 1/2)])
-                sage: T.asymptotic_moments()['expectation']
-                Warning: Non-integer output weights lead to significant performance degradation.
+                sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
                 7/6
 
         ALGORITHM:
@@ -5643,9 +5646,8 @@ class FiniteStateMachine(SageObject):
         try:
             M = get_matrix(self, x, y)
         except TypeError:
-            if verbose:
-                print("Warning: Non-integer output weights lead to "
-                      "significant performance degradation.")
+            verbose("Non-integer output weights lead to "
+                    "significant performance degradation.", level=0)
             # fall back to symbolic ring
             from sage.symbolic.ring import SR
             R = SR

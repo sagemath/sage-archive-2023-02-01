@@ -5281,9 +5281,11 @@ class FiniteStateMachine(SageObject):
         - ``variance`` -- constant `v`,
         - ``covariance`` -- constant `c`.
 
-        Assume that all input and output labels are numbers and that ``self``
-        is complete and has only one final component. Assume further that
-        this final component is aperiodic.
+        Assume that all input and output labels are numbers and that
+        ``self`` is complete and has only one final component. Assume
+        further that this final component is aperiodic. Furthermore,
+        assume that there is exactly one initial state and that all
+        states are final.
 
         Denote by `X_n` the sum of output labels written by the
         finite state machine when reading a random input word of
@@ -5304,6 +5306,13 @@ class FiniteStateMachine(SageObject):
         input and output labels are exponents of some indeterminates,
         see [HKW2014]_, Theorem 2 for details. If those exponents are
         integers, we can use a polynomial ring.
+
+        .. WARNING::
+
+            If not all states are final, we only print a warning. This is
+            for a transitional period to accomodate subsequential
+            transducers while those are not yet implemented
+            (cf. :trac:`16191`).
 
         EXAMPLES:
 
@@ -5384,12 +5393,19 @@ class FiniteStateMachine(SageObject):
             Now, we actually compute the asymptotic constants::
 
                 sage: constants = NAFweight.asymptotic_moments()
+                verbose 0 (...) Not all states are final. Proceeding
+                under the assumption that you know what you are doing.
                 sage: constants['expectation']
                 1/3
                 sage: constants['variance']
                 2/27
                 sage: constants['covariance']
                 0
+
+            In this case, we can ignore the warning: we could have all
+            states as final states if we would have a final output
+            label, i.e., a subsequential transducer. However, this is
+            not yet implemented in this package, cf. :trac:`16191`.
 
         #.  This is Example 3.1 in [HKW2014]_, where a transducer with
             variable output labels is given. There, the aim was to
@@ -5402,7 +5418,8 @@ class FiniteStateMachine(SageObject):
                 sage: var('a_1, a_2, a_3, a_4')
                 (a_1, a_2, a_3, a_4)
                 sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
-                ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]])
+                ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
+                ....:                initial_states=[0], final_states=[0, 1])
                 sage: constants = T.asymptotic_moments() # doctest: +ELLIPSIS
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
@@ -5421,12 +5438,19 @@ class FiniteStateMachine(SageObject):
             <finite_state_machine_gray_code_example>`)::
 
                 sage: constants = transducers.GrayCode().asymptotic_moments()
+                verbose 0 (...) Not all states are final. Proceeding
+                under the assumption that you know what you are doing.
                 sage: constants['expectation']
                 1/2
                 sage: constants['variance']
                 1/4
                 sage: constants['covariance']
                 0
+
+            Also in this case, we can ignore the warning: we could have
+            all states as final states if we would have a final output
+            label, i.e., a subsequential transducer. However, this is
+            not yet implemented in this package, cf. :trac:`16191`.
 
         #.  This is the first part of Example 6.3 in [HKW2014]_,
             counting the number of 10 blocks in the standard binary
@@ -5551,6 +5575,7 @@ class FiniteStateMachine(SageObject):
         #.  An input alphabet must be given::
 
                 sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                initial_states=[0], final_states=[0],
                 ....:                determine_alphabets=False)
                 sage: T.asymptotic_moments()
                 Traceback (most recent call last):
@@ -5558,9 +5583,18 @@ class FiniteStateMachine(SageObject):
                 ValueError: No input alphabet is given.
                 Try calling determine_alphabets().
 
+        #.  The finite state machine must have a unique initial state::
+
+                sage: T = Transducer([(0, 0, 0, 0)])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: A unique initial state is required.
+
         #.  The finite state machine must be complete::
 
                 sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                initial_states=[0], final_states=[0],
                 ....:                input_alphabet=[0, 1])
                 sage: T.asymptotic_moments()
                 Traceback (most recent call last):
@@ -5570,7 +5604,8 @@ class FiniteStateMachine(SageObject):
 
         #.  Non-integer input or output labels lead to a warning::
 
-                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]])
+                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
+                ....:                initial_states=[0], final_states=[0])
                 sage: constants = T.asymptotic_moments() # doctest: +ELLIPSIS
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
@@ -5600,7 +5635,8 @@ class FiniteStateMachine(SageObject):
                 sage: s = FSMState(0, word_out=2,
                 ....:              is_initial=True,
                 ....:              is_final=True)
-                sage: T = Transducer([(s, s, 0, 1)])
+                sage: T = Transducer([(s, s, 0, 1)],
+                ....:                initial_states=[s], final_states=[s])
                 sage: T([0, 0])
                 [2, 1, 2, 1, 2]
                 sage: T.asymptotic_moments()['expectation']
@@ -5610,7 +5646,8 @@ class FiniteStateMachine(SageObject):
 
                 sage: from sage.combinat.finite_state_machine import FSMState
                 sage: s = FSMState(0, word_out=2/3)
-                sage: T = Transducer([(s, s, 0, 1/2)])
+                sage: T = Transducer([(s, s, 0, 1/2)],
+                ....:                initial_states=[s], final_states=[s])
                 sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
@@ -5638,6 +5675,14 @@ class FiniteStateMachine(SageObject):
         if self.input_alphabet is None:
             raise ValueError("No input alphabet is given. "
                              "Try calling determine_alphabets().")
+
+        if len(self.initial_states()) != 1:
+            raise ValueError("A unique initial state is required.")
+
+        if len(self.final_states()) != len(self.states()):
+            verbose("Not all states are final. Proceeding under the "
+                    "assumption that you know what you are doing.",
+                    level=0)
 
         if not self.is_complete():
             raise NotImplementedError("This finite state machine is "

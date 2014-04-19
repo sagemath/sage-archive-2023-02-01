@@ -79,6 +79,7 @@ or by
     sage: fsm
     Finite state machine with 2 states
 
+.. _finite_state_machine_recognizing_NAFs_example:
 
 A simple Automaton (recognizing NAFs)
 ---------------------------------------
@@ -5313,9 +5314,11 @@ class FiniteStateMachine(SageObject):
                 sage: constants['covariance']
                 -1/4
 
-        #.  For the case of the Hamming weight of the non-adjacent-form (NAF)
-            of integers, cf. the :wikipedia:`Non-adjacent_form`, the following
-            agrees with the results in [HP2007]_.
+        #.  For the case of the Hamming weight of the non-adjacent-form
+            (NAF) of integers, cf. the :wikipedia:`Non-adjacent_form`
+            and the :ref:`example on recognizing NAFs
+            <finite_state_machine_recognizing_NAFs_example>`, the
+            following agrees with the results in [HP2007]_.
 
             We first use the transducer to convert the standard binary
             expansion to the NAF given in [HP2007]_::
@@ -5378,7 +5381,9 @@ class FiniteStateMachine(SageObject):
 
         #.  This is Example 6.2 in [HKW2014]_, dealing with the
             transducer converting the binary expansion of an integer
-            into Gray code (cf. the :wikipedia:`Gray_code`)::
+            into Gray code (cf. the :wikipedia:`Gray_code` and the
+            :ref:`example on Gray code
+            <finite_state_machine_gray_code_example>`)::
 
                 sage: constants = transducers.GrayCode().asymptotic_moments()
                 sage: constants['expectation']

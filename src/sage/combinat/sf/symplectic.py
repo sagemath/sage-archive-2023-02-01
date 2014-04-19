@@ -3,7 +3,7 @@ Symplectic Symmetric Functions
 
 AUTHORS:
 
-- Travis Scirmshaw (2013-11-10): Initial version
+- Travis Scrimshaw (2013-11-10): Initial version
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>

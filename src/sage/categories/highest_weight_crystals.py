@@ -97,14 +97,14 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C.highest_weight_vectors()
                 [1]
 
             ::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.highest_weight_vectors()
                 [[2, 1, 1], [1, 2, 1]]
             """
@@ -120,7 +120,7 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C.highest_weight_vector()
                 1
             """
@@ -142,14 +142,14 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',5])
+                sage: C = crystals.Letters(['A',5])
                 sage: C.lowest_weight_vectors()
                 [6]
 
             ::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+                sage: C = crystals.Letters(['A',2])
+                sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
                 sage: T.lowest_weight_vectors()
                 [[3, 2, 3], [3, 3, 2]]
             """
@@ -168,12 +168,14 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLSPaths(['A',2,1],[0,1,0])
-                sage: [p for p in C.__iter__(max_depth=3)]
-                [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (2*Lambda[0] - Lambda[2],),
-                (-Lambda[0] + 2*Lambda[2] - delta,),
-                (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[2] - 1/2*delta),
-                (-Lambda[0] + Lambda[1] + 1/2*Lambda[2] - delta, Lambda[0] - 1/2*Lambda[2])]
+                sage: C = crystals.LSPaths(['A',2,1],[0,1,0])
+                sage: sorted([p for p in C.__iter__(max_depth=3)], key=str)
+                [(-Lambda[0] + 2*Lambda[2] - delta,),
+                 (-Lambda[0] + Lambda[1] + 1/2*Lambda[2] - delta, Lambda[0] - 1/2*Lambda[2]),
+                 (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[2] - 1/2*delta),
+                 (2*Lambda[0] - Lambda[2],),
+                 (Lambda[0] - Lambda[1] + Lambda[2],),
+                 (Lambda[1],)]
                 sage: [p for p in C.__iter__(index_set=[0, 1], max_depth=3)]
                 [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + 2*Lambda[2] - delta,)]
             """
@@ -230,7 +232,7 @@ class HighestWeightCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: C = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
                 sage: qdim = C.q_dimension(); qdim
                 q^4 + 2*q^3 + 2*q^2 + 2*q + 1
                 sage: qdim(1)
@@ -248,19 +250,19 @@ class HighestWeightCrystals(Category_singleton):
                 sage: C.q_dimension(q=t^2)
                 t^8 + 2*t^6 + 2*t^4 + 2*t^2 + 1
 
-                sage: C = CrystalOfTableaux(['A',2], shape=[5,2])
+                sage: C = crystals.Tableaux(['A',2], shape=[5,2])
                 sage: C.q_dimension()
                 q^10 + 2*q^9 + 4*q^8 + 5*q^7 + 6*q^6 + 6*q^5
                  + 6*q^4 + 5*q^3 + 4*q^2 + 2*q + 1
 
-                sage: C = CrystalOfTableaux(['B',2], shape=[2,1])
+                sage: C = crystals.Tableaux(['B',2], shape=[2,1])
                 sage: qdim = C.q_dimension(); qdim
                 q^10 + 2*q^9 + 3*q^8 + 4*q^7 + 5*q^6 + 5*q^5
                  + 5*q^4 + 4*q^3 + 3*q^2 + 2*q + 1
                 sage: qdim == C.q_dimension(use_product=True)
                 True
 
-                sage: C = CrystalOfTableaux(['D',4], shape=[2,1])
+                sage: C = crystals.Tableaux(['D',4], shape=[2,1])
                 sage: C.q_dimension()
                 q^16 + 2*q^15 + 4*q^14 + 7*q^13 + 10*q^12 + 13*q^11
                  + 16*q^10 + 18*q^9 + 18*q^8 + 18*q^7 + 16*q^6 + 13*q^5
@@ -268,7 +270,7 @@ class HighestWeightCrystals(Category_singleton):
 
             We check with a finite tensor product::
 
-                sage: TP = TensorProductOfCrystals(C, C)
+                sage: TP = crystals.TensorProduct(C, C)
                 sage: TP.cardinality()
                 25600
                 sage: qdim = TP.q_dimension(use_product=True); qdim # long time
@@ -286,7 +288,7 @@ class HighestWeightCrystals(Category_singleton):
             The `q`-dimensions of infinite crystals are returned
             as formal power series::
 
-                sage: C = CrystalOfLSPaths(['A',2,1], [1,0,0])
+                sage: C = crystals.LSPaths(['A',2,1], [1,0,0])
                 sage: C.q_dimension(prec=5)
                 1 + q + 2*q^2 + 2*q^3 + 4*q^4 + O(q^5)
                 sage: C.q_dimension(prec=10)

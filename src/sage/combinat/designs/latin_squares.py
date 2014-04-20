@@ -272,7 +272,7 @@ def latin_square_product(M,N,*others):
          for j in range(n)
          for jj in range(n)}
 
-    L = lambda (i,j):i*n+j
+    L = lambda i_j: i_j[0] * n + i_j[1]
     D = {(L(c[0]),L(c[1])): L(v) for c,v in D.iteritems()}
     P = Matrix(D)
 

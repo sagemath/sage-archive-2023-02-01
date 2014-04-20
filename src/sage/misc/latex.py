@@ -914,7 +914,7 @@ class LatexCall:
             return LatexExpr(x._latex_())
         try:
             f = latex_table[type(x)]
-            if type(x) == tuple:
+            if isinstance(x, tuple):
                 return LatexExpr(f(x, combine_all=combine_all))
             return LatexExpr(f(x))
         except KeyError:
@@ -2419,12 +2419,16 @@ def pretty_print (*args):
                 print MathJax().eval(tuple(s), mode='inline',
                         combine_all=True)
 
+    import __builtin__
+    in_ipython = hasattr(__builtin__, 'get_ipython')
     s = []
     for object in args:
         if object is None:
             continue
-        import __builtin__
-        __builtin__._=object
+        if in_ipython:
+            get_ipython().displayhook.update_user_ns(object)
+        else:
+            __builtin__._ = object
 
         from sage.plot.plot import Graphics
         from sage.plot.plot3d.base import Graphics3d

@@ -75,7 +75,7 @@ class LCalc(SageObject):
             if L.base_ring() == sage.rings.all.RationalField():
                 L = L.minimal_model()
                 return '-e --a1 %s --a2 %s --a3 %s --a4 %s --a6 %s'%tuple(L.a_invariants())
-        raise TypeError, "$L$-function of %s not known"%L
+        raise TypeError("$L$-function of %s not known"%L)
 
     def help(self):
         try:

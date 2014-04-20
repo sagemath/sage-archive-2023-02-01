@@ -212,7 +212,7 @@ class CubexSolver:
             s = child.after
             while child.expect(['^5\d+', pexpect.EOF]) == 0:
                 s += child.after
-            raise ValueError, s
+            raise ValueError(s)
 
     def format_cube(self, facets):
         colors = sum([[i]*8 for i in range(1,7)], [])
@@ -281,10 +281,10 @@ class DikSolver:
         elif ix == 1:
             # invalid format
             child.close(True)
-            raise ValueError, child.before
+            raise ValueError(child.before)
         else:
             child.close(True)
-            raise RuntimeError, "timeout"
+            raise RuntimeError("timeout")
 
     def format_cube(self, facets):
         colors = sum([[i]*8 for i in range(1,7)], [])

@@ -1451,7 +1451,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     M = self.parent().realization_of().Monomial()
                     return M( self ).to_symmetric_function()
                 else:
-                    raise ValueError, "%s is not a symmetric function"%self
+                    raise ValueError("%s is not a symmetric function"%self)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1921,7 +1921,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     return m.sum_of_terms([(I, coeff) for (I, coeff) in self
                         if list(I) in _Partitions], distinct=True)
                 else:
-                    raise ValueError, "%s is not a symmetric function"%self
+                    raise ValueError("%s is not a symmetric function"%self)
 
     M = Monomial
 
@@ -2810,17 +2810,17 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 sage: HWL = QuasiSymmetricFunctions(QQ).HazewinkelLambda()
                 sage: M = QuasiSymmetricFunctions(QQ).Monomial()
-                sage: HWL.coerce_map_from(M)
+                sage: M2HWL = HWL.coerce_map_from(M); M2HWL
                 Generic morphism:
                   From: Quasisymmetric functions over the Rational Field in the Monomial basis
                   To:   Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
-                sage: M.coerce_map_from(HWL)
+                sage: HWL2M = M.coerce_map_from(HWL); HWL2M
                 Generic morphism:
                   From: Quasisymmetric functions over the Rational Field in the HazewinkelLambda basis
                   To:   Quasisymmetric functions over the Rational Field in the Monomial basis
-                sage: M.coerce_map_from(HWL)(HWL[2])
+                sage: HWL2M(HWL[2])
                 M[1, 1]
-                sage: HWL.coerce_map_from(M)(M[2])
+                sage: M2HWL(M[2])
                 HWL[1, 1] - 2*HWL[2]
             """
             M = self.realization_of().M()

@@ -35,6 +35,18 @@ from sage.env import SAGE_DOC, SAGE_SRC
 execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
+def print_build_error():
+    """
+    Print docbuild error and hint how to solve it
+    """
+    logger.error('Error building the documentation.')
+    if INCREMENTAL_BUILD:
+        logger.error('''
+Note: incremental documentation builds sometimes cause spurious
+error messages. To be certain that these are real errors, run
+"make doc-clean" first and try again.''')
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
@@ -79,12 +91,7 @@ def builder_helper(type):
         # Execute custom-sphinx-build.py
         sys.argv = [os.path.join(SAGE_DOC, 'common', 'custom-sphinx-build.py')]
         sys.argv.extend(build_command.split())
-        try:
-            execfile(sys.argv[0])
-        except Exception:
-            import traceback
-            logger.error(traceback.format_exc())
-            raise
+        execfile(sys.argv[0])
 
         # Print message about location of output:
         #   - by default if html output
@@ -285,12 +292,6 @@ class AllBuilder(object):
             pool.join()
         except Exception:
             pool.terminate()
-            logger.error('Error building the documentation.')
-            if INCREMENTAL_BUILD:
-                logger.error('''
-Note: incremental documentation builds sometimes cause spurious
-error messages. To be certain that these are real errors, run
-"make doc-clean" first and try again.''')
             if ABORT_ON_ERROR:
                 raise
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
@@ -488,12 +489,6 @@ class ReferenceBuilder(AllBuilder):
                 pool.join()
             except Exception:
                 pool.terminate()
-                logger.error('Error building the documentation.')
-                if INCREMENTAL_BUILD:
-                    logger.error('''
-Note: incremental documentation builds sometimes cause spurious
-error messages. To be certain that these are real errors, run
-"make doc-clean" first and try again.''')
                 if ABORT_ON_ERROR:
                     raise
             # The html refman must be build at the end to ensure correct
@@ -1058,7 +1053,7 @@ def get_builder(name):
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
-    elif 'reference' in name:
+    elif 'reference' in name and os.path.exists(os.path.join(SAGE_DOC, 'en', name)):
         return ReferenceSubBuilder(name)
     elif name.endswith('website'):
         return WebsiteBuilder(name)
@@ -1478,4 +1473,9 @@ if __name__ == '__main__':
     C = IntersphinxCache()
 
     # Get the builder and build.
-    getattr(get_builder(name), type)()
+    try:
+        getattr(get_builder(name), type)()
+    except Exception:
+        print_build_error()
+        raise
+        

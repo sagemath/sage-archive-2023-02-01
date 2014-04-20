@@ -6,17 +6,27 @@ AUTHORS:
 - Florent Hivert (2011): initial revision
 """
 
-import sage
 from sage.structure.list_clone import NormalizedClonableList
 from sage.combinat.abstract_tree import (
     AbstractClonableTree, AbstractLabelledClonableTree )
-from sage.misc.cachefunc import (
-    cached_method, cached_function, cached_in_parent_method )
+from sage.misc.cachefunc import cached_function
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.sets_cat import Sets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
-from sage.misc.misc import srange
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.rings.infinity import Infinity
+from sage.combinat.ranker import on_fly
+import sage.structure.set_factories as factories
+
+
 
 @cached_function
 def number_of_rooted_trees(n):
@@ -49,6 +59,7 @@ def number_of_rooted_trees(n):
                number_of_rooted_trees(n-k)
                for k in ZZ.range(1, n)) // (n-1)
 
+
 class RootedTree(AbstractClonableTree, NormalizedClonableList):
     r"""
     The class for unordered rooted trees
@@ -72,7 +83,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that rooted trees created by the enumerated sets and directly
-        are the same and that they are instance of :class:`RootedTree`
+        are the same and that they are instances of :class:`RootedTree`
 
         TESTS::
 
@@ -104,7 +115,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         """
         The automatic parent of the element of this class
 
-        When calling the constructor of an element of this class, one need a
+        When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
 
         EXAMPLES::
@@ -130,13 +141,14 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
-    _cayley_ranker = sage.combinat.ranker.on_fly()
+    _cayley_ranker = on_fly()
     def normalize(self):
         r"""
         Normalise ``self``
 
-        There should be no need to call normalize directly as it is called
-        automatically upon creation and cloning/modification.
+        There should be no need to call ``normalize`` directly as it
+        is called automatically upon creation and
+        cloning/modification.
 
         EXAMPLES::
 
@@ -153,7 +165,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         rank, unrank = self._cayley_ranker
         self._require_mutable()
         for st in self:
-            assert st.is_immutable(), "Subtree %s is not normalized"%st
+            assert st.is_immutable(), "Subtree {} is not normalized".format(st)
         # print self._get_list()
         self._get_list().sort(key=rank)
         # print self._get_list()
@@ -183,14 +195,6 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         """
         return False
 
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.categories.sets_cat import Sets, EmptySetError
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-import sage.structure.set_factories as factories
 
 class RootedTreesFactory(factories.SetFactory):
     """
@@ -216,15 +220,14 @@ class RootedTreesFactory(factories.SetFactory):
             return RootedTrees_all(policy)
         elif isinstance(n, (Integer, int)) and n >= 0:
             return RootedTrees_size(n, policy)
-        raise NotImplementedError, "Don't know how to compute %s(%s)"%(
-            self, n)
+        raise NotImplementedError("Do not know how to compute {}({})".format(self, n))
 
         # try:
         #     from sage.combinat.partition import Partition
         #     lst = Partition(n)
         # except ValueError:
-        #     raise NotImplementedError, "Don't know how to compute %%(%s)"%(
-        #         self, n)
+        #     raise NotImplementedError("Don't know how to compute %%(%s)"%(
+        #         self, n))
         # else:
         #     return RootedTrees_part(lst, policy)
 
@@ -263,7 +266,8 @@ class RootedTreesFactory(factories.SetFactory):
 
 RootedTrees = RootedTreesFactory()
 
-from sage.sets.non_negative_integers import NonNegativeIntegers
+
+
 class RootedTrees_all(factories.SetFactoryParent,
                       DisjointUnionEnumeratedSets):
     """
@@ -465,7 +469,7 @@ class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
             ValueError: Wrong number of nodes
         """
         if el.node_number() != self._n:
-            raise ValueError, "Wrong number of nodes"
+            raise ValueError("Wrong number of nodes")
 
     def cardinality(self):
         r"""
@@ -562,7 +566,6 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     _UnLabelled = RootedTree
 
 
-from sage.rings.infinity import Infinity
 class LabelledRootedTrees(UniqueRepresentation, Parent):
     """
     This is a parent stub to serve as a factory class for trees with various

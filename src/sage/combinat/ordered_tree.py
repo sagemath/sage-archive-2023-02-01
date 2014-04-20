@@ -511,6 +511,41 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         children.reverse()
         return OrderedTree(children)
 
+    import sage.combinat.ranker
+    from sage.misc.cachefunc import cached_method
+    _cayley_ranker = sage.combinat.ranker.on_fly()
+    @cached_method
+    def cayley_normalize(self):
+        """
+        sage: (OrderedTree([[],[[]]]).cayley_normalize() ==
+        ...    OrderedTree([[[]],[]]).cayley_normalize())
+        True
+        """
+        rank, unrank = self._cayley_ranker
+        with self.clone() as res:
+            resl = res._get_list()
+            for i in range(len(resl)):
+                resl[i] = resl[i].cayley_normalize()
+            resl.sort(key = rank)
+        return unrank(rank(res))
+
+    # TODO !!!
+    def cayley_normalize_in_place(self):
+        """
+        In place cayley normalization
+
+        EXAMPLES::
+
+            sage: (OrderedTree([[],[[]]]).cayley_normalize() ==
+            ...    OrderedTree([[[]],[]]).cayley_normalize())
+            True
+        """
+        rank, unrank = self._cayley_ranker
+        resl = self._get_list()
+        for i in range(len(resl)):
+            resl[i] = resl[i].cayley_normalized()
+        resl.sort(key = rank)
+
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.rings.integer import Integer
 from sage.sets.non_negative_integers import NonNegativeIntegers

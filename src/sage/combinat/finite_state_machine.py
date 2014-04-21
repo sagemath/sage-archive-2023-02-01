@@ -2199,6 +2199,76 @@ class FiniteStateMachine(SageObject):
     default_format_letter = latex
     format_letter = default_format_letter
 
+
+    def format_letter_negative(self, letter):
+        r"""
+        Format negative numbers as overlined numbers, everything
+        else by standard LaTeX formatting.
+
+        INPUT:
+
+        ``letter`` -- anything.
+
+        OUTPUT:
+
+        Overlined absolute value if letter is a negative integer,
+        :func:`latex(letter) <sage.misc.latex.latex>` otherwise.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, -1)])
+            sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
+             ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
+            sage: A.format_letter = A.format_letter_negative
+            sage: print(latex(A))
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state] (v0) at (3.000000,0.000000) {0};
+            \path[->] (v0) edge[loop above] node {$\overline{1}$} ();
+            \end{tikzpicture}
+        """
+        if letter in ZZ and letter < 0:
+            return r'\overline{%d}' % -letter
+        else:
+            return latex(letter)
+
+
+    def format_transition_label_reversed(self, word):
+        r"""
+        Format words in transition labels in reversed order.
+
+        INPUT:
+
+        ``word`` -- list of letters.
+
+        OUTPUT:
+
+        String representation of ``word`` suitable to be typeset in
+        mathematical mode, letters are written in reversed order.
+
+        This is the reversed version of
+        :meth:`.default_format_transition_label`.
+
+        In digit expansions, digits are frequently processed from the
+        least significant to the most significant position, but it is
+        customary to write the least significant digit at the
+        right-most position. Therefore, the labels have to be
+        reversed.
+
+        EXAMPLE::
+
+            sage: T = Transducer([(0, 0, 0, [1, 2, 3])])
+            sage: T.format_transition_label_reversed([1, 2, 3])
+            '3 2 1'
+            sage: T.format_transition_label = T.format_transition_label_reversed
+            sage: print latex(T)
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state] (v0) at (3.000000,0.000000) {0};
+            \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
+            \end{tikzpicture}
+        """
+        return self.default_format_transition_label(reversed(word))
+
+
     def default_format_transition_label(self, word):
         r"""
         Default formatting of words in transition labels for LaTeX output.
@@ -2216,6 +2286,9 @@ class FiniteStateMachine(SageObject):
             ``self.format_letter`` and separated by blanks.
         -   For an empty word:
             ``sage.combinat.finite_state_machine.EmptyWordLaTeX``.
+
+        There is also a variant :meth:`.format_transition_label_reversed`
+        writing the words in reversed order.
 
         EXAMPLES:
 

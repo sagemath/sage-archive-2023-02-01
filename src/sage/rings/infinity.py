@@ -220,7 +220,7 @@ class _uniq(object):
         _obj[cls] = O = cls.__bases__[-1].__new__(cls, *args)
         return O
 
-class AnInfinity:
+class AnInfinity(object):
 
     def _repr_(self):
         """
@@ -449,12 +449,8 @@ class AnInfinity:
             -infinity
             sage: (-infinity).__float__() # random
             -inf
-
         """
-        # Evidently there is no standard way to generate an infinity
-        # in Python (before Python 2.6).
-        from sage.rings.all import RR
-        return float(RR(self))
+        return float(self._sign_char + 'inf')
 
     def lcm(self, x):
         """
@@ -951,32 +947,20 @@ class InfinityRing_class(_uniq, Ring):
             sage: oo == float('+inf')
             True
         """
+        # Handle all ways to represent infinity first
         if isinstance(x, PlusInfinityElement):
             return self.gen(0)
         elif isinstance(x, MinusInfinityElement):
             return self.gen(1)
         elif isinstance(x, InfinityElement):
             return self.gen(0)
-        elif (isinstance(x, (sage.rings.integer.Integer,
-                             sage.rings.rational.Rational,
-                             sage.rings.real_double.RealDoubleElement,
-                             sage.rings.real_mpfr.RealNumber))
-                or isinstance(x, (int,long,float))
-                or sage.rings.real_mpfr.RealField(sage.rings.real_mpfr.mpfr_prec_min())(x)):
+        elif isinstance(x, float):
             if x == float('+inf'):
                 return self.gen(0)
-            elif x == float('-inf'):
+            if x == float('-inf'):
                 return self.gen(1)
-            elif x < 0:
-                return FiniteNumber(self, -1)
-            elif x > 0:
-                return FiniteNumber(self, 1)
-            elif x == 0:
-                return FiniteNumber(self, 0)
-            else:
-                raise TypeError
-        else:
-            raise TypeError
+        # If we got here then x is not infinite
+        return FiniteNumber(self, cmp(x, 0))
 
     def _coerce_map_from_(self, R):
         """

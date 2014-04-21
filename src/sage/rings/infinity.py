@@ -599,24 +599,51 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             A number less than infinity
             sage: UnsignedInfinityRing(I)
             A number less than infinity
-            sage: UnsignedInfinityRing(infinity)
+            sage: UnsignedInfinityRing(unsigned_infinity)
             Infinity
-            sage: UnsignedInfinityRing(float('+inf'))
+            sage: UnsignedInfinityRing(oo)
             Infinity
+            sage: UnsignedInfinityRing(-oo)
+            Infinity
+            sage: K.<a> = QuadraticField(3)
+            sage: UnsignedInfinityRing(a)
+            A number less than infinity
+            sage: UnsignedInfinityRing(a - 2)
+            A number less than infinity
+            sage: UnsignedInfinityRing(RR(oo)), UnsignedInfinityRing(RR(-oo))
+            (Infinity, Infinity)
+            sage: UnsignedInfinityRing(RIF(oo)), UnsignedInfinityRing(RIF(-oo))
+            (Infinity, Infinity)
+            sage: UnsignedInfinityRing(float('+inf')), UnsignedInfinityRing(float('-inf'))
+            (Infinity, Infinity)
         """
+        # Lazy elements can wrap infinity or not, unwrap first
+        from sage.rings.real_lazy import LazyWrapper
+        if isinstance(x, LazyWrapper):
+            x = x._value
+
+        # Handle all ways to represent infinity first
         if isinstance(x, InfinityElement):
             if x.parent() is self:
                 return x
             else:
                 return self.gen()
-        elif isinstance(x, RingElement) or isinstance(x, (int,long)):
-            return self.less_than_infinity()
-        elif isinstance(x, (float, complex)):
-            if x == float('+inf') or x == float('-inf'):
+        elif isinstance(x, float):
+            if x in [float('+inf'), float('-inf')]:
                 return self.gen()
-            return self.less_than_infinity()
+        elif isinstance(x, sage.rings.real_mpfi.RealIntervalFieldElement):
+            if x.upper().is_infinity() or x.lower().is_infinity():
+                return self.gen()
         else:
-            raise TypeError
+            try:
+                # For example, RealField() implements this
+                if x.is_infinity():
+                    return self.gen()
+            except AttributeError:
+                pass
+
+        # If we got here then x is not infinite
+        return self.less_than_infinity()
 
     def _coerce_map_from_(self, R):
         """
@@ -920,6 +947,8 @@ class InfinityRing_class(_uniq, Ring):
 
     def _element_constructor_(self, x):
         """
+        The element constructor
+
         TESTS::
 
             sage: InfinityRing(-oo) # indirect doctest
@@ -935,18 +964,18 @@ class InfinityRing_class(_uniq, Ring):
             A positive finite number
             sage: InfinityRing(a - 2)
             A negative finite number
-
-        Check that :trac:`14045` is fixed::
-
-            sage: InfinityRing(float('+inf'))
-            +Infinity
-            sage: InfinityRing(float('-inf'))
-            -Infinity
-            sage: oo > float('+inf')
-            False
-            sage: oo == float('+inf')
-            True
+            sage: InfinityRing(RR(oo)), InfinityRing(RR(-oo))
+            (+Infinity, -Infinity)
+            sage: InfinityRing(RIF(oo)), InfinityRing(RIF(-oo))
+            (+Infinity, -Infinity)
+            sage: InfinityRing(float('+inf')), InfinityRing(float('-inf'))
+            (+Infinity, -Infinity)
         """
+        # Lazy elements can wrap infinity or not, unwrap first
+        from sage.rings.real_lazy import LazyWrapper
+        if isinstance(x, LazyWrapper):
+            x = x._value
+
         # Handle all ways to represent infinity first
         if isinstance(x, PlusInfinityElement):
             return self.gen(0)
@@ -959,6 +988,21 @@ class InfinityRing_class(_uniq, Ring):
                 return self.gen(0)
             if x == float('-inf'):
                 return self.gen(1)
+        elif isinstance(x, sage.rings.real_mpfi.RealIntervalFieldElement):
+            if x.upper().is_positive_infinity():
+                return self.gen(0)
+            if x.lower().is_negative_infinity():
+                return self.gen(1)
+        else:
+            try:
+                # For example, RealField() implements this
+                if x.is_positive_infinity():
+                    return self.gen(0)
+                if x.is_negative_infinity():
+                    return self.gen(1)
+            except AttributeError:
+                pass
+
         # If we got here then x is not infinite
         return FiniteNumber(self, cmp(x, 0))
 
@@ -974,10 +1018,16 @@ class InfinityRing_class(_uniq, Ring):
             True
             sage: InfinityRing.has_coerce_map_from(RDF)
             True
+            sage: InfinityRing.has_coerce_map_from(RIF)
+            True
             sage: InfinityRing.has_coerce_map_from(CC)
             False
         """
-        return sage.rings.real_mpfr.RealField(sage.rings.real_mpfr.mpfr_prec_min()).has_coerce_map_from(R)
+        from sage.rings.real_mpfi import RealIntervalField_class
+        if isinstance(R, RealIntervalField_class):
+            return True
+        from sage.rings.real_mpfr import RealField, mpfr_prec_min
+        return RealField(mpfr_prec_min()).has_coerce_map_from(R)
 
 class FiniteNumber(RingElement):
     def __init__(self, parent, x):
@@ -1347,7 +1397,7 @@ def test_comparison(ring):
 
         
         sage: from sage.rings.infinity import test_comparison
-        sage: rings = [ZZ, QQ, RR, RealField(200), RDF, RLF, AA]
+        sage: rings = [ZZ, QQ, RR, RealField(200), RDF, RLF, AA, RIF]
         sage: for R in rings:
         ....:     print('testing {}'.format(R))
         ....:     test_comparison(R)
@@ -1358,7 +1408,8 @@ def test_comparison(ring):
         testing Real Double Field
         testing Real Lazy Field
         testing Algebraic Real Field
-    
+        testing Real Interval Field with 53 bits of precision
+   
     Comparison with number fields does not work::
     
         sage: K.<sqrt3> = NumberField(x^2-3)
@@ -1385,4 +1436,50 @@ def test_comparison(ring):
         assert infinity >= z, msg
 
     
+def test_signed_infinity(pos_inf):
+    """
+    Test consistency of infinity representations.
 
+    There are different possible representations of infinity in
+    Sage. These are all consistent with the infinity ring, that is,
+    compare with infinity in the expected way. See also :trac:`14045`
+
+    INPUT:
+
+    - ``pos_inf`` -- a representation of positive infinity.
+    
+    OUTPUT:
+
+    An assertion error is raised if the representation is not
+    consistent with the infinity ring.
+
+    Check that :trac:`14045` is fixed::
+
+        sage: InfinityRing(float('+inf'))
+        +Infinity
+        sage: InfinityRing(float('-inf'))
+        -Infinity
+        sage: oo > float('+inf')
+        False
+        sage: oo == float('+inf')
+        True
+
+  
+    EXAMPLES::
+
+        sage: from sage.rings.infinity import test_signed_infinity
+        sage: for pos_inf in [oo, float('+inf'), RLF(oo), RIF(oo)]:
+        ....:     test_signed_infinity(pos_inf)
+    """
+    msg = 'testing {} ({})'.format(pos_inf, type(pos_inf))
+    assert InfinityRing(pos_inf) is infinity, msg
+    assert InfinityRing(-pos_inf) is minus_infinity, msg
+    assert infinity == pos_inf, msg
+    assert not(infinity > pos_inf), msg
+    assert not(infinity < pos_inf), msg
+    assert minus_infinity == -pos_inf, msg
+    assert not(minus_infinity > -pos_inf), msg
+    assert not(minus_infinity < -pos_inf), msg
+    assert pos_inf > -pos_inf, msg
+    assert infinity > -pos_inf, msg
+    assert pos_inf > minus_infinity, msg

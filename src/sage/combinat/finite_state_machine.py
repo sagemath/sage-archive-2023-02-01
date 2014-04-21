@@ -2214,7 +2214,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=['B'])
             sage: F.state('A').initial_where='below'
             sage: print(F._latex_())
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, accepting text=, accepting/.style=accepting by double]
             \node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
             \node[state, accepting] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
@@ -2235,13 +2235,47 @@ class FiniteStateMachine(SageObject):
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
+        #### compatibility code, delete when .is_final/.final_word_out consistency is guaranteed
+        for state in self.iter_final_states():
+            if not hasattr(state, "final_word_out"):
+                state.final_word_out = []
+        #### end compatibility code
 
         if hasattr(self, "format_transition_label"):
             format_transition_label = self.format_transition_label
         else:
             format_transition_label = latex
 
-        options = ["auto", "initial text="]
+        options = ["auto", "initial text=", "accepting text="]
+
+        nonempty_final_word_out = False
+        for state in self.iter_final_states():
+            if state.final_word_out:
+                nonempty_final_word_out = True
+                break
+
+        if hasattr(self, "accepting_style"):
+            accepting_style = self.accepting_style
+        elif nonempty_final_word_out:
+            accepting_style = "accepting by arrow"
+        else:
+            accepting_style = "accepting by double"
+        options.append("accepting/.style=%s" % accepting_style)
+
+        accepting_distance = None
+        if accepting_style == "accepting by arrow":
+            if hasattr(self, "accepting_distance"):
+                accepting_distance = self.accepting_distance
+            elif nonempty_final_word_out:
+                accepting_distance = "5ex"
+        if accepting_distance:
+            options.append("accepting distance=%s"
+                               % accepting_distance)
+        accepting_where = {"right": 0,
+                           "above": 90,
+                           "left": 180,
+                           "below": 270}
+
         result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
         for vertex in self.iter_states():
@@ -2249,7 +2283,7 @@ class FiniteStateMachine(SageObject):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
             options = ""
-            if vertex.is_final:
+            if vertex.is_final and (not vertex.final_word_out or accepting_style == "accepting by double"):
                 options += ", accepting"
             if vertex.is_initial:
                 options += ", initial"
@@ -2265,6 +2299,17 @@ class FiniteStateMachine(SageObject):
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
+            if vertex.is_final and vertex.final_word_out:
+                angle = 0
+                if hasattr(vertex, "accepting_where"):
+                    angle = accepting_where.get(vertex.accepting_where,
+                                                vertex.accepting_where)
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s$} ++(%.2f:%s);\n" % (
+                    j, angle,
+                    label_rotation(angle, False),
+                    format_transition_label(vertex.final_word_out),
+                    angle, accepting_distance)
+
             j += 1
         adjacent = {}
         for source in self.iter_states():
@@ -4967,7 +5012,7 @@ class Automaton(FiniteStateMachine):
 
             sage: F = Automaton([('A', 'B', 1)])
             sage: print(F._latex_())
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, accepting text=, accepting/.style=accepting by double]
             \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
             \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
@@ -5407,7 +5452,7 @@ class Transducer(FiniteStateMachine):
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: print(F._latex_())
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, accepting text=, accepting/.style=accepting by double]
             \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
             \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);

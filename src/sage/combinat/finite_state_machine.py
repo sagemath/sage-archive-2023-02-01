@@ -2282,7 +2282,7 @@ class FiniteStateMachine(SageObject):
             sage: A = Automaton([(0, 0, -1)])
             sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
              ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
-            sage: A.format_letter = A.format_letter_negative
+            sage: A.latex_options(format_letter=A.format_letter_negative)
             sage: print(latex(A))
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000, 0.000000) {$0$};
@@ -2322,7 +2322,7 @@ class FiniteStateMachine(SageObject):
             sage: T = Transducer([(0, 0, 0, [1, 2, 3])])
             sage: T.format_transition_label_reversed([1, 2, 3])
             '3 2 1'
-            sage: T.format_transition_label = T.format_transition_label_reversed
+            sage: T.latex_options(format_transition_label=T.format_transition_label_reversed)
             sage: print latex(T)
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000, 0.000000) {$0$};

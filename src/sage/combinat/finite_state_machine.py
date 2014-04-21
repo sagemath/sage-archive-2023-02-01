@@ -2237,7 +2237,7 @@ class FiniteStateMachine(SageObject):
 
         result = "\\begin{tikzpicture}[auto, initial text=]\n"
         j = 0;
-        for vertex in self.states():
+        for vertex in self.iter_states():
             if not hasattr(vertex, "coordinates"):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
@@ -2260,8 +2260,8 @@ class FiniteStateMachine(SageObject):
             vertex._number_ = j
             j += 1
         adjacent = {}
-        for source in self.states():
-            for target in self.states():
+        for source in self.iter_states():
+            for target in self.iter_states():
                 transitions = filter(lambda transition: \
                                          transition.to_state == target,
                                      source.transitions)

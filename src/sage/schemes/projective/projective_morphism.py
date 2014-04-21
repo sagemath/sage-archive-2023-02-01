@@ -2377,17 +2377,17 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         B = e ** self.height_difference_bound()
 
         f=self.change_ring(GF(p))
-        allPoints=f.possible_periods(True) #return the list of points and their periods.
-        posPoints=[]
-        for i in range(len(allPoints)):
-            if allPoints[i][1] in periods and  (allPoints[i] in posPoints)==False:  #check period, remove duplicates
-                posPoints.append(allPoints[i])
-        PeriodicPoints=self.lift_to_rational_periodic(posPoints,B)
-        for P,n in PeriodicPoints:
+        all_points=f.possible_periods(True) #return the list of points and their periods.
+        pos_points=[]
+        for i in range(len(all_points)):
+            if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
+                pos_points.append(all_points[i])
+        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+        for p,n in periodic_points:
             for k in range(n):
-                  P.normalize_coordinates()
-                  periodic.add(P)
-                  P = self(P)
+                p.normalize_coordinates()
+                periodic.add(p)
+                p=self(p)
         return(list(periodic))
 
     def rational_preimages(self, Q):

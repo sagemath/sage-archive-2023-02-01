@@ -198,9 +198,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
             if not isinstance(x, SchemeMorphism_point_projective_ring):
-                x = self.domain()(x)
-            elif x.codomain() != self.domain():
-                raise TypeError, "Point must be in the domain of the function"
+                try:
+                    x = self.domain()(x)
+                except (TypeError, NotImplementedError):
+                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+            elif self.domain()!=x.codomain():
+                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
 
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords, check)

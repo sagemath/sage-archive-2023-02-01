@@ -999,22 +999,29 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             self.__dehomogenization = {}
         except KeyError:
             pass
-        PS = self.domain()
-        A = PS.ambient_space()
-        if self._polys[n].substitute({A.gen(n):1}) == 0:
+        #it is possible to dehomogenize the domain and codomain at different coordinates
+        if isinstance(n,(tuple,list)):
+            ind=tuple(n)
+        else:
+            ind=(n,n)
+        PS_domain = self.domain()
+        A_domain = PS_domain.ambient_space()
+        if self._polys[ind[1]].substitute({A_domain.gen(ind[1]):1}) == 0:
             raise ValueError("Can't dehomogenize at 0 coordinate.")
         else:
-            Aff = PS.affine_patch(n)
-            S = Aff.ambient_space().coordinate_ring()
-            R = A.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, n)] + [1] + [S.gen(j) for j in range(n, A.dimension_relative())], S)
+            Aff_domain = PS_domain.affine_patch(ind[0])
+            S = Aff_domain.ambient_space().coordinate_ring()
+            N = A_domain.dimension_relative()
+            R = A_domain.coordinate_ring()
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
             F = []
-            for i in range(0, A.dimension_relative() + 1):
-                if i != n:
-                    F.append(phi(self._polys[i]) / phi(self._polys[n]))
-            H = Hom(Aff, Aff)
-            self.__dehomogenization[n]=H(F)
-            return self.__dehomogenization[n]
+            G = phi(self._polys[ind[1]])
+            for i in range(0, N + 1):
+                if i != ind[1]:
+                    F.append(phi(self._polys[i]) / G)
+            H = Hom(Aff_domain, self.codomain().affine_patch(ind[1]))
+            self.__dehomogenization[ind]=H(F)
+            return self.__dehomogenization[ind]
 
     def orbit(self, P, N, **kwds):
         r"""
@@ -1720,7 +1727,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] == 0:
                 index -= 1
             indexlist.append(index)
-            F = self.dehomogenize(indexlist[i])
+            F = self.dehomogenize((indexlist[i],indexlist[i+1]))
             l = F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l #get the correct order for chain rule matrix multiplication
             Q = R
         return l

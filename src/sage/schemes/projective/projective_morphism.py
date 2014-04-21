@@ -157,28 +157,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if not all([d == degs[0] for d in degs[1:]]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
 
-        # The remaining code is used to instantiate the _fastpolys
-        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
-        prime = polys[0].base_ring().characteristic()
-        degree = polys[0].degree()
-        self._fastpolys = []
-        for poly in polys:
-            # These tests are in place because the float and integer domain evaluate
-            # faster than using the base_ring
-            if self._is_prime_finite_field:
-                coefficients = poly.coefficients()
-                height = max(coefficients).lift()
-                num_terms = len(coefficients)
-                largest_value = num_terms * height * (prime - 1) ** degree
-                # If the calculations will not overflow the float data type use domain float
-                # Else use domain integer
-                if largest_value < (2 ** 27):
-                    self._fastpolys.append(fast_callable(poly, domain=float))
-                else:
-                    self._fastpolys.append(fast_callable(poly, domain=ZZ))
-            else:
-                self._fastpolys.append(fast_callable(poly, domain=poly.base_ring()))
-
     def __call__(self, x, check=True):
         """
         Evaluate projective morphism at point described by ``x``.
@@ -205,6 +183,32 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords, check)
         return self.codomain().point(P, check)
+
+    @lazy_attribute
+    def _fastpolys(self):
+        polys = self._polys
+        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
+        prime = polys[0].base_ring().characteristic()
+        degree = polys[0].degree()
+
+        fastpolys = []
+        for poly in polys:
+            # These tests are in place because the float and integer domain evaluate
+            # faster than using the base_ring
+            if self._is_prime_finite_field:
+                coefficients = poly.coefficients()
+                height = max(coefficients).lift()
+                num_terms = len(coefficients)
+                largest_value = num_terms * height * (prime - 1) ** degree
+                # If the calculations will not overflow the float data type use domain float
+                # Else use domain integer
+                if largest_value < (2 ** 27):
+                    fastpolys.append(fast_callable(poly, domain=float))
+                else:
+                    fastpolys.append(fast_callable(poly, domain=ZZ))
+            else:
+                fastpolys.append(fast_callable(poly, domain=poly.base_ring()))
+        return fastpolys
 
     def _fast_eval(self, x, check=True):
         """

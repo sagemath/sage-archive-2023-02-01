@@ -34,6 +34,11 @@ AUTHORS:
 - Sara Kropf (2014-04-10): some changes in TransducerGenerator
 - Daniel Krenn (2014-04-15): improved common docstring during review
 
+ACKNOWLEDGEMENT:
+
+- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
 Functions and methods
 ---------------------
 

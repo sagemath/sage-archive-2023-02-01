@@ -2316,9 +2316,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         for P,n in PeriodicPoints:
             for k in range(n):
                   P.normalize_coordinates()
-                  Periodic.add(P)
+                  periodic.add(P)
                   P=self(P)
-        return(list(Periodic))
+        return(list(periodic))
 
     def rational_preimages(self,Q):
         r"""
@@ -2498,12 +2498,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         PS=self.domain()
         RPS=PS.base_ring()
         preperiodic=set()
-        while Points!=[]:
-            P=Points.pop()
+        while points!=[]:
+            P=points.pop()
             preimages=self.rational_preimages(P)
             for i in range(len(preimages)):
                 if not preimages[i] in preperiodic:
-                    Points.append(preimages[i])
+                    points.append(preimages[i])
                     preperiodic.add(preimages[i])
         return(list(preperiodic))
 

@@ -2261,8 +2261,8 @@ class FiniteStateMachine(SageObject):
                 sage: A.format_transition_label = custom_format_transition_label
                 sage: print latex(A)
                 \begin{tikzpicture}[auto, initial text=]
-                \node[state] (v0) at (3.000000,0.000000) {0};
-                \node[state] (v1) at (-3.000000,0.000000) {1};
+                \node[state] (v0) at (3.000000, 0.000000) {$0$};
+                \node[state] (v1) at (-3.000000, 0.000000) {$1$};
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
                 \end{tikzpicture}
         """

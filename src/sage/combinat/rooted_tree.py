@@ -6,26 +6,25 @@ AUTHORS:
 - Florent Hivert (2011): initial revision
 """
 
-from sage.structure.list_clone import NormalizedClonableList
-from sage.combinat.abstract_tree import (
-    AbstractClonableTree, AbstractLabelledClonableTree )
-from sage.misc.cachefunc import cached_function
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
+from sage.combinat.ranker import on_fly
+from sage.combinat.abstract_tree import (
+    AbstractClonableTree, AbstractLabelledClonableTree)
+from sage.misc.cachefunc import cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
+from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.structure.list_clone import NormalizedClonableList
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.infinity import Infinity
-from sage.combinat.ranker import on_fly
 import sage.structure.set_factories as factories
-
 
 
 @cached_function
@@ -34,7 +33,7 @@ def number_of_rooted_trees(n):
     Number of rooted trees with `n` nodes
 
     Compute the number `a(n)` of rooted trees with `n` nodes using the
-    recsursive formula ([SL]_):
+    recursive formula ([SL000081]_):
 
     .. math::
 
@@ -48,24 +47,24 @@ def number_of_rooted_trees(n):
 
     REFERENCES:
 
-        .. [SL] Sloane's A000081
+    .. [SL000081] Sloane's :oeis:`A000081`
     """
     if n == 0:
         return Integer(0)
     if n == 1:
         return Integer(1)
     n = Integer(n)
-    return sum(sum(d*number_of_rooted_trees(d) for d in k.divisors()) *
-               number_of_rooted_trees(n-k)
-               for k in ZZ.range(1, n)) // (n-1)
+    return sum(sum(d * number_of_rooted_trees(d) for d in k.divisors()) *
+               number_of_rooted_trees(n - k)
+               for k in ZZ.range(1, n)) // (n - 1)
 
 
 class RootedTree(AbstractClonableTree, NormalizedClonableList):
     r"""
     The class for unordered rooted trees
 
-    One can create a tree from any list (or more generally iterable) of trees
-    or objects convertible to a tree.
+    One can create a tree from any list (or more generally iterable)
+    of trees or objects convertible to a tree.
 
     EXAMPLES::
 
@@ -76,9 +75,9 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         sage: RootedTree([[[]], []])
         [[], [[]]]
     """
-
     # Standard auto-parent trick
     __metaclass__ = ClasscallMetaclass
+
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -87,7 +86,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
         TESTS::
 
-            sage: from sage.combinat.rooted_tree import RootedTrees_all, RootedTrees_size
+            sage: from sage.combinat.rooted_tree import RootedTrees_all
             sage: issubclass(RootedTrees_all().element_class, RootedTree)
             True
             sage: t0 = RootedTree([[],[[]]])
@@ -113,7 +112,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the elements of this class
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -134,41 +133,41 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             sage: t1 = RootedTrees(4)([[],[[]]])
             sage: TestSuite(t1).run()
         """
-        if (children.__class__ is self.__class__ and
-            children.parent() == parent):
+        tst = (children.__class__ is self.__class__
+               and children.parent() == parent)
+        if tst:
             children = list(children)
         else:
             children = [self.__class__(parent, x) for x in children]
         NormalizedClonableList.__init__(self, parent, children, check=check)
 
     _cayley_ranker = on_fly()
+
     def normalize(self):
         r"""
-        Normalise ``self``
+        Normalize ``self``
 
         There should be no need to call ``normalize`` directly as it
-        is called automatically upon creation and
-        cloning/modification.
+        is called automatically upon creation and cloning or
+        modification.
 
         EXAMPLES::
 
-            sage: RootedTree([[],[[]]]) == RootedTree([[[]],[]]) # indirect doctest
+            sage: RT = RootedTree
+            sage: RT([[],[[]]]) == RT([[[]],[]])  # indirect doctest
             True
-            sage: rt1 = RootedTree([[],[[]]])
-            sage: rt2 = RootedTree([[[]],[]])
+            sage: rt1 = RT([[],[[]]])
+            sage: rt2 = RT([[[]],[]])
             sage: rt1 is rt2
             False
             sage: rt1._get_list() is rt2._get_list()
             True
         """
-        # print "Normalizing %s"%self
         rank, unrank = self._cayley_ranker
         self._require_mutable()
         for st in self:
             assert st.is_immutable(), "Subtree {} is not normalized".format(st)
-        # print self._get_list()
         self._get_list().sort(key=rank)
-        # print self._get_list()
 
         # ensure unique representation
         self.set_immutable()
@@ -177,13 +176,15 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
             self._set_list(res._get_list())
 
     def is_empty(self):
-        """
+        r"""
         Return if ``self`` is the empty tree
 
         For rooted trees, returns always ``False``
 
-        .. note:: this is not the same as ``bool(t)`` which returns whether
-                  ``t`` has some child or not.
+        .. NOTE::
+
+            This is not the same as ``bool(t)`` which returns whether
+            ``t`` has some child or not.
 
         EXAMPLES::
 
@@ -220,7 +221,8 @@ class RootedTreesFactory(factories.SetFactory):
             return RootedTrees_all(policy)
         elif isinstance(n, (Integer, int)) and n >= 0:
             return RootedTrees_size(n, policy)
-        raise NotImplementedError("Do not know how to compute {}({})".format(self, n))
+        msg = "Do not know how to compute {}({})".format(self, n)
+        raise NotImplementedError(msg)
 
         # try:
         #     from sage.combinat.partition import Partition
@@ -240,7 +242,7 @@ class RootedTreesFactory(factories.SetFactory):
             sage: RootedTrees.add_constraints((3,), ((), {}))
             (3,)
         """
-        return  cons + n
+        return cons + n
 
     @lazy_attribute
     def _default_policy(self):
@@ -265,7 +267,6 @@ class RootedTreesFactory(factories.SetFactory):
         return "Rooted tree set factory"
 
 RootedTrees = RootedTreesFactory()
-
 
 
 class RootedTrees_all(factories.SetFactoryParent,
@@ -299,11 +300,11 @@ class RootedTrees_all(factories.SetFactoryParent,
             sage: TestSuite(RootedTrees()).run()
         """
         factories.SetFactoryParent.__init__(self, (), policy,
-                                  category = InfiniteEnumeratedSets())
+                                            category=InfiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), self._of_size),
-            facade=True, keepkey = False,
-            category = self.category())
+            facade=True, keepkey=False,
+            category=self.category())
 
     def _repr_(self):
         r"""
@@ -354,7 +355,7 @@ class RootedTrees_all(factories.SetFactoryParent,
 
     def labelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Returns the set of labelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -376,7 +377,7 @@ class RootedTrees_all(factories.SetFactoryParent,
 
 class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
     """
-    The enumerated set of rooted trees with a given number of node
+    The enumerated set of rooted trees with a given number of nodes
 
     EXAMPLES::
 
@@ -402,11 +403,11 @@ class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
         TESTS::
 
             sage: for i in range(0, 6):
-            ...        TestSuite(RootedTrees(i)).run()
+            ....:     TestSuite(RootedTrees(i)).run()
         """
         self._n = n
         factories.SetFactoryParent.__init__(self, (n,), policy,
-            category = FiniteEnumeratedSets())
+                                            category=FiniteEnumeratedSets())
 
     def _repr_(self):
         r"""
@@ -415,7 +416,7 @@ class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
             sage: RootedTrees(4)    # indirect doctest
             Rooted trees with 4 nodes
         """
-        return "Rooted trees with %s nodes"%(self._n)
+        return "Rooted trees with {} nodes".format(self._n)
 
     def __iter__(self):
         """
@@ -491,7 +492,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     """
     Labelled rooted trees
 
-    A labellel rooted tree is a rooted tree with a label attached at each node
+    A labelled rooted tree is a rooted tree with a label attached at each node
 
     INPUT:
 
@@ -532,7 +533,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that trees created by the sets and directly are the same and
-        that they are instance of :class:`LabelledRootedTree`
+        that they are instances of :class:`LabelledRootedTree`
 
         TESTS::
 
@@ -551,7 +552,7 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         """
         The automatic parent of the element of this class
 
-        When calling the constructor of an element of this class, one need a
+        When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
 
         EXAMPLES::
@@ -573,15 +574,15 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: LOT = LabelledRootedTrees(); LOT
+        sage: LRT = LabelledRootedTrees(); LRT
         Labelled rooted trees
-        sage: x = LOT([], label = 3); x
+        sage: x = LRT([], label = 3); x
         3[]
-        sage: x.parent() is LOT
+        sage: x.parent() is LRT
         True
-        sage: y = LOT([x, x, x], label = 2); y
+        sage: y = LRT([x, x, x], label = 2); y
         2[3[], 3[], 3[]]
-        sage: y.parent() is LOT
+        sage: y.parent() is LRT
         True
     """
     def __init__(self, category=None):
@@ -592,7 +593,7 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
         """
         if category is None:
             category = Sets()
-        Parent.__init__(self, category = category)
+        Parent.__init__(self, category=category)
 
     def _repr_(self):
         """
@@ -624,10 +625,10 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
             toto[3[], 42[3[], 3[]], 5[None[]]]
         """
         LT = self._element_constructor_
-        t  = LT([], label = 3)
-        t1 = LT([t,t], label = 42)
-        t2  = LT([[]], label = 5)
-        return LT([t,t1,t2], label = "toto")
+        t = LT([], label=3)
+        t1 = LT([t, t], label=42)
+        t2 = LT([[]], label=5)
+        return LT([t, t1, t2], label="toto")
 
     def _element_constructor_(self, *args, **keywords):
         """
@@ -662,4 +663,3 @@ class LabelledRootedTrees(UniqueRepresentation, Parent):
         return self
 
     Element = LabelledRootedTree
-

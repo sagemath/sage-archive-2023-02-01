@@ -2213,10 +2213,10 @@ class FiniteStateMachine(SageObject):
             ....:                        initial_states=['A'],
             ....:                        final_states=['B'])
             sage: F.state('A').initial_where='below'
-            sage: print(F._latex_())
+            sage: print latex(F)
             \begin{tikzpicture}[auto, initial text=]
-            \node[state, initial, initial where=below] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
-            \node[state, accepting] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \node[state, initial, initial where=below] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+            \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
             \end{tikzpicture}
         """
@@ -2254,7 +2254,7 @@ class FiniteStateMachine(SageObject):
                 label = self.format_state_label(vertex)
             else:
                 label = latex(vertex.label())
-            result += "\\node[state%s] (v%d) at (%f,%f) {%s};\n" % (
+            result += "\\node[state%s] (v%d) at (%f, %f) {$%s$};\n" % (
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
@@ -4963,10 +4963,10 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Automaton([('A', 'B', 1)])
-            sage: print(F._latex_())
+            sage: print latex(F)
             \begin{tikzpicture}[auto, initial text=]
-            \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
-            \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+            \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
             \end{tikzpicture}
 
@@ -5403,10 +5403,10 @@ class Transducer(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Transducer([('A', 'B', 1, 2)])
-            sage: print(F._latex_())
+            sage: print latex(F)
             \begin{tikzpicture}[auto, initial text=]
-            \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
-            \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
+            \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+            \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
             \end{tikzpicture}
 

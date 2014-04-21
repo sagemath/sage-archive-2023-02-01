@@ -2222,7 +2222,7 @@ class FiniteStateMachine(SageObject):
             sage: A.format_letter = A.format_letter_negative
             sage: print(latex(A))
             \begin{tikzpicture}[auto, initial text=]
-            \node[state] (v0) at (3.000000,0.000000) {0};
+            \node[state] (v0) at (3.000000, 0.000000) {$0$};
             \path[->] (v0) edge[loop above] node {$\overline{1}$} ();
             \end{tikzpicture}
         """
@@ -2262,7 +2262,7 @@ class FiniteStateMachine(SageObject):
             sage: T.format_transition_label = T.format_transition_label_reversed
             sage: print latex(T)
             \begin{tikzpicture}[auto, initial text=]
-            \node[state] (v0) at (3.000000,0.000000) {0};
+            \node[state] (v0) at (3.000000, 0.000000) {$0$};
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
         """

@@ -2265,15 +2265,16 @@ class FiniteStateMachine(SageObject):
             options.append("accepting text=")
             options.append("accepting/.style=%s" % accepting_style)
 
-        accepting_distance = None
-        if accepting_style == "accepting by arrow":
-            if hasattr(self, "accepting_distance"):
-                accepting_distance = self.accepting_distance
-            elif nonempty_final_word_out:
-                accepting_distance = "5ex"
-        if accepting_distance:
+        if hasattr(self, "accepting_distance"):
+            accepting_distance = self.accepting_distance
+        elif nonempty_final_word_out:
+            accepting_distance = "5ex"
+        else:
+            accepting_distance = None
+        if accepting_style == "accepting by arrow" and accepting_distance:
             options.append("accepting distance=%s"
-                               % accepting_distance)
+                           % accepting_distance)
+
         accepting_where = {"right": 0,
                            "above": 90,
                            "left": 180,

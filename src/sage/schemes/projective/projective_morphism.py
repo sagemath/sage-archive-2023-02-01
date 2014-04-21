@@ -2376,29 +2376,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             p = next_prime(p + 1)
         B = e ** self.height_difference_bound()
 
-        f = self.change_ring(GF(p))
-        all_points = f.possible_periods(True) #return the list of points and their periods.
-        pos_points = []
-        for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
-                pos_points.append(all_points[i])
-
-        # Finding the rational lift for each point in parallel
-        parallel_data = []
-        for P in pos_points:
-            parallel_data.append(((self, [P], B,), {}))
-
-        pos_points = []
-
-        parallel_results = list(parallel_iter(len(parallel_data), self.lift_to_rational_periodic, parallel_data))
-
-        periodic_points = []
-        for result in parallel_results:
-            point = result[1]
-            if len(point) > 0:
-                periodic_points.append(point[0])
-
-        for P, n in periodic_points:
+        f=self.change_ring(GF(p))
+        allPoints=f.possible_periods(True) #return the list of points and their periods.
+        posPoints=[]
+        for i in range(len(allPoints)):
+            if allPoints[i][1] in periods and  (allPoints[i] in posPoints)==False:  #check period, remove duplicates
+                posPoints.append(allPoints[i])
+        PeriodicPoints=self.lift_to_rational_periodic(posPoints,B)
+        for P,n in PeriodicPoints:
             for k in range(n):
                   P.normalize_coordinates()
                   periodic.add(P)
@@ -2580,29 +2565,17 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be QQ")
 
-        PS = self.domain()
-        RPS = PS.base_ring()
-        all_preimages = set()
-
-        while points != []:
-
-            # Finding the preimage of each point in parallel
-            parallel_data = []
-            for P in points:
-                parallel_data.append(((self, P,), {}))
-
-            points = []
-
-            parallel_results = list(parallel_iter(len(parallel_data), self.rational_preimages, parallel_data))
-
-            for result in parallel_results:
-                preimages = result[1]
-                for p in preimages:
-                    if not p in all_preimages:
-                        points.append(p)
-                        all_preimages.add(p)
-
-        return(list(all_preimages))
+        PS=self.domain()
+        RPS=PS.base_ring()
+        preperiodic=set()
+        while points!=[]:
+            P=points.pop()
+            preimages=self.rational_preimages(P)
+            for i in range(len(preimages)):
+                if not preimages[i] in preperiodic:
+                    points.append(preimages[i])
+                    preperiodic.add(preimages[i])
+        return(list(preperiodic))
 
     def rational_preperiodic_points(self, **kwds):
         r"""

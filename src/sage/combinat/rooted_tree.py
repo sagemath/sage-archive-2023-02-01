@@ -269,7 +269,7 @@ class RootedTreesFactory(factories.SetFactory):
 RootedTrees = RootedTreesFactory()
 
 
-class RootedTrees_all(factories.SetFactoryParent,
+class RootedTrees_all(factories.ParentWithSetFactory,
                       DisjointUnionEnumeratedSets):
     """
     TESTS::
@@ -299,7 +299,7 @@ class RootedTrees_all(factories.SetFactoryParent,
 
             sage: TestSuite(RootedTrees()).run()
         """
-        factories.SetFactoryParent.__init__(self, (), policy,
+        factories.ParentWithSetFactory.__init__(self, (), policy,
                                             category=InfiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), self._of_size),
@@ -332,7 +332,7 @@ class RootedTrees_all(factories.SetFactoryParent,
         r"""
         Check that a given tree actually belongs to ``self``
 
-        See :class:`sage.structure.set_factories.SetFactoryParent`
+        See :class:`sage.structure.set_factories.ParentWithSetFactory`
 
         TESTS::
 
@@ -375,7 +375,7 @@ class RootedTrees_all(factories.SetFactoryParent,
         return LabelledRootedTrees()
 
 
-class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
+class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
     """
     The enumerated set of rooted trees with a given number of nodes
 
@@ -406,7 +406,7 @@ class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
             ....:     TestSuite(RootedTrees(i)).run()
         """
         self._n = n
-        factories.SetFactoryParent.__init__(self, (n,), policy,
+        factories.ParentWithSetFactory.__init__(self, (n,), policy,
                                             category=FiniteEnumeratedSets())
 
     def _repr_(self):
@@ -457,7 +457,7 @@ class RootedTrees_size(factories.SetFactoryParent, UniqueRepresentation):
         r"""
         Check that a given tree actually belongs to ``self``
 
-        See :class:`sage.structure.set_factories.SetFactoryParent`
+        See :class:`sage.structure.set_factories.ParentWithSetFactory`
 
         EXAMPLES::
 

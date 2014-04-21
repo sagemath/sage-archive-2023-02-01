@@ -2235,12 +2235,14 @@ class FiniteStateMachine(SageObject):
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
-        result = "\\begin{tikzpicture}[auto, initial text=]\n"
 
         if hasattr(self, "format_transition_label"):
             format_transition_label = self.format_transition_label
         else:
             format_transition_label = latex
+
+        options = ["auto", "initial text="]
+        result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
         for vertex in self.iter_states():
             if not hasattr(vertex, "coordinates"):

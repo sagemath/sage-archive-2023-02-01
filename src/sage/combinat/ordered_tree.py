@@ -22,6 +22,13 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.cachefunc import cached_method
+from sage.categories.sets_cat import Sets, EmptySetError
+from sage.rings.integer import Integer
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.misc.cachefunc import cached_method
 
 
 class OrderedTree(AbstractClonableTree, ClonableList):
@@ -512,8 +519,8 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         return OrderedTree(children)
 
     import sage.combinat.ranker
-    from sage.misc.cachefunc import cached_method
     _cayley_ranker = sage.combinat.ranker.on_fly()
+
     @cached_method
     def cayley_normalize(self):
         """
@@ -546,12 +553,6 @@ class OrderedTree(AbstractClonableTree, ClonableList):
             resl[i] = resl[i].cayley_normalized()
         resl.sort(key = rank)
 
-from sage.categories.sets_cat import Sets, EmptySetError
-from sage.rings.integer import Integer
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
 
 # Abstract class to serve as a Factory no instance are created.
 class OrderedTrees(UniqueRepresentation, Parent):
@@ -622,6 +623,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
             True
         """
         return self([])
+
 
 class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
     """
@@ -694,7 +696,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def labelled_trees(self):
         """
-        Return the set of unlabelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 

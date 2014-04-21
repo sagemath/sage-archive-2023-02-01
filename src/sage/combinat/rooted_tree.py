@@ -300,7 +300,7 @@ class RootedTrees_all(factories.ParentWithSetFactory,
             sage: TestSuite(RootedTrees()).run()
         """
         factories.ParentWithSetFactory.__init__(self, (), policy,
-                                            category=InfiniteEnumeratedSets())
+                                                category=InfiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), self._of_size),
             facade=True, keepkey=False,
@@ -407,7 +407,7 @@ class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):
         """
         self._n = n
         factories.ParentWithSetFactory.__init__(self, (n,), policy,
-                                            category=FiniteEnumeratedSets())
+                                                category=FiniteEnumeratedSets())
 
     def _repr_(self):
         r"""

@@ -2321,7 +2321,7 @@ class FiniteStateMachine(SageObject):
                 sage: A = Automaton([(0, 1, 0)])
                 sage: def custom_format_transition_label(word):
                 ....:     return "t"
-                sage: A.format_transition_label = custom_format_transition_label
+                sage: A.latex_options(format_transition_label=custom_format_transition_label)
                 sage: print latex(A)
                 \begin{tikzpicture}[auto, initial text=]
                 \node[state] (v0) at (3.000000, 0.000000) {$0$};

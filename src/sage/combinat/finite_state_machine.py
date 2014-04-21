@@ -328,6 +328,7 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
+from itertools import imap
 from collections import defaultdict
 
 
@@ -402,6 +403,7 @@ def full_group_by(l, key=lambda x: x):
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
+EmptyWordLaTeX = r'\varepsilon'
 FSMOldCodeTransducerCartesianProduct = True
 
 def FSMLetterSymbol(letter):
@@ -2194,6 +2196,82 @@ class FiniteStateMachine(SageObject):
         """
         return "Finite state machine with %s states" % len(self._states_)
 
+    default_format_letter = latex
+    format_letter = default_format_letter
+
+    def default_format_transition_label(self, word):
+        r"""
+        Default formatting of words in transition labels for LaTeX output.
+
+        INPUT:
+
+        ``word`` -- list of letters
+
+        OUTPUT:
+
+        String representation of ``word`` suitable to be typeset in
+        mathematical mode.
+
+        -   For a non-empty word: Concatenation of the letters, piped through
+            ``self.format_letter`` and separated by blanks.
+        -   For an empty word:
+            ``sage.combinat.finite_state_machine.EmptyWordLaTeX``.
+
+        EXAMPLES:
+
+        #.  Example of a non-empty word::
+
+                sage: T = Transducer()
+                sage: print T.default_format_transition_label(
+                ....:    ['a', 'alpha', 'a_1', '0', 0, (0, 1)])
+                \text{\texttt{a}} \text{\texttt{alpha}}
+                \text{\texttt{a{\char`\_}1}} 0 0 \left(0, 1\right)
+
+        #.  In the example above, ``'a'`` and ``'alpha'`` should perhaps
+            be symbols::
+
+                sage: var('a alpha a_1')
+                (a, alpha, a_1)
+                sage: print T.default_format_transition_label([a, alpha, a_1])
+                a \alpha a_{1}
+
+        #.  Example of an empty word::
+
+                sage: print T.default_format_transition_label([])
+                \varepsilon
+
+            We can change this by setting
+            ``sage.combinat.finite_state_machine.EmptyWordLaTeX``::
+
+                sage: sage.combinat.finite_state_machine.EmptyWordLaTeX = ''
+                sage: T.default_format_transition_label([])
+                ''
+
+            Finally, we restore the default value::
+
+                sage: sage.combinat.finite_state_machine.EmptyWordLaTeX = r'\varepsilon'
+
+        #.  This method is the default value for
+            ``FiniteStateMachine.format_transition_label``. That can be changed to be
+            any other function::
+
+                sage: A = Automaton([(0, 1, 0)])
+                sage: def custom_format_transition_label(word):
+                ....:     return "t"
+                sage: A.format_transition_label = custom_format_transition_label
+                sage: print latex(A)
+                \begin{tikzpicture}[auto, initial text=]
+                \node[state] (v0) at (3.000000,0.000000) {0};
+                \node[state] (v1) at (-3.000000,0.000000) {1};
+                \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
+                \end{tikzpicture}
+        """
+        if word:
+            return " ".join(imap(self.format_letter, word))
+        else:
+            return EmptyWordLaTeX
+
+    format_transition_label = default_format_transition_label
 
     def _latex_(self):
         r"""
@@ -2240,11 +2318,6 @@ class FiniteStateMachine(SageObject):
             if not hasattr(state, "final_word_out"):
                 state.final_word_out = []
         #### end compatibility code
-
-        if hasattr(self, "format_transition_label"):
-            format_transition_label = self.format_transition_label
-        else:
-            format_transition_label = latex
 
         options = ["auto", "initial text="]
 
@@ -2317,7 +2390,7 @@ class FiniteStateMachine(SageObject):
                 result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
-                    format_transition_label(vertex.final_word_out),
+                    self.format_transition_label(vertex.final_word_out),
                     angle, accepting_distance)
 
             j += 1
@@ -2337,7 +2410,7 @@ class FiniteStateMachine(SageObject):
                         labels.append(transition.format_label())
                     else:
                         labels.append(self._latex_transition_label_(
-                                transition, format_transition_label))
+                                transition, self.format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
                     angle = atan2(
@@ -5025,7 +5098,7 @@ class Automaton(FiniteStateMachine):
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
             \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
-            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$1$} (v1);
             \end{tikzpicture}
 
         TESTS::
@@ -5465,7 +5538,7 @@ class Transducer(FiniteStateMachine):
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000,0.000000) {\text{\texttt{A}}};
             \node[state] (v1) at (-3.000000,0.000000) {\text{\texttt{B}}};
-            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$1\mid 2$} (v1);
             \end{tikzpicture}
 
         TESTS::
@@ -5475,7 +5548,7 @@ class Transducer(FiniteStateMachine):
             sage: F._latex_transition_label_(t)
             \left[0\right] \mid \left[1\right]
         """
-        return (format_function(transition.word_in) + "\\mid"
+        return (format_function(transition.word_in) + "\\mid "
                 + format_function(transition.word_out))
 
 

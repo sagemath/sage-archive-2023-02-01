@@ -2286,8 +2286,15 @@ class FiniteStateMachine(SageObject):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
             options = ""
-            if vertex.is_final and (not vertex.final_word_out or accepting_style == "accepting by double"):
-                options += ", accepting"
+            if vertex.is_final:
+                if not (vertex.final_word_out
+                        and accepting_style == "accepting by arrow"):
+                    # otherwise, we draw a custom made accepting path
+                    # with label below
+                    options += ", accepting"
+                    if hasattr(vertex, "accepting_where"):
+                        options += ", accepting where=%s" % (
+                            vertex.accepting_where,)
             if vertex.is_initial:
                 options += ", initial"
             if hasattr(vertex, "initial_where"):

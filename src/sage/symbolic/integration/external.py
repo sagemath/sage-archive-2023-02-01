@@ -48,7 +48,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
     # We need to integrate against x
     vars = [str(x) for x in expression.variables()]
     if any(len(x)>1 for x in vars):
-        raise NotImplementedError, "Mathematica online integrator can only handle single letter variables."
+        raise NotImplementedError("Mathematica online integrator can only handle single letter variables.")
     x = SR.var('x')
     if repr(v) != 'x':
         for i in range(ord('a'), ord('z')+1):
@@ -67,4 +67,4 @@ def mma_free_integrator(expression, v, a=None, b=None):
             ans = ans.subs({x:v}).subs({shadow_x:x})
         return ans
     except TypeError:
-        raise ValueError, "Unable to parse: %s" % mexpr
+        raise ValueError("Unable to parse: %s" % mexpr)

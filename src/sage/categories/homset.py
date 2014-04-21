@@ -323,19 +323,19 @@ def Hom(X, Y, category=None):
             try:
                 cat_X = X.category()
             except BaseException:
-                raise TypeError, "%s is not in %s"%(X, category)
+                raise TypeError("%s is not in %s"%(X, category))
         if unpickle_Y:
             cat_Y = category
         else:
             try:
                 cat_Y = Y.category()
             except BaseException:
-                raise TypeError, "%s is not in %s"%(Y, category)
+                raise TypeError("%s is not in %s"%(Y, category))
 
         if not cat_X.is_subcategory(category):
-            raise TypeError, "%s is not in %s"%(X, category)
+            raise TypeError("%s is not in %s"%(X, category))
         if not cat_Y.is_subcategory(category):
-            raise TypeError, "%s is not in %s"%(Y, category)
+            raise TypeError("%s is not in %s"%(Y, category))
 
         # Construct H
         try: # _Hom_ hook from the parent
@@ -505,7 +505,7 @@ class Homset(Set_generic):
         self.__category = category
         if check:
             if not isinstance(category, Category):
-                raise TypeError, "category (=%s) must be a category"%category
+                raise TypeError("category (=%s) must be a category"%category)
             #if not X in category:
             #    raise TypeError, "X (=%s) must be in category (=%s)"%(X, category)
             #if not Y in category:
@@ -773,19 +773,19 @@ class Homset(Set_generic):
                 if x.domain() != self.domain():
                     mor = x.domain()._internal_coerce_map_from(self.domain())
                     if mor is None:
-                        raise TypeError, "Incompatible domains: x (=%s) cannot be an element of %s"%(x,self)
+                        raise TypeError("Incompatible domains: x (=%s) cannot be an element of %s"%(x,self))
                     x = x * mor
                 if x.codomain() != self.codomain():
                     mor = self.codomain()._internal_coerce_map_from(x.codomain())
                     if mor is None:
-                        raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
+                        raise TypeError("Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self))
                     x = mor * x
                 return x
 
         if isinstance(x, (types.FunctionType, types.MethodType, ConstantFunction)):
             return self.element_class_set_morphism(self, x)
 
-        raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
+        raise TypeError("Unable to coerce x (=%s) to a morphism in %s"%(x,self))
 
     @lazy_attribute
     def element_class_set_morphism(self):
@@ -905,7 +905,7 @@ class Homset(Set_generic):
         if self.is_endomorphism_set():
             return morphism.IdentityMorphism(self)
         else:
-            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
+            raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 
     def domain(self):
         """

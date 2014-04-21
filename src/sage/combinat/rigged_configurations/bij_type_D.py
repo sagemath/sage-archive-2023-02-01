@@ -10,7 +10,7 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
     sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
     sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[3, 2]]))
     sage: TestSuite(bijection).run()
@@ -61,7 +61,7 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
             sage: KRTToRCBijectionTypeD(KRT(pathlist=[[-3,2]])).run()
             <BLANKLINE>
@@ -147,7 +147,7 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
             sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[5,3]]))
             sage: bijection.cur_path.insert(0, [])
@@ -296,7 +296,7 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
             sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[-1,4,3,2]]))
             sage: bijection.doubling_map()
@@ -336,7 +336,7 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[4,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[4,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
             sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[-1,4,3,2]]))
             sage: bijection.cur_path.insert(0, [])
@@ -388,7 +388,7 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[4,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[4,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
             sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[-1,4,3,2]]))
             sage: bijection.cur_path.insert(0, [])

@@ -60,13 +60,13 @@ while the Lie algebra is `sl_{n+1}`, and the Lie group `SL_{n+1}`
 One may also construct crystals associated to various Dynkin diagrams.
 For example::
 
-    sage: C = CrystalOfLetters(T)
+    sage: C = crystals.Letters(T)
     sage: C
     The crystal of letters for type ['A', 4]
     sage: C.list()
     [1, 2, 3, 4, 5]
 
-    sage: C = CrystalOfTableaux(T, shape=[2])
+    sage: C = crystals.Tableaux(T, shape=[2])
     sage: C
     The crystal of tableaux of type ['A', 4] and shape(s) [[2]]
     sage: C.cardinality()
@@ -561,7 +561,7 @@ class CartanTypeFactory(SageObject):
         if len(t) == 1: # Fix for trac #13774
             t = t[0]
 
-        if type(t)==str:
+        if isinstance(t, str):
             if "x" in t:
                 import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
@@ -574,7 +574,7 @@ class CartanTypeFactory(SageObject):
 
         t = list(t)
 
-        if type(t[0]) == str and t[1] in ZZ and t[1] >= 0:
+        if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
             if len(t) == 2:
                 if letter == "A":

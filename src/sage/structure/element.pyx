@@ -434,12 +434,17 @@ cdef class Element(sage_object.SageObject):
             False
         """
         cls = self.__class__
-        res = cls.__new__(cls)
-        res._set_parent(self._parent)
+        cdef Element res = cls.__new__(cls)
+        res._parent = self._parent
         try:
-            res.__dict__ = self.__dict__.copy()
+            D = self.__dict__
         except AttributeError:
-            pass
+            return res
+        for k,v in D.iteritems():
+            try:
+                setattr(res, k, v)
+            except AttributeError:
+                pass
         return res
 
     def __hash__(self):
@@ -1403,7 +1408,7 @@ cdef class MonoidElement(Element):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
-        except TypeError, msg:
+        except TypeError as msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
             elif isinstance(right, (int, long)) and right==1:
@@ -3116,9 +3121,9 @@ cdef class NamedBinopMethod:
         self._func = func
         if name is None:
             if isinstance(func, types.FunctionType):
-                name = func.func_name
+                name = func.__name__
             if isinstance(func, types.UnboundMethodType):
-                name = func.im_func.func_name
+                name = func.__func__.__name__
             else:
                 name = func.__name__
         self._name = name

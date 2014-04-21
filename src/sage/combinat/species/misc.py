@@ -63,7 +63,7 @@ def accept_size(f):
     def new_func(*args, **kwds):
         if 'size' in kwds:
             if 'min' in kwds or 'max' in kwds:
-                raise ValueError, "cannot specify both size and (min or max)"
+                raise ValueError("cannot specify both size and (min or max)")
             kwds['min'] = kwds['size']
             kwds['max'] = kwds['size'] + 1
             del kwds['size']

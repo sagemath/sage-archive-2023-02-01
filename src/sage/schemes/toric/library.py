@@ -39,9 +39,7 @@ or immediately during assignment like this::
 from sage.structure.sage_object import SageObject
 
 from sage.matrix.all import matrix, identity_matrix
-from sage.geometry.fan import Fan
-from sage.geometry.toric_lattice import ToricLattice
-from sage.geometry.lattice_polytope import LatticePolytope
+from sage.geometry.all import Fan, LatticePolytope, ToricLattice
 from sage.rings.all import ZZ, QQ, gcd
 from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
@@ -261,8 +259,8 @@ class ToricVarietyFactory(SageObject):
                                                DEFAULT_PREFIX)
             dict_key = (name, base_ring) + tuple(coordinate_names)
         if dict_key not in self.__dict__:
-            polytope = LatticePolytope( matrix(rays).transpose() )
-            points = map(tuple, polytope.points().columns())
+            polytope = LatticePolytope(rays, lattice=ToricLattice(len(rays[0])))
+            points = map(tuple, polytope.points_pc())
             ray2point = [points.index(r) for r in rays]
             charts = [ [ray2point[i] for i in c] for c in cones ]
             self.__dict__[dict_key] = \
@@ -575,9 +573,10 @@ class ToricVarietyFactory(SageObject):
                              "can be constructed!\nGot: %s" % n)
         m = identity_matrix(n).augment(matrix(n, 1, [-1]*n))
         charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
-        return CPRFanoToricVariety(Delta_polar=LatticePolytope(m),
-                                   charts=charts, check=self._check,
-                                   coordinate_names=names, base_ring=base_ring)
+        return CPRFanoToricVariety(
+            Delta_polar=LatticePolytope(m.columns(), lattice=ToricLattice(n)),
+            charts=charts, check=self._check, coordinate_names=names,
+            base_ring=base_ring)
 
     def A1(self, names='z', base_ring=QQ):
         r"""

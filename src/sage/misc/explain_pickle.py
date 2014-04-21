@@ -237,15 +237,15 @@ def explain_pickle(pickle=None, file=None, compress=True, **kwargs):
     elif file is not None:
         p = open(file).read()
     else:
-        raise ValueError, "Either pickle or file must be specified"
+        raise ValueError("Either pickle or file must be specified")
 
     if compress:
         try:
             p = comp.decompress(p)
-        except Exception, msg1:
+        except Exception as msg1:
             try:
                 p = comp_other.decompress(p)
-            except Exception, msg2:
+            except Exception as msg2:
                 # Maybe data is uncompressed?
                 pass
 
@@ -278,7 +278,7 @@ def explain_pickle_string(pickle, in_current_sage=False,
 
     if eval:
         if default_assumptions:
-            raise ValueError, "Not safe to evaluate code generated with default_assumptions"
+            raise ValueError("Not safe to evaluate code generated with default_assumptions")
         from sage.misc.sage_eval import sage_eval
         result = sage_eval(ans, preparse=preparse)
         print ans
@@ -430,7 +430,7 @@ class PickleExplainer(object):
         self.stack = []
         self.memo = {}
         if in_current_sage and default_assumptions:
-            raise ValueError, "in_current_sage and default_assumptions must not both be true"
+            raise ValueError("in_current_sage and default_assumptions must not both be true")
 
         self.new_instance = self.sib.import_name('types', 'InstanceType')
 
@@ -455,7 +455,7 @@ class PickleExplainer(object):
             try:
                 handler = getattr(self, op.name)
             except AttributeError:
-                raise NotImplementedError, 'PickleExplainer does not yet handle opcode %s' % op.name
+                raise NotImplementedError('PickleExplainer does not yet handle opcode %s' % op.name)
             if arg is None:
                 handler()
             else:
@@ -1825,7 +1825,7 @@ class PickleExplainer(object):
             result: 0
         """
         if not 0 <= proto <= 2:
-            raise ValueError, "unsupported pickle protocol: %d" % proto
+            raise ValueError("unsupported pickle protocol: %d" % proto)
 
     def PUT(self, n):
         r"""

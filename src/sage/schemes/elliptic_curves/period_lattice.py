@@ -539,7 +539,7 @@ class PeriodLattice_ell(PeriodLattice):
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':
-            raise ValueError, "invalid value of 'algorithm' parameter"
+            raise ValueError("invalid value of 'algorithm' parameter")
 
         pi = R.pi()
         # Up to now everything has been exact in AA or QQbar, but now
@@ -693,7 +693,7 @@ class PeriodLattice_ell(PeriodLattice):
         """
         if self.is_real():
             return self.real_flag == +1
-        raise RuntimeError, "Not defined for non-real lattices."
+        raise RuntimeError("Not defined for non-real lattices.")
 
     def real_period(self, prec = None, algorithm='sage'):
         """
@@ -731,7 +731,7 @@ class PeriodLattice_ell(PeriodLattice):
         """
         if self.is_real():
             return self.basis(prec,algorithm)[0]
-        raise RuntimeError, "Not defined for non-real lattices."
+        raise RuntimeError("Not defined for non-real lattices.")
 
     def omega(self, prec = None):
         r"""
@@ -868,7 +868,7 @@ class PeriodLattice_ell(PeriodLattice):
         if self.is_real():
             return Matrix([[w1,0],list(w2)])
         else:
-            return Matrix([list(w) for w in w1,w2])
+            return Matrix([list(w) for w in (w1,w2)])
 
     def complex_area(self, prec=None):
         """
@@ -939,7 +939,7 @@ class PeriodLattice_ell(PeriodLattice):
         try:
             return self.E.pari_curve(prec).ellsigma(z, flag)
         except AttributeError:
-            raise NotImplementedError, "sigma function not yet implemented for period lattices of curves not defined over Q."
+            raise NotImplementedError("sigma function not yet implemented for period lattices of curves not defined over Q.")
 
     def curve(self):
         r"""
@@ -1052,7 +1052,7 @@ class PeriodLattice_ell(PeriodLattice):
                     C = ComplexField()
                     z = C(z)
                 except TypeError:
-                    raise TypeError, "%s is not a complex number"%z
+                    raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
         from sage.matrix.all import Matrix
         from sage.modules.all import vector
@@ -1119,7 +1119,7 @@ class PeriodLattice_ell(PeriodLattice):
                     z = C(z)
                     z_is_real = z.is_real()
                 except TypeError:
-                    raise TypeError, "%s is not a complex number"%z
+                    raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
         if self.real_flag:
             w1,w2 = self.basis(prec) # w1 real
@@ -1300,7 +1300,7 @@ class PeriodLattice_ell(PeriodLattice):
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
-            sage: T = E.simon_two_descent()
+            sage: T = E.simon_two_descent(lim1=20,lim3=5,limtriv=20)
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
@@ -1323,7 +1323,7 @@ class PeriodLattice_ell(PeriodLattice):
             1.17058357737548897849026170185581196033579563441850967539191867385734983296504066660506637438866628981886518901958717288150400849746892393771983141354014895386251320571643977497740116710952913769943240797618468987304985625823413440999754037939123032233879499904283600304184828809773650066658885672885 - 1.13513899565966043682474529757126359416758251309237866586896869548539516543734207347695898664875799307727928332953834601460994992792519799260968053875387282656993476491590607092182964878750169490985439873220720963653658829712494879003124071110818175013453207439440032582917366703476398880865439217473*I
         """
         if not P.curve() is self.E:
-            raise ValueError, "Point is on the wrong curve"
+            raise ValueError("Point is on the wrong curve")
         if prec is None:
             prec = RealField().precision()
         if P.is_zero():
@@ -1621,7 +1621,7 @@ class PeriodLattice_ell(PeriodLattice):
                     z = C(z)
                     z_is_real = z.is_real()
                 except TypeError:
-                    raise TypeError, "%s is not a complex number"%z
+                    raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
 
         # test for the point at infinity:
@@ -1792,7 +1792,7 @@ def extended_agm_iteration(a,b,c):
 
     """
     if not isinstance(a, (RealNumber,ComplexNumber)):
-        raise ValueError, "values must be real or complex numbers"
+        raise ValueError("values must be real or complex numbers")
     eps = a.parent().one().real()>>(a.parent().precision()-10)
     while True:
         a1 = (a + b)/2

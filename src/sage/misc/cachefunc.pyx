@@ -577,8 +577,8 @@ cdef class CachedFunction(object):
         self.f = f
         if name is not None:
             self.__name__ = name
-        elif hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        elif hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         else:
             self.__name__ = f.__name__
         try:
@@ -649,13 +649,12 @@ cdef class CachedFunction(object):
                available), or a toy implementation.
 
         """
+        from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
-        if hasattr(f, "func_doc"):
+        doc = f.__doc__ or ''
+        if _extract_embedded_position(doc.splitlines()[0]) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
-            except IOError:
-                sourcelines = None
-            if sourcelines is not None:
                 from sage.env import SAGE_SRC, SAGE_LIB
                 filename = sage_getfile(f)
                 # The following is a heuristics to get
@@ -666,11 +665,9 @@ cdef class CachedFunction(object):
                 elif filename.startswith(SAGE_LIB):
                     filename = filename[len(SAGE_LIB):]
                 file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
-                doc = file_info+(f.func_doc or '')
-            else:
-                doc = f.func_doc
-        else:
-            doc = f.__doc__
+                doc = file_info+doc
+            except IOError:
+                pass
         return doc
 
     def _sage_src_(self):
@@ -1670,14 +1667,14 @@ cdef class CachedMethodCaller(CachedFunction):
         try:
             setattr(inst,self._cachedmethod._cachedfunc.__name__, Caller)
             return Caller
-        except AttributeError,msg:
+        except AttributeError as msg:
             pass
         try:
             if inst.__cached_methods is None:
                 inst.__cached_methods = {self._cachedmethod._cachedfunc.__name__ : Caller}
             else:
                 (<dict>inst.__cached_methods)[self._cachedmethod._cachedfunc.__name__] = Caller
-        except AttributeError,msg:
+        except AttributeError as msg:
             pass
         return Caller
 
@@ -1973,7 +1970,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         # This is for Parents or Elements that do not allow attribute assignment
         try:
             return (<dict>inst.__cached_methods)[self.__name__]
-        except (AttributeError,TypeError,KeyError),msg:
+        except (AttributeError,TypeError,KeyError) as msg:
             pass
         Caller = CachedMethodCallerNoArgs(inst, self.f, name=self.__name__)
         try:
@@ -1986,7 +1983,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
                 inst.__cached_methods = {self.__name__ : Caller}
             else:
                 (<dict>inst.__cached_methods)[self.__name__] = Caller
-        except AttributeError,msg:
+        except AttributeError as msg:
             pass
         return Caller
 
@@ -2257,7 +2254,7 @@ cdef class CachedMethod(object):
             name = self.__name__
         try:
             return (<dict>inst.__cached_methods)[name]
-        except (AttributeError,TypeError,KeyError),msg:
+        except (AttributeError,TypeError,KeyError) as msg:
             pass
         # Apparently we need to construct the caller.
         # Since we have an optimized version for functions that do not accept arguments,

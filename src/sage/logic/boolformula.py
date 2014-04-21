@@ -1187,11 +1187,11 @@ class BooleanFormula:
             apply the function to every branch of a parse tree, pass the
             function as an argument in :func:`apply_func` in logicparser.py.
         """
-        if type(tree[1]) is not TupleType and not (tree[1] is None):
+        if not isinstance(tree[1], TupleType) and not (tree[1] is None):
             lval = ('prop', tree[1])
         else:
             lval = tree[1]
-        if type(tree[2]) is not TupleType and not(tree[2] is None):
+        if not isinstance(tree[2], TupleType) and not(tree[2] is None):
             rval = ('prop', tree[2])
         else:
             rval = tree[2]
@@ -1398,7 +1398,7 @@ class BooleanFormula:
             To apply the function to an entire parse tree, pass the function
             as an argument to :func:`apply_func` in logicparser.py.
         """
-        if tree[0] == '~' and type(tree[1]) is ListType:
+        if tree[0] == '~' and isinstance(tree[1], ListType):
             op = tree[1][0]
             if op != '~':
                 if op == '&':
@@ -1446,11 +1446,11 @@ class BooleanFormula:
             To apply the function to an entire parse tree, pass the function
             as an argument to :func:`apply_func` in logicparser.py.
         """
-        if tree[0] == '|' and type(tree[2]) is ListType and tree[2][0] == '&':
+        if tree[0] == '|' and isinstance(tree[2], ListType) and tree[2][0] == '&':
             new_tree = ['&', ['|', tree[1], tree[2][1]],
                         ['|', tree[1], tree[2][2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)
-        if tree[0] == '|' and type(tree[1]) is ListType and tree[1][0] == '&':
+        if tree[0] == '|' and isinstance(tree[1], ListType) and tree[1][0] == '&':
             new_tree = ['&', ['|', tree[1][1], tree[2]],
                         ['|', tree[1][2], tree[2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)

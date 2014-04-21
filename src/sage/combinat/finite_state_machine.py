@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Finite State Machines, Automata, Transducers
 
 This module adds support for finite state machines, automata and
@@ -52,12 +52,17 @@ Anyhow, we got the following finite state machine::
     sage: fsm
     Finite state machine with 2 states
 
-We can also visualize it as a graph by
+We can also obtain the underlying directed graph by
 
 ::
 
     sage: fsm.graph()
     Digraph on 2 vertices
+
+To visualize a finite state machine, we can use
+:func:`~sage.misc.latex.latex` and run the result through LaTeX,
+see the section on :ref:`finite_state_machine_LaTeX_output`
+below.
 
 Alternatively, we could have created the finite state machine above
 simply by
@@ -119,6 +124,63 @@ Alternatively, we could call that by
 
     sage: NAF.process([-1, 0, 0, 1, 1])[0]
     False
+
+.. _finite_state_machine_LaTeX_output:
+
+LaTeX output
+------------
+
+We can visualize a finite state machine by converting it to LaTeX by
+using the usual function :func:`~sage.misc.latex.latex`. Within LaTeX,
+TikZ is used for typesetting the graphics, see the
+:wikipedia:`PGF/TikZ`.
+
+::
+
+    sage: print latex(NAF)
+    \begin{tikzpicture}[auto, initial text=]
+    \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+    \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
+    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
+    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
+    \path[->] (v0) edge[loop above] node {$0$} ();
+    \end{tikzpicture}
+
+We can turn this into a graphical representation. Before doing this,
+we have to :func:`setup the latex preamble <setup_latex_preamble>` and
+make sure that TikZ pictures are not rendered by mathjax, but by
+actually running LaTeX.
+
+::
+
+    sage: sage.combinat.finite_state_machine.setup_latex_preamble()
+    sage: latex.mathjax_avoid_list('tikzpicture')
+    sage: view(NAF) # not tested
+
+To actually see this, use the live documentation in the Sage notebook
+and execute the cells in this and the previous section.
+
+Several options can be set to customize the output, see
+:meth:`~FiniteStateMachine.latex_options` for details.
+
+::
+
+    sage: NAF.latex_options(
+    ....:     coordinates={'A': (0, 0),
+    ....:                  'B': (6, 0)},
+    ....:     initial_where={'A': 'below'},
+    ....:     format_state_label=lambda x:
+    ....:         r'\mathcal{%s}' % x.label()
+    ....: )
+    sage: print latex(NAF)
+    \begin{tikzpicture}[auto, initial text=]
+    \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
+    \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
+    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
+    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, -1$} (v1.175.00);
+    \path[->] (v0) edge[loop above] node {$0$} ();
+    \end{tikzpicture}
+    sage: view(NAF) # not tested
 
 A simple transducer (binary inverter)
 -------------------------------------
@@ -319,6 +381,7 @@ from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
 from sage.calculus.var import var
 from sage.misc.latex import latex
 from sage.functions.trig import cos, sin, atan2
@@ -2272,6 +2335,287 @@ class FiniteStateMachine(SageObject):
             return EmptyWordLaTeX
 
     format_transition_label = default_format_transition_label
+
+
+    def latex_options(self,
+                      coordinates=None,
+                      format_state_label=None,
+                      format_letter=None,
+                      format_transition_label=None,
+                      initial_where=None,
+                      accepting_style=None,
+                      accepting_distance=None,
+                      accepting_where=None):
+        r"""
+        Set options for LaTeX output via
+        :func:`~sage.misc.latex.latex` and therefore
+        :func:`~sage.misc.latex.view`.
+
+        INPUT:
+
+        - ``coordinates`` -- a dictionary or a function mapping labels
+          of states to pairs interpreted as coordinates. If no
+          coordinates are given, states a placed equidistantly on a
+          circle of radius `3`. See also :meth:`.set_coordinates`.
+
+        - ``format_state_label`` -- a function mapping labels of
+          states to a string suitable for typesetting in LaTeX's
+          mathematics mode. If not given, :func:`~sage.misc.latex.latex`
+          is used.
+
+        - ``format_letter`` -- a function mapping letters of the input
+          and output alphabets to a string suitable for typesetting in
+          LaTeX's mathematics mode. If not given,
+          :meth:`.default_format_transition_label` uses
+          :func:`~sage.misc.latex.latex`.
+
+        - ``format_transition_label`` -- a function mapping words over
+          the input and output alphabets to a string suitable for
+          typesetting in LaTeX's mathematics mode. If not given,
+          :meth:`.default_format_transition_label` is used.
+
+        - ``initial_where`` -- a dictionary or a function mapping
+          labels of initial states to one of ``'above'``, ``'left'``,
+          ``'below'``, ``'right'``. If not given, TikZ' default
+          (currently ``'left'``) is used.
+
+        - ``accepting_style`` -- one of ``'accepting by double'`` and
+          ``'accepting by arrow'``. If not given, ``'accepting by
+          double'`` is used unless there are non-empty final output
+          words.
+
+        - ``accepting_distance`` -- a string giving a LaTeX length
+          used for the length of the arrow leading from a final state.
+          If not given, TikZ' default (currently ``'3ex'``) is used
+          unless there are non-empty final output words, in which case
+          ``'5ex'`` is used.
+
+        - ``accepting_where`` -- a dictionary or a function mapping
+          labels of final states to one of ``'above'``, ``'left'``,
+          ``'below'``, ``'right'``. If not given, TikZ' default
+          (currently ``'right'``) is used. If the final state has a
+          final output word, it is also possible to give an angle
+          in degrees.
+
+
+        OUTPUT:
+
+        Nothing.
+
+        As TikZ (cf. the :wikipedia:`PGF/TikZ`) is used to typeset
+        the graphics, the syntax is oriented on TikZ' syntax.
+
+        This is a convenience function collecting all options for
+        LaTeX output. All of its functionality can also be achieved by
+        directly setting the attributes
+
+        - ``coordinates``, ``format_label``, ``initial_where``, and
+          ``accepting_where`` of :class:`FSMState` (here,
+          ``format_label`` is a callable without arguments, everything
+          else is a specific value);
+
+        - ``format_label`` of :class:`FSMTransition` (``format_label``
+          is a callable without arguments);
+
+        - ``format_state_label``, ``format_letter``,
+          ``format_transition_label``, ``accepting_style``, and
+          ``accepting_distance`` of :class:`FiniteStateMachine`.
+
+        This function, however, also (somewhat) checks its input and
+        serves to collect documentation on all these options.
+
+        The function can be called several times, only those arguments
+        which are not ``None`` are taken into account. By the same
+        means, it can be combined with directly setting some
+        attributes as outlined above.
+
+        See also :func:`setup_latex_preamble` or the example below on
+        how to setup the LaTeX environment.
+
+        EXAMPLES:
+
+        See also the section on :ref:`finite_state_machine_LaTeX_output`
+        in the introductory examples of this module.
+
+        ::
+
+            sage: from sage.combinat.finite_state_machine import setup_latex_preamble
+            sage: setup_latex_preamble()
+            sage: latex.mathjax_avoid_list('tikzpicture')
+            sage: T = Transducer(initial_states=['I'],
+            ....:     final_states=[0, 3])
+            sage: for j in range(4):
+            ....:     T.add_transition('I', j, 0, [0, j])
+            ....:     T.add_transition(j, 'I', 0, [0, -j])
+            Transition from 'I' to 0: 0|0,0
+            Transition from 0 to 'I': 0|0,0
+            Transition from 'I' to 1: 0|0,1
+            Transition from 1 to 'I': 0|0,-1
+            Transition from 'I' to 2: 0|0,2
+            Transition from 2 to 'I': 0|0,-2
+            Transition from 'I' to 3: 0|0,3
+            Transition from 3 to 'I': 0|0,-3
+            sage: T.state(3).final_word_out = [0, 0]
+            sage: T.latex_options(
+            ....:     coordinates={'I': (0, 0),
+            ....:                  0: (-6, 3),
+            ....:                  1: (-2, 3),
+            ....:                  2: (2, 3),
+            ....:                  3: (6, 3)},
+            ....:     format_state_label=lambda x: r'\mathbf{%s}' % x,
+            ....:     format_letter=lambda x: r'w_{%s}' % x,
+            ....:     format_transition_label=lambda x:
+            ....:         r"{\scriptstyle %s}" % T.default_format_transition_label(x),
+            ....:     initial_where=lambda x: 'below',
+            ....:     accepting_style='accepting by double',
+            ....:     accepting_distance='10ex',
+            ....:     accepting_where={0: 'left', 3: 45}
+            ....:     )
+            sage: T.state('I').format_label=lambda: r'\mathcal{I}'
+            sage: latex(T)
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
+            \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
+            \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {${\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
+            \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
+            \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v0.148.43);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
+            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
+            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
+            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
+            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
+            \end{tikzpicture}
+            sage: view(T) # not tested
+
+        To actually see this, use the live documentation in the Sage notebook
+        and execute the cells.
+
+        TESTS::
+
+            sage: T.latex_options(format_state_label='Nothing')
+            Traceback (most recent call last):
+            ...
+            TypeError: format_state_label must be callable.
+            sage: T.latex_options(format_letter='')
+            Traceback (most recent call last):
+            ...
+            TypeError: format_letter must be callable.
+            sage: T.latex_options(format_transition_label='')
+            Traceback (most recent call last):
+            ...
+            TypeError: format_transition_label must be callable.
+            sage: T.latex_options(initial_where=90)
+            Traceback (most recent call last):
+            ...
+            TypeError: initial_where must be a callable or a
+            dictionary.
+            sage: T.latex_options(initial_where=lambda x: 'top')
+            Traceback (most recent call last):
+            ...
+            ValueError: initial_where for I must be in ['above',
+            'left', 'below', 'right'].
+            sage: T.latex_options(accepting_style='fancy')
+            Traceback (most recent call last):
+            ...
+            ValueError: accepting_style must be in ['accepting by
+            double', 'accepting by arrow'].
+            sage: T.latex_options(accepting_where=90)
+            Traceback (most recent call last):
+            ...
+            TypeError: accepting_where must be a callable or a
+            dictionary.
+            sage: T.latex_options(accepting_where=lambda x: 'top')
+            Traceback (most recent call last):
+            ...
+            ValueError: accepting_where for 0 must be in ['above',
+            'left', 'below', 'right'].
+            sage: T.latex_options(accepting_where={0: 'above', 3: 'top'})
+            Traceback (most recent call last):
+            ...
+            ValueError: accepting_where for 3 must be a real number or
+            be in ['above', 'left', 'below', 'right'].
+        """
+        if coordinates is not None:
+            self.set_coordinates(coordinates)
+
+        if format_state_label is not None:
+            if not hasattr(format_state_label, '__call__'):
+                raise TypeError('format_state_label must be callable.')
+            self.format_state_label = format_state_label
+
+        if format_letter is not None:
+            if not hasattr(format_letter, '__call__'):
+                raise TypeError('format_letter must be callable.')
+            self.format_letter = format_letter
+
+        if format_transition_label is not None:
+            if not hasattr(format_transition_label, '__call__'):
+                raise TypeError('format_transition_label must be callable.')
+            self.format_transition_label = format_transition_label
+
+        if initial_where is not None:
+            permissible = ['above', 'left', 'below', 'right']
+            for state in self.iter_initial_states():
+                if hasattr(initial_where, '__call__'):
+                    where = initial_where(state.label())
+                else:
+                    try:
+                        where = initial_where[state.label()]
+                    except TypeError:
+                        raise TypeError("initial_where must be a "
+                                        "callable or a dictionary.")
+                    except KeyError:
+                        continue
+                if where in permissible:
+                    state.initial_where = where
+                else:
+                    raise ValueError('initial_where for %s must be in %s.' %
+                                     (state.label(), permissible))
+
+        if accepting_style is not None:
+            permissible = ['accepting by double',
+                           'accepting by arrow']
+            if accepting_style in permissible:
+                self.accepting_style = accepting_style
+            else:
+                raise ValueError('accepting_style must be in %s.' %
+                    permissible)
+
+        if accepting_distance is not None:
+            self.accepting_distance = accepting_distance
+
+        if accepting_where is not None:
+            permissible = ['above', 'left', 'below', 'right']
+            for state in self.iter_final_states():
+                if hasattr(accepting_where, '__call__'):
+                    where = accepting_where(state.label())
+                else:
+                    try:
+                        where = accepting_where[state.label()]
+                    except TypeError:
+                        raise TypeError("accepting_where must be a "
+                                        "callable or a dictionary.")
+                    except KeyError:
+                        continue
+                if where in permissible:
+                    state.accepting_where = where
+                elif hasattr(state, 'final_word_out') \
+                        and state.final_word_out:
+                    if where in RR:
+                        state.accepting_where = where
+                    else:
+                        raise ValueError('accepting_where for %s must '
+                                         'be a real number or be in %s.' %
+                                         (state.label(), permissible))
+
+                else:
+                    raise ValueError('accepting_where for %s must be in %s.' %
+                                     (state.label(), permissible))
+
 
     def _latex_(self):
         r"""
@@ -6257,10 +6601,17 @@ def setup_latex_preamble():
 
     Nothing.
 
+    In the Sage notebook, you probably want to use
+    ``latex.mathjax_avoid_list('tikzpicture')`` such that
+    :func:`~sage.misc.latex.view` actually shows the result.
+    See the section on :ref:`finite_state_machine_LaTeX_output`
+    in the introductory examples of this module.
+
     TESTS::
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
+        sage: latex.mathjax_avoid_list('tikzpicture')
     """
     latex.add_package_to_preamble_if_available('tikz')
     latex.add_to_preamble('\\usetikzlibrary{automata}')

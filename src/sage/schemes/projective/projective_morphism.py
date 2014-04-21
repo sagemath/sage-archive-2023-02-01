@@ -204,8 +204,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         polys = self._polys
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
-        prime = polys[0].base_ring().characteristic()
-        degree = polys[0].degree()
 
         fastpolys = []
         for poly in polys:

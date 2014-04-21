@@ -2236,6 +2236,11 @@ class FiniteStateMachine(SageObject):
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
         result = "\\begin{tikzpicture}[auto, initial text=]\n"
+
+        if hasattr(self, "format_transition_label"):
+            format_transition_label = self.format_transition_label
+        else:
+            format_transition_label = latex
         j = 0;
         for vertex in self.iter_states():
             if not hasattr(vertex, "coordinates"):
@@ -2273,13 +2278,9 @@ class FiniteStateMachine(SageObject):
                 for transition in transitions:
                     if hasattr(transition, "format_label"):
                         labels.append(transition.format_label())
-                        continue
-                    elif hasattr(self, "format_transition_label"):
-                        format_transition_label = self.format_transition_label
                     else:
-                        format_transition_label = latex
-                    labels.append(self._latex_transition_label_(
-                            transition, format_transition_label))
+                        labels.append(self._latex_transition_label_(
+                                transition, format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
                     angle = atan2(

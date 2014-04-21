@@ -2896,6 +2896,8 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
             - check == False to speed up?
 
+            - move to Cython
+
         """
         return _fast_possible_periods(self,return_points)
 

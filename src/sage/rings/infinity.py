@@ -1343,3 +1343,62 @@ infinity = InfinityRing.gen(0)
 Infinity = infinity
 minus_infinity = InfinityRing.gen(1)
 
+
+
+def test_comparison(ring):
+    """
+    Check comparison with infinity
+    
+    INPUT:
+
+    - ``ring`` -- a sub-ring of the real numbers
+
+    OUTPUT:
+    
+    Various attempts are made to generate elements of ``ring``. An
+    assertion is triggered if one of these elements does not compare
+    correctly with plus/minus infinity.
+
+    EXAMPLES::
+
+        
+        sage: from sage.rings.infinity import test_comparison
+        sage: rings = [ZZ, QQ, RR, RealField(200), RDF, RLF, AA]
+        sage: for R in rings:
+        ....:     print('testing {}'.format(R))
+        ....:     test_comparison(R)
+        testing Integer Ring
+        testing Rational Field
+        testing Real Field with 53 bits of precision
+        testing Real Field with 200 bits of precision
+        testing Real Double Field
+        testing Real Lazy Field
+        testing Algebraic Real Field
+    
+    Comparison with number fields does not work::
+    
+        sage: K.<sqrt3> = NumberField(x^2-3)
+        sage: (-oo < 1+sqrt3) and (1+sqrt3 < oo)     # known bug
+        True
+    """
+    from sage.symbolic.ring import SR
+    elements = [-1e3, 99.9999, -SR(2).sqrt(), 0, 1, 3^(-1/3), SR.pi(), 100000]
+    elements.append(ring.an_element())
+    elements.extend(ring.some_elements())
+    for z in elements:
+        try:
+            z = ring(z)
+        except (ValueError, TypeError):
+            continue    # ignore if z is not in ring
+        msg = 'testing {} in {}: id = {}, {}, {}'.format(z, ring, id(z), id(infinity), id(minus_infinity))
+        assert minus_infinity < z, msg
+        assert z > minus_infinity, msg
+        assert z < infinity, msg
+        assert infinity > z, msg
+        assert minus_infinity <= z, msg
+        assert z >= minus_infinity, msg
+        assert z <= infinity, msg
+        assert infinity >= z, msg
+
+    
+

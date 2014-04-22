@@ -466,12 +466,12 @@ def Cell120():
 
     EXAMPLES::
 
-        sage: g = graphs.Cell120()
-        sage: g.size()
+        sage: g = graphs.Cell120()      # long time
+        sage: g.size()                  # long time
         1200
-        sage: g.is_regular(4)
+        sage: g.is_regular(4)           # long time
         True
-        sage: g.is_vertex_transitive()
+        sage: g.is_vertex_transitive()  # long time
         True
     """
     from sage.rings.rational_field import QQ

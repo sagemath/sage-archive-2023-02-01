@@ -61,6 +61,7 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
 from sage.ext.fast_callable        import fast_callable
+from sage.misc.lazy_attribute      import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
@@ -160,6 +161,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             degs = [f.degree() for f in polys]
             if not all([d == degs[0] for d in degs[1:]]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
+        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
 
     def __call__(self, x, check=True):
         """

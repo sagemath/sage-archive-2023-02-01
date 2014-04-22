@@ -153,6 +153,18 @@ def unrank(L, i):
 
     See :trac:`15919`.
 
+    .. WARNING::
+
+        When unranking an iterator, it returns the``i``-th step beyond
+        where it is currently at::
+
+            sage: from sage.combinat.ranker import unrank
+            sage: it = iter(range(20))
+            sage: unrank(it, 2)
+            2
+            sage: unrank(it, 2)
+            5
+
     EXAMPLES::
 
         sage: from sage.combinat.ranker import unrank

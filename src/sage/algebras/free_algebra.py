@@ -558,6 +558,22 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: A.<x> = FreeAlgebra(CC)
             sage: A(2)
             2.00000000000000
+
+        We check that the string coercions work correctly over
+        inexact fields::
+
+            sage: F.<x,y> = FreeAlgebra(CC)
+            sage: F('2')
+            2.00000000000000
+            sage: F('x')
+            1.00000000000000*x
+
+        Check that it also converts factorizations::
+
+            sage: f = Factorization([(x,2),(y,3)]); f
+            1.00000000000000*x^2 * 1.00000000000000*y^3
+            sage: F(f)
+            1.00000000000000*x^2*y^3
         """
         if isinstance(x, FreeAlgebraElement):
             P = x.parent()
@@ -580,7 +596,9 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, basestring):
             from sage.all import sage_eval
-            return sage_eval(x, locals=self.gens_dict())
+            G = self.gens()
+            d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
+            return self(sage_eval(x, locals=d))
         R = self.base_ring()
         # coercion from free monoid
         if isinstance(x, FreeMonoidElement) and x.parent() is self._basis_keys:
@@ -589,6 +607,12 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         if isinstance(x, PBWBasisOfFreeAlgebra.Element) \
                 and self.has_coerce_map_from(x.parent()._alg):
             return self(x.parent().expansion(x))
+
+        # Check if it's a factorization
+        from sage.structure.factorization import Factorization
+        if isinstance(x, Factorization):
+            return self.prod(f**i for f,i in x)
+
         # coercion via base ring
         x = R(x)
         if x == 0:

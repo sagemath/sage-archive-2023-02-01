@@ -215,6 +215,33 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
                     del z_elt[key]
         return A._from_dict(z_elt)
 
+    def _acted_upon_(self, scalar, self_on_left=False):
+        """
+        Return the action of a scalar on ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: f = Factorization([(x,2),(y,3)]); f
+            x^2 * y^3
+            sage: x * f
+            x^3 * y^3
+            sage: f * x
+            x^2 * y^3 * x
+        """
+        from sage.structure.factorization import Factorization
+        # FIXME: Make factorization work properly in the coercion framework
+        # Keep factorization since we want to "coerce" into a factorization
+        if isinstance(scalar, Factorization):
+            if self_on_left:
+                return Factorization([(self, 1)]) * scalar
+            return scalar * Factorization([(self, 1)])
+        return super(FreeAlgebraElement, self)._acted_upon_(scalar, self_on_left)
+
+    # For backward compatibility
+    #_lmul_ = _acted_upon_
+    #_rmul_ = _acted_upon_
+
     def variables(self):
         """
         Return the variables used in ``self``.

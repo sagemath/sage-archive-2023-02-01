@@ -4792,7 +4792,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: st = g.steiner_tree([5,15])
             Traceback (most recent call last):
             ...
-            ValueError: The given vertices do not all belong to the same connected component. This problem has no solution !
+            EmptySetError: The given vertices do not all belong to the same connected component. This problem has no solution !
         """
         self._scream_if_not_simple(allow_loops=True)
 
@@ -4802,14 +4802,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             g = self
 
-        if g.has_multiple_edges():
-            raise ValueError("The graph is expected not to have multiple edges.")
-
         # Can the problem be solved ? Are all the vertices in the same
         # connected component ?
         cc = g.connected_component_containing_vertex(vertices[0])
         if not all([v in cc for v in vertices]):
-            raise ValueError("The given vertices do not all belong to the same connected component. This problem has no solution !")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("The given vertices do not all belong to the same connected component. This problem has no solution !")
 
         # Can it be solved using the min spanning tree algorithm ?
         if not weighted:
@@ -4928,7 +4926,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.edge_disjoint_spanning_trees(2)
             Traceback (most recent call last):
             ...
-            ValueError: This graph does not contain the required number of trees/arborescences !
+            EmptySetError: This graph does not contain the required number of trees/arborescences !
 
         By Edmond's theorem, a graph which is `k`-connected always has `k` edge-disjoint
         arborescences, regardless of the root we pick::
@@ -5054,7 +5052,8 @@ class GenericGraph(GenericGraph_pyx):
             p.solve(log = verbose)
 
         except MIPSolverException:
-            raise ValueError("This graph does not contain the required number of trees/arborescences !")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("This graph does not contain the required number of trees/arborescences !")
 
         edges = p.get_values(edges)
 
@@ -5357,7 +5356,8 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
         if g.has_edge(s,t):
-            raise ValueError("There can be no vertex cut between adjacent vertices !")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("There can be no vertex cut between adjacent vertices !")
         if vertices:
             value_only = False
 
@@ -6173,7 +6173,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = g.traveling_salesman_problem()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not hamiltonian
+            EmptySetError: The given graph is not hamiltonian
 
 
         One easy way to change is is obviously to add to this graph the edges
@@ -6254,6 +6254,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         self._scream_if_not_simple()
+        from sage.categories.sets_cat import EmptySetError
 
         if constraint_generation is None:
             if self.density() > .7:
@@ -6272,12 +6273,12 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             if not self.is_strongly_connected():
-                raise ValueError("The given graph is not hamiltonian")
+                raise EmptySetError("The given graph is not hamiltonian")
 
         else:
             # Checks whether the graph is 2-connected
             if not self.strong_orientation().is_strongly_connected():
-                raise ValueError("The given graph is not hamiltonian")
+                raise EmptySetError("The given graph is not hamiltonian")
 
         ############################
         # Deal with multiple edges #
@@ -6350,7 +6351,7 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     p.solve(log = verbose)
                 except MIPSolverException:
-                    raise ValueError("The given graph is not hamiltonian")
+                    raise EmptySetError("The given graph is not hamiltonian")
 
                 while True:
                     # We build the DiGraph representing the current solution
@@ -6376,7 +6377,7 @@ class GenericGraph(GenericGraph_pyx):
                     try:
                         p.solve(log = verbose)
                     except MIPSolverException:
-                        raise ValueError("The given graph is not hamiltonian")
+                        raise EmptySetError("The given graph is not hamiltonian")
 
             # Undirected Case #
             ###################
@@ -6401,7 +6402,7 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     p.solve(log = verbose)
                 except MIPSolverException:
-                    raise ValueError("The given graph is not hamiltonian")
+                    raise EmptySetError("The given graph is not hamiltonian")
 
                 while True:
                     # We build the DiGraph representing the current solution
@@ -6426,7 +6427,7 @@ class GenericGraph(GenericGraph_pyx):
                     try:
                         p.solve(log = verbose)
                     except MIPSolverException:
-                        raise ValueError("The given graph is not hamiltonian")
+                        raise EmptySetError("The given graph is not hamiltonian")
 
             # We can now return the TSP !
             answer = self.subgraph(edges = h.edges())
@@ -6521,7 +6522,7 @@ class GenericGraph(GenericGraph_pyx):
             return tsp
 
         except MIPSolverException:
-            raise ValueError("The given graph is not Hamiltonian")
+            raise EmptySetError("The given graph is not Hamiltonian")
 
 
     def hamiltonian_cycle(self, algorithm='tsp' ):
@@ -6549,7 +6550,7 @@ class GenericGraph(GenericGraph_pyx):
         OUTPUT:
 
         If using the 'tsp' algorithm, returns a Hamiltonian cycle/circuit if it
-        exists; otherwise, raises a ``ValueError`` exception. If using the
+        exists; otherwise, raises a ``EmptySetError`` exception. If using the
         'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
         Hamiltonian cycle and if B is False, P is a longest path found by the
         algorithm. Observe that if B is False, the graph may still be Hamiltonian.
@@ -6584,7 +6585,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_cycle()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not hamiltonian
+            EmptySetError: The given graph is not hamiltonian
 
         Now, using the backtrack algorithm in the Heawood graph ::
 
@@ -6611,7 +6612,8 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 return self.traveling_salesman_problem(use_edge_labels = False)
             except MIPSolverException:
-                raise ValueError("The given graph is not Hamiltonian")
+                from sage.categories.sets_cat import EmptySetError
+                raise EmptySetError("The given graph is not Hamiltonian")
         elif algorithm=='backtrack':
             from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
             return fh( self )
@@ -7312,7 +7314,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = g.multicommodity_flow([(u,v,3) for u,v in matching])
             Traceback (most recent call last):
             ...
-            ValueError: The multiflow problem has no solution
+            EmptySetError: The multiflow problem has no solution
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -7401,7 +7403,8 @@ class GenericGraph(GenericGraph_pyx):
         try:
             obj=p.solve(log = verbose)
         except MIPSolverException:
-            raise ValueError("The multiflow problem has no solution")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("The multiflow problem has no solution")
 
         flow=p.get_values(flow)
 
@@ -7550,13 +7553,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (4,4)), ((0,4), (4,0))])
             Traceback (most recent call last):
             ...
-            ValueError: The disjoint routed paths do not exist.
+            EmptySetError: The disjoint routed paths do not exist.
         """
-
+        from sage.categories.sets_cat import EmptySetError
         try:
             return self.multicommodity_flow(pairs, vertex_bound = True, solver=solver, verbose=verbose)
-        except ValueError:
-            raise ValueError("The disjoint routed paths do not exist.")
+        except EmptySetError:
+            raise EmptySetError("The disjoint routed paths do not exist.")
 
     def edge_disjoint_paths(self, s, t, method = "FF"):
         r"""
@@ -17371,13 +17374,21 @@ class GenericGraph(GenericGraph_pyx):
             ...          print "There is something wrong here !"
             ... except OptionalPackageNotFoundError:
             ...       pass
-        """
 
+        :trac:`16210`::
+
+            sage: g=graphs.CycleGraph(10)
+            sage: g.allow_loops(True)
+            sage: g.add_edge(0,0)
+            sage: g.is_hamiltonian()
+            True
+        """
+        from sage.categories.sets_cat import EmptySetError
         try:
             tsp = self.traveling_salesman_problem(use_edge_labels = False)
             return True
 
-        except ValueError:
+        except EmptySetError:
             return False
 
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):

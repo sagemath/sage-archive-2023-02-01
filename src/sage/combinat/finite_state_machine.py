@@ -490,6 +490,7 @@ from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
+from sage.symbolic.ring import SR
 from sage.calculus.var import var
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
@@ -5263,23 +5264,26 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
-    def asymptotic_moments(self):
-        """
+    def asymptotic_moments(self, variable=SR.symbol('n')):
+        r"""
         Returns the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input
         labels.
 
         INPUT:
 
-        Nothing.
+        - ``variable`` -- symbol denoting the length of the input,
+          by default `n`.
 
         OUTPUT:
 
         A dictionary consisting of
 
-        - ``expectation`` -- constant `e`,
-        - ``variance`` -- constant `v`,
-        - ``covariance`` -- constant `c`.
+        - ``expectation`` -- `e n+\operatorname{Order}(1)`,
+        - ``variance`` -- `v n + \operatorname{Order}(1)`,
+        - ``covariance`` -- `c n + \operatorname{Order}(1)`
+
+        for suitable constants `e`, `v` and `c`.
 
         Assume that all input and output labels are numbers and that
         ``self`` is complete and has only one final component. Assume
@@ -5323,13 +5327,13 @@ class FiniteStateMachine(SageObject):
                 ....:                final_states=[0])
                 sage: T([0, 1, 1])
                 [0, -1, -1]
-                sage: constants = T.asymptotic_moments()
-                sage: constants['expectation']
-                -1/2
-                sage: constants['variance']
-                1/4
-                sage: constants['covariance']
-                -1/4
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                -1/2*n + Order(1)
+                sage: moments['variance']
+                1/4*n + Order(1)
+                sage: moments['covariance']
+                -1/4*n + Order(1)
 
         #.  For the case of the Hamming weight of the non-adjacent-form
             (NAF) of integers, cf. the :wikipedia:`Non-adjacent_form`
@@ -5390,17 +5394,17 @@ class FiniteStateMachine(SageObject):
                 sage: NAFweight(binary_27 + [0, 0])
                 [1, 0, 1, 0, 0, 1, 0]
 
-            Now, we actually compute the asymptotic constants::
+            Now, we actually compute the asymptotic moments::
 
-                sage: constants = NAFweight.asymptotic_moments()
+                sage: moments = NAFweight.asymptotic_moments()
                 verbose 0 (...) Not all states are final. Proceeding
                 under the assumption that you know what you are doing.
-                sage: constants['expectation']
-                1/3
-                sage: constants['variance']
-                2/27
-                sage: constants['covariance']
-                0
+                sage: moments['expectation']
+                1/3*n + Order(1)
+                sage: moments['variance']
+                2/27*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
 
             In this case, we can ignore the warning: we could have all
             states as final states if we would have a final output
@@ -5420,13 +5424,13 @@ class FiniteStateMachine(SageObject):
                 sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
                 ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
                 ....:                initial_states=[0], final_states=[0, 1])
-                sage: constants = T.asymptotic_moments() # doctest: +ELLIPSIS
+                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
-                sage: constants['expectation']
-                1/4*a_1 + 1/4*a_2 + 1/4*a_3 + 1/4*a_4
-                sage: constants['covariance']
-                -1/4*a_1 + 1/4*a_2
+                sage: moments['expectation']
+                1/4*(a_1 + a_2 + a_3 + a_4)*n + Order(1)
+                sage: moments['covariance']
+                -1/4*(a_1 - a_2)*n + Order(1)
 
             Therefore, the asymptotic covariance vanishes if and only if
             `a_2=a_1`.
@@ -5437,15 +5441,15 @@ class FiniteStateMachine(SageObject):
             :ref:`example on Gray code
             <finite_state_machine_gray_code_example>`)::
 
-                sage: constants = transducers.GrayCode().asymptotic_moments()
+                sage: moments = transducers.GrayCode().asymptotic_moments()
                 verbose 0 (...) Not all states are final. Proceeding
                 under the assumption that you know what you are doing.
-                sage: constants['expectation']
-                1/2
-                sage: constants['variance']
-                1/4
-                sage: constants['covariance']
-                0
+                sage: moments['expectation']
+                1/2*n + Order(1)
+                sage: moments['variance']
+                1/4*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
 
             Also in this case, we can ignore the warning: we could have
             all states as final states if we would have a final output
@@ -5465,13 +5469,13 @@ class FiniteStateMachine(SageObject):
                  Transition from () to (1,): 1|0,
                  Transition from (1,) to (): 0|1,
                  Transition from (1,) to (1,): 1|0]
-                sage: constants = block10.asymptotic_moments()
-                sage: constants['expectation']
-                1/4
-                sage: constants['variance']
-                1/16
-                sage: constants['covariance']
-                0
+                sage: moments = block10.asymptotic_moments()
+                sage: moments['expectation']
+                1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
 
         #.  This is the second part of Example 6.3 in [HKW2014]_,
             counting the number of 11 blocks in the standard binary
@@ -5486,13 +5490,15 @@ class FiniteStateMachine(SageObject):
                  Transition from () to (1,): 1|0,
                  Transition from (1,) to (): 0|0,
                  Transition from (1,) to (1,): 1|1]
-                sage: constants = block11.asymptotic_moments()
-                sage: constants['expectation']
-                1/4
-                sage: constants['variance']
-                5/16
-                sage: correlation = (constants['covariance'] /
-                ....:                (1/2 * sqrt(constants['variance'])))
+                sage: var('N')
+                N
+                sage: moments = block11.asymptotic_moments(N)
+                sage: moments['expectation']
+                1/4*N + Order(1)
+                sage: moments['variance']
+                5/16*N + Order(1)
+                sage: correlation = (moments['covariance'].coefficient(N) /
+                ....:                (1/2 * sqrt(moments['variance'].coefficient(N))))
                 sage: correlation
                 2/5*sqrt(5)
 
@@ -5516,13 +5522,13 @@ class FiniteStateMachine(SageObject):
                  Transition from 1 to 0: 1|1,
                  Transition from 2 to 1: 0|0,
                  Transition from 2 to 0: 1|0]
-                sage: constants = T.asymptotic_moments()
-                sage: constants['expectation']
-                0
-                sage: constants['variance']
-                0
-                sage: constants['covariance']
-                0
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                Order(1)
+                sage: moments['variance']
+                Order(1)
+                sage: moments['covariance']
+                Order(1)
 
         #.  The finite state machine must have a unique final component::
 
@@ -5596,26 +5602,26 @@ class FiniteStateMachine(SageObject):
 
                 sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
                 ....:                initial_states=[0], final_states=[0])
-                sage: constants = T.asymptotic_moments() # doctest: +ELLIPSIS
+                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
-                sage: constants['expectation']
-                -1/4
-                sage: constants['variance']
-                1/16
-                sage: constants['covariance']
-                -1/8
+                sage: moments['expectation']
+                -1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                -1/8*n + Order(1)
 
             This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
 
                 sage: set_verbose(-1, "finite_state_machine.py")
-                sage: constants = T.asymptotic_moments()
-                sage: constants['expectation']
-                -1/4
-                sage: constants['variance']
-                1/16
-                sage: constants['covariance']
-                -1/8
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                -1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                -1/8*n + Order(1)
                 sage: set_verbose(0, "finite_state_machine.py")
 
         #.  Check whether ``word_out`` of ``FSMState`` are correctly
@@ -5630,7 +5636,7 @@ class FiniteStateMachine(SageObject):
                 sage: T([0, 0])
                 [2, 1, 2, 1, 2]
                 sage: T.asymptotic_moments()['expectation']
-                3
+                3*n + Order(1)
 
             The same test for non-integer output::
 
@@ -5641,7 +5647,7 @@ class FiniteStateMachine(SageObject):
                 sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
                 verbose 0 (...) Non-integer output weights lead to
                 significant performance degradation.
-                7/6
+                7/6*n + Order(1)
 
         ALGORITHM:
 
@@ -5706,7 +5712,6 @@ class FiniteStateMachine(SageObject):
             verbose("Non-integer output weights lead to "
                     "significant performance degradation.", level=0)
             # fall back to symbolic ring
-            from sage.symbolic.ring import SR
             R = SR
             x = R.symbol()
             y = R.symbol()
@@ -5738,7 +5743,9 @@ class FiniteStateMachine(SageObject):
         c = (f_x * f_y * (f_zz+f_z) + f_z**2 * f_xy - f_y*f_z*f_xz
              - f_x*f_z*f_yz) / f_z**3
 
-        return {'expectation': e_2, 'variance': v_2, 'covariance': c}
+        return {'expectation': e_2*variable + SR(1).Order(),
+                'variance': v_2*variable + SR(1).Order(),
+                'covariance': c*variable + SR(1).Order()}
 
 
 #*****************************************************************************

@@ -15,7 +15,7 @@ Sage, and should produce exactly the same output as in this manual,
 except for line breaks.
 
 The Sage command line is briefly described in :doc:`The Sage Command Line
-<cmd/index>`, which lists the command line options. For more
+<repl/index>`, which lists the command line options. For more
 details about the command line, see the Sage tutorial.
 
 The Sage graphical user interface is described in :doc:`The Sage Notebook
@@ -34,7 +34,7 @@ Enjoy Sage!
 Table of Contents
 =================
 
-* :doc:`The Sage Command Line <cmd/index>`
+* :doc:`The Sage Command Line <repl/index>`
 * :doc:`The Sage Notebook <notebook/index>`
 
 Calculus, Plotting

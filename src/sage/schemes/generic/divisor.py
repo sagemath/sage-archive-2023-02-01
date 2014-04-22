@@ -305,21 +305,18 @@ class Divisor_curve(Divisor_generic):
                     try:
                         C = t[1].scheme()
                     except (TypeError, AttributeError):
-                        raise TypeError, \
-                              "Argument v (= %s) must consist of multiplicities and points on a scheme."
+                        raise TypeError("Argument v (= %s) must consist of multiplicities and points on a scheme.")
                 else:
                     try:
                         C = t.scheme()
                     except TypeError:
-                        raise TypeError, \
-                              "Argument v (= %s) must consist of multiplicities and points on a scheme."
+                        raise TypeError("Argument v (= %s) must consist of multiplicities and points on a scheme.")
                 parent = DivisorGroup(C)
             else:
-                raise TypeError, \
-                      "Argument v (= %s) must consist of multiplicities and points on a scheme."
+                raise TypeError("Argument v (= %s) must consist of multiplicities and points on a scheme.")
         else:
             if not isinstance(parent, DivisorGroup_curve):
-                raise TypeError, "parent (of type %s) must be a DivisorGroup_curve"%type(parent)
+                raise TypeError("parent (of type %s) must be a DivisorGroup_curve"%type(parent))
             C = parent.scheme()
 
         if len(v) < 1:

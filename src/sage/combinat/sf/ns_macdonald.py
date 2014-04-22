@@ -45,7 +45,7 @@ class LatticeDiagram(CombinatorialObject):
             2
         """
         if i == 0:
-            raise ValueError, "indexing starts at 1"
+            raise ValueError("indexing starts at 1")
         elif i < 0:
             i += 1
         return self._list[i-1]
@@ -221,7 +221,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             4
         """
         if i < 1:
-            raise ValueError, "indexing starts at 1"
+            raise ValueError("indexing starts at 1")
         if isinstance(i, tuple):
             i,j = i
             return self._list[i-1][j]
@@ -769,7 +769,7 @@ class NonattackingBacktracker(GenericBacktracker):
             if self._shape[i] >= jj + 1:
                 return i, jj + 1
 
-        raise ValueError, "we should never be here"
+        raise ValueError("we should never be here")
 
 
 def _check_muqt(mu, q, t, pi=None):
@@ -811,10 +811,10 @@ def _check_muqt(mu, q, t, pi=None):
         q,t = P.gens()
     elif q is not None and t is not None:
         if q.parent() != t.parent():
-            raise ValueError, "the parents of q and t must be the same"
+            raise ValueError("the parents of q and t must be the same")
         P = q.parent()
     else:
-        raise ValueError, "you must specify either both q and t or neither of them"
+        raise ValueError("you must specify either both q and t or neither of them")
     n = NonattackingFillings(mu, pi)
     R = PolynomialRing(P, len(n._shape), 'x')
     x = R.gens()

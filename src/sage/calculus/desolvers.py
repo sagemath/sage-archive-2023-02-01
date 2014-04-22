@@ -191,7 +191,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         [[[y(x) == 0, (b*x^(n - 2) + a/x^2)*c^2*u == 0]], 'riccati']
 
 
-    Higher ordered equations, not involving independent variable::
+    Higher order equations, not involving independent variable::
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y).expand()
         1/6*y(x)^3 + k1*y(x) == k2 + x
@@ -554,7 +554,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
 def desolve_laplace(de, dvar, ics=None, ivar=None):
     """
-    Solve an ODE using laplace transforms. Initial conditions are optional.
+    Solve an ODE using Laplace transforms. Initial conditions are optional.
 
     INPUT:
 

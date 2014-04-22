@@ -11,7 +11,7 @@ Commands:
 - ``desolve`` - Compute the "general solution" to a 1st or 2nd order
   ODE via Maxima.
 
-- ``desolve_laplace`` - Solve an ODE using laplace transforms via
+- ``desolve_laplace`` - Solve an ODE using Laplace transforms via
   Maxima. Initial conditions are optional.
 
 - ``desolve_rk4`` - Solve numerically IVP for one first order
@@ -245,7 +245,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
     You can solve Bessel equations, also using initial
     conditions, but you cannot put (sometimes desired) the initial
-    condition at x=0, since this point is a singlar point of the
+    condition at x=0, since this point is a singular point of the
     equation. Anyway, if the solution should be bounded at x=0, then
     k2=0.::
 

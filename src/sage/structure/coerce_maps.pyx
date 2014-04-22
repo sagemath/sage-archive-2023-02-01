@@ -24,7 +24,9 @@ cdef class DefaultConvertMap(Map):
     def __init__(self, domain, codomain, force_use=False):
         if not PY_TYPE_CHECK(domain, Parent):
             domain = Set_PythonType(domain)
-        Map.__init__(self, domain, codomain)
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        parent = domain.Hom(codomain, category=SetsWithPartialMaps())
+        Map.__init__(self, parent)
         self._coerce_cost = 100
         self._force_use = force_use
         if (<Parent>codomain)._element_constructor is None:

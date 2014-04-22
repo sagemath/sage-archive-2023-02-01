@@ -8,93 +8,29 @@ One of the mottoes of the Sage project is to not reinvent the
 wheel: If an algorithm is already implemented in a well-tested library
 then consider incorporating that library into Sage. The current list
 of available packages are the subdirectories of
-``SAGE_ROOT/build/pkgs/``.
+``SAGE_ROOT/build/pkgs/``. The management of packages is done through a
+bash script located in ``SAGE_ROOT/local/bin/sage-spkg``. This script is
+typically invoked by giving the command::
 
-Not all of these packages are built by default, they are divided into
-standard and optional ones. Standard packages are built by default and
-have much more stringent quality requirements. In addition, there are
-experimental spkgs (and some legacy optional spkgs) that are just
-tarballs containing build scripts.
+    [user@localhost]$ sage -i <options> <package name>...
 
+options can be:
 
-Inclusion Procedure for New and Updated Packages
-================================================
+- f: install a package even if the same version is already installed
+- s: do not delete temporary build directory
+- c: after installing, run the test suite for the spkg. This should
+  override the settings of ``SAGE_CHECK`` and ``SAGE_CHECK_PACKAGES``.
+- d: only download the package
 
-Packages that are not part of Sage will first become optional or
-experimental (the latter if they will not build on all supported
-systems). After they have been in optional for
-some time without problems they can be proposed to be included as
-standard packages in Sage.
+Not all packages are built by default, they are divided into standard,
+optional and experimental ones. Standard packages are built by default
+and have much more stringent quality requirements.
 
-To propose a package for optional/experimental inclusion please
-open a trac ticket with the respective ``Component:`` field set to
-either ``packages:experimental`` or ``packages:optional``. The associated
-code requirements are described in the following sections.
-
-After the ticket was reviewed and included, optional
-packages stay in that status for at least a year, after which they
-can be proposed to be included as standard packages in Sage. For this
-a trac ticket is opened with the ``Component:`` field set to
-``packages:standard``. Note that the script in ``SAGE_ROOT/build/deps``
-is called when building Sage so please include the build command
-for your standard package there. Then make a proposal in the Google
-Group ``sage-devel``.
-
-Upgrading packages to new upstream versions or with additional
-patches includes opening a ticket in the respective category too,
-as described above.
-
-
-Prerequisites for New Packages
-==============================
-
-For a package to become part of Sage's standard distribution, it
-must meet the following requirements:
-
-- **License**. For standard packages, the license must be compatible
-  with the GNU General Public License, version 3. The Free Software
-  Foundation maintains a long list of `licenses and comments about
-  them <http://www.gnu.org/licenses/license-list.html>`_.
-
-- **Build Support**. The code must build on all the `fully supported
-  platforms
-  <http://wiki.sagemath.org/SupportedPlatforms#Fully_supported>`_.
-
-  A standard package should also work on all the platforms where Sage
-  is `expected to work
-  <http://wiki.sagemath.org/SupportedPlatforms#Expected_to_work>`_ and
-  on which Sage `almost works
-  <http://wiki.sagemath.org/SupportedPlatforms#Almost_works>`_ but
-  since we don't fully support these platforms and often lack the
-  resources to test on them, you are not expected to confirm your
-  packages works on those platforms.
-
-- **Quality**. The code should be "better" than any other available
-  code (that passes the two above criteria), and the authors need to
-  justify this. The comparison should be made to both Python and other
-  software. Criteria in passing the quality test include:
-
-  - Speed
-
-  - Documentation
-
-  - Usability
-
-  - Absence of memory leaks
-
-  - Maintainable
-
-  - Portability
-
-  - Reasonable build time, size, dependencies
-
-- **Previously an optional package**. A new standard package must have
-  spent some time as an optional package. Or have a good reason why
-  this is not possible.
-
-- **Refereeing**. The code must be refereed, as discussed in
-  :ref:`chapter-sage-trac`.
-
+The section :ref:`section-directory-structure` describes the structure of each
+individual package in ``SAGE_ROOT/build/pkgs``. In section
+:ref:`section-manual-build` we see how you can install and test a new spkg that
+you or someone else wrote. Finally, :ref:`section-inclusion-procedure` explains how to
+submit a new package for inclusion in the Sage source code.
 
 
 .. _section-directory-structure:
@@ -335,8 +271,56 @@ tarball in the ``SAGE_ROOT/upstream/`` directory and run::
     [user@localhost]$ sage -sh sage-fix-pkg-checksums
 
 
+.. _section-manual-build:
+
+Manual package build and installation
+=====================================
+
+At this stage you have a new tarball that is not yet distributed with
+Sage (``foo-1.3.tar.gz`` in the example of section
+:ref:`section-directory-structure`). Now you need to manually place it
+in the ``SAGE_ROOT/upstream/`` directory. Then you can run the
+installation via ``sage -i package_name`` or ``sage -i -f package_name``
+to force a reinstallation. If your package contains a ``spkg-check``
+script (see :ref:`section-spkg-check`) they can be run with
+``sage -i -c package_name``.
+
+If all went fine, open a ticket, put a link to the original tarball
+in the ticket and upload a branch with the code under
+``SAGE_ROOT/build/pkgs``.
+
+
+.. _section-inclusion-procedure:
+
+Inclusion Procedure for New and Updated Packages
+================================================
+
+Packages that are not part of Sage will first become optional or
+experimental (the latter if they will not build on all supported
+systems). After they have been in optional for
+some time without problems they can be proposed to be included as
+standard packages in Sage.
+
+To propose a package for optional/experimental inclusion please
+open a trac ticket with the respective ``Component:`` field set to
+either ``packages:experimental`` or ``packages:optional``. The associated
+code requirements are described in the following sections.
+
+After the ticket was reviewed and included, optional
+packages stay in that status for at least a year, after which they
+can be proposed to be included as standard packages in Sage. For this
+a trac ticket is opened with the ``Component:`` field set to
+``packages:standard``. Note that the script in ``SAGE_ROOT/build/deps``
+is called when building Sage so please include the build command
+for your standard package there. Then make a proposal in the Google
+Group ``sage-devel``.
+
+Upgrading packages to new upstream versions or with additional
+patches includes opening a ticket in the respective category too,
+as described above.
+
 License Information
-===================
+-------------------
 
 If you are patching a standard Sage spkg, then you should make sure
 that the license information for that package is up-to-date, both in
@@ -345,19 +329,54 @@ example, if you are producing an spkg which upgrades the vanilla
 source to a new version, check whether the license changed between
 versions.
 
+Prerequisites for New Standard Packages
+---------------------------------------
 
-Manual package build and installation
-=====================================
+For a package to become part of Sage's standard distribution, it
+must meet the following requirements:
 
-At this stage you have a new tarball that is not yet distributed
-with Sage. Now you need to manually place it in the ``SAGE_ROOT/upstream/``
-directory. Then you can run the installation via ``sage -f
-package_name``. If your package contains any
-:ref:`section-spkg-check`, run::
+- **License**. For standard packages, the license must be compatible
+  with the GNU General Public License, version 3. The Free Software
+  Foundation maintains a long list of `licenses and comments about
+  them <http://www.gnu.org/licenses/license-list.html>`_.
 
-    [user@localhost]$ sage -i -c PACKAGE_NAME
+- **Build Support**. The code must build on all the `fully supported
+  platforms
+  <http://wiki.sagemath.org/SupportedPlatforms#Fully_supported>`_.
 
-If all went fine, open a ticket, put a link to the original tarball
-in the ticket and upload a branch with the code under
-``SAGE_ROOT/build/pkgs``.
+  A standard package should also work on all the platforms where Sage
+  is `expected to work
+  <http://wiki.sagemath.org/SupportedPlatforms#Expected_to_work>`_ and
+  on which Sage `almost works
+  <http://wiki.sagemath.org/SupportedPlatforms#Almost_works>`_ but
+  since we don't fully support these platforms and often lack the
+  resources to test on them, you are not expected to confirm your
+  packages works on those platforms.
+
+- **Quality**. The code should be "better" than any other available
+  code (that passes the two above criteria), and the authors need to
+  justify this. The comparison should be made to both Python and other
+  software. Criteria in passing the quality test include:
+
+  - Speed
+
+  - Documentation
+
+  - Usability
+
+  - Absence of memory leaks
+
+  - Maintainable
+
+  - Portability
+
+  - Reasonable build time, size, dependencies
+
+- **Previously an optional package**. A new standard package must have
+  spent some time as an optional package. Or have a good reason why
+  this is not possible.
+
+- **Refereeing**. The code must be refereed, as discussed in
+  :ref:`chapter-sage-trac`.
+
 

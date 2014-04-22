@@ -282,7 +282,7 @@ def str_function(x):
 
     If ``x`` contains only digits with, possibly, a single decimal point and/or
     a sign in front, it is considered to be its own representation. Otherwise
-    each line of ``x`` is wrapped in a ``\verb`` command and these lines are
+    each line of ``x`` is wrapped in a ``\texttt`` command and these lines are
     assembled in a left-justified array. This gives to complicated strings the
     closest look to their "terminal representation".
 

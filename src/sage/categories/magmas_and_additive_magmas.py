@@ -71,7 +71,7 @@ class MagmasAndAdditiveMagmas(Category_singleton):
 
             .. NOTE::
 
-                Given that `Sage` does not know that
+                Given that Sage does not know that
                 :class:`MagmasAndAdditiveMagmas` is the intersection
                 of :class:`Magmas` and :class:`AdditiveMagmas`, this
                 method is not available for::
@@ -95,6 +95,7 @@ class MagmasAndAdditiveMagmas(Category_singleton):
                 sage: TestSuite(C).run()
                 sage: Fields().Distributive.__module__
                 'sage.categories.magmas_and_additive_magmas'
+
             """
             return self._with_axiom('Distributive')
 

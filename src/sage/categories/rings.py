@@ -57,7 +57,8 @@ class Rings(CategoryWithAxiom):
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):
-            """Return the full subcategory of the objects of ``self`` having no nonzero zero divisors.
+            """
+            Return the full subcategory of the objects of ``self`` having no nonzero zero divisors.
 
             A *zero divisor* in a ring `R` is an element `x\in R` such
             that there exists a nonzero element `y\in R` such that

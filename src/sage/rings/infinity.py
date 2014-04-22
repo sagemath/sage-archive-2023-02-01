@@ -593,6 +593,8 @@ class UnsignedInfinityRing_class(_uniq, Ring):
 
     def _element_constructor_(self, x):
         """
+        The element constructor
+
         TESTS::
 
             sage: UnsignedInfinityRing(2) # indirect doctest
@@ -616,6 +618,15 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             (Infinity, Infinity)
             sage: UnsignedInfinityRing(float('+inf')), UnsignedInfinityRing(float('-inf'))
             (Infinity, Infinity)
+            sage: UnsignedInfinityRing(SR(oo)), UnsignedInfinityRing(SR(-oo))
+            (Infinity, Infinity)
+
+        The following rings have a ``is_infinity`` method::
+        
+            sage: RR(oo).is_infinity()
+            True
+            sage: SR(oo).is_infinity()
+            True
         """
         # Lazy elements can wrap infinity or not, unwrap first
         from sage.rings.real_lazy import LazyWrapper
@@ -970,6 +981,16 @@ class InfinityRing_class(_uniq, Ring):
             (+Infinity, -Infinity)
             sage: InfinityRing(float('+inf')), InfinityRing(float('-inf'))
             (+Infinity, -Infinity)
+            sage: InfinityRing(SR(oo)), InfinityRing(SR(-oo))
+            (+Infinity, -Infinity)
+
+        The following rings have ``is_positive_infinity`` /
+        ``is_negative_infinity`` methods::
+        
+            sage: RR(oo).is_positive_infinity(), RR(-oo).is_negative_infinity()
+            (True, True)
+            sage: SR(oo).is_positive_infinity(), SR(-oo).is_negative_infinity()
+            (True, True)
         """
         # Lazy elements can wrap infinity or not, unwrap first
         from sage.rings.real_lazy import LazyWrapper
@@ -1010,6 +1031,13 @@ class InfinityRing_class(_uniq, Ring):
         """
         There is a coercion from anything that has a coercion into the reals.
 
+        The way Sage works is that everything that should be
+        comparable with infinity can be coerced into the infinity
+        ring, so if you ever compare with infinity the comparison is
+        done there. If you don't have a coercion then you will get
+        undesirable answers from the fallback comparison (likely
+        memory location).
+
         EXAMPLES::
 
             sage: InfinityRing.has_coerce_map_from(int) # indirect doctest
@@ -1022,14 +1050,40 @@ class InfinityRing_class(_uniq, Ring):
             True
             sage: InfinityRing.has_coerce_map_from(CC)
             False
+
+        As explained above, comparison works by coercing to the
+        infinity ring::
+
+            sage: cm = get_coercion_model()
+            sage: cm.explain(AA(3), oo, operator.lt)
+            Coercion on left operand via
+                Conversion map:
+                  From: Algebraic Real Field
+                  To:   The Infinity Ring
+            Arithmetic performed after coercions.
+            Result lives in The Infinity Ring
+            The Infinity Ring
+
+        The symbolic ring does not coerce to the infinity ring, so
+        symbolic comparisons with infinities all happen in the
+        symbolic ring::
+
+            sage: SR.has_coerce_map_from(InfinityRing)
+            True
+            sage: InfinityRing.has_coerce_map_from(SR)
+            False
         """
+        from sage.rings.real_mpfr import RealField, mpfr_prec_min
+        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+            return True
         from sage.rings.real_mpfi import RealIntervalField_class
         if isinstance(R, RealIntervalField_class):
             return True
-        from sage.rings.real_mpfr import RealField, mpfr_prec_min
-        return RealField(mpfr_prec_min()).has_coerce_map_from(R)
+        return False
+
 
 class FiniteNumber(RingElement):
+
     def __init__(self, parent, x):
         """
         Initialize ``self``.
@@ -1394,7 +1448,6 @@ def test_comparison(ring):
     correctly with plus/minus infinity.
 
     EXAMPLES::
-
         
         sage: from sage.rings.infinity import test_comparison
         sage: rings = [ZZ, QQ, RR, RealField(200), RDF, RLF, AA, RIF]
@@ -1414,7 +1467,16 @@ def test_comparison(ring):
     
         sage: K.<sqrt3> = NumberField(x^2-3)
         sage: (-oo < 1+sqrt3) and (1+sqrt3 < oo)     # known bug
-        True
+        False
+
+    The symbolic ring handles its own infinities, but answers
+    ``False`` (meaning: cannot decide) already for some very
+    elementary comparisons::
+
+        sage: test_comparison(SR)      # known bug
+        Traceback (most recent call last):
+        ...
+        AssertionError: testing -1000.0 in Symbolic Ring: id = ...
     """
     from sage.symbolic.ring import SR
     elements = [-1e3, 99.9999, -SR(2).sqrt(), 0, 1, 3^(-1/3), SR.pi(), 100000]
@@ -1463,12 +1525,11 @@ def test_signed_infinity(pos_inf):
         False
         sage: oo == float('+inf')
         True
-
   
     EXAMPLES::
 
         sage: from sage.rings.infinity import test_signed_infinity
-        sage: for pos_inf in [oo, float('+inf'), RLF(oo), RIF(oo)]:
+        sage: for pos_inf in [oo, float('+inf'), RLF(oo), RIF(oo), SR(oo)]:
         ....:     test_signed_infinity(pos_inf)
     """
     msg = 'testing {} ({})'.format(pos_inf, type(pos_inf))

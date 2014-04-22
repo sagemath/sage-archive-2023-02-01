@@ -1912,6 +1912,36 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj)
 
+    cpdef bint is_positive_infinity(self):
+        """
+        Return True if self is a positive infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_positive_infinity()
+            True
+            sage: SR(-oo).is_positive_infinity()
+            False
+            sage: x.is_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj) and self._gobj.info(info_positive)
+
+    cpdef bint is_negative_infinity(self):
+        """
+        Return True if self is a negative infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_negative_infinity()
+            False
+            sage: SR(-oo).is_negative_infinity()
+            True
+            sage: x.is_negative_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side

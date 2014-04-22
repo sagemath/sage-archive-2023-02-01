@@ -58,7 +58,7 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
-from sage.parallel.multiprocessing_sage import parallel_iter
+from sage.parallel.use_fork        import p_iter_fork
 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -1716,7 +1716,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2-29/16*y^2,y^2])
-            sage: f.possible_periods()
+            sage: f.possible_periods(ncpus=1)
             [1, 3]
 
         ::
@@ -1751,6 +1751,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         primebound = kwds.pop("prime_bound", [1, 20])
         badprimes = kwds.pop("bad_primes", None)
+        from sage.parallel.ncpus import ncpus
+        num_cpus = kwds.pop("ncpus", ncpus())
 
         if (isinstance(primebound, (list, tuple)) == False):
             try:
@@ -1778,8 +1780,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if not (q in badprimes):
                 F = self.change_ring(GF(q))
                 parallel_data.append(((F,), {}))
-
-        parallel_results = list(parallel_iter(len(parallel_data), parallel_function, parallel_data))
+  
+        parallel_iter = p_iter_fork(num_cpus, 0)
+        parallel_results = list(parallel_iter(parallel_function, parallel_data))
 
         for result in parallel_results:
             possible_periods = result[1]

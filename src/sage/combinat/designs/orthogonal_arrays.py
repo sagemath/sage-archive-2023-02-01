@@ -12,15 +12,18 @@ def transversal_design(k,n,check=True):
     r"""
     Return a transversal design of parameters `k,n`.
 
-    A transversal design of parameters `k, n` is a collection `\mathcal{S}`
-    of subsets of `V = V_1 \sqcup \cdots \sqcup V_k` (where each *group* `V_i`
-    has cardinality `n`) such that:
+    A transversal design of parameters `k, n` is a collection `\mathcal{S}` of
+    subsets of `V = V_1 \cup \cdots \cup V_k` (where the *groups* `V_i` are
+    disjoint and have cardinality `n`) such that:
 
     * Any `S \in \mathcal{S}` has cardinality `k` and intersects each group on
       exactly one element.
 
     * Any two elements from distincts groups are contained in exactly one
       element of `\mathcal{S}`.
+
+    More general definitions sometimes involve a `\lambda` parameter, and we
+    assume here that `\lambda=1`.
 
     For more information on transversal designs, see
     `<http://mathworld.wolfram.com/TransversalDesign.html>`_.
@@ -33,6 +36,11 @@ def transversal_design(k,n,check=True):
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
+
+    .. NOTE::
+
+        This function returns transversal designs with
+        `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}`.
 
     .. SEEALSO::
 
@@ -150,8 +158,11 @@ def orthogonal_array(k,n,t=2,check=True):
 
     An orthogonal array of parameters `k,n,t` is a matrix with `k` columns
     filled with integers from `[n]` in such a way that for any `t` columns, each
-    of the `n^t` possible rows occurs exactly once. In particular, the matrix
-    has `n^t` rows.
+    of the `n^t` possible rows occurs exactly once. In
+    particular, the matrix has `n^t` rows.
+
+    More general definitions sometimes involve a `\lambda` parameter, and we
+    assume here that `\lambda=1`.
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.

@@ -130,33 +130,31 @@ def _fast_possible_periods(self,return_points=False):
     p=PS.base_ring().order()
     N=PS.dimension_relative()
 
-    pointtable=[[0,0] for i in xrange(p**(N+1))]
+    point_table=[[0,0] for i in xrange(p**(N+1))]
     index=1
-    Periods=set()
-    PointsPeriods=[]
-    pointslist=_enum_points(p,N)
+    periods=set()
+    points_periods=[]
     
-    while pointslist:
+    for P in _enum_points(p,N):
 
-        P=pointslist.pop()
-        hashP=_hash(P,p)
-        if pointtable[hashP][1]==0:
+        hash_p=_hash(P,p)
+        if point_table[hash_p][1]==0:
             startindex=index
-            while pointtable[hashP][1]==0:
-                pointtable[hashP][1]=index
+            while point_table[hash_p][1]==0:
+                point_table[hash_p][1]=index
                 Q=self._fast_eval(P)
                 Q=_normalize_coordinates(Q,p)
-                hashQ=_hash(Q,p)
-                pointtable[hashP][0]=hashQ
+                hash_q=_hash(Q,p)
+                point_table[hash_p][0]=hash_q
                 P=Q
-                hashP=hashQ
+                hash_p=hash_q
                 index+=1
 
-            if pointtable[hashP][1]>= startindex:
+            if point_table[hash_p][1]>= startindex:
                 P_proj=PS(P)
-                period=index-pointtable[hashP][1]
-                Periods.add(period)
-                PointsPeriods.append([P_proj,period])
+                period=index-point_table[hash_p][1]
+                periods.add(period)
+                points_periods.append([P_proj,period])
                 l=P_proj.multiplier(self,period,False)
                 q=1
                 leigen=-1
@@ -180,30 +178,30 @@ def _fast_possible_periods(self,return_points=False):
                 if N==1:
                     for k in xrange(len(rvalues)):
                         r=rvalues[k]
-                        Periods.add(period*r)
-                        PointsPeriods.append([P_proj,period*r])
+                        periods.add(period*r)
+                        points_periods.append([P_proj,period*r])
                         if p==2 or p==3: #need e=1 for N=1, QQ
-                            Periods.add(period*r*p)
-                            PointsPeriods.append([P_proj,period*r*p])
+                            periods.add(period*r*p)
+                            points_periods.append([P_proj,period*r*p])
                 else:
                     for k in xrange(len(rvalues)):
                         r=rvalues[k]
-                        Periods.add(period*r)
-                        Periods.add(period*r*p)
-                        PointsPeriods.append([P_proj,period*r])
-                        PointsPeriods.append([P_proj,period*r*p])
+                        periods.add(period*r)
+                        periods.add(period*r*p)
+                        points_periods.append([P_proj,period*r])
+                        points_periods.append([P_proj,period*r*p])
                         if p==2:  #need e=3 for N>1, QQ
-                            Periods.add(period*r*4)
-                            PointsPeriods.append([P_proj,period*r*4])
-                            Periods.add(period*r*8)
-                            PointsPeriods.append([P_proj,period*r*8])
+                            periods.add(period*r*4)
+                            points_periods.append([P_proj,period*r*4])
+                            periods.add(period*r*8)
+                            points_periods.append([P_proj,period*r*8])
 
-    Periods=list(Periods)
-    Periods.sort()
+    periods=list(periods)
+    periods.sort()
     if return_points==False:
-        return(Periods)
+        return(periods)
     else:
-        return(PointsPeriods)
+        return(points_periods)
 
 def _enum_points(int prime,int dimension):
     """
@@ -216,25 +214,22 @@ def _enum_points(int prime,int dimension):
         [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1], [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
 
     """
-    cdef list points=[]
     cdef list ranges=[]
-    cdef int currPrime
-    cdef int highestPrime
+    cdef int curr_prime
+    cdef int highest_prime
     
-    currPrime = 1
-    highestPrime = prime**dimension
+    curr_prime = 1
+    highest_prime = prime**dimension
     
-    while currPrime <= highestPrime:
-        ranges.append(range(currPrime,currPrime*2))
-        currPrime=currPrime*prime
+    while curr_prime <= highest_prime:
+        ranges.append(range(curr_prime,curr_prime*2))
+        curr_prime=curr_prime*prime
 
     cdef list values
     cdef int value
     for values in ranges:
         for value in values:
-            points.append(_get_point_from_hash(value,prime,dimension))
-
-    return points
+            yield _get_point_from_hash(value,prime,dimension)
 
 def _hash(list Point,int prime):
     """
@@ -247,18 +242,18 @@ def _hash(list Point,int prime):
         16
 
     """
-    cdef int hashQ
+    cdef int hash_q
     cdef int coefficient
     
     Point.reverse()
-    hashQ=0
+    hash_q=0
 
     for coefficient in Point:
-        hashQ=hashQ*prime+coefficient
+        hash_q=hash_q*prime+coefficient
 
     Point.reverse()
     
-    return hashQ
+    return hash_q
 
 def _get_point_from_hash(int value,int prime,int dimension):
     """

@@ -18,7 +18,9 @@ Rankers
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.all import cached_function
+from sage.misc.cachefunc import cached_function
+from sage.structure.parent import Parent
+from sage.categories.enumerated_sets import EnumeratedSets
 
 def from_list(l):
     """
@@ -134,3 +136,42 @@ def on_fly():
         return None
 
     return [rank, unrank]
+
+def unrank(L, i):
+    """
+    Return the `i`-th element of `L`.
+
+    INPUT:
+
+    - ``L`` -- a list, tuple, finite enumerated set, ...
+    - ``i`` -- an int or :class:`Integer`
+
+    The purpose of this utility is to give a uniform idiom to recover
+    the `i`-th element of an object ``L``, whether ``L`` is a list,
+    tuple, finite enumerated set, or some old parent of Sage still
+    implementing unranking in the method ``__getitem__``.
+
+    See :trac:`15919`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ranker import unrank
+        sage: unrank(['a','b','c'], 2)
+        'c'
+        sage: unrank(('a','b','c'), 1)
+        'b'
+        sage: unrank(GF(7), 2)
+        2
+        sage: unrank(IntegerModRing(29), 10)
+        10
+        sage: unrank(MatrixSpace(GF(3), 2, 2), 42)
+        [1 0]
+        [2 1]
+    """
+    if L in EnumeratedSets:
+        return L.unrank(i)
+    elif isinstance(L, (list, tuple, xrange, Parent)):
+        return L[i]
+    else:
+        raise ValueError, "Don't know how to unrank on %s"%L
+

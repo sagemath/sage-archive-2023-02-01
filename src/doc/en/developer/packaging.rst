@@ -4,13 +4,13 @@
 Packaging Third-Party Code
 ==========================
 
-One of the mottoes of the Sage project is to not reinvent the
-wheel: If an algorithm is already implemented in a well-tested library
-then consider incorporating that library into Sage. The current list
-of available packages are the subdirectories of
-``SAGE_ROOT/build/pkgs/``. The management of packages is done through a
-bash script located in ``SAGE_ROOT/local/bin/sage-spkg``. This script is
-typically invoked by giving the command::
+One of the mottoes of the Sage project is to not reinvent the wheel: If
+an algorithm is already implemented in a well-tested library then
+consider incorporating that library into Sage. The current list of
+available packages are the subdirectories of ``SAGE_ROOT/build/pkgs/``.
+The management of packages is done through a bash script located in
+``SAGE_ROOT/local/bin/sage-spkg``. This script is typically invoked by
+giving the command::
 
     [user@localhost]$ sage -i <options> <package name>...
 
@@ -26,11 +26,12 @@ Not all packages are built by default, they are divided into standard,
 optional and experimental ones. Standard packages are built by default
 and have much more stringent quality requirements.
 
-The section :ref:`section-directory-structure` describes the structure of each
-individual package in ``SAGE_ROOT/build/pkgs``. In section
-:ref:`section-manual-build` we see how you can install and test a new spkg that
-you or someone else wrote. Finally, :ref:`section-inclusion-procedure` explains how to
-submit a new package for inclusion in the Sage source code.
+The section :ref:`section-directory-structure` describes the structure
+of each individual package in ``SAGE_ROOT/build/pkgs``. In section
+:ref:`section-manual-build` we see how you can install and test a new
+spkg that you or someone else wrote. Finally,
+:ref:`section-inclusion-procedure` explains how to submit a new package
+for inclusion in the Sage source code.
 
 
 .. _section-directory-structure:
@@ -52,9 +53,9 @@ Third-party packages in Sage consists of two parts:
 
 As an example, let us consider a hypothetical FoO project. They
 (upstream) distribute a tarball ``foo-1.3.tar.gz`` (that will be
-automatically placed in ``SAGE_ROOT/upstream`` during the installation 
-process). To package it in Sage, we create a subdirectory containing
-the following::
+automatically placed in ``SAGE_ROOT/upstream`` during the installation
+process). To package it in Sage, we create a subdirectory containing the
+following::
 
     SAGE_ROOT/build/pkgs/foo
     |-- patches
@@ -67,8 +68,8 @@ the following::
     |-- spkg-src
     `-- SPKG.txt
 
-When installing Sage these files are used to patch the tarball and
-to start the build and install process of the package.
+When installing Sage these files are used to patch the tarball and to
+start the build and install process of the package.
 
 We discuss the individual files in the following.
 
@@ -108,8 +109,8 @@ would simply consist of::
 
 
 Note that the top-level directory inside the tarball is renamed to
-``src`` before calling the ``spkg-install`` script, so you can just
-use ``cd src`` instead of ``cd foo-1.3``.
+``src`` before calling the ``spkg-install`` script, so you can just use
+``cd src`` instead of ``cd foo-1.3``.
 
 If there is any meaningful documentation included but not installed by
 ``make install``, then you can add something like the following to
@@ -136,9 +137,9 @@ Self-Tests
 The ``spkg-check`` file is an optional, but highly recommended, script
 to run self-tests of the package. It is run after building and
 installing if the ``SAGE_CHECK`` environment variable is set, see the
-Sage installation guide. Ideally, upstream has some sort of tests
-suite that can be run with the standard ``make check`` target. In that
-case, the ``spkg-check`` script would simply contain::
+Sage installation guide. Ideally, upstream has some sort of tests suite
+that can be run with the standard ``make check`` target. In that case,
+the ``spkg-check`` script would simply contain::
 
     #!/usr/bin/env bash
 
@@ -152,12 +153,12 @@ Package Versioning
 ------------------
 
 The ``package-version.txt`` file containts just the version. So if
-upstream is ``foo-1.3.tar.gz`` then the package version file would
-only contain ``1.3``.
+upstream is ``foo-1.3.tar.gz`` then the package version file would only
+contain ``1.3``.
 
-If the upstream package is taken from some revision other than a
-stable version, you should use the date at which the revision is made,
-e.g. the Singular package ``20090818`` is made with the revision as of
+If the upstream package is taken from some revision other than a stable
+version, you should use the date at which the revision is made, e.g. the
+Singular package ``20090818`` is made with the revision as of
 2009-08-18. 
 
 If you made any changes to the upstream tarball (see
@@ -219,10 +220,10 @@ Patching Sources
 ----------------
 
 Actual changes to the source code must be via patches, which should be
-placed in the ``patches`` directory. GNU patch is distributed with
-Sage, so you can rely on it being available. All patches must be
-documented in ``SPKG.txt``, i.e. what they do, if they are platform
-specific, if they should be pushed upstream, etc.
+placed in the ``patches`` directory. GNU patch is distributed with Sage,
+so you can rely on it being available. All patches must be documented in
+``SPKG.txt``, i.e. what they do, if they are platform specific, if they
+should be pushed upstream, etc.
 
 Patches to files in ``src/`` need to be applied in ``spkg-install``,
 that is, if there are any patches then your ``spkg-install`` script
@@ -240,10 +241,10 @@ should contain a section like this::
 which applies the patches to the sources.
 
 A special case where no patch would be necessary is when an author
-provides an already fine SPKG on the net which includes all files
-needed for ``SAGE_ROOT/build/pkgs/foo`` and the source in its ``src/``
-subdirectory. Here it suffices to put the web link to the package
-into the ticket.
+provides an already fine SPKG on the net which includes all files needed
+for ``SAGE_ROOT/build/pkgs/foo`` and the source in its ``src/``
+subdirectory. Here it suffices to put the web link to the package into
+the ticket.
 
 
 .. _section-spkg-src:
@@ -251,22 +252,22 @@ into the ticket.
 Modified Tarballs
 -----------------
 
-The ``spkg-src`` file is optional and only to document how the
-upstream tarball was changed. Ideally it is not modified, then there
-would be no ``spkg-src`` file present either.
+The ``spkg-src`` file is optional and only to document how the upstream
+tarball was changed. Ideally it is not modified, then there would be no
+``spkg-src`` file present either.
 
 However, if you really must modify the upstream tarball then it is
-recommended that you write a script, called ``spkg-src``, that makes
-the changes. This not only serves as documentation but also makes it
-easier to apply the same modifications to future versions.
+recommended that you write a script, called ``spkg-src``, that makes the
+changes. This not only serves as documentation but also makes it easier
+to apply the same modifications to future versions.
 
 
 Checksums
 ---------
 
-The ``checksums.ini`` file contains checksums of the upstream
-tarball. It is autogenerated, so you just have to place the upstream
-tarball in the ``SAGE_ROOT/upstream/`` directory and run::
+The ``checksums.ini`` file contains checksums of the upstream tarball.
+It is autogenerated, so you just have to place the upstream tarball in
+the ``SAGE_ROOT/upstream/`` directory and run::
 
     [user@localhost]$ sage -sh sage-fix-pkg-checksums
 
@@ -280,13 +281,21 @@ At this stage you have a new tarball that is not yet distributed with
 Sage (``foo-1.3.tar.gz`` in the example of section
 :ref:`section-directory-structure`). Now you need to manually place it
 in the ``SAGE_ROOT/upstream/`` directory. Then you can run the
-installation via ``sage -i package_name`` or ``sage -i -f package_name``
-to force a reinstallation. If your package contains a ``spkg-check``
-script (see :ref:`section-spkg-check`) they can be run with
-``sage -i -c package_name``.
+installation via::
 
-If all went fine, open a ticket, put a link to the original tarball
-in the ticket and upload a branch with the code under
+    [user@localhost]$ sage -i package_name
+
+or::
+
+    [user@localhost]$ sage -i -f package_name
+
+to force a reinstallation. If your package contains a ``spkg-check``
+script (see :ref:`section-spkg-check`) it can be run with::
+
+    [user@localhost]$ sage -i -c package_name
+
+If all went fine, open a ticket, put a link to the original tarball in
+the ticket and upload a branch with the code under
 ``SAGE_ROOT/build/pkgs``.
 
 
@@ -297,37 +306,35 @@ Inclusion Procedure for New and Updated Packages
 
 Packages that are not part of Sage will first become optional or
 experimental (the latter if they will not build on all supported
-systems). After they have been in optional for
-some time without problems they can be proposed to be included as
-standard packages in Sage.
+systems). After they have been in optional for some time without
+problems they can be proposed to be included as standard packages in
+Sage.
 
-To propose a package for optional/experimental inclusion please
-open a trac ticket with the respective ``Component:`` field set to
-either ``packages:experimental`` or ``packages:optional``. The associated
-code requirements are described in the following sections.
+To propose a package for optional/experimental inclusion please open a
+trac ticket with the respective ``Component:`` field set to either
+``packages:experimental`` or ``packages:optional``. The associated code
+requirements are described in the following sections.
 
-After the ticket was reviewed and included, optional
-packages stay in that status for at least a year, after which they
-can be proposed to be included as standard packages in Sage. For this
-a trac ticket is opened with the ``Component:`` field set to
-``packages:standard``. Note that the script in ``SAGE_ROOT/build/deps``
-is called when building Sage so please include the build command
-for your standard package there. Then make a proposal in the Google
-Group ``sage-devel``.
+After the ticket was reviewed and included, optional packages stay in
+that status for at least a year, after which they can be proposed to be
+included as standard packages in Sage. For this a trac ticket is opened
+with the ``Component:`` field set to ``packages:standard``. Note that
+the script in ``SAGE_ROOT/build/deps`` is called when building Sage so
+please include the build command for your standard package there. Then
+make a proposal in the Google Group ``sage-devel``.
 
-Upgrading packages to new upstream versions or with additional
-patches includes opening a ticket in the respective category too,
-as described above.
+Upgrading packages to new upstream versions or with additional patches
+includes opening a ticket in the respective category too, as described
+above.
 
 License Information
 -------------------
 
-If you are patching a standard Sage spkg, then you should make sure
-that the license information for that package is up-to-date, both in
-its ``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
-example, if you are producing an spkg which upgrades the vanilla
-source to a new version, check whether the license changed between
-versions.
+If you are patching a standard Sage spkg, then you should make sure that
+the license information for that package is up-to-date, both in its
+``SPKG.txt`` file and in the file ``SAGE_ROOT/COPYING.txt``.  For
+example, if you are producing an spkg which upgrades the vanilla source
+to a new version, check whether the license changed between versions.
 
 Prerequisites for New Standard Packages
 ---------------------------------------

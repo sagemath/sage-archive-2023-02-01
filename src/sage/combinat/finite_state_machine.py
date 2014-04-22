@@ -2336,9 +2336,24 @@ class FiniteStateMachine(SageObject):
             \begin{tikzpicture}[auto, initial text=]
             \node[state, initial, initial where=below] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-            \path[->] (v0) edge node {$ $} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
             \end{tikzpicture}
         """
+        def label_rotation(angle, both_directions):
+            """
+            Given an angle of a transition, compute the TikZ string to
+            rotate the label.
+            """
+            angle_label = angle
+            anchor_label = "south"
+            if angle > 90 or angle <= -90:
+                angle_label = angle + 180
+                if both_directions:
+                    # if transitions in both directions, the transition to the
+                    # left has its label below the transition, otherwise above
+                    anchor_label = "north"
+            return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
         result = "\\begin{tikzpicture}[auto, initial text=]\n"
         j = 0;
         for vertex in self.states():
@@ -2386,17 +2401,20 @@ class FiniteStateMachine(SageObject):
                             transition, format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
-                    if len(adjacent[target, source]) > 0:
-                        angle = atan2(
-                            target.coordinates[1] - source.coordinates[1],
-                            target.coordinates[0]-source.coordinates[0])*180/pi
-                        angle_source = ".%.2f" % ((angle+5).n(),)
-                        angle_target = ".%.2f" % ((angle+175).n(),)
+                    angle = atan2(
+                        target.coordinates[1] - source.coordinates[1],
+                        target.coordinates[0] - source.coordinates[0])*180/pi
+                    both_directions = len(adjacent[target, source]) > 0
+                    if both_directions:
+                        angle_source = ".%.2f" % ((angle + 5).n(),)
+                        angle_target = ".%.2f" % ((angle + 175).n(),)
                     else:
                         angle_source = ""
                         angle_target = ""
-                    result += "\\path[->] (v%d%s) edge node {$%s$} (v%d%s);\n" % (
-                        source._number_, angle_source, label,
+                    result += "\\path[->] (v%d%s) edge node[%s] {$%s$} (v%d%s);\n" % (
+                        source._number_, angle_source,
+                        label_rotation(angle, both_directions),
+                        label,
                         target._number_, angle_target)
                 else:
                     result += "\\path[->] (v%d) edge[loop above] node {$%s$} ();\n" % (
@@ -5222,7 +5240,7 @@ class Automaton(FiniteStateMachine):
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-            \path[->] (v0) edge node {$\left[1\right]$} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
             \end{tikzpicture}
 
         TESTS::
@@ -5780,7 +5798,7 @@ class Transducer(FiniteStateMachine):
             \begin{tikzpicture}[auto, initial text=]
             \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-            \path[->] (v0) edge node {$\left[1\right] \mid \left[2\right]$} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
             \end{tikzpicture}
 
         TESTS::

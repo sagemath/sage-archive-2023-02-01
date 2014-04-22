@@ -27,63 +27,63 @@ Integer lists
 - :func:`sage.combinat.integer_vector_weighted.WeightedIntegerVectors`
 - :class:`sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
 
-- :mod:`sage.combinat.parking_functions`
-- :mod:`sage.combinat.non_decreasing_parking_function`
+- :ref:`sage.combinat.parking_functions`
+- :ref:`sage.combinat.non_decreasing_parking_function`
 
-- :mod:`sage.combinat.sidon_sets`
+- :ref:`sage.combinat.sidon_sets`
 
 Words
 -----
 
 - :class:`Words`
-- :mod:`sage.combinat.subword`
-- :mod:`sage.combinat.necklace`
-- :mod:`sage.combinat.lyndon_word`
-- :mod:`sage.combinat.dyck_word`
-- :mod:`sage.combinat.debruijn_sequence`
+- :ref:`sage.combinat.subword`
+- :ref:`sage.combinat.necklace`
+- :ref:`sage.combinat.lyndon_word`
+- :ref:`sage.combinat.dyck_word`
+- :ref:`sage.combinat.debruijn_sequence`
 
 Permutations, ...
 -----------------
 
-- :mod:`sage.combinat.permutation`
-- :mod:`sage.combinat.affine_permutation`
+- :ref:`sage.combinat.permutation`
+- :ref:`sage.combinat.affine_permutation`
 - :class:`sage.combinat.permutation.Arrangements`
-- :mod:`sage.combinat.derangements`
-- :mod:`sage.combinat.integer_vectors_mod_permgroup`
-- :mod:`sage.combinat.rsk`
+- :ref:`sage.combinat.derangements`
+- :ref:`sage.combinat.integer_vectors_mod_permgroup`
+- :ref:`sage.combinat.rsk`
 
 .. SEEALSO::
 
-    - :class:`PermutationGroup`, :class:`SymmetricGroup`
+    - :class:`SymmetricGroup`, :class:`PermutationGroup`, :ref:`sage.groups.perm_gps.permutation_groups_catalog`
     - :class:`FiniteSetMaps`
 
 Partitions, tableaux, ...
 -------------------------
 
-See: :mod:`sage.combinat.catalog_partitions`
+See: :ref:`sage.combinat.catalog_partitions`
 
 Integer matrices, ...
 ---------------------
 
-- :mod:`sage.combinat.integer_matrices`
-- :mod:`sage.combinat.matrices.hadamard_matrix`
-- :mod:`sage.combinat.matrices.latin`
-- :mod:`sage.combinat.alternating_sign_matrix`
-- :mod:`sage.combinat.six_vertex_model`
-- :mod:`sage.combinat.similarity_class_type`
-- :mod:`sage.combinat.restricted_growth`
-- :mod:`sage.combinat.vector_partition`
+- :ref:`sage.combinat.integer_matrices`
+- :ref:`sage.combinat.matrices.hadamard_matrix`
+- :ref:`sage.combinat.matrices.latin`
+- :ref:`sage.combinat.alternating_sign_matrix`
+- :ref:`sage.combinat.six_vertex_model`
+- :ref:`sage.combinat.similarity_class_type`
+- :ref:`sage.combinat.restricted_growth`
+- :ref:`sage.combinat.vector_partition`
 
 .. SEEALSO::
 
     - :class:`MatrixSpace`
-    - :mod:`groups.matrix`
+    - :ref:`sage.groups.matrix_gps.catalog`
 
 Set partitions, ...
 -------------------
 
-- :mod:`sage.combinat.set_partition_ordered`
-- :mod:`sage.combinat.set_partition`
+- :ref:`sage.combinat.set_partition_ordered`
+- :ref:`sage.combinat.set_partition`
 - :class:`sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
 
 Trees
@@ -118,10 +118,10 @@ Generic enumerated sets
 Low level enumerated sets
 -------------------------
 
-- :mod:`sage.combinat.permutation_nk`
-- :mod:`sage.combinat.split_nk`
-- :mod:`sage.combinat.choose_nk`
-- :mod:`sage.combinat.multichoose_nk`
+- :ref:`sage.combinat.permutation_nk`
+- :ref:`sage.combinat.split_nk`
+- :ref:`sage.combinat.choose_nk`
+- :ref:`sage.combinat.multichoose_nk`
 
 Misc enumerated sets
 --------------------

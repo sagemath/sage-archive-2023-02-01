@@ -24,7 +24,7 @@ Graphs
 
 .. TODO:: point instead to the main entry point for graphs
 
-- :ref:`Graph`, :ref:`DiGraph`, :obj:`graphs`, :obj:`digraphs`
+- :class:`Graph`, :class:`DiGraph`, :obj:`graphs`, :obj:`digraphs`
 
 Dynamical systems
 -----------------

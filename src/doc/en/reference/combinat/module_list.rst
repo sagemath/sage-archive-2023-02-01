@@ -3,13 +3,13 @@ Alphabetical module list
 
 .. NOTE::
 
-   This is built automatically by running in src/sage/combinat:
+   This is built automatically by running in src/sage/combinat::
 
         for x in **/*.py*; do echo "    sage/combinat/"`echo $x | sed 's/\.py.?$//'`; done >! /tmp/module_list
 
 .. TODO::
 
-   Improve by not flattening the module hierarchical structure
+   Improve this list by not flattening the module hierarchical structure.
 
 .. toctree::
     :maxdepth: 1

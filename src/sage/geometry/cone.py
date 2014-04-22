@@ -165,11 +165,8 @@ If you need to know inclusion relations between faces, you can use ::
     the same order as generating rays.
 
 When all the functionality provided by cones is not enough, you may want to
-check if you can do necessary things using lattice polytopes and polyhedra
-corresponding to cones::
+check if you can do necessary things using polyhedra corresponding to cones::
 
-    sage: four_rays.lattice_polytope()
-    3-d lattice polytope in 3-d lattice N
     sage: four_rays.polyhedron()
     A 3-dimensional polyhedron in ZZ^3 defined as
     the convex hull of 1 vertex and 4 rays
@@ -210,8 +207,8 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix, identity_matrix
-from sage.misc.all import cached_method, flatten, latex, prod
+from sage.matrix.all import matrix
+from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
 from sage.modules.all import span, vector
 from sage.rings.all import QQ, RR, ZZ, gcd
@@ -1459,8 +1456,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
         """
         state = copy.copy(self.__dict__)
-        state.pop("_polyhedron", None) # Polyhedron is not picklable.
-        state.pop("_lattice_polytope", None) # Just to save time and space.
         state.pop("_PPL_C_Polyhedron", None) # PPL is not picklable.
 
         # TODO: do we want to keep the face lattice in the pickle?
@@ -2937,7 +2932,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._is_strictly_convex = convex
         return self._is_strictly_convex
 
-    @cached_method
     def lattice_polytope(self):
         r"""
         Return the lattice polytope associated to ``self``.
@@ -2958,6 +2952,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: lp = quadrant.lattice_polytope()
+            doctest:1: DeprecationWarning: lattice_polytope(...) is deprecated!
+            See http://trac.sagemath.org/16180 for details.            
             sage: lp
             2-d lattice polytope in 2-d lattice N
             sage: lp.vertices_pc()
@@ -2975,6 +2971,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             N(-1, 0)
             in 2-d lattice N
         """
+        deprecation(16180, "lattice_polytope(...) is deprecated!")
         return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
                                compute_vertices=not self.is_strictly_convex())
 
@@ -3115,8 +3112,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         Mathematically this polyhedron is the same as ``self``.
 
-        See also :meth:`lattice_polytope`.
-
         OUTPUT:
 
         - :class:`~sage.geometry.polyhedron.base.Polyhedron_base`.
@@ -3139,10 +3134,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             A 0-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex
         """
-        if "_polyhedron" not in self.__dict__:
-            self._polyhedron = Polyhedron(rays=self.rays(),
-                                          vertices=[self.lattice()(0)])
-        return self._polyhedron
+        return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
     def strict_quotient(self):
         r"""

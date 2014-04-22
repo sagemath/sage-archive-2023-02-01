@@ -148,8 +148,8 @@ def unrank(L, i):
 
     The purpose of this utility is to give a uniform idiom to recover
     the `i`-th element of an object ``L``, whether ``L`` is a list,
-    tuple, finite enumerated set, or some old parent of Sage still
-    implementing unranking in the method ``__getitem__``.
+    tuple, enumerated set, some old parent of Sage still implementing
+    unranking in the method ``__getitem__``, or iterable.
 
     See :trac:`15919`.
 
@@ -167,11 +167,44 @@ def unrank(L, i):
         sage: unrank(MatrixSpace(GF(3), 2, 2), 42)
         [1 0]
         [2 1]
+
+        sage: unrank(('a{}'.format(i) for i in range(20)), 0)
+        'a0'
+        sage: unrank(('a{}'.format(i) for i in range(20)), 2)
+        'a2'
+
+    TESTS::
+
+        sage: from sage.combinat.ranker import unrank
+        sage: unrank(range(3), 10)
+        Traceback (most recent call last):
+        ...
+        IndexError: list index out of range
+
+        sage: unrank(('a{}'.format(i) for i in range(20)), 22)
+        Traceback (most recent call last):
+        ...
+        IndexError: index out of range
     """
     if L in EnumeratedSets:
         return L.unrank(i)
-    elif isinstance(L, (list, tuple, xrange, Parent)):
+    if isinstance(L, (list, tuple, xrange)):
         return L[i]
-    else:
-        raise ValueError, "Don't know how to unrank on %s"%L
+
+    # Fallback using __getitem__()
+    try:
+        return L[i]
+    except Exception:
+        pass
+
+    # Last fallback seeing if an object is iterable
+    try:
+        it = iter(L)
+        for _ in range(i):
+            it.next()
+        return it.next()
+    except StopIteration as e:
+        raise IndexError("index out of range")
+    except Exception: # Make the exception uniform
+        raise ValueError("Don't know how to unrank on {}".format(L))
 

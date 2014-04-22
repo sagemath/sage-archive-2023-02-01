@@ -61,6 +61,7 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
 from sage.ext.fast_callable        import fast_callable
+from sage.misc.lazy_attribute      import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork

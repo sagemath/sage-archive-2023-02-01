@@ -884,7 +884,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
 
     def change_var(self, var):
         """
-        Returns the power series ring in variable var over the same base ring.
+        Return the power series ring in variable ``var`` over the same base ring.
 
         EXAMPLES::
 

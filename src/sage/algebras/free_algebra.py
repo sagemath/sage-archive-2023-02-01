@@ -140,6 +140,7 @@ import sage.structure.parent_gens
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 from sage.all import PolynomialRing
+from sage.rings.ring import Algebra
 from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
@@ -351,7 +352,7 @@ def is_FreeAlgebra(x):
     return isinstance(x, (FreeAlgebra_generic,FreeAlgebra_letterplace))
 
 
-class FreeAlgebra_generic(CombinatorialFreeModule):
+class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
     """
     The free algebra on `n` generators over a base ring.
 
@@ -726,7 +727,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
         """
         return self.monomial(x * y)
 
-    def quotient(self, mons, mats, names):
+    def quotient(self, mons, mats=None, names=None):
         """
         Return a quotient algebra.
 
@@ -751,6 +752,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule):
             sage: H.<i,j,k> = A.quotient(mons, mats); H
             Free algebra quotient on 3 generators ('i', 'j', 'k') and dimension 4 over Rational Field
         """
+        if mats is None:
+            return super(FreeAlgebra_generic, self).quotient(mons, names)
         import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
 

@@ -163,7 +163,7 @@ and execute the cells in this and the previous section.
 Several options can be set to customize the output, see
 :meth:`~FiniteStateMachine.latex_options` for details. In particular,
 we use :meth:`~FiniteStateMachine.format_letter_negative` to format
-`-1` as `\overline{-1}`.
+`-1` as `\overline{1}`.
 
 ::
 

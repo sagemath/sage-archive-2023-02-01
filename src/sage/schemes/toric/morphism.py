@@ -161,7 +161,7 @@ For example, consider the blow-up restricted to one of the two
 coordinate charts of $O_{\mathbb{P}^1}(2)$ ::
 
 
-    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[1]]))
+    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[0]]))
     sage: single_chart = O2_P1_chart.hom(identity_matrix(2), A2_Z2)
     sage: single_chart.is_dominant()
     True

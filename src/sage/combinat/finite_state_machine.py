@@ -2520,7 +2520,7 @@ class FiniteStateMachine(SageObject):
             sage: latex.mathjax_avoid_list('tikzpicture')
             sage: T = Transducer(initial_states=['I'],
             ....:     final_states=[0, 3])
-            sage: for j in range(4):
+            sage: for j in srange(4):
             ....:     T.add_transition('I', j, 0, [0, j])
             ....:     T.add_transition(j, 'I', 0, [0, -j])
             Transition from 'I' to 0: 0|0,0

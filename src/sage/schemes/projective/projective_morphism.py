@@ -2889,7 +2889,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: H = End(P)
             sage: f = H([x^2-y^2,y^2])
             sage: sorted(f.possible_periods(True))
-            [[(1 : 0), 1], [(11 : 1), 3], [(11 : 1), 36], [(12 : 1), 2]]
+            [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
         ::
 

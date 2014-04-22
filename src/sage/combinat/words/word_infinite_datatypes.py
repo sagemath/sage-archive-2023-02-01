@@ -533,9 +533,10 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         r"""
         Empty the associated cache of letters.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        The first 40 (by default) values are always cached.
+        The first 40 (by default) values are always cached::
+
             sage: w = words.ThueMorseWord()
             sage: w._letter_cache
             {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1, 14: 1, 15: 0, 16: 1, 17: 0, 18: 0, 19: 1, 20: 0, 21: 1, 22: 1, 23: 0, 24: 0, 25: 1, 26: 1, 27: 0, 28: 1, 29: 0, 30: 0, 31: 1, 32: 1, 33: 0, 34: 0, 35: 1, 36: 0, 37: 1, 38: 1, 39: 0}

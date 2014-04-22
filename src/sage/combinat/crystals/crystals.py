@@ -1,5 +1,6 @@
 r"""
-Crystals
+An introduction to crystals
+===========================
 
 Let `T` be a CartanType with index set `I`, and
 `W` be a realization of the type `T` weight

@@ -1,19 +1,7 @@
 Combinatorics
 =============
 
-Introductory material
----------------------
-
-- :mod:`sage.combinat`
-- :mod:`sage.combinat.tutorial`
-
-
-Thematic indexes
-----------------
-
-- :ref:`algebraic_combinatorics`
-
-.. .. include:: sage/combinat/index.rst
+.. automodule:: sage.combinat
 
 .. toctree::
    :maxdepth: 1

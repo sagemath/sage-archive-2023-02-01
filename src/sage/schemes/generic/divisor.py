@@ -381,9 +381,9 @@ class Divisor_curve(Divisor_generic):
             sage: D.support()
             [(0, 0), (2, 2)]
 
-        TESTS::
+        TESTS:
 
-        This checks that trac::`10732` is fixed::
+        This checks that :trac:`10732` is fixed::
 
             sage: R.<x, y, z> = GF(5)[]
             sage: C = Curve(x^7 + y^7 + z^7)

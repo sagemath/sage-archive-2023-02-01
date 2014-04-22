@@ -671,23 +671,33 @@ On the category hierarchy: subcategories and super categories
 -------------------------------------------------------------
 
 We have seen above that, for example, the category of groups is
-considered by Sage as a subcategory of the category of sets. For
-category purists, this is not quite correct: namely, a group is not a
-set; instead, one can recover the underlying set by forgetting the
-multiplicative structure. However, it would be impractical to have to
-explicitly forget the multiplicative structure whenever one wanted to
-apply on a group an operation defined on sets. In object oriented
-parlance, we really want the relation "a group *is a* set", so that
-groups can inherit code implemented on sets.
+considered by Sage as a subcategory of the category of sets.  Note
+that this terminology is not consistent with the mathematical meaning
+of the term *subcategory*.  The forgetful functor from the category of
+groups to the category of sets is not an inclusion of categories:
+given a group one can recover the underlying set by forgetting the
+group structure, but a set does not in general admit a unique group
+structure.
 
-Therefore, in Sage, as well as in most systems with a similar category
-framework, we use this slightly abusive definition of subcategory:
+However, it would be impractical to have to explicitly forget the
+group structure whenever one wanted to apply on a group an operation
+defined on sets.  In object-oriented parlance, we really want the
+relation "a group *is a* set", so that groups can inherit code
+implemented on sets.
 
-A category ``Ds()`` is a *subcategory* of the category ``Cs()`` if, up
-to implicitly applying the appropriate forgetful functor, every object
-of ``Ds()`` is an object of ``Cs()``. Reciprocally, ``Cs()`` is in
-this case a *super category* of ``Ds()``.
+In Sage, this relation is called the subcategory relation: a category
+``Ds()`` is called a *subcategory* of the category ``Cs()`` if Sage
+knows about a canonical functor from ``Ds()`` to ``Cs()``.  This
+functor is normally an inclusion of categories or a forgetful functor.
+Reciprocally, ``Cs()`` is in this case a *super category* of ``Ds()``.
 
+.. NOTE::
+
+    For consistency with existing mathematical terminology (see above)
+    and also for technical reasons, future versions of Sage may
+    introduce a distinction between subcategories in the above sense
+    and the usual mathematical notion of subcategories.  See
+    :trac:`16183` for more details.
 
 Categories are instances and have operations
 --------------------------------------------

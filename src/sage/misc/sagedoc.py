@@ -22,7 +22,7 @@ see :trac:`12849`::
     sage: for line in open(docfilename):
     ...       if "#sage.symbolic.expression.Expression.N" in line:
     ...           print line
-    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em><big>)</big>...
+    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -488,7 +488,7 @@ def format(s, embedded=False):
 
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
 
     # Doc strings may contain embedding information, which should not
     # be subject to formatting (line breaks must not be inserted).
@@ -587,7 +587,7 @@ def format_src(s):
         'Sq(*nums):'
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
     docs = set([])
     import sage.all
     while True:
@@ -1133,8 +1133,7 @@ def format_search_as_html(what, r, search):
         i = L.find(':')
         if i != -1:
             files.add(L[:i])
-    files = list(files)
-    files.sort()
+    files = sorted(files)
     for F in files:
         if F.endswith('.html'):
             F = F.split('/', 2)[2]
@@ -1176,7 +1175,7 @@ def my_getsource(obj, is_binary):
     try:
         s = sageinspect.sage_getsource(obj, is_binary)
         return format_src(s)
-    except Exception, msg:
+    except Exception as msg:
         print 'Error getting source:', msg
         return None
 
@@ -1351,7 +1350,7 @@ class _sage_doc:
             from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
-            raise ValueError, "output type %s not recognized" % output
+            raise ValueError("output type %s not recognized" % output)
 
     def _open(self, name, testing=False):
         """
@@ -1377,8 +1376,8 @@ class _sage_doc:
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")
         if not os.path.exists(path):
-            raise OSError, """The document '%s' does not exist.  Please build it
-with 'sage -docbuild %s html --mathjax' and try again.""" %(name, name)
+            raise OSError("""The document '%s' does not exist.  Please build it
+with 'sage -docbuild %s html --mathjax' and try again.""" %(name, name))
 
         if testing:
             return (url, path)
@@ -1454,7 +1453,13 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        python_help(module)
+        if hasattr(module, '_sage_doc_'):
+            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
+            docstr = 'Help on ' + str(module) + '\n'
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
+            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
+        else:
+            python_help(module)
     else:
         print """Welcome to Sage %s!
 

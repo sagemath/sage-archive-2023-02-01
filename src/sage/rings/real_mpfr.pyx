@@ -78,7 +78,7 @@ EXAMPLES:
 
 A difficult conversion::
 
-    sage: RR(sys.maxint)
+    sage: RR(sys.maxsize)
     9.22337203685478e18      # 64-bit
     2.14748364700000e9       # 32-bit
 
@@ -644,12 +644,10 @@ cdef class RealField_class(sage.rings.ring.Field):
             3.40000000000000
             sage: RR.coerce(2^4000)
             1.31820409343094e1204
-
             sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of type 'float'
               To:   Real Field with 53 bits of precision
-
 
         TESTS::
 
@@ -669,7 +667,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
-            return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
+            return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
         if S == AA or S is RLF:
@@ -2274,8 +2272,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             6.00000000000000
         """
         cdef RealNumber x
-        if n > sys.maxint:
-            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxint))
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxsize))
         x = self._new()
         mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2311,8 +2309,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(1.5)._rshift_(2)
             0.375000000000000
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         cdef RealNumber x = self._new()
         mpfr_div_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2995,11 +2993,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Check that the largest and smallest exponents representable by
         PARI convert correctly::
 
-            sage: a = pari(0.5) << (sys.maxint+1)/4
-            sage: RR(a) >> (sys.maxint+1)/4
+            sage: a = pari(0.5) << (sys.maxsize+1)/4
+            sage: RR(a) >> (sys.maxsize+1)/4
             0.500000000000000
-            sage: a = pari(0.5) >> (sys.maxint-3)/4
-            sage: RR(a) << (sys.maxint-3)/4
+            sage: a = pari(0.5) >> (sys.maxsize-3)/4
+            sage: RR(a) << (sys.maxsize-3)/4
             0.500000000000000
         """
         # This uses interfaces of MPFR and PARI which are documented
@@ -5000,7 +4998,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         -  ``n`` -- A positive number, rounded down to the
            nearest integer. Note that `n` should be less than
-           ```sys.maxint```.
+           ```sys.maxsize```.
 
         -  ``algorithm`` -- Set this to 1 to call mpfr directly,
            set this to 2 to use interval arithmetic and logarithms, or leave
@@ -5619,7 +5617,7 @@ cdef class RRtoRR(Map):
               From: Real Field with 10 bits of precision
               To:   Real Field with 100 bits of precision
         """
-        return RRtoRR(self._codomain, self._domain)
+        return RRtoRR(self._codomain, self.domain())
 
 cdef class ZZtoRR(Map):
     cpdef Element _call_(self, x):

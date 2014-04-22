@@ -21,7 +21,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     """
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
-
+    Note: this function only works in fixed (machine) precision, it is not
+    possible to get arbitrary precision approximations with it.
 
     INPUT:
 
@@ -807,18 +808,17 @@ def binpacking(items,maximum=1,k=None):
 
     # Boolean variable indicating whether
     # the i th element belongs to box b
-    box=p.new_variable(dim=2)
+    box=p.new_variable(binary = True)
 
     # Each bin contains at most max
     for b in range(k):
-        p.add_constraint(p.sum([items[i]*box[i][b] for i in range(len(items))]),max=maximum)
+        p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
 
     # Each item is assigned exactly one bin
     for i in range(len(items)):
-        p.add_constraint(p.sum([box[i][b] for b in range(k)]),min=1,max=1)
+        p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
 
     p.set_objective(None)
-    p.set_binary(box)
 
     try:
         p.solve()
@@ -829,8 +829,9 @@ def binpacking(items,maximum=1,k=None):
 
     boxes=[[] for i in range(k)]
 
-    for b in range(k):
-        boxes[b].extend([items[i] for i in range(len(items)) if round(box[i][b])==1])
+    for (i,b),value in box.iteritems():
+        if value == 1:
+            boxes[b].append(items[i])
 
     return boxes
 

@@ -104,6 +104,9 @@ Determinant::
     sage: M = matrix(SR, 2, 2, [cos(t), sin(t), -sin(t), cos(t)])
     sage: M.det()
     cos(t)^2 + sin(t)^2
+    sage: M = matrix([[sqrt(x),0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])
+    sage: det(M)
+    sqrt(x)
 
 Permanents::
 
@@ -170,7 +173,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         matrix.Matrix.__init__(M, self._parent)
         return M
 
-    def eigenvalues(self, solution_set=False):
+    def eigenvalues(self):
         """
         Compute the eigenvalues by solving the characteristic
         polynomial in maxima
@@ -182,12 +185,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
 
         """
-        if solution_set is not False:
-            from sage.misc.superseded import deprecation
-            deprecation(6115, "solution_set parameter is deprecated")
         maxima_evals = self._maxima_(maxima).eigenvalues()._sage_()
         if len(maxima_evals)==0:
-            raise ArithmeticError, "could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible"
+            raise ArithmeticError("could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible")
         return sum([[eval]*int(mult) for eval,mult in zip(*maxima_evals)],[])
 
     def eigenvectors_left(self):
@@ -422,18 +422,29 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: A._cache['charpoly']
             x^2 - 3*x - 2
 
+        Ensure the variable name of the polynomial does not conflict
+        with variables used within the matrix (:trac:`14403`)::
+
+            sage: Matrix(SR, [[sqrt(x), x],[1,x]]).charpoly().list()
+            [x^(3/2) - x, -x - sqrt(x), 1]
         """
         cache_key = 'charpoly'
         cp = self.fetch(cache_key)
         if cp is not None:
             return cp.change_variable_name(var)
-
         from sage.symbolic.ring import SR
+
+        # We must not use a variable name already present in the matrix
+        vname = 'do_not_use_this_name_in_a_matrix_youll_compute_a_charpoly_of'
+        vsym = SR(vname)
+
+        cp = self._maxima_(maxima).charpoly(vname)._sage_().expand()
+        cp = [cp.coefficient(vsym, i) for i in range(self.nrows() + 1)]
+        cp = SR[var](cp)
+
         # Maxima has the definition det(matrix-xI) instead of
         # det(xI-matrix), which is what Sage uses elsewhere.  We
         # correct for the discrepancy.
-        cp = self._maxima_(maxima).charpoly(var)._sage_()
-        cp = cp.expand().polynomial(None, ring=SR[var])
         if self.nrows() % 2 == 1:
             cp = -cp
 
@@ -470,35 +481,6 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         from sage.symbolic.ring import SR
         sub_dict = {var: SR.var(var)}
         return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
-
-    def is_simplified(self):
-        """
-        Return True if self is the result of running simplify() on a symbolic
-        matrix.  This has the semantics of 'has_been_simplified'.
-
-        EXAMPLES::
-
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
-            [      z       1]
-            [    x^2 y^2 + 2]
-            sage: m.is_simplified()
-            doctest:...: DeprecationWarning: is_simplified is deprecated
-            See http://trac.sagemath.org/6115 for details.
-            False
-            sage: ms = m.simplify(); ms
-            [      z       1]
-            [    x^2 y^2 + 2]
-
-            sage: m.is_simplified()
-            False
-            sage: ms.is_simplified()
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6115, "is_simplified is deprecated")
-        return False
 
     def simplify(self):
         """

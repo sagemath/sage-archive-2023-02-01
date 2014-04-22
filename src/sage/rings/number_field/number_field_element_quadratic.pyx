@@ -2051,19 +2051,53 @@ cdef class Z_to_quadratic_field_element(Morphism):
             sage: phi = K.coerce_map_from(ZZ) # indirect doctest
             sage: type(phi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
-            sage: phi == loads(dumps(phi)) # not implemented
+            sage: phi == loads(dumps(phi)) # todo: comparison not implemented
             True
 
             sage: R.<b> = CyclotomicField(6)
             sage: psi = R.coerce_map_from(ZZ) # indirect doctest
             sage: type(psi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
-            sage: psi == loads(dumps(psi)) # not implemented
+            sage: psi == loads(dumps(psi)) # todo: comparison not implemented
             True
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(ZZ, K))
         self.zero_element = K.zero_element()
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
+            sage: phi(4)
+            4
+            sage: phi(5).parent() is K
+            True
+
+        """
+        _slots['zero_element'] = self.zero_element
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
+            sage: phi(4)
+            4
+            sage: phi(5).parent() is K
+            True
+
+        """
+        Morphism._update_slots(self, _slots)
+        self.zero_element = _slots['zero_element']
 
     cpdef Element _call_(self, x):
         r"""
@@ -2101,17 +2135,21 @@ cdef class Z_to_quadratic_field_element(Morphism):
         r"""
         Return a short name for this morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(ZZ)
-            sage: repr(phi) # indirect doctest
-            'Natural morphism:\n  From: Integer Ring\n  To:   Number Field in a with defining polynomial x^2 - 3'
+            sage: phi # indirect doctest
+            Natural morphism:
+              From: Integer Ring
+              To:   Number Field in a with defining polynomial x^2 - 3
 
             sage: R.<b> = CyclotomicField(6)
             sage: psi = R.coerce_map_from(ZZ)
-            sage: repr(psi) # indirect doctest
-            'Natural morphism:\n  From: Integer Ring\n  To:   Cyclotomic Field of order 6 and degree 2'
+            sage: psi # indirect doctest
+            Natural morphism:
+              From: Integer Ring
+              To:   Cyclotomic Field of order 6 and degree 2
         """
         return "Natural"
 
@@ -2134,19 +2172,59 @@ cdef class Q_to_quadratic_field_element(Morphism):
             sage: phi = K.coerce_map_from(QQ) # indirect doctest
             sage: type(phi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
-            sage: phi == loads(dumps(phi)) # not implemented
+            sage: phi == loads(dumps(phi))  # todo: comparison not implemented
             True
 
             sage: R.<b> = CyclotomicField(6)
             sage: psi = R.coerce_map_from(QQ)
             sage: type(psi)
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
-            sage: psi == loads(dumps(psi)) # not implemented
+            sage: psi == loads(dumps(psi))  # todo: comparison not implemented
             True
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(QQ, K))
         self.zero_element = K.zero_element()
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3) ## line 8983 ##
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: f(3/1)
+            3
+            sage: f(1/2).parent() is K
+            True
+
+        """
+        _slots['zero_element'] = self.zero_element
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3) ## line 8983 ##
+            sage: f = K.coerce_map_from(QQ); f # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: f(3/1)
+            3
+            sage: f(1/2).parent() is K
+            True
+
+        """
+        Morphism._update_slots(self, _slots)
+        self.zero_element = _slots['zero_element']
 
     cpdef Element _call_(self, x):
         r"""
@@ -2177,16 +2255,20 @@ cdef class Q_to_quadratic_field_element(Morphism):
         r"""
         Return a short name for this morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(QQ)
-            sage: repr(phi) # indirect doctest
-            'Natural morphism:\n  From: Rational Field\n  To:   Number Field in a with defining polynomial x^2 - 3'
+            sage: phi # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 - 3
 
             sage: R.<b> = CyclotomicField(6)
             sage: psi = R.coerce_map_from(QQ)
-            sage: repr(psi) # indirect doctest
-            'Natural morphism:\n  From: Rational Field\n  To:   Cyclotomic Field of order 6 and degree 2'
+            sage: psi # indirect doctest
+            Natural morphism:
+              From: Rational Field
+              To:   Cyclotomic Field of order 6 and degree 2
         """
         return "Natural"

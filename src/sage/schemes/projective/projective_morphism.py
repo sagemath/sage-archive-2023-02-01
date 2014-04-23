@@ -58,6 +58,7 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
+from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 
 
@@ -1754,7 +1755,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         primebound = kwds.pop("prime_bound", [1, 20])
         badprimes = kwds.pop("bad_primes", None)
-        from sage.parallel.ncpus import ncpus
         num_cpus = kwds.pop("ncpus", ncpus())
 
         if (isinstance(primebound, (list, tuple)) == False):

@@ -756,7 +756,7 @@ cdef class randstate:
 
 
          if prev is not self:
-             if self._gp_saved_seeds is not None and self._gp_saved_seeds.has_key(gp):
+             if self._gp_saved_seeds is not None and gp in self._gp_saved_seeds:
 
                  seed = self._gp_saved_seeds[gp]
              else:

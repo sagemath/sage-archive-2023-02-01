@@ -142,7 +142,7 @@ def subgraphs_to_query(subgraphs, db):
         for i in range(len(subgraphs))[2:]:
             q.union(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),in_place=True)
     else:
-        raise KeyError, 'Unable to initiate query:  Illegal input format for induced_subgraphs.'
+        raise KeyError('Unable to initiate query:  Illegal input format for induced_subgraphs.')
     return q
 
 # tables     columns                    input data type     sqlite data type
@@ -395,7 +395,7 @@ class GraphQuery(GenericGraphQuery):
             for key in kwds:
                 # check validity
                 if not key in valid_kwds:
-                    raise KeyError, '%s is not a valid key for this database.'%str(key)
+                    raise KeyError('%s is not a valid key for this database.'%str(key))
 
                 # designate a query_dict
                 qdict = {'display_cols': None}  # reserve display cols until end

@@ -44,16 +44,30 @@ class OrderedSetPartition(ClonableArray):
     """
     An ordered partition of a set.
 
-    An ordered set partition `p` of a set `s` is a partition of `s` into
-    subsets called parts and represented as a list of sets. By
+    An ordered set partition `p` of a set `s` is a list of pairwise
+    disjoint nonempty subsets of `s` such that the union of these
+    subsets is `s`. These subsets are called the parts of the partition.
+    We represent an ordered set partition as a list of sets. By
     extension, an ordered set partition of a nonnegative integer `n` is
-    the set partition of the integers from 1 to `n`. The number of
+    the set partition of the integers from `1` to `n`. The number of
     ordered set partitions of `n` is called the `n`-th ordered Bell
     number.
 
     There is a natural integer composition associated with an ordered
     set partition, that is the sequence of sizes of all its parts in
     order.
+
+    The number `T_n` of ordered set partitions of
+    `\{ 1, 2, ..., n \}` is the so-called `n`-th *Fubini number* (also
+    known as the `n`-th ordered Bell number; see
+    :wikipedia:`Ordered Bell number`). Its exponential generating
+    function is
+    
+    .. MATH::
+    
+        \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
+
+    (See sequence A000670 in OEIS.)
 
     EXAMPLES:
 
@@ -106,6 +120,10 @@ class OrderedSetPartition(ClonableArray):
         [{1, 3}, {2, 4}]
         sage: s.parent()
         Ordered set partitions of {1, 2, 3, 4}
+
+    REFERENCES:
+
+    :wikipedia:`Ordered_partition_of_a_set`
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -412,9 +430,9 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
         """
         Return the cardinality of ``self``.
 
-        The number of ordered partitions of a set of length `k` into `n` parts
-        is equal to `n! S(n,k)` where `S(n,k)` denotes the Stirling number
-        of the second kind.
+        The number of ordered partitions of a set of size `n` into `k`
+        parts is equal to `k! S(n,k)` where `S(n,k)` denotes the Stirling
+        number of the second kind.
 
         EXAMPLES::
 

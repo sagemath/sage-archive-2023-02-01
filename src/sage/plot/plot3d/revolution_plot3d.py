@@ -113,7 +113,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
 
 
     if parallel_axis not in ['x','y','z']:
-        raise ValueError, "parallel_axis must be either 'x', 'y', or 'z'."
+        raise ValueError("parallel_axis must be either 'x', 'y', or 'z'.")
 
     vart=trange[0]
 

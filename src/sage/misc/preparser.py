@@ -448,7 +448,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
         start -= 1
         if start == -1:
             if require_delim:
-                raise SyntaxError, "Unbalanced or missing ()'s"
+                raise SyntaxError("Unbalanced or missing ()'s")
             else:
                 break
         if code[start] in openings:
@@ -466,7 +466,7 @@ def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
     while end < len(code):
         end += 1
         if end == len(code):
-            raise SyntaxError, "Unbalanced or missing ()'s"
+            raise SyntaxError("Unbalanced or missing ()'s")
         if code[end] == openings[p]:
             level += 1
         elif code[end] == closings[p]:
@@ -503,7 +503,7 @@ def parse_ellipsis(code, preparse_step=True):
     ix = code.find('..')
     while ix != -1:
         if ix == 0:
-            raise SyntaxError, "Cannot start line with ellipsis."
+            raise SyntaxError("Cannot start line with ellipsis.")
         elif code[ix-1]=='.':
             # '...' be valid Python in index slices
             code = code[:ix-1] + "Ellipsis" + code[ix+2:]
@@ -1343,7 +1343,7 @@ class BackslashOperator:
     """
     Implements Matlab-style backslash operator for solving systems::
 
-        A / b
+        A \\ b
 
     EXAMPLES::
 
@@ -1431,7 +1431,7 @@ def load_cython(name):
     cur = os.path.abspath(os.curdir)
     try:
         mod, dir  = cython.cython(name, compile_message=True, use_cache=True)
-    except (IOError, OSError, RuntimeError), msg:
+    except (IOError, OSError, RuntimeError) as msg:
         print "Error compiling cython file:\n%s"%msg
         return ''
     import sys
@@ -1650,6 +1650,7 @@ def load(filename, globals, attach=False):
 
         sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
         hi from the net
+        5
 
     We can load files using secure http (https)::
 

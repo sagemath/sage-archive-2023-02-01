@@ -555,7 +555,7 @@ cdef int double_coset(void *S1, void *S2, PartitionStack *partition1, int *order
                     if bitset_check(vertices_to_split[current_ps.depth], i):
                         minimal_in_primary_orbit = i
                         break
-            while 1:
+            while True:
                 i = vertices_determining_current_stack[current_ps.depth]
                 # This was the last point to be split here.
                 # If it is in the same orbit as minimal_in_primary_orbit,
@@ -597,9 +597,9 @@ cdef int double_coset(void *S1, void *S2, PartitionStack *partition1, int *order
         # II. Refine down to a discrete partition, or until
         # we leave the part of the tree we are interested in
         discrete = 0
-        while 1:
+        while True:
             i = current_ps.depth
-            while 1:
+            while True:
                 if input_group is not NULL:
                     k = split_point_and_refine_by_orbits(current_ps,
                         vertices_determining_current_stack[i], S2,

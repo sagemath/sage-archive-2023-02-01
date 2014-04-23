@@ -266,7 +266,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                        for base_ring in set([ZZ, self.base_ring()])
                        for extended  in set([self.cartan_type().is_affine(), self.is_extended()])]
             for domain in domains:
-                tester.assert_(self.coerce_map_from(domain) is not None)
+                tester.assert_(self._internal_coerce_map_from(domain) is not None)
                 for i in self.index_set():
                     # This embedding maps fundamental weights to fundamental weights
                     tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
@@ -752,7 +752,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             simple_reflections = W.simple_reflections()
             alphacheck = lattice_classical.alphacheck()
             rho = lattice_classical.rho()
-            word = W.unit()
+            word = W.one()
             signs = []
             for s in walk:
                 if ((alphacheck[s]).scalar((word).action(rho)) > 0):

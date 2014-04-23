@@ -247,7 +247,7 @@ class SymmetricIdeal( Ideal_generic ):
         """
         try:
             return self.reduce(p) == 0
-        except StandardError:
+        except Exception:
             return False
 
     def __mul__ (self, other):
@@ -920,7 +920,7 @@ class SymmetricIdeal( Ideal_generic ):
             algorithm=''
         PARENT = self.ring()
         if not (hasattr(PARENT.base_ring(),'is_field') and PARENT.base_ring().is_field()):
-            raise TypeError, "The base ring (= %s) must be a field"%PARENT.base_ring()
+            raise TypeError("The base ring (= %s) must be a field"%PARENT.base_ring())
         OUT = self.symmetrisation(tailreduce=tailreduce,report=report,use_full_group=use_full_group)
         if not (report is None):
             print "Symmetrisation done"
@@ -953,7 +953,7 @@ class SymmetricIdeal( Ideal_generic ):
 
             try: # working around one libsingular bug and one libsingular oddity
                 DenseIdeal = [CommonR(P._p) if ((CommonR is P._p.parent()) or CommonR.ngens()!=P._p.parent().ngens()) else CommonR(repr(P._p))  for P in OUT.gens()]*CommonR
-            except StandardError:
+            except Exception:
                 if report != None:
                     print "working around a libsingular bug"
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR

@@ -131,14 +131,14 @@ class CombinatorialMap(object):
         """
         import types
         if not isinstance(f, types.FunctionType):
-            raise ValueError, "Only plain functions are supported"
+            raise ValueError("Only plain functions are supported")
         self._f = f
         self._order = order
         self._name = name
-        if hasattr(f, "func_doc"):
-            self.__doc__ = f.func_doc
-        if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        if hasattr(f, "__doc__"):
+            self.__doc__ = f.__doc__
+        if hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         else:
             self.__name__ = "..."
         if hasattr(f, "__module__"):

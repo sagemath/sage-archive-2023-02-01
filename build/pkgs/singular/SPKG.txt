@@ -30,42 +30,22 @@ GNU patch, GMP/MPIR, NTL, Termcap, Readline and MPFR
 See spkg-src.
 
 == Patches ==
+ * NTL6_compatibility.patch  taken from commit
+   ddb348e97a991972e5dfee690a66663ba0418f40
+   and further updated.
+ * factory_template_instantiation.patch taken from commit
+   561842a06ad4b44f3b85b28ac35e7946eaba9a30
  * assert.patch: logic seems to be broken on some platforms
- * install_table.patch: install singular/table.h header file, needed
-   for the libsing GAP package.
+ * configure_comma.patch: remove a superfluous "," from configure.
  * Minor.h.patch: needs to have <time.h> included on Cygwin
- * NTL_negate.patch: change negate() to NTL::negate() to fix a conflict
-   with std::negate(). See
-   http://www.singular.uni-kl.de:8002/trac/ticket/437
- * singular_trac_439.patch: fix taken from upstream for
-   http://www.singular.uni-kl.de:8002/trac/ticket/439
- * singular_trac_440.patch: fix taken from upstream for
-   http://www.singular.uni-kl.de:8002/trac/ticket/440
- * singular_trac_441.patch: fix taken from upstream for
-   http://www.singular.uni-kl.de:8002/trac/ticket/441
- * singular_trac_443.patch: fix taken from upstream for
-   http://www.singular.uni-kl.de:8002/trac/ticket/443
- * sage_trac_12089.patch: fix (also reported upstream) from
-   https://github.com/alexanderdreyer/SingularSources/commit/7902222
  * slibdir.patch: set default slibdir to ${datarootdir}/singular
    instead of ${prefix}/LIB, see #13344.
- * singular_15435.patch: Backport of
-   http://www.singular.uni-kl.de:8002/trac/changeset/15435
-   See also http://www.singular.uni-kl.de:8002/trac/ticket/463
-   and http://trac.sagemath.org/sage_trac/ticket/13731.
- * singular_part_of_changeset_baadc0f7.patch: Backport a small part
-   of https://github.com/Singular/Sources/commit/9ece45a2420dc43ff03a48c40423a3009c235fdd
-   that fixes one memory corruption (writing out of bound).
- * cygwin-makefile.patch: simple fix for Cygwin, see
-   http://www.singular.uni-kl.de:8002/trac/ticket/476/
  * sage_trac_14295.patch: Fix for GCC 4.7.x on Solaris; see
    http://trac.sagemath.org/sage_trac/ticket/14295 and the changelog
    entry for singular-3-1-5.p5 below.
  * osx_link.patch: #14415: Fixes linker problems on OS X PPC.
  * sanitize_gmp_header_hack.patch:
    Fix and simplify generation of `factory/cf_gmp.h` (cf. #14737).
- * pullrequest215.patch: Backport of first 3 patches from
-   https://github.com/Singular/Sources/pull/215
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -92,6 +72,25 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-6.p1 (Jean-Pierre Flori, 31 December 2013) ===
+ * #14876: update patch for NTL compatibility.
+
+=== singular-3-1-6.p0 (Jeroen Demeyer, 26 August 2013) ===
+ * Remove the following patches, which were fixed upstream:
+   - NTL_negate.patch
+   - install_table.patch
+   - pullrequest215.patch
+   - sage_trac_12089.patch
+   - singular_15435.patch
+   - singular_part_of_changeset_baadc0f7.patch
+   - singular_trac_439.patch
+   - singular_trac_440.patch
+   - singular_trac_441.patch
+   - singular_trac_443.patch
+ * Removed cygwin-makefile.patch, which is hopefully not needed anymore.
+ * Rebased some other patches.
+ * Add configure_comma.patch.
 
 === singular-3-1-5.p9 (Paul Zimmermann, Jeroen Demeyer, 26 August 2013) ===
  * #13770: Add upstream pull request 215 for multivariate factorisation.

@@ -22,9 +22,9 @@ from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRin
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # Univariate Polynomial Rings
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, MPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen, polygens, is_PolynomialRing
-from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial
 
 # Multivariate Polynomial Rings
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing

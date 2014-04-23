@@ -236,7 +236,7 @@ def ChainComplex(data=None, **kwds):
     degree = kwds.get('degree_of_differential', kwds.get('degree', 1))
     try:
         degree = grading_group(degree)
-    except StandardError:
+    except Exception:
         raise ValueError('degree is not an element of the grading group')
 
     # transform data into data_dict
@@ -1018,7 +1018,7 @@ class ChainComplex_class(Parent):
             return 0
         return -1
 
-    def _homology_chomp(deg, base_ring, verbose, generators):
+    def _homology_chomp(self, deg, base_ring, verbose, generators):
         """
         Helper function for :meth:`homology`.
 
@@ -1026,15 +1026,16 @@ class ChainComplex_class(Parent):
 
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(2))
             sage: C._homology_chomp(None, GF(2), False, False)   # optional - CHomP
-        
+            {0: Vector space of dimension 2 over Finite Field of size 2, 1: Vector space of dimension 1 over Finite Field of size 2}
         """
+        from sage.interfaces.chomp import homchain
         H = homchain(self, base_ring=base_ring, verbose=verbose, generators=generators)
         if H is None:
             raise RuntimeError('ran CHomP, but no output')
         if deg is None:
             return H
         try:
-            return H[d]
+            return H[deg]
         except KeyError:
             return HomologyGroup(0, base_ring)
 
@@ -1503,6 +1504,9 @@ class ChainComplex_class(Parent):
             diffs = self.differential()
         else:
             diffs = self._flip_().differential()
+
+        if len(diffs) == 0:
+            diffs = {0: matrix(ZZ, 0,0)}
 
         maxdim = max(diffs)
         mindim = min(diffs)

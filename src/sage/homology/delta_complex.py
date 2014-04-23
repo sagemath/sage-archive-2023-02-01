@@ -307,7 +307,7 @@ class DeltaComplex(GenericCellComplex):
                         new_data[dim] = []
                     for x in data:
                         if not isinstance(x, Simplex):
-                            raise TypeError, "Each key in the data dictionary must be a simplex."
+                            raise TypeError("Each key in the data dictionary must be a simplex.")
                         old_data_by_dim[x.dimension()].append(x)
                     old_delayed = {}
                     for dim in range(dimension, -1, -1):
@@ -337,7 +337,7 @@ class DeltaComplex(GenericCellComplex):
                                     current[bdry] = store_bdry(bdry, bdry.faces())
                                     new_data[dim].append(current[bdry])
                                 else:
-                                    raise ValueError, "In the data dictionary, there is a value which is a simplex not already in the dictionary.  This is not allowed."
+                                    raise ValueError("In the data dictionary, there is a value which is a simplex not already in the dictionary.  This is not allowed.")
                             elif isinstance(bdry, (list, tuple)):
                                 # case 2
                                 # boundary is a list or tuple
@@ -353,7 +353,7 @@ class DeltaComplex(GenericCellComplex):
                         if dim > 0:
                             old_data_by_dim[dim-1].extend(old_delayed.keys())
             else:
-                raise ValueError, "data is not a list, tuple, or dictionary"
+                raise ValueError("data is not a list, tuple, or dictionary")
         for n in new_data:
             new_data[n] = tuple(new_data[n])
         # at this point, new_data is a dictionary indexed by
@@ -368,7 +368,7 @@ class DeltaComplex(GenericCellComplex):
                         if not all(faces[s[j]][i] == faces[s[i]][j-1] for i in range(j)):
                             msg = "Simplicial identity d_i d_j = d_{j-1} d_i fails"
                             msg += " for j=%s, in dimension %s"%(j,d)
-                            raise ValueError, msg
+                            raise ValueError(msg)
         # self._cells_dict: dictionary indexed by dimension d: for
         # each d, have list or tuple of simplices, and for each
         # simplex, have list or tuple with its boundary (as the index
@@ -441,8 +441,7 @@ class DeltaComplex(GenericCellComplex):
         for d in range(max_dim, -1, -1):
             # cells_to_add is the set of indices of d-cells in self to
             # add to new_dict.
-            cells_to_add = list(cells_to_add)
-            cells_to_add.sort()
+            cells_to_add = sorted(cells_to_add)
             # we add only these cells, so we need to translate their
             # indices from, for example, (0, 1, 4, 5) to (0, 1, 2, 3).
             # That is, when they appear as boundaries of (d+1)-cells,
@@ -528,7 +527,7 @@ class DeltaComplex(GenericCellComplex):
                     cells[d] = [None]*l   # get rid of all cells
                 return cells
             else:
-                raise ValueError, "This is not a subcomplex of self."
+                raise ValueError("This is not a subcomplex of self.")
         else:
             subcomplex_cells = subcomplex._is_subcomplex_of[self]
             for d in range(0, max(subcomplex_cells.keys())+1):
@@ -588,7 +587,7 @@ class DeltaComplex(GenericCellComplex):
             Z
             sage: circle.cohomology(dim=1)
             Z
-            sage: T = T = delta_complexes.Torus()
+            sage: T = delta_complexes.Torus()
             sage: T.chain_complex(subcomplex=T)
             Trivial chain complex over Integer Ring
             sage: T.homology(subcomplex=T)
@@ -843,7 +842,7 @@ class DeltaComplex(GenericCellComplex):
             {0: 0, 1: 0, 2: 0, 3: Z}
         """
         if n<0:
-            raise ValueError, "n must be non-negative."
+            raise ValueError("n must be non-negative.")
         if n==0:
             return self
         if n==1:
@@ -1078,7 +1077,7 @@ class DeltaComplex(GenericCellComplex):
             Z x Z x C2
         """
         if not self.dimension() == other.dimension():
-            raise ValueError, "Complexes are not of the same dimension."
+            raise ValueError("Complexes are not of the same dimension.")
         dim = self.dimension()
         # Look at the last simplex in the list of top-dimensional
         # simplices for each complex.  If there are identifications on
@@ -1412,7 +1411,7 @@ class DeltaComplex(GenericCellComplex):
             ...
             NotImplementedError: Barycentric subdivisions are not implemented for Delta complexes.
         """
-        raise NotImplementedError, "Barycentric subdivisions are not implemented for Delta complexes."
+        raise NotImplementedError("Barycentric subdivisions are not implemented for Delta complexes.")
 
     # the second barycentric subdivision is a simplicial complex.  implement this somehow?
 #     def simplicial_complex(self):

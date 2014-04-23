@@ -6120,7 +6120,9 @@ class GenericGraph(GenericGraph_pyx):
                 `1`
 
               - If set to ``True``, the weights are taken into account, and the
-                circuit returned is the one minimizing the sum of the weights.
+                circuit returned is the one minimizing the sum of the weights
+                (and edge with no label will be automatically be assigned a
+                weight `1`).
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -6313,10 +6315,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.allow_loops(False)
             sage: G.is_hamiltonian()
             True
+
+        Check that weight 0 edges are handled correctly (see :trac:`16214`)::
+
+            sage: G = Graph([(0,1,1),(0,2,0),(0,3,1),(1,2,1),(1,3,0),(2,3,1)])
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            sage: sum(tsp.edge_labels())
+            2
         """
         from sage.categories.sets_cat import EmptySetError
 
-        weight = lambda l : l if (l is not None and l) else 1
+        weight = lambda l : 1 if l is None else l
 
         ########################
         # 0 or 1 vertex graphs #

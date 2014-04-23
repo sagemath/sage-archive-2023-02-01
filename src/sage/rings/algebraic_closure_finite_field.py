@@ -38,11 +38,6 @@ representations, one for each `n` such that `x` is in `\Bold{F}_n`.
     implementations may be added by creating appropriate subclasses of
     :class:`AlgebraicClosureFiniteField_generic`.
 
-TEST::
-
-    sage: F = GF(5).algebraic_closure()
-    sage: TestSuite(F).run()
-
 AUTHORS:
 
 - Peter Bruin (August 2013): initial version
@@ -50,6 +45,8 @@ AUTHORS:
 - Vincent Delecroix (November 2013): additional methods
 
 """
+
+from sage.misc.abstract_method import abstract_method
 
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -61,7 +58,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
     """
     Element of an algebraic closure of a finite field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: F = GF(3).algebraic_closure()
         sage: F.gen(2)
@@ -105,7 +102,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F._repr_()
@@ -118,7 +115,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Compare ``self`` with ``right``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2) == F.gen(3)
@@ -132,7 +129,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return ``self`` + ``right``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2) + F.gen(3)
@@ -147,7 +144,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return ``self`` - ``right``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2) - F.gen(3)
@@ -162,7 +159,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return ``self`` * ``right``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2) * F.gen(3)
@@ -177,7 +174,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return ``self`` / ``right``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2) / F.gen(3)
@@ -193,7 +190,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         Return a representation of ``self`` as an element of the
         subfield of degree `n` of the parent, if possible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: z = F.gen(4)
@@ -251,7 +248,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         Return the minimal polynomial of ``self`` over the prime
         field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(11).algebraic_closure()
             sage: F.gen(3).minpoly()
@@ -268,7 +265,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
 
         This always returns ``True``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2).is_square()
@@ -281,7 +278,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return a square root of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.gen(2).sqrt()
@@ -301,7 +298,7 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         """
         Return an `n`-th root of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(5).algebraic_closure()
             sage: t = F.gen(2) + 1
@@ -474,6 +471,9 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Used for pickling.
 
+        See https://docs.python.org/2/library/pickle.html for how to use this
+        method.
+
         TEST::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
@@ -488,6 +488,9 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Used for pickling.
 
+        See https://docs.python.org/2/library/pickle.html for how to use this
+        method.
+
         TEST::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
@@ -500,6 +503,10 @@ class AlgebraicClosureFiniteField_generic(Field):
     def __reduce__(self):
         """
         Used for pickling.
+
+        This method should not be changed in derived classes as it uses the
+        factory :class:`AlgebraicClosureFiniteFieldFactory`. In order to
+        personalize your pickling look instead at the method ``__setstate__``.
 
         TEST::
 
@@ -576,7 +583,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Return the characteristic of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: p = next_prime(1000)
@@ -610,7 +617,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         Return ``True`` if elements of ``other`` can be coerced into
         ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(7).algebraic_closure()
             sage: F.has_coerce_map_from(Integers())
@@ -628,7 +635,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: F = AlgebraicClosureFiniteField(GF(5), 'z')
@@ -659,6 +666,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         my = self.inclusion(y._level, n)
         return mx(x._value), my(y._value)
 
+    @abstract_method
     def _get_polynomial(self, n):
         """
         Return the polynomial defining the unique subfield of degree
@@ -666,18 +674,17 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         This must be implemented by subclasses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
             sage: F = AlgebraicClosureFiniteField_generic(GF(5), 'z')
             sage: F._get_polynomial(1)
             Traceback (most recent call last):
             ...
-            NotImplementedError
-
+            NotImplementedError: <abstract method _get_polynomial at ...>
         """
-        raise NotImplementedError
 
+    @abstract_method
     def _get_im_gen(self, m, n):
         """
         Return the image of ``self.gen(m)`` under the canonical
@@ -685,23 +692,22 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         This must be implemented by subclasses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
             sage: F = AlgebraicClosureFiniteField_generic(GF(5), 'z')
             sage: F._get_im_gen(2, 4)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: <abstract method _get_im_gen at ...>
 
         """
-        raise NotImplementedError
 
     def _subfield(self, n):
         """
         Return the unique subfield of degree `n` of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F._subfield(4)
@@ -722,7 +728,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         Return the unique subfield of degree `n` of ``self``
         together with its canonical embedding into ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.subfield(1)
@@ -747,7 +753,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         Return the canonical inclusion map from the subfield
         of degree `m` to the subfield of degree `n`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3).algebraic_closure()
             sage: F.inclusion(1, 2)
@@ -773,7 +779,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         Return the number of generators of ``self``, which is
         infinity.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: AlgebraicClosureFiniteField(GF(5), 'z').ngens()
@@ -787,7 +793,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Return the `n`-th generator of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: F = AlgebraicClosureFiniteField(GF(5), 'z')
@@ -807,7 +813,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         - a :class:`~sage.sets.family.Family`, indexed by the positive
           integers, whose `n`-th element is ``self.gen(n)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: F = AlgebraicClosureFiniteField(GF(5), 'z')
@@ -827,7 +833,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Return the first `n` generators of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: F = AlgebraicClosureFiniteField(GF(5), 'z')
@@ -843,7 +849,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         This always returns ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
             sage: F = AlgebraicClosureFiniteField(GF(5), 'z')
@@ -865,27 +871,45 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         return self.gen(2)
 
+    def some_elements(self):
+        r"""
+        Return some elements in that finite field.
+
+        EXAMPLES::
+
+            sage: F = GF(7).algebraic_closure()
+            sage: F.some_elements()
+            (1, z2, z3 + 1)
+
+        """
+        return (self(1), self.gen(2), 1+self.gen(3))
+
 
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic):
     """
     Algebraic closure of a finite field, constructed using
     pseudo-Conway polynomials.
 
-    EXAMPLE::
+    EXAMPLES::
 
-        sage: F = GF(5).algebraic_closure()
-        sage: type(F)
-        <class 'sage.rings.algebraic_closure_finite_field.AlgebraicClosureFiniteField_pseudo_conway_with_category'>
-
+        sage: F = GF(5).algebraic_closure(implementation='pseudo_conway')
+        sage: F.cardinality()
+        +Infinity
+        sage: F.algebraic_closure() is F
+        True
+        sage: x = F(3).nth_root(12); x
+        z4^3 + z4^2 + 4*z4
+        sage: x**12
+        3
     """
     def __init__(self, base_ring, name, category=None):
         """
         TEST::
 
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_pseudo_conway
-            sage: F = AlgebraicClosureFiniteField_pseudo_conway(GF(3), 'z')
-            sage: F
-            Algebraic closure of Finite Field of size 3
+            sage: F = GF(5).algebraic_closure(implementation='pseudo_conway')
+            sage: print F.__class__.__name__
+            AlgebraicClosureFiniteField_pseudo_conway_with_category
+            sage: TestSuite(F).run()
 
         """
         if not (is_FiniteField(base_ring) and base_ring.is_prime_field()):
@@ -945,7 +969,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         Return the defining polynomial of the unique subfield of
         degree `n` of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_pseudo_conway
             sage: F = AlgebraicClosureFiniteField_pseudo_conway(GF(5), 'z')
@@ -960,7 +984,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         Return the image of ``self.gen(m)`` under the canonical
         inclusion into ``self.subfield(n)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_pseudo_conway
             sage: F = AlgebraicClosureFiniteField_pseudo_conway(GF(5), 'z')
@@ -976,7 +1000,7 @@ class AlgebraicClosureFiniteFieldFactory(UniqueFactory):
     """
     Factory for constructing algebraic closures of finite fields.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
         sage: F = GF(2).algebraic_closure()

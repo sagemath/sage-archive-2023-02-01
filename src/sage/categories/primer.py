@@ -672,13 +672,13 @@ On the category hierarchy: subcategories and super categories
 
 We have seen above that, for example, the category of sets is a super
 category of the category of groups. This models the fact that a group
-can be unambiguously considered as a set by implicitly forgetting its
-multiplicative structure. In object-oriented parlance, we want the
-relation "a group *is a* set", so that groups can directly inherit
-code implemented on sets.
+can be unambiguously considered as a set by forgetting its group
+operation. In object-oriented parlance, we want the relation "a group
+*is a* set", so that groups can directly inherit code implemented on
+sets.
 
 Formally, a category ``Cs()`` is a *super category* of a category
-``Ds()`` if Sage considers any object of ``Ds()`` as an object of
+``Ds()`` if Sage considers any object of ``Ds()`` to be an object of
 ``Cs()``, up to an implicit application of a canonical functor from
 ``Ds()`` to ``Cs()``. This functor is normally an inclusion of
 categories or a forgetful functor. Reciprocally, ``Ds()`` is said to
@@ -689,9 +689,9 @@ be a *subcategory* of ``Cs()``.
     This terminology deviates from the usual mathematical definition
     of *subcategory* and is subject to change. Indeed, the forgetful
     functor from the category of groups to the category of sets is not
-    an inclusion of categories, as it's not injective: a given set may
-    admit more than one group structure. See :trac:`16183` for more
-    details.
+    an inclusion of categories, as it is not injective: a given set
+    may admit more than one group structure. See :trac:`16183` for
+    more details.
 
 Categories are instances and have operations
 --------------------------------------------

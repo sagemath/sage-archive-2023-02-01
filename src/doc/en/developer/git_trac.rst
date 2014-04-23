@@ -295,7 +295,7 @@ following as the first line::
     Authors: Your Real Name
 
 
-.. _section-git_trac-add-pull:
+.. _section-git_trac-pull:
 
 Downloading Changes from Trac
 =============================

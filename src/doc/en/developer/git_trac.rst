@@ -540,7 +540,7 @@ The ``git trac`` command gives you two commands that might be handy
 (replace ``12345`` with the actual ticket number) if you do not want
 to use the web interface:
 
-* ``git trac get 12345`` displays the trac ticket directly in your
+* ``git trac print 12345`` displays the trac ticket directly in your
   terminal.
 
 * ``git trac review 12345`` downloads the branch from the ticket and

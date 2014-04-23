@@ -6252,15 +6252,21 @@ class GenericGraph(GenericGraph_pyx):
         Simple tests for multiple edges and loops::
 
             sage: G = DiGraph(multiedges=True, loops=True)
+            sage: G.is_hamiltonian()
+            Traceback (most recent call last):
+            ...
+            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
             sage: G.add_vertex(0)
             sage: G.is_hamiltonian()
-            False
+            Traceback (most recent call last):
+            ...
+            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
             sage: G.add_edge(0,0,1)
             sage: G.add_edge(0,0,2)
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
             Traceback (most recent call last):
             ...
-            EmptySetError: The given graph is not hamiltonian
+            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
             sage: G.add_vertex(1)
             sage: G.is_hamiltonian()
             False
@@ -6271,6 +6277,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_hamiltonian()
             True
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            sage: sum(tsp.edge_labels())
+            4
 
         Graphs on 2 vertices::
 
@@ -6294,6 +6302,15 @@ class GenericGraph(GenericGraph_pyx):
         from sage.categories.sets_cat import EmptySetError
 
         weight = lambda l : l if (l is not None and l) else 1
+
+        ########################
+        # 0 or 1 vertex graphs #
+        ########################
+
+        if self.order() < 2:
+            raise ValueError("The traveling salesman problem (or finding "+
+                 "Hamiltonian cycle) is not well defined for graphs with "+
+                 "less than 2 vertices")
 
         #####################
         # 2-vertices graphs #

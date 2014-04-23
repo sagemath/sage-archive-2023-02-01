@@ -22,7 +22,7 @@ class Sh:
         # Print out the current absolute path, which is where the code
         # will be evaluated.    Evidently, users find this comforting,
         # though I personally find it to be a bit much (William Stein).
-        print os.path.abspath('.')
+        print(os.path.abspath('.'))
         # Evaluate the input code block.  Fortunately, os.system works
         # fine with multiline input (in contrast to subprocess.Popen).
         os.system(str(code))

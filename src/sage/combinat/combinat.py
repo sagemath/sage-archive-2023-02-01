@@ -96,7 +96,6 @@ contains the following combinatorial functions:
 .. TODO::
 
     GUAVA commands:
-        * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
         * VandermondeMat
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.

@@ -288,13 +288,14 @@ cdef class Functor(SageObject):
     def _repr_(self):
         """
         TESTS::
+
             sage: from sage.categories.functor import Functor
             sage: F = Functor(Rings(),Fields())
             sage: F #indirect doctest
             Functor from Category of rings to Category of fields
 
         A functor can be renamed if its type is a Python class
-        (see :trac:`16156)::
+        (see :trac:`16156`)::
 
             sage: I = IdentityFunctor(Rings()); I
             The identity functor on Category of rings

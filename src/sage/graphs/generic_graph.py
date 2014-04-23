@@ -6253,8 +6253,9 @@ class GenericGraph(GenericGraph_pyx):
             ...           break
 
         """
-        self._scream_if_not_simple()
         from sage.categories.sets_cat import EmptySetError
+
+        weight = lambda l : l if (l is not None and l) else 1
 
         if constraint_generation is None:
             if self.density() > .7:
@@ -6284,36 +6285,35 @@ class GenericGraph(GenericGraph_pyx):
         # Deal with multiple edges #
         ############################
 
-        if self.has_multiple_edges():
-            g = self.copy()
-            multi = self.multiple_edges()
+        if self.has_loops() or self.has_multiple_edges():
+            g = self.copy(immutable=False)
+        else:
+            g = self
+
+        if g.has_multiple_edges():
+            multi = g.multiple_edges()
             g.delete_edges(multi)
             g.allow_multiple_edges(False)
             if use_edge_labels:
                 e = {}
 
+                # The weight of an edge is the minimum over the weights of the parallel edges
                 for u,v,l in multi:
-                    u,v = (u,v) if u<v else (v,u)
-
-                    # The weight of an edge is the minimum over
-                    # the weights of the parallel edges
-
-                    #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
-                    e[(u,v)] = l if ((u,v) not in e or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
+                    if (u,v) in e:
+                        e[u,v] = weight(l) if weight(l) < e[u,v] else e[u,v]
+                    else:
+                        e[u,v] = l
 
                 g.add_edges([(u,v) for (u,v),l in e.iteritems()])
 
             else:
-                from sage.sets.set import Set
-                g.add_edges(Set([ (min(u,v),max(u,v)) for u,v,l in multi]))
+                g.add_edges(multi)
 
-        else:
-            g = self
+        if g.has_loops():
+            g.remove_loops()
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         from sage.numerical.mip import MIPSolverException
-
-        weight = lambda l : l if (l is not None and l) else 1
 
         ####################################################
         # Constraint-generation formulation of the problem #
@@ -17381,13 +17381,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
             sage: g.is_hamiltonian()
-            Traceback (most recent call last):
-            ...
-            ValueError: This method is not known to work on graphs
-            with multiedges/loops. Perhaps this method can be updated
-            to handle them, but in the meantime if you want to use it
-            please disallow multiedges/loops using
-            allow_multiple_edges() and allow_loops().
+            True
         """
         from sage.categories.sets_cat import EmptySetError
         try:

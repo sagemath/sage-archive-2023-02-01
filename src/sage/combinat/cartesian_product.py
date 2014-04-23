@@ -241,7 +241,7 @@ class CartesianProduct_iters(CombinatorialClass):
             sage: C[238792368]
             [238, 792, 368]
 
-        Check for :trac:`15919`:
+        Check for :trac:`15919`::
 
             sage: FF = IntegerModRing(29)
             sage: C = CartesianProduct(FF, FF, FF)

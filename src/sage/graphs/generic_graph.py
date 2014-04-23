@@ -17381,7 +17381,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
             sage: g.is_hamiltonian()
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs
+            with multiedges/loops. Perhaps this method can be updated
+            to handle them, but in the meantime if you want to use it
+            please disallow multiedges/loops using
+            allow_multiple_edges() and allow_loops().
         """
         from sage.categories.sets_cat import EmptySetError
         try:

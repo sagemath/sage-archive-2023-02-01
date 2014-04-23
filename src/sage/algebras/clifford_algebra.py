@@ -1965,13 +1965,18 @@ class ExteriorAlgebra(CliffordAlgebra):
 
 class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentation):
     r"""
-    A differential of an exterior algebra `\Lambda(L)` defined by the
-    structure coefficients of a Lie algebra `L`.
+    Internal class to store the data of a boundary or coboundary of
+    an exterior algebra `\Lambda(L)` defined by the structure
+    coefficients of a Lie algebra `L`.
+
+    See :cls:`ExteriorAlgebraBoundary` and
+    :cls:`ExteriorAlgebraCoboundary` for the actual classes, which
+    inherit from this.
     """
     @staticmethod
     def __classcall__(cls, E, s_coeff):
         """
-        Standardizes the structure coeffcients to ensure a unique
+        Standardize the structure coefficients to ensure a unique
         representation.
 
         EXAMPLES::
@@ -1983,6 +1988,11 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
             sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {2:-1}, (1,2): {0:1}, (2,0):{1:1}})
             sage: par1 is par2 and par2 is par3
             True
+
+            sage: par4 = ExteriorAlgebraDifferential(E, {(1,0): 0, (1,2): {}, (0,2): E.zero()})
+            sage: par5 = ExteriorAlgebraDifferential(E, {(1,0): 0, (1,2): 0, (0,2): 0})
+            sage: par4 is par5
+            True
         """
         d = {}
 
@@ -1990,14 +2000,13 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
             if isinstance(v, dict):
                 R = E.base_ring()
                 v = E._from_dict({(i,): R(c) for i,c in v.iteritems()})
-
-            # Make sure all elements are in ``E``
-            v = E(v)
-
-            # It's okay if v.degree results in an error
-            #   (we'd throw a similar error)
-            if v.degree() != 1:
-                raise ValueError("elements must be degree 1")
+            else:
+                # Make sure v is in ``E``
+                v = E(v)
+                # It's okay if v.degree results in an error
+                #   (we'd throw a similar error) unless v == 0
+                if v and v.degree() != 1:
+                    raise ValueError("elements must be degree 1")
 
             if k[0] < k[1]:
                 d[tuple(k)] = v
@@ -2073,6 +2082,20 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
       this dictionary will be used to define the coefficients
       `s_{jk}^i` by the key `(j, k)` reordered such that `j < k` (if swapped,
       then it negates the value) and the coefficient of `i` in the value
+
+    .. WARNING::
+
+        The values of ``s_coeff`` are supposed to be coercible into
+        1-forms in ``E``; but they can also be dictionaries themselves
+        (in which case they are interpreted as giving the coordinates of
+        vectors in ``V``). In the interest of speed, these dictionaries
+        are not sanitized or checked.
+
+    .. WARNING::
+
+        For any two distinct elements `i` and `j` of `I`, the dictionary
+        ``s_coeff`` must have exactly one of the pairs `(i, j)` and
+        `(j, i)` as a key. This is not checked.
 
     EXAMPLES:
 
@@ -2211,6 +2234,12 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
       ``E``; this dictionary will be used to define the coefficients
       `s_{jk}^i` by the key `(j, k)` reordered such that `j < k` (if swapped,
       then it negates the value) and the coefficient of `i` in the value
+
+    .. WARNING::
+
+        For any two distinct elements `i` and `j` of `I`, the dictionary
+        ``s_coeff`` must have exactly one of the pairs `(i, j)` and
+        `(j, i)` as a key. This is not checked.
 
     EXAMPLES:
 

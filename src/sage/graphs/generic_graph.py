@@ -962,12 +962,12 @@ class GenericGraph(GenericGraph_pyx):
         Raises an exception if the graph is not simple.
 
         This function is called by some functions of the Graph library when they
-        have not been written for simple graphs only (i.e. no loops nor multiple
+        have been written for simple graphs only (i.e. neither loops nor multiple
         edges). It raises an exception inviting the user to convert the graph to
         a simple graph first, before calling the function again.
 
-        Note that this function does not checl the existence of loops or
-        multiple edges, which would take linear time : it merely checks that the
+        Note that this function does not check the existence of loops or
+        multiple edges, which would take linear time: it merely checks that the
         graph *does not allow* multiple edges nor loops, which takes a constant
         time.
 
@@ -987,14 +987,18 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
-            sage: g._scream_if_not_simple()
-            sage: g.allow_loops(True)
-            sage: g.allow_multiple_edges(True)
-            sage: g._scream_if_not_simple()
-            Traceback (most recent call last):
-            ...
-            ValueError: This method is not known to work on graphs with multiedges/loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges/loops using allow_multiple_edges() and allow_loops().
-            sage: g.allow_multiple_edges(True)
+
+        No scream::
+
+            sage: from itertools import product
+            sage: for p,q in product((True,False),repeat=2):
+            ....:     g.allow_loops(p)
+            ....:     g.allow_multiple_edges(q)
+            ....:     g._scream_if_not_simple(p,q)
+
+        A lot of them::
+
+            sage: g.allow_loops(True); g.allow_multiple_edges(True)
             sage: g._scream_if_not_simple()
             Traceback (most recent call last):
             ...
@@ -1007,16 +1011,27 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+
+            sage: g.allow_loops(True); g.allow_multiple_edges(False)
+            sage: g._scream_if_not_simple()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+            sage: g._scream_if_not_simple(allow_multiple_edges=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
         """
-        if ((not allow_loops and self.allows_loops()) or
-            (not allow_multiple_edges and self.allows_multiple_edges())):
-            if allow_loops is False and allow_multiple_edges is False:
+        pb_with_loops = not allow_loops and self.allows_loops()
+        pb_with_multiple_edges = not allow_multiple_edges and self.allows_multiple_edges()
+        if pb_with_loops or pb_with_multiple_edges:
+            if pb_with_loops and pb_with_multiple_edges:
                 name = "multiedges/loops"
                 functions = "allow_multiple_edges() and allow_loops()"
-            elif allow_loops is False:
+            elif pb_with_loops:
                 name = "loops"
                 functions = "allow_loops()"
-            else:
+            elif pb_with_multiple_edges:
                 name = "multiedges"
                 functions = "allow_multiple_edges()"
             msg = ("This method is not known to work on graphs with "+name+". "+
@@ -17466,7 +17481,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
             sage: g.is_hamiltonian()
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
         """
         from sage.categories.sets_cat import EmptySetError
         try:

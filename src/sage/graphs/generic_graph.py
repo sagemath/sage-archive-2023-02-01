@@ -6137,10 +6137,10 @@ class GenericGraph(GenericGraph_pyx):
         This optimization problem is solved through the use of Linear
         Programming.
 
-        NOTE:
+        .. NOTE::
 
-        - This function is correctly defined for both graph and digraphs.  In
-          the second case, the returned cycle is a circuit of optimal cost.
+            This function is correctly defined for both graph and digraphs. In
+            the second case, the returned cycle is a circuit of optimal cost.
 
         EXAMPLES:
 
@@ -6163,7 +6163,7 @@ class GenericGraph(GenericGraph_pyx):
 
         And obviously it is a subgraph of the Heawood graph::
 
-            sage: all([ e in g.edges() for e in tsp.edges()])
+            sage: tsp.is_subgraph(g, induced=False)
             True
 
         On the other hand, the Petersen Graph is known not to
@@ -6176,12 +6176,10 @@ class GenericGraph(GenericGraph_pyx):
             EmptySetError: The given graph is not hamiltonian
 
 
-        One easy way to change is is obviously to add to this graph the edges
-        corresponding to a Hamiltonian cycle.
-
-        If we do this by setting the cost of these new edges to `2`, while the
-        others are set to `1`, we notice that not all the edges we added are
-        used in the optimal solution ::
+        One easy way to change it is obviously to add to this graph the edges
+        corresponding to a Hamiltonian cycle. If we do this by setting the cost
+        of these new edges to `2`, while the others are set to `1`, we notice
+        that not all the edges we added are used in the optimal solution ::
 
             sage: for u, v in g.edges(labels = None):
             ...      g.set_edge_label(u,v,1)
@@ -6252,6 +6250,31 @@ class GenericGraph(GenericGraph_pyx):
             ...           print "Without constraint generation :",c1
             ...           break
 
+        Simple tests for multiple edges and loops::
+
+            sage: G = DiGraph(multiedges=True, loops=True)
+            sage: G.add_vertex(0)
+            sage: G.is_hamiltonian()
+            False
+            sage: G.add_edge(0,0,1)
+            sage: G.add_edge(0,0,2)
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: Density is not well-defined for multigraphs.
+            sage: G.add_vertex(1)
+            sage: G.is_hamiltonian()
+            False
+            sage: G.add_edge(0,1,2)
+            sage: G.add_edge(0,1,3)
+            sage: G.add_edge(1,1,1)
+            sage: G.add_edge(1,0,2)
+            sage: G.is_hamiltonian()
+            True
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: Density is not well-defined for multigraphs.
         """
         from sage.categories.sets_cat import EmptySetError
 

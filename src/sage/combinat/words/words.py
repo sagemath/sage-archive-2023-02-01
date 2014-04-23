@@ -1024,13 +1024,17 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             sage: W = Words(5)
             sage: W.random_element() # random
             word: 5114325445423521544531411434451152142155...
+
+        TESTS::
+
+            sage: _ = Words(GF(5)).random_element()
         """
         from sage.misc.prandom import randint
         n = self.alphabet().cardinality()
         if n == Infinity:
             raise ValueError("How can I pick a random word with an infinite aphabet ?")
         else:
-            return self((self.alphabet()[randint(0,n-1)] for x in itertools.count()))
+            return self((self.alphabet().random_element() for x in itertools.count()))
 
     @rename_keyword(deprecation=10134, l='arg')
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
@@ -1514,13 +1518,18 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
 
             sage: W = Words(2,20)
             sage: W.random_element() # random
+            word: 11212222211111221112
+
+        TESTS::
+
+            sage: _ = Words(GF(5),4).random_element()
         """
         from sage.misc.prandom import randint
         n = self.alphabet().cardinality()
         if n == Infinity:
             raise ValueError("How can I pick a random word with an infinite aphabet ?")
         else:
-            return self((self.alphabet()[randint(0,n-1)] for x in range(self._length)))
+            return self((self.alphabet().random_element() for _ in range(self._length)))
 
     def list(self):
         r"""

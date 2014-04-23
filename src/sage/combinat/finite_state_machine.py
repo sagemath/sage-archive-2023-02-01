@@ -4990,9 +4990,10 @@ class FSMProcessIterator:
             sage: Z = Transducer()
             sage: s = Z.add_state(0)
             sage: s.is_initial = True
+            sage: s.is_final = True
             sage: s.final_word_out = [1, 2]
-            sage: Z([])
-            (False, 0, [1, 2])
+            sage: Z.process([])
+            (True, 0, [1, 2])
         """
         if hasattr(self, 'accept_input'):
             raise StopIteration

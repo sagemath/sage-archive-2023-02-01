@@ -6121,8 +6121,7 @@ class GenericGraph(GenericGraph_pyx):
 
               - If set to ``True``, the weights are taken into account, and the
                 circuit returned is the one minimizing the sum of the weights
-                (and edge with no label will be automatically be assigned a
-                weight `1`).
+                (an edge with no label is assumed to have weight `1`).
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For

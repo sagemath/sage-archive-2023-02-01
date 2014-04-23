@@ -203,18 +203,18 @@ The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
 where two successive values differ in only one bit, cf. the
 :wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
 a bitwise xor between the binary expansion of `n` and the binary
-expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a left
-shift (for this example, the least significant digit is at the
-left-most position).
+expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a
+shift by one position in binary.
 
 The purpose of this example is to construct a transducer converting the
 standard binary expansion to the Gray code by translating this
 construction into operations with transducers.
 
-Instead of constructing a left shift of the input and taking it xor
-with the input, it is easier to shift everything to the right first,
-i.e., we take the input xor with the right shift of the input and
-forget the first letter.
+For this construction, note that it is easier to shift everything to
+the right first (for this example, the least significant digit is at
+the left-most position), i.e., multiply by `2` instead of building
+`\\lfloor n/2\\rfloor`. Then, we take the input xor with the right
+shift of the input and forget the first letter.
 
 We first construct a transducer shifting the binary expansion to the
 right. This requires storing the previously read digit in a state.
@@ -244,16 +244,19 @@ right. This requires storing the previously read digit in a state.
     sage: shift_right_transducer([1, 0, 0])
     [1, 0]
 
-Note that only `0` is listed as a final state as we have to enforce
-that a most significant zero is read as the last input letter
-in order to flush the last digit::
+The output of the shifts above look a bit weird (from a right-shift
+transducer, we would expect, for example, that ``[1, 0, 0]`` was
+mapped to ``[0, 1, 0]``), since we write ``None`` instead of the zero
+at the left.  Further, note that only `0` is listed as a final state
+as we have to enforce that a most significant zero is read as the last
+input letter in order to flush the last digit::
 
     sage: shift_right_transducer([0, 1, 0, 1])
     Traceback (most recent call last):
     ...
     ValueError: Invalid input sequence.
 
-Next, we construct the transducer performing the xor operation.  We also
+Next, we construct the transducer performing the xor operation. We also
 have to take ``None`` into account as our ``shift_right_transducer``
 waits one iteration until it starts writing output. This corresponds
 with our intention to forget the first letter.

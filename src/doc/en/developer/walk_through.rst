@@ -200,6 +200,37 @@ to show you the differences.
 
 
 
+.. _section-walkthrough-make:
+
+Rebuilding Sage
+===============
+
+Once you have made any changes you of course want to build Sage and
+try out your edits. As long as you only modified the Sage library
+(that is, Python and Cython files under ``src/sage/...``) you just
+have to run::
+
+    [user@localhost sage]$ ./sage -br
+
+to rebuild the Sage library and then start Sage. This should be quite
+fast. If you made changes to third-party packages then you have to
+run::
+
+    [user@localhost sage]$ make
+
+as if you were `installing Sage from scratch
+<www.sagemath.org/doc/installation/>`_. However, simply running make
+will only recompile packages that were changed, so it shoud be much
+faster than compiling Sage the first time. Rarely there are conflicts
+with other packages, or with the already-installed older version of the
+package that you changed, in that case you do have to recompile
+everything using::
+
+    [user@localhost sage]$ make distclean && make
+
+Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
+and build the documentation (see :ref:`chapter-sage_manuals`).
+
 
 .. _section-walkthrough-commit:
 

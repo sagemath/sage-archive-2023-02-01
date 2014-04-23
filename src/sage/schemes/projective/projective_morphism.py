@@ -1707,6 +1707,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
 
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
+
         OUTPUT:
 
         - a list of positive integers.

@@ -6175,7 +6175,6 @@ class GenericGraph(GenericGraph_pyx):
             ...
             EmptySetError: The given graph is not hamiltonian
 
-
         One easy way to change it is obviously to add to this graph the edges
         corresponding to a Hamiltonian cycle. If we do this by setting the cost
         of these new edges to `2`, while the others are set to `1`, we notice
@@ -6261,7 +6260,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
             Traceback (most recent call last):
             ...
-            TypeError: Density is not well-defined for multigraphs.
+            EmptySetError: The given graph is not hamiltonian
             sage: G.add_vertex(1)
             sage: G.is_hamiltonian()
             False
@@ -6270,22 +6269,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edge(1,1,1)
             sage: G.add_edge(1,0,2)
             sage: G.is_hamiltonian()
-            True
+            False
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
             Traceback (most recent call last):
             ...
-            TypeError: Density is not well-defined for multigraphs.
+            EmptySetError: The given graph is not Hamiltonian
         """
         from sage.categories.sets_cat import EmptySetError
 
         weight = lambda l : l if (l is not None and l) else 1
-
-        if constraint_generation is None:
-            if self.density() > .7:
-                constraint_generation = False
-            else:
-                constraint_generation = True
-
         ###############################
         # Quick checks of connectivity #
         ###############################
@@ -6334,6 +6326,13 @@ class GenericGraph(GenericGraph_pyx):
 
         if g.has_loops():
             g.remove_loops()
+            g.allow_loops(False)
+
+        if constraint_generation is None:
+            if g.density() > .7:
+                constraint_generation = False
+            else:
+                constraint_generation = True
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         from sage.numerical.mip import MIPSolverException

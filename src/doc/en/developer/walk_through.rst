@@ -81,8 +81,8 @@ Obtaining the Sage Source Code
 ==============================
 
 Obviously you need the Sage source code to develop, so we download it
-from github (which is a public read-only mirror of our internal git
-repository)::
+from github which is a public read-only mirror (=faster) of our
+internal git repository::
 
     [user@localhost]$ git clone git://github.com/sagemath/sage.git
     Cloning into 'sage'...

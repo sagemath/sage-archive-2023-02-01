@@ -56,6 +56,9 @@ Git and Trac Configuration
 
 .. note::
 
+    * See :ref:`section-git_trac-readonly` if you do not have a trac
+      account.
+
     * `trac <http://trac.sagemath.org>`_ uses username/password for
       authentication
 
@@ -66,7 +69,7 @@ You need to set up both authentication mechanisms to be able to upload
 your changes with "git trac". First, go to the Sage directory and tell
 ``git trac`` about your trac account::
 
-    [user@localhost sage]$ git trac config --user USERNAME --pass PASSWORD
+    [user@localhost sage]$ git trac config --user USERNAME --pass 'PASSWORD'
     Trac xmlrpc URL:
         http://trac.sagemath.org/xmlrpc (anonymous)
         http://trac.sagemath.org/login/xmlrpc (authenticated)
@@ -77,9 +80,12 @@ your changes with "git trac". First, go to the Sage directory and tell
         1024 ab:1b:7c:c9:9b:48:fe:dd:59:56:1e:9d:a4:a6:51:9d  My SSH Key
     
 where you have to replace USERNAME with your trac user name and
-PASSWORD with your trac password, of course. The password is stored in
-``.git/config``, so make sure that it is not readable by other users
-on your system.
+PASSWORD with your trac password, of course. The single quotes
+``'PASSWORD'`` escape special characters that you might have in your
+password. The password is stored in ``.git/config``, so make sure that
+it is not readable by other users on your system. For example, by
+running ``chmod 0600 .git/config`` if your home directory is not
+already private.
 
 If there is no SSH key listed then you haven't uploaded your SSH
 public key to the trac server. You should do that now following the
@@ -97,7 +103,7 @@ Optional: Readonly Access
    The ``git trac config`` command will automatically add a ``trac``
    remote git repository to your list of remotes if necessary. 
 
-Following the above instructions, you will have two remote
+If you followed the above instructions then you will have two remote
 repositories set up::
 
     [user@localhost sage]$ git remote -v
@@ -106,7 +112,11 @@ repositories set up::
     trac        git@trac.sagemath.org:sage.git (fetch)
     trac        git@trac.sagemath.org:sage.git (push)
 
-If you **do not have a trac account** you can setup ``trac`` as readonly::
+The ``git@...`` part of the url means that communication is secured
+with SSH keys, which you must have set up as in
+:ref:`section-trac-ssh-key`. If you **do not have a trac account** you
+can setup the ``trac`` remote as readonly, which uses a slightly
+different URL for our git server::
 
     [user@localhost sage]$ git trac config --readonly
     [user@localhost sage]$ git remote -v
@@ -115,9 +125,10 @@ If you **do not have a trac account** you can setup ``trac`` as readonly::
     trac        git://trac.sagemath.org/sage.git (fetch)
     trac        git://trac.sagemath.org/sage.git (push)
 
-If you do not want to use the ``git trac`` subcommand then you can set
-up the remote by hand as described in the section on
-:ref:`section-git-trac`.
+Obviously you can then only download tickets, but not contribute new
+code. Finally, if you do not want to use the ``git trac`` subcommand
+at all then you can set up the remote by hand as described in the
+section on :ref:`section-git-trac`.
   
 
 

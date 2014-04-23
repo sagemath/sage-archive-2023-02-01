@@ -6269,18 +6269,64 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edge(1,1,1)
             sage: G.add_edge(1,0,2)
             sage: G.is_hamiltonian()
-            False
+            True
             sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
-            Traceback (most recent call last):
-            ...
-            EmptySetError: The given graph is not Hamiltonian
+
+        Graphs on 2 vertices::
+
+            sage: Graph([(0,1),(0,1)],multiedges=True).is_hamiltonian()
+            True
+            sage: DiGraph([(0,1),(0,1)],multiedges=True).is_hamiltonian()
+            False
+            sage: DiGraph([(0,1),(1,0)],multiedges=True).is_hamiltonian()
+            True
+            sage: G = DiGraph(loops=True)
+            sage: G.add_edges([(0,0),(0,1),(1,1),(1,0)])  # i.e. complete digraph with loops
+            sage: G.is_hamiltonian()
+            True
+            sage: G.remove_loops()
+            sage: G.is_hamiltonian()
+            True
+            sage: G.allow_loops(False)
+            sage: G.is_hamiltonian()
+            True
         """
         from sage.categories.sets_cat import EmptySetError
 
         weight = lambda l : l if (l is not None and l) else 1
-        ###############################
+
+        #####################
+        # 2-vertices graphs #
+        #####################
+
+        if self.order() == 2:
+            u,v = self.vertices()
+            if self.is_directed():
+                if self.has_edge(u,v) and self.has_edge(v,u):
+                    if self.has_multiple_edges():
+                        edges = [(u,v,min(self.edge_label(u,v), key=weight)),
+                                 (v,u,min(self.edge_label(v,u), key=weight))]
+                    else:
+                        edges = [(u,v,self.edge_label(u,v)),
+                                 (v,u,self.edge_label(v,u))]
+                    answer = self.subgraph(edges = edges)
+                    answer.set_pos(self.get_pos())
+                    answer.name("TSP from "+self.name())
+                    return answer
+            else:
+                if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
+                    edges = self.edges()
+                    edges.sort(key=weight)
+                    answer = self.subgraph(edges = edges[:2])
+                    answer.set_pos(self.get_pos())
+                    answer.name("TSP from "+self.name())
+                    return answer
+
+            raise EmptySetError("The given graph is not hamiltonian")
+
+        ################################
         # Quick checks of connectivity #
-        ###############################
+        ################################
 
         # TODO : Improve it by checking vertex-connectivity instead of
         # edge-connectivity.... But calling the vertex_connectivity (which

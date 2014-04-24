@@ -362,6 +362,9 @@ class Sets(Category_singleton):
                 sets and its morphisms are set maps), and is owed to
                 computability concerns.
 
+                In mathematics, the retract map `r` is more often
+                referred to as a *projection map* instead.
+
             Assumptions:
 
             - For any category ``As()``, ``As().Subquotients()`` is a

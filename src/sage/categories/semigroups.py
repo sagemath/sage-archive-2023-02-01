@@ -345,7 +345,7 @@ class Semigroups(CategoryWithAxiom):
     #######################################
     class Subquotients(SubquotientsCategory):
         r"""
-        The category of sub/quotient semi-groups.
+        The category of subquotient semi-groups.
 
         EXAMPLES::
 
@@ -371,7 +371,7 @@ class Semigroups(CategoryWithAxiom):
 
         def example(self):
             """
-            Returns an example of sub quotient of a semigroup, as per
+            Returns an example of subquotient of a semigroup, as per
             :meth:`Category.example()
             <sage.categories.category.Category.example>`.
 

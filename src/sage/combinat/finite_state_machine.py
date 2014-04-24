@@ -84,6 +84,7 @@ or by
     sage: fsm
     Finite state machine with 2 states
 
+.. _finite_state_machine_recognizing_NAFs_example:
 
 A simple Automaton (recognizing NAFs)
 ---------------------------------------
@@ -258,6 +259,166 @@ Now we want to divide `13` by `3`::
 The raised ``ValueError``
 means `13` is not divisible by `3`.
 
+.. _finite_state_machine_gray_code_example:
+
+Gray Code
+---------
+
+The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
+where two successive values differ in only one bit, cf. the
+:wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
+a bitwise xor between the binary expansion of `n` and the binary
+expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a
+shift by one position in binary.
+
+The purpose of this example is to construct a transducer converting the
+standard binary expansion to the Gray code by translating this
+construction into operations with transducers.
+
+For this construction, note that it is easier to shift everything to
+the right first (for this example, the least significant digit is at
+the left-most position), i.e., multiply by `2` instead of building
+`\\lfloor n/2\\rfloor`. Then, we take the input xor with the right
+shift of the input and forget the first letter.
+
+We first construct a transducer shifting the binary expansion to the
+right. This requires storing the previously read digit in a state.
+
+::
+
+    sage: def shift_right_transition(state, digit):
+    ....:     if state == 'I':
+    ....:         return (digit, None)
+    ....:     else:
+    ....:         return (digit, state)
+    sage: shift_right_transducer = Transducer(
+    ....:     shift_right_transition,
+    ....:     initial_states=['I'],
+    ....:     input_alphabet=[0, 1],
+    ....:     final_states=[0])
+    sage: shift_right_transducer.transitions()
+    [Transition from 'I' to 0: 0|-,
+     Transition from 'I' to 1: 1|-,
+     Transition from 0 to 0: 0|0,
+     Transition from 0 to 1: 1|0,
+     Transition from 1 to 0: 0|1,
+     Transition from 1 to 1: 1|1]
+    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+    sage: shift_right_transducer([0, 1, 1, 0])
+    [0, 1, 1]
+    sage: shift_right_transducer([1, 0, 0])
+    [1, 0]
+
+The output of the shifts above look a bit weird (from a right-shift
+transducer, we would expect, for example, that ``[1, 0, 0]`` was
+mapped to ``[0, 1, 0]``), since we write ``None`` instead of the zero
+at the left.  Further, note that only `0` is listed as a final state
+as we have to enforce that a most significant zero is read as the last
+input letter in order to flush the last digit::
+
+    sage: shift_right_transducer([0, 1, 0, 1])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
+
+Next, we construct the transducer performing the xor operation. We also
+have to take ``None`` into account as our ``shift_right_transducer``
+waits one iteration until it starts writing output. This corresponds
+with our intention to forget the first letter.
+
+::
+
+    sage: def xor_transition(state, digits):
+    ....:    if digits[0] is None or digits[1] is None:
+    ....:        return (0, None)
+    ....:    else:
+    ....:        return (0, digits[0].__xor__(digits[1]))
+    sage: from itertools import product
+    sage: xor_transducer = Transducer(
+    ....:    xor_transition,
+    ....:    initial_states=[0],
+    ....:    final_states=[0],
+    ....:    input_alphabet=list(product([None, 0, 1], [0, 1])))
+    sage: xor_transducer.transitions()
+    [Transition from 0 to 0: (None, 0)|-,
+     Transition from 0 to 0: (None, 1)|-,
+     Transition from 0 to 0: (0, 0)|0,
+     Transition from 0 to 0: (0, 1)|1,
+     Transition from 0 to 0: (1, 0)|1,
+     Transition from 0 to 0: (1, 1)|0]
+    sage: xor_transducer([(None, 0), (None, 1), (0, 0), (0, 1), (1, 0), (1, 1)])
+    [0, 1, 1, 0]
+    sage: xor_transducer([(0, None)])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
+
+The transducer computing the Gray code is then constructed as a
+:meth:`cartesian product <Transducer.cartesian_product>` between the
+shifted version and the original input (represented here by the
+``shift_right_transducer`` and the :meth:`identity transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.Identity>`,
+respectively). This cartesian product is then fed into the
+``xor_transducer`` as a :meth:`composition
+<FiniteStateMachine.composition>` of transducers.
+
+As described in :meth:`Transducer.cartesian_product`, we have to
+temporarily set
+``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
+``False`` in order to disable backwards compatible code.
+
+::
+
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+    sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+    sage: Gray_transducer = xor_transducer(product_transducer)
+    sage: Gray_transducer.transitions()
+    [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
+     Transition from (('I', 0), 0) to ((1, 0), 0): 1|-,
+     Transition from ((0, 0), 0) to ((0, 0), 0): 0|0,
+     Transition from ((0, 0), 0) to ((1, 0), 0): 1|1,
+     Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
+     Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
+
+There is a :meth:`prepackaged transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.GrayCode>`
+for Gray code, let's see whether they agree. We have to use
+:meth:`~FiniteStateMachine.relabeled` to relabel our states with
+integers. Note that equality of finite state machines does not compare
+initial and final states, so we have to do it on our own here.
+
+::
+
+    sage: constructed = Gray_transducer.relabeled()
+    sage: packaged = transducers.GrayCode()
+    sage: constructed == packaged
+    True
+    sage: constructed.initial_states() == packaged.initial_states()
+    True
+    sage: constructed.final_states() == packaged.final_states()
+    True
+
+Finally, we check that this indeed computes the Gray code of the first
+10 non-negative integers. Note that we add a trailing zero at the most
+significant position of the input in order to flush all output digits.
+This is due to the left shift which delays its output.
+
+::
+
+    sage: for n in srange(10):
+    ....:     Gray_transducer(n.bits() + [0])
+    []
+    [1]
+    [1, 1]
+    [0, 1]
+    [0, 1, 1]
+    [1, 1, 1]
+    [1, 0, 1]
+    [0, 0, 1]
+    [0, 0, 1, 1]
+    [1, 0, 1, 1]
+
 
 Using the hook-functions
 ------------------------
@@ -398,8 +559,10 @@ from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
+from sage.symbolic.ring import SR
 from sage.calculus.var import var
 from sage.misc.latex import latex
+from sage.misc.misc import verbose
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
 
@@ -1982,6 +2145,64 @@ class FiniteStateMachine(SageObject):
         self._deepcopy_relabel_ = True
         new = deepcopy(self, memo)
         del self._deepcopy_relabel_
+        return new
+
+
+    def induced_sub_finite_state_machine(self, states):
+        """
+        Returns a sub-finite-state-machine of the finite state machine
+        induced by the given states.
+
+        INPUT:
+
+        - ``states`` -- states (labels or instances of
+          :class:`FSMState`) of the sub-finite-state-machine.
+
+        OUTPUT:
+
+        A new finite state machine. It consists of (deep copies) of
+        the given states and (deep copies) of all transitions of ``self``
+        between these states.
+
+        Currently, the implementation is not optimized, it is ``O(m^2)``
+        where ``m`` is the number of transitions.
+
+        EXAMPLE::
+
+            sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
+            ....:                           (1, 2, 0), (2, 0, 0)])
+            sage: sub_FSM = FSM.induced_sub_finite_state_machine([0, 1])
+            sage: sub_FSM.states()
+            [0, 1]
+            sage: sub_FSM.transitions()
+            [Transition from 0 to 1: 0|-]
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: sub_FSM.transitions()[0].from_state is sub_FSM.state(0)
+            True
+
+        """
+        good_states = set()
+        for state in states:
+            if not self.has_state(state):
+                raise ValueError("%s is not a state of this finite state machine")
+            good_states.add(self.state(state))
+
+        memo = {}
+        new = self.empty_copy(memo=memo)
+        for state in good_states:
+            s = deepcopy(state, memo)
+            new.add_state(s)
+
+        for state in good_states:
+            for transition in self.iter_transitions(state):
+                if transition.to_state in good_states:
+                    new.add_transition(deepcopy(transition, memo))
+
         return new
 
 
@@ -3608,7 +3829,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
 
         A finite state machine is considered to be deterministic if
         each transition has input label of length one and for each
@@ -3632,18 +3853,84 @@ class FiniteStateMachine(SageObject):
             sage: fsm.is_deterministic()
             False
         """
-        for state in self.states():
+        for state in self.iter_states():
             for transition in state.transitions:
                 if len(transition.word_in) != 1:
                     return False
 
             transition_classes_by_word_in = full_group_by(
                 state.transitions,
-                key=lambda t:t.word_in)
+                key=lambda t: t.word_in)
 
             for key,transition_class in transition_classes_by_word_in:
                 if len(transition_class) > 1:
                     return False
+        return True
+
+
+    def is_complete(self):
+        """
+        Returns whether the finite state machine is complete.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        A finite state machine is considered to be complete if
+        each transition has an input label of length one and for each
+        pair `(q, a)` where `q` is a state and `a` is an element of the
+        input alphabet, there is exactly one transition from `q` with
+        input label `a`.
+
+        EXAMPLES::
+
+            sage: fsm = FiniteStateMachine([(0, 0, 0, 0),
+            ....:                           (0, 1, 1, 1),
+            ....:                           (1, 1, 0, 0)],
+            ....:                          determine_alphabets=False)
+            sage: fsm.is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling determine_alphabets().
+            sage: fsm.input_alphabet = [0, 1]
+            sage: fsm.is_complete()
+            False
+            sage: fsm.add_transition((1, 1, 1, 1))
+            Transition from 1 to 1: 1|1
+            sage: fsm.is_complete()
+            True
+            sage: fsm.add_transition((0, 0, 1, 0))
+            Transition from 0 to 0: 1|0
+            sage: fsm.is_complete()
+            False
+        """
+        if self.input_alphabet is None:
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
+
+        for state in self.iter_states():
+            for transition in state.transitions:
+                if len(transition.word_in) != 1:
+                    return False
+
+            transition_classes_by_word_in = full_group_by(
+                state.transitions,
+                key=lambda t: t.word_in)
+
+            for key, transition_class in transition_classes_by_word_in:
+                if len(transition_class) > 1:
+                    return False
+
+            # all input labels are lists, extract the only element
+            outgoing_alphabet = [key[0] for key, transition_class in
+                                 transition_classes_by_word_in]
+            if not sorted(self.input_alphabet) == sorted(outgoing_alphabet):
+                return False
+
         return True
 
 
@@ -4941,6 +5228,64 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def final_components(self):
+        """
+        Returns the final components of a finite state machine as finite
+        state machines.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of finite state machines, each representing a final
+        component of ``self``.
+
+        A final component of a transducer ``T`` is a strongly connected
+        component ``C`` such that there are no transitions of ``T``
+        leaving ``C``.
+
+        The final components are the only parts of a transducer which
+        influence the main terms of the asympotic behaviour of the sum
+        of output labels of a transducer, see [HKP2014]_ and [HKW2014]_.
+
+        EXAMPLES::
+
+            sage: T = Transducer([['A', 'B', 0, 0], ['B', 'C', 0, 1],
+            ....:                 ['C', 'B', 0, 1], ['A', 'D', 1, 0],
+            ....:                 ['D', 'D', 0, 0], ['D', 'B', 1, 0],
+            ....:                 ['A', 'E', 2, 0], ['E', 'E', 0, 0]])
+            sage: FC = T.final_components()
+            sage: sorted(FC[0].transitions())
+            [Transition from 'B' to 'C': 0|1,
+             Transition from 'C' to 'B': 0|1]
+            sage: FC[1].transitions()
+            [Transition from 'E' to 'E': 0|0]
+
+        Another example (cycle of length 2)::
+
+            sage: T = Automaton([[0, 1, 0], [1, 0, 0]])
+            sage: len(T.final_components()) == 1
+            True
+            sage: T.final_components()[0].transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 1 to 0: 0|-]
+
+        REFERENCES:
+
+        .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
+           Prodinger, *Asymptotic analysis of the sum of the output of
+           transducer*, in preparation.
+        """
+        DG = self.digraph()
+        condensation = DG.strongly_connected_components_digraph()
+        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
+                              condensation.vertices())
+        return [self.induced_sub_finite_state_machine(map(self.state, component))
+                for component in final_labels]
+
+
     # *************************************************************************
     # simplifications
     # *************************************************************************
@@ -5501,6 +5846,489 @@ class FiniteStateMachine(SageObject):
                 unhandeled_direct_predecessors[s] = None
                 done.append(s)
         return(done)
+
+    def asymptotic_moments(self, variable=SR.symbol('n')):
+        r"""
+        Returns the main terms of expectation and variance of the sum
+        of output labels and its covariance with the sum of input
+        labels.
+
+        INPUT:
+
+        - ``variable`` -- symbol denoting the length of the input,
+          by default `n`.
+
+        OUTPUT:
+
+        A dictionary consisting of
+
+        - ``expectation`` -- `e n+\operatorname{Order}(1)`,
+        - ``variance`` -- `v n + \operatorname{Order}(1)`,
+        - ``covariance`` -- `c n + \operatorname{Order}(1)`
+
+        for suitable constants `e`, `v` and `c`.
+
+        Assume that all input and output labels are numbers and that
+        ``self`` is complete and has only one final component. Assume
+        further that this final component is aperiodic. Furthermore,
+        assume that there is exactly one initial state and that all
+        states are final.
+
+        Denote by `X_n` the sum of output labels written by the
+        finite state machine when reading a random input word of
+        length `n` over the input alphabet (assuming
+        equidistribution).
+
+        Then the expectation of `X_n` is `en+O(1)`, the variance
+        of `X_n` is `vn+O(1)` and the covariance of `X_n` and
+        the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
+        Theorem 2.
+
+        In the case of non-integer input or output labels, performance
+        degrades significantly. For rational input and output labels,
+        consider rescaling to integers. This limitation comes from the
+        fact that determinants over polynomial rings can be computed
+        much more efficiently than over the symbolic ring. In fact, we
+        compute (parts) of a trivariate generating function where the
+        input and output labels are exponents of some indeterminates,
+        see [HKW2014]_, Theorem 2 for details. If those exponents are
+        integers, we can use a polynomial ring.
+
+        .. WARNING::
+
+            If not all states are final, we only print a warning. This is
+            for a transitional period to accomodate subsequential
+            transducers while those are not yet implemented
+            (cf. :trac:`16191`).
+
+        EXAMPLES:
+
+        #.  A trivial example: write the negative of the input::
+
+                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, -1)],
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T([0, 1, 1])
+                [0, -1, -1]
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                -1/2*n + Order(1)
+                sage: moments['variance']
+                1/4*n + Order(1)
+                sage: moments['covariance']
+                -1/4*n + Order(1)
+
+        #.  For the case of the Hamming weight of the non-adjacent-form
+            (NAF) of integers, cf. the :wikipedia:`Non-adjacent_form`
+            and the :ref:`example on recognizing NAFs
+            <finite_state_machine_recognizing_NAFs_example>`, the
+            following agrees with the results in [HP2007]_.
+
+            We first use the transducer to convert the standard binary
+            expansion to the NAF given in [HP2007]_::
+
+                sage: NAF = Transducer([(0, 0, 0, 0),
+                ....:                   (0, '.1', 1, None),
+                ....:                   ('.1', 0, 0, [1, 0]),
+                ....:                   ('.1', 1, 1, [-1, 0]),
+                ....:                   (1, 1, 1, 0),
+                ....:                   (1, '.1', 0, None)],
+                ....:                  initial_states=[0],
+                ....:                  final_states=[0])
+
+            As an example, we compute the NAF of `27` by this
+            transducer. Note that we have to add two trailing (at the
+            most significant positions) digits `0` in order to be sure
+            to reach the final state.
+
+            ::
+
+                sage: binary_27 = 27.bits()
+                sage: binary_27
+                [1, 1, 0, 1, 1]
+                sage: NAF_27 = NAF(binary_27+[0, 0])
+                sage: NAF_27
+                [-1, 0, -1, 0, 0, 1, 0]
+                sage: ZZ(NAF_27, base=2)
+                27
+
+            Next, we are only interested in the Hamming weight::
+
+                sage: def weight(state, input):
+                ....:     if input is None:
+                ....:         result = 0
+                ....:     else:
+                ....:         result = ZZ(input != 0)
+                ....:     return (0, result)
+                sage: weight_transducer = Transducer(weight,
+                ....:                                input_alphabet=[-1, 0, 1],
+                ....:                                initial_states=[0],
+                ....:                                final_states=[0])
+                sage: NAFweight = weight_transducer.composition(
+                ....:     NAF,
+                ....:     algorithm='explorative').relabeled()
+                sage: sorted(NAFweight.transitions())
+                [Transition from 0 to 0: 0|0,
+                 Transition from 0 to 1: 1|-,
+                 Transition from 1 to 0: 0|1,0,
+                 Transition from 1 to 2: 1|1,0,
+                 Transition from 2 to 1: 0|-,
+                 Transition from 2 to 2: 1|0]
+                sage: NAFweight(binary_27 + [0, 0])
+                [1, 0, 1, 0, 0, 1, 0]
+
+            Now, we actually compute the asymptotic moments::
+
+                sage: moments = NAFweight.asymptotic_moments()
+                verbose 0 (...) Not all states are final. Proceeding
+                under the assumption that you know what you are doing.
+                sage: moments['expectation']
+                1/3*n + Order(1)
+                sage: moments['variance']
+                2/27*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+            In this case, we can ignore the warning: we could have all
+            states as final states if we would have a final output
+            label, i.e., a subsequential transducer. However, this is
+            not yet implemented in this package, cf. :trac:`16191`.
+
+        #.  This is Example 3.1 in [HKW2014]_, where a transducer with
+            variable output labels is given. There, the aim was to
+            choose the output labels of this very simple transducer such
+            that the input and output sum are asymptotically
+            independent, i.e., the constant `c` vanishes.
+
+            ::
+
+                sage: var('a_1, a_2, a_3, a_4')
+                (a_1, a_2, a_3, a_4)
+                sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
+                ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
+                ....:                initial_states=[0], final_states=[0, 1])
+                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                sage: moments['expectation']
+                1/4*(a_1 + a_2 + a_3 + a_4)*n + Order(1)
+                sage: moments['covariance']
+                -1/4*(a_1 - a_2)*n + Order(1)
+
+            Therefore, the asymptotic covariance vanishes if and only if
+            `a_2=a_1`.
+
+        #.  This is Example 6.2 in [HKW2014]_, dealing with the
+            transducer converting the binary expansion of an integer
+            into Gray code (cf. the :wikipedia:`Gray_code` and the
+            :ref:`example on Gray code
+            <finite_state_machine_gray_code_example>`)::
+
+                sage: moments = transducers.GrayCode().asymptotic_moments()
+                verbose 0 (...) Not all states are final. Proceeding
+                under the assumption that you know what you are doing.
+                sage: moments['expectation']
+                1/2*n + Order(1)
+                sage: moments['variance']
+                1/4*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+            Also in this case, we can ignore the warning: we could have
+            all states as final states if we would have a final output
+            label, i.e., a subsequential transducer. However, this is
+            not yet implemented in this package, cf. :trac:`16191`.
+
+        #.  This is the first part of Example 6.3 in [HKW2014]_,
+            counting the number of 10 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block10 = transducers.CountSubblockOccurrences(
+                ....:     [1, 0],
+                ....:     input_alphabet=[0, 1])
+                sage: sorted(block10.transitions())
+                [Transition from () to (): 0|0,
+                 Transition from () to (1,): 1|0,
+                 Transition from (1,) to (): 0|1,
+                 Transition from (1,) to (1,): 1|0]
+                sage: moments = block10.asymptotic_moments()
+                sage: moments['expectation']
+                1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+        #.  This is the second part of Example 6.3 in [HKW2014]_,
+            counting the number of 11 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block11 = transducers.CountSubblockOccurrences(
+                ....:     [1, 1],
+                ....:     input_alphabet=[0, 1])
+                sage: sorted(block11.transitions())
+                [Transition from () to (): 0|0,
+                 Transition from () to (1,): 1|0,
+                 Transition from (1,) to (): 0|0,
+                 Transition from (1,) to (1,): 1|1]
+                sage: var('N')
+                N
+                sage: moments = block11.asymptotic_moments(N)
+                sage: moments['expectation']
+                1/4*N + Order(1)
+                sage: moments['variance']
+                5/16*N + Order(1)
+                sage: correlation = (moments['covariance'].coefficient(N) /
+                ....:                (1/2 * sqrt(moments['variance'].coefficient(N))))
+                sage: correlation
+                2/5*sqrt(5)
+
+        #.  This is Example 6.4 in [HKW2014]_, counting the number of
+            01 blocks minus the number of 10 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block01 = transducers.CountSubblockOccurrences(
+                ....:     [0, 1],
+                ....:     input_alphabet=[0, 1])
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+                sage: product_01x10 = block01.cartesian_product(block10)
+                sage: block_difference = transducers.sub([0, 1])(product_01x10)
+                sage: T = block_difference.simplification().relabeled()
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+                sage: T.transitions()
+                [Transition from 0 to 1: 0|-1,
+                 Transition from 0 to 0: 1|0,
+                 Transition from 1 to 1: 0|0,
+                 Transition from 1 to 0: 1|1,
+                 Transition from 2 to 1: 0|0,
+                 Transition from 2 to 0: 1|0]
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                Order(1)
+                sage: moments['variance']
+                Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+        #.  The finite state machine must have a unique final component::
+
+                sage: T = Transducer([(0, -1, -1, -1), (0, 1, 1, 1),
+                ....:                 (-1, -1, -1, -1), (-1, -1, 1, -1),
+                ....:                 (1, 1, -1, 1), (1, 1, 1, 1)],
+                ....:                initial_states=[0],
+                ....:                final_states=[0, 1, -1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: asymptotic_moments is only
+                implemented for finite state machines with one final
+                component.
+
+            In this particular example, the first letter of the input
+            decides whether we reach the loop at `-1` or the loop at
+            `1`.  In the first case, we have `X_n = -n`, while we have
+            `X_n = n` in the second case. Therefore, the expectation
+            `E(X_n)` of `X_n` is `E(X_n) = 0`. We get `(X_n-E(X_n))^2 =
+            n^2` in all cases, which results in a variance of `n^2`.
+
+            So this example shows that the variance may be non-linear if
+            there is more than one final component.
+
+        TESTS:
+
+        #.  An input alphabet must be given::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                initial_states=[0], final_states=[0],
+                ....:                determine_alphabets=False)
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: No input alphabet is given.
+                Try calling determine_alphabets().
+
+        #.  The finite state machine must have a unique initial state::
+
+                sage: T = Transducer([(0, 0, 0, 0)])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: A unique initial state is required.
+
+        #.  The finite state machine must be complete::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                initial_states=[0], final_states=[0],
+                ....:                input_alphabet=[0, 1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: This finite state machine is
+                not complete.
+
+        #.  The final component of the finite state machine must be
+            aperiodic::
+
+                sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 0)],
+                ....:                initial_states=[0], final_states=[0, 1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: asymptotic_moments is only
+                implemented for finite state machines whose unique final
+                component is aperiodic.
+
+        #.  Non-integer input or output labels lead to a warning::
+
+                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
+                ....:                initial_states=[0], final_states=[0])
+                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                sage: moments['expectation']
+                -1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                -1/8*n + Order(1)
+
+            This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
+
+                sage: set_verbose(-1, "finite_state_machine.py")
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                -1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                -1/8*n + Order(1)
+                sage: set_verbose(0, "finite_state_machine.py")
+
+        #.  Check whether ``word_out`` of ``FSMState`` are correctly
+            dealt with::
+
+                sage: from sage.combinat.finite_state_machine import FSMState
+                sage: s = FSMState(0, word_out=2,
+                ....:              is_initial=True,
+                ....:              is_final=True)
+                sage: T = Transducer([(s, s, 0, 1)],
+                ....:                initial_states=[s], final_states=[s])
+                sage: T([0, 0])
+                [2, 1, 2, 1, 2]
+                sage: T.asymptotic_moments()['expectation']
+                3*n + Order(1)
+
+            The same test for non-integer output::
+
+                sage: from sage.combinat.finite_state_machine import FSMState
+                sage: s = FSMState(0, word_out=2/3)
+                sage: T = Transducer([(s, s, 0, 1/2)],
+                ....:                initial_states=[s], final_states=[s])
+                sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                7/6*n + Order(1)
+
+        ALGORITHM:
+
+        See [HKW2014]_, Theorem 2.
+
+        REFERENCES:
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, :arxiv:`1404.3680`.
+
+        .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
+           Weight of the Non-Adjacent-Form under Various Input Statistics*,
+           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81–96,
+           :doi:`10.1007/s10998-007-3081-z`.
+        """
+        from sage.calculus.functional import derivative
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.rational_field import QQ
+
+        if self.input_alphabet is None:
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
+
+        if len(self.initial_states()) != 1:
+            raise ValueError("A unique initial state is required.")
+
+        if len(self.final_states()) != len(self.states()):
+            verbose("Not all states are final. Proceeding under the "
+                    "assumption that you know what you are doing.",
+                    level=0)
+
+        if not self.is_complete():
+            raise NotImplementedError("This finite state machine is "
+                                      "not complete.")
+
+        final_components = self.final_components()
+        if len(final_components) != 1:
+            raise NotImplementedError("asymptotic_moments is only "
+                                      "implemented for finite state machines "
+                                      "with one final component.")
+        final_component = final_components[0]
+
+        if not final_component.digraph().is_aperiodic():
+            raise NotImplementedError("asymptotic_moments is only "
+                                      "implemented for finite state machines "
+                                      "whose unique final component is "
+                                      "aperiodic.")
+
+        def get_matrix(fsm, x, y):
+            return fsm.adjacency_matrix(
+                entry=lambda transition: x**sum(transition.word_in) *
+                                         y**(sum(transition.word_out) +
+                                         sum(transition.from_state.word_out)))
+
+        K = len(self.input_alphabet)
+        R = PolynomialRing(QQ, ("x", "y", "z"))
+        (x, y, z) = R.gens()
+        try:
+            M = get_matrix(self, x, y)
+        except TypeError:
+            verbose("Non-integer output weights lead to "
+                    "significant performance degradation.", level=0)
+            # fall back to symbolic ring
+            R = SR
+            x = R.symbol()
+            y = R.symbol()
+            z = R.symbol()
+            M = get_matrix(self, x, y)
+            def substitute_one(g):
+                return g.subs({x: 1, y: 1, z: 1})
+        else:
+            def substitute_one(g):
+                # the result of the substitution shall live in QQ,
+                # not in the polynomial ring R, so the method
+                # subs does not achieve the result.
+                # Therefore, we need this helper function.
+                return g(1, 1, 1)
+
+        f = (M.parent().identity_matrix() - z/K*M).det()
+        f_x = substitute_one(derivative(f, x))
+        f_y = substitute_one(derivative(f, y))
+        f_z = substitute_one(derivative(f, z))
+        f_xy = substitute_one(derivative(f, x, y))
+        f_xz = substitute_one(derivative(f, x, z))
+        f_yz = substitute_one(derivative(f, y, z))
+        f_yy = substitute_one(derivative(f, y, y))
+        f_zz = substitute_one(derivative(f, z, z))
+
+        e_2 = f_y / f_z
+        v_2 = (f_y**2 * (f_zz+f_z) + f_z**2 * (f_yy+f_y)
+               - 2*f_y*f_z*f_yz) / f_z**3
+        c = (f_x * f_y * (f_zz+f_z) + f_z**2 * f_xy - f_y*f_z*f_xz
+             - f_x*f_z*f_yz) / f_z**3
+
+        return {'expectation': e_2*variable + SR(1).Order(),
+                'variance': v_2*variable + SR(1).Order(),
+                'covariance': c*variable + SR(1).Order()}
 
 
 #*****************************************************************************
@@ -6352,6 +7180,32 @@ class Transducer(FiniteStateMachine):
             [(1, 'b'), (0, 'b'), (None, 'c'),  (0, 'a')]
             sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
+
+        The following transducer counts the number of 11 blocks minus
+        the number of 10 blocks over the alphabet ``[0, 1]``.
+
+        ::
+
+            sage: count_11 = transducers.CountSubblockOccurrences(
+            ....:     [1, 1],
+            ....:     [0, 1])
+            sage: count_10 = transducers.CountSubblockOccurrences(
+            ....:     [1, 0],
+            ....:     [0, 1])
+            sage: count_11x10 = count_11.cartesian_product(count_10)
+            sage: difference = transducers.sub([0,1])(count_11x10)
+            sage: T = difference.simplification().relabeled()
+            sage: T.initial_states()
+            [1]
+            sage: sorted(T.transitions())
+            [Transition from 0 to 1: 0|-1,
+             Transition from 0 to 0: 1|1,
+             Transition from 1 to 1: 0|0,
+             Transition from 1 to 0: 1|0]
+            sage: input =  [0, 1, 1,  0, 1,  0, 0, 0, 1, 1, 1,  0]
+            sage: output = [0, 0, 1, -1, 0, -1, 0, 0, 0, 1, 1, -1]
+            sage: T(input) == output
+            True
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
         ``self`` where the input is restricted to the input accepted by

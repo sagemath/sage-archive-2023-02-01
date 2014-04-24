@@ -2,13 +2,13 @@ r"""
 Covariant Functorial Constructions
 
 A *functorial construction* is a collection of functors
-`(F_{Cat})_{Cat}` (indexed by a class of categories) which associate
+`(F_{Cat})_{Cat}` (indexed by a collection of categories) which associate
 to a sequence of parents `(A, B, ...)` in a category `Cat` a parent
-`F_{Cat}(A, B, ...)`. Examples of functorial
-constructions are `F` = cartesian product, tensor product,
-`\QQ`-algebra (aka free `\QQ`-module), ... The category of
-`F_{Cat}(A, B, ...)`, which only depends on `Cat`, is called the
-(functorial) construction category.
+`F_{Cat}(A, B, ...)`. Typical examples of functorial
+constructions are :obj:`cartesian_product` and :obj:`tensor_product`.
+
+The category of `F_{Cat}(A, B, ...)`, which only depends on `Cat`, is
+called the (functorial) construction category.
 
 A functorial construction is *(category)-covariant* if for every
 categories `Cat` and `SuperCat`, the category of `F_{Cat}(A, B, ...)`
@@ -19,13 +19,13 @@ subcategory of `Cat`.
 
 The goal of this module is to provide generic support for covariant
 functorial constructions. In particular, given some parents `A`, `B`,
-..., `C` in respective categories `Cat_A`, `Cat_B`, ..., `Cat_C`, it
-provides tools for calculating the best known category for the parent
-`F(A,B,...,C)`. For examples, knowing that cartesian products of
-semigroups (resp. monoids, groups) have a structure of semigroups
-(resp. monoids, groups), and given a group `B` and two monoids `A` and
-`C` it can calculate that `A \times B \times C` is naturally endowed
-with a monoid structure.
+..., in respective categories `Cat_A`, `Cat_B`, ..., it provides tools
+for calculating the best known category for the parent
+`F(A,B,...)`. For examples, knowing that cartesian products of
+semigroups (resp. monoids, groups) have a semigroup (resp. monoid,
+group) structure, and given a group `B` and two monoids `A` and `C` it
+can calculate that `A \times B \times C` is naturally endowed with a
+monoid structure.
 
 See :class:`CovariantFunctorialConstruction`,
 :class:`CovariantConstructionCategory` and
@@ -59,10 +59,10 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
        `F_{SuperCat}` for every super category `SuperCat` of
        `Cat` (the functorial construction is (category)-covariant).
 
-     - For parents `A`, `B`, ..., `C` respectively in the categories
-       `Cat_A`, `Cat_B`, ..., `Cat_C`, the category of `F(A,B,...,C)` is
-       `F_{Cat}` where `Cat` is the meet of the categories
-       `Cat_A`, `Cat_B`, ..., `Cat_C`.
+     - For parents `A`, `B`, ..., respectively in the categories
+       `Cat_A`, `Cat_B`, ..., the category of `F(A,B,...)` is
+       `F_{Cat}` where `Cat` is the meet of the categories `Cat_A`,
+       `Cat_B`, ...,.
 
     This covers two slightly different use cases:
 
@@ -123,7 +123,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
     def category_from_parents(self, parents):
         """
-        Returns the category of `F(A,B,...,C)` for `A,B,...,C` parents.
+        Returns the category of `F(A,B,...)` for `A,B,...` parents.
 
         INPUT:
 
@@ -147,7 +147,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     @cached_method
     def category_from_categories(self, categories):
         """
-        Return the category of `F(A,B,...,C)` for `A,B,...,C` parents in
+        Return the category of `F(A,B,...)` for `A,B,...` parents in
         the given categories.
 
         INPUT:
@@ -248,17 +248,17 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
     @cached_function
     def category_of(cls, category, *args):
         """
+        Return the image category of the functor `F_{Cat}`.
+
         This is the main entry point for constructing the category
-        `F_{Cat}` of parents `F(A,B,...,C)` constructed from parents
-        `A,B,...,C` in `Cat`.
+        `F_{Cat}` of parents `F(A,B,...)` constructed from parents
+        `A,B,...` in `Cat`.
 
         INPUT:
 
          - ``cls`` -- the category class for the functorial construction `F`
          - ``category`` -- a category `Cat`
          - ``*args`` -- further arguments for the functor
-
-        OUTPUT: the image category of the functor `F_{Cat}`
 
         EXAMPLES::
 

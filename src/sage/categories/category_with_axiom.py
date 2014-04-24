@@ -1,5 +1,4 @@
-"""
-Axioms
+"""Axioms
 
 This documentation covers how to implement axioms and proceeds with an
 overview of the implementation of the axiom infrastructure. It assumes
@@ -105,10 +104,13 @@ all the methods of finite sets and of finite `C`'s, as desired::
       for finite ``Cs``. To keep the analogy, this mixin class is to
       be put in ``Cs.Finite``.
 
-      (Warning: The semantics of ``Cs.Finite`` has to always be
-      "``Cs`` which are finite as sets". The standard notation
-      "finite free modules" for free modules of finite rank must
-      *not* be implemented as ``Modules.Free.Finite``.)
+    - By defining the axion ``Finite``,
+      :class:`~sage.categories.sets_cat.Sets` fixes the semantic of
+      ``Cs.Finite()`` for all its subcategories ``Cs``: namely "the
+      category of ``Cs`` which are finite as sets". Hence, for
+      example, ``Modules.Free.Finite`` cannot be used to model the
+      category of free modules of finite rank, even though their
+      traditional name "finite free modules" might suggest it.
 
     - It may come as a surprise that we can actually use the same name
       ``Finite`` for the mixin class and for the method defining the
@@ -1613,6 +1615,7 @@ TESTS:
     Join of Category of monoid algebras over Rational Field and Category of finite dimensional algebras with basis over Rational Field and Category of finite set algebras over Rational Field
     sage: FiniteGroups().Algebras(QQ)
     Join of Category of finite dimensional hopf algebras with basis over Rational Field and Category of group algebras over Rational Field and Category of finite set algebras over Rational Field
+
 """
 #*****************************************************************************
 #  Copyright (C) 2011-2013 Nicolas M. Thiery <nthiery at users.sf.net>

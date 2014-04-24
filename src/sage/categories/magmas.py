@@ -720,21 +720,16 @@ class Magmas(Category_singleton):
         r"""
         The category of subquotient magmas.
 
-        Let `G` and `S` be two magmas and `l: S \to G` and
-        `r: G \to S` be two maps such that:
-
-         - `r \circ l` is the identity of `S`.
+        See :meth:`Sets.SubcategoryMethods.Subquotients` for the
+        general setup for subquotients. In the case of a subquotient
+        magma `S` of a magma `G`, the structure preserving condition
+        is:
 
          - for any two `a,b \in S` the identity
            `a \times_S b = r(l(a) \times_G l(b))` holds.
 
-        The category ``Subquotients`` implements the product
-        `\times_S` from `l` and `r` and the product of `G`.
-
-        `S` is supposed to belong the category
-        ``Magmas().Subquotients()`` and to specify `G` under the name
-        ``S.ambient()`` and to implement `x \to l(x)` and `y \to r(y)`
-        under the names ``S.lift(x)`` and ``S.retract(y)``.
+        This is used by this category to implement the product
+        `\times_S` of `S` from `l` and `r` and the product of `G`.
 
         EXAMPLES::
 

@@ -691,8 +691,8 @@ be a *subcategory* of ``Cs()``.
     functor from the category of groups to the category of sets is not
     an inclusion of categories, as it is not injective: a given set
     may admit more than one group structure. See :trac:`16183` for
-    more details. The notion of a *supercategory* is also not the
-    one used in mathematics.
+    more details. The name *supercategory* is also used with a
+    different meaning in certain areas of mathematics.
 
 Categories are instances and have operations
 --------------------------------------------

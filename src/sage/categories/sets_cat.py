@@ -317,28 +317,30 @@ class Sets(Category_singleton):
                 sage: Monoids().Subquotients()
                 Category of subquotients of monoids
 
-            A parent `A` in ``As()`` is further in ``As().Subquotients()``
-            if there is a distinguished parent `B` in ``As()``, called the
-            *ambient set*, a subobject `B'` of `B`, and a pair of maps:
+            A parent `A` in ``As()`` is further in
+            ``As().Subquotients()`` if there is a distinguished parent
+            `B` in ``As()``, called the *ambient set*, a subobject
+            `B'` of `B`, and a pair of maps:
 
             .. MATH::
 
                 l: A \to B'  \text{ and }  r: B' \to A
 
             called respectively the *lifting map* and *retract map*
-            such that `r \circ l` is the identity of `A` and `r` is
-            *structure preserving*. What exactly *structure
-            preserving* means is explicited in each category; this
-            typically states that, for each operation `op` of the
-            category, we have:
+            such that `r \circ l` is the identity of `A` and `r` is a
+            morphism in `As`.
 
-                for all `e\in A`, one has `op_A(e) = r(op_B(l(e)))`
+            .. TODO:: Draw the typical commutative diagram.
 
-            (this is often represented as a commutative diagram,
-            and can be rewritten without reference to `l`).
+            It follows that, for each operation `op` of the category,
+            we have some property like:
 
-            This allows for deriving the operations on `A` from those on
-            `B`.
+            .. MATH::
+
+                op_A(e) = r(op_B(l(e))), \text{ for all `e\in A`}
+
+            This allows for implementing the operations on `A` from
+            those on `B`.
 
             The two most common use cases are:
 
@@ -347,29 +349,34 @@ class Sets(Category_singleton):
                canonical quotient map), and `l` a section of it (not
                necessarily a homomorphism);
 
-             - *subobjects*, when `l` and `r` are identity maps.
+             - *subobjects*, when `l` is an embedding from `A` into `B`.
 
             .. NOTE::
 
-                The definition of "subquotient" used in Sage is somewhat
-                different from the one used in mathematics
-                (:wikipedia:`Subquotient`); most importantly, it
-                involves two maps `r` and `l` instead of just one
-                epimorphism `r` (although the map `l` is only used
-                in computations but does not have any effect on
-                their results). This is relatively harmless when the
-                category is a concrete category (i.e., its objects are
-                sets and its morphisms are set maps), and is owed to
-                computability concerns.
+                - The usual definition of "subquotient"
+                  (:wikipedia:`Subquotient`) does not involve the
+                  lifting map `l`. This map is required in Sage's
+                  context to make the definition constructive. It is
+                  only used in computations and does not affect their
+                  results. This is relatively harmless since the
+                  category is a concrete category (i.e., its objects
+                  are sets and its morphisms are set maps).
 
-                In mathematics, the retract map `r` is more often
-                referred to as a *projection map* instead.
+                - In mathematics, especially in the context of
+                  quotients, the retract map `r` is often referred to
+                  as a *projection map* instead.
+
+                - Since `B'` is not specified explicitly, it is
+                  acceptable to abuse the framework with situations
+                  where `B'` is not quite a subobject and `r` not
+                  quite a morphism, as long as the lifting and retract
+                  map can be used as above to compute the operations
+                  in `A`.
 
             Assumptions:
 
             - For any category ``As()``, ``As().Subquotients()`` is a
-              subcategory of ``As()`` (in Sage's meaning of the word
-              "subcategory").
+              subcategory of ``As()``.
 
               Example: a subquotient of a group is a group (e.g., a left
               or right quotient of a group by a non-normal subgroup is
@@ -396,6 +403,7 @@ class Sets(Category_singleton):
             Interface: the ambient set `B` of `A` is given by
             ``A.ambient()``. The subset `B'` needs not be specified, so
             the retract map is handled as a partial map from `B` to `A`.
+
             The lifting and retract map are implemented
             respectively as methods ``A.lift(a)`` and ``A.retract(b)``.
             As a shorthand for the former, one can use alternatively

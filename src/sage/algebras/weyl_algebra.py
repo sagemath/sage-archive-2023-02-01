@@ -20,6 +20,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
+from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.rings.ring import Algebra
 
 def repr_from_monomials(monomials, term_repr, use_latex=False):

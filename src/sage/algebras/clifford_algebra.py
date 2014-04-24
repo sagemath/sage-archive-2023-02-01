@@ -1969,9 +1969,14 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
     an exterior algebra `\Lambda(L)` defined by the structure
     coefficients of a Lie algebra `L`.
 
-    See :cls:`ExteriorAlgebraBoundary` and
-    :cls:`ExteriorAlgebraCoboundary` for the actual classes, which
+    See :class:`ExteriorAlgebraBoundary` and
+    :class:`ExteriorAlgebraCoboundary` for the actual classes, which
     inherit from this.
+
+    .. WARNING::
+
+        This is not a general class for differentials on the exterior
+        algebra.
     """
     @staticmethod
     def __classcall__(cls, E, s_coeff):
@@ -2113,12 +2118,56 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         z
         sage: par(x*y*z)
         0
+        sage: par(x+y-y*z+x*y)
+        -x + z
+        sage: par(E.zero())
+        0
 
     We check that `\partial \circ \partial = 0`::
 
         sage: p2 = par * par
         sage: all(p2(b) == 0 for b in E.basis())
         True
+
+    Another example: `\mathfrak{sl}_2` with basis `e,f,h`
+    satisfying `[h,e] = 2e`, `[h,f] = -2f` and `[e,f] = h`::
+
+        sage: E.<e,f,h> = ExteriorAlgebra(QQ)
+        sage: par = E.boundary({(0,1): h, (2,1): -2*f, (2,0): 2*e})
+        sage: par(E.zero())
+        0
+        sage: par(e)
+        0
+        sage: par(e*f)
+        h
+        sage: par(f*h)
+        2*f
+        sage: par(h*f)
+        -2*f
+        sage: C = par.chain_complex(); C
+        Chain complex with at most 4 nonzero terms over Rational Field
+        sage: ascii_art(C)
+                                  [ 0 -2  0]       [0]
+                                  [ 0  0  2]       [0]
+                    [0 0 0]       [ 1  0  0]       [0]
+         0 <-- C_0 <-------- C_1 <----------- C_2 <---- C_3 <-- 0
+        sage: C.homology()
+        {0: Vector space of dimension 1 over Rational Field,
+         1: Vector space of dimension 0 over Rational Field,
+         2: Vector space of dimension 0 over Rational Field,
+         3: Vector space of dimension 1 over Rational Field}
+
+    Over the integers::
+
+        sage: C = par.chain_complex(R=ZZ); C
+        Chain complex with at most 4 nonzero terms over Integer Ring
+        sage: ascii_art(C)
+                                  [ 0 -2  0]       [0]
+                                  [ 0  0  2]       [0]
+                    [0 0 0]       [ 1  0  0]       [0]
+         0 <-- C_0 <-------- C_1 <----------- C_2 <---- C_3 <-- 0
+        sage: C.homology()
+        {0: Z, 1: C2 x C2, 2: 0, 3: Z}
 
     REFERENCES:
 
@@ -2293,9 +2342,13 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         y^z
         sage: d(y)
         -x^z
+        sage: d(x+y-y*z)
+        -x^z + y^z
         sage: d(x*y)
         0
         sage: d(E.one())
+        0
+        sage: d(E.zero())
         0
 
     We check that `d \circ d = 0`::
@@ -2303,6 +2356,50 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         sage: d2 = d * d
         sage: all(d2(b) == 0 for b in E.basis())
         True
+
+    Another example: `\mathfrak{sl}_2` with basis `e,f,h`
+    satisfying `[h,e] = 2e`, `[h,f] = -2f` and `[e,f] = h`::
+
+        sage: E.<e,f,h> = ExteriorAlgebra(QQ)
+        sage: d = E.coboundary({(0,1): h, (2,1): -2*f, (2,0): 2*e})
+        sage: d(E.zero())
+        0
+        sage: d(e)
+        -2*e^h
+        sage: d(f)
+        2*f^h
+        sage: d(h)
+        e^f
+        sage: d(e*f)
+        0
+        sage: d(f*h)
+        0
+        sage: d(e*h)
+        0
+        sage: C = d.chain_complex(); C
+        Chain complex with at most 4 nonzero terms over Rational Field
+        sage: ascii_art(C)
+                                  [ 0  0  1]       [0]
+                                  [-2  0  0]       [0]
+                    [0 0 0]       [ 0  2  0]       [0]
+         0 <-- C_3 <-------- C_2 <----------- C_1 <---- C_0 <-- 0
+        sage: C.homology()
+        {0: Vector space of dimension 1 over Rational Field,
+         1: Vector space of dimension 0 over Rational Field,
+         2: Vector space of dimension 0 over Rational Field,
+         3: Vector space of dimension 1 over Rational Field}
+
+    Over the integers::
+
+        sage: C = d.chain_complex(R=ZZ); C
+        Chain complex with at most 4 nonzero terms over Integer Ring
+        sage: ascii_art(C)
+                                  [ 0  0  1]       [0]
+                                  [-2  0  0]       [0]
+                    [0 0 0]       [ 0  2  0]       [0]
+         0 <-- C_3 <-------- C_2 <----------- C_1 <---- C_0 <-- 0
+        sage: C.homology()
+        {0: Z, 1: 0, 2: C2 x C2, 3: Z}
 
     REFERENCES:
 
@@ -2319,7 +2416,10 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
             sage: TestSuite(d).run() # known bug - morphisms are properly in a category
         """
         # Construct the dictionary of costructure coefficients, i.e. given
-        # [x_j, x_k] = \sum_i s_{jk}^i x_i, we get x^i |-> \sum_{j<k} s_{jk}^i x^j x^k
+        # [x_j, x_k] = \sum_i s_{jk}^i x_i, we get x^i |-> \sum_{j<k} s_{jk}^i x^j x^k.
+        # This dictionary might contain 0 values and might also be missing
+        # some keys (both times meaning that the respective `s_{jk}^i` are
+        # zero for all `j` and `k`).
         self._cos_coeff = {}
         zero = E.zero()
         B = E.basis()
@@ -2344,7 +2444,10 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         """
         Return the differential on the basis element indexed by ``m``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The vector space `\RR^3` made into a Lie algebra using the
+        cross product::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})

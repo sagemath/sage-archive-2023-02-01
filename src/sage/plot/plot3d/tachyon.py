@@ -1222,6 +1222,8 @@ class TachyonSmoothTriangle(SmoothTriangle):
     r"""
     A triangle along with a normal vector, which is used for smoothing.
     """
+    def __str__(self):
+        return self.str()
     def str(self):
         r"""
         Returns the scene string for a smoothed triangle.

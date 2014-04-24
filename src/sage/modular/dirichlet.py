@@ -856,7 +856,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         if is_ComplexField(K):
             return self.gauss_sum_numerical()
         if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ.")
+            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
         g = 0
         m = G.modulus()
         L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
@@ -910,7 +910,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(13)
             sage: H = DirichletGroup(13, CC)
             sage: e = G.0
-            sage: f = G.0
+            sage: f = H.0
             sage: e.gauss_sum_numerical()
             -3.07497205... + 1.8826966926...*I
             sage: f.gauss_sum_numerical()
@@ -1178,7 +1178,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G.1.is_even()
             True
 
-
         Note that ``is_even`` need not be the negation of
         is_odd, e.g., in characteristic 2::
 
@@ -1188,9 +1187,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.is_odd()
             True
         """
-        if is_ComplexField(self.base_ring()):
-            return abs(self(-1) - self.base_ring()(1)) < 1.0/self.parent().zeta_order()
-        return (self(-1) == self.base_ring()(1))
+        R = self.base_ring()
+        # self(-1) is either +1 or -1
+        if not R.is_exact():
+            return abs(self(-1) - R(1)) < 0.5
+        return self(-1) == R(1)
 
     @cached_method
     def is_odd(self):
@@ -1227,9 +1228,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.is_odd()
             True
         """
-        if is_ComplexField(self.base_ring()):
-            return abs(self(-1) - self.base_ring()(-1)) < 1.0/self.parent().zeta_order()
-        return (self(-1) == self.base_ring()(-1))
+        R = self.base_ring()
+        # self(-1) is either +1 or -1
+        if not R.is_exact():
+            return abs(self(-1) - R(-1)) < 0.5
+        return self(-1) == R(-1)
 
     @cached_method
     def is_primitive(self):

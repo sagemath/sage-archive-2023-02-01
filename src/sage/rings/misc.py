@@ -33,5 +33,5 @@ def composite_field(K, L):
     """
     C = Sequence([K(0), L(0)]).universe()
     if C not in _Fields:
-        raise ValueError, "unable to find a common field"
+        raise ValueError("unable to find a common field")
     return C

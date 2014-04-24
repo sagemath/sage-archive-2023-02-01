@@ -1419,8 +1419,8 @@ def KittellGraph():
     r"""
     Returns the Kittell Graph.
 
-    For more information on the Kittell Graph, see the `corresponding Wolfram
-    page <http://mathworld.wolfram.com/KittellGraph.html>`_.
+    For more information, see the `Wolfram page about the Kittel Graph
+    <http://mathworld.wolfram.com/KittellGraph.html>`_.
 
     EXAMPLES::
 
@@ -3153,8 +3153,8 @@ def MarkstroemGraph():
     Returns the Markström Graph.
 
     The Markström Graph is a cubic planar graph with no cycles of length 4 nor
-    8, but containing cycles of length 16. For more information on the Markström
-    Graph, see the `corresponding Wolfram page
+    8, but containing cycles of length 16. For more information, see the
+    `Wolfram page about the Markström Graph
     <http://mathworld.wolfram.com/MarkstroemGraph.html>`_.
 
     EXAMPLES::
@@ -3286,7 +3286,7 @@ def McLaughlinGraph():
     blocks = map(Set, blocks)
     B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
-    g = graph.Graph()
+    g = Graph()
     for b in B:
         for x in range(23):
             if not x in b:
@@ -4137,10 +4137,10 @@ def WienerArayaGraph():
     Returns the Wiener-Araya Graph.
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
-    67 edges. For more information on the Wiener-Araya Graph, see its
-    corresponding `Wolfram Page
-    <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its `(french)
-    Wikipedia page <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+    67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
+    `(french) Wikipedia page
+    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
 
     EXAMPLES::
 

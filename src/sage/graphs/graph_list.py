@@ -298,16 +298,16 @@ def to_graphics_arrays(list, **kwds):
         if ( isinstance( list[i], graph.GenericGraph ) ):
             pos = list[i].get_pos()
             if ( pos is None ):
-                if not kwds.has_key('layout'):
+                if 'layout' not in kwds:
                     kwds['layout'] = 'circular'
-                if not kwds.has_key('vertex_size'):
+                if 'vertex_size' not in kwds:
                     kwds['vertex_size'] = 50
-                if not kwds.has_key('vertex_labels'):
+                if 'vertex_labels' not in kwds:
                     kwds['vertex_labels'] = False
                 kwds['graph_border'] = True
                 plist.append(list[i].plot(**kwds))
             else: plist.append(list[i].plot(pos=pos, vertex_size=50, vertex_labels=False, graph_border=True))
-        else:  raise TypeError, 'Param list must be a list of Sage (di)graphs.'
+        else:  raise TypeError('Param list must be a list of Sage (di)graphs.')
 
     num_arrays = len(plist)/20
     if ( len(plist)%20 > 0 ): num_arrays += 1

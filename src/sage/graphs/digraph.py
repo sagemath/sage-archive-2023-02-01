@@ -72,10 +72,10 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
+    :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
-
 
 **Hard stuff:**
 
@@ -723,7 +723,7 @@ class DiGraph(GenericGraph):
                 try:
                     e = int(e)
                     assert e >= 0
-                except StandardError:
+                except Exception:
                     if weighted is False:
                         raise ValueError("Non-weighted digraph's"+
                         " adjacency matrix must have only nonnegative"+
@@ -754,8 +754,7 @@ class DiGraph(GenericGraph):
                     if len(NZ) != 2:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
                         assert False
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
                     if L != [-1,0,1]:
                         msg += "Each column represents an edge: -1 goes to 1."
                         assert False
@@ -919,7 +918,6 @@ class DiGraph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = True
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -1674,11 +1672,11 @@ class DiGraph(GenericGraph):
                                           maximization = False)
 
             # An variable for each edge
-            b = p.new_variable(binary = True, dim = 2)
+            b = p.new_variable(binary = True)
 
             # Variables are binary, and their coefficient in the objective is 1
 
-            p.set_objective( p.sum( b[u][v]
+            p.set_objective( p.sum( b[u,v]
                                   for u,v in self.edges(labels = False)))
 
             p.solve(log = verbose)
@@ -1690,7 +1688,7 @@ class DiGraph(GenericGraph):
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
                 for u,v in self.edges(labels = False):
-                    if p.get_values(b[u][v]) < .5:
+                    if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
                 # Is the digraph acyclic ?
@@ -1707,7 +1705,7 @@ class DiGraph(GenericGraph):
                 # constraint !
 
                 p.add_constraint(
-                    p.sum( b[u][v] for u,v in
+                    p.sum( b[u,v] for u,v in
                          zip(certificate, certificate[1:] + [certificate[0]])),
                     min = 1)
 
@@ -1720,7 +1718,7 @@ class DiGraph(GenericGraph):
 
                 # listing the edges contained in the MFAS
                 return [(u,v) for u,v in self.edges(labels = False)
-                        if p.get_values(b[u][v]) > .5]
+                        if p.get_values(b[u,v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1937,20 +1935,20 @@ class DiGraph(GenericGraph):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     try:
                         u, v = u
-                    except StandardError:
+                    except Exception:
                         pass
         else:
             if v is None:
                 try:
                     u, v = u
-                except StandardError:
+                except Exception:
                     pass
 
         if not self.has_edge(u,v,label):
-            raise ValueError, "Input edge must exist in the digraph."
+            raise ValueError("Input edge must exist in the digraph.")
 
         tempG = self if inplace else self.copy()
 
@@ -3317,6 +3315,33 @@ class DiGraph(GenericGraph):
 
         except AttributeError:
             return len(self.strongly_connected_components()) == 1
+
+    def is_aperiodic(self):
+        r"""
+        Return whether the current ``DiGraph`` is aperiodic.
+
+        A directed graph is aperiodic if there is no integer ``k > 1``
+        that divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``, so it is not aperiodic::
+
+            sage: g = DiGraph({ 0: [1], 1: [0] })
+            sage: g.is_aperiodic()
+            False
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it is aperiodic::
+
+            sage: g = DiGraph({ 0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.is_aperiodic()
+            True
+
+        """
+        import networkx
+        return networkx.is_aperiodic(self.networkx_graph(copy=False))
 
 import types
 

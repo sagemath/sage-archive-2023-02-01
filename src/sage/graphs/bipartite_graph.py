@@ -361,7 +361,7 @@ class BipartiteGraph(Graph):
             Graph.__init__(self, data, *args, **kwds)
             try:
                 self.left, self.right = self.bipartite_sets()
-            except StandardError:
+            except Exception:
                 raise TypeError("Input graph is not bipartite!")
         else:
             import networkx
@@ -384,7 +384,7 @@ class BipartiteGraph(Graph):
             if not (hasattr(self, "left") and hasattr(self, "right")):
                 try:
                     self.left, self.right = self.bipartite_sets()
-                except StandardError:
+                except Exception:
                     raise TypeError("Input graph is not bipartite!")
 
         # restore vertex partition checking
@@ -670,10 +670,10 @@ class BipartiteGraph(Graph):
         # vertex)
         try:
             self.left.remove(vertex)
-        except StandardError:
+        except Exception:
             try:
                 self.right.remove(vertex)
-            except StandardError:
+            except Exception:
                 raise RuntimeError(
                     "Vertex (%s) not found in partitions" % vertex)
 
@@ -714,10 +714,10 @@ class BipartiteGraph(Graph):
         for vertex in vertices:
             try:
                 self.left.remove(vertex)
-            except StandardError:
+            except Exception:
                 try:
                     self.right.remove(vertex)
-                except StandardError:
+                except Exception:
                     raise RuntimeError(
                         "Vertex (%s) not found in partitions" % vertex)
 
@@ -771,7 +771,7 @@ class BipartiteGraph(Graph):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     u, v = u
                     label = None
         else:
@@ -1009,24 +1009,24 @@ class BipartiteGraph(Graph):
 
             sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
             sage: for order in range(3, 13, 3):
-            ...       num_chks = int(order / 3)
-            ...       num_vars = order - num_chks
-            ...       partition = (range(num_vars), range(num_vars, num_vars+num_chks))
-            ...       for idx in range(100):
-            ...           g = graphs.RandomGNP(order, 0.5)
-            ...           try:
-            ...               b = BipartiteGraph(g, partition, check=False)
-            ...               b.save_afile(file_name)
-            ...               b2 = BipartiteGraph(file_name)
-            ...               if b != b2:
-            ...                   print "Load/save failed for code with edges:"
-            ...                   print b.edges()
-            ...                   break
-            ...           except StandardError:
-            ...               print "Exception encountered for graph of order "+ str(order)
-            ...               print "with edges: "
-            ...               g.edges()
-            ...               raise
+            ....:     num_chks = int(order / 3)
+            ....:     num_vars = order - num_chks
+            ....:     partition = (range(num_vars), range(num_vars, num_vars+num_chks))
+            ....:     for idx in range(100):
+            ....:         g = graphs.RandomGNP(order, 0.5)
+            ....:         try:
+            ....:             b = BipartiteGraph(g, partition, check=False)
+            ....:             b.save_afile(file_name)
+            ....:             b2 = BipartiteGraph(file_name)
+            ....:             if b != b2:
+            ....:                 print "Load/save failed for code with edges:"
+            ....:                 print b.edges()
+            ....:                 break
+            ....:         except Exception:
+            ....:             print "Exception encountered for graph of order "+ str(order)
+            ....:             print "with edges: "
+            ....:             g.edges()
+            ....:             raise
         """
         # open the file
         try:

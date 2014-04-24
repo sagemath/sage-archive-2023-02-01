@@ -9,8 +9,8 @@ it makes the code easier to read in the \*_element.py files.
 
 These classes are not meant to be used by the user and are only supposed to be
 used internally to perform the bijections between
-:class:`TensorProductOfKirillovReshetikhinTableaux` and
-:class:`RiggedConfigurations`.
+:class:`~sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux`
+and :class:`RiggedConfigurations`.
 
 AUTHORS:
 
@@ -54,7 +54,7 @@ class KRTToRCBijectionAbstract:
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[3,1]]))
             sage: TestSuite(bijection).run()
@@ -81,7 +81,7 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[5,3]]))
             sage: bijection2 = KRTToRCBijectionTypeA(KRT(pathlist=[[5,3]]))
@@ -104,7 +104,7 @@ class KRTToRCBijectionAbstract:
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2, 1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: KRTToRCBijectionTypeA(KRT(pathlist=[[5,2]])).run()
             <BLANKLINE>
@@ -178,7 +178,7 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
             sage: bijection = KRTToRCBijectionTypeA(KRT(pathlist=[[5,3]]))
             sage: bijection.cur_path.insert(0, [])
@@ -211,7 +211,7 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
             sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[3,2]]))  
             sage: bijection._update_vacancy_nums(2)
@@ -250,7 +250,7 @@ class KRTToRCBijectionAbstract:
 
         TESTS::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
             sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[5,2]]))
             sage: bijection._update_partition_values(2)

@@ -340,13 +340,13 @@ class FGP_Module_class(Module):
         """
         if check:
             if not is_FreeModule(V):
-                raise TypeError, "V must be a FreeModule"
+                raise TypeError("V must be a FreeModule")
             if not is_FreeModule(W):
-                raise TypeError, "W must be a FreeModule"
+                raise TypeError("W must be a FreeModule")
             if not W.is_submodule(V):
-                raise ValueError, "W must be a submodule of V"
+                raise ValueError("W must be a submodule of V")
             if V.base_ring() != W.base_ring():
-                raise ValueError, "W and V must have the same base ring"
+                raise ValueError("W and V must have the same base ring")
         self._W = W
         self._V = V
         Module.__init__(self, base=V.base_ring())
@@ -458,9 +458,9 @@ class FGP_Module_class(Module):
             if is_FreeModule(other):
                 other = other / other.zero_submodule()
             else:
-                raise TypeError, "other must be an FGP module"
+                raise TypeError("other must be an FGP module")
         if not other.is_submodule(self):
-            raise ValueError, "other must be a submodule of self"
+            raise ValueError("other must be a submodule of self")
         return self._module_constructor(self._V, other._V+self._W)
 
     def __eq__(self, other):
@@ -614,8 +614,8 @@ class FGP_Module_class(Module):
         if isinstance(x, (list,tuple)):
             try:
                 x = self.optimized()[0].V().linear_combination_of_basis(x)
-            except ValueError, msg:
-                raise TypeError, msg
+            except ValueError as msg:
+                raise TypeError(msg)
         elif isinstance(x, FGP_Element):
             x = x.lift()
         return self.element_class(self, self._V(x))
@@ -635,8 +635,8 @@ class FGP_Module_class(Module):
         """
         try:
             x = self.optimized()[0].V().linear_combination_of_basis(x)
-        except ValueError, msg:
-            raise TypeError, msg
+        except ValueError as msg:
+            raise TypeError(msg)
         return self.element_class(self, self._V(x))
 
     def __contains__(self, x):
@@ -708,16 +708,16 @@ class FGP_Module_class(Module):
         """
         if is_FGP_Module(x):
             if not x._W.is_submodule(self._W):
-                raise ValueError, "x.W() must be contained in self's W."
+                raise ValueError("x.W() must be contained in self's W.")
 
             V = x._V
             if not V.is_submodule(self._V):
-                raise ValueError, "x.V() must be contained in self's V."
+                raise ValueError("x.V() must be contained in self's V.")
 
             return x
 
         if not isinstance(x, (list, tuple)):
-            raise TypeError, "x must be a list, tuple, or FGP module"
+            raise TypeError("x must be a list, tuple, or FGP module")
 
         x = Sequence(x)
         if is_FGP_Module(x.universe()):
@@ -1128,7 +1128,7 @@ class FGP_Module_class(Module):
         """
         v = self.gens()
         if i < 0 or i >= len(v):
-            raise ValueError, "Generator %s not defined"%i
+            raise ValueError("Generator %s not defined"%i)
         return v[i]
 
     def smith_form_gen(self, i):
@@ -1152,7 +1152,7 @@ class FGP_Module_class(Module):
         """
         v = self.smith_form_gens()
         if i < 0 or i >= len(v):
-            raise ValueError, "Smith form generator %s not defined"%i
+            raise ValueError("Smith form generator %s not defined"%i)
         return v[i]
 
     def optimized(self):
@@ -1388,7 +1388,7 @@ class FGP_Module_class(Module):
         r = A.hom([x.lift() for x in im_gens], N.V())
         if check:
             if not r(B).is_submodule(N.W()):
-                raise ValueError, "Images do not determine a valid homomorphism"
+                raise ValueError("Images do not determine a valid homomorphism")
         smith_images = Sequence([N(r(q.lift(x.lift()))) for x in self.smith_form_gens()])
         return self._hom_from_smith(smith_images, check=DEBUG)
 
@@ -1417,7 +1417,7 @@ class FGP_Module_class(Module):
             Morphism from module over Integer Ring with invariants (3,) to module with invariants (3,) that sends the generators to [(1), (1)]
         """
         if len(im_smith_gens) != len(self.smith_form_gens()):
-            raise ValueError, "im_gens must have length the same as self.smith_form_gens()"
+            raise ValueError("im_gens must have length the same as self.smith_form_gens()")
 
         # replace self by representation in which smith-gens g_i are a basis for V.
         M, _ = self.optimized()
@@ -1428,17 +1428,26 @@ class FGP_Module_class(Module):
         phi = FGP_Morphism(homspace, f, check=DEBUG)
         return phi
 
-    def Hom(self, N):
+    def _Hom_(self, N, category=None):
         """
         EXAMPLES::
 
             sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ); W = V.span([V.0+2*V.1, 9*V.0+2*V.1, 4*V.2])
             sage: Q = V/W
-            sage: Q.Hom(Q)
+            sage: Q.Hom(Q)     # indirect doctest
             Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (4, 16) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of modules over Integer Ring
             sage: M = V/V.zero_submodule()
-            sage: M.Hom(Q)
+            sage: H = M.Hom(Q); H
             Set of Morphisms from Finitely generated module V/W over Integer Ring with invariants (0, 0, 0) to Finitely generated module V/W over Integer Ring with invariants (4, 16) in Category of modules over Integer Ring
+            sage: Hom(M,Q) is H
+            True
+            sage: type(Hom(M,Q))
+            <class 'sage.modules.fg_pid.fgp_morphism.FGP_Homset_class_with_category'>
+            sage: H.category()
+            Category of hom sets in Category of modules over Integer Ring
+            sage: H.homset_category()
+            Category of modules over Integer Ring
+
         """
         return FGP_Homset(self, N)
 
@@ -1512,10 +1521,10 @@ class FGP_Module_class(Module):
             True
         """
         if self.base_ring() != ZZ:
-            raise NotImplementedError, "only implemented over ZZ"
+            raise NotImplementedError("only implemented over ZZ")
         v = self.invariants()
         if 0 in v:
-            raise NotImplementedError, "currently self must be finite to iterate over"
+            raise NotImplementedError("currently self must be finite to iterate over")
         B = self.optimized()[0].V().basis_matrix()
         V = self.base_ring()**B.nrows()
         from sage.misc.mrange import cartesian_product_iterator

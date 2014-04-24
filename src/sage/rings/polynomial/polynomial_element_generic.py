@@ -212,7 +212,7 @@ class Polynomial_generic_sparse(Polynomial):
         d = {}
         for n, c in self.__coeffs.iteritems():
             d[n-1] = n*c
-        if d.has_key(-1):
+        if -1 in d:
             del d[-1]
         return P(d)
 
@@ -254,8 +254,7 @@ class Polynomial_generic_sparse(Polynomial):
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        coeffs = list(self.__coeffs.iteritems())
-        coeffs.sort()
+        coeffs = sorted(self.__coeffs.iteritems())
         for (n, x) in reversed(coeffs):
             if x != 0:
                 if n != m-1:
@@ -329,7 +328,7 @@ class Polynomial_generic_sparse(Polynomial):
             P = self.parent()
             return P(v)
         else:
-            if not self.__coeffs.has_key(n):
+            if n not in self.__coeffs:
                 return self.base_ring()(0)
             return self.__coeffs[n]
 
@@ -357,9 +356,9 @@ class Polynomial_generic_sparse(Polynomial):
         value = self.base_ring()(value)
         x = self.__coeffs
         if n < 0:
-            raise IndexError, "polynomial coefficient index must be nonnegative"
+            raise IndexError("polynomial coefficient index must be nonnegative")
         if value == 0:
-            if x.has_key(n):
+            if n in x:
                 del x[n]
         else:
             x[n] = value
@@ -612,7 +611,7 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         """
         P = self.parent()
         if other.is_zero():
-            raise ZeroDivisionError, "other must be nonzero"
+            raise ZeroDivisionError("other must be nonzero")
 
         # This is algorithm 3.1.1 in Cohen GTM 138
         A = self
@@ -632,17 +631,32 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             R = R[:R.degree()] - (aaa*B[:B.degree()]).shift(diff_deg)
         return (Q, R)
 
-    def _gcd(self, other):
+    @coerce_binop
+    def gcd(self, other):
         """
-        Return the GCD of self and other, as a monic polynomial.
+        Return the greatest common divisor of this polynomial and ``other``, as
+        a monic polynomial.
+
+        INPUT:
+
+        - ``other`` -- a polynomial defined over the same ring as ``self``
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (2*x).gcd(2*x^2)
+            x
+
         """
-        g = EuclideanDomainElement._gcd(self, other)
+        from sage.categories.euclidean_domains import EuclideanDomains
+        g = EuclideanDomains().ElementMethods().gcd(self, other)
         c = g.leading_coefficient()
         if c.is_unit():
             return (1/c)*g
         return g
 
-    def _xgcd(self, other):
+    @coerce_binop
+    def xgcd(self, other):
         r"""
         Extended gcd of ``self`` and polynomial ``other``.
 

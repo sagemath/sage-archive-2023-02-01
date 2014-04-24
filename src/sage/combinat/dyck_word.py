@@ -1609,8 +1609,8 @@ class DyckWord(CombinatorialObject, Element):
             [1, 1, 1, 0, 0, 1, 0, 0]
             sage: ip.interval_cardinality()
             4
-            sage: ip.length_of_maximal_chain()
-            3
+            sage: ip.number_of_tamari_inversions()
+            2
             sage: list(ip.dyck_words())
             [[1, 1, 1, 0, 0, 1, 0, 0],
              [1, 1, 1, 0, 0, 0, 1, 0],

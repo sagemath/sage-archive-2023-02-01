@@ -43,6 +43,8 @@ AUTHORS:
 
 - Viviane Pons 2014: initial implementation
 - Frederic Chapoton 2014: review
+- Darij Grinberg 2014: review
+- Travis Scrimshaw 2014: review
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Viviane Pons <viviane.pons@univie.ac.at>,
@@ -1151,6 +1153,19 @@ class TamariIntervalPoset(Element):
         """
         return self.parent().gt(self, el2)
 
+    def __iter__(self):
+        r"""
+        Iterate through the vertices of ``self``.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(4,[(1,2),(3,2)])
+            sage: [i for i in ip]
+            [1, 2, 3, 4]
+        """
+        return xrange(1,self.size()+1).__iter__()
+
+
     def contains_interval(self, other):
         r"""
         Return whether the interval represented by ``other`` is contained
@@ -1823,24 +1838,29 @@ class TamariIntervalPoset(Element):
         for ip in self.lower_contained_intervals():
             yield ip.upper_dyck_word()
 
-    def maximal_chain_intervals(self):
+    def maximal_chain_tamari_intervals(self):
         r"""
         Return an iterator on the upper contained intervals of one
-        maximal chain of ``self``.
+        longest chain of the Tamari interval represented by ``self``.
 
         If ``self`` represents the interval `[T_1,T_2]` of the Tamari
         lattice, this returns intervals `[T',T_2]` with `T'` following
-        one maximal chain between `T_1` and `T_2`.
+        one longest chain between `T_1` and `T_2`.
 
+        To obtain a maximal chain, we use the Tamari inversions of ``self``.
+        The elements of the chain are obtained by adding one by one the 
+        relations `(b,a)` from Tamari inversion `(a,b)` to ``self``, where
+        the Tamari inversions are taken in lexicoxagraphic order.
+        
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: list(ip.maximal_chain_intervals())
+            sage: list(ip.maximal_chain_tamari_intervals())
             [The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)],
              The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (4, 1), (3, 1), (2, 1)],
              The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (4, 1), (3, 2), (2, 1)]]
             sage: ip = TamariIntervalPoset(4,[])
-            sage: list(ip.maximal_chain_intervals())
+            sage: list(ip.maximal_chain_tamari_intervals())
             [The tamari interval of size 4 induced by relations [],
              The tamari interval of size 4 induced by relations [(2, 1)],
              The tamari interval of size 4 induced by relations [(3, 1), (2, 1)],
@@ -1850,31 +1870,12 @@ class TamariIntervalPoset(Element):
              The tamari interval of size 4 induced by relations [(4, 3), (3, 2), (2, 1)]]
         """
         yield self
-        size = self.size()
-        rel = list(self._cover_relations)
-        ti = self
-        # we add relations in this order
-        # 2 -> 1
-        # 3 -> 1
-        # 4 -> 1
-        # 3 -> 2
-        # 4 -> 2
-        # 4 -> 3
-        for i in xrange(1, size):
-            for j in xrange(i + 1, size + 1):
-                # Loop invariant: the poset ti has a relation k->i
-                # for every k satisfying i < k < j.
-                if ti.le(j, i):
-                    #the relation j->i is already there, we go to the next j
-                    continue
-                if ti.le(i, j):
-                    #there is a relation i->j which forbids any (>=j)->i
-                    # we go to the next i
-                    break
-                # there is no j->i or i->j, so we add j->i
-                rel.append((j, i))
-                ti = TamariIntervalPoset(size, rel)
-                yield ti
+        ip = self
+        cover_relations = list(ip._cover_relations)
+        for inv in self.tamari_inversions():
+            cover_relations.append((inv[1],inv[0]))
+            ip = TamariIntervalPoset(ip.size(), cover_relations)
+            yield ip
 
     def maximal_chain_binary_trees(self):
         r"""
@@ -1897,7 +1898,7 @@ class TamariIntervalPoset(Element):
              [., [., [[., .], .]]],
              [., [., [., [., .]]]]]
         """
-        for it in self.maximal_chain_intervals():
+        for it in self.maximal_chain_tamari_intervals():
             yield it.lower_binary_tree()
 
     def maximal_chain_dyck_words(self):
@@ -1921,27 +1922,87 @@ class TamariIntervalPoset(Element):
              [1, 1, 1, 0, 1, 0, 0, 0],
              [1, 1, 1, 1, 0, 0, 0, 0]]
         """
-        for it in self.maximal_chain_intervals():
+        for it in self.maximal_chain_tamari_intervals():
             yield it.lower_dyck_word()
 
-    def length_of_maximal_chain(self):
+    def tamari_inversions(self):
         r"""
-        Return the length of a maximal chain of ``self`` (regarding
-        ``self`` as an interval of the Tamari lattice).
+        Return the Tamari inversions of ``self``. A Tamari inversion is 
+        a couple of vertices `(a,b)' with `a < b` such that:
+
+        - the decreasing parent of `b` is strictly lower than `a`,
+        - the increasing parent of `a` is stricly bigger than `b`.
+
+        The number of Tamari inversions corresponds the length of the 
+        longest chain of the Tamari interval represented by ``self``. 
+
+        Indeed, when an interval is reduced to one binary tree, it has no
+        inversion. One can also prove that if `I=[T_1,T_2]' and
+        `I'=[T_1',T_2']` with `T_2' = T_2` and `T_1' \geq T_1`, then the 
+        inversion number of `I'` is stricly lower than the inversion 
+        number of `I`. And finally, by adding the relation `(b,a)` to the 
+        interval-poset where `(a,b)` is the first inversion of `I` in 
+        lexicographic order, one reduces the inversion number by excatly 
+        one.
+
+        EXAMPLES::
+
+            sage: ip = TamariIntervalPoset(3,[])
+            sage: ip.tamari_inversions()
+            [(1, 2), (1, 3), (2, 3)]
+            sage: ip = TamariIntervalPoset(3,[(2,1)])
+            sage: ip.tamari_inversions()
+            [(1, 3), (2, 3)]
+            sage: ip = TamariIntervalPoset(3,[(1,2)])
+            sage: ip.tamari_inversions()
+            [(2, 3)]  
+            sage: ip = TamariIntervalPoset(3,[(1,2),(3,2)])
+            sage: ip.tamari_inversions()
+            []
+            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
+            sage: ip.tamari_inversions()
+            [(1, 4), (2, 3)]
+            sage: ip = TamariIntervalPoset(4,[])
+            sage: ip.tamari_inversions()
+            [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]
+            sage: all([len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(3)])
+            True
+            sage: all([len(TamariIntervalPosets.from_binary_trees(bt,bt).tamari_inversions())==0 for bt in BinaryTrees(4)])
+            True
+
+        """
+
+        inversions = []
+        for a in self:
+            for b in xrange(a+1,self.size()+1):
+                dpb = self.decreasing_parent(b)
+                ipa =  self.increasing_parent(a)
+                if ipa is None or ipa>b:
+                    if dpb is None or dpb < a:
+                        inversions.append((a,b))
+                else:
+                    break # if ipa<b then ipa <c for all c>b
+        return inversions
+
+    def number_of_tamari_inversions(self):
+        r"""
+        Return the number of Tamari inversions of ``self``. This is also
+        the length the longest chain of the Tamari interval represented 
+        by ``self``.  
 
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: ip.length_of_maximal_chain()
-            3
+            sage: ip.number_of_tamari_inversions()
+            2
             sage: ip = TamariIntervalPoset(4,[])
-            sage: ip.length_of_maximal_chain()
-            7
+            sage: ip.number_of_tamari_inversions()
+            6
             sage: ip = TamariIntervalPoset(3,[])
-            sage: ip.length_of_maximal_chain()
-            4
+            sage: ip.number_of_tamari_inversions()
+            3
         """
-        return len(list(self.maximal_chain_intervals()))
+        return len(self.tamari_inversions())
 
 
 # Abstract class to serve as a Factory ; no instances are created.

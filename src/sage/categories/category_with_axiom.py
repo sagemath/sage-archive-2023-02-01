@@ -105,6 +105,11 @@ all the methods of finite sets and of finite `C`'s, as desired::
       for finite ``Cs``. To keep the analogy, this mixin class is to
       be put in ``Cs.Finite``.
 
+      (Warning: The semantics of ``Cs.Finite`` has to always be
+      "``Cs`` which are finite as sets". The standard notation
+      "finite free modules" for free modules of finite rank must
+      *not* be implemented as ``Modules.Free.Finite``.)
+
     - It may come as a surprise that we can actually use the same name
       ``Finite`` for the mixin class and for the method defining the
       axiom; indeed, by default a class does not have a binding

@@ -718,21 +718,22 @@ class Magmas(Category_singleton):
 
     class Subquotients(SubquotientsCategory):
         r"""
-        The category of sub/quotient magmas.
+        The category of subquotient magmas.
 
-        Let `G` and `S` be two magmas and `l: S \mapsto G` and
-        `r: G \mapsto S` be two maps such that:
+        Let `G` and `S` be two magmas and `l: S \to G` and
+        `r: G \to S` be two maps such that:
 
-         - `r \circ l` is the identity of `G`.
+         - `r \circ l` is the identity of `S`.
 
-         - for any two `a,b\in S` the identity `a \times_S b = r(l(a) \times_G l(b))` holds.
+         - for any two `a,b \in S` the identity
+           `a \times_S b = r(l(a) \times_G l(b))` holds.
 
-        The category Subquotient implements the product `\times_S` from `l` and `r`
-        and the product of `G`.
+        The category ``Subquotients`` implements the product
+        `\times_S` from `l` and `r` and the product of `G`.
 
-        `S` is supposed to belongs the category
+        `S` is supposed to belong the category
         ``Magmas().Subquotients()`` and to specify `G` under the name
-        ``S.ambient()`` and to implement `x\to l(x)` and `y \to r(y)`
+        ``S.ambient()`` and to implement `x \to l(x)` and `y \to r(y)`
         under the names ``S.lift(x)`` and ``S.retract(y)``.
 
         EXAMPLES::
@@ -749,7 +750,7 @@ class Magmas(Category_singleton):
 
             def product(self, x, y):
                 """
-                Returns the product of two elements of self.
+                Return the product of two elements of ``self``.
 
                 EXAMPLES::
 

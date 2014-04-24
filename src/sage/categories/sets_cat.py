@@ -80,9 +80,9 @@ class EmptySetError(ValueError):
 
 class Sets(Category_singleton):
     r"""
-    The category of sets
+    The category of sets.
 
-    The base category for collections of elements with = (equality)
+    The base category for collections of elements with = (equality).
 
     This is also the category whose objects are all parents.
 
@@ -304,23 +304,24 @@ class Sets(Category_singleton):
         @cached_method
         def Subquotients(self):
             r"""
-            Return the full subcategory of the objects of ``self`` constructed as subquotients.
+            Return the full subcategory of the objects of ``self``
+            constructed as subquotients.
 
-            Given a concrete category ``self == As()`` (i.e. a subcategory of
-            ``Sets()``), ``As().Subquotients()`` returns the category of objects
-            of ``As()`` endowed with a distinguished description as
-            subquotient of some other object of ``As()``.
+            Given a concrete category ``self == As()`` (i.e. a subcategory
+            of ``Sets()``), ``As().Subquotients()`` returns the category
+            of objects of ``As()`` endowed with a distinguished
+            description as subquotient of some other object of ``As()``.
 
             EXAMPLES::
 
                 sage: Monoids().Subquotients()
                 Category of subquotients of monoids
 
-            A parent `A` in ``As()`` is further in ``As().Subquotients()`` if
-            there is a distinguished parent `B` in ``As()``, called the
-            *ambient set*, a subset `B'` of `B`, and a pair of maps:
+            A parent `A` in ``As()`` is further in ``As().Subquotients()``
+            if there is a distinguished parent `B` in ``As()``, called the
+            *ambient set*, a subobject `B'` of `B`, and a pair of maps:
 
-            .. math::
+            .. MATH::
 
                 l: A \to B'  \text{ and }  r: B' \to A
 
@@ -329,11 +330,15 @@ class Sets(Category_singleton):
             *structure preserving*. What exactly *structure
             preserving* means is explicited in each category; this
             typically states that, for each operation `op` of the
-            category, there is a commutative diagram such that:
+            category, we have:
 
                 for all `e\in A`, one has `op_A(e) = r(op_B(l(e)))`
 
-            This allows for deriving the operations on `A` from those on `B`.
+            (this is often represented as a commutative diagram,
+            and can be rewritten without reference to `l`).
+
+            This allows for deriving the operations on `A` from those on
+            `B`.
 
             The two most common use cases are:
 
@@ -346,40 +351,52 @@ class Sets(Category_singleton):
 
             .. NOTE::
 
-                This is a slightly weaker definition than that found
-                on :wikipedia:`Subquotient` since `B'` is not
-                necessarily required to be a subobject of `B`. On the
-                other hand, the existence of both `l` and `r` is
-                required for computability.
+                The definition of "subquotient" used in Sage is somewhat
+                different from the one used in mathematics
+                (:wikipedia:`Subquotient`); most importantly, it
+                involves two maps `r` and `l` instead of just one
+                epimorphism `r` (although the map `l` is only used
+                in computations but does not have any effect on
+                their results). This is relatively harmless when the
+                category is a concrete category (i.e., its objects are
+                sets and its morphisms are set maps), and is owed to
+                computability concerns.
 
             Assumptions:
 
             - For any category ``As()``, ``As().Subquotients()`` is a
-              subcategory of ``As()``.
+              subcategory of ``As()`` (in Sage's meaning of the word
+              "subcategory").
 
-              Example: a subquotient of a group is a group (e.g. a left or right
-              quotients of a group by a non normal subgroup is not in this category).
+              Example: a subquotient of a group is a group (e.g., a left
+              or right quotient of a group by a non-normal subgroup is
+              not in this category).
 
-            - This construction is covariant: if ``As()`` is a subcategory of
-              ``Bs()``, then ``As().Subquotients()`` is a subcategory of
-              ``Bs().Subquotients()``
+            - This construction is covariant: if ``As()`` is a
+              subcategory of ``Bs()``, then ``As().Subquotients()`` is a
+              subcategory of ``Bs().Subquotients()``.
 
-              Example: if `A` is a distinguished subquotient of `B` in the category of
-              groups, then is is also a subquotient of `B` in the category of monoids.
+              Example: if `A` is a subquotient of `B` in the category of
+              groups, then it is also a subquotient of `B` in the category
+              of monoids.
 
-            - If the user (or a program) calls ``As().Subquotients()``, then it is
-              assumed that subquotients are well defined in this category. This is not
-              checked, and probably never will. Note that, if a category `As()` does
-              not specify anything about its subquotients, then its subquotient
+            - If the user (or a program) calls ``As().Subquotients()``,
+              then it is assumed that subquotients are well defined in
+              this category. This is not checked, and probably never will
+              be. Note that, if a category ``As()`` does not specify
+              anything about its subquotients, then its subquotient
               category looks like this::
 
                  sage: EuclideanDomains().Subquotients()
                  Join of Category of euclidean domains and Category of subquotients of monoids
 
-            Interface: the ambient space of `B` is given by ``B.ambient()``. The
-            lifting and retract map are implemented respectively as methods
-            ``B.lift(b)`` and ``B.retract(a)``. As a shorthand, one can use
-            alternatively ``b.lift()``::
+            Interface: the ambient set `B` of `A` is given by
+            ``A.ambient()``. The subset `B'` needs not be specified, so
+            the retract map is handled as a partial map from `B` to `A`.
+            The lifting and retract map are implemented
+            respectively as methods ``A.lift(a)`` and ``A.retract(b)``.
+            As a shorthand for the former, one can use alternatively
+            ``a.lift()``::
 
                 sage: S = Semigroups().Subquotients().example(); S
                 An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
@@ -409,7 +426,8 @@ class Sets(Category_singleton):
         @cached_method
         def Quotients(self):
             r"""
-            Return the full subcategory of the objects of ``self`` constructed as quotients.
+            Return the full subcategory of the objects of ``self``
+            constructed as quotients.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
             ``Sets()``), ``As().Quotients()`` returns the category of

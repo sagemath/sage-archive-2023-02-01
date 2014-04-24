@@ -2,11 +2,13 @@ r"""
 Covariant Functorial Constructions
 
 A *functorial construction* is a collection of functors
-`(F_{Cat})_{Cat}` which associate to parents `A, B, ...` in some
-category `Cat` a parent `F_{Cat}(A, B, ...)`. Examples of functorial
+`(F_{Cat})_{Cat}` (indexed by a class of categories) which associate
+to a sequence of parents `(A, B, ...)` in a category `Cat` a parent
+`F_{Cat}(A, B, ...)`. Examples of functorial
 constructions are `F` = cartesian product, tensor product,
-`\QQ`-algebras, ... The category of `F_{Cat}(A, B, ...)`, which only
-depends on `Cat`, is called the (functorial) construction category.
+`\QQ`-algebra (aka free `\QQ`-module), ... The category of
+`F_{Cat}(A, B, ...)`, which only depends on `Cat`, is called the
+(functorial) construction category.
 
 A functorial construction is *(category)-covariant* if for every
 categories `Cat` and `SuperCat`, the category of `F_{Cat}(A, B, ...)`
@@ -16,11 +18,11 @@ is a subcategory of the category of `F_{SuperCat}(A, B, ...)` whenever
 subcategory of `Cat`.
 
 The goal of this module is to provide generic support for covariant
-functorial constructions. In particular, given some parent `A`, `B`,
-`C` of respective categories `Cat_A`, `Cat_B`, `Cat_C`, it provide
-tools for calculating the best known category for the parent
-`F(A,B,C)`. For examples, knowing that cartesian products of
-semigroups (resp. monoids, groups), have a structure of semigroups
+functorial constructions. In particular, given some parents `A`, `B`,
+..., `C` in respective categories `Cat_A`, `Cat_B`, ..., `Cat_C`, it
+provides tools for calculating the best known category for the parent
+`F(A,B,...,C)`. For examples, knowing that cartesian products of
+semigroups (resp. monoids, groups) have a structure of semigroups
 (resp. monoids, groups), and given a group `B` and two monoids `A` and
 `C` it can calculate that `A \times B \times C` is naturally endowed
 with a monoid structure.
@@ -47,7 +49,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     r"""
     An abstract class for construction functors `F` (eg `F` = cartesian
-    product, tensor product, `\QQ`-algebras, ...) such that:
+    product, tensor product, `\QQ`-algebra, ...) such that:
 
      - Each category `Cat` (eg `Cat=` ``Groups()``) can provide a category
        `F_{Cat}` for parents constructed via this functor (e.g.
@@ -57,9 +59,10 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
        `F_{SuperCat}` for every super category `SuperCat` of
        `Cat` (the functorial construction is (category)-covariant).
 
-     - For parents `A`, `B`, `C` respectively in the categories `Cat_A`,
-       `Cat_B`, `Cat_C`, the category of `F(A,B,C)` is `F_{Cat}`
-       where `Cat` is the meet of the categories `Cat_A`, `Cat_B`, `Cat_C`.
+     - For parents `A`, `B`, ..., `C` respectively in the categories
+       `Cat_A`, `Cat_B`, ..., `Cat_C`, the category of `F(A,B,...,C)` is
+       `F_{Cat}` where `Cat` is the meet of the categories
+       `Cat_A`, `Cat_B`, ..., `Cat_C`.
 
     This covers two slightly different use cases:
 
@@ -78,7 +81,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
        mathematical information about that parent.
 
     The main purpose of this class is to handle automatically the
-    trivial part of the category hiearchy. For example,
+    trivial part of the category hierarchy. For example,
     ``CartesianProductsOf(Groups())`` is set automatically as a
     subcategory of ``CartesianProductsOf(Monoids())``.
 
@@ -120,7 +123,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
     def category_from_parents(self, parents):
         """
-        Returns the category of `F(A,B,C)` for `A,B,C` parents.
+        Returns the category of `F(A,B,...,C)` for `A,B,...,C` parents.
 
         INPUT:
 
@@ -144,7 +147,8 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     @cached_method
     def category_from_categories(self, categories):
         """
-        Returns the category of `F(A,B,C)` for `A,B,C` parents in the given categories
+        Return the category of `F(A,B,...,C)` for `A,B,...,C` parents in
+        the given categories.
 
         INPUT:
 
@@ -166,7 +170,8 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
     def category_from_category(self, category):
         """
-        Returns the category of `F(A,B,C)` for `A,B,C` parents in ``category``
+        Return the category of `F(A,B,...,C)` for `A,B,...,C` parents in
+        ``category``.
 
         INPUT:
 
@@ -243,8 +248,9 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
     @cached_function
     def category_of(cls, category, *args):
         """
-        This is the main entry point for constructing the category `F_{Cat}`
-        of parents `F(A,B,C)` constructed from parents `A,B,C` in `Cat`.
+        This is the main entry point for constructing the category
+        `F_{Cat}` of parents `F(A,B,...,C)` constructed from parents
+        `A,B,...,C` in `Cat`.
 
         INPUT:
 
@@ -273,8 +279,8 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
     @classmethod
     def default_super_categories(cls, category, *args):
         """
-        Returns the default super categories of `F_{Cat}(A,B,C)` for `A,B,C`
-        parents in `Cat`.
+        Return the default super categories of `F_{Cat}(A,B,...,C)` for
+        `A,B,...,C` parents in `Cat`.
 
         INPUT:
 
@@ -285,8 +291,8 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         OUTPUT: a (join) category
 
         The default implementation is to return the join of the
-        categories of `F(A,B,C)` for `A,B,C` in turn in each of the
-        super categories of ``category``.
+        categories of `F(A,B,...,C)` for `A,B,...,C` in turn in each of
+        the super categories of ``category``.
 
         This is implemented as a class method, in order to be able to
         reconstruct the functorial category associated to each of the

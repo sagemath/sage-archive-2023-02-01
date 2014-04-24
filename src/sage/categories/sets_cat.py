@@ -342,12 +342,12 @@ class Sets(Category_singleton):
 
             The two most common use cases are:
 
-             - *homomorphic images* (or *quotients* by *kernels*),
-               when `B'=B`, `r` is an homomorphism from `B` to `A`
-               (typically a canonical quotient map), and `l` a section
-               of it.
+             - *homomorphic images* (or *quotients*), when `B'=B`,
+               `r` is an homomorphism from `B` to `A` (typically a
+               canonical quotient map), and `l` a section of it (not
+               necessarily a homomorphism);
 
-             - *subobjects*, when `l` is an embedding from `A` into `B`.
+             - *subobjects*, when `l` and `r` are identity maps.
 
             .. NOTE::
 

@@ -794,7 +794,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
     def some_elements(self):
         r"""
-        Return some elements in that finite field.
+        Return some elements of this field.
 
         EXAMPLES::
 
@@ -822,6 +822,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         z4^3 + z4^2 + 4*z4
         sage: x**12
         3
+
     """
     def __init__(self, base_ring, name, category=None):
         """
@@ -892,11 +893,13 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
 
 def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=None, **kwds):
     """
-    Function for constructing algebraic closures of finite fields.
+    Construct an algebraic closure of a finite field.
 
-    This does not have unique representation, because algebraic
-    closures of finite fields are not determined up to unique
-    isomorphism by their defining data.
+    .. NOTE::
+
+        Algebraic closures of finite fields in Sage do not have the
+        unique representation property, because they are not
+        determined up to unique isomorphism by their defining data.
 
     EXAMPLES::
 

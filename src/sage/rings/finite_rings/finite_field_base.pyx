@@ -1019,12 +1019,12 @@ cdef class FiniteField(Field):
 
         INPUT:
 
-        - ``name`` -- string: prefix to use for variable names of
-          subfields
+        - ``name`` -- string (default: 'z'): prefix to use for
+          variable names of subfields
 
-        - ``implementation`` -- an optional string that specifies the
-          implementation used (for more details, see
-          :mod:`~sage.rings.algebraic_closure.finite_fields`)
+        - ``implementation`` -- string (optional): specifies how to
+          construct the algebraic closure.  For more details, see
+          :mod:`~sage.rings.algebraic_closure_finite_field`.
 
         EXAMPLE::
 

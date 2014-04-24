@@ -73,6 +73,24 @@ plain number, without the number sign in front.
     the dev scripts will work again.
 
 
+Finally, keep in mind that there is help and a good listing of options
+for ``sage -dev`` available::
+
+    [user@localhost]$ ./sage -dev -h
+    usage: sage-dev [-h] subcommand ...
+
+    The developer interface for sage.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+
+    subcommands:
+        abandon             Abandon a ticket or branch.
+        checkout            Checkout another branch.
+    ...
+        vanilla             Return to a clean version of Sage.
+
+
 .. _section-devscript-add:
 
 Contributing to the Sage Source Code

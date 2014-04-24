@@ -9,7 +9,7 @@ Functions
 """
 from sage.misc.cachefunc import cached_function
 
-def transversal_design(k,n,check=True,availability=False):
+def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -43,6 +43,11 @@ def transversal_design(k,n,check=True,availability=False):
       to build such a design. This should be much faster than actually building
       it.
 
+    - ``who_asked`` (internal use only) -- because of the equivalence between
+      OA/TD/MOLS, each of the three constructors calls the others. We must keep
+      track of who calls who in order to avoid infinite loops. ``who_asked`` is
+      the tuple of the other functions that were called before this one.
+
     .. NOTE::
 
         This function returns transversal designs with
@@ -75,17 +80,19 @@ def transversal_design(k,n,check=True,availability=False):
     """
     if n == 12 and k <= 6:
         TD = [l[:k] for l in TD6_12()]
-    # Section 6.6 of [Stinson2004]
-    elif orthogonal_array(k,n, check = False, availability = True):
-        if availability:
-            return True
-        OA = orthogonal_array(k,n, check = False)
-        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     elif find_wilson_decomposition(k,n):
         if availability:
             return True
         TD = wilson_construction(*find_wilson_decomposition(k,n), check = False)
+
+    # Section 6.6 of [Stinson2004]
+    elif (orthogonal_array not in who_asked and
+          orthogonal_array(k, n, availability=True, who_asked = who_asked + (transversal_design,))):
+        if availability:
+            return True
+        OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
+        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     else:
         if availability:
@@ -327,7 +334,7 @@ def wilson_construction(k,m,t,u, check = True):
 
     return TD
 
-def orthogonal_array(k,n,t=2,check=True,availability=False):
+def orthogonal_array(k,n,t=2,check=True,availability=False,who_asked=tuple()):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -359,6 +366,11 @@ def orthogonal_array(k,n,t=2,check=True,availability=False):
       function only returns boolean answers according to whether Sage knows how
       to build such an array. This should be much faster than actually building
       it.
+
+    - ``who_asked`` (internal use only) -- because of the equivalence between
+      OA/TD/MOLS, each of the three constructors calls the others. We must keep
+      track of who calls who in order to avoid infinite loops. ``who_asked`` is
+      the tuple of the other functions that were called before this one.
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.
@@ -446,12 +458,20 @@ def orthogonal_array(k,n,t=2,check=True,availability=False):
                 l.append(i%n)
             OA = M
 
+    elif (t == 2 and transversal_design not in who_asked and
+          transversal_design(k,n,availability=True, who_asked=who_asked+(orthogonal_array,))):
+        if availability:
+            return True
+        TD = transversal_design(k,n,check=False,who_asked=who_asked+(orthogonal_array,))
+        OA = [[x%n for x in R] for R in TD]
+
     # Section 6.5.1 from [Stinson2004]
-    elif t == 2 and mutually_orthogonal_latin_squares(n,k-2, availability=True):
+    elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
+          mutually_orthogonal_latin_squares(n,k-2, availability=True,who_asked=who_asked+(orthogonal_array,))):
         if availability:
             return True
 
-        mols = mutually_orthogonal_latin_squares(n,k-2)
+        mols = mutually_orthogonal_latin_squares(n,k-2,who_asked=who_asked+(orthogonal_array,))
         OA = [[i,j]+[m[i,j] for m in mols]
               for i in range(n) for j in range(n)]
 

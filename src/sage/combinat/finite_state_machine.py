@@ -2528,7 +2528,7 @@ class FiniteStateMachine(SageObject):
           used for the length of the arrow leading from a final state.
           If not given, TikZ' default (currently ``'3ex'``) is used
           unless there are non-empty final output words, in which case
-          ``'5ex'`` is used.
+          ``'7ex'`` is used.
 
         - ``accepting_where`` -- a dictionary or a function mapping
           labels of final states to one of ``'above'``, ``'left'``,
@@ -2825,7 +2825,7 @@ class FiniteStateMachine(SageObject):
         if hasattr(self, "accepting_distance"):
             accepting_distance = self.accepting_distance
         elif nonempty_final_word_out:
-            accepting_distance = "5ex"
+            accepting_distance = "7ex"
         else:
             accepting_distance = None
         if accepting_style == "accepting by arrow" and accepting_distance:

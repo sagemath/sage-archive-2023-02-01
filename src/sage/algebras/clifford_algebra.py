@@ -347,13 +347,26 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: [a*b-b*a for a in Cl.basis() for b in Cl.basis()]
             [0, 0, 0, 0, 0, 0, 2*x*y - 1, -x - 2*y, 0,
              -2*x*y + 1, 0, 6*x + y, 0, x + 2*y, -6*x - y, 0]
+
+        Exterior algebras inherit from Clifford algebras, so
+        supercommutators work as well::
+
+            sage: E.<x,y,z,w> = ExteriorAlgebra(QQ)
+            sage: x.supercommutator(y)
+            0
+            sage: x.supercommutator(y*z*w)
+            0
+            sage: x.supercommutator(y*z)
+            2*x^y^z
+            sage: (x*y).supercommutator(z*w)
+            0
         """
         P = self.parent()
         ret = P.zero()
         for ms,cs in self:
             for mx,cx in x:
                 ret += P.term(ms, cs) * P.term(mx, cx)
-                if P.degree_on_basis(ms) and P.degree_on_basis(mx): # These degrees are 0 or 1.
+                if P.degree_on_basis(ms) % 2 and P.degree_on_basis(mx) % 2: # These degrees are 0 or 1.
                     ret += P.term(mx, cx) * P.term(ms, cs)
                 else:
                     ret -= P.term(mx, cx) * P.term(ms, cs)
@@ -810,12 +823,19 @@ class CliffordAlgebra(CombinatorialFreeModule):
         r"""
         Return the degree of the monomial indexed by ``m``.
 
-        This degree is either `0` or `1`, and should be interpreted as a
-        residue class modulo `2`, since we consider ``self`` to be
+        This degree is a nonnegative integer, and should be interpreted
+        as a residue class modulo `2`, since we consider ``self`` to be
         `\ZZ_2`-graded (not `\ZZ`-graded, although there is a natural
         *filtration* by the length of ``m``). The degree of the monomial
         ``m`` in this `\ZZ_2`-grading is defined to be the length of ``m``
         taken mod `2`.
+
+        .. WARNING:
+
+            On the :class:`ExteriorAlgebra` class (which inherits from
+            :class:`CliffordAlgebra`), the :meth:`degree_on_basis`
+            method is overridden to return an actual `\NN`-degree. So
+            don't count on this method always returning `0` or `1` !!
 
         EXAMPLES::
 

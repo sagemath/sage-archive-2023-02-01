@@ -1025,16 +1025,20 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             sage: W.random_element() # random
             word: 5114325445423521544531411434451152142155...
 
+            sage: W = Words(ZZ)
+            sage: W.random_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: How can I pick a random word with an infinite aphabet?
+
         TESTS::
 
             sage: _ = Words(GF(5)).random_element()
         """
-        from sage.misc.prandom import randint
-        n = self.alphabet().cardinality()
-        if n == Infinity:
-            raise ValueError("How can I pick a random word with an infinite aphabet ?")
+        if self.alphabet().cardinality() == Infinity:
+            raise ValueError("How can I pick a random word with an infinite aphabet?")
         else:
-            return self((self.alphabet().random_element() for x in itertools.count()))
+            return self(self.alphabet().random_element() for x in itertools.count())
 
     @rename_keyword(deprecation=10134, l='arg')
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
@@ -1360,9 +1364,9 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
             sage: W.random_element()
             Traceback (most recent call last):
             ...
-            ValueError: What does it mean to pick a random finite word over a given alphabet ?
+            ValueError: What does it mean to pick a random finite word over a given alphabet?
         """
-        raise ValueError("What does it mean to pick a random finite word over a given alphabet ?")
+        raise ValueError("What does it mean to pick a random finite word over a given alphabet?")
 
     def __iter__(self):
         r"""
@@ -1509,7 +1513,7 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
 
     def random_element(self):
         r"""
-        Returns a random (infinite) word on the given alphabet.
+        Returns a random word uniformly.
 
         The word returned has infinite length, and is built by randomly picking
         a letter from the alphabet, one after the other.
@@ -1520,14 +1524,18 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             sage: W.random_element() # random
             word: 11212222211111221112
 
+            sage: W = Words(ZZ,20)
+            sage: W.random_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: How can I pick a random word with an infinite aphabet?
+
         TESTS::
 
             sage: _ = Words(GF(5),4).random_element()
         """
-        from sage.misc.prandom import randint
-        n = self.alphabet().cardinality()
-        if n == Infinity:
-            raise ValueError("How can I pick a random word with an infinite aphabet ?")
+        if self.alphabet().cardinality() == Infinity:
+            raise ValueError("How can I pick a random word with an infinite aphabet?")
         else:
             return self((self.alphabet().random_element() for _ in range(self._length)))
 

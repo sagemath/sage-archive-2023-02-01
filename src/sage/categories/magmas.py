@@ -164,7 +164,7 @@ class Magmas(Category_singleton):
 
             - ``self`` -- a subcategory of :class:`Magmas` and :class:`AdditiveMagmas`
 
-            Given that `Sage` does not yet know that the category
+            Given that Sage does not yet know that the category
             :class:`MagmasAndAdditiveMagmas` is the intersection of
             the categories :class:`Magmas` and
             :class:`AdditiveMagmas`, the method

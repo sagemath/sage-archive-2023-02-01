@@ -670,24 +670,28 @@ but an algebra over `\ZZ` is not (it is just a `\ZZ`-module)!
 On the category hierarchy: subcategories and super categories
 -------------------------------------------------------------
 
-We have seen above that, for example, the category of groups is
-considered by Sage as a subcategory of the category of sets. For
-category purists, this is not quite correct: namely, a group is not a
-set; instead, one can recover the underlying set by forgetting the
-multiplicative structure. However, it would be impractical to have to
-explicitly forget the multiplicative structure whenever one wanted to
-apply on a group an operation defined on sets. In object oriented
-parlance, we really want the relation "a group *is a* set", so that
-groups can inherit code implemented on sets.
+We have seen above that, for example, the category of sets is a super
+category of the category of groups. This models the fact that a group
+can be unambiguously considered as a set by forgetting its group
+operation. In object-oriented parlance, we want the relation "a group
+*is a* set", so that groups can directly inherit code implemented on
+sets.
 
-Therefore, in Sage, as well as in most systems with a similar category
-framework, we use this slightly abusive definition of subcategory:
+Formally, a category ``Cs()`` is a *super category* of a category
+``Ds()`` if Sage considers any object of ``Ds()`` to be an object of
+``Cs()``, up to an implicit application of a canonical functor from
+``Ds()`` to ``Cs()``. This functor is normally an inclusion of
+categories or a forgetful functor. Reciprocally, ``Ds()`` is said to
+be a *subcategory* of ``Cs()``.
 
-A category ``Ds()`` is a *subcategory* of the category ``Cs()`` if, up
-to implicitly applying the appropriate forgetful functor, every object
-of ``Ds()`` is an object of ``Cs()``. Reciprocally, ``Cs()`` is in
-this case a *super category* of ``Ds()``.
+.. WARNING::
 
+    This terminology deviates from the usual mathematical definition
+    of *subcategory* and is subject to change. Indeed, the forgetful
+    functor from the category of groups to the category of sets is not
+    an inclusion of categories, as it is not injective: a given set
+    may admit more than one group structure. See :trac:`16183` for
+    more details.
 
 Categories are instances and have operations
 --------------------------------------------

@@ -338,17 +338,19 @@ class Sets(Category_singleton):
             The two most common use cases are:
 
              - *homomorphic images* (or *quotients* by *kernels*),
-               when `A'=A`, `r` is an homomorphism from `B` to `A`
+               when `B'=B`, `r` is an homomorphism from `B` to `A`
                (typically a canonical quotient map), and `l` a section
                of it.
 
-             - *subobjects*, when `l` is an embedding from `B` into `A`.
+             - *subobjects*, when `l` is an embedding from `A` into `B`.
 
             .. NOTE::
 
                 This is a slightly weaker definition than that found
-                on :wikipedia:`Subquotient`; indeed `B'` is not
-                necessarily required to be a subobject of `B`.
+                on :wikipedia:`Subquotient` since `B'` is not
+                necessarily required to be a subobject of `B`. On the
+                other hand, the existence of both `l` and `r` is
+                required for computability.
 
             Assumptions:
 

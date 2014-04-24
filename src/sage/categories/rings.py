@@ -57,7 +57,8 @@ class Rings(CategoryWithAxiom):
     class SubcategoryMethods:
 
         def NoZeroDivisors(self):
-            """Return the full subcategory of the objects of ``self`` having no nonzero zero divisors.
+            """
+            Return the full subcategory of the objects of ``self`` having no nonzero zero divisors.
 
             A *zero divisor* in a ring `R` is an element `x\in R` such
             that there exists a nonzero element `y\in R` such that
@@ -577,11 +578,10 @@ class Rings(CategoryWithAxiom):
                 sage: class PowerIdeal(Ideal_nc):
                 ...    def __init__(self, R, n):
                 ...        self._power = n
-                ...        self._power = n
                 ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
                 ...    def reduce(self,x):
                 ...        R = self.ring()
-                ...        return add([c*R(m) for c,m in x if len(m)<self._power],R(0))
+                ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
                 ...
                 sage: I = PowerIdeal(F,3)
                 sage: Q = Rings().parent_class.quotient(F,I); Q
@@ -596,10 +596,10 @@ class Rings(CategoryWithAxiom):
                 xbar*ybar
                 sage: Q.0*Q.1*Q.0
                 0
-
             """
             from sage.rings.quotient_ring import QuotientRing
             return QuotientRing(self, I, names=names)
+
         def quo(self, I, names=None):
             """
             Quotient of a ring by a two-sided ideal.

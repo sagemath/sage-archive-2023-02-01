@@ -139,7 +139,7 @@ class WeylGroups(Category_singleton):
             from sage.graphs.digraph import DiGraph
             WP = [x for x in self if x==x.coset_representative(index_set)]
             return DiGraph([[x,i[0],i[1]] for x in WP for i in x.quantum_bruhat_successors(index_set, roots = True)],
-                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self.__repr__(),index_set))
+                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set))
 
     class ElementMethods:
 

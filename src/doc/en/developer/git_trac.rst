@@ -1,15 +1,29 @@
 .. _chapter-git_trac:
 
 
-=======================
-Collaborate Development
-=======================
+=======================================
+Collaborative Development with Git-Trac
+=======================================
 
-Most of the commands in the following section will not work unless you
-have an account on the bug tracker. If you want to contribute to Sage,
-it is a good idea to get an account now (see
-:ref:`section-trac-account`). Alternatively, see the
-:ref:`section-git_trac-readonly` section.
+Sometimes you will only want to work on local changes to Sage, for
+your own private needs.  However, typically it is beneficial to
+share code and ideas with others; the manner in which the
+`Sage project <http://sagemath.org>`_ does this (as well as fixing
+bugs and upgrading components) is in a very collaborative and
+public setting on `the Sage Trac server <http://trac.sagemath.org>`_
+(the Sage bug and enhancement tracker).
+
+One can use ``git`` :ref:`the hard way <chapter-manual-git>` for this,
+but this section presumes use of the helper ``git trac`` command, which
+simplifies many of the most common actions in collaboration on Sage.
+Sage itself has a more limited set of actions built in to work with
+(see :ref:`chapter-devscript`), but the recommended path is using
+this section of the manual to get started.
+
+Most of the commands in the following section will not work unless
+you have an account on Trac. If you want to contribute to Sage, it
+is a good idea to get an account now (see :ref:`section-trac-account`).
+Alternatively, see the :ref:`section-git_trac-readonly` section.
 
 
 .. _section-git_trac-install:
@@ -32,12 +46,13 @@ hand::
     [user@localhost]$ source git-trac-command/enable.sh
     Prepending the git-trac command to your search PATH
 
-This creates a directory ``git-trac-command``. Sourcing the
-``enable.sh`` script in there is just a quick and dirty way to enable
-it temporarily. You probably want a more permanent installation on
-your system later, all you have to do for that is to put the
-``git-trac`` command in your ``PATH``. Assuming that ``~/bin`` is
-already in your ``PATH``, you can do this by symlinking::
+This creates a directory ``git-trac-command``.
+
+Sourcing the ``enable.sh`` script in there is just a quick and dirty
+way to enable it temporarily. For a more permanent installation on
+your system later, make sure to put the ``git-trac`` command in your
+``PATH``. Assuming that ``~/bin`` is already in your ``PATH``, you can
+do this by symlinking::
 
     [user@localhost]$ echo $PATH
     /home/user/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin
@@ -125,7 +140,7 @@ different URL for our git server::
     trac        git://trac.sagemath.org/sage.git (fetch)
     trac        git://trac.sagemath.org/sage.git (push)
 
-Obviously you can then only download tickets, but not contribute new
+You can then only download tickets, but not contribute new
 code. Finally, if you do not want to use the ``git trac`` subcommand
 at all then you can set up the remote by hand as described in the
 section on :ref:`section-git-trac`.
@@ -134,6 +149,8 @@ section on :ref:`section-git-trac`.
 
 Trac Tickets to Local Branches
 ==============================
+
+Now let's start adding code to Sage!
 
 .. _section-git_trac-create:
 
@@ -171,10 +188,11 @@ Check out an Existing Ticket
 ----------------------------
 
 Alternatively, you can use the `web interface to the Sage trac
-development server <http://trac.sagemath.org>`_ to open a new ticket,
-just log in and click on "Create Ticket". Or maybe somebody else
-already opened a ticket. Then, to get a suitable local branch to make
-your edits, you would just run::
+development server <http://trac.sagemath.org>`_ to open a new ticket.
+Just log in and click on "Create Ticket".
+
+Or maybe somebody else already opened a ticket. Then, to get a suitable
+local branch to make your edits, you would just run::
 
     [user@localhost sage]$ git trac checkout 12345
     Loading ticket #12345...

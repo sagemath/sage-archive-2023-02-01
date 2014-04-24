@@ -4,36 +4,23 @@
 The Sage Dev Scripts
 ====================
 
-As an alternative to using git directly, Sage comes with a set of
-developer scripts which help you with common interactions with the bug
-tracker (see :ref:`chapter-sage-trac`) and with handling revisions of
-your code. The developer scripts use the git distributed revision
-control system under the hood which you'll have to install (see
-:ref:`chapter-git-setup`), but you do not need to know anything about
-it (see :ref:`chapter-manual-git` only if you want to).
+As an alternative to using git directly or ``git trac``, Sage comes with
+a set of developer scripts which help you with common interactions with
+the bug tracker (see :ref:`chapter-sage-trac`) and with handling revisions
+of your code. The developer scripts use the git distributed revision
+control system under the hood; you'll need to configure this
+(:ref:`section-git-setup-name`), but you do not need to know anything
+about it (see :ref:`chapter-manual-git` only if you want to).
 
-The author of this guide would recommend that you **do not use** the
-dev scripts but learn how to use git directly as described in the
-previous section. However, not everybody agrees and you are entitled
-to your own opinion. Arguments are:
-
-* Knowledge of git is an extremely useful skill outside of Sage:
-
-  - It is an excellent system to collaborate over the internet.
-
-  - For example, to write papers with remote coauthors.
-
-  - Most other open-source collaborations use git nowadays, so if you
-    want to contribute elsewhere chances are you'll need to know git.
-
-* The dev scripts have bugs.
-
-* Chances are you'll eventually have to learn git anyways, so time
-  spent to learn about the dev scripts is ultimately wasted.
-
-* There is less documentation about the dev scripts than there is
-  about git.
-   
+The dev scripts are mainly intended as a bridge to full use of the
+revision control system as one gains experience with it; for many
+users it will be more advantageous to learn to use git directly,
+either via :ref:`git trac <chapter-git_trac>` or in its full power.  The dev
+scripts are not as powerful and may have bugs that git will not, and
+are not as well documented.  Long-term knowledge of git is currently
+very useful in projects outside of Sage, especially for open source
+and academic collaboration; that said, there is a somewhat steeper
+learning curve to using git directly.
 
 
 Introduction
@@ -138,13 +125,21 @@ tickets. Your new branch is now called ``ticket/<TICKETNUM>``. Unless
 you upload ("push") it, see below, it will only be on your local
 system and not visible to anyone else.
 
-At this point you can start editing the source code. The subsequent
-chapters of this developer guide explain how your code should look
-like to fit into Sage, and how we ensure high code quality
-throughout. Whenever you have reached one of your goals, you should
-make a *commit*. This takes a snapshot of the whole Sage source code
-that you have been working on and records the changes into your local
-branch::
+.. note::
+
+   Unless you have moved to the ``develop`` branch of the source, this
+   will be based on the last stable release of Sage.  It is worth
+   checking to see that no one else has already worked on the files
+   you are working on in more recent development versions.
+
+At this point you can start editing the source code. :ref:`Other
+chapters <section-writing-code-for-sage>` of this developer guide
+explain how your code should look like to fit into Sage, and how we
+ensure high code quality throughout.
+
+Whenever you have reached one of your goals, you should make a *commit*.
+This takes a snapshot of the whole Sage source code that you have been
+working on and records the changes into your local branch::
 
     [user@localhost]$ sage -dev commit
     Commit your changes to branch "ticket/1729"? [Yes/no] y
@@ -316,14 +311,31 @@ you created in the last section.  For definiteness, suppose you want to review
 This command will download the branch on Trac in case you do not have any local
 work on ticket 12270. (If you do, you may have to merge your changes; see
 below). You can now test the ticket; you'll probably want to call ``make`` or
-``sage -b`` first to rebuild Sage with the changes. Another important
-command is::
+``sage -b`` first to rebuild Sage with the changes.  See
+:ref:`section-walkthrough-make` for details of which to use.
+
+.. note::
+
+   This will be based on whatever previous branch you were on, which will
+   likely be the previous stable release.  This means there may be quite a
+   bit a other changes that need to compile to get you up to speed.
+
+Another important command is::
 
     [user@localhost]$ sage -dev diff
 
 which lists all source code changes that are part of the current
-branch. That is, it lists the changes from the current master to the
-current branch. If the ticket were to be positively reviewed, this is
+branch. That is, it lists the changes from the current directory to the
+current branch.
+
+.. note::
+
+   For instance, if you based on the master branch, and just committed the
+   branch on Trac, you could do ``sage -dev diff --base master``
+   to see what the difference is.
+
+
+If the ticket were to be positively reviewed, this is
 the code that will be added to Sage. Note that there is no way to
 "exclude dependencies", just as there is no guarantee that unreviewed
 dependencies will become part of Sage. The best way to exclude
@@ -351,6 +363,17 @@ your changes. Your branch is based on the original author's branch, so
 s/he can easily incorporate your changes into his/her own branch (see
 below).
 
+You may receive messages like the following::
+
+    [user@localhost]$ sage -dev push
+    The branch "u/<your_username>/ticket/12270" does not exist on the remote server.
+    Create new remote branch? [Yes/no] yes
+    The branch field of ticket #12270 needs to be updated from its current value
+    "u/<other_username>/branch/name" to "u/<your_username>/ticket/12270"
+    Change the "Branch:" field? [Yes/no] yes
+
+In this case, typically it is easiest to simply accept these questions,
+though there is also the possibility of creating a public branch.
 
 .. _section-devscript-collaborate:
 

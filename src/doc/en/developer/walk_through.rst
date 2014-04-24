@@ -21,36 +21,16 @@ desk.
 Configuring Git
 ===============
 
-First, open a shell and check that ``git`` works::
+One way or another, ``git`` is what Sage uses for tracking changes.
+So first, open a shell (for instance, Terminal on Mac) and check that
+``git`` works::
     
     [user@localhost]$ git
     usage: git [--version] [--help] [-C <path>] [-c name=value]
-               [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
-               [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]
-               [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
-               <command> [<args>]
-    
+    ...
     The most commonly used git commands are:
        add        Add file contents to the index
-       bisect     Find by binary search the change that introduced a bug
-       branch     List, create, or delete branches
-       checkout   Checkout a branch or paths to the working tree
-       clone      Clone a repository into a new directory
-       commit     Record changes to the repository
-       diff       Show changes between commits, commit and working tree, etc
-       fetch      Download objects and refs from another repository
-       grep       Print lines matching a pattern
-       init       Create an empty Git repository or reinitialize an existing one
-       log        Show commit logs
-       merge      Join two or more development histories together
-       mv         Move or rename a file, a directory, or a symlink
-       pull       Fetch from and integrate with another repository or a local branch
-       push       Update remote refs along with associated objects
-       rebase     Forward-port local commits to the updated upstream head
-       reset      Reset current HEAD to the specified state
-       rm         Remove files from the working tree and from the index
-       show       Show various types of objects
-       status     Show the working tree status
+    ...
        tag        Create, list, delete or verify a tag object signed with GPG
     
     'git help -a' and 'git help -g' lists available subcommands and some
@@ -61,11 +41,11 @@ First, open a shell and check that ``git`` works::
 Don't worry about the giant list of subcommands. You really only need
 a handful for effective development, and we will walk you through them
 in this guide. If you got a "command not found" error, then you don't
-have git installed. Now is the time to install it, see
+have git installed. Now is the time to install it; see
 :ref:`chapter-git-setup` for instructions.
 
-While you are at it, tell git how you want to be known. This only
-needs to be done once::
+Because we also track who does changes in Sage with git, you must tell
+git how you want to be known. This only needs to be done once::
 
     [user@localhost]$ git config --global user.name "Your Name"
     [user@localhost]$ git config --global user.email you@yourdomain.example.com
@@ -80,7 +60,8 @@ before you forget!
 Obtaining the Sage Source Code
 ==============================
 
-Obviously you need the Sage source code to develop, so we download it
+Obviously one needs the Sage source code to develop.  You can use your
+local installation of Sage, or (to start without Sage) download it
 from github which is a public read-only mirror (=faster) of our
 internal git repository::
 
@@ -89,8 +70,10 @@ internal git repository::
     [...]
     Checking connectivity... done.
     
-This creates a directory named ``sage`` containing the Sage
-sources.
+This creates a directory named ``sage`` containing the sources for the
+current stable and development releases of Sage.  (For the experts, note
+that we will use `git.sagemath.org <http://git.sagemath.org>`_ for
+actual development work.)
 
 
 .. _section-walkthrough-branch:
@@ -98,11 +81,13 @@ sources.
 Branching Out
 =============
 
+In order to start modifying Sage, we want to make a *branch* of Sage.
 A branch is a copy (except that it doesn't take up twice the space) of
 the Sage source code where you can store your modifications to the
-Sage source code and which you can upload to trac tickets. It is easy
-to create a new branch, just check out (switch to) the branch from
-where you want to start (that is, ``master``) and use the ``git
+Sage source code and which you can upload to trac tickets.
+
+It is easy to create a new branch, just check out (switch to) the branch
+from where you want to start (that is, ``master``) and use the ``git
 branch`` command::
 
     [user@localhost sage]$ git checkout master
@@ -157,7 +142,7 @@ To dig deeper, you can inspect the log::
 
 By default, this lists all commits in reverse chronological order. If
 you find your branch to be in the wrong place, you can use the ``git
-reset --hard`` command to reset it to something else, see
+reset --hard`` command to reset it to something else; see
 :ref:`section-git-recovery` for details.
 
 
@@ -168,9 +153,9 @@ Editing the Source Code
 =======================
 
 Once you have your own branch, feel free to make any changes as you
-like. The subsequent chapters of this developer guide explain how your
-code should look like to fit into Sage, and how we ensure high code
-quality throughout.
+like. :ref:`Subsequent chapters <section-writing-code-for-sage>` of
+this developer guide explain how your code should look like to fit
+into Sage, and how we ensure high code quality throughout.
 
 *Status* is probably the most important git command. It tells
 you which files changed, and how to continue with recording the
@@ -238,10 +223,13 @@ Commits (Snapshots)
 ===================
 
 Whenever you have reached your goal, a milestone towards it, or
-just feel like you got some work done you should commit your
-changes. That is, snapshot the state of all files in the
-repository. First, you need to *stage* the changed files, which tells
-git which files you want to be part of the next commit::
+just feel like you got some work done you should *commit* your
+changes. A commit is just a snapshot of the state of all files in
+the *repository* (the program you are working on).
+
+Unlike with some other revision control programs, in git you first
+need to *stage* the changed files, which tells git which files you
+want to be part of the next commit::
 
     [user@localhost sage]$ git status
     # On branch my_branch
@@ -261,7 +249,7 @@ git which files you want to be part of the next commit::
     #
 
 Once you are satisfied with the list of staged files, you create a new
-snapshot with the *commit* command::
+snapshot with the ``git commit`` command::
 
     [user@localhost sage]$ git commit
     ... editor opens ...
@@ -280,7 +268,7 @@ by an empty line, followed by further explanatory text::
 
 You can then continue working towards your next milestone, make
 another commit, repeat until finished. As long as you do not
-*checkout* another branch, all commits that you make will be part of
+``git checkout`` another branch, all commits that you make will be part of
 the branch that you created.
 
 

@@ -2617,7 +2617,7 @@ class FiniteStateMachine(SageObject):
             \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
             \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
             \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
-            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {${\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$\mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
@@ -2867,7 +2867,7 @@ class FiniteStateMachine(SageObject):
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$\$\mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
                     self.format_transition_label(vertex.final_word_out),

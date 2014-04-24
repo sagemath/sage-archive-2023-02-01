@@ -1200,6 +1200,8 @@ class TachyonTriangle(Triangle):
     r"""
     Basic triangle class.
     """
+    def __str__(self):
+        return self.str()
     def str(self):
         r"""
         Returns the scene string for a triangle.

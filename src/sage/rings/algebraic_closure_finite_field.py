@@ -525,8 +525,11 @@ class AlgebraicClosureFiniteField_generic(Field):
             <class 'sage.rings.algebraic_closure_finite_field.AlgebraicClosureFiniteField_pseudo_conway_with_category.element_class'>
 
         """
-        if isinstance(x, self.element_class) and x.parent() is self:
-            return x
+        if isinstance(x, self.element_class):
+            if x.parent() is self:
+                return x
+            elif x.parent() == self:
+                return self.element_class(self, x._value)
         else:
             return self.element_class(self, x)
 
@@ -542,7 +545,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             True
 
         """
-        if other is self:
+        if other is self or other == self:
             return True
         elif is_FiniteField(other) and self._subfield(other.degree()) is other:
             return True

@@ -15,8 +15,7 @@ embeddings between them.  This lattice is extended as necessary.
 The Sage class corresponding to `\overline{\Bold{F}}` can be
 constructed from the finite field `\Bold{F}` by using the
 :meth:`~sage.rings.finite_rings.finite_field_base.FiniteField.algebraic_closure`
-method.  This invokes the ``AlgebraicClosureFiniteField`` factory
-object to get unique representation.
+method.
 
 The Sage class for elements of `\overline{\Bold{F}}` is
 :class:`AlgebraicClosureFiniteFieldElement`.  Such an element is
@@ -52,7 +51,6 @@ from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.ring import Field
 from sage.structure.element import FieldElement
-from sage.structure.factory import UniqueFactory
 
 class AlgebraicClosureFiniteFieldElement(FieldElement):
     """
@@ -996,9 +994,13 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
 
 
-class AlgebraicClosureFiniteFieldFactory(UniqueFactory):
+def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=None, **kwds):
     """
-    Factory for constructing algebraic closures of finite fields.
+    Function for constructing algebraic closures of finite fields.
+
+    This does not have unique representation, because algebraic
+    closures of finite fields are not determined up to unique
+    isomorphism by their defining data.
 
     EXAMPLES::
 
@@ -1006,43 +1008,21 @@ class AlgebraicClosureFiniteFieldFactory(UniqueFactory):
         sage: F = GF(2).algebraic_closure()
         sage: F1 = AlgebraicClosureFiniteField(GF(2), 'z')
         sage: F1 is F
+        False
+        sage: F1 == F
         True
-        sage: loads(dumps(F)) is F
+        sage: loads(dumps(F)) == F
         True
 
     """
-    def create_key(self, base_ring, name, category=None, implementation=None, **kwds):
-        """
-        TEST::
+    if category is None:
+        from sage.categories.fields import Fields
+        category = Fields()
+    if implementation is None:
+        implementation = 'pseudo_conway'
 
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
-            sage: AlgebraicClosureFiniteField.create_key(GF(3), 'z')
-            (Finite Field of size 3, 'z', Category of fields, 'pseudo_conway')
-
-        """
-        if category is None:
-            from sage.categories.fields import Fields
-            category = Fields()
-        if implementation is None:
-            implementation = 'pseudo_conway'
-        return (base_ring, name, category, implementation)
-
-    def create_object(self, version, key, **kwds):
-        """
-        TEST::
-
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
-            sage: key = (GF(3), 'z', Fields(), 'pseudo_conway')
-            sage: AlgebraicClosureFiniteField.create_object(0, key)
-            Algebraic closure of Finite Field of size 3
-
-        """
-        base_ring, name, category, implementation = key
-        if implementation == 'pseudo_conway':
-            return AlgebraicClosureFiniteField_pseudo_conway(base_ring, name, category, **kwds)
-        else:
-            raise ValueError('unknown implementation for algebraic closure of finite field: %s'
-                             % implementation)
-
-
-AlgebraicClosureFiniteField = AlgebraicClosureFiniteFieldFactory('sage.rings.algebraic_closure_finite_field.AlgebraicClosureFiniteField')
+    if implementation == 'pseudo_conway':
+        return AlgebraicClosureFiniteField_pseudo_conway(base_ring, name, category, **kwds)
+    else:
+        raise ValueError('unknown implementation for algebraic closure of finite field: %s'
+                         % implementation)

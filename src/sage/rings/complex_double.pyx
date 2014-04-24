@@ -97,6 +97,7 @@ import real_mpfr
 RR = real_mpfr.RealField()
 
 from real_double import RealDoubleElement, RDF
+from sage.rings.integer_ring import ZZ
 
 
 from sage.structure.parent_gens import ParentWithGens
@@ -1490,6 +1491,22 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         return True
+
+    def is_integer(self):
+        """
+        Returns True if this number is a integer
+
+        EXAMPLES::
+
+            sage: CDF(0.5).is_integer()
+            False
+            sage: CDF(I).is_integer()
+            False
+            sage: CDF(2).is_integer()
+            True
+        """
+        return (self.real() in ZZ) and (self.imag()==0)
+
 
     def _pow_(self, ComplexDoubleElement a):
         """

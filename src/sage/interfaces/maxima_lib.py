@@ -744,7 +744,7 @@ class MaximaLib(MaximaAbstract):
                 k = s.find(' ',4)
                 raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
             else:
-                raise error
+                raise
 
     def sr_sum(self,*args):
         """
@@ -792,7 +792,7 @@ class MaximaLib(MaximaAbstract):
                 k = s.find(' ',4)
                 raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
             else:
-                raise error
+                raise
 
     def sr_limit(self,expr,v,a,dir=None):
         """
@@ -856,7 +856,7 @@ class MaximaLib(MaximaAbstract):
                 s = s[j:]
                 raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s)
             else:
-                raise error
+                raise
 
     def sr_tlimit(self,expr,v,a,dir=None):
         """
@@ -1048,7 +1048,7 @@ NIL=EclObject("NIL")
 
 ## Dictionaries for standard operators
 sage_op_dict = {
-    sage.symbolic.expression.operator.abs : "MABS",
+    sage.functions.other.abs : "MABS",
     sage.symbolic.expression.operator.add : "MPLUS",
     sage.symbolic.expression.operator.div : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
@@ -1081,6 +1081,10 @@ sage_op_dict = {
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.other.erf : "%ERF",
     sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.bessel.bessel_I : "%BESSEL_I",
+    sage.functions.bessel.bessel_Y : "%BESSEL_Y",
+    sage.functions.bessel.bessel_J : "%BESSEL_J",
+    sage.functions.bessel.bessel_K : "%BESSEL_K"
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1486,6 +1490,8 @@ def sr_to_max(expr):
             #op_max=caar(maxima(expr).ecl())
             # This should be safe if we treated all special operators above
             op_max=maxima(op).ecl()
+            if op_max in max_op_dict:
+                raise RuntimeError("Encountered operator mismatch in sr-to-maxima translation")
             sage_op_dict[op]=op_max
             max_op_dict[op_max]=op
         return EclObject(([sage_op_dict[op]],
@@ -1537,9 +1543,13 @@ def max_to_sr(expr):
             # This could be unsafe if the conversion to SR
             # changes the structure of expr
             sage_expr=SR(maxima(expr))
-            max_op_dict[op_max]=sage_expr.operator()
-            sage_op_dict[sage_expr.operator()]=op_max
-        op=max_op_dict[op_max]
+            op=sage_expr.operator()
+            if op in sage_op_dict:
+                raise RuntimeError("Encountered operator mismatch in maxima-to-sr translation")
+            max_op_dict[op_max]=op
+            sage_op_dict[op]=op_max
+        else:
+            op=max_op_dict[op_max]
         max_args=cdr(expr)
         args=[max_to_sr(a) for a in max_args]
         return op(*args)

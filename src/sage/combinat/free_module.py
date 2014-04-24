@@ -1336,6 +1336,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         # ignore the optional 'key' since it only affects CachedRepresentation
         kwds.pop('key', None)
         # This needs to be first as per #10127
+        if 'monomial_cmp' in kwds:
+            kwds['generator_cmp'] = kwds['monomial_cmp']
+            del kwds['monomial_cmp']
         IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
 
         Parent.__init__(self, base = R, category = category,

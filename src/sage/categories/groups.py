@@ -54,6 +54,37 @@ class Groups(Category_singleton):
         from sage.groups.matrix_gps.linear import GL
         return GL(4,QQ)
 
+    @staticmethod
+    def free(n=None, names='x', index_set=None, abelian=False, **kwds):
+        r"""
+        Return the free (abelian) group.
+
+        INPUT:
+
+        - ``n`` -- integer or ``None`` (default). The nnumber of
+          generators. If not specified the ``names`` are counted.
+
+        - ``names`` -- string or list/tuple/iterable of strings (default:
+          ``'x'``). The generator names or name prefix.
+
+        - ``index_set`` -- (optional) an index set for the generators; if
+          specified then the optional keyword ``abelian`` can be used
+
+        - ``abelian`` -- (default: ``False``) whether the free monoid is
+          abelian or not
+
+        EXAMPLES::
+
+            sage: Groups.free(index_set=ZZ)
+            Free group indexed by Integer Ring
+            sage: Groups().free(index_set=ZZ)
+            Free group indexed by Integer Ring
+            sage: F.<x,y,z> = Groups().free(); F
+            Free Group on generators {x, y, z}
+        """
+        from sage.groups.free_group import FreeGroup
+        return FreeGroup(n, names, index_set, abelian, **kwds)
+
     class ParentMethods:
 
         def group_generators(self):

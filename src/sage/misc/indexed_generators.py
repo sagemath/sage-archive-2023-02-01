@@ -71,7 +71,7 @@ class IndexedGenerators:
       string to use for tensor product in the print representation. If
       None, use the ``sage.categories.tensor.symbol``.
 
-    - ``monomial_cmp`` -- a comparison function (optional, default ``cmp``),
+    - ``generator_cmp`` -- a comparison function (optional, default ``cmp``),
       to use for sorting elements in the output of elements
 
     .. NOTE::
@@ -96,7 +96,7 @@ class IndexedGenerators:
                                'scalar_mult': "*",
                                'latex_scalar_mult': None,
                                'tensor_symbol': None,
-                               'monomial_cmp': cmp}
+                               'generator_cmp': cmp}
         # 'bracket': its default value here is None, meaning that
         # the value of self._repr_option_bracket is used; the default
         # value of that attribute is True -- see immediately before
@@ -151,7 +151,7 @@ class IndexedGenerators:
         - ``scalar_mult``
         - ``latex_scalar_mult``
         - ``tensor_symbol``
-        - ``monomial_cmp``
+        - ``generator_cmp``
 
         See the documentation for :class:`CombinatorialFreeModule` for
         descriptions of the effects of setting each of these options.
@@ -172,7 +172,7 @@ class IndexedGenerators:
         TESTS::
 
             sage: sorted(F.print_options().items())
-            [('bracket', '('), ('latex_bracket', False), ('latex_prefix', None), ('latex_scalar_mult', None), ('monomial_cmp', <built-in function cmp>), ('prefix', 'x'), ('scalar_mult', '*'), ('tensor_symbol', None)]
+            [('bracket', '('), ('latex_bracket', False), ('latex_prefix', None), ('latex_scalar_mult', None), ('generator_cmp', <built-in function cmp>), ('prefix', 'x'), ('scalar_mult', '*'), ('tensor_symbol', None)]
             sage: F.print_options(bracket='[') # reset
         """
         # don't just use kwds.get(...) because I want to distinguish
@@ -182,7 +182,7 @@ class IndexedGenerators:
             for option in kwds:
                 if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
                               'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
-                              'monomial_cmp'
+                              'generator_cmp'
                              ]:
                     self._print_options[option] = kwds[option]
                 else:

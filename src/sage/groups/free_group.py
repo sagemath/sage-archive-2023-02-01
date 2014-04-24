@@ -448,6 +448,9 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     - ``index_set`` -- (optional) an index set for the generators; if
       specified then the optional keyword ``abelian`` can be used
 
+    - ``abelian`` -- (default: ``False``) whether the free monoid is abelian
+      or not
+
     EXAMPLES::
 
         sage: G.<a,b> = FreeGroup();  G
@@ -500,7 +503,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
             n = len(names)
     from sage.structure.parent import normalize_names
     names = tuple(normalize_names(n, names))
-    if index_set is not None:
+    if index_set is not None or abelian:
         if abelian:
             from sage.groups.indexed_group import IndexedFreeAbelianGroup
             return IndexedFreeAbelianGroup(index_set, names=names, **kwds)

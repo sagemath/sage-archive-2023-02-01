@@ -269,10 +269,10 @@ def wilson_construction(k,m,t,u, check = True):
         32
     """
     # Raises a NotImplementedError if one of them does not exist.
-    TDkm = transversal_design(k,m,check=True)
-    TDkm1 = transversal_design(k,m+1,check=True)
-    TDk1t = transversal_design(k+1,t,check=True)
-    TDku = transversal_design(k,u,check=True)
+    TDkm = transversal_design(k,m,check=False)
+    TDkm1 = transversal_design(k,m+1,check=False)
+    TDk1t = transversal_design(k+1,t,check=False)
+    TDku = transversal_design(k,u,check=False)
 
     # Truncaed TDk1t
     truncated_TDk1t = [[x for x in B if x<k*t+u] for B in TDk1t]
@@ -322,8 +322,8 @@ def wilson_construction(k,m,t,u, check = True):
     for A in TDku:
         TD.append([(m*t+u)*(x//u)+m*t+x%u for x in A])
 
-    if check and not is_transversal_design(TD,k,m*t+u, verbose=True):
-        raise RuntimeError("Sage returns wrong results ! Please report the bug.")
+    if check:
+        assert is_transversal_design(TD,k,m*t+u, verbose=True)
 
     return TD
 

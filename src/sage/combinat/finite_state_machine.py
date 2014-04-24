@@ -731,7 +731,7 @@ class FSMState(SageObject):
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,
                  hook=None, color=None, allow_label_None=False):
-       """
+        """
         See :class:`FSMState` for more information.
 
         EXAMPLES::

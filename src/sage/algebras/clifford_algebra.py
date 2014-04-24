@@ -2004,8 +2004,9 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
                 # Make sure v is in ``E``
                 v = E(v)
                 # It's okay if v.degree results in an error
-                #   (we'd throw a similar error) unless v == 0
-                if v and v.degree() != 1:
+                #   (we'd throw a similar error) unless v == 0 (which
+                #   is what v.list() is testing for)
+                if v.list() and v.degree() != 1:
                     raise ValueError("elements must be degree 1")
 
             if k[0] < k[1]:
@@ -2075,20 +2076,22 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
     INPUT:
 
-    - ``E`` -- an exterior algebra
+    - ``E`` -- an exterior algebra of a vector space `L`
     - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
-      `I` is the index set of the underlying vector space `V`, and whose
+      `I` is the index set of the basis of the vector space `L`, and whose
       values can be coerced into 1-forms (degree 1 elements) in ``E``;
-      this dictionary will be used to define the coefficients
-      `s_{jk}^i` by the key `(j, k)` reordered such that `j < k` (if swapped,
-      then it negates the value) and the coefficient of `i` in the value
+      this dictionary will be used to define the Lie algebra structure
+      on `L` (indeed, the `i`-th coordinate of the Lie bracket of the
+      `j`-th and `k`-th basis vectors of `L` for `j < k` is set to be
+      the value at the key `(j, k)` if this key appears in ``s_coeff``,
+      or otherwise the negated of the value at the key `(k, j)`)
 
     .. WARNING::
 
         The values of ``s_coeff`` are supposed to be coercible into
         1-forms in ``E``; but they can also be dictionaries themselves
         (in which case they are interpreted as giving the coordinates of
-        vectors in ``V``). In the interest of speed, these dictionaries
+        vectors in ``L``). In the interest of speed, these dictionaries
         are not sanitized or checked.
 
     .. WARNING::
@@ -2108,6 +2111,8 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         0
         sage: par(x*y)
         z
+        sage: par(x*y*z)
+        0
 
     We check that `\partial \circ \partial = 0`::
 
@@ -2152,9 +2157,9 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         E = self.domain()
         sc = self._s_coeff
         keys = sc.keys()
-        return E.sum((-1)**(b+1) * sc[(i,j)]
-                      * E.monomial(m[:a] + m[a+1:a+b] + m[a+b+1:])
-                     for a,i in enumerate(m) for b,j in enumerate(m[a:]) if (i,j) in keys)
+        return E.sum((-1)**b * sc[(i,j)]
+                      * E.monomial(m[:a] + m[a+1:a+b+1] + m[a+b+2:])
+                     for a,i in enumerate(m) for b,j in enumerate(m[a+1:]) if (i,j) in keys)
 
     @cached_method
     def chain_complex(self, R=None):
@@ -2177,6 +2182,27 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
                                       [ 0 -1  0]       [0]
                         [0 0 0]       [ 1  0  0]       [0]
              0 <-- C_0 <-------- C_1 <----------- C_2 <---- C_3 <-- 0
+
+        TESTS:
+
+        This still works in degree `1`::
+
+            sage: E.<x> = ExteriorAlgebra(QQ)
+            sage: par = E.boundary({})
+            sage: C = par.chain_complex(); C
+            Chain complex with at most 2 nonzero terms over Rational Field
+            sage: ascii_art(C)
+                        [0]
+             0 <-- C_0 <---- C_1 <-- 0
+
+        ... and in degree `0`::
+
+            sage: E = ExteriorAlgebra(QQ, 0)
+            sage: par = E.boundary({})
+            sage: C = par.chain_complex(); C
+            Chain complex with at most 1 nonzero terms over Rational Field
+            sage: ascii_art(C)
+             0 <-- C_0 <-- 0
         """
         from sage.homology.chain_complex import ChainComplex
         from sage.matrix.constructor import Matrix
@@ -2184,6 +2210,17 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         n = E.ngens()
         if R is None:
             R = E.base_ring()
+
+        if n == 0:
+            # Special case because there are no matrices and thus the
+            # ChainComplex constructor needs the dimension of the
+            # 0th degree space explicitly given.
+            return ChainComplex({1: Matrix(R, [[]])}, degree=-1)
+            # If you are reading this because you changed something about
+            # the ChainComplex constructor and the doctests are failing:
+            # This should return a chain complex with degree -1 and
+            # only one nontrivial module, namely a free module of rank 1,
+            # situated in degree 0.
 
         # Group the basis into degrees
         basis_by_deg = {deg: [] for deg in range(n+1)}
@@ -2216,7 +2253,10 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
     .. MATH::
 
-        d x_i = \sum_{j < k} s_{jk}^i c_j c_k.
+        d x_i = \sum_{j < k} s_{jk}^i x_j x_k,
+
+    where `(x_1, x_2, \ldots, x_n)` is a basis of `L`, and where
+    `s_{jk}^i` is the `x_i`-coordinate of the Lie bracket `[x_j, x_k]`.
 
     The corresponding cohomology is the Lie algebra cohomology of `L`.
 
@@ -2226,14 +2266,15 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
     INPUT:
 
-    - ``E`` -- an exterior algebra (understood to be the exterior algebra
-      of `L`)
+    - ``E`` -- an exterior algebra of a vector space `L`
     - ``s_coeff`` -- a dictionary whose keys are in `I \times I`, where
-      `I` is the index set of the underlying vector space of `L`, and
-      whose values can be coerced into 1-forms (degree 1 elements) in
-      ``E``; this dictionary will be used to define the coefficients
-      `s_{jk}^i` by the key `(j, k)` reordered such that `j < k` (if swapped,
-      then it negates the value) and the coefficient of `i` in the value
+      `I` is the index set of the basis of the vector space `L`, and whose
+      values can be coerced into 1-forms (degree 1 elements) in ``E``;
+      this dictionary will be used to define the Lie algebra structure
+      on `L` (indeed, the `i`-th coordinate of the Lie bracket of the
+      `j`-th and `k`-th basis vectors of `L` for `j < k` is set to be
+      the value at the key `(j, k)` if this key appears in ``s_coeff``,
+      or otherwise the negated of the value at the key `(k, j)`)
 
     .. WARNING::
 
@@ -2250,7 +2291,11 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
         sage: d(x)
         y^z
+        sage: d(y)
+        -x^z
         sage: d(x*y)
+        0
+        sage: d(E.one())
         0
 
     We check that `d \circ d = 0`::
@@ -2345,6 +2390,27 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
                                       [ 0 -1  0]       [0]
                         [0 0 0]       [ 1  0  0]       [0]
              0 <-- C_3 <-------- C_2 <----------- C_1 <---- C_0 <-- 0
+
+        TESTS:
+
+        This still works in degree `1`::
+
+            sage: E.<x> = ExteriorAlgebra(QQ)
+            sage: d = E.coboundary({})
+            sage: C = d.chain_complex(); C
+            Chain complex with at most 2 nonzero terms over Rational Field
+            sage: ascii_art(C)
+                        [0]
+             0 <-- C_1 <---- C_0 <-- 0
+
+        ... and in degree `0`::
+
+            sage: E = ExteriorAlgebra(QQ, 0)
+            sage: d = E.coboundary({})
+            sage: C = d.chain_complex(); C
+            Chain complex with at most 1 nonzero terms over Rational Field
+            sage: ascii_art(C)
+             0 <-- C_0 <-- 0
         """
         from sage.homology.chain_complex import ChainComplex
         from sage.matrix.constructor import Matrix
@@ -2352,6 +2418,17 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         n = E.ngens()
         if R is None:
             R = E.base_ring()
+
+        if n == 0:
+            # Special case because there are no matrices and thus the
+            # ChainComplex constructor needs the dimension of the
+            # 0th degree space explicitly given.
+            return ChainComplex({-1: Matrix(R, [[]])}, degree=1)
+            # If you are reading this because you changed something about
+            # the ChainComplex constructor and the doctests are failing:
+            # This should return a chain complex with degree 1 and
+            # only one nontrivial module, namely a free module of rank 1,
+            # situated in degree 0.
 
         # Group the basis into degrees
         basis_by_deg = {deg: [] for deg in range(n+1)}

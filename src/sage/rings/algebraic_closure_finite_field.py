@@ -82,20 +82,6 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         self._level = n
         FieldElement.__init__(self, parent)
 
-    def __reduce__(self):
-        """
-        Used for pickling.
-
-        TESTS::
-
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
-            sage: F = AlgebraicClosureFiniteField(GF(2), 'z')
-            sage: loads(dumps(F.gen(5))) == F.gen(5)
-            True
-
-        """
-        return unpickle_AlgebraicClosureFiniteFieldElement, (self.parent(), self._level, self._repr_())
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -433,20 +419,6 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         return (F, F(self._value), phi)
 
 
-def unpickle_AlgebraicClosureFiniteFieldElement(parent, level, x):
-    """
-    Unpickle an element `x` of an algebraic closure of a finite field.
-
-    TEST::
-
-        sage: F = GF(7).algebraic_closure()
-        sage: loads(dumps(F.gen(2))) == F.gen(2)  # indirect doctest
-        True
-
-    """
-    return parent.coerce(parent._subfield(level)(x))
-
-
 class AlgebraicClosureFiniteField_generic(Field):
     """
     Algebraic closure of a finite field.
@@ -464,58 +436,6 @@ class AlgebraicClosureFiniteField_generic(Field):
         """
         Field.__init__(self, base_ring=base_ring, names=name,
                        normalize=False, category=category)
-
-    def __getstate__(self):
-        """
-        Used for pickling.
-
-        See https://docs.python.org/2/library/pickle.html for how to use this
-        method.
-
-        TEST::
-
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
-            sage: F = AlgebraicClosureFiniteField_generic(GF(5), 'z')
-            sage: F.__getstate__() is None
-            True
-
-        """
-        pass
-
-    def __setstate__(self, state):
-        """
-        Used for pickling.
-
-        See https://docs.python.org/2/library/pickle.html for how to use this
-        method.
-
-        TEST::
-
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
-            sage: F = AlgebraicClosureFiniteField_generic(GF(5), 'z')
-            sage: F.__setstate__(None)
-
-        """
-        pass
-
-    def __reduce__(self):
-        """
-        Used for pickling.
-
-        This method should not be changed in derived classes as it uses the
-        factory :class:`AlgebraicClosureFiniteFieldFactory`. In order to
-        personalize your pickling look instead at the method ``__setstate__``.
-
-        TEST::
-
-            sage: F = GF(5).algebraic_closure()
-            sage: loads(dumps(F)) == F
-            True
-
-        """
-        return (AlgebraicClosureFiniteField,
-                (self.base_ring(), self.variable_name(), self.category()),
-                self.__getstate__())
 
     def __cmp__(self, other):
         """
@@ -915,33 +835,6 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
         self._pseudo_conway_lattice = PseudoConwayLattice(base_ring.characteristic())
         AlgebraicClosureFiniteField_generic.__init__(self, base_ring, name, category)
-
-    def __getstate__(self):
-        """
-        Used for pickling.
-
-        TEST::
-
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_pseudo_conway
-            sage: F = AlgebraicClosureFiniteField_pseudo_conway(GF(5), 'z')
-            sage: F.__getstate__()
-            <class 'sage.rings.finite_rings.conway_polynomials.PseudoConwayLattice'>
-
-        """
-        return self._pseudo_conway_lattice
-
-    def __setstate__(self, state):
-        """
-        Used for pickling.
-
-        TEST::
-
-            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_pseudo_conway
-            sage: F = AlgebraicClosureFiniteField_pseudo_conway(GF(5), 'z')
-            sage: F.__setstate__(F.__getstate__())
-
-        """
-        self._pseudo_conway_lattice = state
 
     def __cmp__(self, other):
         """

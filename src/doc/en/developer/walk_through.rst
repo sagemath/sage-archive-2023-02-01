@@ -71,9 +71,13 @@ internal git repository::
     Checking connectivity... done.
     
 This creates a directory named ``sage`` containing the sources for the
-current stable and development releases of Sage.  (For the experts, note
-that we will use `git.sagemath.org <http://git.sagemath.org>`_ for
-actual development work.)
+current stable and development releases of Sage.  You will need to
+`compile Sage <http://www.sagemath.org/doc/installation/source.html>`_
+in order to use it.
+
+(For the experts, note that the repository at
+`git.sagemath.org <http://git.sagemath.org>`_ is where development
+actually takes place .)
 
 
 .. _section-walkthrough-branch:
@@ -204,12 +208,12 @@ run::
     [user@localhost sage]$ make
 
 as if you were `installing Sage from scratch
-<www.sagemath.org/doc/installation/>`_. However, simply running make
-will only recompile packages that were changed, so it shoud be much
-faster than compiling Sage the first time. Rarely there are conflicts
-with other packages, or with the already-installed older version of the
-package that you changed, in that case you do have to recompile
-everything using::
+<http://www.sagemath.org/doc/installation/source.html>`_.
+However, simply running ``make`` will only recompile packages
+that were changed, so it shoud be much faster than compiling Sage
+the first time. Rarely there are conflicts with other packages,
+or with the already-installed older version of the package that you
+changed, in that case you do have to recompile everything using::
 
     [user@localhost sage]$ make distclean && make
 

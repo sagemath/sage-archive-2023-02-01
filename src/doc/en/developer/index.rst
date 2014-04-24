@@ -46,6 +46,10 @@ start learning about the source code revision control process.
    and the :ref:`Sage dev scripts <chapter-devscript>`.  This is mainly
    intended as a bridge to full use of git once one becomes more comfortable
    with the system.
+-  Finally, if you've never worked on software before, don't forget you
+   will need the `prerequisites to compile
+   <http://www.sagemath.org/doc/installation/source.html#prerequisites>`_
+   in order to make your changes in the source code work.
 
 No matter where you start, good luck and welcome to Sage development!
 

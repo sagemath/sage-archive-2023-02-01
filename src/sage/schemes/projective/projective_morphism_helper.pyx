@@ -18,6 +18,7 @@ AUTHORS:
 from sage.rings.arith              import lcm
 from sage.rings.finite_rings.constructor import GF
 from sage.sets.all                 import Set
+from sage.misc.misc                import subsets
 
 def _fast_possible_periods(self,return_points=False):
     r"""
@@ -26,8 +27,12 @@ def _fast_possible_periods(self,return_points=False):
 
     ALGORITHM:
 
-    The list comes from: Hutz, Good reduction of periodic points, Illinois Journal of
-    Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+    The list comes from [Hutz_Good].
+
+    REFERENCES:
+
+        .. [Hutz_Good] B. Hutz. Good reduction of periodic points, Illinois Journal of
+            Mathematics 53 (Winter 2009), no. 4, 1109-1126.
 
     INPUT:
 
@@ -107,24 +112,21 @@ def _fast_possible_periods(self,return_points=False):
                 periods.add(period)
                 points_periods.append([P_proj,period])
                 l=P_proj.multiplier(self,period,False)
-                q=1
-                leigen=-1
-                while leigen==-1:
-                    try:
-                        leigen=l.change_ring(GF(p**q,'t')).eigenvalues()
-                    except NotImplementedError:
-                        q+=5
-
-                lorders=set([])
-                for k in xrange(len(leigen)):
-                    if leigen[k]!=0:
-                        lorders.add(leigen[k].multiplicative_order())
-
-                lorders=list(Set(lorders).subsets())
+                lorders=set()
+                for poly,_ in l.charpoly().factor():
+                    if poly.degree() == 1:
+                        eig = -poly.constant_coefficient()
+                        if not eig:
+                            continue # exclude 0
+                    else:
+                        eig = GF(p ** poly.degree(), 't', modulus=poly).gen()
+                    if eig:
+                        lorders.add(eig.multiplicative_order())
+                S = subsets(lorders)
+                S.next()   # get rid of the empty set
                 rvalues=set()
-                for k in xrange(1,len(lorders)):
-                    rvalues.add(lcm(lorders[k]))
-
+                for s in S:
+                    rvalues.add(lcm(s))
                 rvalues=list(rvalues)
                 if N==1:
                     for k in xrange(len(rvalues)):

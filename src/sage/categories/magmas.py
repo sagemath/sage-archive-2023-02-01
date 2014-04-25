@@ -236,13 +236,13 @@ class Magmas(Category_singleton):
         class ParentMethods:
             def is_commutative(self):
                 """
-                Return True, since commutative magmas are commutative.
+                Return ``True``, since commutative magmas are commutative.
 
                 EXAMPLES::
 
                     sage: Parent(QQ,category=CommutativeRings()).is_commutative()
                     True
-                    """
+                """
                 return True
 
         class Algebras(AlgebrasCategory):
@@ -325,7 +325,7 @@ class Magmas(Category_singleton):
 
         def product(self, x, y):
             """
-            The binary multiplication of the magma
+            The binary multiplication of the magma.
 
             INPUT:
 

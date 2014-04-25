@@ -242,8 +242,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2+x*y,y^2])
             sage: Q = P(z,1)
-            sage: f(Q)
-            (z + z^2 : 1)
+            sage: f._fast_eval(list(Q))
+            [z + z^2, 1]
 
             ::
 
@@ -253,8 +253,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H=End(P)
             sage: f=H([x^2+x*y,y^2])
             sage: Q=P(z^2,1)
-            sage: f(Q)
-            (zbar^2 : 1.00000000000000)
+            sage: f._fast_eval(list(Q))
+            [zbar^2, 1.00000000000000]
 
             ::
 
@@ -265,8 +265,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f=H([x^2+x*y,y^2])
             sage: F=f.dehomogenize(1)
             sage: Q=P(t^2,z)
-            sage: f(Q)
-            (t^4 + z*t^2 : z^2)
+            sage: f._fast_eval(list(Q))
+            [t^4 + z*t^2, z^2]
         """
         P = [f(*x) for f in self._fastpolys]
         return P

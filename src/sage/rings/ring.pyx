@@ -2177,36 +2177,41 @@ cdef class Algebra(Ring):
             sage: L.has_standard_involution()
             Traceback (most recent call last):
             ...
-            AttributeError: Basis is not yet implemented for this algebra.
+            NotImplementedError: has_standard_involution is not implemented for this algebra
             """
         field = self.base_ring()
         try:
             basis = self.basis()
         except AttributeError:
-            raise AttributeError, "Basis is not yet implemented for this algebra."
-        #step 1
-        for i in range(1,4):
-            ei = basis[i]
-            a = ei**2
-            coef = a.coefficient_tuple()
-            ti = coef[i]
-            ni = a - ti*ei
-            if ni not in field:
-                return False
-        #step 2
-        for i in range(1,4):
-            for j in range(2,4):
+            raise AttributeError("Basis is not yet implemented for this algebra.")
+        try:
+            # TODO: The following code is specific to the quaterion algebra
+            #   and should belong there
+            #step 1
+            for i in range(1,4):
                 ei = basis[i]
-                ej = basis[j]
                 a = ei**2
                 coef = a.coefficient_tuple()
                 ti = coef[i]
-                b = ej**2
-                coef = b.coefficient_tuple()
-                tj = coef[j]
-                nij = (ei + ej)**2 - (ti + tj)*(ei + ej)
-                if nij not in field:
+                ni = a - ti*ei
+                if ni not in field:
                     return False
+            #step 2
+            for i in range(1,4):
+                for j in range(2,4):
+                    ei = basis[i]
+                    ej = basis[j]
+                    a = ei**2
+                    coef = a.coefficient_tuple()
+                    ti = coef[i]
+                    b = ej**2
+                    coef = b.coefficient_tuple()
+                    tj = coef[j]
+                    nij = (ei + ej)**2 - (ti + tj)*(ei + ej)
+                    if nij not in field:
+                        return False
+        except AttributeError:
+            raise NotImplementedError("has_standard_involution is not implemented for this algebra")
         return True
 
 cdef class CommutativeAlgebra(CommutativeRing):

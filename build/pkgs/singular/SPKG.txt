@@ -46,6 +46,8 @@ See spkg-src.
  * osx_link.patch: #14415: Fixes linker problems on OS X PPC.
  * sanitize_gmp_header_hack.patch:
    Fix and simplify generation of `factory/cf_gmp.h` (cf. #14737).
+ * exeext.patch: Add $(EXEEXT) to some executable names.
+ * cygwin64.path: Support for Cywgin64.
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*

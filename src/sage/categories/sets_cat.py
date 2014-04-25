@@ -450,9 +450,9 @@ class Sets(Category_singleton):
             some other object of ``As()``.
 
             Implementing an object of ``As().Quotients()`` is done in
-            the same way as for ``As().Subquotients()`` (i.e., by
-            giving an ambient space and a lift and a retract map).
-            See :meth:`Subquotients` for detailed instructions.
+            the same way as for ``As().Subquotients()``; namely by
+            providing an ambient space and a lift and a retract
+            map. See :meth:`Subquotients` for detailed instructions.
 
             .. SEEALSO::
 
@@ -502,11 +502,12 @@ class Sets(Category_singleton):
             into some other object of ``As()``.
 
             Implementing an object of ``As().Subobjects()`` is done in
-            the same way as for ``As().Subquotients()`` (i.e., by
-            giving an ambient space and a lift and a retract map, even
-            if the latter two maps usually won't do more than changing
-            the parents of their arguments).
-            See :meth:`Subquotients` for detailed instructions.
+            the same way as for ``As().Subquotients()``; namely by
+            providing an ambient space and a lift and a retract
+            map. In the case of a trivial embedding, the two maps will
+            typically be identity maps that just change the parent of
+            their argument. See :meth:`Subquotients` for detailed
+            instructions.
 
             .. SEEALSO::
 

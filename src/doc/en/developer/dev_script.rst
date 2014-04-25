@@ -22,6 +22,12 @@ very useful in projects outside of Sage, especially for open source
 and academic collaboration; that said, there is a somewhat steeper
 learning curve to using git directly.
 
+.. hint::
+
+    We recommend to not use the developer scripts. You will have to
+    :ref:`learn git <chapter-walkthrough>` sooner or later, why not
+    start now?
+
 
 Introduction
 ============

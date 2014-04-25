@@ -2877,11 +2877,55 @@ class Tableau(CombinatorialObject, Element):
 
     def symmetric_group_action_on_values(self, perm):
         """
+        Return the image of the semistandard tableau ``self`` under the
+        action of the permutation ``perm`` using the
+        Lascoux-Schuetzenberger action of the symmetric group `S_n` on
+        the semistandard tableaux with ceiling `n`.
+
+        If `n` is a nonnegative integer, then the
+        Lascoux-Schuetzenberger action is a group action of the
+        symmetric group `S_n` on the set of semistandard Young tableaux
+        with ceiling `n` (that is, with entries taken from the set
+        `\{1, 2, \ldots, n\}`. It is defined as follows:
+
+        Let `i \in \{1, 2, \ldots, n-1\}`, and let `T` be a
+        semistandard tableau with ceiling `n`. Let `w` be the reading
+        word (:meth:`to_word`) of `T`. Replace all letters `i+1` in `w`
+        by opening parentheses, and all letters `i` in `w` by
+        closing parentheses. Whenever an opening parenthesis stands
+        left of a closing parenthesis without there being any
+        parentheses inbetween (it is allowed to have letters
+        inbetween as long as they are not parentheses), consider these
+        two parentheses as matched with each other, and replace them
+        back by the letters `i+1` and `i`. Repeat this procedure until
+        there are no more opening parentheses standing left of closing
+        parentheses. Then, let `a` be the number of opening
+        parentheses in the word, and `b` the number of closing
+        parentheses (notice that all opening parentheses are left of
+        all closing parentheses). Replace the first `b` parentheses
+        by the letters `i+1`, and replace the remaining `a` parentheses
+        by the letters `i`. Let `w'` be the resulting word. Let
+        `T'` be the tableau with the same shape as `T` but with reading
+        word `w'`. This tableau `T'` can be shown to be semistandard.
+        We define the image of `T` under the action of the simple
+        transposition `s_i = (i, i+1) \in S_n` to be this tableau `T'`.
+        It can be shown that these actions `s_1, s_2, \ldots, s_{n-1}`
+        satisfy the Moore-Coxeter relations of `S_n`, and thus this
+        extends to a unique action of the symmetric group `S_n` on
+        the set of semistandard tableaux with ceiling `n`. This is the
+        Lascoux-Schuetzenberger action.
+
         EXAMPLES::
 
             sage: t = Tableau([[1,1,3,3],[2,3],[3]])
             sage: t.symmetric_group_action_on_values([1,2,3])
             [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([2,1,3])
+            [[1, 2, 3, 3], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([3,1,2])
+            [[1, 2, 2, 2], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([2,3,1])
+            [[1, 1, 1, 1], [2, 2], [3]]
             sage: t.symmetric_group_action_on_values([3,2,1])
             [[1, 1, 1, 1], [2, 3], [3]]
             sage: t.symmetric_group_action_on_values([1,3,2])
@@ -2930,7 +2974,7 @@ class Tableau(CombinatorialObject, Element):
 
     def symmetric_group_action_on_entries(self, w):
         r"""
-        Returns the tableau obtained form this tableau by acting by the
+        Return the tableau obtained form this tableau by acting by the
         permutation ``w``.
 
         Let `T` be a standard tableau of size `n`, then the action of
@@ -2971,7 +3015,7 @@ class Tableau(CombinatorialObject, Element):
         Return ``True`` if ``self`` is a key tableau or ``False`` otherwise.
 
         A tableau is a *key tableau* if the set of entries in the `j`-th
-        column are a subset of the set of entries in the `(j-1)`-st column.
+        column is a subset of the set of entries in the `(j-1)`-st column.
 
         REFERENCES:
 
@@ -5999,9 +6043,8 @@ def symmetric_group_action_on_values(word, perm):
         [2, 2, 1]
     """
     w = list(word)
-    ts = permutation.Permutation(perm).reduced_word()
-    for j in reversed(range(len(ts))):
-        r = ts[j]
+    ts = permutation.Permutations()(perm).reduced_word()
+    for r in reversed(ts):
         l = r + 1
         places_r, places_l = unmatched_places(w, l, r)
 
@@ -6011,11 +6054,11 @@ def symmetric_group_action_on_values(word, perm):
         ma = max(nbl, nbr)
         dif = ma - min(nbl, nbr)
         if ma == nbl:
-            for i in range(dif):
-                w[places_l[i]] = r
+            for i in places_l[:dif]:
+                w[i] = r
         else:
-            for i in range(nbr-dif,ma):
-                w[places_r[i]] = l
+            for i in places_r[nbr-dif:ma]:
+                w[i] = l
     return w
 
 # October 2012: fixing outdated pickles which use classed being deprecated

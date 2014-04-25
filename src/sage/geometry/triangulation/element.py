@@ -437,8 +437,7 @@ class Triangulation(Element):
         if dim == 3:
             return triangulation_render_3d(self, **kwds)
 
-        raise NotImplementedError, \
-            'Plotting '+str(dim)+'-dimensional triangulations not implemented!'
+        raise NotImplementedError('Plotting '+str(dim)+'-dimensional triangulations not implemented!')
 
 
     def gkz_phi(self):

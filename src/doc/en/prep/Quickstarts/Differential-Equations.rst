@@ -96,7 +96,7 @@ In all differential equation solving routines, it is important to pay
 attention to the syntax!  In the following example, we have placed the
 differential equation in the body of the command, and had to specify
 that ``f`` was the **d**\ ependent **var**\ iable (``dvar``), as well as
-give initial conditions :math:`f(0)=1` and :math:`f’(0)=2`, which
+give initial conditions :math:`f(0)=1` and :math:`f'(0)=2`, which
 gives the last list in the example.
 
 ::

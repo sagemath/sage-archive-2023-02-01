@@ -73,8 +73,7 @@ class SpikeFunction:
         """
         if len(v) == 0:
            v = [(0,0)]
-        v = [(float(x[0]), float(x[1])) for x in v]
-        v.sort() # makes sure spike locations are in ascending order so we don't need an absolute value to catch overlaps
+        v = sorted([(float(x[0]), float(x[1])) for x in v])
         notify = False
 
         for i in reversed(range(len(v)-1)):

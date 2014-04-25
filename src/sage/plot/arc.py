@@ -81,7 +81,7 @@ class Arc(GraphicPrimitive):
         self.r1 = float(r1)
         self.r2 = float(r2)
         if self.r1 <= 0 or self.r2 <= 0:
-            raise ValueError, "the radii must be positive real numbers."
+            raise ValueError("the radii must be positive real numbers.")
 
         self.angle = float(angle)
         self.s1 = float(s1)
@@ -371,7 +371,7 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
         g = Graphics()
         g._set_extra_kwds(Graphics._extract_kwds_for_show(options))
         if len(sector) != 2:
-            raise ValueError, "the sector must consist of two angles"
+            raise ValueError("the sector must consist of two angles")
         g.add_primitive(Arc(
             center[0],center[1],
             r1,r2,

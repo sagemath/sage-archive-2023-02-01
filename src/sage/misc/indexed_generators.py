@@ -100,7 +100,7 @@ class IndexedGenerators:
         # 'bracket': its default value here is None, meaning that
         # the value of self._repr_option_bracket is used; the default
         # value of that attribute is True -- see immediately before
-        # the method _repr_term.  If 'bracket' is any value
+        # the method _repr_generator.  If 'bracket' is any value
         # except None, then it overrides the value of
         # self._repr_option_bracket.  Future users might consider
         # using 'bracket' instead of _repr_option_bracket.

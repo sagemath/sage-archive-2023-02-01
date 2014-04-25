@@ -17,8 +17,8 @@ class Domains(CategoryWithAxiom):
     """
     The category of domains
 
-    A domain (or non-commutative integral domains), is a ring, not
-    necessarily commutative, with no zero divisors.
+    A domain (or non-commutative integral domain), is a ring, not
+    necessarily commutative, with no nonzero zero divisors.
 
     EXAMPLES::
 

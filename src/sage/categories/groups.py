@@ -116,7 +116,7 @@ class Groups(CategoryWithAxiom):
         def cayley_table(self, names='letters', elements=None):
             r"""
             Returns the "multiplication" table of this multiplicative group,
-            which is also known as the "Cayley table."
+            which is also known as the "Cayley table".
 
             .. note:: The order of the elements in the row and column
               headings is equal to the order given by the table's
@@ -366,7 +366,7 @@ class Groups(CategoryWithAxiom):
 
     class Algebras(AlgebrasCategory):
         """
-        The category of group algebras over the base ring.
+        The category of group algebras over a given base ring.
 
         EXAMPLES::
 
@@ -376,8 +376,10 @@ class Groups(CategoryWithAxiom):
             [Category of hopf algebras with basis over Integer Ring,
              Category of monoid algebras over Integer Ring]
 
-        Here is how to create the group algebra of a group G (this has to
-        be changed if there are no bugs in this category)::
+        Here is how to create the group algebra of a group ``G`` (this
+        has to be changed if there are no bugs in this category)::
+
+        .. TODO:: What does the previous line want to say?
 
             sage: G = DihedralGroup(5)
             sage: QG = GroupAlgebras(QQ).example(G); QG
@@ -394,6 +396,7 @@ class Groups(CategoryWithAxiom):
 
             - Some methods can be transferred to MonoidAlgebras and some to a new category FiniteDimensionalGroupAlgebras
             - The Hopf algebra structure has not yet been implemented
+              [is this still true? I don't think so]
 
         TESTS::
 
@@ -429,7 +432,7 @@ class Groups(CategoryWithAxiom):
 
         def example(self, G = None):
             """
-            Returns an example of group algebra
+            Return an example of group algebra.
 
             EXAMPLES::
 
@@ -441,6 +444,17 @@ class Groups(CategoryWithAxiom):
                 sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
                 The group algebra of the Symmetric group of order 4! as a permutation group over Rational Field
 
+            .. TODO::
+
+                Why does this use ``MyGroupAlgebra``? And what is this:
+
+                    sage: A = GroupAlgebras(QQ).example(GL(3, GF(11)))
+                    sage: A in GroupAlge
+                    GroupAlgebra   GroupAlgebras  
+                    sage: A in GroupAlgebras(QQ)
+                    True
+                    sage: A in Groups().Algebras(QQ)
+                    False
             """
             from sage.categories.examples.group_algebras import MyGroupAlgebra
             from sage.groups.perm_gps.permgroup_named import DihedralGroup

@@ -1062,29 +1062,12 @@ sage_op_dict = {
     sage.symbolic.expression.operator.pow : "MEXPT",
     sage.symbolic.expression.operator.or_ : "MOR",
     sage.symbolic.expression.operator.and_ : "MAND",
-    sage.functions.trig.acos : "%ACOS",
-    sage.functions.trig.acot : "%ACOT",
-    sage.functions.trig.acsc : "%ACSC",
-    sage.functions.trig.asec : "%ASEC",
-    sage.functions.trig.asin : "%ASIN",
-    sage.functions.trig.atan : "%ATAN",
-    sage.functions.trig.cos : "%COS",
-    sage.functions.trig.cot : "%COT",
-    sage.functions.trig.csc : "%CSC",
-    sage.functions.trig.sec : "%SEC",
-    sage.functions.trig.sin : "%SIN",
-    sage.functions.trig.tan : "%TAN",
-    sage.functions.log.exp : "%EXP",
     sage.functions.log.ln : "%LOG",
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.other.erf : "%ERF",
     sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
-    sage.functions.bessel.bessel_I : "%BESSEL_I",
-    sage.functions.bessel.bessel_Y : "%BESSEL_Y",
-    sage.functions.bessel.bessel_J : "%BESSEL_J",
-    sage.functions.bessel.bessel_K : "%BESSEL_K"
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1489,6 +1472,8 @@ def sr_to_max(expr):
             # so calling maxima(expr) can change the structure of expr
             #op_max=caar(maxima(expr).ecl())
             # This should be safe if we treated all special operators above
+            #furthermore, this should already use any _maxima_ methods on op, so use any
+            #conversion methods that are registered in pynac.
             op_max=maxima(op).ecl()
             if op_max in max_op_dict:
                 raise RuntimeError("Encountered operator mismatch in sr-to-maxima translation")
@@ -1509,6 +1494,9 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
+max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+
+
 def max_to_sr(expr):
     r"""
     Convert a Maxima object into a symbolic expression.
@@ -1540,10 +1528,14 @@ def max_to_sr(expr):
         if op_max in special_max_to_sage:
             return special_max_to_sage[op_max](expr)
         if not(op_max in max_op_dict):
-            # This could be unsafe if the conversion to SR
-            # changes the structure of expr
-            sage_expr=SR(maxima(expr))
-            op=sage_expr.operator()
+            op_max_str=maxprint(op_max).python()[1:-1]
+            if op_max_str in max_to_pynac_table:
+                op = max_to_pynac_table[op_max_str]
+            else:
+                # This could be unsafe if the conversion to SR
+                # changes the structure of expr
+                sage_expr=SR(maxima(expr))
+                op=sage_expr.operator()
             if op in sage_op_dict:
                 raise RuntimeError("Encountered operator mismatch in maxima-to-sr translation")
             max_op_dict[op_max]=op

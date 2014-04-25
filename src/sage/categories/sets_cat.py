@@ -504,7 +504,8 @@ class Sets(Category_singleton):
             Implementing an object of ``As().Subobjects()`` is done in
             the same way as for ``As().Subquotients()`` (i.e., by
             giving an ambient space and a lift and a retract map, even
-            if the latter two maps are most usually identity maps).
+            if the latter two maps usually won't do more than changing
+            the parents of their arguments).
             See :meth:`Subquotients` for detailed instructions.
 
             .. SEEALSO::

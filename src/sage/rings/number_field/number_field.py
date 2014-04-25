@@ -3489,6 +3489,19 @@ class NumberField_generic(number_field_base.NumberField):
             sage: p[0].parent()
             Number Field in alpha with defining polynomial x^3 + x + 1
 
+        TEST:
+
+        This checks that the multiple entries issue at :trac:`9341` is fixed::
+
+            sage: _.<t> = QQ[]
+            sage: K.<T> = NumberField(t-1)
+            sage: I = K.ideal(2)
+            sage: K.S_units([I])
+            [2, -1]
+            sage: J = K.ideal(-2)
+            sage: K.S_units([I, J, I])
+            [2, -1]
+
         """
         return self._S_class_group_and_units(tuple(S), proof=proof)[0]
 
@@ -3538,7 +3551,8 @@ class NumberField_generic(number_field_base.NumberField):
               (Fractional ideal (19, 1/13*a^2 - 45/13*a - 332/13), 2)])
         """
         K_pari = self.pari_bnf(proof=proof)
-        S_pari = [p.pari_prime() for p in S]
+        from sage.misc.all import uniq
+        S_pari = [p.pari_prime() for p in uniq(S)]
         result = K_pari.bnfsunit(S_pari)
         units = map(self, result[0]) + self.unit_group().gens_values()
         orders = result[4][1].sage()

@@ -422,8 +422,8 @@ class TamariIntervalPoset(Element):
 
         If `x` precedes `y`, then `y` will always be placed on top of `x`
         and/or to the right of `x`.
-        Decreasing relations are drawn vertically and increasing relations
-        horizontally.
+        Decreasing relations tend to be drawn vertically and increasing
+        relations horizontally.
         The algorithm tries to avoid superposition but on big
         interval-posets, it might happen.
 
@@ -656,9 +656,9 @@ class TamariIntervalPoset(Element):
         r"""
         Return the vertex parent of ``v`` in the initial forest of ``self``.
 
-        This is the minimal `b > v` such that `v` precedes `b`. If there
-        is no such vertex (that is, `v` is an increasing root), then
-        ``None`` is returned.
+        This is the lowest (as integer!) vertex `b > v` such that `v`
+        precedes `b`. If there is no such vertex (that is, `v` is an
+        increasing root), then ``None`` is returned.
 
         INPUT:
 
@@ -789,9 +789,9 @@ class TamariIntervalPoset(Element):
     def decreasing_parent(self, v):
         r"""
         Return the vertex parent of ``v`` in the final forest of ``self``.
-        This is the maximal `a < v` such that ``v`` precedes ``a``. If
-        there is no such vertex (that is, `v` is a decreasing root), then
-        ``None`` is returned.
+        This is the highest (as integer!) vertex `a < v` such that ``v``
+        precedes ``a``. If there is no such vertex (that is, `v` is a
+        decreasing root), then ``None`` is returned.
 
         INPUT:
 
@@ -1869,16 +1869,15 @@ class TamariIntervalPoset(Element):
              The tamari interval of size 4 induced by relations [(4, 3), (3, 2), (2, 1)]]
         """
         yield self
-        ip = self
-        cover_relations = list(ip._cover_relations)
+        n = self.size()
+        cover_relations = list(self._cover_relations)
         for inv in self.tamari_inversions_iter():
             cover_relations.append((inv[1],inv[0]))
-            ip = TamariIntervalPoset(ip.size(), cover_relations)
-            yield ip
+            yield TamariIntervalPoset(n, cover_relations)
 
     def maximal_chain_binary_trees(self):
         r"""
-        Return an iterator on the binary trees forming a maximal chain of
+        Return an iterator on the binary trees forming a longest chain of
         ``self`` (regarding ``self`` as an interval of the Tamari
         lattice).
 
@@ -1902,7 +1901,7 @@ class TamariIntervalPoset(Element):
 
     def maximal_chain_dyck_words(self):
         r"""
-        Return an iterator on the Dyck words forming a maximal chain of
+        Return an iterator on the Dyck words forming a longest chain of
         ``self`` (regarding ``self`` as an interval of the Tamari
         lattice).
 
@@ -1994,7 +1993,21 @@ class TamariIntervalPoset(Element):
 
         EXAMPLES::
 
-            FIXME add some
+            sage: T = TamariIntervalPoset(5, [[1,2],[3,4],[3,2],[5,2],[4,2]])
+            sage: list(T.tamari_inversions_iter())
+            [(4, 5)]
+
+            sage: T = TamariIntervalPoset(8, [(2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (8, 7), (6, 4), (5, 4), (4, 3), (3, 2)])
+            sage: list(T.tamari_inversions_iter())
+            [(1, 2), (1, 7), (5, 6)]
+
+            sage: T = TamariIntervalPoset(1, [])
+            sage: list(T.tamari_inversions_iter())
+            []
+
+            sage: T = TamariIntervalPoset(0, [])
+            sage: list(T.tamari_inversions_iter())
+            []
         """
         n1 = self.size() + 1
         for a in xrange(1, self.size()):   # a == n will never work

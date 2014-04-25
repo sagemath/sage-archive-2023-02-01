@@ -7239,9 +7239,9 @@ class NumberField_absolute(NumberField_generic):
             sage: L0 = K.relativize(rho(K0.gen()), 'b'); L0
             Number Field in b0 with defining polynomial x^2 - b1 + 2 over its base field
             sage: L1 = K.relativize(rho, 'b'); L1
-            Number Field in b0 with defining polynomial x^2 - a0 + 2 over its base field
+            Number Field in b with defining polynomial x^2 - a0 + 2 over its base field
             sage: L2 = K.relativize(tau, 'b'); L2
-            Number Field in b0 with defining polynomial x^2 + a0 over its base field
+            Number Field in b with defining polynomial x^2 + a0 over its base field
             sage: L0.base_field() is K0
             False
             sage: L1.base_field() is K0
@@ -7309,7 +7309,7 @@ class NumberField_absolute(NumberField_generic):
 
             sage: L = NumberField(x^4 + 1, 'a')
             sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
-            [Number Field in c0 with defining polynomial x^4 + 1 over its base field, Number Field in c0 with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c0 with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c0 with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c0 with defining polynomial x - a4 over its base field]
+            [Number Field in c with defining polynomial x^4 + 1 over its base field, Number Field in c with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c with defining polynomial x - a4 over its base field]
 
         We can relativize over a relative field::
 
@@ -7320,23 +7320,23 @@ class NumberField_absolute(NumberField_generic):
             Number Field in z0_0 with defining polynomial x^2 + 64
 
             sage: L_over_F = L.relativize(F_into_L, 'c'); L_over_F
-            Number Field in c0 with defining polynomial x^2 - 1/2*z0_0 over its base field
+            Number Field in c with defining polynomial x^2 - 1/2*z0_0 over its base field
             sage: L_over_F_into_L, _ = L_over_F.structure()
 
             sage: K_over_rel = K.relativize(L_into_K * L_over_F_into_L, 'a'); K_over_rel
-            Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
+            Number Field in a with defining polynomial x^2 - 1/2*c over its base field
             sage: K_over_rel.base_field() is L_over_F
             True
             sage: K_over_rel.structure()
             (Relative number field morphism:
-              From: Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
+              From: Number Field in a with defining polynomial x^2 - 1/2*c over its base field
               To:   Cyclotomic Field of order 16 and degree 8
-              Defn: a0 |--> z
-                    c0 |--> 2*z^2
+              Defn: a |--> z
+                    c |--> 2*z^2
                     z0_0 |--> 8*z^4, Ring morphism:
               From: Cyclotomic Field of order 16 and degree 8
-              To:   Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
-              Defn: z |--> a0)
+              To:   Number Field in a with defining polynomial x^2 - 1/2*c over its base field
+              Defn: z |--> a)
 
         We can relativize over a really large field::
 
@@ -7359,8 +7359,6 @@ class NumberField_absolute(NumberField_generic):
         # step 3: construct isomorphisms
         from sage.all import vector, matrix
 
-        names = sage.structure.parent_gens.normalize_names(2, names)
-
         from sage.categories.map import is_Map
         if is_Map(alpha):
             # alpha better be a morphism with codomain self
@@ -7369,10 +7367,12 @@ class NumberField_absolute(NumberField_generic):
             L = alpha.domain()
             alpha = alpha(L.gen()) # relativize over phi's domain
             f = L.defining_polynomial() # = alpha.minpoly()
+            names = sage.structure.parent_gens.normalize_names(1, names)
         else:
             # alpha must be an element coercible to self
             alpha = self(alpha)
             f = alpha.minpoly()
+            names = sage.structure.parent_gens.normalize_names(2, names)
             L = NumberField(f, names[1])
 
         # now we do some linear algebra to find the minpoly of self.gen() over L

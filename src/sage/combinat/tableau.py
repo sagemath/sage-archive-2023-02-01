@@ -547,7 +547,8 @@ class Tableau(CombinatorialObject, Element):
 
     def __div__(self, t):
         """
-        Return the skew tableau ``self``/``t``.
+        Return the skew tableau ``self``/``t``, where ``t`` is a partition
+        contained in the shape of ``self``.
 
         EXAMPLES::
 
@@ -570,11 +571,12 @@ class Tableau(CombinatorialObject, Element):
         if not self.shape().contains(t):
             raise ValueError("the shape of the tableau must contain the partition")
 
-        st = copy.deepcopy(self._list)
+        st = [list(row) for row in self._list]    # create deep copy of t
 
-        for i in range(len(t)):
-            for j in range(t[i]):
-                st[i][j] = None
+        for i, t_i in enumerate(t):
+            st_i = st[i]
+            for j in range(t_i):
+                st_i[j] = None
 
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(st)
@@ -1693,12 +1695,12 @@ class Tableau(CombinatorialObject, Element):
             sage: t.anti_restrict(5)
             [[None, None, None], [None, None]]
         """
-        t = list(copy.deepcopy(self))
+        t = [list(row) for row in self._list]  # create deep copy of t
 
-        for row in xrange(len(t)):
-            for col in xrange(len(t[row])):
-                if t[row][col] <= n:
-                    t[row][col] = None
+        for row in t:
+            for col in xrange(len(row)):
+                if row[col] <= n:
+                    row[col] = None
         from sage.combinat.skew_tableau import SkewTableau
         return SkewTableau(t)
 
@@ -1972,9 +1974,12 @@ class Tableau(CombinatorialObject, Element):
         """
         Multiply two tableaux using Schensted's bump.
 
-        This product makes the set of tableaux into an associative monoid.
-        The empty tableau is the unit in this monoid. See pp. 11-12 of
-        [Ful1997]_.
+        This product makes the set of semistandard tableaux into an
+        associative monoid. The empty tableau is the unit in this monoid.
+        See pp. 11-12 of [Ful1997]_.
+
+        The same product operation is implemented in a different way in
+        :meth:`slide_multiply`.
 
         EXAMPLES::
 
@@ -1987,7 +1992,7 @@ class Tableau(CombinatorialObject, Element):
             raise TypeError("right must be a Tableau")
 
         row = len(right)
-        product = copy.deepcopy(left)
+        product = Tableau([list(a) for a in left._list])   # create deep copy of left
         while row > 0:
             row -= 1
             for i in right[row]:
@@ -1998,10 +2003,13 @@ class Tableau(CombinatorialObject, Element):
         """
         Multiply two tableaux using jeu de taquin.
 
-        This product makes the set of tableaux into an associative monoid.
-        The empty tableau is the unit in this monoid.
+        This product makes the set of semistandard tableaux into an
+        associative monoid. The empty tableau is the unit in this monoid.
 
         See pp. 15 of [Ful1997]_.
+
+        The same product operation is implemented in a different way in
+        :meth:`bump_multiply`.
 
         EXAMPLES::
 

@@ -77,7 +77,7 @@ Some challenges
     6
 
     sage: A=random_matrix(ZZ,3,6,x=7)
-    sage: L=LatticePolytope(A)
+    sage: L=LatticePolytope(A.columns())
     sage: L.npoints()                # oops!   # random
     37
 

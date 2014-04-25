@@ -230,22 +230,6 @@ class Tachyon(SageObject):
 
 
 
-    def __repr__(self):
-        r"""
-        Returns the string representation of the Tachyon object,
-        which is just the scene string input to tachyon.
-
-        EXAMPLES::
-
-            sage: q = Tachyon()
-            sage: q.light((1,1,1), 1,(1,1,1))
-            sage: q.texture('s')
-            sage: q.sphere((0,0,0),1,'s')
-            sage: q.__repr__()[-20:]
-            '  \n        end_scene'
-        """
-        return self.str()
-
     def save_image(self, filename=None, *args, **kwds):
         r"""
         Save an image representation of self.  The image type is
@@ -1200,8 +1184,6 @@ class TachyonTriangle(Triangle):
     r"""
     Basic triangle class.
     """
-    def __str__(self):
-        return self.str()
     def str(self):
         r"""
         Returns the scene string for a triangle.
@@ -1222,8 +1204,6 @@ class TachyonSmoothTriangle(SmoothTriangle):
     r"""
     A triangle along with a normal vector, which is used for smoothing.
     """
-    def __str__(self):
-        return self.str()
     def str(self):
         r"""
         Returns the scene string for a smoothed triangle.

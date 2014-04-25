@@ -48,17 +48,20 @@ class Triangle:
         self._c = c
         self._color = color
 
-    def __repr__(self):
+    def str(self):
         """
-        Returns a string description of an instance of the Triangle class of the form
-        a b c color
+        Returns a string representation of an instance of the Triangle
+        class of the form
+
+            a b c color
+
         where a, b, and c are corner coordinates and color is the color.
 
         TESTS::
 
             sage: from sage.plot.plot3d.tri_plot import Triangle
             sage: tri = Triangle([0,0,0],[-1,2,3],[0,2,0])
-            sage: print tri.__repr__()
+            sage: print tri.str()
             [0, 0, 0] [-1, 2, 3] [0, 2, 0] 0
         """
         return "%s %s %s %s"%(self._a, self._b, self._c, self._color)
@@ -116,10 +119,12 @@ class SmoothTriangle(Triangle):
         self._dc = dc
         self._color = color
 
-    def __repr__(self):
+    def str(self):
         """
         Returns a string representation of the SmoothTriangle of the form
-        a b c da db dc color
+
+            a b c da db dc color
+            
         where a, b, and c are the triangle corner coordinates,
         da, db, dc are normals at each corner, and color is the color.
 
@@ -127,7 +132,7 @@ class SmoothTriangle(Triangle):
 
             sage: from sage.plot.plot3d.tri_plot import SmoothTriangle
             sage: t = SmoothTriangle([1,2,3],[2,3,4],[0,0,0],[0,0,1],[0,1,0],[1,0,0])
-            sage: print t.__repr__()
+            sage: print t.str()
             [1, 2, 3] [2, 3, 4] [0, 0, 0] 0 [0, 0, 1] [0, 1, 0] [1, 0, 0]
         """
         return "%s %s %s %s %s %s %s"%(self._a, self._b, self._c, self._color, self._da, self._db, self._dc)
@@ -230,7 +235,7 @@ class TrianglePlot:
             sage: len(t.str())
             68980
         """
-        return "".join([str(o) for o in self._objects])
+        return "".join([o.str() for o in self._objects])
 
     def __init__(self, triangle_factory, f, min_x__max_x, min_y__max_y, g = None,
                        min_depth=4, max_depth=8, num_colors = None, max_bend=.3):

@@ -365,7 +365,7 @@ class Groups(CategoryWithAxiom):
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Algebras(AlgebrasCategory):
-        """
+        r"""
         The category of group algebras over a given base ring.
 
         EXAMPLES::
@@ -376,27 +376,23 @@ class Groups(CategoryWithAxiom):
             [Category of hopf algebras with basis over Integer Ring,
              Category of monoid algebras over Integer Ring]
 
-        Here is how to create the group algebra of a group ``G`` (this
-        has to be changed if there are no bugs in this category)::
-
-        .. TODO:: What does the previous line want to say?
+        Here is how to create the group algebra of a group `G`::
 
             sage: G = DihedralGroup(5)
-            sage: QG = GroupAlgebras(QQ).example(G); QG
-            The group algebra of the Dihedral group of order 10 as a permutation group over Rational Field
+            sage: QG = G.algebra(QQ); QG
+            Group algebra of Dihedral group of order 10 as a permutation group over Rational Field
 
         and an example of computation::
 
-            sage: g=DihedralGroup(5).an_element(); g
+            sage: g = G.an_element(); g
             (1,2,3,4,5)
             sage: (QG.term(g) + 1)**3
             B[()] + 3*B[(1,2,3,4,5)] + 3*B[(1,3,5,2,4)] + B[(1,4,2,5,3)]
 
         .. TODO::
 
-            - Some methods can be transferred to MonoidAlgebras and some to a new category FiniteDimensionalGroupAlgebras
-            - The Hopf algebra structure has not yet been implemented
-              [is this still true? I don't think so]
+            - Check which methods would be better located in
+              ``Monoid.Algebras`` or ``Groups.Finite.Algebras``.
 
         TESTS::
 
@@ -437,30 +433,17 @@ class Groups(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: GroupAlgebras(QQ[x]).example()
-                The group algebra of the Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
+                Group algebra of Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
 
             An other group can be specified as optional argument::
 
                 sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
-                The group algebra of the Symmetric group of order 4! as a permutation group over Rational Field
-
-            .. TODO::
-
-                Why does this use ``MyGroupAlgebra``? And what is this:
-
-                    sage: A = GroupAlgebras(QQ).example(GL(3, GF(11)))
-                    sage: A in GroupAlge
-                    GroupAlgebra   GroupAlgebras  
-                    sage: A in GroupAlgebras(QQ)
-                    True
-                    sage: A in Groups().Algebras(QQ)
-                    False
+                Group algebra of Symmetric group of order 4! as a permutation group over Rational Field
             """
-            from sage.categories.examples.group_algebras import MyGroupAlgebra
             from sage.groups.perm_gps.permgroup_named import DihedralGroup
             if G is None:
                 G = DihedralGroup(4)
-            return MyGroupAlgebra(self.base_ring(), G)
+            return G.algebra(self.base_ring())
 
         class ParentMethods:
 

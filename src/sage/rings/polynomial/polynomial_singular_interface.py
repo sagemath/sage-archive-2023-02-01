@@ -228,7 +228,7 @@ class PolynomialRing_singular_repr:
             //        block   2 : ordering C
         """
         if not can_convert_to_singular(self):
-            raise TypeError, "no conversion of this ring to a Singular ring defined"
+            raise TypeError("no conversion of this ring to a Singular ring defined")
 
         if self.ngens()==1:
             _vars = '(%s)'%self.gen()
@@ -327,7 +327,7 @@ class PolynomialRing_singular_repr:
         elif base_ring is ZZ:
             self.__singular = singular.ring("(integer)", _vars, order=order, check=False)
         else:
-            raise TypeError, "no conversion to a Singular ring defined"
+            raise TypeError("no conversion to a Singular ring defined")
 
         return self.__singular
 

@@ -756,17 +756,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         else:
             return sage.rings.real_double.RDF(c)
 
-    def norm(self, p=None):
+    def norm(self, p=2):
         r"""
         Returns the norm of the matrix.
 
         INPUT:
 
-        - ``p`` - default: 'frob' - controls which norm is computed,
+        - ``p`` - default: 2 - controls which norm is computed,
           allowable values are 'frob' (for the Frobenius norm),
           integers -2, -1, 1, 2, positive and negative infinity.  See
-          output discussion for specifics.  The default (``p='frob'``)
-          is deprecated and will change to a default of ``p=2`` soon.
+          output discussion for specifics.
 
         OUTPUT:
 
@@ -805,9 +804,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [ 0.0  1.0  2.0]
             [ 3.0  4.0  5.0]
             sage: A.norm()
-            doctest:...: DeprecationWarning: The default norm will be changing from p='frob' to p=2.  Use p='frob' explicitly to continue calculating the Frobenius norm.
-            See http://trac.sagemath.org/13643 for details.
-            8.30662386...
+            7.99575670...
             sage: A.norm(p='frob')
             8.30662386...
             sage: A.norm(p=Infinity)
@@ -829,7 +826,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [1.0 + 1.0*I 2.0 + 3.0*I]
             [3.0 + 4.0*I       3.0*I]
             sage: B.norm()
-            7.0
+            6.66189877...
             sage: B.norm(p='frob')
             7.0
             sage: B.norm(p=Infinity)
@@ -876,13 +873,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         global numpy
         if numpy is None:
             import numpy
-
-        if p is None:
-            from sage.misc.superseded import deprecation
-            msg = "The default norm will be changing from p='frob' to p=2.  Use p='frob' explicitly to continue calculating the Frobenius norm."
-            deprecation(13643, msg)
-            # change to default of p=2 when deprecation period has elapsed
-            p='frob'
 
         import sage.rings.infinity
         import sage.rings.integer
@@ -1266,186 +1256,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             M.set_immutable()
         self.cache('PLU_factors', PLU)
         return PLU
-
-    def eigenspaces_left(self, var='a', algebraic_multiplicity=False):
-        r"""
-        Computes the left eigenspaces of a matrix of double precision
-        real or complex numbers (i.e. RDF or CDF).
-
-        .. warning::
-
-            This method returns eigenspaces that are all of
-            dimension one, since it is impossible to ascertain
-            if the numerical results belong to the same eigenspace.
-            So this is deprecated in favor of the eigenmatrix routines,
-            such as :meth:`sage.matrix.matrix2.Matrix.eigenmatrix_right`.
-
-        INPUT:
-
-        - ``var`` - ignored for numerical matrices
-        - ``algebraic_multiplicity`` - must be set to ``False``
-          for numerical matrices, and will raise an error otherwise.
-
-        OUTPUT:
-
-        Return a list of pairs ``(e, V)`` where ``e`` is a (complex)
-        eigenvalue and ``V`` is the associated left eigenspace as a
-        vector space.
-
-        No attempt is made to determine if an eigenvalue has multiplicity
-        greater than one, so all the eigenspaces returned have dimension one.
-
-        The SciPy routines used for these computations produce eigenvectors
-        normalized to have length 1, but on different hardware they may vary
-        by a sign. So for doctests we have normalized output by creating an
-        eigenspace with a canonical basis.
-
-        EXAMPLES:
-
-        This first test simply raises the deprecation warning.  ::
-
-            sage: A = identity_matrix(RDF, 2)
-            sage: es = A.eigenspaces_left()
-            doctest:...: DeprecationWarning: Eigenspaces of RDF/CDF matrices are
-            deprecated as of Sage version 5.0,
-            please use "eigenmatrix_left" instead
-            See http://trac.sagemath.org/11603 for details.
-
-        ::
-
-            sage: m = matrix(RDF, [[-5, 3, 2, 8],[10, 2, 4, -2],[-1, -10, -10, -17],[-2, 7, 6, 13]])
-            sage: spectrum = m.eigenspaces_left()
-            sage: spectrum[0][0]
-            2.0
-            sage: (RDF^4).subspace(spectrum[0][1].basis())
-            Vector space of degree 4 and dimension 1 over Real Double Field
-            Basis matrix:
-            [1.0 1.0 1.0 1.0]
-
-            sage: e, V = spectrum[2]
-            sage: v = V.basis()[0]
-            sage: diff = (v*m).change_ring(CDF) - e*v
-            sage: abs(abs(diff)) < 1e-14
-            True
-
-        TESTS::
-
-            sage: m.eigenspaces_left(algebraic_multiplicity=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: algebraic_multiplicity must be set to False for double precision matrices
-        """
-        from sage.misc.superseded import deprecation
-        msg = ('Eigenspaces of RDF/CDF matrices are deprecated as of ',
-               'Sage version 5.0',
-               ', please use "eigenmatrix_left" instead')
-        deprecation(11603, ''.join(msg))
-        # For numerical values we leave decisions about
-        # multiplicity to the calling routine
-        if algebraic_multiplicity:
-            raise ValueError("algebraic_multiplicity must be set to False for double precision matrices")
-        spectrum = self.left_eigenvectors()
-        pairs = []
-        for evalue,evectors,_ in spectrum:
-            evector = evectors[0]
-            espace = evector.parent().span_of_basis([evector],check=False)
-            pairs.append((evalue, espace))
-        return pairs
-
-    left_eigenspaces = eigenspaces_left
-
-    def eigenspaces_right(self, var='a', algebraic_multiplicity=False):
-        r"""
-        Computes the right eigenspaces of a matrix of double precision
-        real or complex numbers (i.e. RDF or CDF).
-
-        .. warning::
-
-            This method returns eigenspaces that are all of
-            dimension one, since it is impossible to ascertain
-            if the numerical results belong to the same eigenspace.
-            So this is deprecated in favor of the eigenmatrix routines,
-            such as :meth:`sage.matrix.matrix2.Matrix.eigenmatrix_right`.
-
-        INPUT:
-
-        - ``var`` - ignored for numerical matrices
-        - ``algebraic_multiplicity`` - must be set to ``False``
-          for numerical matrices, and will raise an error otherwise.
-
-        OUTPUT:
-
-        Return a list of pairs ``(e, V)`` where ``e`` is a (complex)
-        eigenvalue and ``V`` is the associated right eigenspace as a
-        vector space.
-
-        No attempt is made to determine if an eigenvalue has multiplicity
-        greater than one, so all the eigenspaces returned have dimension one.
-
-        The SciPy routines used for these computations produce eigenvectors
-        normalized to have length 1, but on different hardware they may vary
-        by a sign. So for doctests we have normalized output by creating an
-        eigenspace with a canonical basis.
-
-
-        EXAMPLES:
-
-        This first test simply raises the deprecation warning.  ::
-
-            sage: A = identity_matrix(RDF, 2)
-            sage: es = A.eigenspaces_right()
-            doctest:...: DeprecationWarning: Eigenspaces of RDF/CDF matrices are
-            deprecated as of Sage version 5.0,
-            please use "eigenmatrix_right" instead
-            See http://trac.sagemath.org/11603 for details.
-
-        ::
-
-            sage: m = matrix(RDF, [[-9, -14, 19, -74],[-1, 2, 4, -11],[-4, -12, 6, -32],[0, -2, -1, 1]])
-            sage: m
-            [ -9.0 -14.0  19.0 -74.0]
-            [ -1.0   2.0   4.0 -11.0]
-            [ -4.0 -12.0   6.0 -32.0]
-            [  0.0  -2.0  -1.0   1.0]
-            sage: spectrum = m.eigenspaces_right()
-            sage: spectrum[0][0]
-            2.0
-            sage: (RDF^4).subspace(spectrum[0][1].basis())
-            Vector space of degree 4 and dimension 1 over Real Double Field
-            Basis matrix:
-            [ 1.0 -2.0  3.0  1.0]
-
-            sage: e, V = spectrum[2]
-            sage: v = V.basis()[0]
-            sage: diff = (m*v).change_ring(CDF) - e*v
-            sage: abs(abs(diff)) < 3e-14
-            True
-
-        TESTS::
-
-            sage: m.eigenspaces_right(algebraic_multiplicity=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: algebraic_multiplicity must be set to False for double precision matrices
-        """
-        from sage.misc.superseded import deprecation
-        msg = ('Eigenspaces of RDF/CDF matrices are deprecated as of ',
-               'Sage version 5.0',
-               ', please use "eigenmatrix_right" instead')
-        deprecation(11603, ''.join(msg))
-        # For numerical values we leave decisions about
-        # multiplicity to the calling routine
-        if algebraic_multiplicity:
-            raise ValueError("algebraic_multiplicity must be set to False for double precision matrices")
-        spectrum = self.right_eigenvectors()
-        pairs = []
-        for evalue,evectors,_ in spectrum:
-            evector = evectors[0]
-            espace = evector.parent().span_of_basis([evector],check=False)
-            pairs.append((evalue, espace))
-        return pairs
-
-    right_eigenspaces = eigenspaces_right
 
     def eigenvalues(self, algorithm='default', tol=None):
         r"""
@@ -2281,7 +2091,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             trans.subdivide(col_divs, row_divs)
         return trans
 
-    def SVD(self, *args, **kwds):
+    def SVD(self):
         r"""
         Return the singular value decomposition of this matrix.
 
@@ -2387,10 +2197,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         global scipy, numpy
         cdef Py_ssize_t i
         cdef Matrix_double_dense U, S, V
-
-        if len(args)>0 or len(kwds)>0:
-            from sage.misc.superseded import deprecation
-            deprecation(7852, "Arguments passed to SVD, but SVD no longer supports different methods (it only uses numpy now).")
 
         if self._nrows == 0 or self._ncols == 0:
             U_t = self.new_matrix(self._nrows, self._ncols)
@@ -3997,7 +3803,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         d /= 2
         return int(math.ceil(d / math.log(10)))
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def exp(self, algorithm='pade', order=None):
         r"""
         Calculate the exponential of this matrix X, which is the matrix

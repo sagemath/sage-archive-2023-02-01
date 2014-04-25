@@ -167,7 +167,7 @@ def antiadjoint(self):
       else:
         return self.adjoint().scale_by_factor( R(1) / d**(n-2) )
     except TypeError:
-      raise ValueError, "not an adjoint"
+      raise ValueError("not an adjoint")
 
 
 def is_adjoint(self):
@@ -317,8 +317,8 @@ def hasse_conductor(self):
         10
     """
     D = self.disc()
-    return prod(filter(lambda(p):self.hasse_invariant(p)==-1, \
-             map(lambda(x):x[0],factor(2*self.level()))))
+    return prod(filter(lambda p: self.hasse_invariant(p) == -1,
+                       map(lambda x: x[0], factor(2 * self.level()))))
 
 def clifford_invariant(self, p):
     """
@@ -393,8 +393,8 @@ def clifford_conductor(self):
 
     """
     D = self.disc()
-    return prod(filter(lambda(p):self.clifford_invariant(p)==-1, \
-             map(lambda(x):x[0],factor(2*self.level()))))
+    return prod(filter(lambda p: self.clifford_invariant(p) == -1,
+                       map(lambda x: x[0], factor(2 * self.level()))))
 
 
 ### Genus theory
@@ -454,7 +454,7 @@ def basiclemmavec(self,M):
             if M0 == 1:
                 return __crt_list(vec,mod)
 
-    raise ValueError, "not primitive form"
+    raise ValueError("not primitive form")
 
 
 ### FIXME: get the rules for validity of characters straight...
@@ -479,9 +479,9 @@ def xi(self,p):
 
     """
     if self.dim() == 2 and self.disc() % p:
-        raise ValueError, "not a valid character"
+        raise ValueError("not a valid character")
     if self.dim() >= 3 and self.omega() % p:
-        raise ValueError, "not a valid character"
+        raise ValueError("not a valid character")
     if (p == -1) or (p == 2):
         return kronecker_symbol(p, self.basiclemma(2))
     return kronecker_symbol(self.basiclemma(p), p)

@@ -33,4 +33,6 @@ The MPC team can be contact via the MPC mailing list:
 
 == Special Update/Build Instructions ==
 
-None
+* mpc_mul_faster.patch: Patch from Paul Zimmermann to speed up MPC
+  multiplication (for small precisions) by reducing overhead in MPFR
+  operations.

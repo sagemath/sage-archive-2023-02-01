@@ -751,14 +751,14 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         arg2 = [[e.coeff(a) for e in exprs] for a in args]
         try:
             arg2 = matrix(D.base_ring(), m, n, arg2)
-        except TypeError, e:
+        except TypeError as e:
             msg = 'symbolic function must be linear in all the inputs:\n' + e.args[0]
             raise ValueError(msg)
         # have matrix with respect to standard bases, now consider user bases
         images = [v*arg2 for v in D.basis()]
         try:
             arg2 = matrix([C.coordinates(C(a)) for a in images])
-        except (ArithmeticError, TypeError), e:
+        except (ArithmeticError, TypeError) as e:
             msg = 'some image of the function is not in the codomain, because\n' + e.args[0]
             raise ArithmeticError(msg)
     else:
@@ -849,7 +849,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             <class 'sage.modules.vector_space_morphism.VectorSpaceMorphism'>
         """
         if not vector_space_homspace.is_VectorSpaceHomspace(homspace):
-            raise TypeError, 'homspace must be a vector space hom space, not {0}'.format(homspace)
+            raise TypeError('homspace must be a vector space hom space, not {0}'.format(homspace))
         if isinstance(A, matrix_morphism.MatrixMorphism):
             A = A.matrix()
         if not is_Matrix(A):

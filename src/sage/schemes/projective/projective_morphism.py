@@ -60,11 +60,12 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
+from sage.parallel.ncpus           import ncpus
+from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
 from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
-from sage.parallel.ncpus           import ncpus
-from sage.parallel.use_fork        import p_iter_fork
+import sys
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
@@ -186,11 +187,22 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
 
         # Passes the array of args to _fast_eval
-        P = self._fast_eval(x._coords, check)
+        P = self._fast_eval(x._coords)
         return self.codomain().point(P, check)
 
     @lazy_attribute
     def _fastpolys(self):
+        """
+        Lazy attribute for fast_callable polynomials for ``self``.
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2])
+            sage: [g.op_list() for g in f._fastpolys]
+            [[('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', 1), ('load_arg', 0), ('ipow', 2), 'mul', 'add', 'return'], [('load_const', 0), ('load_const', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'add', 'return']]
+        """
         polys = self._polys
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
         prime = polys[0].base_ring().characteristic()
@@ -201,13 +213,15 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             # These tests are in place because the float and integer domain evaluate
             # faster than using the base_ring
             if self._is_prime_finite_field:
+                prime = polys[0].base_ring().characteristic()
+                degree = polys[0].degree()
                 coefficients = poly.coefficients()
-                height = max(coefficients).lift()
+                height = max(abs(c.lift()) for c in coefficients)
                 num_terms = len(coefficients)
                 largest_value = num_terms * height * (prime - 1) ** degree
                 # If the calculations will not overflow the float data type use domain float
                 # Else use domain integer
-                if largest_value < (2 ** 27):
+                if largest_value < (2 ** sys.float_info.mant_dig):
                     fastpolys.append(fast_callable(poly, domain=float))
                 else:
                     fastpolys.append(fast_callable(poly, domain=ZZ))
@@ -215,7 +229,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 fastpolys.append(fast_callable(poly, domain=poly.base_ring()))
         return fastpolys
 
-    def _fast_eval(self, x, check=True):
+    def _fast_eval(self, x):
         """
         Evaluate projective morphism at point described by ``x``.
 
@@ -227,6 +241,38 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f._fast_eval([1,1,1])
             [2, 1, 2]
 
+            ::
+
+            sage: T.<z> = LaurentSeriesRing(ZZ)
+            sage: P.<x,y> = ProjectiveSpace(T,1)
+            sage: H = End(P)
+            sage: f = H([x^2+x*y,y^2])
+            sage: Q = P(z,1)
+            sage: f(Q)
+            (z + z^2 : 1)
+
+            ::
+
+            sage: T.<z>=PolynomialRing(CC)
+            sage: I=T.ideal(z^3)
+            sage: P.<x,y>=ProjectiveSpace(T.quotient_ring(I),1)
+            sage: H=End(P)
+            sage: f=H([x^2+x*y,y^2])
+            sage: Q=P(z^2,1)
+            sage: f(Q)
+            (zbar^2 : 1.00000000000000)
+
+            ::
+
+            sage: T.<z>=LaurentSeriesRing(CC)
+            sage: R.<t>=PolynomialRing(T)
+            sage: P.<x,y>=ProjectiveSpace(R,1)
+            sage: H=End(P)
+            sage: f=H([x^2+x*y,y^2])
+            sage: F=f.dehomogenize(1)
+            sage: Q=P(t^2,z)
+            sage: f(Q)
+            (t^4 + z*t^2 : z^2)
         """
         P = [f(*x) for f in self._fastpolys]
         return P
@@ -2736,7 +2782,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
 
-    def _fast_eval(self, x, check=True):
+    def _fast_eval(self, x):
         """
         Evaluate projective morphism at point described by x.
 

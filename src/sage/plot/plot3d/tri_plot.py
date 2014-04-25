@@ -464,8 +464,8 @@ class TrianglePlot:
             sage: tf = TriangleFactory()
             sage: t = TrianglePlot(tf, lambda x,y: x^2 - y*x, (0, -2), (0, 2), max_depth=3)
             sage: t.interface(1, [[(-1/4, 0, 1/16)], [(-1/4, 1/4, 1/8)]], [[(-1/8, 1/8, 1/32)]], [[(-1/4, 0, 1/16)], [(-1/4, 1/4, 1/8)]], [[(-3/8, 1/8, 3/16)]])
-            sage: t._objects[-1].str()
-            (-1/4, 0, 1/16) (-1/4, 1/4, 1/8) (-3/8, 1/8, 3/16) 0
+            sage: t._objects[-1].get_vertices()
+            ((-1/4, 0, 1/16), (-1/4, 1/4, 1/8), (-3/8, 1/8, 3/16))
         """
         m   = [p[0]] # a sorted union of p and q
         mpc = [p_c[0]] # centers from p_c corresponding to m

@@ -639,8 +639,8 @@ class Tachyon(SageObject):
             sage: t = Tachyon()
             sage: t.texture('s')
             sage: t.triangle([1,2,3],[4,5,6],[7,8,10],'s')
-            sage: t._objects[1].str()
-            [1, 2, 3] [4, 5, 6] [7, 8, 10] s
+            sage: t._objects[1].get_vertices()
+            ([1, 2, 3], [4, 5, 6], [7, 8, 10])
 
         """
         self._objects.append(TachyonTriangle(vertex_1,vertex_2,vertex_3,texture))
@@ -655,8 +655,10 @@ class Tachyon(SageObject):
             sage: t.light((1,1,1),.1,(1,1,1))
             sage: t.texture('s')
             sage: t.smooth_triangle([0,0,0],[0,0,1],[0,1,0],[0,1,1],[-1,1,2],[3,0,0],'s')
-            sage: t._objects[2].str()
-            [0, 0, 0] [0, 0, 1] [0, 1, 0] s [0, 1, 1] [-1, 1, 2] [3, 0, 0]
+            sage: t._objects[2].get_vertices()
+            ([0, 0, 0], [0, 0, 1], [0, 1, 0])
+            sage: t._objects[2].get_normals()
+            ([0, 1, 1], [-1, 1, 2], [3, 0, 0])
         """
         self._objects.append(TachyonSmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
 

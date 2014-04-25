@@ -8,31 +8,44 @@ Functions
 ---------
 """
 
-def transversal_design(k,n,t=2,check=True):
+def transversal_design(k,n,check=True):
     r"""
     Return a transversal design of parameters `k,n`.
 
-    A transversal design of parameters `n, k` is a collection `\mathcal{S}`
-    of `k`-subsets of `V = V_1 \sqcup \cdots \sqcup V_k`
-    (where `|V_i| = n` for all `i`) such that:
+    A transversal design of parameters `k, n` is a collection `\mathcal{S}` of
+    subsets of `V = V_1 \cup \cdots \cup V_k` (where the *groups* `V_i` are
+    disjoint and have cardinality `n`) such that:
 
-    * Any element `S \in \mathcal{S}` intersects each set `V_i` on exactly one
-      element.
+    * Any `S \in \mathcal{S}` has cardinality `k` and intersects each group on
+      exactly one element.
 
-    * Any two elements `v_i \in V_i, v_j\in V_j` with `i \neq j` belong to
-      exactly one element of `\mathcal{S}`.
+    * Any two elements from distincts groups are contained in exactly one
+      element of `\mathcal{S}`.
+
+    More general definitions sometimes involve a `\lambda` parameter, and we
+    assume here that `\lambda=1`.
 
     For more information on transversal designs, see
-    http://mathworld.wolfram.com/TransversalDesign.html.
+    `<http://mathworld.wolfram.com/TransversalDesign.html>`_.
 
     INPUT:
 
-    - `n,k,t` -- integers
+    - `n,k` -- integers.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
+
+    .. NOTE::
+
+        This function returns transversal designs with
+        `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}`.
+
+    .. SEEALSO::
+
+        :func:`orthogonal_array` -- a tranversal design is an orthogonal array
+        with `t=2`.
 
     EXAMPLES::
 
@@ -47,9 +60,12 @@ def transversal_design(k,n,t=2,check=True):
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
     """
-    # Section 6.6
-    OA = orthogonal_array(k,n)
-    TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+    if n == 12 and k <= 6:
+        TD = [l[:k] for l in TD6_12()]
+    else:
+        # Section 6.6
+        OA = orthogonal_array(k,n,t=2, check = False)
+        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
 
     if check:
         assert is_transversal_design(TD,k,n)
@@ -97,9 +113,59 @@ def is_transversal_design(B,k,n):
 
     return g.is_clique()
 
+def TD6_12():
+    r"""
+    Returns a `TD(6,12)` as build in [Hanani75]_.
+
+    This design is Lemma 3.21 from [Hanani75]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import TD6_12
+        sage: _ = TD6_12()
+
+    REFERENCES:
+
+    .. [Hanani75] Haim Hanani,
+      Balanced incomplete block designs and related designs,
+      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
+      Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
+    """
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+    G = AdditiveAbelianGroup([2,6])
+    d = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
+         [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
+         [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
+         [(0,0),(0,3),(0,2),(0,1),(1,5),(1,4)],
+         [(0,0),(0,4),(1,1),(1,3),(0,5),(0,2)],
+         [(0,0),(0,5),(0,1),(1,5),(1,3),(1,1)],
+         [(0,0),(1,0),(1,3),(0,2),(0,3),(1,2)],
+         [(0,0),(1,1),(1,5),(1,2),(1,4),(1,0)],
+         [(0,0),(1,2),(0,4),(0,5),(0,2),(1,3)],
+         [(0,0),(1,3),(1,4),(0,4),(1,1),(0,1)],
+         [(0,0),(1,4),(0,5),(1,1),(1,0),(0,3)],
+         [(0,0),(1,5),(0,3),(1,4),(0,4),(0,5)]]
+
+    r = lambda x : int(x[0])*6+int(x[1])
+    TD = [[i*12+r(G(x)+g) for i,x in enumerate(X)] for X in d for g in G]
+    for x in TD: x.sort()
+
+    return TD
+
 def orthogonal_array(k,n,t=2,check=True):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
+
+    An orthogonal array of parameters `k,n,t` is a matrix with `k` columns
+    filled with integers from `[n]` in such a way that for any `t` columns, each
+    of the `n^t` possible rows occurs exactly once. In
+    particular, the matrix has `n^t` rows.
+
+    More general definitions sometimes involve a `\lambda` parameter, and we
+    assume here that `\lambda=1`.
+
+    For more information on orthogonal arrays, see
+    :wikipedia:`Orthogonal_array`.
 
     INPUT:
 
@@ -114,9 +180,6 @@ def orthogonal_array(k,n,t=2,check=True):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
-    For more information on orthogonal arrays, see
-    :wikipedia:`Orthogonal_array`.
-
     .. NOTE::
 
         This method implements theorems from [Stinson2004]_. See the code's
@@ -126,10 +189,14 @@ def orthogonal_array(k,n,t=2,check=True):
 
         Implement Wilson's construction. See page 146 of [Stinson2004]_.
 
+    .. SEEALSO::
+
+        :func:`transversal_design` -- when `t=2` an orthogonal array is also
+        called a transversal design.
+
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import orthogonal_array
-        sage: orthogonal_array(5,5)
+        sage: designs.orthogonal_array(5,5)
         [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3], [0, 3, 1, 4, 2],
          [0, 4, 3, 2, 1], [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
          [1, 4, 2, 0, 3], [1, 0, 4, 3, 2], [2, 2, 2, 2, 2], [2, 3, 4, 0, 1],
@@ -142,18 +209,30 @@ def orthogonal_array(k,n,t=2,check=True):
 
         sage: designs.orthogonal_array(3,2)
         [[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 1]]
+        sage: designs.orthogonal_array(4,2)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: No Orthogonal Array exists when k>=n+t
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
     OA = None
 
-    if t != 2:
-        raise NotImplementedError("only implemented for t=2")
-
     if k < 2:
         raise ValueError("undefined for k less than 2")
 
-    if k == t:
+    elif k >= n+t:
+        from sage.categories.sets_cat import EmptySetError
+        # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
+        # When t>2 the submatrix defined by the rows whose first t-2 elements
+        # are 0s yields a OA with t=2 and k-(t-2) columns. Thus k-(t-2) < n+2,
+        # i.e. k<n+t.
+        raise EmptySetError("No Orthogonal Array exists when k>=n+t")
+
+    elif t != 2:
+        raise NotImplementedError("only implemented for t=2")
+
+    elif k == t:
         from itertools import product
         OA = map(list, product(range(n), repeat=k))
 
@@ -192,6 +271,7 @@ def orthogonal_array(k,n,t=2,check=True):
 
     if OA is None:
         raise NotImplementedError("I don't know how to build this orthogonal array!")
+
     if check:
         assert is_orthogonal_array(OA,k,n,t)
 

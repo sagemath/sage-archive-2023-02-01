@@ -1306,7 +1306,9 @@ class Tableau(CombinatorialObject, Element):
             sage: Tableau([[1, 4, 2], [2, 3]]).is_column_strict()
             False
         """
-        return all(self[r-1][c]<self[r][c] for (r,c) in self.cells() if r>0)
+        def tworow(a, b):
+            return all(a[i] < b_i for i, b_i in enumerate(b))
+        return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
 
     def is_standard(self):
         """

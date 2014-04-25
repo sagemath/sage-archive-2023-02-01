@@ -347,9 +347,12 @@ class Sets(Category_singleton):
              - *homomorphic images* (or *quotients*), when `B'=B`,
                `r` is an homomorphism from `B` to `A` (typically a
                canonical quotient map), and `l` a section of it (not
-               necessarily a homomorphism);
+               necessarily a homomorphism); see :meth:`Quotients`;
 
-             - *subobjects*, when `l` is an embedding from `A` into `B`.
+             - *subobjects* (up to an isomorphism), when `l` is an
+               embedding from `A` into `B`; in this case, `B'` is
+               typically isomorphic to `A` through the inverse
+               isomorphisms `r` and `l`; see :meth:`Subobjects`;
 
             .. NOTE::
 
@@ -484,13 +487,14 @@ class Sets(Category_singleton):
 
         @cached_method
         def Subobjects(self):
-            """
-            Return the full subcategory of the objects of ``self`` constructed as subobjects.
+            r"""
+            Return the full subcategory of the objects of ``self``
+            constructed as subobjects.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
-            ``Sets()``), ``As().Subobjects()`` returns the category of objects
-            of ``As()`` endowed with a distinguished description as subobject
-            of some other object of ``As()``.
+            ``Sets()``), ``As().Subobjects()`` returns the category of
+            objects of ``As()`` endowed with a distinguished embedding
+            into some other object of ``As()``.
 
             .. SEEALSO::
 
@@ -514,7 +518,7 @@ class Sets(Category_singleton):
                  Category of objects]
 
             Unless something specific about subobjects is implemented for this
-            category, one actually get an optimized super category::
+            category, one actually gets an optimized super category::
 
                 sage: C = Semigroups().Subobjects(); C
                 Join of Category of subquotients of semigroups and Category of subobjects of sets
@@ -527,13 +531,15 @@ class Sets(Category_singleton):
                 sage: Semigroups().Subobjects().is_subcategory(Semigroups().Subquotients())
                 True
                 sage: TestSuite(C).run()
+
             """
             return SubobjectsCategory.category_of(self)
 
         @cached_method
         def IsomorphicObjects(self):
-            """
-            Return the full subcategory of the objects of ``self`` constructed by isomorphism.
+            r"""
+            Return the full subcategory of the objects of ``self``
+            constructed by isomorphism.
 
             Given a concrete category ``As()`` (i.e. a subcategory of
             ``Sets()``), ``As().IsomorphicObjects()`` returns the category of

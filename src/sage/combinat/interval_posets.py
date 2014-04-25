@@ -56,8 +56,7 @@ AUTHORS:
 #*****************************************************************************
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.finite_posets import FinitePosets
-from sage.categories.finite_posets import Posets
+from sage.categories.finite_posets import FinitePosets, Posets
 from sage.combinat.binary_tree import BinaryTrees
 from sage.combinat.binary_tree import LabelledBinaryTrees
 from sage.combinat.dyck_word import DyckWords
@@ -1847,10 +1846,10 @@ class TamariIntervalPoset(Element):
         lattice, this returns intervals `[T',T_2]` with `T'` following
         one longest chain between `T_1` and `T_2`.
 
-        To obtain a maximal chain, we use the Tamari inversions of ``self``.
+        To obtain a longest chain, we use the Tamari inversions of ``self``.
         The elements of the chain are obtained by adding one by one the 
-        relations `(b,a)` from Tamari inversion `(a,b)` to ``self``, where
-        the Tamari inversions are taken in lexicoxagraphic order.
+        relations `(b,a)` from each Tamari inversion `(a,b)` to ``self``,
+        where the Tamari inversions are taken in lexicographic order.
         
         EXAMPLES::
 
@@ -1872,7 +1871,7 @@ class TamariIntervalPoset(Element):
         yield self
         ip = self
         cover_relations = list(ip._cover_relations)
-        for inv in self.tamari_inversions():
+        for inv in self.tamari_inversions_iter():
             cover_relations.append((inv[1],inv[0]))
             ip = TamariIntervalPoset(ip.size(), cover_relations)
             yield ip
@@ -1928,22 +1927,34 @@ class TamariIntervalPoset(Element):
     def tamari_inversions(self):
         r"""
         Return the Tamari inversions of ``self``. A Tamari inversion is 
-        a couple of vertices `(a,b)' with `a < b` such that:
+        a pair of vertices `(a,b)' with `a < b` such that:
 
-        - the decreasing parent of `b` is strictly lower than `a`,
-        - the increasing parent of `a` is stricly bigger than `b`.
+        - the decreasing parent of `b` is strictly smaller than `a` (or
+          does not exist), and
+        - the increasing parent of `a` is strictly bigger than `b` (or
+          does not exist).
 
-        The number of Tamari inversions corresponds the length of the 
+        "Smaller" and "bigger" refer to the numerical values of the
+        elements, not to the poset order.
+
+        This method returns the list of all Tamari inversions in
+        lexicographic order.
+
+        The number of Tamari inversions is the length of the 
         longest chain of the Tamari interval represented by ``self``. 
 
-        Indeed, when an interval is reduced to one binary tree, it has no
-        inversion. One can also prove that if `I=[T_1,T_2]' and
-        `I'=[T_1',T_2']` with `T_2' = T_2` and `T_1' \geq T_1`, then the 
-        inversion number of `I'` is stricly lower than the inversion 
-        number of `I`. And finally, by adding the relation `(b,a)` to the 
-        interval-poset where `(a,b)` is the first inversion of `I` in 
-        lexicographic order, one reduces the inversion number by excatly 
-        one.
+        Indeed, when an interval consists of just one binary tree, it has
+        no inversion. One can also prove that if a Tamari interval
+        `I' = [T_1', T_2']` is a proper subset of a Tamari interval
+        `I = [T_1, T_2]`, then the inversion number of `I'` is strictly
+        lower than the inversion number of `I`. And finally, by adding
+        the relation `(b,a)` to the interval-poset where `(a,b)` is the
+        first inversion of `I` in lexicographic order, one reduces the
+        inversion number by exactly `1`.
+
+        .. SEEALSO::
+
+            :meth:`tamari_inversions_iter`.
 
         EXAMPLES::
 
@@ -1971,18 +1982,31 @@ class TamariIntervalPoset(Element):
             True
 
         """
+        return list(self.tamari_inversions_iter())
 
-        inversions = []
-        for a in self:
-            for b in xrange(a+1,self.size()+1):
+    def tamari_inversions_iter(self):
+        r"""
+        Iterate over the Tamari inversions of ``self``, in
+        lexicographic order.
+
+        See :meth:`tamari_inversions` for the definition of the terms
+        involved.
+
+        EXAMPLES::
+
+            FIXME add some
+        """
+        n1 = self.size() + 1
+        for a in xrange(1, self.size()):   # a == n will never work
+            ipa = self.increasing_parent(a)
+            if ipa is None:
+                max_b_1 = n1
+            else:
+                max_b_1 = ipa
+            for b in xrange(a+1, max_b_1):
                 dpb = self.decreasing_parent(b)
-                ipa =  self.increasing_parent(a)
-                if ipa is None or ipa>b:
-                    if dpb is None or dpb < a:
-                        inversions.append((a,b))
-                else:
-                    break # if ipa<b then ipa <c for all c>b
-        return inversions
+                if dpb is None or dpb < a:
+                    yield (a,b)
 
     def number_of_tamari_inversions(self):
         r"""

@@ -1003,6 +1003,7 @@ class Tableau(CombinatorialObject, Element):
             return SemistandardTableau(list(t))
         return t
 
+    @combinatorial_map(name="standardization")
     def standardization(self, check=True):
         r"""
         Return the standardization of ``self``, assuming ``self`` is a
@@ -1160,9 +1161,9 @@ class Tableau(CombinatorialObject, Element):
     @combinatorial_map(name ='reading word permutation')
     def reading_word_permutation(self):
         """
-        Return the permutation obtained by reading the entries of ``self``
-        row by row, starting with the bottommost row (in English
-        notation).
+        Return the permutation obtained by reading the entries of the
+        standardization of ``self`` row by row, starting with the
+        bottommost row (in English notation).
 
         EXAMPLES::
 
@@ -1179,7 +1180,8 @@ class Tableau(CombinatorialObject, Element):
     def entries(self):
         """
         Return a list of all entries of ``self``, in the order obtained
-        by reading across the rows from top to bottom.
+        by reading across the rows from top to bottom (in English
+        notation).
 
         EXAMPLES::
 
@@ -1295,6 +1297,14 @@ class Tableau(CombinatorialObject, Element):
             False
             sage: Tableau([[5, 3], [2, 4]]).is_column_strict()
             False
+            sage: Tableau([[]]).is_column_strict()
+            True
+            sage: Tableau([[1, 4, 2]]).is_column_strict()
+            True
+            sage: Tableau([[1, 4, 2], [2, 5]]).is_column_strict()
+            True
+            sage: Tableau([[1, 4, 2], [2, 3]]).is_column_strict()
+            False
         """
         return all(self[r-1][c]<self[r][c] for (r,c) in self.cells() if r>0)
 
@@ -1364,6 +1374,7 @@ class Tableau(CombinatorialObject, Element):
     def vertical_flip(self):
         """
         Return the tableau obtained by vertically flipping the tableau ``self``.
+
         This only works for rectangular tableaux.
 
         EXAMPLES::
@@ -1380,6 +1391,8 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the tableau obtained by rotating ``self`` by `180` degrees.
 
+        This only works for rectangular tableaux.
+
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).rotate_180()
@@ -1393,6 +1406,9 @@ class Tableau(CombinatorialObject, Element):
     def cells(self):
         """
         Return a list of the coordinates of the cells of ``self``.
+
+        Coordinates start at `0`, so the northwesternmost cell (in
+        English notation) has coordinates `(0, 0)`.
 
         EXAMPLES::
 
@@ -2111,6 +2127,12 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the image of ``self`` under the inverse promotion operator.
 
+        .. WARNING::
+
+            You might know this operator as the promotion operator
+            (without "inverse") -- literature does not agree on the
+            name.
+
         The inverse promotion operator, applied to a tableau `t`, does the
         following:
 
@@ -2133,6 +2155,13 @@ class Tableau(CombinatorialObject, Element):
         inverse promotion is the map called "promotion" in [Sg2011]_ (p. 23) and
         in [St2009]_, and is the inverse of the map called "promotion" in
         [Hai1992]_ (p. 90).
+
+        .. WARNING::
+
+            To my (Darij's) knowledge, the fact that the above "inverse
+            promotion operator" really is the inverse of the promotion
+            operator :meth:`promotion` for semistandard tableaux has never
+            been proven in literature. Corrections are welcome.
 
         EXAMPLES::
 
@@ -2202,6 +2231,13 @@ class Tableau(CombinatorialObject, Element):
         r"""
         Return the image of ``self`` under the promotion operator.
 
+        .. WARNING::
+
+            You might know this operator as the inverse promotion
+            operator -- literature does not agree on the name. You
+            might also be looking for the Lapointe-Lascoux-Morse
+            promotion operator (:meth:`promotion_operator`).
+
         The promotion operator, applied to a tableau `t`, does the following:
 
         Iterate over all letters `n+1` in the tableau `t`, from left to right.
@@ -2222,6 +2258,13 @@ class Tableau(CombinatorialObject, Element):
         When ``self`` is a standard tableau of size ``n + 1``, this definition of
         promotion is precisely the one given in [Hai1992]_ (p. 90). It is the
         inverse of the maps called "promotion" in [Sg2011]_ (p. 23) and in [St2009]_.
+
+        .. WARNING::
+
+            To my (Darij's) knowledge, the fact that the above promotion
+            operator really is the inverse of the "inverse promotion
+            operator" :meth:`promotion_inverse` for semistandard tableaux
+            has never been proven in literature. Corrections are welcome.
 
         REFERENCES:
 
@@ -2740,6 +2783,33 @@ class Tableau(CombinatorialObject, Element):
 
     def promotion_operator(self, i):
         """
+        Return a list of semistandard tableaux obtained by the `i`-th
+        Lapointe-Lascoux-Morse promotion operator from the
+        semistandard tableau ``self``.
+
+        .. WARNING:
+
+            This is not Schuetzenberger's jeu-de-taquin promotion!
+            For the latter, see :meth:`promotion` and
+            :meth:`promotion_inverse`.
+
+        This operator is defined by taking the maximum entry `m` of
+        `T`, then adding a horizontal `i`-strip to `T` in all possible
+        ways, each time filling this strip with `m+1`'s, and finally
+        letting the permutation
+        `\sigma_1 \sigma_2 \cdots \sigma_m = (2, 3, \ldots, m+1, 1)`
+        act on each of the resulting tableaux via the
+        Lascoux-Schuetzenberger action
+        (:meth:`symmetric_group_action_on_values`). This method
+        returns the list of all resulting tableaux. See [LLM01]_ for
+        the purpose of this operator.
+
+        REFERENCES:
+
+        .. [LLM01] L. Lapointe, A. Lascoux, J. Morse.
+           *Tableau atoms and a new Macdonald positivity conjecture*.
+           :arxiv:`math/0008073v2`.
+
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3]])
@@ -2758,6 +2828,13 @@ class Tableau(CombinatorialObject, Element):
              [[1, 1, 1, 3], [2, 2]],
              [[1, 1, 1, 2, 3], [2]]]
 
+        The example from [LLM01]_ p. 12::
+
+            sage: Tableau([[1,1],[2,2]]).promotion_operator(3)
+            [[[1, 1, 1], [2, 2], [3, 3]],
+             [[1, 1, 1, 3], [2, 2], [3]],
+             [[1, 1, 1, 3, 3], [2, 2]]]
+
         TESTS::
 
             sage: Tableau([]).promotion_operator(2)
@@ -2771,7 +2848,7 @@ class Tableau(CombinatorialObject, Element):
         perm = permutation.from_reduced_word(range(1, len(weight)+1))
         l = part.add_horizontal_border_strip(i)
         ltab = [ from_chain( chain + [next] ) for next in l ]
-        return [ x.symmetric_group_action_on_values(perm) for x in ltab]
+        return [ x.symmetric_group_action_on_values(perm) for x in ltab ]
 
 
     ##################################

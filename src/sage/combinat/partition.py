@@ -1448,6 +1448,7 @@ class Partition(CombinatorialObject, Element):
         """
         return [p for p in self.down()]
 
+    @combinatorial_map(name="cell poset")
     def cell_poset(self, orientation="SE"):
         """
         Return the Young diagram of ``self`` as a poset. The optional
@@ -2062,7 +2063,7 @@ class Partition(CombinatorialObject, Element):
         list_of_word.extend([0]*(n-self[0]))
         return DyckWord(list_of_word)
 
-    @combinatorial_map(name="conjugate partition")
+    @combinatorial_map(order=2, name="conjugate partition")
     def conjugate(self):
         """
         Return the conjugate partition of the partition ``self``. This
@@ -2284,8 +2285,9 @@ class Partition(CombinatorialObject, Element):
             sage: Partition([3,2,2]).initial_tableau()
             [[1, 2, 3], [4, 5], [6, 7]]
         """
-        mu=self._list # for some reason the next line doesn't work with self?
-        tab=[range(1+sum(mu[:i]),1+sum(mu[:(i+1)])) for i in range(len(mu))]
+        mu = self._list
+        # In Python 3, improve this using itertools.accumulate
+        tab = [range(1+sum(mu[:i]), 1+sum(mu[:(i+1)])) for i in range(len(mu))]
         return tableau.StandardTableau(tab)
 
 

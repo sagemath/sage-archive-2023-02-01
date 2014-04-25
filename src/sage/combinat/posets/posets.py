@@ -4157,6 +4157,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             a[((0, i), (1, i))] = 1
         return (G, a)
 
+    @combinatorial_map(name="Greene-Kleitman partition")
     def greene_shape(self):
         r"""
         Return the Greene-Kleitman partition of ``self``.
@@ -4213,29 +4214,33 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return a `P`-partition enumerator of ``self``.
 
-        Given a total order `\prec` on the vertices of a poset `P`, a
+        Given a total order `\prec` on the elements of a finite poset `P`
+        (the order of `P` and the total order `\prec` can be unrelated; in
+        particular, the latter does not have to extend the former), a
         `P`-partition enumerator is the quasisymmetric function
         `\sum_f \prod_{p \in P} x_{f(p)}`, where the first sum is taken over
         all `P`-partitions `f`.
 
         A `P`-partition is a function `f : P \to \{1,2,3,...\}` satisfying
-        the following properties for any two elements `i` and `j` of `P`:
+        the following properties for any two elements `i` and `j` of `P`
+        satisfying `i <_P j`:
 
         - if `i \prec j` then `f(i) \leq f(j)`,
 
-        - if `j \prec i` then `f(j) < f(i)`.
+        - if `j \prec i` then `f(i) < f(j)`.
 
         INPUT:
 
-        - ``tup`` -- A tuple of elements of `P` representing a total order
-          (this does not have to be a linear extension)
+        - ``tup`` -- the tuple containing all elements of `P` (each of
+          them exactly once), in the order dictated by the total order
+          `\prec`
 
-        - ``R`` -- A commutative ring
+        - ``R`` -- a commutative ring
 
         OUTPUT:
 
         The `P`-partition enumerator of ``self`` according to ``tup`` in the
-        algebra `QSym` over the base ring `R`.
+        algebra `QSym` of quasisymmetric functions over the base ring `R`.
 
         EXAMPLES::
 

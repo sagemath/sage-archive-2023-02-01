@@ -123,7 +123,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
     def category_from_parents(self, parents):
         """
-        Returns the category of `F(A,B,...)` for `A,B,...` parents.
+        Return the category of `F(A,B,...)` for `A,B,...` parents.
 
         INPUT:
 
@@ -362,11 +362,11 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
 
     def base_category(self):
         """
-        Returns the base category of the category ``self``
+        Return the base category of the category ``self``.
 
         For any category ``B`` = `F_{Cat}` obtained through a functorial
         construction `F`, the call ``B.base_category()`` returns the
-        category `Cat`
+        category `Cat`.
 
         EXAMPLES::
 
@@ -377,9 +377,9 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
 
     def extra_super_categories(self):
         """
-        Returns the extra super categories of a construction category
+        Return the extra super categories of a construction category.
 
-        Default implementation which returns ``[]``
+        Default implementation which returns ``[]``.
 
         EXAMPLES::
 
@@ -392,7 +392,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
 
     def super_categories(self):
         """
-        Returns the super categories of a construction category
+        Return the super categories of a construction category.
 
         EXAMPLES::
 
@@ -437,7 +437,8 @@ class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
     @classmethod
     def default_super_categories(cls, category, *args):
         """
-        Returns the default super categories of ``...``
+        Return the default super categories of any covariant construction
+        category which is an instance of ``cls``.
 
         INPUT:
 

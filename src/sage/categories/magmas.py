@@ -722,8 +722,8 @@ class Magmas(Category_singleton):
 
         See :meth:`Sets.SubcategoryMethods.Subquotients` for the
         general setup for subquotients. In the case of a subquotient
-        magma `S` of a magma `G`, the structure preserving condition
-        is:
+        magma `S` of a magma `G`, the condition that `r` be a
+        morphism in ``As`` can be rewritten as follows:
 
          - for any two `a,b \in S` the identity
            `a \times_S b = r(l(a) \times_G l(b))` holds.

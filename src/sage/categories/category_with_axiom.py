@@ -104,7 +104,7 @@ all the methods of finite sets and of finite `C`'s, as desired::
       for finite ``Cs``. To keep the analogy, this mixin class is to
       be put in ``Cs.Finite``.
 
-    - By defining the axion ``Finite``,
+    - By defining the axiom ``Finite``,
       :class:`~sage.categories.sets_cat.Sets` fixes the semantic of
       ``Cs.Finite()`` for all its subcategories ``Cs``: namely "the
       category of ``Cs`` which are finite as sets". Hence, for

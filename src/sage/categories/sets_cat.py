@@ -328,7 +328,7 @@ class Sets(Category_singleton):
 
             called respectively the *lifting map* and *retract map*
             such that `r \circ l` is the identity of `A` and `r` is a
-            morphism in `As`.
+            morphism in ``As``.
 
             .. TODO:: Draw the typical commutative diagram.
 
@@ -370,7 +370,7 @@ class Sets(Category_singleton):
                   acceptable to abuse the framework with situations
                   where `B'` is not quite a subobject and `r` not
                   quite a morphism, as long as the lifting and retract
-                  map can be used as above to compute the operations
+                  maps can be used as above to compute the operations
                   in `A`.
 
             Assumptions:
@@ -581,7 +581,7 @@ class Sets(Category_singleton):
             can construct `A` as isomorphic to `B` as an infinite enumerated
             set. However `A` is *not* isomorphic to `B` as a ring; for
             example, for `a\in A` and `a\in B`, the expressions `a+A(b)` and
-            `B(a)+b` give completly different results; hence we would not want
+            `B(a)+b` give completely different results; hence we would not want
             the expression `a+b` to be implicitly resolved to any one of above
             two, as the coercion mechanism would do.
 
@@ -627,7 +627,8 @@ class Sets(Category_singleton):
         @cached_method
         def Algebras(self, base_ring):
             """
-            Return the category of objects constructed as algebras of objects of ``self`` over ``base_ring``.
+            Return the category of objects constructed as algebras of
+            objects of ``self`` over ``base_ring``.
 
             INPUT:
 
@@ -746,16 +747,18 @@ class Sets(Category_singleton):
                 sage: 2 < 3
                 True
 
-            To raise this ambiguity, one needs to explicitely specify the order
+            To raise this ambiguity, one needs to explicitly specify the order
             as in `2 <_P 3`::
-
 
                 sage: P = Posets().example("facade")
                 sage: P.lt(2,3)
                 False
 
+            (Note that ``P(2) < P(3)`` does not have this effect -- it still
+            would compare `2` and `3` as integers!)
+
             In short `P` being a facade parent is one of the programmatic
-            counterpart (with e.g. coercions) of the usual mathematical idiom:
+            counterparts (with e.g. coercions) of the usual mathematical idiom:
             "for ease of notation, we identify an element of `P` with the
             corresponding integer". Too many identifications lead to
             confusion; the lack thereof leads to heavy, if not obfuscated,
@@ -823,9 +826,9 @@ class Sets(Category_singleton):
                 sage: S(17) # indirect doctest
                 17
 
-            Caveat: For some parents, element_class is a method, and
+            Caveat: For some parents, ``element_class`` is a method, and
             not an attribute. We do not provide a default
-            implementation of _element_constructor for those.
+            implementation of ``_element_constructor`` for those.
 
                 sage: FreeModule(QQ,3).element_class
                 <bound method FreeModule_ambient_field_with_category.element_class of Vector space of dimension 3 over Rational Field>
@@ -838,10 +841,10 @@ class Sets(Category_singleton):
 
         def _element_constructor_from_element_class(self, *args, **keywords):
             """
-            The default constructor for elements of this parent
+            The default constructor for elements of this parent ``self``.
 
-            Among other things, it is called upon my_parent(data) when
-            the coercion model did not find a way to coerce data into
+            Among other things, it is called upon ``self(data)`` when
+            the coercion model did not find a way to coerce ``data`` into
             this parent.
 
             This default implementation for
@@ -851,13 +854,18 @@ class Sets(Category_singleton):
             Caveat: ``self`` is passed to the constructor of the
             element class as a keyword argument ``parent``. Many
             element classes in Sage, in particular those implemented
-            by mean of extension types, take ``parent`` as first
+            by means of extension types, take ``parent`` as first
             mandatory argument instead.
 
             This incompatibility will be fixed soon (Fall 2009?) by
             having all element classes take ``parent`` as first
             mandatory argument, and updating this default
             implementation of :meth:`_element_constructor_`.
+
+            .. TODO::
+
+                Wow. Looking forward to Fall 2009. (Also, what do the
+                above two paragraphs mean?)
 
             EXAMPLES::
 
@@ -869,9 +877,10 @@ class Sets(Category_singleton):
 
         def is_parent_of(self, element):
             """
-            Returns whether ``self`` is the parent of ``element``
+            Return whether ``self`` is the parent of ``element``.
 
             INPUT:
+
              - ``element`` -- any object
 
             EXAMPLES::
@@ -896,7 +905,7 @@ class Sets(Category_singleton):
         @abstract_method
         def __contains__(self, x):
             """
-            Tests whether the set contains the object ``x``.
+            Test whether the set ``self`` contains the object ``x``.
 
             All parents in the category ``Sets()`` should implement this method.
 
@@ -913,14 +922,14 @@ class Sets(Category_singleton):
         @cached_method
         def an_element(self):
             r"""
-            Returns a (preferably typical) element of this parent.
+            Return a (preferably typical) element of this parent.
 
             This is used both for illustration and testing purposes. If the
             set ``self`` is empty, :meth:`an_element` should raise the exception
             :class:`EmptySetError`.
 
             This default implementation calls :meth:`_an_element_` and
-            cache the result. Any parent should implement either
+            caches the result. Any parent should implement either
             :meth:`an_element` or :meth:`_an_element_`.
 
             EXAMPLES::
@@ -1441,7 +1450,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
         def cartesian_product(*elements):
             """
-            Returns the cartesian product of its arguments, as an element of
+            Return the cartesian product of its arguments, as an element of
             the cartesian product of the parents of those elements.
 
             EXAMPLES::
@@ -1455,7 +1464,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             FIXME: is this a policy that we want to enforce on all parents?
             """
             from sage.structure.element import parent, Element
-            assert(all(isinstance(element, Element) for element in elements))
+            assert all(isinstance(element, Element) for element in elements)
             parents = [parent(element) for element in elements]
             return cartesian_product(parents)._cartesian_product_of_elements(elements) # good name???
 
@@ -1502,7 +1511,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
     class Subquotients(SubquotientsCategory):
         """
-        A category for subquotients of sets
+        A category for subquotients of sets.
 
         .. seealso: :meth:`Sets().Subquotients`
 
@@ -1609,7 +1618,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
             def lift(self):
                 """
-                Lifts ``self`` to the ambient space for its parent
+                Lift ``self`` to the ambient space for its parent.
 
                 EXAMPLES::
 
@@ -1626,7 +1635,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
     class Quotients(QuotientsCategory):
         """
-        A category for quotients of sets
+        A category for quotients of sets,
 
         .. seealso: :meth:`Sets().Quotients`
 

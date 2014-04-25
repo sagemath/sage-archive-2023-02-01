@@ -121,7 +121,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
         if len(mcs) == 1 and one in mcs:
             return self.parent()( ~mcs[ one ] )
         else:
-            raise ValueError, "cannot invert self (= %s)"%self
+            raise ValueError("cannot invert self (= %s)"%self)
 
 
 
@@ -136,8 +136,7 @@ class CombinatorialAlgebraElementOld(CombinatorialFreeModule.Element):
             sage: print a.__repr__()
             2*s[] + s[3, 2, 1]
         """
-        v = self._monomial_coefficients.items()
-        v.sort()
+        v = sorted(self._monomial_coefficients.items())
         prefix = self.parent().prefix()
         retur = repr_lincomb( [(prefix + repr(m), c) for m,c in v ], strip_one = True)
 
@@ -173,9 +172,9 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         required = ['_one',]
         for r in required:
             if not hasattr(self, r):
-                raise ValueError, "%s is required"%r
+                raise ValueError("%s is required"%r)
         if not hasattr(self, '_multiply') and not hasattr(self, '_multiply_basis'):
-            raise ValueError, "either _multiply or _multiply_basis is required"
+            raise ValueError("either _multiply or _multiply_basis is required")
 
         #Create a class for the elements of this combinatorial algebra
         #We need to do this so to distinguish between element of different
@@ -233,7 +232,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
             else:
                 return eclass(self, {self._one:R(x)})
 
-        raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+        raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
     def _an_element_impl(self):
         """

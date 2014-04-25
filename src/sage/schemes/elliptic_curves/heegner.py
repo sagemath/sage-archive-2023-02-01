@@ -408,13 +408,21 @@ class RingClassField(SageObject):
             7
             sage: heegner_point(37,-7,7^2).ring_class_field().degree_over_H()
             49
+
+        Check that :trac:`15218` is solved::
+
+            sage: E = EllipticCurve("19a");
+            sage: s = E.heegner_point(-3,2).ring_class_field().galois_group().complex_conjugation()
+            sage: H = s.domain(); H.absolute_degree()
+            2
         """
         c = self.__c
         if c == 1:
             return ZZ(1)
 
         # Let K_c be the ring class field.  We have by class field theory that
-        #           Gal(K_c / H) = (O_K/c*O_K)^* / (Z/cZ)^*.
+        #           Gal(K_c / H) = (O_K / c O_K)^* / ((Z/cZ)^* M),
+        # where M is the image of the roots of unity of K in (O_K / c O_K)^*.
         #
         # To compute the cardinality of the above Galois group, we
         # first reduce to the case that c = p^e is a prime power
@@ -454,7 +462,7 @@ class RingClassField(SageObject):
                 else:
                     # inert case
                     n *= p**e + p**(e-1)
-        return n
+        return (n * ZZ(2)) // K.number_of_roots_of_unity()
 
     @cached_method
     def absolute_degree(self):
@@ -3124,7 +3132,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         return self.__x.quadratic_form()
 
     @cached_method
-    def numerical_approx(self, prec=53):
+    def numerical_approx(self, prec=53, algorithm=None):
         """
         Return a numerical approximation to this Heegner point
         computed using a working precision of prec bits.
@@ -3152,7 +3160,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
             sage: P.numerical_approx()
-            (-6.68...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
+            (-6.6...e-16 + 1.41421356237310*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
 
@@ -6951,7 +6959,7 @@ def heegner_sha_an(self, D, prec=53):
     #    You can think this through or just type something like
     #      f = function('f',x); g = function('g',x); diff(f*g,6)
     #    into Sage to be convinced.
-    L = rings.binomial(rE + rF, rE) * (L_E * L_F / (rings.factorial(rE+rF)) )
+    L = arith.binomial(rE + rF, rE) * (L_E * L_F / (arith.factorial(rE+rF)) )
 
     #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:

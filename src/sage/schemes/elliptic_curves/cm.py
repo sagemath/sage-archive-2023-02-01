@@ -93,9 +93,9 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     D = Integer(D)
     if D >= 0:
-        raise ValueError, "D (=%s) must be negative"%D
+        raise ValueError("D (=%s) must be negative"%D)
     if not (D%4 in [0,1]):
-         raise ValueError, "D (=%s) must be a discriminant"%D
+         raise ValueError("D (=%s) must be a discriminant"%D)
 
     if algorithm == "magma":
         magma.eval("R<x> := PolynomialRing(IntegerRing())")
@@ -103,7 +103,7 @@ def hilbert_class_polynomial(D, algorithm=None):
         return IntegerRing()['x'](f)
 
     if algorithm != "sage":
-        raise ValueError, "%s is not a valid algorithm"%algorithm
+        raise ValueError("%s is not a valid algorithm"%algorithm)
 
     from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
     from sage.rings.all import RR, ZZ, ComplexField
@@ -361,7 +361,7 @@ def largest_fundamental_disc_with_class_number(h):
         return (Integer(B), Integer(c))
     except KeyError:
         # nobody knows, since I guess Watkins's is state of the art.
-        raise NotImplementedError, "largest discriminant not known for class number %s"%h
+        raise NotImplementedError("largest discriminant not known for class number %s"%h)
 
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
@@ -512,7 +512,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
                 # optimize this inner loop a little.)
                 if h <= hmax:
                     z = (Integer(D), Integer(f))
-                    if T.has_key(h):
+                    if h in T:
                         T[h].append(z)
                     else:
                         T[h] = [z]
@@ -527,7 +527,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         # data.
         for h in T.keys():
             if len([D for D,f in T[h] if f==1]) != fund_count[h]:
-                raise RuntimeError, "number of discriminants inconsistent with Watkins's table"
+                raise RuntimeError("number of discriminants inconsistent with Watkins's table")
 
     return T
 

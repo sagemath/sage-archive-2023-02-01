@@ -211,8 +211,20 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: C3 = CartanMatrix(matrix([[2, -2], [-2, 2]]), [0, 1])
             sage: C == C2 and C == C3
             True
+
+        TESTS:
+
+        Check that :trac:`15740` is fixed::
+
+            sage: d = DynkinDiagram()
+            sage: d.add_edge('a', 'b', 2)
+            sage: d.index_set()
+            ('a', 'b')
+            sage: cm = CartanMatrix(d)
+            sage: cm.index_set()
+            ('a', 'b')
         """
-        # Special case with 0 args and kwds has cartan type
+        # Special case with 0 args and kwds has Cartan type
         if "cartan_type" in kwds and len(args) == 0:
             args = (CartanType(kwds["cartan_type"]),)
         if len(args) == 0:
@@ -251,7 +263,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             else:
                 M = matrix(args[0])
                 if not is_generalized_cartan_matrix(M):
-                    raise ValueError("The input matrix is not a generalized Cartan matrix.")
+                    raise ValueError("the input matrix is not a generalized Cartan matrix")
                 n = M.ncols()
                 if "cartan_type" in kwds:
                     cartan_type = CartanType(kwds["cartan_type"])
@@ -265,14 +277,14 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if len(args) == 1:
                 if cartan_type is not None:
                     index_set = tuple(cartan_type.index_set())
-                else:
+                elif dynkin_diagram is None:
                     index_set = tuple(range(n))
             elif len(args) == 2:
                 index_set = tuple(args[1])
                 if len(index_set) != n and len(set(index_set)) != n:
-                    raise ValueError("The given index set is not valid.")
+                    raise ValueError("the given index set is not valid")
             else:
-                raise ValueError("Too many arguments.")
+                raise ValueError("too many arguments")
 
         mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, cartan_type, index_set)
         mat._subdivisions = subdivisions

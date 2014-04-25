@@ -1085,6 +1085,7 @@ class FSMState(SageObject):
         if hasattr(self, 'hook'):
             new.hook = deepcopy(self.hook, memo)
         new.color = deepcopy(self.color, memo)
+        new.finite_word_out = deepcopy(self.final_word_out, memo)
         return new
 
 

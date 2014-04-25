@@ -620,11 +620,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 4456::
     Traceback (most recent call last):
     ...
     ValueError: t^2*s[1, 1, 1, 1, 1] + t*s[2, 1, 1, 1] + s[2, 2, 1] is not
-    in the image of Generic morphism:
-    From: 3-bounded Symmetric Functions over Fraction Field of Univariate
-    Polynomial Ring in t over Rational Field in the 3-Schur basis
-    To:   Symmetric Functions over Fraction Field of Univariate Polynomial Ring
-    in t over Rational Field in the Schur basis
+    in the image
 
     sage: s = Sym.schur()
     sage: s(ks3[3,2])

@@ -97,7 +97,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         prec = self.base_ring().precision_cap()
         if self.is_same_disc(P,Q) == False:
-            raise ValueError, "%s and %s are not in the same residue disc"%(P,Q)
+            raise ValueError("%s and %s are not in the same residue disc"%(P,Q))
         disc = self.residue_disc(P)
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
         if disc == self.change_ring(self.base_ring().residue_field())(0,1,0):
@@ -235,7 +235,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         - Jennifer Balakrishnan
         """
         if self.is_in_weierstrass_disc(Q) == False:
-            raise ValueError, "%s is not in a Weierstrass disc"%Q
+            raise ValueError("%s is not in a Weierstrass disc"%Q)
         points = self.weierstrass_points()
         for P in points:
             if self.is_same_disc(P,Q):
@@ -844,7 +844,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             elif w._coeff(x,-y)*x.derivative()/(-2*y)+w._coeff(x,y)*x.derivative()/(2*y) == 0:
                 return self.coleman_integral(w,self(Q[0],-Q[1]), self(Q[0],Q[1]), algorithm)/2
             else:
-                raise ValueError, "The differential is not odd: use coleman_integral_from_weierstrass_via_boundary"
+                raise ValueError("The differential is not odd: use coleman_integral_from_weierstrass_via_boundary")
 
         elif self.is_weierstrass(Q):
             if f == 0:
@@ -852,7 +852,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             elif w._coeff(x,-y)*x.derivative()/(-2*y)+w._coeff(x,y)*x.derivative()/(2*y) == 0:
                 return -self.coleman_integral(w,self(P[0],-P[1]), self(P[0],P[1]), algorithm)/2
             else:
-                raise ValueError, "The differential is not odd: use coleman_integral_from_weierstrass_via_boundary"
+                raise ValueError("The differential is not odd: use coleman_integral_from_weierstrass_via_boundary")
         else:
             return f(Q[0], Q[1]) - f(P[0], P[1]) + sum([vec[i] * basis_values[i] for i in range(dim)]) # this is just a dot product...
 
@@ -909,7 +909,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
             f, f2 = self.hyperelliptic_polynomials()
             if f2 != 0:
-                raise NotImplementedError, "Curve must be in weierstrass normal form."
+                raise NotImplementedError("Curve must be in weierstrass normal form.")
             h = (f(x**p) - f**p)
 
             def _frob(P):

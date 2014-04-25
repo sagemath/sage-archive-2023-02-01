@@ -1189,16 +1189,13 @@ Alternatively, we could construct an interator on the counter-examples::
     ::
 
         sage: for p in GL(2, 2): print p; print
+        [1 0]
+        [0 1]
+        <BLANKLINE>
         [0 1]
         [1 0]
         <BLANKLINE>
         [0 1]
-        [1 1]
-        <BLANKLINE>
-        [1 0]
-        [0 1]
-        <BLANKLINE>
-        [1 0]
         [1 1]
         <BLANKLINE>
         [1 1]
@@ -1206,6 +1203,9 @@ Alternatively, we could construct an interator on the counter-examples::
         <BLANKLINE>
         [1 1]
         [1 0]
+        <BLANKLINE>
+        [1 0]
+        [1 1]
         <BLANKLINE>
 
     ::
@@ -1662,14 +1662,23 @@ capabilities for the study of polytopes, in the present application it
 only produces a list of lattice points, without providing either an
 iterator or non-naive counting::
 
-    sage: A=random_matrix(ZZ,3,6,x=7)
-    sage: L=LatticePolytope(A)
-    sage: L.points()                                  # random
-    [1 6 6 2 5 5 6 5 4 5 4 5 4 2 5 3 4 5 3 4 5 3 3]
-    [4 4 2 6 4 1 3 2 3 3 4 4 3 4 3 4 4 4 4 4 4 5 5]
-    [3 1 1 6 5 1 1 2 2 2 2 2 3 3 3 3 3 3 4 4 4 4 5]
+    sage: A = random_matrix(ZZ, 6, 3, x=7)
+    sage: L = LatticePolytope(A.rows())
+    sage: L.points_pc()                               # random
+    M(4, 1, 0),
+    M(0, 3, 5),
+    M(2, 2, 3),
+    M(6, 1, 3),
+    M(1, 3, 6),
+    M(6, 2, 3),
+    M(3, 2, 4),
+    M(3, 2, 3),
+    M(4, 2, 4),
+    M(4, 2, 3),
+    M(5, 2, 3)
+    in 3-d lattice M
     sage: L.npoints()                                 # random
-    23
+    11
 
 This polytope can be visualized in 3D with ``L.plot3d()`` (see
 :ref:`figure-polytope`).

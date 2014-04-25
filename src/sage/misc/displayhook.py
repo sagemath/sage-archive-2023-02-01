@@ -19,7 +19,7 @@ format (see :meth:`sage.structure.parent._repr_option` for details).
 With this displayhook there exists an other way for displaying object and more
 generally, all sage expression as an ASCII art object::
 
-    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.repl.interpreter import get_test_shell
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell('integral(x^2/pi^x, x)')
@@ -265,7 +265,7 @@ class DisplayHookBase(object):
         ``type`` objects and revert it to Python's standard string
         representation::
 
-            sage: shell=sage.misc.interpreter.get_test_shell()
+            sage: shell=sage.repl.interpreter.get_test_shell()
             sage: shell.displayhook(type)
             <type 'type'>
         """
@@ -297,7 +297,7 @@ class DisplayHookBase(object):
             [0 1 0]  [0 0 1 0]  [0 0 0 1 0]  [0 0 0 0 1 0]
             [0 0 1], [0 0 0 1], [0 0 0 0 1], [0 0 0 0 0 1]
             ]
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('%display ascii_art')   # indirect doctest
             sage: shell.run_cell("i = var('i')")
@@ -445,7 +445,7 @@ class DisplayHook(DisplayHookBase):
             return
         s = self.try_format_obj(obj)
         if s is not None:
-            print s
+            print(s)
             __builtin__._ = obj
         else:
             self.oldhook(obj)
@@ -463,7 +463,7 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
 
     EXAMPLES::
 
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.display_formatter.formatters['text/plain']
         <...displayhook.SagePlainTextFormatter object at 0x...>
@@ -481,26 +481,25 @@ class SagePlainTextFormatter(DisplayHookBase, PlainTextFormatter):
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell
+            sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: fmt = shell.display_formatter.formatters['text/plain']
             sage: fmt
             <...displayhook.SagePlainTextFormatter object at 0x...>
             sage: shell.displayhook.compute_format_data(2)
-            {u'text/plain': '2'}
-
+            ({u'text/plain': '2'}, {})
             sage: a = identity_matrix(ZZ, 2)
             sage: shell.displayhook.compute_format_data([a,a])
-            {u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}
+            ({u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}, {})
             sage: fmt.set_display('ascii_art')
             sage: shell.displayhook.compute_format_data([a,a])
-            {u'text/plain': [ [1 0]  [1 0] ]
-                            [ [0 1], [0 1] ]}
+            ({u'text/plain': [ [1 0]  [1 0] ]
+                             [ [0 1], [0 1] ]}, {})
 
             sage: i = var('i')
             sage: shell.displayhook.compute_format_data(sum(i*x^i, i, 0, 10))
-            {u'text/plain':     10      9      8      7      6      5      4      3      2
-                            10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x}
+            ({u'text/plain':     10      9      8      7      6      5      4      3      2
+                             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x}, {})
             sage: fmt.set_display('simple')
         """
         if self.try_format_graphics(obj):

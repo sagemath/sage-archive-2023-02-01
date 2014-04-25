@@ -108,7 +108,7 @@ from sage.categories.map cimport Map
 
 from sage.structure.sage_object import register_unpickle_override
 
-#from sage.structure.parent cimport Parent
+from sage.structure.parent cimport Parent
 
 cdef Integer one_Z = Integer(1)
 
@@ -576,7 +576,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             try:
                 n = Integer(pari(cmd))
                 return n
-            except PariError, msg:
+            except PariError as msg:
                 raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
 
         else: # fall back on slower native implementation
@@ -3002,7 +3002,7 @@ cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
 
     a = a % m
 
-    while 1:
+    while True:
         if a == 0:
             return 0 # gcd was nontrivial
         elif a == 1:
@@ -3725,7 +3725,7 @@ cdef int jacobi_int64(int_fast64_t a, int_fast64_t m) except -2:
 
     a = a % m
 
-    while 1:
+    while True:
         if a == 0:
             return 0 # gcd was nontrivial
         elif a == 1:
@@ -4128,13 +4128,70 @@ def lucas(k, P, Q=1, n=None):
 cdef class IntegerMod_hom(Morphism):
     cdef IntegerMod_abstract zero
     cdef NativeIntStruct modulus
+
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         # we need to use element constructor so that we can register both coercions and conversions using these morphisms.
-        self.zero = self._codomain._element_constructor_(0)
-        self.modulus = self._codomain._pyx_order
+        cdef Parent C = self._codomain
+        self.zero = C._element_constructor_(0)
+        self.modulus = C._pyx_order
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        EXAMPLES::
+
+            sage: R5 = IntegerModRing(5)
+            sage: R15 = IntegerModRing(15)
+            sage: phi = R5.coerce_map_from(R15); phi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+
+        This method helps to implement copying::
+
+            sage: psi = copy(phi); psi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+            sage: psi(R15(7))
+            2
+        """
+        _slots['zero'] = self.zero
+        _slots['modulus'] = self.modulus
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        EXAMPLES::
+
+            sage: R5 = IntegerModRing(5)
+            sage: R15 = IntegerModRing(15)
+            sage: phi = R5.coerce_map_from(R15); phi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+
+        This method helps to implement copying.
+        ::
+
+            sage: psi = copy(phi); psi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+            sage: psi(R15(7))
+            2
+
+        """
+        Morphism._update_slots(self, _slots)
+        self.zero = _slots['zero']
+        self.modulus = _slots['modulus']
+
     cpdef Element _call_(self, x):
-        return IntegerMod(self.codomain(), x)
+        return IntegerMod(self._codomain, x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     """
@@ -4203,8 +4260,8 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             if res < 0:
                 res += self.modulus.int64
             a = self.modulus.lookup(res)
-            if a._parent is not self._codomain:
-               a._parent = self._codomain
+#            if a._parent is not self._codomain:
+            a._parent = self._codomain
 #                print (<Element>a)._parent, " is not ", parent
             return a
         else:
@@ -4272,9 +4329,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
                 res += self.modulus.int64
             if self.modulus.table is not None:
                 a = self.modulus.lookup(res)
-                if a._parent is not self._codomain:
-                   a._parent = self._codomain
-    #                print (<Element>a)._parent, " is not ", parent
+                a._parent = self._codomain
                 return a
             else:
                 return self.zero._new_c_from_long(res)

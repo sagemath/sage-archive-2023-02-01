@@ -43,7 +43,7 @@ double_colon = re.compile(r"^(\s*).*::\s*$")
 
 whitespace = re.compile("\s*")
 bitness_marker = re.compile('#.*(32|64)-bit')
-bitness_value = '64' if sys.maxint > (1 << 32) else '32'
+bitness_value = '64' if sys.maxsize > (1 << 32) else '32'
 
 # For neutralizing doctests
 find_prompt = re.compile(r"^(\s*)(>>>|sage:)(.*)")
@@ -610,7 +610,7 @@ class FileDocTestSource(DocTestSource):
         vs 64 bit architecture::
 
             sage: import sys
-            sage: bitness = '64' if sys.maxint > (1 << 32) else '32'
+            sage: bitness = '64' if sys.maxsize > (1 << 32) else '32'
             sage: n = -920390823904823094890238490238484; hash(n) > 0
             False # 32-bit
             True  # 64-bit
@@ -678,6 +678,7 @@ class FileDocTestSource(DocTestSource):
             There are 14 tests in sage/combinat/skew_partition.py that are not being run
             There are 18 tests in sage/combinat/tableau.py that are not being run
             There are 8 tests in sage/combinat/crystals/tensor_product.py that are not being run
+            There are 11 tests in sage/combinat/rigged_configurations/rigged_configurations.py that are not being run
             There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_A.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_G.py that are not being run

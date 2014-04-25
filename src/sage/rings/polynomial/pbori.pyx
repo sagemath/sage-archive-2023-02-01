@@ -355,7 +355,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             n = int(n)
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "Number of variables must be an integer"
 
         if n < 1:
@@ -780,7 +780,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     self._pbring.nVariables():
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
-                except NameError, msg:
+                except NameError as msg:
                     raise TypeError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 p = self._one_element
                 for i in other.iterindex():
@@ -799,7 +799,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                         return new_BP_from_PBPoly(self, _tmp)
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
-                    except NameError, msg:
+                    except NameError as msg:
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     for monom in other:
@@ -814,7 +814,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 (other.parent().ngens() <= self._pbring.nVariables()):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
-                    except NameError, msg:
+                    except NameError as msg:
                         raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     exponents = other.exponents()
@@ -902,7 +902,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ((<BooleanMonomial>other)._pbmonom.deg() <= self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
             p = self._one_element
             for i in other.iterindex():
@@ -913,7 +913,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             self._pbring.nVariables()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             for monom in other:
@@ -927,7 +927,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 self.base_ring().has_coerce_map_from(other.base_ring()):
             try:
                 var_mapping = get_var_mapping(self, other)
-            except NameError, msg:
+            except NameError as msg:
                 raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
             p = self._zero_element
             exponents = other.exponents()
@@ -2029,7 +2029,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
-                except NameError, msg:
+                except NameError as msg:
                     raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 m = self._one_element
                 for i in other.iterindex():
@@ -2131,7 +2131,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
                     (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                         try:
                             var_mapping = get_var_mapping(self, other)
-                        except NameError, msg:
+                        except NameError as msg:
                             raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
                         t = (<BooleanPolynomial>other)._pbpoly.lead()
 
@@ -2147,7 +2147,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
             (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other)
-                except NameError, msg:
+                except NameError as msg:
                     raise ValueError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
                 m = self._one_element
                 for i in other:
@@ -2358,7 +2358,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: {m:1} #indirect doctest
             {x*y: 1}
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def stable_hash(self):
         """
@@ -2377,7 +2377,7 @@ cdef class BooleanMonomial(MonoidElement):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbmonom.stableHash()
+        return <Py_ssize_t>(self._pbmonom.stableHash())
 
     def ring(self):
         """
@@ -3954,7 +3954,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: {x:1} # indirect doctest
             {x: 1}
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def __len__(self):
         r"""
@@ -4664,7 +4664,7 @@ cdef class BooleanPolynomial(MPolynomial):
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbpoly.stableHash()
+        return <Py_ssize_t>(self._pbpoly.stableHash())
 
     def ring(self):
         """
@@ -5677,7 +5677,7 @@ cdef class BooleSet:
             sage: {s:1}
             {{{x1,x2}, {x2,x3}}: 1}
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def __mod__(self, BooleSet vs):
         """
@@ -5748,7 +5748,7 @@ cdef class BooleSet:
            This function is part of the upstream PolyBoRi
            interface. In Sage all hashes are stable.
         """
-        return self._pbset.stableHash()
+        return <Py_ssize_t>(self._pbset.stableHash())
 
     def divide(self, BooleanMonomial rhs):
         """

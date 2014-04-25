@@ -106,10 +106,10 @@ verify_checksum()
         actual=`md5sum $file | sed 's/[^0-9a-f].*//'`
     elif command -v md5 > /dev/null; then
         expected=`lookup_param md5 $checksums`
-        actual=`md5 $file | sed 's/[^0-9a-f].*//'`
+        actual=`md5 $file | sed 's/.*= *//'`
     else
         # POSIX; Note that Solaris is not compliant and its sed
-	# does not understand [[:space:]]
+        # does not understand [[:space:]]
         expected=`lookup_param cksum $checksums`
         actual=`cksum $file | sed 's/[^0-9].*//'`
     fi
@@ -501,7 +501,7 @@ fi
 # Uncompresses a spkg to stdout.
 uncompress_spkg()
 {
-    bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
+    lbzip2 -d -c "$1" 2>/dev/null || bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
 }
 
 if [ $INFO -ne 0 -a -z "$USE_LOCAL_SCRIPTS" ]; then
@@ -663,6 +663,14 @@ echo "****************************************************"
 ##################################################################
 
 rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
+
+##################################################################
+# Poison the proxy variable to forbid downloads in spkg-install
+##################################################################
+export http_proxy=http://192.0.2.0:5187/
+export https_proxy=$http_proxy
+export ftp_proxy=$http_proxy
+export rsync_proxy=$http_proxy
 
 ##################################################################
 # Actually install

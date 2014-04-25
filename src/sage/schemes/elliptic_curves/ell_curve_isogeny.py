@@ -925,8 +925,8 @@ class EllipticCurveIsogeny(Morphism):
 
         return
 
-
-    def __call__(self, P, output_base_ring=None):
+    # correcting after #12880 : __call__ -> _call_
+    def _call_(self, P, output_base_ring=None):
         r"""
         Function that implements the call-ability of elliptic curve
         isogenies.
@@ -1321,8 +1321,8 @@ class EllipticCurveIsogeny(Morphism):
         self._domain = self.__E1
         self._codomain = self.__E2
 
-        # sets up the parent
-        parent = homset.Hom(self.__E1(0).parent(), self.__E2(0).parent())
+        # sets up the parent (correcting after #12880 : __E1(0).parent() -> __E1
+        parent = homset.Hom(self.__E1, self.__E2)
         Morphism.__init__(self, parent)
 
         return
@@ -2574,46 +2574,6 @@ class EllipticCurveIsogeny(Morphism):
     # public isogeny methods
     #
 
-    def domain(self):
-        r"""
-        Returns the domain curve of this isogeny.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-            sage: phi = EllipticCurveIsogeny(E,  E(0,0))
-            sage: phi.domain() == E
-            True
-
-            sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-            sage: phi = EllipticCurveIsogeny(E, [17, 1])
-            sage: phi.domain()
-            Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
-
-        """
-        return self.__E1
-
-
-    def codomain(self):
-        r"""
-        Returns the codomain (range) curve of this isogeny.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-            sage: phi = EllipticCurveIsogeny(E,  E((0,0)))
-            sage: phi.codomain()
-            Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
-
-            sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-            sage: phi = EllipticCurveIsogeny(E, [17, 1])
-            sage: phi.codomain()
-            Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
-
-        """
-        return self.__E2
-
-
     def degree(self):
         r"""
         Returns the degree of this isogeny.
@@ -3328,39 +3288,6 @@ class EllipticCurveIsogeny(Morphism):
     #
     # Overload Morphism methods that we want to
     #
-
-    def _composition_(self, right, homset):
-        r"""
-        Composition operator function inherited from morphism class.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(j=GF(7)(0))
-            sage: phi = EllipticCurveIsogeny(E, [E(0), E((0,1)), E((0,-1))])
-            sage: phi._composition_(phi, phi.parent())
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        The following should test that :meth:`_composition_` is called
-        upon a product. However phi is currently improperly
-        constructed (see :trac:`12880`), which triggers an assertion
-        failure before the actual call ::
-
-            sage: phi*phi
-            Traceback (most recent call last):
-            ...
-            TypeError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of Schemes
-
-        Here would be the desired output::
-
-            sage: phi*phi            # not tested
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
 
     def is_injective(self):
         r"""

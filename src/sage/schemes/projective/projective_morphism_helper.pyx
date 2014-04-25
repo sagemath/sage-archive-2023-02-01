@@ -1,54 +1,5 @@
 r"""
-Projective `n` space over a ring
-
-EXAMPLES: We construct projective space over various rings of
-various dimensions.
-
-The simplest projective space::
-
-    sage: ProjectiveSpace(0)
-    Projective Space of dimension 0 over Integer Ring
-
-A slightly bigger projective space over `\QQ`::
-
-    sage: X = ProjectiveSpace(1000, QQ); X
-    Projective Space of dimension 1000 over Rational Field
-    sage: X.dimension()
-    1000
-
-We can use "over" notation to create projective spaces over various
-base rings.
-
-::
-
-    sage: X = ProjectiveSpace(5)/QQ; X
-    Projective Space of dimension 5 over Rational Field
-    sage: X/CC
-    Projective Space of dimension 5 over Complex Field with 53 bits of precision
-
-The third argument specifies the printing names of the generators
-of the homogenous coordinate ring. Using objgens() you can obtain
-both the space and the generators as ready to use variables.
-
-::
-
-    sage: P2, (x,y,z) = ProjectiveSpace(2, QQ, 'xyz').objgens()
-    sage: P2
-    Projective Space of dimension 2 over Rational Field
-    sage: x.parent()
-    Multivariate Polynomial Ring in x, y, z over Rational Field
-
-For example, we use `x,y,z` to define the intersection of
-two lines.
-
-::
-
-    sage: V = P2.subscheme([x+y+z, x+y-z]); V
-    Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-     x + y + z,
-     x + y - z
-    sage: V.dimension()
-    0
+This is the helper file providing functionality for projective_morphism.py.
 
 AUTHORS:
  
@@ -57,7 +8,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2014 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -65,7 +16,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.arith              import lcm
-from sage.rings.finite_rings.constructor import GF, is_PrimeFiniteField
+from sage.rings.finite_rings.constructor import GF
 from sage.sets.all                 import Set
 
 def _fast_possible_periods(self,return_points=False):
@@ -81,46 +32,46 @@ def _fast_possible_periods(self,return_points=False):
     INPUT:
 
     - ``return_points`` - Boolean (optional) - a value of True returns the points as well as the possible periods.
-    
+
     OUTPUT:
-    
+
     - a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
-    
+
     Examples::
     
-        sage: P.<x,y>=ProjectiveSpace(GF(23),1)
-        sage: H=Hom(P,P)
-        sage: f=H([x^2-2*y^2,y^2])
-        sage: f.possible_periods()
-        [1, 5, 11, 22, 110]
+            sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+            sage: P.<x,y>=ProjectiveSpace(GF(23),1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2-2*y^2,y^2])
+            sage: _fast_possible_periods(f,False)
+            [1, 5, 11, 22, 110]
 
-    ::
+        ::
 
-        sage: P.<x,y>=ProjectiveSpace(GF(13),1)
-        sage: H=Hom(P,P)
-        sage: f=H([x^2-y^2,y^2])
-        sage: f.possible_periods(True)
-        [[(1 : 0), 1], [(0 : 1), 2], [(3 : 1), 3], [(3 : 1), 36]]
+            sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+            sage: P.<x,y> = ProjectiveSpace(GF(13),1)
+            sage: H = End(P)
+            sage: f = H([x^2-y^2,y^2])
+            sage: sorted(_fast_possible_periods(f,True))
+            [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
-    ::
+        ::
 
-        sage: PS.<x,y,z>=ProjectiveSpace(2,GF(7))
-        sage: H=Hom(PS,PS)
-        sage: f=H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
-        sage: f.possible_periods()
-        [1, 2, 4, 6, 12, 14, 28, 42, 84]
-        
-    .. TODO::
+            sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+            sage: PS.<x,y,z> = ProjectiveSpace(2,GF(7))
+            sage: H = End(PS)
+            sage: f = H([-360*x^3 + 760*x*z^2, y^3 - 604*y*z^2 + 240*z^3, 240*z^3])
+            sage: _fast_possible_periods(f,False)
+            [1, 2, 4, 6, 12, 14, 28, 42, 84]
 
-        - do not reutrn duplicate points
+        .. TODO::
 
-        - check == False to speed up?
-
+        - more space efficient hash/pointtable
     """
     cdef int i, k
     cdef list pointslist
 
-    if not is_PrimeFiniteField(self.domain().base_ring()):
+    if not self._is_prime_finite_field:
         raise TypeError("Must be prime field")
     from sage.schemes.projective.projective_space import is_ProjectiveSpace
     if is_ProjectiveSpace(self.domain())==False or self.domain()!=self.codomain():
@@ -134,7 +85,7 @@ def _fast_possible_periods(self,return_points=False):
     index=1
     periods=set()
     points_periods=[]
-    
+
     for P in _enum_points(p,N):
 
         hash_p=_hash(P,p)
@@ -143,7 +94,7 @@ def _fast_possible_periods(self,return_points=False):
             while point_table[hash_p][1]==0:
                 point_table[hash_p][1]=index
                 Q=self._fast_eval(P)
-                Q=_normalize_coordinates(Q,p)
+                Q=_normalize_coordinates(Q,p,N+1)
                 hash_q=_hash(Q,p)
                 point_table[hash_p][0]=hash_q
                 P=Q
@@ -196,23 +147,20 @@ def _fast_possible_periods(self,return_points=False):
                             periods.add(period*r*8)
                             points_periods.append([P_proj,period*r*8])
 
-    periods=list(periods)
-    periods.sort()
     if return_points==False:
-        return(periods)
+        return sorted(periods)
     else:
         return(points_periods)
 
 def _enum_points(int prime,int dimension):
     """
-    Enumerate points in projective space with given prime and dimension.
+    Enumerate points in projective space over finite field with given prime and dimension.
 
     EXAMPLES::
 
         sage: from sage.schemes.projective.projective_morphism_helper import _enum_points
-        sage: _enum_points(3,2)
+        sage: list(_enum_points(3,2))
         [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1], [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
-
     """
     cdef list ranges=[]
     cdef int curr_prime
@@ -252,7 +200,7 @@ def _hash(list Point,int prime):
         hash_q=hash_q*prime+coefficient
 
     Point.reverse()
-    
+
     return hash_q
 
 def _get_point_from_hash(int value,int prime,int dimension):
@@ -275,10 +223,10 @@ def _get_point_from_hash(int value,int prime,int dimension):
         value=value/prime
 
     return P
-    
+
 def _mod_inv(int num, int prime):
     """
-    Find the mod inverse of the number for the given prime.
+    Find the inverse of the number modulo the given prime.
 
     EXAMPLES::
 
@@ -306,27 +254,27 @@ def _mod_inv(int num, int prime):
     else:
         return y
 
-def _normalize_coordinates(list point, int prime):
+def _normalize_coordinates(list point, int prime, int len_points):
     """
     Normalize the coordinates of the point for the given prime.
 
     EXAMPLES::
 
         sage: from sage.schemes.projective.projective_morphism_helper import _normalize_coordinates
-        sage: _normalize_coordinates([1,5,1],3)
+        sage: _normalize_coordinates([1,5,1],3,3)
         [1, 2, 1]
 
     """
     cdef int last_coefficient, coefficient, mod_inverse
-    
-    for coefficient in xrange(len(point)):
+
+    for coefficient in xrange(len_points):
         point[coefficient] = (point[coefficient]+prime)%prime
         if point[coefficient] != 0:
             last_coefficient = point[coefficient]
 
     mod_inverse = _mod_inv(last_coefficient,prime)
 
-    for coefficient in xrange(len(point)):
+    for coefficient in xrange(len_points):
         point[coefficient] = (point[coefficient]*mod_inverse)%prime
 
     return point

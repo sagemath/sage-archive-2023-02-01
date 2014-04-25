@@ -789,6 +789,7 @@ class FSMState(SageObject):
             sage: A = FSMState('A', is_final=True)
             sage: A.final_word_out
             []
+            sage: A.is_final = True
             sage: A = FSMState('A', is_final=True, final_word_out='end')
             sage: A.final_word_out
             ['end']
@@ -805,6 +806,7 @@ class FSMState(SageObject):
             sage: A = FSMState('A', is_final=False)
             sage: A.final_word_out == None
             True
+            sage: A.is_final = False
             sage: A = FSMState('A', is_final=False, final_word_out='end')
             Traceback (most recent call last):
             ...
@@ -838,6 +840,7 @@ class FSMState(SageObject):
             self.word_out = []
 
         self.is_initial = is_initial
+        self._final_word_out_ = None
         self.is_final = is_final
         self.final_word_out = final_word_out
 
@@ -995,11 +998,9 @@ class FSMState(SageObject):
             sage: A.final_word_out == None
             True
         """
-        if is_final and (not hasattr(self, 'final_word_out') or
-                         self.final_word_out is None):
+        if is_final and self.final_word_out is None:
             self._final_word_out_ = []
-        elif not is_final and (not hasattr(self, 'final_word_out') or
-                               not self.final_word_out):
+        elif not is_final and not self.final_word_out:
             self._final_word_out_ = None
         elif not is_final:
             raise ValueError("Only final states can have a final output word. " \

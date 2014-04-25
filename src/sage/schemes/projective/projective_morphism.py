@@ -60,13 +60,11 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
-from sage.ext.fast_callable        import fast_callable
-from sage.misc.lazy_attribute      import lazy_attribute
-from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -247,8 +245,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2+x*y,y^2])
             sage: Q = P(z,1)
-            sage: f._fast_eval(list(Q))
-            [z + z^2, 1]
+            sage: f(Q)
+            (z + z^2 : 1)
 
             ::
 
@@ -258,8 +256,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H=End(P)
             sage: f=H([x^2+x*y,y^2])
             sage: Q=P(z^2,1)
-            sage: f._fast_eval(list(Q))
-            [zbar^2, 1.00000000000000]
+            sage: f(Q)
+            (zbar^2 : 1.00000000000000)
 
             ::
 
@@ -2620,8 +2618,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be QQ")
 
-        PS=self.domain()
-        RPS=PS.base_ring()
+        PS = self.domain()
+        RPS = PS.base_ring()
         preperiodic = set()
         while points != []:
             P = points.pop()

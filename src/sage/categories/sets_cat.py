@@ -449,6 +449,11 @@ class Sets(Category_singleton):
             description as quotient (in fact homomorphic image) of
             some other object of ``As()``.
 
+            Implementing an object of ``As().Quotients()`` is done in
+            the same way as for ``As().Subquotients()`` (i.e., by
+            giving an ambient space and a lift and a retract map).
+            See :meth:`Subquotients` for detailed instructions.
+
             .. SEEALSO::
 
                 - :meth:`Subquotients` for background
@@ -495,6 +500,12 @@ class Sets(Category_singleton):
             ``Sets()``), ``As().Subobjects()`` returns the category of
             objects of ``As()`` endowed with a distinguished embedding
             into some other object of ``As()``.
+
+            Implementing an object of ``As().Subobjects()`` is done in
+            the same way as for ``As().Subquotients()`` (i.e., by
+            giving an ambient space and a lift and a retract map, even
+            if the latter two maps are most usually identity maps).
+            See :meth:`Subquotients` for detailed instructions.
 
             .. SEEALSO::
 

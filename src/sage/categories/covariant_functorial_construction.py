@@ -170,7 +170,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
     def category_from_category(self, category):
         """
-        Return the category of `F(A,B,...,C)` for `A,B,...,C` parents in
+        Return the category of `F(A,B,...)` for `A,B,...` parents in
         ``category``.
 
         INPUT:
@@ -279,8 +279,8 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
     @classmethod
     def default_super_categories(cls, category, *args):
         """
-        Return the default super categories of `F_{Cat}(A,B,...,C)` for
-        `A,B,...,C` parents in `Cat`.
+        Return the default super categories of `F_{Cat}(A,B,...)` for
+        `A,B,...` parents in `Cat`.
 
         INPUT:
 
@@ -291,7 +291,7 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         OUTPUT: a (join) category
 
         The default implementation is to return the join of the
-        categories of `F(A,B,...,C)` for `A,B,...,C` in turn in each of
+        categories of `F(A,B,...)` for `A,B,...` in turn in each of
         the super categories of ``category``.
 
         This is implemented as a class method, in order to be able to
@@ -437,12 +437,14 @@ class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
     @classmethod
     def default_super_categories(cls, category, *args):
         """
-        Return the default super categories of any covariant construction
-        category which is an instance of ``cls``.
+        Return the default super categories of `F_{Cat}(A,B,...)` for
+        `A,B,...` parents in `Cat`.
 
         INPUT:
 
-         - ``category`` -- a category
+         - ``cls`` -- the category class for the functor `F`
+         - ``category`` -- a category `Cat`
+         - ``*args`` -- further arguments for the functor
 
         OUTPUT: a join category
 

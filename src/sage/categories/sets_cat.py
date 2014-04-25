@@ -328,7 +328,7 @@ class Sets(Category_singleton):
 
             called respectively the *lifting map* and *retract map*
             such that `r \circ l` is the identity of `A` and `r` is a
-            morphism in ``As``.
+            morphism in ``As()``.
 
             .. TODO:: Draw the typical commutative diagram.
 
@@ -367,11 +367,11 @@ class Sets(Category_singleton):
                   as a *projection map* instead.
 
                 - Since `B'` is not specified explicitly, it is
-                  acceptable to abuse the framework with situations
+                  possible to abuse the framework with situations
                   where `B'` is not quite a subobject and `r` not
                   quite a morphism, as long as the lifting and retract
-                  maps can be used as above to compute the operations
-                  in `A`.
+                  maps can be used as above to compute all the
+                  operations in `A`. Use at your own risk!
 
             Assumptions:
 
@@ -754,8 +754,8 @@ class Sets(Category_singleton):
                 sage: P.lt(2,3)
                 False
 
-            (Note that ``P(2) < P(3)`` does not have this effect -- it still
-            would compare `2` and `3` as integers!)
+            Beware that ``P(2)`` is still the integer `2`. Therefore
+            ``P(2) < P(3)`` still compares `2` and `3` as integers!
 
             In short `P` being a facade parent is one of the programmatic
             counterparts (with e.g. coercions) of the usual mathematical idiom:
@@ -849,29 +849,15 @@ class Sets(Category_singleton):
 
             This default implementation for
             :meth:`_element_constructor_` calls the constructor of the
-            element class.
-
-            Caveat: ``self`` is passed to the constructor of the
-            element class as a keyword argument ``parent``. Many
-            element classes in Sage, in particular those implemented
-            by means of extension types, take ``parent`` as first
-            mandatory argument instead.
-
-            This incompatibility will be fixed soon (Fall 2009?) by
-            having all element classes take ``parent`` as first
-            mandatory argument, and updating this default
-            implementation of :meth:`_element_constructor_`.
-
-            .. TODO::
-
-                Wow. Looking forward to Fall 2009. (Also, what do the
-                above two paragraphs mean?)
+            element class, passing ``self`` as first argument.
 
             EXAMPLES::
 
                 sage: S = Sets().example("inherits")
-                sage: S._element_constructor_from_element_class(17)
+                sage: s = S._element_constructor_from_element_class(17); s
                 17
+                sage: type(s)
+                <class 'sage.categories.examples.sets_cat.PrimeNumbers_Inherits_with_category.element_class'>
             """
             return self.element_class(self, *args, **keywords)
 
@@ -1635,7 +1621,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
 
     class Quotients(QuotientsCategory):
         """
-        A category for quotients of sets,
+        A category for quotients of sets.
 
         .. seealso: :meth:`Sets().Quotients`
 

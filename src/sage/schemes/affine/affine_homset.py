@@ -154,11 +154,11 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:
             if not B > 0:
-                raise TypeError, "A positive bound B (= %s) must be specified."%B
+                raise TypeError("A positive bound B (= %s) must be specified."%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_rational_field
             return enum_affine_rational_field(self,B)
         elif is_FiniteField(R):
             from sage.schemes.affine.affine_rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)
         else:
-            raise TypeError, "Unable to enumerate points over %s."%R
+            raise TypeError("Unable to enumerate points over %s."%R)

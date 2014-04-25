@@ -339,7 +339,7 @@ fi
 # Check the Fortran compiler accepts free-format source code
 # (as opposed to the older fixed-format style from Fortran 77).
 # This helps verify the compiler works too, so if some idiot
-# sets SAGE_FORTRAN to /usr/bin/ls, we will at least know it's
+# sets FC to /usr/bin/ls, we will at least know it's
 # not a working Fortran compiler.
 if test $enable_compiler_checks = yes
 then

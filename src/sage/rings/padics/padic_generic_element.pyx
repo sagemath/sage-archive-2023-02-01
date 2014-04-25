@@ -1191,7 +1191,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         return total.add_bigoh(aprec)
 
-    def log(self, p_branch=None, pi_branch=None, branch=None, aprec=None, change_frac=False):
+    def log(self, p_branch=None, pi_branch=None, aprec=None, change_frac=False):
         r"""
         Compute the `p`-adic logarithm of this element.
 
@@ -1410,11 +1410,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: S.<x> = R[]
             sage: f = x^3 - 3
             sage: W.<w> = R.ext(f)
-            sage: w.log(branch=2)
+            sage: w.log(p_branch=2)
             Traceback (most recent call last):
             ...
             ValueError: logarithm is not integral, use change_frac=True to obtain a result in the fraction field
-            sage: w.log(branch=2, change_frac=True)
+            sage: w.log(p_branch=2, change_frac=True)
             2*w^-3 + O(w^21)
 
         TESTS:
@@ -1500,10 +1500,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         if self.is_zero():
             raise ValueError('logarithm is not defined at zero')
-        if branch is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(12575, "The keyword branch is deprecated.  Please use p_branch or pi_branch instead")
-            p_branch = branch
         if p_branch is not None and pi_branch is not None:
             raise ValueError("You may only specify a branch of the logarithm in one way")
         R = self.parent()

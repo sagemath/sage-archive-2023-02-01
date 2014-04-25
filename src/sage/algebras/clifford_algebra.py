@@ -25,7 +25,7 @@ from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.subset import Subsets
+from sage.combinat.subset import SubsetsSorted
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 
@@ -349,27 +349,21 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
              -2*x*y + 1, 0, 6*x + y, 0, x + 2*y, -6*x - y, 0]
 
         Exterior algebras inherit from Clifford algebras, so
-        supercommutators work as well::
+        supercommutators work as well. We verify the exterior algebra
+        is supercommutative::
 
             sage: E.<x,y,z,w> = ExteriorAlgebra(QQ)
-            sage: x.supercommutator(y)
-            0
-            sage: x.supercommutator(y*z*w)
-            0
-            sage: x.supercommutator(y*z)
-            2*x^y^z
-            sage: (x*y).supercommutator(z*w)
-            0
+            sage: all(b1.supercommutator(b2) == 0
+            ....:     for b1 in E.basis() for b2 in E.basis())
+            True
         """
         P = self.parent()
         ret = P.zero()
         for ms,cs in self:
             for mx,cx in x:
                 ret += P.term(ms, cs) * P.term(mx, cx)
-                if P.degree_on_basis(ms) % 2 and P.degree_on_basis(mx) % 2: # These degrees are 0 or 1.
-                    ret += P.term(mx, cx) * P.term(ms, cs)
-                else:
-                    ret -= P.term(mx, cx) * P.term(ms, cs)
+                s = (-1)**(P.degree_on_basis(ms) * P.degree_on_basis(mx))
+                ret -= s * P.term(mx, cx) * P.term(ms, cs)
         return ret
 
 class CliffordAlgebra(CombinatorialFreeModule):
@@ -535,7 +529,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         R = Q.base_ring()
         if category is None:
             category = GradedAlgebrasWithBasis(R)
-        indices = map( lambda x: tuple(sorted(x)), Subsets(range(Q.dim())) )
+        indices = SubsetsSorted(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 
@@ -1667,7 +1661,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.coproduct_on_basis((0,1))
             1 # x^y + x # y + x^y # 1 - y # x
             sage: E.coproduct_on_basis((0,1,2))
-            1 # x^y^z + x # y^z + x^y # z + x^y^z # 1 - x^z # y - y # x^z + y^z # x + z # x^y
+            1 # x^y^z + x # y^z + x^y # z + x^y^z # 1
+             - x^z # y - y # x^z + y^z # x + z # x^y
         """
         from sage.combinat.combinat import unshuffle_iterator
         one = self.base_ring().one()
@@ -1951,7 +1946,8 @@ class ExteriorAlgebra(CliffordAlgebra):
                 sage: x.constant_coefficient()
                 0
             """
-            return self._monomial_coefficients.get(self.parent().one_basis(), self.base_ring().zero())
+            return self._monomial_coefficients.get(self.parent().one_basis(),
+                                                   self.base_ring().zero())
 
         def scalar(self, other):
             r"""
@@ -2122,7 +2118,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
     .. WARNING::
 
         For any two distinct elements `i` and `j` of `I`, the dictionary
-        ``s_coeff`` must have exactly one of the pairs `(i, j)` and
+        ``s_coeff`` must have only one of the pairs `(i, j)` and
         `(j, i)` as a key. This is not checked.
 
     EXAMPLES:
@@ -2149,8 +2145,8 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         sage: all(p2(b) == 0 for b in E.basis())
         True
 
-    Another example: `\mathfrak{sl}_2` with basis `e,f,h`
-    satisfying `[h,e] = 2e`, `[h,f] = -2f` and `[e,f] = h`::
+    Another example: the Lie algebra `\mathfrak{sl}_2`, which has a
+    basis `e,f,h` satisfying `[h,e] = 2e`, `[h,f] = -2f`, and `[e,f] = h`::
 
         sage: E.<e,f,h> = ExteriorAlgebra(QQ)
         sage: par = E.boundary({(0,1): h, (2,1): -2*f, (2,0): 2*e})
@@ -2264,7 +2260,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
                         [0]
              0 <-- C_0 <---- C_1 <-- 0
 
-        ... and in degree `0`::
+        Also in degree `0`::
 
             sage: E = ExteriorAlgebra(QQ, 0)
             sage: par = E.boundary({})
@@ -2348,7 +2344,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     .. WARNING::
 
         For any two distinct elements `i` and `j` of `I`, the dictionary
-        ``s_coeff`` must have exactly one of the pairs `(i, j)` and
+        ``s_coeff`` must have only one of the pairs `(i, j)` and
         `(j, i)` as a key. This is not checked.
 
     EXAMPLES:
@@ -2377,8 +2373,8 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         sage: all(d2(b) == 0 for b in E.basis())
         True
 
-    Another example: `\mathfrak{sl}_2` with basis `e,f,h`
-    satisfying `[h,e] = 2e`, `[h,f] = -2f` and `[e,f] = h`::
+    Another example: the Lie algebra `\mathfrak{sl}_2`, which has a
+    basis `e,f,h` satisfying `[h,e] = 2e`, `[h,f] = -2f`, and `[e,f] = h`::
 
         sage: E.<e,f,h> = ExteriorAlgebra(QQ)
         sage: d = E.coboundary({(0,1): h, (2,1): -2*f, (2,0): 2*e})
@@ -2526,7 +2522,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
                         [0]
              0 <-- C_1 <---- C_0 <-- 0
 
-        ... and in degree `0`::
+        Also in degree `0`::
 
             sage: E = ExteriorAlgebra(QQ, 0)
             sage: d = E.coboundary({})

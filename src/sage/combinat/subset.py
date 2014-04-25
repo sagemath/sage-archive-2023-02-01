@@ -151,7 +151,7 @@ class Subsets_s(CombinatorialClass):
             sage: repr(Subsets([1,2,3]))
             'Subsets of {1, 2, 3}'
         """
-        return "Subsets of %s"%self.s
+        return "Subsets of {}".format(self.s)
 
     def __contains__(self, value):
         """
@@ -164,8 +164,13 @@ class Subsets_s(CombinatorialClass):
             False
             sage: Set([]) in S
             True
+            sage: 2 in S
+            False
         """
-        value = Set(value)
+        try:
+            value = Set(value)
+        except TypeError:
+            return False
         for v in value:
             if not v in self.s:
                 return False
@@ -773,4 +778,104 @@ class SubMultiset_sk(SubMultiset_s):
         from sage.combinat.integer_vector import IntegerVectors
         for iv in IntegerVectors(self._k, len(self._indices), outer=self._multiplicities):
             yield sum([ [self._s[self._indices[i]]]*iv[i] for i in range(len(iv))], [])
+
+class SubsetsSorted(Subsets_s):
+    """
+    Lightweight class of all subsets as sorted tuples of some set `S`.
+
+    Used to model indices of algebras given by subsets (so we don't
+    have to explicitly build all `2^n` subsets in memory).
+    For example, :class:`CliffordAlgebra`.
+    """
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.subsets_sorted import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: [s for s in S]
+            [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
+        """
+        for x in Subsets_s.__iter__(self):
+            yield tuple(sorted(x))
+
+    def first(self):
+        """
+        Return the first element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.first()
+            ()
+        """
+        return ()
+
+    def last(self):
+        """
+        Return the last element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.last()
+            (0, 1, 2)
+        """
+        return tuple(sorted(self.s))
+
+    def random_element(self):
+        """
+        Return a random element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: isinstance(S.random_element(), tuple)
+            True
+        """
+        return tuple(sorted(Subsets_s.random_element(self)))
+
+    def unrank(self, r):
+        """
+        Return the subset which has rank ``r``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.unrank(4)
+            (0, 1)
+        """
+        return tuple(sorted(Subsets_s.unrank(self, r)))
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: S.an_element()
+            (0, 1)
+        """
+        return tuple(sorted(Subsets_s._an_element_(self)))
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.subset import SubsetsSorted
+            sage: S = SubsetsSorted(range(3))
+            sage: [s for s in S]
+            [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
+        """
+        return tuple(sorted(Set(x)))
 

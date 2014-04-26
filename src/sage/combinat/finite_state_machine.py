@@ -3280,12 +3280,6 @@ class FiniteStateMachine(SageObject):
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
-        #### compatibility code, delete when .is_final/.final_word_out consistency is guaranteed
-        for state in self.iter_final_states():
-            if not hasattr(state, "final_word_out"):
-                state.final_word_out = []
-        #### end compatibility code
-
         options = ["auto", "initial text=", ">=latex"]
 
         nonempty_final_word_out = False

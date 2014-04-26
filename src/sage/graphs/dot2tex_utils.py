@@ -48,18 +48,20 @@ and check the installation of graphviz and the dot2tex spkg.
 
 For support, please contact <sage-combinat-devel at googlegroups.com>.
 """
-    missing_error_string = """
-dot2tex not available.
+    import_error_string = """
+An error occured when importing dot2tex.
 
 Please see :meth:`sage.graphs.generic_graph.GenericGraph.layout_graphviz`
 for installation instructions.
 """
     try:
         import dot2tex
+    except ImportError as e:
+        print import_error_string
+        raise # re-raise current exception
+    else:
         if dot2tex.dot2tex("graph {}", format = "positions") != {}:
             raise RuntimeError(check_error_string)
-    except ImportError:
-        raise RuntimeError(missing_error_string)
 
 def quoted_latex(x):
     """

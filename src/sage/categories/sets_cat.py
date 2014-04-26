@@ -667,6 +667,9 @@ class Sets(Category_singleton):
                 sage: CommutativeAdditiveGroups().Algebras(QQ)
                 Category of commutative additive group algebras over Rational Field
 
+                sage: Monoids().Algebras(Rings())
+                Category of monoid algebras over Category of rings
+
             .. SEEALSO::
 
                 - :class:`.algebra_functor.AlgebrasCategory`

@@ -223,13 +223,18 @@ class Category_over_base(CategoryWithParameters):
     """
 
     def __init__(self, base, name=None):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
 
-            sage: C = Algebras(Fields()); C
-            Category of algebras over fields
+            sage: S = Spec(ZZ)
+            sage: C = Schemes(S); C
+            Category of schemes over Integer Ring
+            sage: C.__class__.__init__ == sage.categories.category_types.Category_over_base.__init__
+            True
+            sage: C.base() is S
+            True
             sage: TestSuite(C).run()
         """
         self.__base = base

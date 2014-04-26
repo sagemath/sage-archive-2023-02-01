@@ -163,9 +163,9 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             sage: A = AlgebrasWithBasis(QQ).example()
             sage: a = A.an_element()
             sage: a
-            B[word: ] + 2*B[word: a] + 3*B[word: b]
+            2*B[word: ] + 2*B[word: a] + 3*B[word: b]
             sage: a.__mul__(a)
-            B[word: ] + 4*B[word: a] + 4*B[word: aa] + 6*B[word: ab] + 6*B[word: b] + 6*B[word: ba] + 9*B[word: bb]
+            4*B[word: ] + 8*B[word: a] + 4*B[word: aa] + 6*B[word: ab] + 12*B[word: b] + 6*B[word: ba] + 9*B[word: bb]
         """
         __mul__ = Magmas.ElementMethods.__mul__.im_func
 

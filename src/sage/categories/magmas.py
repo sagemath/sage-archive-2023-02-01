@@ -236,13 +236,13 @@ class Magmas(Category_singleton):
         class ParentMethods:
             def is_commutative(self):
                 """
-                Return True, since commutative magmas are commutative.
+                Return ``True``, since commutative magmas are commutative.
 
                 EXAMPLES::
 
                     sage: Parent(QQ,category=CommutativeRings()).is_commutative()
                     True
-                    """
+                """
                 return True
 
         class Algebras(AlgebrasCategory):
@@ -325,7 +325,7 @@ class Magmas(Category_singleton):
 
         def product(self, x, y):
             """
-            The binary multiplication of the magma
+            The binary multiplication of the magma.
 
             INPUT:
 
@@ -718,22 +718,18 @@ class Magmas(Category_singleton):
 
     class Subquotients(SubquotientsCategory):
         r"""
-        The category of sub/quotient magmas.
+        The category of subquotient magmas.
 
-        Let `G` and `S` be two magmas and `l: S \mapsto G` and
-        `r: G \mapsto S` be two maps such that:
+        See :meth:`Sets.SubcategoryMethods.Subquotients` for the
+        general setup for subquotients. In the case of a subquotient
+        magma `S` of a magma `G`, the condition that `r` be a
+        morphism in ``As`` can be rewritten as follows:
 
-         - `r \circ l` is the identity of `G`.
+         - for any two `a,b \in S` the identity
+           `a \times_S b = r(l(a) \times_G l(b))` holds.
 
-         - for any two `a,b\in S` the identity `a \times_S b = r(l(a) \times_G l(b))` holds.
-
-        The category Subquotient implements the product `\times_S` from `l` and `r`
-        and the product of `G`.
-
-        `S` is supposed to belongs the category
-        ``Magmas().Subquotients()`` and to specify `G` under the name
-        ``S.ambient()`` and to implement `x\to l(x)` and `y \to r(y)`
-        under the names ``S.lift(x)`` and ``S.retract(y)``.
+        This is used by this category to implement the product
+        `\times_S` of `S` from `l` and `r` and the product of `G`.
 
         EXAMPLES::
 
@@ -749,7 +745,7 @@ class Magmas(Category_singleton):
 
             def product(self, x, y):
                 """
-                Returns the product of two elements of self.
+                Return the product of two elements of ``self``.
 
                 EXAMPLES::
 

@@ -77,7 +77,7 @@ Some challenges
     6
 
     sage: A=random_matrix(ZZ,3,6,x=7)
-    sage: L=LatticePolytope(A)
+    sage: L=LatticePolytope(A.columns())
     sage: L.npoints()                # oops!   # random
     37
 
@@ -691,7 +691,8 @@ be a *subcategory* of ``Cs()``.
     functor from the category of groups to the category of sets is not
     an inclusion of categories, as it is not injective: a given set
     may admit more than one group structure. See :trac:`16183` for
-    more details.
+    more details. The name *supercategory* is also used with a
+    different meaning in certain areas of mathematics.
 
 Categories are instances and have operations
 --------------------------------------------

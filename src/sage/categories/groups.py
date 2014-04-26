@@ -116,7 +116,7 @@ class Groups(CategoryWithAxiom):
         def cayley_table(self, names='letters', elements=None):
             r"""
             Returns the "multiplication" table of this multiplicative group,
-            which is also known as the "Cayley table."
+            which is also known as the "Cayley table".
 
             .. note:: The order of the elements in the row and column
               headings is equal to the order given by the table's
@@ -365,8 +365,8 @@ class Groups(CategoryWithAxiom):
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Algebras(AlgebrasCategory):
-        """
-        The category of group algebras over the base ring.
+        r"""
+        The category of group algebras over a given base ring.
 
         EXAMPLES::
 
@@ -376,24 +376,23 @@ class Groups(CategoryWithAxiom):
             [Category of hopf algebras with basis over Integer Ring,
              Category of monoid algebras over Integer Ring]
 
-        Here is how to create the group algebra of a group G (this has to
-        be changed if there are no bugs in this category)::
+        Here is how to create the group algebra of a group `G`::
 
             sage: G = DihedralGroup(5)
-            sage: QG = GroupAlgebras(QQ).example(G); QG
-            The group algebra of the Dihedral group of order 10 as a permutation group over Rational Field
+            sage: QG = G.algebra(QQ); QG
+            Group algebra of Dihedral group of order 10 as a permutation group over Rational Field
 
         and an example of computation::
 
-            sage: g=DihedralGroup(5).an_element(); g
+            sage: g = G.an_element(); g
             (1,2,3,4,5)
             sage: (QG.term(g) + 1)**3
             B[()] + 3*B[(1,2,3,4,5)] + 3*B[(1,3,5,2,4)] + B[(1,4,2,5,3)]
 
         .. TODO::
 
-            - Some methods can be transferred to MonoidAlgebras and some to a new category FiniteDimensionalGroupAlgebras
-            - The Hopf algebra structure has not yet been implemented
+            - Check which methods would be better located in
+              ``Monoid.Algebras`` or ``Groups.Finite.Algebras``.
 
         TESTS::
 
@@ -413,7 +412,8 @@ class Groups(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
-            Implement the fact that the algebra of a group is a Hopf algebra.
+            Implement the fact that the algebra of a group is a Hopf
+            algebra.
 
             EXAMPLES::
 
@@ -429,24 +429,22 @@ class Groups(CategoryWithAxiom):
 
         def example(self, G = None):
             """
-            Returns an example of group algebra
+            Return an example of group algebra.
 
             EXAMPLES::
 
                 sage: GroupAlgebras(QQ[x]).example()
-                The group algebra of the Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
+                Group algebra of Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
 
             An other group can be specified as optional argument::
 
                 sage: GroupAlgebras(QQ).example(SymmetricGroup(4))
-                The group algebra of the Symmetric group of order 4! as a permutation group over Rational Field
-
+                Group algebra of Symmetric group of order 4! as a permutation group over Rational Field
             """
-            from sage.categories.examples.group_algebras import MyGroupAlgebra
             from sage.groups.perm_gps.permgroup_named import DihedralGroup
             if G is None:
                 G = DihedralGroup(4)
-            return MyGroupAlgebra(self.base_ring(), G)
+            return G.algebra(self.base_ring())
 
         class ParentMethods:
 
@@ -469,7 +467,7 @@ class Groups(CategoryWithAxiom):
 
             def group(self):
                 r"""
-                Returns the underlying group of the group algebra
+                Return the underlying group of the group algebra.
 
                 EXAMPLES::
 
@@ -482,7 +480,7 @@ class Groups(CategoryWithAxiom):
 
             def algebra_generators(self):
                 r"""
-                Returns generators of this group algebra (as an algebra).
+                Return generators of this group algebra (as an algebra).
 
                 EXAMPLES::
 
@@ -491,16 +489,20 @@ class Groups(CategoryWithAxiom):
 
                 .. NOTE::
 
-                    This function is overloaded for SymmetricGroupAlgebras to return Permutations and not Elements of the symmetric group
+                    This function is overloaded for SymmetricGroupAlgebras
+                    to return Permutations and not Elements of the
+                    symmetric group.
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)
 
             def _conjugacy_classes_representatives_underlying_group(self):
                 r"""
-                Returns a complete list of representatives of conjugacy classes
+                Return a complete list of representatives of conjugacy
+                classes of the underlying group.
 
-                This works only for permutations group. The ordering is that given by GAP.
+                This works only for permutation groups. The ordering is
+                that given by GAP.
 
                 EXAMPLES::
 
@@ -511,7 +513,8 @@ class Groups(CategoryWithAxiom):
 
                 .. NOTE::
 
-                    This function is overloaded for SymmetricGroupAlgebras to return Permutations and not Elements of the symmetric group::
+                    This function is overloaded for SymmetricGroupAlgebras to
+                    return Permutations and not Elements of the symmetric group::
 
                     sage: SymmetricGroupAlgebra(ZZ,3)._conjugacy_classes_representatives_underlying_group()
                     [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
@@ -520,9 +523,11 @@ class Groups(CategoryWithAxiom):
 
             def center(self):
                 r"""
-                Returns the center of the group algebra.
+                Return the center of the group algebra.
 
-                The element of the canonical basis (sum of the elements of the group in the same conjugacy classes) are indexed by one element of the class.
+                The elements of the canonical basis (formal sums of the
+                elements of each conjugacy class of the underlying group)
+                are indexed by one element of the class.
 
                 EXAMPLES::
 
@@ -541,8 +546,10 @@ class Groups(CategoryWithAxiom):
 
             def coproduct_on_basis(self, g):
                 r"""
-                Returns the coproduct of the element of the basis (which are
-                group-like). Used to compute the coproduct of any element.
+                Return the coproduct of the element ``g`` of the basis.
+
+                Each basis element ``g`` is group-like. This method is
+                used to compute the coproduct of any element.
 
                 EXAMPLES::
 
@@ -563,8 +570,11 @@ class Groups(CategoryWithAxiom):
 
             def antipode_on_basis(self,g):
                 r"""
-                Returns the antipode of the element of the basis (which are group-
-                like). Used to compute the antipode of any element.
+                Return the antipode of the element ``g`` of the basis.
+
+                Each basis element ``g`` is group-like, and so has
+                antipode `g^{-1}`. This method is used to compute the
+                antipode of any element.
 
                 EXAMPLES::
 
@@ -583,8 +593,11 @@ class Groups(CategoryWithAxiom):
 
             def counit_on_basis(self,g):
                 r"""
-                Returns the counit of the element of the basis, that is 1 in a
-                group algebra.
+                Return the counit of the element ``g`` of the basis.
+
+                Each basis element ``g`` is group-like, and so has
+                counit `1`. This method is used to compute the
+                counit of any element.
 
                 EXAMPLES::
 
@@ -599,8 +612,11 @@ class Groups(CategoryWithAxiom):
 
             def counit(self,x):
                 r"""
-                Returns the counit of the element x, that is the sum of the
-                coefficient in a group algebra.
+                Return the counit of the element ``x`` of the group
+                algebra.
+
+                This is the sum of all coefficients of ``x`` with respect
+                to the standard basis of the group algebra.
 
                 EXAMPLES::
 
@@ -617,14 +633,22 @@ class Groups(CategoryWithAxiom):
 
             def central_form(self):
                 r"""
-                Returns ``self`` as an element of a center of the group algebra in the canonical basis of the center of the group algebra (family of sums of elements in a conjugacy class).
+                Return ``self`` as an element of a center of the group
+                algebra in the canonical basis of the center of the group
+                algebra (family of sums of elements in a conjugacy class).
 
-                Note that the element of the canonical basis of the center (sum of the elements of the group in the same conjugacy classes) are indexed by one element of the class.
+                Note that the elements of the canonical basis of the
+                center (sums of the elements of each conjugacy class) are
+                indexed by one element of the class.
 
                 WARNINGS::
 
-                    - This function needs the underlying group to have a method conjugacy_classes_representatives (every permutation group has one, thanks GAP!).
-                    - It does not check that the element is indeed central. Use the method :meth:`.is_central` for this purpose.
+                    - This function needs the underlying group to have a
+                      method ``conjugacy_classes_representatives`` (every
+                      permutation group has one, thanks GAP!).
+                    - It does not check that the element is indeed
+                      central. Use the method :meth:`.is_central` for
+                      this purpose.
 
                 EXAMPLES::
 
@@ -642,9 +666,12 @@ class Groups(CategoryWithAxiom):
 
                 .. NOTE::
 
-                    This function has a complexity linear in the number of conjugacy classes of the group. One could have done easily a function, whose complexity is linear in the size of the support of ``self``.
+                    This function has a complexity linear in the number of
+                    conjugacy classes of the group. One could have done
+                    easily a function whose complexity is linear in the
+                    size of the support of ``self``.
                 """
-                Z=self.parent().center()
+                Z = self.parent().center()
                 return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
 
 

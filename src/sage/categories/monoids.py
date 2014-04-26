@@ -69,11 +69,12 @@ class Monoids(CategoryWithAxiom):
         @cached_method
         def one(self):
             r"""
-            Returns the one of the monoid, that is the unique neutral element for `*`.
+            Return the one of the monoid, that is the unique neutral
+            element for `*`.
 
             .. note::
 
-               The default implementation is to coerce `1` into self.
+               The default implementation is to coerce `1` into ``self``.
                It is recommended to override this method because the
                coercion from the integers:
 
@@ -104,7 +105,8 @@ class Monoids(CategoryWithAxiom):
 
         def _test_one(self, **options):
             r"""
-            Test that ``self.one()`` is an element of self and is neutral for the addition
+            Test that ``self.one()`` is an element of ``self`` and is
+            neutral for the operation ``*``.
 
             INPUT::
 
@@ -137,7 +139,7 @@ class Monoids(CategoryWithAxiom):
 
         def prod(self, args):
             r"""
-            n-ary product
+            n-ary product of elements of ``self``.
 
             INPUT:
              - ``args`` -- a list (or iterable) of elements of ``self``
@@ -189,9 +191,9 @@ class Monoids(CategoryWithAxiom):
 
         def is_one(self):
             r"""
-            Returns whether ``self`` is the one of the monoid
+            Return whether ``self`` is the one of the monoid.
 
-            The default implementation, is to compare with ``self.one()``.
+            The default implementation is to compare with ``self.one()``.
 
             TESTS::
 
@@ -205,10 +207,11 @@ class Monoids(CategoryWithAxiom):
 
         def __pow__(self, n):
             r"""
-            INPUTS:
-             - ``n``: a non negative integer
+            Return ``self`` to the `n^{th}` power.
 
-            Returns ``self`` to the `n^{th}` power.
+            INPUT:
+
+             - ``n``: a nonnegative integer
 
             EXAMPLES::
 
@@ -227,9 +230,9 @@ class Monoids(CategoryWithAxiom):
             A naive implementation of ``__pow__``
 
             INPUTS:
-             - ``n``: a non negative integer
+             - ``n``: a nonnegative integer
 
-            Returns self to the `n^{th}` power, without using binary
+            Returns ``self`` to the `n^{th}` power, without using binary
             exponentiation (there are cases where this can actually be
             faster due to size explosion).
 
@@ -253,7 +256,7 @@ class Monoids(CategoryWithAxiom):
 
             def one(self):
                 r"""
-                Returns the unit of this monoid
+                Return the unit of this monoid.
 
                 This default implementation returns the unit of the
                 realization of ``self`` given by
@@ -342,8 +345,8 @@ class Monoids(CategoryWithAxiom):
             @cached_method
             def one_basis(self):
                 """
-                Returns the one of the group, which index the one of this algebra,
-                as per
+                Return the one of the group, which indexes the one of
+                this algebra, as per
                 :meth:`AlgebrasWithBasis.ParentMethods.one_basis()
                 <sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.one_basis>`.
 
@@ -361,8 +364,8 @@ class Monoids(CategoryWithAxiom):
 
             def an_element(self):
                 r"""
-                Returns an element of `self`. For the moment, this function is not
-                used because it is defined in a higher category
+                Return an element of `self`. For the moment, this method
+                is not used because it is defined in a higher category.
                 """
                 return (2*self(self.basis().keys().an_element())+
                         self.base_ring().an_element * self.one())
@@ -372,7 +375,7 @@ class Monoids(CategoryWithAxiom):
 
             def is_central(self):
                 r"""
-                Return whether the element is central.
+                Return whether the element ``self`` is central.
 
                 EXAMPLES::
 
@@ -382,7 +385,7 @@ class Monoids(CategoryWithAxiom):
                     sage: SG4(Permutation([1,3,2,4])).is_central()
                     False
                     sage: A=GroupAlgebras(QQ).example(); A
-                    The group algebra of the Dihedral group of order 8 as a permutation group over Rational Field
+                    Group algebra of Dihedral group of order 8 as a permutation group over Rational Field
                     sage: sum(i for i in A.basis()).is_central()
                     True
                 """

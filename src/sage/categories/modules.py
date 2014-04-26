@@ -26,12 +26,20 @@ _Fields = Fields()
 
 class Modules(Category_module):
     r"""
-    The category of all modules over a base ring `R`
+    The category of all modules over a base ring `R`.
 
-    A `R`-module `M` is a left and right `R`-module over a commutative
+    An `R`-module `M` is a left and right `R`-module over a commutative
     ring `R` such that:
 
     .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x\in M
+
+    .. TODO::
+
+        This is a definition of bimodules, not of modules; these are
+        distinct even if `R` is commutative. That said, should `R` be
+        required to be commutative? If not, left or right should be
+        decided upon. (Does the code we have support noncommutative
+        `R`?)
 
     INPUT:
 
@@ -70,6 +78,8 @@ class Modules(Category_module):
     TODO:
 
      - Implement a FreeModules(R) category, when so prompted by a concrete use case
+       [Don't we already have `ModulesWithBasis`? What's the difference?
+       Existence of basis without its specification isn't really useful.]
     """
 
     @staticmethod
@@ -79,6 +89,10 @@ class Modules(Category_module):
         ``Modules(field)`` to ``VectorSpaces(field)``. This feature
         will later be extended to modules over a principal ideal
         domain/ring or over a semiring.
+
+        .. TODO::
+
+            Is "semiring" really meant that way? Semirings aren't rings.
 
         TESTS::
 
@@ -199,12 +213,23 @@ class Modules(Category_module):
             This returns the category of dual of spaces in ``self`` endowed
             with the appropriate additional structure.
 
+            .. WARNING::
+
+                Dualization is not really a covariant functorial
+                construction! The dual in the category of graded
+                modules is often a proper submodule of the dual in
+                the category of modules. This is currently not
+                of great importance, but might become problematic
+                if duals of infinite-dimensional modules are
+                defined later on (e.g., lazy power series as the
+                dual of the polynomial algebra).
+
+            .. TODO:: add support for graded duals.
+
             .. SEEALSO::
 
                 - :class:`.dual.DualObjectsCategory`
                 - :class:`~.covariant_functorial_construction.CovariantFunctorialConstruction`.
-
-            .. TODO:: add support for graded duals.
 
             EXAMPLES::
 
@@ -310,7 +335,8 @@ class Modules(Category_module):
         @cached_method
         def WithBasis(self):
             r"""
-            Return the full subcategory of the finite dimensional objects of ``self``.
+            Return the full subcategory of the objects of ``self`` with
+            distinguished basis.
 
             EXAMPLES::
 
@@ -333,7 +359,8 @@ class Modules(Category_module):
 
         def extra_super_categories(self):
             """
-            Implements the fact that a finite dimensional module over a finite ring is finite
+            Implements the fact that a finite dimensional module
+            over a finite ring is finite.
 
             EXAMPLES::
 
@@ -392,7 +419,7 @@ class Modules(Category_module):
 
     class HomCategory(HomCategory):
         """
-        The category of homomorphisms sets `\hom(X,Y)` for `X`, `Y` modules
+        The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules
         """
 
         def extra_super_categories(self):
@@ -438,7 +465,7 @@ class Modules(Category_module):
 
     class EndCategory(HomCategory):
         """
-        The category of endomorphisms sets `End(X)` for `X` module (this is
+        The category of endomorphism sets `End(X)` for `X` module (this is
         not used yet)
         """
 

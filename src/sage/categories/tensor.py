@@ -16,7 +16,7 @@ from sage.categories.covariant_functorial_construction import CovariantFunctoria
 
 class TensorProductFunctor(CovariantFunctorialConstruction):
     """
-    A singleton class for the tensor functor
+    A singleton class for the tensor functor.
 
     This functor takes a collection of vector spaces (or modules with
     basis), and constructs the tensor product of those vector spaces.

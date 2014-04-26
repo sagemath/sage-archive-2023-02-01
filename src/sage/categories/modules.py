@@ -28,18 +28,10 @@ class Modules(Category_module):
     r"""
     The category of all modules over a base ring `R`.
 
-    An `R`-module `M` is a left and right `R`-module over a commutative
-    ring `R` such that:
+    An `R`-module `M` is a left and right `R`-module over a
+    commutative ring `R` such that:
 
     .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x\in M
-
-    .. TODO::
-
-        This is a definition of bimodules, not of modules; these are
-        distinct even if `R` is commutative. That said, should `R` be
-        required to be commutative? If not, left or right should be
-        decided upon. (Does the code we have support noncommutative
-        `R`?)
 
     INPUT:
 
@@ -75,24 +67,29 @@ class Modules(Category_module):
 
         sage: TestSuite(Modules(ZZ)).run()
 
-    TODO:
+    .. TODO::
 
-     - Implement a FreeModules(R) category, when so prompted by a concrete use case
-       [Don't we already have `ModulesWithBasis`? What's the difference?
-       Existence of basis without its specification isn't really useful.]
+        - Clarify the distinction, if any, with ``BiModules(R, R)``.
+
+        - Check that non commutative rings are properly supported by
+          all the code, and advertise it.
+
+        - Add support for base semirings.
+
+        - Implement a FreeModules(R) category, when so prompted by a
+          concrete use case: e.g.  modeling a free module with several
+          bases (using :meth:`Sets.SubcategoryMethods.Realizations`)
+          or with an atlas of local maps.
     """
 
     @staticmethod
     def __classcall_private__(cls, base_ring, dispatch = True):
-        """
-        This method implements the default behavior of dispatching
-        ``Modules(field)`` to ``VectorSpaces(field)``. This feature
-        will later be extended to modules over a principal ideal
-        domain/ring or over a semiring.
+        r"""
+        Implement the dispatching ``Modules(field)`` to ``VectorSpaces(field)``.
 
-        .. TODO::
-
-            Is "semiring" really meant that way? Semirings aren't rings.
+        This feature will later be extended, probably as a covariant
+        functorial construction, to support modules over various kinds
+        of rings (principal ideal domains, ...), or even of semirings.
 
         TESTS::
 
@@ -119,7 +116,6 @@ class Modules(Category_module):
             sage: C._reduction
             (<class 'sage.categories.modules.Modules'>, (Rational Field,), {'dispatch': False})
             sage: TestSuite(C).run()
-
         """
         if dispatch:
             if base_ring in _Fields:
@@ -204,7 +200,7 @@ class Modules(Category_module):
             r"""
             Return the category of duals of objects of ``self``.
 
-            The dual of a vector space `V` is the space consisting of
+            The *dual* of a vector space `V` is the space consisting of
             all linear functionals on `V` (see :wikipedia:`Dual_space`).
             Additional structure on `V` can endow its dual with
             additional structure; e.g. if `V` is an algebra, then its
@@ -215,16 +211,14 @@ class Modules(Category_module):
 
             .. WARNING::
 
-                Dualization is not really a covariant functorial
-                construction! The dual in the category of graded
-                modules is often a proper submodule of the dual in
-                the category of modules. This is currently not
-                of great importance, but might become problematic
-                if duals of infinite-dimensional modules are
-                defined later on (e.g., lazy power series as the
-                dual of the polynomial algebra).
+                This semantic of ``dual`` and ``DualObject`` is
+                imposed on all subcategories, in particular to make
+                ``dual`` a covariant functorial construction.
 
-            .. TODO:: add support for graded duals.
+                A subcategory that defines a different notion of dual
+                needs to use a different name. Typically, the category
+                of graded modules will define a ``graded_dual``
+                construction. See :trac:`15647`.
 
             .. SEEALSO::
 
@@ -336,7 +330,7 @@ class Modules(Category_module):
         def WithBasis(self):
             r"""
             Return the full subcategory of the objects of ``self`` with
-            distinguished basis.
+            a distinguished basis.
 
             EXAMPLES::
 

@@ -26,10 +26,10 @@ _Fields = Fields()
 
 class Modules(Category_module):
     r"""
-    The category of all modules over a base ring `R`
+    The category of all modules over a base ring `R`.
 
-    A `R`-module `M` is a left and right `R`-module over a commutative
-    ring `R` such that:
+    An `R`-module `M` is a left and right `R`-module over a
+    commutative ring `R` such that:
 
     .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x\in M
 
@@ -72,18 +72,29 @@ class Modules(Category_module):
 
         sage: TestSuite(Modules(ZZ)).run()
 
-    TODO:
+    .. TODO::
 
-     - Implement a FreeModules(R) category, when so prompted by a concrete use case
+        - Clarify the distinction, if any, with ``BiModules(R, R)``.
+
+        - Check that non commutative rings are properly supported by
+          all the code, and advertise it.
+
+        - Add support for base semirings.
+
+        - Implement a FreeModules(R) category, when so prompted by a
+          concrete use case: e.g.  modeling a free module with several
+          bases (using :meth:`Sets.SubcategoryMethods.Realizations`)
+          or with an atlas of local maps.
     """
 
     @staticmethod
     def __classcall_private__(cls, base_ring, dispatch = True):
-        """
-        This method implements the default behavior of dispatching
-        ``Modules(field)`` to ``VectorSpaces(field)``. This feature
-        will later be extended to modules over a principal ideal
-        domain/ring or over a semiring.
+        r"""
+        Implement the dispatching ``Modules(field)`` to ``VectorSpaces(field)``.
+
+        This feature will later be extended, probably as a covariant
+        functorial construction, to support modules over various kinds
+        of rings (principal ideal domains, ...), or even of semirings.
 
         TESTS::
 
@@ -110,7 +121,6 @@ class Modules(Category_module):
             sage: C._reduction
             (<class 'sage.categories.modules.Modules'>, (Rational Field,), {'dispatch': False})
             sage: TestSuite(C).run()
-
         """
         if dispatch:
             if base_ring in _Fields or (isinstance(base_ring, Category)
@@ -198,7 +208,7 @@ class Modules(Category_module):
             r"""
             Return the category of duals of objects of ``self``.
 
-            The dual of a vector space `V` is the space consisting of
+            The *dual* of a vector space `V` is the space consisting of
             all linear functionals on `V` (see :wikipedia:`Dual_space`).
             Additional structure on `V` can endow its dual with
             additional structure; e.g. if `V` is an algebra, then its
@@ -207,12 +217,21 @@ class Modules(Category_module):
             This returns the category of dual of spaces in ``self`` endowed
             with the appropriate additional structure.
 
+            .. WARNING::
+
+                This semantic of ``dual`` and ``DualObject`` is
+                imposed on all subcategories, in particular to make
+                ``dual`` a covariant functorial construction.
+
+                A subcategory that defines a different notion of dual
+                needs to use a different name. Typically, the category
+                of graded modules will define a ``graded_dual``
+                construction. See :trac:`15647`.
+
             .. SEEALSO::
 
                 - :class:`.dual.DualObjectsCategory`
                 - :class:`~.covariant_functorial_construction.CovariantFunctorialConstruction`.
-
-            .. TODO:: add support for graded duals.
 
             EXAMPLES::
 
@@ -318,7 +337,8 @@ class Modules(Category_module):
         @cached_method
         def WithBasis(self):
             r"""
-            Return the full subcategory of the finite dimensional objects of ``self``.
+            Return the full subcategory of the objects of ``self`` with
+            a distinguished basis.
 
             EXAMPLES::
 
@@ -341,7 +361,8 @@ class Modules(Category_module):
 
         def extra_super_categories(self):
             """
-            Implements the fact that a finite dimensional module over a finite ring is finite
+            Implements the fact that a finite dimensional module
+            over a finite ring is finite.
 
             EXAMPLES::
 
@@ -400,7 +421,7 @@ class Modules(Category_module):
 
     class HomCategory(HomCategory):
         """
-        The category of homomorphisms sets `\hom(X,Y)` for `X`, `Y` modules
+        The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules
         """
 
         def extra_super_categories(self):
@@ -446,7 +467,7 @@ class Modules(Category_module):
 
     class EndCategory(HomCategory):
         """
-        The category of endomorphisms sets `End(X)` for `X` module (this is
+        The category of endomorphism sets `End(X)` for `X` module (this is
         not used yet)
         """
 

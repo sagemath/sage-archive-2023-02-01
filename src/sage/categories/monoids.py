@@ -69,10 +69,10 @@ class Monoids(CategoryWithAxiom):
         @cached_method
         def one(self):
             r"""
-            Return the one of the monoid, that is the unique neutral
+            Return the unit of the monoid, that is the unique neutral
             element for `*`.
 
-            .. note::
+            .. NOTE::
 
                The default implementation is to coerce `1` into ``self``.
                It is recommended to override this method because the
@@ -211,7 +211,7 @@ class Monoids(CategoryWithAxiom):
 
             INPUT:
 
-             - ``n``: a nonnegative integer
+             - ``n`` -- a nonnegative integer
 
             EXAMPLES::
 
@@ -227,14 +227,15 @@ class Monoids(CategoryWithAxiom):
 
         def _pow_naive(self, n):
             r"""
-            A naive implementation of ``__pow__``
+            Returns ``self`` to the `n^{th}` power (naive implementation)
 
-            INPUTS:
-             - ``n``: a nonnegative integer
+            INPUT:
 
-            Returns ``self`` to the `n^{th}` power, without using binary
-            exponentiation (there are cases where this can actually be
-            faster due to size explosion).
+             - ``n`` -- a nonnegative integer
+
+            This naive implementation does not use binary
+            exponentiation; there are cases where this is actually
+            faster due to size explosion.
 
             EXAMPLES::
 
@@ -345,7 +346,7 @@ class Monoids(CategoryWithAxiom):
             @cached_method
             def one_basis(self):
                 """
-                Return the one of the group, which indexes the one of
+                Return the unit of the monoid, which indexes the unit of
                 this algebra, as per
                 :meth:`AlgebrasWithBasis.ParentMethods.one_basis()
                 <sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.one_basis>`.
@@ -361,15 +362,6 @@ class Monoids(CategoryWithAxiom):
                     3*B['']
                 """
                 return self.basis().keys().one()
-
-            def an_element(self):
-                r"""
-                Return an element of `self`. For the moment, this method
-                is not used because it is defined in a higher category.
-                """
-                return (2*self(self.basis().keys().an_element())+
-                        self.base_ring().an_element * self.one())
-
 
         class ElementMethods:
 

@@ -701,9 +701,9 @@ class FSMState(SageObject):
         sage: A == B
         False
 
-    We can also define a final output word of a final state which is used if
-    the input of a transducer leads to this state. Such states are used in
-    subsequential transducers. ::
+    We can also define a final output word of a final state which is
+    used if the input of a transducer leads to this state. Such final
+    output words are used in subsequential transducers. ::
 
         sage: C = FSMState('state 3', is_final=True, final_word_out='end')
         sage: C.final_word_out
@@ -717,7 +717,7 @@ class FSMState(SageObject):
         sage: A.final_word_out = 2
         sage: A.final_word_out
         [2]
-        sage: A.final_word_out = [2,3]
+        sage: A.final_word_out = [2, 3]
         sage: A.final_word_out
         [2, 3]
 
@@ -785,9 +785,11 @@ class FSMState(SageObject):
             'final'
 
         TESTS::
+
             sage: A = FSMState('A', is_final=True)
             sage: A.final_word_out
             []
+            sage: A.is_final = True
             sage: A = FSMState('A', is_final=True, final_word_out='end')
             sage: A.final_word_out
             ['end']
@@ -804,6 +806,7 @@ class FSMState(SageObject):
             sage: A = FSMState('A', is_final=False)
             sage: A.final_word_out == None
             True
+            sage: A.is_final = False
             sage: A = FSMState('A', is_final=False, final_word_out='end')
             Traceback (most recent call last):
             ...
@@ -837,8 +840,8 @@ class FSMState(SageObject):
             self.word_out = []
 
         self.is_initial = is_initial
+        self._final_word_out_ = None
         self.is_final = is_final
-
         self.final_word_out = final_word_out
 
         if hook is not None:
@@ -884,7 +887,7 @@ class FSMState(SageObject):
 
         The final output word of a final state which is written if the state
         is reached as the last state of the input of a transducer. For a
-        non-final state the return value is ``None``.
+        non-final state, the return value is ``None``.
 
         EXAMPLES::
 
@@ -987,24 +990,22 @@ class FSMState(SageObject):
             sage: A.is_final = False
             Traceback (most recent call last):
             ...
-            TypeError: Only final states can have a final output word.
-            State A is not final, but has a final output word.
+            ValueError: Only final states can have a final output word.
+            State A cannot be non-final, because it has a final output
+            word.
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
             sage: A.final_word_out == None
             True
         """
-        if is_final and (not hasattr(self, 'final_word_out') or
-                         self.final_word_out is None):
+        if is_final and self.final_word_out is None:
             self._final_word_out_ = []
-        elif not is_final and (not hasattr(self, 'final_word_out') or
-                               not self.final_word_out or
-                               self.final_word_out is None):
+        elif not is_final and not self.final_word_out:
             self._final_word_out_ = None
         elif not is_final:
-            raise TypeError("Only final states can have a final output word. " \
-                            "State %s is not final, but has a final output word." \
-                            %self.label())
+            raise ValueError("Only final states can have a final output word. " \
+                             "State %s cannot be non-final, because it " \
+                             "has a final output word." % self.label())
 
     def label(self):
         """
@@ -1085,6 +1086,7 @@ class FSMState(SageObject):
         if hasattr(self, 'hook'):
             new.hook = deepcopy(self.hook, memo)
         new.color = deepcopy(self.color, memo)
+        new.finite_word_out = deepcopy(self.final_word_out, memo)
         return new
 
 

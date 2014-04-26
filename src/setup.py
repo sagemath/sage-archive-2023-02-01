@@ -2,9 +2,10 @@
 
 import os, sys, time, errno, platform, subprocess
 from distutils.core import setup
-from distutils.extension import Extension
-from glob import glob, fnmatch
-from warnings import warn
+
+# Make sure stdout doesn't buffer output, otherwise output
+# like "Cythonizing foo.pyx" appears in the wrong order.
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 #########################################################
 ### List of Extensions
@@ -17,7 +18,6 @@ from warnings import warn
 
 from module_list import ext_modules
 import sage.ext.gen_interpreters
-import warnings
 from sage.env import *
 
 #########################################################
@@ -44,10 +44,9 @@ include_dirs = [SAGE_INC,
                 SAGE_SRC,
                 os.path.join(SAGE_SRC, 'sage', 'ext')]
 
-# search for dependencies only
-extra_include_dirs = [ os.path.join(SAGE_INC,'python'+platform.python_version().rsplit('.', 1)[0]) ]
-
-extra_compile_args = [ ]
+# Manually add -fno-strict-aliasing, which is needed to compile Cython
+# and disappears from the default flags if the user has set CFLAGS.
+extra_compile_args = [ "-fno-strict-aliasing" ]
 extra_link_args = [ ]
 
 # comment these four lines out to turn on warnings from gcc
@@ -96,7 +95,7 @@ class CompileRecorder(object):
                 res = self._f(self._obj, *args)
             else:
                 res = self._f(*args)
-        except Exception, ex:
+        except Exception as ex:
             print ex
             res = ex
         t = time.time() - t
@@ -147,24 +146,35 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
 # or explicitly touch them in the respective spkg's spkg-install.]
-lib_headers = { "gmp":     [ os.path.join(SAGE_INC,'gmp.h') ],   # cf. #8664, #9896
-                "gmpxx":   [ os.path.join(SAGE_INC,'gmpxx.h') ]
+lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #9896
+                "gmpxx":   [ os.path.join(SAGE_INC, 'gmpxx.h') ],
+                "ntl":     [ os.path.join(SAGE_INC, 'NTL', 'config.h') ]
               }
 
+# In the loop below, don't append to any list, since many of these
+# lists are actually identical Python objects. For every list, we need
+# to write (at least the first time):
+#
+#   list = list + [foo]
+#
 for m in ext_modules:
+    # Make everything depend on *this* setup.py file
+    m.depends = m.depends + [__file__]
 
-    for lib in lib_headers.keys():
+    # Add dependencies for the libraries
+    for lib in lib_headers:
         if lib in m.libraries:
             m.depends += lib_headers[lib]
 
-    # FIMXE: Do NOT link the following libraries to each and
-    #        every module (regardless of the language btw.):
-    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
+    # Add csage as first library for all Cython extensions.
+    # The order is important, in particular for Cygwin.
+    m.libraries = ['csage'] + m.libraries
+    if m.language == 'c++':
+        m.libraries.append('stdc++')
 
-    m.extra_compile_args += extra_compile_args
-    m.extra_link_args += extra_link_args
-    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
-
+    m.extra_compile_args = m.extra_compile_args + extra_compile_args
+    m.extra_link_args = m.extra_link_args + extra_link_args
+    m.library_dirs = m.library_dirs + [os.path.join(SAGE_LOCAL, "lib")]
 
 
 #############################################
@@ -262,7 +272,7 @@ def execute_list_of_commands(command_list):
 
     print "Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread"))
     execute_list_of_commands_in_parallel(command_list, nthreads)
-    print "Time to execute %s: %s seconds"%(plural(len(command_list),"command"), time.time() - t)
+    print "Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t)
 
 
 ########################################################################
@@ -304,7 +314,6 @@ class sage_build_ext(build_ext):
             print "self.compiler.linker_so:"
             print self.compiler.linker_so
             # There are further interesting variables...
-            sys.stdout.flush()
 
 
         # At least on MacOS X, the library dir of the *original* Sage
@@ -343,7 +352,6 @@ class sage_build_ext(build_ext):
         if DEBUG:
             print "self.compiler.linker_so (after fixing library dirs):"
             print self.compiler.linker_so
-            sys.stdout.flush()
 
 
         # First, sanity-check the 'extensions' list
@@ -360,15 +368,14 @@ class sage_build_ext(build_ext):
 
         execute_list_of_commands(compile_commands)
 
-        print "Total time spent compiling C/C++ extensions: ", time.time() - t, "seconds."
+        print "Total time spent compiling C/C++ extensions: %.2f seconds." % (time.time() - t)
 
     def prepare_extension(self, ext):
         sources = ext.sources
         if sources is None or type(sources) not in (ListType, TupleType):
-            raise DistutilsSetupError, \
-                  ("in 'ext_modules' option (extension '%s'), " +
+            raise DistutilsSetupError(("in 'ext_modules' option (extension '%s'), " +
                    "'sources' must be present and must be " +
-                   "a list of source filenames") % ext.name
+                   "a list of source filenames") % ext.name)
         sources = list(sources)
 
         fullname = self.get_ext_fullname(ext.name)
@@ -404,7 +411,7 @@ class sage_build_ext(build_ext):
             path = os.path.join(prefix, relative_ext_dir)
             try:
                 os.makedirs(path)
-            except OSError, e:
+            except OSError as e:
                 assert e.errno==errno.EEXIST, 'Cannot create %s.' % path
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
@@ -514,13 +521,14 @@ if not sdist:
         Cython.Compiler.Main.default_options['gdb_debug'] = True
         Cython.Compiler.Main.default_options['output_dir'] = 'build'
 
+    # Enable Cython caching (the cache is stored in ~/.cycache which is
+    # Cython's default).
+    Cython.Compiler.Main.default_options['cache'] = True
+
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
         force = False
-
-    for ext_module in ext_modules:
-        ext_module.include_dirs += include_dirs
 
     ext_modules = cythonize(
         ext_modules,
@@ -530,8 +538,7 @@ if not sdist:
         force=force)
 
     open(version_file, 'w').write(Cython.__version__)
-    print "Finished compiling Cython code (time = %s seconds)" % (time.time() - t)
-    sys.stdout.flush()
+    print "Finished Cythonizing, time: %.2f seconds." % (time.time() - t)
 
 
 #########################################################

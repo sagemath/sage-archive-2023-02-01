@@ -79,7 +79,6 @@ from itertools import permutations
 from sage.rings.arith import binomial
 from set_system cimport SetSystem
 from itertools import combinations
-import sage.matroids.unpickling
 
 # class of general matroids, represented by their list of bases
 
@@ -475,7 +474,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         cdef bint found
         cdef frozenset B
         if self.full_rank() == 0:
-            return BasisMatroid(groundset=self._E + [e], bases=[set()])
+            return BasisMatroid(groundset=self._E + (e,), bases=[set()])
 
         BB = self.bases()
         BT = self.independent_r_sets(self.full_rank() - 1)
@@ -490,7 +489,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             if not found:
                 BE.append(B | se)
         BE += BB
-        return BasisMatroid(groundset=self._E + [e], bases=BE)
+        return BasisMatroid(groundset=self._E + (e,), bases=BE)
 
     cpdef _with_coloop(self, e):
         r"""
@@ -517,7 +516,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
 
         """
         cdef frozenset se = frozenset([e])
-        return BasisMatroid(groundset=self._E + [e], bases=[B | se for B in self.bases()])
+        return BasisMatroid(groundset=self._E + (e,), bases=[B | se for B in self.bases()])
 
     cpdef relabel(self, l):
         """
@@ -1141,6 +1140,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: loads(dumps(M))
             Vamos
         """
+        import sage.matroids.unpickling
         BB = bitset_pickle(self._bb)
         data = (self._E, self._matroid_rank, getattr(self, '__custom_name'), BB)
         version = 0

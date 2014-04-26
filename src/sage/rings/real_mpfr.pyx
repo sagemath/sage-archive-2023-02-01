@@ -78,7 +78,7 @@ EXAMPLES:
 
 A difficult conversion::
 
-    sage: RR(sys.maxint)
+    sage: RR(sys.maxsize)
     9.22337203685478e18      # 64-bit
     2.14748364700000e9       # 32-bit
 
@@ -117,12 +117,12 @@ Make sure we don't have a new field for every new literal::
 
 import math # for log
 import sys
-import weakref
 import re
 
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
+include 'sage/libs/pari/pari_err.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -134,11 +134,13 @@ cdef bin_op
 from sage.structure.element import bin_op
 
 import sage.misc.misc as misc
+import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.pari.gen import PariInstance, gen
-from sage.libs.pari.gen cimport PariInstance, gen
+import sage.libs.pari.pari_instance
+from sage.libs.pari.gen cimport gen
+from sage.libs.pari.pari_instance cimport PariInstance
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -358,7 +360,7 @@ _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
-cdef object RealField_cache = weakref.WeakValueDictionary()
+cdef object RealField_cache = sage.misc.weak_dict.WeakValueDictionary()
 
 cpdef RealField(int prec=53, int sci_not=0, rnd="RNDN"):
     """
@@ -642,12 +644,10 @@ cdef class RealField_class(sage.rings.ring.Field):
             3.40000000000000
             sage: RR.coerce(2^4000)
             1.31820409343094e1204
-
             sage: RR.coerce_map_from(float)
             Generic map:
               From: Set of Python objects of type 'float'
               To:   Real Field with 53 bits of precision
-
 
         TESTS::
 
@@ -667,7 +667,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
         elif QQ.has_coerce_map_from(S):
-            return QQtoRR(QQ, self) * QQ.coerce_map_from(S)
+            return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
         if S == AA or S is RLF:
@@ -2137,6 +2137,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealField_class> self._parent).rnd)
         return x
 
+    def _sympy_(self):
+        """
+        Return a sympy object of ``self``.
+
+        EXAMPLES:
+
+        An indirect doctest to check this (see :trac:`14915`)::
+
+            sage: x,y = var('x, y')
+            sage: integrate(y, y, 0.5, 8*log(x), algorithm='sympy')
+            32*log(x)^2 - 0.125000000000000
+
+        """
+        import sympy
+        return sympy.simplify(float(self))
+
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
@@ -2256,8 +2272,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             6.00000000000000
         """
         cdef RealNumber x
-        if n > sys.maxint:
-            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxint))
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s"%(n, sys.maxsize))
         x = self._new()
         mpfr_mul_2ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2293,8 +2309,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR(1.5)._rshift_(2)
             0.375000000000000
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         cdef RealNumber x = self._new()
         mpfr_div_2exp(x.value, self.value, n, (<RealField_class>self._parent).rnd)
         return x
@@ -2385,16 +2401,38 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self
 
-    def ulp(self):
+    def ulp(self, field=None):
         """
-        Returns the unit of least precision of ``self``, which is the weight of
-        the least significant bit of ``self``. Unless ``self`` is exactly a
-        power of two, it is gap between this number and the next closest
-        distinct number that can be represented.
+        Returns the unit of least precision of ``self``, which is the
+        weight of the least significant bit of ``self``. This is always
+        a strictly positive number. It is also the gap between this
+        number and the closest number with larger absolute value that
+        can be represented.
+
+        INPUT:
+
+        - ``field`` -- :class:`RealField` used as parent of the result.
+          If not specified, use ``parent(self)``.
+
+        .. NOTE::
+
+            The ulp of zero is defined as the smallest representable
+            positive number. For extremely small numbers, underflow
+            occurs and the output is also the smallest representable
+            positive number (the rounding mode is ignored, this
+            computation is done by rounding towards +infinity).
+
+        .. SEEALSO::
+
+            :meth:`epsilon` for a scale-invariant version of this.
 
         EXAMPLES::
 
             sage: a = 1.0
+            sage: a.ulp()
+            2.22044604925031e-16
+            sage: (-1.5).ulp()
+            2.22044604925031e-16
             sage: a + a.ulp() == a
             False
             sage: a + a.ulp()/2 == a
@@ -2405,33 +2443,150 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: (a+b)/2 in [a,b]
             True
 
+        The ulp of zero is the smallest non-zero number::
+
+            sage: a = RR(0).ulp()
+            sage: a
+            2.38256490488795e-323228497            # 32-bit
+            8.50969131174084e-1388255822130839284  # 64-bit
+            sage: a.fp_rank()
+            1
+
+        The ulp of very small numbers results in underflow, so the
+        smallest non-zero number is returned instead::
+
+            sage: a.ulp() == a
+            True
+
+        We use a different field::
+
+            sage: a = RealField(256).pi()
+            sage: a.ulp()
+            3.454467422037777850154540745120159828446400145774512554009481388067436721265e-77
+            sage: e = a.ulp(RealField(64))
+            sage: e
+            3.45446742203777785e-77
+            sage: parent(e)
+            Real Field with 64 bits of precision
+            sage: e = a.ulp(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: field argument must be a RealField
+
+        For infinity and NaN, we get back positive infinity and NaN::
+
             sage: a = RR(infinity)
             sage: a.ulp()
             +infinity
             sage: (-a).ulp()
             +infinity
             sage: a = RR('nan')
-            sage: a.ulp() is a
-            True
+            sage: a.ulp()
+            NaN
+            sage: parent(RR('nan').ulp(RealField(42)))
+            Real Field with 42 bits of precision
         """
-        cdef RealNumber x
-        if mpfr_nan_p(self.value):
-            return self
-        elif mpfr_inf_p(self.value):
-            if mpfr_sgn(self.value) == 1:
-                return self
-            else:
-                return -self
+        cdef RealField_class _parent
+        if field is None:
+            _parent = self._parent
         else:
-            x = self._new()
-            mpfr_set(x.value, self.value, (<RealField_class>self._parent).rnd)
-            if mpfr_sgn(self.value) == 1:
+            try:
+                _parent = field
+            except TypeError:
+                raise TypeError("field argument must be a RealField")
+
+        cdef RealNumber x = _parent._new()
+        cdef mp_exp_t e
+        if mpfr_regular_p(self.value):
+            # Non-zero number
+            e = mpfr_get_exp(self.value) - mpfr_get_prec(self.value)
+            # Round up in case of underflow
+            mpfr_set_ui_2exp(x.value, 1, e, GMP_RNDU)
+        else:
+            # Special cases: zero, infinity, NaN
+            if mpfr_zero_p(self.value):
+                mpfr_set_zero(x.value, 1)
                 mpfr_nextabove(x.value)
-            else:
-                mpfr_nextbelow(x.value)
-            mpfr_sub(x.value, x.value, self.value, (<RealField_class>self._parent).rnd)
-            mpfr_abs(x.value, x.value, (<RealField_class>self._parent).rnd)
-            return x
+            elif mpfr_inf_p(self.value):
+                mpfr_set_inf(x.value, 1)
+            else: # NaN
+                mpfr_set_nan(x.value)
+        return x
+
+    def epsilon(self, field=None):
+        """
+        Returns ``abs(self)`` divided by `2^b` where `b` is the
+        precision in bits of ``self``. Equivalently, return
+        ``abs(self)`` multiplied by the :meth:`ulp` of 1.
+
+        This is a scale-invariant version of :meth:`ulp` and it lies
+        in `[u/2, u)` where `u` is ``self.ulp()`` (except in the case
+        of zero or underflow).
+
+        INPUT:
+
+        - ``field`` -- :class:`RealField` used as parent of the result.
+          If not specified, use ``parent(self)``.
+
+        OUTPUT:
+
+        ``field(self.abs() / 2^self.precision())``
+
+        EXAMPLES::
+
+            sage: RR(2^53).epsilon()
+            1.00000000000000
+            sage: RR(0).epsilon()
+            0.000000000000000
+            sage: a = RR.pi()
+            sage: a.epsilon()
+            3.48786849800863e-16
+            sage: a.ulp()/2, a.ulp()
+            (2.22044604925031e-16, 4.44089209850063e-16)
+            sage: a / 2^a.precision()
+            3.48786849800863e-16
+            sage: (-a).epsilon()
+            3.48786849800863e-16
+
+        We use a different field::
+
+            sage: a = RealField(256).pi()
+            sage: a.epsilon()
+            2.713132368784788677624750042896586252980746500631892201656843478528498954308e-77
+            sage: e = a.epsilon(RealField(64))
+            sage: e
+            2.71313236878478868e-77
+            sage: parent(e)
+            Real Field with 64 bits of precision
+            sage: e = a.epsilon(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: field argument must be a RealField
+
+        Special values::
+
+            sage: RR('nan').epsilon()
+            NaN
+            sage: parent(RR('nan').epsilon(RealField(42)))
+            Real Field with 42 bits of precision
+            sage: RR('+Inf').epsilon()
+            +infinity
+            sage: RR('-Inf').epsilon()
+            +infinity
+        """
+        cdef RealField_class _parent
+        if field is None:
+            _parent = self._parent
+        else:
+            try:
+                _parent = field
+            except TypeError:
+                raise TypeError("field argument must be a RealField")
+
+        cdef RealNumber x = _parent._new()
+        mpfr_div_2exp(x.value, self.value, mpfr_get_prec(self.value), _parent.rnd)
+        mpfr_abs(x.value, x.value, _parent.rnd)
+        return x
 
 
     ###################
@@ -2838,11 +2993,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Check that the largest and smallest exponents representable by
         PARI convert correctly::
 
-            sage: a = pari(0.5) << (sys.maxint+1)/4
-            sage: RR(a) >> (sys.maxint+1)/4
+            sage: a = pari(0.5) << (sys.maxsize+1)/4
+            sage: RR(a) >> (sys.maxsize+1)/4
             0.500000000000000
-            sage: a = pari(0.5) >> (sys.maxint-3)/4
-            sage: RR(a) << (sys.maxint-3)/4
+            sage: a = pari(0.5) >> (sys.maxsize-3)/4
+            sage: RR(a) << (sys.maxsize-3)/4
             0.500000000000000
         """
         # This uses interfaces of MPFR and PARI which are documented
@@ -2850,7 +3005,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
-        sig_on()
+        pari_catch_sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError, 'Cannot convert NaN or infinity to Pari float'
 
@@ -2886,8 +3041,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
             mpz_clear(mantissa)
 
-        cdef PariInstance P
-        P = sage.libs.pari.all.pari
+        cdef PariInstance P = sage.libs.pari.pari_instance.pari
         return P.new_gen(pari_float)
 
     def _mpmath_(self, prec=None, rounding=None):
@@ -3515,6 +3669,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return True
 
+    def is_integer(self):
+        """
+        Return ``True`` if this number is a integer
+
+        EXAMPLES::
+        
+            sage: RR(1).is_integer()
+            True
+            sage: RR(0.1).is_integer()
+            False
+        """
+        return self in ZZ
+
     def __nonzero__(self):
         """
         Return ``True`` if ``self`` is nonzero.
@@ -3828,7 +3995,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             3.14159265358979*I
             sage: r.log(2)
             4.53236014182719*I
+
+        For the error value NaN (Not A Number), log will return NaN::
+
+            sage: r = R(NaN); r.log()
+            NaN
+
         """
+        if mpfr_nan_p(self.value):
+            return self
+
         cdef RealNumber x
         if self < 0:
             if base is 'e':
@@ -4835,7 +5011,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         -  ``n`` -- A positive number, rounded down to the
            nearest integer. Note that `n` should be less than
-           ```sys.maxint```.
+           ```sys.maxsize```.
 
         -  ``algorithm`` -- Set this to 1 to call mpfr directly,
            set this to 2 to use interval arithmetic and logarithms, or leave
@@ -5454,7 +5630,7 @@ cdef class RRtoRR(Map):
               From: Real Field with 10 bits of precision
               To:   Real Field with 100 bits of precision
         """
-        return RRtoRR(self._codomain, self._domain)
+        return RRtoRR(self._codomain, self.domain())
 
 cdef class ZZtoRR(Map):
     cpdef Element _call_(self, x):

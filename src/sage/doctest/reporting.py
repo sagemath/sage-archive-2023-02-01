@@ -201,7 +201,7 @@ class DocTestReporter(SageObject):
         You can report a timeout::
 
             sage: DTR.report(FDS, True, 0, None, "Output so far...", pid=1234)
-                Time out
+                Timed out
             **********************************************************************
             Tests run before process (pid=1234) timed out:
             Output so far...
@@ -235,7 +235,7 @@ class DocTestReporter(SageObject):
         Report a timeout with results and a ``SIGKILL``::
 
             sage: DTR.report(FDS, True, -signal.SIGKILL, (1,None), "Output before trouble")
-                Time out after testing finished (and interrupt failed)
+                Timed out after testing finished (and interrupt failed)
             **********************************************************************
             Tests run before process timed out:
             Output before trouble
@@ -263,7 +263,7 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             0
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
-                [... tests, 0.00 s]
+                [... tests, ... s]
             sage: DTR.stats
             {'sage.doctest.reporting': {'walltime': ...}}
 
@@ -273,7 +273,7 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
-                [... tests, 1 failure, 0.00 s]
+                [... tests, 1 failure, ... s]
 
         If the user has requested that we report on skipped doctests,
         we do so::
@@ -291,7 +291,7 @@ class DocTestReporter(SageObject):
                 4 long tests not run
                 5 magma tests not run
                 2 other tests skipped
-                [... tests, 0.00 s]
+                [... tests, ... s]
 
         Test an internal error in the reporter::
 
@@ -315,7 +315,7 @@ class DocTestReporter(SageObject):
                 result_dict = DictAsObject(dict(err='badresult'))
 
             if timeout:
-                fail_msg = "Time out"
+                fail_msg = "Timed out"
                 if ntests > 0:
                     fail_msg += " after testing finished"
                 if return_code > 0:
@@ -440,7 +440,7 @@ class DocTestReporter(SageObject):
                     log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
 
-        except StandardError:
+        except Exception:
             import traceback
             log(traceback.format_exc(), end="")
 
@@ -470,7 +470,7 @@ class DocTestReporter(SageObject):
         Now we pretend to run some doctests::
 
             sage: DTR.report(FDS, True, 0, None, "Output so far...", pid=1234)
-                Time out
+                Timed out
             **********************************************************************
             Tests run before process (pid=1234) timed out:
             Output so far...
@@ -490,19 +490,19 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             0
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
-                [... tests, 0.00 s]
+                [... tests, ... s]
             sage: runner.failures = 1
             sage: runner.update_results(D)
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
-                [... tests, 1 failure, 0.00 s]
+                [... tests, 1 failure, ... s]
 
         Now we can show the output of finalize::
 
             sage: DC.sources = [None] * 4 # to fool the finalize method
             sage: DTR.finalize()
             ----------------------------------------------------------------------
-            sage -t .../sage/doctest/reporting.py  # Time out
+            sage -t .../sage/doctest/reporting.py  # Timed out
             sage -t .../sage/doctest/reporting.py  # Bad exit: 3
             sage -t .../sage/doctest/reporting.py  # 1 doctest failed
             ----------------------------------------------------------------------
@@ -517,7 +517,7 @@ class DocTestReporter(SageObject):
             sage: DTR.finalize()
             <BLANKLINE>
             ----------------------------------------------------------------------
-            sage -t .../sage/doctest/reporting.py  # Time out
+            sage -t .../sage/doctest/reporting.py  # Timed out
             sage -t .../sage/doctest/reporting.py  # Bad exit: 3
             sage -t .../sage/doctest/reporting.py  # 1 doctest failed
             Doctests interrupted: 4/6 files tested

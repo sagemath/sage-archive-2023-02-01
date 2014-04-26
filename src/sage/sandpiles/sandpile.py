@@ -58,7 +58,7 @@ AUTHOR:
 
 EXAMPLES::
 
-A weighted directed graph given as a Python dictionary:
+A weighted directed graph given as a Python dictionary::
 
     sage: from sage.sandpiles import *
     sage: g = {0: {},                    \
@@ -289,9 +289,9 @@ class Sandpile(DiGraph):
             sage: TestSuite(S).run()
         """
         # preprocess a graph, if necessary
-        if type(g) == dict and type(g.values()[0]) == dict:
+        if isinstance(g, dict) and isinstance(g.values()[0], dict):
             pass # this is the default format
-        elif type(g) == dict and type(g.values()[0]) == list:
+        elif isinstance(g, dict) and isinstance(g.values()[0], list):
             processed_g = {}
             for k in g.keys():
                 temp = {}
@@ -299,23 +299,23 @@ class Sandpile(DiGraph):
                     temp[vertex] = 1
                 processed_g[k] = temp
             g = processed_g
-        elif type(g) == Graph:
+        elif isinstance(g, Graph):
             processed_g = {}
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors(v):
-                    if type(g.edge_label(v,n)) == type(1) and g.edge_label(v,n) >=0:
+                    if isinstance(g.edge_label(v,n), type(1)) and g.edge_label(v,n) >=0:
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1
                 processed_g[v] = edges
             g = processed_g
-        elif type(g) == DiGraph:
+        elif isinstance(g, DiGraph):
             processed_g = {}
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors_out(v):
-                    if (type(g.edge_label(v,n)) == type(1)
+                    if (isinstance(g.edge_label(v,n), type(1))
                         and g.edge_label(v,n)>=0):
                         edges[n] = g.edge_label(v,n)
                     else:
@@ -323,7 +323,7 @@ class Sandpile(DiGraph):
                 processed_g[v] = edges
             g = processed_g
         else:
-            raise SyntaxError, g
+            raise SyntaxError(g)
 
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
@@ -356,7 +356,7 @@ class Sandpile(DiGraph):
             sage: S.__getattr__('_max_stable')
             {1: 3, 2: 3, 3: 3, 4: 3}
         """
-        if not self.__dict__.has_key(name):
+        if name not in self.__dict__:
             if name == '_max_stable':
                 self._set_max_stable()
                 return deepcopy(self.__dict__[name])
@@ -414,7 +414,7 @@ class Sandpile(DiGraph):
                 self._set_points()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def version(self):
         r"""
@@ -1377,7 +1377,7 @@ class Sandpile(DiGraph):
             else:
                 return [r.values() for r in result]
         else:
-            raise UserWarning, "The underlying graph must be undirected."
+            raise UserWarning("The underlying graph must be undirected.")
 
     def canonical_divisor(self):
         r"""
@@ -1401,7 +1401,7 @@ class Sandpile(DiGraph):
         if self.is_undirected():
             return SandpileDivisor(self,[self.out_degree(v)-2 for v in self.vertices()])
         else:
-            raise UserWarning, "Only for undirected graphs."
+            raise UserWarning("Only for undirected graphs.")
 
     def _set_invariant_factors(self):
         r"""
@@ -1682,8 +1682,7 @@ class Sandpile(DiGraph):
             sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
             sage: p = S.betti_complexes() # optional - 4ti2
             sage: p[0] # optional - 4ti2
-            [{0: -8, 1: 5, 2: 4, 3: 1},
-             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (3,)}]
+            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}]
             sage: S.resolution() # optional - 4ti2
             'R^1 <-- R^5 <-- R^5 <-- R^1'
             sage: S.betti()
@@ -2224,9 +2223,9 @@ class SandpileConfig(dict):
             True
         """
         if len(c)==S.num_verts()-1:
-            if type(c)==dict or type(c)==SandpileConfig:
+            if isinstance(c, dict) or isinstance(c, SandpileConfig):
                 dict.__init__(self,c)
-            elif type(c)==list:
+            elif isinstance(c, list):
                 c.reverse()
                 config = {}
                 for v in S.vertices():
@@ -2234,7 +2233,7 @@ class SandpileConfig(dict):
                         config[v] = c.pop()
                 dict.__init__(self,config)
         else:
-            raise SyntaxError, c
+            raise SyntaxError(c)
 
         self._sandpile = S
         self._vertices = S.nonsink_vertices()
@@ -2319,7 +2318,7 @@ class SandpileConfig(dict):
             sage: C.__getattr__('_deg')
             3
         """
-        if not self.__dict__.has_key(name):
+        if name not in self.__dict__:
             if name=='_deg':
                 self._set_deg()
                 return self.__dict__[name]
@@ -2339,7 +2338,7 @@ class SandpileConfig(dict):
                 self._set_is_superstable()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -2834,7 +2833,7 @@ class SandpileConfig(dict):
             True
         """
         c = dict(self)
-        if type(sigma)!=SandpileConfig:
+        if not isinstance(sigma, SandpileConfig):
             sigma = SandpileConfig(self._sandpile, sigma)
         sigma = sigma.values()
         for i in range(len(sigma)):
@@ -3187,7 +3186,7 @@ class SandpileConfig(dict):
         """
         if '_recurrents' in self._sandpile.__dict__:
             self._is_recurrent = (self in self._sandpile._recurrents)
-        elif self.__dict__.has_key('_equivalent_recurrent'):
+        elif '_equivalent_recurrent' in self.__dict__:
             self._is_recurrent = (self._equivalent_recurrent == self)
         else:
             # add the burning configuration to config
@@ -3298,7 +3297,7 @@ class SandpileConfig(dict):
         """
         if '_superstables' in self._sandpile.__dict__:
             self._is_superstable = (self in self._sandpile._superstables)
-        elif self.__dict__.has_key('_equivalent_superstable'):
+        elif '_equivalent_superstable' in self.__dict__:
             self._is_superstable = (self._equivalent_superstable[0] == self)
         else:
             self._is_superstable = self.dualize().is_recurrent()
@@ -3448,13 +3447,13 @@ class SandpileDivisor(dict):
         if len(D)==S.num_verts():
             if type(D) in [dict, SandpileDivisor, SandpileConfig]:
                 dict.__init__(self,dict(D))
-            elif type(D)==list:
+            elif isinstance(D, list):
                 div = {}
                 for i in range(S.num_verts()):
                     div[S.vertices()[i]] = D[i]
                     dict.__init__(self,div)
         else:
-            raise SyntaxError, D
+            raise SyntaxError(D)
 
         self._sandpile = S
         self._vertices = S.vertices()
@@ -3504,7 +3503,7 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: eff = D.effective_div() # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
-            {'_sandpile': Digraph on 3 vertices, '_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}], '_linear_system': {'inhomog': [[1, 0, 0], [0, -1, -1], [0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[-1, -1, -1], [1, 1, 1]]}, '_vertices': [0, 1, 2]}
+            {'_sandpile': Digraph on 3 vertices, '_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}], '_linear_system': {'inhomog': [[1, 0, 0], [0, 0, 0], [0, -1, -1]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 1, 1], [-1, -1, -1]]}, '_vertices': [0, 1, 2]}
             sage: D[0] += 1 # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
             {'_sandpile': Digraph on 3 vertices, '_vertices': [0, 1, 2]}
@@ -3541,7 +3540,7 @@ class SandpileDivisor(dict):
             sage: D.__getattr__('_deg')
             6
         """
-        if not self.__dict__.has_key(name):
+        if name not in self.__dict__:
             if name=='_deg':
                 self._set_deg()
                 return self.__dict__[name]
@@ -3561,7 +3560,7 @@ class SandpileDivisor(dict):
                 self._set_life()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -3968,7 +3967,7 @@ class SandpileDivisor(dict):
             True
         """
         D = dict(self)
-        if type(sigma)!=SandpileDivisor:
+        if not isinstance(sigma, SandpileDivisor):
             sigma = SandpileDivisor(self._sandpile, sigma)
         sigma = sigma.values()
         for i in range(len(sigma)):
@@ -4117,14 +4116,14 @@ class SandpileDivisor(dict):
         a = a.split('\n')
         # a starts with two numbers. We are interested in the first one
         num_homog = int(a[0].split()[0])
-        homog = [map(int,i.split()) for i in a[2:-1]]
+        homog = [map(int,i.split()) for i in a[1:-1]]
         ## second, the inhomogeneous points
         zinhom_file = open(lin_sys_zinhom,'r')
         b = zinhom_file.read()
         zinhom_file.close()
         b = b.split('\n')
         num_inhomog = int(b[0].split()[0])
-        inhomog = [map(int,i.split()) for i in b[2:-1]]
+        inhomog = [map(int,i.split()) for i in b[1:-1]]
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
 
@@ -4143,7 +4142,7 @@ class SandpileDivisor(dict):
             sage: S = sandlib('generic')
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
             sage: D.linear_system() # optional - 4ti2
-            {'inhomog': [[0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]]}
+            {'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]]}
 
         NOTES:
 
@@ -4203,11 +4202,9 @@ class SandpileDivisor(dict):
             sage: S = sandlib('generic')
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2]) # optional - 4ti2
             sage: D.effective_div() # optional - 4ti2
-            [{0: 1, 1: 0, 2: 0, 3: 1, 4: 0, 5: 0},
-             {0: 0, 1: 0, 2: 1, 3: 1, 4: 0, 5: 0},
-             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 2}]
+            [{0: 0, 1: 0, 2: 1, 3: 1, 4: 0, 5: 0}, {0: 1, 1: 0, 2: 0, 3: 1, 4: 0, 5: 0}, {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 2}]
             sage: D.effective_div(False) # optional - 4ti2
-            [[1, 0, 0, 1, 0, 0], [0, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 2]]
+            [[0, 0, 1, 1, 0, 0], [1, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 2]]
         """
         if verbose:
             return deepcopy(self._effective_div)
@@ -4365,7 +4362,7 @@ class SandpileDivisor(dict):
                     break
             if test:
                 result.append(supp)
-        self._Dcomplex = SimplicialComplex(self._sandpile.vertices(),result)
+        self._Dcomplex = SimplicialComplex(result)
 
     def Dcomplex(self):
         r"""
@@ -5341,7 +5338,7 @@ def wilmes_algorithm(M):
                 L[k] = L[k] + v
         return L
     else:
-        raise UserWarning, 'matrix not of full rank'
+        raise UserWarning('matrix not of full rank')
 
 ######### Notes ################
 """

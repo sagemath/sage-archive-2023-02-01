@@ -294,3 +294,60 @@ def test_random_arith(level=MAX_LEVEL, trials=1):
         if i >= trials:
             return
 
+@random_testing
+def test_karatsuba_multiplication(base_ring, maxdeg1, maxdeg2,
+        ref_mul=lambda f, g: f._mul_generic(g), base_ring_random_elt_args=[],
+        numtests=10, verbose=False):
+    """
+    Test univariate karatsuba multiplication against other multiplication algorithms.
+
+    EXAMPLES:
+
+    First check that random tests are reproducible::
+
+        sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 6, 5, verbose=True, seed=42)
+        test_karatsuba_multiplication: ring=Univariate Polynomial Ring in x over Integer Ring, threshold=2
+          (-x^5 - x^4 - 3*x^3 + 4*x^2 + 4*x + 1)*(-2*x^4 - 20*x^3 + 3*x^2 + 2*x)
+          (x^5 + 16*x^4 + 4*x + 1)*(x^2 - 41)
+          (8*x^2 - x + 1)*(2)
+          (3*x + 1)*(-8*x^2 - x - 4)
+          (-x^6 - x^5 - x^2 - 1)*(2*x^2 + x + 1)
+          (-x^2 + 3*x - 1)*(-x^4 + x^3 + x^2 + x + 1)
+          (x^3 + 4*x^2 + 76*x - 1)*(-x^2 + 6*x)
+          (-5)*(4*x + 1)
+          (5*x - 1)*(-2)
+          (4*x^6 + x^5 + 21*x^4 + x^3 - x + 3)*(14*x^4 - 1)
+
+    Test Karatsuba multiplication of polynomials of small degree over some common rings::
+
+        sage: for C in [QQ, ZZ[I], ZZ[I, sqrt(2)], GF(49, 'a'), MatrixSpace(GF(17), 3)]:
+        ....:     sage.rings.tests.test_karatsuba_multiplication(C, 10, 10)
+
+    Zero-tests over ``QQbar`` are currently very slow, so we test only very small examples::
+
+        sage.rings.tests.test_karatsuba_multiplication(QQbar, 3, 3, numtests=2)
+
+    Larger degrees (over ``ZZ``, using FLINT)::
+
+        sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 1000, 1000, ref_mul=lambda f,g: f*g, base_ring_random_elt_args=[1000])
+
+    Some more aggressive tests::
+
+        sage: for C in [QQ, ZZ[I], ZZ[I, sqrt(2)], GF(49, 'a'), MatrixSpace(GF(17), 3)]:
+        ....:     sage.rings.tests.test_karatsuba_multiplication(C, 10, 10) # long time
+        sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 10000, 10000, ref_mul=lambda f,g: f*g, base_ring_random_elt_args=[100000])
+
+    """
+    from sage.all import randint, PolynomialRing
+    threshold = randint(0, min(maxdeg1,maxdeg2))
+    R = PolynomialRing(base_ring, 'x')
+    if verbose:
+        print "test_karatsuba_multiplication: ring={}, threshold={}".format(R, threshold)
+    for i in range(numtests):
+        f = R.random_element(randint(0, maxdeg1), *base_ring_random_elt_args)
+        g = R.random_element(randint(0, maxdeg2), *base_ring_random_elt_args)
+        if verbose:
+            print "  ({})*({})".format(f, g)
+        if ref_mul(f, g) -  f._mul_karatsuba(g, threshold) != 0:
+            raise ValueError("Multiplication failed")
+    return

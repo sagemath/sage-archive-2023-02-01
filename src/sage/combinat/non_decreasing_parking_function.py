@@ -478,8 +478,8 @@ class NonDecreasingParkingFunction(CombinatorialObject):
             sage: list(ndpf) == [pf.to_dyck_word().to_non_decreasing_parking_function() for pf in ndpf]
             True
         """
-        from sage.combinat.dyck_word import DyckWord_complete
-        return DyckWord_complete.from_non_decreasing_parking_function(self)
+        from sage.combinat.dyck_word import CompleteDyckWords_all
+        return CompleteDyckWords_all().from_non_decreasing_parking_function(self)
 
     @classmethod
     def from_dyck_word(cls, dw):

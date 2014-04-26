@@ -567,7 +567,7 @@ def xydata_from_point_list(points):
             pass
 
     if len(points)>0 and len(list(points[0]))!=2:
-        raise ValueError, "points must have 2 coordinates in a 2d line"
+        raise ValueError("points must have 2 coordinates in a 2d line")
 
 
     xdata = [float(z[0]) for z in points]
@@ -1106,6 +1106,10 @@ def plot(funcs, *args, **kwds):
         sage: f(x)=x; f
         x |--> x
         sage: plot(f,(x,-1,1))
+
+    Check that :trac:`15030` is fixed::
+
+        sage: plot(abs(log(x)), x)
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -1562,7 +1566,7 @@ def parametric_plot(funcs, *args, **kwargs):
 
     num_vars=len(sage.plot.misc.unify_arguments(funcs)[0])
     if num_vars>num_ranges:
-        raise ValueError, "there are more variables than variable ranges"
+        raise ValueError("there are more variables than variable ranges")
 
     # Reset aspect_ratio to 'automatic' in case scale is 'semilog[xy]'.
     # Otherwise matplotlib complains.
@@ -1578,7 +1582,7 @@ def parametric_plot(funcs, *args, **kwargs):
     elif (num_funcs == 3 and num_ranges <= 2):
         return sage.plot.plot3d.parametric_plot3d.parametric_plot3d(funcs, *args, **kwargs)
     else:
-        raise ValueError, "the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots"
+        raise ValueError("the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots")
 
 @options(aspect_ratio=1.0)
 def polar_plot(funcs, *args, **kwds):
@@ -1637,8 +1641,8 @@ def polar_plot(funcs, *args, **kwds):
 @options(aspect_ratio='automatic')
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
-    ``list_plot`` takes either a list of numbers, a list of tuples,
-    or a dictionary and plots the corresponding points.
+    ``list_plot`` takes either a list of numbers, a list of tuples, a numpy
+    array, or a dictionary and plots the corresponding points.
 
     If given a list of numbers (that is, not a list of tuples or lists),
     ``list_plot`` forms a list of tuples ``(i, x_i)`` where ``i`` goes from
@@ -1675,6 +1679,13 @@ def list_plot(data, plotjoined=False, **kwargs):
     This gives all the random points joined in a purple line::
 
         sage: list_plot(r, plotjoined=True, color='purple')
+
+    You can provide a numpy array.::
+
+        sage: import numpy
+        sage: list_plot(numpy.arange(10))
+
+        sage: list_plot(numpy.array([[1,2], [2,3], [3,4]]))
 
     Plot a list of complex numbers::
 
@@ -1761,18 +1772,27 @@ def list_plot(data, plotjoined=False, **kwargs):
         100.0
     """
     from sage.plot.all import line, point
-    if data == {} or data == () or data == []:
-        return Graphics()
+    try:
+        if not data:
+            return Graphics()
+    except ValueError: # numpy raises ValueError if it is not empty
+        pass
+    if not isinstance(plotjoined, bool):
+        raise TypeError("The second argument 'plotjoined' should be boolean "
+                    "(True or False).  If you meant to plot two lists 'x' "
+                    "and 'y' against each other, use 'list_plot(zip(x,y))'.")
     if isinstance(data, dict):
         if plotjoined:
             list_data = sorted(list(data.iteritems()))
         else:
             list_data = list(data.iteritems())
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
-    if not isinstance(data[0], (list, tuple)):
-        data = zip(range(len(data)), data)
-    if isinstance(plotjoined, (list, tuple)):
-        raise TypeError, "The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'."
+    try:
+        from sage.rings.all import RDF
+        tmp = RDF(data[0])
+        data = list(enumerate(data))
+    except TypeError:
+        pass
     try:
         if plotjoined:
             return line(data, **kwargs)
@@ -1785,7 +1805,7 @@ def list_plot(data, plotjoined=False, **kwargs):
         # gets to (1, I).
         from sage.rings.complex_field import ComplexField
         CC = ComplexField()
-        # if we get here, we already did "zip(range(len(data)), data)",
+        # if we get here, we already did "list(enumerate(data))",
         # so look at z[1] in inner list
         data = [(z.real(), z.imag()) for z in [CC(z[1]) for z in data]]
         if plotjoined:
@@ -2187,9 +2207,9 @@ def var_and_list_of_values(v, plot_points):
     deprecation(7008, "var_and_list_of_values is deprecated.  Please use sage.plot.misc.setup_for_eval_on_grid; note that that function has slightly different calling and return conventions which make it more generally applicable")
     plot_points = int(plot_points)
     if plot_points < 2:
-        raise ValueError, "plot_points must be greater than 1"
+        raise ValueError("plot_points must be greater than 1")
     if not isinstance(v, (tuple, list)):
-        raise TypeError, "v must be a tuple or list"
+        raise TypeError("v must be a tuple or list")
     if len(v) == 3:
         var = v[0]
         a, b = v[1], v[2]
@@ -2197,7 +2217,7 @@ def var_and_list_of_values(v, plot_points):
         var = None
         a, b = v
     else:
-        raise ValueError, "parametric value range must be a list or tuple of length 2 or 3."
+        raise ValueError("parametric value range must be a list or tuple of length 2 or 3.")
 
     a = float(a)
     b = float(b)
@@ -2373,7 +2393,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
             # give up for this branch
             return []
 
-    except (ZeroDivisionError, TypeError, ValueError, OverflowError), msg:
+    except (ZeroDivisionError, TypeError, ValueError, OverflowError) as msg:
         sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x), 1)
         # give up for this branch
         return []
@@ -2499,7 +2519,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                 exceptions += 1
                 exception_indices.append(i)
 
-        except (ArithmeticError, TypeError, ValueError), msg:
+        except (ArithmeticError, TypeError, ValueError) as msg:
             sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
@@ -2511,7 +2531,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError), msg:
+                    except (ArithmeticError, TypeError, ValueError) as msg:
                         pass
                 else:
                     exceptions += 1
@@ -2526,7 +2546,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError), msg:
+                    except (ArithmeticError, TypeError, ValueError) as msg:
                         pass
                 else:
                     exceptions += 1

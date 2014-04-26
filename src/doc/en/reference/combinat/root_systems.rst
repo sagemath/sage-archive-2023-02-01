@@ -8,6 +8,7 @@ Root Systems
    ../sage/combinat/root_system/dynkin_diagram
    ../sage/combinat/root_system/cartan_matrix
    ../sage/combinat/root_system/coxeter_matrix
+   ../sage/combinat/root_system/type_folded
 
    ../sage/combinat/root_system/root_system
    ../sage/combinat/root_system/plot
@@ -21,6 +22,7 @@ Root Systems
    ../sage/combinat/root_system/weyl_group
 
    ../sage/combinat/root_system/weyl_characters
+   ../sage/combinat/root_system/branching_rules
 
    ../sage/combinat/root_system/type_affine
    ../sage/combinat/root_system/type_dual

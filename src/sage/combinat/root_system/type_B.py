@@ -261,7 +261,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
             \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
 
-        When ``dual=True``, the dynkin diagram for the dual Cartan
+        When ``dual=True``, the Dynkin diagram for the dual Cartan
         type `C_n` is returned::
 
             sage: print CartanType(['B',4])._latex_dynkin_diagram(dual=True)
@@ -294,6 +294,21 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%((n-1)*node_dist, label(n))
         return ret
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: CartanType(['B', 3])._default_folded_cartan_type()
+            ['B', 3] as a folding of ['D', 4]
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        n = self.n
+        return CartanTypeFolded(self, ['D', n+1],
+            [[i] for i in range(1, n)] + [[n, n+1]])
+
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_B', 'ambient_space',  AmbientSpace)
+

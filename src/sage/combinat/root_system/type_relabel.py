@@ -67,7 +67,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
         - ``relabelling`` -- a function (or a list, or a dictionary)
 
         Returns an isomorphic Cartan type obtained by relabelling the
-        nodes of the dynkin diagram. Namely the node with label ``i``
+        nodes of the Dynkin diagram. Namely the node with label ``i``
         is relabelled ``f(i)`` (or, by ``f[i]`` if ``f`` is a list or
         dictionary).
 
@@ -115,7 +115,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
             1   2   3   4
             B4
 
-        Test that the produced cartan type is in the appropriate
+        Test that the produced Cartan type is in the appropriate
         abstract classes (see :trac:`13724`)::
 
             sage: ct = CartanType(['B',4]).relabel(cycle)
@@ -283,7 +283,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
 
     def dynkin_diagram(self):
         """
-        Returns the dynkin diagram for this Cartan type.
+        Returns the Dynkin diagram for this Cartan type.
 
         EXAMPLES::
 
@@ -304,11 +304,11 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
             sage: sorted(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).dynkin_diagram().edges())
             [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 1), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
         """
-        # Maybe we want to move this up as a relabel method for dynkin diagram
-        # We will have to be careful setting the cartan type of the result though
+        # Maybe we want to move this up as a relabel method for Dynkin diagram
+        # We will have to be careful setting the Cartan type of the result though
         from copy import copy
         result = copy(self._type.dynkin_diagram())
-        # relabelling in place allows to keep the extra dynkin diagram structure
+        # relabelling in place allows to keep the extra Dynkin diagram structure
         super(result.__class__, result).relabel(self._relabelling, inplace = True)
         result._cartan_type = self
         return result
@@ -405,6 +405,26 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
         """
         return self._type.type()
 
+    def _default_folded_cartan_type(self):
+        """
+        Return the default folded Cartan type.
+
+        EXAMPLES::
+
+            sage: fct = CartanType(['D', 4, 3])._default_folded_cartan_type(); fct
+            ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1} as a folding of ['D', 4, 1]
+            sage: fct.folding_orbit()
+            Finite family {0: (0,), 1: (2,), 2: (1, 3, 4)}
+            sage: CartanType(['G',2,1]).dual()._default_folded_cartan_type().folding_orbit()
+            Finite family {0: (0,), 1: (1, 3, 4), 2: (2,)}
+            sage: CartanType(['C',3,1]).relabel({0:1, 1:0, 2:3, 3:2}).as_folding().scaling_factors()
+            Finite family {0: 1, 1: 2, 2: 2, 3: 1}
+        """
+        from sage.combinat.root_system.type_folded import CartanTypeFolded
+        vct = self._type._default_folded_cartan_type()
+        sigma = vct.folding_orbit()
+        return CartanTypeFolded(self, vct._folding,
+            {self._relabelling[i]: sigma[i] for i in self._type.index_set()})
 
 ###########################################################################
 

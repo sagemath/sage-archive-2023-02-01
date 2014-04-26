@@ -67,15 +67,14 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         """
         return self
 
-    def _multiply(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
+    def _multiply_basis(self, left, right): # TODO: factor out this code for all bases (as is done for coercions)
         """
         Returns the product of ``left`` and ``right``.
 
         INPUT:
 
         - ``self`` -- a Schur symmetric function basis
-        - ``left``, ``right`` -- symmetric functions written in the Schur basis
-          ``self``.
+        - ``left``, ``right`` -- partitions
 
         OUPUT:
 
@@ -89,6 +88,15 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: a^2   # indirect doctest
             s[] + 2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
+        Examples failing with three different messages in symmetrica::
+
+            sage: s[123,1]*s[1,1]
+            s[123, 1, 1, 1] + s[123, 2, 1] + s[124, 1, 1] + s[124, 2]
+            sage: s[123]*s[2,1]
+            s[123, 2, 1] + s[124, 1, 1] + s[124, 2] + s[125, 1]
+            sage: s[125]*s[3]
+            s[125, 3] + s[126, 2] + s[127, 1] + s[128]
+
         ::
 
             sage: QQx.<x> = QQ[]
@@ -100,32 +108,11 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
 
         ::
 
-        ::
-
             sage: 0*s([2,1])
             0
         """
-        #Use symmetrica to do the multiplication
-        A = left.parent()
-        R = A.base_ring()
-
-        if  R is ZZ or R is QQ:
-            if left and right:
-                return symmetrica.mult_schur_schur(left, right)
-            else:
-                return A._from_dict({})
-
-        z_elt = {}
-        for (left_m, left_c) in left._monomial_coefficients.iteritems():
-            for (right_m, right_c) in right._monomial_coefficients.iteritems():
-                c = left_c * right_c
-                d = symmetrica.mult_schur_schur({left_m:Integer(1)}, {right_m:Integer(1)})._monomial_coefficients
-                for m in d:
-                    if m in z_elt:
-                        z_elt[ m ] = z_elt[m] + c * d[m]
-                    else:
-                        z_elt[ m ] = c * d[m]
-        return A._from_dict(z_elt)
+        import sage.libs.lrcalc.lrcalc as lrcalc
+        return lrcalc.mult(left,right)
 
     def coproduct_on_basis(self, mu):
         r"""
@@ -212,21 +199,41 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             r"""
             Return the image of ``self`` under the omega automorphism.
 
-            The omega automorphism is defined to be the unique algebra
+            The *omega automorphism* is defined to be the unique algebra
             endomorphism `\omega` of the ring of symmetric functions that
             satisfies `\omega(e_k) = h_k` for all positive integers `k`
             (where `e_k` stands for the `k`-th elementary symmetric
             function, and `h_k` stands for the `k`-th complete homogeneous
             symmetric function). It furthermore is a Hopf algebra
-            endomorphism, and sends the power-sum symmetric function `p_k`
-            to `(-1)^{k-1} p_k` for every positive integer `k`.
+            endomorphism and an involution, and it is also known as the
+            *omega involution*. It sends the power-sum symmetric function
+            `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-            The default implementation converts to the Schurs, then
-            performs the automorphism and changes back.
+            The images of some bases under the omega automorphism are given by
+
+            .. MATH::
+
+                \omega(e_{\lambda}) = h_{\lambda}, \qquad
+                \omega(h_{\lambda}) = e_{\lambda}, \qquad
+                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+                p_{\lambda}, \qquad
+                \omega(s_{\lambda}) = s_{\lambda^{\prime}},
+
+            where `\lambda` is any partition, where `\ell(\lambda)` denotes
+            the length (:meth:`~sage.combinat.partition.Partition.length`)
+            of the partition `\lambda`, where `\lambda^{\prime}` denotes the
+            conjugate partition
+            (:meth:`~sage.combinat.partition.Partition.conjugate`) of
+            `\lambda`, and where the usual notations for bases are used
+            (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
+            `s` = Schur).
+
+            :meth:`omega_involution()` is a synonym for the :meth:`omega()`
+            method.
 
             OUTPUT:
 
-            - the image of ``self`` under omega as an element of the Schur basis
+            - the image of ``self`` under the omega automorphism
 
             EXAMPLES::
 
@@ -238,6 +245,8 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             """
             conj = lambda part: part.conjugate()
             return self.map_support(conj)
+
+        omega_involution = omega
 
         def scalar(self, x, zee=None):
             """

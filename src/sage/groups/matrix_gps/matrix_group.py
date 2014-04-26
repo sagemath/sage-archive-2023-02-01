@@ -47,11 +47,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
-from sage.rings.all import ZZ, is_Integer, is_Ring
+from sage.rings.all import ZZ
+from sage.rings.integer import is_Integer
+from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.interfaces.gap import gap
-from sage.matrix.all import MatrixSpace, is_MatrixSpace, is_Matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
@@ -228,9 +230,9 @@ class MatrixGroup_base(Group):
             return 'Matrix group over {0} with {1} generators'.format(
                 self.base_ring(), self.ngens())
         else:
-            from sage.misc.displayhook import format_obj
+            from sage.misc.displayhook import format_list
             return 'Matrix group over {0} with {1} generators {2}'.format(
-                self.base_ring(), self.ngens(), format_obj(self.gens()))
+                self.base_ring(), self.ngens(), format_list(self.gens()))
 
     def _repr_option(self, key):
         """
@@ -460,7 +462,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         if not (cat is None or (cat is G.category() and cat is self.category())):
             raise TypeError
         if not is_MatrixGroup(G):
-            raise TypeError, "G (=%s) must be a matrix group."%G
+            raise TypeError("G (=%s) must be a matrix group."%G)
         import homset
         return homset.MatrixGroupHomset(self, G)
 
@@ -492,7 +494,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         v = Sequence(x)
         U = v.universe()
         if not is_MatrixGroup(U):
-            raise TypeError, "u (=%s) must have universe a matrix group."%U
+            raise TypeError("u (=%s) must have universe a matrix group."%U)
         return self.Hom(U)(x)
 
 
@@ -679,8 +681,8 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             24
             sage: v[:5]
             (
-            [0 1]  [0 1]  [0 1]  [0 2]  [0 2]
-            [2 0], [2 1], [2 2], [1 0], [1 1]
+            [1 0]  [2 0]  [0 1]  [0 2]  [1 2]
+            [0 1], [0 2], [2 0], [1 0], [2 2]
             )
             sage: all(g in G for g in G.list())
             True
@@ -693,12 +695,12 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             sage: MG = MatrixGroup([M1, M2, M3])
             sage: MG.list()
             (
-            [-1  0]  [-1  0]  [ 1  0]  [1 0]
-            [ 0 -1], [ 0  1], [ 0 -1], [0 1]
+            [1 0]  [ 1  0]  [-1  0]  [-1  0]
+            [0 1], [ 0 -1], [ 0  1], [ 0 -1]
             )
             sage: MG.list()[1]
-            [-1  0]
-            [ 0  1]
+            [ 1  0]
+            [ 0 -1]
             sage: MG.list()[1].parent()
             Matrix group over Integer Ring with 3 generators (
             [-1  0]  [ 1  0]  [-1  0]
@@ -729,3 +731,4 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         if not self.is_finite():
             raise NotImplementedError('group must be finite')
         return tuple(iter(self))
+

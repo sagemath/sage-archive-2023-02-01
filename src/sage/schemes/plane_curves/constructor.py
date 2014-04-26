@@ -23,7 +23,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_MPolynomial, is_MPolynomialRing, is_FiniteField
+from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.finite_rings.constructor import is_FiniteField
 
 from sage.structure.all import Sequence
 
@@ -171,7 +173,7 @@ def Curve(F):
         F = Sequence(F)
         P = F.universe()
         if not is_MPolynomialRing(P):
-            raise TypeError, "universe of F must be a multivariate polynomial ring"
+            raise TypeError("universe of F must be a multivariate polynomial ring")
 
         for f in F:
             if not f.is_homogeneous():
@@ -184,13 +186,13 @@ def Curve(F):
         return ProjectiveSpaceCurve_generic(A, F)
 
     if not is_MPolynomial(F):
-        raise TypeError, "F (=%s) must be a multivariate polynomial"%F
+        raise TypeError("F (=%s) must be a multivariate polynomial"%F)
 
     P = F.parent()
     k = F.base_ring()
     if F.parent().ngens() == 2:
         if F == 0:
-            raise ValueError, "defining polynomial of curve must be nonzero"
+            raise ValueError("defining polynomial of curve must be nonzero")
         A2 = AffineSpace(2, P.base_ring())
         A2._coordinate_ring = P
 
@@ -204,7 +206,7 @@ def Curve(F):
 
     elif F.parent().ngens() == 3:
         if F == 0:
-            raise ValueError, "defining polynomial of curve must be nonzero"
+            raise ValueError("defining polynomial of curve must be nonzero")
         P2 = ProjectiveSpace(2, P.base_ring())
         P2._coordinate_ring = P
 
@@ -222,6 +224,6 @@ def Curve(F):
 
     else:
 
-        raise TypeError, "Number of variables of F (=%s) must be 2 or 3"%F
+        raise TypeError("Number of variables of F (=%s) must be 2 or 3"%F)
 
 

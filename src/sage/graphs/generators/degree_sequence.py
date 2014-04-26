@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
-Degree Sequence
+Graphs with a given degree sequence
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
 ###########################################################################
@@ -17,14 +17,8 @@ The methods defined here appear in sage.graphs.grah_generators.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
-from math import sin, cos, pi
 from sage.misc.randstate import current_randstate
 
-
-################################################################################
-#   Graphs with a given degree sequence
-################################################################################
 
 def DegreeSequence(deg_sequence):
     """
@@ -35,10 +29,9 @@ def DegreeSequence(deg_sequence):
     which constructs a simple graph by connecting vertices of highest
     degree to other vertices of highest degree, resorting the remaining
     vertices by degree and repeating the process. See Theorem 1.4 in
-    [1].
+    [CharLes1996]_.
 
     INPUT:
-
 
     -  ``deg_sequence`` - a list of integers with each
        entry corresponding to the degree of a different vertex.
@@ -68,11 +61,11 @@ def DegreeSequence(deg_sequence):
 
     REFERENCE:
 
-    - [1] Chartrand, G. and Lesniak, L. Graphs and Digraphs.
+    .. [CharLes1996] Chartrand, G. and Lesniak, L.: Graphs and Digraphs.
       Chapman and Hall/CRC, 1996.
     """
     import networkx
-    return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
+    return Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
 
 def DegreeSequenceBipartite(s1 ,s2 ):
     r"""
@@ -126,7 +119,6 @@ def DegreeSequenceBipartite(s1 ,s2 ):
     """
 
     from sage.combinat.integer_vector import gale_ryser_theorem
-    from sage.graphs.graph import Graph
     from sage.graphs.bipartite_graph import BipartiteGraph
 
     s1 = sorted(s1, reverse = True)
@@ -149,7 +141,6 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
     every edge must be incident with two vertices.
 
     INPUT:
-
 
     -  ``deg_sequence`` - a list of integers with each
        entry corresponding to the expected degree of a different vertex.
@@ -177,13 +168,13 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
 
     REFERENCE:
 
-    - [1] Newman, M.E.J. The Structure and function of complex
+    .. [Newman2003] Newman, M.E.J. The Structure and function of complex
       networks, SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
     """
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
+    return Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
 
 def DegreeSequenceTree(deg_sequence):
     """
@@ -195,7 +186,6 @@ def DegreeSequenceTree(deg_sequence):
 
     INPUT:
 
-
     -  ``deg_sequence`` - a list of integers with each
        entry corresponding to the expected degree of a different vertex.
 
@@ -206,7 +196,7 @@ def DegreeSequenceTree(deg_sequence):
         sage: G.show()  # long time
     """
     import networkx
-    return graph.Graph(networkx.degree_sequence_tree([int(i) for i in deg_sequence]))
+    return Graph(networkx.degree_sequence_tree([int(i) for i in deg_sequence]))
 
 def DegreeSequenceExpected(deg_sequence, seed=None):
     """
@@ -218,7 +208,6 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
     every edge must be incident with two vertices.
 
     INPUT:
-
 
     -  ``deg_sequence`` - a list of integers with each
        entry corresponding to the expected degree of a different vertex.
@@ -235,11 +224,11 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
 
     REFERENCE:
 
-    - [1] Chung, Fan and Lu, L. Connected components in random
-      graphs with given expected degree
-      sequences. Ann. Combinatorics (6), 2002 pp. 125-145.
+    .. [ChungLu2002] Chung, Fan and Lu, L. Connected components in random
+      graphs with given expected degree sequences.
+      Ann. Combinatorics (6), 2002 pp. 125-145.
     """
     if seed is None:
         seed = current_randstate().long_seed()
     import networkx
-    return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed=seed), loops=True)
+    return Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed=seed), loops=True)

@@ -38,7 +38,7 @@ EXAMPLES::
 This method :meth:`ascii_art` could be automatically use by the display hook
 manager activated by the magic function: ``%display ascii_art``::
 
-    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.repl.interpreter import get_test_shell
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell("i = var('i')")
@@ -804,10 +804,10 @@ def ascii_art(obj):
     TESTS::
 
         sage: n = var('n')
-        sage: ascii_art(sum(binomial(2*n,n+1)*x^n, n, 0, oo))
+        sage: ascii_art(sum(binomial(2 * n, n + 1) * x^n, n, 0, oo))
          /        __________    \
         -\2*x + \/ -4*x + 1  - 1/
-        -------------------------
+        --------------------------
                    __________
              2*x*\/ -4*x + 1
         sage: ascii_art(list(DyckWords(3)))

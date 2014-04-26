@@ -55,22 +55,21 @@ REFERENCES:
 
 .. [Go09] Alexey G. Gorinov, "Combinatorics of double cosets and fundamental
    domains for the subgroups of the modular group", preprint
-   http://arxiv.org/abs/0901.1340
+   :arxiv:`0901.1340`
 
 .. [KSV11] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts of
    projective congruence groups", J. London Math. Soc. (2011) 83 (1): 96-120,
    http://dx.doi.org/10.1112/jlms/jdq062. Arxiv version:
-   http://arxiv.org/abs/0905.4798.
+   :arxiv:`0905.4798`.
 
 .. [Kul91] Ravi Kulkarni "An arithmetic geometric method in the study of the
    subgroups of the modular group", American Journal of Mathematics 113 (1991),
    no 6, 1053-1133
 
-.. [Kur08] Chris Kurth, "K Farey package for Sage",
-   http://www.public.iastate.edu/~kurthc/research/index.html
+.. [Kur08] Chris Kurth, "K Farey package for Sage"
 
 .. [KuLo] Chris Kurth and Ling Long, "Computations with finite index subgroups
-   of `{\rm PSL}_2(\ZZ)` using Farey symbols"
+   of `{\rm PSL}_2(\ZZ)` using Farey symbols", :arxiv:`0710.1835`
 
 .. [Ve] Helena Verrill, "Fundamental domain drawer", Java program,
    http://www.math.lsu.edu/~verrill/
@@ -393,7 +392,7 @@ def ArithmeticSubgroup_Permutation(
     if len(gens) == 0:
         S2 = S3 = L = R = ''
     elif len(gens) < 2:
-        raise ValueError, "Need at least two generators"
+        raise ValueError("Need at least two generators")
 
     if S2 is not None:
         S2 = PermutationGroupElement(S2,check=check)
@@ -438,15 +437,15 @@ def ArithmeticSubgroup_Permutation(
             R = S3 * S2
 
     if check and (L != ~S3 * ~S2 or R != S3 * S2):
-        raise ValueError, "Wrong relations between generators"
+        raise ValueError("Wrong relations between generators")
 
     inv = S2*S2
 
     if check:
         if inv != S3*S3*S3:
-            raise ValueError, "S2^2 does not equal to S3^3"
+            raise ValueError("S2^2 does not equal to S3^3")
         elif not (inv*inv).is_one():
-            raise ValueError, "S2^2 = S3^3 must have order 1 or 2"
+            raise ValueError("S2^2 = S3^3 must have order 1 or 2")
 
         # Check transitivity. This is the most expensive check, so we do it
         # last.
@@ -454,7 +453,7 @@ def ArithmeticSubgroup_Permutation(
 
         G = PermutationGroup(gens)
         if not G.is_transitive():
-            raise ValueError, "Permutations do not generate a transitive group"
+            raise ValueError("Permutations do not generate a transitive group")
 
     s2 = [i-1 for i in S2.domain()]
     s3 = [i-1 for i in S3.domain()]
@@ -2088,7 +2087,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             elif e[2] == 's3':
                 gens.append(self(reps[e[0]] * S3m * ~reps[e[1]]))
             else:
-                raise ValueError, "this should not happen"
+                raise ValueError("this should not happen")
 
         return reps, gens, self._S2[:], self._S3[:]
 
@@ -2135,7 +2134,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             elif e[2] == 's':
                 gens.append(self(reps[e[0]] * S2m * ~reps[e[1]]))
             else:
-                raise ValueError, "this should not happen"
+                raise ValueError("this should not happen")
 
         return reps, gens, self._L[:], self._S2[:]
 
@@ -2402,7 +2401,7 @@ class EvenArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             True
         """
         if self.nu2() != 0:
-            raise ValueError, "Group contains an element of order 4, hence no index 2 odd subgroups"
+            raise ValueError("Group contains an element of order 4, hence no index 2 odd subgroups")
         n = self.index()
         s2old, s3old = self.S2(), self.S3()
         s2cycs = s2old.cycle_tuples() # no singletons can exist

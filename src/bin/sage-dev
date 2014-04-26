@@ -2,36 +2,29 @@
 
 import argparse
 import inspect
-import re
 import sys
-import types
+from textwrap import dedent
 
-space_matcher_re = re.compile(r'^\ +')
+DISABLED_MESSAGE = """
+Developer interface disabled.
 
-# based on https://gist.github.com/jtriley/1108174
+To develop for Sage you must compile Sage from its git
+repository. This just amounts to running
+
+    git clone git://github.com/sagemath/sage.git
+    cd sage
+    make
+
+See http://trac.sagemath.org/wiki/QuickStartSageGit for slightly more
+information.
+"""
+
 try:
-    import struct
-    import fcntl
-    import termios
-    def ioctl_GWINSZ(fd):
-        try:
-            return struct.unpack('hh',
-                    fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-        except Exception: # TODO: figure out the correct exceptions here
-            pass
-
-    WIDTH = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-
-    if WIDTH is None:
-        try:
-            fd = os.open(os.ctermid(), os.O_RDONLY)
-            WIDTH = ioctl_GWINSZ(fd)
-        finally:
-            os.close(fd)
-    if WIDTH is not None:
-        WIDTH = int(WIDTH[1])-2
+    from sage.all import dev as DEV
 except ImportError:
-    WIDTH = None
+    print(DISABLED_MESSAGE.strip())
+    sys.exit(0)
+
 
 class SageHelpFormatter(argparse.HelpFormatter):
     """
@@ -40,7 +33,8 @@ class SageHelpFormatter(argparse.HelpFormatter):
     subcommands in curly brackets (since it gets ugly)
     """
     def __init__(self, *args, **kwds):
-        super(SageHelpFormatter, self).__init__(width=WIDTH, *args, **kwds)
+        super(SageHelpFormatter, self).__init__(
+                width=DEV._sagedev._UI._get_dimensions()[1]-2, *args, **kwds)
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
@@ -107,6 +101,9 @@ class SageHelpFormatter(argparse.HelpFormatter):
 
         # if there are any sub-actions, add their help as well
         for subaction in self._iter_indented_subactions(action):
+            import sage.dev.sagedev_wrapper
+            if subaction.dest.replace("-","_") in sage.dev.sagedev_wrapper.obsolete_commands:
+                continue
             parts.append(self._format_action(subaction))
 
         # return a single string
@@ -121,21 +118,21 @@ def get_help(method):
 
     EXAMPLE::
 
-        >>> get_help(get_help)
-        {'method': 'method to get help', 'return': 'gets the short help for a method'}
+        >>> help_dict = get_help(get_help)
+        >>> for k in sorted(help_dict.keys()):  print k, '---', help_dict[k]
+        method --- method to get help (test: "quote"). can continue input description with a line break
+        return --- gets the short help for a method
 
     INPUT:
 
-    - ``method`` -- method to get help
-
+    - ``method`` -- method to get help (test: ``quote``). 
       can continue input description with a line break
     """
     if method.__doc__ is None:
         return None
 
     docstring = method.__doc__.strip('\n')
-    indent = len(space_matcher_re.search(docstring).group())
-    docstring = (l[indent:].rstrip() for l in docstring.splitlines())
+    docstring = (line.rstrip() for line in dedent(docstring).splitlines())
 
     tmp = []
     for line in docstring:
@@ -143,7 +140,7 @@ def get_help(method):
             tmp.append(line)
         else:
             break
-    ret = {'return':' '.join(tmp)}
+    ret = {'return':' '.join(tmp).replace('``', '"')}
 
     for line in docstring:
         if line == 'INPUT:':
@@ -160,9 +157,9 @@ def get_help(method):
             continue
         elif line.startswith('-') and '--' in line:
             arg = line.split('``')[1]
-            tmp.append(line.split('--')[1].strip())
+            tmp.append(line.split('--')[1].strip().replace('``', '"'))
         elif tmp:
-            tmp.append(line.strip())
+            tmp.append(line.strip().replace('``', '"'))
         elif not line.startswith(' '):
             break
     if tmp:
@@ -186,7 +183,8 @@ def getargspec(func):
     """
     from sage.misc.sageinspect import sage_getargspec
     argspec = sage_getargspec(func)
-    del argspec.args[0] # self
+    if argspec.args and argspec.args[0]=='self':
+        del argspec.args[0]
     return argspec
 
 def parser_from_method(parser, func, help_dict):
@@ -260,7 +258,7 @@ def parser_from_object(obj, *args, **kwds):
     parser = argparse.ArgumentParser(*args, **kwds)
     subparsers = parser.add_subparsers(title='subcommands')
 
-    def help(args=None,namespace=None):
+    def help(args=None, namespace=None):
         if args is None:
             args = sys.argv[2:]
         else:
@@ -273,7 +271,8 @@ def parser_from_object(obj, *args, **kwds):
     for name, method in exposed_methods(obj):
         if name > 'help' and not helped:
             subparser = subparsers.add_parser('help',
-                    help='show help message and exit')
+                    help='show help message and exit',
+                    formatter_class=SageHelpFormatter)
             subparser.set_defaults(method=help)
             subparser.add_argument('subcommand',
                     help='show help message for given command',
@@ -284,21 +283,20 @@ def parser_from_object(obj, *args, **kwds):
         if help_dict is None:
             continue
         subparser = subparsers.add_parser(name,
-                help=help_dict['return'], description=help_dict['return'])
+                help=help_dict['return'], description=help_dict['return'],
+                formatter_class=SageHelpFormatter)
         subparser.set_defaults(method=method)
         parser_from_method(subparser, method, help_dict)
 
     def run(args=None, namespace=None):
-        parsed = vars(parser.parse_args(args=args,namespace=namespace))
-
+        parsed = vars(parser.parse_args(args=args, namespace=namespace))
         method = parsed['method']
         del parsed['method']
         if method == help:
             # help subcommand
-            help(args=args,namespace=namespace)
+            help(args=args, namespace=namespace)
 
         argspec = getargspec(method)
-
         args = []
         for arg in argspec.args:
             args.append(parsed[arg])
@@ -333,8 +331,7 @@ if __name__ == '__main__':
     else:
         profiler = None
     try:
-        from sage.dev.all import dev
-        parser = parser_from_object(dev)
+        parser = parser_from_object(DEV)
         parser.run()
     finally:
         if profiler is not None:

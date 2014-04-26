@@ -203,7 +203,9 @@ def go(filename):
         print("File %s does not exist."%filename, file=sys.stderr)
         sys.exit(1)
 
-    if not (filename.endswith('.py') or filename.endswith('.pyx')):
+    if not (filename.endswith('.py')
+            or filename.endswith('.pyx')
+            or filename.endswith('.sage')):
         return
 
     global first

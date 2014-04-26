@@ -974,7 +974,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
 
-        In some situations we do not need all the rows of the result, and can thereby save time:
+        In some situations we do not need all the rows of the result, and can thereby save time::
 
             sage: m = ModularSymbols(1,weight=12)
             sage: m._compute_hecke_matrix_prime(2)
@@ -2225,8 +2225,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # of the basis of the underlying vector space of self, and compute
         # the Z-module they span.
 
-        G = list(G)
-        G.sort()
+        G = sorted(G)
         B = self._manin_gens_to_basis.matrix_from_rows(list(G)).dense_matrix()
         B, d = B._clear_denom()
         if algorithm == 'default':
@@ -2555,7 +2554,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         r"""
         Return the dimension of the new cuspidal subspace, via the formula.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(100,2)
             sage: M._cuspidal_new_submodule_dimension_formula()

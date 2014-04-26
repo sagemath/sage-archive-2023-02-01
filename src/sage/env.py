@@ -87,6 +87,7 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 # bunch of sage directories and files
 _add_variable_or_fallback('SAGE_ROOT',       None)
 _add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
+_add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
 # SAGE_LIB is the site-packages directory if the sage library
@@ -106,9 +107,10 @@ _add_variable_or_fallback('SAGE_URL',                'http://sage.math.washingto
 _add_variable_or_fallback('REALM',                   'sage.math.washington.edu')
 _add_variable_or_fallback('TRAC_SERVER_URI',         'https://trac.sagemath.org')
 _add_variable_or_fallback('SAGE_REPO_AUTHENTICATED', 'ssh://git@trac.sagemath.org:2222/sage.git')
-_add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'http://trac.sagemath.org/sage.git')
+_add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'git://trac.sagemath.org/sage.git')
 _add_variable_or_fallback('SAGE_VERSION',            version.version)
 _add_variable_or_fallback('SAGE_DATE',               version.date)
+_add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 
 # post process
 if ' ' in DOT_SAGE:
@@ -125,6 +127,10 @@ if ' ' in DOT_SAGE:
         print("is to set the environment variable HOME to a")
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
+
+# things that need DOT_SAGE
+_add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs'))
+_add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version

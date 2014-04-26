@@ -4725,6 +4725,24 @@ class FiniteStateMachine(SageObject):
             [Transition from 'A' to 'B': 1|-,
              Transition from 'A' to 'A': 1|-,
              Transition from 'B' to 'B': 0|-]
+
+        Final output words are also considered correctly::
+
+            sage: H = Transducer([('A', 'B', 0, 1), ('A', 'A', 1, 1),
+            ....:                 ('B', 'B', 1, 0), ('A', ('final', 0), 0, 0)],
+            ....:                final_states=['A', 'B'])
+            sage: H.state('B').final_word_out = 2
+            sage: J = H.output_projection()
+            sage: J.states()
+            ['A', 'B', ('final', 0), ('final', 1)]
+            sage: J.transitions()
+            [Transition from 'A' to 'B': 1|-,
+             Transition from 'A' to 'A': 1|-,
+             Transition from 'A' to ('final', 0): 0|-,
+             Transition from 'B' to 'B': 0|-,
+             Transition from 'B' to ('final', 1): 2|-]
+            sage: J.final_states()
+            ['A', ('final', 1)]
         """
         return self.projection(what='output')
 
@@ -4778,6 +4796,21 @@ class FiniteStateMachine(SageObject):
             new.add_transition((state_mapping[transition.from_state],
                                 state_mapping[transition.to_state],
                                 new_word_in, None))
+
+        if what == 'output':
+            if not filter(lambda s: s.final_word_out, self.final_states()):
+                return new
+            number = 0
+            while new.has_state(('final', number)):
+                number += 1
+            final = new.add_state(('final', number))
+            final.is_final = True
+            for state in filter(lambda s: s.final_word_out, self.final_states()):
+                output = state.final_word_out
+                new.state(state_mapping[state]).final_word_out = []
+                new.state(state_mapping[state]).is_final = False
+                new.add_transition((state_mapping[state], final, output, None))
+
         return new
 
 

@@ -6850,6 +6850,13 @@ class Transducer(FiniteStateMachine):
             sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
 
+        Also final output words are correctly processed::
+
+            sage: transducer1.state('A').final_word_out = 2
+            sage: result = transducer1.cartesian_product(transducer2)
+            sage: result.final_states()[0].final_word_out
+            [(2, None)]
+
         The following transducer counts the number of 11 blocks minus
         the number of 10 blocks over the alphabet ``[0, 1]``.
 
@@ -6943,10 +6950,25 @@ class Transducer(FiniteStateMachine):
                 return (transition1.word_in, zip(word_out1, word_out2))
             else:
                 raise LookupError
+        
+        def final_function(s1, s2):
+            if not s1.final_word_out and not s2.final_word_out:
+                return None
+            else:
+                max_length = max(len(s1.final_word_out),
+                                 len(s2.final_word_out))
+                final_word_out1 = s1.final_word_out \
+                    + (max_length - len(s1.final_word_out)) \
+                    * [None]
+                final_word_out2 = s2.final_word_out \
+                    + (max_length - len(s2.final_word_out)) \
+                    * [None]
+                return zip(final_word_out1, final_word_out2)
 
         return self.product_FiniteStateMachine(
             other,
             function,
+            final_function=final_function,
             only_accessible_components=only_accessible_components)
 
 

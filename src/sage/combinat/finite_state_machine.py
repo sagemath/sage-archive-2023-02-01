@@ -4309,7 +4309,8 @@ class FiniteStateMachine(SageObject):
 
     def product_FiniteStateMachine(self, other, function,
                                    new_input_alphabet=None,
-                                   only_accessible_components=True):
+                                   only_accessible_components=True,
+                                   final_function=None):
         """
         Returns a new finite state machine whose states are
         pairs of states of the original finite state machines.
@@ -4331,6 +4332,10 @@ class FiniteStateMachine(SageObject):
           the result is piped through ``accessible_components``. If no
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
+
+        - ``final_function`` -- A function specifying how to handle final
+          output words. The default is ``None``, that is to ignore final
+          output words. The input of the function should be two states.
 
         OUTPUT:
 
@@ -4385,6 +4390,25 @@ class FiniteStateMachine(SageObject):
             sage: H.states()
             [(0, 0), (1, 0), (0, 1), (1, 1)]
 
+        Also final output words are considered accordingly to the function
+        ``final_function``::
+
+            sage: F = Transducer([(0, 1, 0, 1), (1, 1, 1, 1), (1, 1, 0, 1)],
+            ....:                final_states=[1])
+            sage: F.state(1).final_word_out = 1
+            sage: G = Transducer([(0, 0, 0, 1), (0, 0, 1, 0)], final_states=[0])
+            sage: G.state(0).final_word_out = 1
+            sage: def minus(t1, t2):
+            ....:     return (t1.word_in[0] - t2.word_in[0],
+            ....:                t1.word_out[0] - t2.word_out[0])
+            sage: def plus(s1, s2):
+            ....:     return s1.final_word_out[0] + s2.final_word_out[0]
+            sage: H = F.product_FiniteStateMachine(G, minus, final_function=plus)
+            sage: H.final_states()
+            [(1, 0)]
+            sage: H.final_states()[0].final_word_out
+            [2]
+
         TESTS:
 
         Check that colors are correctly dealt with. In particular, the
@@ -4406,6 +4430,9 @@ class FiniteStateMachine(SageObject):
         else:
             result.input_alphabet = None
 
+        if final_function is None:
+            final_function = lambda s1, s2: []
+
         for transition1 in self.transitions():
             for transition2 in other.transitions():
                 try:
@@ -4422,6 +4449,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
+                state.final_word_out = final_function(state.label()[0], state.label()[1])
             state.color = tuple(map(lambda s: s.color, state.label()))
 
         if only_accessible_components:

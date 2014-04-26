@@ -5979,6 +5979,198 @@ class FiniteStateMachine(SageObject):
             number_states = new_number_states
 
 
+    def with_final_word_out(self, letter):
+        """
+        Constructs a finite state machine with final output words for
+        all states by implicitly reading trailing letters until a final
+        state is reached.
+
+        INPUT:
+
+        ``letter`` -- an element of the input alphabet.
+
+        OUTPUT:
+
+        A finite state machine.
+
+        Let ``word_in`` be a word over the input alphabet and assume
+        that the original finite state machine transforms ``word_in`` to
+        ``word_out`` reaching a possibly non-final state ``s``.  Let
+        further `k` be the minimum number of letters ``letter`` such
+        that there is a path from ``s`` to some final state ``f`` whose
+        input label consists of `k` copies of ``letters`` and whose
+        output label is ``path_word_out``. Then the state ``s`` of the
+        resulting finite state machine is a final state with final
+        output ``path_word_out + f.final_word_out``. Therefore, the new
+        finite state machine transforms ``word_in`` to ``word_out +
+        path_word_out + f.final_word_out``.
+
+        This is e.g. useful for finite state machines operating on digit
+        expansions: there, it is sometimes required to read a sufficient
+        number of trailing zeros (at the most significant positions) in
+        order to reach a final state and to flush all carries. In this
+        case, this method constructs an essentially equivalent finite
+        state machine in the sense that it not longer requires adding
+        sufficiently many trailing zeros. However, it is the
+        responsibility of the user to make sure that if adding trailing
+        zeros to the input anyway, the output is equivalent.
+
+        It is required that each non-final state has a unique leaving
+        transition with input label ``letter`` and that reading
+        ``letter`` eventually leads to a final state.
+
+        .. SEE ALSO:
+
+            :ref:`example on Gray code <finite_state_machine_gray_code_example>`
+
+        EXAMPLES:
+
+            #.  A simple transducer transforming `00` blocks to `01`
+                blocks::
+
+                    sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 1)],
+                    ....:                initial_states=[0],
+                    ....:                final_states=[0])
+                    sage: T.process([0, 0, 0])
+                    (False, 1, [0, 1, 0])
+                    sage: T.process([0, 0, 0, 0])
+                    (True, 0, [0, 1, 0, 1])
+                    sage: F = T.with_final_word_out(0)
+                    sage: for f in F.iter_final_states():
+                    ....:     print f, f.final_word_out
+                    0 []
+                    1 [1]
+                    sage: F.process([0, 0, 0])
+                    (True, 1, [0, 1, 0, 1])
+                    sage: F.process([0, 0, 0, 0])
+                    (True, 0, [0, 1, 0, 1])
+
+            #.  A more realistic example: Addition of `1` in binary. We
+                construct a transition function transforming the input
+                to its binary expansion::
+
+                    sage: def binary_transition(carry, input):
+                    ....:     value = carry + input
+                    ....:     if value.mod(2) == 0:
+                    ....:         return (value/2, 0)
+                    ....:     else:
+                    ....:         return ((value-1)/2, 1)
+
+                Now, we only have to start with a carry of `1` to
+                get the required transducer::
+
+                    sage: T = Transducer(binary_transition,
+                    ....:                input_alphabet=[0, 1],
+                    ....:                initial_states=[1],
+                    ....:                final_states=[0])
+
+                We test this for the binary expansion of `7`::
+
+                    sage: T.process([1, 1, 1])
+                    (False, 1, [0, 0, 0])
+
+                The final carry `1` has not be flushed yet, we have to add a trailing zero::
+
+                    sage: T.process([1, 1, 1, 0])
+                    (True, 0, [0, 0, 0, 1])
+
+                We check that with this trailing zero, the transducer
+                performs as advertised::
+
+
+                    sage: all(ZZ(T(k.bits()+[0]), base=2) == k + 1
+                    ....:     for k in srange(16))
+                    True
+
+                However, most of the time, we produce superfluous trailing zeros::
+
+                    sage: T(11.bits()+[0])
+                    [0, 0, 1, 1, 0]
+
+                We now use this method::
+
+                    sage: F = T.with_final_word_out(0)
+                    sage: for f in F.iter_final_states():
+                    ....:     print f, f.final_word_out
+                    1 [1]
+                    0 []
+
+                The same tests as above, but we do not have to pad with
+                trailing zeros anymore::
+
+                    sage: F.process([1, 1, 1])
+                    (True, 1, [0, 0, 0, 1])
+                    sage: all(ZZ(F(k.bits()), base=2) == k + 1
+                    ....:     for k in srange(16))
+                    True
+
+                No more trailing zero in the output::
+
+                    sage: F(11.bits())
+                    [0, 0, 1, 1]
+                    sage: all(F(k.bits())[-1] == 1
+                    ....:     for k in srange(16))
+                    True
+
+        TESTS:
+
+            #.  Reading copies of ``letter`` may result in a loop. In
+                this simple example, we have no final state at all::
+
+                    sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 0)],
+                    ....:                initial_states=[0])
+                    sage: T.with_final_word_out(0)
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: The finite state machine contains a loop
+                    with input label 0 and no final state.
+
+            #.  A unique transition with input word ``letter`` is
+                required::
+
+                    sage: T = Transducer([(0, 1, 0, 0)])
+                    sage: T.with_final_word_out(0)
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: No unique transition leaving state 1
+                    with input label 0.
+                    sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)])
+                    sage: T.with_final_word_out(0)
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: No unique transition leaving state 0
+                    with input label 0.
+        """
+        new = deepcopy(self)
+        in_progress = set()
+
+        def find_final_word_out(state):
+            if state.is_final:
+                return state.final_word_out
+            if state in in_progress:
+                raise ValueError(
+                    "The finite state machine contains a loop with "
+                    "input label %s and no final state." % (letter))
+
+            in_progress.add(state)
+            transitions = [t for t in state.transitions
+                           if t.word_in == [letter]]
+            if len(transitions) != 1:
+                raise ValueError(
+                    "No unique transition leaving state %s with input "
+                    "label %s." % (state, letter))
+            final_word_out = transitions[0].word_out \
+                + find_final_word_out(transitions[0].to_state)
+            state.is_final = True
+            state.final_word_out = final_word_out
+            in_progress.remove(state)
+            return final_word_out
+
+        for state in new.iter_states():
+            find_final_word_out(state)
+
+        return new
+
     # *************************************************************************
     # other
     # *************************************************************************

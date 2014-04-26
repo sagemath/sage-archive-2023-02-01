@@ -671,6 +671,21 @@ class FSMState(SageObject):
       the state is reached as the last state of some input, only for final
       states
 
+      .. WARNING::
+
+          ``final_word_out`` is not implemented everywhere. Currently it is
+          implemented in :meth:`FiniteStateMachine.process`, :meth:`latex`,
+          but not in :meth:`FiniteStateMachine.composition`,
+          :meth:`FiniteStateMachine.determine_alphabets`,
+          :meth:`FiniteStateMachine.equivalence_classes`,
+          :meth:`FiniteStateMachine.output_projection`,
+          :meth:`FiniteStateMachine.prepone_output`,
+          :meth:`FiniteStateMachine.product_FiniteStateMachine`,
+          :meth:`FiniteStateMachine.transposition`,
+          :meth:`Transducer.cartesian_product`,
+          :meth:`Transducer.intersection` and
+          :meth:`Transducer.simplification`.
+
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
 
@@ -877,17 +892,15 @@ class FSMState(SageObject):
     @property
     def final_word_out(self):
         """
-        Returns the final output word of a state.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
+        The final output word which is use if a input of a transducer leads to
+        this final state.
 
         The final output word of a final state which is written if the state
         is reached as the last state of the input of a transducer. For a
-        non-final state, the return value is ``None``.
+        non-final state, the value is ``None``.
+
+        ``final_word_out`` can be a single letter, a list or ``None``, but it
+        is always saved as a list.
 
         EXAMPLES::
 
@@ -895,9 +908,26 @@ class FSMState(SageObject):
             sage: A = FSMState('A', is_final=True, final_word_out=2)
             sage: A.final_word_out
             [2]
+            sage: A.final_word_out = 3
+            sage: A.final_word_out
+            [3]
+            sage: A.final_word_out = [3, 4]
+            sage: A.final_word_out
+            [3, 4]
+            sage: A.final_word_out = None
+            sage: A.final_word_out
+            []
             sage: B = FSMState('B')
             sage: B.final_word_out == None
             True
+
+        A non-final state cannot have a final output word::
+
+            sage: B.final_word_out = [3, 4]
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final
+            output word. But state B is not final.
         """
 
         return self._final_word_out_
@@ -945,22 +975,26 @@ class FSMState(SageObject):
     @property
     def is_final(self):
         """
-        Returns whether the state is final or not.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
+        Describes whether the state is final or not.
 
         ``True`` if the state is final and ``False`` otherwise.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = FSMState('A', is_final=True, final_word_out=3)
             sage: A.is_final
             True
+            sage: A.is_final = False
+            Traceback (most recent call last):
+            ...
+            ValueError: State A cannot be non-final, because it has
+            a final output
+            word. Only final states can have a final output word.
+            sage: A.final_word_out = None
+            sage: A.is_final = False
+            sage: A.is_final
+            False
         """
         return (self.final_word_out is not None)
 
@@ -990,9 +1024,9 @@ class FSMState(SageObject):
             sage: A.is_final = False
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            State A cannot be non-final, because it has a final output
-            word.
+            ValueError: State A cannot be non-final, because it
+            has a final output
+            word. Only final states can have a final output word.
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
             sage: A.final_word_out == None
@@ -1003,9 +1037,9 @@ class FSMState(SageObject):
         elif not is_final and not self.final_word_out:
             self._final_word_out_ = None
         elif not is_final:
-            raise ValueError("Only final states can have a final output word. " \
-                             "State %s cannot be non-final, because it " \
-                             "has a final output word." % self.label())
+            raise ValueError("State %s cannot be non-final, because it " \
+                             "has a final output word. Only final states " \
+                             "can have a final output word. "% self.label())
 
     def label(self):
         """

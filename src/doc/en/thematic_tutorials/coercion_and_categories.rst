@@ -403,9 +403,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    56
+    57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    80
+    81
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -413,7 +413,6 @@ class for algebras::
     sage: MS1.__class__.__bases__
     (<class 'sage.matrix.matrix_space.MatrixSpace'>,
      <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
-    sage.categories.vector_spaces.VectorSpaces.parent_class)
     sage: MS2.__class__.__bases__
     (<class 'sage.matrix.matrix_space.MatrixSpace'>,
      <class 'sage.categories.algebras.Algebras.parent_class'>)

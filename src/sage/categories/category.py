@@ -885,9 +885,8 @@ class Category(UniqueRepresentation, SageObject):
                                           [self._super_categories],
                                           category_sort_key)
         if not sorted(result, key = category_sort_key, reverse=True) == result:
-            warn("Inconsistent sorting results for all super categories of %s"%self.__class__)
-            import pdb
-            pdb.set_trace()
+            warn("Inconsistent sorting results for all super categories of {}".format(
+                 self.__class__))
         self._super_categories_for_classes = bases
         return [self] + result
 

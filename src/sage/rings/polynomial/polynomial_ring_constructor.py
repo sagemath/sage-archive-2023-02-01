@@ -612,7 +612,8 @@ def polynomial_default_category(base_ring_category, multivariate):
 
     INPUT:
 
-    - ``base_ring_category``: The category of ring over which the polynomial ring shall be defined.
+    - ``base_ring_category``: The category of ring over which the polynomial
+      ring shall be defined.
     - ``multivariate``: Will the polynomial ring be multivariate?
 
     EXAMPLES::

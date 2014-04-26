@@ -35,8 +35,8 @@ class Modules(Category_module):
 
     INPUT:
 
-      - ``base_ring`` -- a ring `R` or subcategory of ``Rings()``
-      - ``dispatch`` -- a boolean (for internal use; default: ``True``)
+    - ``base_ring`` -- a ring `R` or subcategory of ``Rings()``
+    - ``dispatch`` -- a boolean (for internal use; default: ``True``)
 
     When the base ring is a field, the category of vector spaces is
     returned instead (unless ``dispatch == False``).
@@ -113,7 +113,8 @@ class Modules(Category_module):
 
         """
         if dispatch:
-            if base_ring in _Fields or isinstance(base_ring, Category) and base_ring.is_subcategory(_Fields):
+            if base_ring in _Fields or (isinstance(base_ring, Category)
+                                        and base_ring.is_subcategory(_Fields)):
                 from vector_spaces import VectorSpaces
                 return VectorSpaces(base_ring, check=False)
         result = super(Modules, cls).__classcall__(cls, base_ring)

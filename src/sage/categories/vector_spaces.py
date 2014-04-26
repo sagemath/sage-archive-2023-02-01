@@ -60,8 +60,9 @@ class VectorSpaces(Category_module):
         """
         if check:
             if not (K in _Fields or
-                    isinstance(K, Category) and K.is_subcategory(_Fields)):
-                raise ValueError, "base must be a field or a subcategory of Fields(); got %s"%K
+                    (isinstance(K, Category) and K.is_subcategory(_Fields))):
+                raise ValueError("base must be a field or a subcategory of Fields();" +
+                                 " got {}".format(K))
         return super(VectorSpaces, cls).__classcall__(cls, K)
 
     def __init__(self, K):

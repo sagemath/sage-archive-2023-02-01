@@ -199,7 +199,7 @@ class Sequences(Category):
 # Category of objects over some base object
 #############################################################
 class Category_over_base(CategoryWithParameters):
-    """#
+    r"""
     A base class for categories over some base object
 
     INPUT:
@@ -217,9 +217,21 @@ class Category_over_base(CategoryWithParameters):
         sage: C = GF(2).category()
         sage: Algebras(GF(2)).parent_class is Algebras(C).parent_class
         True
+
+        sage: Algebras(ZZ).element_class is Algebras(EuclideanDomains()).element_class
+        True
     """
 
     def __init__(self, base, name=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: C = Algebras(Fields()); C
+            Category of algebras over fields
+            sage: TestSuite(C).run()
+        """
         self.__base = base
         Category.__init__(self, name)
 
@@ -269,8 +281,7 @@ class Category_over_base(CategoryWithParameters):
         """
         if isinstance(self.__base, Category):
             return self.__base
-        else:
-            return self.__base.category()
+        return self.__base.category()
 
     @classmethod
     def an_instance(cls):
@@ -351,7 +362,9 @@ class Category_over_base(CategoryWithParameters):
             sage: VectorSpaces(QQ)._subcategory_hook_(Algebras(ZZ))
             False
 
-        .. WARNING:: This test currently includes some false negatives::
+        .. WARNING::
+
+            This test currently includes some false negatives::
 
                 sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields().Finite()))
                 False
@@ -417,10 +430,9 @@ class Category_over_base(CategoryWithParameters):
         if isinstance(self.__base, Category):
             if isinstance(C.base(), Category):
                 return C.base().is_subcategory(self.__base)
-            else: # C.base() is a parent
-                return C.base() in self.__base
-        else:
-            return Unknown
+            # else C.base() is a parent
+            return C.base() in self.__base
+        return Unknown
 
 #    def construction(self):
 #        return (self.__class__, self.__base)
@@ -447,16 +459,31 @@ class AbelianCategory(Category):
 
 class Category_over_base_ring(Category_over_base):
     def __init__(self, base, name=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: C = Algebras(GF(2)); C
+            Category of algebras over Finite Field of size 2
+            sage: TestSuite(C).run()
+        """
         from sage.categories.rings import Rings
         if not (base in Rings or
                 isinstance(base, Category) and base.is_subcategory(Rings())):
-            raise ValueError, "base must be a ring or a subcategory of Rings()"
+            raise ValueError("base must be a ring or a subcategory of Rings()")
         Category_over_base.__init__(self, base, name)
 
     def base_ring(self):
         """
         Return the base ring over which elements of this category are
         defined.
+
+        EXAMPLES::
+
+            sage: C = Algebras(GF(2))
+            sage: C.base_ring()
+            Finite Field of size 2
         """
         return self.base()
 

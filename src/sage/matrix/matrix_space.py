@@ -316,10 +316,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: type(MS)
             <class 'sage.matrix.matrix_space.MatrixSpace_with_category'>
             sage: MS.full_category_initialisation()
-            doctest:1: DeprecationWarning: the full_category_initialization method does nothing, as a matrix space now has its category systematically fully initialized
+            doctest:...: DeprecationWarning: the full_category_initialization
+             method does nothing, as a matrix space now has its category
+             systematically fully initialized
             See http://trac.sagemath.org/15801 for details.
         """
-        deprecation(15801, "the full_category_initialization method does nothing, as a matrix space now has its category systematically fully initialized")
+        deprecation(15801, "the full_category_initialization method does nothing,"
+                           " as a matrix space now has its category"
+                           " systematically fully initialized")
 
     @lazy_attribute
     def _copy_zero(self):

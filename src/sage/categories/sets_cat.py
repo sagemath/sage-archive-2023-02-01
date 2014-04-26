@@ -18,7 +18,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
 from sage.misc.superseded import deprecated_function_alias
-from sage.categories.category import HomCategory
+from sage.categories.category import Category, HomCategory
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -677,7 +677,8 @@ class Sets(Category_singleton):
                 sage: TestSuite(Groups().Finite().Algebras(QQ)).run()
             """
             from sage.categories.rings import Rings
-            assert base_ring in Rings
+            assert base_ring in Rings or (isinstance(base_ring, Category)
+                                          and base_ring.is_subcategory(Rings()))
             return AlgebrasCategory.category_of(self, base_ring)
 
         @cached_method

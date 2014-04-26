@@ -5981,9 +5981,9 @@ class FiniteStateMachine(SageObject):
 
     def with_final_word_out(self, letter):
         """
-        Constructs a finite state machine with final output words for
-        all states by implicitly reading trailing letters until a final
-        state is reached.
+        Constructs a new finite state machine with final output words for all
+        states by implicitly reading trailing letters until a final state is
+        reached.
 
         INPUT:
 
@@ -6069,7 +6069,8 @@ class FiniteStateMachine(SageObject):
                     sage: T.process([1, 1, 1])
                     (False, 1, [0, 0, 0])
 
-                The final carry `1` has not be flushed yet, we have to add a trailing zero::
+                The final carry `1` has not be flushed yet, we have to add a
+                trailing zero::
 
                     sage: T.process([1, 1, 1, 0])
                     (True, 0, [0, 0, 0, 1])
@@ -6077,12 +6078,12 @@ class FiniteStateMachine(SageObject):
                 We check that with this trailing zero, the transducer
                 performs as advertised::
 
-
                     sage: all(ZZ(T(k.bits()+[0]), base=2) == k + 1
                     ....:     for k in srange(16))
                     True
 
-                However, most of the time, we produce superfluous trailing zeros::
+                However, most of the time, we produce superfluous trailing
+                zeros::
 
                     sage: T(11.bits()+[0])
                     [0, 0, 1, 1, 0]

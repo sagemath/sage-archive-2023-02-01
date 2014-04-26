@@ -824,20 +824,60 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         3
 
     """
-    def __init__(self, base_ring, name, category=None):
+    def __init__(self, base_ring, name, category=None, lattice=None, use_database=True):
         """
-        TEST::
+        INPUT:
+
+        - ``base_ring`` -- the finite field of which to construct an
+          algebraic closure.  Currently only prime fields are
+          accepted.
+
+        - ``name`` -- prefix to use for generators of the finite
+          subfields.
+
+        - ``category`` -- if provided, specifies the category in which
+          this algebraic closure will be placed.
+
+        - ``lattice`` -- :class:`~sage.rings.finite_rings.conway_polynomials.PseudoConwayPolynomialLattice`
+          (default: None).  If provided, use this pseudo-Conway
+          polynonomial lattice to construct an algebraic closure.
+
+        - ``use_database`` -- boolean.  If True (default), use actual
+          Conway polynomials whenever they are available in the
+          database.  If False, always compute pseudo-Conway
+          polynomials from scratch.
+
+        TESTS::
 
             sage: F = GF(5).algebraic_closure(implementation='pseudo_conway')
             sage: print F.__class__.__name__
             AlgebraicClosureFiniteField_pseudo_conway_with_category
             sage: TestSuite(F).run()
 
+            sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+            sage: L = PseudoConwayLattice(11, use_database=False)
+            sage: F = GF(7).algebraic_closure(lattice=L)
+            Traceback (most recent call last):
+            ...
+            TypeError: lattice must be a pseudo-Conway lattice with characteristic 7
+            sage: F = GF(11).algebraic_closure(lattice=L)
+            sage: F.gen(2).minimal_polynomial()
+            x^2 + 4*x + 2
+
+            sage: F = GF(11).algebraic_closure(use_database=True)
+            sage: F.gen(2).minimal_polynomial()
+            x^2 + 7*x + 2
+
         """
         if not (is_FiniteField(base_ring) and base_ring.is_prime_field()):
-            raise NotImplementedError
+            raise NotImplementedError('algebraic closures of finite fields are only implemented for prime fields')
         from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
-        self._pseudo_conway_lattice = PseudoConwayLattice(base_ring.characteristic())
+        p = base_ring.characteristic()
+        if lattice is None:
+            lattice = PseudoConwayLattice(p, use_database)
+        elif not isinstance(lattice, PseudoConwayLattice) or lattice.p != p:
+            raise TypeError('lattice must be a pseudo-Conway lattice with characteristic %s' % p)
+        self._pseudo_conway_lattice = lattice
         AlgebraicClosureFiniteField_generic.__init__(self, base_ring, name, category)
 
     def __cmp__(self, other):

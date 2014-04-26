@@ -7431,7 +7431,7 @@ class FSMProcessIterator(SageObject):
                 self.accept_input = False
             if not hasattr(self, 'accept_input'):
                 self.accept_input = True
-            if hasattr(self.current_state, 'final_word_out'):
+            if self.current_state.is_final:
                 self.write_word(self.current_state.final_word_out)
             raise StopIteration
 

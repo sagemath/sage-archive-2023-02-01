@@ -4560,7 +4560,6 @@ class FiniteStateMachine(SageObject):
             [(2, 'B')]
             sage: [s.final_word_out for s in Hd.final_states()]
             [[1, 0]]
-            
 
         Be aware that after composition, different transitions may
         share the same output label (same python object)::
@@ -4649,7 +4648,7 @@ class FiniteStateMachine(SageObject):
             if transition1.word_out == transition2.word_in:
                 return (transition1.word_in, transition2.word_out)
             else:
-                raise LookupError            
+                raise LookupError
 
         result = other.product_FiniteStateMachine(
             self, function,
@@ -4658,12 +4657,14 @@ class FiniteStateMachine(SageObject):
         for state_result in result.states():
             state = state_result.label()[0]
             if state.is_final:
-                accept, state_to, output = self.process(state.final_word_out, initial_state=self.state(state_result.label()[1]))
+                accept, state_to, output = \
+                    self.process(state.final_word_out,
+                            initial_state=self.state(state_result.label()[1]))
                 if not accept:
                     state_result.is_final = False
                 else:
                     state_result.is_final = True
-                    state_result.final_word_out = output + state_to.final_word_out
+                    state_result.final_word_out = output+state_to.final_word_out
 
         return result
 

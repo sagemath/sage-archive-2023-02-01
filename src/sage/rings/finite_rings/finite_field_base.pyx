@@ -1013,6 +1013,7 @@ cdef class FiniteField(Field):
                 raise ValueError, "name must be None, a string or a dictionary indexed by divisors of the degree"
             return [self.subfields(m, name=name[m])[0] for m in divisors]
 
+    @cached_method
     def algebraic_closure(self, name='z', **kwds):
         """
         Return an algebraic closure of ``self``.
@@ -1044,6 +1045,11 @@ cdef class FiniteField(Field):
         .. NOTE::
 
             This is currently only implemented for prime fields.
+
+        TEST::
+
+            sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
+            True
 
         """
         from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField

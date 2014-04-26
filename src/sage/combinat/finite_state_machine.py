@@ -5273,7 +5273,7 @@ class FiniteStateMachine(SageObject):
                     state_result.is_final = False
                 else:
                     state_result.is_final = True
-                    state_result.final_word_out = output+state_to.final_word_out
+                    state_result.final_word_out = output
 
         return result
 

@@ -140,7 +140,6 @@ def on_fly():
 
 def unrank(L, i):
     r"""
-
     Return the `i`-th element of `L`.
 
     INPUT:
@@ -157,7 +156,7 @@ def unrank(L, i):
 
     EXAMPLES:
 
-    list, tuples, and other :class:`sequences <collections.Sequence>`::
+    Lists, tuples, and other :class:`sequences <collections.Sequence>`::
 
         sage: from sage.combinat.ranker import unrank
         sage: unrank(['a','b','c'], 2)
@@ -174,7 +173,7 @@ def unrank(L, i):
         sage: unrank(IntegerModRing(29), 10)
         10
 
-    An old parent with unranking implemented in __getitem__::
+    An old parent with unranking implemented in ``__getitem__``::
 
         sage: M = MatrixSpace(GF(3), 2, 2)
         sage: hasattr(M, "unrank")

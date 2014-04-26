@@ -700,6 +700,7 @@ class EllipticCurveIsogeny(Morphism):
         True
         sage: phi_s.rational_maps() == phi.rational_maps()
         True
+        
 
     However only cyclic normalized isogenies can be constructed this
     way. So it won't find the isogeny [3]::
@@ -736,6 +737,22 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi.rational_maps()
         (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
          ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
+       
+    TESTS (track #12880)::
+    
+       sage: E = EllipticCurve(QQ, [0,0,0,1,0])
+       sage: phi = EllipticCurveIsogeny(E,  E(0,0))
+       sage: phi.domain() == E
+       True
+       sage: phi.codomain()
+       Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
+       
+       sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
+       sage: phi = EllipticCurveIsogeny(E, [17, 1])
+       sage: phi.domain()
+       Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
+       sage: phi.codomain()
+       Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
     """
 
     ####################
@@ -3288,6 +3305,30 @@ class EllipticCurveIsogeny(Morphism):
     #
     # Overload Morphism methods that we want to
     #
+
+    def _composition_(self, right, homset):
+        r"""
+        Composition operator function inherited from morphism class.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(j=GF(7)(0))
+            sage: phi = EllipticCurveIsogeny(E, [E(0), E((0,1)), E((0,-1))])
+            sage: phi._composition_(phi, phi.parent())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        The following should test that :meth:`_composition_` is called
+        upon a product (modified for ticket #12880 ; see ticket #16245 where we
+        fix the _composition_ issue).
+
+            sage: phi*phi
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
 
     def is_injective(self):
         r"""

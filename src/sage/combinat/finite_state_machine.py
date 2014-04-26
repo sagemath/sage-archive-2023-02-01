@@ -4405,7 +4405,8 @@ class FiniteStateMachine(SageObject):
             ....:                t1.word_out[0] - t2.word_out[0])
             sage: def plus(s1, s2):
             ....:     return s1.final_word_out[0] + s2.final_word_out[0]
-            sage: H = F.product_FiniteStateMachine(G, minus, final_function=plus)
+            sage: H = F.product_FiniteStateMachine(G, minus,
+            ....:                                  final_function=plus)
             sage: H.final_states()
             [(1, 0)]
             sage: H.final_states()[0].final_word_out

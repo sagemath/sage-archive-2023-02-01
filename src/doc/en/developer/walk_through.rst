@@ -171,13 +171,13 @@ changes::
       (use "git add <file>..." to update what will be committed)
       (use "git checkout -- <file>..." to discard changes in working directory)
     
-    	modified:   some_file.py
+        modified:   some_file.py
         modified:   src/sage/primes/all.py
     
     Untracked files:
       (use "git add <file>..." to include in what will be committed)
     
-    	src/sage/primes/last_pair.py
+        src/sage/primes/last_pair.py
     
     no changes added to commit (use "git add" and/or "git commit -a")
 

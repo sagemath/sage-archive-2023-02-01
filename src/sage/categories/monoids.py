@@ -227,7 +227,7 @@ class Monoids(CategoryWithAxiom):
 
         def _pow_naive(self, n):
             r"""
-            Returns ``self`` to the `n^{th}` power (naive implementation)
+            Return ``self`` to the `n^{th}` power (naive implementation).
 
             INPUT:
 

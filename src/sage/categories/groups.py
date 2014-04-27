@@ -656,6 +656,7 @@ class Groups(CategoryWithAxiom):
                 INPUT:
 
                 - ``self`` -- an element of the center of the group algebra
+                  (given as an element of the group algebra)
 
                 OUTPUT:
 

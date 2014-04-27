@@ -31,7 +31,13 @@ class Modules(Category_module):
     An `R`-module `M` is a left and right `R`-module over a
     commutative ring `R` such that:
 
-    .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x\in M
+    .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x \in M
+
+    and
+
+    .. math::  r*x = x*r \qquad  \forall r \in R \text{ and } x \in M.
+
+    This is also known as a symmetric `R`-`R`-bimodule.
 
     INPUT:
 
@@ -69,10 +75,9 @@ class Modules(Category_module):
 
     .. TODO::
 
-        - Clarify the distinction, if any, with ``BiModules(R, R)``.
-
-        - Check that non commutative rings are properly supported by
-          all the code, and advertise it.
+        - Sometimes symmetric modules are studied even for noncommutative
+          `R` (even though they are nothing but modules over the
+          abelianization of `R`). Support this?
 
         - Add support for base semirings.
 
@@ -85,11 +90,12 @@ class Modules(Category_module):
     @staticmethod
     def __classcall_private__(cls, base_ring, dispatch = True):
         r"""
-        Implement the dispatching ``Modules(field)`` to ``VectorSpaces(field)``.
+        Implement the dispatching of ``Modules(field)`` to
+        ``VectorSpaces(field)``.
 
         This feature will later be extended, probably as a covariant
         functorial construction, to support modules over various kinds
-        of rings (principal ideal domains, ...), or even of semirings.
+        of rings (principal ideal domains, ...), or even over semirings.
 
         TESTS::
 

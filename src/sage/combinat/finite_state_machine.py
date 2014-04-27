@@ -5077,7 +5077,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
-                state.final_word_out = final_function(state.label()[0], state.label()[1])
+                state.final_word_out = final_function(*state.label())
             state.color = tuple(map(lambda s: s.color, state.label()))
 
         if only_accessible_components:

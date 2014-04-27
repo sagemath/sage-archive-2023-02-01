@@ -5266,7 +5266,8 @@ class FiniteStateMachine(SageObject):
 
         result = other.product_FiniteStateMachine(
             self, function,
-            only_accessible_components=only_accessible_components)
+            only_accessible_components=only_accessible_components,
+            final_function=lambda s1, s2: [])
 
         for state_result in result.iter_states():
             state = state_result.label()[0]

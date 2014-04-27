@@ -4953,7 +4953,9 @@ class FiniteStateMachine(SageObject):
         OUTPUT:
 
         A finite state machine whose states are pairs of states of the
-        original finite state machines.
+        original finite state machines. A state is is initial or
+        final if both constituent states are initial or final,
+        respectively.
 
         The labels of the transitions are defined by ``function``.
 
@@ -5006,7 +5008,7 @@ class FiniteStateMachine(SageObject):
             sage: H.states()
             [(0, 0), (1, 0), (0, 1), (1, 1)]
 
-        Also final output words are considered accordingly to the function
+        Also final output words are considered according to the function
         ``final_function``::
 
             sage: F = Transducer([(0, 1, 0, 1), (1, 1, 1, 1), (1, 1, 0, 1)],

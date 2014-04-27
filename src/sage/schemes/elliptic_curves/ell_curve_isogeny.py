@@ -740,19 +740,33 @@ class EllipticCurveIsogeny(Morphism):
        
     TESTS (track #12880)::
     
-       sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-       sage: phi = EllipticCurveIsogeny(E,  E(0,0))
-       sage: phi.domain() == E
-       True
-       sage: phi.codomain()
-       Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
-       
-       sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-       sage: phi = EllipticCurveIsogeny(E, [17, 1])
-       sage: phi.domain()
-       Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
-       sage: phi.codomain()
-       Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
+        sage: E = EllipticCurve(QQ, [0,0,0,1,0])
+        sage: phi = EllipticCurveIsogeny(E,  E(0,0))
+        sage: phi.domain() == E
+        True
+        sage: phi.codomain()
+        Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field
+   
+        sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
+        sage: phi = EllipticCurveIsogeny(E, [17, 1])
+        sage: phi.domain()
+        Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31
+        sage: phi.codomain()
+        Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
+
+    TESTS (track #16245)::
+
+        sage: E = EllipticCurve(j=GF(7)(0))
+        sage: phi=E.isogeny( [E(0), E((0,1)), E((0,-1))]);phi
+        Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+        sage: phi2=phi*phi;phi2
+        Composite map:
+          From: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+        To:   Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+          Defn:   Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+                then
+                  Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
+
     """
 
     ####################
@@ -3305,30 +3319,6 @@ class EllipticCurveIsogeny(Morphism):
     #
     # Overload Morphism methods that we want to
     #
-
-    def _composition_(self, right, homset):
-        r"""
-        Composition operator function inherited from morphism class.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(j=GF(7)(0))
-            sage: phi = EllipticCurveIsogeny(E, [E(0), E((0,1)), E((0,-1))])
-            sage: phi._composition_(phi, phi.parent())
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        The following should test that :meth:`_composition_` is called
-        upon a product (modified for ticket #12880 ; see ticket #16245 where we
-        fix the _composition_ issue).
-
-            sage: phi*phi
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
     def is_injective(self):
         r"""

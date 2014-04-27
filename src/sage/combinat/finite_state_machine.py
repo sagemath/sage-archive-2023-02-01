@@ -1209,9 +1209,27 @@ class FSMState(SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A')
-            sage: deepcopy(A)
-            'A'
+            sage: A = FSMState((1, 3), color=[1, 2],
+            ....:              is_final=True, final_word_out=3)
+            sage: B = deepcopy(A)
+            sage: B
+            (1, 3)
+            sage: B.label == A.label
+            True
+            sage: B.label is A.label
+            False
+            sage: B.color == A.color
+            True
+            sage: B.color is A.color
+            False
+            sage: B.is_final == A.is_final
+            True
+            sage: B.is_final is A.is_final
+            True
+            sage: B.final_word_out == A.final_word_out
+            True
+            sage: B.final_word_out is A.final_word_out
+            False
         """
         return deepcopy(self, memo)
 

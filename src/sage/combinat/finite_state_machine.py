@@ -817,8 +817,8 @@ class FSMState(SageObject):
         sage: B.final_word_out = 2
         Traceback (most recent call last):
         ...
-        ValueError: Only final states can have a final output word.
-        But state B is not final.
+        ValueError: Only final states can have a final output word,
+        but state B is not final.
 
     Setting the ``final_word_out`` of a final state to ``None`` is the same as
     setting it to ``[]`` and is also the default for a final state::
@@ -897,22 +897,22 @@ class FSMState(SageObject):
             sage: A = FSMState('A', is_final=False, final_word_out='end')
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            But state A is not final.
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
             sage: A = FSMState('A', is_final=False,
             ....:              final_word_out=['e', 'n', 'd'])
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            But state A is not final.
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
             sage: A = FSMState('A', is_final=False, final_word_out=None)
             sage: A.final_word_out == None
             True
             sage: A = FSMState('A', is_final=False, final_word_out=[])
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            But state A is not final.
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
         """
         if not allow_label_None and label is None:
             raise ValueError("Label None reserved for a special state, "
@@ -999,7 +999,7 @@ class FSMState(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Only final states can have a final
-            output word. But state B is not final.
+            output word, but state B is not final.
         """
 
         return self._final_word_out_
@@ -1025,14 +1025,14 @@ class FSMState(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Only final states can have a final
-            output word. But state B is not final.
+            output word, but state B is not final.
             sage: B.final_word_out = None
             sage: B.final_word_out == None
             True
         """
         if not self.is_final and final_word_out is not None:
             raise ValueError("Only final states can have a " \
-                             "final output word. But state %s is not final." \
+                             "final output word, but state %s is not final." \
                              % (self.label()))
         elif not self.is_final:
             self._final_word_out_ = final_word_out

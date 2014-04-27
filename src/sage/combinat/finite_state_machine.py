@@ -4939,9 +4939,9 @@ class FiniteStateMachine(SageObject):
 
     def prepone_output(self):
         """
-        For all path, this methode shifts the output of the path from one
-        transition to another transition of the path which is as far as
-        possible at the beginning.
+        For all paths, shift the output of the path from one
+        transition to the earliest possible preceeding transition of
+        the path.
 
         INPUT:
 
@@ -4954,7 +4954,7 @@ class FiniteStateMachine(SageObject):
         Apply the following to each state `s` (except initial states) of the
         finite state machine as often as possible:
 
-        If the letter a is prefix of the output label of all transitions from
+        If the letter `a` is a prefix of the output label of all transitions from
         `s` (including the final output of `s`), then remove it from all these
         labels and append it to all output labels of all transitions leading
         to `s`.

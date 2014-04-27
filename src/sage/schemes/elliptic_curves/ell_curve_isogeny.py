@@ -957,7 +957,7 @@ class EllipticCurveIsogeny(Morphism):
         return
 
 
-    def __call__(self, P, output_base_ring=None):
+    def _call_(self, P):
         r"""
         Function that implements the call-ability of elliptic curve
         isogenies.
@@ -973,9 +973,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi = EllipticCurveIsogeny(E, E((0,0)))
             sage: phi(E((1,5)))
             (2 : 0 : 1)
-            sage: phi(E(15,20), output_base_ring=GF(23^2,'alpha'))
-            (12 : 1 : 1)
-
+            
             sage: E = EllipticCurve(QQ, [0,0,0,3,0])
             sage: P = E((1,2))
             sage: phi = EllipticCurveIsogeny(E, [0,1])
@@ -1003,28 +1001,37 @@ class EllipticCurveIsogeny(Morphism):
             sage: phihat(Q)
             (-1/48 : 127/576*th : 1)
 
+        TESTS (added when fixing trac #16238, in order to match composition,
+        see #16245)::
+
+            sage: E = EllipticCurve(j=GF(7)(0))
+            sage: phi=E.isogeny( [E(0), E((0,1)), E((0,-1))])
+            sage: phi(E.points()[0])
+            (0 : 1 : 0)
+            sage: phi2=phi*phi
+            sage: phi2(E.points()[0])
+            (0 : 1 : 0)
+
+        TESTS (added when fixing trac #16238, to check coercion)::
+            sage: K.<th> = NumberField(x^2+3)
+            sage: E = EllipticCurve(K,[7,0])
+            sage: E2=EllipticCurve(K,[5,0])
+            sage: phi=E.isogeny(E(0))
+            sage: phi(E2(0))
+            (0 : 1 : 0)
+            sage: E2(20,90)
+            (20 : 90 : 1)
+            sage: phi(E2(20,90))
+            Traceback (most recent call last):
+            ...
+            TypeError: (20 : 90 : 1) fails to convert into the map's domain Elliptic Curve defined by y^2 = x^3 + 7*x over Number Field in th with defining polynomial x^2 + 3, but a `pushforward` method is not properly implemented
+
         """
-        E1 = self.__E1
-        E_P = P.curve()
-        change_output_ring = False
-
-        # check that the parent curve of the input point is this curve
-        # or that the point is on the same curve but whose base ring
-        # is an extension of this ring
-        if (E1 != E_P):
-            if (E1.a_invariants() != E_P.a_invariants()) :
-                raise ValueError("P must be on a curve with same Weierstrass model as the domain curve of this isogeny.")
-            change_output_ring = True
-
-
+      
         if(P.is_zero()):
             return self.__E2(0)
-
-        (xP, yP) = P.xy()
-
-        if not self.__E1.is_on_curve(xP,yP):
-            raise InputError("Input point must be on the domain curve of this isogeny.")
-
+        
+        xP, yP = P.xy()
         # if there is a pre isomorphism, apply it
         if (self.__pre_isomorphism is not None):
             temp_xP = self.__prei_x_coord_ratl_map(xP, yP)
@@ -1045,21 +1052,9 @@ class EllipticCurveIsogeny(Morphism):
         if (self.__post_isomorphism is not None):
             tempX = self.__posti_x_coord_ratl_map(outP[0], outP[1])
             tempY = self.__posti_y_coord_ratl_map(outP[0], outP[1])
-            outP = [tempX, tempY]
+            outP = (tempX, tempY)
 
-        if change_output_ring:
-            if (output_base_ring is None):
-                output_base_ring = E_P.base_ring()
-            outE2 = self.__E2.change_ring(output_base_ring)
-        else:
-            output_base_ring = self.__E2.base_ring()
-            outE2 = self.__E2
-            outP = self.__E2.point(outP,check=False)
-
-        R = output_base_ring
-
-        return outE2.point([R(outP[0]), R(outP[1]), R(1)], check=False)
-
+        return self.__E2(outP)
 
     def __getitem__(self, i):
         self.__initialize_rational_maps()

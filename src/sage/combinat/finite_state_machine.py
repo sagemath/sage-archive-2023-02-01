@@ -746,7 +746,7 @@ class FSMState(SageObject):
       .. WARNING::
 
           ``final_word_out`` is not implemented everywhere. Currently it is
-          implemented in :meth:`FiniteStateMachine.process`, :meth:`latex`,
+          implemented in :meth:`FiniteStateMachine.process`, in the LaTeX output,
           but not in :meth:`FiniteStateMachine.composition`,
           :meth:`FiniteStateMachine.determine_alphabets`,
           :meth:`FiniteStateMachine.equivalence_classes`,
@@ -964,15 +964,12 @@ class FSMState(SageObject):
     @property
     def final_word_out(self):
         """
-        The final output word which is use if a input of a transducer leads to
-        this final state.
+        The final output word of a final state which is written if the
+        state is reached as the last state of the input of the finite
+        state machine. For a non-final state, the value is ``None``.
 
-        The final output word of a final state which is written if the state
-        is reached as the last state of the input of a transducer. For a
-        non-final state, the value is ``None``.
-
-        ``final_word_out`` can be a single letter, a list or ``None``, but it
-        is always saved as a list.
+        ``final_word_out`` can be a single letter, a list or ``None``,
+        but for a final-state, it is always saved as a list.
 
         EXAMPLES::
 

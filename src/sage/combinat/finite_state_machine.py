@@ -5155,18 +5155,23 @@ class FiniteStateMachine(SageObject):
 
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'A', 0, 1)],
             ....:                initial_states=['A', 'B'],
-            ....:                final_states=['A', 'B'],
-            ....:                determine_alphabets=True)
+            ....:                final_states=['A', 'B'])
             sage: F.state('A').final_word_out = 0
             sage: F.state('B').final_word_out = 1
             sage: G = Transducer([(1, 1, 1, 0), (1, 2, 0, 1),
             ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
-            ....:                initial_states=[1], final_states=[2],
-            ....:                determine_alphabets=True)
+            ....:                initial_states=[1], final_states=[2])
             sage: G.state(2).final_word_out = 0
             sage: Hd = F.composition(G, algorithm='direct')
             sage: Hd.final_states()
             [(2, 'B')]
+
+        Note that ``(2, 'A')`` is not final, as the final output `0`
+        of state `2` of `G` cannot be processed in state ``'A'`` of
+        `F`.
+
+        ::
+
             sage: [s.final_word_out for s in Hd.final_states()]
             [[1, 0]]
 

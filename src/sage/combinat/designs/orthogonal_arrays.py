@@ -177,13 +177,17 @@ def find_wilson_decomposition(k,n):
         sage: find_wilson_decomposition(4,20)
         False
     """
-    for t in range(1,n-1):
-        # We ensure that 1<=u
-        if n%t == 0:
+    # If there exists a TD(k+1,t) then k+1 < t+2, i.e. k <= t
+    for t in range(max(1,k),n-1):
+        u = n%t
+        # We ensure that 1<=u, and that there can exists a TD(k,u), i.e k<u+2
+        if u == 0 or k >= u+2:
             continue
 
         m = n//t
-        u = n%t
+        # If there exists a TD(k,m) then k<m+2
+        if k >= m+2:
+            break
 
         if (transversal_design(k  ,m  , availability=True) and
             transversal_design(k  ,m+1, availability=True) and

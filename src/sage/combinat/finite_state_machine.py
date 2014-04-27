@@ -5981,9 +5981,9 @@ class FiniteStateMachine(SageObject):
 
     def with_final_word_out(self, letter):
         """
-        Constructs a new finite state machine with final output words for all
-        states by implicitly reading trailing letters until a final state is
-        reached.
+        Constructs a new finite state machine with final output words
+        for all states by implicitly reading trailing letters until a
+        final state is reached.
 
         INPUT:
 

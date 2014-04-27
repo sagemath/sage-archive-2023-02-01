@@ -1060,9 +1060,9 @@ class FSMState(SageObject):
             sage: A.is_final = False
             Traceback (most recent call last):
             ...
-            ValueError: State A cannot be non-final, because it has
-            a final output
-            word. Only final states can have a final output word.
+            ValueError: State A cannot be non-final, because it has a
+            final output word. Only final states can have a final output
+            word.
             sage: A.final_word_out = None
             sage: A.is_final = False
             sage: A.is_final
@@ -1096,9 +1096,9 @@ class FSMState(SageObject):
             sage: A.is_final = False
             Traceback (most recent call last):
             ...
-            ValueError: State A cannot be non-final, because it
-            has a final output
-            word. Only final states can have a final output word.
+            ValueError: State A cannot be non-final, because it has a
+            final output word. Only final states can have a final output
+            word.
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
             sage: A.final_word_out == None

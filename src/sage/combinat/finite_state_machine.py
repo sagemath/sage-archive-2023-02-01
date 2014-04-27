@@ -4953,7 +4953,7 @@ class FiniteStateMachine(SageObject):
         OUTPUT:
 
         A finite state machine whose states are pairs of states of the
-        original finite state machines. A state is is initial or
+        original finite state machines. A state is initial or
         final if both constituent states are initial or final,
         respectively.
 

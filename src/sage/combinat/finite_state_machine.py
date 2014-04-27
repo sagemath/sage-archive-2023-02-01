@@ -5268,7 +5268,7 @@ class FiniteStateMachine(SageObject):
             self, function,
             only_accessible_components=only_accessible_components)
 
-        for state_result in result.states():
+        for state_result in result.iter_states():
             state = state_result.label()[0]
             if state.is_final:
                 accept, state_to, output = \

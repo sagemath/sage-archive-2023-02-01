@@ -6939,31 +6939,15 @@ class Transducer(FiniteStateMachine):
 
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in:
-                max_length = max(len(transition1.word_out),
-                                 len(transition2.word_out))
-                word_out1 = transition1.word_out \
-                    + (max_length - len(transition1.word_out)) \
-                    * [None]
-                word_out2 = transition2.word_out \
-                    + (max_length - len(transition2.word_out)) \
-                    * [None]
-                return (transition1.word_in, zip(word_out1, word_out2))
+                return (transition1.word_in,
+                        list(itertools.izip_longest(transition1.word_out,
+                                                    transition2.word_out)))
             else:
                 raise LookupError
         
         def final_function(s1, s2):
-            if not s1.final_word_out and not s2.final_word_out:
-                return None
-            else:
-                max_length = max(len(s1.final_word_out),
-                                 len(s2.final_word_out))
-                final_word_out1 = s1.final_word_out \
-                    + (max_length - len(s1.final_word_out)) \
-                    * [None]
-                final_word_out2 = s2.final_word_out \
-                    + (max_length - len(s2.final_word_out)) \
-                    * [None]
-                return zip(final_word_out1, final_word_out2)
+            return list(itertools.izip_longest(s1.final_word_out,
+                                               s2.final_word_out))
 
         return self.product_FiniteStateMachine(
             other,

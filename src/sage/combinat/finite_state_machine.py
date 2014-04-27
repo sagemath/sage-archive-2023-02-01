@@ -570,7 +570,7 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap
+from itertools import imap, ifilter
 from collections import defaultdict
 
 
@@ -6017,7 +6017,8 @@ class FiniteStateMachine(SageObject):
 
         It is required that each non-final state has a unique leaving
         transition with input label ``letter`` and that reading
-        ``letter`` eventually leads to a final state.
+        ``letter`` eventually leads to a final state. Currently, only
+        transitions with input labels of length `1` are supported.
 
         .. SEE ALSO:
 
@@ -6141,6 +6142,21 @@ class FiniteStateMachine(SageObject):
                     ...
                     ValueError: No unique transition leaving state 0
                     with input label 0.
+
+            #.  All transitions must have input labels of length `1`::
+
+                    sage: T = Transducer([(0, 0, [], 0)])
+                    sage: T.with_final_word_out(0)
+                    Traceback (most recent call last):
+                    ...
+                    NotImplementedError: All transitions must have input
+                    labels of length 1.
+                    sage: T = Transducer([(0, 0, [0, 1], 0)])
+                    sage: T.with_final_word_out(0)
+                    Traceback (most recent call last):
+                    ...
+                    NotImplementedError: All transitions must have input
+                    labels of length 1.
         """
         new = deepcopy(self)
         in_progress = set()
@@ -6154,6 +6170,11 @@ class FiniteStateMachine(SageObject):
                     "input label %s and no final state." % (letter))
 
             in_progress.add(state)
+            if any(ifilter(lambda t: len(t.word_in) != 1,
+                           state.transitions)):
+                raise NotImplementedError("All transitions must have "
+                                          "input labels of length 1.")
+
             transitions = [t for t in state.transitions
                            if t.word_in == [letter]]
             if len(transitions) != 1:

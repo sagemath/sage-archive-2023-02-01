@@ -4943,9 +4943,12 @@ class FiniteStateMachine(SageObject):
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
-        - ``final_function`` -- A function specifying how to handle final
-          output words. The default is ``None``, that is to ignore final
-          output words. The input of the function should be two states.
+        - ``final_function`` -- A function mapping two final states of
+          the original finite state machines to the final output of
+          the corresponding state in the new finite state machine. By
+          default, the final output is the empty word if both final
+          outputs of the constituent states are empty; otherwise, a
+          ``ValueError`` is raised.
 
         OUTPUT:
 
@@ -4953,6 +4956,9 @@ class FiniteStateMachine(SageObject):
         original finite state machines.
 
         The labels of the transitions are defined by ``function``.
+
+        The final output of a final state is determined by calling
+        ``final_function`` on the constituent states.
 
         The color of a new state is the tuple of colors of the
         constituent states of ``self`` and ``other``.
@@ -5011,6 +5017,10 @@ class FiniteStateMachine(SageObject):
             sage: def minus(t1, t2):
             ....:     return (t1.word_in[0] - t2.word_in[0],
             ....:                t1.word_out[0] - t2.word_out[0])
+            sage: H = F.product_FiniteStateMachine(G, minus)
+            Traceback (most recent call last):
+            ...
+            ValueError: A final function must be given.
             sage: def plus(s1, s2):
             ....:     return s1.final_word_out[0] + s2.final_word_out[0]
             sage: H = F.product_FiniteStateMachine(G, minus,
@@ -5035,6 +5045,11 @@ class FiniteStateMachine(SageObject):
             Automaton with 1 states
 
         """
+        def default_final_function(s1, s2):
+            if s1.final_word_out or s2.final_word_out:
+                raise ValueError("A final function must be given.")
+            return []
+
         result = self.empty_copy()
         if new_input_alphabet is not None:
             result.input_alphabet = new_input_alphabet
@@ -5042,7 +5057,7 @@ class FiniteStateMachine(SageObject):
             result.input_alphabet = None
 
         if final_function is None:
-            final_function = lambda s1, s2: []
+            final_function = default_final_function
 
         for transition1 in self.transitions():
             for transition2 in other.transitions():

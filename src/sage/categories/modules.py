@@ -33,12 +33,6 @@ class Modules(Category_module):
 
     .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x \in M
 
-    and
-
-    .. math::  r*x = x*r \qquad  \forall r \in R \text{ and } x \in M.
-
-    This is also known as a symmetric `R`-`R`-bimodule.
-
     INPUT:
 
       - ``base_ring`` -- a ring `R`
@@ -75,16 +69,25 @@ class Modules(Category_module):
 
     .. TODO::
 
-        - Sometimes symmetric modules are studied even for noncommutative
-          `R` (even though they are nothing but modules over the
-          abelianization of `R`). Support this?
+        - Clarify the distinction, if any, with ``BiModules(R, R)``.
+          In particular, if `R` is a commutative ring (e.g. a field),
+          some pieces of the code possibly assume that `M` is a
+          *symmetric `R`-`R`-bimodule*:
+
+          .. math::  r*x = x*r \qquad  \forall r \in R \text{ and } x \in M.
+
+        - Make sure that non symmetric modules are properly supported
+          by all the code, and advertise it.
+
+        - Make sure that non commutative rings are properly supported
+          by all the code, and advertise it.
 
         - Add support for base semirings.
 
-        - Implement a FreeModules(R) category, when so prompted by a
+        - Implement a ``FreeModules(R)`` category, when so prompted by a
           concrete use case: e.g.  modeling a free module with several
           bases (using :meth:`Sets.SubcategoryMethods.Realizations`)
-          or with an atlas of local maps.
+          or with an atlas of local maps (see e.g. :trac:`15916`).
     """
 
     @staticmethod
@@ -204,27 +207,32 @@ class Modules(Category_module):
         @cached_method
         def DualObjects(self):
             r"""
-            Return the category of duals of objects of ``self``.
+            Return the category of spaces constructed as duals of
+            spaces of ``self``.
 
             The *dual* of a vector space `V` is the space consisting of
             all linear functionals on `V` (see :wikipedia:`Dual_space`).
             Additional structure on `V` can endow its dual with
-            additional structure; e.g. if `V` is an algebra, then its
-            dual is a coalgebra.
+            additional structure; for example, if `V` is a finite
+            dimensional algebra, then its dual is a coalgebra.
 
-            This returns the category of dual of spaces in ``self`` endowed
-            with the appropriate additional structure.
+            This returns the category of spaces constructed as dual of
+            spaces in ``self``, endowed with the appropriate
+            additional structure.
 
             .. WARNING::
 
-                This semantic of ``dual`` and ``DualObject`` is
-                imposed on all subcategories, in particular to make
-                ``dual`` a covariant functorial construction.
+                - This semantic of ``dual`` and ``DualObject`` is
+                  imposed on all subcategories, in particular to make
+                  ``dual`` a covariant functorial construction.
 
-                A subcategory that defines a different notion of dual
-                needs to use a different name. Typically, the category
-                of graded modules will define a ``graded_dual``
-                construction. See :trac:`15647`.
+                  A subcategory that defines a different notion of
+                  dual needs to use a different name.
+
+                - Typically, the category of graded modules should
+                  define a separate ``graded_dual`` construction (see
+                  :trac:`15647`). For now the two constructions are
+                  not distinguished which is an oversimplified model.
 
             .. SEEALSO::
 

@@ -182,6 +182,11 @@ class Algebras(CategoryWithAxiom_over_base_ring):
                 Category of duals of algebras over Rational Field
                 sage: C.dual().extra_super_categories()
                 [Category of coalgebras over Rational Field]
+
+            .. WARNING::
+
+                This is only correct in certain cases (finite dimension, ...).
+                See :trac:`15647`.
             """
             from sage.categories.coalgebras import Coalgebras
             return [Coalgebras(self.base_category().base_ring())]

@@ -36,7 +36,6 @@ import sage.modular.cusps as cusps
 import sage.modular.modsym.manin_symbols
 from sage.structure.sage_object import SageObject
 import sage.structure.formal_sum as formal_sum
-import sage.rings.arith as arith
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import latex
 
@@ -333,7 +332,8 @@ class ModularSymbol(SageObject):
         k = space.weight()
         v = [(0,1), (1,0)]
         if not alpha.is_infinity():
-            v += [(x.numerator(), x.denominator()) for x in arith.convergents(alpha._rational_())]
+            cf = alpha._rational_().continued_fraction()
+            v.extend((cf.p(k),cf.q(k)) for k in xrange(len(cf)))
         sign = 1
         apply = sage.modular.modsym.manin_symbols.apply_to_monomial
         mansym = sage.modular.modsym.manin_symbols.ManinSymbol

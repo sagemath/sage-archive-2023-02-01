@@ -96,6 +96,7 @@ Geometry and Topology
 Number Theory, Algebraic Geometry
 ---------------------------------
 
+* :doc:`Diophantine approximation <diophantine_approximation/index>`
 * :doc:`Quadratic Forms <quadratic_forms/index>`
 * :doc:`L-Functions <lfunctions/index>`
 * :doc:`Schemes <schemes/index>`

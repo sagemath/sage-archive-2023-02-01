@@ -10,7 +10,9 @@ order to:
 
 AUTHORS:
 
-    - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+- Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+
+- Vincent Delecroix (2014): modifies continued fractions because of trac:`14567`
 
 EXAMPLES::
 
@@ -928,7 +930,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
             sage: s.natural_object().parent()
-            Field of all continued fractions
+            QQ as continued fractions
 
             sage: s = oeis._imaginary_sequence('nonn')
             sage: s.natural_object().parent()

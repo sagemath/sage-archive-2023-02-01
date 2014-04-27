@@ -53,7 +53,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Continued fraction of 3.1415926535
     sage: a = 3.1415926535
     sage: continued_fraction(a)
-    [3, 7, 15, 1, 292, 1, 1, 6, 2, 13, 4]
+    [3; 7, 15, 1, 292, 1, 1, 6, 2, 13, 4]
 
 ::
 

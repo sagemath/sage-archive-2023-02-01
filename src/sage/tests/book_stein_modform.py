@@ -73,7 +73,7 @@ sage: S = M.cuspidal_submodule()
 sage: S.integral_basis()     # basis over ZZ.
 ({-1/8, 0}, {-1/9, 0})
 sage: set_modsym_print_mode ('manin')    # set it back
-sage: convergents(4/7)
+sage: continued_fraction(4/7).convergents()
 [0, 1, 1/2, 4/7]
 sage: M = ModularSymbols(2,2)
 sage: M

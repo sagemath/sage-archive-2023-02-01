@@ -233,9 +233,12 @@ def _multiple_of_constant(n,pos,const):
         sage: plot(x^2, (x,0,10), ticks=[sqrt(2),8], tick_formatter=sqrt(2))
     """
     from sage.misc.latex import latex
-    from sage.rings.arith import convergents
-    c=[i for i in convergents(n/const.n()) if i.denominator()<12]
-    return '$%s$'%latex(c[-1]*const)
+    from sage.rings.continued_fraction import continued_fraction
+    cf = continued_fraction(n/const)
+    k = 1
+    while cf.quotient(k) and cf.denominator(k) < 12:
+        k += 1
+    return '$%s$'%latex(cf.convergent(k-1)*const)
 
 
 def get_matplotlib_linestyle(linestyle, return_type):

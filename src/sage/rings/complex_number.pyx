@@ -39,6 +39,7 @@ import integer
 import infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
+from sage.rings.integer_ring import ZZ
 
 include "sage/ext/stdsage.pxi"
 
@@ -2276,6 +2277,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             False
         """
         return (mpfr_zero_p(self.__re) != 0)
+
+    def is_integer(self):
+        """
+        Return ``True`` if ``self`` is a integer
+
+        EXAMPLES::
+
+            sage: CC(3).is_integer()
+            True
+            sage: CC(1,2).is_integer()
+            False
+        """
+        return self.is_real() and self.real() in ZZ
 
     def zeta(self):
         """

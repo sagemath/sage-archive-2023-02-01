@@ -303,7 +303,7 @@ cdef class Morphism(Map):
             gens = domain.gens()
             definition = tuple([self(x) for x in gens])
         except (AttributeError, NotImplementedError):
-            definition = self.__repr__()
+            definition = repr(self)
         return hash((domain, codomain, definition))
 
     def __richcmp__(left, right, int op):

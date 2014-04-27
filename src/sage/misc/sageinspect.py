@@ -298,7 +298,7 @@ def _extract_source(lines, lineno):
         ['  class f():\n', '    pass\n']
     """
     if lineno < 1:
-        raise ValueError, "Line numbering starts at 1! (tried to extract line %s)" % lineno
+        raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
     if isinstance(lines, str):
@@ -1300,7 +1300,7 @@ def sage_getargspec(obj):
         source = sage_getsource(obj)
         return inspect.ArgSpec(*_sage_getargspec_cython(source))
     if not callable(obj):
-        raise TypeError, "obj is not a code object"
+        raise TypeError("obj is not a code object")
     try:
         return inspect.ArgSpec(*obj._sage_argspec_())
     except (AttributeError, TypeError):
@@ -1606,7 +1606,7 @@ def _sage_getsourcelines_name_with_dot(object):
             if B is None:
                 raise AttributeError
         except AttributeError:
-            raise IOError, "could not get source code"
+            raise IOError("could not get source code")
         return sage_getsourcelines(B)
     # M should just be the top-most module.
     # Hence, normally it is just 'sage'
@@ -1619,7 +1619,7 @@ def _sage_getsourcelines_name_with_dot(object):
             if B is None:
                 raise AttributeError
         except AttributeError:
-            raise IOError, "could not get source code"
+            raise IOError("could not get source code")
         return sage_getsourcelines(B)
 
     lines, base_lineno = sage_getsourcelines(M)

@@ -707,7 +707,7 @@ class SkewTableau(CombinatorialObject, Element):
         outer_corners = self.outer_shape().corners()
         if corner is not None:
             if tuple(corner) not in inner_corners:
-                raise ValueError, "corner must be an inner corner"
+                raise ValueError("corner must be an inner corner")
         else:
             if len(inner_corners) == 0:
                 return self

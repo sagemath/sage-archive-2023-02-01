@@ -384,7 +384,7 @@ class Gamma0_class(GammaH_class):
             return [self(g, check=False) for g in gen_list]
 
         else:
-            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
+            raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)
 
     def gamma_h_subgroups(self):
         r"""

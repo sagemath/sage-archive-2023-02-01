@@ -4992,12 +4992,13 @@ class FiniteStateMachine(SageObject):
         obtained::
 
             sage: C = Transducer([(0,1,0,0)])
-            sage: C.prepone_output()
-            prepone_output: All transitions leaving state 0 have an
-            output label with prefix 0.  However, there is no inbound
-            transition and it is not an initial state. This routine
-            (possibly called by simplification) therefore erased this
-            prefix from all outbound transitions.
+            sage: C.prepone_output() # doctest: +ELLIPSIS
+            verbose 0 (...: finite_state_machine.py, prepone_output)
+            All transitions leaving state 0 have an output label with
+            prefix 0.  However, there is no inbound transition and it
+            is not an initial state. This routine (possibly called by
+            simplification) therefore erased this prefix from all
+            outbound transitions.
             sage: C.transitions()
             [Transition from 0 to 1: 0|-]
 
@@ -5049,9 +5050,10 @@ class FiniteStateMachine(SageObject):
              Transition from 1 to 1: 1|1,(0, 0)]
         """
         def find_common_output(state):
-            if len(filter(lambda transition: len(transition.word_out) == 0,
-                          self.transitions(state))) > 0 or \
-                       state.final_word_out == []:
+            if any(itertools.ifilter(
+                    lambda transition: len(transition.word_out) == 0,
+                    self.transitions(state))
+                   ) or state.final_word_out == []:
                 return tuple()
             first_letters = map(lambda transition: transition.word_out[0],
                                 self.transitions(state))
@@ -5072,12 +5074,13 @@ class FiniteStateMachine(SageObject):
             for state in self.states():
                 if state.is_initial:
                     continue
-                assert len(state.word_out) == 0, \
-                    "prepone_output assumes that all states have empty "\
-                    "output word, but state %s has output word %s" % \
-                    (state, state.word_out)
+                if state.word_out:
+                    raise NotImplementedError(
+                        "prepone_output assumes that all states have "
+                        "empty output word, but state %s has output "
+                        "word %s" % (state, state.word_out))
                 common_output = find_common_output(state)
-                if len(common_output) > 0:
+                if common_output:
                     changed += 1
                     if state.is_final:
                         assert state.final_word_out[0] == common_output[0]
@@ -5086,19 +5089,22 @@ class FiniteStateMachine(SageObject):
                         assert transition.word_out[0] == common_output[0]
                         transition.word_out = transition.word_out[1:]
                     found_inbound_transition = False
-                    for transition in self.transitions():
+                    for transition in self.iter_transitions():
                         if transition.to_state == state:
                             transition.word_out = transition.word_out \
                                 + [common_output[0]]
                             found_inbound_transition = True
                     if not found_inbound_transition:
-                        print "prepone_output: All transitions leaving state " \
-                            "%s have an output label with prefix %s. "\
-                            "However, there is no inbound transition " \
-                            "and it is not an initial state. "\
-                            "This routine (possibly called by simplification)" \
-                            " therefore erased this prefix from all "\
-                            "outbound transitions." % (state, common_output[0])
+                        verbose(
+                            "All transitions leaving state %s have an "
+                            "output label with prefix %s. However, "
+                            "there is no inbound transition and it is "
+                            "not an initial state. This routine "
+                            "(possibly called by simplification) "
+                            "therefore erased this prefix from all "
+                            "outbound transitions." %
+                            (state, common_output[0]),
+                            level=0)
 
 
 

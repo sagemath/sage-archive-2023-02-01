@@ -4798,14 +4798,15 @@ class FiniteStateMachine(SageObject):
                                 new_word_in, None))
 
         if what == 'output':
-            if not filter(lambda s: s.final_word_out, self.final_states()):
+            states = filter(lambda s: s.final_word_out, self.iter_final_states())
+            if not states:
                 return new
             number = 0
             while new.has_state(('final', number)):
                 number += 1
             final = new.add_state(('final', number))
             final.is_final = True
-            for state in filter(lambda s: s.final_word_out, self.final_states()):
+            for state in states:
                 output = state.final_word_out
                 new.state(state_mapping[state]).final_word_out = []
                 new.state(state_mapping[state]).is_final = False

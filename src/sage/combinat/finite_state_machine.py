@@ -6115,7 +6115,7 @@ class FiniteStateMachine(SageObject):
 
         TESTS:
 
-            #.  Reading copies of ``letter`` may result in a loop. In
+            #.  Reading copies of ``letter`` may result in a cycle. In
                 this simple example, we have no final state at all::
 
                     sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 0)],
@@ -6123,7 +6123,7 @@ class FiniteStateMachine(SageObject):
                     sage: T.with_final_word_out(0)
                     Traceback (most recent call last):
                     ...
-                    ValueError: The finite state machine contains a loop
+                    ValueError: The finite state machine contains a cycle
                     with input label 0 and no final state.
 
             #.  A unique transition with input word ``letter`` is
@@ -6150,7 +6150,7 @@ class FiniteStateMachine(SageObject):
                 return state.final_word_out
             if state in in_progress:
                 raise ValueError(
-                    "The finite state machine contains a loop with "
+                    "The finite state machine contains a cycle with "
                     "input label %s and no final state." % (letter))
 
             in_progress.add(state)

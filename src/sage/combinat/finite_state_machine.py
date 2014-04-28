@@ -746,14 +746,15 @@ class FSMState(SageObject):
       .. WARNING::
 
           ``final_word_out`` is not implemented everywhere. Currently it is
-          implemented in :meth:`FiniteStateMachine.process`, in the LaTeX output,
-          :meth:`FiniteStateMachine.composition`, but not in 
-          :meth:`FiniteStateMachine.determine_alphabets`,
-          :meth:`FiniteStateMachine.equivalence_classes`,
+          implemented in :meth:`FiniteStateMachine.process`,
+          in the LaTeX output,
+          :meth:`FiniteStateMachine.composition`,
           :meth:`FiniteStateMachine.output_projection`,
           :meth:`FiniteStateMachine.prepone_output`,
+          :meth:`Transducer.cartesian_product`, but not in
+          :meth:`FiniteStateMachine.determine_alphabets`,
+          :meth:`FiniteStateMachine.equivalence_classes`,
           :meth:`FiniteStateMachine.transposition`,
-          :meth:`Transducer.cartesian_product`,
           :meth:`Transducer.intersection` and
           :meth:`Transducer.simplification`.
 

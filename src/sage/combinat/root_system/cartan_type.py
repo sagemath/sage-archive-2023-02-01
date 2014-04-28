@@ -1,10 +1,11 @@
 r"""
 Cartan types
 
-.. contents::
+.. TODO::
+
+   Why does sphinx complain if I use sections here?
 
 Introduction
-------------
 
 Loosely speaking, Dynkin diagrams (or equivalently Cartan matrices)
 are graphs which are used to classify root systems, Coxeter and Weyl
@@ -391,9 +392,9 @@ Additionally one can set the notation global option to use Kac's notation::
     E6^2
     sage: CartanType.global_options['notation'] = 'BC'
 
+.. TODO:: Should those indexes come before the introduction?
 
 Abstract classes for cartan types
----------------------------------
 
 - :class:`CartanType_abstract`
 - :class:`CartanType_crystallographic`
@@ -401,19 +402,17 @@ Abstract classes for cartan types
 - :class:`CartanType_simple`
 - :class:`CartanType_finite`
 - :class:`CartanType_affine` (see also :ref:`sage.combinat.root_system.type_affine`)
-- :ref:`sage.combinat.root_system.cartan_type.CartanType`
+- :obj:`sage.combinat.root_system.cartan_type.CartanType`
 - :ref:`sage.combinat.root_system.type_dual`
 - :ref:`sage.combinat.root_system.type_reducible`
 - :ref:`sage.combinat.root_system.type_relabel`
 
 Concrete classes for cartan types
----------------------------------
 
 - :class:`CartanType_standard_affine`
 - :class:`CartanType_standard_untwisted_affine`
 
 Type specific data
-------------------
 
 The data essentially consists of a description of the Dynkin/Coxeter
 diagram and, when relevant, of the natural embedding of the root

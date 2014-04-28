@@ -25,7 +25,7 @@ Thematic indexes
 Graphs
 ------
 
-.. TODO:: point instead to the main entry point for graphs
+.. TODO:: are those the best entry points for graphs?
 
 - :class:`Graph`, :class:`DiGraph`, :obj:`graphs <sage.graphs.graph_generators.GraphGenerators>`, :obj:`digraphs <sage.graphs.digraph_generators.DiGraphGenerators>`
 

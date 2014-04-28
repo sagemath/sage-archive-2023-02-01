@@ -44,7 +44,7 @@ Polytopes::
     sage: Sym = SymmetricFunctions(QQ); Sym.inject_shorthands()
     sage: m( ( h[2,1] * (1 + 3 * p[2,1]) ) + s[2](s[3]) )
 
-:ref:`Discrete groups, Permutation groups <sage.groups>`::
+:ref:`Discrete groups, Permutation groups <sage.groups.groups_catalog>`::
 
     sage: S = SymmetricGroup(4)
     sage: M = MultivariatePolynomials('x0,x1,x2,x3')

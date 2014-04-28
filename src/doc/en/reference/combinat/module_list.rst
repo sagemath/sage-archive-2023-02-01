@@ -303,6 +303,3 @@ Alphabetical module list
     sage/combinat/words/word
     sage/combinat/words/words
     sage/combinat/yang_baxter_graph
-
-
-.. include:: ../footer.txt

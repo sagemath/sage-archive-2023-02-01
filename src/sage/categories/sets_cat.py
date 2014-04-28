@@ -402,7 +402,8 @@ class Sets(Category_singleton):
               category looks like this::
 
                  sage: EuclideanDomains().Subquotients()
-                 Join of Category of euclidean domains and Category of subquotients of monoids
+                 Join of Category of euclidean domains
+                     and Category of subquotients of monoids
 
             Interface: the ambient set `B` of `A` is given by
             ``A.ambient()``. The subset `B'` needs not be specified, so
@@ -484,8 +485,8 @@ class Sets(Category_singleton):
 
                 sage: EuclideanDomains().Quotients()
                 Join of Category of euclidean domains
-                 and Category of subquotients of monoids
-                 and Category of quotients of semigroups
+                    and Category of subquotients of monoids
+                    and Category of quotients of semigroups
 
             TESTS::
 
@@ -538,7 +539,7 @@ class Sets(Category_singleton):
 
                 sage: C = Semigroups().Subobjects(); C
                 Join of Category of subquotients of semigroups
-                 and Category of subobjects of sets
+                    and Category of subobjects of sets
 
             The caller is responsible for checking that the given category
             admits a well defined category of subobjects.
@@ -634,7 +635,7 @@ class Sets(Category_singleton):
 
                 sage: C = Semigroups().IsomorphicObjects(); C
                 Join of Category of quotients of semigroups
-                 and Category of isomorphic objects of sets
+                    and Category of isomorphic objects of sets
 
             .. SEEALSO::
 

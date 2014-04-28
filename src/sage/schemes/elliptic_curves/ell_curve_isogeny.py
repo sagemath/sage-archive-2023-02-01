@@ -754,7 +754,7 @@ class EllipticCurveIsogeny(Morphism):
         sage: phi.codomain()
         Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
 
-    TESTS (track #16245)::
+    Composition tests (see :trac:`16245`)::
 
         sage: E = EllipticCurve(j=GF(7)(0))
         sage: phi=E.isogeny( [E(0), E((0,1)), E((0,-1))]);phi

@@ -16711,12 +16711,10 @@ class GenericGraph(GenericGraph_pyx):
         # If perm is not a dictionary, we build one !
 
         if perm is None:
-            verts = self.vertices() # vertices() returns a sorted list:
-            perm = {}; i = 0        # this guarantees consistent relabeling
-            for v in verts:
-                perm[v] = i
-                i += 1
 
+            # vertices() returns a sorted list:
+            # this guarantees consistent relabeling
+            perm = dict({v:i for i,v in enumerate(self.vertices())})
             complete_partial_function = False
             check_input = False
 

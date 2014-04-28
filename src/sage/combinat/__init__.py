@@ -15,6 +15,7 @@ Thematic indexes
 - :ref:`sage.combinat.enumerated_sets`
 - :ref:`sage.combinat.catalog_partitions`
 - :ref:`sage.combinat.species`
+- :ref:`sage.combinat.designs`
 - :ref:`sage.combinat.algebraic_combinatorics`
 - :ref:`sage.combinat.posets`
 - :ref:`sage.combinat.words`
@@ -24,7 +25,7 @@ Graphs
 
 .. TODO:: point instead to the main entry point for graphs
 
-- :class:`Graph`, :class:`DiGraph`, :obj:`graphs`, :obj:`digraphs`
+- :class:`Graph`, :class:`DiGraph`, :obj:`graphs <sage.graphs.graph_generators.GraphGenerators>`, :obj:`digraphs <sage.graphs.digraph_generators.DiGraphGenerators>`
 
 Dynamical systems
 -----------------

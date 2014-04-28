@@ -8,8 +8,8 @@ Words
    - Add links from the module documentation to the important classes/functions
 
 - :func:`sage.combinat.words.alphabet.build_alphabet`
-- :func:`sage.combinat.word.Word`
-- :func:`sage.combinat.words.Words`
+- :func:`sage.combinat.words.word.Word`
+- :func:`sage.combinat.words.words.Words`
 - :ref:`sage.combinat.words.word_generators`
 - :class:`sage.combinat.words.shuffle_product.ShuffleProduct`, :class:`sage.combinat.words.shuffle_product.ShuffleProduct` ???
 - :ref:`sage.combinat.words.suffix_trees`

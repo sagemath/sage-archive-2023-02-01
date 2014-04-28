@@ -15,40 +15,40 @@ Introductory material
 Lazy Power Series
 -----------------
 
-- :mod:`sage/combinat/species/stream`
-- :mod:`sage/combinat/species/series_order`
-- :mod:`sage/combinat/species/series`
-- :mod:`sage/combinat/species/generating_series`
+- :ref:`sage.combinat.species.stream`
+- :ref:`sage.combinat.species.series_order`
+- :ref:`sage.combinat.species.series`
+- :ref:`sage.combinat.species.generating_series`
 
 Basic Species
 -------------
 
-- :mod:`sage/combinat/species/species`
-- :mod:`sage/combinat/species/empty_species`
-- :mod:`sage/combinat/species/recursive_species`
-- :mod:`sage/combinat/species/characteristic_species`
-- :mod:`sage/combinat/species/cycle_species`
-- :mod:`sage/combinat/species/partition_species`
-- :mod:`sage/combinat/species/permutation_species`
-- :mod:`sage/combinat/species/linear_order_species`
-- :mod:`sage/combinat/species/set_species`
-- :mod:`sage/combinat/species/subset_species`
-- :mod:`sage/combinat/species/library`
+- :ref:`sage.combinat.species.species`
+- :ref:`sage.combinat.species.empty_species`
+- :ref:`sage.combinat.species.recursive_species`
+- :ref:`sage.combinat.species.characteristic_species`
+- :ref:`sage.combinat.species.cycle_species`
+- :ref:`sage.combinat.species.partition_species`
+- :ref:`sage.combinat.species.permutation_species`
+- :ref:`sage.combinat.species.linear_order_species`
+- :ref:`sage.combinat.species.set_species`
+- :ref:`sage.combinat.species.subset_species`
+- :ref:`sage.combinat.species.library`
 
 Operations on Species
 ---------------------
 
-- :mod:`sage/combinat/species/sum_species`
-- :mod:`sage/combinat/species/product_species`
-- :mod:`sage/combinat/species/composition_species`
-- :mod:`sage/combinat/species/functorial_composition_species`
+- :ref:`sage.combinat.species.sum_species`
+- :ref:`sage.combinat.species.product_species`
+- :ref:`sage.combinat.species.composition_species`
+- :ref:`sage.combinat.species.functorial_composition_species`
 
 Miscellaneous
 -------------
 
-- :mod:`sage/combinat/species/structure`
-- :mod:`sage/combinat/species/misc`
-- :mod:`sage/combinat/species/combinatorial_logarithm`
+- :ref:`sage.combinat.species.structure`
+- :ref:`sage.combinat.species.misc`
+- :ref:`sage.combinat.species.combinatorial_logarithm`
 """
 
 import all

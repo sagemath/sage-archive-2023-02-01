@@ -4,7 +4,7 @@ Combinatorics quickref
 
 Integer Sequences::
 
-    sage: oeis([1,3,19,211])
+    sage: s = oeis([1,3,19,211]); s
     0: A000275: Coefficients of a Bessel function (reciprocal of J_0(z)); also pairs of permutations with rise/rise forbidden.
     sage: s.programs()
     0: (PARI) a(n)=if(n<0,0,n!^2*4^n*polcoeff(1/besselj(0,x+x*O(x^(2*n))),2*n)) /* Michael Somos May 17 2004 */
@@ -22,24 +22,27 @@ Constructions and Species::
 
 Words::
 
-    sage: W=Words('abc')
+    sage: Words('abc')
     sage: Word('aabca').some_flashy_feature()
 
 Polytopes::
 
-    sage: L = LatticePolytope(random_matrix(ZZ, 3,6, x=7))
+    sage: points = random_matrix(ZZ, 6, 3, x=7).rows()
+    sage: L = LatticePolytope(points)
     sage: L.npoints(); L.plot3d()
 
-Root systems, Coxeter and Weyl groups (:mod:`sage.combinat.root_system`)::
+:ref:`Root systems, Coxeter and Weyl groups <sage.combinat.root_system>`::
 
-Crystals (:mod:`sage.combinat.crystals`)::
+    sage: CoxeterGroup(["B",3]).some_flashy_feature()
 
-    sage: CrystalOfTableaux(["A",3], shape = [3,2])
+:ref:`Crystals <sage.combinat.crystals>`::
 
-Symmetric functions and combinatorial Hopf algebras (:mod:`sage.combinat.algebraic_combinatorics`)::
+    sage: CrystalOfTableaux(["A",3], shape = [3,2]).some_flashy_feature()
+
+:mod:`Symmetric functions and combinatorial Hopf algebras <sage.combinat.algebraic_combinatorics>`::
 
     sage: Sym = SymmetricFunctions(QQ); Sym.inject_shorthands()
-    sage: s[3] * h[2] ...
+    sage: m( ( h[2,1] * (1 + 3 * p[2,1]) ) + s[2](s[3]) )
 
 Discrete groups, Permutation groups (:mod:`sage.groups`)::
 
@@ -47,7 +50,7 @@ Discrete groups, Permutation groups (:mod:`sage.groups`)::
     sage: M = MultivariatePolynomials('x0,x1,x2,x3')
     sage: M(...).action??? S.
 
-Graph theory, posets, lattices (:class:`Graph`, :class:`Digraph`, :mod:`sage.combinat.posets`)::
+Graph theory, posets, lattices (:class:`Graph`, :class:`DiGraph`, :mod:`sage.combinat.posets`)::
 
-    sage: Poset({1: [2,3], 2: [4], 3: [4]}).some_snappy_feature()
+    sage: Poset({1: [2,3], 2: [4], 3: [4]}).some_flashy_feature()
 """

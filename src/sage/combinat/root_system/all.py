@@ -1,3 +1,6 @@
+r"""
+Root system features that are imported by default in the interpreter namespace
+"""
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.root_system.associahedron', 'Associahedron')
 

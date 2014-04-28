@@ -2,11 +2,11 @@ __doc__ = r"""
 Posets
 ======
 
-- :mod:`sage.combinat.posets`
-- :func:`Poset`, :func:`MeetSemiLattice`, :func:`JoinSemiLattice`, :func:`LatticePoset`
-- :class:`sage.categories.posets.Posets`, :class:`sage.categories.lattices.Lattices`
+- :ref:`sage.combinat.posets.posets`
+- :func:`Poset`, :func:`MeetSemilattice`, :func:`JoinSemilattice`, :func:`LatticePoset`
+- :class:`sage.categories.posets.Posets`, :class:`sage.categories.lattice_posets.LatticePosets`
 - :obj:`Posets`
-- :func:`TamariLattice`
+- :ref:`sage.combinat.tamari_lattices`
 - :class:`sage.combinat.posets.linear_extensions.LinearExtensionOfPoset`, :class:`sage.combinat.posets.linear_extensions.LinearExtensionsOfPoset`
 """
 

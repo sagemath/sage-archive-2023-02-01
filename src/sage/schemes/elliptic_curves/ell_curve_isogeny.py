@@ -738,7 +738,7 @@ class EllipticCurveIsogeny(Morphism):
         (((4/25*i + 3/25)*x^5 + (4/5*i - 2/5)*x^3 - x)/(x^4 + (-4/5*i + 2/5)*x^2 + (-4/25*i - 3/25)),
          ((11/125*i + 2/125)*x^6*y + (-23/125*i + 64/125)*x^4*y + (141/125*i + 162/125)*x^2*y + (3/25*i - 4/25)*y)/(x^6 + (-6/5*i + 3/5)*x^4 + (-12/25*i - 9/25)*x^2 + (2/125*i - 11/125)))
        
-    TESTS (track #12880)::
+    Domain and codomain tests (see :trac:`12880`)::
     
        sage: E = EllipticCurve(QQ, [0,0,0,1,0])
        sage: phi = EllipticCurveIsogeny(E,  E(0,0))
@@ -3320,7 +3320,7 @@ class EllipticCurveIsogeny(Morphism):
             NotImplementedError
 
         The following should test that :meth:`_composition_` is called
-        upon a product (modified for ticket #12880 ; see ticket #16245 where we
+        upon a product (modified for :trac:`12880` ; see :trac:`16245` where we
         fix the _composition_ issue).
 
             sage: phi*phi

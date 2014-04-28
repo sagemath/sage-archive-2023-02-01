@@ -20,7 +20,7 @@ unset PYTHONPATH
 export HAS_HG=no
 export SVNVERSION=no
 
-cd src
+cd Python-*
 
 # PATCH
 for patch in ../patches/*.patch; do

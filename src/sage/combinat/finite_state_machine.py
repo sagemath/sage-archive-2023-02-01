@@ -5180,6 +5180,26 @@ class Automaton(FiniteStateMachine):
             [frozenset(['A']), frozenset(['A', 'B']),
             frozenset(['A', 'C']), frozenset(['A', 'C', 'B'])]
 
+        ::
+
+            sage: A = Automaton([(0, 1, 1), (0, 2, [1, 1]), (0, 3, [1, 1, 1]),
+            ....:                (1, 0, -1), (2, 0, -2), (3, 0, -3)],
+            ....:               initial_states=[0], final_states=[0, 1, 2, 3])
+            sage: B = A.determinisation().relabeled()
+            sage: all(filter(lambda t:t.to_state.label == 2,
+            ....:            B.state(2).transitions))
+            True
+            sage: B.state(2).is_final
+            False
+            sage: B.delete_state(2) # this is a sink
+            sage: sorted(B.transitions())
+            [Transition from 0 to 1: 1|-,
+             Transition from 1 to 0: -1|-,
+             Transition from 1 to 3: 1|-,
+             Transition from 3 to 0: -2|-,
+             Transition from 3 to 4: 1|-,
+             Transition from 4 to 0: -3|-]
+
         Note that colors of states have to be hashable::
 
             sage: A = Automaton([[0, 0, 0]], initial_states=[0])
@@ -5210,8 +5230,9 @@ class Automaton(FiniteStateMachine):
             sage: auto.determinisation()
             Automaton with 3 states
         """
-        for transition in self.transitions():
-            assert len(transition.word_in) <= 1, "%s has input label of length > 1, which we cannot handle" % (transition,)
+        if any(itertools.ifilter(lambda t: len(t.word_in)>1,
+                                 self.iter_transitions())):
+            return self.split_transitions().determinisation()
 
         epsilon_successors = {}
         direct_epsilon_successors = {}

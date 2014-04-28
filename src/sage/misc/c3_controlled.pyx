@@ -327,10 +327,12 @@ For a typical category, few bases, if any, need to be added to force
     89
 
 The following can be used to search through the Sage named categories
-for any that requires the addition of some bases; currently none!::
+for any that requires the addition of some bases::
 
     sage: from sage.categories.category import category_sample
-    sage: sorted([C for C in category_sample() if len(C._super_categories_for_classes) != len(C.super_categories())], key=str)
+    sage: sorted([C for C in category_sample()
+    ....:         if len(C._super_categories_for_classes) != len(C.super_categories())],
+    ....:        key=str)
     [Category of affine weyl groups,
      Category of commutative rings,
      Category of fields,

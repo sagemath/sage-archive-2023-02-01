@@ -188,10 +188,10 @@ class Category(UniqueRepresentation, SageObject):
     The class of a category (say :class:`EuclideanDomains`) can define simultaneously:
 
     - Operations on the category itself (what is its super categories?
-      its category of morphisms? its dual category?)
-    - Generic operations on parents in this category, like the ring `\QQ[x]`
+      its category of morphisms? its dual category?).
+    - Generic operations on parents in this category, like the ring `\QQ[x]`.
     - Generic operations on elements of this ring (e. g., the Euclidean
-      algorithm for computing gcds)
+      algorithm for computing gcds).
 
     This is achieved as follows::
 
@@ -213,8 +213,8 @@ class Category(UniqueRepresentation, SageObject):
         ....:              # Euclid algorithms
         ....:              pass
 
-    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class above do
-    not inherit from anything. They are merely containers of
+    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class 
+    above do not inherit from anything. They are merely containers of
     operations. The hierarchy between the different categories is
     defined once at the level of the categories. Behind the scene, a
     parallel hierarchy of classes is built automatically from all the
@@ -225,13 +225,13 @@ class Category(UniqueRepresentation, SageObject):
 
     EXAMPLES:
 
-    We define a hierarchy of four categories As(), Bs(), Cs(), Ds()
-    with a diamond inheritance. Think for example:
+    We define a hierarchy of four categories ``As()``, ``Bs()``,
+    ``Cs()``, ``Ds()`` with a diamond inheritance. Think for example:
 
-    - As(): the category of sets
-    - Bs(): the category of additive groups
-    - Cs(): the category of multiplicative monoids
-    - Ds(): the category of rings
+    - ``As()``: the category of sets
+    - ``Bs()``: the category of additive groups
+    - ``Cs()``: the category of multiplicative monoids
+    - ``Ds()``: the category of rings
 
     ::
 
@@ -272,8 +272,8 @@ class Category(UniqueRepresentation, SageObject):
         ....:             return "D"
 
     Categories should always have unique representation; by trac ticket
-    #12215, this means that it will be kept in cache, but only if there
-    is still some strong reference to it.
+    :trac:`12215`, this means that it will be kept in cache, but only
+    if there is still some strong reference to it.
 
     We check this before proceeding::
 
@@ -288,8 +288,8 @@ class Category(UniqueRepresentation, SageObject):
         sage: As().parent_class == As().parent_class
         True
 
-    We construct a parent in the category Ds() (that, is an instance of
-    ``Ds().parent_class``), and check that it has access to all the
+    We construct a parent in the category ``Ds()`` (that, is an instance
+    of ``Ds().parent_class``), and check that it has access to all the
     methods provided by all the categories, with the appropriate
     inheritance order::
 
@@ -493,13 +493,15 @@ class Category(UniqueRepresentation, SageObject):
         if s is not None:
             assert False
             from sage.misc.superseded import deprecation
-            deprecation(10963, "passing a string as extra argument to the category constructor is deprecated; please implement ``_repr_object_names`` instead")
+            deprecation(10963, "passing a string as extra argument to the"
+                               " category constructor is deprecated; please"
+                               " implement ``_repr_object_names`` instead")
             if isinstance(s, str):
                 self._label = s
                 self.__repr_object_names = s
             else:
                 raise TypeError("Argument string must be a string.")
-        self.__class__ = dynamic_class("%s_with_category"%self.__class__.__name__,
+        self.__class__ = dynamic_class("{}_with_category".format(self.__class__.__name__),
                                        (self.__class__, self.subcategory_class, ),
                                        cache = False, reduction = None,
                                        doccls=self.__class__)
@@ -507,7 +509,7 @@ class Category(UniqueRepresentation, SageObject):
     @lazy_attribute
     def _label(self):
         """
-        A short name of self, obtained from its type.
+        A short name of ``self``, obtained from its type.
 
         EXAMPLES::
 
@@ -561,7 +563,7 @@ class Category(UniqueRepresentation, SageObject):
 
     def _short_name(self):
         """
-        Returns a CamelCase name for this category
+        Return a CamelCase name for this category.
 
         EXAMPLES::
 
@@ -579,7 +581,7 @@ class Category(UniqueRepresentation, SageObject):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 
@@ -600,7 +602,7 @@ class Category(UniqueRepresentation, SageObject):
 
     def __call__(self, x, *args, **opts):
         """
-        Constructs an object in this category from the data in ``x``,
+        Construct an object in this category from the data in ``x``,
         or throws ``TypeError`` or ``NotImplementedError``.
 
         If ``x`` is readily in ``self`` it is returned unchanged.
@@ -618,8 +620,8 @@ class Category(UniqueRepresentation, SageObject):
 
     def _call_(self, x):
         """
-        Constructs an object in this category from the data in ``x``,
-        or throws NotImplementedError.
+        Construct an object in this category from the data in ``x``,
+        or throws ``NotImplementedError``.
 
         EXAMPLES::
 
@@ -632,14 +634,14 @@ class Category(UniqueRepresentation, SageObject):
 
     def _repr_(self):
         """
-        Returns the print representation of this category.
+        Return the print representation of this category.
 
         EXAMPLES::
 
-            sage: Sets() #indirect doctest
+            sage: Sets() # indirect doctest
             Category of sets
         """
-        return "Category of %s"%self._repr_object_names()
+        return "Category of {}".format(self._repr_object_names())
 
     def _latex_(self):
         r"""
@@ -647,7 +649,7 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: latex(Sets()) #indirect doctest
+            sage: latex(Sets()) # indirect doctest
             \mathbf{Sets}
             sage: latex(CommutativeAdditiveSemigroups())
             \mathbf{CommutativeAdditiveSemigroups}
@@ -1422,16 +1424,17 @@ class Category(UniqueRepresentation, SageObject):
 
     def or_subcategory(self, category = None, join = False):
         """
+        Return ``category`` or ``self`` if ``category`` is ``None``.
+
         INPUT:
 
-        - ``category`` - a sub category of ``self``, tuple/list thereof, or ``None``
-        - ``join`` - a boolean (default: ``False``)
+        - ``category`` -- a sub category of ``self``, tuple/list thereof,
+          or ``None``
+        - ``join`` -- a boolean (default: ``False``)
 
         OUTPUT:
 
         - a category
-
-        Returns ``category`` or ``self`` if ``category`` is None.
 
         EXAMPLES::
 
@@ -1445,7 +1448,7 @@ class Category(UniqueRepresentation, SageObject):
             sage: Monoids().or_subcategory((CommutativeAdditiveMonoids(), Groups()))
             Join of Category of groups and Category of commutative additive monoids
 
-        If ``join`` is False, an error if raised if category is not a
+        If ``join`` is ``False``, an error if raised if category is not a
         subcategory of ``self``::
 
             sage: Monoids().or_subcategory(EnumeratedSets())
@@ -1466,7 +1469,7 @@ class Category(UniqueRepresentation, SageObject):
         if join:
             return Category.join([self, category])
         else:
-            assert category.is_subcategory(self), "Subcategory of `%s` required; got `%s`"%(category, self)
+            assert category.is_subcategory(self), "Subcategory of `{}` required; got `{}`".format(category, self)
             return category
 
     def _is_subclass(self, c):
@@ -1611,9 +1614,9 @@ class Category(UniqueRepresentation, SageObject):
         - ``axiom`` -- a string, the name of an axiom
 
         This is a lazy version of :meth:`_with_axiom` which is used to
-        avoid recursion loops during join calculations
+        avoid recursion loops during join calculations.
 
-        .. WARNING:: the order in the result is irrelevant
+        .. NOTE:: The order in the result is irrelevant.
 
         EXAMPLES::
 
@@ -1642,7 +1645,9 @@ class Category(UniqueRepresentation, SageObject):
             from category_with_axiom import CategoryWithAxiom
             if inspect.isclass(axiom_attribute) and issubclass(axiom_attribute, CategoryWithAxiom):
                 return (axiom_attribute(self),)
-            warn("Expecting %s.%s to be a subclass of CategoryWithAxiom to implement a category with axiom; got %s; ignoring"%(self.__class__.__base__.__name__,axiom,axiom_attribute))
+            warn(("Expecting {}.{} to be a subclass of CategoryWithAxiom to"
+                  " implement a category with axiom; got {}; ignoring").format(
+                    self.__class__.__base__.__name__, axiom, axiom_attribute))
 
         # self does not implement this axiom
         result = (self, ) + \
@@ -1658,7 +1663,8 @@ class Category(UniqueRepresentation, SageObject):
     @cached_method
     def _with_axiom(self, axiom):
         """
-        Return the subcategory of the objects of ``self`` satisfying the given ``axiom``.
+        Return the subcategory of the objects of ``self`` satisfying
+        the given ``axiom``.
 
         INPUT:
 
@@ -1687,11 +1693,12 @@ class Category(UniqueRepresentation, SageObject):
 
     def _with_axioms(self, axioms):
         """
-        Return the subcategory of the objects of ``self`` satisfying the given ``axioms``.
+        Return the subcategory of the objects of ``self`` satisfying
+        the given ``axioms``.
 
         INPUT:
 
-        - ``axioms`` -- a list of strings, the names of the axiomso
+        - ``axioms`` -- a list of strings, the names of the axioms
 
         EXAMPLES::
 
@@ -1755,9 +1762,11 @@ class Category(UniqueRepresentation, SageObject):
     @cached_method
     def _without_axiom(self, axiom):
         r"""
-        Return this category with axiom ``axiom`` removed.
+        Return the category with axiom ``axiom`` removed.
 
-        OUTPUT: a category ``C`` which does not have axiom ``axiom``
+        OUTPUT:
+
+        A category ``C`` which does not have axiom ``axiom``
         and such that either ``C`` is ``self``, or adding back all the
         axioms of ``self`` gives back ``self``.
 
@@ -1777,20 +1786,21 @@ class Category(UniqueRepresentation, SageObject):
         if axiom not in self.axioms():
             return self
         else:
-            raise ValueError("Cannot remove axiom %s for %s"%(axiom, self))
+            raise ValueError("Cannot remove axiom {} from {}".format(axiom, self))
 
     def _without_axioms(self, named=False):
         r"""
-        Returns the category without the axioms that have been added to create it
+        Return the category without the axioms that have been added
+        to create it.
 
         INPUT:
 
-        - ``named`` -- a boolean (default: False)
+        - ``named`` -- a boolean (default: ``False``)
 
-        .. TODO:: improve this explanation
+        .. TODO:: Improve this explanation.
 
-        If ``named`` is True, then this stops at the first category
-        that has a explicit name of its own. See
+        If ``named`` is ``True``, then this stops at the first
+        category that has a explicit name of its own. See
         :meth:`CategoryWithAxiom._without_axioms`
 
         EXAMPLES::
@@ -1809,12 +1819,12 @@ class Category(UniqueRepresentation, SageObject):
     @staticmethod
     def _flatten_categories(categories):
         """
+        Return the tuple of categories in ``categories``, while
+        flattening join categories.
+
         INPUT:
 
         - ``categories`` -- a list (or iterable) of categories
-
-        Returns the tuple of categories in ``categories``, while
-        flattening join categories
 
         EXAMPLES::
 
@@ -1830,7 +1840,8 @@ class Category(UniqueRepresentation, SageObject):
     @staticmethod
     def _sort(categories):
         """
-        Return the categories after sorting them decreasingly according to their comparison key.
+        Return the categories after sorting them decreasingly according
+        to their comparison key.
 
         .. SEEALSO:: :meth:`_cmp_key`
 
@@ -1838,7 +1849,9 @@ class Category(UniqueRepresentation, SageObject):
 
         - ``categories`` -- a list (or iterable) of non-join categories
 
-        OUTPUT: a sorted tuple of categories, possibly with repeats
+        OUTPUT:
+
+        A sorted tuple of categories, possibly with repeats.
 
         EXAMPLES::
 
@@ -1933,9 +1946,10 @@ class Category(UniqueRepresentation, SageObject):
         INPUT:
 
         - ``categories`` -- a list (or iterable) of categories
-        - ``as_list`` -- a boolean (default: False);
+        - ``as_list`` -- a boolean (default: ``False``);
             whether the result should be returned as a list
-        - ``axioms`` -- a tuple of strings; the names of some supplementary axioms
+        - ``axioms`` -- a tuple of strings; the names of some
+          supplementary axioms
 
         .. SEEALSO:: :meth:`__and__` for a shortcut
 
@@ -1976,7 +1990,8 @@ class Category(UniqueRepresentation, SageObject):
             sage: Category.join([Monoids()])
             Category of monoids
 
-        Similarly, the join of several mutually comparable categories is the smallest one::
+        Similarly, the join of several mutually comparable categories is
+        the smallest one::
 
             sage: Category.join((Sets(), Rings(), Monoids()))
             Category of rings
@@ -2029,7 +2044,7 @@ class Category(UniqueRepresentation, SageObject):
             Join of Category of unique factorization domains
                 and Category of commutative algebras over Rational Field
 
-        TESTS:
+        TESTS::
 
             sage: Magmas().Unital().Commutative().Finite() is Magmas().Finite().Commutative().Unital()
             True
@@ -2074,17 +2089,18 @@ class Category(UniqueRepresentation, SageObject):
             sage: type(TFFC)
             <class 'sage.categories.category.JoinCategory_with_category'>
             sage: TFFC.super_categories()
-            [Category of facade commutative test objects, Category of finite dimensional commutative test objects]
+            [Category of facade commutative test objects,
+             Category of finite dimensional commutative test objects]
         """
         categories = list(categories)
-        if len(categories) == 0:
+        if not categories: # len(categories) == 0
             if as_list:
                 return []
             else:
                 # Since Objects() is the top category, it is the neutral element of join
                 from objects import Objects
                 return Objects()
-        if len(categories) == 1:
+        elif len(categories) == 1:
             category = categories[0]
             if as_list:
                 if isinstance(category, JoinCategory):
@@ -2169,7 +2185,7 @@ class Category(UniqueRepresentation, SageObject):
 
     def category(self):
         """
-        Returns the category of this category. So far, all categories
+        Return the category of this category. So far, all categories
         are in the category of objects.
 
         EXAMPLES::
@@ -2322,7 +2338,7 @@ def category_graph(categories = None):
 
     For readability, the names of the category are shortened.
 
-    .. TODO:: Further remove the base ring
+    .. TODO:: Further remove the base ring (for example :trac:`15801`).
 
     EXAMPLES::
 
@@ -2810,7 +2826,7 @@ class JoinCategory(CategoryWithParameters):
             sage: C._with_axioms(["Finite"])
             Join of Category of finite monoids and Category of finite posets
 
-        TESTS::
+        TESTS:
 
         Check that axiom categories for a join are reconstructed from
         the base categories::
@@ -2831,8 +2847,10 @@ class JoinCategory(CategoryWithParameters):
         """
         Return this category with axiom ``axiom`` removed.
 
-        OUTPUT: a category ``C`` which does not have axiom ``axiom``
-        and such that either ``C`` is ``self``, or adding back all the
+        OUTPUT:
+
+        A category ``C`` which does not have axiom ``axiom`` and such
+        that either ``C`` is ``self``, or adding back all the
         axioms of ``self`` gives back ``self``.
 
         .. SEEALSO:: :meth:`Category._without_axiom`
@@ -2865,7 +2883,7 @@ class JoinCategory(CategoryWithParameters):
 
         INPUT:
 
-        - ``named`` -- a boolean (default: False)
+        - ``named`` -- a boolean (default: ``False``)
 
         See :meth:`Category._without_axioms` for the description
         of the ``named`` parameter.
@@ -2899,11 +2917,12 @@ class JoinCategory(CategoryWithParameters):
         for category in self._super_categories:
             if category._with_axioms(axioms) is self:
                 return category._without_axioms(named=named)
-        raise ValueError, "This join category isn't built by adding axioms to a single category"
+        raise ValueError("This join category isn't built by adding axioms"
+                         " to a single category")
 
     def _cmp_key(self):
         """
-        Returns a comparison key for ``self``
+        Return a comparison key for ``self``.
 
         See :meth:`Category._cmp_key` for the specifications.
 
@@ -2917,7 +2936,7 @@ class JoinCategory(CategoryWithParameters):
             ...
             ValueError: _cmp_key should not be called on join categories
         """
-        raise ValueError, "_cmp_key should not be called on join categories"
+        raise ValueError("_cmp_key should not be called on join categories")
 
     def _repr_object_names(self):
         """
@@ -2989,4 +3008,4 @@ class JoinCategory(CategoryWithParameters):
                 return super(JoinCategory, self)._repr_()
             except ValueError:
                 pass
-        return "Join of %s"%(" and ".join(str(cat) for cat in self._super_categories))
+        return "Join of " + " and ".join(str(cat) for cat in self._super_categories)

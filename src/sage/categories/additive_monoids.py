@@ -14,9 +14,10 @@ from sage.categories.additive_semigroups import AdditiveSemigroups
 
 class AdditiveMonoids(CategoryWithAxiom_singleton):
     """
-    The category of additive monoids,
-    i.e. sets endowed with an operation `+` which is associative and
-    admits a zero.
+    The category of additive monoids.
+
+    An additive monoid is a set endowed with an operation `+` which is
+    associative and admits a zero.
 
     EXAMPLES::
 
@@ -45,13 +46,12 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
     class ParentMethods:
         def sum(self, args):
             r"""
-            n-ary sum
+            Return the sum of the elements in ``args``, as an element
+            of ``self``.
 
             INPUT:
 
-             - ``args`` -- a list (or iterable) of elements of ``self``
-
-            Returns the sum of the elements in `args`, as an element of `self`.
+            - ``args`` -- a list (or iterable) of elements of ``self``
 
             EXAMPLES::
 
@@ -65,3 +65,4 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
                 True
             """
             return sum(args, self.zero())
+

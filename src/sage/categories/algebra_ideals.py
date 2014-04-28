@@ -22,15 +22,15 @@ class AlgebraIdeals(Category_ideal):
         sage: AlgebraIdeals(QQ['a'])
         Category of algebra ideals in Univariate Polynomial Ring in a over Rational Field
 
-    TODO:
+    .. TODO::
 
-     - Add support for non commutative rings (this is currently not
-       supported by the subcategory :class:`AlgebraModules`)
-     - Make AlgebraIdeals(R), return CommutativeAlgebraIdeals(R) when
-       R is commutative
-     - If useful, implement AlgebraLeftIdeals and AlgebraRightIdeals
-       of which AlgebraIdeals would be a subcategory
-
+        - Add support for non commutative rings (this is currently not
+          supported by the subcategory :class:`AlgebraModules`).
+        - Make ``AlgebraIdeals(R)``, return ``CommutativeAlgebraIdeals(R)``
+          when ``R`` is commutative.
+        - If useful, implement ``AlgebraLeftIdeals`` and
+          ``AlgebraRightIdeals`` of which ``AlgebraIdeals``
+          would be a subcategory.
     """
     def __init__(self, A):
         """

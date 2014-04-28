@@ -3,8 +3,8 @@ Algebras
 
 AUTHORS:
 
- - David Kohel & William Stein (2005): initial revision
- - Nicolas M. Thiery (2008-2011): rewrote for the category framework
+- David Kohel & William Stein (2005): initial revision
+- Nicolas M. Thiery (2008-2011): rewrote for the category framework
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
@@ -25,7 +25,7 @@ from sage.categories.tensor import TensorProductsCategory
 from sage.categories.associative_algebras import AssociativeAlgebras
 
 class Algebras(CategoryWithAxiom_over_base_ring):
-    """
+    r"""
     The category of associative and unital algebras over a given base ring.
 
     An associative and unital algebra over a ring `R` is a module over
@@ -39,7 +39,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
         neither associativity nor the existence of a unit (see
         :trac:`15043`).
 
-    .. TODO:: should `R` be a commutative ring?
+    .. TODO:: Should `R` be a commutative ring?
 
     EXAMPLES::
 

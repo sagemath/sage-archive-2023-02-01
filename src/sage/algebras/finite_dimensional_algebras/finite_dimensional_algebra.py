@@ -229,7 +229,7 @@ class FiniteDimensionalAlgebra(Algebra):
         finite.
         """
         if not self.is_finite():
-            raise NotImplementedError, "object does not support iteration"
+            raise NotImplementedError("object does not support iteration")
         V = self.zero_element().vector().parent()
         for v in V:
             yield self(v)

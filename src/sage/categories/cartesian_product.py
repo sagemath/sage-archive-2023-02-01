@@ -16,7 +16,7 @@ from sage.categories.covariant_functorial_construction import CovariantFunctoria
 
 class CartesianProductFunctor(CovariantFunctorialConstruction):
     """
-    A singleton class for the Cartesian product functor
+    A singleton class for the Cartesian product functor.
 
     EXAMPLES::
 
@@ -96,9 +96,9 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
 
 cartesian_product = CartesianProductFunctor()
 """
-The cartesian product functorial construction
+The cartesian product functorial construction.
 
-See :class:`CartesianProductFunctor` for more information
+See :class:`CartesianProductFunctor` for more information.
 
 EXAMPLES::
 
@@ -108,7 +108,7 @@ EXAMPLES::
 
 class CartesianProductsCategory(CovariantConstructionCategory):
     """
-    An abstract base class for all CartesianProducts's
+    An abstract base class for all CartesianProducts's.
 
     TESTS::
 
@@ -136,11 +136,12 @@ class CartesianProductsCategory(CovariantConstructionCategory):
 
     def CartesianProducts(self):
         """
-        Returns the category of (finite) Cartesian products of objects of ``self``
+        Return the category of (finite) Cartesian products of objects
+        of ``self``.
 
         By associativity of Cartesian products, this is ``self`` (a Cartesian
         product of Cartesian products of `A`'s is a Cartesian product of
-        `A`'s)
+        `A`'s).
 
         EXAMPLES::
 

@@ -11,7 +11,7 @@ Bialgebras with basis
 
 def BialgebrasWithBasis(base_ring):
     """
-    The category of bialgebras with a distinguished basis
+    The category of bialgebras with a distinguished basis.
 
     EXAMPLES::
 
@@ -29,3 +29,4 @@ def BialgebrasWithBasis(base_ring):
     """
     from sage.categories.all import Bialgebras
     return Bialgebras(base_ring).WithBasis()
+

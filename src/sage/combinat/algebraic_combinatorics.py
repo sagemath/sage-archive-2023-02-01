@@ -54,9 +54,10 @@ Combinatorial Representation Theory
 - :class:`sage.combinat.kazhdan_lusztig.KazhdanLusztigPolynomial`
 - :class:`sage.combinat.symmetric_group_representations.SymmetricGroupRepresentation`
 
-#    ../sage/combinat/descent_algebra
-#    ../sage/combinat/diagram_algebras
-#    ../sage/combinat/yang_baxter_graph
+.. TODO::
 
-#    ../sage/combinat/hall_polynomial
+   ../sage/combinat/descent_algebra
+   ../sage/combinat/diagram_algebras
+   ../sage/combinat/yang_baxter_graph
+   ../sage/combinat/hall_polynomial
 """

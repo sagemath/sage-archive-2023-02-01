@@ -1,6 +1,11 @@
 r"""
 Cartan types
 
+.. contents::
+
+Introduction
+------------
+
 Loosely speaking, Dynkin diagrams (or equivalently Cartan matrices)
 are graphs which are used to classify root systems, Coxeter and Weyl
 groups, Lie algebras, Lie groups, crystals, etc. up to an
@@ -385,6 +390,53 @@ Additionally one can set the notation global option to use Kac's notation::
     0   1   2   3   4
     E6^2
     sage: CartanType.global_options['notation'] = 'BC'
+
+
+Abstract classes for cartan types
+---------------------------------
+
+- :class:`CartanType_abstract`
+- :class:`CartanType_crystallographic`
+- :class:`CartanType_simply_laced`
+- :class:`CartanType_simple`
+- :class:`CartanType_finite`
+- :class:`CartanType_affine` (see also :ref:`sage.combinat.root_system.type_affine`)
+- :ref:`sage.combinat.root_system.cartan_type.CartanType`
+- :ref:`sage.combinat.root_system.type_dual`
+- :ref:`sage.combinat.root_system.type_reducible`
+- :ref:`sage.combinat.root_system.type_relabel`
+
+Concrete classes for cartan types
+---------------------------------
+
+- :class:`CartanType_standard_affine`
+- :class:`CartanType_standard_untwisted_affine`
+
+Type specific data
+------------------
+
+The data essentially consists of a description of the Dynkin/Coxeter
+diagram and, when relevant, of the natural embedding of the root
+system in an Euclidean space. Everything else is reconstructed from
+this data.
+
+- :ref:`sage.combinat.root_system.type_A`
+- :ref:`sage.combinat.root_system.type_B`
+- :ref:`sage.combinat.root_system.type_C`
+- :ref:`sage.combinat.root_system.type_D`
+- :ref:`sage.combinat.root_system.type_E`
+- :ref:`sage.combinat.root_system.type_F`
+- :ref:`sage.combinat.root_system.type_G`
+- :ref:`sage.combinat.root_system.type_H`
+- :ref:`sage.combinat.root_system.type_I`
+- :ref:`sage.combinat.root_system.type_A_affine`
+- :ref:`sage.combinat.root_system.type_B_affine`
+- :ref:`sage.combinat.root_system.type_C_affine`
+- :ref:`sage.combinat.root_system.type_D_affine`
+- :ref:`sage.combinat.root_system.type_E_affine`
+- :ref:`sage.combinat.root_system.type_F_affine`
+- :ref:`sage.combinat.root_system.type_G_affine`
+- :ref:`sage.combinat.root_system.type_BC_affine`
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

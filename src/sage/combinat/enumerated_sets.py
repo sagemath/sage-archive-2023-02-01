@@ -12,7 +12,8 @@ Categories
 Basic enumerated sets
 ---------------------
 
-- :class:`sage.combinat.subset.Subsets`, :class:`sage.combinat.combination.Combinations`, :class:`sage.combinat.permutation.Arrangements`
+- :class:`sage.combinat.subset.Subsets`, :class:`sage.combinat.combination.Combinations`
+- :class:`sage.combinat.permutation.Arrangements`, :class:`sage.combinat.tuple.Tuples`
 - :class:`sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
 - :class:`DisjointUnionEnumeratedSets`, :class:`CartesianProduct`
 
@@ -20,6 +21,7 @@ Integer lists
 -------------
 
 - :ref:`sage.combinat.partition`
+  (see also: :ref:`sage.combinat.catalog_partitions`)
 - :ref:`sage.combinat.composition`
 - :class:`sage.combinat.composition_signed.SignedCompositions`
 
@@ -49,13 +51,13 @@ Permutations, ...
 - :ref:`sage.combinat.affine_permutation`
 - :class:`sage.combinat.permutation.Arrangements`
 - :ref:`sage.combinat.derangements`
-- :ref:`sage.combinat.integer_vectors_mod_permgroup`
-- :ref:`sage.combinat.rsk`
 
 .. SEEALSO::
 
     - :class:`SymmetricGroup`, :class:`PermutationGroup`, :ref:`sage.groups.perm_gps.permutation_groups_catalog`
     - :class:`FiniteSetMaps`
+    - :ref:`sage.combinat.integer_vectors_mod_permgroup`
+    - :ref:`sage.combinat.rsk`
 
 Partitions, tableaux, ...
 -------------------------
@@ -100,8 +102,13 @@ Enumerated sets related to graphs
 - :ref:`sage.combinat.graph_path`
 - :ref:`sage.combinat.perfect_matching`
 
-Generic enumerated sets
------------------------
+Backtracking solvers and generic enumerated sets
+------------------------------------------------
+
+.. TODO::
+
+    Do we want a separate section, possibly more proeminent, for
+    backtracking solvers?
 
 - :class:`sage.combinat.backtrack.GenericBacktracker`
 - :class:`sage.combinat.backtrack.TransitiveIdeal`

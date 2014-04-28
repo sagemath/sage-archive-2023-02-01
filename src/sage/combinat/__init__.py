@@ -20,6 +20,8 @@ Thematic indexes
 - :ref:`sage.combinat.posets`
 - :ref:`sage.combinat.words`
 
+.. TODO:: mention here the thematic indexes on root_systems, crystals, quivers, ...?
+
 Graphs
 ------
 
@@ -35,7 +37,7 @@ Dynamical systems
 Miscellaneous
 -------------
 
-- :ref:`sage.combinat.finite_state_machine`
+- :ref:`sage.combinat.finite_state_machine` (TODO: this deserves to be advertised more)
 - :ref:`sage.combinat.output`
 - :ref:`sage.combinat.ranker`
 - :ref:`sage.combinat.misc`

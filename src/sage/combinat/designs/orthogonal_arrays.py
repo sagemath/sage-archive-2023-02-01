@@ -147,7 +147,8 @@ def TD6_12():
          [(0,0),(1,5),(0,3),(1,4),(0,4),(0,5)]]
 
     r = lambda x : int(x[0])*6+int(x[1])
-    TD = [[i*12+r(G(x)+g) for i,x in enumerate(X)] for X in d for g in G]
+    from sage.modules.free_module_element import free_module_element as vector
+    TD = [[i*12+r(G(vector(x))+g) for i,x in enumerate(X)] for X in d for g in G]
     for x in TD: x.sort()
 
     return TD

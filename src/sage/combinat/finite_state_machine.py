@@ -746,10 +746,8 @@ class FSMState(SageObject):
       .. WARNING::
 
           ``final_word_out`` is not implemented everywhere. Currently it is
-          implemented in :meth:`FiniteStateMachine.process`, :meth:`latex`,
-          :meth:`FiniteStateMachine.product_FiniteStateMachine`,
-          :meth:`FiniteStateMachine.composition`,
-          but not in
+          implemented in :meth:`FiniteStateMachine.process`, in the LaTeX output,
+          :meth:`FiniteStateMachine.composition`, but not in 
           :meth:`FiniteStateMachine.determine_alphabets`,
           :meth:`FiniteStateMachine.equivalence_classes`,
           :meth:`FiniteStateMachine.output_projection`,
@@ -818,8 +816,8 @@ class FSMState(SageObject):
         sage: B.final_word_out = 2
         Traceback (most recent call last):
         ...
-        ValueError: Only final states can have a final output word.
-        But state B is not final.
+        ValueError: Only final states can have a final output word,
+        but state B is not final.
 
     Setting the ``final_word_out`` of a final state to ``None`` is the same as
     setting it to ``[]`` and is also the default for a final state::
@@ -898,22 +896,22 @@ class FSMState(SageObject):
             sage: A = FSMState('A', is_final=False, final_word_out='end')
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            But state A is not final.
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
             sage: A = FSMState('A', is_final=False,
             ....:              final_word_out=['e', 'n', 'd'])
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            But state A is not final.
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
             sage: A = FSMState('A', is_final=False, final_word_out=None)
             sage: A.final_word_out == None
             True
             sage: A = FSMState('A', is_final=False, final_word_out=[])
             Traceback (most recent call last):
             ...
-            ValueError: Only final states can have a final output word.
-            But state A is not final.
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
         """
         if not allow_label_None and label is None:
             raise ValueError("Label None reserved for a special state, "
@@ -965,15 +963,12 @@ class FSMState(SageObject):
     @property
     def final_word_out(self):
         """
-        The final output word which is use if a input of a transducer leads to
-        this final state.
+        The final output word of a final state which is written if the
+        state is reached as the last state of the input of the finite
+        state machine. For a non-final state, the value is ``None``.
 
-        The final output word of a final state which is written if the state
-        is reached as the last state of the input of a transducer. For a
-        non-final state, the value is ``None``.
-
-        ``final_word_out`` can be a single letter, a list or ``None``, but it
-        is always saved as a list.
+        ``final_word_out`` can be a single letter, a list or ``None``,
+        but for a final-state, it is always saved as a list.
 
         EXAMPLES::
 
@@ -1000,7 +995,7 @@ class FSMState(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Only final states can have a final
-            output word. But state B is not final.
+            output word, but state B is not final.
         """
 
         return self._final_word_out_
@@ -1026,14 +1021,14 @@ class FSMState(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Only final states can have a final
-            output word. But state B is not final.
+            output word, but state B is not final.
             sage: B.final_word_out = None
             sage: B.final_word_out == None
             True
         """
         if not self.is_final and final_word_out is not None:
             raise ValueError("Only final states can have a " \
-                             "final output word. But state %s is not final." \
+                             "final output word, but state %s is not final." \
                              % (self.label()))
         elif not self.is_final:
             self._final_word_out_ = final_word_out
@@ -1061,9 +1056,9 @@ class FSMState(SageObject):
             sage: A.is_final = False
             Traceback (most recent call last):
             ...
-            ValueError: State A cannot be non-final, because it has
-            a final output
-            word. Only final states can have a final output word.
+            ValueError: State A cannot be non-final, because it has a
+            final output word. Only final states can have a final output
+            word.
             sage: A.final_word_out = None
             sage: A.is_final = False
             sage: A.is_final
@@ -1097,9 +1092,9 @@ class FSMState(SageObject):
             sage: A.is_final = False
             Traceback (most recent call last):
             ...
-            ValueError: State A cannot be non-final, because it
-            has a final output
-            word. Only final states can have a final output word.
+            ValueError: State A cannot be non-final, because it has a
+            final output word. Only final states can have a final output
+            word.
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
             sage: A.final_word_out == None
@@ -1213,9 +1208,27 @@ class FSMState(SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A')
-            sage: deepcopy(A)
-            'A'
+            sage: A = FSMState((1, 3), color=[1, 2],
+            ....:              is_final=True, final_word_out=3)
+            sage: B = deepcopy(A)
+            sage: B
+            (1, 3)
+            sage: B.label == A.label
+            True
+            sage: B.label is A.label
+            False
+            sage: B.color == A.color
+            True
+            sage: B.color is A.color
+            False
+            sage: B.is_final == A.is_final
+            True
+            sage: B.is_final is A.is_final
+            True
+            sage: B.final_word_out == A.final_word_out
+            True
+            sage: B.final_word_out is A.final_word_out
+            False
         """
         return deepcopy(self, memo)
 

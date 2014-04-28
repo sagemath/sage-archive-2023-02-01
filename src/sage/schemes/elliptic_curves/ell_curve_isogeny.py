@@ -1001,8 +1001,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phihat(Q)
             (-1/48 : 127/576*th : 1)
 
-        TESTS (added when fixing trac #16238, in order to match composition,
-        see #16245)::
+        Call a composed isogeny (added for :trac:`16238`)::
 
             sage: E = EllipticCurve(j=GF(7)(0))
             sage: phi=E.isogeny( [E(0), E((0,1)), E((0,-1))])
@@ -1012,7 +1011,8 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi2(E.points()[0])
             (0 : 1 : 0)
 
-        TESTS (added when fixing trac #16238, to check coercion)::
+        Coercion works fine with _call_ (added for :trac:`16238`)::
+
             sage: K.<th> = NumberField(x^2+3)
             sage: E = EllipticCurve(K,[7,0])
             sage: E2=EllipticCurve(K,[5,0])

@@ -248,9 +248,9 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                     sage: A.one()
                     B[word: ]
                 """
-                if self.one_basis is not NotImplemented:
-                    return self.one_from_one_basis
-                return NotImplemented
+                if self.one_basis is NotImplemented:
+                    return NotImplemented
+                return self.one_from_one_basis
 
             @lazy_attribute
             def from_base_ring(self):
@@ -261,9 +261,9 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                     sage: A.from_base_ring(3)
                     3*B[word: ]
                 """
-                if self.one_basis is not NotImplemented:
-                    return self.from_base_ring_from_one_basis
-                return NotImplemented
+                if self.one_basis is NotImplemented:
+                    return NotImplemented
+                return self.from_base_ring_from_one_basis
 
             def from_base_ring_from_one_basis(self, r):
                 """

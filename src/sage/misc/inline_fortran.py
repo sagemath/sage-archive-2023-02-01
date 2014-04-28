@@ -98,7 +98,7 @@ class InlineFortran:
                 raise RuntimeError("failed to compile Fortran code:\n" + log_string)
 
             if self.verbose:
-                print log_string
+                print(log_string)
 
             m = __builtin__.__import__(name)
         finally:

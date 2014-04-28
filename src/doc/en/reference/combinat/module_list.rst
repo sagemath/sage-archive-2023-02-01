@@ -92,6 +92,7 @@ Alphabetical module list
     sage/combinat/family
     sage/combinat/finite_class
     sage/combinat/finite_state_machine
+    sage/combinat/finite_state_machine_generators
     sage/combinat/free_module
     sage/combinat/gelfand_tsetlin_patterns
     sage/combinat/graph_path

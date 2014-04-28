@@ -298,7 +298,7 @@ def _extract_source(lines, lineno):
         ['  class f():\n', '    pass\n']
     """
     if lineno < 1:
-        raise ValueError("Line numbering starts at 1! (tried to extract line %s)" % lineno)
+        raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
     if isinstance(lines, str):

@@ -3378,6 +3378,19 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return True
 
+    def is_integer(self):
+        """
+        Return True if this number is a integer
+
+        EXAMPLES::
+        
+            sage: QQbar(2).is_integer()
+            True
+            sage: QQbar(1/2).is_integer()
+            False
+        """
+        return self in ZZ
+
     def sqrt(self, all=False, extend=True):
         """
         Return the square root(s) of this number.

@@ -47,6 +47,9 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     distinct elements `x,y\in V` there is a unique element `S\in \mathcal C`
     such that `x,y\in S`.
 
+    More general definitions sometimes involve a `\lambda` parameter, and we
+    assume here that `\lambda=1`.
+
     For more information on BIBD, see the
     :wikipedia:`corresponding Wikipedia entry <Block_design#Definition_of_a_BIBD_.28or_2-design.29>`.
 

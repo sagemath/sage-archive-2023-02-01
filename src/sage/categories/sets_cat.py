@@ -1086,6 +1086,42 @@ class Sets(Category_singleton):
                 """
                 return self._cartesian_product_of_elements(s.an_element() for s in self._sets)
 
+            # Here or in Sets.Finite.CartesianProducts.ParentMethods?
+            def cardinality(self):
+                """
+                Return the cardinality of ``self``
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), FiniteEnumeratedSet(['a','b']), GF(5)])
+                    sage: C.cardinality()
+                    30
+                """
+                from sage.misc.misc_c import prod
+                return prod([x.cardinality() for x in self._sets])
+
+            # Should probably be in Sets.Finite.CartesianProducts
+            # once #10963 is merged.
+            # However is it really needed? __iter__ might be as good
+            # since list is implemented in term of __iter__ by default
+            # in the above category
+            def list(self):
+                """
+                Return the cardinality of ``self``
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(2), FiniteEnumeratedSet(['a','b']), GF(3)])
+                    sage: C.list()
+                    [(0, 'a', 0), (0, 'a', 1), (0, 'a', 2), (0, 'b', 0), (0, 'b', 1), (0, 'b', 2),
+                     (1, 'a', 0), (1, 'a', 1), (1, 'a', 2), (1, 'b', 0), (1, 'b', 1), (1, 'b', 2)]
+                """
+                from itertools import product
+                # Optimization: since we know that x is a list of
+                # elements of the sets, we can shortcut coercion, ...
+                # TODO: maybe use _cartesian_product_of_elements instead
+                return [self.element_class(self, x) for x in product(*self._sets)]
+
             @abstract_method
             def _sets_keys(self):
                 """

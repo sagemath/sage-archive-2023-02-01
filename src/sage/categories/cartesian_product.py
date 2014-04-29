@@ -145,22 +145,6 @@ class CartesianProductsCategory(CovariantConstructionCategory):
         """
         return self
 
-    class ParentMethods:
-        def cardinality(self):
-            from sage.misc.misc_c import prod
-            return prod([x.cardinality() for x in self._sets])
-        order = cardinality
-        def list(self):
-            from itertools import product
-            return list([self(x) for x in product(*self._sets)])
-        def _element_constructor_(self,x):
-            if hasattr(x,'parent') and x.parent() is self:
-                return x
-            if all( hasattr(xx,'parent') and xx.parent() is c for c,xx in zip(self._sets,x) ):
-                return x
-            else:
-                return tuple([c(xx) for c,xx in zip(self._sets,x)])
-
     def base_ring(self):
         """
         The base ring of a cartesian product is the base ring of the underlying category.

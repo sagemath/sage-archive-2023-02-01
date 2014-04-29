@@ -51,6 +51,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
         self._sets = sets
         Parent.__init__(self, category = category)
 
+    def _element_constructor_(self,x):
+        
+        #if not all( hasattr(xx,'parent') and xx.parent() is c for c,xx in zip(self._sets,x) ):
+        x = tuple([c(xx) for c,xx in zip(self._sets,x)])
+        return self.element_class(self, x)
+
     def _repr_(self):
         """
         EXAMPLES::

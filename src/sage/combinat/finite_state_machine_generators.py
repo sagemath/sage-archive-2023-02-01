@@ -430,7 +430,7 @@ class TransducerGenerators(object):
             sage: weight
             3
 
-            Also the joint Hamming weight can be computed::
+        Also the joint Hamming weight can be computed::
 
             sage: v1 = vector([-1, 0])
             sage: v0 = vector([0, 0])
@@ -439,16 +439,16 @@ class TransducerGenerators(object):
             sage: add(unary_weight)
             2
 
-            For the input alphabet ``[-1, 0, 1]`` the weight transducer is the
-            same as the absolute value transducer
-            :meth:`~TransducerGenerators.abs`::
+        For the input alphabet ``[-1, 0, 1]`` the weight transducer is the
+        same as the absolute value transducer
+        :meth:`~TransducerGenerators.abs`::
 
             sage: W = transducers.weight([-1, 0, 1])
             sage: A = transducers.abs([-1, 0, 1])
             sage: W == A
             True
 
-            For other input alphabets, we can specify what is the zero symbol::
+        For other input alphabets, we can specify the zero symbol::
 
             sage: W = transducers.weight(['a', 'b'], zero='a')
             sage: add(W(['a', 'b', 'b']))

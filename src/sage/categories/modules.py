@@ -41,6 +41,14 @@ class Modules(Category_module):
     When the base ring is a field, the category of vector spaces is
     returned instead (unless ``dispatch == False``).
 
+    .. WARNING::
+
+        It is currently undecided whether modules have to be symmetric
+        (that is, to satisfy `rx = xr` for all `r \in R` and `x \in M`)
+        or not. This makes a difference even for commutative `R`.
+        No guarantees can be made that the code in this
+        category and its subcategories works correctly if they are not.
+
     EXAMPLES::
 
         sage: Modules(ZZ)

@@ -199,7 +199,7 @@ def unrank(L, i):
 
     .. WARNING::
 
-        When unranking an iterator, it returns the``i``-th element
+        When unranking an iterator, it returns the ``i``-th element
         beyond where it is currently at::
 
             sage: from sage.combinat.ranker import unrank

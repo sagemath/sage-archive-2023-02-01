@@ -28,6 +28,7 @@ for more details and a lot of examples.
     :meth:`~TransducerGenerators.sub` | Returns a transducer realizing subtraction.
     :meth:`~TransducerGenerators.CountSubblockOccurrences` | Returns a transducer counting the occurrences of a subblock.
     :meth:`~TransducerGenerators.weight` | Returns a transducer realizing the Hamming weight
+    :meth:`~TransducerGenerators.GrayCode` | Returns a transducer realizing binary Gray code.
 
 AUTHORS:
 
@@ -58,6 +59,7 @@ Functions and methods
 #*****************************************************************************
 
 from sage.combinat.finite_state_machine import Transducer
+from sage.rings.integer_ring import ZZ
 
 class TransducerGenerators(object):
     r"""
@@ -75,6 +77,7 @@ class TransducerGenerators(object):
     - :meth:`~add`
     - :meth:`~sub`
     - :meth:`~CountSubblockOccurrences`
+    - :meth:`~GrayCode`
 
     """
 
@@ -498,6 +501,59 @@ class TransducerGenerators(object):
                           input_alphabet=input_alphabet,
                           initial_states=[0],
                           final_states=[0])
+
+
+    def GrayCode(self):
+        """
+        Returns a transducer converting the standard binary
+        expansion to Gray code.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A transducer.
+
+        Cf. the :wikipedia:`Gray_code` for a description of the Gray code.
+
+        EXAMPLE::
+
+            sage: G = transducers.GrayCode()
+            sage: G
+            Transducer with 3 states
+            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+            sage: for v in srange(0, 10):
+            ....:     print v, G(v.digits(base=2) + [0])
+            0 []
+            1 [1]
+            2 [1, 1]
+            3 [0, 1]
+            4 [0, 1, 1]
+            5 [1, 1, 1]
+            6 [1, 0, 1]
+            7 [0, 0, 1]
+            8 [0, 0, 1, 1]
+            9 [1, 0, 1, 1]
+
+        In the example :ref:`Gray Code <finite_state_machine_gray_code_example>`
+        in the documentation of the
+        :mod:`~sage.combinat.finite_state_machine` module, the Gray code
+        transducer is derived from the algorithm converting the binary
+        expansion to the Gray code. The result is the same as the one
+        given here.
+        """
+        z = ZZ(0)
+        o = ZZ(1)
+        return Transducer([[0, 1, z, None],
+                           [0, 2, o, None],
+                           [1, 1, z, z],
+                           [1, 2, o, o],
+                           [2, 1, z, o],
+                           [2, 2, o, z]],
+                          initial_states=[0],
+                          final_states=[1])
 
 
 # Easy access to the transducer generators from the command line:

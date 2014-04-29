@@ -1,5 +1,5 @@
 r"""
-GroupAlgebras
+Group Algebras
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
@@ -11,8 +11,8 @@ GroupAlgebras
 #******************************************************************************
 
 def GroupAlgebras(base_ring):
-    """
-    The category of group algebras over ``base_ring``
+    r"""
+    The category of group algebras over ``base_ring``.
 
     EXAMPLES::
 
@@ -33,3 +33,4 @@ def GroupAlgebras(base_ring):
     """
     from sage.categories.all import Groups
     return Groups().Algebras(base_ring)
+

@@ -266,7 +266,9 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             Category of tensor products of modules with basis over Rational Field
 
             sage: sage.categories.algebra_functor.AlgebrasCategory.category_of(FiniteMonoids(), QQ)
-            Join of Category of finite dimensional algebras with basis over Rational Field and Category of monoid algebras over Rational Field and Category of finite set algebras over Rational Field
+            Join of Category of finite dimensional algebras with basis over Rational Field
+                and Category of monoid algebras over Rational Field
+                and Category of finite set algebras over Rational Field
         """
         # TODO: find a better test
         # the purpose is to test whether ``category`` implements that functor
@@ -333,9 +335,13 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
         Here is how :meth:`default_super_categories` was called internally::
 
             sage: sage.categories.algebra_functor.AlgebrasCategory.default_super_categories(FiniteMonoids(), QQ)
-            Join of Category of finite dimensional algebras with basis over Rational Field and Category of monoid algebras over Rational Field and Category of finite set algebras over Rational Field
+            Join of Category of finite dimensional algebras with basis over Rational Field
+                and Category of monoid algebras over Rational Field
+                and Category of finite set algebras over Rational Field
         """
-        return Category.join([getattr(cat, cls._functor_category)(*args) for cat in category._super_categories if hasattr(cat, cls._functor_category)])
+        return Category.join([getattr(cat, cls._functor_category)(*args)
+                              for cat in category._super_categories
+                              if hasattr(cat, cls._functor_category)])
 
     def __init__(self, category, *args):
         """
@@ -442,11 +448,13 @@ class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
 
         INPUT:
 
-         - ``cls`` -- the category class for the functor `F`
-         - ``category`` -- a category `Cat`
-         - ``*args`` -- further arguments for the functor
+        - ``cls`` -- the category class for the functor `F`
+        - ``category`` -- a category `Cat`
+        - ``*args`` -- further arguments for the functor
 
-        OUTPUT: a join category
+        OUTPUT:
+
+        A join category.
 
         This implements the property that an induced subcategory is a
         subcategory.

@@ -12,9 +12,10 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 
 class FiniteMonoids(CategoryWithAxiom):
     """
-    The category of finite (multiplicative) :class:`monoids <Monoids>`,
-    i.e., :class:`finite sets <FiniteSets>` endowed with an
-    associative unital binary operation `*`.
+    The category of finite (multiplicative) :class:`monoids <Monoids>`.
+
+    A finite monoid is a :class:`finite sets <FiniteSets>` endowed
+    with an associative unital binary operation `*`.
 
     EXAMPLES::
 

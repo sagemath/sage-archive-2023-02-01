@@ -22,8 +22,9 @@ from sage.structure.sage_object import have_same_parent
 
 class Magmas(Category_singleton):
     """
-    The category of (multiplicative) magmas, i.e. sets with a binary
-    operation `*`.
+    The category of (multiplicative) magmas.
+
+    A magama is a set with a binary operation `*`.
 
     EXAMPLES::
 
@@ -32,7 +33,8 @@ class Magmas(Category_singleton):
         sage: Magmas().super_categories()
         [Category of sets]
         sage: Magmas().all_super_categories()
-        [Category of magmas, Category of sets, Category of sets with partial maps, Category of objects]
+        [Category of magmas, Category of sets,
+         Category of sets with partial maps, Category of objects]
 
     The following axioms are defined by this category::
 
@@ -70,14 +72,15 @@ class Magmas(Category_singleton):
         @cached_method
         def Associative(self):
             """
-            Return the full subcategory of the associative objects of ``self``.
+            Return the full subcategory of the associative objects
+            of ``self``.
 
             A (multiplicative) :class:`magma Magmas` `M` is
             *associative* if, for all `x,y,z\in M`,
 
-            .. MATH:: x * (y * z) = (x * y) * z
+            .. MATH:: x * (y * z) = (x * y) * z.
 
-            .. SEEALSO:: :wikipedia:`Associative_property`.
+            .. SEEALSO:: :wikipedia:`Associative_property`
 
             EXAMPLES::
 
@@ -95,14 +98,15 @@ class Magmas(Category_singleton):
         @cached_method
         def Commutative(self):
             """
-            Return the full subcategory of the commutative objects of ``self``.
+            Return the full subcategory of the commutative objects
+            of ``self``.
 
             A (multiplicative) :class:`magma Magmas` `M` is
             *commutative* if, for all `x,y\in M`,
 
-            .. MATH:: x * y = y * x
+            .. MATH:: x * y = y * x.
 
-            .. SEEALSO:: :wikipedia:`Commutative_property`.
+            .. SEEALSO:: :wikipedia:`Commutative_property`
 
             EXAMPLES::
 
@@ -128,7 +132,7 @@ class Magmas(Category_singleton):
             if it admits an element `1`, called *unit*, such that for
             all `x\in M`,
 
-            .. MATH:: 1 * x = x * 1 = x
+            .. MATH:: 1 * x = x * 1 = x.
 
             This element is necessarily unique, and should be provided
             as ``M.one()``.
@@ -158,11 +162,13 @@ class Magmas(Category_singleton):
         @cached_method
         def Distributive(self):
             """
-            Return the full subcategory of the objects of ``self`` where `*` is distributive on `+`.
+            Return the full subcategory of the objects of ``self``
+            where `*` is distributive on `+`.
 
             INPUT:
 
-            - ``self`` -- a subcategory of :class:`Magmas` and :class:`AdditiveMagmas`
+            - ``self`` -- a subcategory of :class:`Magmas`
+              and :class:`AdditiveMagmas`
 
             Given that Sage does not yet know that the category
             :class:`MagmasAndAdditiveMagmas` is the intersection of
@@ -218,12 +224,14 @@ class Magmas(Category_singleton):
                 sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
                 [Category of commutative magmas]
 
-            This implements the fact that the algebra of a commutative magma is commutative::
+            This implements the fact that the algebra of a commutative
+            magma is commutative::
 
                 sage: Magmas().Commutative().Algebras(QQ).super_categories()
                 [Category of magma algebras over Rational Field, Category of commutative magmas]
 
-            In particular, commutative monoid algebras are commutative algebras::
+            In particular, commutative monoid algebras are
+            commutative algebras::
 
                 sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
                 True
@@ -254,12 +262,15 @@ class Magmas(Category_singleton):
                     sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
                     [Category of commutative magmas]
 
-                This implements the fact that the algebra of a commutative magma is commutative::
+                This implements the fact that the algebra of a commutative
+                magma is commutative::
 
                     sage: Magmas().Commutative().Algebras(QQ).super_categories()
-                    [Category of magma algebras over Rational Field, Category of commutative magmas]
+                    [Category of magma algebras over Rational Field,
+                     Category of commutative magmas]
 
-                In particular, commutative monoid algebras are commutative algebras::
+                In particular, commutative monoid algebras are
+                commutative algebras::
 
                     sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
                     True
@@ -280,7 +291,9 @@ class Magmas(Category_singleton):
                 every element admits both an inverse on the left and
                 on the right. Such a magma is also called a *loop*.
 
-                .. SEEALSO:: :wikipedia:`Inverse_element`, :wikipedia:`Quasigroup`
+                .. SEEALSO::
+
+                    :wikipedia:`Inverse_element`, :wikipedia:`Quasigroup`
 
                 EXAMPLES::
 
@@ -309,12 +322,15 @@ class Magmas(Category_singleton):
                     sage: Magmas().Commutative().Algebras(QQ).extra_super_categories()
                     [Category of commutative magmas]
 
-                This implements the fact that the algebra of a commutative magma is commutative::
+                This implements the fact that the algebra of a
+                commutative magma is commutative::
 
                     sage: Magmas().Commutative().Algebras(QQ).super_categories()
-                    [Category of magma algebras over Rational Field, Category of commutative magmas]
+                    [Category of magma algebras over Rational Field,
+                     Category of commutative magmas]
 
-                In particular, commutative monoid algebras are commutative algebras::
+                In particular, commutative monoid algebras are
+                commutative algebras::
 
                     sage: Monoids().Commutative().Algebras(QQ).is_subcategory(Algebras(QQ).Commutative())
                     True
@@ -329,11 +345,11 @@ class Magmas(Category_singleton):
 
             INPUT:
 
-             - ``x``, ``y``: elements of this magma
+            - ``x``, ``y`` -- elements of this magma
 
             OUTPUT:
 
-             - an element of the magma (the product of ``x`` and ``y``)
+            - an element of the magma (the product of ``x`` and ``y``)
 
             EXAMPLES::
 

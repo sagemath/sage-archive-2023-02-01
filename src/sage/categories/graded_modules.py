@@ -41,14 +41,16 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
     @lazy_class_attribute
     def _base_category_class(cls):
         """
-        Recover the class of the base category
+        Recover the class of the base category.
 
-        OUTPUT: a *tuple* whose first entry is the base category class
+        OUTPUT:
+
+        A *tuple* whose first entry is the base category class.
 
         .. WARNING::
 
             This is only used for graded categories that are not
-            implemented as nested classes, and won't work otherwise
+            implemented as nested classes, and won't work otherwise.
 
         .. SEEALSO:: :meth:`__classcall__`
 
@@ -61,7 +63,7 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
 
         The reason for wrapping the base category class in a tuple is
         that, often, the base category class implements a
-        :meth:``__classget__`` method which would get in the way upon
+        :meth:`__classget__` method which would get in the way upon
         attribute access::
 
                 sage: F = GradedAlgebrasWithBasis
@@ -82,7 +84,7 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
     @staticmethod
     def __classcall__(cls, category, *args):
         """
-        Magic support for putting Graded categories in their own file
+        Magic support for putting Graded categories in their own file.
 
         EXAMPLES::
 
@@ -93,15 +95,15 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
             sage: GradedModules(ZZ) is Modules(ZZ).Graded()
             True
 
-        .. todo::
+        .. TODO::
 
             Generalize this support for all other functorial
-            constructions if at some point we have a category Blah for
-            which we want to implement the construction Blah.Foo in a
-            separate file like we do for e.g. GradedModules,
-            GradedAlgebras, ...
+            constructions if at some point we have a category ``Blah`` for
+            which we want to implement the construction ``Blah.Foo`` in a
+            separate file like we do for e.g. :class:`GradedModules`,
+            :class:`GradedAlgebras`, ...
 
-        .. seealso:: :meth:`_base_category_class`
+        .. SEEALSO:: :meth:`_base_category_class`
         """
         base_category_class = cls._base_category_class[0]
         if isinstance(category, base_category_class):
@@ -116,11 +118,11 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
             sage: AlgebrasWithBasis(QQ).Graded()  # indirect doctest
             Category of graded algebras with basis over Rational Field
         """
-        return "graded %s"%(self.base_category()._repr_object_names())
+        return "graded {}".format(self.base_category()._repr_object_names())
 
 class GradedModules(GradedModulesCategory):
     """
-    The category of graded modules
+    The category of graded modules.
 
     EXAMPLES::
 
@@ -136,7 +138,8 @@ class GradedModules(GradedModulesCategory):
 
     def extra_super_categories(self):
         r"""
-        Adds VectorSpaces to the super categories of ``self`` if the base ring is a field
+        Adds :class:`VectorSpaces` to the super categories of ``self`` if
+        the base ring is a field.
 
         EXAMPLES::
 

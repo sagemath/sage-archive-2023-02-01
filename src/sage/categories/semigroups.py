@@ -25,7 +25,7 @@ from sage.structure.element import generic_power
 
 class Semigroups(CategoryWithAxiom):
     """
-    The category of (multiplicative) semigroups
+    The category of (multiplicative) semigroups.
 
     A *semigroup* is an associative :class:`magma <Magmas>`, that is a
     set endowed with a multiplicative binary operation `*` which is
@@ -61,9 +61,9 @@ class Semigroups(CategoryWithAxiom):
         :meth:`Category.example()
         <sage.categories.category.Category.example>`.
 
-        INPUT::
+        INPUT:
 
-         - ``choice`` -- str [default: 'leftzero']. Can be either 'leftzero'
+         - ``choice`` -- str (default: 'leftzero'). Can be either 'leftzero'
            for the left zero semigroup, or 'free' for the free semigroup.
          - ``**kwds`` -- keyword arguments passed onto the constructor for the
            chosen semigroup.
@@ -93,7 +93,7 @@ class Semigroups(CategoryWithAxiom):
 
             INPUT::
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 
@@ -119,7 +119,8 @@ class Semigroups(CategoryWithAxiom):
 
         def prod(self, args):
             r"""
-            Returns the product of the list of elements ``args`` inside ``self``.
+            Return the product of the list of elements ``args``
+            inside ``self``.
 
             EXAMPLES::
 
@@ -136,24 +137,23 @@ class Semigroups(CategoryWithAxiom):
 
         def cayley_graph(self, side="right", simple=False, elements = None, generators = None, connecting_set = None):
             r"""
-
-            Returns the Cayley graph for this finite semigroup.
+            Return the Cayley graph for this finite semigroup.
 
             INPUT::
 
-             - ``side`` -- "left", "right", or "twosided":
-               the side on which the generators act (default:"right")
-             - ``simple`` -- boolean (default:False):
-               if True, returns a simple graph (no loops, no labels,
-               no multiple edges)
-             - ``generators`` -- a list, tuple, or family of elements of ``self``
-               (default: ``self.semigroup_generators()``)
-             - ``connecting_set`` -- alias for ``generators``; deprecated
-             - ``elements`` -- a list (or iterable) of elements of ``self``
+            - ``side`` -- "left", "right", or "twosided":
+              the side on which the generators act (default:"right")
+            - ``simple`` -- boolean (default:False):
+              if True, returns a simple graph (no loops, no labels,
+              no multiple edges)
+            - ``generators`` -- a list, tuple, or family of elements
+              of ``self`` (default: ``self.semigroup_generators()``)
+            - ``connecting_set`` -- alias for ``generators``; deprecated
+            - ``elements`` -- a list (or iterable) of elements of ``self``
 
             OUTPUT::
 
-             - :class:`DiGraph`
+            - :class:`DiGraph`
 
             EXAMPLES:
 
@@ -198,7 +198,8 @@ class Semigroups(CategoryWithAxiom):
                 (85, 84)
                 sage: G.show3d(color_by_label=True, edge_size=0.001, vertex_size=0.01)
 
-            We now illustrate the ``side`` and ``simple`` options on a semigroup::
+            We now illustrate the ``side`` and ``simple`` options on
+            a semigroup::
 
                 sage: S = FiniteSemigroups().example(alphabet=('a','b'))
                 sage: g = S.cayley_graph(simple=True)
@@ -245,24 +246,24 @@ class Semigroups(CategoryWithAxiom):
                 ...
                 ValueError: option 'side' must be 'left', 'right' or 'twosided'
 
-            TODO:
+            .. TODO::
 
-             - Add more options for constructing subgraphs of the
-               Cayley graph, handling the standard use cases when
-               exploring large/infinite semigroups (a predicate,
-               generators of an ideal, a maximal length in term of the
-               generators)
+                - Add more options for constructing subgraphs of the
+                  Cayley graph, handling the standard use cases when
+                  exploring large/infinite semigroups (a predicate,
+                  generators of an ideal, a maximal length in term of the
+                  generators)
 
-             - Specify good default layout/plot/latex options in the graph
+                - Specify good default layout/plot/latex options in the graph
 
-             - Generalize to combinatorial modules with module generators / operators
+                - Generalize to combinatorial modules with module generators / operators
 
             AUTHORS:
 
-             - Bobby Moretti (2007-08-10)
-             - Robert Miller (2008-05-01): editing
-             - Nicolas M. Thiery (2008-12): extension to semigroups,
-               ``side``, ``simple``, and ``elements`` options, ...
+            - Bobby Moretti (2007-08-10)
+            - Robert Miller (2008-05-01): editing
+            - Nicolas M. Thiery (2008-12): extension to semigroups,
+              ``side``, ``simple``, and ``elements`` options, ...
             """
             from sage.graphs.digraph import DiGraph
             from groups import Groups
@@ -310,11 +311,11 @@ class Semigroups(CategoryWithAxiom):
 
         def _pow_(self, n):
             """
-            Returns self to the $n^{th}$ power.
+            Return ``self`` to the `n^{th}` power.
 
-            INPUT::
+            INPUT:
 
-             - ``n`` -- a positive integer
+            - ``n`` -- a positive integer
 
             EXAMPLES::
 
@@ -387,7 +388,7 @@ class Semigroups(CategoryWithAxiom):
 
         def example(self):
             r"""
-            Returns an example of quotient of a semigroup, as per
+            Return an example of quotient of a semigroup, as per
             :meth:`Category.example()
             <sage.categories.category.Category.example>`.
 
@@ -403,7 +404,7 @@ class Semigroups(CategoryWithAxiom):
 
             def semigroup_generators(self):
                 r"""
-                Returns semigroup generators for ``self`` by
+                Return semigroup generators for ``self`` by
                 retracting the semigroup generators of the ambient
                 semigroup.
 
@@ -436,7 +437,8 @@ class Semigroups(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
-            Implements the fact that the algebra of a semigroup is indeed a (not necessarily unital) algebra
+            Implement the fact that the algebra of a semigroup is indeed
+            a (not necessarily unital) algebra.
 
             EXAMPLES::
 

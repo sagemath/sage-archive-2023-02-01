@@ -9,7 +9,8 @@ Abstract
     into a concrete software engineering design pattern for:
 
     - organizing and promoting generic code
-    - fostering consistency across the Sage library (naming conventions, doc, tests)
+    - fostering consistency across the Sage library (naming
+      conventions, doc, tests)
     - embedding more mathematical knowledge into the system
 
     This design pattern is largely inspired from Axiom and its
@@ -70,16 +71,16 @@ Some challenges
 
   Similar objects should behave similarly::
 
-    sage: Permutations(5).cardinality()
-    120
+      sage: Permutations(5).cardinality()
+      120
 
-    sage: GL(2,2).cardinality()
-    6
+      sage: GL(2,2).cardinality()
+      6
 
-    sage: A=random_matrix(ZZ,3,6,x=7)
-    sage: L=LatticePolytope(A.columns())
-    sage: L.npoints()                # oops!   # random
-    37
+      sage: A=random_matrix(ZZ,3,6,x=7)
+      sage: L=LatticePolytope(A.columns())
+      sage: L.npoints()                # oops!   # random
+      37
 
 - How to ensure robustness?
 
@@ -204,123 +205,130 @@ by abstract algebra.
 Elements, Parents, Categories
 -----------------------------
 
-**Parent**
-    A *parent* is a Python instance modelling a set of mathematical
-    elements together with its additional (algebraic) structure.
+.. RUBRIC:: Parent
 
-    Examples include the ring of integers, the group `S_3`, the set of
-    prime numbers, the set of linear maps between two given vector
-    spaces, and a given finite semigroup.
+A *parent* is a Python instance modelling a set of mathematical
+elements together with its additional (algebraic) structure.
 
-    These sets are often equipped with additional structure: the set
-    of all integers forms a ring. The main way of encoding this
-    information is specifying which categories a parent belongs to.
+Examples include the ring of integers, the group `S_3`, the set of
+prime numbers, the set of linear maps between two given vector
+spaces, and a given finite semigroup.
 
-    It is completely possible to have different Python instances
-    modelling the same set of elements.  For example, one might want
-    to consider the ring of integers, or the poset of integers under
-    their standard order, or the poset of integers under divisibility,
-    or the semiring of integers under the operations of maximum and
-    addition.  Each of these would be a different instance, belonging
-    to different categories.
+These sets are often equipped with additional structure: the set
+of all integers forms a ring. The main way of encoding this
+information is specifying which categories a parent belongs to.
 
-    For a given model, there should be a unique instance in Sage
-    representing that parent::
+It is completely possible to have different Python instances
+modelling the same set of elements.  For example, one might want
+to consider the ring of integers, or the poset of integers under
+their standard order, or the poset of integers under divisibility,
+or the semiring of integers under the operations of maximum and
+addition.  Each of these would be a different instance, belonging
+to different categories.
 
-        sage: IntegerRing() is IntegerRing()
-        True
+For a given model, there should be a unique instance in Sage
+representing that parent::
 
-**Element**
-    An *element* is a Python instance modelling a mathematical element
-    of a set.
+    sage: IntegerRing() is IntegerRing()
+    True
 
-    Examples of element include `5` in the integer ring, `x^3 - x` in
-    the polynomial ring in `x` over the rationals, `4 + O(3^3)` in the
-    3-adics, the transposition `(1 2)` in `S_3`, and the identity
-    morphism in the set of linear maps from `\QQ^3` to `\QQ^3`.
+.. RUBRIC:: Element
 
-    Every element in Sage has a parent.  The standard idiom in Sage
-    for creating elements is to create their parent, and then provide
-    enough data to define the element::
+An *element* is a Python instance modelling a mathematical element
+of a set.
 
-        sage: R = PolynomialRing(ZZ, name='x')
-        sage: R([1,2,3])
-        3*x^2 + 2*x + 1
+Examples of element include `5` in the integer ring, `x^3 - x` in
+the polynomial ring in `x` over the rationals, `4 + O(3^3)` in the
+3-adics, the transposition `(1 2)` in `S_3`, and the identity
+morphism in the set of linear maps from `\QQ^3` to `\QQ^3`.
 
-    One can also create elements using various methods on the parent
-    and arithmetic of elements::
+Every element in Sage has a parent.  The standard idiom in Sage
+for creating elements is to create their parent, and then provide
+enough data to define the element::
 
-        sage: x = R.gen()
-        sage: 1 + 2*x + 3*x^2
-        3*x^2 + 2*x + 1
+    sage: R = PolynomialRing(ZZ, name='x')
+    sage: R([1,2,3])
+    3*x^2 + 2*x + 1
 
-    Unlike parents, elements in Sage are not necessarily unique::
+One can also create elements using various methods on the parent
+and arithmetic of elements::
 
-        sage: ZZ(5040) is ZZ(5040)
-        False
+    sage: x = R.gen()
+    sage: 1 + 2*x + 3*x^2
+    3*x^2 + 2*x + 1
 
-    Many parents model algebraic structures, and their elements
-    support arithmetic operations. One often further wants to do
-    arithmetic by combining elements from different parents: adding
-    together integers and rationals for example. Sage supports this
-    feature using coercion (see :mod:`sage.structure.coerce` for more
-    details).
+Unlike parents, elements in Sage are not necessarily unique::
 
-    It is possible for a parent to also have simultaneously the
-    structure of an element. Consider for example the monoid of all
-    finite groups, endowed with the cartesian product operation.
-    Then, every finite group (which is a parent) is also an element of
-    this monoid. This is not yet implemented, and the design details
-    are not yet fixed but experiments are underway in this direction.
+    sage: ZZ(5040) is ZZ(5040)
+    False
 
-    TODO: give a concrete example, typically using :class:`ElementWrapper`.
+Many parents model algebraic structures, and their elements
+support arithmetic operations. One often further wants to do
+arithmetic by combining elements from different parents: adding
+together integers and rationals for example. Sage supports this
+feature using coercion (see :mod:`sage.structure.coerce` for more
+details).
 
-**Category**
-    A *category* is a Python instance modelling a mathematical category.
+It is possible for a parent to also have simultaneously the
+structure of an element. Consider for example the monoid of all
+finite groups, endowed with the cartesian product operation.
+Then, every finite group (which is a parent) is also an element of
+this monoid. This is not yet implemented, and the design details
+are not yet fixed but experiments are underway in this direction.
 
-    Examples of categories include the category of finite semigroups,
-    the category of all (Python) objects, the category of
-    `\ZZ`-algebras, and the category of cartesian products of
-    `\ZZ`-algebras::
+.. TODO:: Give a concrete example, typically using :class:`ElementWrapper`.
 
-        sage: FiniteSemigroups()
-        Category of finite semigroups
-        sage: Objects()
-        Category of objects
-        sage: Algebras(ZZ)
-        Category of algebras over Integer Ring
-        sage: Algebras(ZZ).CartesianProducts()
-        Category of Cartesian products of algebras over Integer Ring
+.. RUBRIC:: Category
 
-    Mind the 's' in the names of the categories above;
-    ``GroupAlgebra`` and ``GroupAlgebras`` are distinct things.
+A *category* is a Python instance modelling a mathematical category.
 
-    Every parent belongs to a collection of categories. Moreover,
-    categories are interrelated by the *super categories*
-    relation. For example, the category of rings is a super category
-    of the category of fields, because every field is also a ring.
+Examples of categories include the category of finite semigroups,
+the category of all (Python) objects, the category of
+`\ZZ`-algebras, and the category of cartesian products of
+`\ZZ`-algebras::
 
-    A category serves two roles:
+    sage: FiniteSemigroups()
+    Category of finite semigroups
+    sage: Objects()
+    Category of objects
+    sage: Algebras(ZZ)
+    Category of algebras over Integer Ring
+    sage: Algebras(ZZ).CartesianProducts()
+    Category of Cartesian products of algebras over Integer Ring
 
-    - to provide a model for the mathematical concept of a category
-      and the associated structures: homsets, morphisms, functorial
-      constructions, axioms.
+Mind the 's' in the names of the categories above;
+``GroupAlgebra`` and ``GroupAlgebras`` are distinct things.
 
-    - to organize and promote generic code, naming conventions,
-      documentation, and tests across similar mathematical structures.
+Every parent belongs to a collection of categories. Moreover,
+categories are interrelated by the *super categories*
+relation. For example, the category of rings is a super category
+of the category of fields, because every field is also a ring.
 
-**CategoryObject**
-    Objects of a mathematical category are not necessarily parents.
-    Parent has a superclass that provides a means of modeling such.
+A category serves two roles:
 
-    For example, the category of schemes does not have a faithful
-    forgetful functor to the category of sets, so it does not make
-    sense to talk about schemes as parents.
+- to provide a model for the mathematical concept of a category
+  and the associated structures: homsets, morphisms, functorial
+  constructions, axioms.
 
-**Morphisms, Homsets**
-    As category theorists will expect, *Morphisms* and *Homsets* will
-    play an ever more important role, as support for them will
-    improve.
+- to organize and promote generic code, naming conventions,
+  documentation, and tests across similar mathematical structures.
+
+.. RUBRIC:: CategoryObject
+
+Objects of a mathematical category are not necessarily parents.
+Parent has a superclass that provides a means of modeling such.
+
+For example, the category of schemes does not have a faithful
+forgetful functor to the category of sets, so it does not make
+sense to talk about schemes as parents.
+
+.. RUBRIC:: Morphisms, Homsets
+
+As category theorists will expect, *Morphisms* and *Homsets* will
+play an ever more important role, as support for them will
+improve.
+
+----
 
 Much of the mathematical information in Sage is encoded as relations
 between elements and their parents, parents and their categories, and
@@ -484,15 +492,15 @@ mathematical sets, but with the sets themselves::
 Here are some typical operations that one may want to carry on various
 kinds of sets:
 
-    - The set of permutations of 5, the set of rational points of an
-      elliptic curve: counting, listing, random generation
+- The set of permutations of 5, the set of rational points of an
+  elliptic curve: counting, listing, random generation
 
-    - A language (set of words): rationality testing, counting elements,
-      generating series
+- A language (set of words): rationality testing, counting elements,
+  generating series
 
-    - A finite semigroup: left/right ideals, center, representation theory
+- A finite semigroup: left/right ideals, center, representation theory
 
-    - A vector space, an algebra: cartesian product, tensor product, quotient
+- A vector space, an algebra: cartesian product, tensor product, quotient
 
 Hence, following the OOP fundamental principle, parents should also be
 modelled by instances of some (hierarchy of) classes. For example, our
@@ -828,8 +836,8 @@ And rerun the test::
     ...
     AssertionError: False is not true
 
-We can recover instantly the actual values of x,y,z, that is, a
-counterexample to the associativity of our broken semigroup, using post
+We can recover instantly the actual values of ``x``, ``y``, ``z``, that is,
+a counterexample to the associativity of our broken semigroup, using post
 mortem introspection with the Python debugger ``pdb`` (this does not
 work yet in the notebook)::
 
@@ -948,10 +956,10 @@ implemented can be found by introspection with::
     {'parent': {'required': ['__contains__'], 'optional': []},
      'element': {'required': [], 'optional': ['_mul_']}}
 
-`product` does not appear in the list because a default implementation
-is provided in term of the method `_mul_` on elements. Of course, at
+:meth:`product` does not appear in the list because a default implementation
+is provided in term of the method :meth:`_mul_` on elements. Of course, at
 least one of them should be implemented. On the other hand, a default
-implementation for `__contains__` is provided by :class:`Parent`.
+implementation for :meth:`__contains__` is provided by :class:`Parent`.
 
 Documentation about those methods can be obtained with::
 
@@ -1032,23 +1040,28 @@ functorial constructions* which can be used to construct new parents
 from existing ones while carrying over as much as possible of their
 algebraic structure. This includes:
 
- - Cartesian products:
-   See :const:`~sage.categories.cartesian_product.cartesian_product`.
- - Tensor products:
-   See :const:`~sage.categories.tensor.tensor`.
- - Subquotients / quotients / subobjects / isomorphic objects:
-   See:
-   - :meth:`<Sets().Subquotients Sets.SubcategoryMethods.Subquotients>`,
-   - :meth:`<Sets().Quotients Sets.SubcategoryMethods.Quotients>`,
-   - :meth:`<Sets().Subobjects Sets.SubcategoryMethods.Subobjects>`,
-   - :meth:`<Sets().IsomorphicObjects Sets.SubcategoryMethods.IsomorphicObjects>`
- - Dual objects:
-   See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
- - Algebras, as in group algebras, monoid algebras, ...:
-   See: :meth:`Sets.ParentMethods.algebras`.
+- Cartesian products:
+  See :const:`~sage.categories.cartesian_product.cartesian_product`.
+
+- Tensor products:
+  See :const:`~sage.categories.tensor.tensor`.
+
+- Subquotients / quotients / subobjects / isomorphic objects:
+  See:
+
+  - :meth:`<Sets().Subquotients Sets.SubcategoryMethods.Subquotients>`,
+  - :meth:`<Sets().Quotients Sets.SubcategoryMethods.Quotients>`,
+  - :meth:`<Sets().Subobjects Sets.SubcategoryMethods.Subobjects>`,
+  - :meth:`<Sets().IsomorphicObjects Sets.SubcategoryMethods.IsomorphicObjects>`
+
+- Dual objects:
+  See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
+
+- Algebras, as in group algebras, monoid algebras, ...:
+  See: :meth:`Sets.ParentMethods.algebras`.
 
 Let for example `A` and `B` be two parents, and let us construct the
-cartesian product `A\times B\times B`::
+cartesian product `A \times B \times B`::
 
     sage: A = AlgebrasWithBasis(QQ).example();     A.rename("A")
     sage: B = HopfAlgebrasWithBasis(QQ).example(); B.rename("B")
@@ -1057,8 +1070,8 @@ cartesian product `A\times B\times B`::
 
 In which category should this new parent be? Since `A` and `B` are
 vector spaces, the result is, as a vector space, the direct sum
-`A\oplus B\oplus B`, hence the notation. Also, since both `A` and `B`
-are monoids, `A\times B\times B` is naturally endowed with a monoid
+`A \oplus B \oplus B`, hence the notation. Also, since both `A` and `B`
+are monoids, `A \times B \times B` is naturally endowed with a monoid
 structure for pointwise multiplication::
 
     sage: C in Monoids()
@@ -1124,7 +1137,7 @@ elements accordingly.
 
 In general, the cartesian product of `A` and `B` can potentially be an
 algebra, a coalgebra, a differential module, and be finite
-dimensional, or graded, or ...  This can only be decided at runtime,
+dimensional, or graded, or ....  This can only be decided at runtime,
 by introspection into the properties of `A` and `B`; furthermore, the
 number of possible combinations (e.g. finite dimensional differential
 algebra) grows exponentially with the number of properties.
@@ -1230,13 +1243,14 @@ together::
 
 For a more advanced example, Sage knows that a ring is a set `C`
 endowed with a multiplication which distributes over addition, such
-that `(C,+)` is a commutative additive group and `(C,*)` is a monoid::
+that `(C, +)` is a commutative additive group and `(C, *)` is a monoid::
 
     sage: C = (CommutativeAdditiveGroups() & Monoids()).Distributive(); C
     Category of rings
 
     sage: sorted(C.axioms())
-    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+    ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+     'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
 
 The infrastructure allows for specifying further deduction rules, in
 order to encode mathematical facts like Wedderburn's theorem::

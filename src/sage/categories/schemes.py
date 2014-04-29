@@ -48,7 +48,7 @@ class Schemes(Category):
     @staticmethod
     def __classcall_private__(cls, X = None):
         """
-        Implements the dispatching Schemes(ZZ) -> Schemes_over_base
+        Implement the dispatching ``Schemes(ZZ)`` -> ``Schemes_over_base``.
 
         EXAMPLES::
 

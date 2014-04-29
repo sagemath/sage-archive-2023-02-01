@@ -13,7 +13,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 
 class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
     """
-    The category of sets `(S,+,*)` with `*` distributing on `+`
+    The category of sets `(S,+,*)` with `*` distributing on `+`.
 
     This is similar to a ring, but `+` and `*` are only required to be
     (additive) magmas.
@@ -52,7 +52,7 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
 
             INPUT::
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 
@@ -78,3 +78,4 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
                 tester.assert_(x * (y + z) == (x * y) + (x * z))
                 # right distributivity
                 tester.assert_((x + y) * z == (x * z) + (y * z))
+

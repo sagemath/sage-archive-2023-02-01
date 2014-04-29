@@ -16,7 +16,7 @@ from sage.categories.all import ModulesWithBasis, tensor, Hom
 
 class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
-    The category of coalgebras with a distinguished basis
+    The category of coalgebras with a distinguished basis.
 
     EXAMPLES::
 
@@ -36,10 +36,11 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @abstract_method(optional = True)
         def coproduct_on_basis(self, i):
             """
-            The coproduct of the algebra on the basis (optional)
+            The coproduct of the algebra on the basis (optional).
 
             INPUT:
-             - ``i``: the indices of an element of the basis of self
+
+            - ``i`` -- the indices of an element of the basis of ``self``
 
             Returns the coproduct of the corresponding basis elements
             If implemented, the coproduct of the algebra is defined
@@ -60,7 +61,8 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             If :meth:`coproduct_on_basis` is available, construct the
             coproduct morphism from ``self`` to ``self`` `\otimes`
             ``self`` by extending it by linearity. Otherwise, use
-            :meth:`~Coalgebras.Realizations.ParentMethods.coproduct_by_coercion`, if available.
+            :meth:`~Coalgebras.Realizations.ParentMethods.coproduct_by_coercion`,
+            if available.
 
             EXAMPLES::
 
@@ -84,10 +86,11 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @abstract_method(optional = True)
         def counit_on_basis(self, i):
             """
-            The counit of the algebra on the basis (optional)
+            The counit of the algebra on the basis (optional).
 
             INPUT:
-             - ``i``: the indices of an element of the basis of self
+
+            - ``i`` -- the indices of an element of the basis of ``self``
 
             Returns the counit of the corresponding basis elements
             If implemented, the counit of the algebra is defined
@@ -125,3 +128,4 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class ElementMethods:
         pass
+

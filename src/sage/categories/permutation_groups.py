@@ -15,11 +15,12 @@ from sage.misc.lazy_import import LazyImport
 
 class PermutationGroups(Category):
     r"""
+    The category of permutation groups.
 
-    The category of permutation groups, that is groups whose elements
+    A permutation group is a group whose elements
     are concretely represented by permutations of some set.
 
-    TODO: do we accept only permutations with finite support or not?
+    .. TODO:: do we accept only permutations with finite support or not?
 
     EXAMPLES::
 
@@ -32,18 +33,16 @@ class PermutationGroups(Category):
 
         sage: C = PermutationGroups()
         sage: TestSuite(C).run()
-
     """
     @cached_method
     def super_categories(self):
         """
-        Returns a list of the immediate super categories of ``self``.
+        Return a list of the immediate super categories of ``self``.
 
         EXAMPLES::
 
             sage: PermutationGroups().super_categories()
             [Category of groups]
-
         """
         return [Groups()]
 

@@ -97,7 +97,7 @@ class HeckeModules(Category_module):
             sage: HeckeModules(QQ)
             Category of Hecke modules over Rational Field
         """
-        return "Hecke modules over %s"%(self.base())
+        return "Hecke modules over {}".format(self.base())
 
     class ParentMethods:
 

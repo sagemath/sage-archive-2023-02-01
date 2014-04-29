@@ -108,9 +108,9 @@ class Monoids(CategoryWithAxiom):
             Test that ``self.one()`` is an element of ``self`` and is
             neutral for the operation ``*``.
 
-            INPUT::
+            INPUT:
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 
@@ -142,7 +142,8 @@ class Monoids(CategoryWithAxiom):
             n-ary product of elements of ``self``.
 
             INPUT:
-             - ``args`` -- a list (or iterable) of elements of ``self``
+
+            - ``args`` -- a list (or iterable) of elements of ``self``
 
             Returns the product of the elements in ``args``, as an element of
             ``self``.
@@ -162,11 +163,11 @@ class Monoids(CategoryWithAxiom):
             See the documentation for :class:`TestSuite` for information on
             further options.
 
-            INPUT::
+            INPUT:
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES::
+            EXAMPLES:
 
             By default, this method tests only the elements returned by
             ``self.some_elements()``::
@@ -178,7 +179,6 @@ class Monoids(CategoryWithAxiom):
             ``elements`` keyword argument::
 
                 sage: S._test_prod(elements = (S('a'), S('b')))
-
             """
             tester = self._tester(**options)
             tester.assert_(self.prod([]) == self.one())
@@ -211,7 +211,7 @@ class Monoids(CategoryWithAxiom):
 
             INPUT:
 
-             - ``n`` -- a nonnegative integer
+            - ``n`` -- a nonnegative integer
 
             EXAMPLES::
 
@@ -231,7 +231,7 @@ class Monoids(CategoryWithAxiom):
 
             INPUT:
 
-             - ``n`` -- a nonnegative integer
+            - ``n`` -- a nonnegative integer
 
             This naive implementation does not use binary
             exponentiation; there are cases where this is actually

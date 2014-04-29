@@ -31,7 +31,9 @@ class Modules(Category_module):
     An `R`-module `M` is a left and right `R`-module over a
     commutative ring `R` such that:
 
-    .. math::  r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x \in M
+    .. MATH::
+
+        r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x \in M.
 
     INPUT:
 
@@ -74,7 +76,9 @@ class Modules(Category_module):
           some pieces of the code possibly assume that `M` is a
           *symmetric `R`-`R`-bimodule*:
 
-          .. math::  r*x = x*r \qquad  \forall r \in R \text{ and } x \in M.
+          .. MATH::
+
+              r*x = x*r \qquad  \forall r \in R \text{ and } x \in M.
 
         - Make sure that non symmetric modules are properly supported
           by all the code, and advertise it.
@@ -186,11 +190,12 @@ class Modules(Category_module):
             for x in self.super_categories():
                 if isinstance(x, Category_over_base_ring):
                     return x.base_ring()
-            assert False, "some subcategory of %s should be a category over base ring"%self
+            assert False, "some subcategory of {} should be a category over base ring".format(self)
 
         def TensorProducts(self):
             r"""
-            Return the full subcategory of objects of ``self`` constructed as tensor products.
+            Return the full subcategory of objects of ``self`` constructed
+            as tensor products.
 
             .. SEEALSO::
 
@@ -427,7 +432,7 @@ class Modules(Category_module):
 
     class HomCategory(HomCategory):
         """
-        The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules
+        The category of homomorphism sets `\hom(X,Y)` for `X`, `Y` modules.
         """
 
         def extra_super_categories(self):
@@ -486,3 +491,4 @@ class Modules(Category_module):
             """
             from algebras import Algebras
             return [Algebras(self.base_category.base_ring())]
+

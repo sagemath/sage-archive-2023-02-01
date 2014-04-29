@@ -11,7 +11,7 @@ Graded Hopf algebras
 
 def GradedHopfAlgebras(base_ring):
     """
-    The category of graded Hopf algebras
+    The category of graded Hopf algebras.
 
     EXAMPLES::
 
@@ -27,3 +27,4 @@ def GradedHopfAlgebras(base_ring):
     """
     from sage.categories.all import HopfAlgebras
     return HopfAlgebras(base_ring).Graded()
+

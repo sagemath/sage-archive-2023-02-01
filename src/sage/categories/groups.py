@@ -461,9 +461,10 @@ class Groups(CategoryWithAxiom):
                     foo over Rational Field
                 """
                 if hasattr(self, "_name"):
-                    return self._name + " over %s"%self.base_ring()
+                    return self._name + " over {}".format(self.base_ring())
                 else:
-                    return 'Group algebra of %s over %s'%(self.basis().keys(),self.base_ring())
+                    return 'Group algebra of {} over {}'.format(self.basis().keys(),
+                                                                self.base_ring())
 
             def group(self):
                 r"""

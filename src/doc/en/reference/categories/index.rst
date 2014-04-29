@@ -174,7 +174,6 @@ Examples of parents using categories
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups
-   sage/categories/examples/group_algebras
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
    sage/categories/examples/monoids

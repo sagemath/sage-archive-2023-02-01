@@ -1,5 +1,5 @@
 r"""
-Non unital algebras
+Non-unital non-associative algebras
 """
 #*****************************************************************************
 #  Copyright (C) 2011 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -94,15 +94,18 @@ class MagmaticAlgebras(Category_over_base_ring):
             @abstract_method(optional = True)
             def product_on_basis(self, i, j):
                 """
-                The product of the algebra on the basis (optional)
+                The product of the algebra on the basis (optional).
 
                 INPUT:
 
-                 - ``i``, ``j`` -- the indices of two elements of the basis of self
+                - ``i``, ``j`` -- the indices of two elements of the
+                  basis of ``self``
 
-                Returns the product of the two corresponding basis elements
+                Return the product of the two corresponding basis elements
+                indexed by ``i`` and ``j``.
 
-                If implemented, :meth:`product` is defined from it by bilinearity.
+                If implemented, :meth:`product` is defined from
+                it by bilinearity.
 
                 EXAMPLES::
 
@@ -119,8 +122,8 @@ class MagmaticAlgebras(Category_over_base_ring):
                 :meth:`Magmas.ParentMethods.product()
                 <sage.categories.magmas.Magmas.ParentMethods.product>`
 
-                By default, this is implemented using one of the following methods,
-                in the specified order:
+                By default, this is implemented using one of the following
+                methods, in the specified order:
 
                 - :meth:`.product_on_basis`
                 - :meth:`._multiply` or :meth:`._multiply_basis`
@@ -159,4 +162,6 @@ class MagmaticAlgebras(Category_over_base_ring):
                     B[word: aba] - B[word: abb] + 2*B[word: ca] - 2*B[word: cb]
 
                 """
-                return self.linear_combination( ( self.product_on_basis( mon_left, mon_right ), coeff_left * coeff_right ) for ( mon_left, coeff_left ) in left.monomial_coefficients().iteritems() for ( mon_right, coeff_right ) in right.monomial_coefficients().iteritems() )
+                return self.linear_combination( ( self.product_on_basis( mon_left, mon_right ), coeff_left * coeff_right )
+                                                  for ( mon_left, coeff_left ) in left.monomial_coefficients().iteritems()
+                                                  for ( mon_right, coeff_right ) in right.monomial_coefficients().iteritems() )

@@ -20,7 +20,8 @@ class GradedAlgebras(GradedModulesCategory):
         sage: GradedAlgebras(ZZ)
         Category of graded algebras over Integer Ring
         sage: GradedAlgebras(ZZ).super_categories()
-        [Category of algebras over Integer Ring, Category of graded modules over Integer Ring]
+        [Category of algebras over Integer Ring,
+         Category of graded modules over Integer Ring]
 
     TESTS::
 

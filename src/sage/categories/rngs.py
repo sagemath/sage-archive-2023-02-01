@@ -17,7 +17,7 @@ class Rngs(CategoryWithAxiom):
     """
     The category of rngs.
 
-    A rng `(S, +, *)` is similar to a ring but not necessarilly
+    An *rng* `(S, +, *)` is similar to a ring but not necessarilly
     unital. In other words, it is a combination of a commutative
     additive group `(S, +)` and a multiplicative semigroup `(S, *)`,
     where `*` distributes over `+`.

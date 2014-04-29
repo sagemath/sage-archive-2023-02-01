@@ -108,7 +108,7 @@ EXAMPLES::
 
 class CartesianProductsCategory(CovariantConstructionCategory):
     """
-    An abstract base class for all CartesianProducts's.
+    An abstract base class for all ``CartesianProducts`` categories.
 
     TESTS::
 

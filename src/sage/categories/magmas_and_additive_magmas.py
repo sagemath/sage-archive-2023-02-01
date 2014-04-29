@@ -65,7 +65,7 @@ class MagmasAndAdditiveMagmas(Category_singleton):
 
             .. MATH::
 
-                x * (y+z) = x*y + x*z \text{ and } (x+y) * z = x*z + y*z.
+                x * (y+z) = x*y + x*z \text{ and } (x+y) * z = x*z + y*z
 
             EXAMPLES::
 

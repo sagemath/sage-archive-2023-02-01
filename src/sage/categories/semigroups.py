@@ -63,10 +63,10 @@ class Semigroups(CategoryWithAxiom):
 
         INPUT:
 
-         - ``choice`` -- str (default: 'leftzero'). Can be either 'leftzero'
-           for the left zero semigroup, or 'free' for the free semigroup.
-         - ``**kwds`` -- keyword arguments passed onto the constructor for the
-           chosen semigroup.
+        - ``choice`` -- str (default: 'leftzero'). Can be either 'leftzero'
+          for the left zero semigroup, or 'free' for the free semigroup.
+        - ``**kwds`` -- keyword arguments passed onto the constructor for the
+          chosen semigroup.
 
         EXAMPLES::
 

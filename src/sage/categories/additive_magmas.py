@@ -77,7 +77,7 @@ class AdditiveMagmas(Category_singleton):
             An :class:`additive magma <AdditiveMagmas>` `M` is
             *associative* if, for all `x,y,z \in M`,
 
-            .. MATH:: x + (y + z) = (x + y) + z.
+            .. MATH:: x + (y + z) = (x + y) + z
 
             .. SEEALSO:: :wikipedia:`Associative_property`
 
@@ -99,10 +99,10 @@ class AdditiveMagmas(Category_singleton):
             """
             Return the full subcategory of the commutative objects of ``self``.
 
-            An :class:`additive magma AdditiveMagmas` `M` is
+            An :class:`additive magma <AdditiveMagmas>` `M` is
             *commutative* if, for all `x,y \in M`,
 
-            .. MATH:: x + y = y + x.
+            .. MATH:: x + y = y + x
 
             .. SEEALSO:: :wikipedia:`Commutative_property`
 
@@ -128,11 +128,11 @@ class AdditiveMagmas(Category_singleton):
             r"""
             Return the subcategory of the unital objects of ``self``.
 
-            An :class:`additive magma AdditiveMagmas` `M` is *unital*
+            An :class:`additive magma <AdditiveMagmas>` `M` is *unital*
             if it admits an element `0`, called *neutral element*,
             such that for all `x \in M`,
 
-            .. MATH:: 0 + x = x + 0 = x.
+            .. MATH:: 0 + x = x + 0 = x
 
             This element is necessarily unique, and should be provided
             as ``M.zero()``.
@@ -165,11 +165,11 @@ class AdditiveMagmas(Category_singleton):
             r"""
             Return the sum of ``x`` and ``y``.
 
-            The binary addition operator of the semigroup.
+            The binary addition operator of this additive magma.
 
             INPUT:
 
-             - ``x``, ``y`` -- elements of this additive semigroup
+             - ``x``, ``y`` -- elements of this additive magma
 
             EXAMPLES::
 
@@ -390,7 +390,7 @@ class AdditiveMagmas(Category_singleton):
         # This could eventually be moved to SageObject
         def __add__(self, right):
             r"""
-            Sum of two elements.
+            Return the sum of ``self`` and ``right``.
 
             This calls the `_add_` method of ``self``, if it is
             available and the two elements have the same parent.
@@ -434,7 +434,7 @@ class AdditiveMagmas(Category_singleton):
         @abstract_method(optional = True)
         def _add_(self, right):
             """
-            Sum of two elements,
+            Return the sum of ``self`` and ``right``.
 
             INPUT:
 
@@ -632,7 +632,7 @@ class AdditiveMagmas(Category_singleton):
             @cached_method
             def zero(self):
                 """
-                Return the zero of the abelian monoid, that is the unique
+                Return the zero of this additive magma, that is the unique
                 neutral element for `+`.
 
                 The default implementation is to coerce ``0`` into ``self``.
@@ -671,7 +671,7 @@ class AdditiveMagmas(Category_singleton):
             #
             # def is_zero(self):
             #     """
-            #     Returns whether self is the zero of the monoid
+            #     Returns whether self is the zero of the magma
             #
             #     The default implementation, is to compare with ``self.zero()``.
             #
@@ -741,7 +741,7 @@ class AdditiveMagmas(Category_singleton):
                 @cached_method
                 def one_basis(self):
                     """
-                    Return the zero of this additive monoid, which index the
+                    Return the zero of this additive magma, which index the
                     one of this algebra, as per
                     :meth:`AlgebrasWithBasis.ParentMethods.one_basis()
                     <sage.categories.algebras_with_basis.AlgebrasWithBasis.ParentMethods.one_basis>`.

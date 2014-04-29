@@ -45,8 +45,13 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
 
     class ElementMethods:
         """
-        ``Magmas.Element.__mul__`` is preferable to ``Modules.Element.__mul__``
-        since the later does not handle products of two elements of ``self``.
+        An abstract class for elements of an associative algebra
+
+        .. NOTE::
+
+            ``Magmas.Element.__mul__`` is preferable to
+            ``Modules.Element.__mul__`` since the later does not
+            handle products of two elements of ``self``.
 
         TESTS::
 
@@ -63,4 +68,3 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
 
 
     Unital = LazyImport('sage.categories.algebras', 'Algebras', at_startup=True)
-

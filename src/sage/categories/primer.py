@@ -77,8 +77,8 @@ Some challenges
       sage: GL(2,2).cardinality()
       6
 
-      sage: A=random_matrix(ZZ,3,6,x=7)
-      sage: L=LatticePolytope(A.columns())
+      sage: A=random_matrix(ZZ,6,3,x=7)
+      sage: L=LatticePolytope(A.rows())
       sage: L.npoints()                # oops!   # random
       37
 
@@ -956,10 +956,10 @@ implemented can be found by introspection with::
     {'parent': {'required': ['__contains__'], 'optional': []},
      'element': {'required': [], 'optional': ['_mul_']}}
 
-:meth:`product` does not appear in the list because a default implementation
-is provided in term of the method :meth:`_mul_` on elements. Of course, at
+``product`` does not appear in the list because a default implementation
+is provided in term of the method ``_mul_`` on elements. Of course, at
 least one of them should be implemented. On the other hand, a default
-implementation for :meth:`__contains__` is provided by :class:`Parent`.
+implementation for ``__contains__`` is provided by :class:`Parent`.
 
 Documentation about those methods can be obtained with::
 

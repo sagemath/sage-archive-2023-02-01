@@ -33,7 +33,7 @@ class Modules(Category_module):
 
     .. MATH::
 
-        r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x \in M.
+        r*(x*s) = (r*x)*s \qquad  \forall r,s \in R \text{ and } x \in M
 
     INPUT:
 
@@ -45,11 +45,11 @@ class Modules(Category_module):
 
     .. WARNING::
 
-        It is currently undecided whether modules have to be symmetric
-        (that is, to satisfy `rx = xr` for all `r \in R` and `x \in M`)
-        or not. This makes a difference even for commutative `R`.
-        No guarantees can be made that the code in this
-        category and its subcategories works correctly if they are not.
+        Outside of the context of symmetric modules over a commutative
+        ring, the precise specifications of this category are not yet
+        set in stone (see below). The code in this category and its
+        subcategories is therefore prone to bugs or arbitrary
+        limitations in this case.
 
     EXAMPLES::
 
@@ -86,7 +86,7 @@ class Modules(Category_module):
 
           .. MATH::
 
-              r*x = x*r \qquad  \forall r \in R \text{ and } x \in M.
+              r*x = x*r \qquad  \forall r \in R \text{ and } x \in M
 
         - Make sure that non symmetric modules are properly supported
           by all the code, and advertise it.

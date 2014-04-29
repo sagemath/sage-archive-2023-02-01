@@ -16,8 +16,10 @@ class AdditiveMonoids(CategoryWithAxiom_singleton):
     """
     The category of additive monoids.
 
-    An additive monoid is a set endowed with an operation `+` which is
-    associative and admits a zero.
+    An *additive monoid* is a unital class:`additive semigroup
+    <~sage.categories.additive_semigroups.AdditiveSemigroups>`, that
+    is a set endowed with a binary operation `+` which is associative
+    and admits a zero (see :wikipedia:`Monoid`).
 
     EXAMPLES::
 

@@ -2093,7 +2093,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of finite dimensional commutative test objects]
         """
         categories = list(categories)
-        if not categories: # len(categories) == 0
+        if len(categories) == 0:
             if as_list:
                 return []
             else:
@@ -2338,7 +2338,7 @@ def category_graph(categories = None):
 
     For readability, the names of the category are shortened.
 
-    .. TODO:: Further remove the base ring (for example :trac:`15801`).
+    .. TODO:: Further remove the base ring (see also :trac:`15801`).
 
     EXAMPLES::
 

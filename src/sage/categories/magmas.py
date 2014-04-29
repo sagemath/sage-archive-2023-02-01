@@ -24,7 +24,7 @@ class Magmas(Category_singleton):
     """
     The category of (multiplicative) magmas.
 
-    A magama is a set with a binary operation `*`.
+    A magma is a set with a binary operation `*`.
 
     EXAMPLES::
 
@@ -78,7 +78,7 @@ class Magmas(Category_singleton):
             A (multiplicative) :class:`magma Magmas` `M` is
             *associative* if, for all `x,y,z\in M`,
 
-            .. MATH:: x * (y * z) = (x * y) * z.
+            .. MATH:: x * (y * z) = (x * y) * z
 
             .. SEEALSO:: :wikipedia:`Associative_property`
 
@@ -104,7 +104,7 @@ class Magmas(Category_singleton):
             A (multiplicative) :class:`magma Magmas` `M` is
             *commutative* if, for all `x,y\in M`,
 
-            .. MATH:: x * y = y * x.
+            .. MATH:: x * y = y * x
 
             .. SEEALSO:: :wikipedia:`Commutative_property`
 
@@ -132,7 +132,7 @@ class Magmas(Category_singleton):
             if it admits an element `1`, called *unit*, such that for
             all `x\in M`,
 
-            .. MATH:: 1 * x = x * 1 = x.
+            .. MATH:: 1 * x = x * 1 = x
 
             This element is necessarily unique, and should be provided
             as ``M.one()``.

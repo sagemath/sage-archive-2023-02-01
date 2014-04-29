@@ -17,7 +17,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
     r"""
     The category of additive groups.
 
-    An additive group is a set with an internal binary operation `+` which
+    An *additive group* is a set with an internal binary operation `+` which
     is associative, admits a zero, and where every element can be negated.
 
     EXAMPLES::

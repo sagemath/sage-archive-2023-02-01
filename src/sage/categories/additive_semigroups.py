@@ -18,7 +18,9 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
     """
     The category of additive semigroups.
 
-    An additive semigroup is a set endowed with an associative operation `+`.
+    An *additive semigroup* is a an associative :class:`additive magma
+    <AdditiveMagmas>`, that is a set endowed with an operation `+`
+    which is associative.
 
     EXAMPLES::
 
@@ -42,7 +44,6 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
     TESTS::
 
         sage: TestSuite(C).run()
-
     """
     _base_category_class_and_axiom = (AdditiveMagmas, "AdditiveAssociative")
 

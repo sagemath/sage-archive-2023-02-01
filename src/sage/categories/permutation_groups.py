@@ -17,10 +17,10 @@ class PermutationGroups(Category):
     r"""
     The category of permutation groups.
 
-    A permutation group is a group whose elements
-    are concretely represented by permutations of some set.
+    A *permutation group* is a group whose elements are concretely
+    represented by permutations of some set.
 
-    .. TODO:: do we accept only permutations with finite support or not?
+    .. TODO:: shall we accept only permutations with finite support or not?
 
     EXAMPLES::
 

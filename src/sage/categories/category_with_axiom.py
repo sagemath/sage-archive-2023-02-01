@@ -2311,7 +2311,7 @@ class CategoryWithAxiom(Category):
     @cached_method
     def _without_axiom(self, axiom):
         r"""
-        Return this category with axiom ``axiom`` removed.
+        Return this category, with axiom ``axiom`` removed.
 
         OUTPUT:
 

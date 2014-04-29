@@ -46,9 +46,9 @@ class Modules(Category_module):
     .. WARNING::
 
         Outside of the context of symmetric modules over a commutative
-        ring, the precise specifications of this category are not yet
-        set in stone (see below). The code in this category and its
-        subcategories is therefore prone to bugs or arbitrary
+        ring, the specifications of this category are fuzzy and not
+        yet set in stone (see below). The code in this category and
+        its subcategories is therefore prone to bugs or arbitrary
         limitations in this case.
 
     EXAMPLES::

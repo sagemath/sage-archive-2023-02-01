@@ -450,14 +450,16 @@ class TransducerGenerators(object):
 
             For other input alphabets, we can specify what is the zero symbol::
 
-            sage: W = transducer.weight(['a', 'b'], zero='a')
+            sage: W = transducers.weight(['a', 'b'], zero='a')
             sage: add(W(['a', 'b', 'b']))
             2
         """
-        def weight(input):
-            weight = ZZ(input != zero)
-            return weight
-        return self.operator(weight, input_alphabet, number_of_operands=1)
+        def weight(state, input):
+            weight = int(input != zero)
+            return (0, weight)
+        return Transducer(weight, input_alphabet=input_alphabet,
+                          initial_states=[0],
+                          final_states=[0])
 
 
     def abs(self, input_alphabet):

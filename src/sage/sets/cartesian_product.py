@@ -125,6 +125,20 @@ class CartesianProduct(UniqueRepresentation, Parent):
         assert i in self._sets_keys()
         return attrcall("summand_projection", i)
 
+    def __iter__(self):
+        r"""
+        Iterates over the elements of self.
+
+        EXAMPLE::
+
+            sage: F33 = GF(2).cartesian_product(GF(2))
+            sage: list(F33)
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+        """
+        from itertools import product
+        for x in product(*self._sets):
+            yield self(x)
+
     def _cartesian_product_of_elements(self, elements):
         """
         Returns the cartesian product of the given ``elements``,

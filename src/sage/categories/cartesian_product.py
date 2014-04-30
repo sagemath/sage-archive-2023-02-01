@@ -175,7 +175,7 @@ def CartesianProducts(self):
         sage: Semigroups().CartesianProducts()
         Category of Cartesian products of semigroups
         sage: EuclideanDomains().CartesianProducts()
-        Category of Cartesian products of monoids
+        Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
     """
     return CartesianProductsCategory.category_of(self)
 

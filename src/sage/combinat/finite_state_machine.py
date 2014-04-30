@@ -646,6 +646,7 @@ def full_group_by(l, key=lambda x: x):
 
 FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'
+EndOfWordLaTeX = r'\$'
 FSMOldCodeTransducerCartesianProduct = True
 FSMOldProcessOutput = True  # See trac #16132 (deprecation).
 tikz_automata_where = {"right": 0,
@@ -3121,7 +3122,7 @@ class FiniteStateMachine(SageObject):
             \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
             \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
             \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
-            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$\mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
@@ -3137,6 +3138,33 @@ class FiniteStateMachine(SageObject):
 
         To actually see this, use the live documentation in the Sage notebook
         and execute the cells.
+
+        By changing some of the options, we get the following output::
+
+            sage: T.latex_options(
+            ....:     format_transition_label=T.default_format_transition_label,
+            ....:     accepting_style='accepting by arrow',
+            ....:     accepting_show_empty=True
+            ....:     )
+            sage: latex(T)
+            \begin{tikzpicture}[auto, initial text=, >=latex, accepting text=, accepting/.style=accepting by arrow, accepting distance=10ex]
+            \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
+            \node[state] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
+            \path[->] (v1.180.00) edge node[rotate=360.00, anchor=south] {$\$ \mid \varepsilon$} ++(180.00:10ex);
+            \node[state] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid w_{0} w_{0}$} ++(45.00:10ex);
+            \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
+            \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {$w_{0}\mid w_{0} w_{0}$} (v0.148.43);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
+            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
+            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
+            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
+            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
+            \end{tikzpicture}
+            sage: view(T) # not tested
 
         TESTS::
 
@@ -3374,9 +3402,10 @@ class FiniteStateMachine(SageObject):
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$\$\mid %s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
+                    EndOfWordLaTeX,
                     self.format_transition_label(vertex.final_word_out),
                     angle, accepting_distance)
 

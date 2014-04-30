@@ -539,7 +539,7 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
 ######################################################
 # string representations for elements
 
-def milnor_mono_to_string(mono, latex=False, p=2):
+def milnor_mono_to_string(mono, latex=False, generic=False):
     """
     String representation of element of the Milnor basis.
 
@@ -547,19 +547,19 @@ def milnor_mono_to_string(mono, latex=False, p=2):
 
     INPUT:
 
-    - ``mono`` - if `p=2`, tuple of non-negative integers (a,b,c,...);
-      if `p>2`, pair of tuples of non-negative integers ((e0, e1, e2,
+    - ``mono`` - if `generic=False`, tuple of non-negative integers (a,b,c,...);
+      if `generic=True`, pair of tuples of non-negative integers ((e0, e1, e2,
       ...), (r1, r2, ...))
 
     - ``latex`` - boolean (optional, default False), if true, output
       LaTeX string
 
-    - ``p`` - positive prime number (optional, default 2)
+    - ``generic`` - whether to format generically, or for the prime 2 (default)
 
     OUTPUT: ``rep`` - string
 
-    This returns a string like ``Sq(a,b,c,...)`` when p=2, or a string
-    like ``Q_e0 Q_e1 Q_e2 ... P(r1, r2, ...)`` when p is odd.
+    This returns a string like ``Sq(a,b,c,...)`` when `generic=False`, or a string
+    like ``Q_e0 Q_e1 Q_e2 ... P(r1, r2, ...)`` when `generic=True`.
 
     EXAMPLES::
 
@@ -568,34 +568,34 @@ def milnor_mono_to_string(mono, latex=False, p=2):
         'Sq(1,2,3,4)'
         sage: milnor_mono_to_string((1,2,3,4),latex=True)
         '\\text{Sq}(1,2,3,4)'
-        sage: milnor_mono_to_string(((1,0), (2,3,1)), p=3)
+        sage: milnor_mono_to_string(((1,0), (2,3,1)), generic=True)
         'Q_{1} Q_{0} P(2,3,1)'
-        sage: milnor_mono_to_string(((1,0), (2,3,1)), latex=True, p=3)
+        sage: milnor_mono_to_string(((1,0), (2,3,1)), latex=True, generic=True)
         'Q_{1} Q_{0} \\mathcal{P}(2,3,1)'
 
     The empty tuple represents the unit element::
 
         sage: milnor_mono_to_string(())
         '1'
-        sage: milnor_mono_to_string((), p=5)
+        sage: milnor_mono_to_string((), generic=True)
         '1'
     """
     if latex:
-        if p == 2:
+        if not generic:
             sq = "\\text{Sq}"
             P = "\\text{Sq}"
         else:
             P = "\\mathcal{P}"
     else:
-        if p == 2:
+        if not generic:
             sq = "Sq"
             P = "Sq"
         else:
             P = "P"
-    if mono == () or mono == (0,) or (p > 2 and len(mono[0]) + len(mono[1]) == 0):
+    if mono == () or mono == (0,) or (generic and len(mono[0]) + len(mono[1]) == 0):
         return "1"
     else:
-        if p == 2:
+        if not generic:
             string = sq + "(" + str(mono[0])
             for n in mono[1:]:
                 string = string + "," + str(n)
@@ -612,7 +612,7 @@ def milnor_mono_to_string(mono, latex=False, p=2):
                 string = string + ")"
         return string.strip(" ")
 
-def serre_cartan_mono_to_string(mono, latex=False, p=2):
+def serre_cartan_mono_to_string(mono, latex=False, generic=False):
     r"""
     String representation of element of the Serre-Cartan basis.
 
@@ -620,21 +620,22 @@ def serre_cartan_mono_to_string(mono, latex=False, p=2):
 
     INPUT:
 
-    - ``mono`` - tuple of positive integers (a,b,c,...)  when `p=2`,
-      or tuple (e0, n1, e1, n2, ...) when `p>2`, where each ei is 0 or
+    - ``mono`` - tuple of positive integers (a,b,c,...)  when `generic=False`,
+      or tuple (e0, n1, e1, n2, ...) when `generic=True`, where each ei is 0 or
       1, and each ni is positive
 
     - ``latex`` - boolean (optional, default False), if true, output
       LaTeX string
 
-    - ``p`` - positive prime number (optional, default 2)
+    - ``generic`` - whether to format generically, or for the prime 2 (default)
 
     OUTPUT: ``rep`` - string
 
     This returns a string like ``Sq^{a} Sq^{b} Sq^{c} ...`` when
-    `p=2`, or a string like
-    ``\beta^{e0} P^{n1} \beta^{e1} P^{n2} ...`` when `p`
+    `generic=False`, or a string like
+    ``\beta^{e0} P^{n1} \beta^{e1} P^{n2} ...`` when `generic=True`.
     is odd.
+
 
     EXAMPLES::
 
@@ -643,26 +644,26 @@ def serre_cartan_mono_to_string(mono, latex=False, p=2):
         'Sq^{1} Sq^{2} Sq^{3} Sq^{4}'
         sage: serre_cartan_mono_to_string((1,2,3,4),latex=True)
         '\\text{Sq}^{1} \\text{Sq}^{2} \\text{Sq}^{3} \\text{Sq}^{4}'
-        sage: serre_cartan_mono_to_string((0,5,1,1,0), p=3)
+        sage: serre_cartan_mono_to_string((0,5,1,1,0), generic=True)
         'P^{5} beta P^{1}'
-        sage: serre_cartan_mono_to_string((0,5,1,1,0), p=3, latex=True)
+        sage: serre_cartan_mono_to_string((0,5,1,1,0), generic=True, latex=True)
         '\\mathcal{P}^{5} \\beta \\mathcal{P}^{1}'
 
     The empty tuple represents the unit element 1::
 
         sage: serre_cartan_mono_to_string(())
         '1'
-        sage: serre_cartan_mono_to_string((), p=7)
+        sage: serre_cartan_mono_to_string((), generic=True)
         '1'
     """
     if latex:
-        if p == 2:
+        if not generic:
             sq = "\\text{Sq}"
             P = "\\text{Sq}"
         else:
             P = "\\mathcal{P}"
     else:
-        if p == 2:
+        if not generic:
             sq = "Sq"
             P = "Sq"
         else:
@@ -670,7 +671,7 @@ def serre_cartan_mono_to_string(mono, latex=False, p=2):
     if len(mono) == 0 or mono == (0,):
         return "1"
     else:
-        if p == 2:
+        if not generic:
             string = ""
             for n in mono:
                 string = string + sq + "^{" + str(n) + "} "
@@ -896,7 +897,7 @@ def arnonA_long_mono_to_string(mono, latex=False, p=2):
                 string = string + sq + "^{" + str(2**i) + "} "
         return string.strip(" ")
 
-def pst_mono_to_string(mono, latex=False, p=2):
+def pst_mono_to_string(mono, latex=False, generic=False):
     r"""
     String representation of element of a `P^s_t`-basis.
 
@@ -910,7 +911,7 @@ def pst_mono_to_string(mono, latex=False, p=2):
     - ``latex`` - boolean (optional, default False), if true, output
       LaTeX string
 
-    - ``p`` - positive prime number (optional, default 2).
+    - ``generic`` - whether to format generically, or for the prime 2 (default)
 
     OUTPUT: ``string`` - concatenation of strings of the form
     ``P^{s}_{t}`` for each pair (s,t)
@@ -918,13 +919,13 @@ def pst_mono_to_string(mono, latex=False, p=2):
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_misc import pst_mono_to_string
-        sage: pst_mono_to_string(((1,2),(0,3)), p=2)
+        sage: pst_mono_to_string(((1,2),(0,3)), generic=False)
         'P^{1}_{2} P^{0}_{3}'
-        sage: pst_mono_to_string(((1,2),(0,3)),latex=True, p=2)
+        sage: pst_mono_to_string(((1,2),(0,3)),latex=True, generic=False)
         'P^{1}_{2} P^{0}_{3}'
-        sage: pst_mono_to_string(((1,4), (((1,2), 1),((0,3), 2))), p=3)
+        sage: pst_mono_to_string(((1,4), (((1,2), 1),((0,3), 2))), generic=True)
         'Q_{1} Q_{4} P^{1}_{2} (P^{0}_{3})^2'
-        sage: pst_mono_to_string(((1,4), (((1,2), 1),((0,3), 2))), latex=True, p=3)
+        sage: pst_mono_to_string(((1,4), (((1,2), 1),((0,3), 2))), latex=True, generic=True)
         'Q_{1} Q_{4} P^{1}_{2} (P^{0}_{3})^{2}'
 
     The empty tuple represents the unit element::
@@ -936,7 +937,7 @@ def pst_mono_to_string(mono, latex=False, p=2):
         return "1"
     else:
         string = ""
-        if p == 2:
+        if not generic:
             for (s,t) in mono:
                 string = string + "P^{" + str(s) + "}_{" \
                     + str(t) + "} "
@@ -956,7 +957,7 @@ def pst_mono_to_string(mono, latex=False, p=2):
                         + str(t) + "})^" + pow + " "
         return string.strip(" ")
 
-def comm_mono_to_string(mono, latex=False, p=2):
+def comm_mono_to_string(mono, latex=False, generic=False):
     r"""
     String representation of element of a commutator basis.
 
@@ -970,7 +971,7 @@ def comm_mono_to_string(mono, latex=False, p=2):
     - ``latex`` - boolean (optional, default False), if true, output
       LaTeX string
 
-    - ``p`` - positive prime number (optional, default 2)
+    - ``generic`` - whether to format generically, or for the prime 2 (default)
 
     OUTPUT: ``string`` - concatenation of strings of the form
     ``c_{s,t}`` for each pair (s,t)
@@ -978,13 +979,13 @@ def comm_mono_to_string(mono, latex=False, p=2):
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_misc import comm_mono_to_string
-        sage: comm_mono_to_string(((1,2),(0,3)), p=2)
+        sage: comm_mono_to_string(((1,2),(0,3)), generic=False)
         'c_{1,2} c_{0,3}'
-        sage: comm_mono_to_string(((1,2),(0,3)), latex=True, p=2)
+        sage: comm_mono_to_string(((1,2),(0,3)), latex=True)
         'c_{1,2} c_{0,3}'
-        sage: comm_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), p=5)
+        sage: comm_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), generic=True)
         'Q_{1} Q_{4} c_{1,2} c_{0,3}^2'
-        sage: comm_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), latex=True, p=5)
+        sage: comm_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), latex=True, generic=True)
         'Q_{1} Q_{4} c_{1,2} c_{0,3}^{2}'
 
     The empty tuple represents the unit element::
@@ -996,7 +997,7 @@ def comm_mono_to_string(mono, latex=False, p=2):
         return "1"
     else:
         string = ""
-        if p == 2:
+        if not generic:
             for (s,t) in mono:
                 string = string + "c_{" + str(s) + "," \
                     + str(t) + "} "
@@ -1015,7 +1016,7 @@ def comm_mono_to_string(mono, latex=False, p=2):
                 string = string + " "
         return string.strip(" ")
 
-def comm_long_mono_to_string(mono, latex=False, p=2):
+def comm_long_mono_to_string(mono, p, latex=False, generic=False):
     r"""
     Alternate string representation of element of a commutator basis.
 
@@ -1030,7 +1031,7 @@ def comm_long_mono_to_string(mono, latex=False, p=2):
     - ``latex`` - boolean (optional, default False), if true, output
       LaTeX string
 
-    - ``p`` - positive prime number (optional, default 2).
+    - ``generic`` - whether to format generically, or for the prime 2 (default)
 
     OUTPUT: ``string`` - concatenation of strings of the form ``s_{2^s
     ... 2^(s+t-1)}`` for each pair (s,t)
@@ -1038,25 +1039,25 @@ def comm_long_mono_to_string(mono, latex=False, p=2):
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_misc import comm_long_mono_to_string
-        sage: comm_long_mono_to_string(((1,2),(0,3)))
+        sage: comm_long_mono_to_string(((1,2),(0,3)), 2)
         's_{24} s_{124}'
-        sage: comm_long_mono_to_string(((1,2),(0,3)),latex=True)
+        sage: comm_long_mono_to_string(((1,2),(0,3)), 2, latex=True)
         's_{24} s_{124}'
-        sage: comm_long_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), p=5)
+        sage: comm_long_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), 5, generic=True)
         'Q_{1} Q_{4} s_{5,25} s_{1,5,25}^2'
-        sage: comm_long_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), latex=True, p=3)
+        sage: comm_long_mono_to_string(((1, 4), (((1,2), 1),((0,3), 2))), 3, latex=True, generic=True)
         'Q_{1} Q_{4} s_{3,9} s_{1,3,9}^{2}'
 
     The empty tuple represents the unit element::
 
-        sage: comm_long_mono_to_string(())
+        sage: comm_long_mono_to_string((), p=2)
         '1'
     """
     if len(mono) == 0:
         return "1"
     else:
         string = ""
-        if p == 2:
+        if not generic:
             for (s,t) in mono:
                 if s + t > 4:
                     comma = ","

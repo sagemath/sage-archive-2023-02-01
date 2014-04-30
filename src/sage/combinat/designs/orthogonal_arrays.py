@@ -4,6 +4,18 @@ Orthogonal arrays
 This module gathers anything related to orthogonal arrays, and, incidentally,
 to transversal designs.
 
+.. TODO::
+
+    Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+
+REFERENCES:
+
+.. [CD96] Making the MOLS table
+  Charles Colbourn and Jeffrey Dinitz
+  Computational and constructive design theory
+  vol 368,pages 67-134
+  1996
+
 Functions
 ---------
 """
@@ -72,6 +84,10 @@ def transversal_design(k,n,check=True,availability=False):
 
         sage: _ = designs.transversal_design(4,38)
 
+    Unknown availability::
+
+        sage: designs.transversal_design(6,4,availability=True)
+        Unknown
     """
     if n == 12 and k <= 6:
         TD = [l[:k] for l in TD6_12()]
@@ -89,7 +105,8 @@ def transversal_design(k,n,check=True,availability=False):
 
     else:
         if availability:
-            return False
+            from sage.misc.unknown import Unknown
+            return Unknown
         else:
             raise NotImplementedError("I don't know how to build this Transversal Design !")
 
@@ -262,14 +279,14 @@ def wilson_construction(k,m,t,u, check = True):
 
         sage: from sage.combinat.designs.orthogonal_arrays import wilson_construction
         sage: from sage.combinat.designs.orthogonal_arrays import find_wilson_decomposition
-        sage: total = 0                                               # long time
-        sage: for k in range(3,8):                                    # long time
-        ....:    for n in range(1,30):                                # long time
-        ....:        if find_wilson_decomposition(k,n):               # long time
-        ....:            total += 1                                   # long time
-        ....:            k,m,t,u = find_wilson_decomposition(k,n)     # long time
-        ....:            _ = wilson_construction(k,m,t,u, check=True) # long time
-        sage: print total                                             # long time
+        sage: total = 0
+        sage: for k in range(3,8):
+        ....:    for n in range(1,30):
+        ....:        if find_wilson_decomposition(k,n):
+        ....:            total += 1
+        ....:            k,m,t,u = find_wilson_decomposition(k,n)
+        ....:            _ = wilson_construction(k,m,t,u, check=True)
+        sage: print total
         32
     """
     # Raises a NotImplementedError if one of them does not exist.

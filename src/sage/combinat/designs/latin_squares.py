@@ -181,6 +181,8 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
         Traceback (most recent call last):
         ...
         ValueError: There exist at most n-1 MOLS of size n.
+        sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
+        Unknown
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.combinat.designs.block_design import AffineGeometryDesign
@@ -232,7 +234,8 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
                 return k
         elif k > s:
             if availability:
-                return False
+                from sage.misc.unknown import Unknown
+                return Unknown
             else:
                 raise NotImplementedError("I don't know how to build these MOLS.")
         elif availability:

@@ -45,7 +45,7 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
 
     class ElementMethods:
         """
-        An abstract class for elements of an associative algebra
+        An abstract class for elements of an associative algebra.
 
         .. NOTE::
 

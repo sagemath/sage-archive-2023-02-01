@@ -112,12 +112,13 @@ _join_cache = WeakValueDictionary()
 
 def _join(categories, as_list):
     """
-    This is an auxiliary function for :meth:`Category.join`
+    This is an auxiliary function for :meth:`Category.join`.
 
     INPUT:
 
-    - ``categories``: A tuple (no list) of categories.
-    - ``as_list`` (boolean): Whether or not the result should be represented as a list.
+    - ``categories`` -- a tuple (no list) of categories
+    - ``as_list`` (boolean) -- whether or not the result should be
+      represented as a list
 
     EXAMPLES::
 
@@ -128,7 +129,7 @@ def _join(categories, as_list):
 
     """
     # Since Objects() is the top category, it is the neutral element of join
-    if len(categories) == 0:
+    if not categories: # len(categories) == 0:
         from objects import Objects
         return Objects()
 

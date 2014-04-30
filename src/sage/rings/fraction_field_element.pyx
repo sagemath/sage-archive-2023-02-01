@@ -91,6 +91,7 @@ cdef class FractionFieldElement(FieldElement):
     """
     cdef object __numerator
     cdef object __denominator
+    cdef bint _is_reduced
 
     def __init__(self, parent, numerator, denominator=1,
                  coerce=True, reduce=True):
@@ -157,7 +158,7 @@ cdef class FractionFieldElement(FieldElement):
         nden = codomain.coerce(self.__denominator._im_gens_(codomain, im_gens))
         return codomain.coerce(nnum/nden)
 
-    def reduce(self):
+    cpdef reduce(self):
         """
         Divides out the gcd of the numerator and denominator.
 
@@ -173,6 +174,8 @@ cdef class FractionFieldElement(FieldElement):
             sage: f.reduce(); f
             x + 1.0
         """
+        if self._is_reduced:
+            return
         try:
             g = self.__numerator.gcd(self.__denominator)
             if not g.is_unit():
@@ -189,12 +192,29 @@ cdef class FractionFieldElement(FieldElement):
                     pass
             self.__numerator   = num
             self.__denominator = den
+            self._is_reduced = True
         except AttributeError:
             raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
         except TypeError:
             raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
         except NotImplementedError:
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
+
+    cpdef normalize(self):
+        """
+        Returns a normalized representation of self.
+
+        In particular, for any a == b, after normalization they will have the
+        same numerator and denominator.
+
+        EXAMPLES::
+
+            sage: R.<x> = Frac(ZZ['x'])
+            sage: s = (2*x + 2) / (4*x)
+            sage: s.normalize(); s
+            (x + 1)/(2*x)
+        """
+        self.reduce()
 
     def __copy__(self):
         """
@@ -341,17 +361,31 @@ cdef class FractionFieldElement(FieldElement):
             1
             sage: hash(R(1)/R(2))==hash(1/2)
             True
+
+        Ensure normalization is done before hashing the numerator and
+        denominator, fixing trac #16268::
+
+            sage: Ku.<u> = FractionField(PolynomialRing(QQ,'u'))
+            sage: a = 27*u^2+81*u+243
+            sage: b = 27*u-81
+            sage: c = u^2 + 3*u + 9
+            sage: d = u-3
+            sage: s = a/b
+            sage: t = c/d
+            sage: s==t
+            True
+            sage: len(Set([s,t]))
+            1
         """
         # This is same algorithm as used for members of QQ
         #cdef long n, d
+        self.normalize()
         n = hash(self.__numerator)
         d = hash(self.__denominator)
         if d == 1:
             return n
-        n = n ^ d
-        if n == -1:
-            return -2
-        return n
+        else:
+            return n ^ d
 
     def __call__(self, *x, **kwds):
         """
@@ -1027,7 +1061,7 @@ cdef class FractionFieldElement(FieldElement):
         raise NotImplementedError
 
 
-class FractionFieldElement_1poly_field(FractionFieldElement):
+cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """
     A fraction field element where the parent is the fraction field of a
     univariate polynomial ring.
@@ -1070,6 +1104,26 @@ class FractionFieldElement_1poly_field(FractionFieldElement):
         L.sort()
         return L
 
+    cpdef normalize(self):
+        """
+        Returns a normalized representation of self.
+
+        In particular, for any a == b, after normalization they will have the
+        same numerator and denominator.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: s = (1 + x) / (2*x); s
+            (x + 1)/(2*x)
+            sage: s.normalize(); s
+            (1/2*x + 1/2)/x
+        """
+        self.reduce()
+        leading = self.__denominator.leading_coefficient()
+        if leading != 1:
+            self.__numerator /= leading
+            self.__denominator /= leading
 
 def make_element(parent, numerator, denominator):
     """

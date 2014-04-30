@@ -68,11 +68,14 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: x[0].parent()
             Finite Field of size 5
         """
-        try:
-            x = tuple([c(xx) for c,xx in zip(self._sets,x)])
-        except TypeError:
-            pass
-        return self.element_class(self, x)
+        new_x = []
+        for c,xx in zip(self._sets,x):
+            try:
+                new_x.append(c(xx))
+            except TypeError:
+                new_x.append(xx)
+
+        return self.element_class(self, tuple(new_x))
 
     def _repr_(self):
         """

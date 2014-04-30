@@ -102,64 +102,11 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.c3_controlled import C3_sorted_merge, category_sort_key, _cmp_key, _cmp_key_named
 from sage.misc.unknown import Unknown
+from sage.misc.weak_dict import WeakValueDictionary
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
-
-from sage.misc.weak_dict import WeakValueDictionary
-_join_cache = WeakValueDictionary()
-
-def _join(categories, as_list):
-    """
-    This is an auxiliary function for :meth:`Category.join`.
-
-    INPUT:
-
-    - ``categories`` -- a tuple (no list) of categories
-    - ``as_list`` (boolean) -- whether or not the result should be
-      represented as a list
-
-    EXAMPLES::
-
-        sage: Category.join((Groups(), CommutativeAdditiveMonoids()))  # indirect doctest
-        Join of Category of groups and Category of commutative additive monoids
-        sage: Category.join((Modules(ZZ), FiniteFields()), as_list=True)
-        [Category of finite fields, Category of modules over Integer Ring]
-
-    """
-    # Since Objects() is the top category, it is the neutral element of join
-    if not categories: # len(categories) == 0:
-        from objects import Objects
-        return Objects()
-
-    if not as_list:
-        try:
-            return _join_cache[categories]
-        except KeyError:
-            pass
-
-    # Ensure associativity by flattening JoinCategory's
-    # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
-    categories = sum( (tuple(category._super_categories) if isinstance(category, JoinCategory) else (category,)
-                       for category in categories), ())
-
-    # canonicalize, by removing redundant categories which are super
-    # categories of others, and by sorting
-    result = ()
-    for category in categories:
-        if any(cat.is_subcategory(category) for cat in result):
-            continue
-        result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
-    result = tuple(sorted(result, key = category_sort_key, reverse=True))
-    if as_list:
-        return list(result)
-    if len(result) == 1:
-        out = _join_cache[categories] = result[0]
-    else:
-        out = _join_cache[categories] = JoinCategory(result)
-    return out
-
 
 class Category(UniqueRepresentation, SageObject):
     r"""

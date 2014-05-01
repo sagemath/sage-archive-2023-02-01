@@ -201,7 +201,7 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 5. Type "./sage" to try it out.
 
 6. OPTIONAL: Type "make ptest" to test all examples in the documentation
-   (over 93,000 lines of input!) -- this takes from 10 minutes to
+   (over 200,000 lines of input!) -- this takes from 10 minutes to
    several hours. Don't get too disturbed if there are 2 to 3 failures,
    but always feel free to email the section of logs/ptest.log that
    contains errors to the sage-support mailing list. If there are
@@ -235,8 +235,8 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
     server for multiple users. For security (i.e., to run
     "notebook(secure=True)") you want to access the server using the
     HTTPS protocol. First, install OpenSSL and the OpenSSL development
-    headers on your system if they are not already. Then install
-    pyOpenSSL by building Sage and then typing
+    headers on your system if they are not already installed. Then
+    install pyOpenSSL by building Sage and then typing
 
         ./sage -i pyopenssl
 
@@ -300,9 +300,16 @@ SAGE_ROOT                 Root directory (sage-x.y.z in the Sage tarball)
 |       +-- zn_poly
 +-- COPYING.txt           Copyright information
 +-- local                 Compiled packages are installed here
+|   +-- bin               Executables
+|   +-- include           C/C++ headers
+|   +-- lib               Shared libraries
+|   +-- share             Databases, architecture-independent data
+|   +-- var
+|       +-- sage          List of installed packages
+|       +-- tmp           Temporary files when building Sage
 +-- logs 
 |   +-- dochtml.log       Log of the documentation build
-|   +-- install.log       Full intall log
+|   +-- install.log       Full install log
 |   +-- pkgs              Build logs of individual packages
 |       +--- atlas-3.10.1.p7.log
 |       ...
@@ -314,7 +321,6 @@ SAGE_ROOT                 Root directory (sage-x.y.z in the Sage tarball)
 |   +-- bin               Scripts that Sage uses internally
 |   +-- doc               Sage documentation
 |   +-- sage              The Sage library source code
-+-- tmp                   Temporary files when building Sage
 +-- upstream              Source tarballs of packages
 |   +-- atlas-3.10.1.tar.bz2
 |   ...

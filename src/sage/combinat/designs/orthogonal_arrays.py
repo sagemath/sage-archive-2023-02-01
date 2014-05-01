@@ -81,40 +81,28 @@ def transversal_design(k,n,check=True,availability=False):
     Some examples of the maximal number of transversal Sage is able to build::
 
         sage: TD_3_10 = designs.transversal_design(3,10)
-        sage: designs.transversal_design(4,10)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build this Transversal Design !
+        sage: designs.transversal_design(4,10,availability=True)
+        Unknown
 
         sage: TD_6_12 = designs.transversal_design(6,12)
-        sage: designs.transversal_design(7,12)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build this Transversal Design !
+        sage: designs.transversal_design(7,12,availability=True)
+        Unknown
 
         sage: TD_3_14 = designs.transversal_design(3, 14)
-        sage: designs.transversal_design(4, 14)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build this Transversal Design !
+        sage: designs.transversal_design(4, 14,availability=True)
+        Unknown
 
         sage: TD_4_15 = designs.transversal_design(4, 15)
-        sage: designs.transversal_design(5, 15)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build this Transversal Design !
+        sage: designs.transversal_design(5, 15,availability=True)
+        Unknown
 
         sage: TD_4_18 = designs.transversal_design(4, 18)
-        sage: designs.transversal_design(5, 18)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build this Transversal Design !
+        sage: designs.transversal_design(5, 18,availability=True)
+        Unknown
 
         sage: TD_5_20 = designs.transversal_design(5, 20)
-        sage: designs.transversal_design(6, 20)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: I don't know how to build this Transversal Design !
+        sage: designs.transversal_design(6, 20,availability=True)
+        Unknown
 
     TESTS:
 

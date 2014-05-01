@@ -57,7 +57,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         matrices 0 and 2 are not orthogonal
         False
 
-        sage: m = designs.mutually_orthogonal_latin_squares(8)
+        sage: m = designs.mutually_orthogonal_latin_squares(8,7)
         sage: are_mutually_orthogonal_latin_squares(m)
         True
     """
@@ -91,8 +91,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
 
     return True
 
-
-def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability=False):
+def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, availability=False, who_asked=tuple()):
     r"""
     Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
@@ -105,13 +104,7 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
 
     - ``n`` (integer) -- size of the latin square.
 
-    - ``k`` (integer) -- returns `k` MOLS. If set to ``None`` (default), returns
-      the maximum number of MOLS that Sage can build.
-
-      .. WARNING::
-
-          This has no reason to be the maximum number of `n\times n` MOLS, just
-          the best Sage can do !
+    - ``k`` (integer) -- number of MOLS.
 
     - ``partition`` (boolean) -- a Latin Square can be seen as 3 partitions of
       the `n^2` cells of the array into `n` sets of size `n`, respectively :
@@ -133,9 +126,19 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
       to build such a collection. This should be much faster than actually
       building it.
 
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    - ``who_asked`` (internal use only) -- because of the equivalence between
+      OA/TD/MOLS, each of the three constructors calls the others. We must keep
+      track of who calls who in order to avoid infinite loops. ``who_asked`` is
+      the tuple of the other functions that were called before this one.
+
     EXAMPLES::
 
-        sage: designs.mutually_orthogonal_latin_squares(5)
+        sage: designs.mutually_orthogonal_latin_squares(5,4)
         [
         [0 1 2 3 4]  [0 1 2 3 4]  [0 1 2 3 4]  [0 1 2 3 4]
         [3 0 1 4 2]  [4 3 0 2 1]  [1 2 4 0 3]  [2 4 3 1 0]
@@ -182,15 +185,16 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
         ...
         ValueError: There exist at most n-1 MOLS of size n.
         sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
-        Unknown
+        False
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.combinat.designs.block_design import AffineGeometryDesign
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.rings.arith import is_prime_power
     from sage.matrix.constructor import Matrix
     from sage.rings.arith import factor
 
-    if k is not None and k >= n:
+    if k >= n:
         if availability:
             return False
         else:
@@ -198,10 +202,8 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
 
     if is_prime_power(n):
         if availability:
-            return n-1 if k is None else True
+            return True
 
-        if k is None:
-            k = n-1
         # Section 6.4.1 of [Stinson2004]
         Fp = FiniteField(n,'x')
         B = AffineGeometryDesign(2,1,Fp).blocks()
@@ -212,9 +214,6 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
                     p.append(b)
                     break
 
-        if partitions:
-            return parallel_classes
-
         coord = {v:i
                  for i,L in enumerate(parallel_classes[0]) for v in L}
         coord = {v:(coord[v],i)
@@ -223,27 +222,26 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
         matrices = []
         for P in parallel_classes[2:]:
             matrices.append(Matrix({coord[v]:i for i,L in enumerate(P) for v in L }))
-        return matrices
-    else:
-        # Theorem 6.33 of [Stinson2004], MacNeish's theorem.
-        subcases = [p**i for p,i in factor(n)]
-        s = min(subcases)-1
-        if k is None:
-            k = s
-            if availability:
-                return k
-        elif k > s:
-            if availability:
-                from sage.misc.unknown import Unknown
-                return Unknown
-            else:
-                raise NotImplementedError("I don't know how to build these MOLS.")
-        elif availability:
-            return True
 
-        subcalls = [mutually_orthogonal_latin_squares(p,k) for p in subcases]
-        matrices = [latin_square_product(*[sc[i] for sc in subcalls])
-                    for i in range(k)]
+        if partitions:
+            partitions = parallel_classes
+
+    elif (orthogonal_array not in who_asked and
+        orthogonal_array(k+2,n,availability=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,))):
+        if availability:
+            return True
+        OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
+        OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
+
+        # We first define matrices as lists of n^2 values
+        matrices = [[] for _ in range(k)]
+        for L in OA:
+            for i in range(2,k+2):
+                matrices[i-2].append(L[i])
+
+        # The real matrices
+        matrices = [[M[i*n:(i+1)*n] for i in range(n)] for M in matrices]
+        matrices = [Matrix(M) for M in matrices]
 
         if partitions:
             partitions = [[[i*n+j for j in range(n)] for i in range(n)],
@@ -255,10 +253,19 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability
                         partition[m[i,j]].append(i*n+j)
                 partitions.append(partition)
 
-            return partitions
-
+    else:
+        if availability:
+            return False
         else:
-            return matrices
+            raise NotImplementedError("I don't know how to build these MOLS!")
+
+    if check:
+        assert are_mutually_orthogonal_latin_squares(matrices)
+
+    if partitions:
+        return partitions
+    else:
+        return matrices
 
 def latin_square_product(M,N,*others):
     r"""
@@ -280,7 +287,7 @@ def latin_square_product(M,N,*others):
     EXAMPLES::
 
         sage: from sage.combinat.designs.latin_squares import latin_square_product
-        sage: m=designs.mutually_orthogonal_latin_squares(4)[0]
+        sage: m=designs.mutually_orthogonal_latin_squares(4,3)[0]
         sage: latin_square_product(m,m,m)
         64 x 64 sparse matrix over Integer Ring
     """

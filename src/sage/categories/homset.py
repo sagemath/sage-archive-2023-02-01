@@ -358,7 +358,7 @@ def Hom(X, Y, category=None, check=True):
                 raise TypeError("Argument category (= {}) must be a category.".format(category))
             for O in [X, Y]:
                 if O not in category:
-                    raise TypeError("%s is not in %s"%(O, category))
+                    raise TypeError("{} is not in {}".format(O, category))
 
         # Construct H
         try: # _Hom_ hook from the parent

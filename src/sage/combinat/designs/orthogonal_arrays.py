@@ -84,6 +84,11 @@ def transversal_design(k,n,check=True,availability=False):
 
         sage: _ = designs.transversal_design(4,38)
 
+    Obtained through product decomposition::
+
+        sage: _ = designs.transversal_design(6,60)
+        sage: _ = designs.transversal_design(5,60) # checks some tricky divisibility error
+
     Unknown availability::
 
         sage: designs.transversal_design(6,4,availability=True)
@@ -97,6 +102,14 @@ def transversal_design(k,n,check=True,availability=False):
             return True
         OA = orthogonal_array(k,n, check = False)
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+
+    elif TD_find_product_decomposition(k,n):
+        if availability:
+            return True
+        n1,n2 = TD_find_product_decomposition(k,n)
+        TD1 = transversal_design(k,n1, check = False)
+        TD2 = transversal_design(k,n2, check = False)
+        TD = TD_product(k,TD1,n1,TD2,n2, check = False)
 
     elif find_wilson_decomposition(k,n):
         if availability:
@@ -345,6 +358,86 @@ def wilson_construction(k,m,t,u, check = True):
 
     if check:
         assert is_transversal_design(TD,k,m*t+u, verbose=True)
+
+    return TD
+
+@cached_function
+def TD_find_product_decomposition(k,n):
+    r"""
+    Attempts to find a factorization of `n` in order to build a `TD(k,n)`.
+
+    If Sage can build a `TD(k,n_1)` and a `TD(k,n_2)` such that `n=n_1\times
+    n_2` then a `TD(k,n)` can be built. This method returns such a pair of
+    integers if it exists, and ``None`` otherwise.
+
+    INPUT:
+
+    - ``k,n`` (integers) -- see above.
+
+    .. SEEALSO::
+
+        :func:`TD_product`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import TD_find_product_decomposition
+        sage: TD_find_product_decomposition(6, 84)
+    """
+    from sage.rings.arith import divisors
+    for n1 in divisors(n)[1:-1]: # we ignore 1 and n
+        n2 = n//n1
+        if transversal_design(k,n1, availability = True) and transversal_design(k, n2, availability = True):
+            return n1,n2
+    return None
+
+def TD_product(k,TD1,n1,TD2,n2, check=True):
+    r"""
+    Returns the product of two Transversal Designs.
+
+    From a transversal design `TD_1` of parameters `k,n_1` and a transversal
+    design `TD_2` of parameters `k,n_2`, this function returns a transversal
+    design of parameters `k,n` where `n=n_1\times n_2`.
+
+    Formally, if the groups of `TD_1` are `V^1_1,\dots,V^1_k` and the groups of
+    `TD_2` are `V^2_1,\dots,V^2_k`, the groups of the product design are
+    `V^1_1\times V^2_1,\dots,V^1_k\times V^2_k` and its blocks are the
+    `\{(x^1_1,x^2_1),\dots,(x^1_k,x^2_k)\}` where `\{x^1_1,\dots,x^1_k\}` is a
+    block of `TD_1` and `\{x^2_1,\dots,x^2_k\}` is a block of `TD_2`.
+
+    INPUT:
+
+    - ``TD1, TD2`` -- transversal designs.
+
+    - ``k,n1,n2`` (integers) -- see above.
+
+    - ``check`` (boolean) -- Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    .. SEEALSO::
+
+        :func:`TD_find_product_decomposition`
+
+    .. NOTE::
+
+        This function returns transversal designs with
+        `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import TD_product
+        sage: TD1 = designs.transversal_design(6,7)
+        sage: TD2 = designs.transversal_design(6,12)
+        sage: TD6_84 = td_product(6,TD1,7,TD2,12)
+    """
+    N = n1*n2
+    TD = []
+    for X1 in TD1:
+        for X2 in TD2:
+            TD.append([x1*n2+(x2%n2) for x1,x2 in zip(X1,X2)])
+    if check:
+        assert is_transversal_design(TD,k,N)
 
     return TD
 

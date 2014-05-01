@@ -231,6 +231,8 @@ def SagePromptTransformer():
         ''
         sage: spt.push("sage: 2+2")
         '2+2'
+        sage: spt.push("   sage: 2+2")
+        '2+2'
         sage: spt.push("... .... ....: ...: 2+2")
         '2+2'
 
@@ -243,7 +245,7 @@ def SagePromptTransformer():
         sage: shell.run_cell('sage: a = [\n... 123]')      # old-style multi-line
         sage: shell.run_cell('sage: a = [\n....: 123]')    # new-style multi-line
     """
-    _sage_prompt_re = re.compile(r'^((:?sage:|\.\.\.\.?:?) ?)+')
+    _sage_prompt_re = re.compile(r'^(\s*(:?sage:|\.\.\.\.?:?) ?)+')
     return _strip_prompts(_sage_prompt_re)
 
 ###################

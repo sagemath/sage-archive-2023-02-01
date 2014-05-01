@@ -2464,6 +2464,75 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             self, right = canonical_coercion(self, right)
         return self._pairwise_product_(right)
 
+    def _variables(self):
+        R = self._parent.base_ring()
+        try:
+            var_names = R.variable_names()
+        except ValueError:
+            all = set()
+            for c in self:
+                for x in c.variables():
+                    all.add(str(x))
+            var_names = sorted(all)
+        return [R(x) for x in var_names]
+
+    def div(self, vars=None):
+        """
+        Returns the divergence of this vector function.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([x, y, z]).div()
+            3
+            sage: vector([x*y, y*z, z*x]).div()
+            x + y + z
+
+            sage: R.<x,y,z, w> = QQ[]
+            sage: vector([x*y, y*z, z*x]).div([x, y, z])
+            x + y + z
+            sage: vector([x*y, y*z, z*x]).div([z, x, y])
+            0
+            sage: vector([x*y, y*z, z*x]).div([x, y, w])
+            y + z
+
+            sage: vector(SR, [x*y, y*z, z*x]).div()
+            x + y + z
+        """
+        if vars is None:
+            vars = self._variables()
+        if len(vars) != len(self):
+            raise ValueError("variable list must be equal to the dimension of self")
+        return sum(c.derivative(x) for (c, x) in zip(self, vars))
+
+    def curl(self, vars=None):
+        """
+        Returns the curl of this three-dimensional vector function.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([-y, x, 0]).curl()
+            (0, 0, 2)
+            sage: vector([y, -x, x*y*z]).curl()
+            (x*z, -y*z, -2)
+            sage: vector([y^2, 0, 0]).curl()
+            (0, 0, -2*y)
+            sage: (R^3).random_element().curl().div()
+            0
+        """
+        if len(self) != 3:
+            raise TypeError, "curl only defined for 3 dimensions"
+        if vars is None:
+            vars = self._variables()
+        if len(vars) != 3:
+            raise ValueError, "exactly 3 variables must be provided"
+        x, y, z = vars
+        Fx, Fy, Fz = self
+        return self.parent([Fz.derivative(y) - Fy.derivative(z),
+                            Fx.derivative(z) - Fz.derivative(x),
+                            Fy.derivative(x) - Fx.derivative(y)])
+
     def element(self):
         """
         Simply returns self.  This is useful, since for many objects,

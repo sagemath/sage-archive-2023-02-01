@@ -1900,7 +1900,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if not (q in badprimes):
                 F = self.change_ring(GF(q))
                 parallel_data.append(((F,), {}))
-  
+
         parallel_iter = p_iter_fork(num_cpus, 0)
         parallel_results = list(parallel_iter(parallel_function, parallel_data))
 
@@ -2946,9 +2946,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
             - do not return duplicate points
 
-            - check == False to speed up?
-
-            - move to Cython
+            - improve hash to reduce memory of pointtable
 
         """
         return _fast_possible_periods(self,return_points)

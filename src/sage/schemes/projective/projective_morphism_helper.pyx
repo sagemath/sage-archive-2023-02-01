@@ -2,7 +2,7 @@ r"""
 This is the helper file providing functionality for projective_morphism.py.
 
 AUTHORS:
- 
+
 - Dillon Rose (2014-01):  Speed enhancements
 
 """
@@ -39,7 +39,7 @@ def _fast_possible_periods(self,return_points=False):
     - a list of positive integers, or a list of pairs of projective points and periods if ``flag`` is 1.
 
     Examples::
-    
+
             sage: from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
             sage: P.<x,y>=ProjectiveSpace(GF(23),1)
             sage: H=Hom(P,P)
@@ -163,7 +163,7 @@ def _enum_points(int prime,int dimension):
     cdef int current_range
     cdef int highest_range
     cdef int value
-    
+
     current_range = 1
     highest_range = prime**dimension
 
@@ -185,7 +185,7 @@ def _hash(list Point,int prime):
     """
     cdef int hash_q
     cdef int coefficient
-    
+
     Point.reverse()
     hash_q=0
 

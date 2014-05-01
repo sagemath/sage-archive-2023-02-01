@@ -139,7 +139,7 @@ class Semigroups(CategoryWithAxiom):
             r"""
             Return the Cayley graph for this finite semigroup.
 
-            INPUT::
+            INPUT:
 
             - ``side`` -- "left", "right", or "twosided":
               the side on which the generators act (default:"right")
@@ -151,7 +151,7 @@ class Semigroups(CategoryWithAxiom):
             - ``connecting_set`` -- alias for ``generators``; deprecated
             - ``elements`` -- a list (or iterable) of elements of ``self``
 
-            OUTPUT::
+            OUTPUT:
 
             - :class:`DiGraph`
 

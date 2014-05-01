@@ -27,12 +27,8 @@ def _fast_possible_periods(self,return_points=False):
 
     ALGORITHM:
 
-    The list comes from [Hutz_Good].
-
-    REFERENCES:
-
-        .. [Hutz_Good] B. Hutz. Good reduction of periodic points, Illinois Journal of
-            Mathematics 53 (Winter 2009), no. 4, 1109-1126.
+    The list comes from B. Hutz. Good reduction of periodic points, Illinois Journal of
+    Mathematics 53 (Winter 2009), no. 4, 1109-1126..
 
     INPUT:
 
@@ -164,22 +160,17 @@ def _enum_points(int prime,int dimension):
         sage: list(_enum_points(3,2))
         [[1, 0, 0], [0, 1, 0], [1, 1, 0], [2, 1, 0], [0, 0, 1], [1, 0, 1], [2, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 1], [0, 2, 1], [1, 2, 1], [2, 2, 1]]
     """
-    cdef list ranges=[]
-    cdef int curr_prime
-    cdef int highest_prime
-    
-    curr_prime = 1
-    highest_prime = prime**dimension
-    
-    while curr_prime <= highest_prime:
-        ranges.append(range(curr_prime,curr_prime*2))
-        curr_prime=curr_prime*prime
-
-    cdef list values
+    cdef int current_range
+    cdef int highest_range
     cdef int value
-    for values in ranges:
-        for value in values:
+    
+    current_range = 1
+    highest_range = prime**dimension
+
+    while current_range <= highest_range:
+        for value in xrange(current_range, 2*current_range):
             yield _get_point_from_hash(value,prime,dimension)
+        current_range = current_range*prime
 
 def _hash(list Point,int prime):
     """

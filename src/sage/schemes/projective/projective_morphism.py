@@ -58,16 +58,11 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
-<<<<<<< HEAD
-from sage.parallel.multiprocessing_sage import parallel_iter
+from sage.parallel.ncpus           import ncpus
+from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
 import sys
-=======
-from sage.parallel.ncpus           import ncpus
-from sage.parallel.use_fork        import p_iter_fork
-
->>>>>>> FETCH_HEAD
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """

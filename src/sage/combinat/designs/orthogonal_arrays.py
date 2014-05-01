@@ -78,6 +78,44 @@ def transversal_design(k,n,check=True,availability=False):
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
 
+    Some examples of the maximal number of transversal Sage is able to build::
+
+        sage: TD_3_10 = designs.transversal_design(3,10)
+        sage: designs.transversal_design(4,10)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design !
+
+        sage: TD_6_12 = designs.transversal_design(6,12)
+        sage: designs.transversal_design(7,12)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design !
+
+        sage: TD_3_14 = designs.transversal_design(3, 14)
+        sage: designs.transversal_design(4, 14)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design !
+
+        sage: TD_4_15 = designs.transversal_design(4, 15)
+        sage: designs.transversal_design(5, 15)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design !
+
+        sage: TD_4_18 = designs.transversal_design(4, 18)
+        sage: designs.transversal_design(5, 18)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design !
+
+        sage: TD_5_20 = designs.transversal_design(5, 20)
+        sage: designs.transversal_design(6, 20)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design !
+
     TESTS:
 
     Obtained through Wilson's decomposition::
@@ -367,8 +405,9 @@ def TD_find_product_decomposition(k,n):
     Attempts to find a factorization of `n` in order to build a `TD(k,n)`.
 
     If Sage can build a `TD(k,n_1)` and a `TD(k,n_2)` such that `n=n_1\times
-    n_2` then a `TD(k,n)` can be built. This method returns such a pair of
-    integers if it exists, and ``None`` otherwise.
+    n_2` then a `TD(k,n)` can be built (from the function
+    :func:`transversal_design`). This method returns such a pair of integers if
+    it exists, and ``None`` otherwise.
 
     INPUT:
 
@@ -376,23 +415,29 @@ def TD_find_product_decomposition(k,n):
 
     .. SEEALSO::
 
-        :func:`TD_product`
+        :func:`TD_product` that actually build a product
 
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import TD_find_product_decomposition
         sage: TD_find_product_decomposition(6, 84)
+        (7, 12)
+
+        sage: TD1 = designs.transversal_design(6, 7)
+        sage: TD2 = designs.transversal_design(6, 12)
+        sage: from sage.combinat.designs.orthogonal_arrays import TD_product
+        sage: TD = TD_product(6, TD1, 7, TD2, 12)
     """
     from sage.rings.arith import divisors
     for n1 in divisors(n)[1:-1]: # we ignore 1 and n
         n2 = n//n1
-        if transversal_design(k,n1, availability = True) and transversal_design(k, n2, availability = True):
+        if transversal_design(k, n1, availability = True) and transversal_design(k, n2, availability = True):
             return n1,n2
     return None
 
 def TD_product(k,TD1,n1,TD2,n2, check=True):
     r"""
-    Returns the product of two Transversal Designs.
+    Returns the product of two transversal designs.
 
     From a transversal design `TD_1` of parameters `k,n_1` and a transversal
     design `TD_2` of parameters `k,n_2`, this function returns a transversal
@@ -421,15 +466,16 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
     .. NOTE::
 
-        This function returns transversal designs with
-        `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}`.
+        This function uses transversal designs with
+        `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}` both as input and
+        ouptut.
 
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import TD_product
         sage: TD1 = designs.transversal_design(6,7)
         sage: TD2 = designs.transversal_design(6,12)
-        sage: TD6_84 = td_product(6,TD1,7,TD2,12)
+        sage: TD6_84 = TD_product(6,TD1,7,TD2,12)
     """
     N = n1*n2
     TD = []

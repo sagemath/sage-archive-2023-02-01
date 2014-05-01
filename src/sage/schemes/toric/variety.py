@@ -1197,7 +1197,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             while True:
                 scope = sys._getframe(depth).f_globals
                 if (scope["__name__"] == "__main__"
-                    and scope["__package__"] is None):
+                    and scope.get("__package__", None) is None):
                     break
                 depth += 1
         try:

@@ -302,6 +302,10 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{03BB}{\lambda}
 \DeclareUnicodeCharacter{2266}{\le}
 \DeclareUnicodeCharacter{221A}{\sqrt}
+
+\let\textLaTeX\LaTeX
+\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
+>>>>>>> fc520709f1682205ac55f7c75f31eb84d9781587
 """
 
 # Documents to append as an appendix to all manuals.

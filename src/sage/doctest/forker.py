@@ -2086,9 +2086,12 @@ class DocTestTask(object):
                     import sage.all_notebook as sage_all
                 else:
                     import sage.all_cmdline as sage_all
-                sage_namespace = RecordingDict(sage_all.__dict__)
+                dict_all = sage_all.__dict__
+                # Remove '__package__' item from the globals since it is not
+                # always in the globals in an actual Sage session.
+                dict_all.pop('__package__', None)
+                sage_namespace = RecordingDict(dict_all)
                 sage_namespace['__name__'] = '__main__'
-                sage_namespace['__package__'] = None
                 doctests, extras = self.source.create_doctests(sage_namespace)
                 timer = Timer().start()
 

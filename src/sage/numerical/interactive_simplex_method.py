@@ -38,7 +38,7 @@ in acres, we can construct the following LP problem::
     sage: A = ([1, 1], [3, 1])
     sage: b = (1000, 1500)
     sage: c = (10, 5)
-    sage: P = LPProblem(A, b, c, ["C", "B"])
+    sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
     sage: P
     LP problem (use typeset mode to see details)
 
@@ -58,7 +58,7 @@ you can run these commands with typeset mode on and get
 
 Since it has only two variables, we can solve it graphically::
 
-    sage: P.plot()  # long time
+    sage: P.plot()
     
     
 The simplex method can be applied only to :class:`problems in standard form
@@ -415,7 +415,7 @@ class LPProblem(SageObject):
     - ``constraint_type`` -- (default: "<=") a string specifying constraint
       type(s): either "<=", or ">=", or "==", or a list of them;
       
-    - ``variable_type`` -- (default: ">=") a string specifying variable type(s):
+    - ``variable_type`` -- (default: "") a string specifying variable type(s):
       either ">=", or "<=", or "" (empty string), or a list of them,
       corresponding, respectively, to non-negative, non-positive, and free
       variables;
@@ -455,7 +455,7 @@ class LPProblem(SageObject):
         sage: A = ([1, 1], [3, 1])
         sage: b = (1000, 1500)
         sage: c = (10, 5)
-        sage: P = LPProblem(A, b, c, ["C", "B"])
+        sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
 
     Same problem, but more explicitly::
     
@@ -473,7 +473,7 @@ class LPProblem(SageObject):
     """
 
     def __init__(self, A, b, c, x="x",
-                 constraint_type="<=", variable_type=">=", problem_type="max",
+                 constraint_type="<=", variable_type="", problem_type="max",
                  prefix="x", base_ring=None):
         r"""
         See :class:`LPProblem` for documentation.
@@ -483,7 +483,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: TestSuite(P).run()
         """
         super(LPProblem, self).__init__()
@@ -564,11 +564,11 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
-            sage: P2 = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P2 = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P == P2
             True
-            sage: P3 = LPProblem(A, c, b, ["C", "B"])
+            sage: P3 = LPProblem(A, c, b, ["C", "B"], variable_type=">=")
             sage: P == P3
             False
         """
@@ -593,7 +593,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: print P._latex_()
             \begin{array}{l} \setlength{\arraycolsep}{0.125em}
             \begin{array}{lcrcrcl}
@@ -640,7 +640,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: print P._repr_()
             LP problem (use typeset mode to see details)
         """
@@ -666,7 +666,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P._solve()
             ((250, 750), 6250)
         """
@@ -709,7 +709,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.Abcx()
             (
             [1 1]                               
@@ -735,12 +735,12 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.base_ring()
             Rational Field
             
             sage: c = (10, 5.)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.base_ring()
             Real Field with 53 bits of precision
         """
@@ -759,7 +759,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.constant_terms()
             (1000, 1500)
             sage: P.b()
@@ -780,7 +780,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.constraint_coefficients()
             [1 1]
             [3 1]
@@ -803,7 +803,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.decision_variables()
             (C, B)
             sage: P.x()
@@ -830,7 +830,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: DP = P.dual()
             sage: DP.b() == P.c()
             True
@@ -881,7 +881,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.feasible_set()
             A 2-dimensional polyhedron in QQ^2
             defined as the convex hull of 4 vertices
@@ -921,7 +921,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.is_bounded()
             True
         """
@@ -940,7 +940,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.is_feasible()
             True
         """
@@ -959,7 +959,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.n_constraints()
             2
             sage: P.m()
@@ -980,7 +980,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.n_variables()
             2
             sage: P.n()
@@ -1001,7 +1001,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.objective_coefficients()
             (10, 5)
             sage: P.c()
@@ -1022,7 +1022,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.optimal_solution()
             (250, 750)
         """
@@ -1042,7 +1042,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.optimal_value()
             6250
         """
@@ -1074,20 +1074,20 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: p = P.plot()
-            sage: p.show()  # long time
+            sage: p.show()
             
         In this case the plot works better with the following axes ranges::
         
             sage: p = P.plot(0, 1000, 0, 1500)
-            sage: p.show()  # long time
+            sage: p.show()
             
         TESTS:
         
         We check that zero objective can be dealt with::
         
-            sage: LPProblem(A, b, (0, 0), ["C", "B"]).plot()
+            sage: LPProblem(A, b, (0, 0), ["C", "B"], variable_type=">=").plot()
         """
         FP = self.plot_feasible_set(*args, **kwds)
         c = self.c().n().change_ring(QQ)
@@ -1150,14 +1150,14 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: p = P.plot_feasible_set()
-            sage: p.show()  # long time
+            sage: p.show()
             
         In this case the plot works better with the following axes ranges::
         
             sage: p = P.plot_feasible_set(0, 1000, 0, 1500)
-            sage: p.show()  # long time
+            sage: p.show()
         """
         if self.n() != 2:
             raise ValueError("only problems with 2 variables can be plotted")
@@ -1241,7 +1241,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"])
+            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: DP = P.dual()
             sage: DPSF = DP.standard_form()
             sage: DPSF.b()

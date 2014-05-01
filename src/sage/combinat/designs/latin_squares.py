@@ -92,7 +92,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     return True
 
 
-def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
+def mutually_orthogonal_latin_squares(n,k=None, partitions = False, availability=False):
     r"""
     Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
@@ -127,6 +127,11 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
       When ``partition`` is set to ``True``, this function returns a list of `k+2`
       partitions satisfying this intersection property instead of the `k+2` MOLS
       (though the data is exactly the same in both cases).
+
+    - ``availability`` (boolean) -- if ``availability`` is set to ``True``, the
+      function only returns boolean answers according to whether Sage knows how
+      to build such a collection. This should be much faster than actually
+      building it.
 
     EXAMPLES::
 
@@ -176,6 +181,8 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
         Traceback (most recent call last):
         ...
         ValueError: There exist at most n-1 MOLS of size n.
+        sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
+        Unknown
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.combinat.designs.block_design import AffineGeometryDesign
@@ -184,9 +191,15 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
     from sage.rings.arith import factor
 
     if k is not None and k >= n:
-        raise ValueError("There exist at most n-1 MOLS of size n.")
+        if availability:
+            return False
+        else:
+            raise ValueError("There exist at most n-1 MOLS of size n.")
 
     if is_prime_power(n):
+        if availability:
+            return n-1 if k is None else True
+
         if k is None:
             k = n-1
         # Section 6.4.1 of [Stinson2004]
@@ -217,8 +230,17 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
         s = min(subcases)-1
         if k is None:
             k = s
+            if availability:
+                return k
         elif k > s:
-            raise NotImplementedError("I don't know how to build these MOLS.")
+            if availability:
+                from sage.misc.unknown import Unknown
+                return Unknown
+            else:
+                raise NotImplementedError("I don't know how to build these MOLS.")
+        elif availability:
+            return True
+
         subcalls = [mutually_orthogonal_latin_squares(p,k) for p in subcases]
         matrices = [latin_square_product(*[sc[i] for sc in subcalls])
                     for i in range(k)]

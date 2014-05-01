@@ -405,20 +405,20 @@ def test_relation_maxima(relation):
     if relation.operator() == operator.eq: # operator is equality
         try:
             s = m.parent()._eval_line('is (equal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError, msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+        except TypeError as msg:
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     elif relation.operator() == operator.ne: # operator is not equal
         try:
             s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))
-        except TypeError, msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+        except TypeError as msg:
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     else: # operator is < or > or <= or >=, which Maxima handles fine
         try:
             s = m.parent()._eval_line('is (%s)'%repr(m))
-        except TypeError, msg:
-            raise ValueError, "unable to evaluate the predicate '%s'"%repr(relation)
+        except TypeError as msg:
+            raise ValueError("unable to evaluate the predicate '%s'"%repr(relation))
 
     if s == 'true':
         return True
@@ -756,7 +756,7 @@ def solve(f, *args, **kwds):
     try:
         f = [s for s in f if s is not True]
     except TypeError:
-        raise ValueError, "Unable to solve %s for %s"%(f, args)
+        raise ValueError("Unable to solve %s for %s"%(f, args))
 
     if any(s is False for s in f):
         return []
@@ -769,9 +769,9 @@ def solve(f, *args, **kwds):
     except Exception: # if Maxima gave an error, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except TypeError, mess: # if that gives an error, raise an error.
+        except TypeError as mess: # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
-                raise ValueError, "Sage is unable to determine whether the system %s can be solved for %s"%(f,args)
+                raise ValueError("Sage is unable to determine whether the system %s can be solved for %s"%(f,args))
             else:
                 raise
 
@@ -917,7 +917,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
     eqns = [eq if is_Expression(eq) else (eq.lhs()-eq.rhs()) for eq in eqns]
     modulus = Integer(modulus)
     if modulus < 1:
-        raise ValueError, "the modulus must be a positive integer"
+        raise ValueError("the modulus must be a positive integer")
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
     vars.sort(key=repr)
 

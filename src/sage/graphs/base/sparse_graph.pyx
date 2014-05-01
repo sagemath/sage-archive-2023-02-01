@@ -1839,40 +1839,93 @@ class SparseGraphBackend(CGraphBackend):
             sage: list(G.iterator_edges(range(9), True))
             [(1, 2, 3)]
 
+        TEST::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.edges_incident([0,1,2])
+            [(0, 1, None),
+             (0, 4, None),
+             (0, 5, None),
+             (1, 2, None),
+             (1, 6, None),
+             (2, 3, None),
+             (2, 7, None)]
         """
-        # Improvement possible in the code below !
-        #
-        # It is through this function that Sage answers to G.edges(). That's so
-        # inefficient that it hurts to see it. Basically, to answer G.edges(),
-        # Sage first builds the list L of all vertices, then and returns all the
-        # edges which have at least one endpoint in L. That is, absolutely *ALL*
-        # the edges, but it checks this condition on the endpoints for each of
-        # them. It tests containment in a LIST, not even a set. That should
-        # REALLY be updated.
-        cdef object u, v, l, L
-        vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
-                    self._cg) for v in vertices if self.has_vertex(v)]
+        cdef object u, v, l
         cdef int u_int, v_int, l_int
-        if labels:
-            for v_int in vertices:
-                v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+        cdef FrozenBitset b_vertices
+
+        # ALL edges
+        if not isinstance(vertices, list):
+            if labels:
+                for v in self.iterator_verts():
+                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
+                                       self._cg)
+                    for u_int in self._cg.out_neighbors(v_int):
+                        if u_int >= v_int:
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            for l_int in self._cg.all_arcs(v_int, u_int):
+                                if l_int == 0:
+                                    l = None
+                                else:
+                                    l = self.edge_labels[l_int]
+                                yield (v, u, l) if v<u else (u, v, l)
+            else:
+                for v in self.iterator_verts():
+                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
+                                       self._cg)
+                    for u_int in self._cg.out_neighbors(v_int):
+                        if u_int >= v_int:
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            for l_int in self._cg.all_arcs(v_int, u_int):
+                                yield (v, u) if v < u else (u, v)
+        # One vertex
+        elif len(vertices) == 1:
+            v = vertices[0]
+            v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
+                               self._cg)
+
+            if labels:
                 for u_int in self._cg.out_neighbors(v_int):
-                    if u_int >= v_int or u_int not in vertices:
-                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
-                        for l_int in self._cg.all_arcs(v_int, u_int):
-                            if l_int == 0:
-                                l = None
-                            else:
-                                l = self.edge_labels[l_int]
-                            yield tuple(sorted((v, u))) + (l,)
-        else:
-            for v_int in vertices:
-                v = vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)
+                    u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                    for l_int in self._cg.all_arcs(v_int, u_int):
+                        if l_int == 0:
+                            l = None
+                        else:
+                            l = self.edge_labels[l_int]
+                        yield (v, u, l) if v<u else (u, v, l)
+            else:
                 for u_int in self._cg.out_neighbors(v_int):
-                    if u_int >= v_int or u_int not in vertices:
-                        u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
-                        for l_int in self._cg.all_arcs(v_int, u_int):
-                            yield tuple(sorted((v, u)))
+                    u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                    for l_int in self._cg.all_arcs(v_int, u_int):
+                        yield (v, u) if v < u else (u, v)
+
+        # Several vertices (nonempty list)
+        elif vertices:
+            b_vertices = FrozenBitset([get_vertex(v, self.vertex_ints, self.vertex_labels,
+                                                  self._cg) for v in vertices])
+            if labels:
+                for v in vertices:
+                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
+                                       self._cg)
+                    for u_int in self._cg.out_neighbors(v_int):
+                        if u_int >= v_int or u_int not in b_vertices:
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            for l_int in self._cg.all_arcs(v_int, u_int):
+                                if l_int == 0:
+                                    l = None
+                                else:
+                                    l = self.edge_labels[l_int]
+                                yield (v, u, l) if v<u else (u, v, l)
+            else:
+                for v in vertices:
+                    v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
+                                       self._cg)
+                    for u_int in self._cg.out_neighbors(v_int):
+                        if u_int >= v_int or u_int not in b_vertices:
+                            u = vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+                            for l_int in self._cg.all_arcs(v_int, u_int):
+                                yield (v, u) if v < u else (u, v)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """

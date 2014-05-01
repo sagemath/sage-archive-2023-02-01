@@ -920,7 +920,7 @@ class SymmetricIdeal( Ideal_generic ):
             algorithm=''
         PARENT = self.ring()
         if not (hasattr(PARENT.base_ring(),'is_field') and PARENT.base_ring().is_field()):
-            raise TypeError, "The base ring (= %s) must be a field"%PARENT.base_ring()
+            raise TypeError("The base ring (= %s) must be a field"%PARENT.base_ring())
         OUT = self.symmetrisation(tailreduce=tailreduce,report=report,use_full_group=use_full_group)
         if not (report is None):
             print "Symmetrisation done"

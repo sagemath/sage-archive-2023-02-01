@@ -173,7 +173,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         matrix.Matrix.__init__(M, self._parent)
         return M
 
-    def eigenvalues(self, solution_set=False):
+    def eigenvalues(self):
         """
         Compute the eigenvalues by solving the characteristic
         polynomial in maxima
@@ -185,12 +185,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
 
         """
-        if solution_set is not False:
-            from sage.misc.superseded import deprecation
-            deprecation(6115, "solution_set parameter is deprecated")
         maxima_evals = self._maxima_(maxima).eigenvalues()._sage_()
         if len(maxima_evals)==0:
-            raise ArithmeticError, "could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible"
+            raise ArithmeticError("could not determine eigenvalues exactly using symbolic matrices; try using a different type of matrix via self.change_ring(), if possible")
         return sum([[eval]*int(mult) for eval,mult in zip(*maxima_evals)],[])
 
     def eigenvectors_left(self):
@@ -484,35 +481,6 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         from sage.symbolic.ring import SR
         sub_dict = {var: SR.var(var)}
         return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
-
-    def is_simplified(self):
-        """
-        Return True if self is the result of running simplify() on a symbolic
-        matrix.  This has the semantics of 'has_been_simplified'.
-
-        EXAMPLES::
-
-            sage: var('x,y,z')
-            (x, y, z)
-            sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
-            [      z       1]
-            [    x^2 y^2 + 2]
-            sage: m.is_simplified()
-            doctest:...: DeprecationWarning: is_simplified is deprecated
-            See http://trac.sagemath.org/6115 for details.
-            False
-            sage: ms = m.simplify(); ms
-            [      z       1]
-            [    x^2 y^2 + 2]
-
-            sage: m.is_simplified()
-            False
-            sage: ms.is_simplified()
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6115, "is_simplified is deprecated")
-        return False
 
     def simplify(self):
         """

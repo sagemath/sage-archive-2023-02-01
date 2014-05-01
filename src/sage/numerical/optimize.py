@@ -808,7 +808,7 @@ def binpacking(items,maximum=1,k=None):
 
     # Boolean variable indicating whether
     # the i th element belongs to box b
-    box=p.new_variable()
+    box=p.new_variable(binary = True)
 
     # Each bin contains at most max
     for b in range(k):
@@ -819,7 +819,6 @@ def binpacking(items,maximum=1,k=None):
         p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
 
     p.set_objective(None)
-    p.set_binary(box)
 
     try:
         p.solve()

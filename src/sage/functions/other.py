@@ -433,7 +433,7 @@ class Function_ceil(BuiltinFunction):
                     return ceil(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
+                raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -594,7 +594,7 @@ class Function_floor(BuiltinFunction):
                     return floor(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
+                raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -780,7 +780,7 @@ class Function_gamma(GinacFunction):
         # without specifying an explicit embedding into CC any more
         try:
             res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-        except TypeError, err:
+        except TypeError as err:
             # the __call__() method returns a TypeError for fast float arguments
             # as well, we only proceed if the error message says that
             # the arguments cannot be coerced to SR
@@ -1051,7 +1051,7 @@ def gamma(a, *args, **kwds):
     if not args:
         return gamma1(a, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1))
     return incomplete_gamma(a,args[0],**kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
@@ -1211,7 +1211,7 @@ def psi(x, *args, **kwds):
     if not args:
         return psi1(x, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError("Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1))
     return psi2(x,args[0],**kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have

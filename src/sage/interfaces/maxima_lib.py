@@ -324,7 +324,7 @@ class MaximaLib(MaximaAbstract):
         """
         global maxima_lib_instances
         if maxima_lib_instances > 0:
-            raise RuntimeError, "Maxima interface in library mode can only be instantiated once"
+            raise RuntimeError("Maxima interface in library mode can only be instantiated once")
         maxima_lib_instances += 1
 
         global init_code
@@ -732,17 +732,17 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))
-        except RuntimeError, error:
+        except RuntimeError as error:
             s = str(error)
             if "Divergent" in s or "divergent" in s:
 # in pexpect interface, one looks for this - e.g. integrate(1/x^3,x,-1,3) gives a principal value
 #            if "divergent" in s or 'Principal Value' in s:
-                raise ValueError, "Integral is divergent."
+                raise ValueError("Integral is divergent.")
             elif "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
                 k = s.find(' ',4)
-                raise ValueError, "Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
             else:
                 raise error
 
@@ -779,18 +779,18 @@ class MaximaLib(MaximaAbstract):
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
-        except RuntimeError, error:
+        except RuntimeError as error:
             s = str(error)
             if "divergent" in s:
 # in pexpect interface, one looks for this;
 # could not find an example where 'Pole encountered' occurred, though
 #            if "divergent" in s or 'Pole encountered' in s:
-                raise ValueError, "Sum is divergent."
+                raise ValueError("Sum is divergent.")
             elif "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
                 k = s.find(' ',4)
-                raise ValueError, "Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
             else:
                 raise error
 
@@ -849,12 +849,12 @@ class MaximaLib(MaximaAbstract):
             elif dir == "minus":
                 L.append(max_minus)
             return max_to_sr(maxima_eval(([max_limit],L)))
-        except RuntimeError, error:
+        except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
-                raise ValueError, "Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s)
             else:
                 raise error
 

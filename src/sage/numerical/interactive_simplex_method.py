@@ -171,7 +171,6 @@ from copy import copy
 from sage.geometry.all import Polyhedron
 from sage.matrix.all import (column_matrix,
                              identity_matrix,
-                             is_Matrix,
                              matrix,
                              random_matrix)
 from sage.misc.all import (LatexExpr,
@@ -181,6 +180,7 @@ from sage.misc.all import (LatexExpr,
                            randint,
                            random)
 from sage.misc.latex import EMBEDDED_MODE
+from sage.misc.misc import get_main_globals
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
 from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ
@@ -283,7 +283,7 @@ def _latex_product(coefficients, variables,
         sage: var("x, y")
         (x, y)
         sage: print _latex_product([-1, 3], [x, y])
-        - & x & + & 3 \, y
+        - & x & + & 3 y
     """
     entries = []
     for c, v in zip(coefficients, variables):
@@ -487,8 +487,7 @@ class LPProblem(SageObject):
             sage: TestSuite(P).run()
         """
         super(LPProblem, self).__init__()
-        if not is_Matrix(A):
-            A = matrix(A)
+        A = matrix(A)
         b = vector(b)
         c = vector(c)
         if base_ring is None:
@@ -1730,15 +1729,7 @@ class LPProblemStandardForm(LPProblem):
             x2 + 3*x1
         """
         if scope is None:
-            # scope = globals() does not work well,
-            # instead we "borrow" this code from sage.misc.misc.inject_variable
-            depth = 0
-            while True:
-                scope = sys._getframe(depth).f_globals
-                if (scope["__name__"] == "__main__"
-                    and scope["__package__"] is None):
-                    break
-                depth += 1
+            scope = get_main_globals()
         try:
             self._R.inject_variables(scope, verbose)
         except AttributeError:
@@ -2705,7 +2696,6 @@ class LPDictionary(LPAbstractDictionary):
             \end{array}
         """        
         A, b, c, v, B, N, z = self._AbcvBNz
-        n = len(N)
         lines = []
         lines.append(r"\renewcommand{\arraystretch}{1.5}")
         if generate_real_LaTeX:

@@ -740,7 +740,7 @@ class FSMState(SageObject):
     - ``is_final`` -- (default: ``False``)
 
     - ``final_word_out`` -- (default: ``None``) a word that is written when
-      the state is reached as the last state of some input, only for final
+      the state is reached as the last state of some input; only for final
       states
 
       .. WARNING::
@@ -1009,7 +1009,7 @@ class FSMState(SageObject):
 
         INPUT:
 
-        ``final_word_out`` -- a list, any element or ``None``
+        - ``final_word_out`` -- a list, any element or ``None``.
 
         OUTPUT:
 
@@ -1077,7 +1077,8 @@ class FSMState(SageObject):
 
         INPUT:
 
-        is_final - ``True`` if the state should be final and ``False`` otherwise
+        - ``is_final`` -- ``True`` if the state should be final and
+          ``False`` otherwise.
 
         OUTPUT:
 

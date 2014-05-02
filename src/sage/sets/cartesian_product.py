@@ -67,15 +67,20 @@ class CartesianProduct(UniqueRepresentation, Parent):
             The cartesian product of (Finite Field of size 5, Finite Field of size 3)
             sage: x[0].parent()
             Finite Field of size 5
-        """
-        new_x = []
-        for c,xx in zip(self._sets,x):
-            try:
-                new_x.append(c(xx))
-            except TypeError:
-                new_x.append(xx)
 
-        return self.element_class(self, tuple(new_x))
+        TESTS::
+
+            sage: GF(5).cartesian_product(GF(3))((1,3,4))
+            Traceback (most recent call last):
+            ...
+            ValueError: The element has the wrong length
+        """
+        if len(x) != len(self._sets):
+            raise ValueError("The element has the wrong length")
+
+        x = [c(xx) for c,xx in zip(self._sets,x)]
+
+        return self.element_class(self, tuple(x))
 
     def _repr_(self):
         """

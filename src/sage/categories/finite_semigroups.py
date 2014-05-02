@@ -17,14 +17,15 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 class FiniteSemigroups(CategoryWithAxiom):
     r"""
-    The category of finite (multiplicative) :class:`semigroups <Semigroups>`,
-    i.e., :class:`finite sets <FiniteSets>` endowed with an
-    associative binary operation `*`.
+    The category of finite (multiplicative) semigroups.
+
+    A :class:`semigroup <Semigroups>` is a :class:`finite sets <FiniteSets>`
+    endowed with an associative binary operation `*`.
 
     .. NOTE::
 
         A finite semigroup in Sage is currently automatically endowed
-        with an :class:`enumerated set EnumeratedSets` structure, with
+        with an :class:`enumerated set <EnumeratedSets>` structure, with
         the default enumeration being obtained by iteratively
         multiplying the semigroup generators (see
         :meth:`FiniteSemigroups.super_categories` and

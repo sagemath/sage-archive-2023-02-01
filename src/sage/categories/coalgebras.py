@@ -170,7 +170,7 @@ class Coalgebras(Category_over_base_ring):
 
         def extra_super_categories(self):
             r"""
-            Returns the dual category
+            Return the dual category.
 
             EXAMPLES:
 
@@ -182,6 +182,11 @@ class Coalgebras(Category_over_base_ring):
                 Category of duals of coalgebras over Rational Field
                 sage: C.dual().super_categories() # indirect doctest
                 [Category of algebras over Rational Field, Category of duals of vector spaces over Rational Field]
+
+            .. WARNING::
+
+                This is only correct in certain cases (finite dimension, ...).
+                See :trac:`15647`.
             """
             from sage.categories.algebras import Algebras
             return [Algebras(self.base_category().base_ring())]

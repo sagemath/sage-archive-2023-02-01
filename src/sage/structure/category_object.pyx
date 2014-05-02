@@ -143,7 +143,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
         INPUT:
 
-         - ``category`` -- a category, or list or tuple thereof, or ``None``
+        - ``category`` -- a category, or list or tuple thereof, or ``None``
 
         EXAMPLES::
 

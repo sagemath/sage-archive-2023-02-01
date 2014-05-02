@@ -14,7 +14,7 @@ from sage.categories.magmas import Magmas
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 
 class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
-    """
+    r"""
     The category of associative algebras over a given base ring.
 
     An associative algebra over a ring `R` is a module over `R` which
@@ -27,7 +27,6 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
         suggests, :class:`AssociativeAlgebras` is not a subcategory of
         :class:`Algebras` but of
         :class:`~.magmatic_algebras.MagmaticAlgebras`.
-
 
     EXAMPLES::
 
@@ -45,10 +44,14 @@ class AssociativeAlgebras(CategoryWithAxiom_over_base_ring):
     _base_category_class_and_axiom = (MagmaticAlgebras, "Associative")
 
     class ElementMethods:
-
         """
-        Magmas.Element.__mul__ is preferable to Modules.Element.__mul__
-        since the later does not handle products of two elements of ``self``.
+        An abstract class for elements of an associative algebra.
+
+        .. NOTE::
+
+            ``Magmas.Element.__mul__`` is preferable to
+            ``Modules.Element.__mul__`` since the later does not
+            handle products of two elements of ``self``.
 
         TESTS::
 

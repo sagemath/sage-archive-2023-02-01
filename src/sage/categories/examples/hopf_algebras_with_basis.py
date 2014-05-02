@@ -61,7 +61,8 @@ class MyGroupAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, g1, g2):
         r"""
-        Product, on basis elements, as per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
+        Product, on basis elements, as per
+        :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
 
         The product of two basis elements is induced by the product of
         the corresponding elements of the group.

@@ -44,10 +44,10 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
     .. TODO::
 
-    :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
-    not inherit from this class. If that is solved, then
-    :class:`FiniteEnumeratedSets` shall be turned into a subclass of
-    :class:`~sage.categories.category_singleton.Category_singleton`.
+        :class:`sage.combinat.debruijn_sequence.DeBruijnSequences` should
+        not inherit from this class. If that is solved, then
+        :class:`FiniteEnumeratedSets` shall be turned into a subclass of
+        :class:`~sage.categories.category_singleton.Category_singleton`.
     """
 
     def _call_(self, X):
@@ -470,7 +470,8 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
-            A cartesian product of finite enumerated sets is a finite enumerated set
+            A cartesian product of finite enumerated sets is a finite
+            enumerated set.
 
             EXAMPLES::
 
@@ -483,9 +484,10 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
         class ParentMethods:
             def __iter__(self):
                 """
-                Return an iterator for the elements of this cartesian product
+                Return an iterator for the elements of this cartesian product.
 
-                From Recipe 19.9 in the Python Cookbook by Alex Martelli and David Ascher.
+                From Recipe 19.9 in the Python Cookbook by Alex Martelli
+                and David Ascher.
 
                 EXAMPLES::
 

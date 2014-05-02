@@ -3,7 +3,7 @@ Algebra Functorial Construction
 
 AUTHORS:
 
- - Nicolas M. Thiery (2010): initial revision
+- Nicolas M. Thiery (2010): initial revision
 """
 #*****************************************************************************
 #  Copyright (C) 2010 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -17,7 +17,7 @@ from sage.categories.category_types import Category_over_base_ring
 
 class AlgebraFunctor(CovariantFunctorialConstruction):
     """
-    A singleton class for the algebra functor
+    A singleton class for the algebra functor.
     """
     _functor_name = "algebra"
     _functor_category = "Algebras"
@@ -49,13 +49,14 @@ class AlgebraFunctor(CovariantFunctorialConstruction):
 
 class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
     """
-    An abstract base class for categories of monoid algebras, groups algebras, and the like.
+    An abstract base class for categories of monoid algebras,
+    groups algebras, and the like.
 
     .. SEEALSO::
 
         - :meth:`Sets.ParentMethods.algebra`
         - :meth:`Sets.SubcategoryMethods.Algebras`
-        - :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`.
+        - :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`
 
     INPUT:
 
@@ -83,4 +84,6 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
             sage: Semigroups().Algebras(QQ) # indirect doctest
             Category of semigroup algebras over Rational Field
         """
-        return "%s algebras over %s"%(self.base_category()._repr_object_names()[:-1], self.base_ring())
+        return "{} algebras over {}".format(self.base_category()._repr_object_names()[:-1],
+                                            self.base_ring())
+

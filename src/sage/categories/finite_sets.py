@@ -14,7 +14,7 @@ from sage.categories.subquotients import SubquotientsCategory
 
 class FiniteSets(CategoryWithAxiom):
     r"""
-    The category of finite sets
+    The category of finite sets.
 
     EXAMPLES::
 
@@ -41,7 +41,7 @@ class FiniteSets(CategoryWithAxiom):
 
         def is_finite(self):
             """
-            Returns ``True`` since ``self`` is finite.
+            Return ``True`` since ``self`` is finite.
 
             EXAMPLES::
 
@@ -89,3 +89,4 @@ class FiniteSets(CategoryWithAxiom):
             """
             from sage.categories.modules_with_basis import ModulesWithBasis
             return [ModulesWithBasis(self.base_ring()).FiniteDimensional()]
+

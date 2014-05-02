@@ -2919,8 +2919,8 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
         INPUT:
 
-         - ``elements`` -- a tuple with one element of each cartesian
-           factor of ``self``
+        - ``elements`` -- a tuple with one element of each cartesian
+          factor of ``self``
 
         EXAMPLES::
 

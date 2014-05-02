@@ -15,7 +15,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 
 class FiniteFields(CategoryWithAxiom):
     """
-    The category of finite fields
+    The category of finite fields.
 
     EXAMPLES::
 
@@ -23,7 +23,7 @@ class FiniteFields(CategoryWithAxiom):
         sage: K
         Category of finite fields
 
-    A finite field is ...::
+    A finite field is a finite monoid with the structure of a field::
 
         sage: K.super_categories()
         [Category of fields, Category of finite monoids]

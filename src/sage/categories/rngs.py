@@ -15,28 +15,29 @@ from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
 
 class Rngs(CategoryWithAxiom):
     """
-    The category of rngs
+    The category of rngs.
 
-    A rng `(S,+,*)` is similar to a ring but not necessarilly
+    An *rng* `(S, +, *)` is similar to a ring but not necessarilly
     unital. In other words, it is a combination of a commutative
-    additive group `(S,+)` and a multiplicative semigroup `(S,*)`,
+    additive group `(S, +)` and a multiplicative semigroup `(S, *)`,
     where `*` distributes over `+`.
 
     EXAMPLES::
 
-      sage: C = Rngs(); C
-      Category of rngs
-      sage: sorted(C.super_categories(), key=str)
-      [Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas,
-       Category of commutative additive groups]
+        sage: C = Rngs(); C
+        Category of rngs
+        sage: sorted(C.super_categories(), key=str)
+        [Category of associative additive commutative additive associative additive unital distributive magmas and additive magmas,
+         Category of commutative additive groups]
 
-      sage: sorted(C.axioms())
-      ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive']
+        sage: sorted(C.axioms())
+        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+         'AdditiveUnital', 'Associative', 'Distributive']
 
-      sage: C is (CommutativeAdditiveGroups() & Semigroups()).Distributive()
-      True
-      sage: C.Unital()
-      Category of rings
+        sage: C is (CommutativeAdditiveGroups() & Semigroups()).Distributive()
+        True
+        sage: C.Unital()
+        Category of rings
 
     TESTS::
 
@@ -46,3 +47,4 @@ class Rngs(CategoryWithAxiom):
     _base_category_class_and_axiom = (MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative.AdditiveUnital.Associative, "AdditiveInverse")
 
     Unital = LazyImport('sage.categories.rings', 'Rings', at_startup=True)
+

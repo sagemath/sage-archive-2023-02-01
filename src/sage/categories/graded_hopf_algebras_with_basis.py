@@ -15,14 +15,15 @@ from sage.misc.cachefunc import cached_method
 
 class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
     """
-    The category of graded Hopf algebras with a distinguished basis
+    The category of graded Hopf algebras with a distinguished basis.
 
     EXAMPLES::
 
         sage: C = GradedHopfAlgebrasWithBasis(ZZ); C
         Category of graded hopf algebras with basis over Integer Ring
         sage: C.super_categories()
-        [Category of hopf algebras with basis over Integer Ring, Category of graded algebras with basis over Integer Ring]
+        [Category of hopf algebras with basis over Integer Ring,
+         Category of graded algebras with basis over Integer Ring]
 
         sage: C is HopfAlgebras(ZZ).WithBasis().Graded()
         True
@@ -48,7 +49,8 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
             EXAMPLES::
 
                 sage: GradedHopfAlgebrasWithBasis(QQ).WithRealizations().super_categories()
-                [Join of Category of hopf algebras over Rational Field and Category of graded algebras over Rational Field]
+                [Join of Category of hopf algebras over Rational Field
+                     and Category of graded algebras over Rational Field]
 
             TESTS::
 
@@ -57,3 +59,4 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
             from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
             R = self.base_category().base_ring()
             return [GradedHopfAlgebras(R)]
+

@@ -136,9 +136,9 @@ class VectorSpaces(Category_module):
 
         def is_abelian(self):
             """
-            Returns whether this category is abelian.
+            Return whether this category is abelian.
 
-            This is always True since the base ring is a field.
+            This is always ``True`` since the base ring is a field.
 
             EXAMPLES::
 

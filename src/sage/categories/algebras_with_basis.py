@@ -19,7 +19,7 @@ from unital_algebras import UnitalAlgebras
 
 class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
-    The category of algebras with a distinguished basis
+    The category of algebras with a distinguished basis.
 
     EXAMPLES::
 
@@ -29,7 +29,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         [Category of algebras over Rational Field,
          Category of unital algebras with basis over Rational Field]
 
-    We construct a typical parent in this category, and do some computations with it::
+    We construct a typical parent in this category, and do some
+    computations with it::
 
         sage: A = C.example(); A
         An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
@@ -54,7 +55,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         B[word: acb]
 
         sage: A.product
-        <bound method FreeAlgebra_with_category._product_from_product_on_basis_multiply of An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field>
+        <bound method FreeAlgebra_with_category._product_from_product_on_basis_multiply of
+         An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field>
         sage: A.product(a*b,b)
         B[word: abb]
 
@@ -99,7 +101,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     def example(self, alphabet = ('a','b','c')):
         """
-        Returns an example of algebra with basis::
+        Return an example of algebra with basis.
+
+        EXAMPLES::
 
             sage: AlgebrasWithBasis(QQ).example()
             An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
@@ -314,7 +318,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: AlgebrasWithBasis(QQ).TensorProducts().extra_super_categories()
                 [Category of algebras with basis over Rational Field]
                 sage: AlgebrasWithBasis(QQ).TensorProducts().super_categories()
-                [Category of algebras with basis over Rational Field, Category of tensor products of algebras over Rational Field, Category of tensor products of modules with basis over Rational Field]
+                [Category of algebras with basis over Rational Field,
+                 Category of tensor products of algebras over Rational Field,
+                 Category of tensor products of modules with basis over Rational Field]
             """
             return [self.base_category()]
 

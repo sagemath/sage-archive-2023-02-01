@@ -14,11 +14,11 @@ from sage.categories.additive_monoids import AdditiveMonoids
 from sage.structure.sage_object import have_same_parent
 
 class AdditiveGroups(CategoryWithAxiom_singleton):
-    """
+    r"""
+    The category of additive groups.
 
-    The category of additive groups, i.e. sets with an internal binary
-    operation + which is associative, admits a zero, and where every
-    element can be negated.
+    An *additive group* is a set with an internal binary operation `+` which
+    is associative, admits a zero, and where every element can be negated.
 
     EXAMPLES::
 
@@ -27,9 +27,18 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         sage: AdditiveGroups()
         Category of additive groups
         sage: AdditiveGroups().super_categories()
-        [Category of additive inverse additive unital additive magmas, Category of additive monoids]
+        [Category of additive inverse additive unital additive magmas,
+         Category of additive monoids]
         sage: AdditiveGroups().all_super_categories()
-        [Category of additive groups, Category of additive inverse additive unital additive magmas, Category of additive monoids, Category of additive unital additive magmas, Category of additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
+        [Category of additive groups,
+         Category of additive inverse additive unital additive magmas,
+         Category of additive monoids,
+         Category of additive unital additive magmas,
+         Category of additive semigroups,
+         Category of additive magmas,
+         Category of sets,
+         Category of sets with partial maps,
+         Category of objects]
 
         sage: AdditiveGroups().axioms()
         frozenset(['AdditiveAssociative', 'AdditiveUnital', 'AdditiveInverse'])
@@ -49,8 +58,8 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         ##def -x, -(x,y):
         def __sub__(left, right):
             """
-            Top-level subtraction operator
-            See extensive documentation at the top of element.pyx.
+            Top-level subtraction operator.
+            See extensive documentation at the top of ``element.pyx``.
 
             EXAMPLES::
 
@@ -72,8 +81,8 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
         def __neg__(self):
             """
             Top-level negation operator for elements of abelian
-            monoids, which may choose to implement _neg_ rather than
-            __neg__ for consistancy.
+            monoids, which may choose to implement ``_neg_`` rather than
+            ``__neg__`` for consistancy.
 
             EXAMPLES::
 
@@ -83,3 +92,4 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
                 -B['b']
             """
             return self._neg_()
+

@@ -65,7 +65,9 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         Return the cartesian factors of ``self``.
 
-        .. SEE ALSO:: :meth:`Sets.CartesianProducts.ParentMethods.cartesian_factors()
+        .. SEEALSO::
+
+            :meth:`Sets.CartesianProducts.ParentMethods.cartesian_factors()
             <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods.cartesian_factors>`.
 
         EXAMPLES::
@@ -99,7 +101,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         INPUT:
 
-         - ``i`` -- the index of a cartesian factor of self
+        - ``i`` -- the index of a cartesian factor of ``self``
 
         EXAMPLES::
 
@@ -125,8 +127,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each cartesian
-           factor of ``self``
+        - ``elements`` -- a tuple with one element of each cartesian
+          factor of ``self``
 
         EXAMPLES::
 
@@ -155,7 +157,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
             INPUTS:
 
-             - ``i`` -- the index of a factor of the cartesian product
+            - ``i`` -- the index of a factor of the cartesian product
 
             EXAMPLES::
 
@@ -167,7 +169,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 42
 
                 sage: x.summand_projection(1)
-                doctest:1: DeprecationWarning: summand_projection is deprecated. Please use cartesian_projection instead.
+                doctest:...: DeprecationWarning: summand_projection is deprecated. Please use cartesian_projection instead.
                 See http://trac.sagemath.org/10963 for details.
                 42
             """

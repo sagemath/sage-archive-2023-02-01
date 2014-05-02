@@ -16,8 +16,11 @@ from sage.categories.additive_magmas import AdditiveMagmas
 
 class AdditiveSemigroups(CategoryWithAxiom_singleton):
     """
-    The category of additive semigroups,
-    i.e. sets endowed with an associative operation `+`.
+    The category of additive semigroups.
+
+    An *additive semigroup* is an associative :class:`additive magma
+    <AdditiveMagmas>`, that is a set endowed with an operation `+`
+    which is associative.
 
     EXAMPLES::
 
@@ -27,7 +30,11 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
         sage: C.super_categories()
         [Category of additive magmas]
         sage: C.all_super_categories()
-        [Category of additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
+        [Category of additive semigroups,
+         Category of additive magmas,
+         Category of sets,
+         Category of sets with partial maps,
+         Category of objects]
 
         sage: C.axioms()
         frozenset(['AdditiveAssociative'])
@@ -37,7 +44,6 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
     TESTS::
 
         sage: TestSuite(C).run()
-
     """
     _base_category_class_and_axiom = (AdditiveMagmas, "AdditiveAssociative")
 
@@ -52,7 +58,7 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
 
             INPUT:
 
-             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+            - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
             EXAMPLES:
 

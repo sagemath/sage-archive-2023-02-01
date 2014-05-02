@@ -1382,6 +1382,8 @@ class LPProblemStandardForm(LPProblem):
                              "maximization type")
         super(LPProblemStandardForm, self).__init__(A, b, c, x,
                                                     problem_type=problem_type,
+                                                    constraint_type="<=",
+                                                    variable_type=">=",
                                                     base_ring=base_ring)
         n, m = self.n(), self.m()
         if slack_variables is None:

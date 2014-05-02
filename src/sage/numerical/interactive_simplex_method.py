@@ -290,8 +290,10 @@ def _latex_product(coefficients, variables,
         if c == 0:
             entries.extend(["", ""])
             continue
-        sign = "-" if c < 0 else "+"
-        c = abs(c)
+        sign = "+"
+        if latex(c).strip().startswith("-"):
+            sign = "-"
+            c = - c
         t = latex(v) if c == 1 else latex(c) + " " + latex(v)
         entries.extend([sign, t])
     if drop_plus:   # Don't start with +

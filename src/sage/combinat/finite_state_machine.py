@@ -3167,7 +3167,7 @@ class FiniteStateMachine(SageObject):
             ....:     )
             sage: latex(T)
             \begin{tikzpicture}[auto, initial text=, >=latex, accepting text=, accepting/.style=accepting by arrow, accepting distance=10ex]
-            \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
+            \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
             \node[state] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
             \path[->] (v1.180.00) edge node[rotate=360.00, anchor=south] {$\$ \mid \varepsilon$} ++(180.00:10ex);
             \node[state] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
@@ -3177,11 +3177,16 @@ class FiniteStateMachine(SageObject):
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {$w_{0}\mid w_{0} w_{0}$} (v0.148.43);
             \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
+            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
             \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
             \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
+            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {$w_{0}\mid w_{0}$} ();
+            \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
             \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
             \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
             \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
+            \path[->] (v0) edge[loop below] node {$w_{0}\mid w_{0}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
 

@@ -5067,14 +5067,14 @@ class FiniteStateMachine(SageObject):
                 raise ValueError("A final function must be given.")
             return []
 
+        if final_function is None:
+            final_function = default_final_function
+
         result = self.empty_copy()
         if new_input_alphabet is not None:
             result.input_alphabet = new_input_alphabet
         else:
             result.input_alphabet = None
-
-        if final_function is None:
-            final_function = default_final_function
 
         for transition1 in self.transitions():
             for transition2 in other.transitions():
@@ -5106,8 +5106,8 @@ class FiniteStateMachine(SageObject):
     def composition(self, other, algorithm=None,
                     only_accessible_components=True):
         """
-        Returns a new transducer which is the composition of self and
-        other.
+        Returns a new transducer which is the composition of ``self``
+        and ``other``.
 
         INPUT:
 
@@ -5119,7 +5119,6 @@ class FiniteStateMachine(SageObject):
 
             There can be arbitrarily many initial and final states,
             but the input and output labels must have length 1.
-
 
             WARNING: The output of other is fed into self.
 
@@ -5287,7 +5286,6 @@ class FiniteStateMachine(SageObject):
              Transition from (1, 'A') to (2, 'B'): 0|0,
              Transition from (2, 'B') to (2, 'A'): 0|1,
              Transition from (2, 'A') to (2, 'B'): 1|0]
-
         """
         def function(transition1, transition2):
             if transition1.word_out == transition2.word_in:
@@ -5303,9 +5301,9 @@ class FiniteStateMachine(SageObject):
         for state_result in result.iter_states():
             state = state_result.label()[0]
             if state.is_final:
-                accept, state_to, output = \
-                    self.process(state.final_word_out,
-                            initial_state=self.state(state_result.label()[1]))
+                accept, state_to, output = self.process(
+                    state.final_word_out,
+                    initial_state=self.state(state_result.label()[1]))
                 if not accept:
                     state_result.is_final = False
                 else:
@@ -5509,7 +5507,8 @@ class FiniteStateMachine(SageObject):
                                 new_word_in, None))
 
         if what == 'output':
-            states = filter(lambda s: s.final_word_out, self.iter_final_states())
+            states = filter(lambda s: s.final_word_out,
+                            self.iter_final_states())
             if not states:
                 return new
             number = 0
@@ -5796,15 +5795,15 @@ class FiniteStateMachine(SageObject):
         """
         def find_common_output(state):
             if any(itertools.ifilter(
-                    lambda transition: len(transition.word_out) == 0,
-                    self.transitions(state))
-                   ) or state.final_word_out == []:
+                    lambda transition: not transition.word_out,
+                    self.transitions(state))) \
+                   or state.is_final and not state.final_word_out:
                 return tuple()
             first_letters = map(lambda transition: transition.word_out[0],
                                 self.transitions(state))
             if state.is_final:
                 first_letters = first_letters + [state.final_word_out[0]]
-            if len(first_letters) == 0:
+            if not first_letters:
                 return tuple()
             first_item = first_letters.pop()
             if all([item == first_item for item in first_letters]):
@@ -5816,7 +5815,7 @@ class FiniteStateMachine(SageObject):
         while changed > 0:
             changed = 0
             iteration += 1
-            for state in self.states():
+            for state in self.iter_states():
                 if state.is_initial:
                     continue
                 if state.word_out:
@@ -5850,7 +5849,6 @@ class FiniteStateMachine(SageObject):
                             "outbound transitions." %
                             (state, common_output[0]),
                             level=0)
-
 
 
     def equivalence_classes(self):
@@ -7726,7 +7724,7 @@ class Transducer(FiniteStateMachine):
                                                     transition2.word_out)))
             else:
                 raise LookupError
-        
+
         def final_function(s1, s2):
             return list(itertools.izip_longest(s1.final_word_out,
                                                s2.final_word_out))

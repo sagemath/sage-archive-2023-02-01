@@ -185,7 +185,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
         sage: designs.mutually_orthogonal_latin_squares(5,5)
         Traceback (most recent call last):
         ...
-        ValueError: There exist at most n-1 MOLS of size n.
+        EmptySetError: There exist at most n-1 MOLS of size n.
         sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
         False
     """
@@ -195,7 +195,8 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
     if k >= n:
         if availability:
             return False
-        raise ValueError("There exist at most n-1 MOLS of size n.")
+        from sage.categories.sets_cat import EmptySetError
+        raise EmptySetError("There exist at most n-1 MOLS of size n.")
 
     elif (orthogonal_array not in who_asked and
         orthogonal_array(k+2,n,availability=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,))):

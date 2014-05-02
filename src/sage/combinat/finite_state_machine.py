@@ -961,6 +961,7 @@ class FSMState(SageObject):
         """
         return self.label() < other.label()
 
+
     @property
     def final_word_out(self):
         """
@@ -998,8 +999,8 @@ class FSMState(SageObject):
             ValueError: Only final states can have a final
             output word, but state B is not final.
         """
-
         return self._final_word_out_
+
 
     @final_word_out.setter
     def final_word_out(self, final_word_out):
@@ -1027,12 +1028,13 @@ class FSMState(SageObject):
             sage: B.final_word_out == None
             True
         """
-        if not self.is_final and final_word_out is not None:
-            raise ValueError("Only final states can have a " \
-                             "final output word, but state %s is not final." \
-                             % (self.label()))
-        elif not self.is_final:
-            self._final_word_out_ = final_word_out
+        if not self.is_final:
+            if final_word_out is not None:
+                raise ValueError("Only final states can have a "
+                                 "final output word, but state %s is not final."
+                                 % (self.label()))
+            else:
+                self._final_word_out_ = None
         elif isinstance(final_word_out, list):
             self._final_word_out_ = final_word_out
         elif final_word_out is not None:
@@ -1066,6 +1068,7 @@ class FSMState(SageObject):
             False
         """
         return (self.final_word_out is not None)
+
 
     @is_final.setter
     def is_final(self, is_final):
@@ -1103,12 +1106,15 @@ class FSMState(SageObject):
         """
         if is_final and self.final_word_out is None:
             self._final_word_out_ = []
-        elif not is_final and not self.final_word_out:
-            self._final_word_out_ = None
         elif not is_final:
-            raise ValueError("State %s cannot be non-final, because it " \
-                             "has a final output word. Only final states " \
-                             "can have a final output word. "% self.label())
+            if not self.final_word_out:
+                self._final_word_out_ = None
+            else:
+                raise ValueError("State %s cannot be non-final, because it "
+                                 "has a final output word. Only final states "
+                                 "can have a final output word. "
+                                 % self.label())
+
 
     def label(self):
         """

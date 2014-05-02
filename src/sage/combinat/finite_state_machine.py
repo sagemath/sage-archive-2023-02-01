@@ -812,7 +812,7 @@ class FSMState(SageObject):
     ``None``::
 
         sage: B = FSMState('B')
-        sage: B.final_word_out == None
+        sage: B.final_word_out is None
         True
         sage: B.final_word_out = 2
         Traceback (most recent call last):
@@ -891,7 +891,7 @@ class FSMState(SageObject):
             sage: A.final_word_out
             []
             sage: A = FSMState('A', is_final=False)
-            sage: A.final_word_out == None
+            sage: A.final_word_out is None
             True
             sage: A.is_final = False
             sage: A = FSMState('A', is_final=False, final_word_out='end')
@@ -906,7 +906,7 @@ class FSMState(SageObject):
             ValueError: Only final states can have a final output word,
             but state A is not final.
             sage: A = FSMState('A', is_final=False, final_word_out=None)
-            sage: A.final_word_out == None
+            sage: A.final_word_out is None
             True
             sage: A = FSMState('A', is_final=False, final_word_out=[])
             Traceback (most recent call last):
@@ -988,7 +988,7 @@ class FSMState(SageObject):
             sage: A.final_word_out
             []
             sage: B = FSMState('B')
-            sage: B.final_word_out == None
+            sage: B.final_word_out is None
             True
 
         A non-final state cannot have a final output word::
@@ -1025,7 +1025,7 @@ class FSMState(SageObject):
             ValueError: Only final states can have a final
             output word, but state B is not final.
             sage: B.final_word_out = None
-            sage: B.final_word_out == None
+            sage: B.final_word_out is None
             True
         """
         if not self.is_final:
@@ -1091,7 +1091,7 @@ class FSMState(SageObject):
             sage: A.final_word_out
             []
             sage: A.is_final = False
-            sage: A.final_word_out == None
+            sage: A.final_word_out is None
             True
             sage: A = FSMState('A', is_final=True, final_word_out='a')
             sage: A.is_final = False
@@ -1102,7 +1102,7 @@ class FSMState(SageObject):
             word.
             sage: A = FSMState('A', is_final=True, final_word_out=[])
             sage: A.is_final = False
-            sage: A.final_word_out == None
+            sage: A.final_word_out is None
             True
         """
         if is_final and self.final_word_out is None:

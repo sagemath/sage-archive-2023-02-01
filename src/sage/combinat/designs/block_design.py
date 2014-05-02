@@ -144,7 +144,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def ProjectivePlaneDesign(n, type="Desarguesian", algorithm=None):
+def ProjectivePlaneDesign(n, existence=False, type="Desarguesian", algorithm=None):
     r"""
     Returns a projective plane of order `n`.
 
@@ -155,6 +155,15 @@ def ProjectivePlaneDesign(n, type="Desarguesian", algorithm=None):
     INPUT:
 
     - ``n`` -- the finite projective plane's order
+
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
 
     - ``type`` -- When set to ``"Desarguesian"``, the method returns
       Desarguesian projective planes, i.e. a finite projective plane obtained by
@@ -203,6 +212,10 @@ def ProjectivePlaneDesign(n, type="Desarguesian", algorithm=None):
         ValueError: The value of 'type' must be 'Desarguesian'.
         sage: designs.ProjectivePlaneDesign(2, algorithm="gap") # optional - gap_packages
         Incidence structure with 7 points and 7 blocks
+        sage: designs.ProjectivePlaneDesign(10,existence=True)
+        False
+        sage: designs.ProjectivePlaneDesign(12,existence=True)
+        Unknown
     """
     from sage.rings.arith import two_squares
 
@@ -213,14 +226,21 @@ def ProjectivePlaneDesign(n, type="Desarguesian", algorithm=None):
         F = FiniteField(n, 'x')
     except ValueError:
         if n == 10:
+            if existence:
+                return False
             raise ValueError("No projective plane design of order 10 exists.")
         try:
             if (n%4) in [1,2]:
                 two_squares(n)
         except ValueError:
+            if existence:
+                return False
             raise ValueError("By the Bruck-Ryser-Chowla theorem, no projective"
                              " plane of order "+str(n)+" exists.")
 
+        if existence:
+            from sage.misc.unknown import Unknown
+            return Unknown
         raise ValueError("If such a projective plane exists, "
                          "we do not know how to build it.")
 

@@ -39,7 +39,7 @@ AUTHORS:
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+- Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
 Functions and methods
@@ -48,8 +48,8 @@ Functions and methods
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
-#                     2014 Daniel Krenn <devel@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

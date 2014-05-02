@@ -539,20 +539,20 @@ AUTHORS:
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn, Clemens Heuberger and Sara Kropf are supported by the
+- Clemens Heuberger, Daniel Krenn and Sara Kropf are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
 """
-
 #*****************************************************************************
-#  Copyright (C) 2012, 2013 Daniel Krenn <math+sage@danielkrenn.at>
-#                2012, 2013 Clemens Heuberger <clemens.heuberger@aau.at>
-#                2012, 2013 Sara Kropf <sara.kropf@aau.at>
+# Copyright (C) 2012--2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#               2012--2014 Daniel Krenn <dev@danielkrenn.at>
+#               2012--2014 Sara Kropf <sara.kropf@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject

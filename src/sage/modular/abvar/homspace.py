@@ -761,8 +761,8 @@ class EndomorphismSubring(Homspace, Ring):
             'sage.categories.homset'
             sage: E.__reduce__()
             (<function Hom at ...>,
-             (Abelian variety J0(11) of dimension 2,
-              Abelian variety J0(11) of dimension 2,
+             (Abelian variety J0(11) of dimension 1,
+              Abelian variety J0(11) of dimension 1,
               Category of modular abelian varieties over Rational Field,
              False))
         """
@@ -787,13 +787,6 @@ class EndomorphismSubring(Homspace, Ring):
         else:
             self._gens = tuple([ self._get_matrix(g) for g in gens ])
         self._is_full_ring = gens is None
-
-    def __reduce__disabled(self):
-        """
-        Used in pickling.
-
-        """
-        return End, (self.domain(),self.domain().category())
 
     def _repr_(self):
         """

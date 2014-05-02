@@ -32,6 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 
+from sage.calculus.functions import jacobian
 from sage.categories.homset        import Hom
 from sage.misc.misc                import prod
 from sage.rings.all                import Integer, moebius
@@ -548,11 +549,44 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         return(H)
 
     def jacobian (self):
+        r"""
+        Returns the Jacobian matrix of partial derivitive of ``self`` in which the
+        ``(i,j)`` entry of the Jacobian matrix is the partial derivative ``diff(functions[i], variables[j]``.
+
+        OUTPUT:
+
+        - matrix with coordinates in the coordinate ring of ``self``
+
+        EXAMPLES::
+
+            sage: A.<z> = AffineSpace(QQ,1)
+            sage: H = End(A)
+            sage: f = H([z^2-3/4])
+            sage: f.jacobian()
+            [2*z]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: H = End(A)
+            sage: f = H([x^3 - 25*x + 12*y,5*y^2*x - 53*y + 24])
+            sage: f.jacobian()
+            [ 3*x^2 - 25          12]
+            [      5*y^2 10*x*y - 53]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: H = End(A)
+            sage: f = H([(x^2 - x*y)/(1+y),(5+y)/(2+x)])
+            sage: f.jacobian()
+            [         (2*x - y)/(y + 1) (-x^2 - x)/(y^2 + 2*y + 1)]
+            [  (-y - 5)/(x^2 + 4*x + 4)                  1/(x + 2)]
+        """
         try:
             return self.__jacobian
         except AttributeError:
             pass
-        from sage.calculus.functions import jacobian
         self.__jacobian = jacobian(list(self),self.domain().gens())
         return self.__jacobian
 

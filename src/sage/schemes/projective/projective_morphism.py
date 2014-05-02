@@ -1768,8 +1768,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2-29/16*y^2,y^2])
             sage: f._multipliermod(P(5,4),3,11,2)
             [80]
-
-        .. TODO:: would be better to keep the dehomogenizations for reuse
         """
         N = self.domain().dimension_relative()
         BR = FractionField(self.codomain().base_ring())
@@ -1793,19 +1791,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] % p == 0:
                 index -= 1
             indexlist.append(index)
-            S = PolynomialRing(BR, N, 'x')
-            CR = self.coordinate_ring()
-            map_vars = list(S.gens())
-            map_vars.insert(indexlist[i], 1)
-            phi = CR.hom(map_vars, S)
-            for j in range(N + 1):
-                if j != indexlist[i + 1]:
-                    F.append(phi(self._polys[j]) / phi(self._polys[indexlist[i + 1]]))
-            J = matrix(FractionField(S), N, N)
-            for j1 in range(0, N):
-                for j2 in range(0, N):
-                    J[j1, j2] = F[j1].derivative(S.gen(j2))
-            l = (J(tuple(Q.dehomogenize(indexlist[i]))) * l) % (p ** k)
+            F = self.dehomogenize((indexlist[i],indexlist[i+1]))
+            l = (F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l) % (p ** k)
             Q = R
         return(l)
 

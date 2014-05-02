@@ -53,9 +53,12 @@ Implemented constructions :
 
 The functions defined here are used by
 :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`. Thus, the
-functions are indexed by a dictionary which associates to every integer ``n`` a
+functions are indexed by dictionary which associates to every integer ``n`` a
 pair ``(k,f)`` where ``f`` is a function such that ``f()`` is a `OA(k,n)`. This
-dictionary is defined in this module at the end of the file.
+dictionary is defined right after the constructions of OA in the file.
+
+The same goes for the constructions of MOLS, used by
+:func:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`.
 
 REFERENCES:
 
@@ -74,6 +77,29 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
+
+def _MOLS_from_string(s,k):
+    r"""
+    Returns MOLS from a string
+
+    INPUT:
+
+    - ``s`` (string) -- represents the MOLS with entries in 0-z. To understand
+      how the string should be formatted, read the source code of a constructor
+      that uses it.
+
+    - ``k`` (integer) -- the number of MOLS encoded by the string.
+
+    EXAMPLES::
+
+        sage: _ = designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
+    """
+    from sage.matrix.constructor import Matrix
+    matrices = [[] for _ in range(k)]
+    for i,l in enumerate(s.split()):
+        l = [ord(x) - 97 for x in l]
+        matrices[i%k].append(l)
+    return map(Matrix, matrices)
 
 def MOLS_10_2():
     r"""
@@ -120,6 +146,295 @@ def MOLS_10_2():
                     [3,4,5,6,7,1,2,8,0,9],
                     [5,6,7,1,2,3,4,0,9,8],
                     [7,1,2,3,4,5,6,9,8,0]])]
+
+def MOLS_14_4():
+    r"""
+    Returns four MOLS of order 14
+
+    These MOLS were shared by Ian Wanless.
+
+    EXAMPLES::
+
+        sage: designs.mutually_orthogonal_latin_squares(14,4)
+        [
+        [ 1  9  8  7  6 10  4  2  0 11 13  5 12  3]
+        [ 5  2 10  9  1  7 11  4  3  8 12  0  6 13]
+        [12  6  3 11 10  2  1  0  5  4  9 13  8  7]
+        [ 2 13  7  4 12 11  3  1  8  6  5 10  0  9]
+        [ 4  3  0  1  5 13 12 10  2  9  7  6 11  8]
+        [13  5  4  8  2  6  0  9 11  3 10  1  7 12]
+        [ 8  0  6  5  9  3  7 13 10 12  4 11  2  1]
+        [ 3 11 13 10  4  0  5  8 12  7  2  9  1  6]
+        [ 6  4 12  0 11  5  8  7  9 13  1  3 10  2]
+        [ 9  7  5 13  8 12  6  3  1 10  0  2  4 11]
+        [ 7 10  1  6  0  9 13 12  4  2 11  8  3  5]
+        [ 0  1 11  2  7  8 10  6 13  5  3 12  9  4]
+        [11  8  2 12  3  1  9  5  7  0  6  4 13 10]
+        [10 12  9  3 13  4  2 11  6  1  8  7  5  0],
+        <BLANKLINE>
+        [ 1  5 12  2  4 13  8  3  6  9  7  0 11 10]
+        [ 9  2  6 13  3  5  0 11  4  7 10  1  8 12]
+        [ 8 10  3  7  0  4  6 13 12  5  1 11  2  9]
+        [ 7  9 11  4  1  8  5 10  0 13  6  2 12  3]
+        [ 6  1 10 12  5  2  9  4 11  8  0  7  3 13]
+        [10  7  2 11 13  6  3  0  5 12  9  8  1  4]
+        [ 4 11  1  3 12  0  7  5  8  6 13 10  9  2]
+        [ 2  4  0  1 10  9 13  8  7  3 12  6  5 11]
+        [ 0  3  5  8  2 11 10 12  9  1  4 13  7  6]
+        [11  8  4  6  9  3 12  7 13 10  2  5  0  1]
+        [13 12  9  5  7 10  4  2  1  0 11  3  6  8]
+        [ 5  0 13 10  6  1 11  9  3  2  8 12  4  7]
+        [12  6  8  0 11  7  2  1 10  4  3  9 13  5]
+        [ 3 13  7  9  8 12  1  6  2 11  5  4 10  0],
+        <BLANKLINE>
+        [ 1  2  3  4  5  6  7  8  9 10 11 12 13  0]
+        [ 6 13 10  9  3 12  8  2 11  1  7  0  4  5]
+        [11  8  5  7  1  9  4 12 10  0 13  6  2  3]
+        [ 3  0 11 12  6 13  1  9  4  7  2  5  8 10]
+        [13  9  2  0  4  8  5  7  1  3  6 10 12 11]
+        [12  5  1 10  2  3 11  0  6 13  9  8  7  4]
+        [ 0  4 12 13  7 10  9  3  2  8  5  1 11  6]
+        [ 7  3 13  8 10  1  0  6 12  2  4 11  5  9]
+        [ 2  6  9  5 11  7 13  1  8  4 10  3  0 12]
+        [ 5 10  8  1 12  0  6  4 13 11  3  7  9  2]
+        [ 8 12  7 11 13  4  2 10  3  5  0  9  6  1]
+        [10 11  4  6  0  5  3 13  7  9 12  2  1  8]
+        [ 9  7  0  3  8  2 12 11  5  6  1  4 10 13]
+        [ 4  1  6  2  9 11 10  5  0 12  8 13  3  7],
+        <BLANKLINE>
+        [ 1  2  3  4  5  6  7  8  9 10 11 12 13  0]
+        [ 9  5 11  7 13 10  0  4  2 12  6  3  8  1]
+        [ 4 12 10  3  9  1  6  5 13 11  8  0  7  2]
+        [ 0 13  8  6  7 12  5 11 10  1  3  2  4  9]
+        [10  4  1  2  0  9  8 12  3  6  5  7 11 13]
+        [ 2  6 13  5 11  4 12  1  8  7  0 10  9  3]
+        [ 8 11  0  1 10  3 13  7  5  2  9  4  6 12]
+        [11  9  6 13  8  7  4  2  1  0 12  5  3 10]
+        [13  3 12  0  1  2  9  6 11  5  4  8 10  7]
+        [12  1  7  8  4  5 11  9  0  3 10 13  2  6]
+        [ 3  8  5  9  2 13 10  0 12  4  7  6  1 11]
+        [ 6  7  2 10 12 11  1  3  4  8 13  9  0  5]
+        [ 5  0  9 11  6  8  3 10  7 13  2  1 12  4]
+        [ 7 10  4 12  3  0  2 13  6  9  1 11  5  8]
+        ]
+    """
+    M = """
+        bjihgkecalnfmd  bfmcenidgjhalk  bcdefghijklmna  bcdefghijklmna
+        fckjbhledimagn  jcgndfalehkbim  gnkjdmiclbhaef  jflhnkaecmgdib
+        mgdlkcbafejnih  ikdhaegnmfblcj  lifhbjemkangcd  emkdjbgfnliahc
+        cnhemldbigfkaj  hjlebifkangcmd  dalmgnbjehcfik  anighmflkbdcej
+        edabfnmkcjhgli  gbkmfcjeliahdn  njcaeifhbdgkml  kebcajimdgfhln
+        nfeicgajldkbhm  khclngdafmjibe  mfbkcdlagnjihe  cgnflembihakjd
+        iagfjdhnkmelcb  elbdmahfignkjc  aemnhkjdcifblg  ilabkdnhfcjegm
+        dlnkeafimhcjbg  ceabkjnihdmgfl  hdnikbagmcelfj  ljgnihecbamfdk
+        gemalfihjnbdkc  adficlkmjbenhg  cgjflhnbiekdam  ndmabcjglfeikh
+        jhfnimgdbkacel  liegjdmhnkcfab  fkibmagenldhjc  mbhiefljadkncg
+        hkbgajnmeclidf  nmjfhkecbaldgi  imhlneckdfajgb  difjcnkamehgbl
+        ablchikgnfdmje  fankgbljdcimeh  klegafdnhjmcbi  ghckmlbdeinjaf
+        licmdbjfhagenk  mgialhcbkedjnf  jhadicmlfgbekn  fajlgidkhncbme
+        kmjdneclgbihfa  dnhjimbgclfeka  ebgcjlkfamindh  hkemdacngjblfi
+        """
+
+    return _MOLS_from_string(M,4)
+
+def MOLS_15_4():
+    r"""
+    Returns 4 MOLS of order 15.
+
+    These MOLS were shared by Ian Wanless.
+
+    EXAMPLES::
+
+        sage: designs.mutually_orthogonal_latin_squares(15,4)
+        [
+        [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14  0]
+        [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14]
+        [14  0  1  2  3  4  5  6  7  8  9 10 11 12 13]
+        [13 14  0  1  2  3  4  5  6  7  8  9 10 11 12]
+        [12 13 14  0  1  2  3  4  5  6  7  8  9 10 11]
+        [11 12 13 14  0  1  2  3  4  5  6  7  8  9 10]
+        [10 11 12 13 14  0  1  2  3  4  5  6  7  8  9]
+        [ 9 10 11 12 13 14  0  1  2  3  4  5  6  7  8]
+        [ 8  9 10 11 12 13 14  0  1  2  3  4  5  6  7]
+        [ 7  8  9 10 11 12 13 14  0  1  2  3  4  5  6]
+        [ 6  7  8  9 10 11 12 13 14  0  1  2  3  4  5]
+        [ 5  6  7  8  9 10 11 12 13 14  0  1  2  3  4]
+        [ 4  5  6  7  8  9 10 11 12 13 14  0  1  2  3]
+        [ 3  4  5  6  7  8  9 10 11 12 13 14  0  1  2]
+        [ 2  3  4  5  6  7  8  9 10 11 12 13 14  0  1],
+        <BLANKLINE>
+        [ 1  3  6  8 10 13  5  2  0 12  4  7  9 11 14]
+        [ 0  2  4  7  9 11 14  6  3  1 13  5  8 10 12]
+        [13  1  3  5  8 10 12  0  7  4  2 14  6  9 11]
+        [12 14  2  4  6  9 11 13  1  8  5  3  0  7 10]
+        [11 13  0  3  5  7 10 12 14  2  9  6  4  1  8]
+        [ 9 12 14  1  4  6  8 11 13  0  3 10  7  5  2]
+        [ 3 10 13  0  2  5  7  9 12 14  1  4 11  8  6]
+        [ 7  4 11 14  1  3  6  8 10 13  0  2  5 12  9]
+        [10  8  5 12  0  2  4  7  9 11 14  1  3  6 13]
+        [14 11  9  6 13  1  3  5  8 10 12  0  2  4  7]
+        [ 8  0 12 10  7 14  2  4  6  9 11 13  1  3  5]
+        [ 6  9  1 13 11  8  0  3  5  7 10 12 14  2  4]
+        [ 5  7 10  2 14 12  9  1  4  6  8 11 13  0  3]
+        [ 4  6  8 11  3  0 13 10  2  5  7  9 12 14  1]
+        [ 2  5  7  9 12  4  1 14 11  3  6  8 10 13  0],
+        <BLANKLINE>
+        [ 1  7  4  0 11  8 14  5 12  3  9  6  2 13 10]
+        [11  2  8  5  1 12  9  0  6 13  4 10  7  3 14]
+        [ 0 12  3  9  6  2 13 10  1  7 14  5 11  8  4]
+        [ 5  1 13  4 10  7  3 14 11  2  8  0  6 12  9]
+        [10  6  2 14  5 11  8  4  0 12  3  9  1  7 13]
+        [14 11  7  3  0  6 12  9  5  1 13  4 10  2  8]
+        [ 9  0 12  8  4  1  7 13 10  6  2 14  5 11  3]
+        [ 4 10  1 13  9  5  2  8 14 11  7  3  0  6 12]
+        [13  5 11  2 14 10  6  3  9  0 12  8  4  1  7]
+        [ 8 14  6 12  3  0 11  7  4 10  1 13  9  5  2]
+        [ 3  9  0  7 13  4  1 12  8  5 11  2 14 10  6]
+        [ 7  4 10  1  8 14  5  2 13  9  6 12  3  0 11]
+        [12  8  5 11  2  9  0  6  3 14 10  7 13  4  1]
+        [ 2 13  9  6 12  3 10  1  7  4  0 11  8 14  5]
+        [ 6  3 14 10  7 13  4 11  2  8  5  1 12  9  0],
+        <BLANKLINE>
+        [ 1 11  7  2 12  3  8 13  4  9 14  5  0 10  6]
+        [ 7  2 12  8  3 13  4  9 14  5 10  0  6  1 11]
+        [12  8  3 13  9  4 14  5 10  0  6 11  1  7  2]
+        [ 3 13  9  4 14 10  5  0  6 11  1  7 12  2  8]
+        [ 9  4 14 10  5  0 11  6  1  7 12  2  8 13  3]
+        [ 4 10  5  0 11  6  1 12  7  2  8 13  3  9 14]
+        [ 0  5 11  6  1 12  7  2 13  8  3  9 14  4 10]
+        [11  1  6 12  7  2 13  8  3 14  9  4 10  0  5]
+        [ 6 12  2  7 13  8  3 14  9  4  0 10  5 11  1]
+        [ 2  7 13  3  8 14  9  4  0 10  5  1 11  6 12]
+        [13  3  8 14  4  9  0 10  5  1 11  6  2 12  7]
+        [ 8 14  4  9  0  5 10  1 11  6  2 12  7  3 13]
+        [14  9  0  5 10  1  6 11  2 12  7  3 13  8  4]
+        [ 5  0 10  1  6 11  2  7 12  3 13  8  4 14  9]
+        [10  6  1 11  2  7 12  3  8 13  4 14  9  5  0]
+        ]
+    """
+    M = """
+        bcdefghijklmnoa  bdgiknfcamehjlo  bhealiofmdjgcnk  blhcmdinejofakg
+        abcdefghijklmno  acehjlogdbnfikm  lcifbmjagnekhdo  hcmidnejofkagbl
+        oabcdefghijklmn  nbdfikmahecogjl  amdjgcnkbhoflie  midnjeofkaglbhc
+        noabcdefghijklm  mocegjlnbifdahk  fbnekhdolciagmj  dnjeokfaglbhmci
+        mnoabcdefghijkl  lnadfhkmocjgebi  kgcoflieamdjbhn  jeokfalgbhmcind
+        lmnoabcdefghijk  jmobegilnadkhfc  olhdagmjfbnekci  ekfalgbmhcindjo
+        klmnoabcdefghij  dknacfhjmobelig  jamiebhnkgcofld  aflgbmhcnidjoek
+        jklmnoabcdefghi  helobdgiknacfmj  ekbnjfciolhdagm  lbgmhcnidojekaf
+        ijklmnoabcdefgh  kifmacehjlobdgn  nflcokgdjamiebh  gmchnidojeakflb
+        hijklmnoabcdefg  oljgnbdfikmaceh  iogmdalhekbnjfc  chndiojeakfblgm
+        ghijklmnoabcdef  iamkhocegjlnbdf  djahnebmiflcokg  ndioejakfblgcmh
+        fghijklmnoabcde  gjbnliadfhkmoce  hekbiofcnjgmdal  ioejafkblgcmhdn
+        efghijklmnoabcd  fhkcomjbegilnad  miflcjagdokhneb  ojafkbglcmhdnie
+        defghijklmnoabc  egildankcfhjmob  cnjgmdkbhealiof  fakbglchmdnieoj
+        cdefghijklmnoab  cfhjmeboldgikna  gdokhnelcifbmja  kgblchmdineojfa
+        """
+
+    return _MOLS_from_string(M,4)
+
+def MOLS_18_3():
+    r"""
+    Returns 3 MOLS of order 18.
+
+    These MOLS were shared by Ian Wanless.
+
+    EXAMPLES::
+
+        sage: designs.mutually_orthogonal_latin_squares(18,3)
+        [
+        [ 1  6  4  9  7 10 12 14  3  2 13  0 17  8 11 15  5 16]
+        [ 4  2  7  5  1  8 11 13 15 17  3 14 10  0  9 12 16  6]
+        [16  5  3  8  6  2  9 12 14  7  0  4 15 11 10  1 13 17]
+        [15 17  6  4  9  7  3  1 13  0  8 10  5 16 12 11  2 14]
+        [14 16  0  7  5  1  8  4  2 15 10  9 11  6 17 13 12  3]
+        [ 3 15 17 10  8  6  2  9  5  4 16 11  1 12  7  0 14 13]
+        [ 6  4 16  0 11  9  7  3  1 14  5 17 12  2 13  8 10 15]
+        [ 2  7  5 17 10 12  1  8  4 16 15  6  0 13  3 14  9 11]
+        [ 5  3  8  6  0 11 13  2  9 12 17 16  7 10 14  4 15  1]
+        [11 13  1 16  2 14  6 15  0 10 12  7  3 17  8  5  4  9]
+        [10 12 14  2 17  3 15  7 16  1 11 13  8  4  0  9  6  5]
+        [17 11 13 15  3  0  4 16  8  6  2 12 14  9  5 10  1  7]
+        [ 9  0 12 14 16  4 10  5 17  8  7  3 13 15  1  6 11  2]
+        [ 0  1 10 13 15 17  5 11  6  3  9  8  4 14 16  2  7 12]
+        [ 7 10  2 11 14 16  0  6 12 13  4  1  9  5 15 17  3  8]
+        [13  8 11  3 12 15 17 10  7  9 14  5  2  1  6 16  0  4]
+        [ 8 14  9 12  4 13 16  0 11  5  1 15  6  3  2  7 17 10]
+        [12  9 15  1 13  5 14 17 10 11  6  2 16  7  4  3  8  0],
+        <BLANKLINE>
+        [ 1  4 16 15 14  3  6  2  5 11 10 17  9  0  7 13  8 12]
+        [ 6  2  5 17 16 15  4  7  3 13 12 11  0  1 10  8 14  9]
+        [ 4  7  3  6  0 17 16  5  8  1 14 13 12 10  2 11  9 15]
+        [ 9  5  8  4  7 10  0 17  6 16  2 15 14 13 11  3 12  1]
+        [ 7  1  6  9  5  8 11 10  0  2 17  3 16 15 14 12  4 13]
+        [10  8  2  7  1  6  9 12 11 14  3  0  4 17 16 15 13  5]
+        [12 11  9  3  8  2  7  1 13  6 15  4 10  5  0 17 16 14]
+        [14 13 12  1  4  9  3  8  2 15  7 16  5 11  6 10  0 17]
+        [ 3 15 14 13  2  5  1  4  9  0 16  8 17  6 12  7 11 10]
+        [ 2 17  7  0 15  4 14 16 12 10  1  6  8  3 13  9  5 11]
+        [13  3  0  8 10 16  5 15 17 12 11  2  7  9  4 14  1  6]
+        [ 0 14  4 10  9 11 17  6 16  7 13 12  3  8  1  5 15  2]
+        [17 10 15  5 11  1 12  0  7  3  8 14 13  4  9  2  6 16]
+        [ 8  0 11 16  6 12  2 13 10 17  4  9 15 14  5  1  3  7]
+        [11  9 10 12 17  7 13  3 14  8  0  5  1 16 15  6  2  4]
+        [15 12  1 11 13  0  8 14  4  5  9 10  6  2 17 16  7  3]
+        [ 5 16 13  2 12 14 10  9 15  4  6  1 11  7  3  0 17  8]
+        [16  6 17 14  3 13 15 11  1  9  5  7  2 12  8  4 10  0],
+        <BLANKLINE>
+        [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17  0]
+        [17  1 10  0 12  5  6  3  4  7 16  9  8 13 14 15  2 11]
+        [12 11  1 16  7  8  5  6  0  9  3  2 17  4 13 14 15 10]
+        [ 7  8  9  1  2  3  4  5  6 16 17  0 10 11 12 13 14 15]
+        [ 6  3  4 17  1 10  0 12  5 15  2 11  7 16  9  8 13 14]
+        [ 5  6  0 12 11  1 16  7  8 14 15 10  9  3  2 17  4 13]
+        [ 4  5  6  7  8  9  1  2  3 13 14 15 16 17  0 10 11 12]
+        [ 0 12  5  6  3  4 17  1 10  8 13 14 15  2 11  7 16  9]
+        [16  7  8  5  6  0 12 11  1 17  4 13 14 15 10  9  3  2]
+        [11  4 16  9 15 14 13  0  2  1 10  8  3  5  6 12  7 17]
+        [10  9 12  2 17 15 14 13  7 11  1 16  4  0  5  6  8  3]
+        [ 3 16 17  8 10 11 15 14 13  0  9  1  2 12  7  5  6  4]
+        [13  0  2 11  4 16  9 15 14 12  7 17  1 10  8  3  5  6]
+        [14 13  7 10  9 12  2 17 15  6  8  3 11  1 16  4  0  5]
+        [15 14 13  3 16 17  8 10 11  5  6  4  0  9  1  2 12  7]
+        [ 9 15 14 13  0  2 11  4 16  3  5  6 12  7 17  1 10  8]
+        [ 2 17 15 14 13  7 10  9 12  4  0  5  6  8  3 11  1 16]
+        [ 8 10 11 15 14 13  3 16 17  2 12  7  5  6  4  0  9  1]
+        ]
+    """
+    M = """
+        bgejhkmodcnarilpfq  beqpodgcflkrjahnim  bcdefghijklmnopqra
+        echfbilnprdokajmqg  gcfrqpehdnmlabkioj  rbkamfgdehqjinopcl
+        qfdigcjmohaeplkbnr  ehdgarqfibonmkcljp  mlbqhifgajdcrenopk
+        prgejhdbnaikfqmlco  jfiehkargqcponldmb  hijbcdefgqraklmnop
+        oqahfbiecpkjlgrnmd  hbgjfilkacrdqpomen  gderbkamfpclhqjino
+        dprkigcjfeqlbmhaon  kichbgjmlodaerqpnf  fgamlbqhiopkjdcren
+        geqaljhdbofrmcnikp  mljdichbngpekfarqo  efghijbcdnopqraklm
+        chfrkmbieqpgandojl  onmbejdicphqflgkar  amfgderbkinopclhqj
+        fdigalncjmrqhkoepb  dponcfbejaqirgmhlk  qhifgamlbrenopkjdc
+        lnbqcogpakmhdrifej  crhapeoqmkbgidnjfl  leqjponacbkidfgmhr
+        kmocrdphqblnieajgf  ndaikqfprmlchjeobg  kjmcrponhlbqeafgid
+        rlnpdaeqigcmojfkbh  aoekjlrgqhnmdibfpc  dqriklponajbcmhfge
+        jamoqekfrihdnpbglc  rkpflbmahdionejcgq  nacleqjpomhrbkidfg
+        abknprflgdjieoqchm  ialqgmcnkrejpofbdh  onhkjmcrpgidlbqeaf
+        hkcloqagmnebjfprdi  ljkmrhndoiafbqpgce  pondqriklfgeajbcmh
+        nildmprkhjofcbgqae  pmblnaioefjkgcrqhd  jponacleqdfgmhrbki
+        iojmenqalfbpgdchrk  fqncmokjpegblhdari  crponhkjmeafgidlbq
+        mjpbnforklgcqhedia  qgrodnplbjfhcmieka  iklpondqrcmhfgeajb
+        """
+
+    return _MOLS_from_string(M,3)
+
+# Index of the MOLS constructions
+#
+# Associates to n the pair (k,f) where f() is a function that returns k MOLS of order n
+#
+# This dictionary is used by designs.mutually_orthogonal_latin_squares(n,k).
+
+MOLS_constructions = {
+    10 : (2, MOLS_10_2),
+    14 : (4, MOLS_14_4),
+    15 : (4, MOLS_15_4),
+    18 : (3, MOLS_18_3)
+}
 
 def OA_6_20():
     r"""

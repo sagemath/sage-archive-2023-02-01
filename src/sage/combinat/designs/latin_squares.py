@@ -256,6 +256,8 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
+    from sage.rings.arith import factor
+    from database import MOLS_constructions
 
     # Is k is None we find the largest available
     if k is None:
@@ -274,6 +276,13 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
         from database import MOLS_10_2
         matrices = MOLS_10_2()
+
+    elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
+        if availability:
+            return True
+        _, construction = MOLS_constructions[n]
+
+        matrices = construction()[:k]
 
     elif (orthogonal_array not in who_asked and
         orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):

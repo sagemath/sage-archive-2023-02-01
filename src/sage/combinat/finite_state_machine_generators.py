@@ -35,6 +35,9 @@ AUTHORS:
 - Clemens Heuberger (2014-04-07): initial version
 - Sara Kropf (2014-04-10): some changes in TransducerGenerator
 - Daniel Krenn (2014-04-15): improved common docstring during review
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16 -- 2014-05-02):
+  A couple of improvements. Details see
+  #16141, #16142, #16143, #16186.
 - Sara Kropf (2014-04-29): weight transducer
 
 ACKNOWLEDGEMENT:

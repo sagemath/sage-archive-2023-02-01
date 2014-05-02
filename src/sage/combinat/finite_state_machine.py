@@ -531,11 +531,19 @@ AUTHORS:
 - Daniel Krenn (2013-11-04): next release candidate for Sage patch
 - Sara Kropf (2013-11-08): fix for adjacency matrix
 - Clemens Heuberger (2013-11-11): fix for prepone_output
-- Daniel Krenn (2013-11-11): comments from trac 15078 included:
+- Daniel Krenn (2013-11-11): comments from trac #15078 included:
     docstring of FiniteStateMachine rewritten, Automaton and Transducer
     inherited from FiniteStateMachine
 - Daniel Krenn (2013-11-25): documentation improved according to
-    comments from trac 15078
+    comments from trac #15078
+- Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-02-21 -- 2014-05-02):
+  A huge bunch of improvements. Details see
+  #15841, #15847, #15848, #15849, #15850, #15922, #15923, #15924,
+  #15925, #15928, #15960, #15961, #15962, #15963, #15975, #16024,
+  #16061, #16095, #16106, #16128, #16132, #16133, #16138, #16139,
+  #16140, #16141, #16142, #16143, #16144, #16145, #16146, #16186,
+  #16191, #16200, #16205, #16206, #16207, #16229, #16253, #16254,
+  #16255, #16266.
 
 ACKNOWLEDGEMENT:
 

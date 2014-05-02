@@ -300,7 +300,7 @@ def Hom(X, Y, category=None, check=True):
 
     Those checks are done with the natural idiom ``X in category``,
     and not ``X.category().is_subcategory(category)`` as it used to be
-    before :trac:???:` (see :trac:`15801` for a real use case)::
+    before :trac:16275:` (see :trac:`15801` for a real use case)::
 
         sage: class PermissiveCategory(Category):
         ....:     def super_categories(self): return [Objects()]
@@ -574,7 +574,7 @@ class Homset(Set_generic):
             Beside speed considerations, this is the main rationale
             for disabling checks upon unpickling.
 
-            .. SEEALSO:: :trac:`14793`, :trac:`???`
+            .. SEEALSO:: :trac:`14793`, :trac:`16275`
 
         EXAMPLES::
 

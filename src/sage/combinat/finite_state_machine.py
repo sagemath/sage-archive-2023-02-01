@@ -3116,7 +3116,7 @@ class FiniteStateMachine(SageObject):
                 if source != target:
                     angle = atan2(
                         target.coordinates[1] - source.coordinates[1],
-                        target.coordinates[0] - source.coordinates[0])*180/pi
+                        target.coordinates[0] - source.coordinates[0]) * 180/pi
                     both_directions = len(adjacent[target, source]) > 0
                     if both_directions:
                         angle_source = ".%.2f" % ((angle + 5).n(),)

@@ -329,6 +329,22 @@ def Hom(X, Y, category=None, check=True):
         sage: H = Hom(S, S, Sets(),                check=False)
         sage: H = Hom(S, S, Groups(),              check=False)
         sage: H = Hom(S, S, SimplicialComplexes(), check=False)
+
+    Typical example where unpickling involves calling Hom on an
+    unitialized parent::
+
+        sage: P.<x,y> = QQ['x,y']
+        sage: Q = P.quotient([x^2-1,y^2-1])
+        sage: q = Q.an_element()
+        sage: explain_pickle(dumps(Q))
+        pg_...
+        ... = pg_dynamic_class('QuotientRing_generic_with_category', (pg_QuotientRing_generic, pg_getattr(..., 'parent_class')), None, None, pg_QuotientRing_generic)
+        si... = unpickle_newobj(..., ())
+        ...
+        si... = pg_unpickle_MPolynomialRing_libsingular(..., ('x', 'y'), ...)
+        si... = ... pg_Hom(si..., si..., ...) ...
+        sage: Q == loads(dumps(Q))
+        True
     """
     # This should use cache_function instead
     # However some special handling is currently needed for

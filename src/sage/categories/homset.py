@@ -536,6 +536,22 @@ class Homset(Set_generic):
             Univariate Polynomial Ring in t over Integer Ring
             sage: f.domain() is f.parent().domain()
             True
+
+        Test that ``base_ring`` is initialized properly::
+
+            sage: R = QQ['x']
+            sage: Hom(R, R).base_ring()
+            Rational Field
+            sage: Hom(R, R, category=Sets()).base_ring()
+            sage: Hom(R, R, category=Modules(QQ)).base_ring()
+            Rational Field
+            sage: Hom(QQ^3, QQ^3, category=Modules(QQ)).base_ring()
+            Rational Field
+
+        For whatever it's worth, the ``base`` arguments takes precedence::
+
+            sage: MyHomset(ZZ^3, ZZ^3, base = QQ).base_ring()
+            Rational Field
         """
         self._domain = X
         self._codomain = Y
@@ -549,6 +565,14 @@ class Homset(Set_generic):
             #    raise TypeError, "X (=%s) must be in category (=%s)"%(X, category)
             #if not Y in category:
             #    raise TypeError, "Y (=%s) must be in category (=%s)"%(Y, category)
+
+        if base is None and hasattr(category, "WithBasis"):
+            # The above is a lame but fast check that category is a
+            # subcategory of Modules(...). That will do until
+            # CategoryObject.base_ring will be gone and not prevent
+            # anymore from putting one in Modules.HomCategory.ParentMethods.
+            # See also #15801.
+            base = X.base_ring()
 
         Parent.__init__(self, base = base, category = category.hom_category())
 

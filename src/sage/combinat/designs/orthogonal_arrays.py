@@ -58,7 +58,8 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
     - ``who_asked`` (internal use only) -- because of the equivalence between
       OA/TD/MOLS, each of the three constructors calls the others. We must keep
       track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one.
+      the tuple of the other functions that were called before this one on the
+      same input `k,n`.
 
     .. NOTE::
 
@@ -83,31 +84,42 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
          [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
          [4, 8, 12, 16, 20]]
 
-    Some examples of the maximal number of transversal Sage is able to build::
+    Some examples of the maximal number of transversals Sage is able to build
+    (we test all integers that are not prime powers up to `n=20`)::
 
-        sage: TD_3_10 = designs.transversal_design(3,10)
-        sage: designs.transversal_design(4,10,availability=True)
+        sage: TD_3_6 = designs.transversal_design(3, 6)
+        sage: designs.transversal_design(4, 6, availability=True)
         Unknown
 
-        sage: TD_6_12 = designs.transversal_design(6,12)
-        sage: designs.transversal_design(7,12,availability=True)
+        sage: TD_3_10 = designs.transversal_design(3, 10)
+        sage: designs.transversal_design(4, 10, availability=True)
+        Unknown
+
+        sage: TD_6_12 = designs.transversal_design(6, 12)
+        sage: designs.transversal_design(7, 12, availability=True)
         Unknown
 
         sage: TD_3_14 = designs.transversal_design(3, 14)
-        sage: designs.transversal_design(4, 14,availability=True)
+        sage: designs.transversal_design(4, 14, availability=True)
         Unknown
 
         sage: TD_4_15 = designs.transversal_design(4, 15)
-        sage: designs.transversal_design(5, 15,availability=True)
+        sage: designs.transversal_design(5, 15, availability=True)
         Unknown
 
         sage: TD_4_18 = designs.transversal_design(4, 18)
-        sage: designs.transversal_design(5, 18,availability=True)
+        sage: designs.transversal_design(5, 18, availability=True)
         Unknown
 
         sage: TD_5_20 = designs.transversal_design(5, 20)
-        sage: designs.transversal_design(6, 20,availability=True)
+        sage: designs.transversal_design(6, 20, availability=True)
         Unknown
+
+    For prime powers, there is an explicit construction which gives a
+    `TD(n+1,n)`::
+
+        sage: for n in [2,3,5,7,9,11,13,16,17,19]:
+        ....:     _ = designs.transversal_design(n+1, n)
 
     TESTS:
 
@@ -120,11 +132,21 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
         sage: _ = designs.transversal_design(6,60)
         sage: _ = designs.transversal_design(5,60) # checks some tricky divisibility error
 
-    Unknown availability::
+    Availability, non availability and Unknown availability::
 
-        sage: designs.transversal_design(6,4,availability=True)
+        sage: designs.transversal_design(3,6,availability=True)
+        True
+        sage: designs.transversal_design(5,6,availability=True)
         Unknown
+        sage: designs.transversal_design(8,6,availability=True)
+        False
     """
+    if k >= n+2:
+        if availability:
+            return False
+        from sage.categories.sets_cat import EmptySetError
+        raise EmptySetError("No Transversal Design exists when k>=n+2")
+
     if n == 12 and k <= 6:
         TD = [l[:k] for l in TD6_12()]
 
@@ -518,7 +540,8 @@ def orthogonal_array(k,n,t=2,check=True,availability=False,who_asked=tuple()):
     - ``who_asked`` (internal use only) -- because of the equivalence between
       OA/TD/MOLS, each of the three constructors calls the others. We must keep
       track of who calls who in order to avoid infinite loops. ``who_asked`` is
-      the tuple of the other functions that were called before this one.
+      the tuple of the other functions that were called before this one on the
+      same input `k,n`.
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.
@@ -530,8 +553,10 @@ def orthogonal_array(k,n,t=2,check=True,availability=False,who_asked=tuple()):
 
     .. SEEALSO::
 
-        :func:`transversal_design` -- when `t=2` an orthogonal array is also
-        called a transversal design.
+        When `t=2` an orthogonal array is also a transversal design (see
+        :func:`transversal_design`) and a family of mutually orthogonal latin
+        squares (see
+        :func:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`).
 
     EXAMPLES::
 

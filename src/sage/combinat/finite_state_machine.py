@@ -2981,6 +2981,7 @@ class FiniteStateMachine(SageObject):
                       format_state_label=None,
                       format_letter=None,
                       format_transition_label=None,
+                      loop_where=None,
                       initial_where=None,
                       accepting_style=None,
                       accepting_distance=None,
@@ -3013,6 +3014,10 @@ class FiniteStateMachine(SageObject):
           the input and output alphabets to a string suitable for
           typesetting in LaTeX's mathematics mode. If not given,
           :meth:`.default_format_transition_label` is used.
+
+        - ``loop_where`` -- a dictionary or a function mapping labels of
+          initial states to one of ``'above'``, ``'left'``, ``'below'``,
+          ``'right'``. If not given, ``'above'`` is used.
 
         - ``initial_where`` -- a dictionary or a function mapping
           labels of initial states to one of ``'above'``, ``'left'``,
@@ -3053,10 +3058,10 @@ class FiniteStateMachine(SageObject):
         LaTeX output. All of its functionality can also be achieved by
         directly setting the attributes
 
-        - ``coordinates``, ``format_label``, ``initial_where``, and
-          ``accepting_where`` of :class:`FSMState` (here,
-          ``format_label`` is a callable without arguments, everything
-          else is a specific value);
+        - ``coordinates``, ``format_label``, ``loop_where``,
+          ``initial_where``, and ``accepting_where`` of
+          :class:`FSMState` (here, ``format_label`` is a callable
+          without arguments, everything else is a specific value);
 
         - ``format_label`` of :class:`FSMTransition` (``format_label``
           is a callable without arguments);
@@ -3092,14 +3097,21 @@ class FiniteStateMachine(SageObject):
             sage: for j in srange(4):
             ....:     T.add_transition('I', j, 0, [0, j])
             ....:     T.add_transition(j, 'I', 0, [0, -j])
+            ....:     T.add_transition(j, j, 0, 0)
             Transition from 'I' to 0: 0|0,0
             Transition from 0 to 'I': 0|0,0
+            Transition from 0 to 0: 0|0
             Transition from 'I' to 1: 0|0,1
             Transition from 1 to 'I': 0|0,-1
+            Transition from 1 to 1: 0|0
             Transition from 'I' to 2: 0|0,2
             Transition from 2 to 'I': 0|0,-2
+            Transition from 2 to 2: 0|0
             Transition from 'I' to 3: 0|0,3
             Transition from 3 to 'I': 0|0,-3
+            Transition from 3 to 3: 0|0
+            sage: T.add_transition('I', 'I', 0, 0)
+            Transition from 'I' to 'I': 0|0
             sage: T.state(3).final_word_out = [0, 0]
             sage: T.latex_options(
             ....:     coordinates={'I': (0, 0),
@@ -3111,7 +3123,9 @@ class FiniteStateMachine(SageObject):
             ....:     format_letter=lambda x: r'w_{%s}' % x,
             ....:     format_transition_label=lambda x:
             ....:         r"{\scriptstyle %s}" % T.default_format_transition_label(x),
-            ....:     initial_where=lambda x: 'below',
+            ....:     loop_where={'I': 'below', 0: 'left', 1: 'above',
+            ....:                 2: 'right', 3:'below'},
+            ....:     initial_where=lambda x: 'above',
             ....:     accepting_style='accepting by double',
             ....:     accepting_distance='10ex',
             ....:     accepting_where={0: 'left', 3: 45}
@@ -3119,7 +3133,7 @@ class FiniteStateMachine(SageObject):
             sage: T.state('I').format_label=lambda: r'\mathcal{I}'
             sage: latex(T)
             \begin{tikzpicture}[auto, initial text=, >=latex]
-            \node[state, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
+            \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
             \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
             \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
             \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
@@ -3128,11 +3142,16 @@ class FiniteStateMachine(SageObject):
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
             \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v0.148.43);
             \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
+            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
             \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
+            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
             \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
             \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
+            \path[->] (v0) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
             \end{tikzpicture}
             sage: view(T) # not tested
 
@@ -3180,6 +3199,16 @@ class FiniteStateMachine(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: format_transition_label must be callable.
+            sage: T.latex_options(loop_where=37)
+            Traceback (most recent call last):
+            ...
+            TypeError: loop_where must be a callable or a
+            dictionary.
+            sage: T.latex_options(loop_where=lambda x: 'top')
+            Traceback (most recent call last):
+            ...
+            ValueError: loop_where for I must be in ['below',
+            'right', 'above', 'left'].
             sage: T.latex_options(initial_where=90)
             Traceback (most recent call last):
             ...
@@ -3228,6 +3257,25 @@ class FiniteStateMachine(SageObject):
             if not hasattr(format_transition_label, '__call__'):
                 raise TypeError('format_transition_label must be callable.')
             self.format_transition_label = format_transition_label
+
+        if loop_where is not None:
+            permissible = list(tikz_automata_where.iterkeys())
+            for state in self.states():
+                if hasattr(loop_where, '__call__'):
+                    where = loop_where(state.label())
+                else:
+                    try:
+                        where = loop_where[state.label()]
+                    except TypeError:
+                        raise TypeError("loop_where must be a "
+                                        "callable or a dictionary.")
+                    except KeyError:
+                        continue
+                if where in permissible:
+                    state.loop_where = where
+                else:
+                    raise ValueError('loop_where for %s must be in %s.' %
+                                     (state.label(), permissible))
 
         if initial_where is not None:
             permissible = list(tikz_automata_where.iterkeys())
@@ -3445,8 +3493,15 @@ class FiniteStateMachine(SageObject):
                         label,
                         target._number_, angle_target)
                 else:
-                    result += "\\path[->] (v%d) edge[loop above] node {$%s$} ();\n" % (
-                        source._number_, label)
+                    loop_where = "above"
+                    if hasattr(source, "loop_where"):
+                        loop_where = source.loop_where
+                    rotation = {'left': '[rotate=90, anchor=south]',
+                                'right': '[rotate=90, anchor=north]'}
+                    result += "\\path[->] (v%d) edge[loop %s] node%s {$%s$} ();\n" % (
+                        source._number_,
+                        loop_where, rotation.get(loop_where, ''),
+                        label)
 
         result += "\\end{tikzpicture}"
         return result

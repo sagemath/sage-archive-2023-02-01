@@ -1902,6 +1902,11 @@ class FiniteStateMachine(SageObject):
       decided during the construction of the finite state machine
       whether :meth:`.determine_alphabets` should be called.
 
+    - ``with_final_word_out`` -- If given (not ``None``), then the
+      function :meth:`.with_final_word_out` (precisely, its inplace
+      pendant) is called with input ``letters=with_final_word_out`` at
+      the end of the creation process.
+
     - ``store_states_dict`` -- If ``True``, then additionally the states
       are stored in an interal dictionary for speed up.
 
@@ -2173,6 +2178,7 @@ class FiniteStateMachine(SageObject):
                  initial_states=None, final_states=None,
                  input_alphabet=None, output_alphabet=None,
                  determine_alphabets=None,
+                 with_final_word_out=None,
                  store_states_dict=True,
                  on_duplicate_transition=None):
         """
@@ -2272,6 +2278,9 @@ class FiniteStateMachine(SageObject):
 
         if determine_alphabets:
             self.determine_alphabets()
+
+        if with_final_word_out:
+            self.construct_final_word_out(with_final_word_out)
 
 
     #*************************************************************************
@@ -5979,7 +5988,7 @@ class FiniteStateMachine(SageObject):
             number_states = new_number_states
 
 
-    def with_final_word_out(self, letter):
+    def with_final_word_out(self, letters, allow_not_accepting=True):
         """
         Constructs a new finite state machine with final output words
         for all states by implicitly reading trailing letters until a
@@ -5987,18 +5996,32 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        ``letter`` -- an element of the input alphabet.
+        - ``letters`` -- either an element of the input alphabet
+          (refering to this as ``letter``) or a list of such elements.
+
+        - ``allow_not_accepting`` -- a boolean (default: ``True``),
+          which indicates whether we allow that some states may be
+          non-final after the function is finished. Reformulated, if
+          ``False`` this means that each state has to have at least
+          one outgoing transition with given letter.
 
         OUTPUT:
 
         A finite state machine.
 
+        The inplace version of this function is
+        :meth:`.construct_final_word_out`.
+
+        Suppose for the moment a single element ``letter`` as input
+        for ``letters``. This is equivalent to ``letters = [letter]``.
+        We will discuss the general case below.
+
         Let ``word_in`` be a word over the input alphabet and assume
         that the original finite state machine transforms ``word_in`` to
-        ``word_out`` reaching a possibly non-final state ``s``.  Let
+        ``word_out`` reaching a possibly non-final state ``s``. Let
         further `k` be the minimum number of letters ``letter`` such
         that there is a path from ``s`` to some final state ``f`` whose
-        input label consists of `k` copies of ``letters`` and whose
+        input label consists of `k` copies of ``letter`` and whose
         output label is ``path_word_out``. Then the state ``s`` of the
         resulting finite state machine is a final state with final
         output ``path_word_out + f.final_word_out``. Therefore, the new
@@ -6015,12 +6038,10 @@ class FiniteStateMachine(SageObject):
         responsibility of the user to make sure that if adding trailing
         zeros to the input anyway, the output is equivalent.
 
-        It is required that each non-final state has a unique leaving
-        transition with input label ``letter`` and that reading
-        ``letter`` eventually leads to a final state. Currently, only
-        transitions with input labels of length `1` are supported.
+        If ``letters`` is not single-elemented, then it is assumed
+        that cycles of ``letters`` are appended as trailing input.
 
-        .. SEE ALSO:
+        .. SEEALSO::
 
             :ref:`example on Gray code <finite_state_machine_gray_code_example>`
 
@@ -6114,6 +6135,44 @@ class FiniteStateMachine(SageObject):
                     ....:     for k in srange(16))
                     True
 
+            #.  Here is an example, where we allow trailing repeated `10`::
+
+                    sage: T = Transducer([(0, 1, 0, 'a'),
+                    ....:                 (1, 2, 1, 'b'),
+                    ....:                 (2, 0, 0, 'c')],
+                    ....:                initial_states=[0],
+                    ....:                final_states=[0])
+                    sage: F = T.with_final_word_out([1, 0])
+                    sage: for f in F.iter_final_states():
+                    ....:     print f, ''.join(f.final_word_out)
+                    0
+                    1 bc
+
+                Trying this with trailing repeated `01` does not
+                produce final word outs::
+
+                    sage: F = T.with_final_word_out([0, 1])
+                    sage: for f in F.iter_final_states():
+                    ....:     print f, ''.join(f.final_word_out)
+                    0
+                    2 c
+
+            #.  Here another example with a more-letter input::
+
+                    sage: T = Transducer([(0, 1, 0, 'a'),
+                    ....:                 (1, 2, 0, 'b'), (1, 2, 1, 'b'),
+                    ....:                 (2, 3, 0, 'c'), (2, 0, 1, 'e'),
+                    ....:                 (3, 1, 0, 'd'), (3, 1, 1, 'd')],
+                    ....:                initial_states=[0],
+                    ....:                final_states=[0],
+                    ....:                with_final_word_out=[0, 0, 1, 1])
+                    sage: for f in T.iter_final_states():
+                    ....:     print f, ''.join(f.final_word_out)
+                    0
+                    1 bcdbcdbe
+                    2 cdbe
+                    3 dbe
+
         TESTS:
 
             #.  Reading copies of ``letter`` may result in a cycle. In
@@ -6124,23 +6183,35 @@ class FiniteStateMachine(SageObject):
                     sage: T.with_final_word_out(0)
                     Traceback (most recent call last):
                     ...
-                    ValueError: The finite state machine contains a cycle
-                    with input label 0 and no final state.
+                    ValueError: The finite state machine contains
+                    a cycle starting at state 0 with input label 0
+                    and no final state.
 
             #.  A unique transition with input word ``letter`` is
                 required::
 
-                    sage: T = Transducer([(0, 1, 0, 0)])
-                    sage: T.with_final_word_out(0)
-                    Traceback (most recent call last):
-                    ...
-                    ValueError: No unique transition leaving state 1
-                    with input label 0.
                     sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)])
                     sage: T.with_final_word_out(0)
                     Traceback (most recent call last):
                     ...
                     ValueError: No unique transition leaving state 0
+                    with input label 0.
+
+                It is not a problem if there is no transition with
+                input word ``letter``::
+
+                    sage: T = Transducer([(0, 1, 0, 0)])
+                    sage: F = T.with_final_word_out(0)
+                    sage: for f in F.iter_final_states():
+                    ....:     print f, f.final_word_out
+
+                Anyhow, you can override this by::
+
+                    sage: T = Transducer([(0, 1, 0, 0)])
+                    sage: T.with_final_word_out(0, allow_not_accepting=False)
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: No unique transition leaving state 1
                     with input label 0.
 
             #.  All transitions must have input labels of length `1`::
@@ -6157,19 +6228,60 @@ class FiniteStateMachine(SageObject):
                     ...
                     NotImplementedError: All transitions must have input
                     labels of length 1.
+
+            #.  An empty list as input is not allowed::
+
+                    sage: T = Transducer([(0, 0, [], 0)])
+                    sage: T.with_final_word_out([])
+                    Traceback (most recent call last):
+                    ...
+                    ValueError: letters is not allowed to be an empty list.
         """
         new = deepcopy(self)
+        new.construct_final_word_out(letters, allow_not_accepting)
+        return new
+
+
+    def construct_final_word_out(self, letters, allow_not_accepting=True):
+        """
+        This is an inplace version of :meth:`.with_final_word_out`. See
+        :meth:`.with_final_word_out` for documentation and examples.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[0])
+            sage: F = T.with_final_word_out(0)
+            sage: T.construct_final_word_out(0)
+            sage: T == F  # indirect doctest
+            True
+        """
+        from itertools import cycle, izip_longest
+
+        if not isinstance(letters, list):
+            letters = [letters]
+        elif not letters:
+            raise ValueError(
+                "letters is not allowed to be an empty list.")
+
+        given_final_states = self.final_states()
         in_progress = set()
 
-        def find_final_word_out(state):
-            if state.is_final:
-                return state.final_word_out
-            if state in in_progress:
-                raise ValueError(
-                    "The finite state machine contains a cycle with "
-                    "input label %s and no final state." % (letter))
+        class StopByNotFinal(Exception):
+            pass
 
-            in_progress.add(state)
+        def find_final_word_out(state):
+            position, letter = trailing_letters.next()
+            if state in given_final_states \
+                    or position == 0 and state.is_final:
+                return state.final_word_out
+            if (state, position) in in_progress:
+                raise ValueError(
+                    "The finite state machine contains a cycle "
+                    "starting at state %s with input label %s "
+                    "and no final state." % (state, letter))
+
             if any(ifilter(lambda t: len(t.word_in) != 1,
                            state.transitions)):
                 raise NotImplementedError("All transitions must have "
@@ -6177,21 +6289,37 @@ class FiniteStateMachine(SageObject):
 
             transitions = [t for t in state.transitions
                            if t.word_in == [letter]]
-            if len(transitions) != 1:
+            if allow_not_accepting and not transitions:
+                raise StopByNotFinal()
+            elif len(transitions) != 1:
                 raise ValueError(
                     "No unique transition leaving state %s with input "
                     "label %s." % (state, letter))
-            final_word_out = transitions[0].word_out \
-                + find_final_word_out(transitions[0].to_state)
-            state.is_final = True
-            state.final_word_out = final_word_out
-            in_progress.remove(state)
+
+            in_progress.add((state, position))
+            try:
+                final_word_out = transitions[0].word_out \
+                    + find_final_word_out(transitions[0].to_state)
+            except StopByNotFinal:
+                in_progress.remove((state, position))
+                raise
+
+            if position == 0:
+                state.is_final = True
+                state.final_word_out = final_word_out
+            in_progress.remove((state, position))
             return final_word_out
 
-        for state in new.iter_states():
-            find_final_word_out(state)
+        for state in self.iter_states():
+            assert(not in_progress)
+            # trailing_letters is an infinite iterator additionally
+            # marking positions
+            trailing_letters = cycle(enumerate(letters))
+            try:
+                find_final_word_out(state)
+            except StopByNotFinal:
+                pass
 
-        return new
 
     # *************************************************************************
     # other

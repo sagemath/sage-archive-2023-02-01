@@ -3,12 +3,15 @@ r"""
 Finite State Machines, Automata, Transducers
 
 This module adds support for finite state machines, automata and
-transducers. See class :class:`FiniteStateMachine` and the examples
-below for details creating one.
+transducers. See classes :class:`Automaton` and :class:`Transducer`
+(or the more general class :class:`FiniteStateMachine`) and the
+examples below for details creating one.
 
 Examples
 ========
 
+We start with a general :class:`FiniteStateMachine`. Later there will
+be also an :class:`Automaton` and a :class:`Transducer`.
 
 A simple finite state machine
 -----------------------------
@@ -22,30 +25,26 @@ We can easily create a finite state machine by
     Finite state machine with 0 states
 
 By default this is the empty finite state machine, so not very
-interesting. Let's create some states and transitions::
+interesting. Let's create and add some states and transitions::
 
-    sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
-    sage: day = FSMState('day')
-    sage: night = FSMState('night')
-    sage: sunrise = FSMTransition(night, day)
-    sage: sunset = FSMTransition(day, night)
+    sage: day = fsm.add_state('day')
+    sage: night = fsm.add_state('night')
+    sage: sunrise = fsm.add_transition(night, day)
+    sage: sunset = fsm.add_transition(day, night)
 
-And now let's add those states and transitions to our finite state machine::
+Let us look at ``sunset`` more closely::
 
-    sage: fsm.add_transition(sunrise)
-    Transition from 'night' to 'day': -|-
-    sage: fsm.add_transition(sunset)
+    sage: sunset
     Transition from 'day' to 'night': -|-
 
-Note that the states are added automatically, since they are present
-in the transitions. We could add the states manually by
+Note that could also have created and added the transitions directly
+by::
 
-::
+    sage: fsm.add_transition('day', 'night')
+    Transition from 'day' to 'night': -|-
 
-    sage: fsm.add_state(day)
-    'day'
-    sage: fsm.add_state(night)
-    'night'
+This would have had added the states automatically, since they are
+present in the transitions.
 
 Anyhow, we got the following finite state machine::
 
@@ -72,17 +71,8 @@ simply by
     sage: FiniteStateMachine([('night', 'day'), ('day', 'night')])
     Finite state machine with 2 states
 
-or by
-
-::
-
-    sage: fsm = FiniteStateMachine()
-    sage: day = fsm.add_state('day')
-    sage: night = fsm.add_state('night')
-    sage: sunrise = fsm.add_transition(night, day)
-    sage: sunset = fsm.add_transition(day, night)
-    sage: fsm
-    Finite state machine with 2 states
+See :class:`FiniteStateMachine` for a lot of possibilities to created
+finite state machines.
 
 .. _finite_state_machine_recognizing_NAFs_example:
 

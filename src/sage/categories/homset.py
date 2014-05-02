@@ -373,8 +373,16 @@ def Hom(X, Y, category=None, check=True):
             if not isinstance(category, Category):
                 raise TypeError("Argument category (= {}) must be a category.".format(category))
             for O in [X, Y]:
-                if O not in category:
-                    raise TypeError("{} is not in {}".format(O, category))
+                try:
+                    category_mismatch = O not in category
+                except BaseException:
+                    category_mismatch = True
+                if category_mismatch and O._is_category_initialized():
+                    try:
+                        error_msg = "{} is not in {}".format(O, category)
+                    except BaseException:
+                        error_msg = "{} instance is not in {}".format(type(O), category)
+                    raise ValueError(error_msg)
 
         # Construct H
         try: # _Hom_ hook from the parent

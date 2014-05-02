@@ -512,6 +512,13 @@ Let's try some other examples::
     sage: C.counter = 0; C([0, 1, 0, 0])
     (False, 'negative', [-1, 0, -1, -2])
 
+See also mathods :meth:`Automaton.process` and
+:meth:`Transducer.process` (or even
+:meth:`FiniteStateMachine.process`), the explaination of the parameter
+``hook`` and the examples in :class:`FSMState` and
+:class:`FSMTransition`, and desciption and examples in
+:class:`FSMProcessIterator` for more information on processing and
+hooks.
 
 AUTHORS:
 
@@ -769,7 +776,16 @@ class FSMState(SageObject):
           :meth:`Transducer.simplification`.
 
     - ``hook`` -- (default: ``None``) A function which is called when
-      the state is reached during processing input.
+      the state is reached during processing input. It takes two input
+      parameters: the first is the current state (to allowing the same
+      hook for more states), the second is the current process
+      iterator object (to have full access to everything; e.g. the
+      next letter from the input tape can be read in). It can output
+      the next transition, i.e. the transition to take next. If it
+      returns ``None`` the process iterator chooses. Moreover, this
+      function can raise a ``StopIteration`` exception to stop
+      processing of a finite state machine the input immediately. See
+      also example below.
 
     - ``color`` -- (default: ``None``) In order to distinguish states,
       they can be given an arbitrary "color" (an arbitrary object).
@@ -830,8 +846,9 @@ class FSMState(SageObject):
         ValueError: Only final states can have a final output word,
         but state B is not final.
 
-    Setting the ``final_word_out`` of a final state to ``None`` is the same as
-    setting it to ``[]`` and is also the default for a final state::
+    Setting the ``final_word_out`` of a final state to ``None`` is the
+    same as setting it to ``[]`` and is also the default for a final
+    state::
 
         sage: C = FSMState('C', is_final=True)
         sage: C.final_word_out
@@ -849,7 +866,8 @@ class FSMState(SageObject):
         sage: FSMState(None)
         Traceback (most recent call last):
         ...
-        ValueError: Label None reserved for a special state, choose another label.
+        ValueError: Label None reserved for a special state,
+        choose another label.
 
     This can be overridden by::
 
@@ -868,6 +886,21 @@ class FSMState(SageObject):
         sage: A.state(0).color = ()
         sage: A.determinisation()
         Automaton with 1 states
+
+    We can use a hook function of a state, to stop processing. This is
+    done by raising a ``StopIteration`` exception. The following code
+    demonstrates this::
+
+        sage: T = Transducer([(0, 1, 9, 'a'), (1, 2, 9, 'b'),
+        ....:                 (2, 3, 9, 'c'), (3, 4, 9, 'd')],
+        ....:                initial_states=[0],
+        ....:                final_states=[4],
+        ....:                input_alphabet=[9])
+        sage: def stop(current_state, process_iterator):
+        ....:     raise StopIteration()
+        sage: T.state(3).hook = stop
+        sage: T.process([9, 9, 9, 9])
+        (False, 3, ['a', 'b', 'c'])
     """
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,

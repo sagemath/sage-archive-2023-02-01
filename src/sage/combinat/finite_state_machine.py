@@ -5192,7 +5192,7 @@ class FiniteStateMachine(SageObject):
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
         """
-        if algorithm == None:
+        if algorithm is None:
             algorithm = 'direct'
         if algorithm == 'direct':
             return self._composition_direct_(other, only_accessible_components)

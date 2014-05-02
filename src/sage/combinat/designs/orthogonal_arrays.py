@@ -85,8 +85,8 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
 
     Some examples of the maximal number of transversal Sage is able to build::
 
-        sage: TD_3_10 = designs.transversal_design(3,10)
-        sage: designs.transversal_design(4,10,availability=True)
+        sage: TD_4_10 = designs.transversal_design(4,10)
+        sage: designs.transversal_design(5,10,availability=True)
         Unknown
 
         sage: TD_6_12 = designs.transversal_design(6,12)

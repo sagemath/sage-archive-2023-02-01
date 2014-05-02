@@ -186,6 +186,22 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
         ValueError: There exist at most n-1 MOLS of size n.
         sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
         False
+        sage: designs.mutually_orthogonal_latin_squares(10,2,availability=True)
+        True
+        sage: designs.mutually_orthogonal_latin_squares(10,2)
+        [
+        [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
+        [7 2 8 9 0 3 5 4 6 1]  [8 2 1 7 6 0 9 3 4 5]
+        [6 1 3 8 9 0 4 5 7 2]  [9 8 3 2 1 7 0 4 5 6]
+        [5 7 2 4 8 9 0 6 1 3]  [0 9 8 4 3 2 1 5 6 7]
+        [0 6 1 3 5 8 9 7 2 4]  [2 0 9 8 5 4 3 6 7 1]
+        [9 0 7 2 4 6 8 1 3 5]  [4 3 0 9 8 6 5 7 1 2]
+        [8 9 0 1 3 5 7 2 4 6]  [6 5 4 0 9 8 7 1 2 3]
+        [2 3 4 5 6 7 1 8 9 0]  [3 4 5 6 7 1 2 8 0 9]
+        [3 4 5 6 7 1 2 0 8 9]  [5 6 7 1 2 3 4 0 9 8]
+        [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
+        ]
+
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.combinat.designs.block_design import AffineGeometryDesign
@@ -200,7 +216,14 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
         else:
             raise ValueError("There exist at most n-1 MOLS of size n.")
 
-    if is_prime_power(n):
+    elif n == 10 and k == 2:
+        if availability:
+            return True
+
+        from database import MOLS_10_2
+        matrices = MOLS_10_2()
+
+    elif is_prime_power(n):
         if availability:
             return True
 
@@ -243,16 +266,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
         matrices = [[M[i*n:(i+1)*n] for i in range(n)] for M in matrices]
         matrices = [Matrix(M) for M in matrices]
 
-        if partitions:
-            partitions = [[[i*n+j for j in range(n)] for i in range(n)],
-                          [[j*n+i for j in range(n)] for i in range(n)]]
-            for m in matrices:
-                partition = [[] for i in range(n)]
-                for i in range(n):
-                    for j in range(n):
-                        partition[m[i,j]].append(i*n+j)
-                partitions.append(partition)
-
     else:
         if availability:
             return False
@@ -261,6 +274,17 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
 
     if check:
         assert are_mutually_orthogonal_latin_squares(matrices)
+
+    # partitions have been requested but have not been computed yet
+    if partitions is True:
+        partitions = [[[i*n+j for j in range(n)] for i in range(n)],
+                      [[j*n+i for j in range(n)] for i in range(n)]]
+        for m in matrices:
+            partition = [[] for i in range(n)]
+            for i in range(n):
+                for j in range(n):
+                    partition[m[i,j]].append(i*n+j)
+            partitions.append(partition)
 
     if partitions:
         return partitions

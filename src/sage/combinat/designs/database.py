@@ -12,39 +12,42 @@ All the designs returned by these functions can be obtained through the
 ``designs.<tab>`` functions.
 
 Implemented constructions :
-:func:`OA(6,20) <OA_6_20>`,
-:func:`OA(7,21) <OA_7_21>`,
-:func:`OA(5,22) <OA_5_22>`,
-:func:`OA(9,24) <OA_9_24>`,
-:func:`OA(6,26) <OA_6_26>`,
-:func:`OA(7,28) <OA_7_28>`,
-:func:`OA(6,30) <OA_6_30>`,
-:func:`OA(7,33) <OA_7_33>`,
-:func:`OA(6,34) <OA_6_34>`,
-:func:`OA(7,35) <OA_7_35>`,
-:func:`OA(10,36) <OA_10_36>`,
-:func:`OA(6,38) <OA_6_38>`,
-:func:`OA(7,39) <OA_7_39>`,
-:func:`OA(9,40) <OA_9_40>`,
-:func:`OA(7,42) <OA_7_42>`,
-:func:`OA(7,44) <OA_7_44>`,
-:func:`OA(8,45) <OA_8_45>`,
-:func:`OA(6,46) <OA_6_46>`,
-:func:`OA(10,48) <OA_10_48>`,
-:func:`OA(8,50) <OA_8_50>`,
-:func:`OA(7,51) <OA_7_51>`,
-:func:`OA(7,52) <OA_7_52>`,
-:func:`OA(7,54) <OA_7_54>`,
-:func:`OA(8,55) <OA_8_55>`,
-:func:`OA(9,56) <OA_9_56>`,
-:func:`OA(7,60) <OA_7_60>`,
-:func:`OA(7,62) <OA_7_62>`,
-:func:`OA(9,75) <OA_9_75>`,
-:func:`OA(11,80) <OA_11_80>`,
-:func:`OA(10,82) <OA_10_82>`,
-:func:`OA(10,100) <OA_10_100>`,
-:func:`OA(12,144) <OA_12_144>`,
-:func:`OA(12,210) <OA_12_210>`
+
+- :func:`OA(6,20) <OA_6_20>`,
+  :func:`OA(7,21) <OA_7_21>`,
+  :func:`OA(5,22) <OA_5_22>`,
+  :func:`OA(9,24) <OA_9_24>`,
+  :func:`OA(6,26) <OA_6_26>`,
+  :func:`OA(7,28) <OA_7_28>`,
+  :func:`OA(6,30) <OA_6_30>`,
+  :func:`OA(7,33) <OA_7_33>`,
+  :func:`OA(6,34) <OA_6_34>`,
+  :func:`OA(7,35) <OA_7_35>`,
+  :func:`OA(10,36) <OA_10_36>`,
+  :func:`OA(6,38) <OA_6_38>`,
+  :func:`OA(7,39) <OA_7_39>`,
+  :func:`OA(9,40) <OA_9_40>`,
+  :func:`OA(7,42) <OA_7_42>`,
+  :func:`OA(7,44) <OA_7_44>`,
+  :func:`OA(8,45) <OA_8_45>`,
+  :func:`OA(6,46) <OA_6_46>`,
+  :func:`OA(10,48) <OA_10_48>`,
+  :func:`OA(8,50) <OA_8_50>`,
+  :func:`OA(7,51) <OA_7_51>`,
+  :func:`OA(7,52) <OA_7_52>`,
+  :func:`OA(7,54) <OA_7_54>`,
+  :func:`OA(8,55) <OA_8_55>`,
+  :func:`OA(9,56) <OA_9_56>`,
+  :func:`OA(7,60) <OA_7_60>`,
+  :func:`OA(7,62) <OA_7_62>`,
+  :func:`OA(9,75) <OA_9_75>`,
+  :func:`OA(11,80) <OA_11_80>`,
+  :func:`OA(10,82) <OA_10_82>`,
+  :func:`OA(10,100) <OA_10_100>`,
+  :func:`OA(12,144) <OA_12_144>`,
+  :func:`OA(12,210) <OA_12_210>`
+
+- :func:`two MOLS of order 10 <MOLS_10_2>`
 
 **Dictionaries**
 
@@ -71,6 +74,52 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
+
+def MOLS_10_2():
+    r"""
+    Returns a pair of MOLS of order 10
+
+    Data obtained from
+    `<http://www.cecm.sfu.ca/organics/papers/lam/paper/html/POLS10/POLS10.html>`_
+
+    EXAMPLES::
+
+        sage: designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
+        [
+        [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
+        [7 2 8 9 0 3 5 4 6 1]  [8 2 1 7 6 0 9 3 4 5]
+        [6 1 3 8 9 0 4 5 7 2]  [9 8 3 2 1 7 0 4 5 6]
+        [5 7 2 4 8 9 0 6 1 3]  [0 9 8 4 3 2 1 5 6 7]
+        [0 6 1 3 5 8 9 7 2 4]  [2 0 9 8 5 4 3 6 7 1]
+        [9 0 7 2 4 6 8 1 3 5]  [4 3 0 9 8 6 5 7 1 2]
+        [8 9 0 1 3 5 7 2 4 6]  [6 5 4 0 9 8 7 1 2 3]
+        [2 3 4 5 6 7 1 8 9 0]  [3 4 5 6 7 1 2 8 0 9]
+        [3 4 5 6 7 1 2 0 8 9]  [5 6 7 1 2 3 4 0 9 8]
+        [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
+        ]
+    """
+    from sage.matrix.constructor import Matrix
+    return [Matrix([[1,8,9,0,2,4,6,3,5,7],
+                    [7,2,8,9,0,3,5,4,6,1],
+                    [6,1,3,8,9,0,4,5,7,2],
+                    [5,7,2,4,8,9,0,6,1,3],
+                    [0,6,1,3,5,8,9,7,2,4],
+                    [9,0,7,2,4,6,8,1,3,5],
+                    [8,9,0,1,3,5,7,2,4,6],
+                    [2,3,4,5,6,7,1,8,9,0],
+                    [3,4,5,6,7,1,2,0,8,9],
+                    [4,5,6,7,1,2,3,9,0,8]]),
+
+            Matrix([[1,7,6,5,0,9,8,2,3,4],
+                    [8,2,1,7,6,0,9,3,4,5],
+                    [9,8,3,2,1,7,0,4,5,6],
+                    [0,9,8,4,3,2,1,5,6,7],
+                    [2,0,9,8,5,4,3,6,7,1],
+                    [4,3,0,9,8,6,5,7,1,2],
+                    [6,5,4,0,9,8,7,1,2,3],
+                    [3,4,5,6,7,1,2,8,0,9],
+                    [5,6,7,1,2,3,4,0,9,8],
+                    [7,1,2,3,4,5,6,9,8,0]])]
 
 def OA_6_20():
     r"""

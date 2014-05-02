@@ -174,7 +174,7 @@ class Modules(Category_module):
         @cached_method
         def base_ring(self):
             """
-            Return the base ring for ``self``.
+            Return the base ring (category) for ``self``.
 
             This implements a ``base_ring`` method for join categories
             which are subcategories of some ``Modules(K)``.
@@ -461,6 +461,16 @@ class Modules(Category_module):
             return [Modules(self.base_category.base_ring())]
 
         class ParentMethods:
+
+            @cached_method
+            def base_ring(self):
+                """
+                Return the base ring of ``self``
+
+                EXAMPLES::
+
+                """
+                return self.domain().base_ring()
 
             @cached_method
             def zero(self):

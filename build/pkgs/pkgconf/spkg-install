@@ -42,6 +42,7 @@ fi
 rm -f "$SAGE_LOCAL/bin/pkg-config"   # delete old version
 m4 ../patches/pkg-config.in > "$SAGE_LOCAL/bin/pkg-config"
 if [ $? -ne 0 ]; then
-    echo >&2 "Error creating symlink to pkg-config."
+    echo >&2 "Error creating the pkg-config script."
     exit 1
 fi
+chmod 755 "$SAGE_LOCAL/bin/pkg-config"

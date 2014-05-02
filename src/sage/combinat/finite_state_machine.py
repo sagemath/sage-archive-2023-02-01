@@ -3185,7 +3185,7 @@ class FiniteStateMachine(SageObject):
                                 'right': '[rotate=90, anchor=north]'}
                     result += "\\path[->] (v%d) edge[loop %s] node%s {$%s$} ();\n" % (
                         source._number_,
-                        loop_where, rotation.get(loop_where,''),
+                        loop_where, rotation.get(loop_where, ''),
                         label)
 
         result += "\\end{tikzpicture}"

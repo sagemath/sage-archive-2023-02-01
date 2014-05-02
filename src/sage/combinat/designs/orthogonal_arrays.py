@@ -89,31 +89,31 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
 
         sage: TD_3_6 = designs.transversal_design(3, 6)
         sage: designs.transversal_design(4, 6, availability=True)
-        Unknown
+        False
 
         sage: TD_3_10 = designs.transversal_design(3, 10)
         sage: designs.transversal_design(4, 10, availability=True)
-        Unknown
+        False
 
         sage: TD_6_12 = designs.transversal_design(6, 12)
         sage: designs.transversal_design(7, 12, availability=True)
-        Unknown
+        False
 
         sage: TD_3_14 = designs.transversal_design(3, 14)
         sage: designs.transversal_design(4, 14, availability=True)
-        Unknown
+        False
 
         sage: TD_4_15 = designs.transversal_design(4, 15)
         sage: designs.transversal_design(5, 15, availability=True)
-        Unknown
+        False
 
         sage: TD_4_18 = designs.transversal_design(4, 18)
         sage: designs.transversal_design(5, 18, availability=True)
-        Unknown
+        False
 
         sage: TD_5_20 = designs.transversal_design(5, 20)
         sage: designs.transversal_design(6, 20, availability=True)
-        Unknown
+        False
 
     For prime powers, there is an explicit construction which gives a
     `TD(n+1,n)`::
@@ -132,14 +132,17 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
         sage: _ = designs.transversal_design(6,60)
         sage: _ = designs.transversal_design(5,60) # checks some tricky divisibility error
 
-    Availability, non availability and Unknown availability::
+    Availability, non availability::
 
         sage: designs.transversal_design(3,6,availability=True)
         True
+        sage: _ = designs.transversal_design(3,6)
         sage: designs.transversal_design(5,6,availability=True)
-        Unknown
-        sage: designs.transversal_design(8,6,availability=True)
         False
+        sage: _ = designs.transversal_design(5,6)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this Transversal Design!
     """
     if k >= n+2:
         if availability:
@@ -173,10 +176,8 @@ def transversal_design(k,n,check=True,availability=False, who_asked=tuple()):
 
     else:
         if availability:
-            from sage.misc.unknown import Unknown
-            return Unknown
-        else:
-            raise NotImplementedError("I don't know how to build this Transversal Design !")
+            return False
+        raise NotImplementedError("I don't know how to build this Transversal Design!")
 
     if check:
         assert is_transversal_design(TD,k,n)
@@ -651,8 +652,7 @@ def orthogonal_array(k,n,t=2,check=True,availability=False,who_asked=tuple()):
     else:
         if availability:
             return False
-        else:
-            raise NotImplementedError("I don't know how to build this orthogonal array!")
+        raise NotImplementedError("I don't know how to build this orthogonal array!")
 
     if check:
         assert is_orthogonal_array(OA,k,n,t)

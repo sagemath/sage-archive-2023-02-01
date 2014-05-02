@@ -140,22 +140,24 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
 
         sage: designs.mutually_orthogonal_latin_squares(5,4)
         [
-        [0 1 2 3 4]  [0 1 2 3 4]  [0 1 2 3 4]  [0 1 2 3 4]
-        [3 0 1 4 2]  [4 3 0 2 1]  [1 2 4 0 3]  [2 4 3 1 0]
-        [4 3 0 2 1]  [1 2 4 0 3]  [2 4 3 1 0]  [3 0 1 4 2]
-        [1 2 4 0 3]  [2 4 3 1 0]  [3 0 1 4 2]  [4 3 0 2 1]
-        [2 4 3 1 0], [3 0 1 4 2], [4 3 0 2 1], [1 2 4 0 3]
+        [0 2 4 1 3]  [0 3 1 4 2]  [0 4 3 2 1]  [0 1 2 3 4]
+        [4 1 3 0 2]  [3 1 4 2 0]  [2 1 0 4 3]  [4 0 1 2 3]
+        [3 0 2 4 1]  [1 4 2 0 3]  [4 3 2 1 0]  [3 4 0 1 2]
+        [2 4 1 3 0]  [4 2 0 3 1]  [1 0 4 3 2]  [2 3 4 0 1]
+        [1 3 0 2 4], [2 0 3 1 4], [3 2 1 0 4], [1 2 3 4 0]
         ]
+
         sage: designs.mutually_orthogonal_latin_squares(7,3)
         [
-        [0 1 2 3 4 5 6]  [0 1 2 3 4 5 6]  [0 1 2 3 4 5 6]
-        [4 0 3 1 6 2 5]  [5 6 0 4 2 1 3]  [6 4 1 0 5 3 2]
-        [5 6 0 4 2 1 3]  [6 4 1 0 5 3 2]  [1 3 5 2 0 6 4]
-        [6 4 1 0 5 3 2]  [1 3 5 2 0 6 4]  [2 5 4 6 3 0 1]
-        [1 3 5 2 0 6 4]  [2 5 4 6 3 0 1]  [3 2 6 5 1 4 0]
-        [2 5 4 6 3 0 1]  [3 2 6 5 1 4 0]  [4 0 3 1 6 2 5]
-        [3 2 6 5 1 4 0], [4 0 3 1 6 2 5], [5 6 0 4 2 1 3]
+        [0 2 4 6 1 3 5]  [0 3 6 2 5 1 4]  [0 4 1 5 2 6 3]
+        [6 1 3 5 0 2 4]  [5 1 4 0 3 6 2]  [4 1 5 2 6 3 0]
+        [5 0 2 4 6 1 3]  [3 6 2 5 1 4 0]  [1 5 2 6 3 0 4]
+        [4 6 1 3 5 0 2]  [1 4 0 3 6 2 5]  [5 2 6 3 0 4 1]
+        [3 5 0 2 4 6 1]  [6 2 5 1 4 0 3]  [2 6 3 0 4 1 5]
+        [2 4 6 1 3 5 0]  [4 0 3 6 2 5 1]  [6 3 0 4 1 5 2]
+        [1 3 5 0 2 4 6], [2 5 1 4 0 3 6], [3 0 4 1 5 2 6]
         ]
+
         sage: designs.mutually_orthogonal_latin_squares(5,2,partitions=True)
         [[[0, 1, 2, 3, 4],
           [5, 6, 7, 8, 9],
@@ -167,16 +169,16 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
           [2, 7, 12, 17, 22],
           [3, 8, 13, 18, 23],
           [4, 9, 14, 19, 24]],
-        [[0, 6, 12, 18, 24],
-          [1, 7, 14, 15, 23],
-          [2, 9, 13, 16, 20],
-          [3, 5, 11, 19, 22],
-          [4, 8, 10, 17, 21]],
-        [[0, 7, 13, 19, 21],
-          [1, 9, 10, 18, 22],
-          [2, 8, 11, 15, 24],
+         [[0, 8, 11, 19, 22],
           [3, 6, 14, 17, 20],
-          [4, 5, 12, 16, 23]]]
+          [1, 9, 12, 15, 23],
+          [4, 7, 10, 18, 21],
+          [2, 5, 13, 16, 24]],
+         [[0, 9, 13, 17, 21],
+          [2, 6, 10, 19, 23],
+          [4, 8, 12, 16, 20],
+          [1, 5, 14, 18, 22],
+          [3, 7, 11, 15, 24]]]
 
     TESTS::
 
@@ -187,49 +189,19 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
         sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
         False
     """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.combinat.designs.block_design import AffineGeometryDesign
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
-    from sage.rings.arith import is_prime_power
     from sage.matrix.constructor import Matrix
-    from sage.rings.arith import factor
 
     if k >= n:
         if availability:
             return False
-        else:
-            raise ValueError("There exist at most n-1 MOLS of size n.")
-
-    if is_prime_power(n):
-        if availability:
-            return True
-
-        # Section 6.4.1 of [Stinson2004]
-        Fp = FiniteField(n,'x')
-        B = AffineGeometryDesign(2,1,Fp).blocks()
-        parallel_classes = [[] for _ in range(k+2)]
-        for b in B:
-            for p in parallel_classes:
-                if (not p) or all(i not in p[0] for i in b):
-                    p.append(b)
-                    break
-
-        coord = {v:i
-                 for i,L in enumerate(parallel_classes[0]) for v in L}
-        coord = {v:(coord[v],i)
-                 for i,L in enumerate(parallel_classes[1]) for v in L}
-
-        matrices = []
-        for P in parallel_classes[2:]:
-            matrices.append(Matrix({coord[v]:i for i,L in enumerate(P) for v in L }))
-
-        if partitions:
-            partitions = parallel_classes
+        raise ValueError("There exist at most n-1 MOLS of size n.")
 
     elif (orthogonal_array not in who_asked and
         orthogonal_array(k+2,n,availability=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,))):
         if availability:
             return True
+
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
 
@@ -256,8 +228,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
     else:
         if availability:
             return False
-        else:
-            raise NotImplementedError("I don't know how to build these MOLS!")
+        raise NotImplementedError("I don't know how to build these MOLS!")
 
     if check:
         assert are_mutually_orthogonal_latin_squares(matrices)

@@ -159,7 +159,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(X, Y, Groups())
         Traceback (most recent call last):
         ...
-        TypeError: Integer Ring is not in Category of groups
+        ValueError: Integer Ring is not in Category of groups
 
     A parent (or a parent class of a category) may specify how to
     construct certain homsets by implementing a method ``_Hom_(self,
@@ -286,17 +286,17 @@ def Hom(X, Y, category=None, check=True):
         sage: H = Hom(Set(), S, Sets())
         Traceback (most recent call last):
         ...
-        TypeError: S is not in Category of sets
+        ValueError: S is not in Category of sets
 
         sage: H = Hom(S, Set(), Sets())
         Traceback (most recent call last):
         ...
-        TypeError: S is not in Category of sets
+        ValueError: S is not in Category of sets
 
         sage: H = Hom(S, S, ChainComplexes(QQ))
         Traceback (most recent call last):
         ...
-        TypeError: S is not in Category of chain complexes over Rational Field
+        ValueError: S is not in Category of chain complexes over Rational Field
 
     Those checks are done with the natural idiom ``X in category``,
     and not ``X.category().is_subcategory(category)`` as it used to be
@@ -389,7 +389,7 @@ def Hom(X, Y, category=None, check=True):
                     # At this point, we can be rather sure that O is properly
                     # initialised, and thus its string representation is
                     # available for the following error message. It simply
-                    # belonging to the wrong category.
+                    # belongs to the wrong category.
                     raise ValueError("{} is not in {}".format(O, category))
 
         # Construct H

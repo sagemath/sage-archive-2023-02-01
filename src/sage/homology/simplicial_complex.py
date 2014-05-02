@@ -5,7 +5,7 @@ AUTHORS:
 
 - John H. Palmieri (2009-04)
 
-- D. Benjamin Antieau (2009-06) - added is_connected, generated_subcomplex,
+- D. Benjamin Antieau (2009-06): added is_connected, generated_subcomplex,
   remove_facet, and is_flag_complex methods;
   cached the output of the graph() method.
 
@@ -14,10 +14,13 @@ AUTHORS:
   sure it is immutable. Made :meth:`SimplicialComplex.remove_face()` into a
   mutator. Deprecated the ``vertex_set`` parameter.
 
-- Christian Stump (2011-06) - implementation of is_cohen_macaulay
+- Christian Stump (2011-06): implementation of is_cohen_macaulay
 
 - Travis Scrimshaw (2013-02-16): Allowed :class:`SimplicialComplex` to make
   mutable copies.
+
+- Simon King (2014-05-02): Let simplicial complexes be objects of the
+  category of simplicial complexes.
 
 This module implements the basic structure of finite simplicial
 complexes. Given a set `V` of "vertices", a simplicial complex on `V`
@@ -155,6 +158,7 @@ from copy import copy
 from sage.misc.lazy_import import lazy_import
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
+from sage.structure.category_object import CategoryObject
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
@@ -686,7 +690,7 @@ class Simplex(SageObject):
         """
         return latex(self.__tuple)
 
-class SimplicialComplex(GenericCellComplex):
+class SimplicialComplex(CategoryObject, GenericCellComplex):
     r"""
     Define a simplicial complex.
 
@@ -810,7 +814,12 @@ class SimplicialComplex(GenericCellComplex):
             sage: Y = SimplicialComplex([1,2,3,4], [[1,2], [2,3], [3,4]], vertex_check=False)
             doctest:1: DeprecationWarning: vertex_check is deprecated.
             See http://trac.sagemath.org/12587 for details.
+
+            sage: TestSuite(S).run()
+            sage: TestSuite(S3).run()
+
         """
+        CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
         # process kwds
         sort_facets = kwds.get('sort_facets', True)
@@ -3135,18 +3144,6 @@ class SimplicialComplex(GenericCellComplex):
             return FG.quotient(rels).simplified()
         else:
             return FG.quotient(rels)
-
-    def category(self):
-        """
-        Return the category to which this simplicial complex belongs: the
-        category of all simplicial complexes.
-
-        EXAMPLES::
-
-            sage: SimplicialComplex([[0,1], [1,2,3,4,5]]).category()
-            Category of simplicial complexes
-        """
-        return SimplicialComplexes()
 
     def is_isomorphic(self,other, certify = False):
         r"""

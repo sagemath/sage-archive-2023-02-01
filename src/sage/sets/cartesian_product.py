@@ -51,6 +51,32 @@ class CartesianProduct(UniqueRepresentation, Parent):
         self._sets = sets
         Parent.__init__(self, category = category)
 
+    def _element_constructor_(self,x):
+        r"""
+        Makes sure that each coordinate of an element belongs to the right set.
+
+        INPUT:
+
+        - ``x`` -- the new element
+
+        EXAMPLES::
+
+            sage: x = GF(5).cartesian_product(GF(3))((1,3)); x
+            (1, 0)
+            sage: x.parent()
+            The cartesian product of (Finite Field of size 5, Finite Field of size 3)
+            sage: x[0].parent()
+            Finite Field of size 5
+        """
+        new_x = []
+        for c,xx in zip(self._sets,x):
+            try:
+                new_x.append(c(xx))
+            except TypeError:
+                new_x.append(xx)
+
+        return self.element_class(self, tuple(new_x))
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -98,6 +124,20 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         assert i in self._sets_keys()
         return attrcall("summand_projection", i)
+
+    def __iter__(self):
+        r"""
+        Iterates over the elements of self.
+
+        EXAMPLE::
+
+            sage: F33 = GF(2).cartesian_product(GF(2))
+            sage: list(F33)
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+        """
+        from itertools import product
+        for x in product(*self._sets):
+            yield self(x)
 
     def _cartesian_product_of_elements(self, elements):
         """

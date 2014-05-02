@@ -547,6 +547,13 @@ class DiGraph(GenericGraph):
             sage: copy(g) is g
             True
 
+        Check the error when multiple edges are sent but ``multiple_edges`` is
+        set to ``False`` (:trac:`16215`)::
+
+            sage: DiGraph([(0,1),(1,0),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multidigraph got several edges (0,1)
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -833,7 +840,8 @@ class DiGraph(GenericGraph):
                 verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        raise ValueError("Non-multidigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)

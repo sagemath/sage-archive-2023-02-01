@@ -152,6 +152,7 @@ We can also make mutable copies of an immutable simplicial complex
 #  cohomology: compute cup products (and Massey products?)
 
 from copy import copy
+from sage.misc.lazy_import import lazy_import
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -163,6 +164,7 @@ from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
+lazy_import('sage.categories.category_types', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
     """
@@ -3144,8 +3146,7 @@ class SimplicialComplex(GenericCellComplex):
             sage: SimplicialComplex([[0,1], [1,2,3,4,5]]).category()
             Category of simplicial complexes
         """
-        import sage.categories.all
-        return sage.categories.all.SimplicialComplexes()
+        return SimplicialComplexes()
 
     def is_isomorphic(self,other, certify = False):
         r"""
@@ -3309,7 +3310,16 @@ class SimplicialComplex(GenericCellComplex):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism {0: 0, 1: 1, 2: 3} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+
+            sage: S._Hom_(T, Objects())
+            Traceback (most recent call last):
+            ...
+            TypeError: Category of objects is not a subcategory of SimplicialComplexes()
+            sage: type(Hom(S, T, Objects()))
+            <class 'sage.categories.homset.Homset_with_category'>
         """
+        if not category.is_subcategory(SimplicialComplexes()):
+            raise TypeError("{} is not a subcategory of SimplicialComplexes()".format(category))
         from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
         return SimplicialComplexHomset(self, other)
 

@@ -191,7 +191,7 @@ class ConstructionFunctor(Functor):
         import re
         return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         NOTE:
 
@@ -2926,7 +2926,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
         self._gens = gens
         self._domain = domain
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 

@@ -68,7 +68,7 @@ def reset(vars=None, attached=False):
     G = globals()  # this is the reason the code must be in Cython.
     T = type(sys)
     for k in G.keys():
-        if k[0] != '_' and type(k) != T and k not in EXCLUDE:
+        if k[0] != '_' and not isinstance(k, T) and k not in EXCLUDE:
             try:
                 del G[k]
             except KeyError:

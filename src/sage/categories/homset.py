@@ -376,13 +376,21 @@ def Hom(X, Y, category=None, check=True):
                 try:
                     category_mismatch = O not in category
                 except BaseException:
+                    # An error should not happen, this here is just to be on
+                    # the safe side.
                     category_mismatch = True
+                # A category mismatch does not necessarily mean that an error
+                # should be raised. Instead, it could be the case that we are
+                # unpickling an old pickle (that doesn't set the "check"
+                # argument to False). In this case, it could be that the
+                # (co)domain is not properly initialised, which we are
+                # checking now. See trac #16275 and #14793.
                 if category_mismatch and O._is_category_initialized():
-                    try:
-                        error_msg = "{} is not in {}".format(O, category)
-                    except BaseException:
-                        error_msg = "{} instance is not in {}".format(type(O), category)
-                    raise ValueError(error_msg)
+                    # At this point, we can be rather sure that O is properly
+                    # initialised, and thus its string representation is
+                    # available for the following error message. It simply
+                    # belonging to the wrong category.
+                    raise ValueError("{} is not in {}".format(O, category))
 
         # Construct H
         try: # _Hom_ hook from the parent

@@ -415,7 +415,7 @@ def _check_pbd(B,v,S):
 
     return B
 
-def _relabel_bibd(B,n):
+def _relabel_bibd(B,n,p=None):
     r"""
     Relabels the BIBD on `n` points and blocks of size k such that
     `\{0,...,k-2,n-1\},\{k-1,...,2k-3,n-1\},...,\{n-k,...,n-2,n-1\}` are blocks
@@ -427,6 +427,8 @@ def _relabel_bibd(B,n):
 
     - ``n`` (integer) -- number of points.
 
+    - ``p`` (optional) -- the point that will be labeled with n-1.
+
     EXAMPLE::
 
         sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
@@ -435,6 +437,8 @@ def _relabel_bibd(B,n):
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
     """
+    if p is None:
+        p = n-1
     found = 0
     last = n-1
     d = {}
@@ -447,7 +451,7 @@ def _relabel_bibd(B,n):
                 found += 1
             if found == n-1:
                 break
-    d[n-1] = n-1
+    d[p] = n-1
     return [[d[x] for x in X] for X in B]
 
 def PBD_4_5_8_9_12(v, check=True):

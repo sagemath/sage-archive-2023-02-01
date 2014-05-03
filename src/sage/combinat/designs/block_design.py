@@ -269,32 +269,20 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
     """
-    n = len(pplane.blcks[0]) - 1
-
-    assert len(pplane.blcks) == n**2+n+1, "pplane is not a projective plane"
+    from bibd import _relabel_bibd
+    pplane = pplane.blcks
+    n = len(pplane[0]) - 1
 
     if pt is None:
         pt = n**2+n
 
-    # make the list of the lines that pass through the point pt
-    L = []
-    OA = []
-    for blk in pplane.blcks:
-        assert len(blk) == n+1, "pplane is not a projective plane"
-        if pt in blk:
-            b = blk[:]
-            b.remove(pt)
-            L.append(b)
-        else:
-            OA.append(blk)
+    assert len(pplane) == n**2+n+1, "pplane is not a projective plane"
+    assert all(len(B) == n+1 for B in pplane), "pplane is not a projective plane"
 
-    assert len(L) == n+1, "pplane is not a projective plane"
+    pplane = _relabel_bibd(pplane,n**2+n+1,p=n**2+n)
+    OA = [[x%n for x in sorted(X)] for X in pplane if not n**2+n in X]
 
-    # relabel to fit with the convention of orthogonal array: each line that
-    # pass through the point ``pt`` must have their points labeled from 0 to n-1
-    relabel = dict((x,(j,i)) for j,l in enumerate(L) for i,x in enumerate(l))
-    OA = [sorted(relabel[x] for x in l) for l in OA]
-    OA = [[x[1] for x in l] for l in OA]
+    assert len(OA) == n**2, "pplane is not a projective plane"
 
     if check:
         from orthogonal_arrays import is_orthogonal_array

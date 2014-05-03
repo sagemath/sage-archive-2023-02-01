@@ -93,30 +93,29 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     For prime powers, there is an explicit construction which gives a
     `TD(n+1,n)`::
 
-        sage: TD = designs.transversal_design
         sage: for n in [2,3,5,7,9,11,13,16,17,19]:
         ....:     for k in xrange(2, n+2):
-        ....:        assert TD(k,n,existence=True) is True
+        ....:        assert designs.transversal_design(k,n,existence=True) is True
 
     For other values of ``n`` it depends::
 
-        sage: TD(7, 6, existence=True)
+        sage: designs.transversal_design(7, 6, existence=True)
         False
-        sage: TD(4, 6, existence=True)
+        sage: designs.transversal_design(4, 6, existence=True)
         Unknown
-        sage: TD(3, 6, existence=True)
+        sage: designs.transversal_design(3, 6, existence=True)
         True
 
-        sage: TD(11, 10, existence=True)
+        sage: designs.transversal_design(11, 10, existence=True)
         False
-        sage: TD(4, 10, existence=True)
+        sage: designs.transversal_design(4, 10, existence=True)
         Unknown
-        sage: TD(3, 10, existence=True)
+        sage: designs.transversal_design(3, 10, existence=True)
         True
 
-        sage: TD(7, 12, existence=True)
+        sage: designs.transversal_design(7, 12, existence=True)
         Unknown
-        sage: TD(6, 12, existence=True)
+        sage: designs.transversal_design(6, 12, existence=True)
         True
 
     TESTS:
@@ -131,27 +130,27 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: _ = designs.transversal_design(5,60) # checks some tricky divisibility error
 
     For small values of the parameter ``n`` we check the coherence of the
-    function :func:`transversal_design`:
+    function :func:`transversal_design`::
 
-        sage: TD = designs.transversal_design
+        sage: designs.transversal_design = designs.transversal_design
         sage: for n in xrange(2,25):                               # long time -- 15 secs
         ....:     i = 2
-        ....:     while TD(i, n, existence=True) is True:
+        ....:     while designs.transversal_design(i, n, existence=True) is True:
         ....:         i += 1
-        ....:     _ = TD(i-1, n)
+        ....:     _ = designs.transversal_design(i-1, n)
         ....:     j = i
-        ....:     while TD(j, n, existence=True) is Unknown:
+        ....:     while designs.transversal_design(j, n, existence=True) is Unknown:
         ....:         try:
-        ....:             _ = TD(j, n)
+        ....:             _ = designs.transversal_design(j, n)
         ....:             raise AssertionError("no NotImplementedError")
         ....:         except NotImplementedError:
         ....:             pass
         ....:         j += 1
         ....:     k = j
         ....:     while k < n+4:
-        ....:         assert TD(k, n, existence=True) is False
+        ....:         assert designs.transversal_design(k, n, existence=True) is False
         ....:         try:
-        ....:             _ = TD(k, n)
+        ....:             _ = designs.transversal_design(k, n)
         ....:             raise AssertionError("no EmptySetError")
         ....:         except EmptySetError:
         ....:             pass
@@ -287,7 +286,7 @@ def is_transversal_design(B,k,n, verbose=False):
 @cached_function
 def find_wilson_decomposition(k,n):
     r"""
-    Finds a wilson decomposition of `n`
+    Finds a wilson decomposition of `k,n`
 
     This method looks for possible integers `m,t,u` satisfying that `mt+u=n` and
     such that Sage knows how to build a `TD(k,m), TD(k,m+1),TD(k+1,t)` and a

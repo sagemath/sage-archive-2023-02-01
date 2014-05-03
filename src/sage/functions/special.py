@@ -473,7 +473,7 @@ class MaximaFunction(BuiltinFunction):
         """
         parent = kwds['parent']
         if hasattr(parent, 'prec') and parent.prec() > 53:
-            raise NotImplementedError, "%s not implemented for precision > 53"%self.name()
+            raise NotImplementedError("%s not implemented for precision > 53"%self.name())
         _init()
         return parent(maxima("%s, numer"%self._maxima_init_evaled_(*args)))
 
@@ -652,7 +652,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     """
     if algorithm=="scipy":
         if prec != 53:
-            raise ValueError, "for the scipy algorithm the precision must be 53"
+            raise ValueError("for the scipy algorithm the precision must be 53")
         import scipy.special
         ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
         ans = ans.replace("(","")
@@ -664,7 +664,7 @@ def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
         R = RealField(prec)
         return R(pari(R(alpha)).hyperu(R(beta), R(x), precision=prec))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_bessel_J(n, var, algorithm="maxima"):
     r"""
@@ -689,7 +689,7 @@ def spherical_bessel_J(n, var, algorithm="maxima"):
         _init()
         return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_bessel_Y(n,var, algorithm="maxima"):
     r"""
@@ -715,7 +715,7 @@ def spherical_bessel_Y(n,var, algorithm="maxima"):
         _init()
         return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
     else:
-        raise ValueError, "unknown algorithm '%s'"%algorithm
+        raise ValueError("unknown algorithm '%s'"%algorithm)
 
 def spherical_hankel1(n, var):
     r"""
@@ -804,7 +804,7 @@ def elliptic_j(z):
       try:
          z = CC(z)
       except ValueError:
-         raise ValueError, "elliptic_j only defined for complex arguments."
+         raise ValueError("elliptic_j only defined for complex arguments.")
    from sage.libs.all import pari
    return CC(pari(z).ellj())
 
@@ -1128,7 +1128,7 @@ def error_fcn(t):
         from sage.rings.real_mpfr import RR
         try:
             return RR(t).erfc()
-        except StandardError:
+        except Exception:
             raise NotImplementedError
 
 

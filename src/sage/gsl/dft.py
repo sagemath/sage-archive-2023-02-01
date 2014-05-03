@@ -585,7 +585,7 @@ class IndexedSequence(SageObject):
             ** elements are considered different if they differ
             by ``10^(-8)``, which is pretty arbitrary -- use with CAUTION!! **
         """
-        if type(self) != type(other):
+        if not isinstance(self, type(other)):
             return False
         S = self.list()
         T = other.list()

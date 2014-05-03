@@ -36,14 +36,14 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
         INPUT:
 
-        - parent - an arithmetic subgroup
+        - ``parent`` -- an arithmetic subgroup
 
-        - x - data defining a 2x2 matrix over ZZ
-          which lives in parent
+        - `x` -- data defining a 2x2 matrix over ZZ
+                 which lives in parent
 
-        - check - if True, check that parent
-          is an arithmetic subgroup, and that
-          x defines a matrix of determinant 1.
+        - ``check`` -- if True, check that parent is an arithmetic
+                       subgroup, and that `x` defines a matrix of
+                       determinant `1`.
 
         We tend not to create elements of arithmetic subgroups that aren't
         SL2Z, in order to avoid coercion issues (that is, the other arithmetic
@@ -108,9 +108,9 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         from all import SL2Z
         oldparent, kwdict = state
         self._set_parent(SL2Z)
-        if kwdict.has_key('_ArithmeticSubgroupElement__x'):
+        if '_ArithmeticSubgroupElement__x' in kwdict:
             self.__x = kwdict['_ArithmeticSubgroupElement__x']
-        elif kwdict.has_key('_CongruenceSubgroupElement__x'):
+        elif '_CongruenceSubgroupElement__x' in kwdict:
             self.__x = kwdict['_CongruenceSubgroupElement__x']
         else:
             raise ValueError, "Don't know how to unpickle %s" % repr(state)
@@ -363,7 +363,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: g.acton(Cusp(-31/15))
             +Infinity
 
-        TESTS::
+        TESTS:
 
         We cover the remaining case, i.e., infinity mapped to infinity::
 

@@ -173,7 +173,10 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_init(self._temp, self._bitset_size)
 
         self._groundset = frozenset(groundset)
-        self._E = [e for e in groundset]
+        if not isinstance(groundset, tuple):
+            self._E = tuple(groundset)
+        else:
+            self._E = groundset
         self._idx = {}
         cdef long i
         for i in xrange(self._groundset_size):
@@ -215,7 +218,7 @@ cdef class BasisExchangeMatroid(Matroid):
                 E.append(l[self._E[i]])
             else:
                 E.append(self._E[i])
-        self._E = E
+        self._E = tuple(E)
         self._groundset = frozenset(E)
 
         self._idx = {}
@@ -502,8 +505,13 @@ cdef class BasisExchangeMatroid(Matroid):
             <type 'list'>
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+            sage: E = M.groundset_list()
+            sage: E.remove('a')
+            sage: sorted(M.groundset_list())
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         """
-        return self._E
+        return list(self._E)
 
     def __len__(self):
         """
@@ -1096,9 +1104,9 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *flats, *todo
         if r < 0 or r > self.full_rank():
-            return SetSystem(self.groundset_list())
+            return SetSystem(self._E)
         if r == self.full_rank():
-            return SetSystem(self.groundset_list(), subsets=[self.groundset()])
+            return SetSystem(self._E, subsets=[self.groundset()])
         flats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
@@ -1170,9 +1178,9 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *coflats, *todo
         if r < 0 or r > self.full_corank():
-            return SetSystem(self.groundset_list())
+            return SetSystem(self._E)
         if r == self.full_corank():
-            return SetSystem(self.groundset_list(), subsets=[self.groundset()])
+            return SetSystem(self._E, subsets=[self.groundset()])
         coflats = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
 
@@ -1217,6 +1225,8 @@ cdef class BasisExchangeMatroid(Matroid):
         Compute a flat-element invariant of the matroid.
         """
         cdef bitset_t *flats, *todo
+        if self._groundset_size == 0:
+            return {}, tuple()
         flats = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
         todo = <bitset_t*>sage_malloc((k + 1) * sizeof(bitset_t))
 
@@ -1328,7 +1338,7 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem BB
         BB = SetSystem(self._E)
-        if r < 0:
+        if r < 0 or r > self.full_rank():
             return BB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)
@@ -1382,15 +1392,20 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NB
         NB = SetSystem(self._E)
-        if r < 0:
+        if r < 0 or r > self.size():
             return NB
         bitset_clear(self._input)
         bitset_set_first_n(self._input, r)
         repeat = True
-        while repeat:
-            if not self.__is_independent(self._input):
+        if r > self.full_rank():
+            while repeat:
                 NB._append(self._input)
-            repeat = nxksrd(self._input, self._groundset_size, r, True)
+                repeat = nxksrd(self._input, self._groundset_size, r, True)
+        else:    
+            while repeat:
+                if not self.__is_independent(self._input):
+                    NB._append(self._input)
+                repeat = nxksrd(self._input, self._groundset_size, r, True)
         NB.resize()
         return NB
 
@@ -1443,6 +1458,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f
@@ -1490,6 +1507,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f, corank
@@ -1538,6 +1557,8 @@ cdef class BasisExchangeMatroid(Matroid):
 
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f, corank
@@ -1587,6 +1608,8 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef SetSystem NSC
         NSC = SetSystem(self._E)
+        if self._groundset_size == 0:
+            return NSC
         bitset_clear(self._input)
         bitset_set_first_n(self._input, self._matroid_rank)
         cdef long e, f

@@ -1165,7 +1165,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         return vertex_ints[u]
     try:
         u_int = u
-    except StandardError:
+    except Exception:
         return -1
     if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
         return -1
@@ -1738,18 +1738,13 @@ class CGraphBackend(GenericGraphBackend):
                                     self._cg)
         # Sparse
         if self._cg_rev is not None:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg_rev.out_neighbors(v_int)])
+            for u_int in self._cg_rev.out_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
+
         # Dense
         else:
-            return iter([vertex_label(u_int,
-                                      self.vertex_ints,
-                                      self.vertex_labels,
-                                      self._cg)
-                         for u_int in self._cg.in_neighbors(v_int)])
+            for u_int in self._cg.in_neighbors(v_int):
+                yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_out_nbrs(self, v):
         """
@@ -1782,11 +1777,9 @@ class CGraphBackend(GenericGraphBackend):
                                     self.vertex_ints,
                                     self.vertex_labels,
                                     self._cg)
-        return iter([vertex_label(u_int,
-                                  self.vertex_ints,
-                                  self.vertex_labels,
-                                  self._cg)
-                     for u_int in self._cg.out_neighbors(v_int)])
+
+        for u_int in self._cg.out_neighbors(v_int):
+            yield vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
 
     def iterator_verts(self, verts=None):
         """
@@ -1836,7 +1829,7 @@ class CGraphBackend(GenericGraphBackend):
         try:
             v = hash(verts)
             is_hashable = True
-        except StandardError:
+        except Exception:
             pass
         if is_hashable and self.has_vertex(verts):
             return iter([verts])
@@ -1879,33 +1872,6 @@ class CGraphBackend(GenericGraphBackend):
             self._loops = True
         else:
             self._loops = False
-
-    def name(self, new=None):
-        """
-        Returns the name of this graph.
-
-        INPUT:
-
-        - ``new`` -- (default: ``None``); boolean (to set) or ``None``
-          (to get).
-
-        OUTPUT:
-
-        - If ``new=None``, return the name of this graph. Otherwise, set the
-          name of this graph to the value of ``new``.
-
-        EXAMPLE::
-
-            sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
-            sage: G._backend.name()
-            'Petersen graph'
-            sage: G._backend.name("Peter Pan's graph")
-            sage: G._backend.name()
-            "Peter Pan's graph"
-        """
-        if new is None:
-            return self._name
-        self._name = new
 
     def num_edges(self, directed):
         """
@@ -2421,7 +2387,7 @@ class CGraphBackend(GenericGraphBackend):
 
             sage: g = 2*graphs.RandomGNP(20,.3)
             sage: paths = g._backend.shortest_path_all_vertices(0)
-            sage: all([ (not paths.has_key(v) and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
+            sage: all([ (v not in paths and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
         """
         cdef list current_layer
@@ -2974,6 +2940,7 @@ cdef class Search_iterator:
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
+    cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
                  ignore_direction=False):
@@ -3028,6 +2995,12 @@ cdef class Search_iterator:
             Traceback (most recent call last):
             ...
             LookupError: Vertex ('') is not a vertex of the graph.
+
+        Immutable graphs (see :trac:`16019`)::
+
+            sage: DiGraph([[1,2]], immutable=True).connected_components()
+            [[1, 2]]
+
         """
         self.graph = graph
         self.direction = direction
@@ -3045,11 +3018,17 @@ cdef class Search_iterator:
 
         self.stack = [v_id]
 
-        if not self.graph.directed:
+        if not self.graph._directed:
             ignore_direction = False
 
         self.test_out = (not reverse) or ignore_direction
         self.test_in = reverse or ignore_direction
+
+        if self.test_in: # How do we list in_neighbors ?
+            if self.graph._cg_rev is None:
+                self.in_neighbors = self.graph._cg.in_neighbors
+            else:
+                self.in_neighbors = self.graph._cg_rev.out_neighbors
 
     def __iter__(self):
         r"""
@@ -3091,7 +3070,7 @@ cdef class Search_iterator:
                 if self.test_out:
                     self.stack.extend(self.graph._cg.out_neighbors(v_int))
                 if self.test_in:
-                    self.stack.extend(self.graph._cg_rev.out_neighbors(v_int))
+                    self.stack.extend(self.in_neighbors(v_int))
 
                 break
         else:

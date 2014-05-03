@@ -56,7 +56,7 @@ class PolyhedralSets(Category_over_base_ring):
         """
         from sage.rings.all import ZZ, QQ, RDF
         if R not in [ZZ, QQ, RDF]:
-            raise TypeError, 'base ring R (='+str(R)+') must be ZZ, QQ, or RDF.'
+            raise TypeError('base ring R (='+str(R)+') must be ZZ, QQ, or RDF.')
         Category_over_base_ring.__init__(self, R, 'Polyhedra')
 
     @cached_method

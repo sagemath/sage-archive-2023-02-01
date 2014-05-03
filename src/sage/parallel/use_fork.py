@@ -58,7 +58,7 @@ class p_iter_fork:
         """
         self.ncpus = int(ncpus)
         if self.ncpus != ncpus:  # check that there wasn't a roundoff
-            raise TypeError, "ncpus must be an integer"
+            raise TypeError("ncpus must be an integer")
         self.timeout = float(timeout)  # require a float
         self.verbose = verbose
         self.reset_interfaces = reset_interfaces
@@ -255,7 +255,7 @@ class p_iter_fork:
             sobj = os.path.join(dir, '%s.sobj'%os.getpid())
             save(value, sobj, compress=False)
 
-        except Exception, msg:
+        except Exception as msg:
             # Important to print this, so it is seen by the caller.
             print msg
         finally:

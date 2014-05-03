@@ -153,8 +153,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ainvs = [K(0),K(0),K(0)] + ainvs
         self.__ainvs = tuple(ainvs)
         if self.discriminant() == 0:
-            raise ArithmeticError, \
-                  "Invariants %s define a singular curve."%ainvs
+            raise ArithmeticError("Invariants %s define a singular curve."%ainvs)
         PP = projective_space.ProjectiveSpace(2, K, names='xyz');
         x, y, z = PP.coordinate_ring().gens()
         a1, a2, a3, a4, a6 = ainvs
@@ -704,7 +703,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         try:
             x = K(x)
         except TypeError:
-            raise TypeError, 'x must be coercible into the base ring of the curve'
+            raise TypeError('x must be coercible into the base ring of the curve')
         a1, a2, a3, a4, a6 = self.ainvs()
         fx = ((x + a2) * x + a4) * x + a6
         if a1.is_zero() and a3.is_zero():
@@ -836,7 +835,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if all:
             return []
         else:
-            raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
+            raise ValueError("No point with x-coordinate %s on %s"%(x, self))
 
     def _point_homset(self, *args, **kwds):
         r"""
@@ -864,7 +863,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...
             NotImplementedError: not implemented.
         """
-        raise NotImplementedError, "not implemented."
+        raise NotImplementedError("not implemented.")
 
     def __is_over_RationalField(self):
         r"""
@@ -1228,16 +1227,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def base_extend(self, R):
         r"""
-        Returns a new curve with the same `a`-invariants but defined over a new ring.
+        Return the base extension of ``self`` to `R`.
 
         INPUT:
 
-        - ``R`` -- either a ring into which the curve's `a`-invariants
-          may be coerced, or a morphism which may be applied to them.
+        - ``R`` -- either a ring into which the `a`-invariants of
+          ``self`` may be converted, or a morphism which may be
+          applied to them.
 
         OUTPUT:
 
-        A new elliptic curve with the same `a`-invariants, defined over the new ring.
+        An elliptic curve over the new ring whose `a`-invariants are
+        the images of the `a`-invariants of ``self``.
 
         EXAMPLES::
 
@@ -1245,17 +1246,26 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 5
             sage: E1=E.base_extend(GF(125,'a')); E1
             Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field in a of size 5^3
+        """
+        return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
+
+    def change_ring(self, R):
+        """
+        Return the base change of ``self`` to `R`.
+
+        This has the same effect as ``self.base_extend(R)``.
+
+        EXAMPLES::
+
             sage: F2=GF(5^2,'a'); a=F2.gen()
             sage: F4=GF(5^4,'b'); b=F4.gen()
             sage: h=F2.hom([a.charpoly().roots(ring=F4,multiplicities=False)[0]],F4)
             sage: E=EllipticCurve(F2,[1,a]); E
             Elliptic Curve defined by y^2 = x^3 + x + a over Finite Field in a of size 5^2
-            sage: E.base_extend(h)
+            sage: E.change_ring(h)
             Elliptic Curve defined by y^2 = x^3 + x + (4*b^3+4*b^2+4*b+3) over Finite Field in b of size 5^4
         """
-        return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
-
-    change_ring = base_extend
+        return self.base_extend(R)
 
     def base_ring(self):
         r"""
@@ -1302,7 +1312,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.gens()
             [(0 : 1 : 1)]
         """
-        raise NotImplementedError, "not implemented."
+        raise NotImplementedError("not implemented.")
 
     def gen(self, i):
         r"""
@@ -1637,7 +1647,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                           (6*x**2 + b2*x + b4) * \
                           self.division_polynomial_0(3, x, cache)
              else:
-                 raise ValueError, "n must be a positive integer (or -1 or -2)"
+                 raise ValueError("n must be a positive integer (or -1 or -2)")
          else:
              if n % 2 == 0:
                  m = (n-2) // 2
@@ -1783,7 +1793,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
 
         if not two_torsion_multiplicity in [0,1,2]:
-            raise ValueError, "two_torsion_multiplicity must be 0,1 or 2"
+            raise ValueError("two_torsion_multiplicity must be 0,1 or 2")
 
         # Coerce the input m to be an integer
         m = rings.Integer(m)
@@ -1821,7 +1831,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                     self.__divpoly1[(m,xy)] = fxy
                     return fxy
                 else:
-                    raise ValueError, "x should be a tuple of length 2 (or None) when two_torsion_multiplicity is 1"
+                    raise ValueError("x should be a tuple of length 2 (or None) when two_torsion_multiplicity is 1")
 
         if two_torsion_multiplicity == 2:
             try:
@@ -2466,13 +2476,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         # any curve of the form y^2 = x^3 +.. is singular in characteristic 2
         if K.characteristic() == 2:
-            raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+            raise ValueError("short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic()))
 
         # in characteristic 3 we can complete the square but we can only complete the cube if b2 is 0
         if K.characteristic() == 3:
             b2,b4,b6,_ = self.b_invariants()
             if complete_cube and b2 != 0:
-                raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+                raise ValueError("short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic()))
             else:
                 return constructor.EllipticCurve([0,b2,0,8*b4,16*b6])
 
@@ -2564,7 +2574,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         try:
             RR._coerce_(K(1))
         except TypeError:
-            raise NotImplementedError, "Plotting of curves over %s not implemented yet"%K
+            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
         if components not in ['both', 'bounded', 'unbounded']:
             raise ValueError("component must be one of 'both', 'bounded' or 'unbounded'")
 
@@ -2574,8 +2584,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         f1 = lambda z: (-(a1*z + a3) + sqrt(abs(d(z))))/2
         # Internal function for plotting second branch of the curve
         f2 = lambda z: (-(a1*z + a3) - sqrt(abs(d(z))))/2
-        r = d.roots(RR, multiplicities=False)
-        r.sort()
+        r = sorted(d.roots(RR, multiplicities=False))
         if components == 'bounded' and len(r) == 1:
             raise ValueError("no bounded component for this curve")
         if isinstance(xmin, (tuple, list)):
@@ -2596,8 +2605,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             # components=='both' and len(r) > 1 and take the maximum
             # generated xmax.
             if components == 'unbounded' or components == 'both' and (len(r) == 1 or r[2] - r[1] > 3*(r[1] - r[0])):
-                flex = self.division_polynomial(3).roots(RR, multiplicities=False)
-                flex.sort()
+                flex = sorted(self.division_polynomial(3).roots(RR, multiplicities=False))
                 flex = flex[-1]
                 xmins.append(r[-1])
                 # The doubling here is an aesthetic choice

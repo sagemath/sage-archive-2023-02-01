@@ -39,6 +39,7 @@ import integer
 import infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
+from sage.rings.integer_ring import ZZ
 
 include "sage/ext/stdsage.pxi"
 
@@ -544,7 +545,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _pari_(self):
         r"""
-        Coerces ``self`` into a Pari ``complex`` object.
+        Coerces ``self`` into a PARI ``t_COMPLEX`` object,
+        or a ``t_REAL`` if ``self`` is real.
 
         EXAMPLES:
 
@@ -553,14 +555,26 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: a = ComplexNumber(2,1)
             sage: pari(a)
             2.00000000000000 + 1.00000000000000*I
+            sage: pari(a).type()
+            't_COMPLEX'
             sage: type(pari(a))
             <type 'sage.libs.pari.gen.gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
             <type 'sage.libs.pari.gen.gen'>
+            sage: a = CC(pi)
+            sage: pari(a)
+            3.14159265358979
+            sage: pari(a).type()
+            't_REAL'
+            sage: a = CC(-2).sqrt()
+            sage: pari(a)
+            1.41421356237310*I
         """
-        return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
+        if self.is_real():
+            return self.real()._pari_()
+        return sage.libs.pari.all.pari.complex(self.real() or 0, self.imag())
 
     def _mpmath_(self, prec=None, rounding=None):
         """
@@ -2249,7 +2263,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(1+i).is_real()
             False
         """
-        return (mpfr_zero_p(self.__im) <> 0)
+        return (mpfr_zero_p(self.__im) != 0)
 
     def is_imaginary(self):
         """
@@ -2262,7 +2276,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(1+i).is_imaginary()
             False
         """
-        return (mpfr_zero_p(self.__re) <> 0)
+        return (mpfr_zero_p(self.__re) != 0)
+
+    def is_integer(self):
+        """
+        Return ``True`` if ``self`` is a integer
+
+        EXAMPLES::
+
+            sage: CC(3).is_integer()
+            True
+            sage: CC(1,2).is_integer()
+            False
+        """
+        return self.is_real() and self.real() in ZZ
 
     def zeta(self):
         """
@@ -2443,6 +2470,50 @@ cdef class RRtoCC(Map):
         Map.__init__(self, RR, CC)
         self._zero = ComplexNumber(CC, 0)
         self._repr_type_str = "Natural"
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        A helper for pickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary
+
+        OUTPUT:
+
+        The given dictionary, with zero added.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_number import RRtoCC
+            sage: f = RRtoCC(RR, CC)
+            sage: g = copy(f) # indirect doctest
+            sage: g
+            Natural map:
+              From: Real Field with 53 bits of precision
+              To:   Complex Field with 53 bits of precision
+        """
+        _slots['_zero'] = self._zero
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        A helper for unpickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary providing values for the c(p)def slots of self.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_number import RRtoCC
+            sage: RRtoCC(RR, CC)
+            Natural map:
+              From: Real Field with 53 bits of precision
+              To:   Complex Field with 53 bits of precision
+        """
+        Map._update_slots(self, _slots)
+        self._zero = _slots['_zero']
 
     cpdef Element _call_(self, x):
         """

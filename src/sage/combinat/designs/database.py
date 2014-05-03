@@ -72,6 +72,53 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
 
+def TD_6_12():
+    r"""
+    Returns a `TD(6,12)` as build in [Hanani75]_.
+
+    This design is Lemma 3.21 from [Hanani75]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import TD_6_12
+        sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
+        sage: TD = TD_6_12()
+        sage: is_transversal_design(TD,6,12)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.transversal_design(6,12,availability=True)
+        True
+
+    REFERENCES:
+
+    .. [Hanani75] Haim Hanani,
+      Balanced incomplete block designs and related designs,
+      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
+      Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
+    """
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+    G = AdditiveAbelianGroup([2,6])
+    d = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
+         [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
+         [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
+         [(0,0),(0,3),(0,2),(0,1),(1,5),(1,4)],
+         [(0,0),(0,4),(1,1),(1,3),(0,5),(0,2)],
+         [(0,0),(0,5),(0,1),(1,5),(1,3),(1,1)],
+         [(0,0),(1,0),(1,3),(0,2),(0,3),(1,2)],
+         [(0,0),(1,1),(1,5),(1,2),(1,4),(1,0)],
+         [(0,0),(1,2),(0,4),(0,5),(0,2),(1,3)],
+         [(0,0),(1,3),(1,4),(0,4),(1,1),(0,1)],
+         [(0,0),(1,4),(0,5),(1,1),(1,0),(0,3)],
+         [(0,0),(1,5),(0,3),(1,4),(0,4),(0,5)]]
+
+    r = lambda x : int(x[0])*6+int(x[1])
+    TD = [[i*12+r(G(x)+g) for i,x in enumerate(X)] for X in d for g in G]
+    for x in TD: x.sort()
+
+    return TD
+
 def OA_6_20():
     r"""
     Returns an OA(6,20)
@@ -84,7 +131,16 @@ def OA_6_20():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(6,20) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_6_20
+        sage: OA = OA_6_20()
+        sage: print is_orthogonal_array(OA,6,20,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(6,20,availability=True)
+        True
     """
     M=[[None,   7,  13,   1,  16,   9,   2],
        [   0,   1,  15,   7,  17,   6,  14],
@@ -121,7 +177,16 @@ def OA_7_21():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,21) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_21
+        sage: OA = OA_7_21()
+        sage: print is_orthogonal_array(OA,7,21,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,21,availability=True)
+        True
     """
     M = [[  8,  17,  20,   2],
          [  9,  16,   4,  15],
@@ -154,7 +219,16 @@ def OA_5_22():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(5,22) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_5_22
+        sage: OA = OA_5_22()
+        sage: print is_orthogonal_array(OA,5,22,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(5,22,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(21)
@@ -197,7 +271,16 @@ def OA_9_24():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(9,24) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_24
+        sage: OA = OA_9_24()
+        sage: print is_orthogonal_array(OA,9,24,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,24,availability=True)
+        True
     """
     M = ("0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 "+
          "0000 0010 0100 0110 1000 1010 1100 1110 2000 2010 2100 2110 "+
@@ -239,7 +322,16 @@ def OA_6_26():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(6,26) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_6_26
+        sage: OA = OA_6_26()
+        sage: print is_orthogonal_array(OA,6,26,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(6,26,availability=True)
+        True
     """
     M = [
         [None,None,None,None,None],
@@ -278,7 +370,16 @@ def OA_7_28():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,28) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_28
+        sage: OA = OA_7_28()
+        sage: print is_orthogonal_array(OA,7,28,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,28,availability=True)
+        True
     """
     z=2
     M = [
@@ -321,7 +422,16 @@ def OA_6_30():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(6,30) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_6_30
+        sage: OA = OA_6_30()
+        sage: print is_orthogonal_array(OA,6,30,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(6,30,availability=True)
+        True
     """
     M = [
         [(0,0),None,(0,0),(0,0),(0,0),(0,0),(0,0)],
@@ -364,7 +474,16 @@ def OA_7_33():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,33) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_33
+        sage: OA = OA_7_33()
+        sage: print is_orthogonal_array(OA,7,33,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,33,availability=True)
+        True
     """
     M = [
         [   0,   0,   0,   0,   0,   0],
@@ -406,7 +525,16 @@ def OA_6_34():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(6,34) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_6_34
+        sage: OA = OA_6_34()
+        sage: print is_orthogonal_array(OA,6,34,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(6,34,availability=True)
+        True
     """
     M = [
         [None,   0,   0,   0,   0,   0],
@@ -449,7 +577,16 @@ def OA_7_35():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,35) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_35
+        sage: OA = OA_7_35()
+        sage: print is_orthogonal_array(OA,7,35,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,35,availability=True)
+        True
     """
     M = [
         [  0, 15, 30, 10, 25,  1, 16, 31, 11, 26,  2, 17, 32, 12,  6,  3, 18, 33, 27, 21,  4, 19, 13,  7, 22,  5, 34, 28,  8, 23, 20, 14, 29,  9, 24],
@@ -478,7 +615,16 @@ def OA_10_36():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(10,36) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_36
+        sage: OA = OA_10_36()
+        sage: print is_orthogonal_array(OA,10,36,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,36,availability=True)
+        True
     """
     M = [
         [(0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0), (0,0,0,0)],
@@ -527,7 +673,16 @@ def OA_6_38():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(6,38) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_6_38
+        sage: OA = OA_6_38()
+        sage: print is_orthogonal_array(OA,6,38,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(6,38,availability=True)
+        True
     """
     M = [
         [None,  10,   1,   2,   6,   3,  22,   5,   7,   9,  14,  18,  28],
@@ -567,7 +722,16 @@ def OA_7_39():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,39) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_39
+        sage: OA = OA_7_39()
+        sage: print is_orthogonal_array(OA,7,39,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,39,availability=True)
+        True
     """
     M = [
         [   0,   0,   0,   0,   0,   0],
@@ -609,7 +773,16 @@ def OA_9_40():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(9,40) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_40
+        sage: OA = OA_9_40()
+        sage: print is_orthogonal_array(OA,9,40,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,40,availability=True)
+        True
     """
     from sage.rings.finite_rings.constructor import FiniteField
 
@@ -674,7 +847,16 @@ def OA_7_42():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,42) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_42
+        sage: OA = OA_7_42()
+        sage: print is_orthogonal_array(OA,7,42,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,42,availability=True)
+        True
     """
     M = [
         [None,None,None,None,None,None,None],
@@ -710,7 +892,16 @@ def OA_7_44():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,44) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_44
+        sage: OA = OA_7_44()
+        sage: print is_orthogonal_array(OA,7,44,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,44,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
@@ -770,7 +961,16 @@ def OA_8_45():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(8,45) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_45
+        sage: OA = OA_8_45()
+        sage: print is_orthogonal_array(OA,8,45,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,45,availability=True)
+        True
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
@@ -820,7 +1020,16 @@ def OA_6_46():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(6,46) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_6_46
+        sage: OA = OA_6_46()
+        sage: print is_orthogonal_array(OA,6,46,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(6,46,availability=True)
+        True
     """
     M = OA_from_Vmt(4,9,[0, 1, 3, 2, 8])
     return M
@@ -837,7 +1046,16 @@ def OA_10_48():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(10,48) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_48
+        sage: OA = OA_10_48()
+        sage: print is_orthogonal_array(OA,10,48,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,48,availability=True)
+        True
     """
     from sage.rings.finite_rings.constructor import FiniteField
     F16 = FiniteField(16,'x')
@@ -885,7 +1103,16 @@ def OA_8_50():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(8,50) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_50
+        sage: OA = OA_8_50()
+        sage: print is_orthogonal_array(OA,8,50,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,50,availability=True)
+        True
     """
     M = OA_from_Vmt(6,7,[0, 1, 3, 16, 35, 26, 36])
     return M
@@ -902,7 +1129,16 @@ def OA_7_51():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,51) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_51
+        sage: OA = OA_7_51()
+        sage: print is_orthogonal_array(OA,7,51,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,51,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(51)
@@ -939,7 +1175,16 @@ def OA_7_52():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,52) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_52
+        sage: OA = OA_7_52()
+        sage: print is_orthogonal_array(OA,7,52,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,52,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1011,7 +1256,16 @@ def OA_7_54():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,54) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_54
+        sage: OA = OA_7_54()
+        sage: print is_orthogonal_array(OA,7,54,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,54,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(45)
@@ -1048,7 +1302,16 @@ def OA_8_55():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(8,55) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_55
+        sage: OA = OA_8_55()
+        sage: print is_orthogonal_array(OA,8,55,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,55,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(55)
@@ -1085,7 +1348,16 @@ def OA_9_56():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(9,56) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_56
+        sage: OA = OA_9_56()
+        sage: print is_orthogonal_array(OA,9,56,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,56,availability=True)
+        True
     """
     from sage.rings.finite_rings.constructor import FiniteField
     F8  = FiniteField(8,'z')
@@ -1139,7 +1411,16 @@ def OA_7_60():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,60) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_60
+        sage: OA = OA_7_60()
+        sage: print is_orthogonal_array(OA,7,60,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,60,availability=True)
+        True
     """
     M60 = [[(0,  0), (0, 0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0)],
            [(1, 10), (1, 6), (0, 17), (0,  7), (1,  5), (0,  9), (0,  3), (1, 13), (1, 17), (0, 13)],
@@ -1177,7 +1458,16 @@ def OA_7_62():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(7,62) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_62
+        sage: OA = OA_7_62()
+        sage: print is_orthogonal_array(OA,7,62,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,62,availability=True)
+        True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     G = AdditiveCyclic(54)
@@ -1214,7 +1504,16 @@ def OA_9_75():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(9,75) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_75
+        sage: OA = OA_9_75()
+        sage: print is_orthogonal_array(OA,9,75,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,75,availability=True)
+        True
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.categories.cartesian_product import cartesian_product
@@ -1260,7 +1559,16 @@ def OA_11_80():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(11,80) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_11_80
+        sage: OA = OA_11_80()
+        sage: print is_orthogonal_array(OA,11,80,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(11,80,availability=True)
+        True
     """
     from sage.rings.finite_rings.constructor import FiniteField
     F16 = FiniteField(2**4,'w')
@@ -1321,7 +1629,16 @@ def OA_10_82():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(10,82) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_82
+        sage: OA = OA_10_82()
+        sage: print is_orthogonal_array(OA,10,82,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,82,availability=True)
+        True
     """
     M = OA_from_Vmt(8,9,[0,1,20,70,23,59,3,8,19])
     return M
@@ -1339,7 +1656,16 @@ def OA_10_100():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(10,100) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_100
+        sage: OA = OA_10_100()
+        sage: print is_orthogonal_array(OA,10,100,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,100,availability=True)
+        True
     """
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
     return M
@@ -1357,7 +1683,16 @@ def OA_12_144():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(12,144) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_144
+        sage: OA = OA_12_144()
+        sage: print is_orthogonal_array(OA,12,144,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,144,availability=True)
+        True
     """
     M = OA_from_Vmt(10,13,[0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84])
     return M
@@ -1375,7 +1710,16 @@ def OA_12_210():
 
     EXAMPLES::
 
-        sage: _ = designs.orthogonal_array(12,210) # indirect doctest
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_210
+        sage: OA = OA_12_210()
+        sage: print is_orthogonal_array(OA,12,210,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,210,availability=True)
+        True
     """
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
     return M
@@ -1421,3 +1765,4 @@ OA_constructions = {
     144 : (12 , OA_12_144),
     210 : (12 , OA_12_210)
 }
+

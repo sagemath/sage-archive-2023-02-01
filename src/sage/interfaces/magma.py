@@ -944,10 +944,12 @@ class Magma(Expect):
 
         EXAMPLES: Attaching a file that exists is fine::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']               # optional - magma
             sage: magma.attach('%s/magma/sage/basic.m'%SAGE_EXTCODE)    # optional - magma
 
         Attaching a file that doesn't exist raises an exception::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']                 # optional - magma
             sage: magma.attach('%s/magma/sage/basic2.m'%SAGE_EXTCODE)     # optional - magma
             Traceback (most recent call last):
             ...
@@ -972,6 +974,7 @@ class Magma(Expect):
 
         EXAMPLES::
 
+            sage: SAGE_EXTCODE = SAGE_ENV['SAGE_EXTCODE']            # optional - magma
             sage: magma.attach_spec('%s/magma/spec'%SAGE_EXTCODE)    # optional - magma
             sage: magma.attach_spec('%s/magma/spec2'%SAGE_EXTCODE)   # optional - magma
             Traceback (most recent call last):
@@ -1007,7 +1010,7 @@ class Magma(Expect):
             sage: filename = os.path.join(SAGE_TMP, 'a.m')
             sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
             sage: print magma.load(filename)      # optional - magma
-            Loading ".../tmp/.../a.m"
+            Loading ".../a.m"
             hi
             sage: magma('f(12)')       # optional - magma
             144

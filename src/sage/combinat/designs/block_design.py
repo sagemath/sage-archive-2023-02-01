@@ -159,6 +159,10 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
 
+    The Desarguesian projective plane of order `n` can also be defined as the
+    projective plane over a field of order `n`. For more information, have a
+    look at :wikipedia:`Projective_plane`.
+
     INPUT:
 
     - ``n`` -- an integer which must be a power of a prime number
@@ -193,30 +197,39 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     Kiter = relabel  # it is much faster to iterate throug a dict than through
                      # the finite field K
 
-    # we relabel the points in the projective plane as follows
-    # (x,y,1) -> relabel[x] + n*relabel[y]
-    # (x,1,0) -> n^2 + relabel[x]
-    # (1,0,0) -> n^2 + n
+    # we decompose the (equivalence class) of points [x:y:z] of the projective
+    # plane into an affine plane, an affine line and a point. At the same time,
+    # we relabel the points with the integers from 0 to n^2 + n as follows:
+    # - the affine plane is the set of points [x:y:1] (i.e. the third coordinate
+    #   is non-zero) and gets relabeled from 0 to n^2-1
+    affine_plane   = lambda x,y: relabel[x] + n * relabel[y]
+
+    # - the affine line is the set of points [x:1:0] (i.e. the third coordinate is
+    #   zero but not the second one) and gets relabeld from n^2 to n^2 + n - 1
+    line_infinity  = lambda x: n2 + relabel[x]
+
+    # - the point is [1:0:0] and gets relabeld n^2 + n
+    point_infinity = n2 + n
 
     blcks = []
 
-    # build the lines n^2 lines x = sy + az
+    # the n^2 lines of the form "x = sy + az"
     for s in Kiter:
         for a in Kiter:
-            # the point in the affine plane (z=1)
-            blcks.append([relabel[s*y+a] + n*relabel[y] for y in Kiter])
-            # add the point at infinity (z=0)
-            blcks[-1].append(n2 + relabel[s])
+            # points in the affine plane
+            blcks.append([affine_plane(s*y+a, y) for y in Kiter])
+            # point at infinity
+            blcks[-1].append(line_infinity(s))
 
-    # build the n horizontals y = az
+    # the n horizontals of the form "y = az"
     for a in Kiter:
-        # the point in the affine plane (z=1)
-        blcks.append([relabel[x] + n*relabel[a] for x in Kiter])
-        # the point at infinity is (1:0:0)
-        blcks[-1].append(n2 + n)
+        # points in the affine plane
+        blcks.append([affine_plane(x,a) for x in Kiter])
+        # point at infinity
+        blcks[-1].append(point_infinity)
 
-    # build the line at infinity x=0
-    blcks.append([n2 + i for i in xrange(n+1)])
+    # the line at infinity "z = 0"
+    blcks.append(range(n2,n2+n+1))
 
     return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, test=check)
 

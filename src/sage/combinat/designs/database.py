@@ -39,6 +39,7 @@ Implemented constructions :
 :func:`OA(9,56) <OA_9_56>`,
 :func:`OA(7,60) <OA_7_60>`,
 :func:`OA(7,62) <OA_7_62>`,
+:func:`OA(9,65) <OA_9_65>`,
 :func:`OA(9,75) <OA_9_75>`,
 :func:`OA(11,80) <OA_11_80>`,
 :func:`OA(10,82) <OA_10_82>`,
@@ -1492,6 +1493,42 @@ def OA_7_62():
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
 
+def OA_9_65():
+    r"""
+    Returns an OA(9,65)
+
+    Construction shared by Julian R. Abel
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_65
+        sage: OA = OA_9_65()
+        sage: print is_orthogonal_array(OA,9,65,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,65,availability=True)
+        True
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
+    from orthogonal_arrays import orthogonal_array
+
+    B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
+    OA = orthogonal_array(9,9,2)
+    M = [R for R in OA if any(R[0] != x for x in R)]
+
+    M = [[B[x] for x in R] for R in M] # replacing [0,..,8] by the elements of B
+    M.append([0]*9)
+
+    M = OA_from_quasi_difference_matrix(zip(*M), G(57),add_col=False)
+    return M
+
 def OA_9_75():
     r"""
     Returns an OA(9,75)
@@ -1758,6 +1795,7 @@ OA_constructions = {
     56  : (9  , OA_9_56),
     60  : (7  , OA_7_60),
     62  : (7  , OA_7_62),
+    65  : (9  , OA_9_65),
     75  : (9  , OA_9_75),
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),

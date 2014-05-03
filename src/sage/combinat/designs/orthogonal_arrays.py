@@ -20,6 +20,7 @@ Functions
 ---------
 """
 from sage.misc.cachefunc import cached_function
+from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 
 def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
@@ -80,14 +81,14 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
         sage: designs.transversal_design(5,5)
         [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23],
-         [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 6, 11, 16, 21],
-         [1, 7, 13, 19, 20], [1, 8, 10, 17, 24], [1, 9, 12, 15, 23],
-         [1, 5, 14, 18, 22], [2, 7, 12, 17, 22], [2, 8, 14, 15, 21],
-         [2, 9, 11, 18, 20], [2, 5, 13, 16, 24], [2, 6, 10, 19, 23],
-         [3, 8, 13, 18, 23], [3, 9, 10, 16, 22], [3, 5, 12, 19, 21],
-         [3, 6, 14, 17, 20], [3, 7, 11, 15, 24], [4, 9, 14, 19, 24],
-         [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
-         [4, 8, 12, 16, 20]]
+         [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 5, 14, 18, 22],
+         [1, 6, 11, 16, 21], [1, 7, 13, 19, 20], [1, 8, 10, 17, 24],
+         [1, 9, 12, 15, 23], [2, 5, 13, 16, 24], [2, 6, 10, 19, 23],
+         [2, 7, 12, 17, 22], [2, 8, 14, 15, 21], [2, 9, 11, 18, 20],
+         [3, 5, 12, 19, 21], [3, 6, 14, 17, 20], [3, 7, 11, 15, 24],
+         [3, 8, 13, 18, 23], [3, 9, 10, 16, 22], [4, 5, 11, 17, 23],
+         [4, 6, 13, 15, 22], [4, 7, 10, 18, 21], [4, 8, 12, 16, 20],
+         [4, 9, 14, 19, 24]]
 
     Some examples of the maximal number of transversals Sage is able to build
     (we test all integers that are not prime powers up to `n=20`)::
@@ -152,7 +153,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     if k >= n+2:
         if existence:
             return False
-        from sage.categories.sets_cat import EmptySetError
         raise EmptySetError("No Transversal Design exists when k>=n+2")
 
     if n == 12 and k <= 6:
@@ -184,7 +184,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise ValueError("There exists no TD"+str((k,n))+"!")
+            raise EmptySetError("There exists no TD"+str((k,n))+"!")
 
         OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
@@ -581,18 +581,20 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     EXAMPLES::
 
         sage: designs.orthogonal_array(5,5)
-        [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3], [0, 3, 1, 4, 2],
-         [0, 4, 3, 2, 1], [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
-         [1, 4, 2, 0, 3], [1, 0, 4, 3, 2], [2, 2, 2, 2, 2], [2, 3, 4, 0, 1],
-         [2, 4, 1, 3, 0], [2, 0, 3, 1, 4], [2, 1, 0, 4, 3], [3, 3, 3, 3, 3],
-         [3, 4, 0, 1, 2], [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
-         [4, 4, 4, 4, 4], [4, 0, 1, 2, 3], [4, 1, 3, 0, 2], [4, 2, 0, 3, 1],
-         [4, 3, 2, 1, 0]]
+        [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3],
+         [0, 3, 1, 4, 2], [0, 4, 3, 2, 1], [1, 0, 4, 3, 2],
+         [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
+         [1, 4, 2, 0, 3], [2, 0, 3, 1, 4], [2, 1, 0, 4, 3],
+         [2, 2, 2, 2, 2], [2, 3, 4, 0, 1], [2, 4, 1, 3, 0],
+         [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
+         [3, 3, 3, 3, 3], [3, 4, 0, 1, 2], [4, 0, 1, 2, 3],
+         [4, 1, 3, 0, 2], [4, 2, 0, 3, 1], [4, 3, 2, 1, 0],
+         [4, 4, 4, 4, 4]]
 
     TESTS::
 
         sage: designs.orthogonal_array(3,2)
-        [[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 1]]
+        [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
@@ -601,6 +603,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
+    from block_design import projective_plane, projective_plane_to_OA
 
     if k < 2:
         raise ValueError("undefined for k less than 2")
@@ -613,77 +616,68 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
         if existence:
             return False
-
-        from sage.categories.sets_cat import EmptySetError
         raise EmptySetError("No Orthogonal Array exists when k>=n+t")
 
-    elif k == t:
+    OA = None
+
+    if k == t:
         if existence:
             return True
 
         from itertools import product
         OA = map(list, product(range(n), repeat=k))
 
-    # Theorem 6.39 from [Stinson2004]
-    elif t == 2 and 2 <= k and k <= n and is_prime_power(n):
-        if existence:
-            return True
+    # projective spaces are equivalent to OA(n+1,n,2)
+    if OA is None and t == 2:
+        if k == n+1:
+            if existence:
+                return projective_plane(n, existence=True)
+            p = projective_plane(n, check=False)
+            OA = projective_plane_to_OA(p)
 
-        M = []
-        Fp = FiniteField(n,'x')
-        vv = list(Fp)[:k]
-        relabel = {x:i for i,x in enumerate(Fp)}
-        for i in Fp:
-            for j in Fp:
-                M.append([relabel[i+j*v] for v in vv])
-
-        OA = M
-
-    # Theorem 6.40 from [Stinson2004]
-    elif t == 2 and k == n+1 and is_prime_power(n):
-        if existence:
-            return True
-
-        if n == 2:
-            OA = [[0,1,0],[0,0,1],[1,0,0],[1,1,1]]
-        else:
-            M = orthogonal_array(n,n, check=False)
-            for i,l in enumerate(M):
-                l.append(i%n)
-            OA = M
-
-    elif (t == 2 and transversal_design not in who_asked and
-          transversal_design(k,n,existence=True, who_asked=who_asked+(orthogonal_array,)) is not Unknown):
-
-        # Forwarding the non-existence results
-        if transversal_design(k,n,existence=True, who_asked=who_asked+(orthogonal_array,)):
+        elif projective_plane(n, existence=True):
             if existence:
                 return True
-        else:
+            p = projective_plane(n, check=False)
+            OA = [l[:k] for l in projective_plane_to_OA(p)]
+
+    if OA is None and t == 2 and transversal_design not in who_asked:
+        has_TD = transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,))
+
+        # forward existence
+        if has_TD is True:
+            if existence:
+                return True
+            else:
+                TD = transversal_design(k,n,check=False,who_asked=who_asked+(orthogonal_array,))
+                OA = [[x%n for x in R] for R in TD]
+
+        # forward non-existence
+        elif has_TD is False:
             if existence:
                 return False
-            raise ValueError("There exists no OA"+str((k,n))+"!")
-
-        TD = transversal_design(k,n,check=False,who_asked=who_asked+(orthogonal_array,))
-        OA = [[x%n for x in R] for R in TD]
+            raise EmptySetError("There exists no OA"+str((k,n))+"!")
 
     # Section 6.5.1 from [Stinson2004]
-    elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
-          mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
+    elif OA is None and t == 2 and mutually_orthogonal_latin_squares not in who_asked:
+        has_MOLS = mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,))
 
-        if mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)):
+        # forward existence
+        if has_MOLS is True:
             if existence:
                 return True
-        else:
+            else:
+                mols = mutually_orthogonal_latin_squares(n,k-2,who_asked=who_asked+(orthogonal_array,))
+                OA = [[i,j]+[m[i,j] for m in mols]
+                      for i in range(n) for j in range(n)]
+        # forward non-existence
+        elif has_MOLS is False:
             if existence:
                 return False
-            raise ValueError("There exists no OA"+str((k,n))+"!")
+            raise EmptySetError("There exists no OA"+str((k,n))+"!")
 
-        mols = mutually_orthogonal_latin_squares(n,k-2,who_asked=who_asked+(orthogonal_array,))
-        OA = [[i,j]+[m[i,j] for m in mols]
-              for i in range(n) for j in range(n)]
 
-    else:
+    if OA is None:
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build this orthogonal array!")

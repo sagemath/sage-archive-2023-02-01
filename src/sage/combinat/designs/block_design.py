@@ -387,6 +387,17 @@ def projective_plane(n, check=True, existence=False):
         Traceback (most recent call last):
         ...
         EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 14 exists.
+
+    TESTS::
+
+        sage: designs.projective_plane(2197, existence=True)
+        True
+        sage: designs.projective_plane(6, existence=True)
+        False
+        sage: designs.projective_plane(10, existence=True)
+        False
+        sage: designs.projective_plane(12, existence=True)
+        Unknown
     """
     from sage.rings.arith import is_prime_power, two_squares
 
@@ -408,7 +419,7 @@ def projective_plane(n, check=True, existence=False):
         except ValueError:
             if existence:
                 return False
-            raise EmptySetError("By the Bruck-Ryser-Chowla theorem, no projective"
+            raise EmptySetError("By the Ryser-Chowla theorem, no projective"
                              " plane of order "+str(n)+" exists.")
 
     if not is_prime_power(n):

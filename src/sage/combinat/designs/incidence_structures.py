@@ -413,10 +413,10 @@ class IncidenceStructure(object):
 
         The dual of a projective plane is a projective plane::
 
-            sage: PP = designs.DesarguesianProjectivePlane(4)
+            sage: PP = designs.DesarguesianProjectivePlaneDesign(4)
             sage: PP.dual_design().is_block_design()
             (True, [2, 21, 5, 1])
-            sage: PP = designs.DesarguesianProjectivePlane(4)       # optional - gap_packages
+            sage: PP = designs.DesarguesianProjectivePlaneDesign(4) # optional - gap_packages
             sage: PP.dual_design(algorithm="gap").is_block_design() # optional - gap_packages
             (True, [2, 21, 5, 1])
 

@@ -155,7 +155,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def DesarguesianProjectivePlane(n, check=True):
+def DesarguesianProjectivePlaneDesign(n, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
 
@@ -174,23 +174,24 @@ def DesarguesianProjectivePlane(n, check=True):
 
     EXAMPLES::
 
-        sage: designs.DesarguesianProjectivePlane(2)
+        sage: designs.DesarguesianProjectivePlaneDesign(2)
         Incidence structure with 7 points and 7 blocks
-        sage: designs.DesarguesianProjectivePlane(3)
+        sage: designs.DesarguesianProjectivePlaneDesign(3)
         Incidence structure with 13 points and 13 blocks
-        sage: designs.DesarguesianProjectivePlane(4)
+        sage: designs.DesarguesianProjectivePlaneDesign(4)
         Incidence structure with 21 points and 21 blocks
-        sage: designs.DesarguesianProjectivePlane(5)
+        sage: designs.DesarguesianProjectivePlaneDesign(5)
         Incidence structure with 31 points and 31 blocks
-        sage: designs.DesarguesianProjectivePlane(6)
+        sage: designs.DesarguesianProjectivePlaneDesign(6)
         Traceback (most recent call last):
         ...
         ValueError: the order of a finite field must be a prime power.
     """
     K = FiniteField(n, 'x')
     n2 = n**2
-    Klist = K.list()
-    relabel = {x:i for i,x in enumerate(Klist)}
+    relabel = {x:i for i,x in enumerate(K)}
+    Kiter = relabel  # it is much faster to iterate throug a dict than through
+                     # the finite field K
 
     # we relabel the points in the projective plane as follows
     # (x,y,1) -> relabel[x] + n*relabel[y]
@@ -200,17 +201,17 @@ def DesarguesianProjectivePlane(n, check=True):
     blcks = []
 
     # build the lines n^2 lines x = sy + az
-    for s in Klist:
-        for a in Klist:
+    for s in Kiter:
+        for a in Kiter:
             # the point in the affine plane (z=1)
-            blcks.append([relabel[s*y+a] + n*relabel[y] for y in Klist])
+            blcks.append([relabel[s*y+a] + n*relabel[y] for y in Kiter])
             # add the point at infinity (z=0)
             blcks[-1].append(n2 + relabel[s])
 
     # build the n horizontals y = az
-    for a in Klist:
+    for a in Kiter:
         # the point in the affine plane (z=1)
-        blcks.append([relabel[x] + n*relabel[a] for x in Klist])
+        blcks.append([relabel[x] + n*relabel[a] for x in Kiter])
         # the point at infinity is (1:0:0)
         blcks[-1].append(n2 + n)
 
@@ -248,10 +249,10 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.block_design import projective_plane_to_OA
-        sage: p2 = designs.DesarguesianProjectivePlane(2)
+        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2)
         sage: projective_plane_to_OA(p2)
         [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
-        sage: p3 = designs.DesarguesianProjectivePlane(3)
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
         sage: projective_plane_to_OA(p3)
         [[0, 0, 0, 0],
          [0, 1, 2, 1],
@@ -263,7 +264,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
          [2, 1, 0, 2],
          [2, 2, 2, 0]]
 
-        sage: pp = designs.DesarguesianProjectivePlane(16)
+        sage: pp = designs.DesarguesianProjectivePlaneDesign(16)
         sage: _ = projective_plane_to_OA(pp, pt=0)
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
@@ -314,12 +315,12 @@ def OA_to_projective_plane(OA, check=True):
 
         sage: from sage.combinat.designs.block_design import projective_plane_to_OA
         sage: from sage.combinat.designs.block_design import OA_to_projective_plane
-        sage: p3 = designs.DesarguesianProjectivePlane(3)
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
         sage: OA3 = projective_plane_to_OA(p3)
         sage: OA_to_projective_plane(OA3)
         Incidence structure with 13 points and 13 blocks
 
-        sage: p4 = designs.DesarguesianProjectivePlane(4)
+        sage: p4 = designs.DesarguesianProjectivePlaneDesign(4)
         sage: OA4 = projective_plane_to_OA(p4)
         sage: OA_to_projective_plane(OA4)
         Incidence structure with 21 points and 21 blocks
@@ -406,42 +407,8 @@ def projective_plane(n):
         raise NotImplementedError("If such a projective plane exists, we do "
                                   "not know how to build it.")
 
-    return DesarguesianProjectivePlane(n)
+    return DesarguesianProjectivePlaneDesign(n)
 
-def ProjectivePlaneDesign(n, type="Desarguesian", algorithm=None):
-    r"""
-    Returns a projective plane of order `n`.
-
-
-    - ``type`` -- When set to ``"Desarguesian"``, the method returns
-      Desarguesian projective planes, i.e. a finite projective plane obtained by
-      considering the 1- and 2- dimensional spaces of `F_n^3`.
-
-      For the moment, no other value is available for this parameter.
-
-    - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
-      own implementation. In order to use GAP's implementation instead (i.e. its
-      ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
-      GAP's "design" package must be available in this case, and that it can be
-      installed with the ``gap_packages`` spkg.
-
-    .. SEEALSO::
-
-        :meth:`ProjectiveGeometryDesign`
-
-    EXAMPLES::
-
-        sage: _ = designs.ProjectivePlaneDesign(2)
-        doctest:...: DeprecationWarning: ProjectivePlaneDesign is deprecated; use DesarguesianProjectivePlane or projective_plane instead.
-        See http://trac.sagemath.org/16281 for details.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16281, 'ProjectivePlaneDesign is deprecated; use DesarguesianProjectivePlane or projective_plane instead.')
-
-    if type != "Desarguesian":
-        raise ValueError("The value of 'type' must be 'Desarguesian'.")
-
-    return DesarguesianProjectivePlane(n)
 
 def AffineGeometryDesign(n, d, F):
     r"""
@@ -615,3 +582,4 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 # specialized methods are implemented later. In that case, BlockDesign_generic
 # should inherit from IncidenceStructure.
 BlockDesign_generic = IncidenceStructure
+

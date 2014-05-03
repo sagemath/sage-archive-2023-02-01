@@ -64,8 +64,7 @@ REFERENCES:
   http://www.ccrwest.org/cover.html
 """
 from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
-                                                ProjectivePlaneDesign,
-                                                DesarguesianProjectivePlane,
+                                                DesarguesianProjectivePlaneDesign,
                                                 projective_plane,
                                                 AffineGeometryDesign,
                                                 WittDesign,

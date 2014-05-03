@@ -963,17 +963,22 @@ class Function_gamma_inc(BuiltinFunction):
             0.0489005107080611
             sage: gamma_inc(3,2).n()
             1.35335283236613
+
+        TESTS::
+
+        Check that :trac:`7099` is fixed::
+
+            sage: numerical_approx(gamma(9, 10^(-3)) - gamma(9), digits=40)  # abs tol 1e-36
+            -1.110111564516556704267183273042450876294e-28
+
         """
-        try:
-            return x.gamma_inc(y)
-        except AttributeError:
-            if not (is_ComplexNumber(x)):
-                if is_ComplexNumber(y):
-                    C = y.parent()
-                else:
-                    C = ComplexField()
-                    x = C(x)
-            return x.gamma_inc(y)
+        if parent is None:
+            parent = ComplexField()
+        else:
+            parent = ComplexField(parent.precision())
+        x = parent(x)
+        y = parent(y)
+        return x.gamma_inc(y)
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()

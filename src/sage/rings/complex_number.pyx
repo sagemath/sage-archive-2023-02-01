@@ -2029,7 +2029,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(2).gamma_inc(5)
             0.0404276819945128
         """
-        return self._parent(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t, precision=self.prec()))
 
     def log(self,base=None):
         r"""

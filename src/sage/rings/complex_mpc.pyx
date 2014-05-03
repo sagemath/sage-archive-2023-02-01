@@ -2246,7 +2246,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             0.70709210 - 0.42035364*I
 
         """
-        return self._parent(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t, precision=self.prec()))
 
     def zeta(self):
         """

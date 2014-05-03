@@ -16,8 +16,8 @@ EXAMPLES::
     sage: designs.BalancedIncompleteBlockDesign(7,3).blocks()
     [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
     sage: designs.BalancedIncompleteBlockDesign(13,4).blocks()
-    [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10], [1, 3, 8, 10],
-     [1, 4, 7, 9], [1, 5, 6, 11], [2, 3, 7, 11], [2, 4, 6, 10], [2, 5, 8, 9],
+    [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10], [0, 5, 7, 11], [1, 3, 8, 11],
+     [1, 4, 7, 9], [1, 5, 6, 10], [2, 3, 7, 10], [2, 4, 6, 11], [2, 5, 8, 9],
      [3, 4, 5, 12], [6, 7, 8, 12], [9, 10, 11, 12]]
 
 `K_4`-decompositions of `K_v`
@@ -111,8 +111,8 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     if k == 4:
         return BlockDesign(v, v_4_1_BIBD(v), test = False)
     if v == (k-1)**2+k and is_prime_power(k-1):
-        from block_design import ProjectivePlaneDesign
-        return ProjectivePlaneDesign(k-1)
+        from block_design import projective_plane
+        return projective_plane(k-1)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -250,8 +250,8 @@ def v_4_1_BIBD(v, check=True):
 
     # Step 1. Base cases.
     if v == 13:
-        from block_design import ProjectivePlaneDesign
-        return ProjectivePlaneDesign(3).blocks()
+        from block_design import projective_plane
+        return projective_plane(3).blocks()
     if v == 16:
         from block_design import AffineGeometryDesign
         return AffineGeometryDesign(2,1,FiniteField(4,'x')).blocks()
@@ -391,9 +391,9 @@ def _check_pbd(B,v,S):
     EXAMPLE::
 
         sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
-        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
-         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
-         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
+         [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
+         [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
     """
     from itertools import combinations
@@ -430,9 +430,9 @@ def _relabel_bibd(B,n):
     EXAMPLE::
 
         sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
-        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
-         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
-         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
+         [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
+         [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
     """
     found = 0
@@ -469,9 +469,9 @@ def PBD_4_5_8_9_12(v, check=True):
     EXAMPLES::
 
         sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
-        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
-         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
-         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
+         [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
+         [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
     """
     if not v%4 in [0,1]:
@@ -542,9 +542,9 @@ def _PBD_4_5_8_9_12_closure(B):
     EXAMPLES::
 
         sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
-        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 11], [0, 5, 7, 10],
-         [0, 13, 26, 39], [0, 14, 28, 38], [0, 15, 25, 27],
-         [0, 16, 32, 35], [0, 17, 34, 37], [0, 18, 33, 36],
+        [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
+         [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
+         [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
     """
     BB = []

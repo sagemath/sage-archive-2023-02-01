@@ -65,6 +65,8 @@ REFERENCES:
 """
 from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
                                                 ProjectivePlaneDesign,
+                                                DesarguesianProjectivePlane,
+                                                projective_plane,
                                                 AffineGeometryDesign,
                                                 WittDesign,
                                                 HadamardDesign)

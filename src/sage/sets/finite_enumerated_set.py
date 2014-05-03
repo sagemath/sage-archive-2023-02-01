@@ -323,17 +323,17 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: F = FiniteEnumeratedSet([1, 2, "a", "b"])
+            sage: F = FiniteEnumeratedSet([1, 2, 'a', 'b'])
             sage: F(1)
             1
-            sage: F("a")
-            "a"
+            sage: F('a')
+            'a'
 
         We check that conversions are properly honored for usual
         parents; this is not the case for facade parents over plain
         Python objects::
 
-            sage: F = FiniteEnumeratedSet([1, 2, 3, "a", "aa"])
+            sage: F = FiniteEnumeratedSet([1, 2, 3, 'a', 'aa'])
             sage: phi = Hom(ZZ, F, Sets())(lambda i: i+i)
             sage: phi(1)
             2
@@ -343,11 +343,11 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: psi = Hom(Set_PythonType_class(str), F, Sets())(lambda s: ZZ(len(s)))
             sage: psi.register_as_conversion()
             sage: psi('a')
-            2
+            1
             sage: F(1)
             2
-            sage: F("a")
-            "a"
+            sage: F('a')
+            'a'
         """
         if not isinstance(el, Element):
             return self._element_constructor_(el)

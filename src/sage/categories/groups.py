@@ -556,9 +556,9 @@ class Groups(CategoryWithAxiom):
                     - :meth:`Groups.Algebras.ElementMethods.central_form`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                from sage.categories.all import Algebras
+                I = self._conjugacy_classes_representatives_underlying_group()
                 from sage.combinat.free_module import CombinatorialFreeModule
-                return CombinatorialFreeModule(self.base_ring(),self._conjugacy_classes_representatives_underlying_group())
+                return CombinatorialFreeModule(self.base_ring(), I)
 
             # Coalgebra structure
 

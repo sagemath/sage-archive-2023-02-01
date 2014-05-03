@@ -1453,10 +1453,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             zeta10^3 - zeta10^2 + zeta10 - 1,
             zeta10^2]
 
-        Test that :trac:`14368` is fixed::
+        TESTS:
 
-            sage: DirichletGroup(1).list()[0].values()
+        Test that :trac:`11783` and :trac:`14368` are fixed::
+
+            sage: chi = DirichletGroup(1).list()[0]
+            sage: chi.values()
             [1]
+            sage: chi(1)
+            1
         """
         try:
             return self.__values

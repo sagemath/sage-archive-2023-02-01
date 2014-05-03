@@ -1731,13 +1731,23 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: a.resultant(b, y)
             2*x^3
 
+        Check that :trac:`15061` is fixed::
+
+            sage: R.<x, y> = AA[]
+            sage: (x^2 + 1).resultant(x^2 - y)
+            y^2 + 2*y + 1
+
         """
+        R = self.parent()
         if variable is None:
-            variable = self.parent().gen(0)
-        rt = self._singular_().resultant(other._singular_(), variable._singular_())
-        r = rt.sage_poly(self.parent())
-        if self.parent().ngens() <= 1 and r.degree() <= 0:
-            return self.parent().base_ring()(r[0])
+            variable = R.gen(0)
+        if R._has_singular:
+            rt = self._singular_().resultant(other._singular_(), variable._singular_())
+            r = rt.sage_poly(R)
+        else:
+            r = self.sylvester_matrix(other, variable).det()
+        if R.ngens() <= 1 and r.degree() <= 0:
+            return R.base_ring()(r[0])
         else:
             return r
 

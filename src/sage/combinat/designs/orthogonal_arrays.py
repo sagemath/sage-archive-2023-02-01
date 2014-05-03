@@ -693,7 +693,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     return OA
 
-def is_orthogonal_array(M,k,n,t):
+def is_orthogonal_array(M,k,n,t,verbose=False):
     r"""
     Check that the integer matrix `M` is an `OA(k,n,t)`.
 
@@ -705,6 +705,9 @@ def is_orthogonal_array(M,k,n,t):
     - ``M`` -- an integer matrix of size `k^t \times n`
 
     - ``k, n, t`` -- integers
+
+    - ``verbose`` -- boolean, if ``True`` provide an information on where ``M``
+      fails to be an `OA(k,n,t)`.
 
     EXAMPLES::
 
@@ -718,13 +721,17 @@ def is_orthogonal_array(M,k,n,t):
     if t != 2:
         raise NotImplementedError("only implemented for t=2")
 
-    if not all(len(l) == k for l in M):
+    if any(len(l) != k for l in M):
+        if verbose:
+            print "a block has the wrong size"
         return False
 
     from itertools import combinations
     for S in combinations(range(k),2):
         fs = frozenset([tuple([l[i] for i in S]) for l in M])
         if len(fs) != n**2:
+            if verbose:
+                print "for the choice %s of columns we do not get all tuples"%(S,)
             return False
 
     return True

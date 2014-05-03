@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+pkgconfig="$SAGE_LOCAL/bin/pkg-config"
+
 # Skip checks if we don't use the system pkg-config
-grep 'exec pkgconf ' "$SAGE_LOCAL/bin/pkg-config" >/dev/null
+grep 'exec "$SAGE_LOCAL/bin/pkgconf" "$@"' "$pkgconfig" >/dev/null
 if [ $? -eq 0 ]; then
     echo "Skipping the tests, since no system-wide 'pkg-config' was present"
     echo "when 'pkgconf' got installed."
@@ -25,7 +27,7 @@ for dir in $search_dirs; do
             filename="$dir/$pc.pc"
             if [ -f "$filename" ]; then
                 echo "    +-- $pc found, using it for the pkg-config test."
-                pkg-config --exists "$pc"
+                "$pkgconfig" --exists "$pc"
                 if [ $? -ne 0 ]; then
                     echo >&2 "Error: Our pkg-config script failed to pick up $pc"
                     exit 1

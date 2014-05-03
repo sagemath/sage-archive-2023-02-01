@@ -59,6 +59,40 @@ class Monoids(Category_singleton):
         """
         return [Semigroups()]
 
+    @staticmethod
+    def free(n=None, names=None, index_set=None, abelian=False, **kwds):
+        r"""
+        Return a free monoid on `n` generators or with the generators indexed by
+        a set `I`.
+
+        We construct free monoids by specifing either:
+
+        - the number of generators and/or the names of the generators
+        - the indexing set for the generators
+
+        INPUT:
+
+        -  ``n`` -- integer
+
+        -  ``names`` -- names of generators
+
+        - ``index_set`` -- an indexing set for the generators
+
+        - ``abelian`` -- (default: ``False``) whether the free monoid is
+          abelian or not
+
+        EXAMPLES::
+
+            sage: Monoids.free(index_set=ZZ)
+            Free monoid indexed by Integer Ring
+            sage: Monoids().free(index_set=ZZ)
+            Free monoid indexed by Integer Ring
+            sage: F.<x,y,z> = Monoids().free(); F
+            Free monoid on 3 generators (x, y, z)
+        """
+        from sage.monoids.free_monoid import FreeMonoid
+        return FreeMonoid(n, names, index_set, abelian, **kwds)
+
     class ParentMethods:
         @cached_method
         def one(self):

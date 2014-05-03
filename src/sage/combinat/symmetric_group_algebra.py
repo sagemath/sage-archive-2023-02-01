@@ -640,7 +640,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         a[1] = 1
         b = range(2, self.n+2)
         b[self.n-1] = 1
-        return [self.monomial(self._basis_keys(a)), self.monomial(self._basis_keys(b))]
+        return [self.monomial(self._indices(a)), self.monomial(self._indices(b))]
 
     def _conjugacy_classes_representatives_underlying_group(self):
         r"""
@@ -962,7 +962,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             p = range(1, self.n+1)
             p[i-1] = k
             p[k-1] = i
-            res += self.monomial(self._basis_keys(p))
+            res += self.monomial(self._indices(p))
         return res
 
 
@@ -2026,7 +2026,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         if x == []:
             return self.one()
         if len(x) < self.n and x in Permutations():
-            return self.monomial(self._basis_keys( list(x) + range(len(x)+1, self.n+1) ))
+            return self.monomial(self._indices( list(x) + range(len(x)+1, self.n+1) ))
         raise TypeError
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
@@ -2073,7 +2073,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         # -- Darij, 19 Nov 2013
 
         if perm[i-1] < perm[i]:
-            return self.monomial(self._basis_keys(perm_i))
+            return self.monomial(self._indices(perm_i))
         else:
             #Ti^2 = (q - q^(-1))*Ti - q1*q2
             q = self.q()
@@ -2202,7 +2202,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             raise ValueError("k (= %(k)d) must be between 1 and n (= %(n)d)" % {'k': k, 'n': self.n})
 
         q = self.q()
-        P = self._basis_keys
+        P = self._indices
         v = self.sum_of_terms( ( ( P(range(1, l) + [k] + range(l+1, k) + [l]),
                                    q ** l - q ** (l-1) )
                                  for l in range(1, k) ),

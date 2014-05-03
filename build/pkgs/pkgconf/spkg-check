@@ -20,7 +20,7 @@ for dir in $search_dirs; do
                     exit 1
                 fi
             else
-                echo "   +-- $pc not found, ignoring."
+                echo "    +-- $pc not found, ignoring."
             fi
         done
     else

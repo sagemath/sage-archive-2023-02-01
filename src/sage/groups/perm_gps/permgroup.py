@@ -2411,31 +2411,6 @@ class PermutationGroup_generic(group.Group):
         phi = Q.RegularActionHomomorphism()
         return PermutationGroup(gap_group=phi.Image())
 
-    def quotient_group(self, N):
-        """
-        This function has been deprecated and will be removed in a
-        future version of Sage; use ``quotient`` instead.
-
-        Original docstring follows.
-
-        Returns the quotient of this permutation group by the normal
-        subgroup `N`.
-
-        Wraps the GAP operator "/".
-
-        TESTS::
-
-            sage: G = PermutationGroup([(1,2,3), (2,3)])
-            sage: N = PermutationGroup([(1,2,3)])
-            sage: G.quotient_group(N)
-            doctest:...: DeprecationWarning: quotient_group() is deprecated; use quotient() instead.
-            See http://trac.sagemath.org/7371 for details.
-            Permutation Group with generators [(1,2)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(7371, 'quotient_group() is deprecated; use quotient() instead.')
-        return self.quotient(N)
-
     def commutator(self, other=None):
         r"""
         Returns the commutator subgroup of a group, or of a pair of groups.

@@ -711,6 +711,17 @@ class Magma(Expect):
             sage: R._magma_cache                    # optional - magma
             {Magma: Univariate Polynomial Ring in x over Integer Ring,
              Magma: Univariate Polynomial Ring in x over Integer Ring}
+
+            sage: P.<x,y> = PolynomialRing(GF(127)) # optional - magma
+            sage: m = Magma()                       # optional - magma
+            sage: m(P)                              # optional - magma
+            Polynomial ring of rank 2 over GF(127)
+            Order: Graded Reverse Lexicographical
+            Variables: x, y
+            sage: P._magma_cache                    # optional - magma
+            {Magma: Polynomial ring of rank 2 over GF(127)
+            Order: Graded Reverse Lexicographical
+            Variables: x, y}
         """
         if isinstance(x, bool):
             return Expect.__call__(self, 'true' if x else 'false')

@@ -235,7 +235,7 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
     r"""
-    Return the orthogonal array built from the projective plane ``pplane`.
+    Return the orthogonal array built from the projective plane ``pplane``.
 
     The orthogonal array `OA(n+1,n,2)` is obtained from the projective plane
     ``pplane`` by removing the point ``pt`` and the `n+1` lines that pass
@@ -246,7 +246,8 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
 
     - ``pplane`` - a projective plane as a 2-design
 
-    - ``pt`` - a point in the projective plane ``pplane``
+    - ``pt`` - a point in the projective plane ``pplane``. If it is not provided
+      then it is set to `n^2 + n`.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious

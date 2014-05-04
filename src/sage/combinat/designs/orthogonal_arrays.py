@@ -185,10 +185,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         22: ( 6, 23)
         23: (25, 25)
         24: (10, 26)
-
-    `TD(6,12)` ::
-
-        sage: _ = designs.transversal_design(6,12)
     """
     if k >= n+2:
         if existence:

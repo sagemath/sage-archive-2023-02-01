@@ -66,6 +66,7 @@ REFERENCES:
 Functions
 ---------
 """
+from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
@@ -228,31 +229,30 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
           [1, 5, 14, 18, 22],
           [3, 7, 11, 15, 24]]]
 
-    TESTS::
+    What is the maximum number of MOLS of size 8 that Sage knows how to build?::
 
-        sage: designs.mutually_orthogonal_latin_squares(5,5)
-        Traceback (most recent call last):
-        ...
-        ValueError: There exist at most n-1 MOLS of size n.
         sage: designs.mutually_orthogonal_latin_squares(8,None,existence=True)
         7
-        sage: designs.mutually_orthogonal_latin_squares(6,3,existence=True)
+
+    If you only want to know if Sage is able to build a given set of MOLS, just
+    set the argument ``existence`` to ``True``::
+
+        sage: designs.mutually_orthogonal_latin_squares(5, 5, existence=True)
+        False
+        sage: designs.mutually_orthogonal_latin_squares(6, 4, existence=True)
         Unknown
-        sage: designs.mutually_orthogonal_latin_squares(10,2,availability=True)
-        True
-        sage: designs.mutually_orthogonal_latin_squares(10,2)
-        [
-        [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
-        [7 2 8 9 0 3 5 4 6 1]  [8 2 1 7 6 0 9 3 4 5]
-        [6 1 3 8 9 0 4 5 7 2]  [9 8 3 2 1 7 0 4 5 6]
-        [5 7 2 4 8 9 0 6 1 3]  [0 9 8 4 3 2 1 5 6 7]
-        [0 6 1 3 5 8 9 7 2 4]  [2 0 9 8 5 4 3 6 7 1]
-        [9 0 7 2 4 6 8 1 3 5]  [4 3 0 9 8 6 5 7 1 2]
-        [8 9 0 1 3 5 7 2 4 6]  [6 5 4 0 9 8 7 1 2 3]
-        [2 3 4 5 6 7 1 8 9 0]  [3 4 5 6 7 1 2 8 0 9]
-        [3 4 5 6 7 1 2 0 8 9]  [5 6 7 1 2 3 4 0 9 8]
-        [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
-        ]
+
+    If you ask for such a MOLS then you will respecively get an informative
+    ``EmptySetError`` or ``NotImplementedError``::
+
+        sage: designs.mutually_orthogonal_latin_squares(5, 5)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There exist at most n-1 MOLS of size n.
+        sage: designs.mutually_orthogonal_latin_squares(6, 3)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build these MOLS!
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
@@ -266,7 +266,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
     if k >= n:
         if existence:
             return False
-        raise ValueError("There exist at most n-1 MOLS of size n.")
+        raise EmptySetError("There exist at most n-1 MOLS of size n.")
 
     elif n == 10 and k == 2:
         if availability:
@@ -285,7 +285,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         else:
             if existence:
                 return False
-            raise ValueError("These MOLS do not exist!")
+            raise EmptySetError("These MOLS do not exist!")
 
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."

@@ -8,7 +8,7 @@ AUTHOR:
 - Simon King (2013-05, 2014-02): Split code up. Allow cyclic quivers where
   possible.
 
-A Quiver is a directed graph used for representation theory. In our
+A :class:`Quiver` is a directed graph used for representation theory. In our
 representation theoretic code, it is assumed that
 
 - the vertices of the quiver are labelled by integers, and
@@ -20,8 +20,8 @@ As far as the :class:`~sage.graphs.digraph.DiGraph` class is concerned, a
 path is a finite list of pairwise distinct vertices `v_1, ..., v_n` such
 that there exists an edge from `v_i` to `v_{i + 1}`.  If there are
 multiple edges between the same two vertices this does not contribute
-additional paths as listed by the DiGraph class; for example only two
-paths are listed from 1 to 3 in Q::
+additional paths as listed by the :class:`~sage.graphs.digraph.DiGraph`
+class; for example only two paths are listed from 1 to 3 in ``Q``::
 
     sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
     sage: Q.edges()
@@ -47,7 +47,8 @@ is the initial vertex of `e_{i + 1}`, and the final vertex of `e_n` is
 
 Quiver paths in the sense stated above correspond to the elements of a
 partial semigroup, with multiplication of paths given by concatenation. Hence,
-rather than overloading the method name inherited from DiGraph or inventing a
+rather than overloading the method name inherited from
+:class:`~sage.graphs.digraph.DiGraph` or inventing a
 new method name, we move this functionality to this so-called *path
 semigroup*.  Note that with this definition there are three paths from 1 to 3
 in our example::
@@ -58,10 +59,10 @@ in our example::
 The returned paths are of type :class:`~sage.quivers.paths.QuiverPath`, which
 are elements in the path semigroup that is associated with the quiver (a
 partial semigroup, which does not generally have a neutral element). You can
-specify a QuiverPath by giving an edge or a list of edges, passed as arguments
-to the path semigroup containing this path.  Here an edge is a tuple of
-the form ``(i, j, l)``, where ``i`` and ``j`` are vertices and ``l`` is the
-label of an edge from i to j::
+specify a :class:`~sage.quivers.paths.QuiverPath` by giving an edge or a
+list of edges, passed as arguments to the path semigroup containing this path.
+Here an edge is a tuple of the form ``(i, j, l)``, where ``i`` and ``j``
+are vertices and ``l`` is the label of an edge from i to j::
 
     sage: p = Q.path_semigroup()([(1, 2, 'a'), (2, 3, 'd')])
     sage: p
@@ -102,7 +103,7 @@ adjacent edges do not match, an error is raised.
     ValueError: Cannot interpret [(1, 2, 'x')] as element of
     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
-The `*` operator is concatenation of paths. If the two paths do not compose,
+The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
 
     sage: print p*q
@@ -119,7 +120,7 @@ path semigroups::
     sage: Pbig.has_coerce_map_from(PQ)
     True
 
-In particular, `p` is considered to be an element of ``Pbig``, and can be
+In particular, ``p`` is considered to be an element of ``Pbig``, and can be
 composed with paths that were defined for the larger quiver::
 
     sage: p in Pbig
@@ -153,15 +154,15 @@ There are methods giving the initial and terminal vertex of a path::
     sage: p.terminal_vertex()
     3
 
-QuiverPaths form the basis of the quiver algebra of a quiver.  Given a
-field `k` and a Quiver `Q`, the quiver algebra `kQ` is, as a vector space,
-the free `k`-vector space whose basis is the set of all paths in `Q`.
-Multiplication is defined on this basis and extended bilinearly.  The
-product of two basis elements is given by path composition when it
-makes sense and is set to be zero otherwise.  Specifically, if the
-terminal vertex of the left path equals the initial vertex of the right
-path, then their product is the concatenation of the two paths, and
-otherwise their product is zero. In sage, quiver algebras
+:class:`~sage.quivers.paths.QuiverPath` form the basis of the quiver
+algebra of a quiver.  Given a field `k` and a quiver `Q`, the quiver
+algebra `kQ` is, as a vector space, the free `k`-vector space whose basis
+is the set of all paths in `Q`. Multiplication is defined on this basis
+and extended bilinearly.  The product of two basis elements is given by
+path composition when it makes sense and is set to be zero otherwise.
+Specifically, if the terminal vertex of the left path equals the initial
+vertex of the right path, then their product is the concatenation of the
+two paths, and otherwise their product is zero. In sage, quiver algebras
 are handled by the :class:`QuiverAlgebra` class::
 
     sage: A = PQ.algebra(GF(7))
@@ -169,9 +170,9 @@ are handled by the :class:`QuiverAlgebra` class::
     Path algebra of Multi-digraph on 3 vertices over Finite Field of size 7
 
 Quivers have a method that creates their algebra over a given field (or,
-more generally, commutative ring).  Note that QuiverAlgebras are uniquely
-defined by their Quiver and field, and play nicely with coercions of the
-underlying path semigroups::
+more generally, commutative ring).  Note that :class:`QuiverAlgebras` are
+uniquely defined by their Quiver and field, and play nicely with coercions
+of the underlying path semigroups::
 
     sage: A is PQ.algebra(GF(7))
     True
@@ -185,8 +186,8 @@ underlying path semigroups::
     sage: Pbig.algebra(GF(7)).has_coerce_map_from(A)
     True
 
-The QuiverAlgebra can create elements from QuiverPaths or from elements of the
-base ring::
+The :class:`QuiverAlgebra` can create elements from :class:`QuiverPaths` or
+from elements of the base ring::
 
     sage: A(5)
     5*e_1 + 5*e_2 + 5*e_3
@@ -199,7 +200,7 @@ base ring::
     sage: y
     a*d + b*d
 
-QuiverAlgebras are `\NN`-graded algebras.  The grading is given by
+:class:`QuiverAlgebras` are `\NN`-graded algebras.  The grading is given by
 assigning to each basis element the length of the path corresponding to
 that basis element::
 
@@ -230,7 +231,7 @@ base ring and the path semigroup::
     sage: Z.is_zero()
     True
 
-To each vertex of a Quiver there is associated a simple module, an
+To each vertex of a :class:`Quiver` there is associated a simple module, an
 indecomposable projective, and an indecomposable injective, and these can
 be created from the Quiver::
 
@@ -240,8 +241,8 @@ be created from the Quiver::
 
 Radicals, socles, tops, and quotients can all be computed and we can test if
 modules are simple or semisimple, get their dimension, and test for equality.
-Like Quivers, :class:`~sage.quivers.representation.QuiverRep` objects are
-unique and therefore equal if and only if they are identical::
+Like :class:`Quivers`, :class:`~sage.quivers.representation.QuiverRep` objects
+are unique and therefore equal if and only if they are identical::
 
     sage: P.is_simple()
     False
@@ -257,9 +258,10 @@ unique and therefore equal if and only if they are identical::
     sage: P.top() is P/R
     True
 
-There are special methods to deal with modules that are given as right ideals
-in the quiver algebra.  To create such a module pass the keyword option='paths'
-along with a path or list of paths that generate the desired ideal::
+There are special methods to deal with modules that are given as right
+ideals in the quiver algebra.  To create such a module pass the keyword
+``option='paths'`` along with a path or list of paths that generate the
+desired ideal::
 
     sage: M = PQ.representation(QQ, [[(1, 1)], [(1, 2, 'a')]], option='paths')
     sage: M.dimension_vector()
@@ -303,8 +305,8 @@ a dictionary associating maps to vertices::
     sage: f = P2.hom({1:[1, 1], 2:[[1], [1]]}, M2)
 
 When the domain is given as a right ideal in the quiver algebra we can also
-create a homomorphism by just giving a single element in the codomain.  The map
-is then induced by acting on that element::
+create a homomorphism by just giving a single element in the codomain.
+The map is then induced by acting on that element::
 
     sage: x = P2.gens('x')[0]
     sage: x
@@ -313,8 +315,8 @@ is then induced by acting on that element::
     True
 
 As you can see, the above homomorphisms can be applied to elements.  Just
-like elements, addition is defined via the + operator.  On elements scalar
-multiplication is defined via the `*` operator but on homomorphisms `*`
+like elements, addition is defined via the ``+`` operator.  On elements scalar
+multiplication is defined via the ``*`` operator but on homomorphisms ``*``
 defines composition, so scalar multiplication is done using a method::
 
     sage: g = f + f
@@ -388,9 +390,9 @@ these methods yield modules and representations of the opposite quiver::
 
     Change the wording ``Reverse of ()`` into something more meaningful.
 
-There is a method returning the projective cover of any module.  Note that this
-method returns the homomorphism; to get the module take the domain of the
-homomorphism::
+There is a method returning the projective cover of any module.  Note that
+this method returns the homomorphism; to get the module take the domain of
+the homomorphism::
 
     sage: cov = M2.projective_cover()
     sage: cov
@@ -426,8 +428,8 @@ space associated to that vertex in the representation::
     sage: w.get_element(1)
     (1, -1)
 
-The right action of a quiver algebra on an element is implemented via the `*`
-operator::
+The right action of a quiver algebra on an element is implemented via
+the ``*`` operator::
 
     sage: A2 = x.quiver().path_semigroup().algebra(QQ)
     sage: a = A2((1, 2, 'a'))

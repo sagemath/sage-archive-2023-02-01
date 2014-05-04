@@ -1,3 +1,23 @@
+"""
+Path Semigroups
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
+#                2013 Simon King <simon.king@uni-jena.de>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty
+#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#  See the GNU General Public License for more details; the full text
+#  is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -56,13 +76,13 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: M.category()
         Join of Category of monoids and Category of infinite enumerated sets
         sage: TestSuite(M).run()
-
     """
-
     Element = QuiverPath
 
     def __init__(self, Q):
         """
+        Initialize ``self``.
+
         INPUT:
 
         - a :class:`~sage.graphs.digraph.DiGraph`.
@@ -96,31 +116,32 @@ class PathSemigroup(UniqueRepresentation, Parent):
         # with 'e_' or contain '*'
         for x in Q.edge_labels():
             if not isinstance(x, str) or x == '':
-                raise ValueError("Edge labels of the digraph must be nonempty strings.")
+                raise ValueError("edge labels of the digraph must be nonempty strings")
             if x[0:2] == 'e_':
-                raise ValueError("Edge labels of the digraph must not begin with 'e_'.")
+                raise ValueError("edge labels of the digraph must not begin with 'e_'")
             if x.find('*') != -1:
-                raise ValueError("Edge labels of the digraph must not contain '*'.")
+                raise ValueError("edge labels of the digraph must not contain '*'")
         # Check validity of input: vertices have to be labelled 1,2,3,... and
         # edge labels must be unique
         for v in Q:
             if v not in ZZ:
-                raise ValueError("Vertices of the digraph must be labelled by integers.")
+                raise ValueError("vertices of the digraph must be labelled by integers")
         if len(set(Q.edge_labels())) != Q.num_edges():
-            raise ValueError("Edge labels of the digraph must be unique.")
+            raise ValueError("edge labels of the digraph must be unique")
         nvert = len(Q.vertices())
         ## Determine the category which this (partial) semigroup belongs to
         if Q.is_directed_acyclic() and not Q.has_loops():
             cat = FiniteEnumeratedSets()
         else:
             cat = InfiniteEnumeratedSets()
-        names=['e_{0}'.format(v) for v in Q.vertices()] + [e[2] for e in Q.edges()]
+        names = ['e_{0}'.format(v) for v in Q.vertices()] + [e[2] for e in Q.edges()]
         self._quiver = Q
         if nvert == 1:
-            Parent.__init__(self, names=names, category=cat.join([cat,Monoids()]))
+            cat = cat.join([cat,Monoids()])
         else:
             # TODO: Make this the category of "partial semigroups"
-            Parent.__init__(self, names=names, category=cat.join([cat,Semigroups()]))
+            cat = cat.join([cat,Semigroups()])
+        Parent.__init__(self, names=names, category=cat)
 
     def _repr_(self):
         """
@@ -134,11 +155,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q = DiGraph({1:{1:['a','b', 'c', 'd']}})
             sage: Q.path_semigroup()
             Monoid formed by the directed paths of Looped multi-digraph on 1 vertex
-
         """
         if self._quiver.num_verts() != 1:
-            return "Partial semigroup formed by the directed paths of %s"%self._quiver
-        return "Monoid formed by the directed paths of %s"%self._quiver
+            return "Partial semigroup formed by the directed paths of {}".format(self._quiver)
+        return "Monoid formed by the directed paths of {}".format(self._quiver)
 
     def _coerce_map_from_(self, other):
         """
@@ -178,9 +198,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for '*':
-            'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
-            and 'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
-
+             'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
+             and 'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
         """
         if not isinstance(other, PathSemigroup):
             return
@@ -202,7 +221,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
     @cached_method
     def arrows(self):
         """
-        The elements corresponding to edges of the underlying quiver.
+        Return the elements corresponding to edges of the underlying quiver.
 
         EXAMPLES::
 
@@ -215,27 +234,27 @@ class PathSemigroup(UniqueRepresentation, Parent):
     @cached_method
     def idempotents(self):
         """
-        The idempotents corresponding to the vertices of the underlying quiver.
+        Return the idempotents corresponding to the vertices of the
+        underlying quiver.
 
         EXAMPLES::
 
             sage: P = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).path_semigroup()
             sage: P.idempotents()
             (e_1, e_2, e_3)
-
         """
         return tuple(self((v,v)) for v in self._quiver.vertices())
 
     def ngens(self):
         """
-        The number of generators (:meth:`arrows` and :meth:`idempotents`)
+        Return the number of generators (:meth:`arrows` and
+        :meth:`idempotents`).
 
         EXAMPLES::
 
             sage: F = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).path_semigroup()
             sage: F.ngens()
             7
-
         """
         Q = self._quiver
         return Q.num_verts() + Q.num_edges()
@@ -243,7 +262,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
     @cached_method
     def gen(self, i):
         """
-        Generator number `i`
+        Return generator number `i`.
 
         INPUT:
 
@@ -265,7 +284,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
             c
             sage: P.gens()[5]
             c
-
         """
         Q = self._quiver
         nv = Q.num_verts()
@@ -277,9 +295,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
     def gens(self):
         """
-        The tuple of generators.
+        Return the tuple of generators.
 
-        .. NOTE:
+        .. NOTE::
 
             This coincides with the sum of the output of
             :meth:`idempotents` and :meth:`arrows`.
@@ -291,7 +309,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
             (e_1, e_2, e_3, a, b, c, d)
             sage: P.gens() == P.idempotents() + P.arrows()
             True
-
         """
         return self.idempotents() + self.arrows()
 
@@ -308,7 +325,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
             sage: Q.path_semigroup().is_finite()
             False
-
         """
         return self._quiver.is_directed_acyclic() and not self._quiver.has_loops()
 
@@ -327,8 +343,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: len(F)
             Traceback (most recent call last):
             ...
-            ValueError: The underlying quiver has cycles, thus, there may be an infinity of directed paths
-
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
         """
         return len(self.all_paths())
 
@@ -352,7 +367,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             NotImplementedError: infinite list
-
         """
         from sage.all import ZZ
         if self._quiver.is_directed_acyclic() and not self._quiver.has_loops():
@@ -381,7 +395,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(P)
             Traceback (most recent call last):
             ...
-            ValueError: The underlying quiver has cycles, thus, there may be an infinity of directed paths
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
 
          However, one can iterate::
 
@@ -468,18 +482,17 @@ class PathSemigroup(UniqueRepresentation, Parent):
               d*d]
              sage: len(list(P.iter_paths_by_length_and_startpoint(2,1)))
              16
-
         """
         # iterate over length d paths starting at vertex v
-        if not d>=0:
-            raise ValueError("Path length must be a non-negative integer")
+        if not d >= 0:
+            raise ValueError("path length must be a non-negative integer")
         if v not in self._quiver:
-            raise ValueError("The starting point %s is not a vertex of the underlying quiver"%v)
+            raise ValueError("the starting point {} is not a vertex of the underlying quiver".format(v))
         if not d:
-            yield self([(v,v)],check=False)
+            yield self([(v,v)], check=False)
         else:
             for w in self.iter_paths_by_length_and_startpoint(d-1, v):
-                for a in self._quiver._backend.iterator_out_edges([w.terminal_vertex()],True):
+                for a in self._quiver._backend.iterator_out_edges([w.terminal_vertex()], True):
                     yield self(list(w)+[a],check=False)
 
     def iter_paths_by_length_and_endpoint(self, d, v):
@@ -503,23 +516,22 @@ class PathSemigroup(UniqueRepresentation, Parent):
             [d*c*a*d*c, d*c*b*d*c]
             sage: list(F.iter_paths_by_length_and_endpoint(5,2))
             [c*a*d*c*a, c*b*d*c*a, c*a*d*c*b, c*b*d*c*b]
-
         """
         # iterate over length d paths ending at vertex v
-        if not d>=0:
-            raise ValueError("Path length must be a non-negative integer")
+        if not d >= 0:
+            raise ValueError("path length must be a non-negative integer")
         if v not in self._quiver:
-            raise ValueError("The starting point %s is not a vertex of the underlying quiver"%v)
+            raise ValueError("the starting point {} is not a vertex of the underlying quiver".format(v))
         if not d:
-            yield self([(v,v)],check=False)
+            yield self([(v,v)], check=False)
         else:
             for w in self.iter_paths_by_length_and_endpoint(d-1, v):
                 for a in self._quiver._backend.iterator_in_edges([w.initial_vertex()],True):
-                    yield self([a]+list(w),check=False)
+                    yield self([a]+list(w), check=False)
 
     def quiver(self):
         """
-        The underlying quiver (i.e., digraph) of this path semigroup.
+        Rurn the underlying quiver (i.e., digraph) of this path semigroup.
 
         .. NOTE:
 
@@ -545,13 +557,12 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: F = Q.path_semigroup()
             sage: F.reverse() is Q.reverse().path_semigroup()
             True
-
         """
         return self._quiver.reverse().path_semigroup()
 
     def algebra(self, k):
         """
-        Path algebra of the underlying quiver.
+        Return the path algebra of the underlying quiver.
 
         INPUT:
 
@@ -563,7 +574,6 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P = Q.path_semigroup()
             sage: P.algebra(GF(3))
             Path algebra of Multi-digraph on 3 vertices over Finite Field of size 3
-
         """
         from sage.quivers.algebra import PathAlgebra
         return PathAlgebra(k, self)
@@ -590,13 +600,12 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: M = Q.representation(QQ, spaces, maps)
             sage: M
             Representation with dimension vector (2, 3, 2)
-
         """
         return QuiverRep(k, self, *args, **kwds)
 
     def S(self, k, vertex):
         """
-        Returns the simple module over `k` at the given vertex
+        Return the simple module over `k` at the given vertex
         ``vertex``.
 
         This module is literally simple only when `k` is a field.
@@ -626,10 +635,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.S(QQ, 4)
             Traceback (most recent call last):
             ...
-            ValueError: Must specify a valid vertex of the quiver.
+            ValueError: must specify a valid vertex of the quiver
         """
         if vertex not in self._quiver:
-            raise ValueError("Must specify a valid vertex of the quiver.")
+            raise ValueError("must specify a valid vertex of the quiver")
 
         # This is the module with k at the given vertex and zero elsewhere.  As
         # all maps are zero we only need to specify that the given vertex has
@@ -668,10 +677,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q.P(QQ, 4)
             Traceback (most recent call last):
             ...
-            ValueError: Must specify a valid vertex of the quiver.
+            ValueError: must specify a valid vertex of the quiver
         """
         if vertex not in self._quiver:
-            raise ValueError("Must specify a valid vertex of the quiver.")
+            raise ValueError("must specify a valid vertex of the quiver")
         return QuiverRep(k, self, [[(vertex, vertex)]], option='paths')
 
     def I(self, k, vertex):
@@ -683,9 +692,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - `k` - ring, the base ring of the representation
+        - `k` -- ring, the base ring of the representation
 
-        - ``vertex`` - integer, a vertex of the quiver
+        - ``vertex`` -- integer, a vertex of the quiver
 
         OUTPUT:
 
@@ -706,10 +715,10 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: Q.I(QQ, 4)
             Traceback (most recent call last):
             ...
-            ValueError: Must specify a valid vertex of the quiver.
+            ValueError: must specify a valid vertex of the quiver
         """
         if vertex not in self._quiver:
-            raise ValueError("Must specify a valid vertex of the quiver.")
+            raise ValueError("must specify a valid vertex of the quiver")
         return QuiverRep(k, self, [[(vertex, vertex)]], option='dual paths')
 
     def free_module(self, k):
@@ -719,7 +728,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``k`` - ring, the base ring of the representation.
+        - ``k`` -- ring, the base ring of the representation.
 
         OUTPUT:
 
@@ -741,12 +750,12 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``start`` - integer or ``None`` (default: ``None``), the initial
-          vertex of the paths in the output.  If ``None`` is given then
+        - ``start`` -- integer or ``None`` (default: ``None``); the initial
+          vertex of the paths in the output; if ``None`` is given then
           the initial vertex is arbitrary.
-        - ``end`` - integer or ``None`` (default: ``None``), the terminal
-          vertex of the paths in the output.  If ``None`` is given then
-          the terminal vertex is arbitrary.
+        - ``end`` -- integer or ``None`` (default: ``None``); the terminal
+          vertex of the paths in the output; if ``None`` is given then
+          the terminal vertex is arbitrary
 
         OUTPUT:
 
@@ -776,7 +785,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: F.all_paths(1, 1)
             [e_1]
 
-        The empty list is returned if there are no paths between the given vertices::
+        The empty list is returned if there are no paths between the
+        given vertices::
 
             sage: F.all_paths(3, 1)
             []
@@ -807,28 +817,28 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: F.all_paths(1, 4)
             Traceback (most recent call last):
             ...
-            ValueError: The end vertex 4 is not a vertex of the quiver.
+            ValueError: the end vertex 4 is not a vertex of the quiver
 
-        If the underlying quiver is cyclic, a ``NotImplementedError`` is raised::
+        If the underlying quiver is cyclic, a ``ValueError``
+        is raised::
 
             sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
             sage: F = Q.path_semigroup()
             sage: F.all_paths()
             Traceback (most recent call last):
             ...
-            ValueError: The underlying quiver has cycles, thus, there may be an infinity of directed paths
-
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
         """
         # Check that given arguments are vertices
         if start is not None and start not in self._quiver:
-            raise ValueError("The start vertex " + str(start) + " is not a vertex of the quiver.")
+            raise ValueError("the start vertex {} is not a vertex of the quiver".format(start))
         if end is not None and end not in self._quiver:
-            raise ValueError("The end vertex " + str(end) + " is not a vertex of the quiver.")
+            raise ValueError("the end vertex {} is not a vertex of the quiver".format(end))
 
         # Handle quivers with cycles
         Q = self._quiver
         if not (Q.is_directed_acyclic()):
-            raise ValueError("The underlying quiver has cycles, thus, there may be an infinity of directed paths")
+            raise ValueError("the underlying quiver has cycles, thus, there may be an infinity of directed paths")
 
         # Handle start=None
         if start is None:
@@ -846,7 +856,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         # Handle the trivial case
         if start == end:
-            return [self([(start, end)],check=False)]
+            return [self([(start, end)], check=False)]
 
         # This function will recursively convert a path given in terms of
         # vertices to a list of QuiverPaths.
@@ -866,3 +876,4 @@ class PathSemigroup(UniqueRepresentation, Parent):
 
         # The result is all paths from start to end
         return result
+

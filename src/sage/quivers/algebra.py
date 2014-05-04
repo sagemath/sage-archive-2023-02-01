@@ -1,26 +1,46 @@
+"""
+Path Algebras
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
+#                2013 Simon King <simon.king@uni-jena.de>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty
+#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#  See the GNU General Public License for more details; the full text
+#  is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 
 class PathAlgebra(CombinatorialFreeModule):
-    """
+    r"""
     Create the path algebra of a Quiver over a given field.
 
     Given a Quiver `Q` and a field `k`, the path algebra `kQ` is defined as
     follows.  As a vector space it has basis the set of all paths in `Q`.
     Multiplication is defined on this basis and extended bilinearly.  If `p`
     is a path with terminal vertex `t` and `q` is a path with initial vertex
-    `i` then the product `p*q` is defined to be the composition of the paths `p`
-    and `q` if `t = i` and `0` otherwise.
+    `i` then the product `p*q` is defined to be the composition of the
+    paths `p` and `q` if `t = i` and `0` otherwise.
 
     INPUT:
 
-    - `k` - field (or commutative ring), the base field of the path algebra.
+    - ``k`` -- field (or commutative ring), the base field of the path algebra
 
-    - `P` - the path semigroup of a quiver `Q`.
+    - ``P`` -- the path semigroup of a quiver `Q`
 
     OUTPUT:
 
-    - Path algebra `kP`
+    - the path algebra `kP`
 
     EXAMPLES::
 
@@ -65,8 +85,9 @@ class PathAlgebra(CombinatorialFreeModule):
         sage: y
         a + b
 
-    Path algebras are graded algebras.  The grading is given by assigning to each
-    basis element the length of the path corresponding to that basis element::
+    Path algebras are graded algebras.  The grading is given by assigning
+    to each basis element the length of the path corresponding to that
+    basis element::
 
         sage: x.is_homogeneous()
         False
@@ -86,7 +107,6 @@ class PathAlgebra(CombinatorialFreeModule):
     TESTS::
 
         sage: TestSuite(A).run()
-
     """
 
     ###########################################################################
@@ -98,12 +118,13 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def __init__(self, k, P):
         """
-        Creates a :class:`PathAlgebra` object.  Type PathAlgebra? for more information.
+        Creates a :class:`PathAlgebra` object.  Type ``PathAlgebra?`` for
+        more information.
 
         INPUT:
 
-        - ``k``, a commutative ring
-        - ``P``, the partial semigroup formed by the paths of a quiver.
+        - ``k`` -- a commutative ring
+        - ``P`` -- the partial semigroup formed by the paths of a quiver
 
         TESTS::
 
@@ -127,16 +148,16 @@ class PathAlgebra(CombinatorialFreeModule):
         self._quiver = P.quiver()
         self._semigroup = P
         super(PathAlgebra, self).__init__(k, self._semigroup,
-                                            prefix='',
-                                            element_class=self.Element,
-                                            category=GradedAlgebrasWithBasis(k),
-                                            bracket=False)
+                                             prefix='',
+                                             element_class=self.Element,
+                                             category=GradedAlgebrasWithBasis(k),
+                                             bracket=False)
         self._assign_names(self._semigroup.variable_names())
 
     @cached_method
     def gens(self):
         """
-        Generators of this algebra (idempotents and arrows).
+        Return the generators of this algebra (idempotents and arrows).
 
         EXAMPLES::
 
@@ -146,14 +167,16 @@ class PathAlgebra(CombinatorialFreeModule):
             ('e_1', 'e_2', 'e_3', 'e_4', 'a', 'b', 'c')
             sage: A.gens()
             (e_1, e_2, e_3, e_4, a, b, c)
-
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._semigroup.gens())
+        return tuple(self._from_dict( {index: self.base_ring().one()},
+                                      remove_zeros=False )
+                     for index in self._semigroup.gens())
 
     @cached_method
     def arrows(self):
         """
-        Arrows of this algebra (corresponding to edges of the underlying quiver).
+        Return the arrows of this algebra (corresponding to edges of the
+        underlying quiver).
 
         EXAMPLES::
 
@@ -161,15 +184,16 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A = P.algebra(GF(5))
             sage: A.arrows()
             (a, b, c)
-
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._semigroup.arrows())
+        return tuple(self._from_dict( {index: self.base_ring().one()},
+                                      remove_zeros=False )
+                     for index in self._semigroup.arrows())
 
     @cached_method
     def idempotents(self):
         """
-        Idempotents of this algebra (corresponding to vertices of the
-        underlying quiver).
+        Return the idempotents of this algebra (corresponding to vertices
+        of the underlying quiver).
 
         EXAMPLES::
 
@@ -177,14 +201,14 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A = P.algebra(GF(5))
             sage: A.idempotents()
             (e_1, e_2, e_3, e_4)
-
         """
-        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._semigroup.idempotents())
-
+        return tuple(self._from_dict( {index: self.base_ring().one()},
+                                      remove_zeros=False )
+                     for index in self._semigroup.idempotents())
 
     def gen(self, i):
         """
-        `i`-th generator of this algebra.
+        Return the `i`-th generator of this algebra.
 
         This is an idempotent (corresponding to a trivial path at a
         vertex) if `i < n` (where `n` is the number of vertices of the
@@ -200,9 +224,9 @@ class PathAlgebra(CombinatorialFreeModule):
             e_3
             sage: A.gen(5)
             b
-
         """
-        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one()}, remove_zeros = False )
+        return self._from_dict( {self._semigroup.gen(i): self.base_ring().one()},
+                                remove_zeros = False )
 
     def ngens(self):
         """
@@ -220,7 +244,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def _element_constructor_(self, x):
         """
-        Attempt to construct an element of ``self`` from `x`.
+        Attempt to construct an element of ``self`` from ``x``.
 
         TESTS::
 
@@ -250,7 +274,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         # If it's a tuple or a list try and create a QuiverPath from it and
         # then return the associated basis element
-        if isinstance(x, tuple) or isinstance(x, list):
+        if isinstance(x, (tuple, list)):
             return self.monomial(self._semigroup(x))
 
         # Otherwise let CombinatorialFreeModule try
@@ -258,7 +282,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
     def _coerce_map_from_(self, other):
         """
-        ``True`` if there is a coercion from ``other`` to ``self``.
+        Return ``True`` if there is a coercion from ``other`` to ``self``.
 
         The algebras that coerce into a path algebra are rings `k` or path
         algebras `kQ` such that `k` has a coercion into the base ring of
@@ -335,7 +359,6 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: P.algebra(RR) # indirect doctest
             Path algebra of Multi-digraph on 3 vertices over Real Field with 53 bits of precision
         """
-
         return "Path algebra of {0} over {1}".format(self._quiver, self._base)
 
     ###########################################################################
@@ -373,7 +396,8 @@ class PathAlgebra(CombinatorialFreeModule):
             formed by the directed paths of Multi-digraph on 2 vertices
         """
         if index is not None:
-            return self._from_dict( {self._semigroup(index): self.base_ring().one()}, remove_zeros = False )
+            return self._from_dict( {self._semigroup(index): self.base_ring().one()},
+                                    remove_zeros=False )
         return self.zero()
 
     def product_on_basis(self, p1, p2):
@@ -382,11 +406,11 @@ class PathAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``p1``, ``p2`` - QuiverPaths
+        - ``p1``, ``p2`` -- QuiverPaths
 
         OUTPUT:
 
-        - CombinatorialFreeModuleElement
+        - :class:`~sage.combinat.free_module.CombinatorialFreeModuleElement`
 
         EXAMPLES::
 
@@ -398,7 +422,6 @@ class PathAlgebra(CombinatorialFreeModule):
             a*b*c
             sage: A.product_on_basis(p2, p1)
             0
-
         """
         PSG = self._semigroup
         p = PSG(p1)*PSG(p2)
@@ -452,7 +475,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         OUTPUT:
 
-        - Quiver
+        - :class:`Quiver`
 
         EXAMPLES:
 
@@ -468,16 +491,17 @@ class PathAlgebra(CombinatorialFreeModule):
         Return the (partial) semigroup from which the algebra ``self`` was
         constructed.
 
-        NOTE:
+        .. NOTE::
 
-        The partial semigroup is formed by the paths of a quiver, multiplied
-        by concatenation. If the quiver has more than a single vertex, then
-        multiplication in the path semigroup is not always defined.
+            The partial semigroup is formed by the paths of a quiver,
+            multiplied by concatenation. If the quiver has more than a single
+            vertex, then multiplication in the path semigroup is not always
+            defined.
 
         OUTPUT:
 
-        - The path semigroup from which ``self`` was formed (a partial
-          semigroup).
+        - the path semigroup from which ``self`` was formed (a partial
+          semigroup)
 
         EXAMPLES:
 
@@ -494,12 +518,12 @@ class PathAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``n`` - integer
+        - ``n`` -- integer
 
         OUTPUT:
 
-        - CombinatorialFreeModule, module spanned by the paths of length
-          `n` in the quiver.
+        - :class:`CombinatorialFreeModule`, module spanned by the paths
+          of length `n` in the quiver
 
         EXAMPLES::
 
@@ -543,7 +567,6 @@ class PathAlgebra(CombinatorialFreeModule):
                 sage: (A((1, 1)) + A((1, 2, 'a'))).is_homogeneous()
                 False
             """
-
             # Get the support, the zero element is homogeneous
             paths = self.support()
             if not paths:
@@ -575,7 +598,6 @@ class PathAlgebra(CombinatorialFreeModule):
                 ...
                 ValueError: Element is not homogeneous.
             """
-
             # Deal with zero
             paths = self.support()
             if not paths:

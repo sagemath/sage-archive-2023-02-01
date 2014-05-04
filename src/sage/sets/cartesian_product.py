@@ -157,14 +157,23 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     def _cartesian_product_of_elements(self, elements):
         """
-        Returns the cartesian product of the given ``elements``,
-        as per
-        :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements()`.
+        Return the cartesian product of the given ``elements``.
+
+        This implements :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements`.
         <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements>`.
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each summand of self
+        - ``elements`` -- a tuple (or iterable) of the appropriate
+          length such that the `i`-th cartesian factor of ``self`` is
+          the parent of the `i`-th element of ``elements``.
+
+        .. WARNING::
+
+            This is meant as a fast low-level method. In particular,
+            no coercion is attempted. When coercion or sanity checks
+            are desirable, please use instead ``self(elements)`` or
+            ``self._element_constructor(elements)``.
 
         EXAMPLES::
 
@@ -176,8 +185,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         elements = tuple(elements)
         assert len(elements) == len(self._sets)
-        # assert all(zip(self._sets[i], elements, operator.__contains__))
-        return self(tuple(elements))
+        return self.element_class(self, elements)
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 

@@ -492,7 +492,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: ex.want.tol
             2e-11
 
-        You can use continuation lines:
+        You can use continuation lines::
 
             sage: s = "sage: for i in range(4):\n....:     print i\n....:\n"
             sage: ex = DTP2.parse(s)[1]

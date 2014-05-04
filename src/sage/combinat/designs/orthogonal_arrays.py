@@ -45,7 +45,8 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
     INPUT:
 
-    - `n,k` -- integers.
+    - `n,k` -- integers. If ``k is None`` it is set to the largest value
+      available.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -60,6 +61,11 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
           design, but that the design may exist (see :mod:`sage.misc.unknown`).
 
         - ``False`` -- meaning that the design does not exist.
+
+      .. NOTE::
+
+          When ``k=None`` and ``existence=True`` the function returns an
+          integer, i.e. the largest `k` such that we can build a `TD(k,n)`.
 
     - ``who_asked`` (internal use only) -- because of the equivalence between
       OA/TD/MOLS, each of the three constructors calls the others. We must keep
@@ -134,10 +140,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
         sage: designs.transversal_design = designs.transversal_design
         sage: for n in xrange(2,25):                               # long time -- 15 secs
-        ....:     i = 2
-        ....:     while designs.transversal_design(i, n, existence=True) is True:
-        ....:         i += 1
-        ....:     _ = designs.transversal_design(i-1, n)
+        ....:     i = designs.transversal_design(None, n, existence=True) + 1
         ....:     j = i
         ....:     while designs.transversal_design(j, n, existence=True) is Unknown:
         ....:         try:
@@ -180,6 +183,12 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         23: (25, 25)
         24: ( 6, 26)
     """
+    # Is k is None we find the largest available
+    if k is None:
+        k = orthogonal_array(None,n,existence=True)
+        if existence:
+            return k
+
     if k >= n+2:
         if existence:
             return False
@@ -567,7 +576,8 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     INPUT:
 
-    - ``k`` -- (integer) number of columns
+    - ``k`` -- (integer) number of columns. If ``k=None`` it is set to the
+      largest value available.
 
     - ``n`` -- (integer) number of symbols
 
@@ -586,6 +596,11 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
           design, but that the design may exist (see :mod:`sage.misc.unknown`).
 
         - ``False`` -- meaning that the design does not exist.
+
+      .. NOTE::
+
+          When ``k=None`` and ``existence=True`` the function returns an
+          integer, i.e. the largest `k` such that we can build a `OA(k,n)`.
 
     - ``who_asked`` (internal use only) -- because of the equivalence between
       OA/TD/MOLS, each of the three constructors calls the others. We must keep
@@ -629,11 +644,20 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         Traceback (most recent call last):
         ...
         EmptySetError: No Orthogonal Array exists when k>=n+t
+        sage: designs.orthogonal_array(None,14,existence=True)
+        3
     """
-    from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
     from block_design import projective_plane, projective_plane_to_OA
+
+    # If k is set to None we find the largest value available
+    if k is None:
+        for k in range(1,n+2):
+            if not orthogonal_array(k+1,n,existence=True):
+                break
+        if existence:
+            return k
 
     if k < 2:
         raise ValueError("undefined for k less than 2")

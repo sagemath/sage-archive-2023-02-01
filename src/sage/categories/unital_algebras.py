@@ -117,7 +117,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                 # Sometimes from_base_ring is a lazy attribute
                 has_custom_conversion = True
             if has_custom_conversion:
-                mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                mor = SetMorphism(function = self.from_base_ring, parent = H)
                 try:
                     self.register_coercion(mor)
                 except AssertionError:
@@ -129,7 +129,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             except (NotImplementedError, AttributeError, TypeError):
                 # The unit is not available, yet. But there are cases
                 # in which it will be available later. Hence:
-                mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                mor = SetMorphism(function = self.from_base_ring, parent = H)
             # try sanity of one._lmul_
             if mor is None:
                 try:
@@ -138,12 +138,12 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
                         # One example: Hecke algebras.
                         # In that case, the generic implementation of from_base_ring would
                         # fail as well. Hence, unless it is overruled, we will not use it.
-                        #mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                        #mor = SetMorphism(function = self.from_base_ring, parent = H)
                         return
                 except (NotImplementedError, AttributeError, TypeError):
                     # it is possible that an_element or lmul are not implemented.
                     return
-                    #mor = SetMorphism(function = self.from_base_ring, parent = H) 
+                    #mor = SetMorphism(function = self.from_base_ring, parent = H)
                 mor = SetMorphism(function = one._lmul_, parent = H)
             try:
                 self.register_coercion(mor)

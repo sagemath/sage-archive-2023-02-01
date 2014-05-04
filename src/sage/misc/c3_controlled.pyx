@@ -374,7 +374,7 @@ cdef dict flags = { atom: 1 << i for i,atom in enumerate(atoms) }
 cpdef inline tuple category_sort_key(object category):
     """
     Return ``category._cmp_key``.
- 
+
     This helper function is used for sorting lists of categories.
 
     It is semantically equivalent to

@@ -34,7 +34,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
     The partial semigroup that is given by the directed paths of a quiver,
     subject to concatenation.
 
-    See :mod:`~sage.quivers.__init__` for a definition of this
+    See :mod:`~sage.quivers.representation` for a definition of this
     semigroup and of the notion of a path in a quiver.
 
     Note that a *partial semigroup* here is defined as a set `G` with a

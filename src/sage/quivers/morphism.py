@@ -720,7 +720,7 @@ class QuiverRepHom(CallMorphism):
 
         OUTPUT:
 
-        - :class:`Quiver`, the quiver of the representations in the domain
+        - :class:`DiGraph`, the quiver of the representations in the domain
           and codomain
 
         EXAMPLES::

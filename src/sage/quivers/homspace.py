@@ -426,7 +426,7 @@ class QuiverHomSpace(Homset):
 
         OUTPUT:
 
-        - :class:`Quiver`, the quiver of the representations
+        - :class:`DiGraph`, the quiver of the representations
 
         EXAMPLES::
 

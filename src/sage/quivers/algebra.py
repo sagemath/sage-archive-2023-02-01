@@ -23,9 +23,9 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 
 class PathAlgebra(CombinatorialFreeModule):
     r"""
-    Create the path algebra of a Quiver over a given field.
+    Create the path algebra of a :class:`quiver <DiGraph>` over a given field.
 
-    Given a Quiver `Q` and a field `k`, the path algebra `kQ` is defined as
+    Given a quiver `Q` and a field `k`, the path algebra `kQ` is defined as
     follows.  As a vector space it has basis the set of all paths in `Q`.
     Multiplication is defined on this basis and extended bilinearly.  If `p`
     is a path with terminal vertex `t` and `q` is a path with initial vertex
@@ -475,7 +475,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         OUTPUT:
 
-        - :class:`Quiver`
+        - :class:`DiGraph`, the quiver of the algebra
 
         EXAMPLES:
 

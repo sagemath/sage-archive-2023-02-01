@@ -89,7 +89,7 @@ def TD_6_12():
 
     The design is available from the general constructor::
 
-        sage: designs.transversal_design(6,12,availability=True)
+        sage: designs.transversal_design(6,12,existence=True)
         True
 
     REFERENCES:
@@ -140,7 +140,7 @@ def OA_6_20():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(6,20,availability=True)
+        sage: designs.orthogonal_array(6,20,existence=True)
         True
     """
     M=[[None,   7,  13,   1,  16,   9,   2],
@@ -186,7 +186,7 @@ def OA_7_21():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,21,availability=True)
+        sage: designs.orthogonal_array(7,21,existence=True)
         True
     """
     M = [[  8,  17,  20,   2],
@@ -228,7 +228,7 @@ def OA_5_22():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(5,22,availability=True)
+        sage: designs.orthogonal_array(5,22,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -280,7 +280,7 @@ def OA_9_24():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,24,availability=True)
+        sage: designs.orthogonal_array(9,24,existence=True)
         True
     """
     M = ("0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 "+
@@ -331,7 +331,7 @@ def OA_6_26():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(6,26,availability=True)
+        sage: designs.orthogonal_array(6,26,existence=True)
         True
     """
     M = [
@@ -379,7 +379,7 @@ def OA_7_28():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,28,availability=True)
+        sage: designs.orthogonal_array(7,28,existence=True)
         True
     """
     z=2
@@ -431,7 +431,7 @@ def OA_6_30():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(6,30,availability=True)
+        sage: designs.orthogonal_array(6,30,existence=True)
         True
     """
     M = [
@@ -483,7 +483,7 @@ def OA_7_33():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,33,availability=True)
+        sage: designs.orthogonal_array(7,33,existence=True)
         True
     """
     M = [
@@ -534,7 +534,7 @@ def OA_6_34():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(6,34,availability=True)
+        sage: designs.orthogonal_array(6,34,existence=True)
         True
     """
     M = [
@@ -586,7 +586,7 @@ def OA_7_35():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,35,availability=True)
+        sage: designs.orthogonal_array(7,35,existence=True)
         True
     """
     M = [
@@ -624,7 +624,7 @@ def OA_10_36():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,36,availability=True)
+        sage: designs.orthogonal_array(10,36,existence=True)
         True
     """
     M = [
@@ -682,7 +682,7 @@ def OA_6_38():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(6,38,availability=True)
+        sage: designs.orthogonal_array(6,38,existence=True)
         True
     """
     M = [
@@ -731,7 +731,7 @@ def OA_7_39():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,39,availability=True)
+        sage: designs.orthogonal_array(7,39,existence=True)
         True
     """
     M = [
@@ -782,7 +782,7 @@ def OA_9_40():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,40,availability=True)
+        sage: designs.orthogonal_array(9,40,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -856,7 +856,7 @@ def OA_7_42():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,42,availability=True)
+        sage: designs.orthogonal_array(7,42,existence=True)
         True
     """
     M = [
@@ -901,7 +901,7 @@ def OA_7_44():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,44,availability=True)
+        sage: designs.orthogonal_array(7,44,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -970,7 +970,7 @@ def OA_8_45():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,45,availability=True)
+        sage: designs.orthogonal_array(8,45,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1029,7 +1029,7 @@ def OA_6_46():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(6,46,availability=True)
+        sage: designs.orthogonal_array(6,46,existence=True)
         True
     """
     M = OA_from_Vmt(4,9,[0, 1, 3, 2, 8])
@@ -1055,7 +1055,7 @@ def OA_10_48():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,48,availability=True)
+        sage: designs.orthogonal_array(10,48,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1112,7 +1112,7 @@ def OA_8_50():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,50,availability=True)
+        sage: designs.orthogonal_array(8,50,existence=True)
         True
     """
     M = OA_from_Vmt(6,7,[0, 1, 3, 16, 35, 26, 36])
@@ -1138,7 +1138,7 @@ def OA_7_51():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,51,availability=True)
+        sage: designs.orthogonal_array(7,51,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -1184,7 +1184,7 @@ def OA_7_52():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,52,availability=True)
+        sage: designs.orthogonal_array(7,52,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -1265,7 +1265,7 @@ def OA_7_54():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,54,availability=True)
+        sage: designs.orthogonal_array(7,54,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -1311,7 +1311,7 @@ def OA_8_55():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(8,55,availability=True)
+        sage: designs.orthogonal_array(8,55,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -1357,7 +1357,7 @@ def OA_9_56():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,56,availability=True)
+        sage: designs.orthogonal_array(9,56,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1420,7 +1420,7 @@ def OA_7_60():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,60,availability=True)
+        sage: designs.orthogonal_array(7,60,existence=True)
         True
     """
     M60 = [[(0,  0), (0, 0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0), (0,  0)],
@@ -1467,7 +1467,7 @@ def OA_7_62():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(7,62,availability=True)
+        sage: designs.orthogonal_array(7,62,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
@@ -1513,7 +1513,7 @@ def OA_9_65():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,65,availability=True)
+        sage: designs.orthogonal_array(9,65,existence=True)
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
@@ -1549,7 +1549,7 @@ def OA_9_75():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(9,75,availability=True)
+        sage: designs.orthogonal_array(9,75,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1604,7 +1604,7 @@ def OA_11_80():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(11,80,availability=True)
+        sage: designs.orthogonal_array(11,80,existence=True)
         True
     """
     from sage.rings.finite_rings.constructor import FiniteField
@@ -1674,7 +1674,7 @@ def OA_10_82():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,82,availability=True)
+        sage: designs.orthogonal_array(10,82,existence=True)
         True
     """
     M = OA_from_Vmt(8,9,[0,1,20,70,23,59,3,8,19])
@@ -1701,7 +1701,7 @@ def OA_10_100():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(10,100,availability=True)
+        sage: designs.orthogonal_array(10,100,existence=True)
         True
     """
     M = OA_from_Vmt(8,11,[0,1,6,56,22,35,47,23,60])
@@ -1728,7 +1728,7 @@ def OA_12_144():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(12,144,availability=True)
+        sage: designs.orthogonal_array(12,144,existence=True)
         True
     """
     M = OA_from_Vmt(10,13,[0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84])
@@ -1755,7 +1755,7 @@ def OA_12_210():
 
     The design is available from the general constructor::
 
-        sage: designs.orthogonal_array(12,210,availability=True)
+        sage: designs.orthogonal_array(12,210,existence=True)
         True
     """
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])

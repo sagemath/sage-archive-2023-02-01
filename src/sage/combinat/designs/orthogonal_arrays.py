@@ -162,14 +162,14 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         ....:             pass
         ....:         k += 1
         ....:     print "%2d: (%2d, %2d)"%(n,i,j)
-         2: ( 4,  4)
-         3: ( 5,  5)
-         4: ( 6,  6)
-         5: ( 7,  7)
-         6: ( 4,  7)
-         7: ( 9,  9)
-         8: (10, 10)
-         9: (11, 11)
+        2: ( 4,  4)
+        3: ( 5,  5)
+        4: ( 6,  6)
+        5: ( 7,  7)
+        6: ( 4,  7)
+        7: ( 9,  9)
+        8: (10, 10)
+        9: (11, 11)
         10: ( 4, 11)
         11: (13, 13)
         12: ( 7, 14)
@@ -180,11 +180,11 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         17: (19, 19)
         18: ( 5, 20)
         19: (21, 21)
-        20: ( 6, 22)
-        21: ( 5, 22)
-        22: ( 4, 23)
+        20: ( 7, 22)
+        21: ( 8, 22)
+        22: ( 6, 23)
         23: (25, 25)
-        24: ( 6, 26)
+        24: (10, 26)
 
     `TD(6,12)` ::
 
@@ -650,7 +650,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     # Constructions from the database
     elif n in OA_constructions and k <= OA_constructions[n][0]:
-        if availability:
+        if existence:
             return True
         _, construction = OA_constructions[n]
 

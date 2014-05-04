@@ -1,3 +1,23 @@
+"""
+Quiver Morphisms
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2012 Jim Stark <jstarx@gmail.com>
+#                2013 Simon King <simon.king@uni-jena.de>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty
+#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#  See the GNU General Public License for more details; the full text
+#  is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.categories.morphism import CallMorphism
 from sage.matrix.constructor import Matrix
 

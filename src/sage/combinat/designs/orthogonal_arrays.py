@@ -105,12 +105,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
          [4, 6, 13, 15, 22], [4, 7, 10, 18, 21], [4, 8, 12, 16, 20],
          [4, 9, 14, 19, 24]]
 
-    Some examples of the maximal number of transversal Sage is able to build::
-
-        sage: TD_4_10 = designs.transversal_design(4,10)
-        sage: designs.transversal_design(5,10,availability=True)
-        Unknown
-
     For prime powers, there is an explicit construction which gives a
     `TD(n+1,n)`::
 
@@ -130,9 +124,9 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
         sage: designs.transversal_design(11, 10, existence=True)
         False
-        sage: designs.transversal_design(4, 10, existence=True)
+        sage: designs.transversal_design(5, 10, existence=True)
         Unknown
-        sage: designs.transversal_design(3, 10, existence=True)
+        sage: designs.transversal_design(4, 10, existence=True)
         True
 
         sage: designs.transversal_design(7, 20, existence=True)
@@ -171,13 +165,18 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(None, 6, existence=True)
         3
         sage: designs.transversal_design(None, 20, existence=True)
-        5
+        6
         sage: designs.transversal_design(None, 30, existence=True)
-        4
+        6
         sage: designs.transversal_design(None, 120, existence=True)
         8
 
     TESTS:
+
+    The case when `n=1`::
+
+        sage: designs.transversal_design(5,1)
+        [[0, 1, 2, 3, 4]]
 
     Obtained through Wilson's decomposition::
 
@@ -223,7 +222,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
          7: ( 9,  9)
          8: (10, 10)
          9: (11, 11)
-        10: ( 4, 11)
+        10: ( 5, 11)
         11: (13, 13)
         12: ( 7, 14)
         13: (15, 15)
@@ -233,24 +232,46 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         17: (19, 19)
         18: ( 5, 20)
         19: (21, 21)
-        20: ( 6, 22)
-        21: ( 5, 22)
-        22: ( 4, 23)
+        20: ( 7, 22)
+        21: ( 8, 22)
+        22: ( 6, 23)
         23: (25, 25)
-        24: ( 6, 26)
+        24: (10, 26)
+
+    The special case `n=1`::
+
+        sage: designs.transversal_design(3, 1)
+        [[0, 1, 2]]
+        sage: designs.transversal_design(None, 1, existence=True)
+        +Infinity
+        sage: designs.transversal_design(None, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: there are no bound on k when n=1.
     """
     # Is k is None we find the largest available
     if k is None:
+        if n == 1:
+            if existence:
+                from sage.rings.infinity import Infinity
+                return Infinity
+            raise ValueError("there are no bound on k when n=1.")
+
         k = orthogonal_array(None,n,existence=True)
         if existence:
             return k
 
-    if k >= n+2:
+    if n == 1:
+        if existence:
+            return True
+        TD = [range(k)]
+
+    elif k >= n+2:
         if existence:
             return False
-        raise EmptySetError("No Transversal Design exists when k>=n+2")
+        raise EmptySetError("No Transversal Design exists when k>=n+2 if n>=2")
 
-    if n == 12 and k <= 6:
+    elif n == 12 and k <= 6:
         if existence:
             return True
         TD = [l[:k] for l in TD6_12()]
@@ -731,6 +752,19 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         False
         sage: designs.orthogonal_array(12,20,existence=True)
         Unknown
+
+    TESTS:
+
+    The special case `n=1`::
+
+        sage: designs.orthogonal_array(3,1)
+        [[0, 0, 0]]
+        sage: designs.orthogonal_array(None,1,existence=True)
+        +Infinity
+        sage: designs.orthogonal_array(None,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: there are no bound on k when n=1.
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
@@ -739,6 +773,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     # If k is set to None we find the largest value available
     if k is None:
+        if n == 1:
+            if existence:
+                from sage.rings.infinity import Infinity
+                return Infinity
+            raise ValueError("there are no bound on k when n=1.")
+
         for k in range(1,n+2):
             if not orthogonal_array(k+1,n,existence=True):
                 break
@@ -768,7 +808,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = map(list, product(range(n), repeat=k))
 
     elif n in OA_constructions and k <= OA_constructions[n][0]:
-        if availability:
+        if existence:
             return True
         _, construction = OA_constructions[n]
 

@@ -248,28 +248,52 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(5, 5)
         Traceback (most recent call last):
         ...
-        EmptySetError: There exist at most n-1 MOLS of size n.
+        EmptySetError: There exist at most n-1 MOLS of size n if n>=2.
         sage: designs.mutually_orthogonal_latin_squares(6, 3)
         Traceback (most recent call last):
         ...
         NotImplementedError: I don't know how to build these MOLS!
+
+    TESTS:
+
+    The special case `n=1`::
+
+        sage: designs.mutually_orthogonal_latin_squares(1, 3)
+        [[0], [0], [0]]
+        sage: designs.mutually_orthogonal_latin_squares(1, None, existence=True)
+        +Infinity
+        sage: designs.mutually_orthogonal_latin_squares(1, None)
+        Traceback (most recent call last):
+        ...
+        ValueError: there are no bound on k when n=1.
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
 
     # Is k is None we find the largest available
     if k is None:
+        if n == 1:
+            if existence:
+                from sage.rings.infinity import Infinity
+                return Infinity
+            raise ValueError("there are no bound on k when n=1.")
+
         k = orthogonal_array(None,n,existence=True) - 2
         if existence:
             return k
 
-    if k >= n:
+    if n == 1:
+        if existence:
+            return True
+        matrices = [Matrix([[0]])]*k
+
+    elif k >= n:
         if existence:
             return False
-        raise EmptySetError("There exist at most n-1 MOLS of size n.")
+        raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
 
     elif n == 10 and k == 2:
-        if availability:
+        if existence:
             return True
 
         from database import MOLS_10_2

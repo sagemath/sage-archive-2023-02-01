@@ -161,15 +161,14 @@ class Category(UniqueRepresentation, SageObject):
         ....:              # Euclid algorithms
         ....:              pass
 
-    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class 
+    Note that the ``EuclideanDomains.ParentMethods`` and ``.Element`` class
     above do not inherit from anything. They are merely containers of
-    operations. The hierarchy between the different categories is
-    defined once at the level of the categories. Behind the scene, a
-    parallel hierarchy of classes is built automatically from all the
-    ``.ParentMethods`` classes. Then, a parent in a category receives
-    the appropriate operations from all the super categories by usual
-    class inheritance. Similarly, a third hierarchy of classes is
-    built for elements from the ``.Elements``.
+    operations. The hierarchy between the different categories is defined once
+    at the level of the categories. Behind the scene, a parallel hierarchy of
+    classes is built automatically from all the ``.ParentMethods``
+    classes. Then, a parent in a category receives the appropriate operations
+    from all the super categories by usual class inheritance. Similarly, a
+    third hierarchy of classes is built for elements from the ``.Elements``.
 
     EXAMPLES:
 
@@ -551,7 +550,7 @@ class Category(UniqueRepresentation, SageObject):
     def __call__(self, x, *args, **opts):
         """
         Construct an object in this category from the data in ``x``,
-        or throws ``TypeError`` or ``NotImplementedError``.
+        or throw ``TypeError`` or ``NotImplementedError``.
 
         If ``x`` is readily in ``self`` it is returned unchanged.
         Categories wishing to extend this minimal behavior should
@@ -569,7 +568,7 @@ class Category(UniqueRepresentation, SageObject):
     def _call_(self, x):
         """
         Construct an object in this category from the data in ``x``,
-        or throws ``NotImplementedError``.
+        or throw ``NotImplementedError``.
 
         EXAMPLES::
 

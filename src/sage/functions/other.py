@@ -979,9 +979,7 @@ class Function_gamma_inc(BuiltinFunction):
             parent = ComplexField()
         else:
             parent = ComplexField(parent.precision())
-        x = parent(x)
-        y = parent(y)
-        return x.gamma_inc(y)
+        return parent(x).gamma_inc(y)
 
 # synonym.
 incomplete_gamma = gamma_inc=Function_gamma_inc()
@@ -1684,7 +1682,6 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
             sage: _do_sqrt(3,extend=False)
             sqrt(3)
         """
-        from sage.rings.all import RealField, ComplexField
         if prec:
             if x >= 0:
                  return RealField(prec)(x).sqrt(all=all)
@@ -1922,7 +1919,6 @@ class Function_arg(BuiltinFunction):
         try:
             parent = parent.complex_field()
         except AttributeError:
-            from sage.rings.complex_field import ComplexField
             try:
                 parent = ComplexField(x.prec())
             except AttributeError:

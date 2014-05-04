@@ -547,6 +547,28 @@ class PathAlgebra(CombinatorialFreeModule):
 
     __getitem__ = homogeneous_component
 
+    def __iter__(self):
+        r"""
+        Iterate over the non-zero homogeneous components of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = DiGraph([[1,2,'a'],[2,3,'b'],[3,4,'c']])
+            sage: PQ = Q.path_semigroup()
+            sage: A = PQ.algebra(GF(7))
+            sage: list(A)
+            [Free module spanned by [e_1, e_2, e_3, e_4] over Finite Field of size 7,
+             Free module spanned by [a, b, c] over Finite Field of size 7,
+             Free module spanned by [a*b, b*c] over Finite Field of size 7,
+             Free module spanned by [a*b*c] over Finite Field of size 7]
+        """
+        i = 0
+        c = self.homogeneous_component(i)
+        while c.dimension() != 0:
+            yield c
+            i += 1
+            c = self.homogeneous_component(i)
+
     ###########################################################################
     #                                                                         #
     # ELEMENT CLASS                                                           #

@@ -1,4 +1,4 @@
-"""
+r"""
 Quiver Representations
 
 AUTHORS:
@@ -39,7 +39,7 @@ paths in quiver theory also "know" their vertices, so that a length-`0`
 path from `a` to `a` is not the same as a length-`0` path from `b` to `b`
 for `a \neq b`.
 Formally, we say that a path is given by two vertices, ``start`` and
-``end``, and a finite (possibly empty) list of edges `e_1, e_2, ..., e_n`
+``end``, and a finite (possibly empty) list of edges `e_1, e_2, \ldots, e_n`
 such that the initial vertex of `e_1` is ``start``, the final vertex of `e_i`
 is the initial vertex of `e_{i + 1}`, and the final vertex of `e_n` is
 ``end``.  In the case where no edges are specified, we must have
@@ -91,17 +91,17 @@ adjacent edges do not match, an error is raised.
     Traceback (most recent call last):
     ...
     ValueError: Cannot interpret [(1, 2, 'a'), (1, 1)] as element of
-    Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
     sage: inv2 = PQ([(1, 2, 'a'), (1, 2, 'a')])
     Traceback (most recent call last):
     ...
     ValueError: Cannot interpret [(1, 2, 'a'), (1, 2, 'a')] as element of
-    Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
     sage: inv3 = PQ([(1, 2, 'x')])
     Traceback (most recent call last):
     ...
     ValueError: Cannot interpret [(1, 2, 'x')] as element of
-    Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+     Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
 
 The ``*`` operator is concatenation of paths. If the two paths do not compose,
 then the result is ``None`` (whence the "partial" in "partial semigroup").  ::
@@ -163,16 +163,17 @@ path composition when it makes sense and is set to be zero otherwise.
 Specifically, if the terminal vertex of the left path equals the initial
 vertex of the right path, then their product is the concatenation of the
 two paths, and otherwise their product is zero. In sage, quiver algebras
-are handled by the :class:`QuiverAlgebra` class::
+are handled by the :class:`~sage.quivers.algebra.QuiverAlgebra` class::
 
     sage: A = PQ.algebra(GF(7))
     sage: A
     Path algebra of Multi-digraph on 3 vertices over Finite Field of size 7
 
 Quivers have a method that creates their algebra over a given field (or,
-more generally, commutative ring).  Note that :class:`QuiverAlgebras` are
-uniquely defined by their Quiver and field, and play nicely with coercions
-of the underlying path semigroups::
+more generally, commutative ring).  Note that
+:class:`~sage.quivers.algebra.QuiverAlgebras` are uniquely defined by
+their quiver and field, and play nicely with coercions of the underlying
+path semigroups::
 
     sage: A is PQ.algebra(GF(7))
     True
@@ -186,8 +187,9 @@ of the underlying path semigroups::
     sage: Pbig.algebra(GF(7)).has_coerce_map_from(A)
     True
 
-The :class:`QuiverAlgebra` can create elements from :class:`QuiverPaths` or
-from elements of the base ring::
+The :class:`~sage.quivers.algebra.QuiverAlgebra` can create elements
+from :class:`~sage.quivers.paths.QuiverPaths` or from elements of the
+base ring::
 
     sage: A(5)
     5*e_1 + 5*e_2 + 5*e_3
@@ -200,9 +202,9 @@ from elements of the base ring::
     sage: y
     a*d + b*d
 
-:class:`QuiverAlgebras` are `\NN`-graded algebras.  The grading is given by
-assigning to each basis element the length of the path corresponding to
-that basis element::
+:class:`~sage.quivers.algebra.QuiverAlgebras` are `\NN`-graded algebras.
+The grading is given by assigning to each basis element the length of the
+path corresponding to that basis element::
 
     sage: x.is_homogeneous()
     False
@@ -233,7 +235,7 @@ base ring and the path semigroup::
 
 To each vertex of a quiver there is associated a simple module, an
 indecomposable projective, and an indecomposable injective, and these can
-be created from the Quiver::
+be created from the qQuiver::
 
     sage: S = PQ.S(GF(3), 1)
     sage: I = PQ.I(QQ, 2)
@@ -241,7 +243,7 @@ be created from the Quiver::
 
 Radicals, socles, tops, and quotients can all be computed and we can test if
 modules are simple or semisimple, get their dimension, and test for equality.
-Like :class:`Quivers`, :class:`~sage.quivers.representation.QuiverRep` objects
+Like quivers, :class:`~sage.quivers.representation.QuiverRep` objects
 are unique and therefore equal if and only if they are identical::
 
     sage: P.is_simple()

@@ -66,6 +66,7 @@ REFERENCES:
 Functions
 ---------
 """
+from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
@@ -228,16 +229,30 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
           [1, 5, 14, 18, 22],
           [3, 7, 11, 15, 24]]]
 
-    TESTS::
+    What is the maximum number of MOLS of size 8 that Sage knows how to build?::
 
-        sage: designs.mutually_orthogonal_latin_squares(5,5)
-        Traceback (most recent call last):
-        ...
-        ValueError: There exist at most n-1 MOLS of size n.
-        sage: designs.mutually_orthogonal_latin_squares(6,3,existence=True)
-        Unknown
         sage: designs.mutually_orthogonal_latin_squares(8,None,existence=True)
         7
+
+    If you only want to know if Sage is able to build a given set of MOLS, just
+    set the argument ``existence`` to ``True``::
+
+        sage: designs.mutually_orthogonal_latin_squares(5, 5, existence=True)
+        False
+        sage: designs.mutually_orthogonal_latin_squares(6, 4, existence=True)
+        Unknown
+
+    If you ask for such a MOLS then you will respecively get an informative
+    ``EmptySetError`` or ``NotImplementedError``::
+
+        sage: designs.mutually_orthogonal_latin_squares(5, 5)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There exist at most n-1 MOLS of size n.
+        sage: designs.mutually_orthogonal_latin_squares(6, 3)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build these MOLS!
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
@@ -251,7 +266,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
     if k >= n:
         if existence:
             return False
-        raise ValueError("There exist at most n-1 MOLS of size n.")
+        raise EmptySetError("There exist at most n-1 MOLS of size n.")
 
     elif (orthogonal_array not in who_asked and
         orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):
@@ -263,7 +278,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         else:
             if existence:
                 return False
-            raise ValueError("These MOLS do not exist!")
+            raise EmptySetError("These MOLS do not exist!")
 
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."

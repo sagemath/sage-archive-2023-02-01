@@ -30,6 +30,7 @@ REFERENCES:
   Journal of Statistical Planning and Inference,
   Springer, 1 May 2001.
 """
+from sage.misc.unknown import Unknown
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
     r"""
@@ -91,7 +92,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
 
     return True
 
-def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, availability=False, who_asked=tuple()):
+def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False, who_asked=tuple()):
     r"""
     Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
@@ -121,10 +122,14 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
       partitions satisfying this intersection property instead of the `k+2` MOLS
       (though the data is exactly the same in both cases).
 
-    - ``availability`` (boolean) -- if ``availability`` is set to ``True``, the
-      function only returns boolean answers according to whether Sage knows how
-      to build such a collection. This should be much faster than actually
-      building it.
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -185,23 +190,30 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
         sage: designs.mutually_orthogonal_latin_squares(5,5)
         Traceback (most recent call last):
         ...
-        EmptySetError: There exist at most n-1 MOLS of size n.
-        sage: designs.mutually_orthogonal_latin_squares(6,3,availability=True)
-        False
+        ValueError: There exist at most n-1 MOLS of size n.
+        sage: designs.mutually_orthogonal_latin_squares(6,3,existence=True)
+        Unknown
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
 
     if k >= n:
-        if availability:
+        if existence:
             return False
         from sage.categories.sets_cat import EmptySetError
         raise EmptySetError("There exist at most n-1 MOLS of size n.")
 
     elif (orthogonal_array not in who_asked and
-        orthogonal_array(k+2,n,availability=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,))):
-        if availability:
-            return True
+        orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):
+
+        # Forwarding non-existence results
+        if orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)):
+            if existence:
+                return True
+        else:
+            if existence:
+                return False
+            raise ValueError("These MOLS do not exist!")
 
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
@@ -227,8 +239,8 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, ava
                 partitions.append(partition)
 
     else:
-        if availability:
-            return False
+        if existence:
+            return Unknown
         raise NotImplementedError("I don't know how to build these MOLS!")
 
     if check:

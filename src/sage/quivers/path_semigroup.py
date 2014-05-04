@@ -828,6 +828,22 @@ class PathSemigroup(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
+
+        TESTS:
+
+        We check a single edge with a multi-character label::
+
+            sage: Q = DiGraph([[1,2,'abc']])
+            sage: PQ = Q.path_semigroup()
+            sage: PQ.all_paths(1,2)
+            [abc]
+
+        An example with multiple edges::
+
+            sage: Q = DiGraph([[1,2,'abc'], [1,2,'def']])
+            sage: PQ = Q.path_semigroup()
+            sage: PQ.all_paths(1,2)
+            [abc, def]
         """
         # Check that given arguments are vertices
         if start is not None and start not in self._quiver:
@@ -864,9 +880,14 @@ class PathSemigroup(UniqueRepresentation, Parent):
             if len(path) == 1:
                 return [self([(path[0], path[0])], check=False)]
             paths = []
-            for a in Q.edge_label(path[0], path[1]):
+            l = Q.edge_label(path[0], path[1])
+            if isinstance(l, str):
                 for b in _v_to_e(path[1:]):
-                    paths.append(self([(path[0], path[1], a)] + list(b), check=False))
+                    paths.append(self([(path[0], path[1], l)] + list(b), check=False))
+            else:
+                for a in l:
+                    for b in _v_to_e(path[1:]):
+                        paths.append(self([(path[0], path[1], a)] + list(b), check=False))
             return paths
 
         # For each vertex path we append the resulting edge paths

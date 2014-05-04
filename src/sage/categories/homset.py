@@ -278,7 +278,7 @@ def Hom(X, Y, category=None):
     global _cache
     key = (X,Y,category)
     try:
-        H = _cache[key]
+        H = None # _cache[key]
     except KeyError:
         H = None
     if H is not None:

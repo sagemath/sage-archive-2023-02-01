@@ -2041,7 +2041,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of finite dimensional commutative test objects]
         """
         categories = list(categories)
-        if len(categories) == 0:
+        if not categories:
             if as_list:
                 return []
             else:

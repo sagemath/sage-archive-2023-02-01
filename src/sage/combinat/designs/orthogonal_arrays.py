@@ -99,7 +99,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     Some examples of the maximal number of transversal Sage is able to build::
 
         sage: TD_4_10 = designs.transversal_design(4,10)
-        sage: designs.transversal_design(5,10,availability=True)
+        sage: designs.transversal_design(5,10,existence=True)
         Unknown
 
     For prime powers, there is an explicit construction which gives a
@@ -121,8 +121,6 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(11, 10, existence=True)
         False
         sage: designs.transversal_design(4, 10, existence=True)
-        Unknown
-        sage: designs.transversal_design(3, 10, existence=True)
         True
 
         sage: TD_6_20 = designs.transversal_design(6, 20)
@@ -177,21 +175,21 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
          7: ( 9,  9)
          8: (10, 10)
          9: (11, 11)
-        10: ( 4, 11)
+        10: ( 5, 11)
         11: (13, 13)
         12: ( 7, 14)
         13: (15, 15)
-        14: ( 4, 15)
-        15: ( 5, 17)
+        14: ( 7, 15)
+        15: ( 7, 17)
         16: (18, 18)
         17: (19, 19)
-        18: ( 5, 20)
+        18: ( 6, 20)
         19: (21, 21)
-        20: ( 6, 22)
-        21: ( 5, 22)
-        22: ( 4, 23)
+        20: ( 7, 22)
+        21: ( 8, 22)
+        22: ( 6, 23)
         23: (25, 25)
-        24: ( 6, 26)
+        24: (10, 26)
     """
     # Is k is None we find the largest available
     if k is None:
@@ -655,7 +653,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         ...
         EmptySetError: No Orthogonal Array exists when k>=n+t
         sage: designs.orthogonal_array(None,14,existence=True)
-        3
+        6
         sage: designs.orthogonal_array(16,1)
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     """
@@ -695,7 +693,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = map(list, product(range(n), repeat=k))
 
     elif n in OA_constructions and k <= OA_constructions[n][0]:
-        if availability:
+        if existence:
             return True
         _, construction = OA_constructions[n]
 

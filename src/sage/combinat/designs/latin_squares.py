@@ -31,21 +31,21 @@ from the Handbook of Combinatorial Designs.
            0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
         ________________________________________________________________________________
     <BLANKLINE>
-      0| +oo +oo   1   2   3   4   1   6   7   8   1  10   4  12   1   2  15  16   2  18
-     20|   3   2   1  22   3  24   2  26   3  28   2  30  31   3   2   4   3  36   2   3
-     40|   4  40   2  42   3   4   2  46   3  48   2   3   3  52   4   4   6   3   2  58
-     60|   4  60   2   6  63   4   2  66   4   4   6  70   7  72   2   3   3   6   2  78
-     80|   7  80   4  82   6   6   6   3   7  88   2   6   3   4   2   6   7  96   6   8
-    100|   6 100   6 102   7   3   4 106   4 108   2   6   7 112   2   7   4   8   2   6
-    120|   6 120   2   6   4 124   6 126 127   4   6 130   6   6   2   6   7 136   4 138
-    140|   6   7   6  10   8   7   6   7   4 148   6 150   7   8   4   4   4 156   2   6
-    160|   7   7   2 162   4   7   4 166   7 168   6   8   6 172   6   6  10   6   6 178
-    180|   6 180   6   6   7   8   6  10   6   6   2 190   7 192   6   7   6 196   6 198
-    200|   7   7   6   7   4   6   6   8  12  10   6 210   6   7   6   6   7   8   4  10
-    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   2 238
-    240|   7 240   6 242   6   7   6  12   7   7   3 250   3  10   3   7 255 256   4   7
-    260|   4   8   4 262   7   8   6  10   6 268   6 270  15   7   3  10   6 276   6   8
-    280|   7 280   6 282   6  12   6   7  15 288   6   6   4 292   6   6   7  10   6  12
+      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   4  12   4   4  15  16   3  18
+     20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
+     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   3   2  58
+     60|   5  60   5   6  63   4   2  66   4   4   6  70   7  72   3   7   3   6   3  78
+     80|   9  80   8  82   6   6   6   3   7  88   3   6   3   4   3   6   7  96   6   8
+    100|   8 100   6 102   7   4   4 106   4 108   4   6   7 112   3   7   4   8   3   6
+    120|   6 120   4   6   4 124   6 126 127   4   6 130   6   6   4   6   7 136   4 138
+    140|   6   7   6  10  10   7   6   7   4 148   6 150   7   8   4   4   4 156   4   6
+    160|   7   7   4 162   4   7   4 166   7 168   6   8   6 172   6   6  10   6   6 178
+    180|   6 180   6   6   7   8   6  10   6   6   4 190   7 192   6   7   6 196   6 198
+    200|   7   7   6   7   4   6   6   8  12  10  10 210   6   7   6   7   7   8   4  10
+    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   5 238
+    240|   7 240   6 242   6   7   6  12   7   7   5 250   6  10   4   7 255 256   4   7
+    260|   6   8   7 262   7   8   6  10   6 268   6 270  15   7   4  10   6 276   6   8
+    280|   7 280   6 282   6  12   6   7  15 288   6   6   5 292   6   6   7  10   6  12
 
 TODO:
 
@@ -238,7 +238,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         7
         sage: designs.mutually_orthogonal_latin_squares(6,3,existence=True)
         Unknown
-        sage: designs.mutually_orthogonal_latin_squares(10,2,availability=True)
+        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
         True
         sage: designs.mutually_orthogonal_latin_squares(10,2)
         [
@@ -271,14 +271,14 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         raise ValueError("There exist at most n-1 MOLS of size n.")
 
     elif n == 10 and k == 2:
-        if availability:
+        if existence:
             return True
 
         from database import MOLS_10_2
         matrices = MOLS_10_2()
 
     elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
-        if availability:
+        if existence:
             return True
         _, construction = MOLS_constructions[n]
 

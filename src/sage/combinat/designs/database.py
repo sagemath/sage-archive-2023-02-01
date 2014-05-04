@@ -121,7 +121,7 @@ def MOLS_10_2():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(10,2,availability=True)
+        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
         True
     """
     from sage.matrix.constructor import Matrix
@@ -163,7 +163,7 @@ def MOLS_14_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(14,4,availability=True)
+        sage: designs.mutually_orthogonal_latin_squares(14,4,existence=True)
         True
     """
     M = """
@@ -201,7 +201,7 @@ def MOLS_15_4():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(15,4,availability=True)
+        sage: designs.mutually_orthogonal_latin_squares(15,4,existence=True)
         True
     """
     M = """
@@ -240,7 +240,7 @@ def MOLS_18_3():
 
     The design is available from the general constructor::
 
-        sage: designs.mutually_orthogonal_latin_squares(18,3,availability=True)
+        sage: designs.mutually_orthogonal_latin_squares(18,3,existence=True)
         True
     """
     M = """

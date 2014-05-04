@@ -648,9 +648,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             return False
         raise EmptySetError("No Orthogonal Array exists when k>=n+t")
 
-    OA = None
-
-    if k == t:
+    elif k == t:
         if existence:
             return True
 
@@ -658,24 +656,26 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         OA = map(list, product(range(n), repeat=k))
 
     # projective spaces are equivalent to OA(n+1,n,2)
-    if OA is None and t == 2:
+    elif (t == 2 and
+          (projective_plane(n, existence=True) or
+           (k == n+1 and projective_plane(n, existence=True) is False))):
         if k == n+1:
             if existence:
                 return projective_plane(n, existence=True)
             p = projective_plane(n, check=False)
             OA = projective_plane_to_OA(p)
 
-        elif projective_plane(n, existence=True):
+        else:
             if existence:
                 return True
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p)]
 
-    if OA is None and t == 2 and transversal_design not in who_asked:
-        has_TD = transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,))
+    elif (t == 2 and transversal_design not in who_asked and
+          transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
         # forward existence
-        if has_TD is True:
+        if transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)):
             if existence:
                 return True
             else:
@@ -683,17 +683,17 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
                 OA = [[x%n for x in R] for R in TD]
 
         # forward non-existence
-        elif has_TD is False:
+        else:
             if existence:
                 return False
             raise EmptySetError("There exists no OA"+str((k,n))+"!")
 
     # Section 6.5.1 from [Stinson2004]
-    elif OA is None and t == 2 and mutually_orthogonal_latin_squares not in who_asked:
-        has_MOLS = mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,))
+    elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
+          mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
         # forward existence
-        if has_MOLS is True:
+        if mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)):
             if existence:
                 return True
             else:
@@ -701,13 +701,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
                 OA = [[i,j]+[m[i,j] for m in mols]
                       for i in range(n) for j in range(n)]
         # forward non-existence
-        elif has_MOLS is False:
+        else:
             if existence:
                 return False
             raise EmptySetError("There exists no OA"+str((k,n))+"!")
 
-
-    if OA is None:
+    else:
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build this orthogonal array!")

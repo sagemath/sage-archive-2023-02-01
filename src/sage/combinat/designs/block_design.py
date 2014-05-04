@@ -384,20 +384,25 @@ def HadamardDesign(n):
 
 def Hadamard3Design(n):
     """
-    Return the Hadamard 3-design with parameters `3-(n, \frac n 2, \frac n 4 - 1)` where `n` is
-    a mutiple of 4 greater than 4.
-    This is the unique extension of the Hadamard 2-design (see ``designs.HadamardDesign()``).
-    We implement the description from pp. 12 in [CvL].
+    Return the Hadamard 3-design with parameters `3-(n, \frac n 2, \frac n 4 - 1)`.
+
+    This is the unique extension of the Hadamard 2-design (see
+    :meth:`HadamardDesign`).  We implement the description from pp. 12 in
+    [CvL]_.
+
+    INPUT:
+
+    - ``n`` (integer) -- a multiple of 4 such that `n>4`.
 
     EXAMPLES::
 
         sage: designs.Hadamard3Design(12)
         Incidence structure with 12 points and 22 blocks
 
-    We verify that any two blocks of the Hadamard 3-design 3-(8, 4, 1) design meet in `0`
+    We verify that any two blocks of the Hadamard 3-design `3-(8, 4, 1)` design meet in `0`
     or `2` points. More generally, it is true that any two blocks of a Hadamard 3-design meet
-    in 0 or `\frac n 4` points (for n > 4). ::
-    
+    in `0` or `\frac n 4` points (for `n > 4`). ::
+
         sage: D = designs.Hadamard3Design(8)
         sage: N = D.incidence_matrix()
         sage: N.transpose()*N
@@ -415,11 +420,11 @@ def Hadamard3Design(n):
         [2 2 0 2 2 2 2 2 2 2 2 4 2 2]
         [2 0 2 2 2 2 2 2 2 2 2 2 4 2]
         [0 2 2 2 2 2 2 2 2 2 2 2 2 4]
-        
+
     REFERENCES:
 
-    - [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
-      their links, London Math. Soc., 1991. 
+    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+      their links, London Math. Soc., 1991.
     """
     if n == 1 or n == 4:
         raise ValueError("The Hadamard design with n = %s does not extend to a three design." % n)
@@ -428,12 +433,10 @@ def Hadamard3Design(n):
     H = hadamard_matrix(n) #assumed to be normalised.
     H1 = H.matrix_from_columns(range(1, n))
     J = matrix(ZZ, n, n-1, [1]*(n-1)*n)
-    MS = J.parent()
-    A1 = MS((H1+J)/2)
-    A2 = MS((J-H1)/2)
-    A = block_matrix(1, 2, [A1, A2]) #the incidence matrix of the design. 
+    A1 = (H1+J)/2
+    A2 = (J-H1)/2
+    A = block_matrix(1, 2, [A1, A2]) #the incidence matrix of the design.
     return IncidenceStructureFromMatrix(A, name="HadamardThreeDesign")
-
 
 def BlockDesign(max_pt, blks, name=None, test=True):
     """

@@ -20,8 +20,10 @@ Functions
 ---------
 """
 from sage.misc.cachefunc import cached_function
+from sage.categories.sets_cat import EmptySetError
+from sage.misc.unknown import Unknown
 
-def transversal_design(k,n,check=True,availability=False):
+def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     r"""
     Return a transversal design of parameters `k,n`.
 
@@ -50,10 +52,20 @@ def transversal_design(k,n,check=True,availability=False):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
-    - ``availability`` (boolean) -- if ``availability`` is set to ``True``, the
-      function only returns boolean answers according to whether Sage knows how
-      to build such a design. This should be much faster than actually building
-      it.
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+    - ``who_asked`` (internal use only) -- because of the equivalence between
+      OA/TD/MOLS, each of the three constructors calls the others. We must keep
+      track of who calls who in order to avoid infinite loops. ``who_asked`` is
+      the tuple of the other functions that were called before this one on the
+      same input `k,n`.
 
     .. NOTE::
 
@@ -69,40 +81,42 @@ def transversal_design(k,n,check=True,availability=False):
 
         sage: designs.transversal_design(5,5)
         [[0, 5, 10, 15, 20], [0, 6, 12, 18, 24], [0, 7, 14, 16, 23],
-         [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 6, 11, 16, 21],
-         [1, 7, 13, 19, 20], [1, 8, 10, 17, 24], [1, 9, 12, 15, 23],
-         [1, 5, 14, 18, 22], [2, 7, 12, 17, 22], [2, 8, 14, 15, 21],
-         [2, 9, 11, 18, 20], [2, 5, 13, 16, 24], [2, 6, 10, 19, 23],
-         [3, 8, 13, 18, 23], [3, 9, 10, 16, 22], [3, 5, 12, 19, 21],
-         [3, 6, 14, 17, 20], [3, 7, 11, 15, 24], [4, 9, 14, 19, 24],
-         [4, 5, 11, 17, 23], [4, 6, 13, 15, 22], [4, 7, 10, 18, 21],
-         [4, 8, 12, 16, 20]]
+         [0, 8, 11, 19, 22], [0, 9, 13, 17, 21], [1, 5, 14, 18, 22],
+         [1, 6, 11, 16, 21], [1, 7, 13, 19, 20], [1, 8, 10, 17, 24],
+         [1, 9, 12, 15, 23], [2, 5, 13, 16, 24], [2, 6, 10, 19, 23],
+         [2, 7, 12, 17, 22], [2, 8, 14, 15, 21], [2, 9, 11, 18, 20],
+         [3, 5, 12, 19, 21], [3, 6, 14, 17, 20], [3, 7, 11, 15, 24],
+         [3, 8, 13, 18, 23], [3, 9, 10, 16, 22], [4, 5, 11, 17, 23],
+         [4, 6, 13, 15, 22], [4, 7, 10, 18, 21], [4, 8, 12, 16, 20],
+         [4, 9, 14, 19, 24]]
 
-    Some examples of the maximal number of transversal Sage is able to build::
+    For prime powers, there is an explicit construction which gives a
+    `TD(n+1,n)`::
 
-        sage: TD_3_10 = designs.transversal_design(3,10)
-        sage: designs.transversal_design(4,10,availability=True)
+        sage: for n in [2,3,5,7,9,11,13,16,17,19]:
+        ....:     for k in xrange(2, n+2):
+        ....:        assert designs.transversal_design(k,n,existence=True) is True
+
+    For other values of ``n`` it depends::
+
+        sage: designs.transversal_design(7, 6, existence=True)
+        False
+        sage: designs.transversal_design(4, 6, existence=True)
         Unknown
+        sage: designs.transversal_design(3, 6, existence=True)
+        True
 
-        sage: TD_6_12 = designs.transversal_design(6,12)
-        sage: designs.transversal_design(7,12,availability=True)
+        sage: designs.transversal_design(11, 10, existence=True)
+        False
+        sage: designs.transversal_design(4, 10, existence=True)
         Unknown
+        sage: designs.transversal_design(3, 10, existence=True)
+        True
 
-        sage: TD_3_14 = designs.transversal_design(3, 14)
-        sage: designs.transversal_design(4, 14,availability=True)
+        sage: designs.transversal_design(7, 12, existence=True)
         Unknown
-
-        sage: TD_4_15 = designs.transversal_design(4, 15)
-        sage: designs.transversal_design(5, 15,availability=True)
-        Unknown
-
-        sage: TD_4_18 = designs.transversal_design(4, 18)
-        sage: designs.transversal_design(5, 18,availability=True)
-        Unknown
-
-        sage: TD_5_20 = designs.transversal_design(5, 20)
-        sage: designs.transversal_design(6, 20,availability=True)
-        Unknown
+        sage: designs.transversal_design(6, 12, existence=True)
+        True
 
     TESTS:
 
@@ -115,22 +129,69 @@ def transversal_design(k,n,check=True,availability=False):
         sage: _ = designs.transversal_design(6,60)
         sage: _ = designs.transversal_design(5,60) # checks some tricky divisibility error
 
-    Unknown availability::
+    For small values of the parameter ``n`` we check the coherence of the
+    function :func:`transversal_design`::
 
-        sage: designs.transversal_design(6,4,availability=True)
-        Unknown
+        sage: designs.transversal_design = designs.transversal_design
+        sage: for n in xrange(2,25):                               # long time -- 15 secs
+        ....:     i = 2
+        ....:     while designs.transversal_design(i, n, existence=True) is True:
+        ....:         i += 1
+        ....:     _ = designs.transversal_design(i-1, n)
+        ....:     j = i
+        ....:     while designs.transversal_design(j, n, existence=True) is Unknown:
+        ....:         try:
+        ....:             _ = designs.transversal_design(j, n)
+        ....:             raise AssertionError("no NotImplementedError")
+        ....:         except NotImplementedError:
+        ....:             pass
+        ....:         j += 1
+        ....:     k = j
+        ....:     while k < n+4:
+        ....:         assert designs.transversal_design(k, n, existence=True) is False
+        ....:         try:
+        ....:             _ = designs.transversal_design(k, n)
+        ....:             raise AssertionError("no EmptySetError")
+        ....:         except EmptySetError:
+        ....:             pass
+        ....:         k += 1
+        ....:     print "%2d: (%2d, %2d)"%(n,i,j)
+         2: ( 4,  4)
+         3: ( 5,  5)
+         4: ( 6,  6)
+         5: ( 7,  7)
+         6: ( 4,  7)
+         7: ( 9,  9)
+         8: (10, 10)
+         9: (11, 11)
+        10: ( 4, 11)
+        11: (13, 13)
+        12: ( 7, 14)
+        13: (15, 15)
+        14: ( 4, 15)
+        15: ( 5, 17)
+        16: (18, 18)
+        17: (19, 19)
+        18: ( 5, 20)
+        19: (21, 21)
+        20: ( 6, 22)
+        21: ( 5, 22)
+        22: ( 4, 23)
+        23: (25, 25)
+        24: ( 6, 26)
     """
+    if k >= n+2:
+        if existence:
+            return False
+        raise EmptySetError("No Transversal Design exists when k>=n+2")
+
     if n == 12 and k <= 6:
-        TD = [l[:k] for l in TD6_12()]
-    # Section 6.6 of [Stinson2004]
-    elif orthogonal_array(k,n, check = False, availability = True):
-        if availability:
+        if existence:
             return True
-        OA = orthogonal_array(k,n, check = False)
-        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+        TD = [l[:k] for l in TD6_12()]
 
     elif TD_find_product_decomposition(k,n):
-        if availability:
+        if existence:
             return True
         n1,n2 = TD_find_product_decomposition(k,n)
         TD1 = transversal_design(k,n1, check = False)
@@ -138,16 +199,30 @@ def transversal_design(k,n,check=True,availability=False):
         TD = TD_product(k,TD1,n1,TD2,n2, check = False)
 
     elif find_wilson_decomposition(k,n):
-        if availability:
+        if existence:
             return True
         TD = wilson_construction(*find_wilson_decomposition(k,n), check = False)
 
-    else:
-        if availability:
-            from sage.misc.unknown import Unknown
-            return Unknown
+    # Section 6.6 of [Stinson2004]
+    elif (orthogonal_array not in who_asked and
+          orthogonal_array(k, n, existence=True, who_asked = who_asked + (transversal_design,)) is not Unknown):
+
+        # Forwarding non-existence results
+        if orthogonal_array(k, n, existence=True, who_asked = who_asked + (transversal_design,)):
+            if existence:
+                return True
         else:
-            raise NotImplementedError("I don't know how to build this Transversal Design !")
+            if existence:
+                return False
+            raise EmptySetError("There exists no TD"+str((k,n))+"!")
+
+        OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
+        TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
+
+    else:
+        if existence:
+            return Unknown
+        raise NotImplementedError("I don't know how to build this Transversal Design!")
 
     if check:
         assert is_transversal_design(TD,k,n)
@@ -211,7 +286,7 @@ def is_transversal_design(B,k,n, verbose=False):
 @cached_function
 def find_wilson_decomposition(k,n):
     r"""
-    Finds a wilson decomposition of `n`
+    Finds a wilson decomposition of `k,n`
 
     This method looks for possible integers `m,t,u` satisfying that `mt+u=n` and
     such that Sage knows how to build a `TD(k,m), TD(k,m+1),TD(k+1,t)` and a
@@ -245,10 +320,10 @@ def find_wilson_decomposition(k,n):
         if k >= m+2:
             break
 
-        if (transversal_design(k  ,m  , availability=True) and
-            transversal_design(k  ,m+1, availability=True) and
-            transversal_design(k+1,t  , availability=True) and
-            transversal_design(k  ,u  , availability=True)):
+        if (transversal_design(k  ,m  , existence=True) and
+            transversal_design(k  ,m+1, existence=True) and
+            transversal_design(k+1,t  , existence=True) and
+            transversal_design(k  ,u  , existence=True)):
             return k,m,t,u
 
     return False
@@ -419,7 +494,7 @@ def TD_find_product_decomposition(k,n):
     from sage.rings.arith import divisors
     for n1 in divisors(n)[1:-1]: # we ignore 1 and n
         n2 = n//n1
-        if transversal_design(k, n1, availability = True) and transversal_design(k, n2, availability = True):
+        if transversal_design(k, n1, existence = True) and transversal_design(k, n2, existence = True):
             return n1,n2
     return None
 
@@ -475,7 +550,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
     return TD
 
-def orthogonal_array(k,n,t=2,check=True,availability=False):
+def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     r"""
     Return an orthogonal array of parameters `k,n,t`.
 
@@ -503,10 +578,20 @@ def orthogonal_array(k,n,t=2,check=True,availability=False):
       guys), you may want to disable it whenever you want speed. Set to
       ``True`` by default.
 
-    - ``availability`` (boolean) -- if ``availability`` is set to ``True``, the
-      function only returns boolean answers according to whether Sage knows how
-      to build such an array. This should be much faster than actually building
-      it.
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+    - ``who_asked`` (internal use only) -- because of the equivalence between
+      OA/TD/MOLS, each of the three constructors calls the others. We must keep
+      track of who calls who in order to avoid infinite loops. ``who_asked`` is
+      the tuple of the other functions that were called before this one on the
+      same input `k,n`.
 
     For more information on orthogonal arrays, see
     :wikipedia:`Orthogonal_array`.
@@ -518,24 +603,28 @@ def orthogonal_array(k,n,t=2,check=True,availability=False):
 
     .. SEEALSO::
 
-        :func:`transversal_design` -- when `t=2` an orthogonal array is also
-        called a transversal design.
+        When `t=2` an orthogonal array is also a transversal design (see
+        :func:`transversal_design`) and a family of mutually orthogonal latin
+        squares (see
+        :func:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`).
 
     EXAMPLES::
 
         sage: designs.orthogonal_array(5,5)
-        [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3], [0, 3, 1, 4, 2],
-         [0, 4, 3, 2, 1], [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
-         [1, 4, 2, 0, 3], [1, 0, 4, 3, 2], [2, 2, 2, 2, 2], [2, 3, 4, 0, 1],
-         [2, 4, 1, 3, 0], [2, 0, 3, 1, 4], [2, 1, 0, 4, 3], [3, 3, 3, 3, 3],
-         [3, 4, 0, 1, 2], [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
-         [4, 4, 4, 4, 4], [4, 0, 1, 2, 3], [4, 1, 3, 0, 2], [4, 2, 0, 3, 1],
-         [4, 3, 2, 1, 0]]
+        [[0, 0, 0, 0, 0], [0, 1, 2, 3, 4], [0, 2, 4, 1, 3],
+         [0, 3, 1, 4, 2], [0, 4, 3, 2, 1], [1, 0, 4, 3, 2],
+         [1, 1, 1, 1, 1], [1, 2, 3, 4, 0], [1, 3, 0, 2, 4],
+         [1, 4, 2, 0, 3], [2, 0, 3, 1, 4], [2, 1, 0, 4, 3],
+         [2, 2, 2, 2, 2], [2, 3, 4, 0, 1], [2, 4, 1, 3, 0],
+         [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
+         [3, 3, 3, 3, 3], [3, 4, 0, 1, 2], [4, 0, 1, 2, 3],
+         [4, 1, 3, 0, 2], [4, 2, 0, 3, 1], [4, 3, 2, 1, 0],
+         [4, 4, 4, 4, 4]]
 
     TESTS::
 
         sage: designs.orthogonal_array(3,2)
-        [[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 1]]
+        [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
@@ -544,77 +633,90 @@ def orthogonal_array(k,n,t=2,check=True,availability=False):
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
+    from block_design import projective_plane, projective_plane_to_OA
 
     if k < 2:
         raise ValueError("undefined for k less than 2")
 
     elif k >= n+t:
-        if availability:
-            return False
-
-        from sage.categories.sets_cat import EmptySetError
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
         # When t>2 the submatrix defined by the rows whose first t-2 elements
         # are 0s yields a OA with t=2 and k-(t-2) columns. Thus k-(t-2) < n+2,
         # i.e. k<n+t.
+
+        if existence:
+            return False
         raise EmptySetError("No Orthogonal Array exists when k>=n+t")
 
     elif k == t:
-        if availability:
+        if existence:
             return True
 
         from itertools import product
         OA = map(list, product(range(n), repeat=k))
 
-    # Theorem 6.39 from [Stinson2004]
-    elif t == 2 and 2 <= k and k <= n and is_prime_power(n):
-        if availability:
-            return True
+    # projective spaces are equivalent to OA(n+1,n,2)
+    elif (t == 2 and
+          (projective_plane(n, existence=True) or
+           (k == n+1 and projective_plane(n, existence=True) is False))):
+        if k == n+1:
+            if existence:
+                return projective_plane(n, existence=True)
+            p = projective_plane(n, check=False)
+            OA = projective_plane_to_OA(p)
 
-        M = []
-        Fp = FiniteField(n,'x')
-        vv = list(Fp)[:k]
-        relabel = {x:i for i,x in enumerate(Fp)}
-        for i in Fp:
-            for j in Fp:
-                M.append([relabel[i+j*v] for v in vv])
-
-        OA = M
-
-    # Theorem 6.40 from [Stinson2004]
-    elif t == 2 and k == n+1 and is_prime_power(n):
-        if availability:
-            return True
-
-        if n == 2:
-            OA = [[0,1,0],[0,0,1],[1,0,0],[1,1,1]]
         else:
-            M = orthogonal_array(n,n, check=False)
-            for i,l in enumerate(M):
-                l.append(i%n)
-            OA = M
+            if existence:
+                return True
+            p = projective_plane(n, check=False)
+            OA = [l[:k] for l in projective_plane_to_OA(p)]
+
+    elif (t == 2 and transversal_design not in who_asked and
+          transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
+
+        # forward existence
+        if transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)):
+            if existence:
+                return True
+            else:
+                TD = transversal_design(k,n,check=False,who_asked=who_asked+(orthogonal_array,))
+                OA = [[x%n for x in R] for R in TD]
+
+        # forward non-existence
+        else:
+            if existence:
+                return False
+            raise EmptySetError("There exists no OA"+str((k,n))+"!")
 
     # Section 6.5.1 from [Stinson2004]
-    elif t == 2 and mutually_orthogonal_latin_squares(n,k-2, availability=True):
-        if availability:
-            return True
+    elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
+          mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
 
-        mols = mutually_orthogonal_latin_squares(n,k-2)
-        OA = [[i,j]+[m[i,j] for m in mols]
-              for i in range(n) for j in range(n)]
+        # forward existence
+        if mutually_orthogonal_latin_squares(n,k-2, existence=True,who_asked=who_asked+(orthogonal_array,)):
+            if existence:
+                return True
+            else:
+                mols = mutually_orthogonal_latin_squares(n,k-2,who_asked=who_asked+(orthogonal_array,))
+                OA = [[i,j]+[m[i,j] for m in mols]
+                      for i in range(n) for j in range(n)]
+        # forward non-existence
+        else:
+            if existence:
+                return False
+            raise EmptySetError("There exists no OA"+str((k,n))+"!")
 
     else:
-        if availability:
-            return False
-        else:
-            raise NotImplementedError("I don't know how to build this orthogonal array!")
+        if existence:
+            return Unknown
+        raise NotImplementedError("I don't know how to build this orthogonal array!")
 
     if check:
         assert is_orthogonal_array(OA,k,n,t)
 
     return OA
 
-def is_orthogonal_array(M,k,n,t):
+def is_orthogonal_array(M,k,n,t,verbose=False):
     r"""
     Check that the integer matrix `M` is an `OA(k,n,t)`.
 
@@ -626,6 +728,9 @@ def is_orthogonal_array(M,k,n,t):
     - ``M`` -- an integer matrix of size `k^t \times n`
 
     - ``k, n, t`` -- integers
+
+    - ``verbose`` -- boolean, if ``True`` provide an information on where ``M``
+      fails to be an `OA(k,n,t)`.
 
     EXAMPLES::
 
@@ -639,14 +744,17 @@ def is_orthogonal_array(M,k,n,t):
     if t != 2:
         raise NotImplementedError("only implemented for t=2")
 
-    if not all(len(l) == k for l in M):
+    if any(len(l) != k for l in M):
+        if verbose:
+            print "a block has the wrong size"
         return False
 
     from itertools import combinations
     for S in combinations(range(k),2):
         fs = frozenset([tuple([l[i] for i in S]) for l in M])
         if len(fs) != n**2:
+            if verbose:
+                print "for the choice %s of columns we do not get all tuples"%(S,)
             return False
 
     return True
-

@@ -73,7 +73,8 @@ class CommutativeAdditiveGroups(AbelianCategory):
                     sage: 4*x
                     (4, 0)
                 """
-                return self.parent()(tuple([x+y for x,y in zip(self.summand_split(),right.summand_split())]))
+                return self.parent()._cartesian_product_of_elements(
+                    x+y for x,y in zip(self.summand_split(),right.summand_split()))
 
             def _neg_(self):
                 r"""
@@ -84,7 +85,8 @@ class CommutativeAdditiveGroups(AbelianCategory):
                     sage: -oneone
                     (4, 4)
                 """
-                return self.parent()(tuple([-x for x in self.summand_split()]))
+                return self.parent()._cartesian_product_of_elements(
+                    -x for x in self.summand_split())
 
         class ParentMethods:
             def zero(self):
@@ -96,7 +98,8 @@ class CommutativeAdditiveGroups(AbelianCategory):
                     sage: GF(8,'x').cartesian_product(GF(5)).zero()
                     (0, 0)
                 """
-                return self(tuple([0 for _ in self._sets]))
+                return self._cartesian_product_of_elements(
+                    _.zero() for _ in self._sets)
 
     class ParentMethods:
         pass

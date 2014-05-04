@@ -53,34 +53,45 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     def _element_constructor_(self,x):
         r"""
-        Makes sure that each coordinate of an element belongs to the right set.
+        Construct an element of a cartesian product from a list or iterable
 
         INPUT:
 
-        - ``x`` -- the new element
+        - ``x`` -- a list (or iterable)
+
+        Each component of `x` is converted to the corresponding
+        cartesian factor.
 
         EXAMPLES::
 
-            sage: x = GF(5).cartesian_product(GF(3))((1,3)); x
+            sage: C = cartesian_product([GF(5), GF(3)])
+            sage: x = C((1,3)); x
             (1, 0)
             sage: x.parent()
             The cartesian product of (Finite Field of size 5, Finite Field of size 3)
             sage: x[0].parent()
             Finite Field of size 5
+            sage: x[1].parent()
+            Finite Field of size 3
+
+        An iterable is also accepted as input::
+
+            sage: C(i for i in range(2))
+            (0, 1)
 
         TESTS::
 
-            sage: GF(5).cartesian_product(GF(3))((1,3,4))
+            sage: C((1,3,4))
             Traceback (most recent call last):
             ...
-            ValueError: The element has the wrong length
+            ValueError: (1, 3, 4) should be of length 2
         """
+        x = tuple(x)
         if len(x) != len(self._sets):
-            raise ValueError("The element has the wrong length")
-
-        x = [c(xx) for c,xx in zip(self._sets,x)]
-
-        return self.element_class(self, tuple(x))
+            raise ValueError(
+                "{} should be of length {}".format(x, len(self._sets)))
+        x = tuple(c(xx) for c,xx in zip(self._sets,x))
+        return self.element_class(self, x)
 
     def _repr_(self):
         """
@@ -173,6 +184,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
     from sage.structure.element_wrapper import ElementWrapper
     class Element(ElementWrapper):
 
+        wrapped_class = tuple
+
         def summand_projection(self, i):
             """
             Returns the projection of ``self`` on the `i`-th
@@ -195,4 +208,25 @@ class CartesianProduct(UniqueRepresentation, Parent):
             """
             return self.value[i]
 
-        wrapped_class = tuple
+        __getitem__ = summand_projection
+
+        def __iter__(self):
+            r"""
+            Iterate over the components of an element.
+
+            EXAMPLES::
+
+                sage: C = Sets().CartesianProducts().example(); C
+                The cartesian product of
+                (Set of prime numbers (basic implementation),
+                 An example of an infinite enumerated set: the non negative integers,
+                 An example of a finite enumerated set: {1,2,3})
+                sage: c = C.an_element(); c
+                (47, 42, 1)
+                sage: for i in c:
+                ....:     print i
+                47
+                42
+                1
+            """
+            return iter(self.value)

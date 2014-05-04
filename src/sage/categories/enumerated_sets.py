@@ -712,4 +712,4 @@ class EnumeratedSets(Category_singleton):
                 """
                 from itertools import product
                 for x in product(*self._sets):
-                    yield self(x)
+                    yield self._cartesian_product_of_elements(x)

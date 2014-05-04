@@ -251,7 +251,9 @@ class Algebras(Category_over_base_ring):
                 sage: Algebras(QQ).CartesianProducts().extra_super_categories()
                 [Category of algebras over Rational Field]
                 sage: Algebras(QQ).CartesianProducts().super_categories()
-                [Category of algebras over Rational Field, Category of Cartesian products of monoids, Category of Cartesian products of commutative additive groups]
+                [Category of algebras over Rational Field,
+                 Category of Cartesian products of monoids,
+                 Category of Cartesian products of commutative additive groups]
 
             """
             return [self.base_category()]

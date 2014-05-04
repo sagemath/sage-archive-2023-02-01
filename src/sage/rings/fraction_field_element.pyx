@@ -162,6 +162,8 @@ cdef class FractionFieldElement(FieldElement):
         """
         Divides out the gcd of the numerator and denominator.
 
+        If the denominator becomes a unit, it becomes 1.
+
         Automatically called for exact rings, but because it may be
         numerically unstable for inexact rings it must be called manually
         in that case.
@@ -199,22 +201,6 @@ cdef class FractionFieldElement(FieldElement):
             raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
         except NotImplementedError:
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
-
-    cpdef normalize(self):
-        """
-        Picks a normalized representation of self.
-
-        In particular, for any a == b, after normalization they will have the
-        same numerator and denominator.
-
-        EXAMPLES::
-
-            sage: R.<x> = Frac(ZZ['x'])
-            sage: s = (2*x + 2) / (4*x)
-            sage: s.normalize(); s
-            (x + 1)/(2*x)
-        """
-        self.reduce()
 
     def __copy__(self):
         """
@@ -362,30 +348,15 @@ cdef class FractionFieldElement(FieldElement):
             sage: hash(R(1)/R(2))==hash(1/2)
             True
 
-        Ensure normalization is done before hashing the numerator and
-        denominator, fixing trac #16268::
-
-            sage: Ku.<u> = FractionField(PolynomialRing(QQ,'u'))
-            sage: a = 27*u^2+81*u+243
-            sage: b = 27*u-81
-            sage: c = u^2 + 3*u + 9
-            sage: d = u-3
-            sage: s = a/b
-            sage: t = c/d
-            sage: s==t
-            True
-            sage: len(Set([s,t]))
-            1
         """
-        # This is same algorithm as used for members of QQ
-        #cdef long n, d
-        self.normalize()
-        n = hash(self.__numerator)
-        d = hash(self.__denominator)
-        if d == 1:
-            return n
-        else:
-            return n ^ d
+        if self._parent.is_exact():
+            try:
+                self.reduce()
+            except ArithmeticError:
+                pass
+        if self.__denominator.is_one():
+            return hash(self.__numerator)
+        raise NotImplementedError("Do not know how to hash elements of general fraction field")
 
     def __call__(self, *x, **kwds):
         """
@@ -1124,6 +1095,38 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
         if leading != 1:
             self.__numerator /= leading
             self.__denominator /= leading
+
+    def __hash__(self):
+        """
+        This function hashes in a special way to ensure that elements of
+        a ring `R` and their images in a fraction field of `R` have the same
+        hash. This enables them to be used as keys interchangeably in a
+        dictionary (since ``==`` will claim them equal).
+
+        Ensure normalization is done before hashing the numerator and
+        denominator, fixing trac #16268::
+
+            sage: Ku.<u> = FractionField(PolynomialRing(QQ,'u'))
+            sage: a = 27*u^2+81*u+243
+            sage: b = 27*u-81
+            sage: c = u^2 + 3*u + 9
+            sage: d = u-3
+            sage: s = a/b
+            sage: t = c/d
+            sage: s==t
+            True
+            sage: len(Set([s,t]))
+            1
+        """
+        # This is same algorithm as used for members of QQ
+        #cdef long n, d
+        self.normalize()
+        n = hash(self.__numerator)
+        d = hash(self.__denominator)
+        if d == 1:
+            return n
+        else:
+            return n ^ d
 
 def make_element(parent, numerator, denominator):
     """

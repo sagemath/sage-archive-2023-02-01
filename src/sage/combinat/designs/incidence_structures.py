@@ -90,7 +90,7 @@ def IncidenceStructureFromMatrix(M, name=None):
     for i in range(b):
         B = []
         for j in range(v):
-            if M[i, j] != 0:
+            if M[j, i] != 0:
                 B.append(j)
         blocks.append(B)
     return IncidenceStructure(range(v), blocks, name=nm)

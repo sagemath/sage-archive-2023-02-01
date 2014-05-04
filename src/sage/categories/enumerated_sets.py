@@ -13,6 +13,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class EnumeratedSets(Category_singleton):
     """
@@ -673,3 +674,20 @@ class EnumeratedSets(Category_singleton):
 
     Finite   = LazyImport('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets', at_startup=True)
     Infinite = LazyImport('sage.categories.infinite_enumerated_sets', 'InfiniteEnumeratedSets', at_startup=True)
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        class ParentMethods:
+            def __iter__(self):
+                r"""
+                Iterates over the elements of self.
+
+                EXAMPLE::
+
+                    sage: F33 = GF(2).cartesian_product(GF(2))
+                    sage: list(F33)
+                    [(0, 0), (0, 1), (1, 0), (1, 1)]
+                """
+                from itertools import product
+                for x in product(*self._sets):
+                    yield self._cartesian_product_of_elements(x)

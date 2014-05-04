@@ -118,6 +118,12 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(6, 12, existence=True)
         True
 
+        sage: designs.transversal_design(6, 20, existence = True)
+        True
+        sage: designs.transversal_design(7, 20, existence = True)
+        Unknown
+
+
     TESTS:
 
     Obtained through Wilson's decomposition::
@@ -179,6 +185,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         22: ( 4, 23)
         23: (25, 25)
         24: ( 6, 26)
+
+    `TD(6,12)` ::
+
+        sage: _ = designs.transversal_design(6,12)
     """
     if k >= n+2:
         if existence:
@@ -188,7 +198,8 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     if n == 12 and k <= 6:
         if existence:
             return True
-        TD = [l[:k] for l in TD6_12()]
+        from sage.combinat.designs.database import TD_6_12
+        TD = [l[:k] for l in TD_6_12()]
 
     elif TD_find_product_decomposition(k,n):
         if existence:
@@ -327,45 +338,6 @@ def find_wilson_decomposition(k,n):
             return k,m,t,u
 
     return False
-
-def TD6_12():
-    r"""
-    Returns a `TD(6,12)` as build in [Hanani75]_.
-
-    This design is Lemma 3.21 from [Hanani75]_.
-
-    EXAMPLE::
-
-        sage: from sage.combinat.designs.orthogonal_arrays import TD6_12
-        sage: _ = TD6_12()
-
-    REFERENCES:
-
-    .. [Hanani75] Haim Hanani,
-      Balanced incomplete block designs and related designs,
-      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
-      Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
-    """
-    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-    G = AdditiveAbelianGroup([2,6])
-    d = [[(0,0),(0,0),(0,0),(0,0),(0,0),(0,0)],
-         [(0,0),(0,1),(1,0),(0,3),(1,2),(0,4)],
-         [(0,0),(0,2),(1,2),(1,0),(0,1),(1,5)],
-         [(0,0),(0,3),(0,2),(0,1),(1,5),(1,4)],
-         [(0,0),(0,4),(1,1),(1,3),(0,5),(0,2)],
-         [(0,0),(0,5),(0,1),(1,5),(1,3),(1,1)],
-         [(0,0),(1,0),(1,3),(0,2),(0,3),(1,2)],
-         [(0,0),(1,1),(1,5),(1,2),(1,4),(1,0)],
-         [(0,0),(1,2),(0,4),(0,5),(0,2),(1,3)],
-         [(0,0),(1,3),(1,4),(0,4),(1,1),(0,1)],
-         [(0,0),(1,4),(0,5),(1,1),(1,0),(0,3)],
-         [(0,0),(1,5),(0,3),(1,4),(0,4),(0,5)]]
-
-    r = lambda x : int(x[0])*6+int(x[1])
-    TD = [[i*12+r(G(x)+g) for i,x in enumerate(X)] for X in d for g in G]
-    for x in TD: x.sort()
-
-    return TD
 
 def wilson_construction(k,m,t,u, check = True):
     r"""
@@ -628,15 +600,21 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
-        EmptySetError: No Orthogonal Array exists when k>=n+t
+        EmptySetError: No Orthogonal Array exists when k>=n+t except when n=1
+        sage: designs.orthogonal_array(16,1)
+        [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
     from block_design import projective_plane, projective_plane_to_OA
+    from database import OA_constructions
 
     if k < 2:
         raise ValueError("undefined for k less than 2")
+
+    if n == 1:
+        OA = [[0]*k]
 
     elif k >= n+t:
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
@@ -646,7 +624,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
         if existence:
             return False
-        raise EmptySetError("No Orthogonal Array exists when k>=n+t")
+        raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n=1")
 
     elif k == t:
         if existence:
@@ -664,12 +642,19 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
                 return projective_plane(n, existence=True)
             p = projective_plane(n, check=False)
             OA = projective_plane_to_OA(p)
-
         else:
             if existence:
                 return True
             p = projective_plane(n, check=False)
             OA = [l[:k] for l in projective_plane_to_OA(p)]
+
+    # Constructions from the database
+    elif n in OA_constructions and k <= OA_constructions[n][0]:
+        if availability:
+            return True
+        _, construction = OA_constructions[n]
+
+        OA = OA_from_wider_OA(construction(),k)
 
     elif (t == 2 and transversal_design not in who_asked and
           transversal_design(k,n,existence=True,who_asked=who_asked+(orthogonal_array,)) is not Unknown):
@@ -716,6 +701,203 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     return OA
 
+def OA_from_quasi_difference_matrix(M,G,add_col=True):
+    r"""
+    Returns an Orthogonal Array from a Quasi-Difference matrix
+
+    **Difference Matrices**
+
+    Let `G` be a group of order `g`. A *difference matrix* `M` is a `k \times g`
+    matrix with entries from `G` such that for any `1\leq i < j < k` the set
+    `\{d_{il}-d_{jl}:1\leq l \leq g\}` is equal to `G`.
+
+    By concatenating the `g` matrices `M+x` (where `x\in G`), one obtains a
+    matrix of size `x\times g^2` which is also an `OA(k,g)`.
+
+    **Quasi-difference Matrices**
+
+    A quasi-difference matrix is a difference matrix with missing entries. The
+    construction above can be applied again in this case, where the missing
+    entries in each column of `M` are replaced by unique values on which `G` has
+    a trivial action.
+
+    This produces an incomplete orthogonal array with a "hole" (i.e. missing
+    rows) of size 'u' (i.e. the number of missing values per row of `M`). If
+    there exists an `OA(k,u)`, then adding the rows of this `OA(k,u)` to the
+    incomplete orthogonal array should lead to an OA...
+
+    **Formal definition** (from the Handbook of Combinatorial Designs [DesignHandbook]_)
+
+    Let `G` be an abelian group of order `n`. A
+    `(n,k;\lambda,\mu;u)`-quasi-difference matrix (QDM) is a matrix `Q=(q_{ij})`
+    with `k` rows and `\lambda(n-1+2u)+\mu` columns, with each entry either
+    empty or containing an element of `G`. Each row contains exactly `\lambda u`
+    entries, and each column contains at most one empty entry. Furthermore, for
+    each `1 \leq i < j \leq k` the multiset
+
+    .. MATH::
+
+        \{ q_{il} - q_{jl}: 1 \leq l \leq \lambda (n-1+2u)+\mu, \text{ with }q_{il}\text{ and }q_{jl}\text{ not  empty}\}
+
+    contains every nonzero element of `G` exactly `\lambda` times, and contains
+    0 exactly `\mu` times.
+
+    **Construction**
+
+    If a `(n,k;\lambda,\mu;u)`-QDM exists and `\mu \leq \lambda`, then an
+    `ITD_\lambda (k,n+u;u)` exists. Start with a `(n,k;\lambda,\mu;u)`-QDM `A`
+    over the group `G`. Append `\lambda-\mu` columns of zeroes. Then select `u`
+    elements `\infty_1,\dots,\infty_u` not in `G`, and replace the empty
+    entries, each by one of these infinite symbols, so that `\infty_i` appears
+    exactly once in each row. Develop the resulting matrix over the group `G`
+    (leaving infinite symbols fixed), to obtain a `k\times \lambda (n^2+2nu)`
+    matrix `T`. Then `T` is an orthogonal array with `k` rows and index
+    `\lambda`, having `n+u` symbols and one hole of size `u`.
+
+    Adding to `T` an `OA(k,u)` with elements `\infty_1,\dots,\infty_u` yields
+    the `ITD_\lambda(k,n+u;u)`.
+
+    For more information, see the Handbook of Combinatorial Designs
+    [DesignHandbook]_ or
+    `<http://web.cs.du.edu/~petr/milehigh/2013/Colbourn.pdf>`_.
+
+    INPUT:
+
+    - ``M`` -- the difference matrix whose entries belong to ``G``
+
+    - ``G`` -- a group
+
+    - ``add_col`` (boolean) -- whether to add a column to the final OA equal to
+      `(x_1,\dots,x_g,x_1,\dots,x_g,\dots)` where `G=\{x_1,\dots,x_g\}`.
+
+    EXAMPLES::
+
+        sage: _ = designs.orthogonal_array(6,20,2) # indirect doctest
+    """
+    Gn = G.cardinality()
+    k = len(M)+bool(add_col)
+    G_to_int = {v:i for i,v in enumerate(G)}
+
+    new_M = []
+    for line in M:
+        new_line = []
+        # Concatenating the line+x, for all x \in G
+        for g in G:
+            inf = Gn
+            for x in line:
+                if x is None:
+                    new_line.append(inf)
+                    inf = inf + 1
+                else:
+                    new_line.append(G_to_int[g+G(x)])
+        new_M.append(new_line)
+
+    if add_col:
+        new_M.append([i%(Gn) for i in range(len(new_line))])
+
+    # new_M = transpose(new_M)
+    new_M = zip(*new_M)
+
+    # Filling holes with a smaller orthogonal array
+    if inf > Gn:
+        for L in orthogonal_array(k,inf-Gn,2):
+            new_M.append(tuple([x+Gn for x in L]))
+
+    return new_M
+
+def OA_from_Vmt(m,t,V):
+    r"""
+    Returns an Orthogonal Array from a V(m,t)
+
+    *Definition*
+
+    Let `q` be a prime power and let `q=mt+1` for `m,t` integers. Let `\omega`
+    be a primitive element of `\mathbb{F}_q`. A `V(m,t)` vector is a vector
+    `(a_1,\dots,a_{m+1}` for which, for each `1\leq k < m`, the differences
+
+    .. MATH::
+
+        \{a_{i+k}-a_i:1\leq i \leq m+1,i+k\neq m+2\}
+
+    represent the `m` cyclotomic classes of `\mathbb_{mt+1}` (compute subscripts
+    modulo `m+2`). In other words, for fixed `k`, is
+    `a_{i+k}-a_i=\omega^{mx+\alpha}` and `a_{j+k}-a_j=\omega^{my+\beta}` then
+    `\alpha\not\equiv\beta \mod{m}`
+
+    *Construction of a quasi-difference matrix from a `V(m,t)` vector*
+
+    Starting with a `V(m,t)` vector `(a_1,\dots,a_{m+1})`, form a single column
+    of length `m+2` whose first entry is empty, and whose remaining entries are
+    `(a_1,\dots,a_{m+1})`. Form `t` columns by multiplying this column by the
+    `t` th roots, i.e. the powers of `\omega^m`. From each of these `t` columns,
+    form `m+2` columns by taking the `m+2` cyclic shifts of the column. The
+    result is a `(a,m+2;1,0;t)-QDM`.
+
+    For more information, refer to the Handbook of Combinatorial Designs
+    [DesignHandbook]_.
+
+    INPUT:
+
+    - ``m,t`` (integers)
+
+    - ``V`` -- the vector `V(m,t)`.
+
+    .. SEEALSO::
+
+        :func:`OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: _ = designs.orthogonal_array(6,46) # indirect doctest
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    q = m*t+1
+    Fq = FiniteField(q)
+    w = Fq.primitive_element()
+
+    # Cyclic shift of a list
+    cyclic_shift = lambda l,i : l[-i:]+l[:-i]
+
+    M = []
+    wm = w**m
+    for i in range(t):
+        L = [None]
+        for e in V:
+            L.append(e*wm**i)
+        for ii in range(m+2):
+            M.append(cyclic_shift(L,ii))
+
+    M.append([0]*q)
+    M = zip(*M)
+    M = OA_from_quasi_difference_matrix(M,Fq,add_col = False)
+
+    return M
+
+def OA_from_wider_OA(OA,k):
+    r"""
+    Returns the first `k` columns of `OA`.
+
+    If `OA` has `k` columns, this function returns `OA` immediately.
+
+    INPUT:
+
+    - ``OA`` -- an orthogonal array.
+
+    - ``k`` (integer)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_from_wider_OA
+        sage: OA_from_wider_OA(designs.orthogonal_array(6,20,2),1)[:5]
+        [(19,), (0,), (0,), (7,), (1,)]
+        sage: _ = designs.orthogonal_array(5,46) # indirect doctest
+
+    """
+    if len(OA[0]) == k:
+        return OA
+    return [L[:k] for L in OA]
+
+
 def is_orthogonal_array(M,k,n,t,verbose=False):
     r"""
     Check that the integer matrix `M` is an `OA(k,n,t)`.
@@ -744,9 +926,14 @@ def is_orthogonal_array(M,k,n,t,verbose=False):
     if t != 2:
         raise NotImplementedError("only implemented for t=2")
 
+    if len(M) != n**2:
+        if verbose:
+            print "wrong number of rows"
+        return False
+
     if any(len(l) != k for l in M):
         if verbose:
-            print "a block has the wrong size"
+            print "a row has the wrong size"
         return False
 
     from itertools import combinations

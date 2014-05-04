@@ -645,6 +645,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
         # dimension 1 and the constructor will zero out everything else.
         return QuiverRep(k, self, {vertex: 1})
 
+    simple = S
+
     def P(self, k, vertex):
         """
         Return the indecomposable projective module over `k` at the given
@@ -683,6 +685,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             raise ValueError("must specify a valid vertex of the quiver")
         return QuiverRep(k, self, [[(vertex, vertex)]], option='paths')
 
+    projective = P
+
     def I(self, k, vertex):
         """
         Return the indecomposable injective module over `k` at the
@@ -720,6 +724,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if vertex not in self._quiver:
             raise ValueError("must specify a valid vertex of the quiver")
         return QuiverRep(k, self, [[(vertex, vertex)]], option='dual paths')
+
+    injective = I
 
     def free_module(self, k):
         """

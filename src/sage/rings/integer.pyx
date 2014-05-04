@@ -4158,6 +4158,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return True
+        
+    def is_integer(self):
+        """
+        Returns ``True`` as they are integers
+
+        EXAMPLES::
+
+            sage: sqrt(4).is_integer()
+            True
+        """
+        return True
 
     def is_unit(self):
         r"""

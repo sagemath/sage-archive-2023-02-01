@@ -205,12 +205,14 @@ cdef set_from_Integer(Integer self, Integer other):
 
 cdef set_from_pari_gen(Integer self, pari_gen x):
     r"""
-    sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1)]]
-    [1, 1152921504606846976, 2, 1]
-    sage: Integer(pari(2.1))
-    Traceback (most recent call last):
-    ...
-    TypeError: Attempt to coerce non-integral real number to an Integer
+    EXAMPLES::
+
+        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1)]]
+        [1, 1152921504606846976, 2, 1]
+        sage: Integer(pari(2.1)) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral real number to an Integer
     """
     # Simplify and lift until we get an integer
     while typ((<pari_gen>x).g) != t_INT:

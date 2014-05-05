@@ -158,7 +158,7 @@ def MOLS_12_5():
     EXAMPLES::
 
         sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
-        sage: from sage.combinat.designs.latin_squares import MOLS_12_5
+        sage: from sage.combinat.designs.database import MOLS_12_5
         sage: MOLS = MOLS_12_5()
         sage: print are_mutually_orthogonal_latin_squares(MOLS)
         True

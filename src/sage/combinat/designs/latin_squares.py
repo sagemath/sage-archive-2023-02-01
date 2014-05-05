@@ -28,24 +28,6 @@ from the Handbook of Combinatorial Designs.
     ....:             print "\n"+'%3s'%str(i)+"|",
     ....:         print '%3s'%str(designs.mutually_orthogonal_latin_squares(i,None,existence=True) if i>1 else "+oo"),
     sage: MOLS_table(15) # long time
-           0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
-        ________________________________________________________________________________
-    <BLANKLINE>
-      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   4  12   1   2  15  16   2  18
-     20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
-     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   3   2  58
-     60|   5  60   5   6  63   4   2  66   4   4   6  70   7  72   2   7   3   6   2  78
-     80|   9  80   8  82   6   6   6   3   7  88   2   6   3   4   2   6   7  96   6   8
-    100|   8 100   6 102   7   4   4 106   4 108   3   6   7 112   3   7   4   8   3   6
-    120|   6 120   3   6   4 124   6 126 127   4   6 130   6   6   3   6   7 136   4 138
-    140|   6   7   6  10  10   7   6   7   4 148   6 150   7   8   4   4   4 156   4   6
-    160|   7   7   3 162   4   7   4 166   7 168   6   8   6 172   6   6  10   6   6 178
-    180|   6 180   6   6   7   8   6  10   6   6   4 190   7 192   6   7   6 196   6 198
-    200|   7   7   6   7   4   6   6   8  12  10  10 210   6   7   6   7   7   8   4  10
-    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   5 238
-    240|   7 240   6 242   6   7   6  12   7   7   5 250   6  10   4   7 255 256   4   7
-    260|   6   8   7 262   7   8   6  10   6 268   6 270  15   7   4  10   6 276   6   8
-    280|   7 280   6 282   6  12   6   7  15 288   6   6   5 292   6   6   7  10   6  12
 
 TODO:
 
@@ -266,9 +248,26 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         Traceback (most recent call last):
         ...
         ValueError: there are no bound on k when n=1.
+        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
+        True
+        sage: designs.mutually_orthogonal_latin_squares(10,2)
+        [
+        [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
+        [7 2 8 9 0 3 5 4 6 1]  [8 2 1 7 6 0 9 3 4 5]
+        [6 1 3 8 9 0 4 5 7 2]  [9 8 3 2 1 7 0 4 5 6]
+        [5 7 2 4 8 9 0 6 1 3]  [0 9 8 4 3 2 1 5 6 7]
+        [0 6 1 3 5 8 9 7 2 4]  [2 0 9 8 5 4 3 6 7 1]
+        [9 0 7 2 4 6 8 1 3 5]  [4 3 0 9 8 6 5 7 1 2]
+        [8 9 0 1 3 5 7 2 4 6]  [6 5 4 0 9 8 7 1 2 3]
+        [2 3 4 5 6 7 1 8 9 0]  [3 4 5 6 7 1 2 8 0 9]
+        [3 4 5 6 7 1 2 0 8 9]  [5 6 7 1 2 3 4 0 9 8]
+        [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
+        ]
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
+    from sage.rings.arith import factor
+    from database import MOLS_constructions
 
     # Is k is None we find the largest available
     if k is None:
@@ -298,6 +297,13 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
         from database import MOLS_10_2
         matrices = MOLS_10_2()
+
+    elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
+        if existence:
+            return True
+        _, construction = MOLS_constructions[n]
+
+        matrices = construction()[:k]
 
     elif (orthogonal_array not in who_asked and
         orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):

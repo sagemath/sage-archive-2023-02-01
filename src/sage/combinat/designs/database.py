@@ -47,15 +47,21 @@ Implemented constructions :
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(12,210) <OA_12_210>`
 
-- :func:`two MOLS of order 10 <MOLS_10_2>`
+- :func:`two MOLS of order 10 <MOLS_10_2>`,
+  :func:`four MOLS of order 14 <MOLS_14_4>`,
+  :func:`four MOLS of order 15 <MOLS_15_4>`,
+  :func:`three MOLS of order 18 <MOLS_18_3>`
 
 **Dictionaries**
 
 The functions defined here are used by
 :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`. Thus, the
-functions are indexed by a dictionary which associates to every integer ``n`` a
+functions are indexed by dictionary which associates to every integer ``n`` a
 pair ``(k,f)`` where ``f`` is a function such that ``f()`` is a `OA(k,n)`. This
-dictionary is defined in this module at the end of the file.
+dictionary is defined right after the constructions of OA in the file.
+
+The same goes for the constructions of MOLS, used by
+:func:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`.
 
 REFERENCES:
 
@@ -75,6 +81,29 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
 
+def _MOLS_from_string(s,k):
+    r"""
+    Returns MOLS from a string
+
+    INPUT:
+
+    - ``s`` (string) -- represents the MOLS with entries in a-z. To understand
+      how the string should be formatted, read the source code of a constructor
+      that uses it.
+
+    - ``k`` (integer) -- the number of MOLS encoded by the string.
+
+    EXAMPLES::
+
+        sage: _ = designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
+    """
+    from sage.matrix.constructor import Matrix
+    matrices = [[] for _ in range(k)]
+    for i,l in enumerate(s.split()):
+        l = [ord(x) - 97 for x in l]
+        matrices[i%k].append(l)
+    return map(Matrix, matrices)
+
 def MOLS_10_2():
     r"""
     Returns a pair of MOLS of order 10
@@ -84,19 +113,16 @@ def MOLS_10_2():
 
     EXAMPLES::
 
-        sage: designs.mutually_orthogonal_latin_squares(10,2) # indirect doctest
-        [
-        [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
-        [7 2 8 9 0 3 5 4 6 1]  [8 2 1 7 6 0 9 3 4 5]
-        [6 1 3 8 9 0 4 5 7 2]  [9 8 3 2 1 7 0 4 5 6]
-        [5 7 2 4 8 9 0 6 1 3]  [0 9 8 4 3 2 1 5 6 7]
-        [0 6 1 3 5 8 9 7 2 4]  [2 0 9 8 5 4 3 6 7 1]
-        [9 0 7 2 4 6 8 1 3 5]  [4 3 0 9 8 6 5 7 1 2]
-        [8 9 0 1 3 5 7 2 4 6]  [6 5 4 0 9 8 7 1 2 3]
-        [2 3 4 5 6 7 1 8 9 0]  [3 4 5 6 7 1 2 8 0 9]
-        [3 4 5 6 7 1 2 0 8 9]  [5 6 7 1 2 3 4 0 9 8]
-        [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
-        ]
+        sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
+        sage: from sage.combinat.designs.database import MOLS_10_2
+        sage: MOLS = MOLS_10_2()
+        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
+        True
     """
     from sage.matrix.constructor import Matrix
     return [Matrix([[1,8,9,0,2,4,6,3,5,7],
@@ -120,6 +146,138 @@ def MOLS_10_2():
                     [3,4,5,6,7,1,2,8,0,9],
                     [5,6,7,1,2,3,4,0,9,8],
                     [7,1,2,3,4,5,6,9,8,0]])]
+
+def MOLS_14_4():
+    r"""
+    Returns four MOLS of order 14
+
+    These MOLS were shared by Ian Wanless.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
+        sage: from sage.combinat.designs.database import MOLS_14_4
+        sage: MOLS = MOLS_14_4()
+        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.mutually_orthogonal_latin_squares(14,4,existence=True)
+        True
+    """
+    M = """
+        bjihgkecalnfmd  bfmcenidgjhalk  bcdefghijklmna  bcdefghijklmna
+        fckjbhledimagn  jcgndfalehkbim  gnkjdmiclbhaef  jflhnkaecmgdib
+        mgdlkcbafejnih  ikdhaegnmfblcj  lifhbjemkangcd  emkdjbgfnliahc
+        cnhemldbigfkaj  hjlebifkangcmd  dalmgnbjehcfik  anighmflkbdcej
+        edabfnmkcjhgli  gbkmfcjeliahdn  njcaeifhbdgkml  kebcajimdgfhln
+        nfeicgajldkbhm  khclngdafmjibe  mfbkcdlagnjihe  cgnflembihakjd
+        iagfjdhnkmelcb  elbdmahfignkjc  aemnhkjdcifblg  ilabkdnhfcjegm
+        dlnkeafimhcjbg  ceabkjnihdmgfl  hdnikbagmcelfj  ljgnihecbamfdk
+        gemalfihjnbdkc  adficlkmjbenhg  cgjflhnbiekdam  ndmabcjglfeikh
+        jhfnimgdbkacel  liegjdmhnkcfab  fkibmagenldhjc  mbhiefljadkncg
+        hkbgajnmeclidf  nmjfhkecbaldgi  imhlneckdfajgb  difjcnkamehgbl
+        ablchikgnfdmje  fankgbljdcimeh  klegafdnhjmcbi  ghckmlbdeinjaf
+        licmdbjfhagenk  mgialhcbkedjnf  jhadicmlfgbekn  fajlgidkhncbme
+        kmjdneclgbihfa  dnhjimbgclfeka  ebgcjlkfamindh  hkemdacngjblfi
+        """
+
+    return _MOLS_from_string(M,4)
+
+def MOLS_15_4():
+    r"""
+    Returns 4 MOLS of order 15.
+
+    These MOLS were shared by Ian Wanless.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
+        sage: from sage.combinat.designs.database import MOLS_15_4
+        sage: MOLS = MOLS_15_4()
+        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.mutually_orthogonal_latin_squares(15,4,existence=True)
+        True
+    """
+    M = """
+        bcdefghijklmnoa  bdgiknfcamehjlo  bhealiofmdjgcnk  blhcmdinejofakg
+        abcdefghijklmno  acehjlogdbnfikm  lcifbmjagnekhdo  hcmidnejofkagbl
+        oabcdefghijklmn  nbdfikmahecogjl  amdjgcnkbhoflie  midnjeofkaglbhc
+        noabcdefghijklm  mocegjlnbifdahk  fbnekhdolciagmj  dnjeokfaglbhmci
+        mnoabcdefghijkl  lnadfhkmocjgebi  kgcoflieamdjbhn  jeokfalgbhmcind
+        lmnoabcdefghijk  jmobegilnadkhfc  olhdagmjfbnekci  ekfalgbmhcindjo
+        klmnoabcdefghij  dknacfhjmobelig  jamiebhnkgcofld  aflgbmhcnidjoek
+        jklmnoabcdefghi  helobdgiknacfmj  ekbnjfciolhdagm  lbgmhcnidojekaf
+        ijklmnoabcdefgh  kifmacehjlobdgn  nflcokgdjamiebh  gmchnidojeakflb
+        hijklmnoabcdefg  oljgnbdfikmaceh  iogmdalhekbnjfc  chndiojeakfblgm
+        ghijklmnoabcdef  iamkhocegjlnbdf  djahnebmiflcokg  ndioejakfblgcmh
+        fghijklmnoabcde  gjbnliadfhkmoce  hekbiofcnjgmdal  ioejafkblgcmhdn
+        efghijklmnoabcd  fhkcomjbegilnad  miflcjagdokhneb  ojafkbglcmhdnie
+        defghijklmnoabc  egildankcfhjmob  cnjgmdkbhealiof  fakbglchmdnieoj
+        cdefghijklmnoab  cfhjmeboldgikna  gdokhnelcifbmja  kgblchmdineojfa
+        """
+
+    return _MOLS_from_string(M,4)
+
+def MOLS_18_3():
+    r"""
+    Returns 3 MOLS of order 18.
+
+    These MOLS were shared by Ian Wanless.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
+        sage: from sage.combinat.designs.database import MOLS_18_3
+        sage: MOLS = MOLS_18_3()
+        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.mutually_orthogonal_latin_squares(18,3,existence=True)
+        True
+    """
+    M = """
+        bgejhkmodcnarilpfq  beqpodgcflkrjahnim  bcdefghijklmnopqra
+        echfbilnprdokajmqg  gcfrqpehdnmlabkioj  rbkamfgdehqjinopcl
+        qfdigcjmohaeplkbnr  ehdgarqfibonmkcljp  mlbqhifgajdcrenopk
+        prgejhdbnaikfqmlco  jfiehkargqcponldmb  hijbcdefgqraklmnop
+        oqahfbiecpkjlgrnmd  hbgjfilkacrdqpomen  gderbkamfpclhqjino
+        dprkigcjfeqlbmhaon  kichbgjmlodaerqpnf  fgamlbqhiopkjdcren
+        geqaljhdbofrmcnikp  mljdichbngpekfarqo  efghijbcdnopqraklm
+        chfrkmbieqpgandojl  onmbejdicphqflgkar  amfgderbkinopclhqj
+        fdigalncjmrqhkoepb  dponcfbejaqirgmhlk  qhifgamlbrenopkjdc
+        lnbqcogpakmhdrifej  crhapeoqmkbgidnjfl  leqjponacbkidfgmhr
+        kmocrdphqblnieajgf  ndaikqfprmlchjeobg  kjmcrponhlbqeafgid
+        rlnpdaeqigcmojfkbh  aoekjlrgqhnmdibfpc  dqriklponajbcmhfge
+        jamoqekfrihdnpbglc  rkpflbmahdionejcgq  nacleqjpomhrbkidfg
+        abknprflgdjieoqchm  ialqgmcnkrejpofbdh  onhkjmcrpgidlbqeaf
+        hkcloqagmnebjfprdi  ljkmrhndoiafbqpgce  pondqriklfgeajbcmh
+        nildmprkhjofcbgqae  pmblnaioefjkgcrqhd  jponacleqdfgmhrbki
+        iojmenqalfbpgdchrk  fqncmokjpegblhdari  crponhkjmeafgidlbq
+        mjpbnforklgcqhedia  qgrodnplbjfhcmieka  iklpondqrcmhfgeajb
+        """
+
+    return _MOLS_from_string(M,3)
+
+# Index of the MOLS constructions
+#
+# Associates to n the pair (k,f) where f() is a function that returns k MOLS of order n
+#
+# This dictionary is used by designs.mutually_orthogonal_latin_squares(n,k).
+
+MOLS_constructions = {
+    10 : (2, MOLS_10_2),
+    14 : (4, MOLS_14_4),
+    15 : (4, MOLS_15_4),
+    18 : (3, MOLS_18_3)
+}
 
 def OA_6_20():
     r"""

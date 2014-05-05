@@ -287,7 +287,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
             1/1024*I*u^18 + O(u^20)
 
-        TESTS::
+        TESTS:
 
         When converting from `R((z))` to `R((z))((w))`, the variable
         `z` is sent to `z` rather than to `w` (see :trac:`7085`)::

@@ -310,13 +310,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
             return False
         raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
 
-    elif n == 10 and k == 2:
-        if existence:
-            return True
-
-        from database import MOLS_10_2
-        matrices = MOLS_10_2()
-
     elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
         if existence:
             return True

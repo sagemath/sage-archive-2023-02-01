@@ -48,9 +48,11 @@ Implemented constructions :
   :func:`OA(12,210) <OA_12_210>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
+  :func:`five MOLS of order 12 <MOLS_12_5>`,
   :func:`four MOLS of order 14 <MOLS_14_4>`,
   :func:`four MOLS of order 15 <MOLS_15_4>`,
   :func:`three MOLS of order 18 <MOLS_18_3>`
+
 
 **Dictionaries**
 
@@ -146,6 +148,37 @@ def MOLS_10_2():
                     [3,4,5,6,7,1,2,8,0,9],
                     [5,6,7,1,2,3,4,0,9,8],
                     [7,1,2,3,4,5,6,9,8,0]])]
+
+def MOLS_12_5():
+    r"""
+    Returns 5 MOLS of order 12
+
+    These MOLS have been found by Brendan McKay.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.latin_squares import are_mutually_orthogonal_latin_squares
+        sage: from sage.combinat.designs.latin_squares import MOLS_12_5
+        sage: MOLS = MOLS_12_5()
+        sage: print are_mutually_orthogonal_latin_squares(MOLS)
+        True
+    """
+    M = """
+        abcdefghijkl abcdefghijkl abcdefghijkl abcdefghijkl abcdefghijkl
+        badcfehgjilk ghefklijcdab dcbahgfelkji jilkbadcfehg klijcdabghef
+        cdabghefklij efghijklabcd lkjidcbahgfe ijklabcdefgh fehgjilkbadc
+        dcbahgfelkji cdabghefklij ghefklijcdab badcfehgjilk hgfelkjidcba
+        ijklabcdefgh klijcdabghef efghijklabcd fehgjilkbadc jilkbadcfehg
+        jilkbadcfehg fehgjilkbadc hgfelkjidcba dcbahgfelkji lkjidcbahgfe
+        klijcdabghef hgfelkjidcba jilkbadcfehg cdabghefklij dcbahgfelkji
+        lkjidcbahgfe ijklabcdefgh badcfehgjilk efghijklabcd ghefklijcdab
+        efghijklabcd jilkbadcfehg fehgjilkbadc lkjidcbahgfe cdabghefklij
+        fehgjilkbadc dcbahgfelkji cdabghefklij ghefklijcdab badcfehgjilk
+        ghefklijcdab badcfehgjilk klijcdabghef hgfelkjidcba ijklabcdefgh
+        hgfelkjidcba lkjidcbahgfe ijklabcdefgh klijcdabghef efghijklabcd
+        """
+
+    return _MOLS_from_string(M,5)
 
 def MOLS_14_4():
     r"""
@@ -274,6 +307,7 @@ def MOLS_18_3():
 
 MOLS_constructions = {
     10 : (2, MOLS_10_2),
+    12 : (5, MOLS_12_5),
     14 : (4, MOLS_14_4),
     15 : (4, MOLS_15_4),
     18 : (3, MOLS_18_3)

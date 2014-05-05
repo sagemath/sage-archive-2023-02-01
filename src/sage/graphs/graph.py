@@ -1050,7 +1050,7 @@ class Graph(GenericGraph):
             sage: g = Graph([[1,2],[1,2]],multiedges=False)
             Traceback (most recent call last):
             ...
-            ValueError: Non-multigraph input dict has multiple edges (1,2)
+            ValueError: Non-multigraph got several edges (1,2)
 
         An empty list or dictionary defines a simple graph
         (:trac:`10441` and :trac:`12910`)::
@@ -1095,6 +1095,14 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check the error when the input has multiple edges but ``multiple_edges``
+        is set to False (:trac:`16215`)::
+
+            sage: Graph([(0,1),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multigraph got several edges (0,1)
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1449,8 +1457,8 @@ class Graph(GenericGraph):
                 verts=verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        from sage.misc.prandom import choice
-                        raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)

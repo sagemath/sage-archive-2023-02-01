@@ -1356,7 +1356,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     def _ascii_art_term(self, m):
         r"""
-        Return an ascii art representing the generator indexed by ``m``.
+        Return an ascii art representation of the term indexed by ``m``.
 
         TESTS::
 

@@ -448,8 +448,8 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     - ``index_set`` -- (optional) an index set for the generators; if
       specified then the optional keyword ``abelian`` can be used
 
-    - ``abelian`` -- (default: ``False``) whether the free monoid is abelian
-      or not
+    - ``abelian`` -- (default: ``False``) whether to construct a free
+      abelian group or a free group
 
     EXAMPLES::
 
@@ -472,7 +472,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
         sage: FreeGroup()
         Free Group on generators {x}
 
-    We give two examples with the index set::
+    We give two examples using the ``index_set`` option::
 
         sage: FreeGroup(index_set=ZZ)
         Free group indexed by Integer Ring

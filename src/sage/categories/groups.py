@@ -61,17 +61,17 @@ class Groups(Category_singleton):
 
         INPUT:
 
-        - ``n`` -- integer or ``None`` (default). The nnumber of
+        - ``n`` -- an integer or ``None`` (default). The number of
           generators. If not specified the ``names`` are counted.
 
-        - ``names`` -- string or list/tuple/iterable of strings (default:
-          ``'x'``). The generator names or name prefix.
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``). The generator names or name prefix.
 
         - ``index_set`` -- (optional) an index set for the generators; if
           specified then the optional keyword ``abelian`` can be used
 
-        - ``abelian`` -- (default: ``False``) whether the free monoid is
-          abelian or not
+        - ``abelian`` -- (default: ``False``) whether to construct the
+          free abelian group or the free group
 
         EXAMPLES::
 

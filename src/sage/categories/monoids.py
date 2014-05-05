@@ -65,21 +65,21 @@ class Monoids(Category_singleton):
         Return a free monoid on `n` generators or with the generators indexed by
         a set `I`.
 
-        We construct free monoids by specifing either:
+        A free monoid is constructed by specifing either:
 
         - the number of generators and/or the names of the generators
         - the indexing set for the generators
 
         INPUT:
 
-        -  ``n`` -- integer
+        -  ``n`` -- an integer
 
-        -  ``names`` -- names of generators
+        -  ``names`` -- names for the generators
 
         - ``index_set`` -- an indexing set for the generators
 
-        - ``abelian`` -- (default: ``False``) whether the free monoid is
-          abelian or not
+        - ``abelian`` -- (default: ``False``) whether to construct the
+          free abelian monoid or the free monoid
 
         EXAMPLES::
 

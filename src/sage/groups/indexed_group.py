@@ -58,17 +58,20 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
     def _repr_(self):
         """
+        Return a string representation of ``self``
+
         TESTS::
 
-            sage: FreeGroup(index_set=ZZ)
+            sage: FreeGroup(index_set=ZZ)       # indirect doctest
             Free group indexed by Integer Ring
         """
         return 'Free group indexed by {}'.format(self._indices)
 
     def order(self):
         r"""
-        Return the number of elements of ``self``, which is `\infty` unless
-        this is the trivial group.
+        Return the number of elements of ``self``.
+
+        This is `\infty` unless this is the trivial group.
 
         EXAMPLES::
 
@@ -86,6 +89,9 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
             return Integer(1)
         return infinity
 
+    # TODO: once #10963 is merged, use the categories
+    # Groups().Infinite() / Groups().Finite() and get rid of this
+    # method
     def is_finite(self):
         """
         Return ``True`` if ``self`` is finite.
@@ -106,8 +112,9 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
     def rank(self):
         """
-        Return the rank of ``self``, which is the number of
-        generators of ``self``.
+        Return the rank of ``self``.
+
+        This is the number of generators of ``self``.
 
         EXAMPLES::
 
@@ -124,9 +131,13 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
         return self.gens().cardinality()
 
     class Element(IndexedFreeMonoid.Element):
-        def __lt__(self, y):
+        def __lt__(self, other):
             """
-            Check less than.
+            Return whether ``self`` is smaller than ``y``.
+
+            This is done by comparing lexicographically the words for
+            ``self`` and ``y``. In particular this assumes that the
+            (index of) the generators are totally ordered.
 
             EXAMPLES::
 
@@ -143,9 +154,9 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
                 sage: a^2*b < a*b^-1*a*b
                 True
             """
-            if not isinstance(y, IndexedMonoidElement):
+            if not isinstance(other, IndexedMonoidElement):
                 return False
-            return self.to_word_list() < y.to_word_list()
+            return self.to_word_list() < other.to_word_list()
 
         def __len__(self):
             """
@@ -219,7 +230,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
         def __pow__(self, n):
             """
-            Raise ``self`` to the power of ``n``.
+            Raise ``self`` to the `n`-th power.
 
             EXAMPLES::
 

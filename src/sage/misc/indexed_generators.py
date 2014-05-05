@@ -32,12 +32,12 @@ class IndexedGenerators:
       True.
 
     - ``bracket`` -- ``None``, bool, string, or list or tuple of
-      strings (optional, default None): if ``None``, use the value of the
+      strings (optional, default ``None``): if ``None``, use the value of the
       attribute ``self._repr_option_bracket``, which has default value
-      True.  (``self._repr_option_bracket`` is available for backwards
+      ``True``.  (``self._repr_option_bracket`` is available for backwards
       compatibility.  Users should set ``bracket`` instead.  If
-      ``bracket`` is set to anything except None, it overrides
-      the value of ``self._repr_option_bracket``.)  If False, do not
+      ``bracket`` is set to anything except ``None``, it overrides
+      the value of ``self._repr_option_bracket``.)  If ``False``, do not
       include brackets when printing elements: a monomial indexed by
       'a' would be printed as ``B'a'``, and a monomial indexed by
       (1,2,3) would be printed as ``B(1,2,3)``.  If True, use "[" and
@@ -62,16 +62,16 @@ class IndexedGenerators:
     - ``scalar_mult`` -- string to use for scalar multiplication in
       the print representation (optional, default "*")
 
-    - ``latex_scalar_mult`` -- string or ``None`` (optional, default ``None``),
+    - ``latex_scalar_mult`` -- string or ``None`` (default: ``None``),
       string to use for scalar multiplication in the latex
       representation.  If None, use the empty string if ``scalar_mult``
       is set to "*", otherwise use the value of ``scalar_mult``.
 
-    - ``tensor_symbol`` -- string or ``None`` (optional, default ``None``),
+    - ``tensor_symbol`` -- string or ``None`` (default: ``None``),
       string to use for tensor product in the print representation. If
-      None, use the ``sage.categories.tensor.symbol``.
+      ``None``, use  ``sage.categories.tensor.symbol``.
 
-    - ``generator_cmp`` -- a comparison function (optional, default ``cmp``),
+    - ``generator_cmp`` -- a comparison function (default: ``cmp``),
       to use for sorting elements in the output of elements
 
     .. NOTE::
@@ -180,6 +180,7 @@ class IndexedGenerators:
         # being there altogether.
         if kwds:
             for option in kwds:
+                # TODO: make this into a set and put it in a global variable?
                 if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
                               'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
                               'generator_cmp'
@@ -197,7 +198,7 @@ class IndexedGenerators:
         Return a string representing the generator indexed by ``m``.
 
         The output can be customized by setting any of the following
-        options when initializing the module:
+        options when initializing the parent:
 
         - ``prefix``
         - ``bracket``
@@ -272,7 +273,7 @@ class IndexedGenerators:
             left = bracket
             right = bracket
         return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m
-    
+
     def _ascii_art_generator(self, m):
         r"""
         Return an ascii art representing the generator indexed by ``m``.
@@ -302,11 +303,10 @@ class IndexedGenerators:
 
     def _latex_generator(self, m):
         r"""
-        Return a string for the `\LaTeX` code for the generator
-        indexed by ``m``.
+        Return a `\LaTeX` for the generator indexed by ``m``.
 
         The output can be customized by setting any of the following
-        options when initializing the module:
+        options when initializing the parent:
 
         - ``prefix``
         - ``latex_prefix``

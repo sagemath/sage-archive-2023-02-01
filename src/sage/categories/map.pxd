@@ -25,3 +25,4 @@ cdef class Section(Map):
 cdef class FormalCompositeMap(Map):
     cdef Map __first
     cdef Map __second
+    cdef __list

@@ -1,5 +1,9 @@
 r"""
 Base class for maps
+
+AUTHORS:
+- Robert Bradshaw (2008-) : creation
+- Sebastien Besnier (2014-05-5) : FormalCompositeMap contains a list of Map instead of only two Map. See :trac:
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
@@ -17,7 +21,6 @@ Base class for maps
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-
 import homset
 import weakref
 from sage.structure.parent cimport Set_PythonType
@@ -1430,7 +1433,7 @@ cdef class FormalCompositeMap(Map):
         20*x^2
     """
 
-    def __init__(self, parent, first, second):
+    def __init__(self, parent, first, second=None):
         """
         INPUT:
 
@@ -1477,8 +1480,17 @@ cdef class FormalCompositeMap(Map):
             (2*x, 2*y)
         """
         Map.__init__(self, parent)
-        self.__first = first
-        self.__second = second
+
+        if isinstance(first,(list,tuple)): 
+            self.__list=first
+            self._coerce_cost = sum((<Map>f)._coerce_cost for f in first)
+            return
+        
+        self.__list = []
+        if isinstance(first,FormalCompositeMap): self.__list += (<FormalCompositeMap>first).__list
+        else : self.__list +=[first]
+        if isinstance(second,FormalCompositeMap):self.__list += (<FormalCompositeMap>second).__list
+        else: self.__list += [second]
         self._coerce_cost = (<Map>first)._coerce_cost + (<Map>second)._coerce_cost
 
     def __copy__(self):
@@ -1501,7 +1513,7 @@ cdef class FormalCompositeMap(Map):
                       From: Rational Field
                       To:   Multivariate Polynomial Ring in q, t over Rational Field
         """
-        return FormalCompositeMap(self.parent(), self.__first.__copy__(), self.__second.__copy__())
+        return FormalCompositeMap(self.parent(), [f.__copy__() for f in self.__list])
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1519,8 +1531,7 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))    # indirect doctest
             True
         """
-        self.__first = _slots['__first']
-        self.__second = _slots['__second']
+        self.__list= _slots['__list']
         Map._update_slots(self, _slots)
 
     cdef dict _extra_slots(self, dict _slots):
@@ -1539,8 +1550,7 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))    # indirect doctest
             True
         """
-        _slots['__first'] = self.__first
-        _slots['__second'] = self.__second
+        _slots['__list']=self.__list
         return Map._extra_slots(self, _slots)
 
     def __cmp__(self, other):
@@ -1559,7 +1569,7 @@ cdef class FormalCompositeMap(Map):
         """
         c = cmp(type(self),type(other))
         if c == 0:
-            c = cmp([self.__first,self.__second],[(<FormalCompositeMap>other).__first,(<FormalCompositeMap>other).__second])
+            c = cmp(self.__list,(<FormalCompositeMap>other).__list)
         return c
 
     def __hash__(self):
@@ -1585,7 +1595,7 @@ cdef class FormalCompositeMap(Map):
             sage: len({m: 1, n: 2}.keys())
             2
         """
-        return hash((self.__first, self.__second))
+        return hash(tuple(self.__list))
 
     cpdef Element _call_(self, x):
         """
@@ -1601,7 +1611,9 @@ cdef class FormalCompositeMap(Map):
             sage: (g*f)((x+1)^2), (f*g)((a+1)^2)     # indirect doctest
             (4*x^2, a^2)
         """
-        return self.__second._call_(self.__first._call_(x))
+        for f in self.__list:
+            x=f._call_(x)
+        return x
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
@@ -1630,7 +1642,9 @@ cdef class FormalCompositeMap(Map):
             foo called with ('hello world',) {'test': 1}
             2
         """
-        return self.__second._call_with_args(self.__first._call_(x), args, kwds)
+        for f in self.__list[:-1]:
+            x=f._call_(x)
+        return self.__list[-1]._call_with_args(x, args, kwds)
 
     def _repr_type(self):
         """
@@ -1685,42 +1699,79 @@ cdef class FormalCompositeMap(Map):
                       From: Univariate Polynomial Ring in x over Rational Field
                       To:   Univariate Polynomial Ring in a over Rational Field
         """
-        return "  %s\nthen\n  %s"%(self.__first, self.__second)
+        s="  %s"%(self.__list[0])
+        for f in self.__list[1:]:
+            s+= "\nthen\n  %s"%f
+        return s
 
-    def first(self):
+#    def first(self):
+#        """
+#        The first map in the formal composition, where the
+#        composition is ``x|--> second(first(x))``.
+
+#        EXAMPLE::
+
+#            sage: R.<x> = QQ[]
+#            sage: S.<a> = QQ[]
+#            sage: from sage.categories.morphism import SetMorphism
+#            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
+#            sage: g = S.hom([2*x])
+#            sage: (f*g).first() is g
+#            True
+#        """
+#        return self.__list[0]
+
+#    def second(self):
+#        """
+#        The second map in the formal composition, where the
+#        composition is x|--> second(first(x)).
+
+#        EXAMPLE::
+
+#            sage: R.<x> = QQ[]
+#            sage: S.<a> = QQ[]
+#            sage: from sage.categories.morphism import SetMorphism
+#            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
+#            sage: g = S.hom([2*x])
+#            sage: (f*g).second() is f
+#            True
+#        """
+#        if len(self.__list)==2: return self.__list[1]
+#        return FormalCompositeMap(self.__list[1:])
+
+    def list(self):
         """
-        The first map in the formal composition, where the
-        composition is ``x|--> second(first(x))``.
+        The list l of all the maps in the formal composition.
+        l[0] is the first map called when self._call_ is called (i.e., 
+        self = l[n] o l[n-1] ... o l[1] o l[0] ).
 
         EXAMPLE::
+            sage: from sage.categories.map import Map
+            sage: f=Map(ZZ,QQ)
+            sage: g=Map(QQ,ZZ)
+            sage: (f*g).list()
+            [Generic map:
+              From: Rational Field
+              To:   Integer Ring,
+             Generic map:
+              From: Integer Ring
+              To:   Rational Field]
+            sage: (f*g*f*g).list()
+            [Generic map:
+              From: Rational Field
+              To:   Integer Ring,
+             Generic map:
+              From: Integer Ring
+              To:   Rational Field,
+             Generic map:
+              From: Rational Field
+              To:   Integer Ring,
+             Generic map:
+              From: Integer Ring
+              To:   Rational Field]
 
-            sage: R.<x> = QQ[]
-            sage: S.<a> = QQ[]
-            sage: from sage.categories.morphism import SetMorphism
-            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
-            sage: g = S.hom([2*x])
-            sage: (f*g).first() is g
-            True
         """
-        return self.__first
-
-    def second(self):
-        """
-        The second map in the formal composition, where the
-        composition is x|--> second(first(x)).
-
-        EXAMPLE::
-
-            sage: R.<x> = QQ[]
-            sage: S.<a> = QQ[]
-            sage: from sage.categories.morphism import SetMorphism
-            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
-            sage: g = S.hom([2*x])
-            sage: (f*g).second() is f
-            True
-        """
-        return self.__second
-
+        return self.__list
     def is_injective(self):
         """
         Tell whether ``self`` is injective.
@@ -1759,15 +1810,20 @@ cdef class FormalCompositeMap(Map):
             sage: c3.is_injective()
             False
         """
-        if self.__first.is_injective():
-            if self.__second.is_injective():
-                return True
-            elif self.__first.is_surjective():
-                return False
-            else:
-                raise NotImplementedError, "Not enough information to deduce injectivity."
-        else:
-            return False
+        without_bij = (f for f in self.__list if not (f.is_injective() and f.is_surjective()))
+        if not next(without_bij).is_injective(): return False
+        
+        if all(f.is_injective() for f in without_bij): return True
+        raise NotImplementedError, "Not enough information to deduce injectivity."
+#        if self.first().is_injective():
+#            if self.second().is_injective():
+#                return True
+#            elif self.first().is_surjective():
+#                return False
+#            else:
+#                raise NotImplementedError, "Not enough information to deduce injectivity."
+#        else:
+#            return False
 
     def is_surjective(self):
         """
@@ -1811,13 +1867,18 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
-        if self.__second.is_surjective():
-            if self.__first.is_surjective():
-                return True
-            elif self.__second.is_injective():
-                return False
-            else:
-                raise NotImplementedError, "Not enough information to deduce surjectivity."
-        else:
-            return False
+        without_bij = (f for f in self.__list[-1::-1] if not (f.is_injective() and f.is_surjective()))
+        if not next(without_bij).is_surjective(): return False
+        
+        if all(f.is_surjective() for f in without_bij): return True
+        raise NotImplementedError, "Not enough information to deduce surjectivity."
+#        if self.__second.is_surjective():
+#            if self.__first.is_surjective():
+#                return True
+#            elif self.__second.is_injective():
+#                return False
+#            else:
+#                raise NotImplementedError, "Not enough information to deduce surjectivity."
+#        else:
+#            return False
 

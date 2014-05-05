@@ -13,8 +13,9 @@ representation theoretic code, it is assumed that
 
 - the vertices of the quiver are labelled by integers, and
 
-- each edge of the quiver is labelled with a nonempty string.  The label cannot
-  begin with 'e_' or contain '*' and distinct edges must have distinct labels.
+- each edge of the quiver is labelled with a nonempty string.  The label
+  cannot begin with ``'e_'`` or contain ``'*'`` and distinct edges must have
+  distinct labels.
 
 As far as the :class:`~sage.graphs.digraph.DiGraph` class is concerned, a
 path is a finite list of pairwise distinct vertices `v_1, ..., v_n` such

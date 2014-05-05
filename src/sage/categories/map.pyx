@@ -3,7 +3,7 @@ Base class for maps
 
 AUTHORS:
 - Robert Bradshaw (2008-) : creation
-- Sebastien Besnier (2014-05-5) : FormalCompositeMap contains a list of Map instead of only two Map. See :trac:
+- Sebastien Besnier (2014-05-5) : FormalCompositeMap contains a list of Map instead of only two Map. See :trac:`16291`
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
@@ -1815,15 +1815,6 @@ cdef class FormalCompositeMap(Map):
         
         if all(f.is_injective() for f in without_bij): return True
         raise NotImplementedError, "Not enough information to deduce injectivity."
-#        if self.first().is_injective():
-#            if self.second().is_injective():
-#                return True
-#            elif self.first().is_surjective():
-#                return False
-#            else:
-#                raise NotImplementedError, "Not enough information to deduce injectivity."
-#        else:
-#            return False
 
     def is_surjective(self):
         """
@@ -1872,13 +1863,4 @@ cdef class FormalCompositeMap(Map):
         
         if all(f.is_surjective() for f in without_bij): return True
         raise NotImplementedError, "Not enough information to deduce surjectivity."
-#        if self.__second.is_surjective():
-#            if self.__first.is_surjective():
-#                return True
-#            elif self.__second.is_injective():
-#                return False
-#            else:
-#                raise NotImplementedError, "Not enough information to deduce surjectivity."
-#        else:
-#            return False
 

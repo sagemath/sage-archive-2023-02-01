@@ -26,6 +26,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
     of sets (and elements thereof). See
     :const:`~sage.categories.cartesian_product.cartesian_product` for
     how to construct full fledge cartesian products.
+
+    .. automethod:: _cartesian_product_of_elements
     """
 
     def __init__(self, sets, category, flatten = False):
@@ -160,7 +162,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
         Return the cartesian product of the given ``elements``.
 
         This implements :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements`.
-        <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements>`.
 
         INPUT:
 

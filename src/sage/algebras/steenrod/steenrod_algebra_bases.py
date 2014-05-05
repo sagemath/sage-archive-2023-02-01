@@ -141,15 +141,6 @@ def convert_to_milnor_matrix(n, basis, p=2, generic='auto'):
 
     ``matrix`` - change-of-basis matrix, a square matrix over ``GF(p)``
 
-    .. note::
-
-        This is called internally.  It is not intended for casual
-        users, so no error checking is made on the integer `n`, the
-        basis name, or the prime.  Also, users should call
-        :func:`convert_to_milnor_matrix` instead of this function
-        (which has a trailing underscore in its name), because the
-        former is the cached version of the latter.
-
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_bases import convert_to_milnor_matrix
@@ -294,13 +285,6 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
 
     Tuple of objects representing basis elements for the Steenrod algebra
     in dimension n.
-
-    .. note::
-
-        Users should use :func:`steenrod_algebra_basis` instead of
-        this function (which has a trailing underscore in its name):
-        :func:`steenrod_algebra_basis` is the cached version of this
-        one, and so will be faster.
 
     The choices for the string ``basis`` are as follows; see the
     documentation for :mod:`sage.algebras.steenrod.steenrod_algebra`
@@ -955,6 +939,7 @@ def atomic_basis(n, basis, **kwds):
                 result.append(tuple(big_list))
         return tuple(result)
 
+@cached_function
 def arnonC_basis(n,bound=1):
     r"""
     Arnon's C basis in dimension `n`.
@@ -1151,9 +1136,9 @@ def steenrod_basis_error_check(dim, p, **kwds):
     import sage.misc.misc as misc
     generic = kwds.get('generic', False if p==2 else True )
 
-    # Apparently, in this test function, we don't want to benefit from caching.
-    # Hence, the uncached version of steenrod_algebra_basis and of
-    # convert_to-milnor_matrix are used.
+    # In this test function, we don't want to use caching.
+    # Hence, the uncached versions of steenrod_algebra_basis
+    # and of convert_to_milnor_matrix are used.
     if not generic:
         bases = ('adem','woody', 'woodz', 'wall', 'arnona', 'arnonc',
                  'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz',

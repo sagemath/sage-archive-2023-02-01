@@ -736,7 +736,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     `OA(k,14,2)`?::
 
         sage: designs.orthogonal_array(None,14,existence=True)
-        3
+        6
 
     If you ask for an orthogonal array that does not exist, then the function
     either raise an `EmptySetError` (if it knows that such an orthogonal array

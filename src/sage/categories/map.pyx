@@ -1597,6 +1597,44 @@ cdef class FormalCompositeMap(Map):
         """
         return hash(tuple(self.__list))
 
+    def __getitem__(self,i):
+        """
+        Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
+        self[i] gives f_i. Support negative indices as the `list.__getitem__`.
+        Raise an error if the indice doesn't match, exactly in the same way
+        that `list.__getitem__` does. 
+        
+        EXAMPLES::
+            sage: from sage.categories.map import Map
+            sage: f=Map(ZZ,QQ)
+            sage: g=Map(QQ,ZZ)
+            sage: (f*g)[0]
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+            sage: (f*g)[1]
+            Generic map:
+              From: Integer Ring
+              To:   Rational Field
+            sage: (f*g)[-1]
+            Generic map:
+              From: Integer Ring
+              To:   Rational Field
+            sage: (f*g)[-2]
+            Generic map:
+              From: Rational Field
+              To:   Integer Ring
+            sage: (f*g)[-3]
+            Traceback (most recent call last):
+            ...    
+            IndexError: list index out of range
+            sage: (f*g)[2]
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+
+        """
+        return self.__list[i]
     cpdef Element _call_(self, x):
         """
         Call with a single argument
@@ -1739,39 +1777,7 @@ cdef class FormalCompositeMap(Map):
 #        if len(self.__list)==2: return self.__list[1]
 #        return FormalCompositeMap(self.__list[1:])
 
-    def list(self):
-        """
-        The list l of all the maps in the formal composition.
-        l[0] is the first map called when self._call_ is called (i.e., 
-        self = l[n] o l[n-1] ... o l[1] o l[0] ).
-
-        EXAMPLE::
-            sage: from sage.categories.map import Map
-            sage: f=Map(ZZ,QQ)
-            sage: g=Map(QQ,ZZ)
-            sage: (f*g).list()
-            [Generic map:
-              From: Rational Field
-              To:   Integer Ring,
-             Generic map:
-              From: Integer Ring
-              To:   Rational Field]
-            sage: (f*g*f*g).list()
-            [Generic map:
-              From: Rational Field
-              To:   Integer Ring,
-             Generic map:
-              From: Integer Ring
-              To:   Rational Field,
-             Generic map:
-              From: Rational Field
-              To:   Integer Ring,
-             Generic map:
-              From: Integer Ring
-              To:   Rational Field]
-
-        """
-        return self.__list
+    
     def is_injective(self):
         """
         Tell whether ``self`` is injective.

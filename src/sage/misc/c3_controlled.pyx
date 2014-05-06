@@ -60,11 +60,11 @@ Thus, in our example, the implementation in ``A4`` is chosen::
     4
 
 Specifically, the MRO is calculated using the so-called ``C3``
-algorithm which guarantees that the MRO respects non only inheritance,
+algorithm which guarantees that the MRO respects not only inheritance,
 but also the order in which the bases (direct super classes) are given
 for each class.
 
-However, for large hierarchy of classes with lots of multiple
+However, for large hierarchies of classes with lots of multiple
 inheritance, like those derived from categories in Sage, this
 algorithm easily fails if the order of the bases is not chosen
 consistently (here for ``A2`` w.r.t. ``A1``)::
@@ -77,7 +77,7 @@ consistently (here for ``A2`` w.r.t. ``A1``)::
         Cannot create a consistent method resolution
     order (MRO) for bases ...
 
-There actually exist hierarchy of classes for which ``C3`` fails
+There actually exist hierarchies of classes for which ``C3`` fails
 whatever the order of the bases is chosen; the smallest such example,
 admittedly artificial, has ten classes (see below). Still, this
 highlights that this problem has to be tackled in a systematic way.
@@ -116,7 +116,7 @@ practice this design goal is not yet met.
     When managing large hierarchies of classes in other contexts this
     may be too strong a design decision.
 
-The strategy we use for hierarchy of classes derived from categories
+The strategy we use for hierarchies of classes derived from categories
 is then:
 
 1. To choose a global total order on the whole hierarchy of classes.
@@ -139,9 +139,9 @@ This module is about point 2.
 The natural approach would be to change the algorithm used by Python
 to compute the MRO. However, changing Python's default algorithm just
 for our needs is obviously not an option, and there is currently no
-hook to customize specific classes to use a different
-algorithm. Pushing the addition of such a hook into stock Python would
-take too much time and effort.
+hook to customize specific classes to use a different algorithm.
+Pushing the addition of such a hook into stock Python would take too
+much time and effort.
 
 Another approach would be to use the "adding bases" trick
 straightforwardly, putting the list of *all* the super classes of a
@@ -149,7 +149,7 @@ class as its bases. However, this would have several drawbacks:
 
 - It is not so elegant, in particular because it duplicates
   information: we already know through ``A5`` that ``A7`` is a
-  subclass of ``A1``. This duplication coud be acceptable in our
+  subclass of ``A1``. This duplication could be acceptable in our
   context because the hierarchy of classes is generated automatically
   from a conceptual hierarchy (the categories) which serves as single
   point of truth for calculating the bases of each class.
@@ -175,7 +175,7 @@ class as its bases. However, this would have several drawbacks:
   stock Python.
 
 This module refines this approach to make it acceptable, if not
-seemless. Given a hierarchy and a total order on this hierarchy, it
+seamless. Given a hierarchy and a total order on this hierarchy, it
 calculates for each element of the hierarchy the smallest list of
 additional bases that forces ``C3`` to return the desired MRO. This is
 achieved by implementing an instrumented variant of the ``C3``
@@ -262,7 +262,7 @@ Altogether, four bases were added for control::
     sage: sum(len(HierarchyElement(q, Q)._bases_controlled) for q in Q)
     19
 
-This information can also be recoved with::
+This information can also be recovered with::
 
     sage: x.all_bases_len()
     15
@@ -403,7 +403,8 @@ cdef class CmpKey:
 
     The comparison key should satisfy the following properties:
 
-    - If A is a subcategory of B, then A < B. In particular,
+    - If `A` is a subcategory of `B`, then `A < B` (so that
+      ``A._cmp_key > B._cmp_key``). In particular,
       `Objects()` is the largest category.
 
     - If `A != B` and taking the join of `A` and `B` makes sense
@@ -510,6 +511,7 @@ cdef class CmpKey:
             (0, 0)
         """
         self.count = -1
+
     def __get__(self, object inst, object cls):
         """
         Bind the comparison key to the given instance
@@ -682,19 +684,22 @@ def C3_sorted_merge(list lists, key=identity):
 
     INPUT:
 
-    - ``lists`` -- a non empty list (or iterable) of lists (or iterables), each sorted decreasingly according to ``key``
+    - ``lists`` -- a non empty list (or iterable) of lists (or
+      iterables), each sorted strictly decreasingly according
+      to ``key``
     - ``key`` -- a function
 
     OUTPUT: a pair ``(result, suggestion)``
 
     ``result`` is the sorted list obtained by merging the lists in
-    ``lists`` while removing duplicate, and ``suggestion`` is a list
+    ``lists`` while removing duplicates, and ``suggestion`` is a list
     such that applying ``C3`` on ``lists`` with its last list replaced
     by ``suggestion`` would return ``result``.
 
     EXAMPLES:
 
-    With the following input, :func:`C3_merge` returns right away a sorted list::
+    With the following input, :func:`C3_merge` returns right away a
+    sorted list::
 
         sage: from sage.misc.c3_controlled import C3_merge
         sage: C3_merge([[2],[1]])

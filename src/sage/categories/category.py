@@ -780,7 +780,8 @@ class Category(UniqueRepresentation, SageObject):
     @abstract_method
     def super_categories(self):
         """
-        Returns the *immediate* super categories of ``self``
+        Return the list (or another iterable) of the *immediate* super
+        categories of ``self``.
 
         Every category should implement this method.
 
@@ -797,8 +798,8 @@ class Category(UniqueRepresentation, SageObject):
             should be irrelevant. However, in practice, this order
             influences the result of :meth:`all_super_categories`, and
             accordingly of the method resolution order for parent and
-            element classes. Namely, since ticket 11943, Sage uses the
-            same `C3` algorithm for determining the order on the list
+            element classes. Namely, since :trac:`11943`, Sage uses the
+            same ``C3`` algorithm for determining the order on the list
             of *all* super categories as Python is using for the
             method resolution order of new style classes.
 
@@ -807,6 +808,11 @@ class Category(UniqueRepresentation, SageObject):
             Whenever speed matters, developers are advised to use the
             lazy attribute :meth:`_super_categories` instead of
             calling this method.
+
+        .. WARNING::
+
+            The iterable returned by this method must not have repeated
+            entries.
         """
 
     @lazy_attribute
@@ -951,7 +957,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         The immediate super categories of this category.
 
-        This lazy attributes caches the result of the mandatory method
+        This lazy attribute caches the result of the mandatory method
         :meth:`super_categories` for speed. It also does some mangling
         (flattening join categories, sorting, ...).
 
@@ -1831,7 +1837,9 @@ class Category(UniqueRepresentation, SageObject):
     @staticmethod
     def _sort_uniq(categories):
         """
-        Return the categories after sorting them and removing duplicates.
+        Return the categories after sorting them and removing duplicates
+        and redundant categories (i.e., categories which are
+        super categories of other categories in the list).
 
         INPUT:
 

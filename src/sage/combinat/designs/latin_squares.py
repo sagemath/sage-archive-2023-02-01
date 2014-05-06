@@ -92,7 +92,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         sage: are_mutually_orthogonal_latin_squares([m2,m3])
         True
         sage: are_mutually_orthogonal_latin_squares([m1,m2,m3], verbose=True)
-        matrices 0 and 2 are not orthogonal
+        Matrices 0 and 2 are not orthogonal
         False
 
         sage: m = designs.mutually_orthogonal_latin_squares(8,7)
@@ -102,32 +102,15 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     if not l:
         raise ValueError("the list must be non empty")
 
-    n = l[0].nrows()
-    if any(M.nrows() != n and M.ncols() != n for M in l):
+    n = l[0].ncols()
+    k = len(l)
+    if any(M.ncols() != n or M.nrows() != n for M in l):
         if verbose:
-            print "some matrix has wrong dimension"
+            print "Not all matrices are square matrices of the same dimensions"
         return False
 
-    # check that the matrices in l are actually latin
-    for i,M in enumerate(l):
-        if (any(sorted(r) != range(n) for r in M.rows()) or
-            any(sorted(c) != range(n) for c in M.columns())):
-            if verbose:
-                print "matrix %d is not latin"%i
-            return False
-
-    # check orthogonality of each pair
-    for k1 in xrange(len(l)):
-        M1 = l[k1]
-        for k2 in xrange(k1):
-            M2 = l[k2]
-            L = [(M1[i,j],M2[i,j]) for i in xrange(n) for j in xrange(n)]
-            if len(set(L)) != len(L):
-                if verbose:
-                    print "matrices %d and %d are not orthogonal"%(k2,k1)
-                return False
-
-    return True
+    from designs_pyx import is_orthogonal_array
+    return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
 
 def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False, who_asked=tuple()):
     r"""

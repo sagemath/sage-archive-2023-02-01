@@ -835,6 +835,13 @@ def E(mu, q=None, t=None, pi=None):
       *A combinatorial formula for non-symmetric Macdonald polynomials*.
       :arXiv:`math/0601693v3`.
 
+    .. SEEALSO::
+
+        :class:`~sage.combinat.root_system.non_symmetric_macdonald_polynomials.NonSymmetricMacdonaldPolynomials`
+        for a type free implementation where the polynomials are
+        constructed recursively by the application of intertwining
+        operators.
+
     EXAMPLES::
 
         sage: from sage.combinat.sf.ns_macdonald import E

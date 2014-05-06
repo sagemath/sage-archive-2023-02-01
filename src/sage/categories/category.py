@@ -736,10 +736,15 @@ class Category(UniqueRepresentation, SageObject):
 
         Equivalently, one can define an increasing sequence of conditions:
 
-        - A category is pre-additive if it is enriched over abelian groups (all homsets are abelian groups and composition is bilinear);
-        - A pre-additive category is additive if every finite set of objects has a biproduct (we can form direct sums and direct products);
-        - An additive category is pre-abelian if every morphism has both a kernel and a cokernel;
-        - A pre-abelian category is abelian if every monomorphism is the kernel of some morphism and every epimorphism is the cokernel of some morphism.
+        - A category is pre-additive if it is enriched over abelian groups
+          (all homsets are abelian groups and composition is bilinear);
+        - A pre-additive category is additive if every finite set of objects
+          has a biproduct (we can form direct sums and direct products);
+        - An additive category is pre-abelian if every morphism has both a
+          kernel and a cokernel;
+        - A pre-abelian category is abelian if every monomorphism is the
+          kernel of some morphism and every epimorphism is the cokernel of
+          some morphism.
 
         EXAMPLES::
 
@@ -957,7 +962,7 @@ class Category(UniqueRepresentation, SageObject):
 
             This attribute is likely to eventually become a tuple.
             When this happens, we might as well use :meth:`Category._sort`,
-            if not :meth:`Category_sort_uniq`.
+            if not :meth:`Category._sort_uniq`.
 
         EXAMPLES::
 
@@ -1533,12 +1538,11 @@ class Category(UniqueRepresentation, SageObject):
         """
         Return the axioms known to be satisfied by all the objects of ``self``.
 
-        Technically, this the set of all the axioms ``A`` such that,
-        if ``Cs`` is the category defining ``A``, then ``self`` is a
-        subcategory of ``Cs().A()``. Any additional axiom ``A`` would
-        yield a strict subcategory of ``self``, at the very least
-        ``self & Cs().A()`` where ``Cs`` is the category defining
-        ``A``.
+        Technically, this is the set of all the axioms ``A`` such that, if
+        ``Cs`` is the category defining ``A``, then ``self`` is a subcategory
+        of ``Cs().A()``. Any additional axiom ``A`` would yield a strict
+        subcategory of ``self``, at the very least ``self & Cs().A()`` where
+        ``Cs`` is the category defining ``A``.
 
         EXAMPLES::
 
@@ -1747,7 +1751,7 @@ class Category(UniqueRepresentation, SageObject):
         .. TODO:: Improve this explanation.
 
         If ``named`` is ``True``, then this stops at the first
-        category that has a explicit name of its own. See
+        category that has an explicit name of its own. See
         :meth:`CategoryWithAxiom._without_axioms`
 
         EXAMPLES::
@@ -2164,7 +2168,7 @@ class Category(UniqueRepresentation, SageObject):
             Category of hom sets in Category of sets
 
         """
-        try: #if hasattr(self, "HomCategory"):
+        try:
             return self.HomCategory(self)
         except AttributeError:
             return Category.join((category.hom_category() for category in self._super_categories))
@@ -2218,12 +2222,11 @@ class Category(UniqueRepresentation, SageObject):
         except AttributeError:
             return NotImplemented
         # Add the base ring as optional argument if this is a category over base ring
-        # This really should be in Category_over_base_ring.example,
-        # but that would mean duplicating the documentation above.
-        from category_types import Category_over_base_ring
-        if isinstance(self, Category_over_base_ring): # Huh, smelly Run Time Type Checking, isn't it?
-            if "base_ring" not in keywords:
-                keywords["base_ring"]=self.base_ring()
+        if "base_ring" not in keywords:
+            try:
+                keywords["base_ring"] = self.base_ring()
+            except AttributeError:
+                pass
         return cls(*args, **keywords)
 
 

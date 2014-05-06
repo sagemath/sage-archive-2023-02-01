@@ -6003,7 +6003,7 @@ class FiniteStateMachine(SageObject):
           which indicates whether we allow that some states may be
           non-final after the function is finished. Reformulated, if
           ``False`` this means that each state has to have at least
-          one outgoing transition with given letter.
+          one outgoing transition with the given letter.
 
         OUTPUT:
 
@@ -6038,8 +6038,10 @@ class FiniteStateMachine(SageObject):
         responsibility of the user to make sure that if adding trailing
         zeros to the input anyway, the output is equivalent.
 
-        If ``letters`` is not single-elemented, then it is assumed
-        that cycles of ``letters`` are appended as trailing input.
+        If ``letters`` is not single-elemented, then it is assumed that
+        cycles of ``letters`` are appended as trailing input. That is,
+        at every state we we read ``letters``, starting with the first
+        entry again after the last one.
 
         .. SEEALSO::
 
@@ -6148,8 +6150,8 @@ class FiniteStateMachine(SageObject):
                     0
                     1 bc
 
-                Trying this with trailing repeated `01` does not
-                produce final word outs::
+                Trying this with trailing repeated `01` does not produce
+                a final word out for state ``1``, but for state ``2``::
 
                     sage: F = T.with_final_word_out([0, 1])
                     sage: for f in F.iter_final_states():
@@ -6157,7 +6159,7 @@ class FiniteStateMachine(SageObject):
                     0
                     2 c
 
-            #.  Here another example with a more-letter input::
+            #.  Here another example with a more-letter trailing input::
 
                     sage: T = Transducer([(0, 1, 0, 'a'),
                     ....:                 (1, 2, 0, 'b'), (1, 2, 1, 'b'),
@@ -6197,8 +6199,8 @@ class FiniteStateMachine(SageObject):
                     ValueError: No unique transition leaving state 0
                     with input label 0.
 
-                It is not a problem if there is no transition with
-                input word ``letter``::
+                It is not a problem if there is no transition starting
+                at a state ``1`` with input word ``letter``::
 
                     sage: T = Transducer([(0, 1, 0, 0)])
                     sage: F = T.with_final_word_out(0)

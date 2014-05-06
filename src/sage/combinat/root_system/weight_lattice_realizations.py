@@ -780,6 +780,20 @@ class WeightLatticeRealizations(Category_over_base_ring):
             return rho - (rho.level()/Lambda[0].level()) * Lambda[0]
 
 
+        def symmetric_form(self, la):
+            r"""
+            Return the symmetric form of ``self`` with ``la``.
+
+            EXAMPLES::
+
+                sage: P = RootSystem(['B',2,1]).weight_lattice()
+            """
+            cm = self.parent().dynkin_diagram().cartan_matrix()
+            diag = cm.is_symmetrizable(True)
+            sym = matrix.diagonal(diag) * cm
+            iset = self.parent().index_set()
+            return sum(cl*cr*sym[iset.index(ml),iset.index(mr)]
+                       for ml,cl in self for mr,cr in la)
 
         # Should it be a method of highest_weight?
         def weyl_dimension(self, highest_weight):

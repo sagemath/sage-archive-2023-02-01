@@ -158,8 +158,14 @@ ext_modules = [
     Extension('sage.categories.action',
               sources = ['sage/categories/action.pyx']),
 
+    Extension('sage.categories.category',
+              sources = ['sage/categories/category.pyx']),
+
     Extension('sage.categories.category_singleton',
               sources = ['sage/categories/category_singleton.pyx']),
+
+    Extension('sage.categories.category_with_axiom',
+              sources = ['sage/categories/category_with_axiom.pyx']),
 
     Extension('sage.categories.functor',
               sources = ['sage/categories/functor.pyx']),

@@ -463,7 +463,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 return self.simple_roots()
 
         @cached_method
-        def simple_imaginary_roots(self):
+        def basic_imaginary_roots(self):
             r"""
             Return the simple imaginary roots of ``self``.
 
@@ -474,12 +474,12 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES::
 
-                sage: RootSystem(['A',2]).root_lattice().simple_imaginary_roots()
+                sage: RootSystem(['A', 2]).root_lattice().basic_imaginary_roots()
                 ()
-                sage: Q = RootSystem(['A,2,1]).root_lattice()
-                sage: Q.simple_imaginary_roots()
+                sage: Q = RootSystem(['A', 2, 1]).root_lattice()
+                sage: Q.basic_imaginary_roots()
                 (alpha[0] + alpha[1] + alpha[2],)
-                sage: delta = Q.simple_imaginary_roots()[0]
+                sage: delta = Q.basic_imaginary_roots()[0]
                 sage: all(delta.scalar(Q.simple_coroot(i)) <= 0 for i in Q.index_set())
                 True
             """
@@ -538,6 +538,12 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['B',3]).root_lattice()
                 sage: sorted(L.short_roots())
+                [-alpha[1] - alpha[2] - alpha[3],
+                 alpha[1] + alpha[2] + alpha[3],
+                 -alpha[2] - alpha[3],
+                 alpha[2] + alpha[3],
+                 -alpha[3],
+                 alpha[3]]
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("only implemented for finite Cartan types")
@@ -551,6 +557,12 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['B',3]).root_lattice()
                 sage: sorted(L.long_roots())
+                [-alpha[1], -alpha[1] - 2*alpha[2] - 2*alpha[3],
+                 -alpha[1] - alpha[2], -alpha[1] - alpha[2] - 2*alpha[3],
+                 alpha[1], alpha[1] + alpha[2],
+                 alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[1] + 2*alpha[2] + 2*alpha[3], -alpha[2],
+                 -alpha[2] - 2*alpha[3], alpha[2], alpha[2] + 2*alpha[3]]
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("only implemented for finite Cartan types")
@@ -570,9 +582,12 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['A',3]).root_lattice()
                 sage: sorted(L.positive_roots())
-                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3],
+                 alpha[2], alpha[2] + alpha[3], alpha[3]]
                 sage: L = RootSystem(['A',3,1]).root_lattice()
                 sage: L.positive_roots()
+                Disjoint union of Family (Positive real roots of type ['A', 3, 1],
+                    Positive imaginary roots of type ['A', 3, 1])
             """
             if self.cartan_type().is_affine():
                 from sage.sets.disjoint_union_enumerated_sets \
@@ -591,8 +606,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['A',3]).root_lattice()
                 sage: sorted(L.positive_real_roots())
-                (alpha[1], alpha[2], alpha[3], alpha[1] + alpha[2],
-                 alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3])
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3],
+                 alpha[2], alpha[2] + alpha[3], alpha[3]]
                 sage: L = RootSystem(['A',3,1]).root_lattice()
                 sage: L.positive_real_roots()
                 Positive real roots of type ['A', 3, 1]
@@ -613,7 +628,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             P = Family(Q.positive_real_roots(), lambda x: self.sum_of_terms(x))
 
             # Add all of the delta shifts
-            delta = self.simple_imaginary_roots()[0]
+            delta = self.basic_imaginary_roots()[0]
             if self.cartan_type().is_untwisted_affine():
                 C = CartesianProduct(PositiveIntegers(), Q.roots())
                 F = Family(C, lambda x: self.sum_of_terms(x[1]) + x[0]*delta)
@@ -658,7 +673,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             if not self.cartan_type().is_affine():
                 raise NotImplementedError("only implemented for finite and affine Cartan types")
             from sage.sets.positive_integers import PositiveIntegers
-            delta = self.simple_imaginary_roots()[0]
+            delta = self.basic_imaginary_roots()[0]
             F = Family(PositiveIntegers(), lambda x: x*delta)
             F.rename("Positive imaginary roots of type {}".format(self.cartan_type()))
             return F
@@ -2367,10 +2382,11 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
                 Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
                 Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
-                sage: [(line.options()['rgbcolor'], line.options()['thickness']) for line in p]
-                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('blue', 1),
-                 ('black', 2), ('red', 1), ('black', 2), ('blue', 1),
-                 ('black', 2), ('red', 1), ('black', 2)]
+                sage: sorted((line.options()['rgbcolor'], line.options()['thickness']) for line in p)
+                [('black', 2), ('black', 2), ('black', 2),
+                 ('black', 2), ('black', 2), ('black', 2),
+                 ('blue', 1), ('blue', 1), ('blue', 1),
+                 ('red', 1), ('red', 1), ('red', 1)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):

@@ -313,7 +313,7 @@ right. This requires storing the previously read digit in a state.
 The output of the shifts above look a bit weird (from a right-shift
 transducer, we would expect, for example, that ``[1, 0, 0]`` was
 mapped to ``[0, 1, 0]``), since we write ``None`` instead of the zero
-at the left.  Further, note that only `0` is listed as a final state
+at the left. Further, note that only `0` is listed as a final state
 as we have to enforce that a most significant zero is read as the last
 input letter in order to flush the last digit::
 
@@ -5912,14 +5912,14 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``variable`` -- symbol denoting the length of the input,
+        - ``variable`` -- a symbol denoting the length of the input,
           by default `n`.
 
         OUTPUT:
 
         A dictionary consisting of
 
-        - ``expectation`` -- `e n+\operatorname{Order}(1)`,
+        - ``expectation`` -- `e n + \operatorname{Order}(1)`,
         - ``variance`` -- `v n + \operatorname{Order}(1)`,
         - ``covariance`` -- `c n + \operatorname{Order}(1)`
 
@@ -6186,7 +6186,7 @@ class FiniteStateMachine(SageObject):
 
             In this particular example, the first letter of the input
             decides whether we reach the loop at `-1` or the loop at
-            `1`.  In the first case, we have `X_n = -n`, while we have
+            `1`. In the first case, we have `X_n = -n`, while we have
             `X_n = n` in the second case. Therefore, the expectation
             `E(X_n)` of `X_n` is `E(X_n) = 0`. We get `(X_n-E(X_n))^2 =
             n^2` in all cases, which results in a variance of `n^2`.

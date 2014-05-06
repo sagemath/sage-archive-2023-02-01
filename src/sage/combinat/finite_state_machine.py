@@ -275,9 +275,10 @@ The purpose of this example is to construct a transducer converting the
 standard binary expansion to the Gray code by translating this
 construction into operations with transducers.
 
-For this construction, note that it is easier to shift everything to
-the right first (for this example, the least significant digit is at
-the left-most position), i.e., multiply by `2` instead of building
+For this construction, the least significant digit is at
+the left-most position.
+Note that it is easier to shift everything to
+the right first, i.e., multiply by `2` instead of building
 `\\lfloor n/2\\rfloor`. Then, we take the input xor with the right
 shift of the input and forget the first letter.
 

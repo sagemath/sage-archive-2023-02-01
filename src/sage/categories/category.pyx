@@ -1848,10 +1848,16 @@ class Category(UniqueRepresentation, SageObject):
         Note that, in the above example, ``Monoids()`` does not appear
         in the result because it is a super category of ``Rings()``.
         """
-        categories = Category._sort(categories)
-        result = []
-        for category in categories:
-            if not any(cat.is_subcategory(category) for cat in result):
+        cdef tuple cats = Category._sort(categories)
+        cdef list result = []
+        cdef bint append
+        for category in cats:
+            append = True
+            for cat in result:
+                if cat.is_subcategory(category):
+                    append = False
+                    break
+            if append:
                 result.append(category)
         return tuple(result)
 
@@ -1886,7 +1892,7 @@ class Category(UniqueRepresentation, SageObject):
     _join_cache = WeakValueDictionary()
 
     @staticmethod
-    def join(categories, as_list = False, ignore_axioms=(), axioms=()):
+    def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()):
         """
         Return the join of the input categories in the lattice of categories.
 
@@ -2044,21 +2050,21 @@ class Category(UniqueRepresentation, SageObject):
             [Category of facade commutative test objects,
              Category of finite dimensional commutative test objects]
         """
-        categories = list(categories)
-        if not categories:
+        cdef list categoriesL = list(categories)
+        if not categoriesL:
             if as_list:
                 return []
             else:
                 # Since Objects() is the top category, it is the neutral element of join
                 from objects import Objects
                 return Objects()
-        elif len(categories) == 1:
-            category = categories[0]
+        elif len(categoriesL) == 1:
+            category = categoriesL[0]
             if as_list:
                 if isinstance(category, JoinCategory):
                     return category.super_categories()
                 else:
-                    return categories
+                    return categoriesL
             else:
                 return category
 
@@ -2068,26 +2074,25 @@ class Category(UniqueRepresentation, SageObject):
 
         # Ensure associativity and commutativity by flattening
         # JoinCategory's sorting, and removing duplicates
-        categories = Category._flatten_categories(categories)
-        categories = Category._sort_uniq(categories)
+        cdef tuple categoriesT = Category._sort_uniq(Category._flatten_categories(categoriesL))
 
         if not as_list and not ignore_axioms:
             try:
-                return Category._join_cache[categories]
+                return Category._join_cache[categoriesT]
             except KeyError:
                 pass
 
         # Handle axioms
-        axioms = {axiom
-                  for category in categories
+        cdef set axiomsF = {axiom
+                  for category in categoriesT
                   for axiom in category.axioms()}.union(axioms)
         # Invariants:
         # - the current list of categories is stored in the keys of ``done``
         # - todo contains the ``complement`` of done; i.e.
         #   for category in the keys of done,
         #   (category, axiom) is in todo iff axiom is not in done[category]
-        done = dict()
-        todo = set()
+        cdef dict done = dict()
+        cdef set todo = set()
         def add_category(category):
             axs = category.axioms()
             for (cat, axiom) in ignore_axioms:
@@ -2095,9 +2100,10 @@ class Category(UniqueRepresentation, SageObject):
                     axs = axs | {axiom}
             done[category] = axs
             todo.update( (category, axiom)
-                         for axiom in axioms.difference(axs) )
-        for category in categories:
+                         for axiom in axiomsF.difference(axs) )
+        for category in categoriesT:
             add_category(category)
+        cdef set new_axioms
         while todo:
             (category, axiom) = todo.pop()
             # It's easier to remove categories from done than from todo
@@ -2116,7 +2122,7 @@ class Category(UniqueRepresentation, SageObject):
             new_axioms = set(axiom
                              for new_cat in new_cats
                              for axiom in new_cat.axioms()
-                             if axiom not in axioms)
+                             if axiom not in axiomsF)
             # Mark old categories with new axioms as todo
             todo.update( (category, axiom)
                          for axiom in new_axioms
@@ -2132,7 +2138,7 @@ class Category(UniqueRepresentation, SageObject):
         else:
             result = JoinCategory(result)
         if not ignore_axioms:
-            Category._join_cache[categories] = result
+            Category._join_cache[categoriesT] = result
         return result
 
     def category(self):

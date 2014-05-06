@@ -233,7 +233,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             except IndexError:
                 raise ValueError("the value must be between %s and %s inclusive"%(0,len(lst)-1))
 
-
         def list(self):
             """
             The list of the elements of ``self``.
@@ -298,7 +297,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                     sage: list(C)
                     hello!
                     [1, 2, 3]
-
 
             TESTS:
 
@@ -465,7 +463,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
-
 
     class CartesianProducts(CartesianProductsCategory):
 

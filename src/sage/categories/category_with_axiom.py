@@ -1,4 +1,5 @@
-"""Axioms
+"""
+Axioms
 
 This documentation covers how to implement axioms and proceeds with an
 overview of the implementation of the axiom infrastructure. It assumes
@@ -152,20 +153,20 @@ elsewhere, typically in a separate file, with just a link from
     sage: Cs().Finite()
     Category of finite cs
 
-For a real example, see the code of the class :class:`FiniteGroups`
-and the link to it in :class:`Groups`. Note that the link is
-implemented using :class:`LazyImport`; this is highly recommended: it
-makes sure that :class:`FiniteGroups` is imported after
-:class:`Groups` it depends upon, and makes it explicit that the class
-:class:`Groups` can be imported and is fully functional without
-importing :class:`FiniteGroups`.
+For a real example, see the code of the class :class:`FiniteGroups` and the
+link to it in :class:`Groups`. Note that the link is implemented using
+:class:`~sage.misc.lazy_import.LazyImport`; this is highly recommended: it
+makes sure that :class:`FiniteGroups` is imported after :class:`Groups` it
+depends upon, and makes it explicit that the class :class:`Groups` can be
+imported and is fully functional without importing :class:`FiniteGroups`.
 
 .. NOTE::
 
-    Some categories with axioms are created upon Sage's startup. In
-    such a case, one needs to pass the ``at_startup=True`` option to
-    :class:`LazyImport`, in order to quiet the warning about that lazy
-    import being resolved upon startup. See for example ``Sets.Finite``.
+    Some categories with axioms are created upon Sage's startup. In such a
+    case, one needs to pass the ``at_startup=True`` option to
+    :class:`~sage.misc.lazy_import.LazyImport`, in order to quiet the warning
+    about that lazy import being resolved upon startup. See for example
+    ``Sets.Finite``.
 
     This is undoubtedly a code smell. Nevertheless, it is preferable
     to stick to lazy imports, first to resolve the import order
@@ -178,9 +179,10 @@ importing :class:`FiniteGroups`.
 
 .. NOTE::
 
-    In principle, due to a limitation of :class:`LazyImport` with
-    nested classes (see :trac:`15648`), one should pass the option
-    ``as_name`` to :class:`LazyImport`::
+    In principle, due to a limitation of
+    :class:`~sage.misc.lazy_import.LazyImport` with nested classes (see
+    :trac:`15648`), one should pass the option ``as_name`` to
+    :class:`~sage.misc.lazy_import.LazyImport`::
 
         Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups', as_name='Finite')
 
@@ -439,13 +441,13 @@ to be defined by::
     sage: Magmas() & AdditiveMagmas()
     Join of Category of magmas and Category of additive magmas
 
-The current infrastructure does not support this perfectly: indeed,
-defining an axiom for a category `C` requires `C` to have a class of
-its own; hence a :class:`JoinCategory` as above won't do; we need to
-implement a new class like :class:`MagmasAndAdditiveMagmas`;
-furthermore, we cannot yet model the fact that
-`MagmasAndAdditiveMagmas()`` *is* the intersection of ``Magmas()`` and
-``AdditiveMagmas()`` rather than a mere subcategory::
+The current infrastructure does not support this perfectly: indeed, defining
+an axiom for a category `C` requires `C` to have a class of its own; hence a
+:class:`JoinCategory` as above won't do; we need to implement a new class like
+:class:`sage.categories.magmas_and_additive_magmas.MagmasAndAdditiveMagmas`;
+furthermore, we cannot yet model the fact that ``MagmasAndAdditiveMagmas()``
+*is* the intersection of ``Magmas()`` and ``AdditiveMagmas()`` rather than a
+mere subcategory::
 
     sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
     sage: Magmas() & AdditiveMagmas() is MagmasAndAdditiveMagmas()
@@ -504,16 +506,16 @@ The downsides of this workaround are:
 
 .. TODO::
 
-    - Design and implement an idiom for the definion of an axiom by a
-      join category.
+    - Design and implement an idiom for the definition of an axiom by a join
+      category.
 
-    - Or support more advanced joins, through some hook or
-      registration process to specify that a given category *is* the
-      intersection of two (or more) categories.
+    - Or support more advanced joins, through some hook or registration
+      process to specify that a given category *is* the intersection of two
+      (or more) categories.
 
-    - Or at least improve the above workaround to avoid the last
-      issue; this possibly could be achieved using a class
-      ``Magmas.Distributive`` with a bit of ``__classcall__`` magic.
+    - Or at least improve the above workaround to avoid the last issue; this
+      possibly could be achieved using a class ``Magmas.Distributive`` with a
+      bit of ``__classcall__`` magic.
 
 Handling multiple axioms, arborescence structure of the code
 ------------------------------------------------------------
@@ -805,7 +807,7 @@ preferably ``(Ds().B(),)`` where ``Ds`` is the category defining the
 axiom ``B``.
 
 This follows the same idiom as for deduction rules about functorial
-constructions (see :meth:`.covariant_functorial_constructions.CovariantConstructionCategory.extra_super_categories`).
+constructions (see :meth:`covariant_functorial_constructions.CovariantConstructionCategory.extra_super_categories`).
 For example, the fact that a cartesian product of associative magmas
 (i.e. of semigroups) is an associative magma is implemented in
 :meth:`Semigroups.CartesianProducts.extra_super_categories`::
@@ -1072,6 +1074,7 @@ We can still construct, say::
     Category of c a3s
 
 However,
+::
 
     sage: A3s().B().C()           # not tested
 
@@ -1085,7 +1088,7 @@ have ``A3s().E().F()`` as super category and reciprocally.
     fails. Yet, the error message could be usefully complemented by
     some hint at what the source of the problem is (a category
     implemented in two distinct classes). Leaving a large enough piece
-    of the backtrace would useful though, so that one can explore
+    of the backtrace would be useful though, so that one can explore
     where the issue comes from (e.g. with post mortem debugging).
 
 Specifications
@@ -1224,18 +1227,20 @@ Specifications
 
 - Any super category of a :class:`CategoryWithParameters` should
   either be a :class:`CategoryWithParameters` or a
-  :class:`Category_singleton`.
-
-- A :class:`CategoryWithAxiom` having a :class:`Category_singleton` as
-  base category should be a :class:`CategoryWithAxiom_singleton`. This
-  is handled automatically by :meth:`CategoryWithAxiom.__init__` and
-  checked in :meth:`CategoryWithAxiom._test_category_with_axiom`.
+  :class:`~sage.categories.category_singleton.Category_singleton`.
 
 - A :class:`CategoryWithAxiom` having a
-  :class:`Category_over_base_ring` as base category should be a
-  :class:`Category_over_base_ring`. This currently has to be handled
-  by hand, using :class:`CategoryWithAxiom_over_base_ring`. This is
-  checked in :meth:`CategoryWithAxiom._test_category_with_axiom`.
+  :class:`~sage.categories.category_singleton.Category_singleton` as base
+  category should be a :class:`CategoryWithAxiom_singleton`. This is handled
+  automatically by :meth:`CategoryWithAxiom.__init__` and checked in
+  :meth:`CategoryWithAxiom._test_category_with_axiom`.
+
+- A :class:`CategoryWithAxiom` having a
+  :class:`~sage.categories.category.Category_over_base_ring` as base category
+  should be a :class:`~sage.categories.category.Category_over_base_ring`. This
+  currently has to be handled by hand, using
+  :class:`CategoryWithAxiom_over_base_ring`. This is checked in
+  :meth:`CategoryWithAxiom._test_category_with_axiom`.
 
 .. TODO::
 
@@ -1338,7 +1343,7 @@ Other design goals include:
         Category of finite sets
 
     The later two are implemented using respectively
-    :meth:`__classcall__` and :meth:`__classget__` which see.
+    :meth:`__classcall__` and :meth:`__classget__`.
 
 Upcoming features
 =================
@@ -1394,7 +1399,7 @@ categories of `J`. In particular, it is a finite process.
 .. TODO::
 
     Detail this a bit. What could typically go wrong is a situation
-    where, for some category ``C1`, ``C1.A()`` specifies a category
+    where, for some category ``C1``, ``C1.A()`` specifies a category
     ``C2`` as super category such that ``C2.A()`` specifies ``C3`` as
     super category such that ...; this would clearly cause an infinite
     execution. Note that this situation violates the specifications
@@ -1403,7 +1408,7 @@ categories of `J`. In particular, it is a finite process.
     categories.
 
     It's reasonnable to assume that there is a finite number of axioms
-    defined in the code. It remains to use this assumption to argue
+    defined in the code. There remains to use this assumption to argue
     that any infinite execution of the algorithm would give rise to
     such an infinite sequence.
 
@@ -1655,6 +1660,8 @@ all_axioms = ("Flying", "Blue",
               "Distributive",
               )
 
+# TODO: Find a faster way to deal with the list of axioms, for instance by
+# creating a cythoned container derived from dict.
 @cached_function
 def axioms_rank(axiom):
     """
@@ -1960,7 +1967,7 @@ class CategoryWithAxiom(Category):
     @staticmethod
     def __classcall__(cls, *args, **options):
         """
-        Make ``FooBars(**)`` an alias for ``Foos(**)._with_axiom("Bar")``.
+        Make ``FoosBar(**)`` an alias for ``Foos(**)._with_axiom("Bar")``.
 
         EXAMPLES::
 
@@ -1988,10 +1995,13 @@ class CategoryWithAxiom(Category):
         if len(args) == 1 and not options and isinstance(args[0], base_category_class):
             return super(CategoryWithAxiom, cls).__classcall__(cls, args[0])
         else:
-            # The following fails with Modules(QQ), as the later returns
-            # VectorSpaces(QQ) which is not an instance of the
-            # base_category_class of ModulesWithBasis
-            # return cls(base_category_class(*args, **options))
+            # The "obvious" idiom
+            ##   return cls(base_category_class(*args, **options))
+            # fails with ModulesWithBasis(QQ) as follows: The
+            # base_category_class is Modules, but Modules(QQ) is an instance
+            # of VectorSpaces and not of Modules. Hence,
+            # ModulesWithBasis.__classcall__ will not accept this instance as
+            # the first argument. Instead, we apply the axiom to the instance:
             return base_category_class(*args, **options)._with_axiom(axiom)
 
     @staticmethod
@@ -2445,10 +2455,11 @@ class CategoryWithAxiom_over_base_ring(CategoryWithAxiom, Category_over_base_rin
 
             sage: TestSuite(C).run()
         """
-        # FIXME: this is basically a duplicates the code from
-        # CategoryWithAxiom.__init__; but we can't call the later
-        # without calling twice Category.__init__; or maybe playing
-        # around with super?
+        # FIXME: this basically duplicates the code from
+        # CategoryWithAxiom.__init__; but we can't call the latter without
+        # calling Category.__init__ twice. One could instead set
+        # "self.__base", which is done in Category_over_base_ring.__init__,
+        # but then one has to take into account Python's name mangling.
         self._base_category = base_category
         Category_over_base_ring.__init__(self, base_category.base_ring())
 

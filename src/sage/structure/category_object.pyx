@@ -577,8 +577,46 @@ cdef class CategoryObject(sage_object.SageObject):
 #        except AttributeError:
 #            raise TypeError, "base extension not defined for %s" % self
 
-    # COERCE TODO: When everything has a category, move let it be an optional arg.
-    def base_ring(self): # This should be in a category or elsewhere, but not here
+    def base_ring(self):
+        """
+        Return the base ring of ``self``.
+
+        INPUT:
+
+        - ``self`` -- an object over a base ring; typically a module
+
+        EXAMPLES::
+
+            sage: from sage.modules.module import Module
+            sage: Module(ZZ).base_ring()
+            Integer Ring
+
+            sage: F = FreeModule(ZZ,3)
+            sage: F.base_ring()
+            Integer Ring
+            sage: F.__class__.base_ring
+            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+
+            sage: F = FreeAlgebra(QQ, 'x')
+            sage: F.base_ring()
+            Rational Field
+            sage: F.__class__.base_ring
+            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+
+            sage: E = CombinatorialFreeModule(ZZ, [1,2,3])
+            sage: F = CombinatorialFreeModule(ZZ, [2,3,4])
+            sage: H = Hom(E, F)
+            sage: H.base_ring()
+            Integer Ring
+            sage: H.__class__.base_ring
+            <method 'base_ring' of 'sage.structure.category_object.CategoryObject' objects>
+
+        .. TODO::
+
+            Move this method elsewhere (typically in the Modules
+            category) so as not to pollute the namespace of all
+            category objects.
+        """
         return self._base
 
     def base(self):

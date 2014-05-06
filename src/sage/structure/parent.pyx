@@ -1103,7 +1103,7 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of algebras over Rational Field
+            Category of algebras over quotient fields
             sage: MS in Rings()
             True
 

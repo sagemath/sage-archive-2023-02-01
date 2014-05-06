@@ -399,16 +399,23 @@ Sage's category framework can differentiate the two cases::
 
 .. end of output
 
-Surprisingly, ``MS2`` has *more* methods than ``MS1``, even though their classes
-coincide::
+And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    58
+    57
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    82
-    sage: MS1.__class__ is MS2.__class__
-    True
+    81
+
+This is because the class of ``MS2`` also inherits from the parent
+class for algebras::
+
+    sage: MS1.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.vector_spaces.VectorSpaces.parent_class'>)
+    sage: MS2.__class__.__bases__
+    (<class 'sage.matrix.matrix_space.MatrixSpace'>,
+     <class 'sage.categories.algebras.Algebras.parent_class'>)
 
 .. end of output
 

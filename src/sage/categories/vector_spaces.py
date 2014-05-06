@@ -10,6 +10,7 @@ Vector Spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from sage.categories.category import Category
 from sage.categories.category_types import Category_module
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.dual import DualObjectsCategory
@@ -49,7 +50,7 @@ class VectorSpaces(Category_module):
             sage: VectorSpaces(ZZ)
             Traceback (most recent call last):
             ...
-            AssertionError: The base ring must be a field.
+            ValueError: base must be a field or a subcategory of Fields(); got Integer Ring
 
         With ``check=False``, the check is disabled, possibly enabling
         incorrect inputs::
@@ -58,7 +59,10 @@ class VectorSpaces(Category_module):
             Category of vector spaces over Integer Ring
         """
         if check:
-            assert K in _Fields, "The base ring must be a field."
+            if not (K in _Fields or
+                    (isinstance(K, Category) and K.is_subcategory(_Fields))):
+                raise ValueError("base must be a field or a subcategory of Fields();" +
+                                 " got {}".format(K))
         return super(VectorSpaces, cls).__classcall__(cls, K)
 
     def __init__(self, K):
@@ -70,7 +74,7 @@ class VectorSpaces(Category_module):
             sage: VectorSpaces(ZZ)
             Traceback (most recent call last):
             ...
-            AssertionError: The base ring must be a field.
+            ValueError: base must be a field or a subcategory of Fields(); got Integer Ring
 
         TESTS::
 

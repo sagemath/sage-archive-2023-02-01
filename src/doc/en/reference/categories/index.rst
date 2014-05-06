@@ -117,6 +117,7 @@ Categories
    sage/categories/lattice_posets
    sage/categories/left_modules
    sage/categories/magmas
+   sage/categories/magmas_and_additive_magmas
    sage/categories/magmatic_algebras
    sage/categories/matrix_algebras
    sage/categories/modular_abelian_varieties

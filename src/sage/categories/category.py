@@ -87,9 +87,9 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 """
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu> and
-#                     William Stein <wstein@math.ucsd.edu>
-#                     Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
+#                          William Stein <wstein@math.ucsd.edu>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -378,6 +378,22 @@ class Category(UniqueRepresentation, SageObject):
         sage: loads(dumps(Ds().element_class)) is Ds().element_class
         True
 
+    .. automethod:: _super_categories
+    .. automethod:: _super_categories_for_classes
+    .. automethod:: _all_super_categories
+    .. automethod:: _all_super_categories_proper
+    .. automethod:: _set_of_super_categories
+    .. automethod:: _make_named_class
+    .. automethod:: _repr_
+    .. automethod:: _repr_object_names
+    .. automethod:: _test_category
+    .. automethod:: _with_axiom
+    .. automethod:: _with_axiom_as_tuple
+    .. automethod:: _without_axioms
+    .. automethod:: _sort
+    .. automethod:: _sort_uniq
+    .. automethod:: __classcall__
+    .. automethod:: __init__
     """
     @staticmethod
     def __classcall__(cls, *args, **options):
@@ -910,7 +926,7 @@ class Category(UniqueRepresentation, SageObject):
             Whenever speed matters, the developers are advised to use
             instead the lazy attributes :meth:`_all_super_categories`,
             :meth:`_all_super_categories_proper`, or
-            :meth:`_set_of_all_super_categories`, as
+            :meth:`_set_of_super_categories`, as
             appropriate. Simply because lazy attributes are much
             faster than any method.
 
@@ -1752,7 +1768,7 @@ class Category(UniqueRepresentation, SageObject):
 
         If ``named`` is ``True``, then this stops at the first
         category that has an explicit name of its own. See
-        :meth:`CategoryWithAxiom._without_axioms`
+        :meth:`.category_with_axiom.CategoryWithAxiom._without_axioms`
 
         EXAMPLES::
 
@@ -2444,6 +2460,8 @@ class CategoryWithParameters(Category):
         True
         sage: C1.parent_class is C3.parent_class
         False
+
+    .. automethod:: _make_named_class
     """
 
     def _make_named_class(self, name, method_provider, cache = False, **options):
@@ -2652,6 +2670,10 @@ class JoinCategory(CategoryWithParameters):
         Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 3
         sage: type(GF(3)['x']) is type(GF(5)['z'])
         True
+
+    .. automethod:: _repr_object_names
+    .. automethod:: _repr_
+    .. automethod:: _without_axioms
     """
 
     def __init__(self, super_categories, **kwds):
@@ -2878,8 +2900,8 @@ class JoinCategory(CategoryWithParameters):
 
         EXAMPLES:
 
-        This raises an error since _cmp_key should not be called on
-        join categories::
+        This raises an error since ``_cmp_key`` should not be called
+        on join categories::
 
             sage: (Magmas() & CommutativeAdditiveSemigroups())._cmp_key()
             Traceback (most recent call last):
@@ -2892,7 +2914,7 @@ class JoinCategory(CategoryWithParameters):
         """
         Return the name of the objects of this category.
 
-        .. SEEALSO:: :meth:`Category._repr_object_names`, :meth:`_repr_`, :meth:`_without_axioms`
+        .. SEEALSO:: :meth:`Category._repr_object_names`, :meth:`_repr_`, :meth:`._without_axioms`
 
         EXAMPLES::
 

@@ -104,7 +104,9 @@ A strategy to solve the problem
 We should recall at this point a design decision that we took for the
 hierarchy of classes derived from categories: *the semantic shall only
 depend on the inheritance order*, not on the specific MRO, and in
-particular not on the order of the bases (see :mod:`sage.combinat.primer`).
+particular not on the order of the bases (see the section
+:ref:`category-primer-category-order` in the
+:ref:`category primer <sage.categories.primer>`).
 If a choice needs to be made (for example for efficiency reasons),
 then this should be done explicitly, on a method-by-method basis. In
 practice this design goal is not yet met.
@@ -378,7 +380,7 @@ cpdef inline tuple category_sort_key(object category):
     This helper function is used for sorting lists of categories.
 
     It is semantically equivalent to
-    :func:`operator.attrgetter```("_cmp_key")``, but currently faster.
+    :func:`operator.attrgetter` ``("_cmp_key")``, but currently faster.
 
     EXAMPLES::
 
@@ -390,7 +392,7 @@ cpdef inline tuple category_sort_key(object category):
 
 cdef class CmpKey:
     r"""
-    This class implements the lazy attribute :meth:`sage.categories.category.Category._cmp_key`.
+    This class implements the lazy attribute ``Category._cmp_key``.
 
     The comparison key ``A._cmp_key`` of a category is used to define
     an (almost) total order on non-join categories by setting, for two
@@ -536,7 +538,7 @@ _cmp_key = CmpKey()
 
 cdef class CmpKeyNamed:
     """
-    This class implements the lazy attribute :meth:`sage.categories.category.CategoryWithParameters._cmp_key`.
+    This class implements the lazy attribute ``CategoryWithParameters._cmp_key``.
 
     .. SEEALSO::
 
@@ -949,7 +951,7 @@ class HierarchyElement(object):
     the linear extension of all elements above `x` its *MRO*.
 
     By convention, the bases are given as lists of
-    ``HierarchyElement`s, and MROs are given a list of the
+    ``HierarchyElement`` s, and MROs are given a list of the
     corresponding values.
 
     INPUT:
@@ -963,7 +965,7 @@ class HierarchyElement(object):
 
     .. NOTE::
 
-        Constructing a HierarchyElement immediately constructs the
+        Constructing a ``HierarchyElement`` immediately constructs the
         whole hierarchy above it.
 
     EXAMPLES:
@@ -971,7 +973,7 @@ class HierarchyElement(object):
     See the introduction of this module :mod:`sage.misc.c3_controlled`
     for many examples. Here we consider a large example, originaly
     taken from the hierarchy of categories above
-    :class:`Hopf_algebras_with_bases`::
+    :class:`HopfAlgebrasWithBasis`::
 
         sage: from sage.misc.c3_controlled import HierarchyElement
         sage: G = DiGraph({

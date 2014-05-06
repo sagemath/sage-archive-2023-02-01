@@ -51,7 +51,7 @@ def rm_rf(file_or_path):
     try:
         os.unlink(file_or_path)
     except OSError as e:
-        if e.errno == errno.EISDIR:
+        if e.errno == errno.EISDIR or e.errno == errno.EPERM:
             shutil.rmtree(file_or_path, ignore_errors=True)
 
 

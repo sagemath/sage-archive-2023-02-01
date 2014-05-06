@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Finite State Machines, Automata, Transducers
 
 This module adds support for finite state machines, automata and
@@ -52,12 +52,17 @@ Anyhow, we got the following finite state machine::
     sage: fsm
     Finite state machine with 2 states
 
-We can also visualize it as a graph by
+We can also obtain the underlying directed graph by
 
 ::
 
     sage: fsm.graph()
     Digraph on 2 vertices
+
+To visualize a finite state machine, we can use
+:func:`~sage.misc.latex.latex` and run the result through LaTeX,
+see the section on :ref:`finite_state_machine_LaTeX_output`
+below.
 
 Alternatively, we could have created the finite state machine above
 simply by
@@ -79,6 +84,7 @@ or by
     sage: fsm
     Finite state machine with 2 states
 
+.. _finite_state_machine_recognizing_NAFs_example:
 
 A simple Automaton (recognizing NAFs)
 ---------------------------------------
@@ -124,6 +130,66 @@ Alternatively, we could call that by
 
 which gives additionally the state in which we arrived.
 
+
+.. _finite_state_machine_LaTeX_output:
+
+LaTeX output
+------------
+
+We can visualize a finite state machine by converting it to LaTeX by
+using the usual function :func:`~sage.misc.latex.latex`. Within LaTeX,
+TikZ is used for typesetting the graphics, see the
+:wikipedia:`PGF/TikZ`.
+
+::
+
+    sage: print latex(NAF)
+    \begin{tikzpicture}[auto, initial text=, >=latex]
+    \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+    \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
+    \path[->] (v1.5.00) edge node[rotate=0.00, anchor=south] {$0$} (v0.175.00);
+    \path[->] (v0.185.00) edge node[rotate=360.00, anchor=north] {$1, -1$} (v1.355.00);
+    \path[->] (v0) edge[loop above] node {$0$} ();
+    \end{tikzpicture}
+
+We can turn this into a graphical representation. Before doing this,
+we have to :func:`setup the latex preamble <setup_latex_preamble>` and
+make sure that TikZ pictures are not rendered by mathjax, but by
+actually running LaTeX.
+
+::
+
+    sage: sage.combinat.finite_state_machine.setup_latex_preamble()
+    sage: latex.mathjax_avoid_list('tikzpicture')
+    sage: view(NAF) # not tested
+
+To actually see this, use the live documentation in the Sage notebook
+and execute the cells in this and the previous section.
+
+Several options can be set to customize the output, see
+:meth:`~FiniteStateMachine.latex_options` for details. In particular,
+we use :meth:`~FiniteStateMachine.format_letter_negative` to format
+`-1` as `\overline{1}`.
+
+::
+
+    sage: NAF.latex_options(
+    ....:     coordinates={'A': (0, 0),
+    ....:                  'B': (6, 0)},
+    ....:     initial_where={'A': 'below'},
+    ....:     format_letter=NAF.format_letter_negative,
+    ....:     format_state_label=lambda x:
+    ....:         r'\mathcal{%s}' % x.label()
+    ....: )
+    sage: print latex(NAF)
+    \begin{tikzpicture}[auto, initial text=, >=latex]
+    \node[state, accepting, initial, initial where=below] (v0) at (0.000000, 0.000000) {$\mathcal{A}$};
+    \node[state, accepting] (v1) at (6.000000, 0.000000) {$\mathcal{B}$};
+    \path[->] (v1.185.00) edge node[rotate=360.00, anchor=north] {$0$} (v0.355.00);
+    \path[->] (v0.5.00) edge node[rotate=0.00, anchor=south] {$1, \overline{1}$} (v1.175.00);
+    \path[->] (v0) edge[loop above] node {$0$} ();
+    \end{tikzpicture}
+    sage: view(NAF) # not tested
 
 A simple transducer (binary inverter)
 -------------------------------------
@@ -192,6 +258,166 @@ Now we want to divide `13` by `3`::
 
 The raised ``ValueError``
 means `13` is not divisible by `3`.
+
+.. _finite_state_machine_gray_code_example:
+
+Gray Code
+---------
+
+The Gray code is a binary :wikipedia:`numeral system <Numeral_system>`
+where two successive values differ in only one bit, cf. the
+:wikipedia:`Gray_code`. The Gray code of an integer `n` is obtained by
+a bitwise xor between the binary expansion of `n` and the binary
+expansion of `\\lfloor n/2\\rfloor`; the latter corresponds to a
+shift by one position in binary.
+
+The purpose of this example is to construct a transducer converting the
+standard binary expansion to the Gray code by translating this
+construction into operations with transducers.
+
+For this construction, note that it is easier to shift everything to
+the right first (for this example, the least significant digit is at
+the left-most position), i.e., multiply by `2` instead of building
+`\\lfloor n/2\\rfloor`. Then, we take the input xor with the right
+shift of the input and forget the first letter.
+
+We first construct a transducer shifting the binary expansion to the
+right. This requires storing the previously read digit in a state.
+
+::
+
+    sage: def shift_right_transition(state, digit):
+    ....:     if state == 'I':
+    ....:         return (digit, None)
+    ....:     else:
+    ....:         return (digit, state)
+    sage: shift_right_transducer = Transducer(
+    ....:     shift_right_transition,
+    ....:     initial_states=['I'],
+    ....:     input_alphabet=[0, 1],
+    ....:     final_states=[0])
+    sage: shift_right_transducer.transitions()
+    [Transition from 'I' to 0: 0|-,
+     Transition from 'I' to 1: 1|-,
+     Transition from 0 to 0: 0|0,
+     Transition from 0 to 1: 1|0,
+     Transition from 1 to 0: 0|1,
+     Transition from 1 to 1: 1|1]
+    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
+    sage: shift_right_transducer([0, 1, 1, 0])
+    [0, 1, 1]
+    sage: shift_right_transducer([1, 0, 0])
+    [1, 0]
+
+The output of the shifts above look a bit weird (from a right-shift
+transducer, we would expect, for example, that ``[1, 0, 0]`` was
+mapped to ``[0, 1, 0]``), since we write ``None`` instead of the zero
+at the left.  Further, note that only `0` is listed as a final state
+as we have to enforce that a most significant zero is read as the last
+input letter in order to flush the last digit::
+
+    sage: shift_right_transducer([0, 1, 0, 1])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
+
+Next, we construct the transducer performing the xor operation. We also
+have to take ``None`` into account as our ``shift_right_transducer``
+waits one iteration until it starts writing output. This corresponds
+with our intention to forget the first letter.
+
+::
+
+    sage: def xor_transition(state, digits):
+    ....:    if digits[0] is None or digits[1] is None:
+    ....:        return (0, None)
+    ....:    else:
+    ....:        return (0, digits[0].__xor__(digits[1]))
+    sage: from itertools import product
+    sage: xor_transducer = Transducer(
+    ....:    xor_transition,
+    ....:    initial_states=[0],
+    ....:    final_states=[0],
+    ....:    input_alphabet=list(product([None, 0, 1], [0, 1])))
+    sage: xor_transducer.transitions()
+    [Transition from 0 to 0: (None, 0)|-,
+     Transition from 0 to 0: (None, 1)|-,
+     Transition from 0 to 0: (0, 0)|0,
+     Transition from 0 to 0: (0, 1)|1,
+     Transition from 0 to 0: (1, 0)|1,
+     Transition from 0 to 0: (1, 1)|0]
+    sage: xor_transducer([(None, 0), (None, 1), (0, 0), (0, 1), (1, 0), (1, 1)])
+    [0, 1, 1, 0]
+    sage: xor_transducer([(0, None)])
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid input sequence.
+
+The transducer computing the Gray code is then constructed as a
+:meth:`cartesian product <Transducer.cartesian_product>` between the
+shifted version and the original input (represented here by the
+``shift_right_transducer`` and the :meth:`identity transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.Identity>`,
+respectively). This cartesian product is then fed into the
+``xor_transducer`` as a :meth:`composition
+<FiniteStateMachine.composition>` of transducers.
+
+As described in :meth:`Transducer.cartesian_product`, we have to
+temporarily set
+``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
+``False`` in order to disable backwards compatible code.
+
+::
+
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+    sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
+    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+    sage: Gray_transducer = xor_transducer(product_transducer)
+    sage: Gray_transducer.transitions()
+    [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
+     Transition from (('I', 0), 0) to ((1, 0), 0): 1|-,
+     Transition from ((0, 0), 0) to ((0, 0), 0): 0|0,
+     Transition from ((0, 0), 0) to ((1, 0), 0): 1|1,
+     Transition from ((1, 0), 0) to ((0, 0), 0): 0|1,
+     Transition from ((1, 0), 0) to ((1, 0), 0): 1|0]
+
+There is a :meth:`prepackaged transducer
+<sage.combinat.finite_state_machine_generators.TransducerGenerators.GrayCode>`
+for Gray code, let's see whether they agree. We have to use
+:meth:`~FiniteStateMachine.relabeled` to relabel our states with
+integers. Note that equality of finite state machines does not compare
+initial and final states, so we have to do it on our own here.
+
+::
+
+    sage: constructed = Gray_transducer.relabeled()
+    sage: packaged = transducers.GrayCode()
+    sage: constructed == packaged
+    True
+    sage: constructed.initial_states() == packaged.initial_states()
+    True
+    sage: constructed.final_states() == packaged.final_states()
+    True
+
+Finally, we check that this indeed computes the Gray code of the first
+10 non-negative integers. Note that we add a trailing zero at the most
+significant position of the input in order to flush all output digits.
+This is due to the left shift which delays its output.
+
+::
+
+    sage: for n in srange(10):
+    ....:     Gray_transducer(n.bits() + [0])
+    []
+    [1]
+    [1, 1]
+    [0, 1]
+    [0, 1, 1]
+    [1, 1, 1]
+    [1, 0, 1]
+    [0, 0, 1]
+    [0, 0, 1, 1]
+    [1, 0, 1, 1]
 
 
 Using the hook-functions
@@ -332,8 +558,11 @@ from sage.structure.sage_object import SageObject
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.symbolic.ring import SR
 from sage.calculus.var import var
 from sage.misc.latex import latex
+from sage.misc.misc import verbose
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
 
@@ -341,6 +570,7 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
+from itertools import imap
 from collections import defaultdict
 
 
@@ -415,8 +645,13 @@ def full_group_by(l, key=lambda x: x):
 #*****************************************************************************
 
 FSMEmptyWordSymbol = '-'
+EmptyWordLaTeX = r'\varepsilon'
 FSMOldCodeTransducerCartesianProduct = True
 FSMOldProcessOutput = True  # See trac #16132 (deprecation).
+tikz_automata_where = {"right": 0,
+                       "above": 90,
+                       "left": 180,
+                       "below": 270}
 
 def FSMLetterSymbol(letter):
     """
@@ -2313,6 +2548,484 @@ class FiniteStateMachine(SageObject):
         """
         return "Finite state machine with %s states" % len(self._states_)
 
+    default_format_letter = latex
+    format_letter = default_format_letter
+
+
+    def format_letter_negative(self, letter):
+        r"""
+        Format negative numbers as overlined numbers, everything
+        else by standard LaTeX formatting.
+
+        INPUT:
+
+        ``letter`` -- anything.
+
+        OUTPUT:
+
+        Overlined absolute value if letter is a negative integer,
+        :func:`latex(letter) <sage.misc.latex.latex>` otherwise.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, -1)])
+            sage: map(A.format_letter_negative, [-1, 0, 1, 'a', None])
+             ['\\overline{1}', 0, 1, \text{\texttt{a}}, \mbox{\rm None}]
+            sage: A.latex_options(format_letter=A.format_letter_negative)
+            sage: print(latex(A))
+            \begin{tikzpicture}[auto, initial text=, >=latex]
+            \node[state] (v0) at (3.000000, 0.000000) {$0$};
+            \path[->] (v0) edge[loop above] node {$\overline{1}$} ();
+            \end{tikzpicture}
+        """
+        if letter in ZZ and letter < 0:
+            return r'\overline{%d}' % -letter
+        else:
+            return latex(letter)
+
+
+    def format_transition_label_reversed(self, word):
+        r"""
+        Format words in transition labels in reversed order.
+
+        INPUT:
+
+        ``word`` -- list of letters.
+
+        OUTPUT:
+
+        String representation of ``word`` suitable to be typeset in
+        mathematical mode, letters are written in reversed order.
+
+        This is the reversed version of
+        :meth:`.default_format_transition_label`.
+
+        In digit expansions, digits are frequently processed from the
+        least significant to the most significant position, but it is
+        customary to write the least significant digit at the
+        right-most position. Therefore, the labels have to be
+        reversed.
+
+        EXAMPLE::
+
+            sage: T = Transducer([(0, 0, 0, [1, 2, 3])])
+            sage: T.format_transition_label_reversed([1, 2, 3])
+            '3 2 1'
+            sage: T.latex_options(format_transition_label=T.format_transition_label_reversed)
+            sage: print latex(T)
+            \begin{tikzpicture}[auto, initial text=, >=latex]
+            \node[state] (v0) at (3.000000, 0.000000) {$0$};
+            \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
+            \end{tikzpicture}
+        """
+        return self.default_format_transition_label(reversed(word))
+
+
+    def default_format_transition_label(self, word):
+        r"""
+        Default formatting of words in transition labels for LaTeX output.
+
+        INPUT:
+
+        ``word`` -- list of letters
+
+        OUTPUT:
+
+        String representation of ``word`` suitable to be typeset in
+        mathematical mode.
+
+        -   For a non-empty word: Concatenation of the letters, piped through
+            ``self.format_letter`` and separated by blanks.
+        -   For an empty word:
+            ``sage.combinat.finite_state_machine.EmptyWordLaTeX``.
+
+        There is also a variant :meth:`.format_transition_label_reversed`
+        writing the words in reversed order.
+
+        EXAMPLES:
+
+        #.  Example of a non-empty word::
+
+                sage: T = Transducer()
+                sage: print T.default_format_transition_label(
+                ....:    ['a', 'alpha', 'a_1', '0', 0, (0, 1)])
+                \text{\texttt{a}} \text{\texttt{alpha}}
+                \text{\texttt{a{\char`\_}1}} 0 0 \left(0, 1\right)
+
+        #.  In the example above, ``'a'`` and ``'alpha'`` should perhaps
+            be symbols::
+
+                sage: var('a alpha a_1')
+                (a, alpha, a_1)
+                sage: print T.default_format_transition_label([a, alpha, a_1])
+                a \alpha a_{1}
+
+        #.  Example of an empty word::
+
+                sage: print T.default_format_transition_label([])
+                \varepsilon
+
+            We can change this by setting
+            ``sage.combinat.finite_state_machine.EmptyWordLaTeX``::
+
+                sage: sage.combinat.finite_state_machine.EmptyWordLaTeX = ''
+                sage: T.default_format_transition_label([])
+                ''
+
+            Finally, we restore the default value::
+
+                sage: sage.combinat.finite_state_machine.EmptyWordLaTeX = r'\varepsilon'
+
+        #.  This method is the default value for
+            ``FiniteStateMachine.format_transition_label``. That can be changed to be
+            any other function::
+
+                sage: A = Automaton([(0, 1, 0)])
+                sage: def custom_format_transition_label(word):
+                ....:     return "t"
+                sage: A.latex_options(format_transition_label=custom_format_transition_label)
+                sage: print latex(A)
+                \begin{tikzpicture}[auto, initial text=, >=latex]
+                \node[state] (v0) at (3.000000, 0.000000) {$0$};
+                \node[state] (v1) at (-3.000000, 0.000000) {$1$};
+                \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
+                \end{tikzpicture}
+        """
+        if word:
+            return " ".join(imap(self.format_letter, word))
+        else:
+            return EmptyWordLaTeX
+
+    format_transition_label = default_format_transition_label
+
+
+    def latex_options(self,
+                      coordinates=None,
+                      format_state_label=None,
+                      format_letter=None,
+                      format_transition_label=None,
+                      loop_where=None,
+                      initial_where=None,
+                      accepting_style=None,
+                      accepting_distance=None,
+                      accepting_where=None):
+        r"""
+        Set options for LaTeX output via
+        :func:`~sage.misc.latex.latex` and therefore
+        :func:`~sage.misc.latex.view`.
+
+        INPUT:
+
+        - ``coordinates`` -- a dictionary or a function mapping labels
+          of states to pairs interpreted as coordinates. If no
+          coordinates are given, states a placed equidistantly on a
+          circle of radius `3`. See also :meth:`.set_coordinates`.
+
+        - ``format_state_label`` -- a function mapping labels of
+          states to a string suitable for typesetting in LaTeX's
+          mathematics mode. If not given, :func:`~sage.misc.latex.latex`
+          is used.
+
+        - ``format_letter`` -- a function mapping letters of the input
+          and output alphabets to a string suitable for typesetting in
+          LaTeX's mathematics mode. If not given,
+          :meth:`.default_format_transition_label` uses
+          :func:`~sage.misc.latex.latex`.
+
+        - ``format_transition_label`` -- a function mapping words over
+          the input and output alphabets to a string suitable for
+          typesetting in LaTeX's mathematics mode. If not given,
+          :meth:`.default_format_transition_label` is used.
+
+        - ``loop_where`` -- a dictionary or a function mapping labels of
+          initial states to one of ``'above'``, ``'left'``, ``'below'``,
+          ``'right'``. If not given, ``'above'`` is used.
+
+        - ``initial_where`` -- a dictionary or a function mapping
+          labels of initial states to one of ``'above'``, ``'left'``,
+          ``'below'``, ``'right'``. If not given, TikZ' default
+          (currently ``'left'``) is used.
+
+        - ``accepting_style`` -- one of ``'accepting by double'`` and
+          ``'accepting by arrow'``. If not given, ``'accepting by
+          double'`` is used unless there are non-empty final output
+          words.
+
+        - ``accepting_distance`` -- a string giving a LaTeX length
+          used for the length of the arrow leading from a final state.
+          If not given, TikZ' default (currently ``'3ex'``) is used
+          unless there are non-empty final output words, in which case
+          ``'7ex'`` is used.
+
+        - ``accepting_where`` -- a dictionary or a function mapping
+          labels of final states to one of ``'above'``, ``'left'``,
+          ``'below'``, ``'right'``. If not given, TikZ' default
+          (currently ``'right'``) is used. If the final state has a
+          final output word, it is also possible to give an angle
+          in degrees.
+
+
+        OUTPUT:
+
+        Nothing.
+
+        As TikZ (cf. the :wikipedia:`PGF/TikZ`) is used to typeset
+        the graphics, the syntax is oriented on TikZ' syntax.
+
+        This is a convenience function collecting all options for
+        LaTeX output. All of its functionality can also be achieved by
+        directly setting the attributes
+
+        - ``coordinates``, ``format_label``, ``loop_where``,
+          ``initial_where``, and ``accepting_where`` of
+          :class:`FSMState` (here, ``format_label`` is a callable
+          without arguments, everything else is a specific value);
+
+        - ``format_label`` of :class:`FSMTransition` (``format_label``
+          is a callable without arguments);
+
+        - ``format_state_label``, ``format_letter``,
+          ``format_transition_label``, ``accepting_style``, and
+          ``accepting_distance`` of :class:`FiniteStateMachine`.
+
+        This function, however, also (somewhat) checks its input and
+        serves to collect documentation on all these options.
+
+        The function can be called several times, only those arguments
+        which are not ``None`` are taken into account. By the same
+        means, it can be combined with directly setting some
+        attributes as outlined above.
+
+        See also :func:`setup_latex_preamble` or the example below on
+        how to setup the LaTeX environment.
+
+        EXAMPLES:
+
+        See also the section on :ref:`finite_state_machine_LaTeX_output`
+        in the introductory examples of this module.
+
+        ::
+
+            sage: from sage.combinat.finite_state_machine import setup_latex_preamble
+            sage: setup_latex_preamble()
+            sage: latex.mathjax_avoid_list('tikzpicture')
+            sage: T = Transducer(initial_states=['I'],
+            ....:     final_states=[0, 3])
+            sage: for j in srange(4):
+            ....:     T.add_transition('I', j, 0, [0, j])
+            ....:     T.add_transition(j, 'I', 0, [0, -j])
+            ....:     T.add_transition(j, j, 0, 0)
+            Transition from 'I' to 0: 0|0,0
+            Transition from 0 to 'I': 0|0,0
+            Transition from 0 to 0: 0|0
+            Transition from 'I' to 1: 0|0,1
+            Transition from 1 to 'I': 0|0,-1
+            Transition from 1 to 1: 0|0
+            Transition from 'I' to 2: 0|0,2
+            Transition from 2 to 'I': 0|0,-2
+            Transition from 2 to 2: 0|0
+            Transition from 'I' to 3: 0|0,3
+            Transition from 3 to 'I': 0|0,-3
+            Transition from 3 to 3: 0|0
+            sage: T.add_transition('I', 'I', 0, 0)
+            Transition from 'I' to 'I': 0|0
+            sage: T.state(3).final_word_out = [0, 0]
+            sage: T.latex_options(
+            ....:     coordinates={'I': (0, 0),
+            ....:                  0: (-6, 3),
+            ....:                  1: (-2, 3),
+            ....:                  2: (2, 3),
+            ....:                  3: (6, 3)},
+            ....:     format_state_label=lambda x: r'\mathbf{%s}' % x,
+            ....:     format_letter=lambda x: r'w_{%s}' % x,
+            ....:     format_transition_label=lambda x:
+            ....:         r"{\scriptstyle %s}" % T.default_format_transition_label(x),
+            ....:     loop_where={'I': 'below', 0: 'left', 1: 'above',
+            ....:                 2: 'right', 3:'below'},
+            ....:     initial_where=lambda x: 'above',
+            ....:     accepting_style='accepting by double',
+            ....:     accepting_distance='10ex',
+            ....:     accepting_where={0: 'left', 3: 45}
+            ....:     )
+            sage: T.state('I').format_label=lambda: r'\mathcal{I}'
+            sage: latex(T)
+            \begin{tikzpicture}[auto, initial text=, >=latex]
+            \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
+            \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
+            \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$\mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
+            \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
+            \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
+            \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v0.148.43);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{3}}$} (v2.201.57);
+            \path[->] (v2) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-3}}$} (v0.21.57);
+            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-1}}$} (v0.118.69);
+            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v3) edge[loop above] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{-2}}$} (v0.51.31);
+            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{0}}$} (v1.328.43);
+            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{1}}$} (v3.298.69);
+            \path[->] (v0) edge[loop below] node {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0}}$} ();
+            \end{tikzpicture}
+            sage: view(T) # not tested
+
+        To actually see this, use the live documentation in the Sage notebook
+        and execute the cells.
+
+        TESTS::
+
+            sage: T.latex_options(format_state_label='Nothing')
+            Traceback (most recent call last):
+            ...
+            TypeError: format_state_label must be callable.
+            sage: T.latex_options(format_letter='')
+            Traceback (most recent call last):
+            ...
+            TypeError: format_letter must be callable.
+            sage: T.latex_options(format_transition_label='')
+            Traceback (most recent call last):
+            ...
+            TypeError: format_transition_label must be callable.
+            sage: T.latex_options(loop_where=37)
+            Traceback (most recent call last):
+            ...
+            TypeError: loop_where must be a callable or a
+            dictionary.
+            sage: T.latex_options(loop_where=lambda x: 'top')
+            Traceback (most recent call last):
+            ...
+            ValueError: loop_where for I must be in ['below',
+            'right', 'above', 'left'].
+            sage: T.latex_options(initial_where=90)
+            Traceback (most recent call last):
+            ...
+            TypeError: initial_where must be a callable or a
+            dictionary.
+            sage: T.latex_options(initial_where=lambda x: 'top')
+            Traceback (most recent call last):
+            ...
+            ValueError: initial_where for I must be in ['below',
+            'right', 'above', 'left'].
+            sage: T.latex_options(accepting_style='fancy')
+            Traceback (most recent call last):
+            ...
+            ValueError: accepting_style must be in ['accepting by
+            double', 'accepting by arrow'].
+            sage: T.latex_options(accepting_where=90)
+            Traceback (most recent call last):
+            ...
+            TypeError: accepting_where must be a callable or a
+            dictionary.
+            sage: T.latex_options(accepting_where=lambda x: 'top')
+            Traceback (most recent call last):
+            ...
+            ValueError: accepting_where for 0 must be in ['below',
+            'right', 'above', 'left'].
+            sage: T.latex_options(accepting_where={0: 'above', 3: 'top'})
+            Traceback (most recent call last):
+            ...
+            ValueError: accepting_where for 3 must be a real number or
+            be in ['below', 'right', 'above', 'left'].
+        """
+        if coordinates is not None:
+            self.set_coordinates(coordinates)
+
+        if format_state_label is not None:
+            if not hasattr(format_state_label, '__call__'):
+                raise TypeError('format_state_label must be callable.')
+            self.format_state_label = format_state_label
+
+        if format_letter is not None:
+            if not hasattr(format_letter, '__call__'):
+                raise TypeError('format_letter must be callable.')
+            self.format_letter = format_letter
+
+        if format_transition_label is not None:
+            if not hasattr(format_transition_label, '__call__'):
+                raise TypeError('format_transition_label must be callable.')
+            self.format_transition_label = format_transition_label
+
+        if loop_where is not None:
+            permissible = list(tikz_automata_where.iterkeys())
+            for state in self.states():
+                if hasattr(loop_where, '__call__'):
+                    where = loop_where(state.label())
+                else:
+                    try:
+                        where = loop_where[state.label()]
+                    except TypeError:
+                        raise TypeError("loop_where must be a "
+                                        "callable or a dictionary.")
+                    except KeyError:
+                        continue
+                if where in permissible:
+                    state.loop_where = where
+                else:
+                    raise ValueError('loop_where for %s must be in %s.' %
+                                     (state.label(), permissible))
+
+        if initial_where is not None:
+            permissible = list(tikz_automata_where.iterkeys())
+            for state in self.iter_initial_states():
+                if hasattr(initial_where, '__call__'):
+                    where = initial_where(state.label())
+                else:
+                    try:
+                        where = initial_where[state.label()]
+                    except TypeError:
+                        raise TypeError("initial_where must be a "
+                                        "callable or a dictionary.")
+                    except KeyError:
+                        continue
+                if where in permissible:
+                    state.initial_where = where
+                else:
+                    raise ValueError('initial_where for %s must be in %s.' %
+                                     (state.label(), permissible))
+
+        if accepting_style is not None:
+            permissible = ['accepting by double',
+                           'accepting by arrow']
+            if accepting_style in permissible:
+                self.accepting_style = accepting_style
+            else:
+                raise ValueError('accepting_style must be in %s.' %
+                    permissible)
+
+        if accepting_distance is not None:
+            self.accepting_distance = accepting_distance
+
+        if accepting_where is not None:
+            permissible = list(tikz_automata_where.iterkeys())
+            for state in self.iter_final_states():
+                if hasattr(accepting_where, '__call__'):
+                    where = accepting_where(state.label())
+                else:
+                    try:
+                        where = accepting_where[state.label()]
+                    except TypeError:
+                        raise TypeError("accepting_where must be a "
+                                        "callable or a dictionary.")
+                    except KeyError:
+                        continue
+                if where in permissible:
+                    state.accepting_where = where
+                elif hasattr(state, 'final_word_out') \
+                        and state.final_word_out:
+                    if where in RR:
+                        state.accepting_where = where
+                    else:
+                        raise ValueError('accepting_where for %s must '
+                                         'be a real number or be in %s.' %
+                                         (state.label(), permissible))
+
+                else:
+                    raise ValueError('accepting_where for %s must be in %s.' %
+                                     (state.label(), permissible))
+
 
     def _latex_(self):
         r"""
@@ -2333,7 +3046,7 @@ class FiniteStateMachine(SageObject):
             ....:                        final_states=['B'])
             sage: F.state('A').initial_where='below'
             sage: print latex(F)  # indirect doctest
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state, initial, initial where=below] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
             \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
@@ -2354,15 +3067,57 @@ class FiniteStateMachine(SageObject):
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
-        result = "\\begin{tikzpicture}[auto, initial text=]\n"
+        #### compatibility code, delete when .is_final/.final_word_out consistency is guaranteed
+        for state in self.iter_final_states():
+            if not hasattr(state, "final_word_out"):
+                state.final_word_out = []
+        #### end compatibility code
+
+        options = ["auto", "initial text=", ">=latex"]
+
+        nonempty_final_word_out = False
+        for state in self.iter_final_states():
+            if state.final_word_out:
+                nonempty_final_word_out = True
+                break
+
+        if hasattr(self, "accepting_style"):
+            accepting_style = self.accepting_style
+        elif nonempty_final_word_out:
+            accepting_style = "accepting by arrow"
+        else:
+            accepting_style = "accepting by double"
+
+        if accepting_style == "accepting by arrow":
+            options.append("accepting text=")
+            options.append("accepting/.style=%s" % accepting_style)
+
+        if hasattr(self, "accepting_distance"):
+            accepting_distance = self.accepting_distance
+        elif nonempty_final_word_out:
+            accepting_distance = "7ex"
+        else:
+            accepting_distance = None
+        if accepting_style == "accepting by arrow" and accepting_distance:
+            options.append("accepting distance=%s"
+                           % accepting_distance)
+
+        result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
-        for vertex in self.states():
+        for vertex in self.iter_states():
             if not hasattr(vertex, "coordinates"):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
             options = ""
             if vertex.is_final:
-                options += ", accepting"
+                if not (vertex.final_word_out
+                        and accepting_style == "accepting by arrow"):
+                    # otherwise, we draw a custom made accepting path
+                    # with label below
+                    options += ", accepting"
+                    if hasattr(vertex, "accepting_where"):
+                        options += ", accepting where=%s" % (
+                            vertex.accepting_where,)
             if vertex.is_initial:
                 options += ", initial"
             if hasattr(vertex, "initial_where"):
@@ -2377,10 +3132,21 @@ class FiniteStateMachine(SageObject):
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
+            if vertex.is_final and vertex.final_word_out:
+                angle = 0
+                if hasattr(vertex, "accepting_where"):
+                    angle = tikz_automata_where.get(vertex.accepting_where,
+                                                    vertex.accepting_where)
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$\$\mid %s$} ++(%.2f:%s);\n" % (
+                    j, angle,
+                    label_rotation(angle, False),
+                    self.format_transition_label(vertex.final_word_out),
+                    angle, accepting_distance)
+
             j += 1
         adjacent = {}
-        for source in self.states():
-            for target in self.states():
+        for source in self.iter_states():
+            for target in self.iter_states():
                 transitions = filter(lambda transition: \
                                          transition.to_state == target,
                                      source.transitions)
@@ -2392,13 +3158,9 @@ class FiniteStateMachine(SageObject):
                 for transition in transitions:
                     if hasattr(transition, "format_label"):
                         labels.append(transition.format_label())
-                        continue
-                    elif hasattr(self, "format_transition_label"):
-                        format_transition_label = self.format_transition_label
                     else:
-                        format_transition_label = latex
-                    labels.append(self._latex_transition_label_(
-                            transition, format_transition_label))
+                        labels.append(self._latex_transition_label_(
+                                transition, self.format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
                     angle = atan2(
@@ -2417,8 +3179,15 @@ class FiniteStateMachine(SageObject):
                         label,
                         target._number_, angle_target)
                 else:
-                    result += "\\path[->] (v%d) edge[loop above] node {$%s$} ();\n" % (
-                        source._number_, label)
+                    loop_where = "above"
+                    if hasattr(source, "loop_where"):
+                        loop_where = source.loop_where
+                    rotation = {'left': '[rotate=90, anchor=south]',
+                                'right': '[rotate=90, anchor=north]'}
+                    result += "\\path[->] (v%d) edge[loop %s] node%s {$%s$} ();\n" % (
+                        source._number_,
+                        loop_where, rotation.get(loop_where, ''),
+                        label)
 
         result += "\\end{tikzpicture}"
         return result
@@ -4564,11 +5333,6 @@ class FiniteStateMachine(SageObject):
         .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
            Prodinger, *Asymptotic analysis of the sum of the output of
            transducer*, in preparation.
-
-        .. [HKW2014] Clemens Heuberger, Sara Kropf, and Stephan Wagner,
-           *Combinatorial Characterization of Independent Transducers via
-           Functional Digraphs*, :arxiv:`1404.3680`.
-
         """
         DG = self.digraph()
         condensation = DG.strongly_connected_components_digraph()
@@ -5139,6 +5903,489 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return(done)
 
+    def asymptotic_moments(self, variable=SR.symbol('n')):
+        r"""
+        Returns the main terms of expectation and variance of the sum
+        of output labels and its covariance with the sum of input
+        labels.
+
+        INPUT:
+
+        - ``variable`` -- symbol denoting the length of the input,
+          by default `n`.
+
+        OUTPUT:
+
+        A dictionary consisting of
+
+        - ``expectation`` -- `e n+\operatorname{Order}(1)`,
+        - ``variance`` -- `v n + \operatorname{Order}(1)`,
+        - ``covariance`` -- `c n + \operatorname{Order}(1)`
+
+        for suitable constants `e`, `v` and `c`.
+
+        Assume that all input and output labels are numbers and that
+        ``self`` is complete and has only one final component. Assume
+        further that this final component is aperiodic. Furthermore,
+        assume that there is exactly one initial state and that all
+        states are final.
+
+        Denote by `X_n` the sum of output labels written by the
+        finite state machine when reading a random input word of
+        length `n` over the input alphabet (assuming
+        equidistribution).
+
+        Then the expectation of `X_n` is `en+O(1)`, the variance
+        of `X_n` is `vn+O(1)` and the covariance of `X_n` and
+        the sum of input labels is `cn+O(1)`, cf. [HKW2014]_,
+        Theorem 2.
+
+        In the case of non-integer input or output labels, performance
+        degrades significantly. For rational input and output labels,
+        consider rescaling to integers. This limitation comes from the
+        fact that determinants over polynomial rings can be computed
+        much more efficiently than over the symbolic ring. In fact, we
+        compute (parts) of a trivariate generating function where the
+        input and output labels are exponents of some indeterminates,
+        see [HKW2014]_, Theorem 2 for details. If those exponents are
+        integers, we can use a polynomial ring.
+
+        .. WARNING::
+
+            If not all states are final, we only print a warning. This is
+            for a transitional period to accomodate subsequential
+            transducers while those are not yet implemented
+            (cf. :trac:`16191`).
+
+        EXAMPLES:
+
+        #.  A trivial example: write the negative of the input::
+
+                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, -1)],
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T([0, 1, 1])
+                [0, -1, -1]
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                -1/2*n + Order(1)
+                sage: moments['variance']
+                1/4*n + Order(1)
+                sage: moments['covariance']
+                -1/4*n + Order(1)
+
+        #.  For the case of the Hamming weight of the non-adjacent-form
+            (NAF) of integers, cf. the :wikipedia:`Non-adjacent_form`
+            and the :ref:`example on recognizing NAFs
+            <finite_state_machine_recognizing_NAFs_example>`, the
+            following agrees with the results in [HP2007]_.
+
+            We first use the transducer to convert the standard binary
+            expansion to the NAF given in [HP2007]_::
+
+                sage: NAF = Transducer([(0, 0, 0, 0),
+                ....:                   (0, '.1', 1, None),
+                ....:                   ('.1', 0, 0, [1, 0]),
+                ....:                   ('.1', 1, 1, [-1, 0]),
+                ....:                   (1, 1, 1, 0),
+                ....:                   (1, '.1', 0, None)],
+                ....:                  initial_states=[0],
+                ....:                  final_states=[0])
+
+            As an example, we compute the NAF of `27` by this
+            transducer. Note that we have to add two trailing (at the
+            most significant positions) digits `0` in order to be sure
+            to reach the final state.
+
+            ::
+
+                sage: binary_27 = 27.bits()
+                sage: binary_27
+                [1, 1, 0, 1, 1]
+                sage: NAF_27 = NAF(binary_27+[0, 0])
+                sage: NAF_27
+                [-1, 0, -1, 0, 0, 1, 0]
+                sage: ZZ(NAF_27, base=2)
+                27
+
+            Next, we are only interested in the Hamming weight::
+
+                sage: def weight(state, input):
+                ....:     if input is None:
+                ....:         result = 0
+                ....:     else:
+                ....:         result = ZZ(input != 0)
+                ....:     return (0, result)
+                sage: weight_transducer = Transducer(weight,
+                ....:                                input_alphabet=[-1, 0, 1],
+                ....:                                initial_states=[0],
+                ....:                                final_states=[0])
+                sage: NAFweight = weight_transducer.composition(
+                ....:     NAF,
+                ....:     algorithm='explorative').relabeled()
+                sage: sorted(NAFweight.transitions())
+                [Transition from 0 to 0: 0|0,
+                 Transition from 0 to 1: 1|-,
+                 Transition from 1 to 0: 0|1,0,
+                 Transition from 1 to 2: 1|1,0,
+                 Transition from 2 to 1: 0|-,
+                 Transition from 2 to 2: 1|0]
+                sage: NAFweight(binary_27 + [0, 0])
+                [1, 0, 1, 0, 0, 1, 0]
+
+            Now, we actually compute the asymptotic moments::
+
+                sage: moments = NAFweight.asymptotic_moments()
+                verbose 0 (...) Not all states are final. Proceeding
+                under the assumption that you know what you are doing.
+                sage: moments['expectation']
+                1/3*n + Order(1)
+                sage: moments['variance']
+                2/27*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+            In this case, we can ignore the warning: we could have all
+            states as final states if we would have a final output
+            label, i.e., a subsequential transducer. However, this is
+            not yet implemented in this package, cf. :trac:`16191`.
+
+        #.  This is Example 3.1 in [HKW2014]_, where a transducer with
+            variable output labels is given. There, the aim was to
+            choose the output labels of this very simple transducer such
+            that the input and output sum are asymptotically
+            independent, i.e., the constant `c` vanishes.
+
+            ::
+
+                sage: var('a_1, a_2, a_3, a_4')
+                (a_1, a_2, a_3, a_4)
+                sage: T = Transducer([[0, 0, 0, a_1], [0, 1, 1, a_3],
+                ....:                 [1, 0, 0, a_4], [1, 1, 1, a_2]],
+                ....:                initial_states=[0], final_states=[0, 1])
+                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                sage: moments['expectation']
+                1/4*(a_1 + a_2 + a_3 + a_4)*n + Order(1)
+                sage: moments['covariance']
+                -1/4*(a_1 - a_2)*n + Order(1)
+
+            Therefore, the asymptotic covariance vanishes if and only if
+            `a_2=a_1`.
+
+        #.  This is Example 6.2 in [HKW2014]_, dealing with the
+            transducer converting the binary expansion of an integer
+            into Gray code (cf. the :wikipedia:`Gray_code` and the
+            :ref:`example on Gray code
+            <finite_state_machine_gray_code_example>`)::
+
+                sage: moments = transducers.GrayCode().asymptotic_moments()
+                verbose 0 (...) Not all states are final. Proceeding
+                under the assumption that you know what you are doing.
+                sage: moments['expectation']
+                1/2*n + Order(1)
+                sage: moments['variance']
+                1/4*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+            Also in this case, we can ignore the warning: we could have
+            all states as final states if we would have a final output
+            label, i.e., a subsequential transducer. However, this is
+            not yet implemented in this package, cf. :trac:`16191`.
+
+        #.  This is the first part of Example 6.3 in [HKW2014]_,
+            counting the number of 10 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block10 = transducers.CountSubblockOccurrences(
+                ....:     [1, 0],
+                ....:     input_alphabet=[0, 1])
+                sage: sorted(block10.transitions())
+                [Transition from () to (): 0|0,
+                 Transition from () to (1,): 1|0,
+                 Transition from (1,) to (): 0|1,
+                 Transition from (1,) to (1,): 1|0]
+                sage: moments = block10.asymptotic_moments()
+                sage: moments['expectation']
+                1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+        #.  This is the second part of Example 6.3 in [HKW2014]_,
+            counting the number of 11 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block11 = transducers.CountSubblockOccurrences(
+                ....:     [1, 1],
+                ....:     input_alphabet=[0, 1])
+                sage: sorted(block11.transitions())
+                [Transition from () to (): 0|0,
+                 Transition from () to (1,): 1|0,
+                 Transition from (1,) to (): 0|0,
+                 Transition from (1,) to (1,): 1|1]
+                sage: var('N')
+                N
+                sage: moments = block11.asymptotic_moments(N)
+                sage: moments['expectation']
+                1/4*N + Order(1)
+                sage: moments['variance']
+                5/16*N + Order(1)
+                sage: correlation = (moments['covariance'].coefficient(N) /
+                ....:                (1/2 * sqrt(moments['variance'].coefficient(N))))
+                sage: correlation
+                2/5*sqrt(5)
+
+        #.  This is Example 6.4 in [HKW2014]_, counting the number of
+            01 blocks minus the number of 10 blocks in the standard binary
+            expansion. The least significant digit is at the left-most
+            position::
+
+                sage: block01 = transducers.CountSubblockOccurrences(
+                ....:     [0, 1],
+                ....:     input_alphabet=[0, 1])
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
+                sage: product_01x10 = block01.cartesian_product(block10)
+                sage: block_difference = transducers.sub([0, 1])(product_01x10)
+                sage: T = block_difference.simplification().relabeled()
+                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
+                sage: T.transitions()
+                [Transition from 0 to 1: 0|-1,
+                 Transition from 0 to 0: 1|0,
+                 Transition from 1 to 1: 0|0,
+                 Transition from 1 to 0: 1|1,
+                 Transition from 2 to 1: 0|0,
+                 Transition from 2 to 0: 1|0]
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                Order(1)
+                sage: moments['variance']
+                Order(1)
+                sage: moments['covariance']
+                Order(1)
+
+        #.  The finite state machine must have a unique final component::
+
+                sage: T = Transducer([(0, -1, -1, -1), (0, 1, 1, 1),
+                ....:                 (-1, -1, -1, -1), (-1, -1, 1, -1),
+                ....:                 (1, 1, -1, 1), (1, 1, 1, 1)],
+                ....:                initial_states=[0],
+                ....:                final_states=[0, 1, -1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: asymptotic_moments is only
+                implemented for finite state machines with one final
+                component.
+
+            In this particular example, the first letter of the input
+            decides whether we reach the loop at `-1` or the loop at
+            `1`.  In the first case, we have `X_n = -n`, while we have
+            `X_n = n` in the second case. Therefore, the expectation
+            `E(X_n)` of `X_n` is `E(X_n) = 0`. We get `(X_n-E(X_n))^2 =
+            n^2` in all cases, which results in a variance of `n^2`.
+
+            So this example shows that the variance may be non-linear if
+            there is more than one final component.
+
+        TESTS:
+
+        #.  An input alphabet must be given::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                initial_states=[0], final_states=[0],
+                ....:                determine_alphabets=False)
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: No input alphabet is given.
+                Try calling determine_alphabets().
+
+        #.  The finite state machine must have a unique initial state::
+
+                sage: T = Transducer([(0, 0, 0, 0)])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: A unique initial state is required.
+
+        #.  The finite state machine must be complete::
+
+                sage: T = Transducer([[0, 0, 0, 0]],
+                ....:                initial_states=[0], final_states=[0],
+                ....:                input_alphabet=[0, 1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: This finite state machine is
+                not complete.
+
+        #.  The final component of the finite state machine must be
+            aperiodic::
+
+                sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 0)],
+                ....:                initial_states=[0], final_states=[0, 1])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: asymptotic_moments is only
+                implemented for finite state machines whose unique final
+                component is aperiodic.
+
+        #.  Non-integer input or output labels lead to a warning::
+
+                sage: T = Transducer([[0, 0, 0, 0], [0, 0, 1, -1/2]],
+                ....:                initial_states=[0], final_states=[0])
+                sage: moments = T.asymptotic_moments() # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                sage: moments['expectation']
+                -1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                -1/8*n + Order(1)
+
+            This warning can be silenced by :func:`~sage.misc.misc.set_verbose`::
+
+                sage: set_verbose(-1, "finite_state_machine.py")
+                sage: moments = T.asymptotic_moments()
+                sage: moments['expectation']
+                -1/4*n + Order(1)
+                sage: moments['variance']
+                1/16*n + Order(1)
+                sage: moments['covariance']
+                -1/8*n + Order(1)
+                sage: set_verbose(0, "finite_state_machine.py")
+
+        #.  Check whether ``word_out`` of ``FSMState`` are correctly
+            dealt with::
+
+                sage: from sage.combinat.finite_state_machine import FSMState
+                sage: s = FSMState(0, word_out=2,
+                ....:              is_initial=True,
+                ....:              is_final=True)
+                sage: T = Transducer([(s, s, 0, 1)],
+                ....:                initial_states=[s], final_states=[s])
+                sage: T([0, 0])
+                [2, 1, 2, 1, 2]
+                sage: T.asymptotic_moments()['expectation']
+                3*n + Order(1)
+
+            The same test for non-integer output::
+
+                sage: from sage.combinat.finite_state_machine import FSMState
+                sage: s = FSMState(0, word_out=2/3)
+                sage: T = Transducer([(s, s, 0, 1/2)],
+                ....:                initial_states=[s], final_states=[s])
+                sage: T.asymptotic_moments()['expectation'] # doctest: +ELLIPSIS
+                verbose 0 (...) Non-integer output weights lead to
+                significant performance degradation.
+                7/6*n + Order(1)
+
+        ALGORITHM:
+
+        See [HKW2014]_, Theorem 2.
+
+        REFERENCES:
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, :arxiv:`1404.3680`.
+
+        .. [HP2007] Clemens Heuberger and Helmut Prodinger, *The Hamming
+           Weight of the Non-Adjacent-Form under Various Input Statistics*,
+           Periodica Mathematica Hungarica Vol. 55 (1), 2007, pp. 81–96,
+           :doi:`10.1007/s10998-007-3081-z`.
+        """
+        from sage.calculus.functional import derivative
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.rational_field import QQ
+
+        if self.input_alphabet is None:
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
+
+        if len(self.initial_states()) != 1:
+            raise ValueError("A unique initial state is required.")
+
+        if len(self.final_states()) != len(self.states()):
+            verbose("Not all states are final. Proceeding under the "
+                    "assumption that you know what you are doing.",
+                    level=0)
+
+        if not self.is_complete():
+            raise NotImplementedError("This finite state machine is "
+                                      "not complete.")
+
+        final_components = self.final_components()
+        if len(final_components) != 1:
+            raise NotImplementedError("asymptotic_moments is only "
+                                      "implemented for finite state machines "
+                                      "with one final component.")
+        final_component = final_components[0]
+
+        if not final_component.digraph().is_aperiodic():
+            raise NotImplementedError("asymptotic_moments is only "
+                                      "implemented for finite state machines "
+                                      "whose unique final component is "
+                                      "aperiodic.")
+
+        def get_matrix(fsm, x, y):
+            return fsm.adjacency_matrix(
+                entry=lambda transition: x**sum(transition.word_in) *
+                                         y**(sum(transition.word_out) +
+                                         sum(transition.from_state.word_out)))
+
+        K = len(self.input_alphabet)
+        R = PolynomialRing(QQ, ("x", "y", "z"))
+        (x, y, z) = R.gens()
+        try:
+            M = get_matrix(self, x, y)
+        except TypeError:
+            verbose("Non-integer output weights lead to "
+                    "significant performance degradation.", level=0)
+            # fall back to symbolic ring
+            R = SR
+            x = R.symbol()
+            y = R.symbol()
+            z = R.symbol()
+            M = get_matrix(self, x, y)
+            def substitute_one(g):
+                return g.subs({x: 1, y: 1, z: 1})
+        else:
+            def substitute_one(g):
+                # the result of the substitution shall live in QQ,
+                # not in the polynomial ring R, so the method
+                # subs does not achieve the result.
+                # Therefore, we need this helper function.
+                return g(1, 1, 1)
+
+        f = (M.parent().identity_matrix() - z/K*M).det()
+        f_x = substitute_one(derivative(f, x))
+        f_y = substitute_one(derivative(f, y))
+        f_z = substitute_one(derivative(f, z))
+        f_xy = substitute_one(derivative(f, x, y))
+        f_xz = substitute_one(derivative(f, x, z))
+        f_yz = substitute_one(derivative(f, y, z))
+        f_yy = substitute_one(derivative(f, y, y))
+        f_zz = substitute_one(derivative(f, z, z))
+
+        e_2 = f_y / f_z
+        v_2 = (f_y**2 * (f_zz+f_z) + f_z**2 * (f_yy+f_y)
+               - 2*f_y*f_z*f_yz) / f_z**3
+        c = (f_x * f_y * (f_zz+f_z) + f_z**2 * f_xy - f_y*f_z*f_xz
+             - f_x*f_z*f_yz) / f_z**3
+
+        return {'expectation': e_2*variable + SR(1).Order(),
+                'variance': v_2*variable + SR(1).Order(),
+                'covariance': c*variable + SR(1).Order()}
+
 
 #*****************************************************************************
 
@@ -5237,10 +6484,10 @@ class Automaton(FiniteStateMachine):
 
             sage: F = Automaton([('A', 'B', 1)])
             sage: print latex(F)  # indirect doctest
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$1$} (v1);
             \end{tikzpicture}
 
         TESTS::
@@ -5795,10 +7042,10 @@ class Transducer(FiniteStateMachine):
 
             sage: F = Transducer([('A', 'B', 1, 2)])
             sage: print latex(F)  # indirect doctest
-            \begin{tikzpicture}[auto, initial text=]
+            \begin{tikzpicture}[auto, initial text=, >=latex]
             \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
             \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
-            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$1\mid 2$} (v1);
             \end{tikzpicture}
 
         TESTS::
@@ -5808,7 +7055,7 @@ class Transducer(FiniteStateMachine):
             sage: F._latex_transition_label_(t)
             \left[0\right] \mid \left[1\right]
         """
-        return (format_function(transition.word_in) + "\\mid"
+        return (format_function(transition.word_in) + "\\mid "
                 + format_function(transition.word_out))
 
 
@@ -6687,10 +7934,17 @@ def setup_latex_preamble():
 
     Nothing.
 
+    In the Sage notebook, you probably want to use
+    ``latex.mathjax_avoid_list('tikzpicture')`` such that
+    :func:`~sage.misc.latex.view` actually shows the result.
+    See the section on :ref:`finite_state_machine_LaTeX_output`
+    in the introductory examples of this module.
+
     TESTS::
 
         sage: from sage.combinat.finite_state_machine import setup_latex_preamble
         sage: setup_latex_preamble()
+        sage: latex.mathjax_avoid_list('tikzpicture')
     """
     latex.add_package_to_preamble_if_available('tikz')
     latex.add_to_preamble('\\usetikzlibrary{automata}')

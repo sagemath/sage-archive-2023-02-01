@@ -105,8 +105,8 @@ We should recall at this point a design decision that we took for the
 hierarchy of classes derived from categories: *the semantic shall only
 depend on the inheritance order*, not on the specific MRO, and in
 particular not on the order of the bases (see the section
-:ref:`category-primer-category-order` in the
-:ref:`category primer <sage.categories.primer>`).
+``On the order of super categories`` in the
+:mod:`category primer <sage.categories.primer>`).
 If a choice needs to be made (for example for efficiency reasons),
 then this should be done explicitly, on a method-by-method basis. In
 practice this design goal is not yet met.

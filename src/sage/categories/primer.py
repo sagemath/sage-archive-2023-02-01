@@ -758,7 +758,7 @@ Documentation about those methods can be obtained with::
     sage: G.element_class._mul_?        # not tested
     sage: G.parent_class.one?           # not tested
 
-See also the :meth:`abstract_method` decorator.
+See also the :func:`abstract_method` decorator.
 
 .. WARNING::
 
@@ -1049,10 +1049,10 @@ algebraic structure. This includes:
 - Subquotients / quotients / subobjects / isomorphic objects:
   See:
 
-  - :meth:`<Sets().Subquotients Sets.SubcategoryMethods.Subquotients>`,
-  - :meth:`<Sets().Quotients Sets.SubcategoryMethods.Quotients>`,
-  - :meth:`<Sets().Subobjects Sets.SubcategoryMethods.Subobjects>`,
-  - :meth:`<Sets().IsomorphicObjects Sets.SubcategoryMethods.IsomorphicObjects>`
+  - :meth:`Sets().Subquotients <Sets.SubcategoryMethods.Subquotients>`,
+  - :meth:`Sets().Quotients <Sets.SubcategoryMethods.Quotients>`,
+  - :meth:`Sets().Subobjects <Sets.SubcategoryMethods.Subobjects>`,
+  - :meth:`Sets().IsomorphicObjects <Sets.SubcategoryMethods.IsomorphicObjects>`
 
 - Dual objects:
   See :meth:`Modules().DualObjects <Modules.SubcategoryMethods.DualObjects>`.
@@ -1523,7 +1523,7 @@ category `D`, then you should also update the method
 ``D.super_categories`` to include `C`.
 
 The immediate super categories of `C` *should not* be :class:`join
-categories <JoinCategory>`. Furthermore, one always should have::
+categories <.category.JoinCategory>`. Furthermore, one always should have::
 
       Cs().is_subcategory( Category.join(Cs().super_categories()) )
 
@@ -1570,6 +1570,8 @@ We recommend to study the code of one example::
 
     sage: C = CommutativeAdditiveMonoids()
     sage: C??                               # not tested
+
+.. _category-primer-category-order:
 
 On the order of super categories
 --------------------------------

@@ -87,9 +87,9 @@ A parent ``P`` is in a category ``C`` if ``P.category()`` is a subcategory of
 """
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu> and
-#                     William Stein <wstein@math.ucsd.edu>
-#                     Nicolas M. Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu> and
+#                          William Stein <wstein@math.ucsd.edu>
+#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -378,6 +378,22 @@ class Category(UniqueRepresentation, SageObject):
         sage: loads(dumps(Ds().element_class)) is Ds().element_class
         True
 
+    .. automethod:: _super_categories
+    .. automethod:: _super_categories_for_classes
+    .. automethod:: _all_super_categories
+    .. automethod:: _all_super_categories_proper
+    .. automethod:: _set_of_super_categories
+    .. automethod:: _make_named_class
+    .. automethod:: _repr_
+    .. automethod:: _repr_object_names
+    .. automethod:: _test_category
+    .. automethod:: _with_axiom
+    .. automethod:: _with_axiom_as_tuple
+    .. automethod:: _without_axioms
+    .. automethod:: _sort
+    .. automethod:: _sort_uniq
+    .. automethod:: __classcall__
+    .. automethod:: __init__
     """
     @staticmethod
     def __classcall__(cls, *args, **options):
@@ -780,7 +796,11 @@ class Category(UniqueRepresentation, SageObject):
     @abstract_method
     def super_categories(self):
         """
-        Returns the *immediate* super categories of ``self``
+        Return the *immediate* super categories of ``self``.
+
+        OUTPUT:
+
+        - a duplicate-free list of categories.
 
         Every category should implement this method.
 
@@ -791,18 +811,13 @@ class Category(UniqueRepresentation, SageObject):
             sage: Objects().super_categories()
             []
 
-        .. note::
+        .. NOTE::
 
-            Mathematically speaking, the order of the super categories
-            should be irrelevant. However, in practice, this order
-            influences the result of :meth:`all_super_categories`, and
-            accordingly of the method resolution order for parent and
-            element classes. Namely, since ticket 11943, Sage uses the
-            same `C3` algorithm for determining the order on the list
-            of *all* super categories as Python is using for the
-            method resolution order of new style classes.
+            Since :trac:`10963`, the order of the categories in the
+            result is irrelevant. For details, see
+            :ref:`category-primer-category-order`.
 
-        .. note::
+        .. NOTE::
 
             Whenever speed matters, developers are advised to use the
             lazy attribute :meth:`_super_categories` instead of
@@ -911,7 +926,7 @@ class Category(UniqueRepresentation, SageObject):
             Whenever speed matters, the developers are advised to use
             instead the lazy attributes :meth:`_all_super_categories`,
             :meth:`_all_super_categories_proper`, or
-            :meth:`_set_of_all_super_categories`, as
+            :meth:`_set_of_super_categories`, as
             appropriate. Simply because lazy attributes are much
             faster than any method.
 
@@ -952,7 +967,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         The immediate super categories of this category.
 
-        This lazy attributes caches the result of the mandatory method
+        This lazy attribute caches the result of the mandatory method
         :meth:`super_categories` for speed. It also does some mangling
         (flattening join categories, sorting, ...).
 
@@ -1753,7 +1768,7 @@ class Category(UniqueRepresentation, SageObject):
 
         If ``named`` is ``True``, then this stops at the first
         category that has an explicit name of its own. See
-        :meth:`CategoryWithAxiom._without_axioms`
+        :meth:`.category_with_axiom.CategoryWithAxiom._without_axioms`
 
         EXAMPLES::
 
@@ -1832,7 +1847,10 @@ class Category(UniqueRepresentation, SageObject):
     @staticmethod
     def _sort_uniq(categories):
         """
-        Return the categories after sorting them and removing duplicates.
+        Return the categories after sorting them and removing redundant categories.
+
+        Redundant categories include duplicates and categories which
+        are super categories of other categories in the input.
 
         INPUT:
 
@@ -2451,6 +2469,8 @@ class CategoryWithParameters(Category):
         True
         sage: C1.parent_class is C3.parent_class
         False
+
+    .. automethod:: _make_named_class
     """
 
     def _make_named_class(self, name, method_provider, cache = False, **options):
@@ -2662,6 +2682,10 @@ class JoinCategory(CategoryWithParameters):
         <class 'sage.categories.category.JoinCategory_with_category'>
         sage: type(A3) is type(A5)
         True
+
+    .. automethod:: _repr_object_names
+    .. automethod:: _repr_
+    .. automethod:: _without_axioms
     """
 
     def __init__(self, super_categories, **kwds):
@@ -2888,8 +2912,8 @@ class JoinCategory(CategoryWithParameters):
 
         EXAMPLES:
 
-        This raises an error since _cmp_key should not be called on
-        join categories::
+        This raises an error since ``_cmp_key`` should not be called
+        on join categories::
 
             sage: (Magmas() & CommutativeAdditiveSemigroups())._cmp_key()
             Traceback (most recent call last):
@@ -2902,7 +2926,7 @@ class JoinCategory(CategoryWithParameters):
         """
         Return the name of the objects of this category.
 
-        .. SEEALSO:: :meth:`Category._repr_object_names`, :meth:`_repr_`, :meth:`_without_axioms`
+        .. SEEALSO:: :meth:`Category._repr_object_names`, :meth:`_repr_`, :meth:`._without_axioms`
 
         EXAMPLES::
 

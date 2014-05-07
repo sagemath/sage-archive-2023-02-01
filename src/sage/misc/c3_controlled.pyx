@@ -60,11 +60,11 @@ Thus, in our example, the implementation in ``A4`` is chosen::
     4
 
 Specifically, the MRO is calculated using the so-called ``C3``
-algorithm which guarantees that the MRO respects non only inheritance,
+algorithm which guarantees that the MRO respects not only inheritance,
 but also the order in which the bases (direct super classes) are given
 for each class.
 
-However, for large hierarchy of classes with lots of multiple
+However, for large hierarchies of classes with lots of multiple
 inheritance, like those derived from categories in Sage, this
 algorithm easily fails if the order of the bases is not chosen
 consistently (here for ``A2`` w.r.t. ``A1``)::
@@ -77,7 +77,7 @@ consistently (here for ``A2`` w.r.t. ``A1``)::
         Cannot create a consistent method resolution
     order (MRO) for bases ...
 
-There actually exist hierarchy of classes for which ``C3`` fails
+There actually exist hierarchies of classes for which ``C3`` fails
 whatever the order of the bases is chosen; the smallest such example,
 admittedly artificial, has ten classes (see below). Still, this
 highlights that this problem has to be tackled in a systematic way.
@@ -104,7 +104,9 @@ A strategy to solve the problem
 We should recall at this point a design decision that we took for the
 hierarchy of classes derived from categories: *the semantic shall only
 depend on the inheritance order*, not on the specific MRO, and in
-particular not on the order of the bases (see :mod:`sage.combinat.primer`).
+particular not on the order of the bases (see the section
+``On the order of super categories`` in the
+:mod:`category primer <sage.categories.primer>`).
 If a choice needs to be made (for example for efficiency reasons),
 then this should be done explicitly, on a method-by-method basis. In
 practice this design goal is not yet met.
@@ -114,7 +116,7 @@ practice this design goal is not yet met.
     When managing large hierarchies of classes in other contexts this
     may be too strong a design decision.
 
-The strategy we use for hierarchy of classes derived from categories
+The strategy we use for hierarchies of classes derived from categories
 is then:
 
 1. To choose a global total order on the whole hierarchy of classes.
@@ -137,9 +139,9 @@ This module is about point 2.
 The natural approach would be to change the algorithm used by Python
 to compute the MRO. However, changing Python's default algorithm just
 for our needs is obviously not an option, and there is currently no
-hook to customize specific classes to use a different
-algorithm. Pushing the addition of such a hook into stock Python would
-take too much time and effort.
+hook to customize specific classes to use a different algorithm.
+Pushing the addition of such a hook into stock Python would take too
+much time and effort.
 
 Another approach would be to use the "adding bases" trick
 straightforwardly, putting the list of *all* the super classes of a
@@ -147,7 +149,7 @@ class as its bases. However, this would have several drawbacks:
 
 - It is not so elegant, in particular because it duplicates
   information: we already know through ``A5`` that ``A7`` is a
-  subclass of ``A1``. This duplication coud be acceptable in our
+  subclass of ``A1``. This duplication could be acceptable in our
   context because the hierarchy of classes is generated automatically
   from a conceptual hierarchy (the categories) which serves as single
   point of truth for calculating the bases of each class.
@@ -173,7 +175,7 @@ class as its bases. However, this would have several drawbacks:
   stock Python.
 
 This module refines this approach to make it acceptable, if not
-seemless. Given a hierarchy and a total order on this hierarchy, it
+seamless. Given a hierarchy and a total order on this hierarchy, it
 calculates for each element of the hierarchy the smallest list of
 additional bases that forces ``C3`` to return the desired MRO. This is
 achieved by implementing an instrumented variant of the ``C3``
@@ -260,7 +262,7 @@ Altogether, four bases were added for control::
     sage: sum(len(HierarchyElement(q, Q)._bases_controlled) for q in Q)
     19
 
-This information can also be recoved with::
+This information can also be recovered with::
 
     sage: x.all_bases_len()
     15
@@ -378,7 +380,7 @@ cpdef inline tuple category_sort_key(object category):
     This helper function is used for sorting lists of categories.
 
     It is semantically equivalent to
-    :func:`operator.attrgetter```("_cmp_key")``, but currently faster.
+    :func:`operator.attrgetter` ``("_cmp_key")``, but currently faster.
 
     EXAMPLES::
 
@@ -390,7 +392,7 @@ cpdef inline tuple category_sort_key(object category):
 
 cdef class CmpKey:
     r"""
-    This class implements the lazy attribute :meth:`sage.categories.category.Category._cmp_key`.
+    This class implements the lazy attribute ``Category._cmp_key``.
 
     The comparison key ``A._cmp_key`` of a category is used to define
     an (almost) total order on non-join categories by setting, for two
@@ -401,8 +403,9 @@ cdef class CmpKey:
 
     The comparison key should satisfy the following properties:
 
-    - If A is a subcategory of B, then A < B. In particular,
-      `Objects()` is the largest category.
+    - If `A` is a subcategory of `B`, then `A < B` (so that
+      ``A._cmp_key > B._cmp_key``). In particular,
+      :class:`Objects() <Objects>` is the largest category.
 
     - If `A != B` and taking the join of `A` and `B` makes sense
       (e.g. taking the join of Algebras(GF(5)) and Algebras(QQ)
@@ -508,6 +511,7 @@ cdef class CmpKey:
             (0, 0)
         """
         self.count = -1
+
     def __get__(self, object inst, object cls):
         """
         Bind the comparison key to the given instance
@@ -536,7 +540,7 @@ _cmp_key = CmpKey()
 
 cdef class CmpKeyNamed:
     """
-    This class implements the lazy attribute :meth:`sage.categories.category.CategoryWithParameters._cmp_key`.
+    This class implements the lazy attribute ``CategoryWithParameters._cmp_key``.
 
     .. SEEALSO::
 
@@ -680,19 +684,22 @@ def C3_sorted_merge(list lists, key=identity):
 
     INPUT:
 
-    - ``lists`` -- a non empty list (or iterable) of lists (or iterables), each sorted decreasingly according to ``key``
+    - ``lists`` -- a non empty list (or iterable) of lists (or
+      iterables), each sorted strictly decreasingly according
+      to ``key``
     - ``key`` -- a function
 
     OUTPUT: a pair ``(result, suggestion)``
 
     ``result`` is the sorted list obtained by merging the lists in
-    ``lists`` while removing duplicate, and ``suggestion`` is a list
+    ``lists`` while removing duplicates, and ``suggestion`` is a list
     such that applying ``C3`` on ``lists`` with its last list replaced
     by ``suggestion`` would return ``result``.
 
     EXAMPLES:
 
-    With the following input, :func:`C3_merge` returns right away a sorted list::
+    With the following input, :func:`C3_merge` returns right away a
+    sorted list::
 
         sage: from sage.misc.c3_controlled import C3_merge
         sage: C3_merge([[2],[1]])
@@ -949,7 +956,7 @@ class HierarchyElement(object):
     the linear extension of all elements above `x` its *MRO*.
 
     By convention, the bases are given as lists of
-    ``HierarchyElement`s, and MROs are given a list of the
+    ``HierarchyElement`` s, and MROs are given a list of the
     corresponding values.
 
     INPUT:
@@ -963,7 +970,7 @@ class HierarchyElement(object):
 
     .. NOTE::
 
-        Constructing a HierarchyElement immediately constructs the
+        Constructing a ``HierarchyElement`` immediately constructs the
         whole hierarchy above it.
 
     EXAMPLES:
@@ -971,7 +978,7 @@ class HierarchyElement(object):
     See the introduction of this module :mod:`sage.misc.c3_controlled`
     for many examples. Here we consider a large example, originaly
     taken from the hierarchy of categories above
-    :class:`Hopf_algebras_with_bases`::
+    :class:`HopfAlgebrasWithBasis`::
 
         sage: from sage.misc.c3_controlled import HierarchyElement
         sage: G = DiGraph({

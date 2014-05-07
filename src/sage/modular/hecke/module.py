@@ -1261,6 +1261,15 @@ class HeckeModule_free_module(HeckeModule_generic):
               though it will not give the constant coefficient of one
               of the corresponding Eisenstein series (i.e., the
               generalized Bernoulli number).
+
+        TESTS:
+
+        This checks that :trac:`15201` is fixed::
+
+            sage: M = ModularSymbols(5, 6, sign=1)
+            sage: f = M.decomposition()[0]
+            sage: f.eigenvalue(10)
+            50
         """
         if not self.is_simple():
             raise ArithmeticError("self must be simple")
@@ -1302,11 +1311,14 @@ class HeckeModule_free_module(HeckeModule_generic):
                     _dict_set(ev, pow, name, self._element_eigenvalue(Tn_e, name=name))
                 else:
                     # a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}
-                    apr1 = self.eigenvalue(pow//p, name=name)
                     ap = self.eigenvalue(p, name=name)
-                    k = self.weight()
-                    apr2 = self.eigenvalue(pow//(p*p), name=name)
-                    apow = ap*apr1 - eps(p)*(p**(k-1)) * apr2
+                    if r == 1:
+                        apow = ap
+                    else:
+                        apr1 = self.eigenvalue(pow//p, name=name)
+                        k = self.weight()
+                        apr2 = self.eigenvalue(pow//(p*p), name=name)
+                        apow = ap*apr1 - eps(p)*(p**(k-1)) * apr2
                     _dict_set(ev, pow, name, apow)
             if prod is None:
                 prod = ev[pow][name]

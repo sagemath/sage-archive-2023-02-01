@@ -426,17 +426,6 @@ unset R_PROFILE
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
-# PKG_CONFIG_PATH is used by 'pkg-config' on Solaris and Linux,
-# but at least some versions of OS X do not have the pkg-config
-# command, so relying on this is not wise on OS X.
-
-if [ -z "$PKG_CONFIG_PATH" ]; then
-    PKG_CONFIG_PATH="$SAGE_LOCAL/lib/pkgconfig"
-else
-    PKG_CONFIG_PATH="$SAGE_LOCAL/lib/pkgconfig:$PKG_CONFIG_PATH"
-fi
-export PKG_CONFIG_PATH
-
 ############ architecture flags
 
 # Support flags to change the build architecture.  Currently, this is

@@ -2225,8 +2225,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # of the basis of the underlying vector space of self, and compute
         # the Z-module they span.
 
-        G = list(G)
-        G.sort()
+        G = sorted(G)
         B = self._manin_gens_to_basis.matrix_from_rows(list(G)).dense_matrix()
         B, d = B._clear_denom()
         if algorithm == 'default':

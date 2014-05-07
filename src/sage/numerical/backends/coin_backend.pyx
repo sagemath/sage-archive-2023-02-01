@@ -359,7 +359,6 @@ cdef class CoinBackend(GenericBackend):
             sage: p.set_verbosity(2)                                # optional - Coin
 
         """
-
         self.model.setLogLevel(level)
 
     cpdef remove_constraint(self, int i):
@@ -822,11 +821,21 @@ cdef class CoinBackend(GenericBackend):
             0.0
             sage: p.get_variable_value(1)                         # optional - Coin
             1.5
+            sage: p = MixedIntegerLinearProgram("Coin")  # optional - Coin
+            sage: x = p.new_variable(dim=1)       # optional - Coin
+            sage: p.set_min(x[0], 0.0)            # optional - Coin
+            sage: p.get_values(x)                 # optional - Coin
+            {0: 0.0}
         """
 
         cdef double * solution
+        cdef double v
         solution = <double*> self.model.solver().getColSolution()
-        return solution[variable]
+        if solution == NULL:
+           v = 0.0
+           return v
+        else:
+           return solution[variable]
 
     cpdef int ncols(self):
         r"""

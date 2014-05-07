@@ -902,28 +902,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.rings.arith import gcd, lcm
         return gcd(nums) / lcm(denoms)
 
-#    def gcd_rational(self, other, **kwds):
-#        """
-#        Return a gcd of the rational numbers self and other.
-#
-#        If self = other = 0, this is by convention 0.  In all other
-#        cases it can (mathematically) be any nonzero rational number,
-#        but for simplicity we choose to always return 1.
-#
-#        EXAMPLES::
-#
-#            sage: (1/3).gcd_rational(2/1)
-#            1
-#            sage: (1/1).gcd_rational(0/1)
-#            1
-#            sage: (0/1).gcd_rational(0/1)
-#            0
-#        """
-#        if self == 0 and other == 0:
-#            return Rational(0)
-#        else:
-#            return Rational(1)
-
     def valuation(self, p):
         r"""
         Return the power of ``p`` in the factorization of self.
@@ -1495,42 +1473,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             30
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
-
-    def sqrt_approx(self, prec=None, all=False):
-        """
-        Return numerical approximation with given number of bits of
-        precision to this rational number. If all is given, return both
-        approximations.
-
-        INPUT:
-
-        -  ``prec`` -- integer
-
-        -  ``all`` -- bool
-
-        EXAMPLES::
-
-            sage: (5/3).sqrt_approx()
-            doctest:...: DeprecationWarning: This function is deprecated.  Use sqrt with a given number of bits of precision instead.
-            See http://trac.sagemath.org/9859 for details.
-            1.29099444873581
-            sage: (990829038092384908234098239048230984/4).sqrt_approx()
-            4.9770197862083713747374920870362581922510725585130996993055116540856385e17
-            sage: (5/3).sqrt_approx(prec=200)
-            1.2909944487358056283930884665941332036109739017638636088625
-            sage: (9/4).sqrt_approx()
-            3/2
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(9859, "This function is deprecated.  Use sqrt with a given number of bits of precision instead.")
-        try:
-            return self.sqrt(extend=False,all=all)
-        except ValueError:
-            pass
-        if prec is None:
-            prec = max(max(53, 2*(mpz_sizeinbase(mpq_numref(self.value), 2)+2)),
-                   2*(mpz_sizeinbase(mpq_denref(self.value), 2)+2))
-        return self.sqrt(prec=prec, all=all)
 
     def is_padic_square(self, p):
         """
@@ -2394,7 +2336,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             except AttributeError:
                 try:
                     return type(n)(self)**n
-                except StandardError:
+                except Exception:
                     raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         except OverflowError:
@@ -2405,7 +2347,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     return self
                 elif mpz_cmp_si(mpq_numref(_self.value), -1) == 0:
                     return self if n % 2 else -self
-            raise RuntimeError, "exponent must be at most %s" % sys.maxint
+            raise RuntimeError("exponent must be at most %s" % sys.maxsize)
 
         cdef Rational x = <Rational> PY_NEW(Rational)
 
@@ -2998,6 +2940,26 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def trunc(self):
+        """
+        Round this rational number to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: (5/3).trunc()
+            1
+            sage: (-5/3).trunc()
+            -1
+            sage: QQ(42).trunc()
+            42
+            sage: QQ(-42).trunc()
+            -42
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_tdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
+
     def round(Rational self, mode="away"):
         """
         Returns the nearest integer to ``self``, rounding away from 0 by
@@ -3145,33 +3107,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             return Rational(0)
         return Rational(1)
 
-    def _gcd(self, Rational other):
-        """
-        Returns the least common multiple, in the rational numbers, of ``self``
-        and ``other``. This function returns either 0 or 1 (as a rational
-        number).
-
-        INPUT:
-
-        -  ``other`` - Rational
-
-        OUTPUT:
-
-        -  ``Rational`` - 0 or 1
-
-        EXAMPLES::
-
-            sage: (2/3)._gcd(3/5)
-            1
-            sage: (0/1)._gcd(0/1)
-            0
-        """
-        if mpz_cmp_si(mpq_numref(self.value), 0) == 0 and \
-               mpz_cmp_si(mpq_numref(other.value), 0) == 0:
-            return Rational(0)
-        return Rational(1)
-
-
     def additive_order(self):
         """
         Return the additive order of ``self``.
@@ -3252,6 +3187,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
+
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    is_integer = is_integral
+
 
     def is_S_integral(self, S=[]):
         r"""
@@ -3826,7 +3766,7 @@ cdef class Z_to_Q(Morphism):
               From: Rational Field
               To:   Integer Ring
         """
-        return Q_to_Z(self._codomain, self._domain)
+        return Q_to_Z(self._codomain, self.domain())
 
 cdef class Q_to_Z(Map):
     r"""

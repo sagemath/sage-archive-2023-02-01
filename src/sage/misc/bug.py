@@ -27,7 +27,7 @@ def bug():
 
     AUTHOR: David Joyner (2006-05)
     """
-    print "We will now create a bug report in a standard format."
+    print("We will now create a bug report in a standard format.")
     import os
     import time
     report = """
@@ -59,7 +59,7 @@ def bug():
         comments = raw_input("Comments or suggestions (one line)? ")
         report = report + comments + "\n"
     except (EOFError, KeyboardInterrupt):
-        print "Creation of bug report cancelled."
-        print "Type bug() to create the report again."
-    print report
+        print("Creation of bug report cancelled.")
+        print("Type bug() to create the report again.")
+    print(report)
 

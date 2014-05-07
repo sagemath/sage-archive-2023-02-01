@@ -105,33 +105,7 @@ ligne de commande, vous pouvez charger ou attacher des fichiers de code
 compilé exactement comme les fichiers interprétés. Pour l'instant,
 le *notebook* ne permet pas d'attacher des fichiers compilés. La
 compilation proprement dite a lieu « en coulisse », sans que vous ayez à
-la déclencher explicitement. Le fichier
-``$SAGE_ROOT/examples/programming/sagex/factorial.spyx`` donne un exemple
-d'implémentation compilée de la fonction factorielle, qui appelle
-directement la bibliothèque GMP. Pour l'essayer, placez-vous dans le
-répertoire ``$SAGE_ROOT/examples/programming/sagex/`` et entrez les
-commandes suivantes :
-
-
-.. skip
-
-::
-
-    sage: load "factorial.spyx"
-    ***************************************************
-                    Recompiling factorial.spyx
-    ***************************************************
-    sage: factorial(50)
-    30414093201713378043612608166064768844377641568960512000000000000L
-    sage: time n = factorial(10000)
-    CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
-    Wall time: 0.03
-
-Le suffixe ``L`` ci-dessus dénote un entier long Python (voir
-:ref:`section-mathannoy`).
-
-Notez que si vous quittez et relancez Sage, ``factorial.spyx`` sera
-recompilé. La bibliothèque d'objets partagés compilés se trouve
+la déclencher explicitement.  La bibliothèque d'objets partagés compilés se trouve
 dans ``$HOME/.sage/temp/hostname/pid/spyx``. Ces fichiers sont supprimés
 lorsque vous quittez Sage.
 

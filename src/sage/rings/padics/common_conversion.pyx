@@ -229,7 +229,7 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
 
     - error status
     """
-    if kwds.has_key("empty"):
+    if "empty" in kwds:
         # For backward compatibility
         aprec[0] = 0
         rprec[0] = 0
@@ -237,13 +237,13 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
     if len(args) > 2:
         raise TypeError("too many positional arguments")
     if len(args) == 2:
-        if kwds.has_key("relprec"):
+        if "relprec" in kwds:
             raise TypeError("_call_with_args() got multiple values for keyword argument 'relprec'")
         relprec = args[1]
     else:
         relprec = kwds.get("relprec",infinity)
     if len(args) >= 1:
-        if kwds.has_key("absprec"):
+        if "absprec" in kwds:
             raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
         absprec = args[0]
     else:

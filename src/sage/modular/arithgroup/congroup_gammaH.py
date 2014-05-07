@@ -136,9 +136,8 @@ def _normalize_H(H, level):
     H = [ZZ(h) for h in H]
     for h in H:
         if gcd(h, level) > 1:
-            raise ArithmeticError, 'The generators %s must be units modulo %s'%(H, level)
-    H = list(set([h%level for h in H]))
-    H.sort()
+            raise ArithmeticError('The generators %s must be units modulo %s'%(H, level))
+    H = sorted(set([h%level for h in H]))
     if 1 in H:
         H.remove(1)
     return H
@@ -225,7 +224,7 @@ class GammaH_class(CongruenceSubgroup):
         """
         M = ZZ(M)
         if self.level() % M:
-            raise ValueError, "M (=%s) must be a divisor of the level (%s) of self" % (M, self.level())
+            raise ValueError("M (=%s) must be a divisor of the level (%s) of self" % (M, self.level()))
         return self._new_group_from_level(M)
 
     def extend(self, M):
@@ -247,7 +246,7 @@ class GammaH_class(CongruenceSubgroup):
         """
         M = ZZ(M)
         if M % self.level():
-            raise ValueError, "M (=%s) must be a multiple of the level (%s) of self" % (M, self.level())
+            raise ValueError("M (=%s) must be a multiple of the level (%s) of self" % (M, self.level()))
         return self._new_group_from_level(M)
 
     def __reduce__(self):
@@ -479,7 +478,7 @@ class GammaH_class(CongruenceSubgroup):
             gen_list = generators_helper(GHlist(self), level, Mat2Z)
             return [self(g, check=False) for g in gen_list]
         else:
-            raise ValueError, "Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm
+            raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)
 
     def _coset_reduction_data_first_coord(G):
         """
@@ -1203,7 +1202,7 @@ class GammaH_class(CongruenceSubgroup):
         """
         N = self.level()
         if N == 1:
-            raise NotImplementedError, "Matrix groups over ring of integers modulo 1 not implemented"
+            raise NotImplementedError("Matrix groups over ring of integers modulo 1 not implemented")
         gens = [matrix(Zmod(N), 2, 2, [x, 0, 0, Zmod(N)(1)/x]) for x in self._generators_for_H()]
         gens += [matrix(Zmod(N),2,[1,1,0,1])]
         return MatrixGroup(gens)
@@ -1223,15 +1222,14 @@ def _list_subgroup(N, gens):
     N = int(N)
     for g in gens:
         if gcd(g, N) != 1:
-            raise ValueError, "gen (=%s) is not in (Z/%sZ)^*"%(g,N)
+            raise ValueError("gen (=%s) is not in (Z/%sZ)^*"%(g,N))
         gk = int(g) % N
         sbgrp = [gk]
         while not (gk in H):
             gk = (gk * g)%N
             sbgrp.append(gk)
         H = set([(x*h)%N for x in sbgrp for h in H])
-    H = list(H)
-    H.sort()
+    H = sorted(H)
     return H
 
 def _GammaH_coset_helper(N, H):
@@ -1286,7 +1284,7 @@ def mumu(N):
         1
     """
     if N < 1:
-        raise ValueError, "N must be at least 1"
+        raise ValueError("N must be at least 1")
     p = 1
     for _,r in factor(N):
         if r > 2:

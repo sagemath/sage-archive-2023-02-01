@@ -20,6 +20,7 @@ Weight lattice realizations
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import prod
 from sage.categories.category_types import Category_over_base_ring
 from sage.combinat.family import Family
@@ -779,22 +780,6 @@ class WeightLatticeRealizations(Category_over_base_ring):
             Lambda = self.fundamental_weights()
             return rho - (rho.level()/Lambda[0].level()) * Lambda[0]
 
-
-        def symmetric_form(self, la):
-            r"""
-            Return the symmetric form of ``self`` with ``la``.
-
-            EXAMPLES::
-
-                sage: P = RootSystem(['B',2,1]).weight_lattice()
-            """
-            cm = self.parent().dynkin_diagram().cartan_matrix()
-            diag = cm.is_symmetrizable(True)
-            sym = matrix.diagonal(diag) * cm
-            iset = self.parent().index_set()
-            return sum(cl*cr*sym[iset.index(ml),iset.index(mr)]
-                       for ml,cl in self for mr,cr in la)
-
         # Should it be a method of highest_weight?
         def weyl_dimension(self, highest_weight):
             """
@@ -813,3 +798,119 @@ class WeightLatticeRealizations(Category_over_base_ring):
             d = prod([ rho.dot_product(x) for x in self.positive_roots()])
             from sage.rings.integer import Integer
             return Integer(n/d)
+
+        @lazy_attribute
+        def _symmetric_form_matrix(self):
+            r"""
+            Return the matrix for the symmetric form `( | )` in
+            the weight lattice basis.
+
+            Let `A` be a symmetrizable Cartan matrix with symmetrizer `D`,.
+            This returns the matrix `M^t DA M`, where `M` is dependent upon
+            the type given below.
+
+            In finite types, `M` is the inverse of the Cartan matrix.
+
+            In affine types, `M` takes the basis
+            `(\Lambda_0, \Lambda_1, \ldots, \Lambda_r, \delta)` to
+            `(\alpha_0, \ldots, \alpha_r, \Lambda_0)` where `r` is the
+            rank of ``self``.
+
+            This is used in computing the symmetric form for affine
+            root systems.
+
+            EXAMPLES::
+
+                sage: P = RootSystem(['C',2]).weight_lattice()
+                sage: P._symmetric_form_matrix
+                [1 1]
+                [1 2]
+
+                sage: P = RootSystem(['C',2,1]).weight_lattice()
+                sage: P._symmetric_form_matrix
+                [    0 -5/12  -1/2   1/6]
+                [-5/12   1/6  1/12   1/6]
+                [ -1/2  1/12     1   1/6]
+                [  1/6   1/6   1/6     0]
+            """
+            from sage.matrix.constructor import matrix
+            ct = self.cartan_type()
+            cm = ct.cartan_matrix()
+            if cm.det() != 0:
+                cm_inv = cm.inverse()
+                diag = cm.is_symmetrizable(True)
+                return cm_inv.transpose() * matrix.diagonal(diag)
+
+            if not ct.is_affine():
+                raise NotImplementedError
+
+            r = ct.rank()
+            a = ct.a()
+            # Determine the transition matrix
+            # al[0], ..., al[r], La[0] -> La[0], ..., La[r], delta
+            M = cm.stack(matrix(list(a)))
+            M = matrix.block([[ M, matrix([[1]] + [[0]]*r) ]])
+            M = M.inverse()
+
+            A = cm.symmetrized_matrix().stack(matrix([~a[0]]+[0]*(r-1)))
+            A = matrix.block([[A, matrix([[~a[0]]] + [[0]]*r)]])
+            return M.transpose() * A * M
+
+    class ElementMethods:
+        def symmetric_form(self, la):
+            r"""
+            Return the symmetric form of ``self`` with ``la``.
+
+            EXAMPLES::
+
+                sage: P = RootSystem(['C',2]).weight_lattice()
+                sage: al = P.simple_roots()
+                sage: al[1].symmetric_form(al[1])
+                2
+                sage: al[1].symmetric_form(al[2])
+                -2
+                sage: al[2].symmetric_form(al[1])
+                -2
+                sage: Q = RootSystem(['C',2]).root_lattice()
+                sage: alQ = Q.simple_roots()
+                sage: all(al[i].symmetric_form(al[j]) == alQ[i].symmetric_form(alQ[j])
+                ....:     for i in P.index_set() for j in P.index_set())
+                True
+
+                sage: P = RootSystem(['C',2,1]).weight_lattice(extended=True)
+                sage: al = P.simple_roots()
+                sage: al[1].symmetric_form(al[1])
+                2
+                sage: al[1].symmetric_form(al[2])
+                -2
+                sage: al[1].symmetric_form(al[0])
+                -2
+                sage: al[0].symmetric_form(al[1])
+                -2
+                sage: Q = RootSystem(['C',2,1]).root_lattice()
+                sage: alQ = Q.simple_roots()
+                sage: all(al[i].symmetric_form(al[j]) == alQ[i].symmetric_form(alQ[j])
+                ....:     for i in P.index_set() for j in P.index_set())
+                True
+                sage: La = P.basis()
+                sage: [La['delta'].symmetric_form(al) for al in P.simple_roots()]
+                [0, 0, 0]
+                sage: [La[0].symmetric_form(al) for al in P.simple_roots()]
+                [1, 0, 0]
+
+                sage: P = RootSystem(['C',2,1]).weight_lattice()
+            """
+            P = self.parent()
+            ct = P.cartan_type()
+            sym = P._symmetric_form_matrix
+
+            if ct.is_finite():
+                iset = P.index_set()
+            else:
+                iset = P.index_set() + ('delta',)
+
+            return sum(cl*sym[iset.index(ml),iset.index(mr)]*cr
+                       for ml,cl in self for mr,cr in la)
+
+            raise NotImplementedError
+

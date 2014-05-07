@@ -2708,8 +2708,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             r"""
             Return the symmetric form of ``self`` with ``alpha``.
 
-            Consider the simple roots `\alpha_i` and let `(b_{ij})_{ij}` denote
-            the symmetrized Cartan matrix `(a_{ij})_{ij}`, we have
+            Consider the simple roots `\alpha_i` and let `(b_{ij})_{ij}`
+            denote the symmetrized Cartan matrix `(a_{ij})_{ij}`, we have
 
             .. MATH::
 
@@ -2742,10 +2742,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                 0
             """
             cm = self.parent().dynkin_diagram().cartan_matrix()
-            diag = cm.is_symmetrizable(True)
-            sym = matrix.diagonal(diag) * cm
+            sym = cm.symmetrized_matrix()
             iset = self.parent().index_set()
-            return sum(cl*cr*sym[iset.index(ml),iset.index(mr)]
+            return sum(cl*sym[iset.index(ml),iset.index(mr)]*cr
                        for ml,cl in self for mr,cr in alpha)
 
         def norm_squared(self):

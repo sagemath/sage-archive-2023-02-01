@@ -609,10 +609,10 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E = NonSymmetricMacdonaldPolynomials(KL,q, t,-1)
         sage: omega = E.keys().fundamental_weights()
         sage: La = R.weight_space().basis()
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
         sage: E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (15s)
         True
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
         sage: E[-omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (45s)
         True
 
@@ -627,7 +627,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         ....:     for x,y in IntegerVectors(d,2):
         ....:         weight = x*La[1]+y*La[2]
         ....:         weight0 = -x*omega[1]-y*omega[2]
-        ....:         LS = CrystalOfProjectedLevelZeroLSPaths(weight)
+        ....:         LS = crystals.ProjectedLevelZeroLSPaths(weight)
         ....:         assert E[weight0].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q)
 
     ::
@@ -637,11 +637,11 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E = NonSymmetricMacdonaldPolynomials(KL,q, t,-1)
         sage: omega = E.keys().fundamental_weights()
         sage: La = R.weight_space().basis()
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
         sage: E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (23s)
         True
-        sage: B = KirillovReshetikhinCrystal(['B',3,1],1,1)
-        sage: T = TensorProductOfCrystals(B,B)
+        sage: B = crystals.KirillovReshetikhin(['B',3,1],1,1)
+        sage: T = crystals.TensorProduct(B,B)
         sage: T.one_dimensional_configuration_sum(q) == LS.one_dimensional_configuration_sum(q) # long time (2s)
         True
 
@@ -652,7 +652,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E = NonSymmetricMacdonaldPolynomials(KL,q, t,-1)
         sage: omega = E.keys().fundamental_weights()
         sage: La = R.weight_space().basis()
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
         sage: E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (21s)
         True
 
@@ -663,7 +663,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E = NonSymmetricMacdonaldPolynomials(KL,q, t,-1)
         sage: omega = E.keys().fundamental_weights()
         sage: La = R.weight_space().basis()
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
         sage: g = E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) # long time (30s)
         sage: f = LS.one_dimensional_configuration_sum(q)           # long time (1.5s)
         sage: P = g.support()[0].parent()                           # long time
@@ -681,17 +681,17 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E = NonSymmetricMacdonaldPolynomials(KL, q, t,-1)
         sage: omega = E.keys().fundamental_weights()
         sage: La = R.weight_space().basis()
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
         sage: E[-2*omega[1]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (149s)
         True
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(La[1]+La[2])
         sage: E[-omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time (23s)
         True
 
     The next test breaks if the energy is not scaled by the
     translation factor for dual type `G_2^{(1)}`::
 
-        sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+        sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1]+La[2])
         sage: E[-2*omega[1]-omega[2]].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q) # long time
         True
 
@@ -704,7 +704,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         ....:     for a,b,c,d in IntegerVectors(d,4):
         ....:         weight = a*La[1]+b*La[2]+c*La[3]+d*La[4]
         ....:         weight0 = -a*omega[1]-b*omega[2]-c*omega[3]-d*omega[4]
-        ....:         LS = CrystalOfProjectedLevelZeroLSPaths(weight)
+        ....:         LS = crystals.ProjectedLevelZeroLSPaths(weight)
         ....:         assert E[weight0].map_coefficients(lambda x:x.subs(t=0)) == LS.one_dimensional_configuration_sum(q)
 
     TESTS:

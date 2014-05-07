@@ -42,17 +42,31 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 def Subsets(s, k=None, submultiset=False):
     """
-    Returns the combinatorial class of the subsets of the finite set
-    s. The set can be given as a list, Set or any iterable convertible
-    to a set. It can alternatively be given a non-negative integer `n`
-    which encode the set `\{1,2,\dots,n\}` (i.e. the Sage
-    ``range(1,s+1)``).
+    Return the combinatorial class of the subsets of the finite set
+    ``s``. The set can be given as a list, Set or any iterable
+    convertible to a set. Alternatively, a non-negative integer `n`
+    can be provided in place of ``s``; in this case, the result is
+    the combinatorial class of the subsets of the set
+    `\{1,2,\dots,n\}` (i.e. of the Sage ``range(1,n+1)``).
 
-    A second optional parameter k can be given. In this case, Subsets returns
-    the combinatorial class of subsets of s of size k.
+    A second optional parameter ``k`` can be given. In this case,
+    ``Subsets`` returns the combinatorial class of subsets of ``s``
+    of size ``k``.
+
+    .. WARNING::
+
+        The subsets are returned as Sets. Do not assume that
+        these Sets are ordered; they often are not!
+        (E.g., ``Subsets(10).list()[619]`` returns
+        ``{10, 4, 5, 6, 7}`` on my system.)
+        See :class:`SubsetsSorted` for a similar class which
+        returns the subsets as sorted tuples.
 
     Finally the option ``submultiset`` allows one to deal with sets with
-    repeated elements usually called multisets.
+    repeated elements, usually called multisets. The method then
+    returns the class of all multisets in which every element is
+    contained at most as often as it is contained in ``s``. These
+    multisets are encoded as lists.
 
     EXAMPLES::
 
@@ -178,7 +192,7 @@ class Subsets_s(CombinatorialClass):
 
     def cardinality(self):
         r"""
-        Returns the number of subsets of the set s.
+        Returns the number of subsets of the set ``s``.
 
         This is given by `2^{|s|}`.
 
@@ -195,7 +209,7 @@ class Subsets_s(CombinatorialClass):
 
     def first(self):
         """
-        Returns the first subset of s. Since we aren't restricted to
+        Returns the first subset of ``s``. Since we aren't restricted to
         subsets of a certain size, this is always the empty set.
 
         EXAMPLES::
@@ -209,8 +223,8 @@ class Subsets_s(CombinatorialClass):
 
     def last(self):
         """
-        Returns the last subset of s. Since we aren't restricted to subsets
-        of a certain size, this is always the set s itself.
+        Return the last subset of ``s``. Since we aren't restricted to
+        subsets of a certain size, this is always the set ``s`` itself.
 
         EXAMPLES::
 
@@ -224,7 +238,7 @@ class Subsets_s(CombinatorialClass):
 
     def __iter__(self):
         """
-        Iterates through the subsets of s.
+        Iterate through the subsets of ``s``.
 
         EXAMPLES::
 
@@ -239,14 +253,14 @@ class Subsets_s(CombinatorialClass):
         lset = __builtin__.list(self.s)
         #We use the iterator for the subwords of range(len(self.s))
         ind_set = lambda index_list: Set([lset[i] for i in index_list])
-        it = itertools.imap(ind_set, subword.Subwords(range(len(lset))))
+        it = itertools.imap(ind_set, subword.Subwords_w(range(len(lset))))
         for sub in it:
             yield sub
 
     def random_element(self):
         """
-        Returns a random element of the class of subsets of s (in other
-        words, a random subset of s).
+        Return a random element of the class of subsets of ``s`` (in other
+        words, a random subset of ``s``).
 
         EXAMPLES::
 
@@ -261,7 +275,7 @@ class Subsets_s(CombinatorialClass):
 
     def rank(self, sub):
         """
-        Returns the rank of sub as a subset of s.
+        Return the rank of ``sub`` as a subset of ``s``.
 
         EXAMPLES::
 
@@ -292,7 +306,7 @@ class Subsets_s(CombinatorialClass):
 
     def unrank(self, r):
         """
-        Returns the subset of s that has rank k.
+        Return the subset of ``s`` that has rank ``k``.
 
         EXAMPLES::
 
@@ -317,7 +331,7 @@ class Subsets_s(CombinatorialClass):
 
     def _an_element_(self):
         """
-        Returns an example of subset.
+        Return an example of subset.
 
         EXAMPLES::
 
@@ -491,8 +505,8 @@ class Subsets_sk(CombinatorialClass):
 
     def random_element(self):
         """
-        Returns a random element of the class of subsets of s of size k (in
-        other words, a random subset of s of size k).
+        Return a random element of the class of subsets of ``s`` of size
+        ``k`` (in other words, a random subset of ``s`` of size ``k``).
 
         EXAMPLES::
 
@@ -511,7 +525,7 @@ class Subsets_sk(CombinatorialClass):
 
     def rank(self, sub):
         """
-        Returns the rank of sub as a subset of s of size k.
+        Return the rank of ``sub`` as a subset of ``s`` of size ``k``.
 
         EXAMPLES::
 
@@ -544,7 +558,7 @@ class Subsets_sk(CombinatorialClass):
 
     def unrank(self, r):
         """
-        Returns the subset of s that has rank k.
+        Return the subset of ``s`` of size ``k`` that has rank ``r``.
 
         EXAMPLES::
 
@@ -597,7 +611,7 @@ class Subsets_sk(CombinatorialClass):
 
 class SubMultiset_s(CombinatorialClass):
     """
-    The combinatorial class of the sub multisets of s.
+    The combinatorial class of the sub multisets of ``s``.
 
     EXAMPLES::
 
@@ -605,7 +619,7 @@ class SubMultiset_s(CombinatorialClass):
         sage: S._s
         [1, 2, 2, 3]
 
-    The positions of the unique elements in s are stored in::
+    The positions of the unique elements in ``s`` are stored in::
 
         sage: S._indices
         [0, 1, 3]
@@ -781,7 +795,8 @@ class SubMultiset_sk(SubMultiset_s):
 
 class SubsetsSorted(Subsets_s):
     """
-    Lightweight class of all subsets as sorted tuples of some set `S`.
+    Lightweight class of all subsets of some set `S`, with each
+    subset being encoded as a sorted tuple.
 
     Used to model indices of algebras given by subsets (so we don't
     have to explicitly build all `2^n` subsets in memory).

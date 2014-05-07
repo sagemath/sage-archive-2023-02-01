@@ -3450,8 +3450,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Here, "alternating matrix" means a square matrix `A`
         satisfying `A^T = -A` and such that the diagonal entries
-        of `0`. Notice that the condition that the diagonal
-        entries be `0` is not redundant for matrices over
+        of `A` are `0`. Notice that the condition that the
+        diagonal entries be `0` is not redundant for matrices over
         arbitrary ground rings (but it is redundant when `2` is
         invertible in the ground ring). A square matrix `A` only
         required to satisfy `A^T = -A` is said to be
@@ -3485,7 +3485,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             for j from 0 <= j < i:
                 if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
                     return False
-            if self.get_unsafe(i,i) != 0:
+            if not self.get_unsafe(i,i).is_zero():
                 return False
         return True
 
@@ -3719,7 +3719,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: B.left_kernel().dimension()
             0
 
-        For "rectangular" matrices, invertibility is always
+        For *rectangular* matrices, invertibility is always
         ``False``, but asking about singularity will give an error. ::
 
             sage: C = matrix(QQ, 5, range(30))
@@ -3743,8 +3743,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d.is_unit()
             False
         """
-        if self.ncols() == self.nrows():
-            return self.rank() != self.nrows()
+        if self._ncols == self._nrows:
+            return self.rank() != self._nrows
         else:
             raise ValueError("self must be a square matrix")
 

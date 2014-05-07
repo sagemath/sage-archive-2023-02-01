@@ -405,7 +405,7 @@ cdef class CmpKey:
 
     - If `A` is a subcategory of `B`, then `A < B` (so that
       ``A._cmp_key > B._cmp_key``). In particular,
-      `Objects()` is the largest category.
+      :class:`Objects() <Objects>` is the largest category.
 
     - If `A != B` and taking the join of `A` and `B` makes sense
       (e.g. taking the join of Algebras(GF(5)) and Algebras(QQ)

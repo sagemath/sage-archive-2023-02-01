@@ -1594,7 +1594,7 @@ cdef int TripleDict_clear(TripleDict op):
     op.used=0
     op.fill=0
 
-    #refcount dance to ensure op.eraser is None when the actual object gets deallocated
+    #refcount dance to ensure op.eraser==None when the actual object gets deallocated
     del tmp
     for i in range(mask+1):
         cursor = &(table[i])

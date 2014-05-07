@@ -3199,7 +3199,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
       If None, no size control occurs. But see the warning below.  (default: None)
 
     - ``max_tries`` - If designated, number of tries used to generate each new random row;
-      only matters when upper_bound is not None. Used to prevent endless looping. (default: 100)
+      only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
 
     OUTPUT:
 
@@ -3618,7 +3618,7 @@ def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
       see the warning below.
 
     - ``max_tries`` - If designated, number of tries used to generate each new random row;
-      only matters when upper_bound is not None. Used to prevent endless looping. (default: 100)
+      only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
 
     A matrix not in reduced row-echelon form with the desired dimensions and properties.
 

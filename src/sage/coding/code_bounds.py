@@ -266,7 +266,7 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     if algorithm=="LP":
         return delsarte_bound_additive_hamming_space(n,d,q)
 
-    else:       # algorithm is None or algorithm="gap":
+    else:       # algorithm==None or algorithm=="gap":
         return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
 
 

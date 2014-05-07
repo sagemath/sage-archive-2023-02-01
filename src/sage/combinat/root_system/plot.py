@@ -603,7 +603,7 @@ class PlotOptions:
         self._arrowsize = arrowsize
         self.labels = labels
 
-        # self.level = l is not None: whether to intersect the alcove picture at level l
+        # self.level = l != None: whether to intersect the alcove picture at level l
         # self.affine: whether to project at level l and then onto the classical space
 
         if affine is None:

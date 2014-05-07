@@ -388,9 +388,9 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         Weierstrass models as usual), and a transformation ``urst``
         from ``E`` to ``F``, construct an isomorphism from ``E`` to
         ``F``.  An exception is raised if ``urst(E)!=F``.  At most one
-        of ``E``, ``F``, ``urst`` can be None.  If ``F is None`` then
-        ``F`` is constructed as ``urst(E)``.  If ``E is None`` then
-        ``E`` is constructed as ``urst^-1(F)``.  If ``urst is None``
+        of ``E``, ``F``, ``urst`` can be None.  If ``F==None`` then
+        ``F`` is constructed as ``urst(E)``.  If ``E==None`` then
+        ``E`` is constructed as ``urst^-1(F)``.  If ``urst==None``
         then an isomorphism from ``E`` to ``F`` is constructed if
         possible, and an exception is raised if they are not
         isomorphic.  Otherwise ``urst`` can be a tuple of length 4 or

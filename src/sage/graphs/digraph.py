@@ -663,7 +663,7 @@ class DiGraph(GenericGraph):
                             (v in data[u] and data[u][v] != l)):
                                 raise ValueError("MULTIEDGE")
 
-                        # Now we are behaving as if multiedges is None
+                        # Now we are behaving as if multiedges == None
                         # means multiedges = False. If something bad
                         # happens later, the whole dictionary will be
                         # updated anyway

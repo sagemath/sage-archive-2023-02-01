@@ -1649,7 +1649,7 @@ cdef class CachedMethodCaller(CachedFunction):
         :class:`CachedMethodCaller` has a separate ``__get__``
         since the categories framework creates and caches the
         return value of ``CachedMethod.__get__`` with
-        ``inst is None``.
+        ``inst==None``.
 
         This getter attempts to assign a bound method as an
         attribute to the given instance. If this is not
@@ -1955,7 +1955,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         :class:`CachedMethodCallerNoArgs` has a separate ``__get__``
         since the categories framework creates and caches the
         return value of ``CachedMethod.__get__`` with
-        ``inst is None``.
+        ``inst==None``.
 
         This getter attempts to assign a bound method as an
         attribute to the given instance. If this is not

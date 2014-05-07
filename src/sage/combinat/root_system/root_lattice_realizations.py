@@ -2724,12 +2724,12 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: alpha[1].symmetric_form(alpha[0])
                 0
                 sage: alpha[1].symmetric_form(alpha[1])
-                2
+                4
                 sage: elt = alpha[0] - 3*alpha[1] + alpha[2]
                 sage: elt.symmetric_form(alpha[1])
-                -7
+                -14
                 sage: elt.symmetric_form(alpha[0]+2*alpha[2])
-                7
+                14
                 sage: Q = RootSystem(CartanType(['A',4,2]).dual()).root_lattice()
                 sage: Qc = RootSystem(['A',4,2]).coroot_lattice()
                 sage: alpha = Q.simple_roots()
@@ -2757,12 +2757,12 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: Q = RootSystem(['B',2,1]).root_lattice()
                 sage: alpha = Q.simple_roots()
                 sage: alpha[1].norm_squared()
-                2
+                4
                 sage: alpha[2].norm_squared()
-                1
+                2
                 sage: elt = alpha[0] - 3*alpha[1] + alpha[2]
                 sage: elt.norm_squared()
-                25
+                50
                 sage: elt = alpha[0] + alpha[1] + 2*alpha[2]
                 sage: elt.norm_squared()
                 0

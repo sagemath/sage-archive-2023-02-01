@@ -828,10 +828,10 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
                 sage: P = RootSystem(['C',2,1]).weight_lattice()
                 sage: P._symmetric_form_matrix
-                [    0 -5/12  -1/2   1/6]
-                [-5/12   1/6  1/12   1/6]
-                [ -1/2  1/12     1   1/6]
-                [  1/6   1/6   1/6     0]
+                [0 0 0 1]
+                [0 1 1 1]
+                [0 1 2 1]
+                [1 1 1 0]
             """
             from sage.matrix.constructor import matrix
             ct = self.cartan_type()
@@ -846,9 +846,9 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             r = ct.rank()
             a = ct.a()
-            # Determine the transition matrix
-            # al[0], ..., al[r], La[0] -> La[0], ..., La[r], delta
-            M = cm.stack(matrix(list(a)))
+            # Determine the change of basis matrix
+            # La[0], ..., La[r], delta -> al[0], ..., al[r], La[0]
+            M = cm.stack( matrix([1] + [0]*(r-1)) )
             M = matrix.block([[ M, matrix([[1]] + [[0]]*r) ]])
             M = M.inverse()
 

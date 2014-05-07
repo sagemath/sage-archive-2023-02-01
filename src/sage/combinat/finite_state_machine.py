@@ -6224,13 +6224,13 @@ class FiniteStateMachine(SageObject):
                     Traceback (most recent call last):
                     ...
                     NotImplementedError: All transitions must have input
-                    labels of length 1.
+                    labels of length 1. Consider calling split_transitions().
                     sage: T = Transducer([(0, 0, [0, 1], 0)])
                     sage: T.with_final_word_out(0)
                     Traceback (most recent call last):
                     ...
                     NotImplementedError: All transitions must have input
-                    labels of length 1.
+                    labels of length 1. Consider calling split_transitions().
 
             #.  An empty list as input is not allowed::
 
@@ -6268,49 +6268,46 @@ class FiniteStateMachine(SageObject):
             raise ValueError(
                 "letters is not allowed to be an empty list.")
 
-        given_final_states = self.final_states()
         in_progress = set()
-
-        class StopByNotFinal(Exception):
-            pass
+        cache = {}
 
         def find_final_word_out(state):
             position, letter = trailing_letters.next()
-            if state in given_final_states \
-                    or position == 0 and state.is_final:
+            if state.is_final:
                 return state.final_word_out
+
+            if (state, position) in cache:
+                return cache[state, position]
+
             if (state, position) in in_progress:
                 raise ValueError(
                     "The finite state machine contains a cycle "
                     "starting at state %s with input label %s "
                     "and no final state." % (state, letter))
 
-            if any(ifilter(lambda t: len(t.word_in) != 1,
-                           state.transitions)):
-                raise NotImplementedError("All transitions must have "
-                                          "input labels of length 1.")
+            if any(len(t.word_in) != 1 for t in state.transitions):
+                raise NotImplementedError(
+                    "All transitions must have input labels of length "
+                    "1. Consider calling split_transitions().")
 
             transitions = [t for t in state.transitions
                            if t.word_in == [letter]]
             if allow_non_final and not transitions:
-                raise StopByNotFinal()
+                final_word_out = None
             elif len(transitions) != 1:
                 raise ValueError(
                     "No unique transition leaving state %s with input "
                     "label %s." % (state, letter))
-
-            in_progress.add((state, position))
-            try:
-                final_word_out = transitions[0].word_out \
-                    + find_final_word_out(transitions[0].to_state)
-            except StopByNotFinal:
+            else:
+                in_progress.add((state, position))
+                next_word = find_final_word_out(transitions[0].to_state)
+                if next_word is not None:
+                    final_word_out = transitions[0].word_out + next_word
+                else:
+                    final_word_out = None
                 in_progress.remove((state, position))
-                raise
 
-            if position == 0:
-                state.is_final = True
-                state.final_word_out = final_word_out
-            in_progress.remove((state, position))
+            cache[state, position] = final_word_out
             return final_word_out
 
         for state in self.iter_states():
@@ -6318,10 +6315,16 @@ class FiniteStateMachine(SageObject):
             # trailing_letters is an infinite iterator additionally
             # marking positions
             trailing_letters = cycle(enumerate(letters))
-            try:
-                find_final_word_out(state)
-            except StopByNotFinal:
-                pass
+            find_final_word_out(state)
+
+        # actual modifications can only be carried out after all final words
+        # have been computed as it may not be permissible to stop at a
+        # formerly non-final state unless a cycle has been completed.
+
+        for (state, position), final_word_out in cache.iteritems():
+            if position == 0 and final_word_out is not None:
+                state.is_final = True
+                state.final_word_out = final_word_out
 
 
     # *************************************************************************

@@ -59,7 +59,7 @@ def disc(self):
     if is_odd(self.dim()):
       return  self.base_ring()(self.det() / 2)      ## This is not so good for characteristic 2.
     else:
-      return (-1)**(self.dim()/2) * self.det()
+      return (-1)**(self.dim()//2) * self.det()
 
 
 def content(self):

@@ -227,7 +227,7 @@ def steiner_triple_system(n):
     name = "Steiner Triple System on "+str(n)+" elements"
 
     if n%6 == 3:
-        t = (n-3)/6
+        t = (n-3)//6
         Z = range(2*t+1)
 
         T = lambda (x,y) : x + (2*t+1)*y
@@ -237,12 +237,12 @@ def steiner_triple_system(n):
 
     elif n%6 == 1:
 
-        t = (n-1)/6
+        t = (n-1)//6
         N = range(2*t)
         T = lambda (x,y) : x+y*t*2 if (x,y) != (-1,-1) else n-1
 
-        L1 = lambda i,j : (i+j) % (int((n-1)/3))
-        L = lambda i,j : L1(i,j)/2 if L1(i,j)%2 == 0 else t+(L1(i,j)-1)/2
+        L1 = lambda i,j : (i+j) % ((n-1)//3)
+        L = lambda i,j : L1(i,j)//2 if L1(i,j)%2 == 0 else t+(L1(i,j)-1)//2
 
         sts = [[(i,0),(i,1),(i,2)] for i in range(t)] + \
             [[(-1,-1),(i,k),(i-t,(k+1) % 3)] for i in range(t,2*t) for k in [0,1,2]] + \
@@ -547,7 +547,7 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
         sage: PBD = PBD_4_5_8_9_12(17)
         sage: bibd = _check_pbd(BIBD_from_PBD(PBD,52,4),52,[4])
     """
-    r = (v-1)/(k-1)
+    r = (v-1)//(k-1)
     bibd = []
     for X in PBD:
         n = len(X)

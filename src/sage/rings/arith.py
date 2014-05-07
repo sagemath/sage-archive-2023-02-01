@@ -880,12 +880,12 @@ def eratosthenes(n):
         return []
     s = range(3,n+3,2)
     mroot = n ** 0.5
-    half = (n+1)/2
+    half = (n+1)//2
     i = 0
     m = 3
     while m <= mroot:
         if s[i]:
-            j = (m*m-3)/2
+            j = (m*m-3)//2
             s[j] = 0
             while j < half:
                 s[j] = 0
@@ -3759,7 +3759,7 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    X = sorted(set([ZZ((a*a)%n) for a in range(n/2+1)]))
+    X = sorted(set([ZZ((a*a)%n) for a in range(n//2+1)]))
     return X
 
 ## This much slower than above, for obvious reasons.

@@ -1482,7 +1482,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             PPgens = PP.gens()
 
             newVars = []
-            sh = PP.ngens()/P.ngens() - 1
+            sh = PP.ngens()//P.ngens() - 1
             blocklength = sh
             nM = sh+1
             for i in range(P.ngens()):

@@ -9426,7 +9426,7 @@ class A111787(SloaneSequence):
         else:
             for d in srange(3,n,2):
                 if n % d == 0:
-                    return min(d, 2*n/d)
+                    return min(d, 2*n//d)
 
 
 class ExponentialNumbers(SloaneSequence):

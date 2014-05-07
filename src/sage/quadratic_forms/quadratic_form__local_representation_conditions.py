@@ -590,7 +590,7 @@ class QuadraticFormLocalRepresentationConditions():
         for s in sqclass:
             #print "m =", m, "   s =", s, "   m/s =", (QQ(m)/s)
             if (QQ(m)/s).is_padic_square(p):
-                nu = valuation(m/s, p)
+                nu = valuation(m//s, p)
                 return local_vec[sqclass.index(s) + 1] <= (nu / 2)
 
 

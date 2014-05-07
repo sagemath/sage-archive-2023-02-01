@@ -5575,7 +5575,7 @@ def from_rank(n, rank):
     factoradic = [None] * n
     for j in range(1,n+1):
         factoradic[n-j] = Integer(rank % j)
-        rank = int(rank) / int(j)
+        rank = int(rank) // j
 
     return from_lehmer_code(factoradic)
 

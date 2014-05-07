@@ -1302,7 +1302,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
@@ -1391,7 +1391,7 @@ class AbstractTree(object):
                 # build all subtree matrices.
                 node, name = create_node(self)
                 edge = [name]
-                split = int(len(self) / 2)
+                split = len(self) // 2
                 # the left part
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)

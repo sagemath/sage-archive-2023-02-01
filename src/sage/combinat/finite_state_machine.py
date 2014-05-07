@@ -740,6 +740,25 @@ class FSMState(SageObject):
 
     - ``is_final`` -- (default: ``False``)
 
+    - ``final_word_out`` -- (default: ``None``) a word that is written when
+      the state is reached as the last state of some input, only for final
+      states
+
+      .. WARNING::
+
+          ``final_word_out`` is not implemented everywhere. Currently it is
+          implemented in :meth:`FiniteStateMachine.process`,
+          in the LaTeX output,
+          :meth:`FiniteStateMachine.composition`,
+          :meth:`FiniteStateMachine.output_projection`,
+          :meth:`FiniteStateMachine.prepone_output`,
+          :meth:`Transducer.cartesian_product`, but not in
+          :meth:`FiniteStateMachine.determine_alphabets`,
+          :meth:`FiniteStateMachine.equivalence_classes`,
+          :meth:`FiniteStateMachine.transposition`,
+          :meth:`Transducer.intersection` and
+          :meth:`Transducer.simplification`.
+
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input.
 
@@ -770,6 +789,51 @@ class FSMState(SageObject):
         sage: A == B
         False
 
+    We can also define a final output word of a final state which is
+    used if the input of a transducer leads to this state. Such final
+    output words are used in subsequential transducers. ::
+
+        sage: C = FSMState('state 3', is_final=True, final_word_out='end')
+        sage: C.final_word_out
+        ['end']
+
+    The final output word can be a single letter, ``None`` or a list of
+    letters::
+
+        sage: A = FSMState('A')
+        sage: A.is_final = True
+        sage: A.final_word_out = 2
+        sage: A.final_word_out
+        [2]
+        sage: A.final_word_out = [2, 3]
+        sage: A.final_word_out
+        [2, 3]
+
+    Only final states can have a final output word which is not
+    ``None``::
+
+        sage: B = FSMState('B')
+        sage: B.final_word_out == None
+        True
+        sage: B.final_word_out = 2
+        Traceback (most recent call last):
+        ...
+        ValueError: Only final states can have a final output word,
+        but state B is not final.
+
+    Setting the ``final_word_out`` of a final state to ``None`` is the same as
+    setting it to ``[]`` and is also the default for a final state::
+
+        sage: C = FSMState('C', is_final=True)
+        sage: C.final_word_out
+        []
+        sage: C.final_word_out = None
+        sage: C.final_word_out
+        []
+        sage: C.final_word_out = []
+        sage: C.final_word_out
+        []
+
     It is not allowed to use ``None`` as a label::
 
         sage: from sage.combinat.finite_state_machine import FSMState
@@ -797,7 +861,7 @@ class FSMState(SageObject):
         Automaton with 1 states
     """
     def __init__(self, label, word_out=None,
-                 is_initial=False, is_final=False,
+                 is_initial=False, is_final=False, final_word_out=None,
                  hook=None, color=None, allow_label_None=False):
         """
         See :class:`FSMState` for more information.
@@ -807,6 +871,49 @@ class FSMState(SageObject):
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: FSMState('final', is_final=True)
             'final'
+
+        TESTS::
+
+            sage: A = FSMState('A', is_final=True)
+            sage: A.final_word_out
+            []
+            sage: A.is_final = True
+            sage: A = FSMState('A', is_final=True, final_word_out='end')
+            sage: A.final_word_out
+            ['end']
+            sage: A = FSMState('A', is_final=True,
+            ....:              final_word_out=['e', 'n', 'd'])
+            sage: A.final_word_out
+            ['e', 'n', 'd']
+            sage: A = FSMState('A', is_final=True, final_word_out=[])
+            sage: A.final_word_out
+            []
+            sage: A = FSMState('A', is_final=True, final_word_out=None)
+            sage: A.final_word_out
+            []
+            sage: A = FSMState('A', is_final=False)
+            sage: A.final_word_out == None
+            True
+            sage: A.is_final = False
+            sage: A = FSMState('A', is_final=False, final_word_out='end')
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
+            sage: A = FSMState('A', is_final=False,
+            ....:              final_word_out=['e', 'n', 'd'])
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
+            sage: A = FSMState('A', is_final=False, final_word_out=None)
+            sage: A.final_word_out == None
+            True
+            sage: A = FSMState('A', is_final=False, final_word_out=[])
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final output word,
+            but state A is not final.
         """
         if not allow_label_None and label is None:
             raise ValueError("Label None reserved for a special state, "
@@ -821,7 +928,10 @@ class FSMState(SageObject):
             self.word_out = []
 
         self.is_initial = is_initial
+        self._final_word_out_ = None
         self.is_final = is_final
+        self.final_word_out = final_word_out
+
         if hook is not None:
             if hasattr(hook, '__call__'):
                 self.hook = hook
@@ -852,6 +962,154 @@ class FSMState(SageObject):
         """
         return self.label() < other.label()
 
+    @property
+    def final_word_out(self):
+        """
+        The final output word of a final state which is written if the
+        state is reached as the last state of the input of the finite
+        state machine. For a non-final state, the value is ``None``.
+
+        ``final_word_out`` can be a single letter, a list or ``None``,
+        but for a final-state, it is always saved as a list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = FSMState('A', is_final=True, final_word_out=2)
+            sage: A.final_word_out
+            [2]
+            sage: A.final_word_out = 3
+            sage: A.final_word_out
+            [3]
+            sage: A.final_word_out = [3, 4]
+            sage: A.final_word_out
+            [3, 4]
+            sage: A.final_word_out = None
+            sage: A.final_word_out
+            []
+            sage: B = FSMState('B')
+            sage: B.final_word_out == None
+            True
+
+        A non-final state cannot have a final output word::
+
+            sage: B.final_word_out = [3, 4]
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final
+            output word, but state B is not final.
+        """
+
+        return self._final_word_out_
+
+    @final_word_out.setter
+    def final_word_out(self, final_word_out):
+        """
+        Sets the value of the final output word of a final state.
+
+        INPUT:
+
+        ``final_word_out`` -- a list, any element or ``None``
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: B = FSMState('B')
+            sage: B.final_word_out = []
+            Traceback (most recent call last):
+            ...
+            ValueError: Only final states can have a final
+            output word, but state B is not final.
+            sage: B.final_word_out = None
+            sage: B.final_word_out == None
+            True
+        """
+        if not self.is_final and final_word_out is not None:
+            raise ValueError("Only final states can have a " \
+                             "final output word, but state %s is not final." \
+                             % (self.label()))
+        elif not self.is_final:
+            self._final_word_out_ = final_word_out
+        elif isinstance(final_word_out, list):
+            self._final_word_out_ = final_word_out
+        elif final_word_out is not None:
+            self._final_word_out_ = [final_word_out]
+        else:
+            self._final_word_out_ = []
+
+
+    @property
+    def is_final(self):
+        """
+        Describes whether the state is final or not.
+
+        ``True`` if the state is final and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = FSMState('A', is_final=True, final_word_out=3)
+            sage: A.is_final
+            True
+            sage: A.is_final = False
+            Traceback (most recent call last):
+            ...
+            ValueError: State A cannot be non-final, because it has a
+            final output word. Only final states can have a final output
+            word.
+            sage: A.final_word_out = None
+            sage: A.is_final = False
+            sage: A.is_final
+            False
+        """
+        return (self.final_word_out is not None)
+
+    @is_final.setter
+    def is_final(self, is_final):
+        """
+        Defines the state as a final state or a non-final state.
+
+        INPUT:
+
+        is_final - ``True`` if the state should be final and ``False`` otherwise
+
+        OUTPUT:
+
+        Nothing.
+
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: A = FSMState('A', is_final=True)
+            sage: A.final_word_out
+            []
+            sage: A.is_final = False
+            sage: A.final_word_out == None
+            True
+            sage: A = FSMState('A', is_final=True, final_word_out='a')
+            sage: A.is_final = False
+            Traceback (most recent call last):
+            ...
+            ValueError: State A cannot be non-final, because it has a
+            final output word. Only final states can have a final output
+            word.
+            sage: A = FSMState('A', is_final=True, final_word_out=[])
+            sage: A.is_final = False
+            sage: A.final_word_out == None
+            True
+        """
+        if is_final and self.final_word_out is None:
+            self._final_word_out_ = []
+        elif not is_final and not self.final_word_out:
+            self._final_word_out_ = None
+        elif not is_final:
+            raise ValueError("State %s cannot be non-final, because it " \
+                             "has a final output word. Only final states " \
+                             "can have a final output word. "% self.label())
 
     def label(self):
         """
@@ -932,6 +1190,7 @@ class FSMState(SageObject):
         if hasattr(self, 'hook'):
             new.hook = deepcopy(self.hook, memo)
         new.color = deepcopy(self.color, memo)
+        new.final_word_out = deepcopy(self.final_word_out, memo)
         return new
 
 
@@ -951,9 +1210,27 @@ class FSMState(SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
-            sage: A = FSMState('A')
-            sage: deepcopy(A)
-            'A'
+            sage: A = FSMState((1, 3), color=[1, 2],
+            ....:              is_final=True, final_word_out=3)
+            sage: B = deepcopy(A)
+            sage: B
+            (1, 3)
+            sage: B.label == A.label
+            True
+            sage: B.label is A.label
+            False
+            sage: B.color == A.color
+            True
+            sage: B.color is A.color
+            False
+            sage: B.is_final == A.is_final
+            True
+            sage: B.is_final is A.is_final
+            True
+            sage: B.final_word_out == A.final_word_out
+            True
+            sage: B.final_word_out is A.final_word_out
+            False
         """
         return deepcopy(self, memo)
 
@@ -3068,12 +3345,6 @@ class FiniteStateMachine(SageObject):
                     anchor_label = "north"
             return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
 
-        #### compatibility code, delete when .is_final/.final_word_out consistency is guaranteed
-        for state in self.iter_final_states():
-            if not hasattr(state, "final_word_out"):
-                state.final_word_out = []
-        #### end compatibility code
-
         options = ["auto", "initial text=", ">=latex"]
 
         nonempty_final_word_out = False
@@ -4720,7 +4991,8 @@ class FiniteStateMachine(SageObject):
 
     def product_FiniteStateMachine(self, other, function,
                                    new_input_alphabet=None,
-                                   only_accessible_components=True):
+                                   only_accessible_components=True,
+                                   final_function=None):
         """
         Returns a new finite state machine whose states are
         pairs of states of the original finite state machines.
@@ -4743,12 +5015,24 @@ class FiniteStateMachine(SageObject):
           ``new_input_alphabet`` is given, it is determined by
           :meth:`.determine_alphabets`.
 
+        - ``final_function`` -- A function mapping two final states of
+          the original finite state machines to the final output of
+          the corresponding state in the new finite state machine. By
+          default, the final output is the empty word if both final
+          outputs of the constituent states are empty; otherwise, a
+          ``ValueError`` is raised.
+
         OUTPUT:
 
         A finite state machine whose states are pairs of states of the
-        original finite state machines.
+        original finite state machines. A state is initial or
+        final if both constituent states are initial or final,
+        respectively.
 
         The labels of the transitions are defined by ``function``.
+
+        The final output of a final state is determined by calling
+        ``final_function`` on the constituent states.
 
         The color of a new state is the tuple of colors of the
         constituent states of ``self`` and ``other``.
@@ -4796,6 +5080,30 @@ class FiniteStateMachine(SageObject):
             sage: H.states()
             [(0, 0), (1, 0), (0, 1), (1, 1)]
 
+        Also final output words are considered according to the function
+        ``final_function``::
+
+            sage: F = Transducer([(0, 1, 0, 1), (1, 1, 1, 1), (1, 1, 0, 1)],
+            ....:                final_states=[1])
+            sage: F.state(1).final_word_out = 1
+            sage: G = Transducer([(0, 0, 0, 1), (0, 0, 1, 0)], final_states=[0])
+            sage: G.state(0).final_word_out = 1
+            sage: def minus(t1, t2):
+            ....:     return (t1.word_in[0] - t2.word_in[0],
+            ....:                t1.word_out[0] - t2.word_out[0])
+            sage: H = F.product_FiniteStateMachine(G, minus)
+            Traceback (most recent call last):
+            ...
+            ValueError: A final function must be given.
+            sage: def plus(s1, s2):
+            ....:     return s1.final_word_out[0] + s2.final_word_out[0]
+            sage: H = F.product_FiniteStateMachine(G, minus,
+            ....:                                  final_function=plus)
+            sage: H.final_states()
+            [(1, 0)]
+            sage: H.final_states()[0].final_word_out
+            [2]
+
         TESTS:
 
         Check that colors are correctly dealt with. In particular, the
@@ -4811,6 +5119,14 @@ class FiniteStateMachine(SageObject):
             Automaton with 1 states
 
         """
+        def default_final_function(s1, s2):
+            if s1.final_word_out or s2.final_word_out:
+                raise ValueError("A final function must be given.")
+            return []
+
+        if final_function is None:
+            final_function = default_final_function
+
         result = self.empty_copy()
         if new_input_alphabet is not None:
             result.input_alphabet = new_input_alphabet
@@ -4833,6 +5149,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
             if all(map(lambda s: s.is_final, state.label())):
                 state.is_final = True
+                state.final_word_out = final_function(*state.label())
             state.color = tuple(map(lambda s: s.color, state.label()))
 
         if only_accessible_components:
@@ -4846,8 +5163,8 @@ class FiniteStateMachine(SageObject):
     def composition(self, other, algorithm=None,
                     only_accessible_components=True):
         """
-        Returns a new transducer which is the composition of self and
-        other.
+        Returns a new transducer which is the composition of ``self``
+        and ``other``.
 
         INPUT:
 
@@ -4859,7 +5176,6 @@ class FiniteStateMachine(SageObject):
 
             There can be arbitrarily many initial and final states,
             but the input and output labels must have length 1.
-
 
             WARNING: The output of other is fed into self.
 
@@ -4920,6 +5236,31 @@ class FiniteStateMachine(SageObject):
              Transition from ('B', 2) to ('B', 1): 1|1,
              Transition from ('B', 1) to ('B', 1): 0|0,
              Transition from ('B', 1) to ('B', 2): 1|0]
+
+        Also final output words are considered if ``algorithm='direct'`` or
+        ``None``::
+
+            sage: F = Transducer([('A', 'B', 1, 0), ('B', 'A', 0, 1)],
+            ....:                initial_states=['A', 'B'],
+            ....:                final_states=['A', 'B'])
+            sage: F.state('A').final_word_out = 0
+            sage: F.state('B').final_word_out = 1
+            sage: G = Transducer([(1, 1, 1, 0), (1, 2, 0, 1),
+            ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
+            ....:                initial_states=[1], final_states=[2])
+            sage: G.state(2).final_word_out = 0
+            sage: Hd = F.composition(G, algorithm='direct')
+            sage: Hd.final_states()
+            [(2, 'B')]
+
+        Note that ``(2, 'A')`` is not final, as the final output `0`
+        of state `2` of `G` cannot be processed in state ``'A'`` of
+        `F`.
+
+        ::
+
+            sage: [s.final_word_out for s in Hd.final_states()]
+            [[1, 0]]
 
         Be aware that after composition, different transitions may
         share the same output label (same python object)::
@@ -5002,7 +5343,6 @@ class FiniteStateMachine(SageObject):
              Transition from (1, 'A') to (2, 'B'): 0|0,
              Transition from (2, 'B') to (2, 'A'): 0|1,
              Transition from (2, 'A') to (2, 'B'): 1|0]
-
         """
         def function(transition1, transition2):
             if transition1.word_out == transition2.word_in:
@@ -5010,9 +5350,24 @@ class FiniteStateMachine(SageObject):
             else:
                 raise LookupError
 
-        return other.product_FiniteStateMachine(
+        result = other.product_FiniteStateMachine(
             self, function,
-            only_accessible_components=only_accessible_components)
+            only_accessible_components=only_accessible_components,
+            final_function=lambda s1, s2: [])
+
+        for state_result in result.iter_states():
+            state = state_result.label()[0]
+            if state.is_final:
+                accept, state_to, output = self.process(
+                    state.final_word_out,
+                    initial_state=self.state(state_result.label()[1]))
+                if not accept:
+                    state_result.is_final = False
+                else:
+                    state_result.is_final = True
+                    state_result.final_word_out = output
+
+        return result
 
 
     def _composition_explorative_(self, other):
@@ -5136,6 +5491,24 @@ class FiniteStateMachine(SageObject):
             [Transition from 'A' to 'B': 1|-,
              Transition from 'A' to 'A': 1|-,
              Transition from 'B' to 'B': 0|-]
+
+        Final output words are also considered correctly::
+
+            sage: H = Transducer([('A', 'B', 0, 1), ('A', 'A', 1, 1),
+            ....:                 ('B', 'B', 1, 0), ('A', ('final', 0), 0, 0)],
+            ....:                final_states=['A', 'B'])
+            sage: H.state('B').final_word_out = 2
+            sage: J = H.output_projection()
+            sage: J.states()
+            ['A', 'B', ('final', 0), ('final', 1)]
+            sage: J.transitions()
+            [Transition from 'A' to 'B': 1|-,
+             Transition from 'A' to 'A': 1|-,
+             Transition from 'A' to ('final', 0): 0|-,
+             Transition from 'B' to 'B': 0|-,
+             Transition from 'B' to ('final', 1): 2|-]
+            sage: J.final_states()
+            ['A', ('final', 1)]
         """
         return self.projection(what='output')
 
@@ -5189,6 +5562,23 @@ class FiniteStateMachine(SageObject):
             new.add_transition((state_mapping[transition.from_state],
                                 state_mapping[transition.to_state],
                                 new_word_in, None))
+
+        if what == 'output':
+            states = filter(lambda s: s.final_word_out,
+                            self.iter_final_states())
+            if not states:
+                return new
+            number = 0
+            while new.has_state(('final', number)):
+                number += 1
+            final = new.add_state(('final', number))
+            final.is_final = True
+            for state in states:
+                output = state.final_word_out
+                new.state(state_mapping[state]).final_word_out = []
+                new.state(state_mapping[state]).is_final = False
+                new.add_transition((state_mapping[state], final, output, None))
+
         return new
 
 
@@ -5350,16 +5740,9 @@ class FiniteStateMachine(SageObject):
 
     def prepone_output(self):
         """
-        Apply the following to each state `s` (except initial and
-        final states) of the finite state machine as often as
-        possible:
-
-        If the letter a is prefix of the output label of all
-        transitions from `s`, then remove it from all these labels and
-        append it to all output labels of all transitions leading to
-        `s`.
-
-        We assume that the states have no output labels.
+        For all paths, shift the output of the path from one
+        transition to the earliest possible preceeding transition of
+        the path.
 
         INPUT:
 
@@ -5369,10 +5752,24 @@ class FiniteStateMachine(SageObject):
 
         Nothing.
 
+        Apply the following to each state `s` (except initial states) of the
+        finite state machine as often as possible:
+
+        If the letter `a` is a prefix of the output label of all transitions from
+        `s` (including the final output of `s`), then remove it from all these
+        labels and append it to all output labels of all transitions leading
+        to `s`.
+
+        We assume that the states have no output labels, but final outputs are
+        allowed.
+
         EXAMPLES::
 
-            sage: A = Transducer([('A', 'B', 1, 1), ('B', 'B', 0, 0), ('B', 'C', 1, 0)],
-            ....:                initial_states=['A'], final_states=['C'])
+            sage: A = Transducer([('A', 'B', 1, 1),
+            ....:                 ('B', 'B', 0, 0),
+            ....:                 ('B', 'C', 1, 0)],
+            ....:                initial_states=['A'],
+            ....:                final_states=['C'])
             sage: A.prepone_output()
             sage: A.transitions()
             [Transition from 'A' to 'B': 1|1,0,
@@ -5381,25 +5778,62 @@ class FiniteStateMachine(SageObject):
 
         ::
 
-            sage: B = Transducer([('A', 'B', 0, 1), ('B', 'C', 1, [1, 1]), ('B', 'C', 0, 1)],
-            ....:                initial_states=['A'], final_states=['C'])
+            sage: B = Transducer([('A', 'B', 0, 1),
+            ....:                 ('B', 'C', 1, [1, 1]),
+            ....:                 ('B', 'C', 0, 1)],
+            ....:                initial_states=['A'],
+            ....:                final_states=['C'])
             sage: B.prepone_output()
             sage: B.transitions()
             [Transition from 'A' to 'B': 0|1,1,
              Transition from 'B' to 'C': 1|1,
              Transition from 'B' to 'C': 0|-]
 
-        If initial states are not labeled as such, unexpected results may be obtained::
+        If initial states are not labeled as such, unexpected results may be
+        obtained::
 
             sage: C = Transducer([(0,1,0,0)])
-            sage: C.prepone_output()
-            prepone_output: All transitions leaving state 0 have an
-            output label with prefix 0.  However, there is no inbound
-            transition and it is not an initial state. This routine
-            (possibly called by simplification) therefore erased this
-            prefix from all outbound transitions.
+            sage: C.prepone_output() # doctest: +ELLIPSIS
+            verbose 0 (...: finite_state_machine.py, prepone_output)
+            All transitions leaving state 0 have an output label with
+            prefix 0.  However, there is no inbound transition and it
+            is not an initial state. This routine (possibly called by
+            simplification) therefore erased this prefix from all
+            outbound transitions.
             sage: C.transitions()
             [Transition from 0 to 1: 0|-]
+
+        Also the final output of final states can be changed::
+
+            sage: T = Transducer([('A', 'B', 0, 1),
+            ....:                 ('B', 'C', 1, [1, 1]),
+            ....:                 ('B', 'C', 0, 1)],
+            ....:                initial_states=['A'],
+            ....:                final_states=['B'])
+            sage: T.state('B').final_word_out = [1]
+            sage: T.prepone_output()
+            sage: T.transitions()
+            [Transition from 'A' to 'B': 0|1,1,
+             Transition from 'B' to 'C': 1|1,
+             Transition from 'B' to 'C': 0|-]
+            sage: T.state('B').final_word_out
+            []
+
+        ::
+
+            sage: S = Transducer([('A', 'B', 0, 1),
+            ....:                 ('B', 'C', 1, [1, 1]),
+            ....:                 ('B', 'C', 0, 1)],
+            ....:                initial_states=['A'],
+            ....:                final_states=['B'])
+            sage: S.state('B').final_word_out = [0]
+            sage: S.prepone_output()
+            sage: S.transitions()
+            [Transition from 'A' to 'B': 0|1,
+             Transition from 'B' to 'C': 1|1,1,
+             Transition from 'B' to 'C': 0|1]
+            sage: S.state('B').final_word_out
+            [0]
 
         Output labels do not have to be hashable::
 
@@ -5417,12 +5851,16 @@ class FiniteStateMachine(SageObject):
              Transition from 1 to 1: 1|1,(0, 0)]
         """
         def find_common_output(state):
-            if len(filter(lambda transition: len(transition.word_out) == 0,
-                          self.transitions(state))) > 0:
+            if any(itertools.ifilter(
+                    lambda transition: not transition.word_out,
+                    self.transitions(state))) \
+                   or state.is_final and not state.final_word_out:
                 return tuple()
             first_letters = map(lambda transition: transition.word_out[0],
                                 self.transitions(state))
-            if len(first_letters) == 0:
+            if state.is_final:
+                first_letters = first_letters + [state.final_word_out[0]]
+            if not first_letters:
                 return tuple()
             first_item = first_letters.pop()
             if all([item == first_item for item in first_letters]):
@@ -5434,29 +5872,40 @@ class FiniteStateMachine(SageObject):
         while changed > 0:
             changed = 0
             iteration += 1
-            for state in self.states():
-                if state.is_initial or state.is_final:
+            for state in self.iter_states():
+                if state.is_initial:
                     continue
-                assert len(state.word_out) == 0, \
-                    "prepone_output assumes that all states have empty output word, but state %s has output word %s" % \
-                    (state, state.word_out)
+                if state.word_out:
+                    raise NotImplementedError(
+                        "prepone_output assumes that all states have "
+                        "empty output word, but state %s has output "
+                        "word %s" % (state, state.word_out))
                 common_output = find_common_output(state)
-                if len(common_output) > 0:
+                if common_output:
                     changed += 1
+                    if state.is_final:
+                        assert state.final_word_out[0] == common_output[0]
+                        state.final_word_out = state.final_word_out[1:]
                     for transition in self.transitions(state):
                         assert transition.word_out[0] == common_output[0]
                         transition.word_out = transition.word_out[1:]
                     found_inbound_transition = False
-                    for transition in self.transitions():
+                    for transition in self.iter_transitions():
                         if transition.to_state == state:
-                            transition.word_out = transition.word_out + [common_output[0]]
+                            transition.word_out = transition.word_out \
+                                + [common_output[0]]
                             found_inbound_transition = True
                     if not found_inbound_transition:
-                        print "prepone_output: All transitions leaving state %s have an output label with prefix %s. "\
-                            "However, there is no inbound transition and it is not an initial state. "\
-                            "This routine (possibly called by simplification) therefore erased this prefix from all "\
-                            "outbound transitions." % (state, common_output[0])
-
+                        verbose(
+                            "All transitions leaving state %s have an "
+                            "output label with prefix %s. However, "
+                            "there is no inbound transition and it is "
+                            "not an initial state. This routine "
+                            "(possibly called by simplification) "
+                            "therefore erased this prefix from all "
+                            "outbound transitions." %
+                            (state, common_output[0]),
+                            level=0)
 
 
     def equivalence_classes(self):
@@ -7238,6 +7687,13 @@ class Transducer(FiniteStateMachine):
             sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
 
+        Also final output words are correctly processed::
+
+            sage: transducer1.state('A').final_word_out = 2
+            sage: result = transducer1.cartesian_product(transducer2)
+            sage: result.final_states()[0].final_word_out
+            [(2, None)]
+
         The following transducer counts the number of 11 blocks minus
         the number of 10 blocks over the alphabet ``[0, 1]``.
 
@@ -7320,21 +7776,20 @@ class Transducer(FiniteStateMachine):
 
         def function(transition1, transition2):
             if transition1.word_in == transition2.word_in:
-                max_length = max(len(transition1.word_out),
-                                 len(transition2.word_out))
-                word_out1 = transition1.word_out \
-                    + (max_length - len(transition1.word_out)) \
-                    * [None]
-                word_out2 = transition2.word_out \
-                    + (max_length - len(transition2.word_out)) \
-                    * [None]
-                return (transition1.word_in, zip(word_out1, word_out2))
+                return (transition1.word_in,
+                        list(itertools.izip_longest(transition1.word_out,
+                                                    transition2.word_out)))
             else:
                 raise LookupError
+
+        def final_function(s1, s2):
+            return list(itertools.izip_longest(s1.final_word_out,
+                                               s2.final_word_out))
 
         return self.product_FiniteStateMachine(
             other,
             function,
+            final_function=final_function,
             only_accessible_components=only_accessible_components)
 
 
@@ -7814,7 +8269,7 @@ class FSMProcessIterator(SageObject):
                 self.accept_input = False
             if not hasattr(self, 'accept_input'):
                 self.accept_input = True
-            if hasattr(self.current_state, 'final_word_out'):
+            if self.current_state.is_final:
                 self.write_word(self.current_state.final_word_out)
             raise StopIteration
 

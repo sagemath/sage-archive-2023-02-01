@@ -4201,7 +4201,7 @@ class FiniteStateMachine(SageObject):
             ....:                initial_states=[1], final_states=[1])
             sage: Hd = G.composition(F, algorithm='direct')
         """
-        if algorithm == None:
+        if algorithm is None:
             algorithm = 'direct'
         if algorithm == 'direct':
             return self._composition_direct_(other, only_accessible_components)
@@ -5115,7 +5115,7 @@ class FiniteStateMachine(SageObject):
             sage: A.predecessors(A.state('F'), valid_input=[['c', 'b'], 'a'])
             ['F', 'C', 'B']
         """
-        if valid_input != None:
+        if valid_input is not None:
             valid_list = list()
             for input in valid_input:
                 input_list = input

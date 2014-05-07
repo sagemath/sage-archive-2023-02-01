@@ -1617,7 +1617,7 @@ def TransitiveGroups(d=None):
         NotImplementedError: Only the transitive groups of order less than 30 are available in GAP's database
 
     """
-    if d == None:
+    if d is None:
         return TransitiveGroupsAll()
     else:
         d = Integer(d)
@@ -1996,7 +1996,7 @@ def PrimitiveGroups(d=None):
     enumerate groups with specified properties such as transitivity,
     solvability, ..., without creating all groups.
     """
-    if d == None:
+    if d is None:
         return PrimitiveGroupsAll()
     else:
         d = Integer(d)

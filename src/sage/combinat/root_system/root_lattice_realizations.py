@@ -2694,7 +2694,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (alpha[1]+alpha[2]+alpha[4]).first_descent([1,2,5,3,4])
                 5
             """
-            if index_set == None:
+            if index_set is None:
                 index_set = self.parent().index_set()
             for i in index_set:
                 if self.has_descent(i, positive):
@@ -2712,7 +2712,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (alpha[1]+alpha[2]+alpha[4]).descents()
                 [3, 5]
             """
-            if index_set==None:
+            if index_set is None:
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, positive) ]
 

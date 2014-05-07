@@ -891,13 +891,13 @@ class GenericGraph(GenericGraph_pyx):
         if implementation != 'c_graph':
             # We do not care about the value of data_structure. But let's check
             # the user did not define too much.
-            if data_structure != None or immutable != None or sparse != None:
+            if data_structure is not None or immutable is not None or sparse is not None:
                 raise ValueError("'data_structure' 'immutable' and 'sparse' can"
                                  " only be defined when 'implementation'='c_graph'")
-        elif data_structure != None:
+        elif data_structure is not None:
             # data_structure is already defined so there is nothing left to do
             # here ! Did the user try to define too much ?
-            if immutable != None or sparse != None:
+            if immutable is not None or sparse is not None:
                 raise ValueError("You cannot define 'immutable' or 'sparse' "
                                  "when 'data_structure' has a value.")
         # At this point :
@@ -2711,7 +2711,7 @@ class GenericGraph(GenericGraph_pyx):
                             return False
                         else:
                             # if there was another vertex with the same sign of difference...
-                            if uv[(diff+1)/2] != None:
+                            if uv[(diff+1)/2] is not None:
                                 return False # ... the graph is not semi-eulerian
                             else:
                                 uv[(diff+1)/2] = v
@@ -2969,7 +2969,7 @@ class GenericGraph(GenericGraph_pyx):
             degr = g.out_degree(v) if self.is_directed() else g.degree(v)
             if degr == 0:
                 vertices.append(v)
-                if e != None:
+                if e is not None:
                     edges.append(e if labels else (e[0], e[1]))
             else:
                 if self.is_directed():
@@ -13183,7 +13183,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: dist, path = g.shortest_path_all_pairs(algorithm="BFS")
             sage: u,v = g.random_vertex(), g.random_vertex()
             sage: p = [v]
-            sage: while p[0] != None:
+            sage: while p[0] is not None:
             ...     p.insert(0,path[u][p[0]])
             sage: len(p) == dist[u][v] + 2
             True

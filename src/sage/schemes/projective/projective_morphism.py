@@ -1764,7 +1764,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             except TypeError:
                 raise TypeError("Prime bounds must be integers")
 
-        if badprimes==None:
+        if badprimes is None:
             badprimes=self.primes_of_bad_reduction()
 
         firstgood=0
@@ -2061,7 +2061,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if points_modp==[]:
             return([])
         else:
-            if B==None:
+            if B is None:
                 B=e**self.height_difference_bound()
 
             p=points_modp[0][0].codomain().base_ring().characteristic()
@@ -2295,9 +2295,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             except TypeError:
                 raise TypeError("Prime bounds must be integers")
 
-        if badprimes==None:
+        if badprimes is None:
             badprimes=self.primes_of_bad_reduction()
-        if periods==None:
+        if periods is None:
             periods=self.possible_periods(prime_bound=primebound,bad_primes=badprimes)
         PS=self.domain()
         R=PS.base_ring()
@@ -2605,9 +2605,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         badprimes = kwds.pop("bad_primes",None)
         periods = kwds.pop("periods",None)
         primebound = kwds.pop("prime_bound",[1,20])
-        if badprimes==None:
+        if badprimes is None:
             badprimes=self.primes_of_bad_reduction()
-        if periods==None:
+        if periods is None:
             periods=self.possible_periods(prime_bound=primebound,bad_primes=badprimes) #determine the set of possible periods
         if periods==[]:
             return([]) #no rational preperiodic points

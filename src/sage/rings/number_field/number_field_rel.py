@@ -424,7 +424,7 @@ class NumberField_relative(NumberField_generic):
         ans = []
         for K, from_K, to_K in abs_subfields:
             from_K = K.hom([from_abs(from_K(K.gen()))])
-            if to_K != None:
+            if to_K is not None:
                 to_K = RelativeNumberFieldHomomorphism_from_abs(self.Hom(K), to_K*to_abs)
             ans.append((K, from_K, to_K))
         ans = Sequence(ans, immutable=True, cr=ans!=[])
@@ -2122,7 +2122,7 @@ class NumberField_relative(NumberField_generic):
             61911970349056
         """
         abs = self.absolute_field('a')
-        if v != None:
+        if v is not None:
             to_abs = abs.structure()[1]
             v = [to_abs(x) for x in v]
         return abs.discriminant(v=v)

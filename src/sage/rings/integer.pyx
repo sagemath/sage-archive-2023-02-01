@@ -2506,7 +2506,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             from sage.symbolic.all import SR
             return SR(self).log()
-        if m <= 0 and m != None:
+        if m <= 0 and m is not None:
             raise ValueError, "m must be positive"
         if prec:
             from sage.rings.real_mpfr import RealField

@@ -1222,7 +1222,7 @@ class Graph(GenericGraph):
                             (u in data[v] and data[v][u] != l)):
                                 raise ValueError("MULTIEDGE")
 
-                        # Now we are behaving as if multiedges == None
+                        # Now we are behaving as if multiedges is None
                         # means multiedges = False. If something bad
                         # happens later, the whole dictionary will be
                         # updated anyway
@@ -4417,7 +4417,7 @@ class Graph(GenericGraph):
             1.0
         """
         import networkx
-        if v==None:
+        if v is None:
             return networkx.degree_centrality(self.networkx_graph(copy=False))
         else:
             return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
@@ -4492,8 +4492,8 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
         """
-        if sparse != None:
-            if data_structure != None:
+        if sparse is not None:
+            if data_structure is not None:
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
@@ -5588,7 +5588,7 @@ class Graph(GenericGraph):
 
         if algorithm=="cliquer":
             from sage.graphs.cliquer import clique_number
-            if vertices==None:
+            if vertices is None:
                 vertices=self
             value={}
             for v in vertices:
@@ -5812,7 +5812,7 @@ class Graph(GenericGraph):
         for v in verts:
 
             # If all the vertices have a degree larger than k, we can
-            # return our answer if k != None
+            # return our answer if k is not None
             if k is not None and core[v] >= k:
                 return verts[:vert_pos[v]], verts[vert_pos[v]:]
 

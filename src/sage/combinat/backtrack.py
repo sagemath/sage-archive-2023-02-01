@@ -835,7 +835,7 @@ class TransitiveIdeal():
             x = todo.pop()
             yield x
             for y in self._succ(x):
-                if y == None or y in known:
+                if y is None or y in known:
                     continue
                 todo.add(y)
                 known.add(y)
@@ -949,7 +949,7 @@ class TransitiveIdealGraded(TransitiveIdeal):
             for x in current_level:
                 yield x
                 for y in self._succ(x):
-                    if y == None or y in known:
+                    if y is None or y in known:
                         continue
                     next_level.add(y)
                     known.add(y)

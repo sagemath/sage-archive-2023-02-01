@@ -502,7 +502,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         - ``(A, R, C)`` -- a reduced representation matrix and a list ``R`` of
           row labels and a list ``C`` of column labels.
 
-        If ``B == None`` and ``reduced == False`` and ``order == None`` then
+        If ``B is None`` and ``reduced == False`` and ``order is None`` then
         this method will always output the same matrix (except when
         ``M._forget()`` is called): either the matrix used as input to create
         the matroid, or a matrix in which the lexicographically least basis

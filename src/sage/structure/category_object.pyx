@@ -468,7 +468,7 @@ cdef class CategoryObject(sage_object.SageObject):
         return tuple(v)
 
     def variable_names(self):
-        if self._names != None:
+        if self._names is not None:
             return self._names
         raise ValueError, "variable names have not yet been set using self._assign_names(...)"
 
@@ -795,7 +795,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
 # cdef class ParentWithMultiplicativeAbelianGens(Parent):
 #     def generator_orders(self):
-#         if self._generator_orders != None:
+#         if self._generator_orders is not None:
 #             return self._generator_orders
 #         else:
 #             g = []
@@ -814,7 +814,7 @@ cdef class CategoryObject(sage_object.SageObject):
 
 # cdef class ParentWithAdditiveAbelianGens(Parent):
 #     def generator_orders(self):
-#         if self._generator_orders != None:
+#         if self._generator_orders is not None:
 #             return self._generator_orders
 #         else:
 #             g = []

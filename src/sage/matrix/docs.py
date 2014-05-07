@@ -377,7 +377,7 @@ See the files ``matrix_template.pxd`` and
        * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
        * __richcmp__    -- always the same (I don't know why its needed -- bug in PYREX).
 
-    Note that the __init__ function must construct the all zero matrix if ``entries == None``.
+    Note that the __init__ function must construct the all zero matrix if ``entries is None``.
 
     *********** LEVEL 2  **********
 

@@ -92,7 +92,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             q + 6*q^3 + 6*q^4 + O(q^5),
             q^2 + 5*q^3 + 6*q^4 + O(q^5)]
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         if self.base_ring().characteristic() == 0:
             B = self.__M.q_expansion_basis(prec)

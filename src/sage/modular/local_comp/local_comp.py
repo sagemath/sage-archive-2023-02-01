@@ -288,7 +288,7 @@ class LocalComponentBase(SageObject):
             False
             sage: Pi == QQ
             False
-            sage: Pi == None
+            sage: Pi is None
             False
             sage: Pi == loads(dumps(Pi))
             True

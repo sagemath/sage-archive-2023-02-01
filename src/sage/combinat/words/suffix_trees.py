@@ -838,7 +838,7 @@ class ImplicitSuffixTree(SageObject):
             for (v,(i,j)) in d[u].iteritems():
                 if word_labels:
                     d[u][v] = self._word[i:j]
-                elif j == None:
+                elif j is None:
                     d[u][v] = (i,len(self._letters))
         return DiGraph(d)
 
@@ -1185,7 +1185,7 @@ class ImplicitSuffixTree(SageObject):
             length_word = self.word().length()
             num_factors = 1 # empty word
             for (u,v,(i,j)) in self.edge_iterator():
-                if j == None:
+                if j is None:
                     num_factors += length_word - i
                 else:
                     num_factors += j - i
@@ -1200,7 +1200,7 @@ class ImplicitSuffixTree(SageObject):
                 if l < n:
                     if self._transition_function[v] != {}:
                         for ((i,j),u) in self._transition_function[v].iteritems():
-                            if j == None:
+                            if j is None:
                                 j = self.word().length()
                             if j - i >= n - l:
                                 num_factors += 1
@@ -1253,7 +1253,7 @@ class ImplicitSuffixTree(SageObject):
                 yield w
                 if self._transition_function[v] != {}:
                     for ((i,j),u) in self._transition_function[v].iteritems():
-                        if j == None:
+                        if j is None:
                             j = self.word().length()
                         for k in range(i,j):
                             yield w * self.word()[i-1:k]
@@ -1268,7 +1268,7 @@ class ImplicitSuffixTree(SageObject):
                 if length_w < n:
                     if self._transition_function[v] != {}:
                         for ((i,j),u) in self._transition_function[v].iteritems():
-                            if j == None:
+                            if j is None:
                                 j = self.word().length()
                             if j - i >= n - length_w:
                                 yield w*self.word()[i-1:i-1+n-length_w]

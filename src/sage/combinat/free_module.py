@@ -353,7 +353,7 @@ class CombinatorialFreeModuleElement(Element):
             False
             sage: F1.an_element() == F1.an_element()
             True
-            sage: F1.an_element() == None
+            sage: F1.an_element() is None
             False
 
         .. TODO::
@@ -2291,7 +2291,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F.monomial_or_zero_if_none(None)
             0
         """
-        if i == None:
+        if i is None:
             return self.zero()
         return self.monomial(i)
 

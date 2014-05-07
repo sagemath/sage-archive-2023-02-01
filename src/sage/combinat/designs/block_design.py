@@ -381,7 +381,7 @@ def BlockDesign(max_pt, blks, name=None, test=True):
     """
     nm = name
     tst = test
-    if nm == None and test:
+    if nm is None and test:
         nm = "BlockDesign"
     BD = BlockDesign_generic( range(max_pt), blks, name=nm, test=tst )
     if not(test):

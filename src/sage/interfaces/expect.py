@@ -135,7 +135,7 @@ class Expect(Interface):
         Interface.__init__(self, name)
         self.__is_remote = False
         self.__remote_cleaner = remote_cleaner
-        if command == None:
+        if command is None:
             command = name
         if not server is None:
             if ulimit:

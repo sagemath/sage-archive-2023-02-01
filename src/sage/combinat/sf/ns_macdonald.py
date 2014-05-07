@@ -689,7 +689,7 @@ class NonattackingBacktracker(GenericBacktracker):
         self._shape = shape
         self._n = sum(shape)
         self._initial_data = [ [None]*s for s in shape ]
-        if pi==None:
+        if pi is None:
             pi=Permutation([1]).to_permutation_group_element()
         self.pi=pi
 

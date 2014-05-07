@@ -780,7 +780,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         n -- None or an integer (default None).
 
         OUTPUT:
-        If n == None, returns a list of absolute precisions of coefficients.  Otherwise,
+        If n is None, returns a list of absolute precisions of coefficients.  Otherwise,
         returns the absolute precision of the coefficient of x^n.
         """
         if n is None:
@@ -796,7 +796,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         n -- None or an integer (default None).
 
         OUTPUT:
-        If n == None, returns a list of relative precisions of coefficients.  Otherwise,
+        If n is None, returns a list of relative precisions of coefficients.  Otherwise,
         returns the relative precision of the coefficient of x^n.
         """
         if n is None:
@@ -819,7 +819,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         n -- None or an integer (default None).
 
         OUTPUT:
-        If n == None, returns a list of valuations of coefficients.  Otherwise,
+        If n is None, returns a list of valuations of coefficients.  Otherwise,
         returns the valuation of the coefficient of x^n.
         """
         if n is None:
@@ -842,7 +842,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         val_of_var -- None or a rational (default None).
 
         OUTPUT:
-        If val_of_var == None, returns the largest power of the variable dividing self.  Otherwise,
+        If val_of_var is None, returns the largest power of the variable dividing self.  Otherwise,
         returns the valuation of self where the variable is assigned valuation val_of_var
         """
         if val_of_var is None:

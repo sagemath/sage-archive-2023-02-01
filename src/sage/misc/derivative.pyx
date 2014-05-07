@@ -22,7 +22,7 @@ To use these functions:
 
         def _derivative(self, var=None):
             [ should differentiate wrt the single variable var and return
-             result; var==None means attempt to differentiate wrt a `default'
+             result; var is None means attempt to differentiate wrt a `default'
              variable. ]
 
     (2) from sage.misc.derivative import multi_derivative

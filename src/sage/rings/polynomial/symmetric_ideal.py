@@ -636,7 +636,7 @@ class SymmetricIdeal( Ideal_generic ):
             N = Integer(N)
         if hasattr(R,'_max') and R._max<N:
             R.gen()[N]
-        if report!=None:
+        if report is not None:
             print "Symmetrise %d polynomials at level %d"%(len(newOUT.gens()),N)
         if use_full_group:
             from sage.combinat.permutation import Permutations
@@ -954,19 +954,19 @@ class SymmetricIdeal( Ideal_generic ):
             try: # working around one libsingular bug and one libsingular oddity
                 DenseIdeal = [CommonR(P._p) if ((CommonR is P._p.parent()) or CommonR.ngens()!=P._p.parent().ngens()) else CommonR(repr(P._p))  for P in OUT.gens()]*CommonR
             except Exception:
-                if report != None:
+                if report is not None:
                     print "working around a libsingular bug"
                 DenseIdeal = [repr(P._p) for P in OUT.gens()]*CommonR
             if hasattr(DenseIdeal,'groebner_basis'):
-                if report != None:
+                if report is not None:
                     print "Classical Groebner basis"
                     if algorithm!='':
                         print "(using %s)"%algorithm
                 newOUT = (DenseIdeal.groebner_basis(algorithm)*PARENT)
-                if report != None:
+                if report is not None:
                     print "->",len(newOUT.gens()),'generators'
             else:
-                if report != None:
+                if report is not None:
                     print "Univariate polynomial ideal"
                 newOUT = DenseIdeal.gens()*PARENT
             # Symmetrise out to the next index:

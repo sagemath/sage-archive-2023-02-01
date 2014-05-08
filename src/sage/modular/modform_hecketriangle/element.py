@@ -41,7 +41,7 @@ class FormsElement(FormsRingElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: MF = ModularForms(n=5, k=20/3, ep=1)
             sage: MF.default_prec(3)
@@ -86,7 +86,7 @@ class FormsElement(FormsRingElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3)
             21/(20*d)*q - 4977/(16000*d^2)*q^2 + 297829/(12800000*d^3)*q^3 + 27209679/(20480000000*d^4)*q^4 + O(q^5)
@@ -102,7 +102,7 @@ class FormsElement(FormsRingElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: (x,y,z,d)=var("x,y,z,d")
             sage: latex(QuasiModularForms(n=5, k=10, ep=-1)(x^3*z^3-y^3))
             f_{\rho}^{3} E_{2}^{3} -  f_{i}^{3}
@@ -123,7 +123,7 @@ class FormsElement(FormsRingElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.gen(0).coordinate_vector().parent()
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -156,7 +156,7 @@ class FormsElement(FormsRingElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.gen(0).ambient_coordinate_vector().parent()
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring

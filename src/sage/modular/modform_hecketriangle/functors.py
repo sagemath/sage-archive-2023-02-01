@@ -58,7 +58,7 @@ def get_base_ring(ring, var_name="d"):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.functors import get_base_ring
+        sage: from sage.modular.modform_hecketriangle.functors import get_base_ring
         sage: get_base_ring(ZZ) == ZZ
         True
         sage: get_base_ring(QQ) == ZZ
@@ -102,7 +102,7 @@ def ConstantFormsSpaceFunctor(group):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.functors import (ConstantFormsSpaceFunctor, FormsSpaceFunctor)
+        sage: from sage.modular.modform_hecketriangle.functors import (ConstantFormsSpaceFunctor, FormsSpaceFunctor)
         sage: ConstantFormsSpaceFunctor(4) == FormsSpaceFunctor("holo", 4, 0, 1)
         True
         sage: ConstantFormsSpaceFunctor(4)
@@ -143,8 +143,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: ambient_space_functor
@@ -173,8 +173,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor, BaseFacade)
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor, BaseFacade)
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: ambient_space = CuspForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("cusp", group=4, k=12, ep=1)
             sage: el = ambient_space.gen(0)
@@ -211,8 +211,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: FormsSubSpaceFunctor(ambient_space_functor, ambient_space.gens())
@@ -241,8 +241,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: ambient_space_functor2 = FormsSpaceFunctor("cusp", group=4, k=12, ep=1)
@@ -292,8 +292,8 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsSubSpaceFunctor)
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ambient_space = ModularForms(n=4, k=12, ep=1)
             sage: ambient_space_functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: ss_functor1 = FormsSubSpaceFunctor(ambient_space_functor1, [ambient_space.gen(0)])
@@ -350,7 +350,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import FormsSpaceFunctor
+            sage: from sage.modular.modform_hecketriangle.functors import FormsSpaceFunctor
             sage: FormsSpaceFunctor(["holo", "weak"], group=4, k=0, ep=-1)
             WeakModularFormsFunctor(n=4, k=0, ep=-1)
         """
@@ -370,7 +370,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, BaseFacade)
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, BaseFacade)
             sage: F = FormsSpaceFunctor(["holo", "weak"], group=4, k=0, ep=-1)
             sage: F(BaseFacade(ZZ))
             WeakModularForms(n=4, k=0, ep=-1) over Integer Ring
@@ -396,7 +396,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import FormsSpaceFunctor
+            sage: from sage.modular.modform_hecketriangle.functors import FormsSpaceFunctor
             sage: F = FormsSpaceFunctor(["cusp", "quasi"], group=5, k=10/3, ep=-1)
             sage: str(F)
             'QuasiCuspFormsFunctor(n=5, k=10/3, ep=-1)'
@@ -434,7 +434,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsRingFunctor)
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsRingFunctor)
             sage: functor1 = FormsSpaceFunctor("holo", group=5, k=0, ep=1)
             sage: functor2 = FormsSpaceFunctor(["quasi", "cusp"], group=5, k=10/3, ep=-1)
             sage: functor3 = FormsSpaceFunctor(["quasi", "mero"], group=5, k=0, ep=1)
@@ -480,7 +480,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import FormsSpaceFunctor
+            sage: from sage.modular.modform_hecketriangle.functors import FormsSpaceFunctor
             sage: functor1 = FormsSpaceFunctor("holo", group=4, k=12, ep=1)
             sage: functor2 = FormsSpaceFunctor("holo", group=4, k=12, ep=-1)
             sage: functor1 == functor2
@@ -536,7 +536,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import FormsRingFunctor
+            sage: from sage.modular.modform_hecketriangle.functors import FormsRingFunctor
             sage: FormsRingFunctor(["quasi", "mero"], group=6, red_hom=False)
             QuasiMeromorphicModularFormsRingFunctor(n=6)
             sage: FormsRingFunctor(["quasi", "mero"], group=6, red_hom=True)
@@ -558,7 +558,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsRingFunctor, BaseFacade)
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsRingFunctor, BaseFacade)
             sage: F = FormsRingFunctor(["quasi", "mero"], group=6, red_hom=False)
             sage: F(BaseFacade(ZZ))
             QuasiMeromorphicModularFormsRing(n=6) over Integer Ring
@@ -584,7 +584,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import FormsRingFunctor
+            sage: from sage.modular.modform_hecketriangle.functors import FormsRingFunctor
             sage: str(FormsRingFunctor(["quasi", "mero"], group=6, red_hom=True))
             'QuasiMeromorphicModularFormsRingFunctor(n=6, red_hom=True)'
             sage: FormsRingFunctor(["quasi", "mero"], group=6, red_hom=False)
@@ -625,7 +625,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import (FormsSpaceFunctor, FormsRingFunctor)
+            sage: from sage.modular.modform_hecketriangle.functors import (FormsSpaceFunctor, FormsRingFunctor)
             sage: functor1 = FormsRingFunctor("mero", group=6, red_hom=True)
             sage: functor2 = FormsRingFunctor(["quasi", "cusp"], group=6, red_hom=False)
             sage: functor3 = FormsSpaceFunctor("weak", group=6, k=0, ep=1)
@@ -666,7 +666,7 @@ class FormsRingFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import FormsRingFunctor
+            sage: from sage.modular.modform_hecketriangle.functors import FormsRingFunctor
             sage: functor1 = FormsRingFunctor("holo", group=4, red_hom=True)
             sage: functor2 = FormsRingFunctor("holo", group=4, red_hom=False)
             sage: functor1 == functor2
@@ -715,7 +715,7 @@ class BaseFacade(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import BaseFacade
+            sage: from sage.modular.modform_hecketriangle.functors import BaseFacade
             sage: BaseFacade(ZZ)
             BaseFacade(Integer Ring)
             sage: ZZ.has_coerce_map_from(BaseFacade(ZZ))
@@ -735,7 +735,7 @@ class BaseFacade(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.functors import BaseFacade
+            sage: from sage.modular.modform_hecketriangle.functors import BaseFacade
             sage: BaseFacade(ZZ)
             BaseFacade(Integer Ring)
         """

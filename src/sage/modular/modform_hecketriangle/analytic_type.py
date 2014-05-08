@@ -32,7 +32,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.analytic_type import (AnalyticType, AnalyticTypeElement)
+        sage: from sage.modular.modform_hecketriangle.analytic_type import (AnalyticType, AnalyticTypeElement)
         sage: from sage.combinat.posets.elements import LatticePosetElement
         sage: AT = AnalyticType()
         sage: el = AT(["quasi", "cusp"])
@@ -74,7 +74,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AnalyticType()(["quasi", "cusp"])
             quasi cuspidal
         """
@@ -87,7 +87,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: latex(AnalyticType()(["quasi", "cusp"]))
             \text{\texttt{quasi{ }cuspidal}}
         """
@@ -103,7 +103,7 @@ class AnalyticTypeElement(LatticePosetElement):
         This is used for the string representation of such spaces.
 
         EXAMPLES::
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT(["quasi", "weak"]).analytic_space_name()
             'QuasiWeakModular'
@@ -140,7 +140,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT("mero").latex_space_name()
             '\\tilde{M}'
@@ -172,7 +172,7 @@ class AnalyticTypeElement(LatticePosetElement):
         r"""
         Return a string representation of the analytic type.
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT(["quasi", "weak"]).analytic_name()
             'quasi weakly holomorphic modular'
@@ -216,7 +216,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: el = AT(["quasi", "cusp"])
             sage: el2 = AT("holo")
@@ -246,7 +246,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: el = AT(["quasi", "cusp"])
             sage: el2 = AT("holo")
@@ -270,7 +270,7 @@ class AnalyticTypeElement(LatticePosetElement):
 
         EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+        sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
         sage: el = AnalyticType()(["quasi", "weak"])
         sage: prop_list =[prop for prop in el]
         sage: prop_list
@@ -331,7 +331,7 @@ class AnalyticType(FiniteLatticePoset):
     So the analytic type of ``el`` is ``quasi holomorphic`` despite the fact
     that the sum (``el``) describes a function which is zero at infinity.
 
-        sage: from sage.modular.hecke_mf.space import QuasiModularForms
+        sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
         sage: x,y,z,d = var("x,y,z,d")
         sage: el = QuasiModularForms(n=3, k=6, ep=-1)(y-z^3)
         sage: el.analytic_type()
@@ -341,7 +341,7 @@ class AnalyticType(FiniteLatticePoset):
     ``weakly holomorphic`` despite the fact that the sum (``el2``) describes
     a function which is holomorphic at infinity.
 
-        sage: from sage.modular.hecke_mf.graded_ring import WeakModularFormsRing
+        sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
         sage: x,y,z,d = var("x,y,z,d")
         sage: el2 = WeakModularFormsRing(n=3)(x/(x^3-y^2)-y/(x^3-y^2))
         sage: el2.analytic_type()
@@ -362,7 +362,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT2 = AnalyticType()
             sage: AT == AT2
@@ -387,7 +387,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: from sage.combinat.posets.lattices import FiniteLatticePoset
             sage: AT = AnalyticType()
             sage: AT
@@ -460,7 +460,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AnalyticType()
             Analytic Type
         """
@@ -477,7 +477,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AT = AnalyticType()
             sage: AT("holo", "quasi") == AT(["holo", "quasi"])
             True
@@ -508,7 +508,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import (AnalyticType, AnalyticTypeElement)
+            sage: from sage.modular.modform_hecketriangle.analytic_type import (AnalyticType, AnalyticTypeElement)
             sage: AT = AnalyticType()
             sage: AT("holo") == AT(["holo"])
             True
@@ -550,7 +550,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: from sage.combinat.posets.posets import FinitePoset
             sage: AT = AnalyticType()
             sage: P = AT.base_poset()
@@ -588,7 +588,7 @@ class AnalyticType(FiniteLatticePoset):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.analytic_type import AnalyticType
+            sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
             sage: AnalyticType().lattice_poset()
             Finite lattice containing 10 elements
         """

@@ -67,7 +67,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(QQ(3)) == HeckeTriangleGroup(int(3))
             True
         """
@@ -97,7 +97,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(12)
             sage: G
             Hecke triangle group for n = 12
@@ -121,7 +121,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(10).n()
             10
             sage: HeckeTriangleGroup(infinity).n()
@@ -139,7 +139,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).lam()
             1
             sage: HeckeTriangleGroup(4).lam()^2
@@ -161,7 +161,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).rho() == 1/2 + sqrt(3)/2*i
             True
             sage: HeckeTriangleGroup(4).rho() == sqrt(2)/2*(1 + i)
@@ -183,7 +183,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).alpha()
             1/12
             sage: HeckeTriangleGroup(4).alpha()
@@ -206,7 +206,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).beta()
             5/12
             sage: HeckeTriangleGroup(4).beta()
@@ -228,7 +228,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(10).I()
             [1 0]
             [0 1]
@@ -244,7 +244,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(10).one_element()
             [1 0]
             [0 1]
@@ -262,7 +262,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).T()
             [1 1]
             [0 1]
@@ -283,7 +283,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).S()
             [ 0 -1]
             [ 1  0]
@@ -308,7 +308,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).U()
             [ 1 -1]
             [ 1  0]
@@ -348,7 +348,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(3)
             sage: G.V(0) == -G.S()
             True
@@ -389,7 +389,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES:
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).dvalue()
             1/1728
             sage: HeckeTriangleGroup(4).dvalue()
@@ -422,7 +422,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(10)
             Hecke triangle group for n = 10
         """
@@ -435,7 +435,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: a = HeckeTriangleGroup(5)
             sage: latex(a)
             \Gamma^{(5)}
@@ -449,7 +449,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES:
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(3).is_arithmetic()
             True
             sage: HeckeTriangleGroup(4).is_arithmetic()
@@ -483,7 +483,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(5)
             sage: G.act(G.S(), AlgebraicField()(1 + i/2))
             2/5*I - 4/5
@@ -539,7 +539,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: G = HeckeTriangleGroup(8)
             sage: z = AlgebraicField()(1+i/2)
             sage: (A,w,fact) = G.get_FD(z)
@@ -611,7 +611,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.hecke_triangle_groups import HeckeTriangleGroup
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: HeckeTriangleGroup(5).in_FD(CC(1.5/2 + 0.9*i))
             True
             sage: HeckeTriangleGroup(4).in_FD(CC(1.5/2 + 0.9*i))

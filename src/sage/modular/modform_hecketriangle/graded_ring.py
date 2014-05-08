@@ -33,7 +33,7 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.graded_ring import canonical_parameters
+        sage: from sage.modular.modform_hecketriangle.graded_ring import canonical_parameters
         sage: canonical_parameters(4, ZZ, 1)
         (Hecke triangle group for n = 4, Integer Ring, True, 4)
     """
@@ -68,7 +68,7 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, QuasiMeromorphicModularFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiMeromorphicModularFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(4, ZZ, 1)
             sage: QuasiMeromorphicModularFormsRing(4, ZZ, 1) == QuasiMeromorphicModularFormsRing(group, base_ring, red_hom, n)
             True
@@ -97,7 +97,7 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(4, ZZ, 1)
             sage: MR
             QuasiMeromorphicModularFormsRing(n=4) over Integer Ring
@@ -124,7 +124,7 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, QuasiWeakModularFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiWeakModularFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(5, CC, 0)
             sage: QuasiWeakModularFormsRing(5, CC, 0) == QuasiWeakModularFormsRing(group, base_ring, red_hom, n)
             True
@@ -153,7 +153,7 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiWeakModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing
             sage: MR = QuasiWeakModularFormsRing(5, CC, 0)
             sage: MR
             QuasiWeakModularFormsRing(n=5) over Complex Field with 53 bits of precision
@@ -180,7 +180,7 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, QuasiModularFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiModularFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(6, ZZ, True)
             sage: QuasiModularFormsRing(6, ZZ, True) == QuasiModularFormsRing(group, base_ring, red_hom, n)
             True
@@ -209,7 +209,7 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing
             sage: MR = QuasiModularFormsRing(6, ZZ, True)
             sage: MR
             QuasiModularFormsRing(n=6) over Integer Ring
@@ -236,7 +236,7 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, QuasiCuspFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, QuasiCuspFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(7, ZZ, 1)
             sage: QuasiCuspFormsRing(7, ZZ, 1) == QuasiCuspFormsRing(group, base_ring, red_hom, n)
             True
@@ -264,7 +264,7 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiCuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiCuspFormsRing
             sage: MR = QuasiCuspFormsRing(7, ZZ, 1)
             sage: MR
             QuasiCuspFormsRing(n=7) over Integer Ring
@@ -291,7 +291,7 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, MeromorphicModularFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, MeromorphicModularFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(4, ZZ, 1)
             sage: MeromorphicModularFormsRing(4, ZZ, 1) == MeromorphicModularFormsRing(group, base_ring, red_hom, n)
             True
@@ -320,7 +320,7 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import MeromorphicModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import MeromorphicModularFormsRing
             sage: MR = MeromorphicModularFormsRing(4, ZZ, 1)
             sage: MR
             MeromorphicModularFormsRing(n=4) over Integer Ring
@@ -347,7 +347,7 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, WeakModularFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, WeakModularFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(5, ZZ, 0)
             sage: WeakModularFormsRing(5, ZZ, 0) == WeakModularFormsRing(group, base_ring, red_hom, n)
             True
@@ -375,7 +375,7 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import WeakModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import WeakModularFormsRing
             sage: MR = WeakModularFormsRing(5, ZZ, 0)
             sage: MR
             WeakModularFormsRing(n=5) over Integer Ring
@@ -402,7 +402,7 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing(3, ZZ, 0) == ModularFormsRing()
             True
         """
@@ -430,7 +430,7 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: MR = ModularFormsRing()
             sage: MR
             ModularFormsRing(n=3) over Integer Ring
@@ -457,7 +457,7 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import (canonical_parameters, CuspFormsRing)
+            sage: from sage.modular.modform_hecketriangle.graded_ring import (canonical_parameters, CuspFormsRing)
             sage: (group, base_ring, red_hom, n) = canonical_parameters(5, CC, True)
             sage: CuspFormsRing(5, CC, True) == CuspFormsRing(group, base_ring, red_hom, n)
             True
@@ -486,7 +486,7 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import CuspFormsRing
             sage: MR = CuspFormsRing(5, CC, True)
             sage: MR
             CuspFormsRing(n=5) over Complex Field with 53 bits of precision

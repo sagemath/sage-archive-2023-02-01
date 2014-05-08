@@ -58,7 +58,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=5, base_ring=ZZ, k=6, ep=-1)
             sage: MF
             ModularForms(n=5, k=6, ep=-1) over Integer Ring
@@ -94,7 +94,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: QuasiModularForms(n=4, k=2, ep=-1)
             QuasiModularForms(n=4, k=2, ep=-1) over Integer Ring
         """
@@ -107,7 +107,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiWeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms
             sage: latex(QuasiWeakModularForms())
             QM^!_{ n=3 }(0,\ 1)(\Bold{Z})
         """
@@ -121,8 +121,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import MeromorphicModularFormsRing
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.graded_ring import MeromorphicModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=12, ep=1)
             sage: (x,y,z,d) = MF.pol_ring().gens()
 
@@ -219,7 +219,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiWeakModularForms, ModularForms, CuspForms, ZeroForm
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, ModularForms, CuspForms, ZeroForm
             sage: MF1 = QuasiWeakModularForms(n=4, base_ring=CC, k=0, ep=1)
             sage: MF2 = ModularForms(n=4, k=4, ep=1)
             sage: MF3 = ModularForms(n=4, k=4, ep=-1)
@@ -277,7 +277,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: MF = CuspForms(k=12)
             sage: MF.one_element()
             1 + O(q^5)
@@ -293,7 +293,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=12)
             sage: MF.is_ambient()
             True
@@ -309,7 +309,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=12)
             sage: MF.ambient_space()
             ModularForms(n=3, k=12, ep=1) over Integer Ring
@@ -330,7 +330,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=12)
             sage: MF.module()
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -349,7 +349,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=12)
             sage: MF.ambient_module()
             Vector space of dimension 2 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -368,7 +368,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=24)
             sage: MF.dimension()
             3
@@ -386,7 +386,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(n=5, k=24).change_ring(CC)
             CuspForms(n=5, k=24, ep=1) over Complex Field with 53 bits of precision
         """
@@ -399,12 +399,12 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLE:: 
 
-        sage: from sage.modular.hecke_mf.space import QuasiModularForms
+        sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
         sage: QuasiModularForms(n=4, k=2, ep=1, base_ring=CC).construction()
         (QuasiModularFormsFunctor(n=4, k=2, ep=1),
          BaseFacade(Complex Field with 53 bits of precision))
 
-        sage: from sage.modular.hecke_mf.space import ModularForms
+        sage: from sage.modular.modform_hecketriangle.space import ModularForms
         sage: MF=ModularForms(k=12)
         sage: MF.subspace([MF.gen(1)]).construction()
         (FormsSubSpaceFunctor with 1 basis element for the ModularFormsFunctor(n=3, k=12, ep=1), BaseFacade(Integer Ring))
@@ -425,7 +425,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: QuasiModularForms(n=16, k=16/7, ep=-1).weight()
             16/7
         """
@@ -439,7 +439,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
             sage: QuasiModularForms(n=16, k=16/7, ep=-1).ep()
             -1
         """
@@ -461,7 +461,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=24)
             sage: MF.dimension()
             3
@@ -506,7 +506,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=24)
             sage: MF.dimension()
             3
@@ -533,7 +533,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiMeromorphicModularForms
             sage: MF = QuasiMeromorphicModularForms(n=6, k=4)
             sage: MF == MF.homogeneous_space(4,1)
             True
@@ -556,7 +556,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import MeromorphicModularForms
+            sage: from sage.modular.modform_hecketriangle.space import MeromorphicModularForms
             sage: MF = MeromorphicModularForms(n=18, k=-7, ep=-1)
             sage: MF.weight_parameters()
             (-3, 17)
@@ -567,7 +567,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: k == 4*(n*MF._l1 + MF._l2)/(n-2) + (1-ep)*n/(n-2)
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=5, k=12, ep=1)
             sage: MF.weight_parameters()
             (1, 4)
@@ -617,7 +617,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=8, k=4, ep=1)
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4
             sage: T = MF.group().T()
@@ -669,7 +669,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: MF = WeakModularForms(n=18, k=-7, ep=-1)
             sage: MF.disp_prec(1)
             sage: MF.F_simple()
@@ -677,7 +677,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.F_simple() == MF.f_inf()^MF._l1 * MF.f_rho()^MF._l2 * MF.f_i()
             True
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: MF = CuspForms(n=5, k=2, ep=-1)
             sage: MF._l1
             -1
@@ -731,7 +731,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.weight_parameters()
             (2, 3)
@@ -849,7 +849,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.weight_parameters()
             (2, 3)
@@ -941,7 +941,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.weight_parameters()
             (2, 3)
@@ -1010,7 +1010,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
             sage: MF = WeakModularForms(n=5, k=62/3, ep=-1)
             sage: MF.disp_prec(MF._l1+2)
             sage: MF.weight_parameters()
@@ -1074,7 +1074,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: Delta = CuspForms(k=12).Delta()
             sage: qexp = Delta.q_expansion(prec=2)
             sage: qexp.parent()
@@ -1084,7 +1084,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: CuspForms(k=12).construct_form(qexp) == Delta
             True
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: J_inv = WeakModularForms(n=7).J_inv()
             sage: qexp = J_inv.q_expansion(prec=1)
             sage: qexp.parent()
@@ -1135,7 +1135,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiMeromorphicModularForms
             sage: el = QuasiMeromorphicModularForms(k=2, ep=-1).an_element()
             sage: el.parent()
             QuasiMeromorphicModularForms(n=3, k=2, ep=-1) over Integer Ring
@@ -1158,7 +1158,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import QuasiMeromorphicModularForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiMeromorphicModularForms
             sage: QuasiMeromorphicModularForms(k=2, ep=-1).dimension()
             +Infinity
         """
@@ -1171,7 +1171,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.rank()
             3
@@ -1187,7 +1187,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.degree()
             3
@@ -1209,7 +1209,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.coordinate_vector(MF.gen(0)).parent() # defined in space.py
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -1236,7 +1236,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=4, k=24, ep=-1)
             sage: MF.ambient_coordinate_vector(MF.gen(0)).parent()
             Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -1265,7 +1265,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ModularForms(k=12).gens() # defined in space.py
             [1 + 196560*q^2 + 16773120*q^3 + 398034000*q^4 + O(q^5),
              q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)]
@@ -1280,7 +1280,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ModularForms(k=12).gen(1).parent()
             ModularForms(n=3, k=12, ep=1) over Integer Ring
             sage: ModularForms(k=12).gen(1)

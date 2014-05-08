@@ -59,7 +59,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: MR = ModularFormsRing(n=5, base_ring=ZZ, red_hom=True)
             sage: MR
             ModularFormsRing(n=5) over Integer Ring
@@ -109,7 +109,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing
             sage: QuasiModularFormsRing(n=4)
             QuasiModularFormsRing(n=4) over Integer Ring
         """
@@ -122,7 +122,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiWeakModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing
             sage: latex(QuasiWeakModularFormsRing())
             \mathcal{ QM^! }_{n=3}(\Bold{Z})
         """
@@ -136,7 +136,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: MR = ModularFormsRing()
             sage: (x,y,z,d) = MR.pol_ring().gens()
 
@@ -165,7 +165,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiWeakModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR1 = QuasiWeakModularFormsRing(base_ring=CC)
             sage: MR2 = ModularFormsRing()
             sage: MR3 = CuspFormsRing()
@@ -180,7 +180,7 @@ class FormsRing_abstract(Parent):
             sage: MR1.has_coerce_map_from(ZZ)
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF2 = ModularForms(k=6, ep=-1)
             sage: MF3 = CuspForms(k=12, ep=1)
             sage: MR1.has_coerce_map_from(MF2)
@@ -209,8 +209,8 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import CuspFormsRing
-            sage: from sage.modular.hecke_mf.space import WeakModularForms
+            sage: from sage.modular.modform_hecketriangle.graded_ring import CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: CuspFormsRing().an_element()
             f_rho^3*d - f_i^2*d
             sage: CuspFormsRing().an_element() == CuspFormsRing().Delta()
@@ -233,8 +233,8 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MR = ModularFormsRing()
             sage: MR.default_prec(3)
             sage: MR.default_prec()
@@ -265,7 +265,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=4)
             sage: MF.default_prec(5)
             sage: MF.disp_prec(3)
@@ -293,7 +293,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(k=6)
             sage: MF.default_prec(20)
             sage: MF.default_num_prec(10)
@@ -329,7 +329,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().change_ring(CC)
             ModularFormsRing(n=3) over Complex Field with 53 bits of precision
         """
@@ -342,8 +342,8 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing, CuspFormsRing
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
 
             sage: MR = ModularFormsRing(n=5)
             sage: MR.graded_ring() == MR
@@ -378,8 +378,8 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
 
             sage: MR = ModularFormsRing(n=5)
             sage: MR.extend_type(["quasi", "weak"])
@@ -423,8 +423,8 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiModularFormsRing
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
 
             sage: MR = QuasiModularFormsRing()
             sage: MR.reduce_type(["quasi", "cusp"])
@@ -462,7 +462,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
         sage: ModularFormsRing().construction()
         (ModularFormsRingFunctor(n=3), BaseFacade(Integer Ring))
         """
@@ -477,12 +477,12 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
         sage: MR = ModularFormsRing(n=7)
         sage: MR.group()
         Hecke triangle group for n = 7
 
-        sage: from sage.modular.hecke_mf.space import CuspForms
+        sage: from sage.modular.modform_hecketriangle.space import CuspForms
         sage: CF = CuspForms(n=7, k=4/5)
         sage: CF.group()
         Hecke triangle group for n = 7
@@ -498,12 +498,12 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+        sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
         sage: MR = ModularFormsRing(n=7)
         sage: MR.hecke_n()
         7
 
-        sage: from sage.modular.hecke_mf.space import CuspForms
+        sage: from sage.modular.modform_hecketriangle.space import CuspForms
         sage: CF = CuspForms(n=7, k=4/5)
         sage: CF.hecke_n()
         7
@@ -518,11 +518,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().base_ring()
             Integer Ring
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).base_ring()
             Algebraic Real Field
         """
@@ -536,11 +536,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().coeff_ring()
             Fraction Field of Univariate Polynomial Ring in d over Integer Ring
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).coeff_ring()
             Fraction Field of Univariate Polynomial Ring in d over Algebraic Real Field
         """
@@ -555,11 +555,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().pol_ring()
             Multivariate Polynomial Ring in x, y, z, d over Integer Ring
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).pol_ring()
             Multivariate Polynomial Ring in x, y, z, d over Algebraic Real Field
         """
@@ -574,11 +574,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().rat_field()
             Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).rat_field()
             Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Algebraic Real Field
         """
@@ -594,11 +594,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().diff_alg()
             Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).diff_alg()
             Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
         """
@@ -619,7 +619,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing(n=7)._derivative_op()
             -1/2*X^6*dY - 5/28*X^5*dZ + 1/7*X*Z*dX + 1/2*Y*Z*dY + 5/28*Z^2*dZ - 1/7*Y*dX
         """
@@ -637,7 +637,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing(n=8)._serre_derivative_op()
             -1/2*X^7*dY - 3/16*X^6*dZ - 3/16*Z^2*dZ - 1/8*Y*dX
         """
@@ -660,13 +660,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().has_reduce_hom()
             False
             sage: ModularFormsRing(red_hom=True).has_reduce_hom()
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ModularForms(k=6).has_reduce_hom()
             True
             sage: ModularForms(k=6).graded_ring().has_reduce_hom()
@@ -681,11 +681,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().is_homogeneous()
             False
 
-            sage: from sage.modular.hecke_mf.space import ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: ModularForms(k=6).is_homogeneous()
             True
         """
@@ -698,13 +698,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiWeakModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing, CuspFormsRing
             sage: QuasiWeakModularFormsRing().is_modular()
             False
             sage: CuspFormsRing(n=7).is_modular()
             True
 
-            sage: from sage.modular.hecke_mf.space import QuasiWeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiWeakModularForms, CuspForms
             sage: QuasiWeakModularForms(k=10).is_modular()
             False
             sage: CuspForms(n=7, k=12, base_ring=AA).is_modular()
@@ -720,13 +720,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing, CuspFormsRing
             sage: QuasiMeromorphicModularFormsRing().is_weakly_holomorphic()
             False
             sage: QuasiWeakModularFormsRing().is_weakly_holomorphic()
             True
 
-            sage: from sage.modular.hecke_mf.space import MeromorphicModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import MeromorphicModularForms, CuspForms
             sage: MeromorphicModularForms(k=10).is_weakly_holomorphic()
             False
             sage: CuspForms(n=7, k=12, base_ring=AA).is_weakly_holomorphic()
@@ -742,13 +742,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiWeakModularFormsRing, QuasiModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiWeakModularFormsRing, QuasiModularFormsRing
             sage: QuasiWeakModularFormsRing().is_holomorphic()
             False
             sage: QuasiModularFormsRing().is_holomorphic()
             True
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
             sage: WeakModularForms(k=10).is_holomorphic()
             False
             sage: CuspForms(n=7, k=12, base_ring=AA).is_holomorphic()
@@ -763,13 +763,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiModularFormsRing, QuasiCuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiModularFormsRing, QuasiCuspFormsRing
             sage: QuasiModularFormsRing().is_cuspidal()
             False
             sage: QuasiCuspFormsRing().is_cuspidal()
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, QuasiCuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, QuasiCuspForms
             sage: ModularForms(k=12).is_cuspidal()
             False
             sage: QuasiCuspForms(k=12).is_cuspidal()
@@ -784,11 +784,11 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import ModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().is_zerospace()
             False
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: ModularForms(k=12).is_zerospace()
             False
             sage: CuspForms(k=12).reduce_type([]).is_zerospace()
@@ -803,13 +803,13 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing
             sage: QuasiMeromorphicModularFormsRing().analytic_type()
             quasi meromorphic modular
             sage: QuasiWeakModularFormsRing().analytic_type()
             quasi weakly holomorphic modular
 
-            sage: from sage.modular.hecke_mf.space import MeromorphicModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import MeromorphicModularForms, CuspForms
             sage: MeromorphicModularForms(k=10).analytic_type()
             meromorphic modular
             sage: CuspForms(n=7, k=12, base_ring=AA).analytic_type()
@@ -824,7 +824,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing
             sage: QuasiMeromorphicModularFormsRing(n=7).homogeneous_space(k=2, ep=-1)
             QuasiMeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
         """
@@ -844,7 +844,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
             sage: MR = WeakModularFormsRing(n=7)
             sage: J_inv = MR.J_inv()
             sage: J_inv in MR
@@ -856,7 +856,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).J_inv() == QuasiMeromorphicModularFormsRing(n=7)(J_inv)
             True
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
             sage: MF = WeakModularForms(n=5, k=0)
             sage: J_inv = MF.J_inv()
             sage: J_inv in MF
@@ -889,7 +889,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
             sage: MR = WeakModularFormsRing(n=7)
             sage: j_inv = MR.j_inv()
             sage: j_inv in MR
@@ -901,7 +901,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).j_inv() == QuasiMeromorphicModularFormsRing(n=7)(j_inv)
             True
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
             sage: MF = WeakModularForms(n=5, k=0)
             sage: j_inv = MF.j_inv()
             sage: j_inv in MF
@@ -936,7 +936,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing(n=7)
             sage: f_rho = MR.f_rho()
             sage: f_rho in MR
@@ -948,7 +948,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).f_rho() == QuasiMeromorphicModularFormsRing(n=7)(f_rho)
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF = ModularForms(n=5, k=4/3)
             sage: f_rho = MF.f_rho()
             sage: f_rho in MF
@@ -985,7 +985,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing(n=7)
             sage: f_i = MR.f_i()
             sage: f_i in MR
@@ -997,7 +997,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).f_i() == QuasiMeromorphicModularFormsRing(n=7)(f_i)
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF = ModularForms(n=5, k=10/3)
             sage: f_i = MF.f_i()
             sage: f_i in MF
@@ -1032,7 +1032,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, CuspFormsRing
             sage: MR = CuspFormsRing(n=7)
             sage: f_inf = MR.f_inf()
             sage: f_inf in MR
@@ -1042,7 +1042,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).f_inf() == QuasiMeromorphicModularFormsRing(n=7)(f_inf)
             True
 
-            sage: from sage.modular.hecke_mf.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: MF = CuspForms(n=5, k=20/3)
             sage: f_inf = MF.f_inf()
             sage: f_inf in MF
@@ -1081,7 +1081,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
             sage: MR = WeakModularFormsRing(n=8)
             sage: G_inv = MR.G_inv()
             sage: G_inv in MR
@@ -1093,7 +1093,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=8).G_inv() == QuasiMeromorphicModularFormsRing(n=8)(G_inv)
             True
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
             sage: MF = WeakModularForms(n=8, k=0, ep=-1)
             sage: G_inv = MF.G_inv()
             sage: G_inv in MF
@@ -1133,7 +1133,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, WeakModularFormsRing, CuspFormsRing
             sage: MR = WeakModularFormsRing(n=8)
             sage: g_inv = MR.g_inv()
             sage: g_inv in MR
@@ -1145,7 +1145,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=8).g_inv() == QuasiMeromorphicModularFormsRing(n=8)(g_inv)
             True
 
-            sage: from sage.modular.hecke_mf.space import WeakModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms, CuspForms
             sage: MF = WeakModularForms(n=8, k=0, ep=-1)
             sage: g_inv = MF.g_inv()
             sage: g_inv in MF
@@ -1180,7 +1180,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing(n=7)
             sage: E4 = MR.E4()
             sage: E4 in MR
@@ -1192,7 +1192,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).E4() == QuasiMeromorphicModularFormsRing(n=7)(E4)
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF = ModularForms(n=5, k=4)
             sage: E4 = MF.E4()
             sage: E4 in MF
@@ -1226,7 +1226,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, ModularFormsRing, CuspFormsRing
             sage: MR = ModularFormsRing(n=7)
             sage: E6 = MR.E6()
             sage: E6 in MR
@@ -1238,7 +1238,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).E6() == QuasiMeromorphicModularFormsRing(n=7)(E6)
             True
 
-            sage: from sage.modular.hecke_mf.space import ModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import ModularForms, CuspForms
             sage: MF = ModularForms(n=5, k=6)
             sage: E6 = MF.E6()
             sage: E6 in MF
@@ -1273,7 +1273,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, CuspFormsRing
             sage: MR = CuspFormsRing(n=7)
             sage: Delta = MR.Delta()
             sage: Delta in MR
@@ -1283,7 +1283,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).Delta() == QuasiMeromorphicModularFormsRing(n=7)(Delta)
             True
 
-            sage: from sage.modular.hecke_mf.space import CuspForms, ModularForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms
             sage: MF = CuspForms(n=5, k=12)
             sage: Delta = MF.Delta()
             sage: Delta in MF
@@ -1322,7 +1322,7 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.graded_ring import QuasiMeromorphicModularFormsRing, QuasiModularFormsRing, CuspFormsRing
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, QuasiModularFormsRing, CuspFormsRing
             sage: MR = QuasiModularFormsRing(n=7)
             sage: E2 = MR.E2()
             sage: E2 in MR
@@ -1334,7 +1334,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).E2() == QuasiMeromorphicModularFormsRing(n=7)(E2)
             True
 
-            sage: from sage.modular.hecke_mf.space import QuasiModularForms, CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms, CuspForms
             sage: MF = QuasiModularForms(n=5, k=2)
             sage: E2 = MF.E2()
             sage: E2 in MF

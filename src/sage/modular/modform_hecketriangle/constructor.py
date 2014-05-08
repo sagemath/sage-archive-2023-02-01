@@ -68,7 +68,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.constructor import rational_type
+        sage: from sage.modular.modform_hecketriangle.constructor import rational_type
         sage: (x,y,z,d) = var("x,y,z,d")
 
         sage: rational_type(0, n=4)
@@ -209,7 +209,7 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.constructor import FormsSpace
+        sage: from sage.modular.modform_hecketriangle.constructor import FormsSpace
         sage: FormsSpace([])
         ZeroForms(n=3, k=0, ep=1) over Integer Ring
         sage: FormsSpace(["quasi"]) # not implemented
@@ -315,7 +315,7 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
 
     EXAMPLES::
 
-        sage: from sage.modular.hecke_mf.constructor import FormsRing
+        sage: from sage.modular.modform_hecketriangle.constructor import FormsRing
         sage: FormsRing("cusp", group=5, base_ring=CC)
         CuspFormsRing(n=5) over Complex Field with 53 bits of precision
         sage: FormsRing("cusp", group=5, base_ring=CC) == FormsRing([], group=5, base_ring=CC)

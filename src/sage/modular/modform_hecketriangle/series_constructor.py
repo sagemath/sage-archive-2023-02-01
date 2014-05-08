@@ -48,7 +48,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor() == MFSeriesConstructor(3, ZZ, 10, False, None, 53)
             True
             sage: MFSeriesConstructor(base_ring = CC, set_d=CC(1)) == MFSeriesConstructor(set_d=CC(1))
@@ -132,7 +132,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFC = MFSeriesConstructor()
             sage: MFC
             Power series constructor for Hecke modular forms for n=3, base ring=Integer Ring
@@ -182,7 +182,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True)
             Power series constructor for Hecke modular forms for n=4, base ring=Rational Field
             with (basic series) precision 10 with parameter d=1/256
@@ -205,7 +205,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).group()
             Hecke triangle group for n = 4
         """
@@ -218,7 +218,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).hecke_n()
             4
         """
@@ -231,7 +231,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=5, fix_d=True).base_ring()
             Real Field with 53 bits of precision
             sage: MFSeriesConstructor(group=5, fix_d=True, d_num_prec=100).base_ring()
@@ -246,7 +246,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=5, fix_d=True).prec()
             10
             sage: MFSeriesConstructor(group=5, prec=20).prec()
@@ -266,7 +266,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=5, fix_d=True, set_d=1).fix_d()
             True
             sage: MFSeriesConstructor(group=5, fix_d=True, set_d=1).set_d()
@@ -285,7 +285,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=5, fix_d=True, set_d=1).set_d()
             0.00705223418128563
             sage: MFSeriesConstructor(group=5, set_d=1).set_d()
@@ -302,7 +302,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).is_exact()
             True
             sage: MFSeriesConstructor(group=5, fix_d=True).is_exact()
@@ -321,7 +321,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).d()
             1/256
             sage: MFSeriesConstructor(group=4).d()
@@ -342,7 +342,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).q()
             q
             sage: MFSeriesConstructor(group=4, fix_d=True).q().parent()
@@ -359,7 +359,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).coeff_ring()
             Rational Field
             sage: MFSeriesConstructor(group=4).coeff_ring()
@@ -378,7 +378,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, fix_d=True).qseries_ring()
             Power Series Ring in q over Rational Field
             sage: MFSeriesConstructor(group=4).qseries_ring()
@@ -401,7 +401,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).J_inv_ZZ()
             q^-1 + 31/72 + 1823/27648*q + O(q^2)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).J_inv_ZZ()
@@ -435,7 +435,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).J_inv()
             1/1728*q^-1 + 31/72 + 1823/16*q + O(q^2)
             sage: MFSeriesConstructor(prec=3).J_inv_ZZ() == MFSeriesConstructor(prec=3, set_d=1).J_inv()
@@ -462,7 +462,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).f_rho_ZZ()
             1 + 5/36*q + 5/6912*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_rho_ZZ()
@@ -484,7 +484,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).f_rho()
             1 + 240*q + 2160*q^2 + O(q^3)
 
@@ -512,7 +512,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).f_i_ZZ()
             1 - 7/24*q - 77/13824*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_i_ZZ()
@@ -534,7 +534,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).f_i()
             1 - 504*q - 16632*q^2 + O(q^3)
             sage: MFSeriesConstructor(prec=3).f_i_ZZ() == MFSeriesConstructor(prec=3, set_d=1).f_i()
@@ -561,7 +561,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).f_inf_ZZ()
             q - 1/72*q^2 + 7/82944*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_inf_ZZ()
@@ -583,7 +583,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).f_inf()
             q - 24*q^2 + 252*q^3 + O(q^4)
             sage: MFSeriesConstructor(prec=3).f_inf_ZZ() == MFSeriesConstructor(prec=3, set_d=1).f_inf()
@@ -610,7 +610,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, prec=3).G_inv_ZZ()
             q^-1 - 3/32 - 955/16384*q + O(q^2)
             sage: MFSeriesConstructor(group=8, prec=3, fix_d=True).G_inv_ZZ()
@@ -632,7 +632,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=4, prec=3, fix_d=True).G_inv()
             1/16777216*q^-1 - 3/2097152 - 955/4194304*q + O(q^2)
             sage: MFSeriesConstructor(group=4, prec=3).G_inv_ZZ() == MFSeriesConstructor(group=4, prec=3, set_d=1).G_inv()
@@ -659,7 +659,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).E4_ZZ()
             1 + 5/36*q + 5/6912*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).E4_ZZ()
@@ -679,7 +679,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).E4()
             1 + 240*q + 2160*q^2 + O(q^3)
             sage: MFSeriesConstructor(prec=3).E4_ZZ() == MFSeriesConstructor(prec=3, set_d=1).E4()
@@ -706,7 +706,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).E6_ZZ()
             1 - 7/24*q - 77/13824*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).E6_ZZ()
@@ -727,7 +727,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).E6()
             1 - 504*q - 16632*q^2 + O(q^3)
             sage: MFSeriesConstructor(prec=3).E6_ZZ() == MFSeriesConstructor(prec=3, set_d=1).E6()
@@ -754,7 +754,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).Delta_ZZ()
             q - 1/72*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).Delta_ZZ()
@@ -773,7 +773,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).Delta()
             q - 24*q^2 + O(q^3)
             sage: MFSeriesConstructor(prec=3).Delta_ZZ() == MFSeriesConstructor(prec=3, set_d=1).Delta()
@@ -800,7 +800,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).E2_ZZ()
             1 - 1/72*q - 1/41472*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).E2_ZZ()
@@ -820,7 +820,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.modular.hecke_mf.series_constructor import MFSeriesConstructor
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3, fix_d=True).E2()
             1 - 24*q - 72*q^2 + O(q^3)
             sage: MFSeriesConstructor(prec=3).E2_ZZ() == MFSeriesConstructor(prec=3, set_d=1).E2()

@@ -4787,6 +4787,21 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(gsqrt(x.g, prec_bits_to_words(precision)))
 
+    def sqrtint(gen x):
+        r"""
+        Return the integer square root of the integer `x`, rounded
+        towards zero.
+
+        EXAMPLES::
+
+            sage: pari(8).sqrtint()
+            2
+            sage: pari(10^100).sqrtint()
+            100000000000000000000000000000000000000000000000000
+        """
+        pari_catch_sig_on()
+        return P.new_gen(sqrtint(x.g))
+
     def sqrtn(gen x, n, unsigned long precision=0):
         r"""
         x.sqrtn(n): return the principal branch of the n-th root of x,

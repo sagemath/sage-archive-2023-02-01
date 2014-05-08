@@ -265,23 +265,23 @@ def BIBD_from_TD(v,k,existence=False):
     This method implements three constructions:
 
     - If there exists a `TD(k,v)` and a `(v,k,1)`-BIBD then there exists a
-      `(kv,k,1)-`BIBD.
-
-      The BIBD is obtained from all blocks of the `TD`, and by replacing all the
-      groups of the TD with a `(v,k,1)`-BIBD.
-
-    - If there exists a `TD(k,v)` and a `(v+1,k,1)`-BIBD then there exists a
-      `(kv+1,k,1)-`BIBD.
+      `(kv,k,1)`-BIBD.
 
       The BIBD is obtained from all blocks of the `TD`, and from the blocks of
-      the `(v+1,k,1)`-BIBD defined over the sets `V_1\cup \infty,\dots,V_k\cup
+      the `(v,k,1)`-BIBDs defined over the `k` groups of the `TD`.
+
+    - If there exists a `TD(k,v)` and a `(v+1,k,1)`-BIBD then there exists a
+      `(kv+1,k,1)`-BIBD.
+
+      The BIBD is obtained from all blocks of the `TD`, and from the blocks of
+      the `(v+1,k,1)`-BIBDs defined over the sets `V_1\cup \infty,\dots,V_k\cup
       \infty` where the `V_1,\dots,V_k` are the groups of the TD.
 
     - If there exists a `TD(k,v)` and a `(v+k,k,1)`-BIBD then there exists a
-      `(kv+k,k,1)-`BIBD.
+      `(kv+k,k,1)`-BIBD.
 
       The BIBD is obtained from all blocks of the `TD`, and from the blocks of
-      the `(v+k,k,1)`-BIBD defined over the sets `V_1\cup
+      the `(v+k,k,1)`-BIBDs defined over the sets `V_1\cup
       \{\infty_1,\dots,\infty_k\},\dots,V_k\cup \{\infty_1,\dots,\infty_k\}`
       where the `V_1,\dots,V_k` are the groups of the TD. By making sure that
       all copies of the `(v+k,k,1)`-BIBD contain the block

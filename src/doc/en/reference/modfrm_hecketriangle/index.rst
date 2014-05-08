@@ -1,8 +1,11 @@
 Modular Forms for Hecke Triangle Groups
 =======================================
 
+
 .. toctree::
    :maxdepth: 2
+
+   sage/modular/modform_hecketriangle/readme
 
    sage/modular/modform_hecketriangle/abstract_ring
    sage/modular/modform_hecketriangle/abstract_space

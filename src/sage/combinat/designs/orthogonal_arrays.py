@@ -628,7 +628,9 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
-        EmptySetError: No Orthogonal Array exists when k>=n+t
+        EmptySetError: No Orthogonal Array exists when k>=n+t except when n=1
+        sage: designs.orthogonal_array(16,1)
+        [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField
@@ -638,15 +640,17 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     if k < 2:
         raise ValueError("undefined for k less than 2")
 
+    if n == 1:
+        OA = [[0]*k]
+
     elif k >= n+t:
         # When t=2 then k<n+t as it is equivalent to the existence of n-1 MOLS.
         # When t>2 the submatrix defined by the rows whose first t-2 elements
         # are 0s yields a OA with t=2 and k-(t-2) columns. Thus k-(t-2) < n+2,
         # i.e. k<n+t.
-
         if existence:
             return False
-        raise EmptySetError("No Orthogonal Array exists when k>=n+t")
+        raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n=1")
 
     elif k == t:
         if existence:

@@ -1086,6 +1086,20 @@ class Sets(Category_singleton):
                 """
                 return self._cartesian_product_of_elements(s.an_element() for s in self._sets)
 
+            # Here or in Sets.Finite.CartesianProducts.ParentMethods?
+            def cardinality(self):
+                """
+                Return the cardinality of ``self``
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([GF(3), FiniteEnumeratedSet(['a','b']), GF(5)])
+                    sage: C.cardinality()
+                    30
+                """
+                from sage.misc.misc_c import prod
+                return prod([x.cardinality() for x in self._sets])
+
             @abstract_method
             def _sets_keys(self):
                 """
@@ -1159,6 +1173,8 @@ class Sets(Category_singleton):
                 """
                 return self.parent().summand_projection(i)(self)
 
+            __getitem__ = summand_projection
+
             def summand_split(self):
                 """
                 Splits ``self`` into its summands
@@ -1182,6 +1198,22 @@ class Sets(Category_singleton):
                 # TODO: optimize
                 return tuple(self.summand_projection(i) for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
+
+            def __iter__(self):
+                r"""
+                Iterates on the components of an element
+
+                EXAMPLES::
+
+                    sage: x = GF(5).cartesian_product(GF(5))((1,3)); x
+                    (1, 3)
+                    sage: for i in x:
+                    ....:     print i
+                    1
+                    3
+                """
+                for i in self.parent()._sets_keys():
+                    yield self.summand_projection(i)
 
 
     class Algebras(AlgebrasCategory):

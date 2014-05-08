@@ -164,7 +164,8 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
-            sage: tensor.category_from_parents((E, E, E)) # todo: not implemented (see upcoming category patch #5985)
+            sage: tensor.category_from_parents((E, E, E))
+            Category of tensor products of modules with basis over Rational Field
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -173,7 +174,6 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         # category of the result does not depend on the order/repetition
         # of the categories of the parents
         return self.category_from_categories(tuple(set(parent.category() for parent in parents)))
-
 
     @cached_method
     def category_from_categories(self, categories):
@@ -190,7 +190,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
             sage: Cat1 = Rings()
             sage: Cat2 = Groups()
             sage: cartesian_product.category_from_categories((Cat1, Cat1, Cat1))
-            Category of Cartesian products of monoids
+            Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
 
             sage: cartesian_product.category_from_categories((Cat1, Cat2))
             Category of Cartesian products of monoids

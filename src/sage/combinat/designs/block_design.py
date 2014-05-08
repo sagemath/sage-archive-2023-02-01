@@ -384,9 +384,9 @@ def HadamardDesign(n):
 
 def Hadamard3Design(n):
     """
-    Return the Hadamard 3-design with parameters `3-(n, \frac n 2, \frac n 4 - 1)`.
+    Return the Hadamard 3-design with parameters `3-(n, \\frac n 2, \\frac n 4 - 1)`.
 
-    This is the unique extension of the Hadamard 2-design (see
+    This is the unique extension of the Hadamard `2`-design (see
     :meth:`HadamardDesign`).  We implement the description from pp. 12 in
     [CvL]_.
 
@@ -399,9 +399,12 @@ def Hadamard3Design(n):
         sage: designs.Hadamard3Design(12)
         Incidence structure with 12 points and 22 blocks
 
-    We verify that any two blocks of the Hadamard 3-design `3-(8, 4, 1)` design meet in `0`
-    or `2` points. More generally, it is true that any two blocks of a Hadamard 3-design meet
-    in `0` or `\frac n 4` points (for `n > 4`). ::
+    We verify that any two blocks of the Hadamard `3`-design `3-(8, 4, 1)`
+    design meet in `0` or `2` points. More generally, it is true that any two
+    blocks of a Hadamard `3`-design meet in `0` or `\\frac{n}{4}` points (for `n
+    > 4`).
+
+    ::
 
         sage: D = designs.Hadamard3Design(8)
         sage: N = D.incidence_matrix()
@@ -420,6 +423,7 @@ def Hadamard3Design(n):
         [2 2 0 2 2 2 2 2 2 2 2 4 2 2]
         [2 0 2 2 2 2 2 2 2 2 2 2 4 2]
         [0 2 2 2 2 2 2 2 2 2 2 2 2 4]
+
 
     REFERENCES:
 

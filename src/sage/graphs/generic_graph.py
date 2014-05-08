@@ -962,12 +962,12 @@ class GenericGraph(GenericGraph_pyx):
         Raises an exception if the graph is not simple.
 
         This function is called by some functions of the Graph library when they
-        have not been written for simple graphs only (i.e. no loops nor multiple
+        have been written for simple graphs only (i.e. neither loops nor multiple
         edges). It raises an exception inviting the user to convert the graph to
         a simple graph first, before calling the function again.
 
-        Note that this function does not checl the existence of loops or
-        multiple edges, which would take linear time : it merely checks that the
+        Note that this function does not check the existence of loops or
+        multiple edges, which would take linear time: it merely checks that the
         graph *does not allow* multiple edges nor loops, which takes a constant
         time.
 
@@ -987,14 +987,18 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
-            sage: g._scream_if_not_simple()
-            sage: g.allow_loops(True)
-            sage: g.allow_multiple_edges(True)
-            sage: g._scream_if_not_simple()
-            Traceback (most recent call last):
-            ...
-            ValueError: This method is not known to work on graphs with multiedges/loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges/loops using allow_multiple_edges() and allow_loops().
-            sage: g.allow_multiple_edges(True)
+
+        No scream::
+
+            sage: from itertools import product
+            sage: for p,q in product((True,False),repeat=2):
+            ....:     g.allow_loops(p)
+            ....:     g.allow_multiple_edges(q)
+            ....:     g._scream_if_not_simple(p,q)
+
+        A lot of them::
+
+            sage: g.allow_loops(True); g.allow_multiple_edges(True)
             sage: g._scream_if_not_simple()
             Traceback (most recent call last):
             ...
@@ -1007,16 +1011,27 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+
+            sage: g.allow_loops(True); g.allow_multiple_edges(False)
+            sage: g._scream_if_not_simple()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+            sage: g._scream_if_not_simple(allow_multiple_edges=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
         """
-        if ((not allow_loops and self.allows_loops()) or
-            (not allow_multiple_edges and self.allows_multiple_edges())):
-            if allow_loops is False and allow_multiple_edges is False:
+        pb_with_loops = not allow_loops and self.allows_loops()
+        pb_with_multiple_edges = not allow_multiple_edges and self.allows_multiple_edges()
+        if pb_with_loops or pb_with_multiple_edges:
+            if pb_with_loops and pb_with_multiple_edges:
                 name = "multiedges/loops"
                 functions = "allow_multiple_edges() and allow_loops()"
-            elif allow_loops is False:
+            elif pb_with_loops:
                 name = "loops"
                 functions = "allow_loops()"
-            else:
+            elif pb_with_multiple_edges:
                 name = "multiedges"
                 functions = "allow_multiple_edges()"
             msg = ("This method is not known to work on graphs with "+name+". "+
@@ -4792,7 +4807,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: st = g.steiner_tree([5,15])
             Traceback (most recent call last):
             ...
-            ValueError: The given vertices do not all belong to the same connected component. This problem has no solution !
+            EmptySetError: The given vertices do not all belong to the same connected component. This problem has no solution !
         """
         self._scream_if_not_simple(allow_loops=True)
 
@@ -4802,14 +4817,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             g = self
 
-        if g.has_multiple_edges():
-            raise ValueError("The graph is expected not to have multiple edges.")
-
         # Can the problem be solved ? Are all the vertices in the same
         # connected component ?
         cc = g.connected_component_containing_vertex(vertices[0])
         if not all([v in cc for v in vertices]):
-            raise ValueError("The given vertices do not all belong to the same connected component. This problem has no solution !")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("The given vertices do not all belong to the same connected component. This problem has no solution !")
 
         # Can it be solved using the min spanning tree algorithm ?
         if not weighted:
@@ -4928,7 +4941,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.edge_disjoint_spanning_trees(2)
             Traceback (most recent call last):
             ...
-            ValueError: This graph does not contain the required number of trees/arborescences !
+            EmptySetError: This graph does not contain the required number of trees/arborescences !
 
         By Edmond's theorem, a graph which is `k`-connected always has `k` edge-disjoint
         arborescences, regardless of the root we pick::
@@ -5054,7 +5067,8 @@ class GenericGraph(GenericGraph_pyx):
             p.solve(log = verbose)
 
         except MIPSolverException:
-            raise ValueError("This graph does not contain the required number of trees/arborescences !")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("This graph does not contain the required number of trees/arborescences !")
 
         edges = p.get_values(edges)
 
@@ -5357,7 +5371,8 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
         if g.has_edge(s,t):
-            raise ValueError("There can be no vertex cut between adjacent vertices !")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("There can be no vertex cut between adjacent vertices !")
         if vertices:
             value_only = False
 
@@ -6105,7 +6120,8 @@ class GenericGraph(GenericGraph_pyx):
                 `1`
 
               - If set to ``True``, the weights are taken into account, and the
-                circuit returned is the one minimizing the sum of the weights.
+                circuit returned is the one minimizing the sum of the weights
+                (an edge with no label is assumed to have weight `1`).
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -6137,10 +6153,10 @@ class GenericGraph(GenericGraph_pyx):
         This optimization problem is solved through the use of Linear
         Programming.
 
-        NOTE:
+        .. NOTE::
 
-        - This function is correctly defined for both graph and digraphs.  In
-          the second case, the returned cycle is a circuit of optimal cost.
+            This function is correctly defined for both graph and digraphs. In
+            the second case, the returned cycle is a circuit of optimal cost.
 
         EXAMPLES:
 
@@ -6163,7 +6179,7 @@ class GenericGraph(GenericGraph_pyx):
 
         And obviously it is a subgraph of the Heawood graph::
 
-            sage: all([ e in g.edges() for e in tsp.edges()])
+            sage: tsp.is_subgraph(g, induced=False)
             True
 
         On the other hand, the Petersen Graph is known not to
@@ -6173,15 +6189,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = g.traveling_salesman_problem()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not hamiltonian
+            EmptySetError: The given graph is not hamiltonian
 
-
-        One easy way to change is is obviously to add to this graph the edges
-        corresponding to a Hamiltonian cycle.
-
-        If we do this by setting the cost of these new edges to `2`, while the
-        others are set to `1`, we notice that not all the edges we added are
-        used in the optimal solution ::
+        One easy way to change it is obviously to add to this graph the edges
+        corresponding to a Hamiltonian cycle. If we do this by setting the cost
+        of these new edges to `2`, while the others are set to `1`, we notice
+        that not all the edges we added are used in the optimal solution ::
 
             sage: for u, v in g.edges(labels = None):
             ...      g.set_edge_label(u,v,1)
@@ -6252,18 +6265,108 @@ class GenericGraph(GenericGraph_pyx):
             ...           print "Without constraint generation :",c1
             ...           break
 
+        Simple tests for multiple edges and loops::
+
+            sage: G = DiGraph(multiedges=True, loops=True)
+            sage: G.is_hamiltonian()
+            Traceback (most recent call last):
+            ...
+            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            sage: G.add_vertex(0)
+            sage: G.is_hamiltonian()
+            Traceback (most recent call last):
+            ...
+            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            sage: G.add_edge(0,0,1)
+            sage: G.add_edge(0,0,2)
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: The traveling salesman problem (or finding Hamiltonian cycle) is not well defined for graphs with less than 2 vertices
+            sage: G.add_vertex(1)
+            sage: G.is_hamiltonian()
+            False
+            sage: G.add_edge(0,1,2)
+            sage: G.add_edge(0,1,3)
+            sage: G.add_edge(1,1,1)
+            sage: G.add_edge(1,0,2)
+            sage: G.is_hamiltonian()
+            True
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            sage: sum(tsp.edge_labels())
+            4
+
+        Graphs on 2 vertices::
+
+            sage: Graph([(0,1),(0,1)],multiedges=True).is_hamiltonian()
+            True
+            sage: DiGraph([(0,1),(0,1)],multiedges=True).is_hamiltonian()
+            False
+            sage: DiGraph([(0,1),(1,0)],multiedges=True).is_hamiltonian()
+            True
+            sage: G = DiGraph(loops=True)
+            sage: G.add_edges([(0,0),(0,1),(1,1),(1,0)])  # i.e. complete digraph with loops
+            sage: G.is_hamiltonian()
+            True
+            sage: G.remove_loops()
+            sage: G.is_hamiltonian()
+            True
+            sage: G.allow_loops(False)
+            sage: G.is_hamiltonian()
+            True
+
+        Check that weight 0 edges are handled correctly (see :trac:`16214`)::
+
+            sage: G = Graph([(0,1,1),(0,2,0),(0,3,1),(1,2,1),(1,3,0),(2,3,1)])
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True)
+            sage: sum(tsp.edge_labels())
+            2
         """
-        self._scream_if_not_simple()
+        from sage.categories.sets_cat import EmptySetError
 
-        if constraint_generation is None:
-            if self.density() > .7:
-                constraint_generation = False
+        weight = lambda l : 1 if l is None else l
+
+        ########################
+        # 0 or 1 vertex graphs #
+        ########################
+
+        if self.order() < 2:
+            raise ValueError("The traveling salesman problem (or finding "+
+                 "Hamiltonian cycle) is not well defined for graphs with "+
+                 "less than 2 vertices")
+
+        #####################
+        # 2-vertices graphs #
+        #####################
+
+        if self.order() == 2:
+            u,v = self.vertices()
+            if self.is_directed():
+                if self.has_edge(u,v) and self.has_edge(v,u):
+                    if self.has_multiple_edges():
+                        edges = [(u,v,min(self.edge_label(u,v), key=weight)),
+                                 (v,u,min(self.edge_label(v,u), key=weight))]
+                    else:
+                        edges = [(u,v,self.edge_label(u,v)),
+                                 (v,u,self.edge_label(v,u))]
+                    answer = self.subgraph(edges = edges)
+                    answer.set_pos(self.get_pos())
+                    answer.name("TSP from "+self.name())
+                    return answer
             else:
-                constraint_generation = True
+                if self.has_multiple_edges() and len(self.edge_label(u,v)) > 1:
+                    edges = self.edges()
+                    edges.sort(key=weight)
+                    answer = self.subgraph(edges = edges[:2])
+                    answer.set_pos(self.get_pos())
+                    answer.name("TSP from "+self.name())
+                    return answer
 
-        ###############################
+            raise EmptySetError("The given graph is not hamiltonian")
+
+        ################################
         # Quick checks of connectivity #
-        ###############################
+        ################################
 
         # TODO : Improve it by checking vertex-connectivity instead of
         # edge-connectivity.... But calling the vertex_connectivity (which
@@ -6272,47 +6375,53 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             if not self.is_strongly_connected():
-                raise ValueError("The given graph is not hamiltonian")
+                raise EmptySetError("The given graph is not hamiltonian")
 
         else:
             # Checks whether the graph is 2-connected
             if not self.strong_orientation().is_strongly_connected():
-                raise ValueError("The given graph is not hamiltonian")
+                raise EmptySetError("The given graph is not hamiltonian")
 
         ############################
         # Deal with multiple edges #
         ############################
 
-        if self.has_multiple_edges():
-            g = self.copy()
-            multi = self.multiple_edges()
+        if self.has_loops() or self.has_multiple_edges():
+            g = self.copy(immutable=False)
+        else:
+            g = self
+
+        if g.has_multiple_edges():
+            multi = g.multiple_edges()
             g.delete_edges(multi)
             g.allow_multiple_edges(False)
             if use_edge_labels:
                 e = {}
 
+                # The weight of an edge is the minimum over the weights of the parallel edges
                 for u,v,l in multi:
-                    u,v = (u,v) if u<v else (v,u)
-
-                    # The weight of an edge is the minimum over
-                    # the weights of the parallel edges
-
-                    #  new value *if* ( none other        *or*   new==None and last > 1     *else*  change nothing
-                    e[(u,v)] = l if ((u,v) not in e or ( (l is None or l == {}) and e[(u,v)] > 1 )) else e[(u,v)]
+                    if (u,v) in e:
+                        e[u,v] = weight(l) if weight(l) < e[u,v] else e[u,v]
+                    else:
+                        e[u,v] = l
 
                 g.add_edges([(u,v) for (u,v),l in e.iteritems()])
 
             else:
-                from sage.sets.set import Set
-                g.add_edges(Set([ (min(u,v),max(u,v)) for u,v,l in multi]))
+                g.add_edges(multi)
 
-        else:
-            g = self
+        if g.has_loops():
+            g.remove_loops()
+            g.allow_loops(False)
+
+        if constraint_generation is None:
+            if g.density() > .7:
+                constraint_generation = False
+            else:
+                constraint_generation = True
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         from sage.numerical.mip import MIPSolverException
-
-        weight = lambda l : l if (l is not None and l) else 1
 
         ####################################################
         # Constraint-generation formulation of the problem #
@@ -6350,7 +6459,7 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     p.solve(log = verbose)
                 except MIPSolverException:
-                    raise ValueError("The given graph is not hamiltonian")
+                    raise EmptySetError("The given graph is not hamiltonian")
 
                 while True:
                     # We build the DiGraph representing the current solution
@@ -6376,7 +6485,7 @@ class GenericGraph(GenericGraph_pyx):
                     try:
                         p.solve(log = verbose)
                     except MIPSolverException:
-                        raise ValueError("The given graph is not hamiltonian")
+                        raise EmptySetError("The given graph is not hamiltonian")
 
             # Undirected Case #
             ###################
@@ -6401,7 +6510,7 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     p.solve(log = verbose)
                 except MIPSolverException:
-                    raise ValueError("The given graph is not hamiltonian")
+                    raise EmptySetError("The given graph is not hamiltonian")
 
                 while True:
                     # We build the DiGraph representing the current solution
@@ -6426,7 +6535,7 @@ class GenericGraph(GenericGraph_pyx):
                     try:
                         p.solve(log = verbose)
                     except MIPSolverException:
-                        raise ValueError("The given graph is not hamiltonian")
+                        raise EmptySetError("The given graph is not hamiltonian")
 
             # We can now return the TSP !
             answer = self.subgraph(edges = h.edges())
@@ -6521,7 +6630,7 @@ class GenericGraph(GenericGraph_pyx):
             return tsp
 
         except MIPSolverException:
-            raise ValueError("The given graph is not Hamiltonian")
+            raise EmptySetError("The given graph is not Hamiltonian")
 
 
     def hamiltonian_cycle(self, algorithm='tsp' ):
@@ -6549,7 +6658,7 @@ class GenericGraph(GenericGraph_pyx):
         OUTPUT:
 
         If using the 'tsp' algorithm, returns a Hamiltonian cycle/circuit if it
-        exists; otherwise, raises a ``ValueError`` exception. If using the
+        exists; otherwise, raises a ``EmptySetError`` exception. If using the
         'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
         Hamiltonian cycle and if B is False, P is a longest path found by the
         algorithm. Observe that if B is False, the graph may still be Hamiltonian.
@@ -6584,7 +6693,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_cycle()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not hamiltonian
+            EmptySetError: The given graph is not hamiltonian
 
         Now, using the backtrack algorithm in the Heawood graph ::
 
@@ -6611,7 +6720,8 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 return self.traveling_salesman_problem(use_edge_labels = False)
             except MIPSolverException:
-                raise ValueError("The given graph is not Hamiltonian")
+                from sage.categories.sets_cat import EmptySetError
+                raise EmptySetError("The given graph is not Hamiltonian")
         elif algorithm=='backtrack':
             from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
             return fh( self )
@@ -7312,7 +7422,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = g.multicommodity_flow([(u,v,3) for u,v in matching])
             Traceback (most recent call last):
             ...
-            ValueError: The multiflow problem has no solution
+            EmptySetError: The multiflow problem has no solution
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -7401,7 +7511,8 @@ class GenericGraph(GenericGraph_pyx):
         try:
             obj=p.solve(log = verbose)
         except MIPSolverException:
-            raise ValueError("The multiflow problem has no solution")
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("The multiflow problem has no solution")
 
         flow=p.get_values(flow)
 
@@ -7550,13 +7661,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (4,4)), ((0,4), (4,0))])
             Traceback (most recent call last):
             ...
-            ValueError: The disjoint routed paths do not exist.
+            EmptySetError: The disjoint routed paths do not exist.
         """
-
+        from sage.categories.sets_cat import EmptySetError
         try:
             return self.multicommodity_flow(pairs, vertex_bound = True, solver=solver, verbose=verbose)
-        except ValueError:
-            raise ValueError("The disjoint routed paths do not exist.")
+        except EmptySetError:
+            raise EmptySetError("The disjoint routed paths do not exist.")
 
     def edge_disjoint_paths(self, s, t, method = "FF"):
         r"""
@@ -17371,13 +17482,21 @@ class GenericGraph(GenericGraph_pyx):
             ...          print "There is something wrong here !"
             ... except OptionalPackageNotFoundError:
             ...       pass
-        """
 
+        :trac:`16210`::
+
+            sage: g=graphs.CycleGraph(10)
+            sage: g.allow_loops(True)
+            sage: g.add_edge(0,0)
+            sage: g.is_hamiltonian()
+            True
+        """
+        from sage.categories.sets_cat import EmptySetError
         try:
             tsp = self.traveling_salesman_problem(use_edge_labels = False)
             return True
 
-        except ValueError:
+        except EmptySetError:
             return False
 
     def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):

@@ -5150,8 +5150,7 @@ class Automaton(FiniteStateMachine):
         Therefore, the colors of the constituent states have to be
         hashable.
 
-        The input alphabet must be specified. It is restricted to nice
-        cases: input words have to have length at most `1`.
+        The input alphabet must be specified.
 
         EXAMPLES::
 
@@ -5230,19 +5229,16 @@ class Automaton(FiniteStateMachine):
             sage: auto.determinisation()
             Automaton with 3 states
         """
-        if any(itertools.ifilter(lambda t: len(t.word_in)>1,
-                                 self.iter_transitions())):
+        if any(len(t.word_in)>1 for t in self.iter_transitions()):
             return self.split_transitions().determinisation()
 
         epsilon_successors = {}
         direct_epsilon_successors = {}
-        for state in self.states():
-            direct_epsilon_successors[state] = set(map(lambda t:t.to_state,
-                                                       filter(lambda transition: len(transition.word_in) == 0,
-                                                              self.transitions(state)
-                                                              )
-                                                       )
-                                                   )
+        for state in self.iter_states():
+            direct_epsilon_successors[state] = set(
+                t.to_state
+                for t in self.iter_transitions(state)
+                if not t.word_in)
             epsilon_successors[state] = set([state])
 
         old_count_epsilon_successors = 0
@@ -5251,7 +5247,7 @@ class Automaton(FiniteStateMachine):
         while old_count_epsilon_successors < count_epsilon_successors:
             old_count_epsilon_successors = count_epsilon_successors
             count_epsilon_successors = 0
-            for state in self.states():
+            for state in self.iter_states():
                 for direct_successor in direct_epsilon_successors[state]:
                     epsilon_successors[state] = epsilon_successors[state].union(epsilon_successors[direct_successor])
                 count_epsilon_successors += len(epsilon_successors[state])
@@ -5260,21 +5256,20 @@ class Automaton(FiniteStateMachine):
         def set_transition(states, letter):
             result = set()
             for state in states:
-                for transition in self.transitions(state):
+                for transition in self.iter_transitions(state):
                     if transition.word_in == [letter]:
                         result.add(transition.to_state)
-            result = result.union(*map(lambda s:epsilon_successors[s], result))
+            result = result.union(*(epsilon_successors[s] for s in result))
             return (frozenset(result), [])
 
         result = self.empty_copy()
-        new_initial_states = [frozenset([state for state in self.initial_states()])]
+        new_initial_states = [frozenset(self.iter_initial_states())]
         result.add_from_transition_function(set_transition,
                                             initial_states=new_initial_states)
 
-        for state in result.states():
-            if any(map(lambda s: s.is_final, state.label())):
-                state.is_final = True
-            state.color = frozenset(map(lambda s: s.color, state.label()))
+        for state in result.iter_states():
+            state.is_final = any(s.is_final for s in state.label())
+            state.color = frozenset(s.color for s in state.label())
 
         return result
 

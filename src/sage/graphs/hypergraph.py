@@ -205,6 +205,7 @@ class Hypergraph:
              "The colors are picked for readability and have no other meaning.")
 
         latex.add_package_to_preamble_if_available("tikz")
+        latex.add_to_mathjax_avoid_list("tikz")
 
         if not latex.has_file("tikz.sty"):
             raise RuntimeError("You must have TikZ installed in order "

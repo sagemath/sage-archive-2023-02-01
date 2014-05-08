@@ -1913,6 +1913,65 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def induced_sub_finite_state_machine(self, states):
+        """
+        Returns a sub-finite-state-machine of the finite state machine
+        induced by the given states.
+
+        INPUT:
+
+        - ``states`` -- a list (or an iterator) of states (either labels or
+          instances of :class:`FSMState`) of the sub-finite-state-machine.
+
+        OUTPUT:
+
+        A new finite state machine. It consists (of deep copies) of
+        the given states and (deep copies) of all transitions of ``self``
+        between these states.
+
+        EXAMPLE::
+
+            sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
+            ....:                           (1, 2, 0), (2, 0, 0)])
+            sage: sub_FSM = FSM.induced_sub_finite_state_machine([0, 1])
+            sage: sub_FSM.states()
+            [0, 1]
+            sage: sub_FSM.transitions()
+            [Transition from 0 to 1: 0|-]
+            sage: FSM.induced_sub_finite_state_machine([3])
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 is not a state of this finite state machine.
+
+        TESTS:
+
+        Make sure that the links between transitions and states
+        are still intact::
+
+            sage: sub_FSM.transitions()[0].from_state is sub_FSM.state(0)
+            True
+
+        """
+        good_states = set()
+        for state in states:
+            if not self.has_state(state):
+                raise ValueError("%s is not a state of this finite state machine." % state)
+            good_states.add(self.state(state))
+
+        memo = {}
+        new = self.empty_copy(memo=memo)
+        for state in good_states:
+            s = deepcopy(state, memo)
+            new.add_state(s)
+
+        for state in good_states:
+            for transition in self.iter_transitions(state):
+                if transition.to_state in good_states:
+                    new.add_transition(deepcopy(transition, memo))
+
+        return new
+
+
     def __hash__(self):
         """
         Since finite state machines are mutable, they should not be
@@ -2269,26 +2328,52 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: F = FiniteStateMachine([('A', 'B', 1, 2)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$ $} (v1);\n\\end{tikzpicture}'
+            sage: F = FiniteStateMachine([('A', 'B', 1, 2)],
+            ....:                        initial_states=['A'],
+            ....:                        final_states=['B'])
+            sage: F.state('A').initial_where='below'
+            sage: print latex(F)  # indirect doctest
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state, initial, initial where=below] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+            \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$ $} (v1);
+            \end{tikzpicture}
         """
-        result = "\\begin{tikzpicture}[auto]\n"
+        def label_rotation(angle, both_directions):
+            """
+            Given an angle of a transition, compute the TikZ string to
+            rotate the label.
+            """
+            angle_label = angle
+            anchor_label = "south"
+            if angle > 90 or angle <= -90:
+                angle_label = angle + 180
+                if both_directions:
+                    # if transitions in both directions, the transition to the
+                    # left has its label below the transition, otherwise above
+                    anchor_label = "north"
+            return "rotate=%.2f, anchor=%s" % (angle_label, anchor_label)
+
+        result = "\\begin{tikzpicture}[auto, initial text=]\n"
         j = 0;
         for vertex in self.states():
             if not hasattr(vertex, "coordinates"):
                 vertex.coordinates = (3*cos(2*pi*j/len(self.states())),
                                       3*sin(2*pi*j/len(self.states())))
             options = ""
-            if vertex in self.final_states():
-                options += ",accepting"
+            if vertex.is_final:
+                options += ", accepting"
+            if vertex.is_initial:
+                options += ", initial"
+            if hasattr(vertex, "initial_where"):
+                options += ", initial where=%s" % vertex.initial_where
             if hasattr(vertex, "format_label"):
                 label = vertex.format_label()
             elif hasattr(self, "format_state_label"):
                 label = self.format_state_label(vertex)
             else:
                 label = latex(vertex.label())
-            result += "\\node[state%s] (v%d) at (%f,%f) {%s}\n;" % (
+            result += "\\node[state%s] (v%d) at (%f, %f) {$%s$};\n" % (
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
@@ -2316,17 +2401,20 @@ class FiniteStateMachine(SageObject):
                             transition, format_transition_label))
                 label = ", ".join(labels)
                 if source != target:
-                    if len(adjacent[target, source]) > 0:
-                        angle = atan2(
-                            target.coordinates[1] - source.coordinates[1],
-                            target.coordinates[0]-source.coordinates[0])*180/pi
-                        angle_source = ".%.2f" % ((angle+5).n(),)
-                        angle_target = ".%.2f" % ((angle+175).n(),)
+                    angle = atan2(
+                        target.coordinates[1] - source.coordinates[1],
+                        target.coordinates[0] - source.coordinates[0])*180/pi
+                    both_directions = len(adjacent[target, source]) > 0
+                    if both_directions:
+                        angle_source = ".%.2f" % ((angle + 5).n(),)
+                        angle_target = ".%.2f" % ((angle + 175).n(),)
                     else:
                         angle_source = ""
                         angle_target = ""
-                    result += "\\path[->] (v%d%s) edge node {$%s$} (v%d%s);\n" % (
-                        source._number_, angle_source, label,
+                    result += "\\path[->] (v%d%s) edge node[%s] {$%s$} (v%d%s);\n" % (
+                        source._number_, angle_source,
+                        label_rotation(angle, both_directions),
+                        label,
                         target._number_, angle_target)
                 else:
                     result += "\\path[->] (v%d) edge[loop above] node {$%s$} ();\n" % (
@@ -3028,7 +3116,7 @@ class FiniteStateMachine(SageObject):
 
         OUTPUT:
 
-        True or False.
+        ``True`` or ``False``.
 
         A finite state machine is considered to be deterministic if
         each transition has input label of length one and for each
@@ -3052,18 +3140,84 @@ class FiniteStateMachine(SageObject):
             sage: fsm.is_deterministic()
             False
         """
-        for state in self.states():
+        for state in self.iter_states():
             for transition in state.transitions:
                 if len(transition.word_in) != 1:
                     return False
 
             transition_classes_by_word_in = full_group_by(
                 state.transitions,
-                key=lambda t:t.word_in)
+                key=lambda t: t.word_in)
 
             for key,transition_class in transition_classes_by_word_in:
                 if len(transition_class) > 1:
                     return False
+        return True
+
+
+    def is_complete(self):
+        """
+        Returns whether the finite state machine is complete.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        A finite state machine is considered to be complete if
+        each transition has an input label of length one and for each
+        pair `(q, a)` where `q` is a state and `a` is an element of the
+        input alphabet, there is exactly one transition from `q` with
+        input label `a`.
+
+        EXAMPLES::
+
+            sage: fsm = FiniteStateMachine([(0, 0, 0, 0),
+            ....:                           (0, 1, 1, 1),
+            ....:                           (1, 1, 0, 0)],
+            ....:                          determine_alphabets=False)
+            sage: fsm.is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling determine_alphabets().
+            sage: fsm.input_alphabet = [0, 1]
+            sage: fsm.is_complete()
+            False
+            sage: fsm.add_transition((1, 1, 1, 1))
+            Transition from 1 to 1: 1|1
+            sage: fsm.is_complete()
+            True
+            sage: fsm.add_transition((0, 0, 1, 0))
+            Transition from 0 to 0: 1|0
+            sage: fsm.is_complete()
+            False
+        """
+        if self.input_alphabet is None:
+            raise ValueError("No input alphabet is given. "
+                             "Try calling determine_alphabets().")
+
+        for state in self.iter_states():
+            for transition in state.transitions:
+                if len(transition.word_in) != 1:
+                    return False
+
+            transition_classes_by_word_in = full_group_by(
+                state.transitions,
+                key=lambda t: t.word_in)
+
+            for key, transition_class in transition_classes_by_word_in:
+                if len(transition_class) > 1:
+                    return False
+
+            # all input labels are lists, extract the only element
+            outgoing_alphabet = [key[0] for key, transition_class in
+                                 transition_classes_by_word_in]
+            if not sorted(self.input_alphabet) == sorted(outgoing_alphabet):
+                return False
+
         return True
 
 
@@ -4361,6 +4515,69 @@ class FiniteStateMachine(SageObject):
         return new
 
 
+    def final_components(self):
+        """
+        Returns the final components of a finite state machine as finite
+        state machines.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A list of finite state machines, each representing a final
+        component of ``self``.
+
+        A final component of a transducer ``T`` is a strongly connected
+        component ``C`` such that there are no transitions of ``T``
+        leaving ``C``.
+
+        The final components are the only parts of a transducer which
+        influence the main terms of the asympotic behaviour of the sum
+        of output labels of a transducer, see [HKP2014]_ and [HKW2014]_.
+
+        EXAMPLES::
+
+            sage: T = Transducer([['A', 'B', 0, 0], ['B', 'C', 0, 1],
+            ....:                 ['C', 'B', 0, 1], ['A', 'D', 1, 0],
+            ....:                 ['D', 'D', 0, 0], ['D', 'B', 1, 0],
+            ....:                 ['A', 'E', 2, 0], ['E', 'E', 0, 0]])
+            sage: FC = T.final_components()
+            sage: sorted(FC[0].transitions())
+            [Transition from 'B' to 'C': 0|1,
+             Transition from 'C' to 'B': 0|1]
+            sage: FC[1].transitions()
+            [Transition from 'E' to 'E': 0|0]
+
+        Another example (cycle of length 2)::
+
+            sage: T = Automaton([[0, 1, 0], [1, 0, 0]])
+            sage: len(T.final_components()) == 1
+            True
+            sage: T.final_components()[0].transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 1 to 0: 0|-]
+
+        REFERENCES:
+
+        .. [HKP2014] Clemens Heuberger, Sara Kropf, and Helmut
+           Prodinger, *Asymptotic analysis of the sum of the output of
+           transducer*, in preparation.
+
+        .. [HKW2014] Clemens Heuberger, Sara Kropf, and Stephan Wagner,
+           *Combinatorial Characterization of Independent Transducers via
+           Functional Digraphs*, :arxiv:`1404.3680`.
+
+        """
+        DG = self.digraph()
+        condensation = DG.strongly_connected_components_digraph()
+        final_labels = filter(lambda v: condensation.out_degree(v) == 0,
+                              condensation.vertices())
+        return [self.induced_sub_finite_state_machine(map(self.state, component))
+                for component in final_labels]
+
+
     # *************************************************************************
     # simplifications
     # *************************************************************************
@@ -5019,8 +5236,12 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Automaton([('A', 'B', 1)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right]$} (v1);\n\\end{tikzpicture}'
+            sage: print latex(F)  # indirect doctest
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+            \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right]$} (v1);
+            \end{tikzpicture}
 
         TESTS::
 
@@ -5589,8 +5810,12 @@ class Transducer(FiniteStateMachine):
         EXAMPLES::
 
             sage: F = Transducer([('A', 'B', 1, 2)])
-            sage: F._latex_()
-            '\\begin{tikzpicture}[auto]\n\\node[state] (v0) at (3.000000,0.000000) {\\text{\\texttt{A}}}\n;\\node[state] (v1) at (-3.000000,0.000000) {\\text{\\texttt{B}}}\n;\\path[->] (v0) edge node {$\\left[1\\right] \\mid \\left[2\\right]$} (v1);\n\\end{tikzpicture}'
+            sage: print latex(F)  # indirect doctest
+            \begin{tikzpicture}[auto, initial text=]
+            \node[state] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
+            \node[state] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
+            \path[->] (v0) edge node[rotate=360.00, anchor=south] {$\left[1\right] \mid \left[2\right]$} (v1);
+            \end{tikzpicture}
 
         TESTS::
 
@@ -5780,6 +6005,32 @@ class Transducer(FiniteStateMachine):
             [(1, 'b'), (0, 'b'), (None, 'c'),  (0, 'a')]
             sage: (transducer1([1, 0, 0]), transducer2([1, 0, 0]))
             ([1, 0, 0], ['b', 'b', 'c', 'a'])
+
+        The following transducer counts the number of 11 blocks minus
+        the number of 10 blocks over the alphabet ``[0, 1]``.
+
+        ::
+
+            sage: count_11 = transducers.CountSubblockOccurrences(
+            ....:     [1, 1],
+            ....:     input_alphabet=[0, 1])
+            sage: count_10 = transducers.CountSubblockOccurrences(
+            ....:     [1, 0],
+            ....:     input_alphabet=[0, 1])
+            sage: count_11x10 = count_11.cartesian_product(count_10)
+            sage: difference = transducers.sub([0, 1])(count_11x10)
+            sage: T = difference.simplification().relabeled()
+            sage: T.initial_states()
+            [1]
+            sage: sorted(T.transitions())
+            [Transition from 0 to 1: 0|-1,
+             Transition from 0 to 0: 1|1,
+             Transition from 1 to 1: 0|0,
+             Transition from 1 to 0: 1|0]
+            sage: input =  [0, 1, 1,  0, 1,  0, 0, 0, 1, 1, 1,  0]
+            sage: output = [0, 0, 1, -1, 0, -1, 0, 0, 0, 1, 1, -1]
+            sage: T(input) == output
+            True
 
         If ``other`` is an automaton, then :meth:`.cartesian_product` returns
         ``self`` where the input is restricted to the input accepted by
@@ -6072,7 +6323,7 @@ class Transducer(FiniteStateMachine):
                 return (it.accept_input, it.current_state, it.output_tape)
         else:
             if not it.accept_input:
-                raise ValueError, "Invalid input sequence."
+                raise ValueError("Invalid input sequence.")
             return it.output_tape
 
 
@@ -6432,7 +6683,7 @@ class FSMProcessIterator(SageObject):
         for transition in self.current_state.transitions:
             if transition.word_in == word_in:
                 return transition
-        raise ValueError, "No transition with input %s found." % (word_in,)
+        raise ValueError("No transition with input %s found." % (word_in,))
 
 
 #*****************************************************************************

@@ -280,6 +280,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
       (optional, default Infinity if no profile function is specified,
       0 otherwise).  This is just passed on to the function
       :func:`milnor_basis`.
+    - ``generic`` - boolean (optional, default = None)
 
     OUTPUT:
 
@@ -350,7 +351,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
 
     generic = kwds.get("generic", False if p==2 else True)
 
-    basis_name = get_basis_name(basis, 3 if generic else 2)
+    basis_name = get_basis_name(basis, p, generic=generic)
     if basis_name.find('long') >= 0:
         long = True
         basis_name = basis_name.rsplit('_', 1)[0]

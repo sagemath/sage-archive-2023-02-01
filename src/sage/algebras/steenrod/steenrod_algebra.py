@@ -522,10 +522,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             std_generic = True
         if not( std_generic is True or std_generic is False ):
             raise ValueError("option 'generic' is not a boolean")
-        aliasp = 3 if std_generic else 2
 
-        std_basis = get_basis_name(basis, aliasp)
-        std_profile, std_type = normalize_profile(profile, precision=precision, truncation_type=truncation_type, p=aliasp)
+        std_basis = get_basis_name(basis, p, generic=std_generic)
+        std_profile, std_type = normalize_profile(profile, precision=precision, truncation_type=truncation_type, p=p, generic=std_generic)
         return super(SteenrodAlgebra_generic, self).__classcall__(self, p=p, basis=std_basis, profile=std_profile,
                                                                   truncation_type=std_type, generic=std_generic)
 
@@ -735,6 +734,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: B = SteenrodAlgebra(2003)
             sage: B._repr_()
             'mod 2003 Steenrod algebra, milnor basis'
+            sage: SteenrodAlgebra(generic=True, basis='adem')
+            generic mod 2 Steenrod algebra, serre-cartan basis
 
             sage: SteenrodAlgebra(profile=(3,2,1,0))
             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
@@ -1293,7 +1294,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             else:
                 algorithm = 'milnor'
         else:
-            algorithm = get_basis_name(algorithm, p)
+            algorithm = get_basis_name(algorithm, p, generic=self._generic)
         if basis == algorithm:
             if basis == 'milnor':
                 if not self._generic:
@@ -1780,7 +1781,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         from steenrod_algebra_bases import steenrod_algebra_basis,\
             convert_from_milnor_matrix
         from steenrod_algebra_misc import get_basis_name
-        basis = get_basis_name(basis, self.prime())
+        basis = get_basis_name(basis, self.prime(), generic=self._generic)
         if basis == self.basis_name():
             return self({t: 1})
         a = self._milnor_on_basis(t)
@@ -3017,6 +3018,29 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             False
         """
         return self.is_finite()
+
+    def is_generic(self):
+        r"""
+        The algebra is generic if it is based on the odd-primary relations,
+        i.e. if its dual is a quotient of
+
+        .. math::
+
+            A_* = \GF{p} [\xi_1, \xi_2, \xi_3, ...] \otimes \Lambda (\tau_0, \tau_1, ...)
+
+        Sage also allows this for `p=2`. Only the usual Steenrod algebra at the prime `2` and
+        its sub algebras are non-generic.
+
+        EXAMPLES::
+
+            sage: SteenrodAlgebra(3).is_generic()
+            True
+            sage: SteenrodAlgebra(2).is_generic()
+            False
+            sage: SteenrodAlgebra(2,generic=True).is_generic()
+            True
+        """
+        return self._generic
 
     ######################################################
     # element class

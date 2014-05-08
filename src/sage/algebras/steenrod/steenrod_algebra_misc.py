@@ -43,7 +43,7 @@ _steenrod_milnor_basis_names = ['milnor']
 _steenrod_serre_cartan_basis_names = ['serre_cartan', 'serre-cartan', 'sc',
                                          'adem', 'admissible']
 
-def get_basis_name(basis, p):
+def get_basis_name(basis, p, generic=None):
     """
     Return canonical basis named by string basis at the prime p.
 
@@ -52,6 +52,8 @@ def get_basis_name(basis, p):
     - ``basis`` - string
 
     - ``p`` - positive prime number
+
+    - ``generic`` - boolean, optional, default to 'None'
 
     OUTPUT:
 
@@ -119,7 +121,13 @@ def get_basis_name(basis, p):
         Traceback (most recent call last):
         ...
         ValueError: not_a_basis is not a recognized basis at the prime 2.
+        sage: get_basis_name('woody', 2, generic=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: woody is not a recognized basis for the generic Steenrod algebra at the prime 2.
     """
+    if generic is None:
+        generic = False if p==2 else True
     basis = basis.lower()
     if basis in _steenrod_milnor_basis_names:
         result = 'milnor'
@@ -149,26 +157,27 @@ def get_basis_name(basis, p):
             result = 'comm_revz'
         if basis.find('long') >= 0:
             result = result + '_long'
-    elif p == 2 and basis.find('wood') >= 0:
+    elif not generic and basis.find('wood') >= 0:
         if basis.find('y') >= 0:
             result = 'woody'
         elif basis.find('z') >= 0:
             result = 'woodz'
         else:
              raise ValueError("%s is not a recognized basis at the prime %s." % (basis, p))
-    elif p == 2 and basis.find('arnon') >= 0:
+    elif not generic and basis.find('arnon') >= 0:
         if basis.find('c') >= 0:
             result = 'arnonc'
         else:
             result = 'arnona'
             if basis.find('long') >= 0:
                 result = result + '_long'
-    elif p == 2 and basis.find('wall') >= 0:
+    elif not generic and basis.find('wall') >= 0:
         result = 'wall'
         if basis.find('long') >= 0:
             result = result + '_long'
     else:
-        raise ValueError("%s is not a recognized basis at the prime %s." % (basis, p))
+        gencase = " for the generic Steenrod algebra" if p==2 and generic else ""
+        raise ValueError("%s is not a recognized basis%s at the prime %s." % (basis, gencase, p))
     return result
 
 ######################################################
@@ -279,7 +288,7 @@ def is_valid_profile(profile, truncation_type, p=2):
                         return False
     return True
 
-def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
+def normalize_profile(profile, precision=None, truncation_type='auto', p=2, generic=None):
     """
     Given a profile function and related data, return it in a standard form,
     suitable for hashing and caching as data defining a sub-Hopf
@@ -291,14 +300,15 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
     - ``precision`` - integer or ``None``, optional, default ``None``
     - ``truncation_type`` - 0 or `\infty` or 'auto', optional, default 'auto'
     - `p` - prime, optional, default 2
+    - `generic` - boolean, optional, default ``None``
 
     OUTPUT: a triple ``profile, precision, truncation_type``, in
     standard form as described below.
 
     The "standard form" is as follows: ``profile`` should be a tuple
     of integers (or `\infty`) with no trailing zeroes when `p=2`, or a
-    pair of such when `p` is odd.  ``precision`` should be a positive
-    integer.  ``truncation_type`` should be 0 or `\infty`.
+    pair of such when `p` is odd or `generic` is ``True``.  ``precision``
+    should be a positive integer.  ``truncation_type`` should be 0 or `\infty`.
     Furthermore, this must be a valid profile, as determined by the
     funtion :func:`is_valid_profile`.  See also the documentation for
     the module :mod:`sage.algebras.steenrod.steenrod_algebra` for information
@@ -446,7 +456,9 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
         truncation_type = 0
     if truncation_type == 'infinity':
         truncation_type = Infinity
-    if p == 2:
+    if generic is None:
+        generic = False if p==2 else True
+    if not generic:
         if profile is None or profile == Infinity:
             # no specified profile or infinite profile: return profile
             # for the entire Steenrod algebra

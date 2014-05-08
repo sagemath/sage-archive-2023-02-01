@@ -157,7 +157,7 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     fundamental_discriminant, squarefree_divisors, \
     Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol, \
     Moebius, Hirzebruch_Jung_continued_fraction_list, dedekind_sum, \
-    prime_factors
+    prime_factors, lift_centered
 
 
 from fast_arith import prime_range

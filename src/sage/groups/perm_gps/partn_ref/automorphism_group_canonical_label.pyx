@@ -647,7 +647,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                 # larger subgroup in the stabilizer chain).
                 first_meets_current = current_ps.depth
                 minimal_in_primary_orbit = output.group.base_orbits[current_ps.depth][0]
-            while 1:
+            while True:
                 i = vertices_determining_current_stack[current_ps.depth]
                 # This was the last point to be split here.
                 # If it has been added to the primary orbit, update size info.
@@ -693,7 +693,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
         # we leave the part of the tree we are interested in
         discrete = 0
         backtrack = 0
-        while 1:
+        while True:
             i = current_ps.depth
             if input_group is not NULL:
                 current_indicators[i] = split_point_and_refine_by_orbits(current_ps,

@@ -56,12 +56,22 @@ def q_int(n, q=None):
         Traceback (most recent call last):
         ...
         ValueError: 3/2 must be an integer
+
+    TESTS:
+
+    We check that :trac:`15805` is fixed::
+
+        sage: from sage.combinat.q_analogues import q_int
+        sage: q_int(0).parent()
+        Univariate Polynomial Ring in q over Integer Ring
     """
     if not n in ZZ:
         raise ValueError('%s must be an integer' % n)
 
     if q is None:
-        q = ZZ['q'].gens()[0]
+        q = ZZ['q'].gen()
+    if n == 0:  # Special case
+        return q.parent().zero()
     if n >= 0:
         return sum(q**i for i in range(n))
     return -q**n*sum(q**i for i in range(-n))

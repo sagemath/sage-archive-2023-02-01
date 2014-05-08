@@ -185,8 +185,8 @@ def _fetch(url):
         result = f.read()
         f.close()
         return result
-    except IOError, msg:
-        raise IOError, "%s\nError fetching %s." % (msg, url)
+    except IOError as msg:
+        raise IOError("%s\nError fetching %s." % (msg, url))
 
 def _urls(html_string):
     r"""

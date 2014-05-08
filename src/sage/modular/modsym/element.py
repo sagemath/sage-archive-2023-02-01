@@ -76,7 +76,7 @@ def set_modsym_print_mode(mode="manin"):
     """
     mode = str(mode).lower()
     if not (mode in ['manin', 'modular', 'vector']):
-        raise ValueError, "mode must be one of 'manin', 'modular', or 'vector'"
+        raise ValueError("mode must be one of 'manin', 'modular', or 'vector'")
     global _print_mode
     _print_mode = mode
 
@@ -113,11 +113,11 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         """
         if check:
             if not isinstance(parent, ambient.ModularSymbolsAmbient):
-                raise TypeError, "parent must be an ambient space of modular symbols."
+                raise TypeError("parent must be an ambient space of modular symbols.")
             if not isinstance(x, sage.modules.free_module_element.FreeModuleElement):
-                raise TypeError, "x must be a free module element."
+                raise TypeError("x must be a free module element.")
             if x.degree() != parent.degree():
-                raise TypeError, "x (of degree %s) must be of degree the same as the degree of the parent (of degree %s)."%(x.degree(), parent.degree())
+                raise TypeError("x (of degree %s) must be of degree the same as the degree of the parent (of degree %s)."%(x.degree(), parent.degree()))
         hecke.HeckeModuleElement.__init__(self, parent, x)
 
     def __cmp__(self, other):

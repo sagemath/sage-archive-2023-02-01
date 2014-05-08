@@ -22,7 +22,7 @@ see :trac:`12849`::
     sage: for line in open(docfilename):
     ...       if "#sage.symbolic.expression.Expression.N" in line:
     ...           print line
-    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em><big>)</big>...
+    <tt class="descname">N</tt><big>(</big><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><big>)</big>...
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -33,6 +33,7 @@ see :trac:`12849`::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
 import os, re, sys
 import pydoc
 from sage.misc.viewer import browser
@@ -488,7 +489,7 @@ def format(s, embedded=False):
 
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
 
     # Doc strings may contain embedding information, which should not
     # be subject to formatting (line breaks must not be inserted).
@@ -587,7 +588,7 @@ def format_src(s):
         'Sq(*nums):'
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
     docs = set([])
     import sage.all
     while True:
@@ -603,7 +604,7 @@ def format_src(s):
             t = my_getsource(x, False)
             docs.add(obj)
         if t is None:
-            print x
+            print(x)
             t = ''
         s = s[:i] + '\n' + t + s[i+6+j:]
 
@@ -732,24 +733,24 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
                    os.path.exists(os.path.join(doc_path, 'output', 'html', doc))]
         num_missing = len(missing)
         if num_missing > 0:
-            print """Warning, the following Sage documentation hasn't been built,
+            print("""Warning, the following Sage documentation hasn't been built,
 so documentation search results may be incomplete:
-"""
+""")
             for s in missing:
-                print s
+                print(s)
             if num_missing > 1:
-                print """
+                print("""
 You can build these with 'sage -docbuild DOCUMENT html',
-where DOCUMENT is one of""",
+where DOCUMENT is one of""", end=' ')
                 for s in missing:
                     if s.find('en') != -1:
-                        print "'%s'," % os.path.split(s)[-1],
+                        print("'{}',".format(os.path.split(s)[-1]), end=' ')
                     else:
-                        print "'%s'," % os.path.join(
+                        print("'{}',".format(os.path.join(
                             os.path.split(os.path.split(s)[0])[-1],
-                            os.path.split(s)[-1]),
-                print """
-or you can use 'sage -docbuild all html' to build all of the missing documentation."""
+                            os.path.split(s)[-1])), end=' ')
+                print("""
+or you can use 'sage -docbuild all html' to build all of the missing documentation.""")
             else:
                 s = missing[0]
                 if s.find('en') != -1:
@@ -758,8 +759,8 @@ or you can use 'sage -docbuild all html' to build all of the missing documentati
                     s = os.path.join(
                         os.path.split(os.path.split(s)[0])[-1],
                         os.path.split(s)[-1])
-                print """
-You can build this with 'sage -docbuild %s html'.""" % s
+                print("""
+You can build this with 'sage -docbuild {} html'.""".format(s))
 
     strip = len(base_path)
     results = ''
@@ -826,7 +827,7 @@ You can build this with 'sage -docbuild %s html'.""" % s
         # format the search terms nicely
         terms = ', '.join(['"%s"' % s for s in [string] + [extra1,
                           extra2, extra3, extra4, extra5] if s])
-        print format_search_as_html(title, results, terms)
+        print(format_search_as_html(title, results, terms))
     else:
         import pager
         pager.pager()(results)
@@ -1133,8 +1134,7 @@ def format_search_as_html(what, r, search):
         i = L.find(':')
         if i != -1:
             files.add(L[:i])
-    files = list(files)
-    files.sort()
+    files = sorted(files)
     for F in files:
         if F.endswith('.html'):
             F = F.split('/', 2)[2]
@@ -1176,8 +1176,8 @@ def my_getsource(obj, is_binary):
     try:
         s = sageinspect.sage_getsource(obj, is_binary)
         return format_src(s)
-    except Exception, msg:
-        print 'Error getting source:', msg
+    except Exception as msg:
+        print('Error getting source:', msg)
         return None
 
 class _sage_doc:
@@ -1351,7 +1351,7 @@ class _sage_doc:
             from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
-            raise ValueError, "output type %s not recognized" % output
+            raise ValueError("output type {} not recognized".format(output))
 
     def _open(self, name, testing=False):
         """
@@ -1377,8 +1377,8 @@ class _sage_doc:
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")
         if not os.path.exists(path):
-            raise OSError, """The document '%s' does not exist.  Please build it
-with 'sage -docbuild %s html --mathjax' and try again.""" %(name, name)
+            raise OSError("""The document '{0}' does not exist.  Please build it
+with 'sage -docbuild {0} html --mathjax' and try again.""".format(name))
 
         if testing:
             return (url, path)
@@ -1454,9 +1454,15 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        python_help(module)
+        if hasattr(module, '_sage_doc_'):
+            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
+            docstr = 'Help on ' + str(module) + '\n'
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
+            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
+        else:
+            python_help(module)
     else:
-        print """Welcome to Sage %s!
+        print("""Welcome to Sage {}!
 
 To view the Sage tutorial in your web browser, type "tutorial()", and
 to view the (very detailed) Sage reference manual, type "manual()".
@@ -1478,4 +1484,4 @@ or type "license()".
 
 To enter Python's interactive online help utility, type "python_help()".
 To get help on a Python function, module or package, type "help(MODULE)" or
-"python_help(MODULE)".""" % sage.version.version
+"python_help(MODULE)".""".format(sage.version.version))

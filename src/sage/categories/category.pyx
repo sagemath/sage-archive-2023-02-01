@@ -100,7 +100,8 @@ from warnings import warn
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.c3_controlled import C3_sorted_merge, category_sort_key, _cmp_key, _cmp_key_named
+from sage.misc.c3_controlled cimport C3_sorted_merge
+from sage.misc.c3_controlled import _cmp_key, _cmp_key_named
 from sage.misc.unknown import Unknown
 from sage.misc.weak_dict import WeakValueDictionary
 
@@ -2993,3 +2994,22 @@ class JoinCategory(CategoryWithParameters):
             except ValueError:
                 pass
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)
+
+
+cpdef inline tuple category_sort_key(object category):
+    """
+    Return ``category._cmp_key``.
+
+    This helper function is used for sorting lists of categories.
+
+    It is semantically equivalent to
+    :func:`operator.attrgetter` ``("_cmp_key")``, but currently faster.
+
+    EXAMPLES::
+
+        sage: from sage.misc.c3_controlled import category_sort_key
+        sage: category_sort_key(Rings()) is Rings()._cmp_key
+        True
+    """
+    return category._cmp_key
+

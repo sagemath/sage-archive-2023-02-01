@@ -1142,6 +1142,17 @@ def sage_getfile(obj):
         sage: sage_getfile(P)
         '...sage/rings/polynomial/multi_polynomial_libsingular.pyx'
 
+    A problem fixed in :trac:`16309`::
+
+        sage: cython('''
+        ....: class Bar: pass
+        ....: cdef class Foo: pass
+        ....: ''')
+        sage: sage_getfile(Bar)
+        '...pyx'
+        sage: sage_getfile(Foo)
+        '...pyx'
+
     AUTHORS:
 
     - Nick Alexander
@@ -1162,7 +1173,9 @@ def sage_getfile(obj):
         return sage_getfile(obj.__class__) #inspect.getabsfile(obj.__class__)
 
     # No go? fall back to inspect.
-    return inspect.getabsfile(obj)
+    sourcefile = inspect.getabsfile(obj)
+    if sourcefile.endswith(os.path.extsep+'so'):
+        return sourcefile[:-3]+os.path.extsep+'pyx'
 
 def sage_getargspec(obj):
     r"""
@@ -1287,6 +1300,16 @@ def sage_getargspec(obj):
 
         sage: sage.misc.sageinspect.sage_getargspec(r.lm)
 
+    The following was fixed in :trac:`16309`::
+
+        sage: cython('''
+        ....: class Foo:
+        ....:     @staticmethod
+        ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....: ''')
+        sage: sage_getargspec(Foo.join)
+        ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
@@ -1305,10 +1328,12 @@ def sage_getargspec(obj):
         return inspect.ArgSpec(*obj._sage_argspec_())
     except (AttributeError, TypeError):
         pass
-    if inspect.isfunction(obj):
-        func_obj = obj
-    elif inspect.ismethod(obj):
-        func_obj = obj.__func__
+    if hasattr(obj, 'func_code'):
+        try:
+            args, varargs, varkw = inspect.getargs(obj.func_code)
+            return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
+        except (TypeError, AttributeError):
+            pass
     elif isclassinstance(obj):
         if hasattr(obj,'_sage_src_'): #it may be a decorator!
             source = sage_getsource(obj)

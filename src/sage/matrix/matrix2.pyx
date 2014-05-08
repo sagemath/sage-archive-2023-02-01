@@ -5777,7 +5777,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: C.echelon_form()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Ideal Ideal (2, x + 1) of Univariate Polynomial Ring in x over Integer Ring not principal
+            NotImplementedError: division not exact in Z[x] (consider coercing to Q[x] first)
             Echelon form not implemented over 'Univariate Polynomial Ring in x over Integer Ring'.
             sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1,3,2,1/2])
             sage: C.echelon_form()

@@ -1,5 +1,9 @@
 r"""
-Functor construction for all spaces (artificial to make the coercion framework work)
+Analytic types of modular forms.
+
+Propoerties of modular forms and their generalizations are assembled
+into one partially ordered set.  See :class:``AnalyticType`` for a
+list of handled properties.
 
 AUTHORS:
 
@@ -24,9 +28,8 @@ from sage.combinat.posets.elements import LatticePosetElement
 
 class AnalyticTypeElement(LatticePosetElement):
     r"""
-    Analytic types of forms and/or spaces
+    Analytic types of forms and/or spaces.
 
-    The class derives from LatticePosetElement.
     An analytic type element describes what basic analytic
     properties are contained/included in it.
 
@@ -162,7 +165,7 @@ class AnalyticTypeElement(LatticePosetElement):
         elif self.parent()("holo")  <= self:
              name += "M"
         elif self.parent()("cusp")  <= self:
-             name += "C"
+             name += "S"
         else:
              name  = "Z"
 
@@ -260,9 +263,6 @@ class AnalyticTypeElement(LatticePosetElement):
         extend_type = self.parent()(extend_type)
         return self + extend_type
 
-    # is it ok to define the iterator that way (strings on el.element for el in self.element)??
-    # alternatively: go through all x with x<=y of of the analytic type element y
-    # or return the Poset Element instead of the string
     def __iter__(self):
         r"""
         Return an iterator of ``self`` which gives the basic analytic
@@ -280,13 +280,12 @@ class AnalyticTypeElement(LatticePosetElement):
         sage: "cusp" in el
         True
         """
-
         return iter([el.element for el in self.element])
 
 
 class AnalyticType(FiniteLatticePoset):
     r"""
-    Container for all possible analytic types of forms and/or spaces
+    Container for all possible analytic types of forms and/or spaces.
 
     The ``analytic type`` of forms spaces or rings describes all possible
     occuring basic ``analytic properties`` of elements in the space/ring
@@ -350,6 +349,7 @@ class AnalyticType(FiniteLatticePoset):
 
     Element = AnalyticTypeElement
 
+    # FIXME: I believe this can be better handled by UniqueRepresentation
     @staticmethod
     def __classcall__(cls):
         r"""
@@ -368,7 +368,6 @@ class AnalyticType(FiniteLatticePoset):
             sage: AT == AT2
             True
         """
-
         return super(FinitePoset, cls).__classcall__(cls)
 
     def __init__(self):
@@ -467,6 +466,8 @@ class AnalyticType(FiniteLatticePoset):
 
         return "Analytic Type"
 
+    ## FIXME: You may not override the __call__ method for parents.
+    ## This is handled by _element constructor_.
     def __call__(self, *args, **kwargs):
         r"""
         Return the result of the corresponding call function
@@ -525,7 +526,7 @@ class AnalyticType(FiniteLatticePoset):
             {holo, cusp, quasi}
         """
 
-        if type(element)==str:
+        if isinstance(element, str):
             element=[element]
         if isinstance(element,list) or isinstance(element,tuple):
             element = Set(self._base_poset.order_ideal([self._base_poset(s) for s in element]))
@@ -594,4 +595,4 @@ class AnalyticType(FiniteLatticePoset):
         """
 
         return FiniteLatticePoset(self._base_poset.order_ideals_lattice(), facade=False)
-                        
+

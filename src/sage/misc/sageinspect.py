@@ -787,6 +787,13 @@ def _split_syntactical_unit(s):
         sage: _split_syntactical_unit('123')
         ('1', '23')
 
+    TEST:
+
+    The following was fixed in :trac:`16309`::
+
+        sage: _split_syntactical_unit('()): pass')
+        ('()', '): pass')
+
     """
     s = s.strip()
     if not s:
@@ -862,11 +869,11 @@ def _split_syntactical_unit(s):
         tmp_group, s = _split_syntactical_unit(s)
         out.append(tmp_group)
         s = s.strip()
-        if s.startswith(stop):
+        if tmp_group==stop:
+            return ''.join(out), s
+        elif s.startswith(stop):
             out.append(stop)
             return ''.join(out), s[1:].strip()
-        elif tmp_group==stop:
-            return ''.join(out), s
     raise SyntaxError("Syntactical group starting with %s did not end with %s"%(repr(start),repr(stop)))
 
 def _sage_getargspec_from_ast(source):
@@ -1176,6 +1183,7 @@ def sage_getfile(obj):
     sourcefile = inspect.getabsfile(obj)
     if sourcefile.endswith(os.path.extsep+'so'):
         return sourcefile[:-3]+os.path.extsep+'pyx'
+    return sourcefile
 
 def sage_getargspec(obj):
     r"""
@@ -1306,8 +1314,16 @@ def sage_getargspec(obj):
         ....: class Foo:
         ....:     @staticmethod
         ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....: cdef class Bar:
+        ....:     @staticmethod
+        ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
+        ....:     cpdef meet(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
         ....: ''')
         sage: sage_getargspec(Foo.join)
+        ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: sage_getargspec(Bar.join)
+        ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
+        sage: sage_getargspec(Bar.meet)
         ArgSpec(args=['categories', 'as_list', 'ignore_axioms', 'axioms'], varargs=None, keywords=None, defaults=(False, (), ()))
 
     AUTHORS:

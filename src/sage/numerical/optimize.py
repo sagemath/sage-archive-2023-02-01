@@ -67,7 +67,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     Hypothesis::
 
         sage: find_root(f, 2, 4, rtol=0.0001)
-        2.0082590205656166
+        2.0082...
 
     This agrees with the plot::
 

@@ -2912,6 +2912,23 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         ....:     t1c[1,1,1] = t2
         sage: t1 == t1c
         False
+
+    We check for trac:`16314`::
+
+        sage: t1 = LBT([ LBT([LBT([], label=2),
+        ....:                 LBT([], label=5)], label=6),
+        ....:            None], label=4); t1
+        4[6[2[., .], 5[., .]], .]
+        sage: class Foo(LabelledBinaryTree):
+        ....:     pass
+        sage: t2 = Foo(t1.parent(), t1); t2
+        4[6[2[., .], 5[., .]], .]
+        sage: t2.label()
+        4
+        sage: t2[0].label()
+        6
+        sage: t2.__class__, t2[0].__class__
+        (<class '__main__.Foo'>, <class '__main__.Foo'>)
     """
     __metaclass__ = ClasscallMetaclass
 

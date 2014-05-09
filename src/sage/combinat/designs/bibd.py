@@ -65,7 +65,7 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     .. SEEALSO::
 
         * :meth:`steiner_triple_system`
-        * :meth:`v_4_1_bibd`
+        * :meth:`v_4_1_BIBD`
 
     TODO:
 

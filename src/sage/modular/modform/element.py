@@ -523,74 +523,115 @@ class ModularForm_abstract(ModuleElement):
         """
         raise NotImplementedError
 
-    def pair(self, M, numterms=50):
+    # The methods pair() and cuspform_lseries() below currently live
+    # in ModularForm_abstract so they are inherited by Newform (which
+    # does *not* derive from ModularFormElement).
+
+    def period(self, M, prec=53):
         r"""
-        Return the pairing between the cusp form ``self`` and an
-        element `M` of `\Gamma_0(N)` where `N` is the level
+        Return the period of ``self`` with respect to `M`.
 
         INPUT:
 
-        - `M` an element of `\Gamma_0(N)`
-        - `numterms` (default 50) number of terms used in the q-expansion
+        - ``self`` -- a cusp form `f` of weight 2 for `Gamma_0(N)`
 
-        This uses a formula taken from Cremona's Book 'Algorithms for
-        Modular Elliptic Curves' chapter 2.10 Proposition 2.10.3.
+        - ``M`` -- an element of `\Gamma_0(N)`
+
+        - ``prec`` -- (default: 53) the working precision in bits.  If
+          `f` is a normalised eigenform, then the output is correct to
+          approximately this number of bits.
+
+        OUTPUT:
+
+        A numerical approximation of the period `P_f(M)`.  This period
+        is defined by the following integral over the complex upper
+        half-plane, for any `\alpha` in `\Bold{P}^1(\QQ)`:
+
+        .. math::
+
+            P_f(M) = 2 \pi i \int_\alpha^{M(\alpha)} f(z) dz.
+
+        This is independent of the choice of `\alpha`.
 
         EXAMPLES::
 
             sage: C = Newforms(11, 2)[0]
-            sage: m = C.group()(matrix([[-4,-3],[11,8]]))
-            sage: C.pair(m)
-            -0.6346... - 1.4588...*I
+            sage: m = C.group()(matrix([[-4, -3], [11, 8]]))
+            sage: C.period(m)
+            -0.634604652139776 - 1.45881661693850*I
 
             sage: f = Newforms(15, 2)[0]
-            sage: g = Gamma0(15)(matrix([[-4,-3],[15,11]]))
-            sage: imag(f.pair(g))
-            -1.5962...
+            sage: g = Gamma0(15)(matrix([[-4, -3], [15, 11]]))
+            sage: f.period(g)  # abs tol 1e-15
+            2.17298044293747e-16 - 1.59624222213178*I
+
+        ALGORITHM:
+
+        We use the series expression from [Cremona]_, Chapter II,
+        Proposition 2.10.3.  The algorithm sums the first `T` terms of
+        this series, where `T` is chosen in such a way that the result
+        would approximate `P_f(M)` with an absolute error of at most
+        `2^{-\text{prec}}` if all computations were done exactly.
+
+        Since the actual precision is finite, the output is currently
+        *not* guaranteed to be correct to ``prec`` bits of precision.
+
+        REFERENCE:
+
+        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
+           Curves.  Cambridge University Press, 1997.
 
         TESTS::
 
-            sage: C.pair(g)
+            sage: C.period(g)
             Traceback (most recent call last):
             ...
-            ValueError: M is not in the correct group
+            TypeError: matrix [-4 -3]
+                              [15 11]
+            is not an element of Congruence Subgroup Gamma0(11)
+
         """
-        if not M in self.group():
-            raise ValueError('M is not in the correct group')
-
-        from sage.symbolic.constants import pi
-        from sage.functions.log import exp
-        from sage.symbolic.all import I
-        from sage.rings.real_double import RDF
-        from sage.functions.other import sqrt
-
-        coeff = self.coefficients(rings.ZZ(numterms))
+        R = rings.RealField(prec)
 
         N = self.level()
+        if not self.character().is_trivial():
+            raise NotImplementedError('period pairing only implemented for cusp forms of trivial character')
+        if self.weight() != 2:
+            raise NotImplementedError('period pairing only implemented for cusp forms of weight 2')
+        if not isinstance(self, Newform):
+            print('Warning: not a newform, precision not guaranteed')
 
+        M = self.group()(M)
         # coefficients of the matrix M
-        b = M.b()
-        c = M.c() / N
-        d = M.d()
-
+        (b, c, d) = (M.b(), M.c() / N, M.d())
         if d == 0:
-            return 0
-
+            return R.zero_element()
         if d < 0:
-            c = -c
-            b = -b
-            d = -d
+            (b, c, d) = (-b, -c, -d)
+
+        twopi = 2 * R.pi()
+        I = R.complex_field().gen()
+        rootN = R(N).sqrt()
 
         eps = self.atkin_lehner_eigenvalue()
-        mu_N = exp(RDF(-2 * pi / sqrt(N)))
-        mu_dN = exp(RDF(-2 * pi / d / sqrt(N)))
-        mu_d = exp(RDF(2 * pi / d) * I)
+        mu_N = (-twopi / rootN).exp()
+        mu_dN = (-twopi / d / rootN).exp()
+        mu_d = (twopi * I / d).exp()
+
+        # We use the following bounds (tau(n) = #divisors(n)):
+        #   |a_n(f)| <= tau(n)*sqrt(n)  (holds if f is a newform)
+        #     tau(n) <= sqrt(3)*sqrt(n) for all n >= 1
+        # This gives a correct but somewhat coarse lower bound on the
+        # number of terms needed.  We ignore rounding errors.
+        numterms = (((1 - mu_dN) * R(2)**(-prec) / (4 * R(3).sqrt())).log()
+                    / mu_dN.log()).ceil()
+        coeff = self.coefficients(numterms)
+
         return sum((coeff[n - 1] / n)
                    *((eps - 1) * mu_N ** n
                      + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
                    for n in range(1, numterms))
 
-    # this function lives here so it is inherited by Newform (which does *not* derive from ModularFormElement)
     def cuspform_lseries(self, prec=53,
                          max_imaginary_part=0,
                          max_asymp_coeffs=40):

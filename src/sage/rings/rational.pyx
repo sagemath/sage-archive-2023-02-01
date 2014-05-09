@@ -3766,7 +3766,8 @@ cdef class Z_to_Q(Morphism):
               From: Rational Field
               To:   Integer Ring
         """
-        return Q_to_Z(self._codomain, self.domain())
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        return Q_to_Z(self._codomain.Hom(self.domain(), category=SetsWithPartialMaps()))
 
 cdef class Q_to_Z(Map):
     r"""

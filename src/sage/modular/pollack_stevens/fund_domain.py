@@ -196,15 +196,14 @@ class PSModularSymbolsDomain(SageObject):
 
             sage: A = ManinRelations(11)
             sage: for rep in A:
-            ...       if rep[1,0] == 1:
-            ...           print rep
+            ....:     if rep[1,0] == 1:
+            ....:         print rep
             [ 0 -1]
             [ 1  3]
             [ 0 -1]
             [ 1  2]
             [ 0 -1]
             [ 1  1]
-
         """
         return iter(self._reps)
 
@@ -1329,7 +1328,7 @@ class ManinRelations(PSModularSymbolsDomain):
         b = r2.numerator()
         c = r1.denominator()
         d = r2.denominator()
-        if (a*d-b*c)==1:
+        if (a*d-b*c) == 1:
             ans = M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
         else:
             ans = M2Z([-a,b,-c,d]), M2Z([b,a,d,c])

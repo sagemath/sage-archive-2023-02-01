@@ -1782,6 +1782,104 @@ class Graph(GenericGraph):
         """
         return False
 
+    def bridges(g):
+        r"""                                                                                        
+        EXAMPLES::    
+        
+             sage: g = 2*graphs.PetersenGraph()                                                      
+             sage: g.add_edge(1,10)                                                                  
+             sage: g.is_connected()                                                                  
+             True                                                                                    
+             sage: bridges(g)                                                                        
+             [(1, 10, None)]                                                                         
+        """
+        gs = g.strong_orientation()
+        bridges = []
+        for scc in gs.strongly_connected_components():
+            bridges.extend(gs.edge_boundary(scc))
+        return bridges
+
+    def spanning_trees(self):
+        """
+        Finds all spanning trees in a graph.
+        Adapted from "Bounds on Backtrack Algoritms for Listing Cycles, Paths,
+        and Spanning Trees" R. C. Read and R. E. Tarjan (1975)
+
+        sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
+        sage: len(G.spanning_trees())
+        8
+        sage: G.spanning_trees_count()
+        8
+        
+        sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
+        sage: len(G.spanning_trees())
+        6
+        sage: G.spanning_trees_count()
+        6
+        """
+
+        def _recursive_spanning_trees(G,part_G):
+            trees = []
+            
+            if not G.is_connected():
+                return []
+
+            if len(G.edges()) == len(part_G.edges()):
+                trees +=[part_G.copy()]
+            else:
+                X = G.edges()
+                for y in part_G.edges():
+                    X.remove(y)
+                e = X[0]
+                part_G.add_edge(e)
+                B = _edges_to_remove(G,part_G)
+                G.delete_edges(B)
+                trees += _recursive_spanning_trees(G,part_G)
+                G.add_edges(B)
+                G.delete_edge(e)
+                part_G.delete_edge(e)
+                C = G.bridges()
+
+                for x in part_G.edges():
+                    if x in C:
+                        C.remove(x)
+ 
+                part_G.add_edges(C)
+
+                trees += _recursive_spanning_trees(G,part_G)        
+                part_G.delete_edges(C)
+                G.add_edge(e)
+
+            return trees
+
+        def _edges_to_remove(G,part_G):
+            """ 
+            Returns the set of edges not in part_G joining 
+            vertices already connected in part_G.
+            """
+            B = []
+            comps = part_G.connected_components()
+            vc_dict = dict()
+            for i in range(len(comps)):
+                for v in comps[i]:
+                    vc_dict[v] = i
+            X = G.edges()
+            for y in part_G.edges(): 
+                X.remove(y)
+            for e in X:
+                if vc_dict[e[0]] == vc_dict[e[1]]:
+                    B.append(e)
+            return B
+
+        if self.is_connected():
+            from sage.graphs.graph import Graph
+            part_G = Graph([])
+            part_G.add_vertices(self.vertices())
+            part_G.add_edges(self.bridges())
+            return _recursive_spanning_trees(self,part_G)
+        else:
+            return []
+
     ### Properties
     def is_tree(self, certificate=False, output='vertex'):
         """
@@ -6510,4 +6608,3 @@ def compare_edges(x, y):
             return 1
         else:
             return 0
-

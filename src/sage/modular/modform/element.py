@@ -63,9 +63,9 @@ def delta_lseries(prec=53,
         0.0374412812685155
     """
     from sage.lfunctions.all import Dokchitser
-    key = (prec, max_imaginary_part, max_asymp_coeffs)
+    # key = (prec, max_imaginary_part, max_asymp_coeffs)
     L = Dokchitser(conductor = 1,
-                   gammaV = [0,1],
+                   gammaV = [0, 1],
                    weight = 12,
                    eps = 1,
                    prec = prec)
@@ -643,18 +643,18 @@ class ModularForm_abstract(ModuleElement):
             sage: CuspForms(1, 30).0.cuspform_lseries().eps
             -1
         """
-        if self.q_expansion().list()[0] !=0:
-            raise TypeError("f = %s is not a cusp form"%self)
+        if self.q_expansion().list()[0] != 0:
+            raise TypeError("f = %s is not a cusp form" % self)
         from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
         w = self.atkin_lehner_eigenvalue()
         if w is None:
             raise ValueError("Form is not an eigenform for Atkin-Lehner")
-        e = (-1)**(l/2)*w
+        e = (-1) ** (l / 2) * w
         L = Dokchitser(conductor = N,
-                       gammaV = [0,1],
+                       gammaV = [0, 1],
                        weight = l,
                        eps = e,
                        prec = prec)
@@ -1164,20 +1164,20 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         if a[0] == 0:
             raise TypeError("f = %s is a cusp form; please use f.cuspform_lseries() instead!"%self)
         if self.level() != 1:
-            raise TypeError("f = %s is not a modular form for SL_2(Z)"%self)
+            raise TypeError("f = %s is not a modular form for SL_2(Z)" % self)
         from sage.lfunctions.all import Dokchitser
-        key = (prec, max_imaginary_part, max_asymp_coeffs)
+        # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         L = Dokchitser(conductor = 1,
-                       gammaV = [0,1],
+                       gammaV = [0, 1],
                        weight = l,
-                       eps = (-1)**l,
+                       eps = (-1) ** l,
                        poles = [l],
                        prec = prec)
         b = a[1]
-        for i in range(len(a)):    ##to renormalize so that coefficient of q is 1
-            a[i] =(1/b)*a[i]
-        s = 'coeff = %s;'%a
+        for i in range(len(a)):   #to renormalize so that coefficient of q is 1
+            a[i] = (1 / b) * a[i]
+        s = 'coeff = %s;' % a
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
@@ -1481,24 +1481,24 @@ class EisensteinSeries(ModularFormElement):
             [15/11*zeta10^3 - 9/11*zeta10^2 - 26/11*zeta10 - 10/11, 1, 4*zeta10 + 1]
         """
         c0, chi, psi, K, n, t, L, M = self.__defining_parameters()
-        zero = K(0)
+        zero = K.zero()
         k = self.weight()
         v = []
         for i in X:
-            if i==0:
+            if i == 0:
                 v.append(c0)
                 continue
-            if i%t != 0:
+            if i % t != 0:
                 v.append(zero)
             else:
-                m = i//t
-                v.append(sum([psi(n)*chi(m/n)*n**(k-1) for \
-                               n in rings.divisors(m)]))
+                m = i // t
+                v.append(sum([psi(d) * chi(m / d) * d ** (k - 1)
+                              for d in rings.divisors(m)]))
         return v
 
     def __defining_parameters(self):
-        """
-        Return defining parameters for self.
+        r"""
+        Return defining parameters for ``self``.
 
         EXAMPLES::
 

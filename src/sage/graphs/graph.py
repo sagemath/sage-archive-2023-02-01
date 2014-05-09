@@ -1782,18 +1782,20 @@ class Graph(GenericGraph):
         """
         return False
 
-    def bridges(g):
-        r"""                                                                                        
+    def bridges(self):
+        r"""        
+        Finds all bridges in a graph.
+
         EXAMPLES::    
         
              sage: g = 2*graphs.PetersenGraph()                                                      
              sage: g.add_edge(1,10)                                                                  
              sage: g.is_connected()                                                                  
              True                                                                                    
-             sage: bridges(g)                                                                        
+             sage: g.bridges()                                                                        
              [(1, 10, None)]                                                                         
         """
-        gs = g.strong_orientation()
+        gs = self.strong_orientation()
         bridges = []
         for scc in gs.strongly_connected_components():
             bridges.extend(gs.edge_boundary(scc))
@@ -1805,17 +1807,18 @@ class Graph(GenericGraph):
         Adapted from "Bounds on Backtrack Algoritms for Listing Cycles, Paths,
         and Spanning Trees" R. C. Read and R. E. Tarjan (1975)
 
-        sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
-        sage: len(G.spanning_trees())
-        8
-        sage: G.spanning_trees_count()
-        8
-        
-        sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
-        sage: len(G.spanning_trees())
-        6
-        sage: G.spanning_trees_count()
-        6
+        EXAMPLES::
+
+             sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
+             sage: len(G.spanning_trees())
+             8
+             sage: G.spanning_trees_count()
+             8
+             sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
+             sage: len(G.spanning_trees())
+             6
+             sage: G.spanning_trees_count()
+             6
         """
 
         def _recursive_spanning_trees(G,part_G):

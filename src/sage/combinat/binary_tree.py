@@ -2913,7 +2913,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         sage: t1 == t1c
         False
 
-    We check for trac:`16314`::
+    We check for :trac:`16314`::
 
         sage: t1 = LBT([ LBT([LBT([], label=2),
         ....:                 LBT([], label=5)], label=6),

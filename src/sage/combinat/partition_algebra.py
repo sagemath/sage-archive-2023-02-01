@@ -1681,9 +1681,14 @@ def to_graph(sp):
 
 def pair_to_graph(sp1, sp2):
     """
-    Returns a graph consisting of the graphs of set partitions sp1 and
-    sp2 along with edges joining the bottom row (negative numbers) of
-    sp1 to the top row (positive numbers) of sp2.
+    Return a graph consisting of the disjoint union of the graphs of set
+    partitions ``sp1`` and ``sp2`` along with edges joining the bottom
+    row (negative numbers) of ``sp1`` to the top row (positive numbers)
+    of ``sp2``.
+
+    The vertices of the graph ``sp1`` appear in the result as pairs
+    ``(k, 1)``, whereas the vertices of the graph ``sp2`` appear as
+    pairs ``(k, 2)``.
 
     EXAMPLES::
 
@@ -1704,6 +1709,19 @@ def pair_to_graph(sp1, sp2):
          ((-1, 2), (2, 2), None),
          ((-2, 1), (1, 1), None),
          ((-2, 1), (2, 2), None)]
+
+    Another example which used to be wrong until :trac:`15958`::
+
+        sage: sp3 = pa.to_set_partition([[1, -1], [2], [-2]])
+        sage: sp4 = pa.to_set_partition([[1], [-1], [2], [-2]])
+        sage: g = pa.pair_to_graph( sp3, sp4 ); g
+        Graph on 8 vertices
+
+        sage: g.vertices()
+        [(-2, 1), (-2, 2), (-1, 1), (-1, 2), (1, 1), (1, 2), (2, 1), (2, 2)]
+        sage: g.edges()
+        [((-2, 1), (2, 2), None), ((-1, 1), (1, 1), None),
+         ((-1, 1), (1, 2), None)]
     """
     g = Graph()
 
@@ -1714,28 +1732,27 @@ def pair_to_graph(sp1, sp2):
             g.add_vertex( (part_list[0],1) )
 
             #Add the edge to the second part of the graph
-            if part_list[0] < 0 and len(part_list) > 1:
-                g.add_edge( (part_list[0], 1), (abs(part_list[0]),2)  )
+            if part_list[0] < 0:
+                g.add_edge( (part_list[0], 1), (abs(part_list[0]), 2)  )
 
         for i in range(1, len(part_list)):
-            g.add_vertex( (part_list[i],1) )
+            g.add_vertex( (part_list[i], 1) )
 
             #Add the edge to the second part of the graph
             if part_list[i] < 0:
-                g.add_edge( (part_list[i], 1), (abs(part_list[i]),2) )
+                g.add_edge( (part_list[i], 1), (abs(part_list[i]), 2) )
 
-            #Add the edge between parts
-            g.add_edge( (part_list[i-1],1), (part_list[i],1) )
+            #Add the edge between adjacent elements of a part
+            g.add_edge( (part_list[i-1], 1), (part_list[i], 1) )
 
     #Add the second set partition to the graph
     for part in sp2:
         part_list = list(part)
         if len(part_list) > 0:
-            g.add_vertex( (part_list[0],2) )
+            g.add_vertex( (part_list[0], 2) )
         for i in range(1, len(part_list)):
-            g.add_vertex( (part_list[i],2) )
-            g.add_edge( (part_list[i-1],2), (part_list[i],2) )
-
+            g.add_vertex( (part_list[i], 2) )
+            g.add_edge( (part_list[i-1], 2), (part_list[i], 2) )
 
     return g
 

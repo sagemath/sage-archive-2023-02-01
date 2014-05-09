@@ -163,15 +163,18 @@ NOTES::
 
 AUTHORS:
 
-- David Roe  (2008-01-01) initial version
+- David Roe (2008-01-01): initial version
 
-- Robert Harron (2011-09) fixes/enhancements
+- Robert Harron (2011-09): fixes/enhancements
+
+- Julian Rueth (2014-05-09): enable caching through ``_cache_key``
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
 #                          William Stein <wstein@gmail.com>
+#                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -468,6 +471,57 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self._set_from_list_rel(x, rprec)
             else:
                 self._set_from_list_both(x, aprec, rprec)
+
+    def _cache_key(self):
+        r"""
+        Return a hashable key which uniquely identifies this element among all
+        elements in the parent.
+
+        This enables caching for `p`-adic numbers which are not hashable.
+
+        .. SEEALSO::
+
+            :meth:`sage.structure.sage_object.SageObject._cache_key`
+
+        EXAMPLE:
+
+        In the following example, ``a`` and ``b`` compare equal. They can not
+        have a meaningful hash value since then their hash value would have to
+        be the same::
+
+            sage: K.<a> = Qq(9)
+            sage: b = a + O(3)
+            sage: a == b
+            True
+            sage: hash(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
+        However, they should be cacheable, therefore they define a
+        ``_cache_key`` which is hashable and uniquely identifies them::
+
+            sage: a._cache_key()
+            (((0, 1),), 0, 20)
+            sage: b._cache_key()
+            (((0, 1),), 0, 1)
+
+        TESTS:
+
+        Check that zero values are handled correctly::
+
+            sage: K.zero()._cache_key()
+            0
+            sage: K(0,1)._cache_key()
+            (0, 1)
+
+        """
+        if self._is_exact_zero():
+            return 0
+        elif self._is_inexact_zero():
+            return 0, self.valuation()
+        else:
+            return tuple(tuple(c) if isinstance(c,list) else c for c in self.unit_part().list()), self.valuation(), self.precision_relative()
 
     cdef int _set_inexact_zero(self, long absprec) except -1:
         """

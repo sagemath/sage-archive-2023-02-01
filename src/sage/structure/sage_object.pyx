@@ -221,6 +221,75 @@ cdef class SageObject:
     def __hash__(self):
         return hash(self.__repr__())
 
+    def _cache_key(self):
+        r"""
+        Return a hashable key which uniquely identifies this objects for
+        caching.
+
+        For most objects this will just be the object itself. However, some
+        immutable objects (such as `p`-adic numbers) can not implement a
+        reasonable hash function because their ``==`` operator has been
+        modified to return ``True`` for objects which might behave differently
+        in some computations::
+
+            sage: K.<a> = Qq(9)
+            sage: b = a + O(3)
+            sage: c = a + 3
+            sage: b
+            a + O(3)
+            sage: c
+            a + 3 + O(3^20)
+            sage: b == c
+            True
+            sage: b == a
+            True
+            sage: c == a
+            False
+
+        If such objects defined a non-trivial hash function, this would break
+        caching in many places. However, such objects should still be
+        cacheable. This can be achieved by defining an appropriate
+        ``_cache_key``::
+
+            sage: hash(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            sage: @cached_method
+            ....: def f(x): return x==a
+            sage: f(b)
+            True
+            sage: f(c) # if b and c were hashable, this would return True
+            False
+
+            sage: b._cache_key()
+            (((0, 1),), 0, 1)
+            sage: c._cache_key()
+            (((0, 1), (1,)), 0, 20)
+
+        Note that such ``_cache_key`` often does not uniquely identify an
+        object in a strict sense::
+
+            sage: S.<a> = Qq(4)
+            sage: d = a + O(2)
+            sage: b._cache_key() == d._cache_key()
+            True
+
+        However, this kind of behaviour is common for many elements with
+        different parents. Special care has to be taken when mixing such
+        elements in caches::
+
+            sage: A = matrix([[1]],base_ring=GF(2))
+            sage: A.set_immutable()
+            sage: B = matrix([[1]],base_ring=GF(3))
+            sage: B.set_immutable()
+            sage: A == B
+            True
+            sage: hash(A) == hash(B)
+            True
+
+        """
+        return self
 
     #############################################################################
     # DATABASE Related code

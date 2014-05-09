@@ -1725,7 +1725,7 @@ class AbstractLabelledTree(AbstractTree):
             None[None[], None[None[], None[]], None[]]
 
         We test that inheriting from `LabelledOrderedTree` allows construction from a
-        `LabelledOrderedTree`::
+        `LabelledOrderedTree` (:trac:`16314`)::
 
             sage: LBTS = LabelledOrderedTrees()
             sage: class Foo(LabelledOrderedTree):

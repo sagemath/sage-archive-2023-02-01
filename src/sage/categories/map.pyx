@@ -129,6 +129,7 @@ cdef class Map(Element):
         Element.__init__(self, parent)
         D = parent.domain()
         C = parent.codomain()
+        self._category_for = parent.homset_category()
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
@@ -136,6 +137,10 @@ cdef class Map(Element):
             self._coerce_cost = 10 # default value.
         else:
             self._coerce_cost = 10000 # inexact morphisms are bad.
+
+    def _set_parent(self, parent):
+        super(Map, self)._set_parent(parent)
+        self._category_for = parent.homset_category()
 
     def __copy__(self):
         """
@@ -176,7 +181,7 @@ cdef class Map(Element):
         cdef Map out = Element.__copy__(self)
         # Element.__copy__ updates the __dict__, but not the slots.
         # Let's do this now, but with strong references.
-        out._parent = self.parent() # self._parent might be None
+        out._set_parent(self.parent())  # self._parent might be None
         out._update_slots(self._extra_slots({}))
         return out
 
@@ -229,7 +234,7 @@ cdef class Map(Element):
             C = self._codomain
             if C is None or D is None:
                 raise ValueError("This map is in an invalid state, the domain has been garbage collected")
-            return homset.Hom(D, C)
+            return homset.Hom(D, C, self._category_for)
         return self._parent
 
     def _make_weak_references(self):
@@ -361,7 +366,7 @@ cdef class Map(Element):
         if D is None or C is None:
             raise RuntimeError("The domain of this map became garbage collected")
         self.domain = ConstantFunction(D)
-        self._parent = homset.Hom(D, C)
+        self._parent = homset.Hom(D, C, self._category_for)
 
     cdef _update_slots(self, dict _slots):
         """
@@ -615,7 +620,7 @@ cdef class Map(Element):
 
         FIXME: find a better name for this method
         """
-        return self.parent().homset_category()
+        return self._category_for
 
     def __call__(self, x, *args, **kwds):
         """

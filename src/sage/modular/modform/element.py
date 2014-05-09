@@ -20,6 +20,7 @@ from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
 from sage.modular.dirichlet import DirichletGroup
 
+
 def is_ModularFormElement(x):
     """
     Return True if x is a modular form.
@@ -521,6 +522,73 @@ class ModularForm_abstract(ModuleElement):
             NotImplementedError
         """
         raise NotImplementedError
+
+    def pair(self, M, numterms=50):
+        r"""
+        Return the pairing between the cusp form ``self`` and an
+        element `M` of `\Gamma_0(N)` where `N` is the level
+
+        INPUT:
+
+        - `M` an element of `\Gamma_0(N)`
+        - `numterms` (default 50) number of terms used in the q-expansion
+
+        This uses a formula taken from Cremona's Book 'Algorithms for
+        Modular Elliptic Curves' chapter 2.10 Proposition 2.10.3.
+
+        EXAMPLES::
+
+            sage: C = Newforms(11, 2)[0]
+            sage: m = C.group()(matrix([[-4,-3],[11,8]]))
+            sage: C.pair(m)
+            -0.6346... - 1.4588...*I
+
+            sage: f = Newforms(15, 2)[0]
+            sage: g = Gamma0(15)(matrix([[-4,-3],[15,11]]))
+            sage: imag(f.pair(g))
+            -1.5962...
+
+        TESTS::
+
+            sage: C.pair(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: M is not in the correct group
+        """
+        if not M in self.group():
+            raise ValueError('M is not in the correct group')
+
+        from sage.symbolic.constants import pi
+        from sage.functions.log import exp
+        from sage.symbolic.all import I
+        from sage.rings.real_double import RDF
+        from sage.functions.other import sqrt
+
+        coeff = self.coefficients(rings.ZZ(numterms))
+
+        N = self.level()
+
+        # coefficients of the matrix M
+        b = M.b()
+        c = M.c() / N
+        d = M.d()
+
+        if d == 0:
+            return 0
+
+        if d < 0:
+            c = -c
+            b = -b
+            d = -d
+
+        eps = self.atkin_lehner_eigenvalue()
+        mu_N = exp(RDF(-2 * pi / sqrt(N)))
+        mu_dN = exp(RDF(-2 * pi / d / sqrt(N)))
+        mu_d = exp(RDF(2 * pi / d) * I)
+        return sum((coeff[n - 1] / n)
+                   *((eps - 1) * mu_N ** n
+                     + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
+                   for n in range(1, numterms))
 
     # this function lives here so it is inherited by Newform (which does *not* derive from ModularFormElement)
     def cuspform_lseries(self, prec=53,

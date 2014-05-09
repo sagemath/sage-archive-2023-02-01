@@ -134,7 +134,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     """
     points = list(points)
     if len(points) < 2:
-        raise ValueError, "there must be at least 2 points"
+        raise ValueError("there must be at least 2 points")
     for i in range(len(points)):
         x, y, z = points[i]
         points[i] = float(x), float(y), float(z)
@@ -490,7 +490,7 @@ def ruler(start, end, ticks=4, sub_ticks=4, absolute=False, snap=False, **kwds):
 
     if absolute:
         if dir[0]*dir[1] or dir[1]*dir[2] or dir[0]*dir[2]:
-            raise ValueError, "Absolute rulers only valid for axis-aligned paths"
+            raise ValueError("Absolute rulers only valid for axis-aligned paths")
         m = max(dir[0], dir[1], dir[2])
         if dir[0] == m:
             off = start[0]
@@ -798,7 +798,7 @@ class Line(PrimitiveObject):
             ([(1, 2, 3), (1, 2, 2), (-1, 2, 2), (-1, 3, 2)], False)
         """
         if len(points) < 2:
-            raise ValueError, "there must be at least 2 points"
+            raise ValueError("there must be at least 2 points")
         PrimitiveObject.__init__(self, **kwds)
         self.points = points
         self.thickness = thickness

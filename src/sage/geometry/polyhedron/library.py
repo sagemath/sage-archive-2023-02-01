@@ -227,7 +227,7 @@ class Polytopes():
             g = RDF( (1 + sqrt(5))/2 )
             r12 = RDF( QQ(1)/2 )
         else:
-            raise ValueError, "field must be QQ or RDF."
+            raise ValueError("field must be QQ or RDF.")
         verts = [i([0,r12,g/2]) for i in AlternatingGroup(3)]
         verts = verts + [i([0,r12,-g/2]) for i in AlternatingGroup(3)]
         verts = verts + [i([0,-r12,g/2]) for i in AlternatingGroup(3)]

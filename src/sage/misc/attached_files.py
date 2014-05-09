@@ -550,7 +550,7 @@ def reload_attached_files_if_modified():
     EXAMPLES::
 
         sage: sage.misc.attached_files.reset()
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: tmp = tmp_filename(ext='.py')
         sage: open(tmp, 'w').write('a = 2\n')

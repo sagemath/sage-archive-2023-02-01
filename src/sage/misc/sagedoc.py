@@ -491,7 +491,7 @@ def format(s, embedded=False):
 
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
 
     # Doc strings may contain embedding information, which should not
     # be subject to formatting (line breaks must not be inserted).
@@ -590,7 +590,7 @@ def format_src(s):
         'Sq(*nums):'
     """
     if not isinstance(s, str):
-        raise TypeError, "s must be a string"
+        raise TypeError("s must be a string")
     docs = set([])
     import sage.all
     while True:
@@ -1353,7 +1353,7 @@ class _sage_doc:
             from sagenb.misc.sphinxify import sphinxify
             return sphinxify(s, format='text')
         else:
-            raise ValueError, "output type %s not recognized" % output
+            raise ValueError("output type %s not recognized" % output)
 
     def _open(self, name, testing=False):
         """
@@ -1379,8 +1379,8 @@ class _sage_doc:
         url = self._base_url + os.path.join(name, "index.html")
         path = os.path.join(self._base_path, name, "index.html")
         if not os.path.exists(path):
-            raise OSError, """The document '%s' does not exist.  Please build it
-with 'sage -docbuild %s html --mathjax' and try again.""" %(name, name)
+            raise OSError("""The document '%s' does not exist.  Please build it
+with 'sage -docbuild %s html --mathjax' and try again.""" %(name, name))
 
         if testing:
             return (url, path)

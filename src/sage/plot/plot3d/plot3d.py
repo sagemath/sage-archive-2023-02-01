@@ -118,7 +118,7 @@ class _Coordinates(object):
         import inspect
         all_vars=inspect.getargspec(self.transform).args[1:]
         if set(all_vars) != set(indep_vars + [dep_var]):
-            raise ValueError, 'variables were specified incorrectly for this coordinate system; incorrect variables were %s'%list(set(all_vars).symmetric_difference(set(indep_vars+[dep_var])))
+            raise ValueError('variables were specified incorrectly for this coordinate system; incorrect variables were %s'%list(set(all_vars).symmetric_difference(set(indep_vars+[dep_var]))))
         self.dep_var = dep_var
         self.indep_vars = indep_vars
 
@@ -260,7 +260,7 @@ class _Coordinates(object):
                     if params is None:
                         params=['u','v']
                 else:
-                    raise ValueError, "function is not callable"
+                    raise ValueError("function is not callable")
             def subs_func(t):
                 # We use eval so that the lambda function has the same
                 # variable names as the original function
@@ -816,13 +816,13 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         if isinstance(transformation, (tuple, list,Vector_callable_symbolic_dense)):
             if len(transformation)==3:
                 if params is None:
-                    raise ValueError, "must specify independent variable names in the ranges when using generic transformation"
+                    raise ValueError("must specify independent variable names in the ranges when using generic transformation")
                 indep_vars = params
             elif len(transformation)==4:
                 indep_vars = transformation[3]
                 transformation = transformation[0:3]
             else:
-                raise ValueError, "unknown transformation type"
+                raise ValueError("unknown transformation type")
             # find out which variable is the function variable by
             # eliminating the parameter variables.
             all_vars = set(sum([list(s.variables()) for s in transformation],[]))
@@ -831,13 +831,13 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
                 dep_var = dep_var.pop()
                 transformation = _ArbitraryCoordinates(transformation, dep_var, indep_vars)
             else:
-                raise ValueError, "unable to determine the function variable in the transform"
+                raise ValueError("unable to determine the function variable in the transform")
 
         if isinstance(transformation, _Coordinates):
             R = transformation.to_cartesian(f, params)
             return parametric_plot3d.parametric_plot3d(R, urange, vrange, **kwds)
         else:
-            raise ValueError, 'unknown transformation type'
+            raise ValueError('unknown transformation type')
     elif adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:

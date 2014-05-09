@@ -3007,7 +3007,7 @@ cpdef inline tuple category_sort_key(object category):
 
     EXAMPLES::
 
-        sage: from sage.misc.c3_controlled import category_sort_key
+        sage: from sage.categories.category import category_sort_key
         sage: category_sort_key(Rings()) is Rings()._cmp_key
         True
     """

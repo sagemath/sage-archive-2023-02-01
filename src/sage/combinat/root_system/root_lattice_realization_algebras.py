@@ -424,8 +424,8 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Lusztig1985] G. Lusztig, *Equivariant K-theory and
-               representations of Hecke algebras*,
+            .. [Lusztig1985] G. Lusztig,
+               *Equivariant K-theory and representations of Hecke algebras*,
                Proc. Amer. Math. Soc. 94 (1985), no. 2, 337-342.
 
             .. [Cherednik1995] I. Cherednik,

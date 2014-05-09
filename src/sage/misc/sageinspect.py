@@ -1631,12 +1631,44 @@ def _sage_getsourcelines_name_with_dot(object):
                 Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
         ...
 
+    TESTS:
+
+    The following was fixed in :trac:`16309`::
+
+        sage: cython('''
+        ....: class A:
+        ....:     def __init__(self):
+        ....:         "some init doc"
+        ....:         pass
+        ....: from sage.misc.nested_class import NestedClassMetaclass
+        ....: class B:
+        ....:     "some class doc"
+        ....:     class A(A):
+        ....:         pass
+        ....: ''')
+        sage: B.A.__name__
+        'A'
+        sage: B.A.__qualname__
+        'B.A'
+        sage: sage_getsource(B.A)
+        '    class A(A):\n        pass\n\n'
+
+    Note that for this example to work, it is essential that the class ``B``
+    has a docstring. Otherwise, the code of ``B`` could not be found (Cython
+    inserts embedding information into the docstring) and thus the code of
+    ``B.A`` couldn't be found either.
+
     AUTHOR:
 
     - Simon King (2011-09)
     """
     # First, split the name:
-    splitted_name = object.__name__.split('.')
+    if '.' in object.__name__:
+        splitted_name = object.__name__.split('.')
+    elif hasattr(object,'__qualname__'):
+        splitted_name = object.__qualname__.split('.')
+    else:
+        splitted_name = object.__name__
     path = object.__module__.split('.')+splitted_name[:-1]
     name = splitted_name[-1]
     try:
@@ -1858,17 +1890,17 @@ def sage_getsourcelines(obj, is_binary=False):
     d = inspect.getdoc(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
+        if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+            # That hapens for ParentMethods
+            # of categories
+            if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
+                return _sage_getsourcelines_name_with_dot(obj)
         d = _sage_getdoc_unformatted(obj)
         pos = _extract_embedded_position(d)
         if pos is None:
             try:
                 return inspect.getsourcelines(obj)
-            except IOError:
-                if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-                    # That hapens for ParentMethods
-                    # of categories
-                    if '.' in obj.__name__:
-                        return _sage_getsourcelines_name_with_dot(obj)
+            except (IOError, TypeError):
                 if inspect.isclass(obj):
                     try:
                         B = obj.__base__

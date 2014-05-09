@@ -323,12 +323,14 @@ class AnalyticType(FiniteLatticePoset):
     (and analytic types) given by "inclusion". We name the analytic type
     according to its maximal analytic properties.
 
-    EXAMPLES::
+    EXAMPLES:
 
-    For n=3 the quasi form ``el = E6 - E2^3`` has the quasi components ``E6``
+    For `n=3` the quasi form ``el = E6 - E2^3`` has the quasi components ``E6``
     which is ``holomorphic`` and ``E2^3`` which is ``quasi holomorphic``.
     So the analytic type of ``el`` is ``quasi holomorphic`` despite the fact
     that the sum (``el``) describes a function which is zero at infinity.
+
+    ::
 
         sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
         sage: x,y,z,d = var("x,y,z,d")

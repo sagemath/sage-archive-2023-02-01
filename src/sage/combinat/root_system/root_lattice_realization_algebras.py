@@ -27,7 +27,7 @@ class Algebras(AlgebrasCategory):
 
     TESTS::
 
-        sage: for ct in CartanType.samples(crystallographic=True):
+        sage: for ct in CartanType.samples(crystallographic=True): # long time
         ....:     TestSuite(RootSystem(ct).root_lattice().algebra(QQ)).run()
     """
 
@@ -406,8 +406,10 @@ class Algebras(AlgebrasCategory):
             Several variants are available to match with various
             conventions used in the literature:
 
-                - "bar" replaces `\pi_i` in the formula above by `\overline \pi_i=(1-\pi_i)`.
-                - "dominant" conjugates the operator by `x^\lambda \mapsto x^-\lambda`.
+            - "bar" replaces `\pi_i` in the formula above by
+              `\overline{\pi}_i = (1-\pi_i)`.
+            - "dominant" conjugates the operator by
+              `x^\lambda \mapsto x^-\lambda`.
 
             The names dominant and antidominant for the conventions were chosen with regards to
             the nonsymmetric Macdonald polynomials. The `Y` operators for the Macdonald polynomials
@@ -422,10 +424,12 @@ class Algebras(AlgebrasCategory):
 
             REFERENCES:
 
-            .. [Lusztig1985] G. Lusztig, Equivariant K-theory and representations of Hecke algebras,
-              Proc. Amer. Math. Soc. 94 (1985), no. 2, 337-342.
+            .. [Lusztig1985] G. Lusztig, *Equivariant K-theory and
+               representations of Hecke algebras*,
+               Proc. Amer. Math. Soc. 94 (1985), no. 2, 337-342.
 
-            .. [Cherednik1995] I. Cherednik, Nonsymmetric Macdonald polynomials. IMRN 10, 483-515 (1995).
+            .. [Cherednik1995] I. Cherednik,
+               *Nonsymmetric Macdonald polynomials*. IMRN 10, 483-515 (1995).
 
             EXAMPLES::
 

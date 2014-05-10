@@ -61,6 +61,38 @@ class InfiniteEnumeratedSets(CategoryWithAxiom):
             """
             raise NotImplementedError("infinite set")
 
+        def __getitem__(self, i):
+            r"""
+            Return the item indexed by ``i``.
+
+            EXAMPLES::
+
+                sage: P = Partitions()
+                sage: P[:5]
+                [[], [1], [2], [1, 1], [3]]
+                sage: P[0:5]
+                [[], [1], [2], [1, 1], [3]]
+                sage: P[3:5]
+                [[1, 1], [3]]
+                sage: P[3:10]
+                [[1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
+                sage: P[3:10:2]
+                [[1, 1], [2, 1], [4], [2, 2]]
+                sage: P[3:]
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
+                sage: P[3]
+                [1, 1]
+            """
+            if isinstance(i, slice):
+                if i.stop is None:
+                    raise NotImplementedError("infinite list")
+                s = 0 if i.start is None else i.start
+                st = 1 if i.step is None else i.step
+                return [self.unrank(j) for j in range(s, i.stop, st)]
+            return self.unrank(i)
+
         def list(self):
             """
             Returns an error since self is an infinite enumerated set.

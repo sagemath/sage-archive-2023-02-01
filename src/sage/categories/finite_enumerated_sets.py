@@ -56,7 +56,6 @@ class FiniteEnumeratedSets(Category):
         """
         return [EnumeratedSets()]
 
-
     def _call_(self, X):
         """
         Construct an object in this category from the data in ``X``.
@@ -250,7 +249,6 @@ class FiniteEnumeratedSets(Category):
             except IndexError:
                 raise ValueError("the value must be between %s and %s inclusive"%(0,len(lst)-1))
 
-
         def list(self):
             """
             The list of the elements of ``self``.
@@ -315,7 +313,6 @@ class FiniteEnumeratedSets(Category):
                     sage: list(C)
                     hello!
                     [1, 2, 3]
-
 
             TESTS:
 
@@ -481,7 +478,6 @@ class FiniteEnumeratedSets(Category):
                 if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
-
 
     class IsomorphicObjects(IsomorphicObjectsCategory):
 

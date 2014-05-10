@@ -644,6 +644,15 @@ class RootLatticeRealizations(Category_over_base_ring):
                  alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
                  alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
                  alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
+
+                sage: Q = RootSystem(['A',4,2]).root_lattice()
+                sage: PR = Q.positive_roots()
+                sage: [PR.unrank(i) for i in range(5)]
+                [alpha[1],
+                 alpha[2],
+                 2*alpha[1] + alpha[2],
+                 alpha[1] + alpha[2],
+                 alpha[0] + alpha[1] + alpha[2]]
             """
             if self.cartan_type().is_finite():
                 return tuple(TransitiveIdealGraded(attrcall('pred'), self.simple_roots()))
@@ -669,7 +678,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             elif self.cartan_type().type() == 'BC' or self.cartan_type().type().dual() == 'BC':
                 Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
                 Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
-                Fs = Family(Cl, lambda x: (self.sum_of_terms(x[1]) + (2*x[0]-1)*delta) // 2)
+                Fs = Family(Cl, lambda x: (self.sum_of_terms(x[1]) + (2*x[0]-1)*delta) / 2)
                 Fm = Family(Cs, lambda x: self.sum_of_terms(x[1]) + x[0]*delta)
                 Fl = Family(Cl, lambda x: self.sum_of_terms(x[1]) + 2*x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, Fs, Fm, Fl])

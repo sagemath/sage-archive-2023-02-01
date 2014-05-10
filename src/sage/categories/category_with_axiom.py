@@ -1652,20 +1652,13 @@ from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_types import Category_over_base_ring
 from sage.structure.dynamic_class import DynamicMetaclass
+from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axioms, _sort_uniq
 
 # The order of the axioms in this lists implies that
 # Magmas().Commutative().Unital() is printed as
 # ``Category of commutative unital magmas''
 
-cdef class AxiomContainer(dict):
-    def add(self, axiom):
-        self[axiom] = len(self)
-    def __iadd__(self, L):
-        for axiom in L:
-            self.add(axiom)
-        return self
-
-cdef all_axioms = AxiomContainer()
+all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
               "Facade", "Finite", "Infinite",
               "FiniteDimensional", "Connected", "WithBasis",
@@ -1676,31 +1669,6 @@ all_axioms += ("Flying", "Blue",
 
 def get_all_axioms():
     return all_axioms
-
-cpdef tuple canonicalize_axioms(axioms):
-    r"""
-    Canonicalize a set of axioms.
-
-    INPUT:
-
-     - ``axioms`` -- a set (or iterable) of axioms
-
-    OUTPUT:
-
-    A set of axioms as a tuple sorted according to the order of the
-    tuple ``all_axioms`` in :mod:`sage.categories.category_with_axiom`.
-
-    EXAMPLES::
-
-        sage: from sage.categories.category_with_axiom import canonicalize_axioms
-        sage: canonicalize_axioms(["Commutative", "Connected", "WithBasis", "Finite"])
-        ('Finite', 'Connected', 'WithBasis', 'Commutative')
-        sage: canonicalize_axioms(["Commutative", "Connected", "Commutative", "WithBasis", "Finite"])
-        ('Finite', 'Connected', 'WithBasis', 'Commutative')
-    """
-    cdef list L = list(set(axioms))
-    L.sort(key = all_axioms.__getitem__)
-    return tuple(L)
 
 def uncamelcase(s,separator=" "):
     """
@@ -2222,7 +2190,7 @@ class CategoryWithAxiom(Category):
             The logic here is shared between :meth:`_repr_object_names`
             and :meth:`.category.JoinCategory._repr_object_names`
         """
-        axioms = canonicalize_axioms(axioms)
+        axioms = canonicalize_axioms(all_axioms,axioms)
         base_category = category._without_axioms(named=True)
         if isinstance(base_category, CategoryWithAxiom): # Smelly runtime type checking
             result = super(CategoryWithAxiom, base_category)._repr_object_names()

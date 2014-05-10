@@ -100,14 +100,15 @@ from warnings import warn
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.c3_controlled cimport C3_sorted_merge
-from sage.misc.c3_controlled import _cmp_key, _cmp_key_named
+from sage.misc.c3_controlled import _cmp_key, _cmp_key_named, C3_sorted_merge
 from sage.misc.unknown import Unknown
 from sage.misc.weak_dict import WeakValueDictionary
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
+
+from sage.categories.category_cy_helper import category_sort_key, _sort_uniq
 
 class Category(UniqueRepresentation, SageObject):
     r"""
@@ -1845,40 +1846,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return tuple(sorted(categories, key=category_sort_key, reverse=True))
 
-    @staticmethod
-    def _sort_uniq(categories):
-        """
-        Return the categories after sorting them and removing redundant categories.
-
-        Redundant categories include duplicates and categories which
-        are super categories of other categories in the input.
-
-        INPUT:
-
-        - ``categories`` -- a list (or iterable) of categories
-
-        OUTPUT: a sorted tuple of mutually incomparable categories
-
-        EXAMPLES::
-
-            sage: Category._sort_uniq([Rings(), Monoids(), Coalgebras(QQ)])
-            (Category of rings, Category of coalgebras over Rational Field)
-
-        Note that, in the above example, ``Monoids()`` does not appear
-        in the result because it is a super category of ``Rings()``.
-        """
-        cdef tuple cats = Category._sort(categories)
-        cdef list result = []
-        cdef bint append
-        for category in cats:
-            append = True
-            for cat in result:
-                if cat.is_subcategory(category):
-                    append = False
-                    break
-            if append:
-                result.append(category)
-        return tuple(result)
+    _sort_uniq = _sort_uniq   # a cythonised helper
 
     def __and__(self, other):
         """
@@ -1911,7 +1879,7 @@ class Category(UniqueRepresentation, SageObject):
     _join_cache = WeakValueDictionary()
 
     @staticmethod
-    def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()):
+    def join(categories, as_list = False, ignore_axioms=(), axioms=()):
         """
         Return the join of the input categories in the lattice of categories.
 
@@ -2069,7 +2037,7 @@ class Category(UniqueRepresentation, SageObject):
             [Category of facade commutative test objects,
              Category of finite dimensional commutative test objects]
         """
-        cdef list categoriesL = list(categories)
+        categoriesL = list(categories)
         if not categoriesL:
             if as_list:
                 return []
@@ -2093,7 +2061,7 @@ class Category(UniqueRepresentation, SageObject):
 
         # Ensure associativity and commutativity by flattening
         # JoinCategory's sorting, and removing duplicates
-        cdef tuple categoriesT = Category._sort_uniq(Category._flatten_categories(categoriesL))
+        categoriesT = Category._sort_uniq(Category._flatten_categories(categoriesL))
 
         if not as_list and not ignore_axioms:
             try:
@@ -2102,7 +2070,7 @@ class Category(UniqueRepresentation, SageObject):
                 pass
 
         # Handle axioms
-        cdef set axiomsF = {axiom
+        axiomsF = {axiom
                   for category in categoriesT
                   for axiom in category.axioms()}.union(axioms)
         # Invariants:
@@ -2110,8 +2078,8 @@ class Category(UniqueRepresentation, SageObject):
         # - todo contains the ``complement`` of done; i.e.
         #   for category in the keys of done,
         #   (category, axiom) is in todo iff axiom is not in done[category]
-        cdef dict done = dict()
-        cdef set todo = set()
+        done = dict()
+        todo = set()
         def add_category(category):
             axs = category.axioms()
             for (cat, axiom) in ignore_axioms:
@@ -2122,7 +2090,6 @@ class Category(UniqueRepresentation, SageObject):
                          for axiom in axiomsF.difference(axs) )
         for category in categoriesT:
             add_category(category)
-        cdef set new_axioms
         while todo:
             (category, axiom) = todo.pop()
             # It's easier to remove categories from done than from todo
@@ -2149,7 +2116,7 @@ class Category(UniqueRepresentation, SageObject):
                          )
             for cat in new_cats:
                 add_category(cat)
-        result = Category._sort_uniq(done.keys())
+        result = Category._sort_uniq(done.iterkeys())
         if as_list:
             return list(result)
         if len(result) == 1:
@@ -2996,20 +2963,4 @@ class JoinCategory(CategoryWithParameters):
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)
 
 
-cpdef inline tuple category_sort_key(object category):
-    """
-    Return ``category._cmp_key``.
-
-    This helper function is used for sorting lists of categories.
-
-    It is semantically equivalent to
-    :func:`operator.attrgetter` ``("_cmp_key")``, but currently faster.
-
-    EXAMPLES::
-
-        sage: from sage.categories.category import category_sort_key
-        sage: category_sort_key(Rings()) is Rings()._cmp_key
-        True
-    """
-    return category._cmp_key
 

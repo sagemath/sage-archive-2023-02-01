@@ -523,7 +523,7 @@ class ModularForm_abstract(ModuleElement):
         """
         raise NotImplementedError
 
-    # The methods pair() and cuspform_lseries() below currently live
+    # The methods period() and cuspform_lseries() below currently live
     # in ModularForm_abstract so they are inherited by Newform (which
     # does *not* derive from ModularFormElement).
 
@@ -583,12 +583,32 @@ class ModularForm_abstract(ModuleElement):
 
         TESTS::
 
+            sage: C = Newforms(11, 2)[0]
+            sage: g = Gamma0(15)(matrix([[-4, -3], [15, 11]]))
             sage: C.period(g)
             Traceback (most recent call last):
             ...
             TypeError: matrix [-4 -3]
                               [15 11]
             is not an element of Congruence Subgroup Gamma0(11)
+            sage: f = Newforms(Gamma0(15), 4)[0]
+            sage: f.period(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: period pairing only defined for cusp forms of weight 2
+            sage: S = Newforms(Gamma1(17), 2, names='a')
+            sage: f = S[1]
+            sage: g = Gamma1(17)([18, 1, 17, 1])
+            sage: f.period(g)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: period pairing only implemented for cusp forms of trivial character
+            sage: E = ModularForms(Gamma0(4), 2).eisenstein_series()[0]
+            sage: gamma = Gamma0(4)([1, 0, 4, 1])
+            sage: E.period(gamma)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Don't know how to compute Atkin-Lehner matrix acting on this space (try using a newform constructor instead)
 
         """
         R = rings.RealField(prec)

@@ -30,6 +30,17 @@ based upon the construction of `(v\{4,5,8,9,12\})`-PBD (see the doc of
 can always be transformed into a `((k-1)v+1,4,1)`-BIBD, which covers all
 possible cases of `(v,4,1)`-BIBD.
 
+`K_5`-decompositions of `K_v`
+-----------------------------
+
+Decompositions of `K_v` into `K_4` (i.e. `(v,4,1)`-BIBD) are built following
+Clayton Smith's construction [ClaytonSmith]_.
+
+.. [ClaytonSmith] On the existence of `(v,5,1)`-BIBD.
+  http://www.argilo.net/files/bibd.pdf
+  Clayton Smith
+
+
 Functions
 ---------
 """
@@ -75,10 +86,10 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
 
         * :func:`steiner_triple_system`
         * :func:`v_4_1_BIBD`
+        * :func:`v_5_1_BIBD`
 
     TODO:
 
-        * Implement `(v,5,1)`-BIBD using `this text <http://www.argilo.net/files/bibd.pdf>`_.
         * Implement other constructions from the Handbook of Combinatorial
           Designs.
 
@@ -141,6 +152,11 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         if existence:
             return bool((n%12) in [1,4])
         return BlockDesign(v, v_4_1_BIBD(v), test = False)
+    if k == 5:
+        if existence:
+            return bool(v%20 == 5 or v%20 == 1)
+        return BlockDesign(v, v_5_1_BIBD(v), test = False)
+
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
@@ -401,6 +417,11 @@ def BIBD_from_TD(v,k,existence=False):
             raise NotImplementedError("I do not know how to build this BIBD!")
 
     return BIBD
+
+
+################
+# (v,4,1)-BIBD #
+################
 
 def v_4_1_BIBD(v, check=True):
     r"""
@@ -805,3 +826,208 @@ def _get_t_u(v):
     t = 12*s+d['t']
     u = d['u']
     return t,u
+
+################
+# (v,5,1)-BIBD #
+################
+
+def v_5_1_BIBD(v, check=True):
+    r"""
+    Returns a `(v,5,1)`-BIBD.
+
+    This method follows the constuction from [ClaytonSmith]_.
+
+    INPUT:
+
+    - ``v`` (integer)
+
+    .. SEEALSO::
+
+        * :meth:`BalancedIncompleteBlockDesign`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import v_5_1_BIBD
+        sage: i = 0
+        sage: while i<200:
+        ....:    i += 20
+        ....:    _ = v_5_1_BIBD(i+1)
+        ....:    _ = v_5_1_BIBD(i+5)
+    """
+    assert (v%20 == 5 or v%20 == 1)
+
+    v = int(v)
+
+    # Builds a BIBD from a difference family F over a group G
+    def bibd_from_difference_family(L,G):
+        r = {e:i for i,e in enumerate(G)}
+        return [[r[G(x if isinstance(x,(list,tuple)) else [x])+g] for x in l] for l in L for g in r]
+
+    # Lemma 27
+    if v%5 == 0 and (v/5)%4 == 1 and is_prime_power(v//5):
+        bibd = BIBD_5q_5_for_q_prime_power(v//5)
+    # Lemma 28
+    elif v == 21:
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        bibd = bibd_from_difference_family([[0,1,4,14,16]],AdditiveAbelianGroup([21]))
+    elif v == 41:
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        bibd = bibd_from_difference_family([[0,1,4,11,29],[0,2,8,17,22]],AdditiveAbelianGroup([41]))
+    elif v == 61:
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        bibd = bibd_from_difference_family([[0,1,3,13,34],[0,4,9,23,45],[0,6,17,24,32]],AdditiveAbelianGroup([61]))
+    elif v == 81:
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        D = [[(0, 0, 0, 1), (2, 0, 0, 1), (0, 0, 2, 1), (1, 2, 0, 2), (0, 1, 1, 1)],
+             [(0, 0, 1, 0), (1, 1, 0, 2), (0, 2, 1, 0), (1, 2, 0, 1), (1, 1, 1, 0)],
+             [(2, 2, 1, 1), (1, 2, 2, 2), (2, 0, 1, 2), (0, 1, 2, 1), (1, 1, 0, 0)],
+             [(0, 2, 0, 2), (1, 1, 0, 1), (1, 2, 1, 2), (1, 2, 1, 0), (0, 2, 1, 1)]]
+        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([3]*4))
+    elif v == 161:
+        # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
+        D = [(0, 19, 34, 73, 80), (0, 16, 44, 71, 79), (0, 12, 33, 74, 78), (0, 13, 30, 72, 77), (0, 11, 36, 67, 76), (0, 18, 32, 69, 75), (0, 10, 48, 68, 70), (0, 3, 29, 52, 53)]
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([161]))
+    elif v == 281:
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        D = [[3**(2*a+56*b) for b in range(5)] for a in range(14)]
+        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([281]))
+    # Lemma 29
+    elif v == 165:
+        bibd = BIBD_from_PBD(v_5_1_BIBD(41,check=False),165,5,check=False)
+    elif v == 181:
+        bibd = BIBD_from_PBD(v_5_1_BIBD(45,check=False),181,5,check=False)
+    elif v in (201,285,301,401,421,425):
+        # Call directly the BIBD_from_TD function
+        bibd = BIBD_from_TD(v,5)
+    # Lemma 30
+    elif v == 141:
+        # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
+        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        D = [(0, 33, 60, 92, 97), (0, 3, 45, 88, 110), (0, 18, 39, 68, 139), (0, 12, 67, 75, 113), (0, 1, 15, 84, 94), (0, 7, 11, 24, 30), (0, 36, 90, 116, 125)]
+        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([141]))
+
+    # Theorem 31.2
+    elif (v-1)/4 in [80, 81, 85, 86, 90, 91, 95, 96, 110, 111, 115, 116, 120, 121, 250, 251, 255, 256, 260, 261, 265, 266, 270, 271]:
+        r = (v-1)/4
+        if r <= 96:
+            k,t,u = 5, 16, r-80
+        elif r <= 121:
+            k,t,u = 10, 11, r-110
+        else:
+            k,t,u = 10, 25, r-250
+        bibd = BIBD_from_PBD(PBD_from_TD(k,t,u),v,5,check=False)
+
+    else:
+        r,s,t,u = _get_r_s_t_u(v)
+        bibd = BIBD_from_PBD(PBD_from_TD(5,t,u),v,5,check=False)
+
+    if check:
+        _check_pbd(bibd,v,[5])
+
+    return bibd
+
+def _get_r_s_t_u(v):
+    r"""
+    Implements the table from [ClaytonSmith]_
+
+    Returns the parameters ``r,s,t,u`` associated with an integer ``v``.
+
+    INPUT:
+
+    - ``v`` (integer)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import _get_r_s_t_u
+        sage: _get_r_s_t_u(25)
+        (6, 0, 1, 1)
+    """
+    r = int((v-1)/4)
+    s = r//150
+    x = r%150
+
+    if   x == 0:   t,u = 30*s-5,  25
+    elif x == 1:   t,u = 30*s-5,  26
+    elif x <= 21:  t,u = 30*s+1,  x-5
+    elif x == 25:  t,u = 30*s+5,  0
+    elif x == 26:  t,u = 30*s+5,  1
+    elif x == 30:  t,u = 30*s+5,  5
+    elif x <= 51:  t,u = 30*s+5,  x-25
+    elif x <= 66:  t,u = 30*s+11, x-55
+    elif x <= 96:  t,u = 30*s+11, x-55
+    elif x <= 121: t,u = 30*s+11, x-55
+    elif x <= 146: t,u = 30*s+25, x-125
+
+    return r,s,t,u
+
+def PBD_from_TD(k,t,u):
+    r"""
+    Returns a `(kt,\{k,t\})`-PBD if `u=0` and a `(kt+u,\{k,k+1,t,u\})`-PBD otherwise.
+
+    This is theorem 23 from [ClaytonSmith]_. The PBD is obtained from the blocks
+    a truncated `TD(k+1,t)`, to which are added the blocks corresponding to the
+    groups of the TD. When `u=0`, a `TD(k,t)` is used instead.
+
+    INPUT:
+
+    - ``k,t,u`` -- integers such that `0\leq u \leq t`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import PBD_from_TD
+        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: PBD = PBD_from_TD(2,2,1); PBD
+        [[0, 2, 4], [0, 3], [1, 2], [1, 3, 4], [0, 1], [2, 3]]
+        sage: _check_pbd(PBD,2*2+1,[2,3])
+        [[0, 2, 4], [0, 3], [1, 2], [1, 3, 4], [0, 1], [2, 3]]
+
+    """
+    from orthogonal_arrays import transversal_design
+    TD = transversal_design(k+bool(u),t, check=False)
+    TD = [[x for x in X if x<k*t+u] for X in TD]
+    for i in range(k):
+        TD.append(range(t*i,t*i+t))
+    if u>=2:
+        TD.append(range(k*t,k*t+u))
+    return TD
+
+def BIBD_5q_5_for_q_prime_power(q):
+    r"""
+    Returns a `(5q,5,1)`-BIBD with `q\equiv 1\pmod 4` a prime power.
+
+    See Theorem 24 [ClaytonSmith]_.
+
+    INPUT:
+
+    - ``q`` (integer) -- a prime power such that `q\equiv 1\pmod 4`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import BIBD_5q_5_for_q_prime_power
+        sage: for q in [25, 45, 65, 85, 125, 145, 185, 205, 305, 405, 605]: # long time
+        ....:     _ = BIBD_5q_5_for_q_prime_power(q/5)                      # long time
+    """
+    from sage.rings.arith import is_prime_power
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    if q%4 != 1 or not is_prime_power(q):
+        raise ValueError("q is not a prime power or q%4!=1.")
+
+    d = (q-1)/4
+    B = []
+    F = FiniteField(q,'x')
+    a = F.primitive_element()
+    L = {b:i for i,b in enumerate(F)}
+    for b in L:
+        B.append([i*q + L[b] for i in range(5)])
+        for i in range(5):
+            for j in range(d):
+                B.append([        i*q + L[b          ],
+                          ((i+1)%5)*q + L[ a**j+b    ],
+                          ((i+1)%5)*q + L[-a**j+b    ],
+                          ((i+4)%5)*q + L[ a**(j+d)+b],
+                          ((i+4)%5)*q + L[-a**(j+d)+b],
+                          ])
+
+    return B

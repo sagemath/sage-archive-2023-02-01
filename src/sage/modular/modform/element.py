@@ -565,6 +565,36 @@ class ModularForm_abstract(ModuleElement):
             sage: f.period(g)  # abs tol 1e-15
             2.17298044293747e-16 - 1.59624222213178*I
 
+        If `E` is an elliptic curve over `\QQ` and `f` is the newform
+        associated to `E`, then the periods of `f` are in the period
+        lattice of `E` up to an integer multiple::
+
+            sage: E = EllipticCurve('11a3')
+            sage: f = E.newform()
+            sage: g = Gamma0(11)([3, 1, 11, 4])
+            sage: f.period(g)
+            0.634604652139777 + 1.45881661693850*I
+            sage: omega1, omega2 = E.period_lattice().basis()
+            sage: -2/5*omega1 + omega2
+            0.634604652139777 + 1.45881661693850*I
+
+        The integer multiple is 5 in this case, which is explained by
+        the fact that there is a 5-isogeny between the elliptic curves
+        `J_0(5)` and `E`.
+
+        The elliptic curve `E` has a pair of modular symbols attached
+        to it, which can be computed using the method
+        `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
+        These can be used to express the periods of `f` as exact
+        linear combinations of a basis for the period lattice of `E`::
+
+            sage: s = E.modular_symbol(sign=+1)
+            sage: t = E.modular_symbol(sign=-1)
+            sage: s(3/11), t(3/11)
+            (1/10, 1)
+            sage: s(3/11)*omega1 + t(3/11)*omega2.imag()*I
+            0.634604652139777 + 1.45881661693850*I
+
         ALGORITHM:
 
         We use the series expression from [Cremona]_, Chapter II,

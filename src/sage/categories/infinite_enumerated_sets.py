@@ -88,6 +88,11 @@ class InfiniteEnumeratedSets(CategoryWithAxiom):
             if isinstance(i, slice):
                 if i.stop is None:
                     raise NotImplementedError("infinite list")
+
+                if i.start is None and i.step is None:
+                    it = self.__iter__()
+                    return [it.next() for j in range(i.stop)]
+
                 s = 0 if i.start is None else i.start
                 st = 1 if i.step is None else i.step
                 return [self.unrank(j) for j in range(s, i.stop, st)]

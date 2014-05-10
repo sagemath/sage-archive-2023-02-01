@@ -996,7 +996,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return sib.name('vector')(self.base_ring(),
                                       [sib(e, 2) for e in self])
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
         Implements numerical approximation of a free module element
         by calling the ``n()`` method on all of its entries.
@@ -1114,7 +1114,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: u
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
-        return vector([e.n(prec, digits) for e in self])
+        return vector([e.n(prec, digits, algorithm) for e in self])
 
     def transpose(self):
         r"""
@@ -4101,7 +4101,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         cdef object v, e
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         for i, a in left._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 sum = (<RingElement>a)._add_(<RingElement> e[i])
                 if sum:
                     e[i] = sum
@@ -4122,7 +4122,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         cdef object v, e
         e = dict(left._entries)   # dict to make a copy
         for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 diff = (<RingElement> e[i])._sub_(<RingElement>a)
                 if diff:
                     e[i] = diff
@@ -4182,7 +4182,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         z = left.base_ring()(0)
         for i, a in left._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 z += (<RingElement>a)._mul_(<RingElement> e[i])
         return z
 
@@ -4199,7 +4199,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         e = dict((<FreeModuleElement_generic_sparse>right)._entries)
         v = PyDict_New()
         for i, a in left._entries.iteritems():
-            if e.has_key(i):
+            if i in e:
                 prod = (<RingElement>a)._mul_(<RingElement> e[i])
                 if prod:
                     v[i] = prod
@@ -4317,7 +4317,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             if i < 0 or i >= degree:
                 raise IndexError("index must be between %s and %s"%(-degree,
                                 degree-1))
-            if self._entries.has_key(i):
+            if i in self._entries:
                 return self._entries[i]
             return self.base_ring()(0)  # optimize this somehow
 
@@ -4335,7 +4335,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             0
         """
         i = int(i)
-        if self._entries.has_key(i):
+        if i in self._entries:
             return self._entries[i]
         return self.base_ring()(0)  # optimize this somehow
 
@@ -4366,7 +4366,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
         i = int(i)
         if x == 0:
-            if self._entries.has_key(i):
+            if i in self._entries:
                 del self._entries[i]
             return
         self._entries[i] = x
@@ -4512,7 +4512,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return len(self._entries)
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Returns a numerical approximation of self by calling the n() method
         on all of its entries.
@@ -4529,5 +4529,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: _.parent()
             Sparse vector space of dimension 3 over Real Field with 75 bits of precision
         """
-        return vector(dict([(e[0],e[1].n(prec, digits)) for e in self._entries.iteritems()]), sparse=True)
+        return vector(dict([(e[0], e[1].n(prec, digits, algorithm)) for e in
+                            self._entries.iteritems()]), sparse=True)
 

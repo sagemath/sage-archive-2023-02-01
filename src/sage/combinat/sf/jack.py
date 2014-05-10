@@ -71,7 +71,7 @@ class Jack(UniqueRepresentation):
         """
         self._sym = Sym
         if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError, "parameter t must be in the base ring"
+            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(t) !='t':

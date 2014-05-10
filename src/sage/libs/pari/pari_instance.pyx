@@ -157,6 +157,9 @@ include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 
+cdef extern from 'c_lib/include/memory.h':
+    void init_memory_functions()
+
 import sys
 
 cimport libc.stdlib
@@ -437,6 +440,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_init_opts(10000, maxprime, INIT_DFTm)
 
         _pari_init_error_handling()
+
+        # pari_init_opts() overrides MPIR's memory allocation functions,
+        # so we need to reset them.
+        init_memory_functions()
 
         num_primes = maxprime
 

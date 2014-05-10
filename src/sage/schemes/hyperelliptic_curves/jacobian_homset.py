@@ -145,14 +145,14 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
                     return JacobianMorphism_divisor_class_field(self, tuple(P))
                 if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
                     return self(P1) - self(P2)
-            raise TypeError, "Argument P (= %s) must have length 2."%P
+            raise TypeError("Argument P (= %s) must have length 2."%P)
         elif isinstance(P,JacobianMorphism_divisor_class_field) and self == P.parent():
             return P
         elif is_SchemeMorphism(P):
             x0 = P[0]; y0 = P[1]
             R, x = PolynomialRing(self.value_ring(), 'x').objgen()
             return self((x-x0,R(y0)))
-        raise TypeError, "Argument P (= %s) does not determine a divisor class"%P
+        raise TypeError("Argument P (= %s) does not determine a divisor class"%P)
 
     def _cmp_(self,other):
         if self.curve() == other.curve():
@@ -174,9 +174,9 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
         if is_Spec(T):
             return T.coordinate_ring()
         else:
-            raise TypeError, "Domain of argument must be of the form Spec(S)."
+            raise TypeError("Domain of argument must be of the form Spec(S).")
 
     def base_extend(self, R):
         if R != ZZ:
-            raise NotImplementedError, "Jacobian point sets viewed as modules over rings other than ZZ not implemented"
+            raise NotImplementedError("Jacobian point sets viewed as modules over rings other than ZZ not implemented")
         return self

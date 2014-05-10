@@ -80,16 +80,16 @@ def install_all_optional_packages(force=True, dry_run=False):
     # install each one
     for pkg in v:
         try:
-            print "Installing %s..."%pkg
+            print("Installing {}...".format(pkg))
             if not dry_run:
                 # only actually do the install of the package if dry_run is False
                 install_package(pkg, force=force)
-        except ValueError, msg:
+        except ValueError as msg:
             # An error occurred -- catch exception and record this in
             # the list of failed installed.
-            print "*"*70
-            print "FAILED to install '%s'"%pkg
-            print "*"*70
+            print("*"*70)
+            print("FAILED to install '{}'".format(pkg))
+            print("*"*70)
             failed.append(pkg)
     return failed
 
@@ -135,10 +135,10 @@ def install_package(package=None, force=False):
     """
     global __installed_packages
     if os.uname()[0][:6] == 'CYGWIN' and package is not None:
-        print "install_package may not work correctly under Microsoft Windows"
-        print "since you can't change an opened file.  Quit all"
-        print "instances of Sage and use 'sage -i %s' instead or" % package
-        print "use the force option to install_package()."
+        print("install_package may not work correctly under Microsoft Windows")
+        print("since you can't change an opened file.  Quit all")
+        print("instances of Sage and use 'sage -i {}' instead or".format(package))
+        print("use the force option to install_package().")
 
     if package is None:
         if __installed_packages is None:
@@ -157,21 +157,21 @@ def install_package(package=None, force=False):
     O.extend([P for P in optional_packages()[1] if P.startswith(package)])
     E.extend([P for P in experimental_packages()[1] if P.startswith(package)])
     L = S+O+E
-    if len(L)>1:
+    if len(L) > 1:
         if force:
-            print "Possible package names starting with '%s' are:"%(package)
+            print("Possible package names starting with '{}' are:".format(package))
         else:
-            print "Possible names of non-installed packages starting with '%s':"%(package)
+            print("Possible names of non-installed packages starting with '{}':".format(package))
         for P in L:
-            print " ", P
-        raise ValueError, "There is more than one package name starting with '%s'. Please specify!"%(package)
-    if len(L)==0:
+            print(" ", P)
+        raise ValueError("There is more than one package name starting with '{}'. Please specify!".format(package))
+    if len(L) == 0:
         if not force:
             if is_package_installed(package):
-                raise ValueError, "Package is already installed. Try install_package('%s',force=True)"%(package)
-        raise ValueError, "There is no package name starting with '%s'."%(package)
-    # len(L)==1, i.e. exactly one package matches the given one.
-    os.system('sage -f "%s"'%(L[0]))
+                raise ValueError("Package is already installed. Try install_package('{}',force=True)".format(package))
+        raise ValueError("There is no package name starting with '{}'.".format(package))
+    # len(L) == 1, i.e. exactly one package matches the given one.
+    os.system('sage -f "{}"'.format(L[0]))
     __installed_packages = None
 
 
@@ -211,10 +211,10 @@ def standard_packages():
     try:
         i = X.index('INSTALLED:')
         j = X.index('NOT INSTALLED:')
-    except ValueError, msg:
-        print R
-        print "Standard package list (shown above) appears to be currently"
-        print "not available or corrupted (network error?)."
+    except ValueError as msg:
+        print(R)
+        print("Standard package list (shown above) appears to be currently")
+        print("not available or corrupted (network error?).")
         return [], []
 
     installed = []
@@ -253,9 +253,9 @@ def optional_packages():
     try:
         i = X.index('INSTALLED:')
         j = X.index('NOT INSTALLED:')
-    except ValueError, msg:
-        print R
-        print "Optional package list (shown above) appears to be currently not available or corrupted (network error?)."
+    except ValueError as msg:
+        print(R)
+        print("Optional package list (shown above) appears to be currently not available or corrupted (network error?).")
         return [], []
 
     installed = []
@@ -294,9 +294,9 @@ def experimental_packages():
     try:
         i = X.index('INSTALLED:')
         j = X.index('NOT INSTALLED:')
-    except ValueError, msg:
-        print R
-        print "experimental package list (shown above) appears to be currently not available or corrupted (network error?)."
+    except ValueError as msg:
+        print(R)
+        print("experimental package list (shown above) appears to be currently not available or corrupted (network error?).")
         return [], []
 
     installed = []
@@ -333,14 +333,14 @@ def upgrade():
     """
     global __installed_packages
     if os.uname()[0][:6] == 'CYGWIN':
-        print "Upgrade may not work correctly under Microsoft Windows"
-        print "since you can't change an opened file.  Quit all"
-        print "instances of Sage and use 'sage -upgrade' instead."
+        print("Upgrade may not work correctly under Microsoft Windows")
+        print("since you can't change an opened file.  Quit all")
+        print("instances of Sage and use 'sage -upgrade' instead.")
         return
 
     os.system('sage -upgrade')
     __installed_packages = None
-    print "You should quit and restart Sage now."
+    print("You should quit and restart Sage now.")
 
 
 def package_mesg(package_name):

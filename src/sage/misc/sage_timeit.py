@@ -193,12 +193,16 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
         sage: gc.isenabled()
         True
     """
-    import timeit as timeit_, time, math, preparser, interpreter
+    import time, math
+    import timeit as timeit_
+
+    import preparser, sage.repl.interpreter as interpreter
+
     number=int(number)
     repeat=int(repeat)
     precision=int(precision)
     if preparse is None:
-        preparse = interpreter.do_preparse
+        preparse = interpreter._do_preparse
     if preparse:
         stmt = preparser.preparse(stmt)
     if stmt == "":

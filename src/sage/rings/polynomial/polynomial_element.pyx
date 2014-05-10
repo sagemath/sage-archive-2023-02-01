@@ -14,6 +14,9 @@ AUTHORS:
 -  Simon King: Use a faster way of conversion from the base ring.
 
 -  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
+                              Fixed division without remainder over QQbar.
+
+-  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
 
 TESTS::
 
@@ -73,6 +76,7 @@ from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidE
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
+from sage.rings.integer cimport smallInteger
 from sage.rings.fraction_field import is_FractionField
 from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 
@@ -87,7 +91,10 @@ import polynomial_fateman
 
 from sage.rings.integer cimport Integer
 from sage.rings.ideal import is_Ideal
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.misc.cachefunc import cached_function
 
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
@@ -351,7 +358,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if len(x) == 1 and isinstance(x[0], dict):
             g = self.parent().gen()
-            if x[0].has_key(g):
+            if g in x[0]:
                 return self(x[0][g])
             elif len(x[0]) > 0:
                 raise TypeError("keys do not match self's parent")
@@ -565,7 +572,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if kwds:
             P = self.parent()
             name = P.variable_name()
-            if kwds.has_key(name):
+            if name in kwds:
                 if len(x) > 0:
                     raise ValueError("must not specify both a keyword and positional argument")
                 a = self(kwds[name])
@@ -699,7 +706,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0.0
             sage: list(f._fast_float_())
             ['push 0.0']
-
         """
         from sage.ext.fast_eval import fast_float_arg, fast_float_constant
         var = (<ParentWithGens>self._parent)._names[0]
@@ -1249,7 +1255,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. [Coh] H. Cohen, A Course in Computational Algebraic Number
            Theory.  Springer-Verlag, 1993.
-
         """
         if not self.base_ring().is_unique_factorization_domain():
             raise NotImplementedError, "Squarefree decomposition not implemented for " + str(self.parent())
@@ -1377,7 +1382,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: R(0).is_square()
             True
-
         """
         if self.degree() < 0:
             if root:
@@ -1461,7 +1465,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for _ in range(40):
             ....:     f = R.random_element(degree=4)
             ....:     assert f(f.any_root(K)) == 0
-
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():
             if self.degree() < 0:
@@ -1682,7 +1685,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: division by zero in Finite Field in a of size 5^2
-
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
@@ -1724,6 +1726,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: non-integral exponents not supported
+
+        ::
+
+            sage: k = GF(5)
+            sage: D.<x> = k[]
+            sage: l.<x> = k.extension(x^2 + 2)
+            sage: R.<t> = l[]
+            sage: f = t^4 + (2*x - 1)*t^3 + (2*x + 1)*t^2 + 3
+            sage: h = t^4 - x*t^3 + (3*x + 1)*t^2 + 2*t + 2*x - 1
+            sage: pow(f, 2, h)
+            3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
+            sage: pow(f, 10**7, h)
+            4*x*t^3 + 2*x*t^2 + 4*x*t + 4
         """
         if not PY_TYPE_CHECK_EXACT(right, Integer) or \
                 PY_TYPE_CHECK_EXACT(right, int):
@@ -1733,9 +1748,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         raise TypeError("non-integral exponents not supported")
 
         if self.degree() <= 0:
-            r = self.parent()(self[0]**right)
+            return self.parent()(self[0]**right)
         elif right < 0:
-            r = (~self)**(-right)
+            return (~self)**(-right)
+        elif modulus:
+            from sage.rings.arith import power_mod
+            return power_mod(self, right, modulus)
         elif (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
@@ -1743,13 +1761,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 v = {right:R.one_element()}
             else:
                 v = [R.zero_element()]*right + [R.one_element()]
-            r = self.parent()(v, check=False)
+            return self.parent()(v, check=False)
         else:
-            r = generic_power(self, right)
-        if modulus:
-            return r % modulus
-        else:
-            return r
+            return generic_power(self,right)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure
@@ -2451,7 +2465,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if len(prev_variables) > 0:
             try:
                 mpolys = [a._mpoly_dict_recursive(prev_variables, base_ring) for a in self]
-            except AttributeError, msg:
+            except AttributeError as msg:
                 pass
 
         if mpolys is None:
@@ -2910,36 +2924,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 X[i] = c
         return X
 
-    def factor(self, proof=True):
+    def factor(self, **kwargs):
         r"""
-        Return the factorization of self over the base ring of this
-        polynomial. Factoring polynomials over
-        `\ZZ/n\ZZ` for `n` composite is at
-        the moment not implemented.
+        Return the factorization of ``self`` over its base ring.
 
-        INPUT: a polynomial
+        INPUT:
+
+        - ``kwargs`` -- any keyword arguments are passed to the method
+          ``_factor_univariate_polynomial()`` of the base ring if it
+          defines such a method.
 
         OUTPUT:
 
-
-        -  ``Factorization`` - the factorization of self, which
-           is a product of a unit with a product of powers of irreducible
-           factors.
-
-
-        Over a field the irreducible factors are all monic.
+        - A factorization of ``self`` over its parent into a unit and
+          irreducible factors.  If the parent is a polynomial ring
+          over a field, these factors are monic.
 
         EXAMPLES:
 
-        We factor some polynomials over `\QQ`::
+        Factorization is implemented over various rings. Over `\QQ`::
 
             sage: x = QQ['x'].0
             sage: f = (x^3 - 1)^2
             sage: f.factor()
             (x - 1)^2 * (x^2 + x + 1)^2
 
-        Notice that over the field `\QQ` the irreducible factors are
-        monic::
+        Since `\QQ` is a field, the irreducible factors are monic::
 
             sage: f = 10*x^5 - 1
             sage: f.factor()
@@ -2955,8 +2965,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             10*x^5 - 1
 
-        We factor a non-monic polynomial over the finite field
-        `F_{25}`::
+        We factor a non-monic polynomial over a finite field of 25
+        elements::
 
             sage: k.<a> = GF(25)
             sage: R.<x> = k[]
@@ -2970,31 +2980,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: expand(F)
             2*x^10 + 2*x + 2*a
 
-        A new ring.  In the example below, we add the special method
-        _factor_univariate_polynomial to the base ring, and observe
-        that this method is called instead to factor univariate
-        polynomials over this ring.  This facility can be used to
-        easily extend polynomial factorization to work over new rings
-        you introduce. ::
+        A new ring.  In the example below, we set the special method
+        ``_factor_univariate_polynomial()`` in the base ring which is
+        called to factor univariate polynomials.  This facility can be
+        used to easily extend polynomial factorization to work over
+        new rings you introduce::
 
-             sage: R.<x> = QQ[]
-             sage: (x^2 + 1).factor()
-             x^2 + 1
-             sage: QQ._factor_univariate_polynomial = lambda f, proof: f.change_ring(CDF).factor()
-             sage: fz = (x^2 + 1).factor(); fz # random order of factors, with noise
-             (x - ... + I) * (x - I)
-             sage: # Change noisy zero term which affects the order of factors:
-             sage: Factorization(
-             ...       [ ( parent(f)(
-             ...               [ (0.0,im) if abs(re)<=1e-16 else (re,im)
-             ...                 for re,im in f
-             ...               ]),
-             ...           e )
-             ...         for f,e in fz
-             ...       ])
-             (x - I) * (x + I)
-             sage: # Clean up:
-             sage: del QQ._factor_univariate_polynomial
+             sage: R.<x> = PolynomialRing(IntegerModRing(4),implementation="NTL")
+             sage: (x^2).factor()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: factorization of polynomials over rings with composite characteristic is not implemented
+             sage: R.base_ring()._factor_univariate_polynomial = lambda f: f.change_ring(ZZ).factor()
+             sage: (x^2).factor()
+             x^2
+             sage: del R.base_ring()._factor_univariate_polynomial # clean up
 
         Arbitrary precision real and complex factorization::
 
@@ -3005,15 +3005,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
             x^2 + 1.0000000000000000000000000000
-            sage: C = ComplexField(100)
-            sage: R.<x> = C[]
+
+            sage: R.<x> = ComplexField(100)[]
             sage: F = factor(x^2+3); F
             (x - 1.7320508075688772935274463415*I) * (x + 1.7320508075688772935274463415*I)
             sage: expand(F)
             x^2 + 3.0000000000000000000000000000
             sage: factor(x^2+1)
             (x - I) * (x + I)
-            sage: f = C.0 * (x^2 + 1) ; f
+            sage: f = R(I) * (x^2 + 1) ; f
             I*x^2 + I
             sage: F = factor(f); F
             (1.0000000000000000000000000000*I) * (x - I) * (x + I)
@@ -3024,11 +3024,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: K.<z> = CyclotomicField(15)
             sage: x = polygen(K)
-            sage: f = (x^3 + z*x + 1)^3*(x - z); f.factor()
+            sage: ((x^3 + z*x + 1)^3*(x - z)).factor()
             (x - z) * (x^3 + z*x + 1)^3
             sage: cyclotomic_polynomial(12).change_ring(K).factor()
             (x^2 - z^5 - 1) * (x^2 + z^5)
-            sage: f = (x^3 + z*x + 1)^3*(x/(z+2) - 1/3); f.factor()
+            sage: ((x^3 + z*x + 1)^3*(x/(z+2) - 1/3)).factor()
             (-1/331*z^7 + 3/331*z^6 - 6/331*z^5 + 11/331*z^4 - 21/331*z^3 + 41/331*z^2 - 82/331*z + 165/331) * (x - 1/3*z - 2/3) * (x^3 + z*x + 1)^3
 
         Over a relative number field::
@@ -3044,29 +3044,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Over the real double field::
 
-            sage: x = polygen(RDF)
-            sage: f = (x-1)^3
-            sage: f.factor() # random output (unfortunately)
-            (1.0*x - 1.00000859959) * (1.0*x^2 - 1.99999140041*x + 0.999991400484)
+            sage: R.<x> = RDF[]
             sage: (-2*x^2 - 1).factor()
             (-2.0) * (x^2 + 0.5)
             sage: (-2*x^2 - 1).factor().expand()
             -2.0*x^2 - 1.0
+            sage: f = (x - 1)^3
+            sage: f.factor() # random output (unfortunately)
+            (x - 0.999990138083) * (x^2 - 2.00000986192*x + 1.00000986201)
 
-        Note that this factorization suffers from the roots function::
+        The above output is incorrect because it relies on the
+        :meth:`.roots` method, which does not detect that all the roots
+        are real::
 
             sage: f.roots() # random output (unfortunately)
-            [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
+            [(0.999990138083, 1)]
 
-        Over the complex double field. Because this is approximate, all
-        factors will occur with multiplicity 1::
+        Over the complex double field the factors are approximate and
+        therefore occur with multiplicity 1::
 
-            sage: x = CDF['x'].0; i = CDF.0
-            sage: f = (x^2 + 2*i)^3
-            sage: f.factor()    # random low order bits
-            (1.0*x + -0.999994409957 + 1.00001040378*I) * (1.0*x + -0.999993785062 + 0.999989956987*I) * (1.0*x + -1.00001180498 + 0.999999639235*I) * (1.0*x + 0.999995530902 - 0.999987780431*I) * (1.0*x + 1.00001281704 - 1.00000223945*I) * (1.0*x + 0.999991652054 - 1.00000998012*I)
-            sage: f(-f.factor()[0][0][0])   # random low order bits
-            -2.38358052913e-14 - 2.57571741713e-14*I
+            sage: R.<x> = CDF[]
+            sage: f = (x^2 + 2*R(I))^3
+            sage: F = f.factor()
+            sage: F # random lower order digits
+            (x - 1.00000643627 + 1.00000715002*I) * (x - 1.00000297398 + 0.999990851041*I) * (x - 0.999990589745 + 1.00000199894*I) * (x + 0.999991986211 - 1.00000857983*I) * (x + 0.999996576554 - 0.999988769976*I) * (x + 1.00001143724 - 1.0000026502*I)
+            sage: [f(t[0][0]).abs() for t in F] # abs tol 1e-9
+            [1.979365054e-14, 1.97936298566e-14, 1.97936990747e-14, 3.6812407475e-14, 3.65211563729e-14, 3.65220890052e-14]
 
         Factoring polynomials over `\ZZ/n\ZZ` for
         composite `n` is not implemented::
@@ -3078,31 +3081,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             NotImplementedError: factorization of polynomials over rings with composite characteristic is not implemented
 
-        Factoring polynomials over QQbar and AA is implemented (see #8544)::
+        Factoring polynomials over the algebraic numbers (see
+        :trac:`8544`)::
 
-            sage: x = polygen(QQbar)
+            sage: R.<x> = QQbar[]
             sage: (x^8-1).factor()
             (x - 1) * (x - 0.7071067811865475? - 0.7071067811865475?*I) * (x - 0.7071067811865475? + 0.7071067811865475?*I) * (x - I) * (x + I) * (x + 0.7071067811865475? - 0.7071067811865475?*I) * (x + 0.7071067811865475? + 0.7071067811865475?*I) * (x + 1)
-            sage: (12*x^2-4).factor()
-            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
-            sage: x.parent()(-1).factor()
-            -1
-            sage: EllipticCurve('11a1').change_ring(QQbar).division_polynomial(5).factor()
-            (5) * (x - 16) * (x - 5) * (x - 1.959674775249769?) * (x - 1.427050983124843? - 3.665468789467727?*I) * (x - 1.427050983124843? + 3.665468789467727?*I) * (x + 0.9549150281252629? - 0.8652998037182486?*I) * (x + 0.9549150281252629? + 0.8652998037182486?*I) * (x + 1.927050983124843? - 1.677599044300515?*I) * (x + 1.927050983124843? + 1.677599044300515?*I) * (x + 2.959674775249769?) * (x + 6.545084971874737? - 7.106423590645660?*I) * (x + 6.545084971874737? + 7.106423590645660?*I)
 
-        ::
+        Factoring polynomials over the algebraic reals (see
+        :trac:`8544`)::
 
-            sage: x = polygen(AA)
+            sage: R.<x> = AA[]
             sage: (x^8+1).factor()
             (x^2 - 1.847759065022574?*x + 1.000000000000000?) * (x^2 - 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 0.7653668647301795?*x + 1.000000000000000?) * (x^2 + 1.847759065022574?*x + 1.000000000000000?)
-            sage: x.parent()(3).factor()
-            3
-            sage: (12*x^2-4).factor()
-            (12) * (x - 0.5773502691896258?) * (x + 0.5773502691896258?)
-            sage: (12*x^2+4).factor()
-            (12) * (x^2 + 0.3333333333333334?)
-            sage: EllipticCurve('11a1').change_ring(AA).division_polynomial(5).factor()
-            (5) * (x - 16.00000000000000?) * (x - 5.000000000000000?) * (x - 1.959674775249769?) * (x + 2.959674775249769?) * (x^2 - 2.854101966249685?*x + 15.47213595499958?) * (x^2 + 1.909830056250526?*x + 1.660606461254312?) * (x^2 + 3.854101966249685?*x + 6.527864045000421?) * (x^2 + 13.09016994374948?*x + 93.33939353874569?)
 
         TESTS:
 
@@ -3137,27 +3128,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Factorization also works even if the variable of the finite
         field is nefariously labeled "x"::
 
-            sage: x = GF(3^2, 'a')['x'].0
+            sage: R.<x> = GF(3^2, 'x')[]
             sage: f = x^10 +7*x -13
             sage: G = f.factor(); G
-            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
+            (x + x) * (x + 2*x + 1) * (x^4 + (x + 2)*x^3 + (2*x + 2)*x + 2) * (x^4 + 2*x*x^3 + (x + 1)*x + 2)
             sage: prod(G) == f
             True
 
         ::
 
-            sage: f.parent().base_ring()._assign_names(['a'])
-            sage: f.factor()
-            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
-
-        ::
-
-            sage: k = GF(9,'x')    # purposely calling it x to test robustness
-            sage: x = PolynomialRing(k,'x0').gen()
-            sage: f = x^3 + x + 1
+            sage: R.<x0> = GF(9,'x')[]  # purposely calling it x to test robustness
+            sage: f = x0^3 + x0 + 1
             sage: f.factor()
             (x0 + 2) * (x0 + x) * (x0 + 2*x + 1)
-            sage: f = 0*x
+            sage: f = 0*x0
             sage: f.factor()
             Traceback (most recent call last):
             ...
@@ -3165,7 +3149,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ::
 
-            sage: f = x^0
+            sage: f = x0^0
             sage: f.factor()
             1
 
@@ -3187,18 +3171,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ::
 
-            sage: f = x^2 - 1/3 ; K.<a> = NumberField(f) ; A.<T> = K[] ; g = A(x^2-1)
-            sage: g.factor()
+            sage: f = x^2 - 1/3
+            sage: K.<a> = NumberField(f)
+            sage: A.<T> = K[]
+            sage: A(x^2 - 1).factor()
             (T - 1) * (T + 1)
+
 
         ::
 
-            sage: h = A(3*x^2-1) ; h.factor()
+            sage: A(3*x^2 - 1).factor()
             (3) * (T - a) * (T + a)
 
         ::
 
-            sage: h = A(x^2-1/3) ; h.factor()
+            sage: A(x^2 - 1/3).factor()
             (T - a) * (T + a)
 
         Test that ticket #10279 is fixed::
@@ -3273,6 +3260,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^3 - 3
             sage: factor(f)
             (x - a1) * (x^2 + a1*x + a1^2)
+
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -3326,7 +3314,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         R = self.parent().base_ring()
         if hasattr(R, '_factor_univariate_polynomial'):
-            return R._factor_univariate_polynomial(self,proof=proof)
+            return R._factor_univariate_polynomial(self, **kwargs)
 
         G = None
         ch = R.characteristic()
@@ -3338,12 +3326,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.finite_rings.constructor import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.integer_ring import is_IntegerRing
-        from sage.rings.rational_field import is_RationalField
 
         n = None
 
-        if is_IntegerModRing(R) or is_IntegerRing(R) or is_RationalField(R):
-
+        if is_IntegerModRing(R) or is_IntegerRing(R):
             try:
                 G = list(self._pari_with_name().factor())
             except PariError:
@@ -3364,24 +3350,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             f = pari(v).Polrev()
             G = list(f.factor())
 
-        elif is_AlgebraicField(R):
-            Rx = self.parent()
-            return Factorization([(Rx([-r,1]),e) for r,e in self.roots()],
-                                 unit=self.leading_coefficient())
-
-        elif is_AlgebraicRealField(R):
-            from sage.rings.qqbar import QQbar
-            Rx = self.parent()
-            rr = self.roots()
-            cr = [(r,e) for r,e in self.roots(QQbar) if r.imag()>0]
-            return Factorization(
-                [(Rx([-r,1]),e) for r,e in rr] +
-                [(Rx([r.norm(),-2*r.real(),1]),e) for r,e in cr],
-                unit=self.leading_coefficient())
-
-
         elif is_NumberField(R):
-
             if R.degree() == 1:
                 factors = self.change_ring(QQ).factor()
                 return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
@@ -3414,49 +3383,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             G = list(self._pari_with_name().factor())
 
-        elif sage.rings.complex_double.is_ComplexDoubleField(R):
-            unit = self.leading_coefficient()
-            f = (~unit)*self
-            roots = f.roots(multiplicities=False)
-            assert len(roots) == self.degree() # all roots appear with multiplicity one
-            x = self.parent().gen()
-            v = [(x - a, 1) for a in roots]
-            return Factorization(v, unit)
-
-        elif sage.rings.real_double.is_RealDoubleField(R):
-            roots = self.roots(sage.rings.complex_double.CDF, multiplicities=False)
-            assert len(roots) == self.degree() # all roots appear with multiplicity one
-            G = [[],[]]
-            real_roots = []
-            non_real_roots = []
-            for r in roots:
-                if r.imag().is_zero():
-                    for i in xrange(len(real_roots)):
-                        if real_roots[i][0] == r:
-                            real_roots[i][1] += 1
-                            r = None
-                            break
-                    if r is not None:
-                        real_roots.append([r,1])
-                else:
-                    for i in xrange(len(non_real_roots)):
-                        if non_real_roots[i][0] == r or non_real_roots[i][0] == r.conj():
-                            non_real_roots[i][1] += 1
-                            r = None
-                            break
-                    if r is not None:
-                        non_real_roots.append([r,1])
-            x = self.parent().objgen()[1]
-            for r in real_roots:
-                G[0].append( x - r[0].real() )
-                G[1].append( r[1] )
-            for z in non_real_roots:
-                a = ( z[0] + z[0].conj() ).real()
-                b = ( z[0]*(z[0].conj()) ).real()
-                G[0].append( x**2 - a*x + b )
-                assert z[1] % 2 == 0, "Bug in root finding code over RDF"
-                G[1].append( z[1] // 2 )
-
         elif sage.rings.complex_field.is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since
             # otherwise PARI will factor over RR.
@@ -3465,9 +3391,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 G = list((pari(R.gen())*self._pari_with_name()).factor())
             else:
                 G = self._pari_with_name().factor()
-
-        #elif padic_field.is_pAdicField(R):
-        #    G = list(self._pari_with_name().factorpadic(R.prime(), R.prec()))
 
         if G is None:
             raise NotImplementedError
@@ -4225,7 +4148,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0
             sage: a.coeffs()
             []
-
         """
         if a:
             return self.__class__(P,[a], check=False) #P._element_constructor(a, check=False)
@@ -4972,8 +4894,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. note::
 
-           Uses the identity `R_n(f) := (-1)^(n (n-1)/2) R(f,
-           f') a_n^(n-k-2)`, where `n` is the degree of self,
+           Uses the identity `R_n(f) := (-1)^{n (n-1)/2} R(f,
+           f') a_n^{n-k-2}`, where `n` is the degree of self,
            `a_n` is the leading coefficient of self, `f'`
            is the derivative of `f`, and `k` is the degree
            of `f'`. Calls :meth:`.resultant`.
@@ -5052,10 +4974,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<s> = PolynomialRing(Qp(2))
             sage: (s^2).discriminant()
             0
+
+        TESTS:
+
+        This was fixed by :trac:`16014`::
+
+            sage: PR.<b,t1,t2,x1,y1,x2,y2> = QQ[]
+            sage: PRmu.<mu> = PR[]
+            sage: E1 = diagonal_matrix(PR, [1, b^2, -b^2])
+            sage: M = matrix(PR, [[1,-t1,x1-t1*y1],[t1,1,y1+t1*x1],[0,0,1]])
+            sage: E1 = M.transpose()*E1*M
+            sage: E2 = E1.subs(t1=t2, x1=x2, y1=y2)
+            sage: det(mu*E1 + E2).discriminant().degrees()
+            (24, 12, 12, 8, 8, 8, 8)
+
+        This addresses an issue raised by :trac:`15061`::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.discriminant()
+            4 + 4*T + O(T^2)
         """
+        # Late import to avoid cyclic dependencies:
+        from sage.rings.power_series_ring import is_PowerSeriesRing
         if self.is_zero():
             return self.parent().zero_element()
         n = self.degree()
+        base_ring = self.parent().base_ring()
+        if (is_MPolynomialRing(base_ring) or
+            is_PowerSeriesRing(base_ring)):
+            # It is often cheaper to compute discriminant of simple
+            # multivariate polynomial and substitute the real
+            # coefficients into that result (see #16014).
+            return universal_discriminant(n)(list(self))
         d = self.derivative()
         k = d.degree()
 
@@ -6095,29 +6048,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().completion(self.parent().gen())(self).add_bigoh(prec)
 
-    def name(self):
-        """
-        Note: This function is deprecated. It will be removed in a future
-        release of Sage. Please use the .variable_name() function
-        instead.
-
-        Return the string variable name of the indeterminate of this
-        polynomial.
-
-        EXAMPLES::
-
-            sage: R.<theta> = ZZ[];
-            sage: f = (2-theta)^3; f
-            -theta^3 + 6*theta^2 - 12*theta + 8
-            sage: f.name()
-            doctest:...: DeprecationWarning: This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.
-            See http://trac.sagemath.org/4522 for details.
-            'theta'
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(4522, "This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.")
-        return self.parent().variable_name()
-
     def is_irreducible(self):
         """
         Return True precisely if this polynomial is irreducible over its
@@ -6347,7 +6277,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c = f.content()
             sage: (f/c).is_squarefree()
             True
-
         """
         if self.parent().base_ring() not in sage.categories.principal_ideal_domains.PrincipalIdealDomains():
             raise NotImplementedError("is_squarefree() is only implemented for polynomials over principal ideal domains")
@@ -7126,7 +7055,7 @@ cdef class Polynomial_generic_dense(Polynomial):
 
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
+            sage: R.<x> = QQbar[]
             sage: f = (1+2*x)^3 + 3*x; f
             8*x^3 + 12*x^2 + 9*x + 1
             sage: g = f // (1+2*x); g
@@ -7135,12 +7064,23 @@ cdef class Polynomial_generic_dense(Polynomial):
             -3/2
             sage: f.quo_rem(1+2*x)
             (4*x^2 + 4*x + 5/2, -3/2)
+
+        TESTS:
+
+        Check that #13048 has been fixed::
+
+            sage: R.<x> = QQbar[]
+            sage: x//x
+            1
+            sage: x//1
+            x
+
         """
         P = (<Element>self)._parent
         if right.parent() == P:
             return Polynomial.__floordiv__(self, right)
         d = P.base_ring()(right)
-        cdef Polynomial_generic_dense res = self._new_c([c // d for c in self.__coeffs], P)
+        cdef Polynomial_generic_dense res = (<Polynomial_generic_dense>self)._new_c([c // d for c in (<Polynomial_generic_dense>self).__coeffs], P)
         res.__normalize()
         return res
 
@@ -7296,8 +7236,16 @@ cdef class Polynomial_generic_dense(Polynomial):
             sage: f = (1+2*x^7)^5
             sage: f.degree()
             35
+
+        TESTS:
+
+        Check that :trac:`12552` is fixed::
+
+            sage: type(f.degree())
+            <type 'sage.rings.integer.Integer'>
+
         """
-        return len(self.__coeffs) - 1
+        return smallInteger(len(self.__coeffs) - 1)
 
     def shift(self, Py_ssize_t n):
         r"""
@@ -7440,6 +7388,42 @@ cdef class Polynomial_generic_dense(Polynomial):
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)
 
+@cached_function
+def universal_discriminant(n):
+    r"""
+    Return the discriminant of the 'universal' univariate polynomial
+    `a_n x^n + \cdots + a_1 x + a_0` in `\ZZ[a_0, \ldots, a_n][x]`.
+
+    INPUT:
+
+    - ``n`` - degree of the polynomial
+
+    OUTPUT:
+
+    The discriminant as a polynomial in `n + 1` variables over `\ZZ`.
+    The result will be cached, so subsequent computations of
+    discriminants of the same degree will be faster.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_element import universal_discriminant
+        sage: universal_discriminant(1)
+        1
+        sage: universal_discriminant(2)
+        a1^2 - 4*a0*a2
+        sage: universal_discriminant(3)
+        a1^2*a2^2 - 4*a0*a2^3 - 4*a1^3*a3 + 18*a0*a1*a2*a3 - 27*a0^2*a3^2
+        sage: universal_discriminant(4).degrees()
+        (3, 4, 4, 4, 3)
+
+    .. SEEALSO::
+        :meth:`Polynomial.discriminant`
+    """
+    pr1 = PolynomialRing(ZZ, n + 1, 'a')
+    pr2 = PolynomialRing(pr1, 'x')
+    p = pr2(list(pr1.gens()))
+    return (1 - (n&2))*p.resultant(p.derivative())//pr1.gen(n)
+
 cdef class ConstantPolynomialSection(Map):
     """
     This class is used for conversion from a polynomial ring to its base ring.
@@ -7453,6 +7437,7 @@ cdef class ConstantPolynomialSection(Map):
         sage: P1.<y_2,y_1,y_0> = GF(3)[]
         sage: P0(-y_1)    # indirect doctest
         2*y_1
+
         sage: phi = GF(3).convert_map_from(P0); phi
         Generic map:
           From: Univariate Polynomial Ring in y_1 over Finite Field of size 3
@@ -7465,7 +7450,6 @@ cdef class ConstantPolynomialSection(Map):
         Traceback (most recent call last):
         ...
         TypeError: not a constant polynomial
-
     """
     cpdef Element _call_(self, x):
         """
@@ -7510,7 +7494,7 @@ cdef class PolynomialBaseringInjection(Morphism):
     We demonstrate that most polynomial ring classes use
     polynomial base injection maps for coercion. They are
     supposed to be the fastest maps for that purpose. See
-    trac ticket #9944::
+    :trac:`9944`. ::
 
         sage: R.<x> = Qp(3)[]
         sage: R.coerce_map_from(R.base_ring())
@@ -7533,13 +7517,12 @@ cdef class PolynomialBaseringInjection(Morphism):
           From: Rational Field
           To:   Univariate Polynomial Ring in x over Rational Field
 
-    By trac ticket #9944, there are now only very few exceptions::
+    By :trac:`9944`, there are now only very few exceptions::
 
         sage: PolynomialRing(QQ,names=[]).coerce_map_from(QQ)
         Generic morphism:
           From: Rational Field
           To:   Multivariate Polynomial Ring in no variables over Rational Field
-
     """
 
     cdef RingElement _an_element
@@ -7567,13 +7550,44 @@ cdef class PolynomialBaseringInjection(Morphism):
             (1 + 2 + O(2^20))
             sage: (Qp(2).one()*3)*t
             (1 + 2 + O(2^20))*t
-
         """
         assert codomain.base_ring() is domain, "domain must be basering"
         Morphism.__init__(self, domain, codomain)
         self._an_element = codomain.gen()
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        EXAMPLES::
+
+            sage: phi = QQ['x'].coerce_map_from(QQ)   # indirect doctest
+            sage: phi
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: phi(3/1)
+            3
+        """
+        _slots['_an_element'] = self._an_element
+        _slots['_new_constant_poly_'] = self._new_constant_poly_
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        EXAMPLES::
+
+            sage: phi = QQ['x'].coerce_map_from(QQ)  # indirect doctest
+            sage: phi
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: phi(3/1)
+            3
+        """
+        Morphism._update_slots(self, _slots)
+        self._an_element = _slots['_an_element']
+        self._new_constant_poly_ = _slots['_new_constant_poly_']
 
     cpdef Element _call_(self, x):
         """
@@ -7618,4 +7632,4 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: type(m.section())
             <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
         """
-        return ConstantPolynomialSection(self._codomain, self._domain)
+        return ConstantPolynomialSection(self._codomain, self.domain())

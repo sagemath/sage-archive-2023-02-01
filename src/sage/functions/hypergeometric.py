@@ -193,35 +193,16 @@ class Hypergeometric(BuiltinFunction):
     \frac{(a_1)_n\dots(a_p)_n}{(b_1)_n\dots(b_q)_n} \, \frac{z^n}{n!},`
 
     where `(x)_n` is the rising factorial.
-
-    INPUT:
-
-    - ``a`` -- a list or tuple of parameters
-    - ``b`` -- a list or tuple of parameters
-    - ``z`` -- a number or symbolic expression
-
-    EXAMPLES::
-
-        sage: hypergeometric([], [], 1)
-        hypergeometric((), (), 1)
-        sage: hypergeometric([], [1], 1)
-        hypergeometric((), (1,), 1)
-        sage: hypergeometric([2, 3], [1], 1)
-        hypergeometric((2, 3), (1,), 1)
-        sage: hypergeometric([], [], x)
-        hypergeometric((), (), x)
-        sage: hypergeometric([x], [], x^2)
-        hypergeometric((x,), (), x^2)
-
-    The only simplification that is done automatically is returning 1 if ``z``
-    is 0::
-
-        sage: hypergeometric([], [], 0)
-        1
-
-    For other simplifications use the ``simplify_hypergeometric`` method.
     """
     def __init__(self):
+        """
+        Initialize class.
+        
+        EXAMPLES::
+        
+            sage: maxima(hypergeometric)
+            hypergeometric
+        """
         BuiltinFunction.__init__(self, 'hypergeometric', nargs=3,
                                  conversions={'mathematica':
                                               'HypergeometricPFQ',
@@ -229,6 +210,31 @@ class Hypergeometric(BuiltinFunction):
                                               'sympy': 'hyper'})
 
     def __call__(self, a, b, z, **kwargs):
+        """
+        Return symbolic hypergeometric function expression.
+         
+        INPUT:
+    
+        - ``a`` -- a list or tuple of parameters
+        - ``b`` -- a list or tuple of parameters
+        - ``z`` -- a number or symbolic expression
+    
+        EXAMPLES::
+    
+            sage: hypergeometric([], [], 1)
+            hypergeometric((), (), 1)
+            sage: hypergeometric([], [1], 1)
+            hypergeometric((), (1,), 1)
+            sage: hypergeometric([2, 3], [1], 1)
+            hypergeometric((2, 3), (1,), 1)
+            sage: hypergeometric([], [], x)
+            hypergeometric((), (), x)
+            sage: hypergeometric([x], [], x^2)
+            hypergeometric((x,), (), x^2)
+    
+        The only simplification that is done automatically is returning 1 if ``z``
+        is 0. For other simplifications use the ``simplify_hypergeometric`` method.
+        """
         return BuiltinFunction.__call__(self,
                                         SR._force_pyobject(a),
                                         SR._force_pyobject(b),
@@ -249,6 +255,12 @@ class Hypergeometric(BuiltinFunction):
                 r"{} \right)").format(len(a), len(b), aa, bb, z)
 
     def _eval_(self, a, b, z, **kwargs):
+        """
+        EXAMPLES::
+        
+            sage: hypergeometric([], [], 0)
+            1
+        """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
             raise ValueError('First two parameters must be of type list.')
         coercion_model = get_coercion_model()
@@ -590,14 +602,6 @@ class Hypergeometric(BuiltinFunction):
 
             EXAMPLES::
 
-                sage: x = hypergeometric([5], [4], 3)
-                sage: y = x.deflated()
-                sage: y
-                7/4*hypergeometric((), (), 3)
-                sage: x.n(); y.n()
-                35.1496896155784
-                35.1496896155784
-
                 sage: x = hypergeometric([6, 1], [3, 4, 5], 10)
                 sage: y = x.deflated()
                 sage: y
@@ -618,6 +622,19 @@ class Hypergeometric(BuiltinFunction):
             return sum(map(prod, self._deflated()))
 
         def _deflated(cls, self, a, b, z):
+            """
+            Private helper to return list of deflated terms.
+            
+            EXAMPLES::
+
+                sage: x = hypergeometric([5], [4], 3)
+                sage: y = x.deflated()
+                sage: y
+                7/4*hypergeometric((), (), 3)
+                sage: x.n(); y.n()
+                35.1496896155784
+                35.1496896155784
+            """
             new = self.eliminate_parameters()
             aa = new.operands()[0].operands()
             bb = new.operands()[1].operands()

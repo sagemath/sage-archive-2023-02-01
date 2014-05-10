@@ -597,8 +597,8 @@ class ModularForm_abstract(ModuleElement):
         if not self.character().is_trivial():
             raise NotImplementedError('period pairing only implemented for cusp forms of trivial character')
         if self.weight() != 2:
-            raise NotImplementedError('period pairing only implemented for cusp forms of weight 2')
-        if not isinstance(self, Newform):
+            raise ValueError('period pairing only defined for cusp forms of weight 2')
+        if not isinstance(self, (Newform, ModularFormElement_elliptic_curve)):
             print('Warning: not a newform, precision not guaranteed')
 
         M = self.group()(M)
@@ -1000,7 +1000,6 @@ class Newform(ModularForm_abstract):
             True
         """
         return self._defining_modular_symbols().q_eigenform_character(self._name())
-
 
     def atkin_lehner_eigenvalue(self, d=None):
         r"""

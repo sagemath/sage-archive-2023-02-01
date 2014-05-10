@@ -657,7 +657,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f._magma_init_(magma)
             '"sin(cos(x^2) + log(x))"'
             sage: magma(f)                         # optional - magma
-            sin(log(x) + cos(x^2))
+            sin(cos(x^2) + log(x))
             sage: magma(f).Type()                  # optional - magma
             MonStgElt
         """

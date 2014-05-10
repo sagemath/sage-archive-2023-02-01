@@ -926,7 +926,7 @@ def _gen_names(elts):
     import re
     from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
-    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     it.next() # skip empty word
     for x in elts:
         name = str(x)

@@ -258,6 +258,7 @@ class Category_singleton(Category):
             False
 
         Oh well; it's not really relevant for those tests.
+
     """
 
     # That is just an optimized constant cached_method

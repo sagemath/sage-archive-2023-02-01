@@ -31,7 +31,7 @@ class FreeAlgebra(CombinatorialFreeModule):
 
         """
         self._alphabet = alphabet
-        CombinatorialFreeModule.__init__(self, R, Words(alphabet), category = AlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, R, Words(alphabet, infinite=False), category = AlgebrasWithBasis(R))
 
     def _repr_(self):
         """

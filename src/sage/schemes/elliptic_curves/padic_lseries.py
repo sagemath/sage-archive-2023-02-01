@@ -95,7 +95,7 @@ import sage.rings.arith as arith
 
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
-import monsky_washnitzer
+import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 # from sage.interfaces.all import gp
 from sage.misc.functional import log
 
@@ -1346,13 +1346,13 @@ class pAdicLseriesSupersingular(pAdicLseries):
         if p < 4 and algorithm == "mw":
             print "Warning: If this fails try again using algorithm=\"approx\""
         Ew = E.integral_short_weierstrass_model()
-        adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+        adjusted_prec = sage.schemes.hyperelliptic_curves.monsky_washnitzer.adjusted_prec(p, prec)
         modprecring = Integers(p**adjusted_prec)
         output_ring = Qp(p, prec)
         R, x = PolynomialRing(modprecring, 'x').objgen()
         Q = x**3 + modprecring(Ew.a4()) * x + modprecring(Ew.a6())
         trace = Ew.ap(p)
-        fr = monsky_washnitzer.matrix_of_frobenius(Q, p, adjusted_prec, trace)
+        fr = sage.schemes.hyperelliptic_curves.monsky_washnitzer.matrix_of_frobenius(Q, p, adjusted_prec, trace)
         fr = matrix.matrix(output_ring,2,2,fr)
 
         # return a vector for PARI's ellchangecurve to pass from e1 to e2

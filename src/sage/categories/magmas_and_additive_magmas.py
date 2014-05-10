@@ -59,7 +59,7 @@ class MagmasAndAdditiveMagmas(Category_singleton):
             Return the full subcategory of the objects of ``self``
             where `*` is distributive on `+`.
 
-            A :class:`magma Magmas` and :class:`additive magma
+            A :class:`magma <Magmas>` and :class:`additive magma
             <AdditiveMagmas>` `M` is *distributive* if, for all
             `x,y,z \in M`,
 

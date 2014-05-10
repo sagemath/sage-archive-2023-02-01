@@ -104,13 +104,49 @@ cpdef tuple _flatten_categories(categories, ClasscallMetaclass JoinCategory):
 
 #############################################
 ## Join
+
 cdef bint is_supercategory_of_done(new_cat, dict done):
+    # This is a helper function. It replaces the closure
+    #   any(cat.is_subcategory(new_cat) for cat in done.iterkeys())
     for cat in done.iterkeys():
         if cat.is_subcategory(new_cat):
             return True
     return False
 
 cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
+    """
+    Helper for :meth:`~sage.categories.category.Category.join`.
+
+    INPUT:
+
+    - ``categories`` -- tuple of categories to be joined,
+    - ``axioms`` -- tuple of strings; the names of some
+      supplementary axioms.
+    - ``ignore_axioms`` -- tuple of pairs ``(cat, axiom)``, such
+      that ``axiom`` will not be applied to ``cat``, should ``cat``
+      occur in the algorithm.
+
+    EXAMPLES::
+
+        sage: from sage.categories.category_cy_helper import join_as_tuple
+        sage: T = (Coalgebras(QQ), Sets().Finite(), Algebras(ZZ), SimplicialComplexes())
+        sage: join_as_tuple(T,(),())
+        (Category of algebras over Integer Ring,
+         Category of finite monoids,
+         Category of coalgebras over Rational Field,
+         Category of simplicial complexes)
+        sage: join_as_tuple(T,('WithBasis',),())
+        (Category of algebras with basis over Integer Ring,
+         Category of finite monoids,
+         Category of coalgebras with basis over Rational Field,
+         Category of simplicial complexes)
+        sage: join_as_tuple(T,(),((Monoids(),'Finite'),))
+        (Category of algebras over Integer Ring,
+         Category of coalgebras over Rational Field,
+         Category of finite sets,
+         Category of simplicial complexes)
+
+    """
     cdef set axiomsS = set(axioms)
     for category in categories:
         axiomsS.update(category.axioms())
@@ -175,15 +211,83 @@ cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
 ## Axiom related functions
 
 cdef class AxiomContainer(dict):
+    """
+    A fast container for axioms
+
+    This is derived from :class:`dict`. A key is the name of an axiom. The
+    corresponding value is the "rank" of this axiom, that is used to order the
+    axioms in :func:`canonicalize_axioms`.
+
+    EXAMPLES::
+
+        sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+        sage: isinstance(all_axioms, sage.categories.category_with_axiom.AxiomContainer)
+        True
+
+    """
     def add(self, axiom):
+        """
+        Add a new axiom name, of the next rank.
+
+        EXAMPLES::
+
+            sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+            sage: max(all_axioms.values())
+            19
+            sage: all_axioms.add('Awesome')
+            sage: all_axioms['Awesome']
+            20
+
+        To avoid side effects, we remove the added axiom::
+
+            sage: del all_axioms['Awesome']
+
+        """
         self[axiom] = len(self)
     def __iadd__(self, L):
+        """
+        Inline addition, which means to add a list of axioms to the container.
+
+        EXAMPLES::
+
+            sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+            sage: max(all_axioms.values())
+            19
+            sage: all_axioms += ('Fancy', 'Awesome')
+            sage: all_axioms['Awesome']
+            21
+
+        To avoid side effects, we delete the axioms that we just added::
+
+            sage: del all_axioms['Awesome'], all_axioms['Fancy']
+
+        """
         for axiom in L:
             self.add(axiom)
         return self
 
-cpdef get_axiom_index(AxiomContainer all_axioms, str axiom):
-    return <object>PyDict_GetItemString(all_axioms, PyString_AsString(axiom))
+
+cpdef inline get_axiom_index(AxiomContainer all_axioms, str axiom):
+    """
+    Helper function: Return the rank of an axiom.
+
+    INPUT:
+
+    - ``all_axioms`` -- the axiom collection
+    - ``axiom`` -- string, name of an axiom
+
+    EXAMPLES::
+
+        sage: all_axioms = sage.categories.category_with_axiom.get_all_axioms()
+        sage: from sage.categories.category_cy_helper import get_axiom_index
+        sage: get_axiom_index(all_axioms, 'AdditiveCommutative') == all_axioms['AdditiveCommutative']
+        True
+
+    """
+    cdef PyObject* out = PyDict_GetItemString(all_axioms, PyString_AsString(axiom))
+    if out==NULL:
+        raise KeyError(axiom)
+    return <object>out
 
 cpdef tuple canonicalize_axioms(AxiomContainer all_axioms, axioms):
     r"""
@@ -219,3 +323,4 @@ cpdef tuple canonicalize_axioms(AxiomContainer all_axioms, axioms):
     cdef list L = list(set(axioms))
     L.sort(key = (all_axioms).__getitem__)
     return tuple(L)
+    

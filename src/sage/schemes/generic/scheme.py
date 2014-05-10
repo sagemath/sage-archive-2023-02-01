@@ -873,6 +873,12 @@ class AffineScheme(Scheme):
 
         The name-mangled attribute ``__R`` used to be in a class
         called ``Spec``; we have to translate this mangled name.
+
+        TESTS::
+
+            sage: S = Spec(QQ)
+            sage: loads(dumps(S))
+            Spectrum of Rational Field
         """
         if '_Spec__R' in state:
             state['_AffineScheme__R'] = state.pop('_Spec__R')

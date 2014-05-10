@@ -9,7 +9,7 @@ relevant Manin relations off of that picture. The algorithm follows [PS2011].
 
 REFERENCES:
 
-.. [PS2011] R. Pollack, and G. Stevens. "Overconvergent modular symobals and
+.. [PS2011] R. Pollack, and G. Stevens. "Overconvergent modular symbols and
 p-adic L-functions." Annales scientifiques de l'Ecole normale superieure. Vol.
 44. No. 1. Elsevier, 2011.
 
@@ -50,18 +50,17 @@ def M2Z(x):
         sage: print M2Z([1,2,3,4])
         [1 2]
         [3 4]
-
     """
     x = M2ZSpace(x)
     x.set_immutable()
     return x
 
-Id = M2Z([1,0,0,1])
-sig = M2Z([0,1,-1,0])
-tau = M2Z([0,-1,1,-1])
-minone_inf_path = M2Z([1,1,-1,0])
+Id = M2Z([1, 0, 0, 1])
+sig = M2Z([0, 1, -1, 0])
+tau = M2Z([0, -1, 1, -1])
+minone_inf_path = M2Z([1, 1, -1, 0])
 
-# We store these so that we don't have to constantly create them.
+# We store these so that we do not have to constantly create them.
 t00 = (0, 0)
 t10 = (1, 0)
 t01 = (0, 1)
@@ -156,7 +155,7 @@ class PSModularSymbolsDomain(SageObject):
             'Modular Symbol domain of level 2'
 
         """
-        return "Modular Symbol domain of level %s"%self._N
+        return "Modular Symbol domain of level %s" % self._N
 
     def __len__(self):
         r"""
@@ -167,7 +166,6 @@ class PSModularSymbolsDomain(SageObject):
             sage: A = ManinRelations(11)
             sage: len(A)
             12
-
         """
         return len(self._reps)
 
@@ -216,7 +214,6 @@ class PSModularSymbolsDomain(SageObject):
             [1 0]  [ 0 -1]  [-1 -1]
             [0 1], [ 1  3], [ 3  2]
             ]
-
         """
         return self._gens
 
@@ -234,7 +231,6 @@ class PSModularSymbolsDomain(SageObject):
             sage: A.gen(17)
             [-4 -1]
             [ 9  2]
-
         """
         return self._gens[n]
 
@@ -252,7 +248,6 @@ class PSModularSymbolsDomain(SageObject):
             sage: A = ManinRelations(1137)
             sage: A.ngens()
             255
-
         """
         return len(self._gens)
 
@@ -270,7 +265,6 @@ class PSModularSymbolsDomain(SageObject):
             sage: A = ManinRelations(11)
             sage: A.level()
             11
-
         """
         return self._N
 
@@ -400,7 +394,8 @@ class PSModularSymbolsDomain(SageObject):
             [(1, [1 0]
             [0 1], 3)]
 
-        The fourth coset representative can be expressed through the second coset representative::
+        The fourth coset representative can be expressed through the
+        second coset representative::
 
             sage: MR.reps(4)
             [-1 -2]
@@ -412,7 +407,8 @@ class PSModularSymbolsDomain(SageObject):
             sage: d # the above corresponds to minus the divisor of A.reps(4) since d is -1
             -1
 
-        The sixth coset representative can be expressed as the sum of the second and the third::
+        The sixth coset representative can be expressed as the sum of
+        the second and the third::
 
             sage: MR.reps(6)
             [ 0 -1]
@@ -459,7 +455,6 @@ class PSModularSymbolsDomain(SageObject):
             [11  8], 3)], [(1, [-3 -2]
             [11  7], 2), (1, [-4 -3]
             [11  8], 3)]]
-
         """
         if A is None:
             return self._rels
@@ -498,9 +493,8 @@ class PSModularSymbolsDomain(SageObject):
             [-1  2]
             sage: MR.P1().normalize(3,16)
             (1, 9)
-
         """
-        return self._equiv_ind[self._P.normalize(A[t10],A[t11])]
+        return self._equiv_ind[self._P.normalize(A[t10], A[t11])]
 
     def equivalent_rep(self, A):
         r"""
@@ -523,7 +517,6 @@ class PSModularSymbolsDomain(SageObject):
             sage: ManinRelations(60).equivalent_rep(A)
             [-7 -3]
             [26 11]
-
         """
         return self._reps[self.equivalent_index(A)]
 
@@ -539,6 +532,7 @@ class PSModularSymbolsDomain(SageObject):
 
         """
         return self._P
+
 
 class ManinRelations(PSModularSymbolsDomain):
     r"""
@@ -608,9 +602,10 @@ class ManinRelations(PSModularSymbolsDomain):
         ## are Gamma_0(N) equivalent to one another).
         cusps = self.form_list_of_cusps()
 
-        ## Takes the boundary of this fundamental domain and finds SL_2(Z) matrices whose
-        ## associated unimodular path gives this boundary.  These matrices form the
-        ## beginning of our collection of coset reps for Gamma_0(N) / SL_2(Z).
+        ## Takes the boundary of this fundamental domain and finds
+        ## SL_2(Z) matrices whose associated unimodular path gives
+        ## this boundary.  These matrices form the beginning of our
+        ## collection of coset reps for Gamma_0(N) / SL_2(Z).
         coset_reps = self.fd_boundary(cusps)
 
         ## Takes the bottom row of each of our current coset reps,
@@ -655,18 +650,18 @@ class ManinRelations(PSModularSymbolsDomain):
         ## each edge glued to itself (arising from two-torsion)
         ## ------------------------------------------------------------------
         for r in range(len(coset_reps)):
-            if boundary_checked[r] == False:
+            if not boundary_checked[r]:
 
                 ## We now check if this boundary edge is glued to itself by
                 ## Gamma_0(N)
 
-                if P.normalize(p1s[r][0],p1s[r][1]) == P.normalize(-p1s[r][1],p1s[r][0]):
+                if P.normalize(p1s[r][0], p1s[r][1]) == P.normalize(-p1s[r][1], p1s[r][0]):
                     ## This edge is glued to itself and so coset_reps[r]
                     ## needs to be added to our generator list.
 
                     ## this relation expresses the fact that
                     ## coset_reps[r] is one of our basic generators
-                    rels[r] = [(1,IdN,r)]
+                    rels[r] = [(1, IdN, r)]
 
                     ## the index r is adding to our list
                     ## of indexes of generators
@@ -698,7 +693,7 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## In the following case the ideal triangle below
                     ## the unimodular path described by coset_reps[r]
                     ## contains a point fixed by a 3-torsion element.
-                    if (c**2+d**2+c*d)%N == 0:
+                    if (c ** 2 + d ** 2 + c * d) % N == 0:
 
                         ## the index r is adding to our list of indexes
                         ## of generators
@@ -706,7 +701,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
                         ## this relation expresses the fact that coset_reps[r]
                         ## is one of our basic generators
-                        rels[r] = [(1,IdN,r)]
+                        rels[r] = [(1, IdN, r)]
 
                         ## the index r is adding to our list of indexes of
                         ## generators which satisfy a 3-torsion relation
@@ -731,12 +726,12 @@ class ManinRelations(PSModularSymbolsDomain):
                         a = coset_reps[r][t00]
                         b = coset_reps[r][t01]
 
-                        A = M2Z([-b,a,-d,c])
+                        A = M2Z([-b, a, -d, c])
                         coset_reps.append(A)
                         ## A (representing the reversed edge) is included in
                         ## our list of coset reps
 
-                        rels.append([(-1,IdN,r)])
+                        rels.append([(-1, IdN, r)])
                         ## This relation means that phi on the reversed edge
                         ## equals -phi on original edge
 
@@ -750,10 +745,10 @@ class ManinRelations(PSModularSymbolsDomain):
                         ## and finds which one is equivalent to the reverse of
                         ## coset_reps[r]
                         ## ---------------------------------------------------
-                        for s in range(r+1, len(coset_reps)):
+                        for s in range(r + 1, len(coset_reps)):
                             if boundary_checked[s]:
                                 continue
-                            if P.normalize(p1s[s][0],p1s[s][1]) == P.normalize(-p1s[r][1],p1s[r][0]):
+                            if P.normalize(p1s[s][0], p1s[s][1]) == P.normalize(-p1s[r][1], p1s[r][0]):
                                 ## the reverse of coset_reps[r] is
                                 ## Gamma_0(N)-equivalent to coset_reps[s]
                                 ## coset_reps[r] will now be made a generator
@@ -764,7 +759,7 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## the index r is adding to our list of
                                 ## indexes of generators
 
-                                rels[r] = [(1,IdN,r)]
+                                rels[r] = [(1, IdN, r)]
                                 ## this relation expresses the fact that
                                 ## coset_reps[r] is one of our basic generators
 
@@ -776,7 +771,7 @@ class ManinRelations(PSModularSymbolsDomain):
                                 ## gam is in Gamma_0(N) (by assumption of
                                 ## ending up here in this if statement)
 
-                                rels[s] = [(-1,gam,r)]
+                                rels[s] = [(-1, gam, r)]
                                 ## this relation means that phi evaluated on
                                 ## coset_reps[s] equals -phi(coset_reps[r])|gam
                                 ## To see this, let D_r be the divisor
@@ -802,20 +797,20 @@ class ManinRelations(PSModularSymbolsDomain):
         ## of generators.
         ## -------------------------------------------------------------------
 
-        for r in range(len(cusps)-2):
+        for r in range(len(cusps) - 2):
             ## r is the index of the cusp on the left of the path.  We only run
-            ## thru to the number of cusps - 2 since you can't start an
+            ## thru to the number of cusps - 2 since you cannot start an
             ## interior path on either of the last two cusps
 
-            for s in range(r+2,len(cusps)):
+            for s in range(r + 2, len(cusps)):
             ## s is in the index of the cusp on the the right of the path
                 cusp1 = cusps[r]
                 cusp2 = cusps[s]
-                if self.is_unimodular_path(cusp1,cusp2):
-                    A,B = self.unimod_to_matrices(cusp1,cusp2)
+                if self.is_unimodular_path(cusp1, cusp2):
+                    A, B = self.unimod_to_matrices(cusp1, cusp2)
                     ## A and B are the matrices whose associated paths
                     ## connect cusp1 to cusp2 and cusp2 to cusp1 (respectively)
-                    coset_reps.extend([A,B])
+                    coset_reps.extend([A, B])
                     ## A and B are added to our coset reps
                     vA = []
                     vB = []
@@ -827,23 +822,24 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## Similarly, this is also done for B.
 
                     ## Running between the cusps between cusp1 and cusp2
-                    for rel in rels[r+2:s+2]:
+                    for rel in rels[r + 2: s + 2]:
                         ## Add edge relation
                         vA.append(rel[0])
                         ## Add negative of edge relation
                         vB.append((-rel[0][0], rel[0][1], rel[0][2]))
                     ## Add relations for A and B to relations list
-                    rels.extend([vA,vB])
+                    rels.extend([vA, vB])
 
         ## Make the translation table between the Sage and Geometric
         ## descriptions of P^1
         equiv_ind = {}
         for i, rep in enumerate(coset_reps):
-            ky = P.normalize(rep[t10],rep[t11])
+            ky = P.normalize(rep[t10], rep[t11])
             equiv_ind[ky] = i
 
         self.gammas = gammas
-        PSModularSymbolsDomain.__init__(self, N, coset_reps, gens_index, rels, equiv_ind)
+        PSModularSymbolsDomain.__init__(self, N, coset_reps, gens_index,
+                                        rels, equiv_ind)
 
         ## A list of indices of the (geometric) coset representatives whose
         ## paths are identified by some 2-torsion element (which switches the
@@ -851,8 +847,9 @@ class ManinRelations(PSModularSymbolsDomain):
         self._indices_with_two_torsion = twotor_index
         self._reps_with_two_torsion = [coset_reps[i] for i in twotor_index]
 
-        ## A dictionary of (2-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
-        ## the orientation identification in the paths listed in twotor_index above!
+        ## A dictionary of (2-torsion in PSL_2(Z)) matrices in
+        ## Gamma_0(N) that give the orientation identification in the
+        ## paths listed in twotor_index above!
         self._two_torsion = {}
         for j, tor_elt in zip(twotor_index, twotorrels):
             self._two_torsion[coset_reps[j]] = tor_elt
@@ -863,8 +860,9 @@ class ManinRelations(PSModularSymbolsDomain):
         self._indices_with_three_torsion = threetor_index
         self._reps_with_three_torsion = [coset_reps[i] for i in threetor_index]
 
-        ## A dictionary of (3-torsion in PSL_2(Z)) matrices in Gamma_0(N) that give
-        ## the interior fixed point described in threetor_index above!
+        ## A dictionary of (3-torsion in PSL_2(Z)) matrices in
+        ## Gamma_0(N) that give the interior fixed point described in
+        ## threetor_index above!
         self._three_torsion = {}
         for j, tor_elt in zip(threetor_index, threetorrels):
             self._three_torsion[coset_reps[j]] = tor_elt
@@ -877,9 +875,8 @@ class ManinRelations(PSModularSymbolsDomain):
 
             sage: ManinRelations(11)._repr_()
             'Manin Relations of level 11'
-
         """
-        return "Manin Relations of level %s"%self._N
+        return "Manin Relations of level %s" % self._N
 
     def indices_with_two_torsion(self):
         r"""
@@ -905,7 +902,7 @@ class ManinRelations(PSModularSymbolsDomain):
             [ 3  2], [ 2  3]
             )
 
-        The coresponding matrix of order 2::
+        The corresponding matrix of order 2::
 
             sage: A = MR.two_torsion_matrix(MR.reps(3)); A
             [  5   2]
@@ -922,7 +919,6 @@ class ManinRelations(PSModularSymbolsDomain):
             [-1 -1]  [ 1 -1]
             [ 3  2], [-2  3]
             )
-
         """
         return self._indices_with_two_torsion
 
@@ -949,7 +945,7 @@ class ManinRelations(PSModularSymbolsDomain):
             ]
             sage: B = MR.reps_with_two_torsion()[0]
 
-        The coresponding matrix of order 2::
+        The corresponding matrix of order 2::
 
             sage: A = MR.two_torsion_matrix(B); A
             [  5   2]
@@ -966,14 +962,13 @@ class ManinRelations(PSModularSymbolsDomain):
             [-1 -1]  [ 1 -1]
             [ 3  2], [-2  3]
             )
-
         """
         return self._reps_with_two_torsion
 
     def two_torsion_matrix(self, A):
         r"""
-        Return the matrix of order two in `\Gamma_0(N)` which corresponds to an
-        ``A`` in ``self.reps_with_two_torsion()``.
+        Return the matrix of order two in `\Gamma_0(N)` which
+        corresponds to an ``A`` in ``self.reps_with_two_torsion()``.
 
         INPUT:
 
@@ -984,7 +979,7 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: MR = ManinRelations(25)
             sage: B = MR.reps_with_two_torsion()[0]
 
-        The coresponding matrix of order 2::
+        The corresponding matrix of order 2::
 
             sage: A = MR.two_torsion_matrix(B); A
             [  7   2]
@@ -992,7 +987,6 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: A^2
             [-1  0]
             [ 0 -1]
-
         """
         return self._two_torsion[A]
 
@@ -1035,16 +1029,15 @@ class ManinRelations(PSModularSymbolsDomain):
             [-1  1]  [ 1  0]
             [ 3 -4], [-4  1]
             )
-
         """
         return self._indices_with_three_torsion
 
     def reps_with_three_torsion(self):
         r"""
-        A list of coset representatives whose associated unimodular path
-        contains a point fixed by a `\Gamma_0(N)` element of order 3 in the
-        ideal triangle directly below that path (the order is computed in
-        `PSL_2(\ZZ)`).
+        A list of coset representatives whose associated unimodular
+        path contains a point fixed by a `\Gamma_0(N)` element of
+        order 3 in the ideal triangle directly below that path (the
+        order is computed in `PSL_2(\ZZ)`).
 
         EXAMPLES::
 
@@ -1062,8 +1055,8 @@ class ManinRelations(PSModularSymbolsDomain):
             [1 0]
             [0 1]
 
-        The columns of ``B`` and the columns of ``A*B`` and ``A^2*B`` give the
-        same rational cusps::
+        The columns of ``B`` and the columns of ``A*B`` and ``A^2*B``
+        give the same rational cusps::
 
             sage: B
             [ 0 -1]
@@ -1073,25 +1066,24 @@ class ManinRelations(PSModularSymbolsDomain):
             [-1  1]  [ 1  0]
             [ 3 -4], [-4  1]
             )
-
         """
         return self._reps_with_three_torsion
 
     def three_torsion_matrix(self, A):
-        """
-        Return the matrix of order two in `\Gamma_0(N)` which corresponds to an
-        ``A`` in ``self.reps_with_two_torsion()``.
+        r"""
+        Return the matrix of order two in `\Gamma_0(N)` which
+        corresponds to an ``A`` in ``self.reps_with_two_torsion()``.
 
         INPUT:
 
-            - ``A`` -- a matrix in ``self.reps_with_two_torsion()``
+        - ``A`` -- a matrix in ``self.reps_with_two_torsion()``
 
         EXAMPLES::
 
             sage: MR = ManinRelations(37)
             sage: B = MR.reps_with_three_torsion()[0]
 
-        The coresponding matrix of order 3::
+        The corresponding matrix of order 3::
 
             sage: A = MR.three_torsion_matrix(B); A
             [-11  -3]
@@ -1099,7 +1091,6 @@ class ManinRelations(PSModularSymbolsDomain):
             sage: A^3
             [1 0]
             [0 1]
-
         """
         return self._three_torsion[A]
 
@@ -1129,21 +1120,24 @@ class ManinRelations(PSModularSymbolsDomain):
             [-1, -2/3, -1/2, -1/3, 0]
             sage: A = ManinRelations(101)
             sage: A.form_list_of_cusps()
-            [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
-
+            [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10,
+            -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2,
+            -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11,
+            -1/4, -2/9, -1/5, -1/6, 0]
         """
         ## Get the level
         N = self.level()
 
         ## Checks that the level N is > 1
-        # TODO: I'm commenting this out; I see no reason not to allow level 1, except
-        # possibly the bug here that I fixed: http://trac.sagemath.org/sage_trac/ticket/12772
+        # TODO: I'm commenting this out; I see no reason not to allow
+        # level 1, except possibly the bug here that I fixed:
+        # http://trac.sagemath.org/sage_trac/ticket/12772
         #if not (N > 1):
         #    raise TypeError("Error in form_list_of_cusps: level should be > 1")
 
         ## Some convenient shortcuts
         P = self.P1()
-        sP = len(P.list())   ## Size of P^1(Z/NZ)
+        sP = len(P.list())   # Size of P^1(Z/NZ)
 
         ## Initialize some lists
 
@@ -1153,7 +1147,7 @@ class ManinRelations(PSModularSymbolsDomain):
         ## The ? denotes that it has not yet been checked if more cusps need
         ## to be added between the surrounding cusps.
 
-        full_domain = False     ## Says that we're not done yet!
+        full_domain = False     # Says that we are not done yet!
 
         v = [False for r in range(sP)]
         ## This initializes a list indexed by P^1(Z/NZ) which keeps track of
@@ -1163,10 +1157,9 @@ class ManinRelations(PSModularSymbolsDomain):
         ## Includeds the coset repns formed by the original ideal triangle
         ## (with corners at -1, 0, infty)
 
-        v[P.index(0,1)] = True
-        v[P.index(1,-1)] = True
-        v[P.index(-1,0)] = True
-
+        v[P.index(0, 1)] = True
+        v[P.index(1, -1)] = True
+        v[P.index(-1, 0)] = True
 
         ## Main Loop -- Ideal Triangle Flipping
         ## ====================================
@@ -1176,13 +1169,13 @@ class ManinRelations(PSModularSymbolsDomain):
             ## This loop runs through the current set of cusps
             ## and checks to see if more cusps should be added
             ## -----------------------------------------------
-            for s in range(1, len(C), 2):  ## range over odd indices in the
-                                           ## final list C
+            for s in range(1, len(C), 2):  # range over odd indices in the
+                                           # final list C
                 if C[s] == "?":
 
                     ## Single out our two cusps (path from cusp2 to cusp1)
-                    cusp1 = C[s-1]
-                    cusp2 = C[s+1]
+                    cusp1 = C[s - 1]
+                    cusp2 = C[s + 1]
 
                     ## Makes the unimodular transform for the path from cusp2
                     ## to cusp1
@@ -1193,59 +1186,58 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## This is the point where it is determined whether
                     ## or not the adjacent triangle should be added
                     ## ------------------------------------------------
-                    pos = P.index(b2,b1)   ## The Sage index of the bottom
+                    pos = P.index(b2, b1)   # The Sage index of the bottom
                                                  ## row of our unimodular
                                            ## transformation gam
 
                     ## Check if we need to flip (since this P1 element has not
                     ## yet been accounted for!)
-                    if v[pos] == False:
-                        v[pos] = True      ## Say this P1 element now occurs
-                        v[P.index(b1,-(b1+b2))] = True ## Say that the other
-                                                       ## two ideal triangle
-                                                       ## edges also occur!
-                        v[P.index(-(b1+b2),b2)] = True
+                    if not v[pos]:
+                        v[pos] = True      # Say this P1 element now occurs
+                        v[P.index(b1, -(b1 + b2))] = True
+                        ## Say that the other two ideal triangle edges
+                        ## also occur!
+
+                        v[P.index(-(b1 + b2), b2)] = True
 
                         ## Check to see if this triangle contains a fixed
                         ## point by an element of Gamma_0(N).  If such an
                         ## element is present, the fundamental domain can be
                         ## extended no further.
 
-                        if (b1**2 + b2**2 + b1*b2)%N != 0:
+                        if (b1 ** 2 + b2 ** 2 + b1 * b2) % N != 0:
 
                         ## this congruence is exactly equivalent to
                         ## gam * [0 -1; 1 -1] * gam^(-1) is in Gamma_0(N)
                         ## where gam is the matrix corresponding to the
                         ## unimodular path connecting cusp1 to cusp2
 
-                            C[s] = "i"  ## The '?' is changed to an 'i'
-                                            ## indicating that a new cusp needs to
+                            C[s] = "i"  # The '?' is changed to an 'i'
+                             ## indicating that a new cusp needs to
                                         ##  be inserted here
                             full_domain = False
                         else:
-                            C[s] = "x"  ## The '?' is changed to an 'x' and no
-                                               ##  more checking below is needed! =)
+                            C[s] = "x"  # The '?' is changed to an 'x' and no
+                                        # more checking below is needed! =)
                     else:
-                        C[s] = "x"  ## The '?' is changed to an 'x' and no more
+                        C[s] = "x"  # The '?' is changed to an 'x' and no more
                                            ## checking below is needed! =)
 
-
-            ## Now insert the missing cusps (where there is an 'i' in the
-            ## final list)
+            ## Now insert the missing cusps (where there is an 'i' in
+            ## the final list)
             ## This will keep the fundamental domain as flat as possible!
             ## ---------------------------------------------------------------
-
-            s=1
-            while s < len(C):    ## range over odd indices in the final list C
+            s = 1
+            while s < len(C):   # range over odd indices in the final list C
                 if C[s] == "i":
-                    C[s]="?"
+                    C[s] = "?"
 
                     ## Single out our two cusps (path from cusp2 to cusp1)
-                    cusp1 = C[s-1]
-                    cusp2 = C[s+1]
+                    cusp1 = C[s - 1]
+                    cusp2 = C[s + 1]
 
-                    ## Makes the unimodular transform for the path from cusp2
-                    ## to cusp1
+                    ## Makes the unimodular transform for the path
+                    ## from cusp2 to cusp1
                     a1 = cusp1.numerator()
                     b1 = cusp1.denominator()
                     a2 = cusp2.numerator()
@@ -1254,10 +1246,10 @@ class ManinRelations(PSModularSymbolsDomain):
                     ## Inserts the Farey center of these two cusps!
                     a = a1 + a2
                     b = b1 + b2
-                    C.insert(s+1, a/b)
-                    C.insert(s+2, "?")
-                    s = s+2
-                s = s+2
+                    C.insert(s + 1, a / b)
+                    C.insert(s + 2, "?")
+                    s += 2
+                s += 2
 
         ## Remove the (now superfluous) extra string characters that appear
         ## in the odd list entries
@@ -1289,13 +1281,12 @@ class ManinRelations(PSModularSymbolsDomain):
             False
             sage: A.is_unimodular_path(2/3,0)
             False
-
         """
         a = r1.numerator()
         b = r2.numerator()
         c = r1.denominator()
         d = r2.denominator()
-        return (a*d - b*c)**2 == 1
+        return (a * d - b * c) ** 2 == 1
 
     def unimod_to_matrices(self, r1, r2):
         r"""
@@ -1319,19 +1310,18 @@ class ManinRelations(PSModularSymbolsDomain):
             [ 0  1]  [1 0]
             [-1  3], [3 1]
             )
-
         """
         a = r1.numerator()
         b = r2.numerator()
         c = r1.denominator()
         d = r2.denominator()
-        if (a*d-b*c) == 1:
-            ans = M2Z([a,b,c,d]), M2Z([-b,a,-d,c])
+        if (a * d - b * c) == 1:
+            ans = M2Z([a, b, c, d]), M2Z([-b, a, -d, c])
         else:
-            ans = M2Z([-a,b,-c,d]), M2Z([b,a,d,c])
+            ans = M2Z([-a, b, -c, d]), M2Z([b, a, d, c])
         return ans
 
-    def fd_boundary(self,C):
+    def fd_boundary(self, C):
         r"""
         Finds matrices whose associated unimodular paths give the
         boundary of a fundamental domain.
@@ -1372,7 +1362,10 @@ class ManinRelations(PSModularSymbolsDomain):
             ]
             sage: A = ManinRelations(101)
             sage: C = A.form_list_of_cusps(); C
-            [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10, -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2, -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11, -1/4, -2/9, -1/5, -1/6, 0]
+            [-1, -6/7, -5/6, -4/5, -7/9, -3/4, -11/15, -8/11, -5/7, -7/10,
+            -9/13, -2/3, -5/8, -13/21, -8/13, -3/5, -7/12, -11/19, -4/7, -1/2,
+            -4/9, -3/7, -5/12, -7/17, -2/5, -3/8, -4/11, -1/3, -2/7, -3/11,
+            -1/4, -2/9, -1/5, -1/6, 0]
             sage: A.fd_boundary(C)
             [
             [1 0]  [ 1  1]  [ 0 -1]  [-1 -1]  [-1 -2]  [-2 -1]  [-1 -3]  [-3 -2]
@@ -1390,28 +1383,27 @@ class ManinRelations(PSModularSymbolsDomain):
             [-11  -3]  [-3 -7]  [-7 -4]  [-4 -5]  [-5 -6]  [-6 -1]
             [ 15   4], [ 4  9], [ 9  5], [ 5  6], [ 6  7], [ 7  1]
             ]
-
         """
-        C.reverse() ## Reverse here to get clockwise orientation of boundary
+        C.reverse()  # Reverse here to get clockwise orientation of boundary
 
-        ## These matrices correspond to the paths from infty to 0 and -1 to infty
+        ## These matrices correspond to the paths from infty to 0 and
+        ## -1 to infty
         mats = [Id, minone_inf_path]
 
-        ## Now find SL_2(Z) matrices whose associated unimodular paths connect
-        ## the cusps listed in C.
-        ## --------------------------------------------------------
-        for j in range(len(C)-1):
+        ## Now find SL_2(Z) matrices whose associated unimodular paths
+        ## connect the cusps listed in C.
+        for j in range(len(C) - 1):
             a = C[j].numerator()
-            b = C[j+1].numerator()
+            b = C[j + 1].numerator()
             c = C[j].denominator()
-            d = C[j+1].denominator()
-            new_mat = M2Z([a,b,c,d])
+            d = C[j + 1].denominator()
+            new_mat = M2Z([a, b, c, d])
             mats.append(new_mat)
 
         return mats
 
     @cached_method
-    def prep_hecke_on_gen(self, l, gen, modulus = None):
+    def prep_hecke_on_gen(self, l, gen, modulus=None):
         r"""
         This function does some precomputations needed to compute `T_l`.
 
@@ -1432,9 +1424,10 @@ class ManinRelations(PSModularSymbolsDomain):
         as `h` runs over all coset representatives and `j` simply runs over
         however many times `M_h` appears in the above computation.
 
-        Finally, the output of this function is a dictionary ``D`` whose keys are
-        the coset representatives in ``self.reps()`` where each value is a list
-        of matrices, and the entries of ``D`` satisfy:
+        Finally, the output of this function is a dictionary ``D``
+        whose keys are the coset representatives in ``self.reps()``
+        where each value is a list of matrices, and the entries of
+        ``D`` satisfy:
 
         .. MATH::
 
@@ -1477,36 +1470,37 @@ class ManinRelations(PSModularSymbolsDomain):
         #  computation described above.
         #  -------------------------------------
         for a in range(l + 1):
-           if ((a < l) or (N % l != 0)) and (modulus is None or a%l == modulus%l):
-               # if the level is not prime to l the matrix [l, 0, 0, 1] is avoided.
-               gamma = basic_hecke_matrix(a, l)
-               t = gamma * gen
-               #  In the notation above this is gam_a * D_m
-               from manin_map import unimod_matrices_to_infty, unimod_matrices_from_infty
-               v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
-               #  This expresses t as a sum of unimodular divisors
+            if ((a < l) or (N % l != 0)) and (modulus is None or a % l == modulus % l):
+                # if the level is not prime to l the matrix [l, 0, 0, 1] is avoided.
+                gamma = basic_hecke_matrix(a, l)
+                t = gamma * gen
+                #  In the notation above this is gam_a * D_m
+                from manin_map import unimod_matrices_to_infty, unimod_matrices_from_infty
+                v = unimod_matrices_from_infty(t[0, 0], t[1, 0]) + unimod_matrices_to_infty(t[0, 1], t[1, 1])
+                #  This expresses t as a sum of unimodular divisors
 
-               # This loop runs over each such unimodular divisor
-               # ------------------------------------------------
-               for A in v:
-                   #  B is the coset rep equivalent to A
-                   B = self.equivalent_rep(A)
-                   #  gaminv = B*A^(-1)
-                   gaminv = B * A.inverse()
-                   #  The matrix gaminv * gamma is added to our list in the j-th slot
-                   #  (as described above)
-                   tmp = SN(gaminv * gamma)
-                   try:
-                       ans[B].append(tmp)
-                   except KeyError:
-                       ans[B] = [tmp]
+                # This loop runs over each such unimodular divisor
+                # ------------------------------------------------
+                for A in v:
+                    #  B is the coset rep equivalent to A
+                    B = self.equivalent_rep(A)
+                    #  gaminv = B*A^(-1)
+                    gaminv = B * A.inverse()
+                    #  The matrix gaminv * gamma is added to our list in the j-th slot
+                    #  (as described above)
+                    tmp = SN(gaminv * gamma)
+                    try:
+                        ans[B].append(tmp)
+                    except KeyError:
+                        ans[B] = [tmp]
 
         return ans
 
     @cached_method
-    def prep_hecke_on_gen_list(self, l, gen, modulus = None):
+    def prep_hecke_on_gen_list(self, l, gen, modulus=None):
         r"""
-        Returns the precomputation to compute `T_l` in a way that speeds up the hecke calculation.
+        Returns the precomputation to compute `T_l` in a way that
+        speeds up the hecke calculation.
 
         Namely, returns a list of the form [h,A].
 
@@ -1531,13 +1525,15 @@ class ManinRelations(PSModularSymbolsDomain):
             4
         """
         ans = []
-        for h,vh in self.prep_hecke_on_gen(l,gen,modulus = modulus).iteritems():
-            ans.extend([(h,v) for v in vh])
+        for h, vh in self.prep_hecke_on_gen(l, gen, modulus=modulus).iteritems():
+            ans.extend([(h, v) for v in vh])
         return ans
+
 
 def basic_hecke_matrix(a, l):
     r"""
-    Returns the 2x2 matrix with entries ``[1, a, 0, l]`` if ``a<l`` and ``[l, 0, 0, 1]`` if ``a>=l``.
+    Returns the 2x2 matrix with entries ``[1, a, 0, l]`` if ``a<l``
+    and ``[l, 0, 0, 1]`` if ``a>=l``.
 
     INPUT:
 
@@ -1566,7 +1562,6 @@ def basic_hecke_matrix(a, l):
         sage: basic_hecke_matrix(infinity, 7)
         [7 0]
         [0 1]
-
     """
     if a < l:
         return M2Z([1, a, 0, l])

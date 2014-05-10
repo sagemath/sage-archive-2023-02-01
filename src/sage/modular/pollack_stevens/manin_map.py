@@ -77,7 +77,7 @@ def fast_dist_act(v, g, acting_matrix=None):
         ans = v._moments
     try:
         if acting_matrix is None:
-            ans = v._moments.apply_map(methodcaller('lift')) * v.parent().acting_matrix(g,len(v._moments))
+            ans = v._moments.apply_map(methodcaller('lift')) * v.parent().acting_matrix(g, len(v._moments))
         else:
             ans = v._moments.apply_map(methodcaller('lift')) * acting_matrix
     except (AttributeError, TypeError):
@@ -131,12 +131,12 @@ def unimod_matrices_to_infty(r, s):
     # Computes the continued fraction convergents of r/s
     v = [M2Z([1, L[0].numerator(), 0, L[0].denominator()])]
     # Initializes the list of matrices
-    for j in range(0, len(L)-1):
+    for j in range(0, len(L) - 1):
         a = L[j].numerator()
         c = L[j].denominator()
         b = L[j + 1].numerator()
         d = L[j + 1].denominator()
-        v.append(M2Z([(-1)**(j + 1) * a, b, (-1)**(j + 1) * c, d]))
+        v.append(M2Z([(-1) ** (j + 1) * a, b, (-1) ** (j + 1) * c, d]))
         # The matrix connecting two consecutive convergents is added on
     return v
 
@@ -189,11 +189,12 @@ def unimod_matrices_from_infty(r, s):
             c = L[j].denominator()
             b = L[j + 1].numerator()
             d = L[j + 1].denominator()
-            v.append(M2Z([-b, (-1)**(j + 1) * a, -d, (-1)**(j + 1) * c]))
+            v.append(M2Z([-b, (-1) ** (j + 1) * a, -d, (-1) ** (j + 1) * c]))
             # The matrix connecting two consecutive convergents is added on
         return v
     else:
         return []
+
 
 class ManinMap(object):
     r"""
@@ -259,7 +260,7 @@ class ManinMap(object):
                 except TypeError:
                     raise TypeError("unrecognized type %s for defining_data" % type(defining_data))
                 g = manin_relations.gens()
-                self._dict = dict(zip(g, [c]*len(g)))
+                self._dict = dict(zip(g, [c] * len(g)))
         else:
             self._dict = defining_data
 
@@ -315,7 +316,7 @@ class ManinMap(object):
                 mrep = self._manin.reps(g)
                 val = self._dict[mrep]
                 try:
-                    g1 = self._codomain(fast_dist_act(val),A)
+                    g1 = self._codomain(fast_dist_act(val), A)
                 except TypeError:
                     g1 = val * A
 
@@ -324,7 +325,7 @@ class ManinMap(object):
             t = g1 * c
             for c, A, g in L[1:]:
                 try:
-                    g1 = self._codomain(fast_dist_act(self._dict[self._manin.reps(g)],A))
+                    g1 = self._codomain(fast_dist_act(self._dict[self._manin.reps(g)], A))
                 except TypeError:
                     g1 = self._dict[self._manin.reps(g)] * A
                 t += g1 * c
@@ -403,7 +404,7 @@ class ManinMap(object):
             38
         """
         for B in self._manin.reps():
-            if not self._dict.has_key(B):
+            if not B in self._dict:
                 self._dict[B] = self._compute_image_from_gens(B)
 
     def __add__(self, right):
@@ -509,7 +510,8 @@ class ManinMap(object):
             sage: (f*2)(M2Z([1,0,0,1]))
             (2 + O(11^10), 4 + O(11))
         """
-        if isinstance(right, type(Sigma0(self._manin.level())(MatrixSpace(ZZ,2,2)([1,0,0,1])))):
+        tp = Sigma0(self._manin.level())(MatrixSpace(ZZ, 2, 2)([1, 0, 0, 1]))
+        if isinstance(right, type(tp)):
             return self._right_action(right)
 
         D = {}
@@ -533,8 +535,7 @@ class ManinMap(object):
             'Map from the set of right cosets of Gamma0(11) in SL_2(Z) to Space of 11-adic distributions with k=0 action and precision cap 10'
 
         """
-        return "Map from the set of right cosets of Gamma0(%s) in SL_2(Z) to %s"%(
-            self._manin.level(), self._codomain)
+        return "Map from the set of right cosets of Gamma0(%s) in SL_2(Z) to %s" % (self._manin.level(), self._codomain)
 
     def _eval_sl2(self, A):
         r"""
@@ -605,9 +606,9 @@ class ManinMap(object):
         c = A[t10]
         d = A[t11]
         # v1: a list of unimodular matrices whose divisors add up to {b/d} - {infty}
-        v1 = unimod_matrices_to_infty(b,d)
+        v1 = unimod_matrices_to_infty(b, d)
         # v2: a list of unimodular matrices whose divisors add up to {a/c} - {infty}
-        v2 = unimod_matrices_to_infty(a,c)
+        v2 = unimod_matrices_to_infty(a, c)
         # ans: the value of self on A
         ans = self._codomain(0)
         # This loop computes self({b/d}-{infty}) by adding up the values of self on elements of v1
@@ -631,14 +632,13 @@ class ManinMap(object):
 
         EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-        sage: S = Symk(0,QQ)
-        sage: MR = ManinRelations(37)
-        sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
-        sage: f = ManinMap(S,MR,data)
-        sage: list(f.apply(lambda t:2*t))
-        [0, 2, 0, 0, 0, -2, 2, 0, 0]
-
+            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: S = Symk(0,QQ)
+            sage: MR = ManinRelations(37)
+            sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
+            sage: f = ManinMap(S,MR,data)
+            sage: list(f.apply(lambda t:2*t))
+            [0, 2, 0, 0, 0, -2, 2, 0, 0]
         """
         D = {}
         sd = self._dict
@@ -646,7 +646,8 @@ class ManinMap(object):
             codomain = self._codomain
         for ky, val in sd.iteritems():
             if to_moments:
-                D[ky] = codomain([f(val.moment(a)) for a in range(val.precision_absolute())])
+                D[ky] = codomain([f(val.moment(a))
+                                  for a in range(val.precision_absolute())])
             else:
                 D[ky] = f(val)
         return self.__class__(codomain, self._manin, D, check=False)
@@ -660,14 +661,13 @@ class ManinMap(object):
 
         EXAMPLES::
 
-        sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
-        sage: S = Symk(0,QQ)
-        sage: MR = ManinRelations(37)
-        sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
-        sage: f = ManinMap(S,MR,data)
-        sage: [a for a in f]
-        [0, 1, 0, 0, 0, -1, 1, 0, 0]
-
+            sage: from sage.modular.pollack_stevens.manin_map import M2Z, ManinMap
+            sage: S = Symk(0,QQ)
+            sage: MR = ManinRelations(37)
+            sage: data  = {M2Z([-2,-3,5,7]): S(0), M2Z([1,0,0,1]): S(0), M2Z([-1,-2,3,5]): S(0), M2Z([-1,-4,2,7]): S(1), M2Z([0,-1,1,4]): S(1), M2Z([-3,-1,7,2]): S(-1), M2Z([-2,-3,3,4]): S(0), M2Z([-4,-3,7,5]): S(0), M2Z([-1,-1,4,3]): S(0)}
+            sage: f = ManinMap(S,MR,data)
+            sage: [a for a in f]
+            [0, 1, 0, 0, 0, -1, 1, 0, 0]
         """
         for A in self._manin.gens():
             yield self._dict[A]
@@ -723,9 +723,9 @@ class ManinMap(object):
         keys = [ky for ky in sd.iterkeys()]
         for ky in keys:
             try:
-                D[ky] = self._codomain(fast_dist_act(self(gamma*ky),gamma))
+                D[ky] = self._codomain(fast_dist_act(self(gamma * ky), gamma))
             except TypeError:
-                D[ky] = self(gamma*ky) * gamma
+                D[ky] = self(gamma * ky) * gamma
         return self.__class__(self._codomain, self._manin, D, check=False)
 
     def normalize(self):
@@ -745,7 +745,6 @@ class ManinMap(object):
             sage: g = f.normalize()
             sage: g._dict[M2Z([1,0,0,1])]
             (1 + O(11^10), 2 + O(11))
-
         """
         sd = self._dict
         for val in sd.itervalues():
@@ -758,7 +757,7 @@ class ManinMap(object):
 
         INPUT:
 
-            - ``M`` -- an integer, the new precision.
+        - ``M`` -- an integer, the new precision.
 
         EXAMPLES::
 
@@ -772,7 +771,6 @@ class ManinMap(object):
             sage: g = f.reduce_precision(1)
             sage: g._dict[M2Z([1,0,0,1])]
             1 + O(11^10)
-
         """
         D = {}
         sd = self._dict
@@ -801,9 +799,10 @@ class ManinMap(object):
         sd = self._dict
         for ky, val in sd.iteritems():
             D[ky] = val.specialize(*args)
-        return self.__class__(self._codomain.specialize(*args), self._manin, D, check=False)
+        return self.__class__(self._codomain.specialize(*args), self._manin,
+                              D, check=False)
 
-    def hecke(self, ell, algorithm = 'prep', _parallel = False, fname = None):
+    def hecke(self, ell, algorithm='prep', _parallel=False, fname=None):
         r"""
         Return the image of this Manin map under the Hecke operator `T_{\ell}`.
 
@@ -819,9 +818,7 @@ class ManinMap(object):
         - The image of this ManinMap under the Hecke operator
           `T_{\ell}`
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -843,49 +840,53 @@ class ManinMap(object):
             ## psi will denote self | T_ell
             psi = {}
             if _parallel:
-                input_vector = [(self,list(M.prep_hecke_on_gen_list(ell,g)),g) for g in M.gens()]
-                def f0(mmap,v,g):
+                input_vector = [(self, list(M.prep_hecke_on_gen_list(ell, g)), g) for g in M.gens()]
+
+                def f0(mmap, v, g):
                     try:
-                        return sum((fast_dist_act(mmap[h],A) for h,A in v))
+                        return sum((fast_dist_act(mmap[h], A) for h, A in v))
                     except TypeError:
-                        return sum((mmap[h] * A for h,A in v))
+                        return sum((mmap[h] * A for h, A in v))
                 f_par = parallel(f0)
                 par_vector = f_par(input_vector)
-                for inp,outp in par_vector:
+                for inp, outp in par_vector:
                     psi[inp[0][2]] = self._codomain(outp)
                     psi[inp[0][2]].normalize()
             elif fname is not None:
                 import cPickle as pickle
                 for i in range(ell):
                     try:
-                        print 'Loading %s/%s'%(i,ell)
-                        data = pickle.load( open(fname+'_%s.sobj'%i) )
+                        print 'Loading %s/%s' % (i, ell)
+                        data = pickle.load(open(fname + '_%s.sobj' % i))
                         #data load(fname + '_%s.sobj'%i)
                         print 'Done!!'
                     except MemoryError:
                         verbose('Memory error while loading file!')
                         raise MemoryError
                     for g in M.gens():
-                        mprep = data[g] #M.prep_hecke_on_gen_list(ell,g)
-                        h,actmat = mprep[0]
-                        psi_g = fast_dist_act( self[h],None,actmat )
-                        for h,actmat in mprep[1:]:
-                            psi_g += fast_dist_act( self[h], None,actmat )
+                        mprep = data[g]  # M.prep_hecke_on_gen_list(ell,g)
+                        h, actmat = mprep[0]
+                        psi_g = fast_dist_act(self[h], None, actmat)
+                        for h, actmat in mprep[1:]:
+                            psi_g += fast_dist_act(self[h], None, actmat)
                         psi_g = self._codomain(psi_g)
                         try:
                             psi[g] += psi_g
                         except KeyError:
                             psi[g] = psi_g
                         psi[g].normalize()
-            else: # The default, which should be used for most settings which do not strain memory.
+            else:
+                # The default, which should be used for most settings
+                # which do not strain memory.
                 for g in M.gens():
                     try:
-                        psi_g = self._codomain(sum((fast_dist_act(self[h], A) for h,A in M.prep_hecke_on_gen_list(ell,g)),self._codomain(0)._moments))
+                        psi_g = self._codomain(sum((fast_dist_act(self[h], A) for h, A in M.prep_hecke_on_gen_list(ell, g)), self._codomain(0)._moments))
                     except TypeError:
-                        psi_g = sum((self[h] * A for h,A in M.prep_hecke_on_gen_list(ell,g)),self._codomain(0))
+                        psi_g = sum((self[h] * A for h, A in M.prep_hecke_on_gen_list(ell, g)), self._codomain(0))
                     psi_g.normalize()
                     psi[g] = psi_g
-            return self.__class__(self._codomain, self._manin, psi, check=False).normalize()
+            return self.__class__(self._codomain, self._manin,
+                                  psi, check=False).normalize()
         elif algorithm == 'naive':
             S0N = Sigma0(self._manin.level())
             psi = self._right_action(S0N([1, 0, 0, ell]))
@@ -914,9 +915,7 @@ class ManinMap(object):
 
         - The image of this ManinMap under the Hecke operator `T_{\ell}`
 
-        EXAMPLES:
-
-            ::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve

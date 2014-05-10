@@ -56,7 +56,7 @@ class PSModularSymbols_factory(UniqueFactory):
 
     - ``p`` -- prime or ``None``
 
-    - ``prec_cap`` -- positive integer or None
+    - ``prec_cap`` -- positive integer or ``None``
 
     - ``coefficients`` -- the coefficient module (a special type of module,
       typically distributions), or ``None``
@@ -68,9 +68,9 @@ class PSModularSymbols_factory(UniqueFactory):
 
     .. WARNING::
 
-        We emphasize that in the Pollack-Stevens notation, the ``weight`` is
-        the usual weight minus 2, so a classical weight 2 modular form
-        corresponds to a modular symbol of "weight 0".
+        We emphasize that in the Pollack-Stevens notation, the
+        ``weight`` is the usual weight minus 2, so a classical weight
+        2 modular form corresponds to a modular symbol of "weight 0".
 
     EXAMPLES::
 
@@ -81,12 +81,11 @@ class PSModularSymbols_factory(UniqueFactory):
 
         sage: D = Distributions(3, 7, prec_cap=10)
         sage: M = PSModularSymbols(Gamma0(7), coefficients=D); M
-        Space of overconvergent modular symbols for Congruence Subgroup Gamma0(7) with sign 0 and values in Space of 7-adic distributions with k=3 action and precision cap 10 
+        Space of overconvergent modular symbols for Congruence Subgroup Gamma0(7) with sign 0 and values in Space of 7-adic distributions with k=3 action and precision cap 10
 
     TESTS::
 
         sage: TestSuite(PSModularSymbols).run()
-
     """
     def create_key(self, group, weight=None, sign=0, base_ring=None, p=None, prec_cap=None, coefficients=None):
         r"""
@@ -96,9 +95,8 @@ class PSModularSymbols_factory(UniqueFactory):
 
             sage: D = Distributions(3, 7, prec_cap=10)
             sage: M = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
-
         """
-        if sign not in (-1,0,1):
+        if sign not in (-1, 0, 1):
             raise ValueError("sign must be -1, 0, 1")
 
         if isinstance(group, (int, Integer)):
@@ -113,15 +111,20 @@ class PSModularSymbols_factory(UniqueFactory):
             else:
                 character = None
 
-            if weight is None: raise ValueError("you must specify a weight or coefficient module")
+            if weight is None:
+                raise ValueError("you must specify a weight "
+                                 "or coefficient module")
 
             if prec_cap is None:
                 coefficients = Symk(weight, base_ring, character)
             else:
-                coefficients = Distributions(weight, p, prec_cap, base_ring, character)
+                coefficients = Distributions(weight, p, prec_cap, base_ring,
+                                             character)
         else:
             if weight is not None or base_ring is not None or p is not None or prec_cap is not None:
-                raise ValueError("if coefficients are specified, then weight, base_ring, p, and prec_cap must take their default value None")
+                raise ValueError("if coefficients are specified, then weight, "
+                                 "base_ring, p, and prec_cap must take their "
+                                 "default value None")
 
         return (group, coefficients, sign)
 
@@ -142,11 +145,11 @@ class PSModularSymbols_factory(UniqueFactory):
             sage: M2 = PSModularSymbols(Gamma0(7), coefficients=D) # indirect doctest
             sage: M is M2
             True
-
         """
         return PSModularSymbolSpace(*key)
 
 PSModularSymbols = PSModularSymbols_factory('PSModularSymbols')
+
 
 class PSModularSymbolSpace(Module):
     r"""
@@ -171,13 +174,12 @@ class PSModularSymbolSpace(Module):
         -1
         sage: M = PSModularSymbols(Gamma0(2), coefficients=D, sign=1); M.sign()
         1
-
     """
     def __init__(self, group, coefficients, sign=0):
         r"""
         INPUT:
 
-            See :class:`PSModularSymbolSpace`
+        See :class:`PSModularSymbolSpace`
 
         EXAMPLES::
 
@@ -186,10 +188,9 @@ class PSModularSymbolSpace(Module):
             sage: type(M)
             <class 'sage.modular.pollack_stevens.space.PSModularSymbolSpace_with_category'>
             sage: TestSuite(M).run()
-
         """
         Module.__init__(self, coefficients.base_ring())
-        if sign not in [0,-1,1]:
+        if sign not in [0, -1, 1]:
             # sign must be be 0, -1 or 1
             raise ValueError("sign must be 0, -1, or 1")
         self._group = group
@@ -202,13 +203,13 @@ class PSModularSymbolSpace(Module):
         # should distingish between Gamma0 and Gamma1...
         self._source = ManinRelations(group.level())
 
-        # Register the action of 2x2 matrices on self. 
-        
+        # Register the action of 2x2 matrices on self.
+
         if coefficients.is_symk():
             action = PSModSymAction(Sigma0(1), self)
         else:
             action = PSModSymAction(Sigma0(self.prime()), self)
-            
+
         self._populate_coercion_lists_(action_list=[action])
 
     def _element_constructor_(self, data):
@@ -217,11 +218,10 @@ class PSModularSymbolSpace(Module):
 
         EXAMPLES::
 
-        sage: D = Distributions(0, 11)
-        sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
-        sage: M(1) # indirect doctest
-        Modular symbol of level 11 with values in Space of 11-adic distributions with k=0 action and precision cap 20
-
+            sage: D = Distributions(0, 11)
+            sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
+            sage: M(1) # indirect doctest
+            Modular symbol of level 11 with values in Space of 11-adic distributions with k=0 action and precision cap 20
         """
         if isinstance(data, PSModularSymbolElement):
             data = data._map
@@ -233,7 +233,7 @@ class PSModularSymbolSpace(Module):
 
         if data._codomain != self._coefficients:
             data = data.extend_codomain(self._coefficients)
- 
+
         return self.element_class(data, self, construct=True)
 
     def _coerce_map_from_(self, other):
@@ -258,11 +258,10 @@ class PSModularSymbolSpace(Module):
             True
         """
         if isinstance(other, PSModularSymbolSpace):
-            if other.group() == self.group() \
-                and self.coefficient_module().has_coerce_map_from(other.coefficient_module()):
-                return True
-        else:
-            return False
+            return (other.group() == self.group()
+                    and self.coefficient_module().has_coerce_map_from(other.coefficient_module()))
+
+        return False
 
     def _repr_(self):
         r"""
@@ -274,13 +273,13 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M._repr_()
             'Space of overconvergent modular symbols for Congruence Subgroup Gamma0(2) with sign 0 and values in Space of 11-adic distributions with k=2 action and precision cap 20'
-
         """
         if self.coefficient_module().is_symk():
             s = "Space of modular symbols for "
         else:
             s = "Space of overconvergent modular symbols for "
-        s += "%s with sign %s and values in %s"%(self.group(), self.sign(), self.coefficient_module())
+        s += "%s with sign %s and values in %s" % (self.group(), self.sign(),
+                                                   self.coefficient_module())
         return s
 
     def source(self):
@@ -296,7 +295,6 @@ class PSModularSymbolSpace(Module):
             sage: D = Distributions(2, 11);  M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M.source()
             Manin Relations of level 2
-
         """
         return self._source
 
@@ -311,7 +309,6 @@ class PSModularSymbolSpace(Module):
             Space of 11-adic distributions with k=2 action and precision cap 20
             sage: M.coefficient_module() is D
             True
-
         """
         return self._coefficients
 
@@ -331,7 +328,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(G, coefficients=D)
             sage: M.group()
             Congruence Subgroup Gamma1(11)
-
         """
         return self._group
 
@@ -349,7 +345,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma1(8), coefficients=D, sign=-1)
             sage: M.sign()
             -1
-
         """
         return self._sign
 
@@ -386,7 +381,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma0(2), coefficients=D)
             sage: M.ncoset_reps()
             3
-
         """
         return len(self._source.reps())
 
@@ -400,7 +394,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma1(14), coefficients=D)
             sage: M.level()
             14
-
         """
         return self._source.level()
 
@@ -428,7 +421,7 @@ class PSModularSymbolSpace(Module):
                 R = self._source.relations(j)
                 if len(R) == 1 and R[0][2] == self._source.indices(r):
                     if R[0][0] != -1 or R[0][1] != S0N(1):
-                        v = v + [R]
+                        v += [R]
         return v
 
     def precision_cap(self):
@@ -445,10 +438,9 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma0(7), coefficients=D)
             sage: M.precision_cap()
             10
-
         """
-### WARNING -- IF YOU ARE WORKING IN SYM^K(Q^2) THIS WILL JUST RETURN K-1.  NOT GOOD
-
+        ### WARNING -- IF YOU ARE WORKING IN SYM^K(Q^2) THIS WILL JUST
+        ### RETURN K-1.  NOT GOOD
         return self.coefficient_module()._prec_cap
 
     def weight(self):
@@ -457,9 +449,9 @@ class PSModularSymbolSpace(Module):
 
         .. WARNING::
 
-            We emphasize that in the Pollack-Stevens notation, this is the usual
-            weight minus 2, so a classical weight 2 modular form corresponds to a
-            modular symbol of "weight 0".
+            We emphasize that in the Pollack-Stevens notation, this is
+            the usual weight minus 2, so a classical weight 2 modular
+            form corresponds to a modular symbol of "weight 0".
 
         EXAMPLES::
 
@@ -467,7 +459,6 @@ class PSModularSymbolSpace(Module):
             sage: M = PSModularSymbols(Gamma1(7), coefficients=D)
             sage: M.weight()
             5
-
         """
         return self.coefficient_module()._k
 
@@ -475,12 +466,12 @@ class PSModularSymbolSpace(Module):
         r"""
         Returns the prime of this space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: D = Distributions(2, 11)
             sage: M = PSModularSymbols(Gamma(2), coefficients=D)
             sage: M.prime()
             11
-
         """
         return self.coefficient_module()._p
 
@@ -513,19 +504,19 @@ class PSModularSymbolSpace(Module):
             Space of overconvergent modular symbols for Congruence
             Subgroup Gamma1(51) with sign 0 and values in Space of
             17-adic distributions with k=4 action and precision cap 20
-
         """
         N = self.level()
         if N % p == 0:
-            raise ValueError("the level isn't prime to p")
-        from sage.modular.arithgroup.all import Gamma, is_Gamma, Gamma0, is_Gamma0, Gamma1, is_Gamma1
+            raise ValueError("the level is not prime to p")
+        from sage.modular.arithgroup.all import (Gamma, is_Gamma, Gamma0,
+                                                 is_Gamma0, Gamma1, is_Gamma1)
         G = self.group()
         if is_Gamma0(G):
-            G = Gamma0(N*p)
+            G = Gamma0(N * p)
         elif is_Gamma1(G):
-            G = Gamma1(N*p)
+            G = Gamma1(N * p)
         elif is_Gamma(G):
-            G = Gamma(N*p)
+            G = Gamma(N * p)
         else:
             raise NotImplementedError
         return PSModularSymbols(G, coefficients=self.coefficient_module().change_ring(new_base_ring), sign=self.sign())
@@ -698,11 +689,11 @@ class PSModularSymbolSpace(Module):
                 raise ValueError("Level 1 not implemented")
             if g in manin.reps_with_two_torsion():
                 gamg = manin.two_torsion_matrix(g)
-                D[g] = D[g] - D[g] * gamg 
+                D[g] = D[g] - D[g] * gamg
             else:
                 if g in manin.reps_with_three_torsion():
                     gamg = manin.three_torsion_matrix(g)
-                    D[g] = 2*D[g] - D[g] * gamg - D[g] * gamg**2
+                    D[g] = 2 * D[g] - D[g] * gamg - D[g] * gamg ** 2
 #            print "post:",D[g]
 
         ## now we compute nu_infty of Prop 5.1 of [PS1]
@@ -712,14 +703,14 @@ class PSModularSymbolSpace(Module):
                 t += D[g] * manin.gammas[g] - D[g]
             else:
                 if g in MR.reps_with_two_torsion():  # What is MR ??
-                    t -= D[g] 
+                    t -= D[g]
                 else:
                     t -= D[g]
 
-        ## If k = 0, then t has total measure zero.  However, this is not true when k != 0  
-        ## (unlike Prop 5.1 of [PS1] this is not a lift of classical symbol).  
+        ## If k = 0, then t has total measure zero.  However, this is not true when k != 0
+        ## (unlike Prop 5.1 of [PS1] this is not a lift of classical symbol).
         ## So instead we simply add (const)*mu_1 to some (non-torsion) v[j] to fix this
-        ## here since (mu_1 |_k ([a,b,c,d]-1))(trival char) = chi(a) k a^{k-1} c , 
+        ## here since (mu_1 |_k ([a,b,c,d]-1))(trival char) = chi(a) k a^{k-1} c ,
         ## we take the constant to be minus the total measure of t divided by (chi(a) k a^{k-1} c)
 
         if k != 0:
@@ -732,14 +723,14 @@ class PSModularSymbolSpace(Module):
                 raise ValueError("everything is 2 or 3 torsion!  NOT YET IMPLEMENTED IN THIS CASE")
 
             gam = manin.gammas[g]
-            a = gam.matrix()[0,0]
-            c = gam.matrix()[1,0]
+            a = gam.matrix()[0, 0]
+            c = gam.matrix()[1, 0]
 
             if self.coefficient_module()._character is not None:
                 chara = self.coefficient_module()._character(a)
             else:
                 chara = 1
-            err = -t.moment(0)/(chara*k*a**(k-1)*c)
+            err = -t.moment(0) / (chara * k * a ** (k - 1) * c)
             v = [0] * M
             v[1] = 1
             mu_1 = self.base_ring()(err) * self.coefficient_module()(v)
@@ -757,6 +748,7 @@ class PSModularSymbolSpace(Module):
                 raise ValueError("Not implemented for symk with k>0 yet")
 
         return self(D)
+
 
 def cusps_from_mat(g):
     r"""
@@ -792,16 +784,20 @@ def cusps_from_mat(g):
         [-3  2]
         sage: cusps_from_mat(g)
         (1/3, 1/2)
-
     """
-    if isinstance(g, ArithmeticSubgroupElement) or isinstance(g, Sigma0Element):
+    if isinstance(g, (ArithmeticSubgroupElement, Sigma0Element)):
         g = g.matrix()
     a, b, c, d = g.list()
-    if c: ac = a/c
-    else: ac = oo
-    if d: bd = b/d
-    else: bd = oo
+    if c:
+        ac = a / c
+    else:
+        ac = oo
+    if d:
+        bd = b / d
+    else:
+        bd = oo
     return ac, bd
+
 
 def ps_modsym_from_elliptic_curve(E):
     r"""
@@ -832,21 +828,23 @@ def ps_modsym_from_elliptic_curve(E):
         sage: symb = ps_modsym_from_elliptic_curve(E)
         sage: symb.values()
         [-1/6, 7/12, 1, 1/6, -5/12, 1/3, -7/12, -1, -1/6, 5/12, 1/4, -1/6, -5/12]
-
     """
     if not (E.base_ring() is QQ):
-        raise ValueError("The elliptic curve must be defined over the rationals.")
+        raise ValueError("The elliptic curve must be defined over the "
+                         "rationals.")
     N = E.conductor()
     V = PSModularSymbols(Gamma0(N), 0)
     D = V.coefficient_module()
     manin = V.source()
-    plus_sym = E.modular_symbol(sign = 1)
-    minus_sym = E.modular_symbol(sign = -1)
+    plus_sym = E.modular_symbol(sign=1)
+    minus_sym = E.modular_symbol(sign=-1)
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)
-        val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd) - minus_sym(bd)])
+        val[g] = D([plus_sym(ac) + minus_sym(ac) - plus_sym(bd)
+                    - minus_sym(bd)])
     return V(val)
+
 
 def ps_modsym_from_simple_modsym_space(A, name="alpha"):
     r"""
@@ -995,7 +993,8 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
         raise ValueError("A must positive dimension")
 
     if A.sign() == 0:
-        raise ValueError("A must have sign +1 or -1 (otherwise it is not simple)")
+        raise ValueError("A must have sign +1 or -1 (otherwise it is"
+                         " not simple)")
 
     if not A.is_new():
         raise ValueError("A must be new")
@@ -1007,17 +1006,17 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
     w = A.dual_eigenvector(name)
     K = w.base_ring()
     chi = A.q_eigenform_character(name)
-    V = PSModularSymbols(chi, A.weight()-2, base_ring=K, sign=A.sign())
+    V = PSModularSymbols(chi, A.weight() - 2, base_ring=K, sign=A.sign())
     D = V.coefficient_module()
     # N = V.level()
-    k = V.weight() # = A.weight() - 2
+    k = V.weight()  # = A.weight() - 2
     manin = V.source()
     val = {}
     for g in manin.gens():
         ac, bd = cusps_from_mat(g)
         v = []
-        for j in range(k+1):
+        for j in range(k + 1):
             # TODO: The following might be backward: it should be the coefficient of X^j Y^(k-j)
-            v.append(w.dot_product(M.modular_symbol([j, ac, bd]).element()) * (-1)**(k-j))
+            v.append(w.dot_product(M.modular_symbol([j, ac, bd]).element()) * (-1) ** (k - j))
         val[g] = D(v)
     return V(val)

@@ -49,13 +49,14 @@ class pAdicLseries(SageObject):
         sage: L[0]
         O(5^4)
 
-    Using the existing algorithm in Sage, it seems we're off by a factor of 2:
+    Using the existing algorithm in Sage, it seems we are off by a
+    factor of 2::
 
         sage: L = E.padic_lseries(5)
         sage: L.series(4)[1]
         1 + 4*5 + 2*5^2 + O(5^3)
 
-    But here, we're correct without the factor of 2:
+    But here, we are correct without the factor of 2::
 
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
         sage: E = EllipticCurve('57a')
@@ -72,7 +73,8 @@ class pAdicLseries(SageObject):
         sage: L1.series(4)[1]
         3*5 + 5^2 + O(5^3)
 
-    An example of a `p`-adic `L`-series associated to a modular abelian surface:
+    An example of a `p`-adic `L`-series associated to a modular
+    abelian surface::
 
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
         sage: A = ModularSymbols(103,2,1).cuspidal_submodule().new_subspace().decomposition()[0]
@@ -110,7 +112,7 @@ class pAdicLseries(SageObject):
         self._coefficients = {}
 
         if symb.parent().prime() is None:
-            raise ValueError ("Not a p-adic overconvergent modular symbol.")
+            raise ValueError("Not a p-adic overconvergent modular symbol.")
 
         self._symb = symb
 
@@ -122,7 +124,7 @@ class pAdicLseries(SageObject):
         self._precision = precision
 
     def __getitem__(self, n):
-        """
+        r"""
         Returns the `n`-th coefficient of the `p`-adic `L`-series
 
         EXAMPLES::
@@ -141,9 +143,8 @@ class pAdicLseries(SageObject):
             sage: L1 = E.padic_lseries(5)
             sage: L1.series(4)[1]
             3*5 + 5^2 + O(5^3)
-
         """
-        if self._coefficients.has_key(n):
+        if n in self._coefficients:
             return self._coefficients[n]
         else:
             p = self.prime()
@@ -159,23 +160,25 @@ class pAdicLseries(SageObject):
             dn = 0
             if n == 0:
                 precision = M
-                lb = [1] + [0 for a in range(M-1)]
+                lb = [1] + [0 for a in range(M - 1)]
             else:
-                lb = log_gamma_binomial(p, gamma, z, n, 2*M)
+                lb = log_gamma_binomial(p, gamma, z, n, 2 * M)
                 if precision is None:
-                    precision = min([j + lb[j].valuation(p) for j in range(M, len(lb))])
+                    precision = min([j + lb[j].valuation(p)
+                                     for j in range(M, len(lb))])
                 lb = [lb[a] for a in range(M)]
 
             for j in range(len(lb)):
                 cjn = lb[j]
-                temp = sum((ZZ(K.teichmuller(a))**(-j)) * self._basic_integral(a, j) for a in range(1, p))
-                dn = dn + cjn*temp
-            self._coefficients[n] = dn + O(p**precision)
+                temp = sum((ZZ(K.teichmuller(a)) ** (-j))
+                           * self._basic_integral(a, j) for a in range(1, p))
+                dn = dn + cjn * temp
+            self._coefficients[n] = dn + O(p ** precision)
             return self._coefficients[n]
 
     def __cmp__(self, other):
         r"""
-        Compare self and other.
+        Compare ``self`` and ``other``.
 
         EXAMPLE::
 
@@ -186,11 +189,11 @@ class pAdicLseries(SageObject):
             sage: L == loads(dumps(L)) # indirect doctest
             True
         """
-        return cmp(type(self), type(other)) \
-            or cmp(self._symb, other._symb) \
-            or cmp(self._quadratic_twist, other._quadratic_twist) \
-            or cmp(self._gamma, other._gamma) \
-            or cmp(self._precision, other._precision)
+        return (cmp(type(self), type(other))
+                or cmp(self._symb, other._symb)
+                or cmp(self._quadratic_twist, other._quadratic_twist)
+                or cmp(self._gamma, other._gamma)
+                or cmp(self._precision, other._precision))
 
     def symb(self):
         r"""
@@ -266,8 +269,7 @@ class pAdicLseries(SageObject):
             sage: L._repr_()
             '5-adic L-series of Modular symbol of level 185 with values in Space of 5-adic distributions with k=0 action and precision cap 9'
         """
-        s = "%s-adic L-series of %s"%(self.prime(), self.symb())
-        return s
+        return "%s-adic L-series of %s" % (self.prime(), self.symb())
 
     def series(self, n, prec):
         r"""
@@ -296,12 +298,12 @@ class pAdicLseries(SageObject):
         p = self.prime()
         M = self.symb().precision_absolute()
         K = pAdicField(p, M)
-        R = PowerSeriesRing(K, names = 'T')
+        R = PowerSeriesRing(K, names='T')
         T = R.gens()[0]
         R.set_default_prec(prec)
-        return sum(self[i] * T**i for i in range(n))
+        return sum(self[i] * T ** i for i in range(n))
 
-    def interpolation_factor(self, ap,chip=1, psi = None):
+    def interpolation_factor(self, ap, chip=1, psi=None):
         r"""
         Returns the interpolation factor associated to self
 
@@ -343,19 +345,21 @@ class pAdicLseries(SageObject):
         alpha = v0
         return (1 - 1 / alpha) ** 2
 
-    def eval_twisted_symbol_on_Da(self, a): # rename! should this be in modsym?
+    def eval_twisted_symbol_on_Da(self, a):  # rename! should this be in modsym?
         """
         Returns `\Phi_{\chi}(\{a/p}-{\infty})` where `Phi` is the OMS and
         `\chi` is a the quadratic character corresponding to self
 
         INPUT:
-            - ``a`` -- integer in range(p)
+
+        - ``a`` -- integer in range(p)
 
         OUTPUT:
 
         The distribution `\Phi_{\chi}(\{a/p\}-\{\infty\})`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
@@ -377,7 +381,6 @@ class pAdicLseries(SageObject):
             sage: L = pAdicLseries(Phi)
             sage: L.eval_twisted_symbol_on_Da(1)
             (4 + 6*7 + 3*7^2 + O(7^4), 2 + 7 + O(7^3), 4 + 6*7 + O(7^2), 6 + O(7))
-
         """
         symb = self.symb()
         p = symb.parent().prime()
@@ -390,8 +393,8 @@ class pAdicLseries(SageObject):
         D = self._quadratic_twist
         for b in range(1, abs(D) + 1):
             if gcd(b, D) == 1:
-                M1 = S0p([1, (b / abs(D)) % p**M, 0, 1])
-                new_dist = m_map(M1 * M2Z([a, 1, p, 0]))*M1
+                M1 = S0p([1, (b / abs(D)) % p ** M, 0, 1])
+                new_dist = m_map(M1 * M2Z([a, 1, p, 0])) * M1
                 new_dist = new_dist.scale(kronecker(D, b)).normalize()
                 twisted_dist = twisted_dist + new_dist
                 #ans = ans + self.eval(M1 * M2Z[a, 1, p, 0])._right_action(M1)._lmul_(kronecker(D, b)).normalize()
@@ -433,28 +436,29 @@ class pAdicLseries(SageObject):
         ap = ap * kronecker(D, p)
         K = pAdicField(p, M)
         symb_twisted = self.eval_twisted_symbol_on_Da(a)
-        return sum(binomial(j, r) * ((a - ZZ(K.teichmuller(a)))**(j - r)) *
-                (p**r) * symb_twisted.moment(r) for r in range(j + 1)) / ap
+        return sum(binomial(j, r) * ((a - ZZ(K.teichmuller(a))) ** (j - r)) *
+                   (p ** r) * symb_twisted.moment(r) for r in range(j + 1)) / ap
 
-def log_gamma_binomial(p,gamma,z,n,M):
+
+def log_gamma_binomial(p, gamma, z, n, M):
     r"""
     Returns the list of coefficients in the power series
     expansion (up to precision `M`) of `{\log_p(z)/\log_p(\gamma) \choose n}`
 
     INPUT:
 
-        - ``p`` --  prime
-        - ``gamma`` -- topological generator e.g., `1+p`
-        - ``z`` -- variable
-        - ``n`` -- nonnegative integer
-        - ``M`` -- precision
+    - ``p`` --  prime
+    - ``gamma`` -- topological generator e.g., `1+p`
+    - ``z`` -- variable
+    - ``n`` -- nonnegative integer
+    - ``M`` -- precision
 
     OUTPUT:
 
     The list of coefficients in the power series expansion of
     `{\log_p(z)/\log_p(\gamma) \choose n}`
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: R.<z> = QQ['z']
         sage: from sage.modular.pollack_stevens.padic_lseries import log_gamma_binomial
@@ -463,6 +467,6 @@ def log_gamma_binomial(p,gamma,z,n,M):
         sage: log_gamma_binomial(5,1+5,z,3,4)
         [0, 2/205, -223/42025, 95228/25845375]
     """
-    L = sum([ZZ(-1)**j / j*z**j for j in range (1,M)]) #log_p(1+z)
-    loggam = L / (L(gamma - 1))                  #log_{gamma}(1+z)= log_p(1+z)/log_p(gamma)
-    return z.parent()(binomial(loggam,n)).truncate(M).list()
+    L = sum([ZZ(-1) ** j / j * z ** j for j in range(1, M)])  # log_p(1+z)
+    loggam = L / (L(gamma - 1))   # log_{gamma}(1+z)= log_p(1+z)/log_p(gamma)
+    return z.parent()(binomial(loggam, n)).truncate(M).list()

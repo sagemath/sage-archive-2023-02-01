@@ -57,6 +57,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.structure.unique_representation import UniqueRepresentation
 
+
 class Sigma0ActionAdjuster(UniqueRepresentation):
 
     # Can one make an abstract class in Sage?
@@ -74,6 +75,7 @@ class Sigma0ActionAdjuster(UniqueRepresentation):
             (1, 2, 3, 4)
         """
         pass
+
 
 class _default_adjuster(Sigma0ActionAdjuster):
     """
@@ -102,6 +104,7 @@ class _default_adjuster(Sigma0ActionAdjuster):
             (1, 2, 3, 4)
         """
         return tuple(g.list())
+
 
 class Sigma0_factory(UniqueFactory):
     r"""
@@ -156,6 +159,7 @@ class Sigma0_factory(UniqueFactory):
         return Sigma0_class(*key)
 
 Sigma0 = Sigma0_factory('sage.modular.pollack_stevens.sigma0.Sigma0')
+
 
 class Sigma0Element(MonoidElement):
     r"""
@@ -293,6 +297,7 @@ class Sigma0Element(MonoidElement):
         """
         return self.parent()(~self._mat)
 
+
 class _Sigma0Embedding(Morphism):
     r"""
     A Morphism object giving the natural inclusion of `\Sigma_0` into the
@@ -342,11 +347,12 @@ class _Sigma0Embedding(Morphism):
         """
         return cmp(type(self), type(other)) or cmp(self.domain(), other.domain())
 
+
 class Sigma0_class(Parent):
 
     Element = Sigma0Element
 
-    def __init__(self, N, base_ring,adjuster):
+    def __init__(self, N, base_ring, adjuster):
         r"""
         Standard init function. For args documentation see the factory
         function.
@@ -380,7 +386,7 @@ class Sigma0_class(Parent):
             [1 0]
             [0 1]
         """
-        return self([1,0,0,1])
+        return self([1, 0, 0, 1])
 
     def level(self):
         r"""
@@ -430,12 +436,9 @@ class Sigma0_class(Parent):
         of nasty things will go wrong with scalar multiplication of
         distributions. Do not let this happen!)
         """
-        if isinstance(other, Sigma0_class) \
-            and self.level().divides(other.level()) \
-            and self.base_ring().has_coerce_map_from(other.base_ring()):
-            return True
-        else:
-            return False
+        return (isinstance(other, Sigma0_class)
+                and self.level().divides(other.level())
+                and self.base_ring().has_coerce_map_from(other.base_ring()))
 
     def _element_constructor_(self, x, check=True):
         r"""
@@ -467,7 +470,7 @@ class Sigma0_class(Parent):
             x = x.matrix()
         if check:
             x = self._matrix_space(x)
-            a,b,c,d = self._adjuster(x)
+            a, b, c, d = self._adjuster(x)
             for (p, e) in self._primes:
                 if c.valuation(p) < e:
                     raise TypeError("level %s^%s does not divide %s" % (p, e, c))
@@ -480,7 +483,7 @@ class Sigma0_class(Parent):
 
     def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLE::
 
@@ -489,4 +492,5 @@ class Sigma0_class(Parent):
             sage: S._repr_()
             'Monoid Sigma0(3) with coefficients in Integer Ring'
         """
-        return 'Monoid Sigma0(%s) with coefficients in %s' % (self.level(), self.base_ring())
+        return 'Monoid Sigma0(%s) with coefficients in %s' % (self.level(),
+                                                              self.base_ring())

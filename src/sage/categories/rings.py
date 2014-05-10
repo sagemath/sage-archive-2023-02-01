@@ -861,7 +861,7 @@ def _gen_names(elts):
     """
     from sage.symbolic.ring import is_SymbolicVariable
     from sage.combinat.words.words import Words
-    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     it.next() # skip empty word
     for x in elts:
         name = str(x)

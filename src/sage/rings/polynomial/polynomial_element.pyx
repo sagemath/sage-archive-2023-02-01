@@ -4864,6 +4864,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g = (t + 1)*x + t^2
             sage: f.resultant(g)
             t^4 + t
+
+        Check that :trac:`15061` is fixed::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.resultant(P.derivative())
+            -4 - 4*T + O(T^2)
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4871,9 +4880,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             newself = bigring(self)
             newother = bigring(other)
             return self.parent().base_ring()(newself.resultant(newother,bigring(self.parent().gen())))
-        # Single-variable polynomial or main variable is "x": we can use PARI to compute the resultant
-        res = self._pari_with_name().polresultant(other._pari_with_name())
-        return self.parent().base_ring()(res)
+        # Single-variable polynomial or main variable is "x": we can
+        # try PARI to compute the resultant
+        try:
+            res = self._pari_with_name().polresultant(other._pari_with_name())
+            return self.parent().base_ring()(res)
+        except (TypeError, ValueError):
+            return self.sylvester_matrix(other).det()
 
     def discriminant(self):
         r"""

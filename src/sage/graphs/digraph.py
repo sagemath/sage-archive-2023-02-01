@@ -30,11 +30,12 @@ graphs. Here is what they can do
     :meth:`~DiGraph.outgoing_edge_iterator` | Return an iterator over all departing edges from vertices
     :meth:`~DiGraph.incoming_edges` | Returns a list of edges arriving at vertices.
     :meth:`~DiGraph.incoming_edge_iterator` | Return an iterator over all arriving edges from vertices
+    :meth:`~DiGraph.sources` | Returns the list of all sources (vertices without incoming edges) of this digraph.
+    :meth:`~DiGraph.sinks` | Returns the list of all sinks (vertices without outoing edges) of this digraph.
     :meth:`~DiGraph.to_undirected` | Returns an undirected version of the graph.
     :meth:`~DiGraph.to_directed` | Since the graph is already directed, simply returns a copy of itself.
     :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
     :meth:`~DiGraph.dig6_string` | Returns the dig6 representation of the digraph as an ASCII string.
-
 
 **Paths and cycles:**
 
@@ -48,6 +49,14 @@ graphs. Here is what they can do
     :meth:`~DiGraph.all_cycles_iterator` | Returns an iterator over all the cycles of self starting
     :meth:`~DiGraph.all_simple_cycles` | Returns a list of all simple cycles of self.
 
+**Representation theory:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Digraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
 
 **Connectivity:**
 
@@ -1550,6 +1559,44 @@ class DiGraph(GenericGraph):
         """
         return sorted(self.out_degree_iterator(), reverse=True)
 
+    def sources(self):
+        r"""
+        Returns a list of sources of the digraph.
+
+        OUTPUT:
+
+        - list, the vertices of the digraph that have no edges going into them
+
+        EXAMPLES::
+
+            sage: G = DiGraph({1:{3:['a']}, 2:{3:['b']}})
+            sage: G.sources()
+            [1, 2]
+            sage: T = DiGraph({1:{}})
+            sage: T.sources()
+            [1]
+        """
+        return [x for x in self if self.in_degree(x)==0]
+
+    def sinks(self):
+        """
+        Returns a list of sinks of the digraph.
+
+        OUTPUT:
+
+        - list, the vertices of the digraph that have no edges beginning at them
+
+        EXAMPLES::
+
+            sage: G = DiGraph({1:{3:['a']}, 2:{3:['b']}})
+            sage: G.sinks()
+            [3]
+            sage: T = DiGraph({1:{}})
+            sage: T.sinks()
+            [1]
+        """
+        return [x for x in self if self.out_degree(x)==0]
+
 
     def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""
@@ -2839,6 +2886,24 @@ class DiGraph(GenericGraph):
              [2, 0, 2], [2, 1, 2], [2, 3, 2], [3, 0, 3], [3, 1, 3], [3, 2, 3]]
         """
         return list(self.all_cycles_iterator(starting_vertices=starting_vertices, simple=True, rooted=rooted, max_length=max_length, trivial=trivial))
+
+    def path_semigroup(self):
+        """
+        The partial semigroup formed by the paths of this quiver.
+
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a','c']}, 2:{3:['b']}})
+            sage: F = Q.path_semigroup(); F
+            Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+            sage: list(F)
+            [e_1, e_2, e_3, a, c, b, a*b, c*b]
+
+        """
+        from sage.quivers.path_semigroup import PathSemigroup
+        # If self is immutable, then the copy is really cheap:
+        # __copy__ just returns self.
+        return PathSemigroup(self.copy(immutable=True))
 
     ### Directed Acyclic Graphs (DAGs)
 

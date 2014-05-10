@@ -345,7 +345,7 @@ def OA_to_projective_plane(OA, check=True):
 
     return BlockDesign(n2+n+1, blcks, name="Projective plane of order %d (built from an OA(%d,%d,2))"%(n,n+1,n), test=check)
 
-def projective_plane(n):
+def projective_plane(n, check=True, existence=False):
     r"""
     Returns a projective plane of order ``n`` as a 2-design.
 
@@ -387,13 +387,28 @@ def projective_plane(n):
         Traceback (most recent call last):
         ...
         EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 14 exists.
+
+    TESTS::
+
+        sage: designs.projective_plane(2197, existence=True)
+        True
+        sage: designs.projective_plane(6, existence=True)
+        False
+        sage: designs.projective_plane(10, existence=True)
+        False
+        sage: designs.projective_plane(12, existence=True)
+        Unknown
     """
     from sage.rings.arith import is_prime_power, two_squares
 
     if n <= 1:
+        if existence:
+            return False
         raise EmptySetError("There is no projective plane of order <= 1")
 
     if n == 10:
+        if existence:
+            return False
         ref = ("C. Lam, L. Thiel and S. Swiercz \"The nonexistence of finite "
                "projective planes of order 10\" (1989), Canad. J. Math.")
         raise EmptySetError("No projective plane of order 10 exists by %s"%ref)
@@ -402,14 +417,21 @@ def projective_plane(n):
         try:
             two_squares(n)
         except ValueError:
+            if existence:
+                return False
             raise EmptySetError("By the Ryser-Chowla theorem, no projective"
-                         " plane of order "+str(n)+" exists.")
+                             " plane of order "+str(n)+" exists.")
 
     if not is_prime_power(n):
+        if existence:
+            return Unknown
         raise NotImplementedError("If such a projective plane exists, we do "
                                   "not know how to build it.")
 
-    return DesarguesianProjectivePlaneDesign(n)
+    if existence:
+        return True
+    else:
+        return DesarguesianProjectivePlaneDesign(n, check=check)
 
 
 def AffineGeometryDesign(n, d, F):
@@ -584,4 +606,3 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 # specialized methods are implemented later. In that case, BlockDesign_generic
 # should inherit from IncidenceStructure.
 BlockDesign_generic = IncidenceStructure
-

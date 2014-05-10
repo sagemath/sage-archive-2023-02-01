@@ -25,6 +25,7 @@ Combinatorics
 
    sage/combinat/alternating_sign_matrix
    sage/combinat/composition
+   sage/combinat/constellation
    sage/combinat/core
    sage/combinat/knutson_tao_puzzles
    sage/combinat/gelfand_tsetlin_patterns

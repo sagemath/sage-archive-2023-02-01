@@ -18,7 +18,8 @@ class FreeMonoid(FreeSemigroup):
     r"""
     An example of a monoid: the free monoid
 
-    This class illustrates a minimal implementation of a monoid.
+    This class illustrates a minimal implementation of a monoid. For a
+    full featured implementation of free monoids, see :func:`FreeMonoid`.
 
     EXAMPLES::
 
@@ -33,10 +34,15 @@ class FreeMonoid(FreeSemigroup):
         sage: S.semigroup_generators()
         Family ('a', 'b', 'c', 'd')
 
-    with product rule given by $a \times b = a$ for all $a, b$::
+    with product rule given by concatenation of words::
 
         sage: S('dab') * S('acb')
         'dabacb'
+
+    and unit given by the empty word::
+
+        sage: S.one()
+        ''
 
     We conclude by running systematic tests on this monoid::
 

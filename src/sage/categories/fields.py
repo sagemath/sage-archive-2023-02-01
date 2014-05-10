@@ -12,18 +12,17 @@ Fields
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton, Category_contains_method_by_parent_class
+from sage.misc.lazy_attribute import lazy_class_attribute
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_singleton import Category_contains_method_by_parent_class
 from sage.categories.euclidean_domains import EuclideanDomains
-from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 from sage.categories.division_rings import DivisionRings
 
-from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_class_attribute
 import sage.rings.ring
 from sage.structure.element import coerce_binop
 
-class Fields(Category_singleton):
+class Fields(CategoryWithAxiom):
     """
     The category of (commutative) fields, i.e. commutative rings where
     all non-zero elements have multiplicative inverses
@@ -34,7 +33,7 @@ class Fields(Category_singleton):
         sage: K
         Category of fields
         sage: Fields().super_categories()
-        [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+        [Category of euclidean domains, Category of division rings]
 
         sage: K(IntegerRing())
         Rational Field
@@ -48,16 +47,17 @@ class Fields(Category_singleton):
 
         sage: TestSuite(Fields()).run()
     """
+    _base_category_class_and_axiom = (DivisionRings, "Commutative")
 
-    def super_categories(self):
+    def extra_super_categories(self):
         """
         EXAMPLES::
 
-            sage: Fields().super_categories()
-            [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+            sage: Fields().extra_super_categories()
+            [Category of euclidean domains]
 
         """
-        return [EuclideanDomains(), UniqueFactorizationDomains(), DivisionRings()]
+        return [EuclideanDomains()]
 
     def __contains__(self, x):
         """
@@ -148,7 +148,7 @@ class Fields(Category_singleton):
             sage: K
             Category of fields
             sage: Fields().super_categories()
-            [Category of euclidean domains, Category of unique factorization domains, Category of division rings]
+            [Category of euclidean domains, Category of division rings]
 
             sage: K(IntegerRing()) # indirect doctest
             Rational Field
@@ -163,23 +163,27 @@ class Fields(Category_singleton):
         except AttributeError:
             raise TypeError("unable to associate a field to %s"%x)
 
+    Finite = LazyImport('sage.categories.finite_fields', 'FiniteFields', at_startup=True)
+
     class ParentMethods:
-        def is_field(self):
-            """
-            Return True, since this in an object of the category of fields.
+
+        def is_field( self, proof=True ):
+            r"""
+            Returns True as ``self`` is a field.
 
             EXAMPLES::
 
+                sage: QQ.is_field()
+                True
                 sage: Parent(QQ,category=Fields()).is_field()
                 True
-
             """
             return True
 
         def is_integrally_closed(self):
             r"""
 
-            Return ``True``, as per :meth:`IntegralDomain.is_integraly_closed`:
+            Return ``True``, as per :meth:`IntegralDomain.is_integrally_closed`:
             for every field `F`, `F` is its own field of fractions,
             hence every element of `F` is integral over `F`.
 
@@ -225,29 +229,6 @@ class Fields(Category_singleton):
                 # raised when self.one() does not have a additive_order() [or when char is an int and not an Integer which is already checked by _test_characteristic for rings]
             except NotImplementedError:
                 return
-
-        def is_integral_domain(self):
-            r"""
-
-            Returns ``True``, as fields are integral domains.
-
-            EXAMPLES::
-
-                sage: QQ.is_integral_domain()
-                True
-            """
-            return True
-
-        def is_field( self, proof=True ):
-            r"""
-            Returns True as ``self`` is a field.
-
-            EXAMPLES::
-
-                sage: QQ.is_field()
-                True
-            """
-            return True
 
         def fraction_field(self):
             r"""

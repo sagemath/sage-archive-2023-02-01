@@ -668,19 +668,22 @@ class ModularForm_abstract(ModuleElement):
         mu_dN = (-twopi / d / rootN).exp()
         mu_d = (twopi * I / d).exp()
 
-        # We use the following bounds (tau(n) = #divisors(n)):
+        # We bound the tail of the series by means of the triangle
+        # inequality and the following bounds (tau(n) = #divisors(n)):
+        #       mu_N <= mu_dN
         #   |a_n(f)| <= tau(n)*sqrt(n)  (holds if f is a newform)
         #     tau(n) <= sqrt(3)*sqrt(n) for all n >= 1
         # This gives a correct but somewhat coarse lower bound on the
         # number of terms needed.  We ignore rounding errors.
-        numterms = (((1 - mu_dN) * R(2)**(-prec) / (4 * R(3).sqrt())).log()
+        numterms = (((1 - mu_dN) * R(2)**(-prec)
+                     / ((abs(eps - 1) + 2) * R(3).sqrt())).log()
                     / mu_dN.log()).ceil()
         coeff = self.coefficients(numterms)
 
         return sum((coeff[n - 1] / n)
                    *((eps - 1) * mu_N ** n
                      + mu_dN ** n * (mu_d ** (n * b) - eps * mu_d ** (n * c)))
-                   for n in range(1, numterms))
+                   for n in range(1, numterms + 1))
 
     def cuspform_lseries(self, prec=53,
                          max_imaginary_part=0,

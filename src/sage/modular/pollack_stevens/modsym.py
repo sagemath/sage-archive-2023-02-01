@@ -10,7 +10,6 @@
 import operator
 
 from sage.structure.element import ModuleElement
-from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
@@ -22,11 +21,8 @@ from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
-from fund_domain import Id
-from manin_map import ManinMap, M2Z
-from padic_lseries import pAdicLseries
+from manin_map import ManinMap
 from sigma0 import Sigma0
-from sage.modular.pollack_stevens.distributions import Distributions
 from sage.misc.misc import walltime
 from sage.parallel.decorate import fork
 
@@ -533,7 +529,8 @@ class PSModularSymbolElement(ModuleElement):
         except ValueError:
             return False
 
-    # what happens if a cached method raises an error?  Is it recomputed each time?
+    # what happens if a cached method raises an error?  Is it
+    # recomputed each time?
     @cached_method
     def Tq_eigenvalue(self, q, p=None, M=None, check=True):
         r"""
@@ -659,7 +656,7 @@ class PSModularSymbolElement(ModuleElement):
 
         """
         # q is the prime below p, if base is a number field; q = p otherwise
-        if p == None:
+        if p is None:
             if self.parent().prime() == 0:
                 raise ValueError("need to specify a prime")
             q = p = self.parent().prime()
@@ -962,21 +959,21 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             sage: TestSuite(S[0][0]).run(skip=['_test_category'])
         """
         K = self.base_ring()
-        R = Qp(p,M+10)['x']
+        R = Qp(p, M + 10)['x']
         x = R.gen()
         if K == QQ:
-            f = x-1
+            f = x - 1
         else:
             f = K.defining_polynomial()
         v = R(f).roots()
         if len(v) == 0:
-            L = Qp(p,M).extension(f,names='a')
-            a = L.gen()
+            L = Qp(p, M).extension(f, names='a')
+            # a = L.gen()
             V = self.parent().change_ring(L)
             Dist = V.coefficient_module()
-            psi = K.hom([K.gen()],L)
-            embedded_sym = self.parent().element_class(self._map.apply(psi,codomain=Dist, to_moments=True),V, construct=True)
-            ans = [embedded_sym,psi]
+            psi = K.hom([K.gen()], L)
+            embedded_sym = self.parent().element_class(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
+            ans = [embedded_sym, psi]
             return ans
         else:
             roots = [r[0] for r in v]
@@ -984,7 +981,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             V = self.parent().change_ring(Qp(p, M))
             Dist = V.coefficient_module()
             for r in roots:
-                psi = K.hom([r],Qp(p,M))
+                psi = K.hom([r], Qp(p, M))
                 embedded_sym = self.parent().element_class(self._map.apply(psi, codomain=Dist, to_moments=True), V, construct=True)
                 ans.append((embedded_sym,psi))
             return ans
@@ -1160,7 +1157,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
     #     #get a lift that is not a modular symbol
     #     MS = self.parent()
     #     gens = MS.source().gens()
-    #     if new_base_ring == None:
+    #     if new_base_ring is None:
     #         new_base_ring = MS.base_ring()
     #     MSnew = MS._lift_parent_space(p, M, new_base_ring)
     #     CMnew = MSnew.coefficient_module()

@@ -15,8 +15,7 @@ p-adic L-functions." Annales scientifiques de l'Ecole normale superieure. Vol.
 
 AUTHORS:
 
-    - Robert Pollack, Jonathan Hanke (2012): initial version
-
+- Robert Pollack, Jonathan Hanke (2012): initial version
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -32,17 +31,14 @@ from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
-from sage.modules.free_module_element import zero_vector
-from copy import deepcopy
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import convergents,xgcd,gcd
 
-from sigma0 import Sigma0, Sigma0Element
+from sigma0 import Sigma0
 
 M2ZSpace = MatrixSpace_ZZ_2x2()
+
 
 def M2Z(x):
     r"""
@@ -66,10 +62,11 @@ tau = M2Z([0,-1,1,-1])
 minone_inf_path = M2Z([1,1,-1,0])
 
 # We store these so that we don't have to constantly create them.
-t00 = (0,0)
-t10 = (1,0)
-t01 = (0,1)
-t11 = (1,1)
+t00 = (0, 0)
+t10 = (1, 0)
+t01 = (0, 1)
+t11 = (1, 1)
+
 
 class PSModularSymbolsDomain(SageObject):
     r"""
@@ -592,23 +589,23 @@ class ManinRelations(PSModularSymbolsDomain):
 
             sage: type(ManinRelations(30))
             <class 'sage.modular.pollack_stevens.fund_domain.ManinRelations'>
-
         """
         N = ZZ(N)
         if N <= 0:
-            raise ValueError, "N must be a positive integer"
+            raise ValueError("N must be a positive integer")
         self._N = N
         SN = Sigma0(N)
 
         ## Creates and stores the Sage representation of P^1(Z/NZ)
         P = P1List(N)
         self._P = P
-        IdN = SN([1,0,0,1])
+        IdN = SN([1, 0, 0, 1])
 
-        ## Creates a fundamental domain for Gamma_0(N) whose boundary is a union
-        ## of unimodular paths (except in the case of 3-torsion).
-        ## We will call the intersection of this domain with the real axis the
-        ## collection of cusps (even if some are Gamma_0(N) equivalent to one another).
+        ## Creates a fundamental domain for Gamma_0(N) whose boundary
+        ## is a union of unimodular paths (except in the case of
+        ## 3-torsion).  We will call the intersection of this domain
+        ## with the real axis the collection of cusps (even if some
+        ## are Gamma_0(N) equivalent to one another).
         cusps = self.form_list_of_cusps()
 
         ## Takes the boundary of this fundamental domain and finds SL_2(Z) matrices whose
@@ -1142,7 +1139,7 @@ class ManinRelations(PSModularSymbolsDomain):
         # TODO: I'm commenting this out; I see no reason not to allow level 1, except
         # possibly the bug here that I fixed: http://trac.sagemath.org/sage_trac/ticket/12772
         #if not (N > 1):
-        #    raise TypeError, "Error in form_list_of_cusps: level should be > 1"
+        #    raise TypeError("Error in form_list_of_cusps: level should be > 1")
 
         ## Some convenient shortcuts
         P = self.P1()
@@ -1150,7 +1147,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         ## Initialize some lists
 
-        C = [QQ(-1),"?",QQ(0)]
+        C = [QQ(-1), "?", QQ(0)]
 
         ## Initialize the list of cusps at the bottom of the fund. domain.
         ## The ? denotes that it has not yet been checked if more cusps need
@@ -1264,7 +1261,7 @@ class ManinRelations(PSModularSymbolsDomain):
 
         ## Remove the (now superfluous) extra string characters that appear
         ## in the odd list entries
-        C = [QQ(C[s]) for s in range(0,len(C),2)]
+        C = [QQ(C[ss]) for ss in range(0, len(C), 2)]
         return C
 
     def is_unimodular_path(self, r1, r2):

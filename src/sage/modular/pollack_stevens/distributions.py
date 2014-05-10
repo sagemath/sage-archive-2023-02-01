@@ -18,18 +18,14 @@ from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
-from sage.categories.action import PrecomposedAction
 from sage.categories.modules import Modules
-from sage.structure.coerce_actions import LeftModuleAction, RightModuleAction
-from sage.matrix.all import MatrixSpace
-from sage.rings.fast_arith import prime_range
 from sage.modular.pollack_stevens.dist import get_dist_classes, Dist_long
 from sage.structure.factory import UniqueFactory
-from sage.structure.unique_representation import UniqueRepresentation
-import operator
+
 import sage.rings.ring as ring
 
 from sigma0 import _default_adjuster #sage.modular.pollack_stevens.
+
 
 class Distributions_factory(UniqueFactory):
     """
@@ -505,10 +501,10 @@ class Distributions_abstract(Module):
             ...
             ValueError: M (=11) must be less than or equal to the precision cap (=10)
         """
-        if M == None:
+        if M is None:
             M = self.precision_cap()
         R = self.base_ring().integer_ring()
-        return self((R**M).random_element())
+        return self((R ** M).random_element())
 ##        return self(self.approx_module(M).random_element())
         
     def clear_cache(self):
@@ -557,9 +553,10 @@ class Distributions_abstract(Module):
             (2, 1)
         """
         if self._prec_cap > 1:
-            return self([2,1])
+            return self([2, 1])
         else:
             return self([1])
+
 
 class Symk_class(Distributions_abstract):
 

@@ -15,17 +15,19 @@ from sage.rings.all import ZZ, QQ
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.big_oh import O
 from sage.rings.arith import binomial, gcd, kronecker
+from sage.rings.padics.precision_error import PrecisionError
 
 from sage.structure.sage_object import SageObject
 from sigma0 import Sigma0
 from fund_domain import M2Z
+
 
 class pAdicLseries(SageObject):
     r"""
     The `p`-adic `L`-series associated to an overconvergent eigensymbol.
 
     INPUT:
-    
+
     - ``symb`` -- overconvergent eigensymbol
     - ``gamma`` -- topological generator of `1 + pZ_p`
     - ``quadratic_twist`` -- conductor of quadratic twist `\chi`, default 1
@@ -71,7 +73,7 @@ class pAdicLseries(SageObject):
         3*5 + 5^2 + O(5^3)
 
     An example of a `p`-adic `L`-series associated to a modular abelian surface:
-        
+
         sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
         sage: A = ModularSymbols(103,2,1).cuspidal_submodule().new_subspace().decomposition()[0]
         sage: p = 19
@@ -106,13 +108,13 @@ class pAdicLseries(SageObject):
             sage: TestSuite(L).run()
         """
         self._coefficients = {}
-        
-        if symb.parent().prime() == None:
+
+        if symb.parent().prime() is None:
             raise ValueError ("Not a p-adic overconvergent modular symbol.")
-        
+
         self._symb = symb
 
-        if gamma == None:
+        if gamma is None:
             gamma = 1 + self._symb.parent().prime()
 
         self._gamma = gamma
@@ -122,7 +124,7 @@ class pAdicLseries(SageObject):
     def __getitem__(self, n):
         """
         Returns the `n`-th coefficient of the `p`-adic `L`-series
-        
+
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
@@ -139,17 +141,17 @@ class pAdicLseries(SageObject):
             sage: L1 = E.padic_lseries(5)
             sage: L1.series(4)[1]
             3*5 + 5^2 + O(5^3)
-            
+
         """
         if self._coefficients.has_key(n):
             return self._coefficients[n]
         else:
             p = self.prime()
             symb = self.symb()
-            ap = symb.Tq_eigenvalue(p)
+            # ap = symb.Tq_eigenvalue(p)
             gamma = self._gamma
             precision = self._precision
-            
+
             S = QQ[['z']]
             z = S.gen()
             M = symb.precision_absolute()
@@ -160,7 +162,7 @@ class pAdicLseries(SageObject):
                 lb = [1] + [0 for a in range(M-1)]
             else:
                 lb = log_gamma_binomial(p, gamma, z, n, 2*M)
-                if precision == None:
+                if precision is None:
                     precision = min([j + lb[j].valuation(p) for j in range(M, len(lb))])
                 lb = [lb[a] for a in range(M)]
 
@@ -227,12 +229,13 @@ class pAdicLseries(SageObject):
             5
         """
         return self._symb.parent().prime()
-    
+
     def quadratic_twist(self):
         r"""
         Returns the discriminant of the quadratic twist
 
         EXAMPLES::
+
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('37a')
             sage: p = 5
@@ -273,7 +276,7 @@ class pAdicLseries(SageObject):
         `\gamma-1` with `\gamma= 1 + p` as a generator of `1+p\ZZ_p`).
 
         EXAMPLES::
-        
+
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_elliptic_curve
             sage: E = EllipticCurve('57a')
             sage: p = 5
@@ -284,11 +287,11 @@ class pAdicLseries(SageObject):
             sage: L = pAdicLseries(Phi)
             sage: L.series(3,4)
             O(5^4) + (3*5 + 5^2 + O(5^3))*T + (5 + O(5^2))*T^2
-            
+
             sage: L1 = E.padic_lseries(5)
             sage: L1.series(4)
             O(5^6) + (3*5 + 5^2 + O(5^3))*T + (5 + 4*5^2 + O(5^3))*T^2 + (4*5^2 + O(5^3))*T^3 + (2*5 + 4*5^2 + O(5^3))*T^4 + O(T^5)
-        
+
         """
         p = self.prime()
         M = self.symb().precision_absolute()
@@ -329,17 +332,17 @@ class pAdicLseries(SageObject):
             R = pAdicField(2, M + 1)
         else:
             R = pAdicField(p, M)
-        if psi != None:
+        if psi is not None:
             ap = psi(ap)
-        ap = ap*chip
-        sdisc = R(ap**2 - 4*p).sqrt()
+        ap = ap * chip
+        sdisc = R(ap ** 2 - 4 * p).sqrt()
         v0 = (R(ap) + sdisc) / 2
         v1 = (R(ap) - sdisc) / 2
         if v0.valuation() > 0:
             v0, v1 = v1, v0
         alpha = v0
-        return (1 - 1/alpha)**2
-    
+        return (1 - 1 / alpha) ** 2
+
     def eval_twisted_symbol_on_Da(self, a): # rename! should this be in modsym?
         """
         Returns `\Phi_{\chi}(\{a/p}-{\infty})` where `Phi` is the OMS and
@@ -418,12 +421,12 @@ class pAdicLseries(SageObject):
             5^-1 * (2*5 + 2*5^2 + 2*5^3 + 2*5^4 + O(5^5), 2*5 + 3*5^2 + 2*5^3 + O(5^4), 4*5^2 + O(5^3), 3*5 + O(5^2), O(5))
             sage: L._basic_integral(1,2)
             2*5^3 + O(5^4)
-        
+
         """
         symb = self.symb()
         M = symb.precision_absolute()
         if j > M:
-            raise PrecisionError ("Too many moments requested")
+            raise PrecisionError("Too many moments requested")
         p = self.prime()
         ap = symb.Tq_eigenvalue(p)
         D = self._quadratic_twist

@@ -23,28 +23,22 @@ and the ones in :mod:`sage.modular.modsym`:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import types
-
 from sage.modules.module import Module
 from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
-from sage.rings.arith import binomial
 from sage.rings.integer import Integer
-from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.arith import valuation
-from modsym import PSModularSymbolElement_symk, PSModularSymbolElement_dist, PSModSymAction
 from fund_domain import ManinRelations
-from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.infinity import infinity as oo
 from sage.structure.factory import UniqueFactory
 
 from distributions import Distributions, Symk
-from modsym import PSModularSymbolElement, PSModularSymbolElement_symk, PSModularSymbolElement_dist, PSModSymAction
-from fund_domain import ManinRelations
+from modsym import (PSModularSymbolElement, PSModularSymbolElement_symk,
+                    PSModularSymbolElement_dist, PSModSymAction)
 from manin_map import ManinMap
 from sigma0 import Sigma0, Sigma0Element
+
 
 class PSModularSymbols_factory(UniqueFactory):
     r"""
@@ -197,7 +191,7 @@ class PSModularSymbolSpace(Module):
         Module.__init__(self, coefficients.base_ring())
         if sign not in [0,-1,1]:
             # sign must be be 0, -1 or 1
-            raise ValueError, "sign must be 0, -1, or 1"
+            raise ValueError("sign must be 0, -1, or 1")
         self._group = group
         self._coefficients = coefficients
         if coefficients.is_symk():
@@ -652,7 +646,7 @@ class PSModularSymbolSpace(Module):
         """
         return self(self.coefficient_module().an_element())
 
-    def random_element(self,M=None):
+    def random_element(self, M=None):
         r"""
         Returns a random OMS in this space with M moments
 
@@ -664,35 +658,39 @@ class PSModularSymbolSpace(Module):
 
         An element of the modular symbol space with ``M`` moments
 
-        Returns a random element in this space by randomly choosing values of distributions
-        on all but one divisor, and solves the difference equation to determine the value
-        on the last divisor.
+        Returns a random element in this space by randomly choosing
+        values of distributions on all but one divisor, and solves the
+        difference equation to determine the value on the last
+        divisor. ::
 
-        sage: D = Distributions(2, 11)
-        sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
-        sage: M.random_element(10)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError
-
+            sage: D = Distributions(2, 11)
+            sage: M = PSModularSymbols(Gamma0(11), coefficients=D)
+            sage: M.random_element(10)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
-        if (M == None) and (not self.coefficient_module().is_symk()):
+        if M is None and not self.coefficient_module().is_symk():
             M = self.coefficient_module().precision_cap()
 
         k = self.coefficient_module()._k
-        p = self.prime()
+        # p = self.prime()
         manin = self.source()
 
-#        ## There must be a problem here with that +1 -- should be variable depending on a c of some matrix
-#        ## We'll need to divide by some power of p and so we add extra accuracy here.
+#        ## There must be a problem here with that +1 -- should be
+#        ## variable depending on a c of some matrix We'll need to
+#        ## divide by some power of p and so we add extra accuracy
+#        ## here.
 #        if k != 0:
 #            MM = M + valuation(k,p) + 1 + M.exact_log(p)
 #        else:
 #            MM = M + M.exact_log(p) + 1
 
-        ## this loop runs thru all of the generators (except (0)-(infty)) and randomly chooses a distribution 
-        ## to assign to this generator (in the 2,3-torsion cases care is taken to satisfy the relevant relation)
+        ## this loop runs thru all of the generators (except
+        ## (0)-(infty)) and randomly chooses a distribution to assign
+        ## to this generator (in the 2,3-torsion cases care is taken
+        ## to satisfy the relevant relation)
         D = {}
         for g in manin.gens():
             D[g] = self.coefficient_module().random_element(M)
@@ -713,7 +711,7 @@ class PSModularSymbolSpace(Module):
             if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
                 t += D[g] * manin.gammas[g] - D[g]
             else:
-                if g in MR.reps_with_two_torsion():
+                if g in MR.reps_with_two_torsion():  # What is MR ??
                     t -= D[g] 
                 else:
                     t -= D[g]
@@ -737,12 +735,12 @@ class PSModularSymbolSpace(Module):
             a = gam.matrix()[0,0]
             c = gam.matrix()[1,0]
 
-            if self.coefficient_module()._character != None:
+            if self.coefficient_module()._character is not None:
                 chara = self.coefficient_module()._character(a)
             else:
                 chara = 1
             err = -t.moment(0)/(chara*k*a**(k-1)*c)
-            v = [0 for j in range(M)]
+            v = [0] * M
             v[1] = 1
             mu_1 = self.base_ring()(err) * self.coefficient_module()(v)
             D[g] += mu_1
@@ -994,16 +992,16 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
         [0, 0, 0, 0, 0]
     """
     if A.dimension() == 0:
-        raise ValueError, "A must positive dimension"
+        raise ValueError("A must positive dimension")
 
     if A.sign() == 0:
-        raise ValueError, "A must have sign +1 or -1 (otherwise it is not simple)"
+        raise ValueError("A must have sign +1 or -1 (otherwise it is not simple)")
 
     if not A.is_new():
-        raise ValueError, "A must be new"
+        raise ValueError("A must be new")
 
     if not A.is_simple():
-        raise ValueError, "A must be simple"
+        raise ValueError("A must be simple")
 
     M = A.ambient_module()
     w = A.dual_eigenvector(name)
@@ -1011,7 +1009,7 @@ def ps_modsym_from_simple_modsym_space(A, name="alpha"):
     chi = A.q_eigenform_character(name)
     V = PSModularSymbols(chi, A.weight()-2, base_ring=K, sign=A.sign())
     D = V.coefficient_module()
-    N = V.level()
+    # N = V.level()
     k = V.weight() # = A.weight() - 2
     manin = V.source()
     val = {}

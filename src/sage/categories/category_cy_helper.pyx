@@ -16,6 +16,9 @@ AUTHOR:
 #*****************************************************************************
 include 'sage/ext/python.pxi'
 
+#######################################
+## Sorting
+
 cpdef inline tuple category_sort_key(object category):
     """
     Return ``category._cmp_key``.
@@ -66,6 +69,97 @@ cpdef tuple _sort_uniq(categories):
         if append:
             result.append(category)
     return tuple(result)
+
+cpdef tuple _flatten_categories(categories, ClasscallMetaclass JoinCategory):
+    """
+    Return the tuple of categories in ``categories``, while
+    flattening join categories.
+
+    INPUT:
+
+    - ``categories`` -- a list (or iterable) of categories
+
+    EXAMPLES::
+
+        sage: Category._flatten_categories([Algebras(QQ), Category.join([Monoids(), Coalgebras(QQ)]), Sets()])
+        (Category of algebras over Rational Field, Category of monoids, Category of coalgebras over Rational Field, Category of sets)
+    """
+    # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
+    cdef list out = []
+    for category in categories:
+        if isinstance(category, JoinCategory):
+            out.extend(category.super_categories())
+        else:
+            out.append(category)
+    return tuple(out)
+
+#############################################
+## Join
+cdef bint is_supercategory_of_done(new_cat, dict done):
+    for cat in done.iterkeys():
+        if cat.is_subcategory(new_cat):
+            return True
+    return False
+
+cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
+    cdef set axiomsS = set(axioms)
+    for category in categories:
+        axiomsS.update(category.axioms())
+    cdef dict done = dict()
+    cdef set todo = set()
+    cdef frozenset axs
+    for category in categories:
+        axs = category.axioms()
+        for (cat, axiom) in ignore_axioms:
+            if category.is_subcategory(cat):
+                axs = axs | {axiom}
+        done[category] = axs
+        for axiom in axiomsS.difference(axs):
+            todo.add( (category, axiom) )
+
+    # Invariants:
+    # - the current list of categories is stored in the keys of ``done``
+    # - todo contains the ``complement`` of done; i.e.
+    #   for category in the keys of done,
+    #   (category, axiom) is in todo iff axiom is not in done[category]
+    cdef list new_cats
+    cdef set new_axioms
+    while todo:
+        (category, axiom) = todo.pop()
+        # It's easier to remove categories from done than from todo
+        # So we check that ``category`` had not been removed
+        if category not in done:
+            continue
+
+        # Removes redundant categories
+        new_cats = [new_cat for new_cat in <tuple>(category._with_axiom_as_tuple(axiom))
+                    if not is_supercategory_of_done(new_cat, done)]
+        for cat in done.keys():
+            for new_cat in new_cats:
+                if new_cat.is_subcategory(cat):
+                    del done[cat]
+                    break
+
+        new_axioms = set()
+        for new_cat in new_cats:
+            for axiom in new_cat.axioms():
+                if axiom not in axiomsS:
+                    new_axioms.add(axiom)
+
+        # Mark old categories with new axioms as todo
+        for category in done.iterkeys():
+            for axiom in new_axioms:
+                todo.add( (category, axiom) )
+        for new_cat in new_cats:
+            axs = new_cat.axioms()
+            for (cat, axiom) in ignore_axioms:
+                if new_cat.is_subcategory(cat):
+                    axs = axs | {axiom}
+            done[new_cat] = axs
+            for axiom in axiomsS.difference(axs):
+                todo.add( (new_cat, axiom) )
+
+    return _sort_uniq(done.iterkeys())
 
 
 #############################################

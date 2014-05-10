@@ -632,8 +632,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['A',3,1]).root_lattice()
                 sage: PRR = L.positive_real_roots(); PRR
-                sage: [PRR.unrank(i) for i in range(10)]
                 Positive real roots of type ['A', 3, 1]
+                sage: [PRR.unrank(i) for i in range(10)]
                 [alpha[1],
                  alpha[2],
                  alpha[3],

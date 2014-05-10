@@ -337,7 +337,7 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
             v = [base_morphism(a) for a in v]
         f = R(v)
         if f(im_gen):
-            raise ValueError, "invalid morphism"
+            raise ValueError("invalid morphism")
 
     def _call_(self, x):
         """

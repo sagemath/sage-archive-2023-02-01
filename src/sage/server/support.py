@@ -16,7 +16,6 @@ import sage.structure.sage_object
 import sage.misc.latex
 import sage.misc.pager
 
-import sage.misc.sagedoc as sagedoc
 import sage.misc.sageinspect as sageinspect
 
 from sage.misc.preparser import preparse
@@ -165,8 +164,7 @@ def completions(s, globs, format=False, width=90, system="None"):
                     v = [obj + '.'+x for x in D if x[:n] == method]
             except Exception as msg:
                 v = []
-        v = list(set(v))   # make unique
-        v.sort()
+        v = sorted(set(v))   # make unique
     except Exception as msg:
         v = []
 
@@ -280,7 +278,8 @@ def source_code(s, globs, system='sage'):
         filename = sageinspect.sage_getfile(obj)
         lines, lineno = sageinspect.sage_getsourcelines(obj, is_binary=False)
         src = indent.join(lines)
-        src = indent + sagedoc.format_src(src)
+        from sage.misc.sagedoc import format_src
+        src = indent + format_src(src)
         if not lineno is None:
             output = "**File:** %s"%filename
             output += newline

@@ -2469,8 +2469,7 @@ class SimplicialComplex(GenericCellComplex):
             for v in face:
                 for partial in self._transpose_simplices(*rest):
                     if v not in partial:
-                        L = [v] + list(partial)
-                        L.sort()
+                        L = sorted([v] + list(partial))
                         simplex = Simplex(L)
                     else:
                         simplex = partial

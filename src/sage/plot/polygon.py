@@ -218,14 +218,14 @@ class Polygon(GraphicPrimitive_xydata):
         options = self._plot3d_options()
         options.update(kwds)
         zdata=[]
-        if type(z) is list:
+        if isinstance(z, list):
             zdata=z
         else:
             zdata=[z]*len(self.xdata)
         if len(zdata)==len(self.xdata):
             return IndexFaceSet([[(x, y, z) for x, y, z in zip(self.xdata, self.ydata, zdata)]], **options)
         else:
-            raise ValueError, 'Incorrect number of heights given'
+            raise ValueError('Incorrect number of heights given')
 
     def _render_on_subplot(self, subplot):
         """

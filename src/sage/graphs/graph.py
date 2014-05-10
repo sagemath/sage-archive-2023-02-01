@@ -481,11 +481,11 @@ And you can view it in three dimensions via jmol with ``show3d()``. ::
 
     sage: G.show3d()
 
-Or it can be rendered with `\mbox{\rm\LaTeX}`.  This requires the right
+Or it can be rendered with `\LaTeX`.  This requires the right
 additions to a standard `\mbox{\rm\TeX}` installation.  Then standard
 Sage commands, such as ``view(G)`` will display the graph, or
 ``latex(G)`` will produce a string suitable for inclusion in a
-`\mbox{\rm\LaTeX}` document.  More details on this are at
+`\LaTeX` document.  More details on this are at
 the :mod:`sage.graphs.graph_latex` module. ::
 
     sage: from sage.graphs.graph_latex import check_tkz_graph
@@ -1050,7 +1050,7 @@ class Graph(GenericGraph):
             sage: g = Graph([[1,2],[1,2]],multiedges=False)
             Traceback (most recent call last):
             ...
-            ValueError: Non-multigraph input dict has multiple edges (1,2)
+            ValueError: Non-multigraph got several edges (1,2)
 
         An empty list or dictionary defines a simple graph
         (:trac:`10441` and :trac:`12910`)::
@@ -1095,6 +1095,14 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check the error when the input has multiple edges but ``multiple_edges``
+        is set to False (:trac:`16215`)::
+
+            sage: Graph([(0,1),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multigraph got several edges (0,1)
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1362,8 +1370,7 @@ class Graph(GenericGraph):
                         assert False
                     else:
                         positions.append(tuple(NZ))
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
 
                     if data.nrows() != (2 if len(NZ) == 2 else 1):
                         desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
@@ -1450,8 +1457,8 @@ class Graph(GenericGraph):
                 verts=verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        from sage.misc.prandom import choice
-                        raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
@@ -2917,7 +2924,7 @@ class Graph(GenericGraph):
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
         if bounds is None:
-            raise ValueError,"The `bounds` keyword can not be equal to None"
+            raise ValueError("The `bounds` keyword can not be equal to None")
         elif isinstance(bounds,dict):
             f_bounds = lambda x: bounds[x]
         else:
@@ -3258,7 +3265,8 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict(map(lambda (x,y):(y,x), list(enumerate(vertices))))
+        vertices_id = dict(map(lambda x_y: (x_y[1], x_y[0]),
+                               list(enumerate(vertices))))
 
         b = {}
 
@@ -4198,7 +4206,7 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(solver=solver)
 
         # sorts an edge
-        S = lambda (x,y) : (x,y) if x<y else (y,x)
+        S = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
         # rs = Representative set of a vertex
         # for h in H, v in G is such that rs[h,v] == 1 if and only if v

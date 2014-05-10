@@ -352,14 +352,14 @@ cdef class Element(sage_object.SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.structure.parent import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -434,12 +434,17 @@ cdef class Element(sage_object.SageObject):
             False
         """
         cls = self.__class__
-        res = cls.__new__(cls)
-        res._set_parent(self._parent)
+        cdef Element res = cls.__new__(cls)
+        res._parent = self._parent
         try:
-            res.__dict__ = self.__dict__.copy()
+            D = self.__dict__
         except AttributeError:
-            pass
+            return res
+        for k,v in D.iteritems():
+            try:
+                setattr(res, k, v)
+            except AttributeError:
+                pass
         return res
 
     def __hash__(self):
@@ -3116,9 +3121,9 @@ cdef class NamedBinopMethod:
         self._func = func
         if name is None:
             if isinstance(func, types.FunctionType):
-                name = func.func_name
+                name = func.__name__
             if isinstance(func, types.UnboundMethodType):
-                name = func.im_func.func_name
+                name = func.__func__.__name__
             else:
                 name = func.__name__
         self._name = name

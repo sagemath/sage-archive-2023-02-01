@@ -173,7 +173,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
                     l.append((i,j,v[i,j]))
             return list_plot3d_tuples(l,interpolation_type,texture,**kwds)
 
-    if type(v)==numpy.ndarray:
+    if isinstance(v, numpy.ndarray):
         return list_plot3d(matrix(v),interpolation_type,texture,**kwds)
 
     if isinstance(v, list):
@@ -193,7 +193,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
             return list_plot3d_tuples(v,interpolation_type,texture=texture, **kwds)
         else:
             return list_plot3d_array_of_arrays(v, interpolation_type,texture, **kwds)
-    raise TypeError, "v must be a matrix or list"
+    raise TypeError("v must be a matrix or list")
 
 def list_plot3d_matrix(m, texture, **kwds):
     """
@@ -357,7 +357,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
     from plot3d import plot3d
 
     if len(v)<3:
-        raise ValueError, "We need at least 3 points to perform the interpolation"
+        raise ValueError("We need at least 3 points to perform the interpolation")
 
     x=[float(p[0]) for p in v]
     y=[float(p[1]) for p in v]
@@ -386,7 +386,7 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         for j in range(i+1,len(x)):
             if x[i]==x[j] and y[i]==y[j]:
                 if z[i]!=z[j]:
-                    raise ValueError, "Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this."
+                    raise ValueError("Two points with same x,y coordinates and different z coordinates were given. Interpolation cannot handle this.")
                 elif z[i]==z[j]:
                     drop_list.append(j)
 

@@ -1045,6 +1045,44 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_CA_ZZ(R)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).coerce_map_from(ZZ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: f(6) == g(6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).coerce_map_from(ZZ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: f(6) == g(6)
+            True
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Evaluation.
@@ -1195,6 +1233,42 @@ cdef class pAdicConvert_QQ_CA(Morphism):
         """
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self._zero = R._element_constructor(R, 0)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """

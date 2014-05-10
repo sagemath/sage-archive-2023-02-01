@@ -513,7 +513,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     """
     q = F.order()
     if not q in [2, 3, 4, 5, 7, 8, 9]:
-        raise ValueError, "q (=%s) must be in [2,3,4,5,7,8,9]"%q
+        raise ValueError("q (=%s) must be in [2,3,4,5,7,8,9]"%q)
     n = int(n)
     k = int(k)
 
@@ -531,7 +531,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     i = s.find("<PRE>")
     j = s.find("</PRE>")
     if i == -1 or j == -1:
-        raise IOError, "Error parsing data (missing pre tags)."
+        raise IOError("Error parsing data (missing pre tags).")
     text = s[i+5:j].strip()
     return text
 
@@ -900,7 +900,7 @@ class LinearCode(module.Module_old):
         C = self
         F = C.base_ring()
         if F!=GF(2):
-            raise NotImplementedError, "Only implemented for binary codes."
+            raise NotImplementedError("Only implemented for binary codes.")
         return self.permutation_automorphism_group()
 
     def __iter__(self):
@@ -1490,7 +1490,7 @@ class LinearCode(module.Module_old):
             result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
             return self.ambient_space()(result)
         else:
-            raise NotImplementedError, "Only 'syndrome','nearest neighbor','guava' are implemented."
+            raise NotImplementedError("Only 'syndrome','nearest neighbor','guava' are implemented.")
 
     def divisor(self):
         r"""
@@ -1685,7 +1685,7 @@ class LinearCode(module.Module_old):
         q0 = F0.order()
         a = log(q,q0)  # test if F/F0 is a field extension
         if not isinstance(a, Integer):
-            raise ValueError,"Base field must be an extension of given field %s"%F0
+            raise ValueError("Base field must be an extension of given field %s"%F0)
         n = len(G.columns())
         k = len(G.rows())
         G0 = [[x**q0 for x in g.list()] for g in G.rows()]

@@ -113,7 +113,7 @@ class QuotientFields(Category_singleton):
             try:
                 other = self.parent()(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -192,7 +192,7 @@ class QuotientFields(Category_singleton):
             try:
                 other = self.parent()(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -412,8 +412,7 @@ class QuotientFields(Category_singleton):
                 all = {}
                 for r in factors: all[r[0]] = 0
                 for r in factors: all[r[0]] += r[1]
-                factors = all.items()
-                factors.sort() # for doctest consistency
+                factors = sorted(all.items())
 
             # TODO(robertwb): Should there be a category of univariate polynomials?
             from sage.rings.fraction_field_element import FractionFieldElement_1poly_field

@@ -1127,7 +1127,7 @@ def _connected_mutation_type_AAtildeD( dg, ret_conn_vert=False  ):
                     connecting_vertices.append( v )
 
     # post-parsing 1: if we are in the affine type A case, the two parameters for the non-oriented long cycle are computed
-    if type( long_cycle[1] ) == list and len( long_cycle[1] ) == 3 and long_cycle[1][0] == 'A' and long_cycle[1][2] == 1:
+    if isinstance(long_cycle[1], list) and len( long_cycle[1] ) == 3 and long_cycle[1][0] == 'A' and long_cycle[1][2] == 1:
         tmp = list( long_cycle[0] )
         e = tmp.pop()
         cycle = [e]

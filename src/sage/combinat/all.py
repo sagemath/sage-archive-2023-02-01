@@ -182,6 +182,8 @@ from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatter
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.finite_state_machine',
             ['Automaton', 'Transducer', 'FiniteStateMachine'])
+lazy_import('sage.combinat.finite_state_machine_generators',
+            ['transducers'])
 # Binary Recurrence Sequences
 from binary_recurrence_sequences import BinaryRecurrenceSequence
 

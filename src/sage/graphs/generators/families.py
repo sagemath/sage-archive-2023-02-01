@@ -109,9 +109,9 @@ def KneserGraph(n,k):
     """
 
     if not n>0:
-        raise ValueError, "Parameter n should be a strictly positive integer"
+        raise ValueError("Parameter n should be a strictly positive integer")
     if not (k>0 and k<=n):
-        raise ValueError, "Parameter k should be a strictly positive integer inferior to n"
+        raise ValueError("Parameter k should be a strictly positive integer inferior to n")
 
     g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
     from sage.combinat.subset import Subsets
@@ -858,7 +858,7 @@ def FuzzyBallGraph(partition, q):
     """
     from sage.graphs.generators.basic import CompleteGraph
     if len(partition)<1:
-        raise ValueError, "partition must be a nonempty list of positive integers"
+        raise ValueError("partition must be a nonempty list of positive integers")
     n=q+sum(partition)
     g=CompleteGraph(n)
     curr_vertex=0
@@ -1237,7 +1237,7 @@ def MycielskiGraph(k=1, relabel=True):
     g.name("Mycielski Graph " + str(k))
 
     if k<0:
-        raise ValueError, "parameter k must be a nonnegative integer"
+        raise ValueError("parameter k must be a nonnegative integer")
 
     if k == 0:
         return g
@@ -1441,7 +1441,7 @@ def OddGraph(n):
     """
 
     if not n>1:
-        raise ValueError, "Parameter n should be an integer strictly greater than 1"
+        raise ValueError("Parameter n should be an integer strictly greater than 1")
     g = KneserGraph(2*n-1,n-1)
     g.name("Odd Graph with parameter %s" % n)
     return g

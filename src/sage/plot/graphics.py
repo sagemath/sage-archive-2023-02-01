@@ -195,7 +195,7 @@ class Graphics(SageObject):
         if ratio != 'auto' and ratio != 'automatic':
             ratio = float(ratio)
             if ratio <= 0:
-                raise ValueError, "the aspect ratio must be positive or 'automatic'"
+                raise ValueError("the aspect ratio must be positive or 'automatic'")
         else:
             ratio = 'automatic'
         self._extra_kwds['aspect_ratio'] = ratio
@@ -636,9 +636,9 @@ class Graphics(SageObject):
                 self._axes_labels = None
                 return self._axes_labels
         if not isinstance(l, (list, tuple)):
-            raise TypeError, "l must be a list or tuple"
+            raise TypeError("l must be a list or tuple")
         if len(l) != 2:
-            raise ValueError, "l must have length 2"
+            raise ValueError("l must have length 2")
         self._axes_labels = tuple(l)
 
     def axes_label_color(self, c=None):
@@ -915,7 +915,7 @@ class Graphics(SageObject):
         """
         from sage.plot.primitive import GraphicPrimitive
         if not isinstance(x, GraphicPrimitive):
-            raise TypeError, "x must be a GraphicPrimitive"
+            raise TypeError("x must be a GraphicPrimitive")
         self._objects[int(i)] = x
 
     def __radd__(self, other):
@@ -1008,7 +1008,7 @@ class Graphics(SageObject):
             from sage.plot.plot3d.base import Graphics3d
             if isinstance(other, Graphics3d):
                 return self.plot3d() + other
-            raise TypeError, "other (=%s) must be a Graphics objects"%other
+            raise TypeError("other (=%s) must be a Graphics objects"%other)
         g = Graphics()
         g._objects = self._objects + other._objects
         g._show_legend = self._show_legend or other._show_legend
@@ -2830,7 +2830,7 @@ class GraphicsArray(SageObject):
             TypeError: every element of array must be a Graphics object
         """
         if not isinstance(array, (list, tuple)):
-            raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+            raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
         array = list(array)
         self._glist = []
         self._rows = len(array)
@@ -2844,10 +2844,10 @@ class GraphicsArray(SageObject):
         self._dims = self._rows*self._cols
         for row in array: #basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
-                raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+                raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
             for g in row:
                 if not isinstance(g, Graphics):
-                    raise TypeError, "every element of array must be a Graphics object"
+                    raise TypeError("every element of array must be a Graphics object")
                 self._glist.append(g)
         self._figsize = None
 

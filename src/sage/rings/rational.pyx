@@ -2940,6 +2940,26 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
+    def trunc(self):
+        """
+        Round this rational number to the nearest integer toward zero.
+
+        EXAMPLES::
+
+            sage: (5/3).trunc()
+            1
+            sage: (-5/3).trunc()
+            -1
+            sage: QQ(42).trunc()
+            42
+            sage: QQ(-42).trunc()
+            -42
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_tdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
+
     def round(Rational self, mode="away"):
         """
         Returns the nearest integer to ``self``, rounding away from 0 by
@@ -3167,6 +3187,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
+
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    is_integer = is_integral
+
 
     def is_S_integral(self, S=[]):
         r"""
@@ -3741,7 +3766,7 @@ cdef class Z_to_Q(Morphism):
               From: Rational Field
               To:   Integer Ring
         """
-        return Q_to_Z(self._codomain, self._domain)
+        return Q_to_Z(self._codomain, self.domain())
 
 cdef class Q_to_Z(Map):
     r"""

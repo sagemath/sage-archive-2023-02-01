@@ -205,6 +205,7 @@ class Hypergraph:
              "The colors are picked for readability and have no other meaning.")
 
         latex.add_package_to_preamble_if_available("tikz")
+        latex.add_to_mathjax_avoid_list("tikz")
 
         if not latex.has_file("tikz.sty"):
             raise RuntimeError("You must have TikZ installed in order "
@@ -236,9 +237,9 @@ class Hypergraph:
 
             # Reorders the vertices of s according to their angle with the
             # "center", i.e. the vertex representing the set s
-            cx,cy = pos[s]
-            s = map(lambda x:pos[x],s)
-            s = sorted(s, key = lambda (x,y) : arctan2(x-cx,y-cy))
+            cx, cy = pos[s]
+            s = map(lambda x: pos[x], s)
+            s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 
             for x in s:
                 tex += str(x)+" "

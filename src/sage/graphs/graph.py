@@ -63,7 +63,7 @@ graphs.
     :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
     :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
 
-**Connectivity and orientations:**
+**Connectivity, orientations, trees:**
 
 .. csv-table::
     :class: contentstable
@@ -75,6 +75,8 @@ graphs.
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
+    :meth:`~Graph.bridges` | Returns a list of all bridges in the current graph.
+    :meth:`~Graph.spanning_trees` | Returns a list of all spanning trees for the current graph.
 
 **Clique-related methods:**
 
@@ -1784,8 +1786,14 @@ class Graph(GenericGraph):
 
     def bridges(self):
         r"""        
-        Finds all bridges in a graph.
+        Returns a list of the bridges (or cut edges) in the graph.
 
+        A bridge is an edge so that deleting it disconnects the graph.
+
+        .. NOTE::
+
+            - This method assumes the graph is connected.
+        
         EXAMPLES::    
         
              sage: g = 2*graphs.PetersenGraph()                                                      
@@ -1803,9 +1811,10 @@ class Graph(GenericGraph):
 
     def spanning_trees(self):
         """
-        Finds all spanning trees in a graph.
-        Adapted from "Bounds on Backtrack Algoritms for Listing Cycles, Paths,
-        and Spanning Trees" R. C. Read and R. E. Tarjan (1975)
+        Returns a list of all spanning trees in the graph. If the graph is
+        disconnected, returns the empty list.
+
+        Uses the Read-Tarjan backtracking algorithm [RT75]_.
 
         EXAMPLES::
 
@@ -1819,6 +1828,12 @@ class Graph(GenericGraph):
              6
              sage: G.spanning_trees_count()
              6
+
+        REFERENCES:
+        
+        .. [RT75] Read, R. C. and Tarjan, R. E.
+        Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
+        Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
         def _recursive_spanning_trees(G,part_G):

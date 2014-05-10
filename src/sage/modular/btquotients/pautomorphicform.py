@@ -585,21 +585,22 @@ class HarmonicCocycleElement(HeckeModuleElement):
             return F(z)
 
 
-class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
-    Element = HarmonicCocycleElement
+class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
     r"""
     Ensures unique representation
 
     EXAMPLES::
 
         sage: X = BTQuotient(3,5)
-        sage: M1 = HarmonicCocycles(X,2,prec = 10)
-        sage: M2 = HarmonicCocycles(X,2,10)
+        sage: M1 = HarmonicCocycles(X, 2, prec = 10)
+        sage: M2 = HarmonicCocycles(X, 2, 10)
         sage: M1 is M2
         True
     """
+    Element = HarmonicCocycleElement
+
     @staticmethod
-    def __classcall__(cls,X,k,prec=None,basis_matrix=None,base_field=None):
+    def __classcall__(cls, X, k, prec=None, basis_matrix=None, base_field=None):
         r"""
         Represents a space of Gamma invariant harmonic
         cocycles valued in a cofficient module.
@@ -639,7 +640,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
         """
         return super(HarmonicCocycles,cls).__classcall__(cls,X,k,prec,basis_matrix,base_field)
 
-    def __init__(self,X,k,prec=None,basis_matrix=None,base_field=None):
+    def __init__(self, X, k, prec=None, basis_matrix=None, base_field=None):
         """
         Compute the space of harmonic cocycles.
 
@@ -986,7 +987,7 @@ class HarmonicCocycles(AmbientHeckeModule,UniqueRepresentation):
 
         A free module.
 
-        EXAPLES::
+        EXAMPLES::
 
             sage: X = BTQuotient(3,7)
             sage: H = HarmonicCocycles(X,2,prec=10)
@@ -2443,7 +2444,6 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             sage: h = H.basis()[0]
             sage: A.lift(h) # indirect doctest
             p-adic automorphic form of cohomological weight 0
-
         """
         S = self._source.get_stabilizers()
         M = [e.rep for e in self._list]

@@ -61,30 +61,36 @@ def enumerate_words(v, n=None):
 
 class DoubleCosetReduction(SageObject):
     r"""
-    Edges in the Bruhat-tits tree are represented by cosets of
+    Edges in the Bruhat-Tits tree are represented by cosets of
     matrices in `\GL_2`. Given a matrix `x` in `\GL_2`, this
     class computes and stores the data corresponding to the
     double coset representation of `x` in terms of a fundamental
     domain of edges for the action of the arithmetic group `\Gamma'.
 
     More precisely:
+
     Initialized with an element `x` of `\GL_2(\ZZ)`, finds elements
     `\gamma` in `\Gamma`, `t` and an edge `e` such that `get=x`. It
     stores these values as members ``gamma``, ``label`` and functions
     ``self.sign()``,  ``self.t()`` and ``self.igamma()``, satisfying:
+
         if ``self.sign() == +1``:
-            ``igamma()*edge_list[label].rep*t() == x``
+            ``igamma() * edge_list[label].rep * t() == x``
+
         if ``self.sign() == -1``:
-            ``igamma()*edge_list[label].opposite.rep*t() == x``
+            ``igamma() * edge_list[label].opposite.rep * t() == x``
 
     It also stores a member called power so that:
-        ``p**(2*power)=gamma.reduced_norm()``
+
+        ``p**(2*power) = gamma.reduced_norm()``
 
     The usual decomposition ``get=x`` would be:
-        g=gamma/(p**power)
-        e=edge_list[label]
-        t'=t*p**power
-    Here usual denotes that we've rescaled gamma to have unit
+
+    g = gamma / (p ** power)
+    e = edge_list[label]
+    t' = t * p ** power
+
+    Here usual denotes that we have rescaled gamma to have unit
     determinant, and so that the result is honestly an element
     of the arithmetic quarternion group under consideration. In
     practice we store integral multiples and keep track of the
@@ -396,7 +402,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             sage: TestSuite(T).run()
         """
         if not(ZZ(p).is_prime()):
-            raise ValueError('Input ( % s) must be prime' % p)
+            raise ValueError('Input (%s) must be prime' % p)
         self._p = ZZ(p)
         self._Mat_22 = MatrixSpace(ZZ, 2, 2)
         self._mat_p001 = self._Mat_22([self._p, 0, 0, 1])
@@ -1037,7 +1043,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             [3 0], [0 1], [3 2], [9 1], [9 4], [9 7]
             ]
 
-        .. NOTES::
+        .. NOTE::
 
             This function is used to compute certain Coleman integrals
             on `\PP^1`. That's why the input consists of two points of
@@ -1146,7 +1152,7 @@ class Vertex(SageObject):
             sage: X.get_vertex_list()[0]
             Vertex of BT-tree for p = 3
         """
-        return "Vertex of BT-tree for p =  % s" % (self.p)
+        return "Vertex of BT-tree for p =  %s" % (self.p)
 
     def __cmp__(self, other):
         """
@@ -1158,7 +1164,6 @@ class Vertex(SageObject):
             sage: v1 = Vertex(7,0,Matrix(ZZ,2,2,[1,2,3,18]))
             sage: v1 == v1
             True
-
         """
         c = cmp(self.p, other.p)
         if c:
@@ -1269,7 +1274,7 @@ class Edge(SageObject):
             sage: X.get_edge_list()[0]
             Edge of BT-tree for p = 3
         """
-        return "Edge of BT-tree for p =  % s" % (self.p)
+        return "Edge of BT-tree for p =  %s" % (self.p)
 
     def __cmp__(self, other):
         """
@@ -1318,6 +1323,61 @@ class Edge(SageObject):
 
 
 class BTQuotient(SageObject, UniqueRepresentation):
+    r"""
+    This function computes the quotient of the Bruhat-Tits tree
+    by an arithmetic quaternionic group. The group in question is the
+    group of norm 1 elements in an eichler `Z[1/p]`-order of some (tame)
+    level inside of a definite quaternion algebra that is unramified
+    at the prime `p`. Note that this routine relies in Magma in the case
+    `p = 2` or when `Nplus > 1`.
+
+    INPUT:
+
+    - ``p`` - a prime number
+
+    - ``Nminus`` - squarefree integer divisible by an odd number of
+      distinct primes and relatively prime to p. This is the
+      discriminant of the definite quaternion algebra that one is
+      quotienting by.
+
+    - ``Nplus`` - an integer corpime to pNminus (Default: 1). This is
+      the tame level. It need not be squarefree! If Nplus is not 1
+      then the user currently needs magma installed due to sage's
+      inability to compute well with nonmaximal Eichler orders in
+      rational (definite) quaternion algebras.
+
+    - ``character`` - a Dirichlet character (Default: None) of modulus
+      `pN^-N^+`.
+
+    - ``use_magma`` - boolean (default: False). If True, uses magma
+      for quaternion arithmetic.
+
+    EXAMPLES:
+
+    Here is an example without a Dirichlet character::
+
+        sage: X = BTQuotient(13, 19)
+        sage: X.genus()
+        19
+        sage: G = X.get_graph(); G
+        Multi-graph on 4 vertices
+
+    And an example with a Dirichlet character::
+
+        sage: f = DirichletGroup(6)[1]
+        sage: X = BTQuotient(3,2*5*7,character = f)
+        sage: X.genus()
+        5
+
+    .. NOTE::
+
+        A sage implementation of Eichler orders in rational quaternions
+        algebras would remove the dependency on magma.
+
+    AUTHORS:
+
+    - Marc Masdeu (2012-02-20)
+    """
     @staticmethod
     def __classcall__(cls, p, Nminus, Nplus=1, character=None,
                       use_magma=False, seed=None):
@@ -1332,61 +1392,6 @@ class BTQuotient(SageObject, UniqueRepresentation):
         return super(BTQuotient, cls).__classcall__(cls, p, Nminus, Nplus,
                                                     character, use_magma, seed)
 
-    r"""
-    This function computes the quotient of the Bruhat-Tits tree
-    by an arithmetic quaternionic group. The group in question is the
-    group of norm 1 elements in an eichler Z[1/p]-order of some (tame)
-    level inside of a definite quaternion algebra that is unramified
-    at the prime p. Note that this routine relies in Magma in the case
-    `p = 2` or when `Nplus > 1`.
-
-    INPUT:
-
-     - ``p`` - a prime number
-
-     - ``Nminus`` - squarefree integer divisible by an odd number of
-       distinct primes and relatively prime to p. This is the
-       discriminant of the definite quaternion algebra that one is
-       quotienting by.
-
-     - ``Nplus`` - an integer corpime to pNminus (Default: 1). This is
-       the tame level. It need not be squarefree! If Nplus is not 1
-       then the user currently needs magma installed due to sage's
-       inability to compute well with nonmaximal Eichler orders in
-       rational (definite) quaternion algebras.
-
-     - ``character`` - a Dirichlet character (Default: None) of modulus
-       `pN^-N^+`.
-
-     - ``use_magma`` - boolean (default: False). If True, uses magma
-       for quaternion arithmetic.
-
-    EXAMPLES:
-
-    Here is an example without a Dirichlet character::
-
-        sage: X = BTQuotient(13,19)
-        sage: X.genus()
-        19
-        sage: G = X.get_graph(); G
-        Multi-graph on 4 vertices
-
-    And an example with a Dirichlet character::
-
-      sage: f = DirichletGroup(6)[1]
-      sage: X = BTQuotient(3,2*5*7,character = f)
-      sage: X.genus()
-      5
-
-    .. NOTE::
-
-        A sage implementation of Eichler orders in rational quaternions
-        algebras would remove the dependency on magma.
-
-    AUTHORS:
-
-    - Marc Masdeu (2012-02-20)
-    """
     def __init__(self, p, Nminus, Nplus=1, character=None,
                  use_magma=False, seed=None):
         """
@@ -1485,7 +1490,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(5,13); X
             Quotient of the Bruhat Tits tree of GL_2(QQ_5) with discriminant 13 and level 1
         """
-        return "Quotient of the Bruhat Tits tree of GL_2(QQ_ % s) with discriminant  % s and level  % s" % (self.prime(), self.Nminus().factor(), self.Nplus().factor())
+        return "Quotient of the Bruhat Tits tree of GL_2(QQ_%s) with discriminant %s and level %s" % (self.prime(), self.Nminus().factor(), self.Nplus().factor())
 
     def __eq__(self, other):
         r"""
@@ -1518,7 +1523,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             sage: X = BTQuotient(5,13); latex(X)
             X(5 \cdot 13,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
         """
-        return "X( % s, % s)\\otimes_{\\mathbb{Z}} \\mathbb{F}_{ % s}" % (latex(self.level().factor()), latex(self.Nplus().factor()), latex(self.prime()))
+        return "X(%s,%s)\\otimes_{\\mathbb{Z}} \\mathbb{F}_{%s}" % (latex(self.level().factor()), latex(self.Nplus().factor()), latex(self.prime()))
 
     def get_vertex_dict(self):
         r"""
@@ -2139,7 +2144,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         if (A.base_ring() != QQ):
             raise ValueError("must be rational quaternion algebra")
         if (A.discriminant() % self._p == 0):
-            raise ValueError("p (= % s) must be an unramified prime" % self._p)
+            raise ValueError("p (=%s) must be an unramified prime" % self._p)
         M = MatrixSpace(ZZp, 2)
 
         if a.is_square():
@@ -2192,7 +2197,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             OrdMax = self.get_maximal_order(magma=True)
 
             OBasis = Ord.Basis()
-            verbose('Calling magma: pMatrixRing, args =  % s' % [OrdMax, self._p])
+            verbose('Calling magma: pMatrixRing, args = %s' % [OrdMax, self._p])
             M, f, rho = self._magma.function_call('pMatrixRing', args=[OrdMax, self._p], params={'Precision': 2000}, nvals=3)
             v = [f.Image(OBasis[i]) for i in [1, 2, 3, 4]]
 
@@ -2242,7 +2247,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 success = False
                 found = False
                 while not found:
-                    verbose('Calling magma: pMatrixRing, args =  % s' % [OrdMax, l])
+                    verbose('Calling magma: pMatrixRing, args = %s' % [OrdMax, l])
                     M, f, rho = self._magma.function_call('pMatrixRing', args=[OrdMax, l], params={'Precision': 20}, nvals=3)
                     v = [f.Image(OBasis[i]) for i in [1, 2, 3, 4]]
                     if all([Qp(l, 5)(v[kk][2, 1].sage()).valuation() >= 1 for kk in range(4)]) and not all([Qp(l, 5)(v[kk][2, 1].sage()).valuation() >= 2 for kk in range(4)]):
@@ -2357,7 +2362,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             self._R = Qp(self._p, prec=prec)
 
             if prec > self._prec:
-                verbose('self._prec =  % s, prec =  % s' % (self._prec, prec))
+                verbose('self._prec = %s, prec = %s' % (self._prec, prec))
                 Iotamod = self._compute_embedding_matrix(prec)
                 self._Iotainv_lift = Iotamod.inverse().lift()
                 self._Iota = Matrix(self._R, 4, 4, [Iotamod[ii, jj]
@@ -2764,9 +2769,9 @@ class BTQuotient(SageObject, UniqueRepresentation):
             ]
         """
         OM = self.get_eichler_order_quadmatrix()
-        v = pari('qfminim( % s,2,0, flag = 0)' % (OM._pari_()))
+        v = pari('qfminim(%s,2,0, flag = 0)' % (OM._pari_()))
         n_units = Integer(v[0].python() / 2)
-        v = pari('qfminim( % s,2, % s, flag = 2)' % ((OM._pari_()), n_units))
+        v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM._pari_()), n_units))
         O_units = []
         for jj in range(n_units):
             vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].python() for ii in range(4)])
@@ -2785,7 +2790,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
     #    R = self.get_eichler_order()
     #    D = fundamental_discriminant(disc)
     #    if disc % D != 0:
-    #        raise ValueError('disc (=  % s) should be a fundamental discriminant times a square' % disc)
+    #        raise ValueError('disc (= %s) should be a fundamental discriminant times a square' % disc)
     #    c = ZZ(sqrt(disc/D))
 
     #    if c > 1:
@@ -3147,7 +3152,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             V = [e.target for e in v.leaving_edges]
             g, v = self._find_equivalent_vertex(v0, V)
             if v is None:
-                print 'Given vertex:  % s' % v0
+                print 'Given vertex: %s' % v0
                 print 'Not equivalent to any existing vertex in the list:'
                 if V is not None:
                     print [ve.label for ve in V]
@@ -3233,7 +3238,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         n_units = len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
         ## We used to pass qfminim flag = 2
-        mat = pari('qfminim( % s,0, % s)' % (A._pari_(), 2 * n_units))[2].python().transpose()
+        mat = pari('qfminim(%s,0,%s)' % (A._pari_(), 2 * n_units))[2].python().transpose()
         n_vecs = mat.nrows()
         stabs = []
         for jj in range(n_vecs):
@@ -3299,7 +3304,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         if not self._use_magma or len(self._extra_level) == 0:
             return E * vec, True
         m = ZZ(twom / 2)
-        mat = pari('qfminim( % s,0, % s,flag =  % s)' % (A._pari_(), 1000, flag))[2].python().transpose()
+        mat = pari('qfminim(%s,0,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].python().transpose()
         n_vecs = mat.nrows()
         p = self._p
         pinv = Zmod(self._character.modulus())(p) ** -1
@@ -3367,7 +3372,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         REFERENCES:
 
-          [FM] "Computing quotients of the Bruhat-Tits tree...", Cameron Franc, Marc Masdeu.
+        .. [FM] "Computing quotients of the Bruhat-Tits tree...",
+           Cameron Franc, Marc Masdeu.
         """
         try:
             return self._cached_equivalent[(v1, v2, as_edges)]
@@ -3382,7 +3388,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        vec = pari('qfminim( % s,0,1,flag = 0)' % (A._pari_()))[2].python()
+        vec = pari('qfminim(%s,0,1,flag = 0)' % (A._pari_()))[2].python()
 
         vect = vec.transpose()
         nrd = Integer((vect * A * vec)[0, 0] / 2)
@@ -3414,7 +3420,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         allmats = []
         verbose('Calling magma, compute exact splitting')
         for kk in range(4):
-            xseq = self._magma(' % s( % s)' % (f.name(), R.gen(kk + 1).name())).ElementToSequence()
+            xseq = self._magma('%s(%s)' % (f.name(), R.gen(kk + 1).name())).ElementToSequence()
             allmats.append(Matrix(self._FF, 2, 2, [self._FF([QQ(xseq[ii + 1][jj + 1]) for jj in range(2)]) for ii in range(4)]))
         self._Iota_exact = Matrix(self._FF, 4, 4, [self._FF(allmats[kk][ii, jj]) for ii in range(2) for jj in range(2) for kk in range(4)])
 
@@ -3532,7 +3538,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         """
         OQuadForm = self.get_eichler_order_quadform()
         if norm > 10 ** 3:
-            verbose('Warning: norm (=  % s) is quite large, this may take some time!' % norm)
+            verbose('Warning: norm (= %s) is quite large, this may take some time!' % norm)
         V = OQuadForm.vectors_by_length(norm)[norm]
         W = V if not primitive else filter(lambda v: any((vi % self._p != 0 for vi in v)), V)
         return W if trace is None else filter(lambda v: self._conv(v).reduced_trace() == trace, W)
@@ -3605,7 +3611,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
             v = V.popleft()
             E = self._BT.leaving_edges(v.rep)
 
-            # print 'V =  % s, E =  % s, G =  % s (target =  % s), lenV =  % s' % (num_verts,num_edges,1+num_edges-num_verts,genus,len(V))
+            # print 'V = %s, E = %s, G = %s (target = %s), lenV = %s' % (num_verts,num_edges,1+num_edges-num_verts,genus,len(V))
             for e in E:
                 edge_det = e.determinant()
                 edge_valuation = edge_det.valuation(p)

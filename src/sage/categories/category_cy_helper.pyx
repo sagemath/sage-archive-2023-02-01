@@ -30,7 +30,7 @@ cpdef inline tuple category_sort_key(object category):
 
     EXAMPLES::
 
-        sage: from sage.categories.category import category_sort_key
+        sage: from sage.categories.category_cy_helper import category_sort_key
         sage: category_sort_key(Rings()) is Rings()._cmp_key
         True
     """
@@ -79,9 +79,18 @@ cpdef tuple _flatten_categories(categories, ClasscallMetaclass JoinCategory):
 
     - ``categories`` -- a list (or iterable) of categories
 
+    - ``JoinCategory`` -- A type such that instances of that type will be
+      replaced by its super categories. Usually, this type is
+      :class:`JoinCategory`.
+
+    .. NOTE::
+
+        It is needed to provide :class:`~sage.categories.category.JoinCategory` as
+        an argument, since we need to prevent a circular import.
+
     EXAMPLES::
 
-        sage: Category._flatten_categories([Algebras(QQ), Category.join([Monoids(), Coalgebras(QQ)]), Sets()])
+        sage: Category._flatten_categories([Algebras(QQ), Category.join([Monoids(), Coalgebras(QQ)]), Sets()], sage.categories.category.JoinCategory)
         (Category of algebras over Rational Field, Category of monoids, Category of coalgebras over Rational Field, Category of sets)
     """
     # Invariant: the super categories of a JoinCategory are not JoinCategories themselves
@@ -182,7 +191,17 @@ cpdef tuple canonicalize_axioms(AxiomContainer all_axioms, axioms):
 
     INPUT:
 
-     - ``axioms`` -- a set (or iterable) of axioms
+    - ``all_axioms`` -- all available axioms
+
+    - ``axioms`` -- a set (or iterable) of axioms
+
+    .. NOTE::
+
+        :class:`AxiomContainer` provides a fast container for axioms, and the
+        collection of axioms is stored in
+        :mod:`sage.categories.category_with_axiom`. In order to avoid circular
+        imports, we expect that the collection of all axioms is provided as an
+        argument to this auxiliary function.
 
     OUTPUT:
 
@@ -191,10 +210,10 @@ cpdef tuple canonicalize_axioms(AxiomContainer all_axioms, axioms):
 
     EXAMPLES::
 
-        sage: from sage.categories.category_with_axiom import canonicalize_axioms
-        sage: canonicalize_axioms(["Commutative", "Connected", "WithBasis", "Finite"])
+        sage: from sage.categories.category_with_axiom import canonicalize_axioms, all_axioms
+        sage: canonicalize_axioms(all_axioms, ["Commutative", "Connected", "WithBasis", "Finite"])
         ('Finite', 'Connected', 'WithBasis', 'Commutative')
-        sage: canonicalize_axioms(["Commutative", "Connected", "Commutative", "WithBasis", "Finite"])
+        sage: canonicalize_axioms(all_axioms, ["Commutative", "Connected", "Commutative", "WithBasis", "Finite"])
         ('Finite', 'Connected', 'WithBasis', 'Commutative')
     """
     cdef list L = list(set(axioms))

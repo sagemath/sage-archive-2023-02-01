@@ -1805,6 +1805,13 @@ class Category(UniqueRepresentation, SageObject):
 
         A sorted tuple of categories, possibly with repeats.
 
+        .. NOTE::
+
+            The auxiliary function `_flatten_categories` used in the test
+            below expects a second argument, which is a type such that
+            instances of that type will be replaced by its super
+            categories. Usually, this type is :class:`JoinCategory`.
+
         EXAMPLES::
 
             sage: Category._sort([Sets(), Objects(), Coalgebras(QQ), Monoids(), Sets().Finite()])
@@ -1818,7 +1825,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of commutative magmas,
              Category of finite sets,
              Category of facade sets)
-            sage: Category._sort(Category._flatten_categories([Sets().Finite(), Algebras(QQ).WithBasis(), Semigroups().Finite(), Sets().Facade(),Algebras(QQ).Commutative(), Algebras(QQ).Graded().WithBasis()]))
+            sage: Category._sort(Category._flatten_categories([Sets().Finite(), Algebras(QQ).WithBasis(), Semigroups().Finite(), Sets().Facade(),Algebras(QQ).Commutative(), Algebras(QQ).Graded().WithBasis()], sage.categories.category.JoinCategory))
             (Category of algebras with basis over Rational Field,
              Category of algebras with basis over Rational Field,
              Category of graded algebras over Rational Field,
@@ -2048,9 +2055,12 @@ class Category(UniqueRepresentation, SageObject):
         cache_key = _sort_uniq(_flatten_categories(categories, JoinCategory))
         if not ignore_axioms:
             try:
+                out = _join_cache[cache_key]
                 if as_list:
-                    return _join_cache[cache_key]._super_categories
-                return _join_cache[cache_key]
+                    if isinstance(out, JoinCategory):
+                        return out._super_categories
+                    return [out]
+                return out
             except KeyError:
                 pass
 

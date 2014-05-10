@@ -62,11 +62,11 @@ class _btquot_adjuster(Sigma0ActionAdjuster):
             sage: adj(matrix(ZZ,2,2,[1..4]))
             (4, 2, 3, 1)
         """
-        a,b,c,d = g.list()
+        a, b, c, d = g.list()
         return tuple([d, b, c, a])
 
 
-def eval_dist_at_powseries(phi,f):
+def eval_dist_at_powseries(phi, f):
     """
     Evaluate a distribution on a powerseries.
 
@@ -106,7 +106,9 @@ def eval_dist_at_powseries(phi,f):
         48
     """
     nmoments = phi.parent().precision_cap()
-    return sum(a*phi.moment(i) for a,i in izip(f.coefficients(),f.exponents()) if i >= 0 and i < nmoments)
+    return sum(a * phi.moment(i)
+               for a, i in izip(f.coefficients(), f.exponents())
+               if i >= 0 and i < nmoments)
 
 
 class HarmonicCocycleElement(HeckeModuleElement):
@@ -167,7 +169,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
             sage: v = H.basis()[0] # indirect doctest
             sage: TestSuite(v).run()
         """
-        HeckeModuleElement.__init__(self,_parent,None)
+        HeckeModuleElement.__init__(self, _parent, None)
         self._parent = _parent
         assert type(vec) is list
         assert all([v.parent() is _parent._U for v in vec])
@@ -175,9 +177,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
         self._wt = _parent._k
         self._nE = len(_parent._E)
         self._F = copy(vec)
-        return
 
-    def _add_(self,g):
+    def _add_(self, g):
         r"""
         Add two cocycles componentwise.
 
@@ -198,9 +199,9 @@ class HarmonicCocycleElement(HeckeModuleElement):
             sage: v1 == v3-v2
             True
         """
-        return self.parent()(self.element()+g.element())
+        return self.parent()(self.element() + g.element())
 
-    def _sub_(self,g):
+    def _sub_(self, g):
         r"""
         Computes the difference of two cocycles.
 
@@ -221,10 +222,11 @@ class HarmonicCocycleElement(HeckeModuleElement):
             sage: v1 == v3+v2
             True
         """
-        #Should ensure that self and g are modular forms of the same weight and on the same curve
-        return self.parent()(self.element()-g.element())
+        # Should ensure that self and g are modular forms of the same
+        # weight and on the same curve
+        return self.parent()(self.element() - g.element())
 
-    def _rmul_(self,a):
+    def _rmul_(self, a):
         r"""
         Multiplies a cocycle by a scalar.
 
@@ -248,7 +250,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         # Should ensure that 'a' is a scalar
         return self.parent()(a * self.element())
 
-    def __cmp__(self,other):
+    def __cmp__(self, other):
         r"""
         General comparison method for Harmonic Cocycles
 
@@ -310,7 +312,6 @@ class HarmonicCocycleElement(HeckeModuleElement):
         for e in range(self._nE):
             tmp += '%s\t|%s\n' % (str(e), str(self._F[e]))
         print tmp[:-1]
-        return
 
     def valuation(self):
         r"""
@@ -345,8 +346,8 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         OUTPUT:
 
-        A coordinate vector encoding self in terms of the ambient
-        basis in self.parent
+        A coordinate vector encoding ``self`` in terms of the ambient
+        basis in ``self.parent``
 
         EXAMPLES::
 
@@ -371,18 +372,21 @@ class HarmonicCocycleElement(HeckeModuleElement):
             err = A * rest - B
             if err != 0:
                 try:
-                    if hasattr(err.parent().base_ring().an_element(),'valuation'):
-                        minval = min([o.valuation() for o in err.list() if o != 0])
+                    if hasattr(err.parent().base_ring().an_element(),
+                               'valuation'):
+                        minval = min([o.valuation() for o in err.list()
+                                      if o != 0])
                     else:
-                        minval = sum([RR(o.norm()**2) for o in err.list()])
+                        minval = sum([RR(o.norm() ** 2) for o in err.list()])
                     verbose('Error = %s' % minval)
                 except AttributeError:
-                    verbose('Warning: something did not work in the computation')
+                    verbose('Warning: something did not work in the '
+                            'computation')
             res = rest.transpose()
         return self.parent().free_module()(res.row(0))
 
     #In HarmonicCocycle
-    def evaluate(self,e1):
+    def evaluate(self, e1):
         r"""
         Evaluates a harmonic cocycle on an edge of the Bruhat-Tits tree.
 
@@ -416,7 +420,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         else:
             val = -self._F[u.label - self._nE]
 
-        return u.igamma(self.parent().embed_quaternion, scale=p**-u.power) * val
+        return u.igamma(self.parent().embed_quaternion, scale=p ** (-u.power)) * val
 
     #In HarmonicCocycle
     def riemann_sum(self, f, center=1, level=0, E=None):
@@ -466,7 +470,7 @@ class HarmonicCocycleElement(HeckeModuleElement):
         ii = 0
         for e in E:
             ii += 1
-            expansion = ((R1([e[1,1],e[1,0]])**(self.parent()._k-2)*e.determinant()**(-(self.parent()._k-2)/2))*f(R1([e[0,1],e[0,0]])/R1([e[1,1],e[1,0]]))).truncate(self.parent()._k-1)
+            expansion = ((R1([e[1, 1], e[1, 0]]) ** (self.parent()._k - 2) * e.determinant() ** (-(self.parent()._k - 2) / 2)) * f(R1([e[0, 1], e[0, 0]]) / R1([e[1, 1], e[1, 0]]))).truncate(self.parent()._k - 1)
             dist = self.parent()._Sigma0(e.inverse(), check=False) * self.evaluate(e)
             value += eval_dist_at_powseries(dist, expansion)
         return value
@@ -474,14 +478,16 @@ class HarmonicCocycleElement(HeckeModuleElement):
     def modular_form(self, z=None, level=0):
         r"""
         Integrates Teitelbaum's `p`-adic Poisson kernel against
-        the measure corresponding to self to evaluate the associated
-        modular form at z.
+        the measure corresponding to ``self`` to evaluate the associated
+        modular form at `z`.
 
         If z = None, a function is returned that encodes the modular form.
 
-        NOTE: This function uses the integration method of Riemann
-        summation and is incredibly slow! It should only be used for
-        testing and bug-finding. Overconvergent methods are quicker.
+        .. NOTE::
+
+            This function uses the integration method of Riemann
+            summation and is incredibly slow! It should only be used for
+            testing and bug-finding. Overconvergent methods are quicker.
 
         INPUT:
 
@@ -512,22 +518,24 @@ class HarmonicCocycleElement(HeckeModuleElement):
             sage: (x4-x3).valuation()
             3
         """
-        return self.derivative(z,level,order = 0)
+        return self.derivative(z, level, order=0)
 
     # In HarmonicCocycle
-    def derivative(self,z=None,level = 0,order = 1):
+    def derivative(self, z=None, level=0, order=1):
         r"""
         Integrates Teitelbaum's `p`-adic Poisson kernel against
-        the measure corresponding to self to evaluate the rigid
+        the measure corresponding to ``self`` to evaluate the rigid
         analytic Shimura-Maass derivatives of the associated modular
-        form at z.
+        form at `z`.
 
         If z = None, a function is returned that encodes the
         derivative of the modular form.
 
-        NOTE: This function uses the integration method of Riemann
-        summation and is incredibly slow! It should only be used for
-        testing and bug-finding. Overconvergent methods are quicker.
+        .. NOTE::
+
+            This function uses the integration method of Riemann
+            summation and is incredibly slow! It should only be used for
+            testing and bug-finding. Overconvergent methods are quicker.
 
         INPUT:
 
@@ -562,24 +570,25 @@ class HarmonicCocycleElement(HeckeModuleElement):
 
         For a discussion of nearly rigid analytic modular forms and
         the rigid analytic Shimura-Maass operator, see the thesis of
-        C. Franc [2011].
+        C. Franc (2011).
         """
         def F(z):
-            R = PolynomialRing(z.parent(),'x,y').fraction_field()
-            Rx = PolynomialRing(z.parent(),'x1').fraction_field()
+            R = PolynomialRing(z.parent(), 'x,y').fraction_field()
+            Rx = PolynomialRing(z.parent(), 'x1').fraction_field()
             x1 = Rx.gen()
-            subst = R.hom([x1,z],codomain = Rx)
-            x,y = R.gens()
+            subst = R.hom([x1, z], codomain=Rx)
+            x, y = R.gens()
             center = self.parent()._X._BT.find_containing_affinoid(z)
-            zbar = z.trace()-z
-            f = R(1)/(x-y)
+            zbar = z.trace() - z
+            f = R(1) / (x - y)
             k = self.parent()._k
             V = [f]
             for ii in range(order):
-                V = [v.derivative(y) for v in V]+[k/(y-zbar)*v for v in V]
+                V = [v.derivative(y) for v in V] + [k / (y - zbar) * v
+                                                    for v in V]
                 k += 2
-            return sum([self.riemann_sum(subst(v),center,level) for v in V])
-        if(z is None):
+            return sum([self.riemann_sum(subst(v), center, level) for v in V])
+        if z is None:
             return F
         else:
             return F(z)
@@ -638,7 +647,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu
         """
-        return super(HarmonicCocycles,cls).__classcall__(cls,X,k,prec,basis_matrix,base_field)
+        return super(HarmonicCocycles, cls).__classcall__(cls, X, k, prec,
+                                                          basis_matrix,
+                                                          base_field)
 
     def __init__(self, X, k, prec=None, basis_matrix=None, base_field=None):
         """
@@ -669,7 +680,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
                                      "to compute splittings in that case!")
             else:
                 pol = X.get_splitting_field().defining_polynomial().factor()[0][0]
-                self._R = base_field.extension(pol,pol.variable_name()).absolute_field(name='r')
+                self._R = base_field.extension(pol, pol.variable_name()).absolute_field(name='r')
         else:
             self._prec = prec
             if base_field is None:
@@ -677,9 +688,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             else:
                 self._R = base_field
 
-        self._U = Symk(self._k-2, base=self._R, act_on_left=True,
+        self._U = Symk(self._k - 2, base=self._R, act_on_left=True,
                        adjuster=_btquot_adjuster(),
-                       dettwist = -ZZ((self._k - 2) / 2), act_padic=True)
+                       dettwist=-ZZ((self._k - 2) / 2), act_padic=True)
 
         if basis_matrix is None:
             self.__rank = self._X.dimension_harmonic_cocycles(self._k)
@@ -693,7 +704,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         self._Sigma0 = self._U._act._Sigma0
 
         AmbientHeckeModule.__init__(self, self._R, self.__rank,
-                                    self._X.prime() * self._X.Nplus() * self._X.Nminus(), weight = self._k)
+                                    self._X.prime() * self._X.Nplus() * self._X.Nminus(), weight=self._k)
         self._populate_coercion_lists_()
 
     def base_extend(self, base_ring):
@@ -750,10 +761,11 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         if not new_base_ring.has_coerce_map_from(self.base_ring()):
             raise ValueError("No coercion defined")
 
-        else:
-            basis_matrix = self.basis_matrix().change_ring(new_base_ring)
-            basis_matrix.set_immutable()
-            return self.__class__(self._X,self._k,prec=None,basis_matrix = basis_matrix,base_field = new_base_ring)
+        basis_matrix = self.basis_matrix().change_ring(new_base_ring)
+        basis_matrix.set_immutable()
+        return self.__class__(self._X, self._k, prec=None,
+                              basis_matrix=basis_matrix,
+                              base_field=new_base_ring)
 
     def rank(self):
         r"""
@@ -802,7 +814,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             ...
             NotImplementedError
         """
-        # return HarmonicCocyclesSubmodule(self,v)
+        # return HarmonicCocyclesSubmodule(self, v)
         raise NotImplementedError
 
     def is_simple(self):
@@ -839,7 +851,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(5,23)
             sage: H = HarmonicCocycles(X,2,prec=10)
             sage: print H
-            Space of harmonic cocycles of weight 2 on Quotient of the Bruhat Tits tree of GL_2(QQ_5) with discriminant 23 and level 1
+            Space of harmonic cocycles of weight 2 on Quotient of the Bruhat
+            Tits tree of GL_2(QQ_5) with discriminant 23 and level 1
         """
         return 'Space of harmonic cocycles of weight %s on %s' % (self._k,
                                                                   self._X)
@@ -855,7 +868,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: latex(H) # indirect doctest
             \text{Space of harmonic cocycles of weight } 2 \text{ on } X(5 \cdot 23,1)\otimes_{\mathbb{Z}} \mathbb{F}_{5}
         """
-        s = '\\text{Space of harmonic cocycles of weight } ' + (self._k)._latex_() + ' \\text{ on } ' + self._X._latex_()
+        s = '\\text{Space of harmonic cocycles of weight } '
+        s += (self._k)._latex_() + ' \\text{ on } ' + self._X._latex_()
         return s
 
     def _an_element_(self):
@@ -958,7 +972,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         if type(x) is sage.modules.free_module_element.FreeModuleElement_generic_dense:
             vmat = MatrixSpace(self._R, 1, self.dimension())(x)
             tmp = (vmat * self.ambient_module().basis_matrix()).row(0)
-            vec = [self._U(tmp[e*(self._k-1):(e+1)*(self._k-1)]) for e in range(len(self._E))]
+            vec = [self._U(tmp[e * (self._k - 1):(e + 1) * (self._k - 1)])
+                   for e in range(len(self._E))]
             return self.element_class(self, vec)
 
         if type(x) is list:
@@ -969,12 +984,12 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             if isinstance(parent, HarmonicCocycles):
                 return self.element_class(self, [self._U(o) for o in x._F])
             elif isinstance(parent, pAutomorphicForms):
-                tmp = [self._U(x._F[ii]).l_act_by(self._E[ii].rep) for ii in range(self._nE)]
+                tmp = [self._U(x._F[ii]).l_act_by(self._E[ii].rep)
+                       for ii in range(self._nE)]
                 # tmp = [self._E[ii].rep * self._U(x._F[ii]) for ii in range(self._nE)]
                 return self.element_class(self, tmp)
         if x == 0:
-            tmp = [self._U([0 for jj in range(self.weight()-1)])
-                   for ii in range(self._X._num_edges)]
+            tmp = [self._U([0] * (self.weight() - 1))] * self._X._num_edges
             return self.element_class(self, tmp)
         else:
             raise TypeError
@@ -992,7 +1007,8 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(3,7)
             sage: H = HarmonicCocycles(X,2,prec=10)
             sage: H.free_module()
-            Vector space of dimension 1 over 3-adic Field with capped relative precision 10
+            Vector space of dimension 1 over 3-adic Field with
+            capped relative precision 10
         """
         try:
             return self.__free_module
@@ -1020,9 +1036,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: f(2)
             2
         """
-        return lambda x:x
+        return lambda x: x
 
-    def embed_quaternion(self,g,scale = 1,exact=None):
+    def embed_quaternion(self, g, scale=1, exact=None):
         r"""
         Embed the quaternion element ``g`` into the matrix algebra.
 
@@ -1087,25 +1103,30 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         stab_conds = []
         S = self._X.get_edge_stabs()
         p = self._X._p
-        d = self._k-1
+        d = self._k - 1
         for e in self._E:
             try:
-                g = filter(lambda g:g[2],S[e.label])[0]
-                C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])),d).transpose()  # Warning - Need to allow the check = True
-                C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ,2,2,p**g[1])),d).transpose()  # Warning - Need to allow the check = True
-                stab_conds.append([e.label,C])
+                g = filter(lambda g: g[2], S[e.label])[0]
+                C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])), d).transpose()  # Warning - Need to allow the check = True
+                C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ, 2, 2, p ** g[1])), d).transpose()  # Warning - Need to allow the check = True
+                stab_conds.append([e.label, C])
             except IndexError:
                 pass
 
         n_stab_conds = len(stab_conds)
-        self._M = Matrix(self._R,(nV+n_stab_conds)*d,nE*d,0,sparse = True)
+        self._M = Matrix(self._R, (nV + n_stab_conds) * d, nE * d, 0,
+                         sparse=True)
         for v in self._V:
-            for e in filter(lambda e:e.parity == 0,v.leaving_edges):
-                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d) for x in e.links],Matrix(self._R,d,d,0)).transpose()
-                self._M.set_block(v.label*d,e.label*d,C)
-            for e in filter(lambda e:e.parity == 0,v.entering_edges):
-                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]),d) for x in e.opposite.links],Matrix(self._R,d,d,0)).transpose()
-                self._M.set_block(v.label*d,e.opposite.label*d,C)
+            for e in filter(lambda e: e.parity == 0, v.leaving_edges):
+                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]), d)
+                         for x in e.links],
+                        Matrix(self._R, d, d, 0)).transpose()
+                self._M.set_block(v.label * d, e.label * d, C)
+            for e in filter(lambda e: e.parity == 0, v.entering_edges):
+                C = sum([self._U.acting_matrix(self.embed_quaternion(x[0]), d)
+                         for x in e.opposite.links],
+                        Matrix(self._R, d, d, 0)).transpose()
+                self._M.set_block(v.label * d, e.opposite.label * d, C)
 
         for kk in range(n_stab_conds):
             v = stab_conds[kk]
@@ -1124,7 +1145,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             for ii in range(len(K)):
                 s = min([t.valuation() for t in K[ii]])
                 for jj in range(len(K[ii])):
-                    K[ii][jj] = (p**(-s))*K[ii][jj]
+                    K[ii][jj] = (p ** (-s)) * K[ii][jj]
 
         self.__matrix = Matrix(self._R, len(K), nE * d, K)
         self.__matrix.set_immutable()
@@ -1162,13 +1183,13 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         for jj in range(nE):
             t = d1[jj]
             if t.label < nE:
-                tmp[jj] += mga * t.igamma(self.embed_quaternion, scale = p**-t.power) * f._F[t.label]
+                tmp[jj] += mga * t.igamma(self.embed_quaternion, scale=p ** -t.power) * f._F[t.label]
             else:
-                tmp[jj] += mga * t.igamma(self.embed_quaternion, scale = p**-t.power) * (-f._F[t.label-nE])
+                tmp[jj] += mga * t.igamma(self.embed_quaternion, scale=p ** -t.power) * (-f._F[t.label - nE])
 
         return self(tmp)
 
-    def __apply_hecke_operator(self,l,f):
+    def __apply_hecke_operator(self, l, f):
         r"""
         This function applies a Hecke operator to a harmonic cocycle.
 
@@ -1193,21 +1214,21 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         """
         HeckeData, alpha = self._X._get_hecke_data(l)
         if self.level() % l == 0:
-            factor = QQ(l**(Integer((self._k-2)/2))/(l+1))
+            factor = QQ(l ** (Integer((self._k - 2) / 2)) / (l + 1))
         else:
-            factor = QQ(l**(Integer((self._k-2)/2)))
+            factor = QQ(l ** (Integer((self._k - 2) / 2)))
         p = self._X._p
         alphamat = self.embed_quaternion(alpha)
         tmp = [self._U(0) for jj in range(len(self._E))]
-        for d0,d1 in HeckeData:
-            mga = self.embed_quaternion(d0)*alphamat
+        for d0, d1 in HeckeData:
+            mga = self.embed_quaternion(d0) * alphamat
             nE = len(self._E)
             for jj in range(nE):
                 t = d1[jj]
                 if t.label < nE:
-                    tmp[jj] += mga * t.igamma(self.embed_quaternion,scale = p**-t.power) * f._F[t.label]
+                    tmp[jj] += mga * t.igamma(self.embed_quaternion, scale=p ** -t.power) * f._F[t.label]
                 else:
-                    tmp[jj] += mga * t.igamma(self.embed_quaternion,scale = p**-t.power) * (-f._F[t.label-nE])
+                    tmp[jj] += mga * t.igamma(self.embed_quaternion, scale=p ** -t.power) * (-f._F[t.label - nE])
         return self([factor * x for x in tmp])
 
     def _compute_atkin_lehner_matrix(self, d):
@@ -1234,9 +1255,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: A**2 == 1
             True
         """
-        return self.__compute_operator_matrix(lambda f:self.__apply_atkin_lehner(d,f))
+        return self.__compute_operator_matrix(lambda f: self.__apply_atkin_lehner(d, f))
 
-    def _compute_hecke_matrix_prime(self,l):
+    def _compute_hecke_matrix_prime(self, l):
         r"""
         When the underlying coefficient module is finite, this
         function computes the matrix of a (prime) Hecke operator in
@@ -1259,9 +1280,9 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()]
             [6496256, 1497856, -109040, -33600, -904, 32, 1]
         """
-        return self.__compute_operator_matrix(lambda f:self.__apply_hecke_operator(l,f))
+        return self.__compute_operator_matrix(lambda f: self.__apply_hecke_operator(l, f))
 
-    def __compute_operator_matrix(self,T):
+    def __compute_operator_matrix(self, T):
         r"""
         Compute the matrix of the operator `T`.
 
@@ -1287,7 +1308,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         R = self._R
         A = self.basis_matrix().transpose()
         basis = self.basis()
-        B = zero_matrix(R,len(self._E) * (self._k - 1),self.dimension())
+        B = zero_matrix(R, len(self._E) * (self._k - 1), self.dimension())
         for rr in range(len(basis)):
             g = T(basis[rr])
             B.set_block(0, rr, Matrix(R, len(self._E) * (self._k - 1), 1, [g._F[e].moment(ii) for e in range(len(self._E)) for ii in range(self._k - 1)]))
@@ -1298,10 +1319,12 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             err = A * rest - B
             if err != 0:
                 try:
-                    if hasattr(err.parent().base_ring().an_element(),'valuation'):
-                        minval = min([o.valuation() for o in err.list() if o != 0])
+                    if hasattr(err.parent().base_ring().an_element(),
+                               'valuation'):
+                        minval = min([o.valuation() for o in err.list()
+                                      if o != 0])
                     else:
-                        minval = sum([RR(o.norm()**2) for o in err.list()])
+                        minval = sum([RR(o.norm() ** 2) for o in err.list()])
                     verbose('Error = %s' % minval)
                 except AttributeError:
                     verbose('Warning: something did not work in the computation')
@@ -1425,15 +1448,14 @@ class pAutomorphicFormElement(ModuleElement):
 
     REFERENCES:
 
-    Matthew Greenberg's thesis (available on his webpage as of 02/12).
+    Matthew Greenberg's thesis (available on his webpage as of 02/2012).
 
     AUTHORS:
 
     - Cameron Franc (2012-02-20)
     - Marc Masdeu
-
     """
-    def __init__(self,parent,vec):
+    def __init__(self, parent, vec):
         """
         Create a pAutomorphicFormElement
 
@@ -1444,13 +1466,12 @@ class pAutomorphicFormElement(ModuleElement):
             sage: TestSuite(A.an_element()).run()
         """
         self._num_generators = len(parent._list)
-        self._cached_values = dict()
-        self._R = Qp(parent.prime(), prec = parent._prec)
+        self._cached_values = {}
+        self._R = Qp(parent.prime(), prec=parent._prec)
         self._value = [parent._U(v) for v in vec]
-        ModuleElement.__init__(self,parent)
-        return
+        ModuleElement.__init__(self, parent)
 
-    def _add_(self,g):
+    def _add_(self, g):
         r"""
         This function adds two p-adic automorphic forms.
 
@@ -1469,11 +1490,13 @@ class pAutomorphicFormElement(ModuleElement):
             sage: a = A.an_element()
             sage: b = a + a # indirect doctest
         """
-        #Should ensure that self and g are of the same weight and on the same curve
-        vec = [self._value[e]+g._value[e] for e in range(self._num_generators)]
+        # Should ensure that self and g are of the same weight and on
+        # the same curve
+        vec = [self._value[e] + g._value[e]
+               for e in range(self._num_generators)]
         return self.parent()(vec)
 
-    def _sub_(self,g):
+    def _sub_(self, g):
         r"""
         This function subtracts a p-adic automorphic form from another.
 
@@ -1494,11 +1517,13 @@ class pAutomorphicFormElement(ModuleElement):
             sage: b == 0
             True
         """
-        #Should ensure that self and g are of the same weight and on the same curve
-        vec = [self._value[e]-g._value[e] for e in range(self._num_generators)]
+        # Should ensure that self and g are of the same weight and on
+        # the same curve
+        vec = [self._value[e] - g._value[e]
+               for e in range(self._num_generators)]
         return self.parent()(vec)
 
-    def __cmp__(self,other):
+    def __cmp__(self, other):
         r"""
         Test for equality of pAutomorphicForm elements
 
@@ -1528,7 +1553,7 @@ class pAutomorphicFormElement(ModuleElement):
 
         OUTPUT:
 
-        Boolean. True if self is zero, false otherwise.
+        Boolean. True if self is zero, False otherwise.
 
         EXAMPLES::
 
@@ -1544,7 +1569,7 @@ class pAutomorphicFormElement(ModuleElement):
         """
         return any([not o.is_zero() for o in self._value])
 
-    def __getitem__(self,e1):
+    def __getitem__(self, e1):
         r"""
         Evaluates a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
 
@@ -1567,7 +1592,7 @@ class pAutomorphicFormElement(ModuleElement):
         """
         return self.evaluate(e1)
 
-    def evaluate(self,e1):
+    def evaluate(self, e1):
         r"""
         Evaluates a p-adic automorphic form on a matrix in `\GL_2(\Qp)`.
 
@@ -1593,11 +1618,11 @@ class pAutomorphicFormElement(ModuleElement):
         X = self.parent()._source
         p = self.parent().prime()
         u = DoubleCosetReduction(X, e1)
-        tmp = ((u.t(self.parent()._U.base_ring().precision_cap()))*p**(u.power)).adjoint()
+        tmp = ((u.t(self.parent()._U.base_ring().precision_cap())) * p ** (u.power)).adjoint()
         return self.parent()._Sigma0(tmp, check=False) * self._value[u.label]
         # Warning! Should remove check=False...
 
-    def _rmul_(self,a):
+    def _rmul_(self, a):
         r"""
         Multiplies the automorphic form by a scalar.
 
@@ -1613,8 +1638,9 @@ class pAutomorphicFormElement(ModuleElement):
             sage: b.evaluate(Matrix(ZZ,2,2,[1,2,3,4]))
             16 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5)
         """
-        #Should ensure that 'a' is a scalar
-        return self.parent()([a*self._value[e] for e in range(self._num_generators)])
+        # Should ensure that 'a' is a scalar
+        return self.parent()([a * self._value[e]
+                              for e in range(self._num_generators)])
 
     def _repr_(self):
         r"""
@@ -1718,7 +1744,7 @@ class pAutomorphicFormElement(ModuleElement):
         self._value = [U(c) for c in h2._value]
         return self
 
-    def integrate(self,f,center = 1,level = 0,method = 'moments'):
+    def integrate(self, f, center=1, level=0, method='moments'):
         r"""
         Calculate
 
@@ -1781,22 +1807,22 @@ class pAutomorphicFormElement(ModuleElement):
         - Cameron Franc (2012-02-20)
 
         """
-        E = self.parent()._source._BT.get_balls(center,level)
+        E = self.parent()._source._BT.get_balls(center, level)
         R1 = LaurentSeriesRing(f.base_ring(), 'r1')
         R2 = PolynomialRing(f.base_ring(), 'x')
         x = R2.gen()
         value = 0
         ii = 0
         if method == 'riemann_sum':
-            R1.set_default_prec(self.parent()._U.weight()+1)
+            R1.set_default_prec(self.parent()._U.weight() + 1)
             for e in E:
                 ii += 1
                 #print ii,"/",len(E)
-                exp = ((R1([e[1,1],e[1,0]]))**(self.parent()._U.weight())*e.determinant()**(-(self.parent()._U.weight())/2))*f(R1([e[0,1],e[0,0]])/R1([e[1,1],e[1,0]]))
+                exp = ((R1([e[1, 1], e[1, 0]])) ** (self.parent()._U.weight()) * e.determinant() ** (-(self.parent()._U.weight()) / 2)) * f(R1([e[0, 1], e[0, 0]]) / R1([e[1, 1], e[1, 0]]))
                 #exp = R2([tmp[jj] for jj in range(self.parent()._k-1)])
-                new = eval_dist_at_powseries(self.evaluate(e),exp.truncate(self.parent()._U.weight()+1))
+                new = eval_dist_at_powseries(self.evaluate(e), exp.truncate(self.parent()._U.weight() + 1))
                 value += new
-        elif(method == 'moments'):
+        elif method == 'moments':
             R1.set_default_prec(self.parent()._U.base_ring().precision_cap())
             n = self.parent()._U.weight()
             for e in E:
@@ -1804,8 +1830,9 @@ class pAutomorphicFormElement(ModuleElement):
                 #print ii,"/",len(E)
                 a, b, c, d = e.list()
                 delta = e.determinant()
-                verbose('%s' % (R2([e[0,1], e[0,0]])/R2([e[1,1], e[1,0]])))
-                tmp = ((c*x+d)**n * delta**-ZZ(n/2)) * f((a*x+b) / (c*x+d))
+                verbose('%s' % (R2([e[0, 1], e[0, 0]])
+                                / R2([e[1, 1], e[1, 0]])))
+                tmp = ((c * x + d) ** n * delta ** -ZZ(n / 2)) * f((a * x + b) / (c * x + d))
                 exp = R1(tmp.numerator()) / R1(tmp.denominator())
                 new = eval_dist_at_powseries(self.evaluate(e), exp)
 
@@ -1871,9 +1898,9 @@ class pAutomorphicFormElement(ModuleElement):
             sage: ((c*x + d)^2*f(x)-f((a*x + b)/(c*x + d))).valuation()
             5
         """
-        return self.derivative(z,level,method,order = 0)
+        return self.derivative(z, level, method, order=0)
 
-    def derivative(self,z=None,level = 0,method = 'moments',order = 1):
+    def derivative(self, z=None, level=0, method='moments', order=1):
         r"""
         Returns the derivative of the modular form corresponding to
         ``self``.
@@ -1947,34 +1974,36 @@ class pAutomorphicFormElement(ModuleElement):
         the rigid analytic Shimura-Maass operator, see the thesis of
         C. Franc [2011].
         """
-        def F(z,level = level,method = method):
-            R = PolynomialRing(z.parent(),'x,y').fraction_field()
-            Rx = PolynomialRing(z.parent(),'x1').fraction_field()
+        def F(z, level=level, method=method):
+            R = PolynomialRing(z.parent(), 'x,y').fraction_field()
+            Rx = PolynomialRing(z.parent(), 'x1').fraction_field()
             x1 = Rx.gen()
-            subst = R.hom([x1,z],codomain = Rx)
-            x,y = R.gens()
+            subst = R.hom([x1, z], codomain=Rx)
+            x, y = R.gens()
             center = self.parent()._source._BT.find_containing_affinoid(z)
-            zbar = z.trace()-z
-            f = R(1)/(x-y)
-            k = self.parent()._n+2
+            zbar = z.trace() - z
+            f = R(1) / (x - y)
+            k = self.parent()._n + 2
             V = [f]
             for ii in range(order):
-                V = [v.derivative(y) for v in V]+[k/(y-zbar)*v for v in V]
+                V = [v.derivative(y) for v in V] + [k / (y - zbar) * v
+                                                    for v in V]
                 k += 2
-            return sum([self.integrate(subst(v),center,level,method) for v in V])
+            return sum([self.integrate(subst(v), center, level, method)
+                        for v in V])
         if z is None:
             return F
 
-        return F(z,level,method)
+        return F(z, level, method)
 
-    # So far we can't break it into two integrals because of the pole
+    # So far we cannot break it into two integrals because of the pole
     # at infinity.
     def coleman(self, t1, t2, E=None, method='moments', mult=False,
                 delta=-1, level=0):
         r"""
         If ``self`` is a `p`-adic automorphic form that
         corresponds to a rigid modular form, then this computes the
-        coleman integral of this form between two points on the
+        Coleman integral of this form between two points on the
         boundary `\PP^1(\QQ_p)` of the `p`-adic upper half plane.
 
         INPUT:
@@ -2064,24 +2093,24 @@ class pAutomorphicFormElement(ModuleElement):
                 ii += 1
                 f = (x - t1) / (x - t2)
                 a, b, c, d = e.list()
-                y0 = f(R1([b,a])/R1([d,c]))  # f( (ax+b)/(cx+d) )
-                y0 = p**(-y0(ZZ(0)).valuation()) * y0
+                y0 = f(R1([b, a]) / R1([d, c]))  # f( (ax+b)/(cx+d) )
+                y0 = p ** (-y0(ZZ(0)).valuation()) * y0
                 mu = K.teichmuller(y0(ZZ(0)))
                 y = y0 / mu - 1
                 poly = R1(0)
                 ypow = y
-                for jj in range(1,R1.default_prec()+10):
-                    poly += (-1)**(jj+1)*ypow/jj
+                for jj in range(1, R1.default_prec() + 10):
+                    poly += (-1) ** (jj + 1) * ypow / jj
                     ypow *= y
-                if(delta >= 0):
-                    poly *= ((r1-t1)**delta*(r1-t2)**(self.parent()._n-delta))
+                if delta >= 0:
+                    poly *= ((r1 - t1) ** delta * (r1 - t2) ** (self.parent()._n - delta))
                 c_e = self.evaluate(e)
                 new = eval_dist_at_powseries(c_e, poly)
                 if hasattr(new, 'degree'):
                     assert 0
                 value += new
                 if mult:
-                    value_exp *= K.teichmuller(((b-d*t1)/(b-d*t2)))**Integer(c_e.moment(0).rational_reconstruction())
+                    value_exp *= K.teichmuller(((b - d * t1) / (b - d * t2))) ** Integer(c_e.moment(0).rational_reconstruction())
 
         else:
             print 'The available methods are either "moments" or "riemann_sum". The latter is only provided for consistency check, and should not be used in practice.'
@@ -2091,11 +2120,11 @@ class pAutomorphicFormElement(ModuleElement):
         return value
 
 
-class pAutomorphicForms(Module,UniqueRepresentation):
+class pAutomorphicForms(Module, UniqueRepresentation):
     Element = pAutomorphicFormElement
 
     @staticmethod
-    def __classcall__(cls,domain,U,prec=None,t=None,R=None,
+    def __classcall__(cls, domain, U, prec=None, t=None, R=None,
                       overconvergent=False):
         r"""
         The module of (quaternionic) `p`-adic automorphic forms.
@@ -2135,9 +2164,12 @@ class pAutomorphicForms(Module,UniqueRepresentation):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu (2012-02-20)
         """
-        return super(pAutomorphicForms,cls).__classcall__(cls,domain,U,prec,t,R,overconvergent)
+        return super(pAutomorphicForms, cls).__classcall__(cls, domain, U,
+                                                           prec, t, R,
+                                                           overconvergent)
 
-    def __init__(self,domain,U,prec=None,t=None,R=None,overconvergent=False):
+    def __init__(self, domain, U, prec=None, t=None, R=None,
+                 overconvergent=False):
         """
         Create a space of p-automorphic forms
 
@@ -2148,20 +2180,20 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             sage: A = pAutomorphicForms(X,2,prec=10)
             sage: TestSuite(A).run()
         """
-        if(R is None):
-            if not isinstance(U,Integer):
+        if R is None:
+            if not isinstance(U, Integer):
                 self._R = U.base_ring()
             else:
-                if(prec is None):
+                if prec is None:
                     prec = 100
-                self._R = Qp(domain._p,prec)
+                self._R = Qp(domain._p, prec)
         else:
             self._R = R
         #U is a CoefficientModuleSpace
-        if isinstance(U,Integer):
+        if isinstance(U, Integer):
             if t is None:
                 if overconvergent:
-                    t = prec-U+1
+                    t = prec - U + 1
                 else:
                     t = 0
             if overconvergent:
@@ -2186,7 +2218,7 @@ class pAutomorphicForms(Module,UniqueRepresentation):
 
         self._Sigma0 = self._U._act._Sigma0
 
-        Module.__init__(self, base = self._R)
+        Module.__init__(self, base=self._R)
         self._populate_coercion_lists_()
 
     def prime(self):
@@ -2287,13 +2319,13 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             sage: A._coerce_map_from_(H)
             True
         """
-        if isinstance(S,HarmonicCocycles):
-            if S.weight()-2 != self._n:
+        if isinstance(S, HarmonicCocycles):
+            if S.weight() - 2 != self._n:
                 return False
             if S._X != self._source:
                 return False
             return True
-        if isinstance(S,pAutomorphicForms):
+        if isinstance(S, pAutomorphicForms):
             if S._n != self._n:
                 return False
             if S._source != self._source:
@@ -2301,7 +2333,7 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             return True
         return False
 
-    def _element_constructor_(self,x):
+    def _element_constructor_(self, x):
         r"""
         Constructs a p-automorphic form.
 
@@ -2336,12 +2368,12 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             F = []
             Uold = x.parent()._U
             for ii in range(len(x._F)):
-                newtmp = x.parent()._Sigma0(E[ii].rep.inverse(),check=False) * Uold(x._F[ii])  # Warning, should remove check=False!
+                newtmp = x.parent()._Sigma0(E[ii].rep.inverse(), check=False) * Uold(x._F[ii])  # Warning, should remove check=False!
                 tmp.append(newtmp)
                 F.append(newtmp)
             A = Matrix(QQ, 2, 2, [0, -1 / self.prime(), -1, 0])
             for ii in range(len(x._F)):
-                F.append(-(x.parent()._Sigma0(A.adjoint(),check=False) * tmp[ii]))
+                F.append(-(x.parent()._Sigma0(A.adjoint(), check=False) * tmp[ii]))
             vals = self._make_invariant([self._U(o) for o in F])
             return self.element_class(self, vals)
         if x == 0:
@@ -2381,7 +2413,7 @@ class pAutomorphicForms(Module,UniqueRepresentation):
         """
         return self._prec
 
-    def lift(self,f):
+    def lift(self, f):
         r"""
         Lifts the harmonic cocycle ``f`` to a p-automorphic form.
 
@@ -2452,14 +2484,14 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             Si = S[ii]
             x = self._U(F[ii])
 
-            if(any([v[2] for v in Si])):
+            if any([v[2] for v in Si]):
                 newFi = self._U(0)
                 s = QQ(0)
                 m = M[ii]
                 for v in Si:
                     s += 1
-                    newFi += self._Sigma0((m.adjoint() * self._source.embed_quaternion(v[0],prec = self._prec)*m).adjoint(),check=False) * self._U(x)
-                newF.append((1/s)*newFi)
+                    newFi += self._Sigma0((m.adjoint() * self._source.embed_quaternion(v[0], prec=self._prec) * m).adjoint(), check=False) * self._U(x)
+                newF.append((1 / s) * newFi)
             else:
                 newF.append(self._U(x))
         return newF
@@ -2488,7 +2520,9 @@ class pAutomorphicForms(Module,UniqueRepresentation):
                             for fval in f._value]
         else:
             orig_moments = [[fval._moments[ii] for ii in range(self._n + 1)]
-                            for fval in hc._F] + [[-fval._moments[ii] for ii in range(self._n+1)] for fval in hc._F]
+                            for fval in hc._F]
+            orig_moments += [[-fval._moments[ii] for ii in range(self._n + 1)]
+                             for fval in hc._F]
 
         Tf = []
         S0 = f._value[0].parent()._act._Sigma0
@@ -2496,7 +2530,9 @@ class pAutomorphicForms(Module,UniqueRepresentation):
             tmp = self._U(0)
             for gg, edge_list in HeckeData:
                 u = edge_list[jj]
-                r = (self._p**(-(u.power)) * (u.t(self._U.base_ring().precision_cap() + 2*u.power + 1)*gg)).adjoint()
+                r = (self._p ** (-(u.power))
+                     * (u.t(self._U.base_ring().precision_cap()
+                            + 2 * u.power + 1) * gg)).adjoint()
                 tmp += S0(r, check=False) * f._value[u.label]
                 # Warning: should activate check...
             tmp *= factor

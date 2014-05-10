@@ -465,9 +465,9 @@ class RootLatticeRealizations(Category_over_base_ring):
         @cached_method
         def basic_imaginary_roots(self):
             r"""
-            Return the simple imaginary roots of ``self``.
+            Return the basic imaginary roots of ``self``.
 
-            The simple imaginary roots `\beta` are the set of imaginary roots
+            The basic imaginary roots `\delta` are the set of imaginary roots
             in `-C^{\vee}` where `C` is the dominant chamger (i.e.,
             `\langle \beta, \alpha_i^{\vee} \rangle \leq 0` for all `i \in I`).
             All imaginary roots are `W`-conjugate to a simple imaginary root.
@@ -528,6 +528,15 @@ class RootLatticeRealizations(Category_over_base_ring):
                 The result should be an enumerated set, and handle
                 infinite root systems.
             """
+            # Once negative_roots() works for infinite root systems
+            #if not self.cartan_type().is_finite():
+            #    from sage.sets.disjoint_union_enumerated_sets \
+            #                    import DisjointUnionEnumeratedSets
+            #    D =  DisjointUnionEnumeratedSets([self.positive_roots(),
+            #                                      self.negative_roots()])
+            #    D.rename("All roots of type {}".format(self.cartan_type()))
+            #    return D
+
             return list(self.positive_roots()) + list(self.negative_roots())
 
         def short_roots(self):
@@ -584,10 +593,22 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted(L.positive_roots())
                 [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3],
                  alpha[2], alpha[2] + alpha[3], alpha[3]]
+
                 sage: L = RootSystem(['A',3,1]).root_lattice()
-                sage: L.positive_roots()
+                sage: PR = L.positive_roots(); PR
                 Disjoint union of Family (Positive real roots of type ['A', 3, 1],
                     Positive imaginary roots of type ['A', 3, 1])
+                sage: [PR.unrank(i) for i in range(10)]
+                [alpha[1],
+                 alpha[2],
+                 alpha[3],
+                 alpha[1] + alpha[2],
+                 alpha[2] + alpha[3],
+                 alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
             """
             if self.cartan_type().is_affine():
                 from sage.sets.disjoint_union_enumerated_sets \
@@ -608,9 +629,21 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted(L.positive_real_roots())
                 [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3],
                  alpha[2], alpha[2] + alpha[3], alpha[3]]
+
                 sage: L = RootSystem(['A',3,1]).root_lattice()
-                sage: L.positive_real_roots()
+                sage: PRR = L.positive_real_roots(); PRR
+                sage: [PRR.unrank(i) for i in range(10)]
                 Positive real roots of type ['A', 3, 1]
+                [alpha[1],
+                 alpha[2],
+                 alpha[3],
+                 alpha[1] + alpha[2],
+                 alpha[2] + alpha[3],
+                 alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
             """
             if self.cartan_type().is_finite():
                 return tuple(TransitiveIdealGraded(attrcall('pred'), self.simple_roots()))
@@ -664,9 +697,16 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(['A',3]).root_lattice()
                 sage: L.positive_imaginary_roots()
                 ()
+
                 sage: L = RootSystem(['A',3,1]).root_lattice()
-                sage: L.positive_imaginary_roots()
+                sage: PIR = L.positive_imaginary_roots(); PIR
                 Positive imaginary roots of type ['A', 3, 1]
+                sage: [PIR.unrank(i) for i in range(5)]
+                [alpha[0] + alpha[1] + alpha[2] + alpha[3],
+                 2*alpha[0] + 2*alpha[1] + 2*alpha[2] + 2*alpha[3],
+                 3*alpha[0] + 3*alpha[1] + 3*alpha[2] + 3*alpha[3],
+                 4*alpha[0] + 4*alpha[1] + 4*alpha[2] + 4*alpha[3],
+                 5*alpha[0] + 5*alpha[1] + 5*alpha[2] + 5*alpha[3]]
             """
             if self.cartan_type().is_finite():
                 return ()
@@ -2715,7 +2755,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 (\alpha_i | \alpha_j) = b_{ij}
 
-            and extended bilinearly.
+            and extended bilinearly. See Chapter 6 in Kac, Infinite
+            Dimensional Lie Algebras for more details.
 
             EXAMPLES::
 

@@ -842,7 +842,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 return cm_inv.transpose() * matrix.diagonal(diag)
 
             if not ct.is_affine():
-                raise NotImplementedError
+                raise ValueError("only implemented for affine types when the"
+                                 " Cartan matrix is singular")
 
             r = ct.rank()
             a = ct.a()
@@ -860,6 +861,15 @@ class WeightLatticeRealizations(Category_over_base_ring):
         def symmetric_form(self, la):
             r"""
             Return the symmetric form of ``self`` with ``la``.
+
+            Return the pairing `( | )` on the weight lattice. See Chapter 6
+            in Kac, Infinite Dimensional Lie Algebras for more details.
+
+            .. WARNING::
+
+                For affine root systems, if you are not working in the
+                extended weight lattice/space, this may return incorrect
+                results.
 
             EXAMPLES::
 
@@ -899,6 +909,20 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 [1, 0, 0]
 
                 sage: P = RootSystem(['C',2,1]).weight_lattice()
+                sage: Q = RootSystem(['C',2,1]).root_lattice()
+                sage: al = P.simple_roots()
+                sage: alQ = Q.simple_roots()
+                sage: all(al[i].symmetric_form(al[j]) == alQ[i].symmetric_form(alQ[j])
+                ....:     for i in P.index_set() for j in P.index_set())
+                True
+
+            The result of `(\Lambda_0 | \alpha_0)` should be `1`, however we
+            get `0` because we are not working in the extended weight
+            lattice::
+
+                sage: La = P.basis()
+                sage: [La[0].symmetric_form(al) for al in P.simple_roots()]
+                [0, 0, 0]
             """
             P = self.parent()
             ct = P.cartan_type()
@@ -911,6 +935,4 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             return sum(cl*sym[iset.index(ml),iset.index(mr)]*cr
                        for ml,cl in self for mr,cr in la)
-
-            raise NotImplementedError
 

@@ -105,8 +105,6 @@ mathematical properties::
     sage: T.is_finite(), T.is_simply_laced(), T.is_affine(), T.is_crystallographic()
     (True, True, False, True)
 
-It will eventually include Coxeter numbers, etc.
-
 In particular, a Sage Cartan type is endowed with a fixed choice of
 labels for the nodes of the Dynkin diagram. This choice follows the
 conventions of Nicolas Bourbaki, Lie Groups and Lie Algebras: Chapter 4-6,
@@ -2305,6 +2303,12 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
     def coxeter_number(self):
         """
         Return the Coxeter number associated with ``self``.
+
+        The Coxeter number is the order of a Coxeter element of the
+        corresponding Weyl group.
+
+        See Bourbaki, Lie Groups and Lie Algebras V.6.1 or
+        :wikipedia:`Coxeter_element` for more information.
 
         EXAMPLES::
 

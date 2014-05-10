@@ -38,8 +38,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
-from sage.structure.sage_object import SageObject
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.graphs.graph import Graph
 
 # we import everything from sage.misc.permutation
@@ -1110,7 +1108,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: const = Constellations(3,3);const
+            sage: const = Constellations(3,3); const
             Connected constellations of length 3 and degree 3
             sage: const.first()
             Constellation of length 3 and degree 3
@@ -1121,7 +1119,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
         if self._connected:
             g = [str(tuple(range(self._degree)))] * self._length
         else:
-            g = [range(d)] * self._length
+            g = [range(self._degree)] * self._length
         return self(g, check=False)
 
     def last(self):
@@ -1139,9 +1137,9 @@ class Constellations_ld(UniqueRepresentation, Parent):
             g2 (0,2,1)
         """
         if self._connected:
-            g = [str(tuple(range(self._degree-1, -1, -1)))] * self._length
+            g = [str(tuple(range(self._degree - 1, -1, -1)))] * self._length
         else:
-            g = [range(d-1,-1,-1)] * self._length
+            g = [range(self._degree - 1, -1, -1)] * self._length
         return Constellation(g, check=False, mutable=False)
 
     def _repr_(self):
@@ -1300,7 +1298,6 @@ class Constellations_ld(UniqueRepresentation, Parent):
              Looped multi-digraph on 1 vertex]
         """
         G = []
-        I = iter(self)
         for c in self:
             c = c.relabel()
             if any(c in g for g in G):
@@ -1527,7 +1524,6 @@ class Constellations_p(UniqueRepresentation, Parent):
              Looped multi-digraph on 1 vertex]
         """
         G = []
-        I = iter(self)
         for c in self:
             c = c.relabel()
             if any(c in g for g in G):

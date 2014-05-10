@@ -21,6 +21,9 @@ AUTHORS:
 - Paul Scurek (2013-08-06): added recover_formula, recover_formula_internal,
   prefix_to_infix, to_infix_internal
 
+- Paul Scurek (2013-08-08): added get_trees, error handling in polish_parse,
+  recover_formula_internal, and tree_parse
+
 EXAMPLES:
 
 Find the parse tree and variables of a string representation of a boolean formula::
@@ -79,6 +82,8 @@ Find the full syntax parse tree of a boolean formula from a list of tokens::
 
 from types import *
 import string
+import propcalc
+import boolformula
 
 __symbols = '()&|~<->^'
 __op_list = ['~', '&', '|', '^', '->', '<->']
@@ -147,12 +152,72 @@ def polish_parse(s):
 
     - Paul Scurek (2013-08-03)
     """
+    if (s.count('(') != s.count(')')) or not s:
+        raise SyntaxError("malformed statement")
+
     toks, vars_order = tokenize(s)
     tree = tree_parse(toks, polish = True)
     # special case where the formula s is a single variable
     if isinstance(tree, StringType):
         return vars_order
     return tree
+
+def get_trees(*statements):
+    r"""
+    Return the full syntax parse trees of the statements.
+
+    INPUT:
+
+    - ``*statements`` -- strings or :class:`BooleanFormula` instances.
+
+    OUTPUT:
+
+    The parse trees in a list
+
+    EXAMPLES:
+
+    This example illustrates finding the parse trees of multiple formulas.
+
+    ::
+
+        sage: import sage.logic.propcalc as propcalc
+        sage: import sage.logic.logicparser as logicparser
+        sage: f = propcalc.formula("((a|b)&~~c)")
+        sage: g = "a<->(~(c))"
+        sage: h = "~b"
+        sage: logicparser.get_trees(f, g, h)
+        [['&', ['|', 'a', 'b'], ['~', ['~', 'c']]],
+        ['<->', 'a', ['~', 'c']],
+        ['~', 'b']]
+
+    ::
+
+        sage: i = "(~q->p)"
+        sage: j = propcalc.formula("a")
+        sage: logicparser.get_trees(i, j)
+        [['->', ['~', 'q'], 'p'], ['a']]
+
+    ::
+
+        sage: k = "p"
+        sage: logicparser.get_trees(k)
+        [['p']]
+
+    AUTHORS:
+
+    - Paul Scurek (2013-08-06)
+    """
+    trees = []
+
+    for statement in statements:
+        if not isinstance(statement, boolformula.BooleanFormula):
+            try:
+                trees.append(polish_parse(statement))
+            except (NameError, SyntaxError):
+                raise SyntaxError("malformed statement")
+        else:
+            trees.append(statement.full_tree())
+    return trees
 
 def recover_formula(prefix_tree):
     r"""
@@ -209,7 +274,7 @@ def recover_formula(prefix_tree):
     """
     formula = ''
     if not isinstance(prefix_tree, list):
-        raise ValueError("the input must be a parse tree as a list")
+        raise TypeError("the input must be a parse tree as a list")
 
     formula = apply_func(prefix_tree, recover_formula_internal)
     if prefix_tree[0] == '~' or len(prefix_tree) == 1:
@@ -276,10 +341,19 @@ def recover_formula_internal(prefix_tree):
 
     - Paul Scurek (2013-08-06)
     """
+    formula = ''
+
     if len(prefix_tree) == 3:
-        return '(' + prefix_tree[1] + prefix_tree[0] + prefix_tree[2] + ')'
+        bool_formula = '(' + prefix_tree[1] + prefix_tree[0] + prefix_tree[2] + ')'
     else:
-        return ''.join(prefix_tree)
+        bool_formula = ''.join(prefix_tree)
+
+    try:
+        bool_formula = propcalc.formula(bool_formula)
+    except (SyntaxError, NameError):
+        raise SyntaxError
+
+    return repr(bool_formula)
 
 def prefix_to_infix(prefix_tree):
     r"""
@@ -422,8 +496,7 @@ def tokenize(s):
             skip = 3
         # check to see if '-', '<' or '>' are used incorrectly
         elif s[i] in '<->':
-            msg = "'%s' can only be used as part of the operators '<->' or '->'." % (s[i])
-            raise SyntaxError, msg
+            raise SyntaxError("'%s' can only be used as part of the operators '<->' or '->'." % (s[i]))
         if len(tok) > 0:
             toks.append(tok)
             i += skip
@@ -499,6 +572,9 @@ def tree_parse(toks, polish = False):
         sage: logicparser.tree_parse(t, polish = True)
         ['->', 'a', ['~', ['~', 'b']]]
     """
+    if toks[1] in ['|', '&', '->', '<->', '^']:
+        raise SyntaxError
+
     stack = []
     for tok in toks:
         stack.append(tok)

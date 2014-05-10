@@ -10,7 +10,7 @@ Indexed Generators
 
 from sage.rings.all import Integer
 
-class IndexedGenerators:
+class IndexedGenerators(object):
     r"""
     Abstract base class for parents whose elements consist of generators
     indexed by an arbitrary set.
@@ -78,10 +78,44 @@ class IndexedGenerators:
 
         These print options may also be accessed and modified using the
         :meth:`print_options` method, after the parent has been defined.
+
+    EXAMPLES:
+
+    We demonstrate a variety of the input options::
+
+        sage: from sage.structure.indexed_generators import IndexedGenerators
+        sage: I = IndexedGenerators(ZZ, prefix='A')
+        sage: I._repr_generator(2)
+        'A[2]'
+        sage: I._latex_generator(2)
+        'A_{2}'
+
+        sage: I = IndexedGenerators(ZZ, bracket='(')
+        sage: I._repr_generator(2)
+        'x(2)'
+        sage: I._latex_generator(2)
+        'x_{2}'
+
+        sage: I = IndexedGenerators(ZZ, prefix="", latex_bracket='(')
+        sage: I._repr_generator(2)
+        '[2]'
+        sage: I._latex_generator(2)
+        \left( 2 \right)
+
+        sage: I = IndexedGenerators(ZZ, bracket=['|', '>'])
+        sage: I._repr_generator(2)
+        'x|2>'
     """
     def __init__(self, indices, prefix="x", **kwds):
         """
         Initialize ``self``.
+
+        EXAMPLES:
+
+        This is a mixin class, so don't need pickling equality::
+
+            sage: I = sage.structure.indexed_generators.IndexedGenerators(ZZ)
+            sage: TestSuite(I).run(skip='_test_pickling')
         """
         self._indices = indices
 
@@ -172,7 +206,10 @@ class IndexedGenerators:
         TESTS::
 
             sage: sorted(F.print_options().items())
-            [('bracket', '('), ('latex_bracket', False), ('latex_prefix', None), ('latex_scalar_mult', None), ('generator_cmp', <built-in function cmp>), ('prefix', 'x'), ('scalar_mult', '*'), ('tensor_symbol', None)]
+            [('bracket', '('), ('generator_cmp', <built-in function cmp>),
+             ('latex_bracket', False), ('latex_prefix', None),
+             ('latex_scalar_mult', None), ('prefix', 'x'),
+             ('scalar_mult', '*'), ('tensor_symbol', None)]
             sage: F.print_options(bracket='[') # reset
         """
         # don't just use kwds.get(...) because I want to distinguish

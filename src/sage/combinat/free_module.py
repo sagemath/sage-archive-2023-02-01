@@ -13,6 +13,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.sage_object import have_same_parent
+from sage.structure.indexed_generators import IndexedGenerators
 from sage.modules.free_module_element import vector
 from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
@@ -29,7 +30,6 @@ from sage.categories.all import ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
 from sage.misc.ascii_art import AsciiArt, empty_ascii_art
-from sage.misc.indexed_generators import IndexedGenerators
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -997,67 +997,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
       default None, in which case use the "category of modules with
       basis" over the base ring ``R``)
 
-    Options controlling the printing of elements:
+    For the options controlling the printing of elements, see
+    :class:`~sage.structure.indexed_generators.IndexedGenerators`.
 
-    - ``prefix`` - string, prefix used for printing elements of this
-      module (optional, default 'B').  With the default, a monomial
-      indexed by 'a' would be printed as ``B['a']``.
+    .. NOTE::
 
-    - ``latex_prefix`` - string or None, prefix used in the LaTeX
-      representation of elements (optional, default None). If this is
-      anything except the empty string, it prints the index as a
-      subscript.  If this is None, it uses the setting for ``prefix``,
-      so if ``prefix`` is set to "B", then a monomial indexed by 'a'
-      would be printed as ``B_{a}``.  If this is the empty string, then
-      don't print monomials as subscripts: the monomial indexed by 'a'
-      would be printed as ``a``, or as ``[a]`` if ``latex_bracket`` is
-      True.
-
-    - ``bracket`` - None, bool, string, or list or tuple of
-      strings (optional, default None): if None, use the value of the
-      attribute ``self._repr_option_bracket``, which has default value
-      True.  (``self._repr_option_bracket`` is available for backwards
-      compatibility.  Users should set ``bracket`` instead.  If
-      ``bracket`` is set to anything except None, it overrides
-      the value of ``self._repr_option_bracket``.)  If False, do not
-      include brackets when printing elements: a monomial indexed by
-      'a' would be printed as ``B'a'``, and a monomial indexed by
-      (1,2,3) would be printed as ``B(1,2,3)``.  If True, use "[" and
-      "]" as brackets.  If it is one of "[", "(", or "{", use it and
-      its partner as brackets.  If it is any other string, use it as
-      both brackets.  If it is a list or tuple of strings, use the
-      first entry as the left bracket and the second entry as the
-      right bracket.
-
-    - ``latex_bracket`` - bool, string, or list or tuple of strings
-      (optional, default False): if False, do not include brackets in
-      the LaTeX representation of elements.  This option is only
-      relevant if ``latex_prefix`` is the empty string; otherwise,
-      brackets are not used regardless.  If True, use "\\left[" and
-      "\\right]" as brackets.  If this is one of "[", "(", "\\{", "|",
-      or "||", use it and its partner, prepended with "\\left" and
-      "\\right", as brackets.  If this is any other string, use it as
-      both brackets.  If this is a list or tuple of strings, use the
-      first entry as the left bracket and the second entry as the
-      right bracket.
-
-    - ``scalar_mult`` - string to use for scalar multiplication in
-      the print representation (optional, default "*")
-
-    - ``latex_scalar_mult`` - string or None (optional, default None),
-      string to use for scalar multiplication in the latex
-      representation.  If None, use the empty string if ``scalar_mult``
-      is set to "*", otherwise use the value of ``scalar_mult``.
-
-    - ``tensor_symbol`` - string or None (optional, default None),
-      string to use for tensor product in the print representation. If
-      None, use the ``sage.categories.tensor.symbol``.
-
-    - ``generator_cmp`` - a comparison function (optional, default cmp),
-      to use for sorting elements in the output of elements
-
-    .. note:: These print options may also be accessed and modified using the
-       :meth:`print_options` method, after the module has been defined.
+        These print options may also be accessed and modified using the
+        :meth:`print_options` method, after the module has been defined.
 
     EXAMPLES:
 

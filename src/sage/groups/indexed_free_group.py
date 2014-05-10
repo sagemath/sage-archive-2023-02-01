@@ -22,8 +22,8 @@ AUTHORS:
 from copy import copy
 from sage.categories.groups import Groups
 from sage.groups.group import Group, AbelianGroup
-from sage.monoids.indexed_monoid import IndexedMonoidElement, IndexedFreeMonoid, \
-        IndexedFreeAbelianMonoid
+from sage.monoids.indexed_free_monoid import (IndexedMonoidElement,
+        IndexedFreeMonoid, IndexedFreeAbelianMonoid)
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
@@ -180,7 +180,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
                 sage: len(elt)
                 7
             """
-            return sum(abs(exp) for gen,exp in self._sorted_items())
+            return sum(abs(exp) for gen,exp in self._monomial)
 
         length = __len__
 
@@ -199,9 +199,9 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
                 sage: (a*b^-2*d^2) * (d^-2*b^2*a^-1)
                 1
             """
-            if len(self._monomial) == 0:
+            if not self._monomial:
                 return other
-            if len(other._monomial) == 0:
+            if not other._monomial:
                 return self
 
             ret = list(self._monomial)
@@ -226,43 +226,8 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
                 sage: x * ~x
                 1
             """
-            return self.__class__(self.parent(), tuple((x[0], -x[1]) for x in reversed(self._monomial)))
-
-        def __pow__(self, n):
-            """
-            Raise ``self`` to the `n`-th power.
-
-            EXAMPLES::
-
-                sage: F = FreeGroup(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
-                sage: x = a*b^2*e*a^-1; x
-                F[0]*F[1]^2*F[4]*F[0]^-1
-                sage: x^3
-                F[0]*F[1]^2*F[4]*F[1]^2*F[4]*F[1]^2*F[4]*F[0]^-1
-                sage: x^0
-                1
-                sage: x^-3
-                F[0]*F[4]^-1*F[1]^-2*F[4]^-1*F[1]^-2*F[4]^-1*F[1]^-2*F[0]^-1
-            """
-            if not isinstance(n, (int, long, Integer)):
-                raise TypeError("Argument n (= {}) must be an integer".format(n))
-            if n == 0:
-                return self.parent().one()
-            if n == 1:
-                return self
-            if n == -1:
-                return ~self
-            if len(self._monomial) == 1:
-                gen,exp = self._monomial[0]
-                return self.__class__(self.parent(), ((gen, exp*n),))
-            if n < 0:
-                self = ~self
-                n = -n
-            ret = self
-            for i in range(n-1):
-                ret *= self
-            return ret
+            return self.__class__(self.parent(),
+                   tuple((x[0], -x[1]) for x in reversed(self._monomial)))
 
         def to_word_list(self):
             """
@@ -279,7 +244,8 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
                 [(0, 1), (1, 1), (1, 1), (4, 1), (0, -1)]
             """
             sign = lambda x: 1 if x > 0 else -1 # It is never 0
-            return [ (k, sign(e)) for k,e in self._sorted_items() for dummy in range(abs(e))]
+            return [ (k, sign(e)) for k,e in self._sorted_items()
+                     for dummy in range(abs(e))]
 
 class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
     """

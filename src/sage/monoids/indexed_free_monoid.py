@@ -16,10 +16,10 @@ AUTHORS:
 from copy import copy
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.indexed_generators import IndexedGenerators
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
+from sage.structure.indexed_generators import IndexedGenerators
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
@@ -73,7 +73,7 @@ class IndexedMonoidElement(MonoidElement):
     @abstract_method
     def _sorted_items(self):
         """
-        Return the items (i.e terms) of ``self``, sorted for printing.
+        Return the sorted items (i.e factors) of ``self``.
 
         EXAMPLES::
 
@@ -340,7 +340,7 @@ class IndexedMonoidElement(MonoidElement):
             sage: len(elt)
             7
         """
-        return sum(exp for gen,exp in self._sorted_items())
+        return sum(exp for gen,exp in self._monomial)
 
     length = __len__
 
@@ -453,7 +453,7 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
 
     def _sorted_items(self):
         """
-        Return the items (i.e terms) of ``self``, sorted for printing.
+        Return the sorted items (i.e factors) of ``self``.
 
         EXAMPLES::
 
@@ -486,9 +486,9 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
             sage: (a*b^2*d^2) * (d^4*b*e)
             F[0]*F[1]^2*F[3]^6*F[1]*F[4]
         """
-        if len(self._monomial) == 0:
+        if not self._monomial:
             return other
-        if len(other._monomial) == 0:
+        if not other._monomial:
             return self
 
         ret = list(self._monomial)
@@ -497,37 +497,6 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
             rhs[0] = (rhs[0][0], rhs[0][1] + ret.pop()[1])
         ret += rhs
         return self.__class__(self.parent(), tuple(ret))
-
-    def __pow__(self, n):
-        """
-        Raise ``self`` to the power of ``n``.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(index_set=ZZ)
-            sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
-            sage: x = a*b^2*e*d*a; x
-            F[0]*F[1]^2*F[4]*F[3]*F[0]
-            sage: x^3
-            F[0]*F[1]^2*F[4]*F[3]*F[0]^2*F[1]^2*F[4]*F[3]*F[0]^2*F[1]^2*F[4]*F[3]*F[0]
-            sage: x^0
-            1
-        """
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError("Argument n (= {}) must be an integer".format(n))
-        if n < 0: 
-            raise ValueError("Argument n (= {}) must be positive".format(n))
-        if n == 1:
-            return self
-        if n == 0:
-            return self.parent().one()
-        if len(self._monomial) == 1:
-            gen,exp = self._monomial[0]
-            return self.__class__(self.parent(), ((gen, exp*n),))
-        ret = self
-        for i in range(n-1):
-            ret *= self
-        return ret
 
 class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
     """
@@ -551,7 +520,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
 
     def _sorted_items(self):
         """
-        Return the items (i.e terms) of ``self``, sorted for printing.
+        Return the sorted items (i.e factors) of ``self``.
 
         EXAMPLES::
 
@@ -743,8 +712,6 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         """
         if x is None or x == 1:
             return self.one()
-        if isinstance(x, IndexedFreeAbelianMonoidElement) and x.parent() is self:
-            return x
         if x in self._indices:
             return self.gens()[x]
         return self.element_class(self, x)

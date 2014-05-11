@@ -1543,13 +1543,13 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
-            A, w, aut_factor = self.group().get_FD(tau,self.parent().aut_factor)
+            A, w, aut_factor = self.group().get_FD(tau,self.force_reduce().parent().aut_factor)
             if (type(q_exp) == LaurentSeries):
                 return q_exp.laurent_polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))*aut_factor
             else:
                 return q_exp.polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))*aut_factor
         elif (self._rat == z):
-            E2 = self.parent().graded_ring().E2()
+            E2 = self.parent().graded_ring().E2().force_reduce()
             A, w, aut_factor = self.group().get_FD(tau,E2.parent().aut_factor)
             E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))
             E2_cor_term = 4*self.group().lam()/(2*pi*i).n(num_prec)*self.hecke_n()/(self.hecke_n()-2) * A[1][0]*(A[1][0]*w + A[1][1])

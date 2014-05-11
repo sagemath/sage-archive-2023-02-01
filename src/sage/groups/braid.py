@@ -119,8 +119,6 @@ class Braid(FinitelyPresentedGroupElement):
         EXAMPLES::
 
             sage: B.<s0,s1,s2> = BraidGroup(4)
-            sage: hash(s0)
-            -1184448634
             sage: hash(s0*s2) == hash(s2*s0)
             True
             sage: hash(s0*s1) == hash(s1*s0)

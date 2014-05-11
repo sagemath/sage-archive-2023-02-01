@@ -135,7 +135,7 @@ def hadamard_matrix_paleyI(n):
     The Paley type I case corresponds to the case `p \cong 3 \bmod{4}` for a
     prime `p` (see [Hora]_).
 
-    EXAMPLES::
+    EXAMPLES:
 
     We note that this method returns a normalised Hadamard matrix ::
 

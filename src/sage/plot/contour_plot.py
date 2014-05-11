@@ -558,6 +558,10 @@ def implicit_plot(f, xrange, yrange, **options):
     - ``fill`` -- boolean (default: ``False``); if ``True``, fill the region
       `f(x,y) < 0`.
 
+    - ``fillcolor`` -- string (default: ``blue``), the color of the region
+      where `f(x,y)<0` if ``fill=True``. Colors are defined in
+      :mod:`sage.plot.colors`; try ``colors?`` to see them all.
+
     - ``linewidth`` -- integer (default: None), if a single integer all levels
       will be of the width given, otherwise the levels will be plotted with the
       widths in the order given.
@@ -568,6 +572,8 @@ def implicit_plot(f, xrange, yrange, **options):
 
     - ``color`` -- string (default: ``blue``), the color of the plot. Colors are
       defined in :mod:`sage.plot.colors`; try ``colors?`` to see them all.
+      If ``fill=True``, then this sets only the color of the border of the
+      plot. See ``fillcolor`` for setting the color of the fill region.
 
     - ``legend_label`` -- the label for this item in the legend
 
@@ -623,6 +629,10 @@ def implicit_plot(f, xrange, yrange, **options):
     You can even change the color of the plot::
 
         sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3), color="red")
+
+    The color of the fill region can be changed::
+
+        sage: implicit_plot(f, (-3, 3), (-3, 3), fill=True, fillcolor='red')
 
     Here is a beautiful (and long) example which also tests that all
     colors work with this::
@@ -695,16 +705,21 @@ def implicit_plot(f, xrange, yrange, **options):
     if options['fill'] is True:
         options.pop('fill')
         options.pop('contours',None)
-        options.pop('cmap',None)
+        incol = options.pop('fillcolor', 'blue')
+        bordercol = options.pop('cmap', None)
         from sage.symbolic.expression import is_Expression
         if not is_Expression(f):
             return region_plot(lambda x,y: f(x,y)<0, xrange, yrange,
                                borderwidth=linewidths, borderstyle=linestyles,
+                               incol=incol, bordercol=bordercol,
                                **options)
         else:
             return region_plot(f<0, xrange, yrange, borderwidth=linewidths,
-                               borderstyle=linestyles, **options)
+                               borderstyle=linestyles,
+                               incol=incol, bordercol=bordercol,
+                               **options)
     elif options['fill'] is False:
+        options.pop('fillcolor', None)
         return contour_plot(f, xrange, yrange, linewidths=linewidths,
                             linestyles=linestyles, **options)
     else:

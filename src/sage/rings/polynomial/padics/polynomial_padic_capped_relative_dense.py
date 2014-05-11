@@ -29,10 +29,11 @@ min = misc.min
 ZZ = sage.rings.integer_ring.ZZ
 PrecisionError = precision_error.PrecisionError
 Integer = sage.rings.integer.Integer
-Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
 Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
+Polynomial_generic_cdv = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_cdv
 
-class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomial_padic):
+
+class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_padic):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
         TESTS::
@@ -46,6 +47,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             (1 + O(13^7))*t + (2 + O(13^7))
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
+        self._polygon = None
         parentbr = parent.base_ring()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if construct:
@@ -153,9 +155,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: R.<t> = Zp(5)[]
             sage: t._new_constant_poly(O(5),R)
             (O(5))
-
         """
-        return self.__class__(P,[a], check=False)
+        return self.__class__(P, [a], check=False)
 
     def _normalize(self):
         # Currently slow: need to optimize
@@ -305,8 +306,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
              13^2 + O(13^9),
              0,
              2 + O(13^7)]
-         """
-
+        """
         if self._list is None:
             self._comp_list()
         return list(self._list)
@@ -742,25 +742,56 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
     def __copy__(self):
         return Polynomial_padic_capped_relative_dense(self.parent(), (copy.copy(self._poly), self._valbase, copy.copy(self._relprecs), self._normalized, copy.copy(self._valaddeds), copy.copy(self._list)), construct = True)
 
-    def degree(self):
+    def degree(self, secure=False):
         """
-        Returns the degree of self, i.e., the largest $n$ so that the
-        coefficient of $x^n$ does not compare equal to $0$.
+        INPUT:
+
+        - secure  -- a boolean (default: False)
+
+        OUTPUT:
+
+        The degree of self.
+
+        If ``secure`` is True and the degree of this polynomial
+        is not determined (because the leading coefficient is 
+        indistinguishable from 0), an error is raised
+
+        If ``secure`` is False, the returned value is the largest 
+        $n$ so that the coefficient of $x^n$ does not compare equal 
+        to $0$.
 
         EXAMPLES::
 
             sage: K = Qp(3,10)
-            sage: x = O(3^5)
-            sage: li =[3^i * x for i in range(0,5)]; li
-            [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
             sage: R.<T> = K[]
+            sage: f = T + 2; f
+            (1 + O(3^10))*T + (2 + O(3^10))
+            sage: f.degree()
+            1
+            sage: (f-T).degree()
+            0
+            sage: (f-T).degree(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: the leading coefficient is indistinguishable from 0
+
+            sage: x = O(3^5)
+            sage: li = [3^i * x for i in range(0,5)]; li
+            [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
             sage: f = R(li); f
             (O(3^9))*T^4 + (O(3^8))*T^3 + (O(3^7))*T^2 + (O(3^6))*T + (O(3^5))
             sage: f.degree()
             -1
+            sage: f.degree(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: the leading coefficient is indistinguishable from 0
         """
         self._normalize()
-        return Integer(self._poly.degree())
+        deg = Integer(self._poly.degree())
+        if secure and deg < self.prec_degree():
+            raise PrecisionError("the leading coefficient is indistinguishable from 0")
+        return deg
 
     def prec_degree(self):
         """
@@ -822,16 +853,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         If n == None, returns a list of valuations of coefficients.  Otherwise,
         returns the valuation of the coefficient of x^n.
         """
+        if self._valaddeds is None:
+            self._comp_valaddeds()
         if n is None:
             self._normalize()
-            return [c + self._valbase for c in self._valadded]
+            return [ c + self._valbase for c in self._valaddeds ]
         n = int(n)
         if n < 0 or n >= len(self._relprecs):
             return infinity
-        if self._valaddeds is None:
-            return self._valbase + self._poly[n].valuation(self.base_ring().prime())
-        else:
-            return self._valbase + self._valaddeds[n]
+        return self._valbase + self._valaddeds[n]
 
     def valuation(self, val_of_var = None):
         """
@@ -932,8 +962,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             zzpoly = self._poly.rescale(Integer(a))
         return Polynomial_padic_capped_relative_dense(self.parent(), (zzpoly, self._valbase, relprec, False, valadded, None), construct = True)
 
-    def quo_rem(self, right):
-        return self._quo_rem_naive(right)
+    def quo_rem(self, right, secure=False):
+        return self._quo_rem_list(right, secure=secure)
 
     def _quo_rem_naive(self, right):
         """
@@ -951,6 +981,33 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             quo = quo + a * (x ** (f.degree() - g.degree()))
             f = f - a * (x ** (f.degree() - g.degree())) * g
         return (quo, f)
+
+    def _quo_rem_list(self, right, secure):
+        """
+        An implementation of quo_rem using lists of coefficients.
+
+        Faster than the previous one.
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03)
+        """
+        if right.is_zero():
+            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
+        a = self.list(); da = len(a)-1
+        b = right.list(); db = right.degree(secure=secure)
+        inv = ~b[db]
+        q = [ ]
+        for i in range(da,db-1,-1):
+            c = inv*a[i]
+            q.append(c)
+            for j in range(db):
+                a[j+i-db] -= c*b[j]
+        q.reverse()
+        K = self.base_ring().fraction_field()
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        parent = PolynomialRing(K, name=self.parent().variable_name())
+        return parent(q), parent(a[:db])
 
     #def gcd(self, right):
     #    raise NotImplementedError
@@ -1082,6 +1139,68 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                 raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
         return polygon
 
+    def is_eisenstein(self, secure=False):
+        """
+        Return ``True`` if this polynomial is an Eisenstein polynomial.
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 5*t + t^4
+            sage: f.is_eisenstein()
+            True
+
+        TESTS::
+
+            sage: f = R([K(5,1),0,0,1]); f
+            (1 + O(5^20))*t^3 + (O(5))
+            sage: f.is_eisenstein()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision on the constant coefficient
+
+            sage: g = R([5,K(0,0),0,1]); g 
+            (1 + O(5^20))*t^3 + (O(5^0))*t + (5 + O(5^21))
+            sage: g.is_eisenstein()
+            True
+            sage: g.is_eisenstein(secure=True)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision on the coefficient of t
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03)
+        """
+        deg = self.degree()
+        if secure and self.prec_degree() > deg:
+            raise PrecisionError("The degree of the polynomial is not determined")
+        if self._valaddeds is None:
+            self._comp_valaddeds()
+        compval = 1 - self._valbase
+        valaddeds = self._valaddeds
+        relprecs = self._relprecs
+        if relprecs[0] <= compval:   # not enough precision
+            if valaddeds[0] < relprecs[0]: return False
+            raise PrecisionError("Not enough precision on the constant coefficient")
+        else:
+            if valaddeds[0] != compval: return False
+        for i in range(1, deg):
+            if relprecs[i] < compval:   # not enough precision
+                if valaddeds[i] < relprecs[i]: return False
+                if secure: 
+                    if i == 1:
+                        raise PrecisionError("Not enough precision on the coefficient of %s" % self.variable_name())
+                    else:
+                        raise PrecisionError("Not enough precision on the coefficient of %s^%s" % (self.variable_name(), i))
+            else:
+                if valaddeds[i] < compval:
+                    return False
+        if valaddeds[deg] != -self._valbase:
+            return False
+        return True
+
     def newton_slopes(self, repetition=True):
         """
         Returns a list of the Newton slopes of this polynomial.
@@ -1105,7 +1224,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: R.<t> = K[]
             sage: f = 5 + 3*t + t^4 + 25*t^10
             sage: f.newton_polygon()
-            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0),
+            (10, 2)
             sage: f.newton_slopes()
             [1, 0, 0, 0, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
 
@@ -1119,12 +1239,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         polygon = self.newton_polygon()
         return [-s for s in polygon.slopes(repetition=repetition)]
 
-    def hensel_lift(self, a):
-        raise NotImplementedError
-
     def factor_mod(self):
         r"""
         Returns the factorization of self modulo p.
+
+        EXAMPLES::
         """
         self._normalize()
         if self._valbase < 0:
@@ -1135,8 +1254,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             raise PrecisionError("Polynomial is not known to high enough precision")
         return self._poly.factor_mod(self.base_ring().prime())
 
+
 def _extend_by_infinity(L, n):
     return L + [infinity] * (n - len(L))
+
 
 def make_padic_poly(parent, x, version):
     if version == 0:

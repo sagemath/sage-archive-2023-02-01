@@ -1418,7 +1418,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 
 class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
-            element_class=None):
+            element_class=None, category=None):
         """
         TESTS::
 
@@ -1450,7 +1450,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
                 else:
                     raise ValueError("Unknown implementation %s for ZZ[x]"%implementation)
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
-                sparse=sparse, element_class=element_class)
+                sparse=sparse, element_class=element_class, category=category)
 
     def _repr_(self):
         """
@@ -1468,7 +1468,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,
                            principal_ideal_domain.PrincipalIdealDomain,
                            ):
-    def __init__(self, base_ring, name="x", sparse=False, element_class=None):
+    def __init__(self, base_ring, name="x", sparse=False, element_class=None, category=None):
         """
         TESTS::
 
@@ -1504,7 +1504,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             else:
                 element_class = polynomial_element_generic.Polynomial_generic_dense_field
 
-        PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class)
+        PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class, category=category)
 
         self._has_singular = can_convert_to_singular(self)
 
@@ -1926,14 +1926,39 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         else:
             raise ValueError("no such algorithm for finding an irreducible polynomial: %s" % algorithm)
 
-class PolynomialRing_dense_padic_ring_generic(PolynomialRing_integral_domain):
-    pass
 
-class PolynomialRing_dense_padic_field_generic(PolynomialRing_field):
-    pass
+class PolynomialRing_cdvr(PolynomialRing_integral_domain):
+    def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
+        if element_class is None:
+            if sparse:
+                from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_sparse_cdvr
+                element_class = Polynomial_generic_sparse_cdvr
+            else:
+                from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_cdvr
+                element_class = Polynomial_generic_dense_cdvr
+        PolynomialRing_integral_domain.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
+
+class PolynomialRing_cdvf(PolynomialRing_cdvr, PolynomialRing_field):
+    def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
+        if element_class is None:
+            if sparse:
+                from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_sparse_cdvf
+                element_class = Polynomial_generic_sparse_cdvf
+            else:
+                from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_cdvf
+                element_class = Polynomial_generic_dense_cdvf
+        PolynomialRing_field.__init__(self, base_ring, name, sparse, element_class=element_class, category=category)
+
+class PolynomialRing_dense_padic_ring_generic(PolynomialRing_cdvr):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
+        PolynomialRing_cdvr.__init__(self, base_ring, sparse=False, name=name, element_class=element_class, category=category)
+
+class PolynomialRing_dense_padic_field_generic(PolynomialRing_cdvf):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
+        PolynomialRing_cdvf.__init__(self, base_ring, sparse=False, name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
         TESTS::
 
@@ -1949,10 +1974,10 @@ class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic
                     Polynomial_padic_capped_relative_dense
             element_class = Polynomial_padic_capped_relative_dense
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
+                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
         TESTS::
 
@@ -1967,10 +1992,10 @@ class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic
                     Polynomial_padic_flat
             element_class = Polynomial_padic_flat
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
+                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
         TESTS::
 
@@ -1986,10 +2011,10 @@ class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_
                     Polynomial_padic_flat
             element_class = Polynomial_padic_flat
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
+                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_ring_lazy(PolynomialRing_dense_padic_ring_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
         TESTS::
 
@@ -2005,10 +2030,10 @@ class PolynomialRing_dense_padic_ring_lazy(PolynomialRing_dense_padic_ring_gener
         if element_class is None:
             element_class = polynomial_element_generic.Polynomial_generic_dense
         PolynomialRing_dense_padic_ring_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
+                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padic_field_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
         TESTS::
 
@@ -2024,10 +2049,10 @@ class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padi
                     Polynomial_padic_capped_relative_dense
             element_class = Polynomial_padic_capped_relative_dense
         PolynomialRing_dense_padic_field_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
+                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_padic_field_lazy(PolynomialRing_dense_padic_field_generic):
-    def __init__(self, base_ring, name=None, element_class=None):
+    def __init__(self, base_ring, name=None, element_class=None, category=None):
         """
         TESTS::
 
@@ -2042,11 +2067,11 @@ class PolynomialRing_dense_padic_field_lazy(PolynomialRing_dense_padic_field_gen
         if element_class is None:
             element_class = polynomial_element_generic.Polynomial_generic_dense
         PolynomialRing_dense_padic_field_generic.__init__(self, base_ring,
-                name=name, element_class=element_class)
+                name=name, element_class=element_class, category=category)
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name=None, element_class=None,
-            implementation=None):
+            implementation=None, category=None):
         """
         TESTS::
 
@@ -2098,7 +2123,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
                 else:
                     element_class = modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
-                element_class=element_class)
+                element_class=element_class, category=category)
 
     @cached_method
     def modulus(self):
@@ -2126,7 +2151,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr):
-    def __init__(self, base_ring, name="x", implementation=None):
+    def __init__(self, base_ring, name="x", implementation=None, category=None):
         """
         TESTS::
 
@@ -2177,7 +2202,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
             self._implementation_names = ('NTL',)
             self._implementation_repr = ' (using NTL)'
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name=name,
-                element_class=element_class)
+                element_class=element_class, category=category)
 
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)

@@ -574,7 +574,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         """
         if not isinstance(n, (int, long, Integer)):
             raise TypeError("Argument n (= {}) must be an integer".format(n))
-        if n < 0: 
+        if n < 0:
             raise ValueError("Argument n (= {}) must be positive".format(n))
         if n == 1:
             return self
@@ -637,7 +637,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         Return ``self`` as a dictionary.
 
         EXAMPLES::
-        
+
             sage: F = FreeAbelianMonoid(index_set=ZZ)
             sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: (a*c^3).dict()

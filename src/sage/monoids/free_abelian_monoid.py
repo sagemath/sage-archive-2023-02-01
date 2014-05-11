@@ -103,6 +103,9 @@ class FreeAbelianMonoidFactory(UniqueFactory):
 
 FreeAbelianMonoid_factory = FreeAbelianMonoidFactory("sage.monoids.free_abelian_monoid.FreeAbelianMonoid_factory")
 
+#from sage.structure.sage_object import register_unpickle_override
+#register_unpickle_override('sage.monoids.free_abelian_monoid', 'FreeAbelianMonoid', FreeAbelianMonoid_factory)
+
 def FreeAbelianMonoid(n=None, names=None, index_set=None, **kwds):
     """
     Return a free abelian monoid on `n` generators or with the generators

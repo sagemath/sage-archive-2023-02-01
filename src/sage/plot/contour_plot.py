@@ -707,6 +707,8 @@ def implicit_plot(f, xrange, yrange, **options):
         options.pop('contours',None)
         incol = options.pop('fillcolor', 'blue')
         bordercol = options.pop('cmap', None)
+        if bordercol is not None:
+            bordercol = bordercol[0]
         from sage.symbolic.expression import is_Expression
         if not is_Expression(f):
             return region_plot(lambda x,y: f(x,y)<0, xrange, yrange,

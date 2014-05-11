@@ -396,7 +396,6 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]
             sage: [next(it_breadth) for _ in range(10)]
             [0, 3, 5, 8, 10, 6, 9, 11, 13, 15]
-
         """
         if self._enumeration == 'naive':
             return self.naive_search_iterator()
@@ -411,7 +410,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         r"""
         Return ``True`` if ``elt`` is in ``self``.
 
-        .. warning::
+        .. WARNING::
 
            This is achieved by iterating through the elements using the
            default enumeration until ``elt`` is found. In particular, this
@@ -913,7 +912,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
         sage: C
         A recursively enumerated set with a graded structure (breadth first search)
         sage: sorted(C)
-        [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
+        [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0),
+         (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
     """
     def breadth_first_search_iterator(self, max_depth=None):
         r"""

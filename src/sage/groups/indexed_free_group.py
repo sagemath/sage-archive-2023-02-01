@@ -380,6 +380,27 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
             """
             return self.__pow__(-1)
 
+        def __floordiv__(self, a):
+            """
+            Return the division of ``self`` by ``a``.
+
+            EXAMPLES::
+
+                sage: F = FreeGroup(index_set=ZZ, abelian=True)
+                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: elt = a*b*c^3*d^2; elt
+                F[0]*F[1]*F[2]^3*F[3]^2
+                sage: elt // a
+                F[1]*F[2]^3*F[3]^2
+                sage: elt // c
+                F[0]*F[1]*F[2]^2*F[3]^2
+                sage: elt // a*b*d^2
+                F[2]^3
+                sage: elt // a^4
+                F[0]^-3*F[1]*F[2]^3*F[3]^2
+            """
+            return self * ~a
+
         def __pow__(self, n):
             """
             Raise ``self`` to the power of ``n``.

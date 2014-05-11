@@ -41,8 +41,8 @@ class IndexedMonoidElement(MonoidElement):
     the free abelian monoid, one could want lex order or have the highest
     powers first.
 
-    Indexed monoid elements are ordered lexicographically w.r.t. the
-    result of :meth:`_sorted_items` (which for abelian free monoids is
+    Indexed monoid elements are ordered lexicographically with respect to
+    the result of :meth:`_sorted_items` (which for abelian free monoids is
     influenced by the order on the indexing set).
     """
     def __init__(self, F, x):
@@ -605,17 +605,21 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         Cancel the element ``elt`` out of ``self``.
 
         EXAMPLES::
-        
+
             sage: F = FreeAbelianMonoid(index_set=ZZ)
             sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: elt = a*b*c^3*d^2; elt
             F[0]*F[1]*F[2]^3*F[3]^2
-            sage: elt.cancel(a)
+            sage: elt // a
             F[1]*F[2]^3*F[3]^2
-            sage: elt.cancel(c)
+            sage: elt // c
             F[0]*F[1]*F[2]^2*F[3]^2
-            sage: elt.cancel(a*b*d^2)
+            sage: elt // a*b*d^2
             F[2]^3
+            sage: elt // a^4
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid cancellation
         """
         d = copy(self._monomial)
         for k,v in elt._monomial.iteritems():
@@ -743,24 +747,26 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             pass
         return x
 
-    def gens(self):
+    def monoid_generators(self):
         """
-        Return the generators of ``self``.
+        Return the monoid generators of ``self``.
 
         EXAMPLES::
 
             sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: F.gens()
+            sage: F.monoid_generators()
             Lazy family (Generator map from Integer Ring to
              Free abelian monoid indexed by Integer Ring(i))_{i in Integer Ring}
             sage: F = FreeAbelianMonoid(index_set='abcde')
-            sage: F.gens()
+            sage: F.monoid_generators()
             Finite family {'a': F['a'], 'c': F['c'], 'b': F['b'], 'e': F['e'], 'd': F['d']}
         """
         if self._indices.cardinality() == infinity:
             gen = PoorManMap(self.gen, domain=self._indices, codomain=self, name="Generator map")
             return Family(self._indices, gen)
         return Family(self._indices, self.gen)
+
+    gens = monoid_generators
 
 class IndexedFreeMonoid(IndexedMonoid):
     """
@@ -961,6 +967,11 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             sage: F = FreeAbelianMonoid(index_set=ZZ)
             sage: F.cardinality()
             +Infinity
+            sage: F = FreeAbelianMonoid(index_set=())
+            sage: F.cardinality()
+            1
         """
+        if self._indices.cardinality() == 0:
+            return ZZ.one()
         return infinity
 

@@ -55,23 +55,20 @@ class Groups(Category_singleton):
         return GL(4,QQ)
 
     @staticmethod
-    def free(n=None, names='x', index_set=None, abelian=False, **kwds):
+    def free(index_set=None, names=None, commutative=False, **kwds):
         r"""
-        Return the free (abelian) group.
+        Return the free (commutative) group.
 
         INPUT:
 
-        - ``n`` -- an integer or ``None`` (default). The number of
-          generators. If not specified the ``names`` are counted.
+        - ``index_set`` -- (optional) an index set for the generators; if
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
 
         - ``names`` -- a string or list/tuple/iterable of strings
-          (default: ``'x'``). The generator names or name prefix.
+          (default: ``'x'``); the generator names or name prefix
 
-        - ``index_set`` -- (optional) an index set for the generators; if
-          specified then the optional keyword ``abelian`` can be used
-
-        - ``abelian`` -- (default: ``False``) whether to construct the
-          free abelian group or the free group
+        - ``commutative`` -- (default: ``False``) whether to construct the
+          free commutative (abelian) group or the free group
 
         EXAMPLES::
 
@@ -82,8 +79,28 @@ class Groups(Category_singleton):
             sage: F.<x,y,z> = Groups().free(); F
             Free Group on generators {x, y, z}
         """
-        from sage.groups.free_group import FreeGroup
-        return FreeGroup(n, names, index_set, abelian, **kwds)
+        from sage.rings.all import ZZ
+        if index_set in ZZ or (index_set is None and names is not None):
+            if not commutative:
+                from sage.groups.free_group import FreeGroup
+                return FreeGroup(index_set, names, **kwds)
+
+            if names is None:
+                names = ['F' + repr(i) for i in range(index_set)]
+            elif isinstance(names, str):
+                if ',' not in names:
+                    names = [names + repr(i) for i in range(index_set)]
+                else:
+                    names = names.split(',')
+            from sage.groups.indexed_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(names, **kwds)
+
+        if commutative:
+            from sage.groups.indexed_group import IndexedFreeAbelianGroup
+            return IndexedFreeAbelianGroup(index_set, **kwds)
+
+        from sage.groups.indexed_group import IndexedFreeGroup
+        return IndexedFreeGroup(index_set, **kwds)
 
     class ParentMethods:
 

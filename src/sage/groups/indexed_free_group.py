@@ -34,10 +34,10 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
     EXAMPLES::
 
-        sage: G = FreeGroup(index_set=ZZ)
+        sage: G = Groups().free(index_set=ZZ)
         sage: G
         Free group indexed by Integer Ring
-        sage: G = FreeGroup(index_set='abcde')
+        sage: G = Groups().free(index_set='abcde')
         sage: G
         Free group indexed by {'a', 'b', 'c', 'd', 'e'}
     """
@@ -47,9 +47,9 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
         TESTS::
 
-            sage: G = FreeGroup(index_set=ZZ)
+            sage: G = Groups().free(index_set=ZZ)
             sage: TestSuite(G).run()
-            sage: G = FreeGroup(index_set='abc')
+            sage: G = Groups().free(index_set='abc')
             sage: TestSuite(G).run()
         """
         Group.__init__(self)
@@ -75,13 +75,13 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
         EXAMPLES::
 
-            sage: G = FreeGroup(index_set=ZZ)
+            sage: G = Groups().free(index_set=ZZ)
             sage: G.order()
             +Infinity
-            sage: G = FreeGroup(index_set='abc')
+            sage: G = Groups().free(index_set='abc')
             sage: G.order()
             +Infinity
-            sage: G = FreeGroup(index_set=[])
+            sage: G = Groups().free(index_set=[])
             sage: G.order()
             1
         """
@@ -98,13 +98,13 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
         EXAMPLES::
 
-            sage: G = FreeGroup(index_set=ZZ)
+            sage: G = Groups().free(index_set=ZZ)
             sage: G.is_finite()
             False
-            sage: G = FreeGroup(index_set='abc')
+            sage: G = Groups().free(index_set='abc')
             sage: G.is_finite()
             False
-            sage: G = FreeGroup(index_set=[])
+            sage: G = Groups().free(index_set=[])
             sage: G.is_finite()
             True
         """
@@ -118,13 +118,13 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
         EXAMPLES::
 
-            sage: G = FreeGroup(index_set=ZZ)
+            sage: G = Groups().free(index_set=ZZ)
             sage: G.rank()
             +Infinity
-            sage: G = FreeGroup(index_set='abc')
+            sage: G = Groups().free(index_set='abc')
             sage: G.rank()
             3
-            sage: G = FreeGroup(index_set=[])
+            sage: G = Groups().free(index_set=[])
             sage: G.rank()
             0
         """
@@ -141,7 +141,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ)
+                sage: F = Groups().free(index_set=ZZ)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: a < b
                 True
@@ -164,7 +164,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ)
+                sage: F = Groups().free(index_set=ZZ)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: elt = a*c^-3*b^-2*a
                 sage: elt.length()
@@ -172,7 +172,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
                 sage: len(elt)
                 7
 
-                sage: F = FreeGroup(index_set=ZZ)
+                sage: F = Groups().free(index_set=ZZ)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: elt = a*c^-3*b^-2*a
                 sage: elt.length()
@@ -190,7 +190,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ)
+                sage: F = Groups().free(index_set=ZZ)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: a*b^2*e*d
                 F[0]*F[1]^2*F[4]*F[3]
@@ -219,7 +219,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ)
+                sage: F = Groups().free(index_set=ZZ)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: x = a*b^2*e^-1*d; ~x
                 F[3]^-1*F[4]*F[1]^-2*F[0]^-1
@@ -237,7 +237,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ)
+                sage: F = Groups().free(index_set=ZZ)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: x = a*b^2*e*a^-1
                 sage: x.to_word_list()
@@ -253,10 +253,10 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
     EXAMPLES::
 
-        sage: G = FreeGroup(index_set=ZZ, abelian=True)
+        sage: G = Groups().free(index_set=ZZ, commutative=True)
         sage: G
         Free abelian group indexed by Integer Ring
-        sage: G = FreeGroup(index_set='abcde', abelian=True)
+        sage: G = Groups().free(index_set='abcde', commutative=True)
         sage: G
         Free abelian group indexed by {'a', 'b', 'c', 'd', 'e'}
     """
@@ -266,9 +266,9 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
         TESTS::
 
-            sage: G = FreeGroup(index_set=ZZ, abelian=True)
+            sage: G = Groups().free(index_set=ZZ, commutative=True)
             sage: TestSuite(G).run()
-            sage: G = FreeGroup(index_set='abc', abelian=True)
+            sage: G = Groups().free(index_set='abc', commutative=True)
             sage: TestSuite(G).run()
         """
         AbelianGroup.__init__(self)
@@ -279,7 +279,7 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
         """
         TESTS::
 
-            sage: FreeGroup(index_set=ZZ, abelian=True)
+            sage: FreeGroup(index_set=ZZ, commutative=True)
             Free abelian group indexed by Integer Ring
         """
         return 'Free abelian group indexed by {}'.format(self._indices)
@@ -291,13 +291,13 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
         EXAMPLES::
 
-            sage: G = FreeGroup(index_set=ZZ, abelian=True)
+            sage: G = Groups().free(index_set=ZZ, commutative=True)
             sage: G.order()
             +Infinity
-            sage: G = FreeGroup(index_set='abc', abelian=True)
+            sage: G = Groups().free(index_set='abc', commutative=True)
             sage: G.order()
             +Infinity
-            sage: G = FreeGroup(index_set=[], abelian=True)
+            sage: G = Groups().free(index_set=[], commutative=True)
             sage: G.order()
             1
         """
@@ -311,13 +311,13 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
         EXAMPLES::
 
-            sage: G = FreeGroup(index_set=ZZ, abelian=True)
+            sage: G = Groups().free(index_set=ZZ, commutative=True)
             sage: G.is_finite()
             False
-            sage: G = FreeGroup(index_set='abc', abelian=True)
+            sage: G = Groups().free(index_set='abc', commutative=True)
             sage: G.is_finite()
             False
-            sage: G = FreeGroup(index_set=[], abelian=True)
+            sage: G = Groups().free(index_set=[], commutative=True)
             sage: G.is_finite()
             True
         """
@@ -330,13 +330,13 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
         EXAMPLES::
 
-            sage: G = FreeGroup(index_set=ZZ, abelian=True)
+            sage: G = Groups().free(index_set=ZZ, commutative=True)
             sage: G.rank()
             +Infinity
-            sage: G = FreeGroup(index_set='abc', abelian=True)
+            sage: G = Groups().free(index_set='abc', commutative=True)
             sage: G.rank()
             3
-            sage: G = FreeGroup(index_set=[], abelian=True)
+            sage: G = Groups().free(index_set=[], commutative=True)
             sage: G.rank()
             0
         """
@@ -349,7 +349,7 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ, abelian=True)
+                sage: F = Groups().free(index_set=ZZ, commutative=True)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: a*b^2*e^-1*d
                 F[0]*F[1]^2*F[3]*F[4]^-1
@@ -371,7 +371,7 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ, abelian=True)
+                sage: F = Groups().free(index_set=ZZ, commutative=True)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: x = a*b^2*e^-1*d; ~x
                 F[0]^-1*F[1]^-2*F[3]^-1*F[4]
@@ -386,7 +386,7 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ, abelian=True)
+                sage: F = Groups().free(index_set=ZZ, commutative=True)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: elt = a*b*c^3*d^2; elt
                 F[0]*F[1]*F[2]^3*F[3]^2
@@ -407,7 +407,7 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = FreeGroup(index_set=ZZ, abelian=True)
+                sage: F = Groups().free(index_set=ZZ, commutative=True)
                 sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
                 sage: x = a*b^2*e^-1*d; x
                 F[0]*F[1]^2*F[3]*F[4]^-1

@@ -60,7 +60,7 @@ class Monoids(Category_singleton):
         return [Semigroups()]
 
     @staticmethod
-    def free(n=None, names=None, index_set=None, abelian=False, **kwds):
+    def free(n=None, names=None, index_set=None, commutative=False, **kwds):
         r"""
         Return a free monoid on `n` generators or with the generators indexed by
         a set `I`.
@@ -72,14 +72,14 @@ class Monoids(Category_singleton):
 
         INPUT:
 
-        -  ``n`` -- an integer
+        - ``index_set`` -- (optional) an index set for the generators; if
+          an integer, then this represents `\{0, 1, \ldots, n-1\}`
 
-        -  ``names`` -- names for the generators
+        - ``names`` -- a string or list/tuple/iterable of strings
+          (default: ``'x'``); the generator names or name prefix
 
-        - ``index_set`` -- an indexing set for the generators
-
-        - ``abelian`` -- (default: ``False``) whether to construct the
-          free abelian monoid or the free monoid
+        - ``commutative`` -- (default: ``False``) whether to construct the
+          free commutative (abelian) group or the free group
 
         EXAMPLES::
 
@@ -90,8 +90,15 @@ class Monoids(Category_singleton):
             sage: F.<x,y,z> = Monoids().free(); F
             Free monoid on 3 generators (x, y, z)
         """
-        from sage.monoids.free_monoid import FreeMonoid
-        return FreeMonoid(n, names, index_set, abelian, **kwds)
+        from sage.rings.all import ZZ
+        if index_set in ZZ or (index_set is None and names is not None):
+            from sage.monoids.free_monoid import FreeMonoid
+            return FreeMonoid(index_set, names, **kwds)
+
+        if names is not None:
+            names = normalize_names(n, names)
+        from sage.monoids.indexed_monoid import IndexedFreeMonoid
+        return IndexedFreeMonoid(index_set, names=names, **kwds)
 
     class ParentMethods:
         @cached_method

@@ -12,7 +12,7 @@ search, breadth first search or elements of given depth.
 
 See :wikipedia:`Recursively_enumerable_set`.
 
-See documentation of :class:`RecursivelyEnumeratedSet` below for the
+See documentation of :func:`RecursivelyEnumeratedSet` below for the
 description of the inputs.
 
 AUTHORS:
@@ -750,7 +750,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         if max_depth is None:
             max_depth = self._max_depth
         it = self.graded_component_iterator()
-        i = 0
+        cdef int i = 0
         while i < max_depth:
             graded_component = next(it)
             for a in graded_component:

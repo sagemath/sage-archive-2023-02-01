@@ -8,14 +8,46 @@ tree or graph structure.
 - :class:`GenericBacktracker`: Depth first search through a tree
   described by a ``children`` function, with branch pruning, etc.
 
-Deprecated classes (use :class:`RecursivelyEnumeratedSet` instead):
+Deprecated classes (use :func:`RecursivelyEnumeratedSet` instead):
 
 - :class:`SearchForest`: Depth and breadth first
   search through a tree described by a ``children`` function.
+
 - :class:`TransitiveIdeal`: Depth first search through a
   graph described by a ``neighbours`` relation.
+
 - :class:`TransitiveIdealGraded`: Breadth first search
   through a graph described by a ``neighbours`` relation.
+
+Deprecation details:
+
+- ``SearchForest(seeds, succ)`` keeps the same behavior as before
+  :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
+  succ, structure='forest', enumeration='depth')``. 
+
+- ``TransitiveIdeal(succ, seeds)`` keeps the same behavior as before
+  :trac:`6637` and is now the same as ``RecursivelyEnumeratedSet(seeds,
+  succ, structure=None, enumeration='naive')``. 
+
+- ``TransitiveIdealGraded(succ, seeds, max_depth)`` keeps the same behavior
+  as before :trac:`6637` and is now the same as
+  ``RecursivelyEnumeratedSet(seeds, succ, structure=None,
+  enumeration='breadth', max_depth=max_depth)``. 
+
+TODO:
+
+- For now the code of ``SearchForest`` is still in
+  ``sage/combinat/backtrack.py``.  It should be moved in
+  ``sage/sets/recursively_enumerated_set.pyx`` into a class named
+  ``RecursivelyEnumeratedSet_forest`` in a later ticket. 
+
+- ``TransitiveIdeal`` and ``TransitiveIealGraded`` are used in the code of
+  ``sage/combinat``, ``sage/categories`` and ``sage/groups`` at least.
+  These should be updated to use ``RecursivelyEnumeratedSet`` in a later
+  ticket for speed improvements.
+
+- Once the deprecation has been there for enough time: delete
+  ``TransitiveIdeal`` and ``TransitiveIealGraded``.
 
 """
 #*****************************************************************************

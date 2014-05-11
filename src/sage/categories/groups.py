@@ -92,14 +92,14 @@ class Groups(Category_singleton):
                     names = [names + repr(i) for i in range(index_set)]
                 else:
                     names = names.split(',')
-            from sage.groups.indexed_group import IndexedFreeAbelianGroup
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
             return IndexedFreeAbelianGroup(names, **kwds)
 
         if commutative:
-            from sage.groups.indexed_group import IndexedFreeAbelianGroup
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
             return IndexedFreeAbelianGroup(index_set, **kwds)
 
-        from sage.groups.indexed_group import IndexedFreeGroup
+        from sage.groups.indexed_free_group import IndexedFreeGroup
         return IndexedFreeGroup(index_set, **kwds)
 
     class ParentMethods:

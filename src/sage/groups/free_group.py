@@ -90,8 +90,13 @@ def is_FreeGroup(x):
         False
         sage: is_FreeGroup(FreeGroup(0))
         True
+        sage: is_FreeGroup(FreeGroup(index_set=ZZ))
+        True
     """
-    return isinstance(x, FreeGroup_class)
+    if isinstance(x, FreeGroup_class):
+        return True
+    from sage.groups.indexed_free_group import IndexedFreeGroup
+    return isinstance(x, IndexedFreeGroup)
 
 def _lexi_gen(zeroes=False):
     """
@@ -451,6 +456,11 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     - ``abelian`` -- (default: ``False``) whether to construct a free
       abelian group or a free group
 
+    .. NOTE::
+
+        If you want to create a free group, it is currently preferential to
+        use ``Groups().free(...)`` as that does not load GAP.
+
     EXAMPLES::
 
         sage: G.<a,b> = FreeGroup();  G
@@ -505,10 +515,10 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
     names = tuple(normalize_names(n, names))
     if index_set is not None or abelian:
         if abelian:
-            from sage.groups.indexed_group import IndexedFreeAbelianGroup
+            from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
             return IndexedFreeAbelianGroup(index_set, names=names, **kwds)
 
-        from sage.groups.indexed_group import IndexedFreeGroup
+        from sage.groups.indexed_free_group import IndexedFreeGroup
         return IndexedFreeGroup(index_set, names=names, **kwds)
     return FreeGroup_class(names)
 

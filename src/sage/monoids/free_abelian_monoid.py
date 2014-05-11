@@ -144,7 +144,7 @@ def FreeAbelianMonoid(n=None, names=None, index_set=None, **kwds):
     if index_set is not None:
         if names is not None:
             names = normalize_names(int(n), names)
-        from sage.monoids.indexed_monoid import IndexedFreeAbelianMonoid
+        from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
         return IndexedFreeAbelianMonoid(index_set, names=names, **kwds)
 
     if names is None:

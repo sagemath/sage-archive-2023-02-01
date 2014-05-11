@@ -126,7 +126,7 @@ def FreeMonoid(n=None, names=None, index_set=None, abelian=False, **kwds):
     if index_set is not None:
         if names is not None:
             names = normalize_names(n, names)
-        from sage.monoids.indexed_monoid import IndexedFreeMonoid
+        from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
         return IndexedFreeMonoid(index_set, names=names, **kwds)
 
     if names is None:
@@ -148,8 +148,15 @@ def is_FreeMonoid(x):
         False
         sage: is_FreeMonoid(FreeAbelianMonoid(0,''))
         False
+        sage: is_FreeMonoid(FreeMonoid(index_set=ZZ))
+        True
+        sage: is_FreeMonoid(FreeAbelianMonoid(index_set=ZZ))
+        False
     """
-    return isinstance(x, FreeMonoid_class)
+    if isinstance(x, FreeMonoid_class):
+        return True
+    from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
+    return isinstance(x, IndexedFreeMonoid)
 
 class FreeMonoid_class(Monoid_class):
     """

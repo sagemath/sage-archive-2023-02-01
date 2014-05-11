@@ -97,7 +97,7 @@ class Monoids(Category_singleton):
 
         if names is not None:
             names = normalize_names(n, names)
-        from sage.monoids.indexed_monoid import IndexedFreeMonoid
+        from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
         return IndexedFreeMonoid(index_set, names=names, **kwds)
 
     class ParentMethods:

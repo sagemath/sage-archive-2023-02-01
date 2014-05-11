@@ -21,14 +21,127 @@ AUTHORS:
 
 from copy import copy
 from sage.categories.groups import Groups
+from sage.categories.poor_man_map import PoorManMap
 from sage.groups.group import Group, AbelianGroup
-from sage.monoids.indexed_free_monoid import (IndexedMonoidElement,
-        IndexedFreeMonoid, IndexedFreeAbelianMonoid)
+from sage.monoids.indexed_free_monoid import (IndexedMonoid,
+        IndexedMonoidElement, IndexedFreeMonoidElement,
+        IndexedFreeAbelianMonoidElement)
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
+from sage.sets.family import Family
 
-class IndexedFreeGroup(IndexedFreeMonoid, Group):
+class IndexedGroup(IndexedMonoid):
+    """
+    Base class for free (abelian) groups whose generators are indexed
+    by a set.
+    """
+    def order(self):
+        r"""
+        Return the number of elements of ``self``, which is `\infty` unless
+        this is the trivial group.
+
+        EXAMPLES::
+
+            sage: G = Groups().free(index_set=ZZ)
+            sage: G.order()
+            +Infinity
+            sage: G = Groups().free(index_set='abc', commutative=True)
+            sage: G.order()
+            +Infinity
+            sage: G = Groups().free(index_set=[], commutative=True)
+            sage: G.order()
+            1
+        """
+        return self.cardinality()
+
+    # TODO: once #10963 is merged, use the categories
+    # Groups().Infinite() / Groups().Finite() and get rid of this
+    # method
+    def is_finite(self):
+        """
+        Return ``True`` if ``self`` is finite.
+
+        EXAMPLES::
+
+            sage: G = Groups().free(index_set=ZZ)
+            sage: G.is_finite()
+            False
+            sage: G = Groups().free(index_set='abc')
+            sage: G.is_finite()
+            False
+            sage: G = Groups().free(index_set=[])
+            sage: G.is_finite()
+            True
+
+        ::
+
+            sage: G = Groups().free(index_set=ZZ, commutative=True)
+            sage: G.is_finite()
+            False
+            sage: G = Groups().free(index_set='abc', commutative=True)
+            sage: G.is_finite()
+            False
+            sage: G = Groups().free(index_set=[], commutative=True)
+            sage: G.is_finite()
+            True
+        """
+        return self.rank() == 0
+
+    def rank(self):
+        """
+        Return the rank of ``self``.
+
+        This is the number of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Groups().free(index_set=ZZ)
+            sage: G.rank()
+            +Infinity
+            sage: G = Groups().free(index_set='abc')
+            sage: G.rank()
+            3
+            sage: G = Groups().free(index_set=[])
+            sage: G.rank()
+            0
+
+        ::
+
+            sage: G = Groups().free(index_set=ZZ, commutative=True)
+            sage: G.rank()
+            +Infinity
+            sage: G = Groups().free(index_set='abc', commutative=True)
+            sage: G.rank()
+            3
+            sage: G = Groups().free(index_set=[], commutative=True)
+            sage: G.rank()
+            0
+        """
+        return self.group_generators().cardinality()
+
+    def group_generators(self):
+        """
+        Return the group generators of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Groups.free(index_set=ZZ)
+            sage: G.group_generators()
+            Lazy family (Generator map from Integer Ring to
+             Free group indexed by Integer Ring(i))_{i in Integer Ring}
+            sage: G = Groups().free(index_set='abcde')
+            sage: sorted(G.group_generators())
+            [F['a'], F['b'], F['c'], F['d'], F['e']]
+        """
+        if self._indices.cardinality() == infinity:
+            gen = PoorManMap(self.gen, domain=self._indices, codomain=self, name="Generator map")
+            return Family(self._indices, gen)
+        return Family(self._indices, self.gen)
+
+    gens = group_generators
+
+class IndexedFreeGroup(IndexedGroup, Group):
     """
     An indexed free group.
 
@@ -54,7 +167,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
         """
         Group.__init__(self)
         category = Groups().or_subcategory(category)
-        IndexedFreeMonoid.__init__(self, indices, prefix, category, **kwds)
+        IndexedGroup.__init__(self, indices, prefix, category, **kwds)
 
     def _repr_(self):
         """
@@ -62,75 +175,44 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
         TESTS::
 
-            sage: FreeGroup(index_set=ZZ)       # indirect doctest
+            sage: Groups().free(index_set=ZZ)       # indirect doctest
             Free group indexed by Integer Ring
         """
         return 'Free group indexed by {}'.format(self._indices)
 
-    def order(self):
-        r"""
-        Return the number of elements of ``self``.
-
-        This is `\infty` unless this is the trivial group.
+    @cached_method
+    def one(self):
+        """
+        Return the identity element of ``self``.
 
         EXAMPLES::
 
-            sage: G = Groups().free(index_set=ZZ)
-            sage: G.order()
-            +Infinity
-            sage: G = Groups().free(index_set='abc')
-            sage: G.order()
-            +Infinity
-            sage: G = Groups().free(index_set=[])
-            sage: G.order()
+            sage: G = Groups().free(ZZ)
+            sage: G.one()
             1
         """
-        if self.is_finite():
-            return Integer(1)
-        return infinity
+        return self.element_class(self, ())
 
-    # TODO: once #10963 is merged, use the categories
-    # Groups().Infinite() / Groups().Finite() and get rid of this
-    # method
-    def is_finite(self):
+    def gen(self, x):
         """
-        Return ``True`` if ``self`` is finite.
+        The generator indexed by ``x`` of ``self``.
 
         EXAMPLES::
 
             sage: G = Groups().free(index_set=ZZ)
-            sage: G.is_finite()
-            False
-            sage: G = Groups().free(index_set='abc')
-            sage: G.is_finite()
-            False
-            sage: G = Groups().free(index_set=[])
-            sage: G.is_finite()
-            True
+            sage: G.gen(0)
+            F[0]
+            sage: G.gen(2)
+            F[2]
         """
-        return self.rank() == 0
+        if x not in self._indices:
+            raise IndexError("{} is not in the index set".format(x))
+        try:
+            return self.element_class(self, ((self._indices(x),1),))
+        except TypeError: # Backup (if it is a string)
+            return self.element_class(self, ((x,1),))
 
-    def rank(self):
-        """
-        Return the rank of ``self``.
-
-        This is the number of generators of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Groups().free(index_set=ZZ)
-            sage: G.rank()
-            +Infinity
-            sage: G = Groups().free(index_set='abc')
-            sage: G.rank()
-            3
-            sage: G = Groups().free(index_set=[])
-            sage: G.rank()
-            0
-        """
-        return self.gens().cardinality()
-
-    class Element(IndexedFreeMonoid.Element):
+    class Element(IndexedFreeMonoidElement):
         def __lt__(self, other):
             """
             Return whether ``self`` is smaller than ``y``.
@@ -141,8 +223,8 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: a < b
                 True
                 sage: a^-1*b < b^-1*a
@@ -164,16 +246,16 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: elt = a*c^-3*b^-2*a
                 sage: elt.length()
                 7
                 sage: len(elt)
                 7
 
-                sage: F = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: elt = a*c^-3*b^-2*a
                 sage: elt.length()
                 7
@@ -190,8 +272,8 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: a*b^2*e*d
                 F[0]*F[1]^2*F[4]*F[3]
                 sage: (a*b^2*d^2) * (d^-4*b*e)
@@ -219,8 +301,8 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: x = a*b^2*e^-1*d; ~x
                 F[3]^-1*F[4]*F[1]^-2*F[0]^-1
                 sage: x * ~x
@@ -237,8 +319,8 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: x = a*b^2*e*a^-1
                 sage: x.to_word_list()
                 [(0, 1), (1, 1), (1, 1), (4, 1), (0, -1)]
@@ -247,7 +329,7 @@ class IndexedFreeGroup(IndexedFreeMonoid, Group):
             return [ (k, sign(e)) for k,e in self._sorted_items()
                      for dummy in range(abs(e))]
 
-class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
+class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
     """
     An indexed free abelian group.
 
@@ -273,84 +355,80 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
         """
         AbelianGroup.__init__(self)
         category = Groups().or_subcategory(category)
-        IndexedFreeAbelianMonoid.__init__(self, indices, prefix, category, **kwds)
+        IndexedGroup.__init__(self, indices, prefix, category, **kwds)
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: FreeGroup(index_set=ZZ, commutative=True)
+            sage: Groups.free(index_set=ZZ, commutative=True)
             Free abelian group indexed by Integer Ring
         """
         return 'Free abelian group indexed by {}'.format(self._indices)
 
-    def order(self):
-        r"""
-        Return the number of elements of ``self``, which is `\infty` unless
-        this is the trivial group.
+    def _element_constructor_(self, x=None):
+        """
+        Create an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: G = FreeAbelianMonoid(index_set=ZZ)
+            sage: G(G.gen(2))
+            F[2]
+            sage: G(-5)
+            F[-5]
+            sage: G(1)
+            F[1]
+            sage: G([[1, 3], [-2, 12]])
+            F[-2]^12*F[1]^3
+            sage: G({1:3, -2: 12})
+            F[-2]^12*F[1]^3
+        """
+        if isinstance(x, (list, tuple, dict)):
+            x = dict(x)
+        return IndexedGroup._element_constructor_(self, x)
+
+    @cached_method
+    def one(self):
+        """
+        Return the identity element of ``self``.
 
         EXAMPLES::
 
             sage: G = Groups().free(index_set=ZZ, commutative=True)
-            sage: G.order()
-            +Infinity
-            sage: G = Groups().free(index_set='abc', commutative=True)
-            sage: G.order()
-            +Infinity
-            sage: G = Groups().free(index_set=[], commutative=True)
-            sage: G.order()
+            sage: G.one()
             1
         """
-        if self.is_finite():
-            return Integer(1)
-        return infinity
+        return self.element_class(self, {})
 
-    def is_finite(self):
+    def gen(self, x):
         """
-        Return ``True`` if ``self`` is finite.
+        The generator indexed by ``x`` of ``self``.
 
         EXAMPLES::
 
             sage: G = Groups().free(index_set=ZZ, commutative=True)
-            sage: G.is_finite()
-            False
-            sage: G = Groups().free(index_set='abc', commutative=True)
-            sage: G.is_finite()
-            False
-            sage: G = Groups().free(index_set=[], commutative=True)
-            sage: G.is_finite()
-            True
+            sage: G.gen(0)
+            F[0]
+            sage: G.gen(2)
+            F[2]
         """
-        return self.rank() == 0
+        if x not in self._indices:
+            raise IndexError("{} is not in the index set".format(x))
+        try:
+            return self.element_class(self, {self._indices(x):1})
+        except TypeError: # Backup (if it is a string)
+            return self.element_class(self, {x:1})
 
-    def rank(self):
-        """
-        Return the rank of ``self``, which is the number of
-        generators of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Groups().free(index_set=ZZ, commutative=True)
-            sage: G.rank()
-            +Infinity
-            sage: G = Groups().free(index_set='abc', commutative=True)
-            sage: G.rank()
-            3
-            sage: G = Groups().free(index_set=[], commutative=True)
-            sage: G.rank()
-            0
-        """
-        return self.gens().cardinality()
-
-    class Element(IndexedFreeAbelianMonoid.Element, IndexedFreeGroup.Element):
+    class Element(IndexedFreeAbelianMonoidElement, IndexedFreeGroup.Element):
         def _mul_(self, other):
             """
             Multiply ``self`` by ``other``.
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ, commutative=True)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ, commutative=True)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: a*b^2*e^-1*d
                 F[0]*F[1]^2*F[3]*F[4]^-1
                 sage: (a*b^2*d^2) * (d^-4*b^-2*e)
@@ -371,8 +449,8 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ, commutative=True)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ, commutative=True)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: x = a*b^2*e^-1*d; ~x
                 F[0]^-1*F[1]^-2*F[3]^-1*F[4]
                 sage: x * ~x
@@ -386,15 +464,15 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ, commutative=True)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ, commutative=True)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: elt = a*b*c^3*d^2; elt
                 F[0]*F[1]*F[2]^3*F[3]^2
                 sage: elt // a
                 F[1]*F[2]^3*F[3]^2
                 sage: elt // c
                 F[0]*F[1]*F[2]^2*F[3]^2
-                sage: elt // a*b*d^2
+                sage: elt // (a*b*d^2)
                 F[2]^3
                 sage: elt // a^4
                 F[0]^-3*F[1]*F[2]^3*F[3]^2
@@ -407,8 +485,8 @@ class IndexedFreeAbelianGroup(IndexedFreeAbelianMonoid, AbelianGroup):
 
             EXAMPLES::
 
-                sage: F = Groups().free(index_set=ZZ, commutative=True)
-                sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
+                sage: G = Groups().free(index_set=ZZ, commutative=True)
+                sage: a,b,c,d,e = [G.gen(i) for i in range(5)]
                 sage: x = a*b^2*e^-1*d; x
                 F[0]*F[1]^2*F[3]*F[4]^-1
                 sage: x^3

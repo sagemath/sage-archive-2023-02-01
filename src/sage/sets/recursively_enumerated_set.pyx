@@ -293,8 +293,6 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
         <function factor at ...>
         sage: C._seeds
         (1, 2, 3)
-        sage: loads(dumps(C))
-        A recursively enumerated set (breadth first search)
     """
     if structure is None:
         if enumeration is None: enumeration = 'breadth'
@@ -372,10 +370,84 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
         self._graded_component_it = None
         Parent.__init__(self, facade=facade, category=EnumeratedSets().or_subcategory(category))
 
-    # Disable __len__ from Parent (#12955)
-    # Because Python assumes __len__ is fast and we can't have a fast
-    # default implmentation
-    __len__ = None
+    def __reduce__(self):
+        r"""
+        Return a tuple of three elements:
+
+        - The function :func:`RecursivelyEnumeratedSet`
+        - Arguments for the function :func:`RecursivelyEnumeratedSet`
+        - The actual state of ``self``.
+
+        EXAMPLES::
+
+            sage: C = RecursivelyEnumeratedSet((1, 2, 3), factor)
+            sage: loads(dumps(C))
+            A recursively enumerated set (breadth first search)
+        """
+        try:
+            pp = self.post_process
+        except AttributeError:
+            pp = None
+
+        classname = self.__class__.__name__
+        if classname.startswith('RecursivelyEnumeratedSet_graded'):
+            struct = 'graded'
+        elif classname.startswith('RecursivelyEnumeratedSet_symmetric'):
+            struct = 'symmetric'
+        elif classname.startswith('RecursivelyEnumeratedSet_forest'):
+            struct = 'forest'
+        elif classname.startswith('RecursivelyEnumeratedSet_generic'):
+            struct = None
+
+        args = (self._seeds, self.successors, struct,
+                self._enumeration, self._max_depth, pp)
+        return (RecursivelyEnumeratedSet, args, self.__getstate__())
+
+    def __getstate__(self):
+        r"""
+        Get the current state of ``self``. Used in pickling.
+
+        EXAMPLES::
+
+            sage: C = RecursivelyEnumeratedSet((1, 2, 3), factor)
+            sage: C.__getstate__()
+            (None, None)
+        """
+        return (self._graded_component, self._graded_component_it)
+
+    def __setstate__(self, l):
+        r"""
+        Set the state of ``self``. Used in pickling.
+
+        INPUT:
+
+        - ``l`` -- the state in the pickle
+
+        EXAMPLES::
+
+            sage: C = RecursivelyEnumeratedSet((1, 2, 3), factor)
+            sage: C.__setstate__(C.__getstate__())
+        """
+        self._graded_component = l[0]
+        self._graded_component_it = l[1]
+
+    def __len__(self):
+        """
+        Disable ``__len__()`` from :class:`Parent` :trac:`12955`.
+
+        Because Python assumes ``__len__()`` is fast and we can't
+        have a fast default implmentation.
+
+        EXAMPLES::
+
+            sage: f = lambda a: [a+3, a+5]
+            sage: C = RecursivelyEnumeratedSet([0], f)
+            sage: len(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NoneType' object cannot be interpreted as an index
+        """
+        return None
 
     def __iter__(self):
         r"""
@@ -465,7 +537,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             L.append("with a symmetric structure")
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             L.append("with a forest structure")
-        #elif classname.startswith('RecursivelyEnumeratedSet'):
+        #elif classname.startswith('RecursivelyEnumeratedSet_generic'):
         #    pass
         #else:
         #    pass

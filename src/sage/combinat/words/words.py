@@ -963,6 +963,16 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             sage: W = Words_over_OrderedAlphabet(A)
             sage: W == loads(dumps(W))
             True
+
+        TESTS:
+
+        Impossible to iterate over the uncountable set of all words on a given
+        alphabet::
+
+            sage: Words(4)[1]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         super(Words_over_OrderedAlphabet, self).__init__(alphabet)
 
@@ -1002,63 +1012,33 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         for w in xmrange([self.size_of_alphabet()]*l):
             yield self(map(lambda x: self.alphabet().unrank(x), w))
 
-    def __iter__(self):
+    def random_element(self):
         r"""
-        Returns an iterator over all the words of self.
+        Returns a random (infinite) word on the given alphabet.
 
-        The iterator outputs the words in lexicographic order,
-        based on the order of the letters in the alphabet.
+        The word returned has infinite length, and is built by randomly picking
+        a letter from the alphabet, one after the other.
 
-        EXAMPLES::
+        EXAMPLE::
 
-            sage: W = Words([4,5])
-            sage: for w in W:
-            ...     if len(w)>3:
-            ...         break
-            ...     else:
-            ...         w
+            sage: W = Words(5)
+            sage: W.random_element() # random
+            word: 5114325445423521544531411434451152142155...
+
+            sage: W = Words(ZZ)
+            sage: W.random_element()
+            Traceback (most recent call last):
             ...
-            word:
-            word: 4
-            word: 5
-            word: 44
-            word: 45
-            word: 54
-            word: 55
-            word: 444
-            word: 445
-            word: 454
-            word: 455
-            word: 544
-            word: 545
-            word: 554
-            word: 555
-            sage: W = Words([5,4])
-            sage: for w in W:
-            ...     if len(w)>3:
-            ...         break
-            ...     else:
-            ...         w
-            ...
-            word:
-            word: 5
-            word: 4
-            word: 55
-            word: 54
-            word: 45
-            word: 44
-            word: 555
-            word: 554
-            word: 545
-            word: 544
-            word: 455
-            word: 454
-            word: 445
-            word: 444
+            ValueError: How can I pick a random word with an infinite aphabet?
+
+        TESTS::
+
+            sage: _ = Words(GF(5)).random_element()
         """
-        for l in itertools.count():
-            for w in self.iterate_by_length(l):
-                yield w
+        if self.alphabet().cardinality() == Infinity:
+            raise ValueError("How can I pick a random word with an infinite aphabet?")
+        else:
+            return self(self.alphabet().random_element() for x in itertools.count())
 
     @rename_keyword(deprecation=10134, l='arg')
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
@@ -1374,6 +1354,78 @@ class FiniteWords_over_OrderedAlphabet(Words_over_OrderedAlphabet):
         """
         return "Finite Words over %s" % self.alphabet()
 
+    def random_element(self):
+        r"""
+        Returns a random (infinite) word on the given alphabet.
+
+        EXAMPLE::
+
+            sage: W = Words(5, infinite=False)
+            sage: W.random_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: What does it mean to pick a random finite word over a given alphabet?
+        """
+        raise ValueError("What does it mean to pick a random finite word over a given alphabet?")
+
+    def __iter__(self):
+        r"""
+        Returns an iterator over all the words of self.
+
+        The iterator outputs the words in lexicographic order,
+        based on the order of the letters in the alphabet.
+
+        EXAMPLES::
+
+            sage: W = Words([4,5], infinite=False)
+            sage: for w in W:
+            ....:   if len(w)>3:
+            ....:       break
+            ....:   else:
+            ....:       w
+            ....:
+            word:
+            word: 4
+            word: 5
+            word: 44
+            word: 45
+            word: 54
+            word: 55
+            word: 444
+            word: 445
+            word: 454
+            word: 455
+            word: 544
+            word: 545
+            word: 554
+            word: 555
+            sage: W = Words([5,4], infinite=False)
+            sage: for w in W:
+            ....:   if len(w)>3:
+            ....:       break
+            ....:   else:
+            ....:       w
+            ....:
+            word:
+            word: 5
+            word: 4
+            word: 55
+            word: 54
+            word: 45
+            word: 44
+            word: 555
+            word: 554
+            word: 545
+            word: 544
+            word: 455
+            word: 454
+            word: 445
+            word: 444
+        """
+        for l in itertools.count():
+            for w in self.iterate_by_length(l):
+                yield w
+
 class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet):
     def __init__(self, alphabet, length):
         """
@@ -1459,6 +1511,34 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
         n = self.size_of_alphabet()
         return n**self._length
 
+    def random_element(self):
+        r"""
+        Returns a random word uniformly.
+
+        The word returned has infinite length, and is built by randomly picking
+        a letter from the alphabet, one after the other.
+
+        EXAMPLE::
+
+            sage: W = Words(2,20)
+            sage: W.random_element() # random
+            word: 11212222211111221112
+
+            sage: W = Words(ZZ,20)
+            sage: W.random_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: How can I pick a random word with an infinite aphabet?
+
+        TESTS::
+
+            sage: _ = Words(GF(5),4).random_element()
+        """
+        if self.alphabet().cardinality() == Infinity:
+            raise ValueError("How can I pick a random word with an infinite aphabet?")
+        else:
+            return self((self.alphabet().random_element() for _ in range(self._length)))
+
     def list(self):
         r"""
         Returns a list of all the words contained in self.
@@ -1515,4 +1595,3 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             return iter(self)
         else:
             return iter([])
-

@@ -298,6 +298,7 @@ from sage.rings.all import RDF, CDF
 from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.structure.element import parent
 
 include "stdsage.pxi"
 
@@ -2019,12 +2020,12 @@ cdef class InstructionStream:
                 # XXX bad for strict-mode floating-point constants
                 # (doesn't handle signed 0, NaN)
                 arg = args[i]
-                if arg in self._constant_locs:
-                    self._bytecode.append(self._constant_locs[arg])
+                if (arg,parent(arg)) in self._constant_locs:
+                    self._bytecode.append(self._constant_locs[(arg,parent(arg))])
                 else:
                     loc = len(self._constants)
                     self._constants.append(arg)
-                    self._constant_locs[arg] = loc
+                    self._constant_locs[(arg,parent(arg))] = loc
                     self._bytecode.append(loc)
             elif spec.parameters[i] == 'args':
                 self._bytecode.append(args[i])

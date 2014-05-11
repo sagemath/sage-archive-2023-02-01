@@ -1,8 +1,8 @@
 r"""
 Recursively enumerated set
 
-A set S is called recursively enumerable if there is an algorithm that
-enumerates the members of S. We consider here the recursively enumerated
+A set `S` is called recursively enumerable if there is an algorithm that
+enumerates the members of `S`. We consider here the recursively enumerated
 sets that are described by some ``seeds`` and a successor function
 ``successors``.  The successor function may have some structure (symmetric,
 graded, forest) or not. The elements of a set having a symmetric, graded or
@@ -10,7 +10,7 @@ forest structure can be enumerated uniquely without keeping all of them in
 memory. Many kinds of iterators are provided in this module: depth first
 search, breadth first search or elements of given depth.
 
-See http://en.wikipedia.org/wiki/Recursively_enumerable_set
+See :wikipedia:`Recursively_enumerable_set`.
 
 See documentation of :class:`RecursivelyEnumeratedSet` below for the
 description of the inputs.
@@ -171,26 +171,30 @@ Depth first search::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.parent import Parent
+from sage.structure.parent cimport Parent
 from sage.categories.enumerated_sets import EnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
-class RecursivelyEnumeratedSet(Parent):
+#from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from collections import deque
+
+def RecursivelyEnumeratedSet(seeds, successors, structure=None,
+            enumeration=None, max_depth=float("inf"), post_process=None,
+            facade=None, category=None):
     r"""
     Return a recursively enumerated set.
 
-    A set S is called recursively enumerable if there is an algorithm that
-    enumerates the members of S. We consider here the recursively
+    A set `S` is called recursively enumerable if there is an algorithm that
+    enumerates the members of `S`. We consider here the recursively
     enumerated set that are described by some ``seeds`` and a successor
     function ``successors``.
 
-    Let `U` be a set and ``successors`` `:U\to 2^U` be a successor function
+    Let `U` be a set and ``successors`` `:U \to 2^U` be a successor function
     associating to each element of `U` a subset of `U`. Let ``seeds`` be a
     subset of `U`. Let `S\subseteq U` be the set of elements of `U` that
-    can be reached from a seed by applying recursively the ``successors`` function.
-    This class provides different kinds of iterators (breadth first, depth
-    first, elements of given depth, etc.) for the elements of `S`.
+    can be reached from a seed by applying recursively the ``successors``
+    function. This class provides different kinds of iterators (breadth first,
+    depth first, elements of given depth, etc.) for the elements of `S`.
 
-    See http://en.wikipedia.org/wiki/Recursively_enumerable_set
+    See :wikipedia:`Recursively_enumerable_set`.
 
     INPUT:
 
@@ -291,60 +295,58 @@ class RecursivelyEnumeratedSet(Parent):
         (1, 2, 3)
         sage: loads(dumps(C))
         A recursively enumerated set (breadth first search)
-
     """
-    __metaclass__ = ClasscallMetaclass
-    @staticmethod
-    def __classcall_private__(cls, seeds, successors, structure=None,
-            enumeration=None, max_depth=float("inf"), post_process=None,
-            facade=None, category=None):
-        r"""
-        EXAMPLES::
+    if structure is None:
+        if enumeration is None: enumeration = 'breadth'
+        return RecursivelyEnumeratedSet_generic(seeds, successors,
+                enumeration, max_depth, facade=facade, category=category)
+    if structure == 'symmetric':
+        if enumeration is None: enumeration = 'breadth'
+        return RecursivelyEnumeratedSet_symmetric(seeds, successors,
+                enumeration, max_depth, facade=facade, category=category)
+    if structure == 'forest':
+        if enumeration is None: enumeration = 'depth'
+        from sage.combinat.backtrack import SearchForest
+        return SearchForest(roots=seeds, children=successors,
+                algorithm=enumeration, post_process=post_process,
+                facade=facade, category=category)
+    if structure == 'graded':
+        if enumeration is None: enumeration = 'breadth'
+        return RecursivelyEnumeratedSet_graded(seeds, successors, enumeration,
+                max_depth, facade=facade, category=category)
 
-            sage: f = lambda a:[a+1]
+    raise ValueError("Unknown value for structure (={})".format(structure))
 
-        Different structure for the sets::
+cdef class RecursivelyEnumeratedSet_generic(Parent):
+    r"""
+    A generic recursively enumerated set.
 
-            sage: RecursivelyEnumeratedSet([0], f, structure=None)
-            A recursively enumerated set (breadth first search)
-            sage: RecursivelyEnumeratedSet([0], f, structure='graded')
-            A recursively enumerated set with a graded structure (breadth first search)
-            sage: RecursivelyEnumeratedSet([0], f, structure='symmetric')
-            A recursively enumerated set with a symmetric structure (breadth first search)
-            sage: RecursivelyEnumeratedSet([0], f, structure='forest')
-            An enumerated set with a forest structure
+    For more information, see :func:`RecursivelyEnumeratedSet`.
 
-        Different default enumeration algorithms::
+    EXAMPLES::
 
-            sage: RecursivelyEnumeratedSet([0], f, enumeration='breadth')
-            A recursively enumerated set (breadth first search)
-            sage: RecursivelyEnumeratedSet([0], f, enumeration='naive')
-            A recursively enumerated set (naive search)
-            sage: RecursivelyEnumeratedSet([0], f, enumeration='depth')
-            A recursively enumerated set (depth first search)
+        sage: f = lambda a:[a+1]
 
-        """
-        if structure is None:
-            if enumeration is None: enumeration = 'breadth'
-            return typecall(RecursivelyEnumeratedSet, seeds, successors,
-                    enumeration, max_depth, facade=facade, category=category)
-        elif structure == 'symmetric':
-            if enumeration is None: enumeration = 'breadth'
-            return RecursivelyEnumeratedSet_symmetric(seeds, successors,
-                    enumeration, max_depth, facade=facade, category=category)
-        elif structure == 'forest':
-            if enumeration is None: enumeration = 'depth'
-            from sage.combinat.backtrack import SearchForest
-            return SearchForest(roots=seeds, children=successors,
-                    algorithm=enumeration, post_process=post_process,
-                    facade=facade, category=category)
-        elif structure == 'graded':
-            if enumeration is None: enumeration = 'breadth'
-            return RecursivelyEnumeratedSet_graded(seeds, successors, enumeration,
-                    max_depth, facade=facade, category=category)
-        else:
-            raise ValueError("Unknown value for structure (=%s)" % structure)
+    Different structure for the sets::
 
+        sage: RecursivelyEnumeratedSet([0], f, structure=None)
+        A recursively enumerated set (breadth first search)
+        sage: RecursivelyEnumeratedSet([0], f, structure='graded')
+        A recursively enumerated set with a graded structure (breadth first search)
+        sage: RecursivelyEnumeratedSet([0], f, structure='symmetric')
+        A recursively enumerated set with a symmetric structure (breadth first search)
+        sage: RecursivelyEnumeratedSet([0], f, structure='forest')
+        An enumerated set with a forest structure
+
+    Different default enumeration algorithms::
+
+        sage: RecursivelyEnumeratedSet([0], f, enumeration='breadth')
+        A recursively enumerated set (breadth first search)
+        sage: RecursivelyEnumeratedSet([0], f, enumeration='naive')
+        A recursively enumerated set (naive search)
+        sage: RecursivelyEnumeratedSet([0], f, enumeration='depth')
+        A recursively enumerated set (depth first search)
+    """
     def __init__(self, seeds, successors,
                  enumeration='depth', max_depth=float("inf"),
                  post_process=None, facade=None, category=None):
@@ -356,11 +358,14 @@ class RecursivelyEnumeratedSet(Parent):
             sage: C
             A recursively enumerated set (breadth first search)
         """
+        assert enumeration in ['naive', 'depth', 'breadth'], \
+                    "unknown enumeration(={})".format(enumeration)
+
         self._seeds = seeds
         self.successors = successors
-        assert enumeration in ['naive', 'depth', 'breadth'], "unknown enumeration(=%s)" % self._enumeration
         self._enumeration = enumeration
         self._max_depth = max_depth
+
         if post_process is not None:
             self.post_process = post_process
         self._graded_component = None
@@ -374,7 +379,7 @@ class RecursivelyEnumeratedSet(Parent):
 
     def __iter__(self):
         r"""
-        Return an iterator on the elements of ``self``.
+        Iterate on the elements of ``self``.
 
         The enumeration is done depth first or breadth first depending on
         the value of ``self._enumeration``.
@@ -399,8 +404,8 @@ class RecursivelyEnumeratedSet(Parent):
             return self.breadth_first_search_iterator(max_depth=self._max_depth)
         elif self._enumeration == 'depth':
             return self.depth_first_search_iterator()
-        else:
-            raise ValueError("unknown value for enumeration(=%s)" % self._enumeration)
+
+        raise ValueError("unknown value for enumeration(={})".format(self._enumeration))
 
     def _repr_(self):
         r"""
@@ -427,17 +432,18 @@ class RecursivelyEnumeratedSet(Parent):
             L.append("with a symmetric structure")
         elif classname.startswith('RecursivelyEnumeratedSet_forest'):
             L.append("with a forest structure")
-        elif classname.startswith('RecursivelyEnumeratedSet'):
-            pass
-        else:
-            pass
+        #elif classname.startswith('RecursivelyEnumeratedSet'):
+        #    pass
+        #else:
+        #    pass
+
         if self._enumeration in ['depth', 'breadth']:
-            L.append("(%s first search)" % self._enumeration)
+            L.append("({} first search)".format(self._enumeration))
         else:
-            L.append("(%s search)" % self._enumeration)
+            L.append("({} search)".format(self._enumeration))
         return " ".join(L)
 
-    def seeds(self):
+    cpdef seeds(self):
         r"""
         Return an iterable over the seeds of ``self``.
 
@@ -468,7 +474,7 @@ class RecursivelyEnumeratedSet(Parent):
 
     def graded_component_iterator(self):
         r"""
-        Returns an iterator over the graded components of self.
+        Iterate over the graded components of ``self``.
 
         A graded component is a set of elements of the same depth.
 
@@ -476,7 +482,7 @@ class RecursivelyEnumeratedSet(Parent):
 
         OUTPUT:
 
-            an iterator of sets
+        An iterator of sets.
 
         EXAMPLES::
 
@@ -484,9 +490,10 @@ class RecursivelyEnumeratedSet(Parent):
             sage: C = RecursivelyEnumeratedSet([0], f)
             sage: it = C.graded_component_iterator()    # todo: not implemented
         """
-        raise NotImplementedError("graded_component_iterator method currently implemented only for graded or symmetric structure")
+        raise NotImplementedError("graded_component_iterator method currently"
+                                  " implemented only for graded or symmetric structure")
 
-    def graded_component(self, depth):
+    cpdef graded_component(self, depth):
         r"""
         Return the graded component of given depth.
 
@@ -501,7 +508,7 @@ class RecursivelyEnumeratedSet(Parent):
 
         OUTPUT:
 
-            a set
+        A set.
 
         EXAMPLES::
 
@@ -543,7 +550,7 @@ class RecursivelyEnumeratedSet(Parent):
 
     def elements_of_depth_iterator(self, depth):
         r"""
-        Returns an iterator over the elements of ``self`` of given depth.
+        Iterate over the elements of ``self`` of given depth.
 
         An element of depth `n` can be obtained applying `n` times the
         successor function to a seed.
@@ -554,7 +561,7 @@ class RecursivelyEnumeratedSet(Parent):
 
         OUTPUT:
 
-            an iterator
+        An iterator.
 
         EXAMPLES::
 
@@ -568,15 +575,15 @@ class RecursivelyEnumeratedSet(Parent):
 
     def breadth_first_search_iterator(self, max_depth=None):
         r"""
-        Returns an iterator on the elements of self (breadth first).
+        Iterate on the elements of ``self`` (breadth first).
 
         This code remembers every elements generated.
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) Specifies the maximal depth
-          to which elements are computed. If None, the value of
-          ``self._max_depth`` is used.
+        - ``max_depth`` -- (Default: ``None``) specifies the maximal depth
+          to which elements are computed; if ``None``, the value of
+          ``self._max_depth`` is used
 
         EXAMPLES::
 
@@ -591,12 +598,12 @@ class RecursivelyEnumeratedSet(Parent):
         current_level = self._seeds
         known = set(current_level)
         depth = 0
-        while len(current_level) > 0 and depth <= max_depth:
+        while current_level and depth <= max_depth:
             next_level = set()
             for x in current_level:
                 yield x
                 for y in self.successors(x):
-                    if y == None or y in known:
+                    if y is None or y in known:
                         continue
                     next_level.add(y)
                     known.add(y)
@@ -605,13 +612,13 @@ class RecursivelyEnumeratedSet(Parent):
 
     def _breadth_first_search_iterator_from_graded_component_iterator(self, max_depth=None):
         r"""
-        Returns an iterator on the elements of self (breadth first).
+        Iterate on the elements of ``self`` (breadth first).
 
         INPUT:
 
-        - ``max_depth`` -- (Default: ``None``) Specifies the maximal depth
-          to which elements are computed. If None, the value of
-          ``self._max_depth`` is used.
+        - ``max_depth`` -- (Default: ``None``) specifies the maximal depth
+          to which elements are computed; if ``None``, the value of
+          ``self._max_depth`` is used
 
         .. NOTE::
 
@@ -647,12 +654,12 @@ class RecursivelyEnumeratedSet(Parent):
 
     def _breadth_first_search_iterator_using_queue(self):
         r"""
-        Returns an iterator on the elements of self (breadth first).
+        Iterate on the elements of ``self`` (breadth first).
 
         This code remembers every elements generated and uses python
         queues. It is 3 times slower than the other one.
 
-        See http://en.wikipedia.org/wiki/Breadth-first_search
+        See :wikipedia:`Breadth-first_search`.
 
         EXAMPLES::
 
@@ -661,10 +668,8 @@ class RecursivelyEnumeratedSet(Parent):
             sage: it = C._breadth_first_search_iterator_using_queue()
             sage: [next(it) for _ in range(10)]
             [0, 3, 5, 6, 8, 10, 9, 11, 13, 15]
-
         """
         known = set(self._seeds)
-        from collections import deque
         q = deque(self._seeds)
         while q:
             x = q.popleft()
@@ -677,7 +682,7 @@ class RecursivelyEnumeratedSet(Parent):
 
     def naive_search_iterator(self):
         r"""
-        Returns an iterator on the elements of self (in no particular order).
+        Iterate on the elements of ``self`` (in no particular order).
 
         This code remembers every elements generated.
 
@@ -690,7 +695,6 @@ class RecursivelyEnumeratedSet(Parent):
             sage: R = RecursivelyEnumeratedSet(seeds, succ)
             sage: list(R.naive_search_iterator())
             [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 2, 1], [3, 1, 2]]
-
         """
         known = set(self._seeds)
         todo = known.copy()
@@ -705,11 +709,11 @@ class RecursivelyEnumeratedSet(Parent):
 
     def depth_first_search_iterator(self):
         r"""
-        Returns an iterator on the elements of self (depth first).
+        Iterate on the elements of ``self`` (depth first).
 
         This code remembers every elements generated.
 
-        See http://en.wikipedia.org/wiki/Depth-first_search
+        See :wikipedia:`Depth-first_search`.
 
         EXAMPLES::
 
@@ -730,7 +734,7 @@ class RecursivelyEnumeratedSet(Parent):
             for y in self.successors(x):
                 stack.append(y)
 
-class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
+cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a symmetric relation.
 
@@ -770,13 +774,12 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
         Traceback (most recent call last):
         ...
         PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
-
     """
-    breadth_first_search_iterator = RecursivelyEnumeratedSet._breadth_first_search_iterator_from_graded_component_iterator
+    breadth_first_search_iterator = RecursivelyEnumeratedSet_generic._breadth_first_search_iterator_from_graded_component_iterator
 
     def graded_component_iterator(self):
         r"""
-        Returns an iterator over the graded components of self.
+        Iterate over the graded components of ``self``.
 
         A graded component is a set of elements of the same depth.
 
@@ -785,7 +788,7 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
 
         OUTPUT:
 
-            an iterator of sets
+        An iterator of sets.
 
         EXAMPLES::
 
@@ -823,9 +826,9 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
             yield B
             A,B = B, self._get_next_graded_component(A, B)
 
-    def _get_next_graded_component(self, A, B):
+    cdef set _get_next_graded_component(self, set A, set B):
         r"""
-        Return the set of elements of depth n+1.
+        Return the set of elements of depth `n+1`.
 
         INPUT:
 
@@ -836,18 +839,20 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
 
         - ``C`` -- set, the set of elements of depth n+1
 
-        TODO: Can collections.OrderedDict can help maintain the breadth
-        first search enumeration for each graded component?
+        .. TODO::
+
+            Can ``collections.OrderedDict`` can help maintain the breadth
+            first search enumeration for each graded component?
 
         EXAMPLES::
 
             sage: f = lambda a: [a-1, a+1]
             sage: S = RecursivelyEnumeratedSet([5, 10], f, structure='symmetric')
-            sage: sorted(S._get_next_graded_component([2,8], [3,7]))
-            [4, 6]
-            sage: sorted(S._get_next_graded_component([3,7], [2,8]))
-            [1, 9]
+            sage: it = S.graded_component_iterator()
+            sage: [sorted(next(it)) for _ in range(3)] # indirect doctest
+            [[5, 10], [4, 6, 9, 11], [3, 7, 8, 12]]
         """
+        cdef set C
         C = set()
         for x in B:
             for y in self.successors(x):
@@ -856,7 +861,7 @@ class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet):
                 C.add(y)
         return C
 
-class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
+cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a graded relation.
 
@@ -875,11 +880,10 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
         A recursively enumerated set with a graded structure (breadth first search)
         sage: sorted(C)
         [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (3, 0)]
-
     """
     def breadth_first_search_iterator(self, max_depth=None):
         r"""
-        Return an iterator on the elements of self (breadth first).
+        Iterate on the elements of ``self`` (breadth first).
 
         This iterator make use of the graded structure by remembering only
         the elements of the current depth.
@@ -896,7 +900,8 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
             sage: C = RecursivelyEnumeratedSet([(0,0)], f, structure='graded')
             sage: it = C.breadth_first_search_iterator(max_depth=3)
             sage: list(it)
-            [(0, 0), (0, 1), (1, 0), (2, 0), (1, 1), (0, 2), (3, 0), (1, 2), (0, 3), (2, 1)]
+            [(0, 0), (0, 1), (1, 0), (2, 0), (1, 1),
+             (0, 2), (3, 0), (1, 2), (0, 3), (2, 1)]
         """
         if max_depth is None:
             max_depth = self._max_depth
@@ -907,7 +912,7 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
             for x in current_level:
                 yield x
                 for y in self.successors(x):
-                    if y == None or y in next_level:
+                    if y is None or y in next_level:
                         continue
                     next_level.add(y)
             current_level = next_level
@@ -915,7 +920,7 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
 
     def graded_component_iterator(self):
         r"""
-        Returns an iterator over the graded components of self.
+        Iterate over the graded components of ``self``.
 
         A graded component is a set of elements of the same depth.
 
@@ -924,7 +929,7 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
 
         OUTPUT:
 
-            an iterator of sets
+        An iterator of sets.
 
         EXAMPLES::
 
@@ -937,37 +942,37 @@ class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet):
             [(0, 2), (1, 1), (2, 0)]
             [(0, 3), (1, 2), (2, 1), (3, 0)]
         """
-        B = self._seeds
+        B = set(self._seeds)
         while len(B) > 0:
             yield B
             B = self._get_next_graded_component(B)
 
-    def _get_next_graded_component(self, B):
+    cdef set _get_next_graded_component(self, set B):
         r"""
-        Return the set of elements of depth n+1.
+        Return the set of elements of depth `n+1`.
 
         INPUT:
 
-        - ``B`` -- set, the set of elements of depth n
+        - ``B`` -- set, the set of elements of depth `n`
 
         OUTPUT:
 
-        - ``C`` -- set, the set of elements of depth n+1
+        - ``C`` -- set, the set of elements of depth `n+1`
 
-        TODO: Can collections.OrderedDict can help maintain the breadth
-        first search enumeration for each graded component?
+        .. TODO::
+
+            Can ``collections.OrderedDict`` can help maintain the breadth
+            first search enumeration for each graded component?
 
         EXAMPLES::
 
             sage: f = lambda a: [(a[0]+1,a[1]), (a[0],a[1]+1)]
             sage: C = RecursivelyEnumeratedSet([(0,0)], f, structure='graded')
-            sage: sorted(C._get_next_graded_component(C._seeds))
-            [(0, 1), (1, 0)]
-            sage: sorted(C._get_next_graded_component(_))
-            [(0, 2), (1, 1), (2, 0)]
-            sage: sorted(C._get_next_graded_component(_))
-            [(0, 3), (1, 2), (2, 1), (3, 0)]
+            sage: it = C.graded_component_iterator()
+            sage: [sorted(next(it)) for _ in range(2)] # indirect doctest
+            [[(0, 0)], [(0, 1), (1, 0)]]
         """
+        cdef set C
         C = set()
         for x in B:
             for y in self.successors(x):

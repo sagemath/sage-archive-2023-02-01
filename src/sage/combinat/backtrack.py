@@ -45,7 +45,7 @@ CommutativeAdditiveSemigroups)
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.misc.sage_itertools import imap_and_filter_none
-from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_generic
 
 class GenericBacktracker(object):
     r"""
@@ -774,7 +774,7 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
         """
         return self.first()
 
-class TransitiveIdeal(RecursivelyEnumeratedSet):
+class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a relation.
 
@@ -856,7 +856,7 @@ class TransitiveIdeal(RecursivelyEnumeratedSet):
             (1, 2, 3)
             sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
         """
-        RecursivelyEnumeratedSet.__init__(self, seeds=generators, successors=succ, enumeration='naive')
+        RecursivelyEnumeratedSet_generic.__init__(self, seeds=generators, successors=succ, enumeration='naive')
         self._generators = self._seeds
         self._succ = self.successors
 
@@ -884,7 +884,7 @@ class TransitiveIdeal(RecursivelyEnumeratedSet):
         """
         return self.naive_search_iterator()
 
-class TransitiveIdealGraded(RecursivelyEnumeratedSet):
+class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
     r"""
     Generic tool for constructing ideals of a relation.
 
@@ -964,7 +964,7 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet):
             (1, 2, 3)
             sage: loads(dumps(C))   # should test for equality with C, but equality is not implemented
         """
-        RecursivelyEnumeratedSet.__init__(self, seeds=generators, successors=succ, enumeration='breadth', max_depth=max_depth)
+        RecursivelyEnumeratedSet_generic.__init__(self, seeds=generators, successors=succ, enumeration='breadth', max_depth=max_depth)
         self._generators = self._seeds
         self._succ = self.successors
 

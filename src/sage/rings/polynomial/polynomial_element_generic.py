@@ -40,6 +40,7 @@ from sage.structure.element import coerce_binop
 
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.structure.factorization import Factorization
 
 
 class Polynomial_generic_sparse(Polynomial):

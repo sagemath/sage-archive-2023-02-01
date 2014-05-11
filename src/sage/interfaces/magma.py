@@ -183,7 +183,6 @@ coercion system compared to Sage's::
     ...
     TypeError: Error evaluating Magma code.
     ...
-    Runtime error in '*': Bad argument types
     Argument types given: RngUPolElt[RngInt], FldRatElt
 
 

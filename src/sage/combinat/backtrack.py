@@ -841,6 +841,14 @@ class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
         sage: [p for p in TransitiveIdeal(attrcall("permutohedron_succ"), [Permutation([3,1,2,4]), Permutation([2,1,3,4])])]
         [[2, 1, 3, 4], [2, 1, 4, 3], [2, 4, 1, 3], [4, 2, 1, 3], [4, 2, 3, 1], [4, 3, 2, 1], [3, 1, 2, 4], [2, 4, 3, 1], [3, 2, 1, 4], [2, 3, 1, 4], [2, 3, 4, 1], [3, 2, 4, 1], [3, 1, 4, 2], [3, 4, 2, 1], [3, 4, 1, 2], [4, 3, 1, 2]]
 
+    Using TransitiveIdeal people have been using the ``__contains__``
+    method provided from the ``__iter__`` method. We need to make sure that
+    this continues to work::
+
+        sage: T = TransitiveIdeal(lambda a:[a+7,a+5], [0])
+        sage: 12 in T
+        True
+
     """
     def __init__(self, succ, generators):
         r"""

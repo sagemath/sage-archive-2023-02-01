@@ -407,6 +407,40 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
 
         raise ValueError("unknown value for enumeration(={})".format(self._enumeration))
 
+    def __contains__(self, elt):
+        r"""
+        Return ``True`` if ``elt`` is in ``self``.
+
+        .. warning::
+
+           This is achieved by iterating through the elements using the
+           default enumeration until ``elt`` is found. In particular, this
+           method will never stop when ``elt`` is not in ``self`` and
+           ``self`` is infinite or when ``elt`` is in ``self`` but the
+           enumeration is not appropriate.
+
+        EXAMPLES::
+
+            sage: f = lambda a:[a+3,a+5]
+            sage: R = RecursivelyEnumeratedSet([0], f)
+            sage: R
+            A recursively enumerated set (breadth first search)
+            sage: 8 in R
+            True
+
+        ::
+
+            sage: R = RecursivelyEnumeratedSet([0], f, enumeration='depth')
+            sage: R
+            A recursively enumerated set (depth first search)
+            sage: it = iter(R)
+            sage: [next(it) for _ in range(6)]
+            [0, 5, 10, 15, 20, 25]
+            sage: 8 in R     # (should return True) not tested: does not terminate
+            sage: 7 in R     # (should return False) not tested: does not terminate
+        """
+        return any(node == elt for node in self)
+
     def _repr_(self):
         r"""
         TESTS::

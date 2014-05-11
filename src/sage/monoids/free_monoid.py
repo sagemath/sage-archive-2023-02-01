@@ -324,6 +324,9 @@ class FreeMonoid_class(Monoid_class):
             sage: F.cardinality()
             +Infinity
         """
+        if self.__ngens == 0:
+            from sage.rings.all import ZZ
+            return ZZ.one()
         from sage.rings.infinity import infinity
         return infinity
 

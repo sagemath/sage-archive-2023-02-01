@@ -774,6 +774,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: [next(it) for _ in range(10)]
             [0, 3, 5, 6, 8, 10, 9, 11, 13, 15]
         """
+        cdef set known
         known = set(self._seeds)
         q = deque(self._seeds)
         while q:
@@ -801,6 +802,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: list(R.naive_search_iterator())
             [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 2, 1], [3, 1, 2]]
         """
+        cdef set known, todo
         known = set(self._seeds)
         todo = known.copy()
         while len(todo) > 0:
@@ -828,6 +830,8 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: [next(it) for _ in range(10)]
             [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]
         """
+        cdef list stack
+        cdef set known
         stack = list(self._seeds)
         known = set()
         while stack:
@@ -925,6 +929,7 @@ cdef class RecursivelyEnumeratedSet_symmetric(RecursivelyEnumeratedSet_generic):
              [5*I, 4*I + 1, 3*I + 2, 2*I + 3, I + 4, 5],
              [6*I, 5*I + 1, 4*I + 2, 3*I + 3, 2*I + 4, I + 5, 6]]
         """
+        cdef set A,B
         A = set()
         B = set(self._seeds)
         while len(B) > 0:
@@ -1009,6 +1014,8 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             [(0, 0), (0, 1), (1, 0), (2, 0), (1, 1),
              (0, 2), (3, 0), (1, 2), (0, 3), (2, 1)]
         """
+        cdef set next_level
+        cdef int depth
         if max_depth is None:
             max_depth = self._max_depth
         current_level = self._seeds
@@ -1048,8 +1055,9 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
             [(0, 2), (1, 1), (2, 0)]
             [(0, 3), (1, 2), (2, 1), (3, 0)]
         """
+        cdef set B
         B = set(self._seeds)
-        while len(B) > 0:
+        while B:
             yield B
             B = self._get_next_graded_component(B)
 

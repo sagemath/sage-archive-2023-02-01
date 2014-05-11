@@ -517,7 +517,7 @@ class Kash(Expect):
         try:
             Expect._start(self)
         except RuntimeError:
-            raise RuntimeError, "You must install the optional Kash package to use Kash from Sage."
+            raise RuntimeError("You must install the optional Kash package to use Kash from Sage.")
         # Turn off the annoying timer.
         self.eval('Time(false);')
 
@@ -629,7 +629,7 @@ class Kash(Expect):
         #out = self.eval(cmd)
         out = self._eval_line(cmd, allow_use_file=True)
         if out.lower().find('error') != -1:
-            raise TypeError, "Error executing code in Kash\nCODE:\n\t%s\nKash ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Kash\nCODE:\n\t%s\nKash ERROR:\n\t%s"%(cmd, out))
 
     def get(self, var):
         """

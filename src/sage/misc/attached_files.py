@@ -35,7 +35,7 @@ character-by-character::
     sage: load_attach_mode(attach_debug=False)
     sage: try:
     ....:     attach(src)
-    ....: except StandardError:
+    ....: except Exception:
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
@@ -47,7 +47,7 @@ character-by-character::
     sage: load_attach_mode(attach_debug=True)
     sage: try:
     ....:     attach(src)
-    ....: except StandardError:
+    ....: except Exception:
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
@@ -521,7 +521,7 @@ def modified_file_iterator():
     for filename in attached.keys():
         old_tm = attached[filename]
         if not os.path.exists(filename):
-            print '### detaching file {0} because it does not exist (deleted?) ###'.format(filename)
+            print('### detaching file {0} because it does not exist (deleted?) ###'.format(filename))
             detach(filename)
             continue
         new_tm = os.path.getmtime(filename)
@@ -550,7 +550,7 @@ def reload_attached_files_if_modified():
     EXAMPLES::
 
         sage: sage.misc.attached_files.reset()
-        sage: from sage.misc.interpreter import get_test_shell
+        sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: tmp = tmp_filename(ext='.py')
         sage: open(tmp, 'w').write('a = 2\n')
@@ -579,6 +579,6 @@ def reload_attached_files_if_modified():
         timestr = time.strftime('%T', mtime)
         from sage.libs.readline import interleaved_output
         with interleaved_output():
-            print '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
+            print('### reloading attached file {0} modified at {1} ###'.format(basename, timestr))
             code = load_wrap(filename, attach=True)
             get_ipython().run_cell(code)

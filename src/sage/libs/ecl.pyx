@@ -120,6 +120,91 @@ def test_sigint_before_ecl_sig_on():
     # We should never get here.
     abort()
 
+def test_ecl_options():
+    """
+    Print an overview of the ECL options
+
+    TESTS::
+
+        sage: from sage.libs.ecl import test_ecl_options
+        sage: test_ecl_options()
+        ECL_OPT_INCREMENTAL_GC = 0
+        ECL_OPT_TRAP_SIGSEGV = 1
+        ECL_OPT_TRAP_SIGFPE = 1
+        ECL_OPT_TRAP_SIGINT = 1
+        ECL_OPT_TRAP_SIGILL = 1
+        ECL_OPT_TRAP_SIGBUS = 1
+        ECL_OPT_TRAP_SIGCHLD = 0
+        ECL_OPT_TRAP_SIGPIPE = 1
+        ECL_OPT_TRAP_INTERRUPT_SIGNAL = 1
+        ECL_OPT_SIGNAL_HANDLING_THREAD = 0
+        ECL_OPT_SIGNAL_QUEUE_SIZE = 16
+        ECL_OPT_BOOTED = 1
+        ECL_OPT_BIND_STACK_SIZE = ...
+        ECL_OPT_BIND_STACK_SAFETY_AREA = ...
+        ECL_OPT_FRAME_STACK_SIZE = ...
+        ECL_OPT_FRAME_STACK_SAFETY_AREA = ...
+        ECL_OPT_LISP_STACK_SIZE = ...
+        ECL_OPT_LISP_STACK_SAFETY_AREA = ...
+        ECL_OPT_C_STACK_SIZE = ...
+        ECL_OPT_C_STACK_SAFETY_AREA = ...
+        ECL_OPT_SIGALTSTACK_SIZE = 1
+        ECL_OPT_HEAP_SIZE = ...
+        ECL_OPT_HEAP_SAFETY_AREA = ...
+        ECL_OPT_THREAD_INTERRUPT_SIGNAL = 0
+        ECL_OPT_SET_GMP_MEMORY_FUNCTIONS = 0
+    """
+    print('ECL_OPT_INCREMENTAL_GC = {0}'.format(
+        ecl_get_option(ECL_OPT_INCREMENTAL_GC)))
+    print('ECL_OPT_TRAP_SIGSEGV = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGSEGV)))
+    print('ECL_OPT_TRAP_SIGFPE = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGFPE)))
+    print('ECL_OPT_TRAP_SIGINT = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGINT)))
+    print('ECL_OPT_TRAP_SIGILL = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGILL)))
+    print('ECL_OPT_TRAP_SIGBUS = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGBUS)))
+    print('ECL_OPT_TRAP_SIGCHLD = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGCHLD)))
+    print('ECL_OPT_TRAP_SIGPIPE = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_SIGPIPE)))
+    print('ECL_OPT_TRAP_INTERRUPT_SIGNAL = {0}'.format(
+        ecl_get_option(ECL_OPT_TRAP_INTERRUPT_SIGNAL)))
+    print('ECL_OPT_SIGNAL_HANDLING_THREAD = {0}'.format(
+        ecl_get_option(ECL_OPT_SIGNAL_HANDLING_THREAD)))
+    print('ECL_OPT_SIGNAL_QUEUE_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_SIGNAL_QUEUE_SIZE)))
+    print('ECL_OPT_BOOTED = {0}'.format(
+        ecl_get_option(ECL_OPT_BOOTED)))
+    print('ECL_OPT_BIND_STACK_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_BIND_STACK_SIZE)))
+    print('ECL_OPT_BIND_STACK_SAFETY_AREA = {0}'.format(
+        ecl_get_option(ECL_OPT_BIND_STACK_SAFETY_AREA)))
+    print('ECL_OPT_FRAME_STACK_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_FRAME_STACK_SIZE)))
+    print('ECL_OPT_FRAME_STACK_SAFETY_AREA = {0}'.format(
+        ecl_get_option(ECL_OPT_FRAME_STACK_SAFETY_AREA)))
+    print('ECL_OPT_LISP_STACK_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_LISP_STACK_SIZE)))
+    print('ECL_OPT_LISP_STACK_SAFETY_AREA = {0}'.format(
+        ecl_get_option(ECL_OPT_LISP_STACK_SAFETY_AREA)))
+    print('ECL_OPT_C_STACK_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_C_STACK_SIZE)))
+    print('ECL_OPT_C_STACK_SAFETY_AREA = {0}'.format(
+        ecl_get_option(ECL_OPT_C_STACK_SAFETY_AREA)))
+    print('ECL_OPT_SIGALTSTACK_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_SIGALTSTACK_SIZE)))
+    print('ECL_OPT_HEAP_SIZE = {0}'.format(
+        ecl_get_option(ECL_OPT_HEAP_SIZE)))
+    print('ECL_OPT_HEAP_SAFETY_AREA = {0}'.format(
+        ecl_get_option(ECL_OPT_HEAP_SAFETY_AREA)))
+    print('ECL_OPT_THREAD_INTERRUPT_SIGNAL = {0}'.format(
+        ecl_get_option(ECL_OPT_THREAD_INTERRUPT_SIGNAL)))
+    print('ECL_OPT_SET_GMP_MEMORY_FUNCTIONS = {0}'.format(
+        ecl_get_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS)))
+
 def init_ecl():
     r"""
     Internal function to initialize ecl. Do not call.
@@ -139,7 +224,6 @@ def init_ecl():
         Traceback (most recent call last):
         ...
         RuntimeError: ECL is already initialized
-
     """
     global list_of_objects
     global safe_eval_clobj
@@ -153,6 +237,9 @@ def init_ecl():
 
     if ecl_has_booted:
         raise RuntimeError, "ECL is already initialized"
+
+    # we need it to stop handling SIGCHLD
+    ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
 
     #we keep our own GMP memory functions. ECL should not claim them
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
@@ -173,6 +260,12 @@ def init_ecl():
     sigaction(SIGINT, NULL, &ecl_sigint_handler)
     sigaction(SIGBUS, NULL, &ecl_sigbus_handler)
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
+
+    #verify that no SIGCHLD handler was installed
+    cdef Sigaction sig_test
+    sigaction(SIGCHLD, NULL, &sig_test)
+    assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
+    assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
 
     #and put the Sage signal handlers back
     for i in range(1,32):

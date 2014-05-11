@@ -58,6 +58,8 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
+from sage.parallel.ncpus           import ncpus
+from sage.parallel.use_fork        import p_iter_fork
 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -285,7 +287,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             raise ValueError("Cannot scale by 0")
         R=self.domain().coordinate_ring()
         if isinstance(R, QuotientRing_generic):
-            phi=R.coerce_map_from(self.domain().ambient_space().coordinate_ring())
+            phi=R._internal_coerce_map_from(self.domain().ambient_space().coordinate_ring())
             for i in range(self.codomain().ambient_space().dimension_relative()+1):
                 self._polys[i]=phi(self._polys[i]*t).lift()
         else:
@@ -364,7 +366,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         For a map `f:\mathbb{P}^1 \to \mathbb{P}^1` this function computes the dynatomic polynomial.
 
         The dynatomic polynomial is the analog of the cyclotomic
-        polynomial and its roots are the points of formal period `n`.
+        polynomial and its roots are the points of formal period `period`.
 
         ALGORITHM:
 
@@ -503,6 +505,36 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+ c*y^2,y^2])
             sage: f.dynatomic_polynomial([1,2])
             x^2 - x*y + (c + 1)*y^2
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2])
+            sage: f.dynatomic_polynomial(2)
+            x^2 + x*y + 2*y^2
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<c> = NumberField(X^2 + X + 2)
+            sage: PP = P.change_ring(K)
+            sage: ff = f.change_ring(K)
+            sage: p = PP((c,1))
+            sage: ff(ff(p)) == p
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,x*y])
+            sage: f.dynatomic_polynomial([2,2])
+            x^4 + 4*x^2*y^2 + y^4
+            sage: R.<X> = PolynomialRing(QQ)
+            sage: K.<c> = NumberField(X^4 + 4*X^2 + 1)
+            sage: PP = P.change_ring(K)
+            sage: ff = f.change_ring(K)
+            sage: p = PP((c,1))
+            sage: ff.nth_iterate(p,4) == ff.nth_iterate(p,2)
+            True
        """
         if self.domain() != self.codomain():
             raise TypeError("Must have same domain and codomain to iterate")
@@ -1117,8 +1149,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     power+=1
             if power == 1:
                 badprimes=badprimes+GB[i].lt().coefficients()[0].support()
-        badprimes=list(set(badprimes))
-        badprimes.sort()
+        badprimes=sorted(set(badprimes))
 
         #check to return only the truly bad primes
         if check == True:
@@ -1677,6 +1708,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
 
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
+
         OUTPUT:
 
         - a list of positive integers.
@@ -1686,7 +1720,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2-29/16*y^2,y^2])
-            sage: f.possible_periods()
+            sage: f.possible_periods(ncpus=1)
             [1, 3]
 
         ::
@@ -1715,41 +1749,54 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
-        if self.domain().base_ring()!=ZZ and self.domain().base_ring()!=QQ:
+        if self.domain().base_ring() != ZZ and self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be ZZ or QQ")
 
 
-        primebound = kwds.pop("prime_bound",[1,20])
-        badprimes = kwds.pop("bad_primes",None)
+        primebound = kwds.pop("prime_bound", [1, 20])
+        badprimes = kwds.pop("bad_primes", None)
+        num_cpus = kwds.pop("ncpus", ncpus())
 
-        if (isinstance(primebound,(list,tuple))==False):
+        if (isinstance(primebound, (list, tuple)) == False):
             try:
-                primebound=[1,ZZ(primebound)]
+                primebound = [1, ZZ(primebound)]
             except TypeError:
                 raise TypeError("Bound on primes must be an integer")
         else:
             try:
-                primebound[0]=ZZ(primebound[0])
-                primebound[1]=ZZ(primebound[1])
+                primebound[0] = ZZ(primebound[0])
+                primebound[1] = ZZ(primebound[1])
             except TypeError:
                 raise TypeError("Prime bounds must be integers")
 
-        if badprimes==None:
-            badprimes=self.primes_of_bad_reduction()
-        firstgood=0
-        for q in primes(primebound[0],primebound[1]+1):
-            if q in badprimes: #bad reduction
-                t=0
-                #print "Bad Reduction at ", q
-            elif firstgood==0:
-                F=self.change_ring(GF(q))
-                periods=set(F.possible_periods())
-                firstgood=1
+        if badprimes == None:
+            badprimes = self.primes_of_bad_reduction()
+
+        firstgood = 0
+
+        def parallel_function(morphism):
+            return morphism.possible_periods()
+
+        # Calling possible_periods for each prime in parallel
+        parallel_data = []
+        for q in primes(primebound[0], primebound[1] + 1):
+            if not (q in badprimes):
+                F = self.change_ring(GF(q))
+                parallel_data.append(((F,), {}))
+  
+        parallel_iter = p_iter_fork(num_cpus, 0)
+        parallel_results = list(parallel_iter(parallel_function, parallel_data))
+
+        for result in parallel_results:
+            possible_periods = result[1]
+            if firstgood == 0:
+                periods = set(possible_periods)
+                firstgood = 1
             else:
-                F=self.change_ring(GF(q))
-                periodsq=set(F.possible_periods())
-                periods=periods.intersection(periodsq)
-        if firstgood==0:
+                periodsq = set(possible_periods)
+                periods = periods.intersection(periodsq)
+
+        if firstgood == 0:
             raise ValueError("No primes of good reduction in that range")
         else:
             return(sorted(periods))
@@ -2201,7 +2248,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2-3/4*y^2,y^2])
-            sage: f.rational_periodic_points(prime_bound=20,lifting_prime=7) # long time
+            sage: sorted(f.rational_periodic_points(prime_bound=20,lifting_prime=7)) # long time
             [(-1/2 : 1), (1 : 0), (3/2 : 1)]
 
         ::
@@ -2209,20 +2256,21 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
             sage: f = H([2*x^3 - 50*x*z^2 + 24*z^3,5*y^3 - 53*y*z^2 + 24*z^3,24*z^3])
-            sage: f.rational_periodic_points(prime_bound=[1,20]) # long time
-            [(-3 : 1 : 1), (3 : 1 : 1), (5 : 1 : 1), (-1 : 0 : 1), (3 : 3 : 1), (-3
-            : 3 : 1), (-1 : 3 : 1), (1 : 3 : 1), (-3 : -1 : 1), (5 : 3 : 1), (-1 :
-            -1 : 1), (1 : 1 : 1), (3 : 0 : 1), (-3 : 0 : 1), (5 : 0 : 1), (3 : -1 :
-            1), (1 : 0 : 0), (5 : -1 : 1), (-1 : 1 : 1), (1 : -1 : 1), (0 : 1 : 0),
-            (1 : 0 : 1)]
+            sage: sorted(f.rational_periodic_points(prime_bound=[1,20])) # long time
+            [(-3 : -1 : 1), (-3 : 0 : 1), (-3 : 1 : 1), (-3 : 3 : 1), (-1 : -1 : 1),
+            (-1 : 0 : 1), (-1 : 1 : 1), (-1 : 3 : 1), (0 : 1 : 0), (1 : -1 : 1), (1
+            : 0 : 0), (1 : 0 : 1), (1 : 1 : 1), (1 : 3 : 1), (3 : -1 : 1), (3 : 0 :
+            1), (3 : 1 : 1), (3 : 3 : 1), (5 : -1 : 1), (5 : 0 : 1), (5 : 1 : 1), (5
+            : 3 : 1)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([-5*x^2 + 4*y^2,4*x*y])
-            sage: f.rational_periodic_points() # long time
-            [(2/3 : 1), (-2 : 1), (1 : 0), (2 : 1), (-2/3 : 1)]
+            sage: sorted(f.rational_periodic_points()) # long time
+            [(-2 : 1), (-2/3 : 1), (2/3 : 1), (1 : 0), (2 : 1)]
+
 
         .. TODO::
 
@@ -2271,11 +2319,11 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
         periodic_points=self.lift_to_rational_periodic(pos_points,B)
-        for P,n in periodic_points:
+        for p,n in periodic_points:
             for k in range(n):
-                  P.normalize_coordinates()
-                  periodic.add(P)
-                  P=self(P)
+                  p.normalize_coordinates()
+                  periodic.add(p)
+                  p=self(p)
         return(list(periodic))
 
     def rational_preimages(self,Q):
@@ -2319,11 +2367,31 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 + y^2,2*x*y])
             sage: f.rational_preimages(P(17,15))
             [(5/3 : 1), (3/5 : 1)]
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: H = End(P)
+            sage: f = H([x^2 - 2*y*w - 3*w^2, -2*x^2 + y^2 - 2*x*z + 4*y*w + 3*w^2, x^2 - y^2 + 2*x*z + z^2 - 2*y*w - w^2, w^2])
+            sage: f.rational_preimages(P(0,-1,0,1))
+            []
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2,2*x*y])
+            sage: f.rational_preimages([CC.0,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: Point must be in codomain of self
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
         if self.domain().base_ring()!=QQ:
             raise NotImplementedError("Must be QQ")
+        if (Q in self.codomain())==False:
+            raise TypeError("Point must be in codomain of self")
         PS=self.domain()
         R=PS.coordinate_ring()
         N=PS.dimension_relative()
@@ -2335,6 +2403,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             for j in range(i+1,N+1):
                 I.append(Q[i]*self[j]-Q[j]*self[i])
         I = I*R
+        I0=R.ideal(0)
         #Determine the points through elimination
         #This is much faster than using the I.variety() function on each affine chart.
         for k in range(N+1):
@@ -2374,7 +2443,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 #they are the rational solutions to the equations
                 #make them into projective points
                 for i in range(len(points)):
-                    if len(points[i])==N+1:
+                    if len(points[i])==N+1 and I.subs(points[i])==I0:
                         S=PS([points[i][R.gen(j)] for j in range(N+1)])
                         S.normalize_coordinates()
                         preimages.add(S)
@@ -2388,6 +2457,8 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         iterate in the set points. This function repeatedly calls ``rational_preimages``.
         If the degree is at least two, by Northocott, this is always a finite set.
         ``self`` must be defined over `\QQ` and be an endomorphism of projective space.
+        In the examples, the output is sorted because the calculations are done in parallel
+        and the order of the results is not guaranteed.
 
         INPUT:
 
@@ -2402,18 +2473,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([16*x^2 - 29*y^2,16*y^2])
-            sage: f.all_rational_preimages([P(-1,4)])
-            [(-1/4 : 1), (5/4 : 1), (-3/4 : 1), (3/4 : 1), (-5/4 : 1), (1/4 : 1),
-            (7/4 : 1), (-7/4 : 1)]
+            sage: sorted(f.all_rational_preimages([P(-1,4)]))
+            [(-7/4 : 1), (-5/4 : 1), (-3/4 : 1), (-1/4 : 1), (1/4 : 1), (3/4 : 1),
+            (5/4 : 1), (7/4 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
             sage: f = H([76*x^2 - 180*x*y + 45*y^2 + 14*x*z + 45*y*z - 90*z^2, 67*x^2 - 180*x*y - 157*x*z + 90*y*z, -90*z^2])
-            sage: f.all_rational_preimages([P(-9,-4,1)])
-            [(-9 : -4 : 1), (1 : 3 : 1), (0 : 4 : 1), (0 : -1 : 1), (0 : 0 : 1), (1
-            : 1 : 1), (0 : 1 : 1), (1 : 2 : 1), (1 : 0 : 1)]
+            sage: sorted(f.all_rational_preimages([P(-9,-4,1)]))
+            [(-9 : -4 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1), (0 : 4 : 1), (1
+            : 0 : 1), (1 : 1 : 1), (1 : 2 : 1), (1 : 3 : 1)]
 
         ::
 
@@ -2421,8 +2492,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + y^2,2*x*y])
-            sage: f.all_rational_preimages([P(17,15)])
-            [(5/3 : 1), (1/3 : 1), (3/5 : 1), (3 : 1)]
+            sage: sorted(f.all_rational_preimages([P(17,15)]))
+            [(1/3 : 1), (3/5 : 1), (5/3 : 1), (3 : 1)]
+
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
@@ -2431,15 +2503,15 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         PS=self.domain()
         RPS=PS.base_ring()
-        all_preimages=set()
+        preperiodic=set()
         while points!=[]:
             P=points.pop()
             preimages=self.rational_preimages(P)
             for i in range(len(preimages)):
-                if not preimages[i] in all_preimages:
+                if not preimages[i] in preperiodic:
                     points.append(preimages[i])
-                    all_preimages.add(preimages[i])
-        return(list(all_preimages))
+                    preperiodic.add(preimages[i])
+        return(list(preperiodic))
 
     def rational_preperiodic_points(self,**kwds):
         r"""
@@ -2483,28 +2555,30 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: H = End(PS)
             sage: f = H([x^2 -y^2,3*x*y])
-            sage: f.rational_preperiodic_points()
-            [(-2 : 1), (0 : 1), (-1/2 : 1), (1 : 0), (1 : 1), (2 : 1), (-1 : 1),
-            (1/2 : 1)]
+            sage: sorted(f.rational_preperiodic_points())
+            [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1/2 : 1), (1 : 0), (1 : 1),
+            (2 : 1)]
 
         ::
 
             sage: PS.<x,y> = ProjectiveSpace(1,QQ)
             sage: H = End(PS)
             sage: f = H([5*x^3 - 53*x*y^2 + 24*y^3, 24*y^3])
-            sage: f.rational_preperiodic_points(prime_bound=10)
-            [(1 : 1), (1 : 0), (-1 : 1), (3 : 1), (0 : 1)]
+            sage: sorted(f.rational_preperiodic_points(prime_bound=10))
+            [(-1 : 1), (0 : 1), (1 : 0), (1 : 1), (3 : 1)]
 
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(2,QQ)
             sage: H = End(PS)
             sage: f = H([x^2 - 21/16*z^2,y^2-2*z^2,z^2])
-            sage: f.rational_preperiodic_points(prime_bound=[1,8],lifting_prime=7,periods=[2]) # long time
-            [(5/4 : 1 : 1), (1/4 : 1 : 1), (1/4 : -2 : 1), (1/4 : 2 : 1), (5/4 : -1 : 1), (5/4 : 2 : 1),
-            (-5/4 : 2 : 1), (1/4 : -1 : 1), (-1/4 : 2 : 1), (-1/4 : -2 : 1), (-5/4 : 1 : 1), (5/4 : 0 : 1),
-            (-5/4 : 0 : 1), (-1/4 : 1 : 1), (-1/4 : 0 : 1), (-5/4 : -1 : 1), (5/4 : -2 : 1), (-1/4 : -1 : 1),
-            (-5/4 : -2 : 1), (1/4 : 0 : 1)]
+            sage: sorted(f.rational_preperiodic_points(prime_bound=[1,8],lifting_prime=7,periods=[2])) # long time
+            [(-5/4 : -2 : 1), (-5/4 : -1 : 1), (-5/4 : 0 : 1), (-5/4 : 1 : 1), (-5/4
+            : 2 : 1), (-1/4 : -2 : 1), (-1/4 : -1 : 1), (-1/4 : 0 : 1), (-1/4 : 1 :
+            1), (-1/4 : 2 : 1), (1/4 : -2 : 1), (1/4 : -1 : 1), (1/4 : 0 : 1), (1/4
+            : 1 : 1), (1/4 : 2 : 1), (5/4 : -2 : 1), (5/4 : -1 : 1), (5/4 : 0 : 1),
+            (5/4 : 1 : 1), (5/4 : 2 : 1)]
+
         """
         #input error checking done in possible_periods and rational_peridic_points
         badprimes = kwds.pop("bad_primes",None)
@@ -2518,7 +2592,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             return([]) #no rational preperiodic points
         else:
             p = kwds.pop("lifting_prime",23)
-            T=self.rational_periodic_points(prime_bound=primebound,lifting_prime=p,periods=periods,bad_primes=badprimes) #find the rationla preperiodic points
+            T=self.rational_periodic_points(prime_bound=primebound,lifting_prime=p,periods=periods,bad_primes=badprimes) #find the rational preperiodic points
             preper=self.all_rational_preimages(T) #find the preperiodic points
             preper=list(preper)
             return(preper)

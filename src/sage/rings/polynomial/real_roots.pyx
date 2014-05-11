@@ -2009,7 +2009,7 @@ def precompute_degree_reduction_cache(n):
         )
     """
     while True:
-        if dr_cache.has_key(n): return
+        if n in dr_cache: return
         next = degree_reduction_next_size(n)
         if next is None:
             dr_cache[n] = (None, None, 0)

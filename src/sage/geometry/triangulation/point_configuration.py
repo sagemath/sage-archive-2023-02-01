@@ -331,7 +331,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert connected in [True, False], 'Unknown value: connected='+str(connected)
         self._connected = connected
         if connected!=True and not PointConfiguration._have_TOPCOM():
-            raise ValueError, 'You must install TOPCOM to find non-connected triangulations.'
+            raise ValueError('You must install TOPCOM to find non-connected triangulations.')
 
         assert fine in [True, False], 'Unknown value: fine='+str(fine)
         self._fine = fine
@@ -339,7 +339,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         assert regular in [True, False, None], 'Unknown value: regular='+str(regular)
         self._regular = regular
         if regular!=None and not PointConfiguration._have_TOPCOM():
-           raise ValueError, 'You must install TOPCOM to test for regularity.'
+           raise ValueError('You must install TOPCOM to test for regularity.')
 
         assert star==None or star in ZZ, 'Unknown value: fine='+str(star)
         self._star = star
@@ -372,7 +372,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p.set_engine('internal') # optional - TOPCOM
         """
         if engine not in ['auto', 'TOPCOM', 'internal']:
-            raise ValueError, 'Unknown value for "engine": '+str(engine)
+            raise ValueError('Unknown value for "engine": '+str(engine))
 
         have_TOPCOM = PointConfiguration._have_TOPCOM()
         PointConfiguration._use_TOPCOM = \
@@ -412,7 +412,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             ValueError: The point configuration has no star center defined.
         """
         if self._star is None:
-            raise ValueError, 'The point configuration has no star center defined.'
+            raise ValueError('The point configuration has no star center defined.')
         else:
             return self[self._star]
 
@@ -976,9 +976,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 yield triangulation
         else:
             if (self._connected!=True):
-                raise ValueError, 'Need TOPCOM to find disconnected triangulations.'
+                raise ValueError('Need TOPCOM to find disconnected triangulations.')
             if (self._regular!=None):
-                raise ValueError, 'Need TOPCOM to test for regularity.'
+                raise ValueError('Need TOPCOM to test for regularity.')
             ci = ConnectedTriangulationsIterator(self, star=self._star, fine=self._fine)
             for encoded_triangulation in ci:
                 yield self(encoded_triangulation)
@@ -1061,7 +1061,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         except StopIteration:
             # there is no triangulation
             pass
-        raise ValueError, 'No triangulation with the required properties.'
+        raise ValueError('No triangulation with the required properties.')
 
 
     def convex_hull(self):

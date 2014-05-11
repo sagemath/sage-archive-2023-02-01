@@ -282,7 +282,7 @@ def str_function(x):
 
     If ``x`` contains only digits with, possibly, a single decimal point and/or
     a sign in front, it is considered to be its own representation. Otherwise
-    each line of ``x`` is wrapped in a ``\verb`` command and these lines are
+    each line of ``x`` is wrapped in a ``\texttt`` command and these lines are
     assembled in a left-justified array. This gives to complicated strings the
     closest look to their "terminal representation".
 
@@ -605,6 +605,7 @@ def latex_extra_preamble():
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print latex_extra_preamble()
         ...
+        <BLANKLINE>
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
         \newcommand{\RR}{\Bold{R}}
@@ -691,8 +692,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
 
     if not engine or engine == "latex":
         if not have_latex():
-            print "Error: LaTeX does not seem to be installed.  Download it from"
-            print "ctan.org and try again."
+            print("Error: LaTeX does not seem to be installed.  Download it from")
+            print("ctan.org and try again.")
             return "Error"
         command = "latex"
         # 'suffix' is used in the 'convert' command list
@@ -700,16 +701,16 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         return_suffix = "dvi"
     elif engine == "pdflatex":
         if not have_pdflatex():
-            print "Error: PDFLaTeX does not seem to be installed.  Download it from"
-            print "ctan.org and try again."
+            print("Error: PDFLaTeX does not seem to be installed.  Download it from")
+            print("ctan.org and try again.")
             return "Error"
         command = "pdflatex"
         suffix = "pdf"
         return_suffix = "pdf"
     elif engine == "xelatex":
         if not have_xelatex():
-            print "Error: XeLaTeX does not seem to be installed.  Download it from"
-            print "ctan.org and try again."
+            print("Error: XeLaTeX does not seem to be installed.  Download it from")
+            print("ctan.org and try again.")
             return "Error"
         command = "xelatex"
         suffix = "pdf"
@@ -720,31 +721,31 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     # if png output + latex, check to see if dvipng or convert is installed.
     if png:
         if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
-            print ""
-            print "Error: neither dvipng nor convert (from the ImageMagick suite)"
-            print "appear to be installed. Displaying LaTeX, PDFLaTeX output"
-            print "requires at least one of these programs, so please install"
-            print "and try again."
-            print ""
-            print "Go to http://sourceforge.net/projects/dvipng/ and"
-            print "http://www.imagemagick.org to download these programs."
+            print()
+            print("Error: neither dvipng nor convert (from the ImageMagick suite)")
+            print("appear to be installed. Displaying LaTeX, PDFLaTeX output")
+            print("requires at least one of these programs, so please install")
+            print("and try again.")
+            print()
+            print("Go to http://sourceforge.net/projects/dvipng/ and")
+            print("http://www.imagemagick.org to download these programs.")
             return "Error"
     # if png output + pdflatex, check to see if convert is installed.
         elif engine == "pdflatex" and not have_convert():
-            print ""
-            print "Error: convert (from the ImageMagick suite) does not"
-            print "appear to be installed. Displaying PDFLaTeX output"
-            print "requires this program, so please install and try again."
-            print ""
-            print "Go to http://www.imagemagick.org to download it."
+            print()
+            print("Error: convert (from the ImageMagick suite) does not")
+            print("appear to be installed. Displaying PDFLaTeX output")
+            print("requires this program, so please install and try again.")
+            print()
+            print("Go to http://www.imagemagick.org to download it.")
             return "Error"
         elif engine == "xelatex" and not have_convert():
-            print ""
-            print "Error: convert (from the ImageMagick suite) does not"
-            print "appear to be installed. Displaying XeLaTeX output"
-            print "requires this program, so please install and try again."
-            print ""
-            print "Go to http://www.imagemagick.org to download it."
+            print()
+            print("Error: convert (from the ImageMagick suite) does not")
+            print("appear to be installed. Displaying XeLaTeX output")
+            print("requires this program, so please install and try again.")
+            print()
+            print("Go to http://www.imagemagick.org to download it.")
             return "Error"
     # check_validity: check to see if the dvi file is okay by trying
     # to convert to a png file.  if this fails, return_suffix will be
@@ -797,9 +798,9 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                                              stderr=redirect, cwd=base)
     if engine == "pdflatex" or engine == "xelatex":
         if debug:
-            print lt
+            print(lt)
             if png:
-                print convert
+                print(convert)
         e = subpcall(lt)
         if png:
             e = e and subpcall(convert)
@@ -807,8 +808,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         if (png or check_validity):
             if have_dvipng():
                 if debug:
-                    print lt
-                    print dvipng
+                    print(lt)
+                    print(dvipng)
                 e = subpcall(lt) and subpcall(dvipng)
                 dvipng_error = not os.path.exists(os.path.join(base, filename + '.png'))
                 # If there is no png file, then either the latex
@@ -820,37 +821,37 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                     if png:
                         if have_convert():
                             if debug:
-                                print "'dvipng' failed; trying 'convert' instead..."
-                                print dvips
-                                print convert
+                                print("'dvipng' failed; trying 'convert' instead...")
+                                print(dvips)
+                                print(convert)
                             e = subpcall(dvips) and subpcall(convert)
                         else:
-                            print "Error: 'dvipng' failed and 'convert' is not installed."
+                            print("Error: 'dvipng' failed and 'convert' is not installed.")
                             return "Error: dvipng failed."
                     else:  # not png, i.e., check_validity
                         return_suffix = "pdf"
                         if debug:
-                            print "bad dvi file; running dvips and ps2pdf instead..."
-                            print dvips
-                            print ps2pdf
+                            print("bad dvi file; running dvips and ps2pdf instead...")
+                            print(dvips)
+                            print(ps2pdf)
                         e = subpcall(dvips) and subpcall(ps2pdf)
                         if not e:  # error running dvips and/or ps2pdf
                             pdflt = lt[:]
                             pdflt[1] = 'pdflatex'
                             if debug:
-                                print "error running dvips and ps2pdf; trying pdflatex instead..."
-                                print pdflt
+                                print("error running dvips and ps2pdf; trying pdflatex instead...")
+                                print(pdflt)
                             e = subpcall(pdflt)
             else:  # don't have dvipng, so must have convert.  run latex, dvips, convert.
                 if debug:
-                    print lt
-                    print dvips
-                    print convert
+                    print(lt)
+                    print(dvips)
+                    print(convert)
                 e = subpcall(lt) and subpcall(dvips) and subpcall(convert)
     if not e:
-        print "An error occurred."
+        print("An error occurred.")
         try:
-            print open(base + '/' + filename + '.log').read()
+            print(open(base + '/' + filename + '.log').read())
         except IOError:
             pass
         return "Error latexing slide."
@@ -913,7 +914,7 @@ class LatexCall:
             return LatexExpr(x._latex_())
         try:
             f = latex_table[type(x)]
-            if type(x) == tuple:
+            if isinstance(x, tuple):
                 return LatexExpr(f(x, combine_all=combine_all))
             return LatexExpr(f(x))
         except KeyError:
@@ -1018,8 +1019,8 @@ class Latex(LatexCall):
             var = t[:j]
             try:
                 k = str(latex(sage_eval.sage_eval(var, locals)))
-            except Exception, msg:
-                print msg
+            except Exception as msg:
+                print(msg)
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]
 
@@ -1341,10 +1342,10 @@ class Latex(LatexCall):
         """
         assert isinstance(file_name, str)
         if not self.has_file(file_name):
-            print """
-Warning: `%s` is not part of this computer's TeX installation."""%file_name
+            print("""
+Warning: `{}` is not part of this computer's TeX installation.""".format(file_name))
             if more_info:
-                print more_info
+                print(more_info)
 
 
     def extra_macros(self, macros=None):
@@ -1769,7 +1770,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     s = LATEX_HEADER + '\n' + MACROS + s + '\n\\end{document}'
 
     if debug:
-        print s
+        print(s)
 
     return s
 
@@ -1983,10 +1984,10 @@ class MathJax:
             # what happened here?
             raise ValueError("mode must be either 'display' or 'inline'")
 
-        return MathJaxExpr('<html><script type="math/tex{0}">'.format(modecode)
+        return MathJaxExpr('<html><script type="math/tex{}">'.format(modecode)
                          + ''.join(sage_configurable_latex_macros)
                          + _Latex_prefs._option['macros']
-                         + '{0}</script></html>'.format(x))
+                         + '{}</script></html>'.format(x))
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer = None, tightpage = None,
@@ -2156,14 +2157,14 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
             if not MathJax_okay:
                 break
         if MathJax_okay:  # put comma at end of line below?
-            print MathJax().eval(objects, mode=mode, combine_all=combine_all)
+            print(MathJax().eval(objects, mode=mode, combine_all=combine_all))
         else:
             base_dir = os.path.abspath("")
             png_file = graphics_filename(ext='png')
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
                 debug=debug, engine=engine)
-            print '<html><img src="%s"></html>'%png_link  # put comma at end of line?
+            print('<html><img src="{}"></html>'.format(png_link))  # put comma at end of line?
         return
     # command line or notebook with viewer
     tmp = tmp_dir('sage_viewer')
@@ -2177,7 +2178,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         from sage.misc.viewer import dvi_viewer
         viewer = dvi_viewer()
     else:
-        print "Latex error"
+        print("Latex error")
         return
     output_file = os.path.join(tmp, "sage." + suffix)
     # this should get changed if we switch the stuff in misc.viewer to
@@ -2185,7 +2186,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     if not viewer.startswith('sage-native-execute '):
         viewer = 'sage-native-execute ' + viewer
     if debug:
-        print 'viewer: "{0}"'.format(viewer)
+        print('viewer: "{}"'.format(viewer))
     subprocess.call('%s %s' % (viewer, output_file), shell=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return
@@ -2248,7 +2249,7 @@ def png(x, filename, density=150, debug=False,
         # if no errors, copy png_file to the appropriate place
         shutil.copy(png_file, abs_path_to_png)
     else:
-        print "Latex error"
+        print("Latex error")
     if debug:
         return s
     return
@@ -2341,7 +2342,7 @@ def repr_lincomb(symbols, coeffs):
                 try:
                     if bv in CC:
                         s += "%s\cdot %s"%(coeff, b)
-                except StandardError:
+                except Exception:
                     s += "%s%s"%(coeff, b)
             first = False
         i += 1
@@ -2415,22 +2416,26 @@ def pretty_print (*args):
             if EMBEDDED_MODE:
                 view(tuple(s), combine_all=True)
             else:
-                print MathJax().eval(tuple(s), mode='inline',
-                        combine_all=True)
+                print(MathJax().eval(tuple(s), mode='inline',
+                        combine_all=True))
 
+    import __builtin__
+    in_ipython = hasattr(__builtin__, 'get_ipython')
     s = []
     for object in args:
         if object is None:
             continue
-        import __builtin__
-        __builtin__._=object
+        if in_ipython:
+            get_ipython().displayhook.update_user_ns(object)
+        else:
+            __builtin__._ = object
 
         from sage.plot.plot import Graphics
         from sage.plot.plot3d.base import Graphics3d
         if isinstance(object, (Graphics, Graphics3d)):
             _show_s(s)
             s = []
-            print repr(object)
+            print(repr(object))
 
         else:
             s.append(object)
@@ -2498,7 +2503,12 @@ common_varnames = ['alpha',
                    'psi',
                    'Psi',
                    'omega',
-                   'Omega']
+                   'Omega',
+                   'ast',
+                   'bullet',
+                   'circ',
+                   'times',
+                   'star']
 
 def latex_varify(a, is_fname=False):
     r"""
@@ -2522,20 +2532,30 @@ def latex_varify(a, is_fname=False):
         sage: latex_varify('w')
         'w'
         sage: latex_varify('aleph')
-        '\\mbox{aleph}'
+        '\\mathit{aleph}'
         sage: latex_varify('aleph', is_fname=True)
         '{\\rm aleph}'
         sage: latex_varify('alpha')
         '\\alpha'
+        sage: latex_varify('ast')
+        '\\ast'
+
+    TESTS:
+
+        sage: abc = var('abc')
+        sage: latex((abc/(abc+1)+42)/(abc-1))  # trac #15870
+        \frac{\frac{\mathit{abc}}{\mathit{abc} + 1} + 42}{\mathit{abc} - 1}
     """
     if a in common_varnames:
         return "\\" + a
+    elif len(a) == 0:
+        return ''
     elif len(a) == 1:
         return a
     elif is_fname is True:
         return '{\\rm %s}'%a
     else:
-        return '\\mbox{%s}'%a
+        return '\\mathit{%s}'%a
 
 def latex_variable_name(x, is_fname=False):
     r"""
@@ -2565,7 +2585,7 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('a')
         'a'
         sage: latex_variable_name('abc')
-        '\\mbox{abc}'
+        '\\mathit{abc}'
         sage: latex_variable_name('sigma')
         '\\sigma'
         sage: latex_variable_name('sigma_k')
@@ -2579,15 +2599,17 @@ def latex_variable_name(x, is_fname=False):
         sage: latex_variable_name('sigma_alpha')
         '\\sigma_{\\alpha}'
         sage: latex_variable_name('nothing1')
-        '\\mbox{nothing}_{1}'
+        '\\mathit{nothing}_{1}'
         sage: latex_variable_name('nothing1', is_fname=True)
         '{\\rm nothing}_{1}'
         sage: latex_variable_name('nothing_abc')
-        '\\mbox{nothing}_{\\mbox{abc}}'
+        '\\mathit{nothing}_{\\mathit{abc}}'
         sage: latex_variable_name('nothing_abc', is_fname=True)
         '{\\rm nothing}_{{\\rm abc}}'
         sage: latex_variable_name('alpha_beta_gamma12')
         '\\alpha_{\\beta_{\\gamma_{12}}}'
+        sage: latex_variable_name('x_ast')
+        'x_{\\ast}'
 
     AUTHORS:
 

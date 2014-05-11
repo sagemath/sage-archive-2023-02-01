@@ -19,7 +19,8 @@ Lyndon words
 
 from combinat import CombinatorialClass
 from sage.combinat.composition import Composition, Compositions
-from sage.rings.all import factorial, divisors, gcd, moebius, Integer
+from sage.rings.all import divisors, gcd, moebius, Integer
+from sage.rings.arith import factorial
 from sage.misc.misc import prod
 import __builtin__
 import necklace
@@ -68,7 +69,7 @@ def LyndonWords(e=None, k=None):
         word: 112
         sage: LW.last()
         word: 233
-        sage: LW.random_element()
+        sage: LW.random_element() # random
         word: 112
         sage: LW.cardinality()
         8

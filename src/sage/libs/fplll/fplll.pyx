@@ -71,12 +71,12 @@ cdef inline int _check_delta(float delta) except -1:
     INPUT:
 
     - ``delta`` - a floating point number
+
     """
     if delta <= 0.25:
         raise TypeError, "delta must be > 0.25"
     elif delta > 1.0:
         raise TypeError, "delta must be <= 1.0"
-
 
 cdef inline FloatType check_float_type(object float_type):
     cdef FloatType float_type_
@@ -92,9 +92,9 @@ cdef inline FloatType check_float_type(object float_type):
     elif float_type == "mpfr":
         float_type_ = FT_MPFR
     else:
-        raise ValueError("Float type '%s' unknown"%float_type)
+        raise ValueError("Float type '%s' unknown" % float_type)
     return float_type_
-    
+
 cdef class FP_LLL:
     """A basic wrapper class to support conversion to/from Sage integer matrices
     and executing the LLL computation.
@@ -105,8 +105,8 @@ cdef class FP_LLL:
       method of the integer matrices.
 
     """
-    
-    
+
+
     def __cinit__(self, Matrix_integer_dense A):
         """Construct a new fpLLL wrapper for the matrix A.
 
@@ -131,12 +131,12 @@ cdef class FP_LLL:
             Traceback (most recent call last):
             ...
             ValueError: fpLLL cannot handle matrices with zero rows.
-        
+
         """
         cdef int i,j
 
         cdef Z_NR[mpz_t] t
-        
+
         if A._nrows == 0:
             raise ValueError('fpLLL cannot handle matrices with zero rows.')
 
@@ -162,7 +162,8 @@ cdef class FP_LLL:
             sage: FP_LLL(A) # indirect doctest
             fpLLL wrapper acting on a 10 x 10 matrix
         """
-        return "fpLLL wrapper acting on a %d x %d matrix"%(self._lattice.getRows(),self._lattice.getCols())
+        return "fpLLL wrapper acting on a %d x %d matrix" % (
+            self._lattice.getRows(), self._lattice.getCols())
 
     def _sage_(self):
         """
@@ -186,15 +187,17 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``delta`` - parameter `0.25 < \delta < 1.0` (default=0.99)
-        - ``eta ``  - parameter `0.5 <= \eta < \sqrt{\delta}` (default=0.51)
-        - ``method`` - 'proved', 'fast', 'wrapper' (== ``None``), 'heuristic' or ``None`` (default=None)
-        - ``float_type`` - 'double', 'long double', 'dpe', 'mpfr' or None for automatic choice (default: ``None``)
-        - ``precision`` - precision to use (default: 0 for automatic choice)
+        - ``delta`` - parameter `0.25 < \delta < 1.0` (default: `0.99`)
+        - ``eta ``  - parameter `0.5 <= \eta < \sqrt{\delta}` (default: `0.51`)
+        - ``method`` - 'proved', 'fast', 'wrapper' (== ``None``), 'heuristic' 
+          or ``None`` (default: ``None``)
+        - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``, 
+          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``)
+        - ``precision`` - precision to use (default: ``0`` for automatic choice)
         - ``verbose`` - be verbose (default: ``False``)
         - ``siegel`` - use Siegel conditioning (default: ``False``)
         - ``early_red`` -  use early reduction (default: ``False``)
-        
+
         EXAMPLES::
 
             sage: from sage.libs.fplll.fplll import FP_LLL
@@ -300,7 +303,7 @@ cdef class FP_LLL:
             True
             sage: L.hermite_form() == A.hermite_form()
             True
-        
+
             sage: set_random_seed(0)
             sage: A = random_matrix(ZZ,10,10); A
             [   -8     2     0     0     1    -1     2     1   -95    -1]
@@ -363,7 +366,7 @@ cdef class FP_LLL:
             sage: L.is_LLL_reduced(eta=0.51,delta=0.99)
             True
             sage: L.hermite_form() == A.hermite_form()
-            True        
+            True
         """
         _check_delta(delta)
         _check_eta(eta)
@@ -379,10 +382,10 @@ cdef class FP_LLL:
         elif method == "fast":
             method_ = LM_FAST
         else:
-            raise ValueError("Method '%s' unknown."%method)
+            raise ValueError("Method '%s' unknown." % method)
 
         cdef int flags = LLL_DEFAULT
-            
+
         if verbose:
             flags |= LLL_VERBOSE
         if early_red:
@@ -392,17 +395,20 @@ cdef class FP_LLL:
 
         if float_type is None and method_ == LM_FAST:
             float_type = "double"
-            
+
         if method_ == LM_WRAPPER and check_float_type(float_type) != FT_DEFAULT:
-            raise ValueError("fpLLL's LLL wrapper function requires float type None")
-        if method_ == LM_FAST and check_float_type(float_type) not in (FT_DOUBLE, FT_LONG_DOUBLE):
-            raise ValueError("fpLLL's LLL fast function requires float type 'double' or 'long double'")
-            
+            raise ValueError("fpLLL's LLL wrapper function requires "
+                             "float type None")
+        if method_ == LM_FAST and \
+                check_float_type(float_type) not in (FT_DOUBLE, FT_LONG_DOUBLE):
+            raise ValueError("fpLLL's LLL fast function requires "
+                             "float type 'double' or 'long double'")
+
         sig_on()
         cdef int r = lllReduction(self._lattice[0], delta, eta, method_, check_float_type(float_type), precision, flags)
         sig_off()
         if r:
-            raise RuntimeError("%s"%getRedStatusStr(r));
+            raise RuntimeError("%s" % getRedStatusStr(r));
 
     def BKZ(self, int block_size, double delta=LLL_DEF_DELTA,
             float_type=None, int precision=0, int max_loops=0, int max_time=0,
@@ -413,14 +419,18 @@ cdef class FP_LLL:
         INPUT:
 
         - ``block_size`` - 0 < block size <= nrows
-        - ``delta`` - LLL parameter `0.25 < \delta < 1.0` (default=0.99)
-        - ``float_type`` - 'double', 'long double', 'dpe', 'mpfr' or None for automatic choice (default: ``None``)
+        - ``delta`` - LLL parameter `0.25 < \delta < 1.0` (default: `0.99`)
+        - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``,
+          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``)
         - ``verbose`` - be verbose (default: ``False``)
-        - ``no_lll`` - 
+        - ``no_lll`` -
         - ``bounded_lll`` -
-        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: 0 for automatic choice)
-        - ``max_loops`` - maximum number of full loops (default: 0 for no restriction)
-        - ``max_time`` - stop after time seconds (up to loop completion) (default: 0 for no restricion)
+        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: `0`
+          for automatic choice)
+        - ``max_loops`` - maximum number of full loops (default: `0`
+          for no restriction)
+        - ``max_time`` - stop after time seconds (up to loop completion)
+          (default: `0` for no restricion)
         - ``auto_abort`` - heuristic, stop when the average slope of
            $log(||b_i*||)$ does not decrease fast enough (default: ``False``)
 
@@ -433,22 +443,22 @@ cdef class FP_LLL:
             sage: F.LLL()
             sage: F._sage_()[0].norm().n()
             7.810...
-        
+
             sage: F.BKZ(10)
             sage: F._sage_()[0].norm().n()
             6.164...
-      
-        """        
+
+        """
         if block_size <= 0:
             raise ValueError("Block size must be > 0.")
         if max_loops < 0:
             raise ValueError("Maximum number of loops must be >= 0.")
         if max_time < 0:
             raise ValueError("Maximum time must be >= 0.")
-            
+
         _check_delta(delta)
         _check_precision(precision)
-            
+
         cdef BKZParam o = BKZParam()
 
         o.b = self._lattice
@@ -457,7 +467,7 @@ cdef class FP_LLL:
         o.floatType = check_float_type(float_type)
         o.precision = precision
         o.flags = BKZ_DEFAULT
-        
+
         if verbose:
             o.flags |= BKZ_VERBOSE
         if no_lll:
@@ -477,19 +487,19 @@ cdef class FP_LLL:
         cdef int r = bkzReduction(o)
         sig_off()
         if r:
-            raise RuntimeError("%s"%getRedStatusStr(r));
+            raise RuntimeError("%s" % getRedStatusStr(r));
 
     def HKZ(self):
         sig_on()
         cdef int r = hkzReduction(self._lattice[0])
         sig_off()
         if r:
-            raise RuntimeError("%s"%getRedStatusStr(r));
+            raise RuntimeError("%s" % getRedStatusStr(r));
 
     def shortest_vector(self, method=None):
         """
         Return a shortest vector.
-        
+
         INPUT:
 
         - ``method`` - "proved" or "fast" (default: "proved")
@@ -500,16 +510,16 @@ cdef class FP_LLL:
         elif method == "fast":
             method_ = SVPM_FAST
         else:
-            raise ValueError("Method '%s' unknown."%method)
+            raise ValueError("Method '%s' unknown." % method)
 
         cdef int r
 
         cdef ZZ_mat[mpz_t] u
-        
+
         r = lllReduction(self._lattice[0], u, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER, FT_DEFAULT, 0, LLL_DEFAULT)
         if r:
-            raise RuntimeError("%s"%getRedStatusStr(r));
-                    
+            raise RuntimeError("%s" % getRedStatusStr(r));
+
         cdef vector[Z_NR[mpz_t]] solCoord
         cdef vector[Z_NR[mpz_t]] solution
 
@@ -517,13 +527,13 @@ cdef class FP_LLL:
         r = shortestVector(self._lattice[0], solCoord, method_)
         sig_off()
         if r:
-            raise RuntimeError("fpLLL's SVP solver returned an error (%d)"%r);
+            raise RuntimeError("fpLLL's SVP solver returned an error (%d)" % r);
 
         vectMatrixProduct(solution, solCoord, self._lattice[0])
-        
+
         VS = ZZ**self._lattice.getCols()
         cdef Vector_integer_dense v = Vector_integer_dense(VS, 0)
-            
+
         for i in range(len(v)):
             mpz_set(v._entries[i], solution[i].getData())
         return v
@@ -531,7 +541,7 @@ cdef class FP_LLL:
     #
     # Deprecated interfaces
     #
-        
+
     def wrapper(self, int precision=0, float eta=0.51, float delta=0.99):
         """
         Perform LLL reduction using fpLLL's \code{wrapper}
@@ -594,7 +604,7 @@ cdef class FP_LLL:
         sig_off()
         wrapper_delete(w)
         if ret != 0:
-            raise RuntimeError, "fpLLL returned %d != 0"%ret
+            raise RuntimeError, "fpLLL returned %d != 0" % ret
 
 
     def proved(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
@@ -683,7 +693,7 @@ cdef class FP_LLL:
            proved_mpfr_delete(pmpfr)
 
         if ret != 0:
-            raise RuntimeError, "fpLLL returned %d != 0"%ret
+            raise RuntimeError, "fpLLL returned %d != 0" % ret
 
     def fast(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
@@ -782,7 +792,7 @@ cdef class FP_LLL:
             True
          """
         deprecation(15976, 'You can just call LLL() instead')
-        
+
         _check_precision(precision)
         _check_eta(eta)
         _check_delta(delta)
@@ -970,13 +980,12 @@ cdef class FP_LLL:
 # Lattice basis generators
 #
 
-        
 def gen_intrel(int d, int b):
     """Return a $(d+1 x d)$-dimensional knapsack-type random lattice, where the
     $x_i$s are random $b$ bits integers.
 
     INPUT:
-    
+
     - ``d`` - dimension
 
     - ``b``  - bitsize of entries

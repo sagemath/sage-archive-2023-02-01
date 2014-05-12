@@ -333,6 +333,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         """
         return self.base_ring().is_noetherian()
 
+    @cached_method
     def matrix_space(self):
         r"""
         Return the underlying matrix space of this module.
@@ -342,12 +343,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             sage: CuspForms(3, 24, base_ring=Qp(5)).anemic_hecke_algebra().matrix_space()
             Full MatrixSpace of 7 by 7 dense matrices over 5-adic Field with capped relative precision 20
         """
-        try:
-            return self.__matrix_space_cache
-        except AttributeError:
-            self.__matrix_space_cache = sage.matrix.matrix_space.MatrixSpace(
-                self.base_ring(), self.module().rank())
-            return self.__matrix_space_cache
+        return sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.module().rank())
 
     def _latex_(self):
         r"""
@@ -399,25 +395,22 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         """
         raise NotImplementedError
 
+    @cached_method
     def basis(self):
         r"""
         Return a basis for this Hecke algebra as a free module over
         its base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(Gamma1(3), 3).hecke_algebra().basis()
-            [Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
+            (Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
             [1 0]
             [0 1],
             Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
             [0 0]
-            [0 2]]
+            [0 2])
         """
-        try:
-            return self.__basis_cache
-        except AttributeError:
-            pass
         level = self.level()
         bound = self.__M.hecke_bound()
         dim = self.__M.rank()
@@ -442,9 +435,9 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
                 basis = [sum(c*T for c,T in zip(row,span) if c != 0) for row in trans[:dim]]
                 break
 
-        self.__basis_cache = tuple(basis)
-        return basis
+        return tuple(basis)
 
+    @cached_method
     def discriminant(self):
         r"""
         Return the discriminant of this Hecke algebra, i.e. the
@@ -469,21 +462,15 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             sage: H.discriminant()
             83041344
         """
-        try:
-            return self.__disc
-        except AttributeError:
-            pass
         basis = self.basis()
         d = len(basis)
         if d <= 1:
-            self.__disc = ZZ(1)
-            return self.__disc
+            return ZZ(1)
         trace_matrix = matrix(ZZ, d)
         for i in range(d):
             for j in range(i+1):
                 trace_matrix[i,j] = trace_matrix[j,i] = basis[i].matrix().trace_of_product(basis[j].matrix())
-        self.__disc = trace_matrix.det()
-        return self.__disc
+        return trace_matrix.det()
 
     def gens(self):
         r"""
@@ -504,6 +491,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             yield self.hecke_operator(n)
             n += 1
 
+    @cached_method(key=lambda self,n: int(n))
     def hecke_operator(self, n):
         """
         Return the `n`-th Hecke operator `T_n`.
@@ -514,16 +502,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             sage: T.hecke_operator(2)
             Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
-        try:
-            return self.__hecke_operator[n]
-        except AttributeError:
-            self.__hecke_operator = {}
-        except KeyError:
-            pass
-        n = int(n)
-        T = self.__M._hecke_operator_class()(self, n)
-        self.__hecke_operator[n] = T
-        return T
+        return self.__M._hecke_operator_class()(self, n)
 
     def hecke_matrix(self, n, *args, **kwds):
         """
@@ -563,6 +542,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         """
         return self.__M.diamond_bracket_matrix(d)
 
+    @cached_method(key=lambda self,d: int(d)%self.__M.level())
     def diamond_bracket_operator(self, d):
         r"""
         Return the diamond bracket operator `\langle d \rangle`.
@@ -573,16 +553,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             sage: T.diamond_bracket_operator(3)
             Diamond bracket operator <3> on Modular Symbols space of dimension 12 for Gamma_1(7) of weight 4 with sign 0 and over Rational Field
         """
-        d = int(d) % self.__M.level()
-        try:
-            return self.__diamond_operator[d]
-        except AttributeError:
-            self.__diamond_operator = {}
-        except KeyError:
-            pass
-        D = self.__M._diamond_operator_class()(self, d)
-        self.__diamond_operator[d] = D
-        return D
+        return self.__M._diamond_operator_class()(self, d)
 
 class HeckeAlgebra_full(HeckeAlgebra_base):
     r"""

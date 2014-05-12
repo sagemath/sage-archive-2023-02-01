@@ -37,6 +37,15 @@ representations, one for each `n` such that `x` is in `\Bold{F}_n`.
     implementations may be added by creating appropriate subclasses of
     :class:`AlgebraicClosureFiniteField_generic`.
 
+    In the current implementation, algebraic closures do not satisfy
+    the unique parent condition.  Moreover, there is no coercion map
+    between different algebraic closures of the same finite field.
+    There is a conceptual reason for this, namely that the definition
+    of pseudo-Conway polynomials only determines an algebraic closure
+    up to *non-unique* isomorphism.  This means in particular that
+    different algebraic closures, and their respective elements, never
+    compare equal.
+
 AUTHORS:
 
 - Peter Bruin (August 2013): initial version
@@ -70,7 +79,13 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
         TEST::
 
             sage: F = GF(3).algebraic_closure()
-            sage: TestSuite(F.gen(2)).run()
+            sage: TestSuite(F.gen(2)).run(skip=['_test_pickling'])
+
+        .. NOTE::
+
+            The ``_test_pickling`` test has to be skipped because
+            there is no coercion map between the parents of ``x``
+            and ``loads(dumps(x))``.
 
         """
         if is_FiniteFieldElement(value):
@@ -849,7 +864,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
             sage: F = GF(5).algebraic_closure(implementation='pseudo_conway')
             sage: print F.__class__.__name__
             AlgebraicClosureFiniteField_pseudo_conway_with_category
-            sage: TestSuite(F).run()
+            sage: TestSuite(F).run(skip=['_test_elements'])
 
             sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
             sage: L = PseudoConwayLattice(11, use_database=False)
@@ -864,6 +879,12 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
             sage: F = GF(11).algebraic_closure(use_database=True)
             sage: F.gen(2).minimal_polynomial()
             x^2 + 7*x + 2
+
+        .. NOTE::
+
+            In the test suite, ``_test_elements`` has to be skipped
+            for the reason described in
+            :meth:`AlgebraicClosureFiniteFieldElement.__init__`.
 
         """
         if not (is_FiniteField(base_ring) and base_ring.is_prime_field()):

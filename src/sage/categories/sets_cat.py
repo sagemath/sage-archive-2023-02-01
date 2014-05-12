@@ -754,8 +754,22 @@ class Sets(Category_singleton):
                 sage: A = C.example(); A.rename("A")
                 sage: A.cartesian_product(A,A)
                 A (+) A (+) A
+                sage: ZZ.cartesian_product(GF(2), FiniteEnumeratedSet([1,2,3]))
+                The cartesian product of (Integer Ring, Finite Field of size 2, {1, 2, 3})
+
+                sage: C = ZZ.cartesian_product(A); C
+                The cartesian product of (Integer Ring, A)
+
+            TESTS::
+
+                sage: type(C)
+                <class 'sage.sets.cartesian_product.CartesianProduct_with_category'>
+                sage: C.category()
+                Join of Category of Cartesian products of monoids and Category of Cartesian products of commutative additive groups
             """
-            return parents[0].__class__.CartesianProduct(parents, category = cartesian_product.category_from_parents(parents))
+            return parents[0].CartesianProduct(
+                parents,
+                category = cartesian_product.category_from_parents(parents))
 
         def algebra(self, base_ring, category = None):
             """
@@ -1098,7 +1112,7 @@ class Sets(Category_singleton):
                     30
                 """
                 from sage.misc.misc_c import prod
-                return prod([x.cardinality() for x in self._sets])
+                return prod(x.cardinality() for x in self._sets)
 
             @abstract_method
             def _sets_keys(self):
@@ -1173,8 +1187,6 @@ class Sets(Category_singleton):
                 """
                 return self.parent().summand_projection(i)(self)
 
-            __getitem__ = summand_projection
-
             def summand_split(self):
                 """
                 Splits ``self`` into its summands
@@ -1198,23 +1210,6 @@ class Sets(Category_singleton):
                 # TODO: optimize
                 return tuple(self.summand_projection(i) for i in self.parent()._sets_keys())
                 #return Family(self._sets.keys(), self.projection)
-
-            def __iter__(self):
-                r"""
-                Iterates on the components of an element
-
-                EXAMPLES::
-
-                    sage: x = GF(5).cartesian_product(GF(5))((1,3)); x
-                    (1, 3)
-                    sage: for i in x:
-                    ....:     print i
-                    1
-                    3
-                """
-                for i in self.parent()._sets_keys():
-                    yield self.summand_projection(i)
-
 
     class Algebras(AlgebrasCategory):
 

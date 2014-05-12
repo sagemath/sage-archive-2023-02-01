@@ -19,13 +19,15 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element_wrapper import ElementWrapper
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
     A class implementing a raw data structure for cartesian products
-    of sets (and elements thereof). See
-    :const:`~sage.categories.cartesian_product.cartesian_product` for
+    of sets (and elements thereof). See :obj:`cartesian_product` for
     how to construct full fledge cartesian products.
+
+    .. automethod:: _cartesian_product_of_elements
     """
 
     def __init__(self, sets, category, flatten = False):
@@ -53,29 +55,45 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     def _element_constructor_(self,x):
         r"""
-        Makes sure that each coordinate of an element belongs to the right set.
+        Construct an element of a cartesian product from a list or iterable
 
         INPUT:
 
-        - ``x`` -- the new element
+        - ``x`` -- a list (or iterable)
+
+        Each component of `x` is converted to the corresponding
+        cartesian factor.
 
         EXAMPLES::
 
-            sage: x = GF(5).cartesian_product(GF(3))((1,3)); x
+            sage: C = cartesian_product([GF(5), GF(3)])
+            sage: x = C((1,3)); x
             (1, 0)
             sage: x.parent()
             The cartesian product of (Finite Field of size 5, Finite Field of size 3)
             sage: x[0].parent()
             Finite Field of size 5
-        """
-        new_x = []
-        for c,xx in zip(self._sets,x):
-            try:
-                new_x.append(c(xx))
-            except TypeError:
-                new_x.append(xx)
+            sage: x[1].parent()
+            Finite Field of size 3
 
-        return self.element_class(self, tuple(new_x))
+        An iterable is also accepted as input::
+
+            sage: C(i for i in range(2))
+            (0, 1)
+
+        TESTS::
+
+            sage: C((1,3,4))
+            Traceback (most recent call last):
+            ...
+            ValueError: (1, 3, 4) should be of length 2
+        """
+        x = tuple(x)
+        if len(x) != len(self._sets):
+            raise ValueError(
+                "{} should be of length {}".format(x, len(self._sets)))
+        x = tuple(c(xx) for c,xx in zip(self._sets,x))
+        return self.element_class(self, x)
 
     def _repr_(self):
         """
@@ -141,14 +159,22 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     def _cartesian_product_of_elements(self, elements):
         """
-        Returns the cartesian product of the given ``elements``,
-        as per
-        :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements()`.
-        <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements>`.
+        Return the cartesian product of the given ``elements``.
+
+        This implements :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements`.
 
         INPUT:
 
-         - ``elements`` - a tuple with one element of each summand of self
+        - ``elements`` -- a tuple (or iterable) of the appropriate
+          length such that the `i`-th cartesian factor of ``self`` is
+          the parent of the `i`-th element of ``elements``.
+
+        .. WARNING::
+
+            This is meant as a fast low-level method. In particular,
+            no coercion is attempted. When coercion or sanity checks
+            are desirable, please use instead ``self(elements)`` or
+            ``self._element_constructor(elements)``.
 
         EXAMPLES::
 
@@ -160,13 +186,13 @@ class CartesianProduct(UniqueRepresentation, Parent):
         """
         elements = tuple(elements)
         assert len(elements) == len(self._sets)
-        # assert all(zip(self._sets[i], elements, operator.__contains__))
-        return self(tuple(elements))
+        return self.element_class(self, elements)
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
-    from sage.structure.element_wrapper import ElementWrapper
     class Element(ElementWrapper):
+
+        wrapped_class = tuple
 
         def summand_projection(self, i):
             """
@@ -190,4 +216,25 @@ class CartesianProduct(UniqueRepresentation, Parent):
             """
             return self.value[i]
 
-        wrapped_class = tuple
+        __getitem__ = summand_projection
+
+        def __iter__(self):
+            r"""
+            Iterate over the components of an element.
+
+            EXAMPLES::
+
+                sage: C = Sets().CartesianProducts().example(); C
+                The cartesian product of
+                (Set of prime numbers (basic implementation),
+                 An example of an infinite enumerated set: the non negative integers,
+                 An example of a finite enumerated set: {1,2,3})
+                sage: c = C.an_element(); c
+                (47, 42, 1)
+                sage: for i in c:
+                ....:     print i
+                47
+                42
+                1
+            """
+            return iter(self.value)

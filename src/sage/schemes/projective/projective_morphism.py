@@ -58,7 +58,8 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
-from sage.parallel.multiprocessing_sage import parallel_iter
+from sage.parallel.ncpus           import ncpus
+from sage.parallel.use_fork        import p_iter_fork
 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -1707,6 +1708,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         - ``bad_primes`` - a list or tuple of integer primes, the primes of bad reduction.  (optional)
 
+        - ``ncpus`` - number of cpus to use in parallel.  (optional)
+            default: all available cpus.
+
         OUTPUT:
 
         - a list of positive integers.
@@ -1716,7 +1720,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2-29/16*y^2,y^2])
-            sage: f.possible_periods()
+            sage: f.possible_periods(ncpus=1)
             [1, 3]
 
         ::
@@ -1745,52 +1749,54 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")
-        if self.domain().base_ring()!=ZZ and self.domain().base_ring()!=QQ:
+        if self.domain().base_ring() != ZZ and self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be ZZ or QQ")
 
 
-        primebound = kwds.pop("prime_bound",[1,20])
-        badprimes = kwds.pop("bad_primes",None)
+        primebound = kwds.pop("prime_bound", [1, 20])
+        badprimes = kwds.pop("bad_primes", None)
+        num_cpus = kwds.pop("ncpus", ncpus())
 
-        if (isinstance(primebound,(list,tuple))==False):
+        if (isinstance(primebound, (list, tuple)) == False):
             try:
-                primebound=[1,ZZ(primebound)]
+                primebound = [1, ZZ(primebound)]
             except TypeError:
                 raise TypeError("Bound on primes must be an integer")
         else:
             try:
-                primebound[0]=ZZ(primebound[0])
-                primebound[1]=ZZ(primebound[1])
+                primebound[0] = ZZ(primebound[0])
+                primebound[1] = ZZ(primebound[1])
             except TypeError:
                 raise TypeError("Prime bounds must be integers")
 
-        if badprimes==None:
-            badprimes=self.primes_of_bad_reduction()
+        if badprimes == None:
+            badprimes = self.primes_of_bad_reduction()
 
-        firstgood=0
+        firstgood = 0
 
         def parallel_function(morphism):
             return morphism.possible_periods()
 
         # Calling possible_periods for each prime in parallel
         parallel_data = []
-        for q in primes(primebound[0],primebound[1]+1):
+        for q in primes(primebound[0], primebound[1] + 1):
             if not (q in badprimes):
-                F=self.change_ring(GF(q))
-                parallel_data.append(((F,),{}))
-
-        parallel_results=list(parallel_iter(len(parallel_data), parallel_function, parallel_data))
+                F = self.change_ring(GF(q))
+                parallel_data.append(((F,), {}))
+  
+        parallel_iter = p_iter_fork(num_cpus, 0)
+        parallel_results = list(parallel_iter(parallel_function, parallel_data))
 
         for result in parallel_results:
             possible_periods = result[1]
-            if firstgood==0:
-                periods=set(possible_periods)
-                firstgood=1
+            if firstgood == 0:
+                periods = set(possible_periods)
+                firstgood = 1
             else:
-                periodsq=set(possible_periods)
-                periods=periods.intersection(periodsq)
+                periodsq = set(possible_periods)
+                periods = periods.intersection(periodsq)
 
-        if firstgood==0:
+        if firstgood == 0:
             raise ValueError("No primes of good reduction in that range")
         else:
             return(sorted(periods))
@@ -2312,27 +2318,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         for i in range(len(all_points)):
             if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
-
-        # Finding the rational lift for each point in parallel
-        parallel_data = []
-        for P in pos_points:
-            parallel_data.append(((self,[P],B,),{}))
-
-        pos_points = []
-
-        parallel_results=list(parallel_iter(len(parallel_data), self.lift_to_rational_periodic, parallel_data))
-
-        periodic_points=[]
-        for result in parallel_results:
-            point = result[1]
-            if len(point) > 0:
-                periodic_points.append(point[0])
-
-        for P,n in periodic_points:
+        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+        for p,n in periodic_points:
             for k in range(n):
-                  P.normalize_coordinates()
-                  periodic.add(P)
-                  P=self(P)
+                  p.normalize_coordinates()
+                  periodic.add(p)
+                  p=self(p)
         return(list(periodic))
 
     def rational_preimages(self,Q):
@@ -2512,27 +2503,15 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         PS=self.domain()
         RPS=PS.base_ring()
-        all_preimages=set()
-        
-        while points != []:
-
-            # Finding the preimage of each point in parallel
-            parallel_data = []
-            for P in points:
-                parallel_data.append(((self,P,),{}))
-
-            points = []
-
-            parallel_results=list(parallel_iter(len(parallel_data), self.rational_preimages, parallel_data))
-
-            for result in parallel_results:
-                preimages = result[1]
-                for p in preimages:
-                    if not p in all_preimages:
-                        points.append(p)
-                        all_preimages.add(p)
-
-        return(list(all_preimages))
+        preperiodic=set()
+        while points!=[]:
+            P=points.pop()
+            preimages=self.rational_preimages(P)
+            for i in range(len(preimages)):
+                if not preimages[i] in preperiodic:
+                    points.append(preimages[i])
+                    preperiodic.add(preimages[i])
+        return(list(preperiodic))
 
     def rational_preperiodic_points(self,**kwds):
         r"""

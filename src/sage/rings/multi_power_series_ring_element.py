@@ -432,12 +432,19 @@ class MPowerSeries(PowerSeries):
 
             sage: f.truncate()(t,2)
             2*t + 3*t^2 + 7*t^3 + 3*t^4
+
+        Checking that :trac:`15059` is fixed::
+
+            sage: M.<u,v> = PowerSeriesRing(GF(5))
+            sage: s = M.hom([u, u+v])
+            sage: s(M.one())
+            1
         """
         if len(x) != self.parent().ngens():
             raise ValueError("Number of arguments does not match number of variables in parent.")
 
         sub_dict = {}
-        valn_list =[]
+        valn_list = []
         for i in range(len(x)):
             try:
                  xi = self.parent(x[i])
@@ -456,7 +463,7 @@ class MPowerSeries(PowerSeries):
             newprec = infinity
         else:
             newprec = self.prec()*min(valn_list)
-        return self._value().subs(sub_dict).add_bigoh(newprec)
+        return self.parent()(self._value().subs(sub_dict)).add_bigoh(newprec)
 
     def _subs_formal(self, *x, **kwds):
         """

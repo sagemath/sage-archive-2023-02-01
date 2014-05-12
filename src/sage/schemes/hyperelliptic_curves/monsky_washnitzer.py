@@ -68,8 +68,8 @@ from sage.rings.arith import binomial, integer_ceil as ceil
 from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
-from ell_generic import is_EllipticCurve
-from constructor import EllipticCurve
+from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
+from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
@@ -348,7 +348,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialCubicQuotientRingElement
+            sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import SpecialCubicQuotientRingElement
             sage: SpecialCubicQuotientRingElement(R, 2, 3, 4)
             (2) + (3)*x + (4)*x^2
         """
@@ -635,7 +635,7 @@ def transpose_list(input):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import transpose_list
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import transpose_list
         sage: L = [[1, 2], [3, 4], [5, 6]]
         sage: transpose_list(L)
         [[1, 3, 5], [2, 4, 6]]
@@ -666,7 +666,7 @@ def helper_matrix(Q):
     EXAMPLES::
 
         sage: t = polygen(QQ,'t')
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import helper_matrix
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import helper_matrix
         sage: helper_matrix(t**3-4*t-691)
         [     64/12891731  -16584/12891731 4297329/12891731]
         [   6219/12891731     -32/12891731    8292/12891731]
@@ -702,7 +702,7 @@ def lift(x):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import lift
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import lift
         sage: l = lift(Qp(13)(131)); l
         131
         sage: l.parent()
@@ -1078,7 +1078,7 @@ def frobenius_expansion_by_newton(Q, p, M):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import frobenius_expansion_by_newton
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import frobenius_expansion_by_newton
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: frobenius_expansion_by_newton(Q,5,3)
@@ -1266,7 +1266,7 @@ def frobenius_expansion_by_series(Q, p, M):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import frobenius_expansion_by_series
+        sage: from sage.schemes.hyperelliptic_curves.monsky_washnitzer import frobenius_expansion_by_series
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: frobenius_expansion_by_series(Q,5,3)
@@ -2939,11 +2939,11 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: C = HyperellipticCurve(x^5 - 4*x + 4)
             sage: x,y = C.monsky_washnitzer_gens()
             sage: MW = C.invariant_differential().parent()
-            sage: sage.schemes.elliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x)
+            sage: sage.schemes.hyperelliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x)
             x dx/2y
-            sage: sage.schemes.elliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, y)
+            sage: sage.schemes.hyperelliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, y)
             y*1 dx/2y
-            sage: sage.schemes.elliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x, 10)
+            sage: sage.schemes.hyperelliptic_curves.monsky_washnitzer.MonskyWashnitzerDifferential(MW, x, 10)
             y^10*x dx/2y
         """
         ModuleElement.__init__(self, parent)

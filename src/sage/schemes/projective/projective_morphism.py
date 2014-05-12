@@ -935,18 +935,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def dehomogenize(self, n):
         r"""
-        Returns the standard dehomogenization at the nth coordinate `(\frac{self[0]}{self[n]},\frac{self[1]}{self[n]},...)`.
+        Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain
+        and the ``n[1]`` coordinate for the codomain.
 
         Note that the new function is defined over the fraction field
         of the base ring of ``self``.
 
         INPUT:
 
-        - ``n`` -- a nonnegative integer
+        - ``n`` -- a tuple of nonnegative integers.  If ``n`` is an integer, then the two values of
+            the tuple are assumed to be the same.
 
         OUTPUT:
 
-        - :class:`SchemeMorphism_polynomial_affine_space` (on nth affine patch)
+        - :class:`SchemeMorphism_polynomial_affine_space`
 
         EXAMPLES::
 
@@ -957,6 +959,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
               Defn: Defined on coordinates by sending (x) to
                     (x^2/(x^2 + 1))
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-y^2,y^2])
+            sage: f.dehomogenize((0,1))
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    ((-x^2 + 1)/x^2)
 
         ::
 
@@ -993,6 +1007,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x0, x1) to
                     (x1^2/x0, x1^2/x0)
         """
+        #the dehomogenizations are stored for future use.
         try:
             return self.__dehomogenization[n]
         except AttributeError:
@@ -1006,7 +1021,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ind=(n,n)
         PS_domain = self.domain()
         A_domain = PS_domain.ambient_space()
-        if self._polys[ind[1]].substitute({A_domain.gen(ind[1]):1}) == 0:
+        if self._polys[ind[1]].substitute({A_domain.gen(ind[0]):1}) == 0:
             raise ValueError("Can't dehomogenize at 0 coordinate.")
         else:
             Aff_domain = PS_domain.affine_patch(ind[0])
@@ -1020,8 +1035,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 if i != ind[1]:
                     F.append(phi(self._polys[i]) / G)
             H = Hom(Aff_domain, self.codomain().affine_patch(ind[1]))
-            self.__dehomogenization[ind]=H(F)
-            return self.__dehomogenization[ind]
+            #since often you dehomogenize at the same coordinate in domain
+            #and codomain it should be stored appropriately.
+            if ind == (n,n):
+                self.__dehomogenization[ind]=H(F)
+                return self.__dehomogenization[ind]
+            else:
+                self.__dehomogenization[n]=H(F)
+                return self.__dehomogenization[n]
 
     def orbit(self, P, N, **kwds):
         r"""
@@ -1715,7 +1736,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         Q = P
         Q.normalize_coordinates()
         index = N
-        indexlist = []
+        indexlist = [] #keep track of which dehomogenizations are needed
         while Q[index] == 0:
             index -= 1
         indexlist.append(index)
@@ -1727,6 +1748,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] == 0:
                 index -= 1
             indexlist.append(index)
+            #dehomogenize and compute multiplier
             F = self.dehomogenize((indexlist[i],indexlist[i+1]))
             l = F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l #get the correct order for chain rule matrix multiplication
             Q = R
@@ -1776,7 +1798,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         g = gcd(Q._coords) #we can't use normalize_coordinates since it can cause denominators
         Q.scale_by(1 / g)
         index = N
-        indexlist = []
+        indexlist = [] #keep track of which dehomogenizations are needed
         while Q[index] % p == 0:
             index -= 1
         indexlist.append(index)
@@ -1791,6 +1813,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] % p == 0:
                 index -= 1
             indexlist.append(index)
+            #dehomogenize and compute multiplier
             F = self.dehomogenize((indexlist[i],indexlist[i+1]))
             l = (F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l) % (p ** k)
             Q = R

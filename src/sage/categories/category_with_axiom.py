@@ -2250,7 +2250,7 @@ class CategoryWithAxiom(Category):
 
     def _repr_object_names(self):
         r"""
-        The names of the objects of this category, as used by `_repr_`.
+        The names of the objects of this category, as used by ``_repr_``.
 
         .. SEEALSO:: :meth:`Category._repr_object_names`
 

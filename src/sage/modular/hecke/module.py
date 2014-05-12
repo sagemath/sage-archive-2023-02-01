@@ -309,11 +309,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: A.is_anemic()
             True
         """
-        try:
-            return self.__anemic_hecke_algebra
-        except AttributeError:
-            self.__anemic_hecke_algebra = algebra.AnemicHeckeAlgebra(self)
-            return self.__anemic_hecke_algebra
+        return algebra.AnemicHeckeAlgebra(self)
 
     def character(self):
         r"""
@@ -358,11 +354,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: A.hecke_algebra() == B.hecke_algebra()
             False
         """
-        try:
-            return self.__hecke_algebra
-        except AttributeError:
-            self.__hecke_algebra = algebra.HeckeAlgebra(self)
-            return self.__hecke_algebra
+        return algebra.HeckeAlgebra(self)
 
     def is_zero(self):
         """

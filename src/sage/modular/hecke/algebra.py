@@ -41,6 +41,8 @@ from sage.arith.all import lcm
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ, QQ
 from sage.structure.element import Element
+from sage.structure.unique_representation import CachedRepresentation
+from sage.misc.cachefunc import cached_method
 
 def is_HeckeAlgebra(x):
     r"""
@@ -55,93 +57,6 @@ def is_HeckeAlgebra(x):
         False
     """
     return isinstance(x, HeckeAlgebra_base)
-
-# The basis_matrix stuff here is a workaround for a subtle bug discovered by
-# me (David Loeffler) 2009-04-13. The problem is that if one creates two
-# subspaces of a Hecke module which are equal as subspaces but have different
-# bases, then the caching machinery needs to distinguish between them.
-
-# The AttributeError occurs in two distinct ways: if M is not a free module
-# over its base ring, it might not have a basis_matrix method; and for
-# SupersingularModule objects, the basis_matrix method exists but raises an
-# error -- this is a known bug (#4306).
-
-# See the doctest for the __call__ method below, which tests that this caching
-# is working as it should.
-
-_anemic_cache = {}
-def AnemicHeckeAlgebra(M):
-    r"""
-    Return the anemic Hecke algebra associated to the Hecke module
-    M. This checks whether or not the object already exists in memory,
-    and if so, returns the existing object rather than a new one.
-
-    EXAMPLES::
-
-        sage: CuspForms(1, 12).anemic_hecke_algebra() # indirect doctest
-        Anemic Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
-
-    We test uniqueness::
-
-        sage: CuspForms(1, 12).anemic_hecke_algebra() is CuspForms(1, 12).anemic_hecke_algebra()
-        True
-
-    We can't ensure uniqueness when loading and saving objects from files, but we can ensure equality::
-
-        sage: CuspForms(1, 12).anemic_hecke_algebra() is loads(dumps(CuspForms(1, 12).anemic_hecke_algebra()))
-        False
-        sage: CuspForms(1, 12).anemic_hecke_algebra() == loads(dumps(CuspForms(1, 12).anemic_hecke_algebra()))
-        True
-    """
-
-    try:
-        k = (M, M.basis_matrix())
-    except AttributeError:
-        k = M
-    if k in _anemic_cache:
-        T = _anemic_cache[k]()
-        if not (T is None):
-            return T
-    T = HeckeAlgebra_anemic(M)
-    _anemic_cache[k] = weakref.ref(T)
-    return T
-
-_cache = {}
-def HeckeAlgebra(M):
-    """
-    Return the full Hecke algebra associated to the Hecke module
-    M. This checks whether or not the object already exists in memory,
-    and if so, returns the existing object rather than a new one.
-
-    EXAMPLES::
-
-        sage: CuspForms(1, 12).hecke_algebra() # indirect doctest
-        Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
-
-    We test uniqueness::
-
-        sage: CuspForms(1, 12).hecke_algebra() is CuspForms(1, 12).hecke_algebra()
-        True
-
-    We can't ensure uniqueness when loading and saving objects from files, but we can ensure equality::
-
-        sage: CuspForms(1, 12).hecke_algebra() is loads(dumps(CuspForms(1, 12).hecke_algebra()))
-        False
-        sage: CuspForms(1, 12).hecke_algebra() == loads(dumps(CuspForms(1, 12).hecke_algebra()))
-        True
-    """
-    try:
-        k = (M, M.basis_matrix())
-    except AttributeError:
-        k = M
-    if k in _cache:
-        T = _cache[k]()
-        if not (T is None):
-            return T
-    T = HeckeAlgebra_full(M)
-    _cache[k] = weakref.ref(T)
-    return T
-
 
 def _heckebasis(M):
     r"""
@@ -190,21 +105,78 @@ def _heckebasis(M):
     return B1
 
 
-class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
+class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.CommutativeAlgebra):
     """
     Base class for algebras of Hecke operators on a fixed Hecke module.
+
+    INPUT:
+
+    -  ``M`` - a Hecke module
+
+    EXAMPLES::
+
+        sage: CuspForms(1, 12).hecke_algebra() # indirect doctest
+        Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+
     """
+    @staticmethod
+    def __classcall__(cls, M):
+        r"""
+        We need to work around a problem originally discovered by David
+        Loeffler on 2009-04-13: The problem is that if one creates two
+        subspaces of a Hecke module which are equal as subspaces but have
+        different bases, then the caching machinery needs to distinguish
+        between them. So we need to add ``basis_matrix`` to the cache key even
+        though it is not looked at by the constructor.
+
+        TESTS:
+
+        We test that coercion is OK between the Hecke algebras associated to two submodules which are equal but have different bases::
+
+            sage: M = CuspForms(Gamma0(57))
+            sage: f1,f2,f3 = M.newforms()
+            sage: N1 = M.submodule(M.free_module().submodule_with_basis([f1.element().element(), f2.element().element()]))
+            sage: N2 = M.submodule(M.free_module().submodule_with_basis([f1.element().element(), (f1.element() + f2.element()).element()]))
+            sage: N1.hecke_operator(5).matrix_form()
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [ 0  1]
+            sage: N2.hecke_operator(5).matrix_form()
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [-4  1]
+            sage: N1.hecke_algebra()(N2.hecke_operator(5)).matrix_form()
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [ 0  1]
+            sage: N1.hecke_algebra()(N2.hecke_operator(5).matrix_form())
+            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
+            [-3  0]
+            [ 0  1]
+
+        """
+        if isinstance(M, tuple):
+            M = M[0]
+        try:
+            M = (M, M.basis_matrix())
+        except AttributeError:
+            # The AttributeError occurs if M is not a free module; then it might not have a basis_matrix method
+            pass
+        return super(HeckeAlgebra_base, cls).__classcall__(cls, M)
+
     def __init__(self, M):
         """
-        INPUT:
+        Initialization.
 
-        -  ``M`` - a Hecke module
+        EXAMPLES::
 
-        EXAMPLE::
+            sage: from sage.modular.hecke.algebra import HeckeAlgebra_base
+            sage: type(HeckeAlgebra_base(CuspForms(1, 12)))
+            <class 'sage.modular.hecke.algebra.HeckeAlgebra_base_with_category'>
 
-            sage: CuspForms(1, 12).hecke_algebra() # indirect doctest
-            Full Hecke algebra acting on Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
         """
+        if isinstance(M, tuple):
+            M = M[0]
         if not module.is_HeckeModule(M):
             raise TypeError("M (=%s) must be a HeckeModule"%M)
         self.__M = M
@@ -267,30 +239,6 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             ...
             TypeError: Don't know how to construct an element of Anemic Hecke algebra acting on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field from Hecke operator T_11 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
 
-        TESTS:
-
-        We test that coercion is OK between the Hecke algebras associated to two submodules which are equal but have different bases::
-
-            sage: M = CuspForms(Gamma0(57))
-            sage: f1,f2,f3 = M.newforms()
-            sage: N1 = M.submodule(M.free_module().submodule_with_basis([f1.element().element(), f2.element().element()]))
-            sage: N2 = M.submodule(M.free_module().submodule_with_basis([f1.element().element(), (f1.element() + f2.element()).element()]))
-            sage: N1.hecke_operator(5).matrix_form()
-            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
-            [-3  0]
-            [ 0  1]
-            sage: N2.hecke_operator(5).matrix_form()
-            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
-            [-3  0]
-            [-4  1]
-            sage: N1.hecke_algebra()(N2.hecke_operator(5)).matrix_form()
-            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
-            [-3  0]
-            [ 0  1]
-            sage: N1.hecke_algebra()(N2.hecke_operator(5).matrix_form())
-            Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
-            [-3  0]
-            [ 0  1]
         """
         try:
             if not isinstance(x, Element):
@@ -695,6 +643,7 @@ class HeckeAlgebra_full(HeckeAlgebra_base):
         """
         return self.module().anemic_hecke_algebra()
 
+HeckeAlgebra = HeckeAlgebra_full
 
 class HeckeAlgebra_anemic(HeckeAlgebra_base):
     r"""
@@ -781,6 +730,4 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
                 yield self.hecke_operator(n)
             n += 1
 
-
-
-
+AnemicHeckeAlgebra = HeckeAlgebra_anemic

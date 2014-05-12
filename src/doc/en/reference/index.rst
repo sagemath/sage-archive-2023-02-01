@@ -53,6 +53,7 @@ Combinatorics, Discrete Mathematics
 * :doc:`Graph Theory <graphs/index>`
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
+* :doc:`Quviers <quivers/index>`
 
 Structures, Coercion, Categories
 --------------------------------

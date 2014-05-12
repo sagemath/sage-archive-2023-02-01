@@ -1487,10 +1487,13 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
         """
         EXAMPLES::
 
-            sage: H = heegner_points(389,-20,3); s = H.ring_class_field().galois_group(H.quadratic_field())[0]
-            sage: hash(s)
-            4262582128197601113     # 64-bit
-            -1994029223             # 32-bit
+            sage: H = heegner_points(389,-20,3)
+            sage: s = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: H = heegner_points(389,-20,3)
+            sage: ss = H.ring_class_field().galois_group(H.quadratic_field())[0]
+            sage: hash(s) == hash(ss)
+            True
+
         """
         return hash((self.parent(), tuple(self.__quadratic_form)))
 

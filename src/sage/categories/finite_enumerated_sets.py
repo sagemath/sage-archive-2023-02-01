@@ -350,6 +350,36 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         _list_default  = list # needed by the check system.
 
+        def __getitem__(self, i):
+            """
+            Return the item indexed by ``i``.
+
+            EXAMPLES::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C.list()
+                [1, 2, 3]
+                sage: C[1]
+                2
+                sage: C[:]
+                [1, 2, 3]
+                sage: C[1:]
+                [2, 3]
+                sage: C[0:1:2]
+                [1]
+
+                sage: F = Family([0,1,2,3])
+                sage: F[:2]
+                (0, 1)
+            """
+            try:
+                return self._list[i]
+            except AttributeError:
+                if isinstance(i, slice) and i.stop is None and i.step is None:
+                    it = self.__iter__()
+                    return [it.next() for j in range(i.stop)]
+                return self.list()[i]
+
         def _random_element_from_unrank(self):
             """
             A random element in ``self``.

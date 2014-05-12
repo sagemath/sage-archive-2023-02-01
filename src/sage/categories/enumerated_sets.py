@@ -255,6 +255,81 @@ class EnumeratedSets(Category_singleton):
             else:
                 return False
 
+        def unrank_range(self, start=None, stop=None, step=None):
+            """
+            Return the range of elements of ``self`` starting at ``start``,
+            ending at ``stop``, and stepping by ``step``.
+
+            See also ``unrank()``.
+
+            EXAMPLES::
+
+                sage: P = Partitions()
+                sage: P.unrank_range(stop=5)
+                [[], [1], [2], [1, 1], [3]]
+                sage: P.unrank_range(0, 5)
+                [[], [1], [2], [1, 1], [3]]
+                sage: P.unrank_range(3, 5)
+                [[1, 1], [3]]
+                sage: P.unrank_range(3, 10)
+                [[1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
+                sage: P.unrank_range(3, 10, 2)
+                [[1, 1], [2, 1], [4], [2, 2]]
+                sage: P.unrank_range(3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
+            """
+            if stop is None:
+                return self.list()[start::step]
+
+            if start is None and step is None:
+                it = self.__iter__()
+                return [it.next() for j in range(stop)]
+
+            if start is None:
+                start = 0
+            if step is None:
+                step = 1
+            return [self.unrank(j) for j in range(start, stop, step)]
+
+        def __getitem__(self, i):
+            r"""
+            Return the item indexed by ``i``.
+
+            EXAMPLES::
+
+                sage: P = Partitions()
+                sage: P[:5]
+                [[], [1], [2], [1, 1], [3]]
+                sage: P[0:5]
+                [[], [1], [2], [1, 1], [3]]
+                sage: P[3:5]
+                [[1, 1], [3]]
+                sage: P[3:10]
+                [[1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
+                sage: P[3:10:2]
+                [[1, 1], [2, 1], [4], [2, 2]]
+                sage: P[3:]
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
+                sage: P[3]
+                [1, 1]
+            """
+            if isinstance(i, slice):
+                if i.stop is None:
+                    return self.list()[i]
+
+                if i.start is None and i.step is None:
+                    it = self.__iter__()
+                    return [it.next() for j in range(i.stop)]
+
+                s = 0 if i.start is None else i.start
+                st = 1 if i.step is None else i.step
+                return [self.unrank(j) for j in range(s, i.stop, st)]
+            return self.unrank(i)
+
         def list(self):
             """
             Return an error since the cardinality of ``self`` is not known.

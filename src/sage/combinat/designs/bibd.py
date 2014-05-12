@@ -38,7 +38,7 @@ from block_design import BlockDesign
 from sage.rings.arith import binomial
 from sage.rings.arith import is_prime_power
 
-def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
+def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
     r"""
     Returns a BIBD of parameters `v,k`.
 
@@ -56,6 +56,15 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     INPUT:
 
     - ``v,k`` (integers)
+
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
 
     - ``use_LJCR`` (boolean) -- whether to query the La Jolla Covering
       Repository for the design when Sage does not know how to build it (see
@@ -106,18 +115,31 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
     """
     if ((binomial(v,2)%binomial(k,2) != 0) or
         (v-1)%(k-1) != 0):
+        if existence:
+            return False
         raise ValueError("No such design exists !")
 
     if k == v:
+        if existence:
+            return True
         return BlockDesign(v,[range(v)], test=False)
+
     if k == 2:
+        if existence:
+            return True
         from itertools import combinations
         return BlockDesign(v, combinations(range(v),2), test = False)
     if k == 3:
+        if existence:
+            return bool((n%6) in [1,3])
         return steiner_triple_system(v)
     if k == 4:
+        if existence:
+            return bool((n%12) in [1,4])
         return BlockDesign(v, v_4_1_BIBD(v), test = False)
     if v == (k-1)**2+k and is_prime_power(k-1):
+        if existence:
+            return True
         from block_design import projective_plane
         return projective_plane(k-1)
     if use_LJCR:
@@ -127,12 +149,21 @@ def BalancedIncompleteBlockDesign(v,k,use_LJCR=False):
         # Is it a BIBD or just a good covering ?
         expected_n_of_blocks = binomial(v,2)/binomial(k,2)
         if B.low_bd() > expected_n_of_blocks:
+            if existence:
+                return False
             raise ValueError("No such design exists !")
         B = B.incidence_structure()
         if len(B.blcks) == expected_n_of_blocks:
-            return B
+            if existence:
+                return True
+            else:
+                return B
 
-    raise ValueError("I don't know how to build this design.")
+    if existence:
+        from sage.misc.unknown import Unknown
+        return Unknown
+    else:
+        raise ValueError("I don't know how to build this design.")
 
 def steiner_triple_system(n):
     r"""
@@ -463,7 +494,7 @@ def _relabel_bibd(B,n,p=None):
 
 def PBD_4_5_8_9_12(v, check=True):
     """
-    Returns a `(v,\{4,5,8,9,12\})`-PBD on `v` elements.
+    Returns a `(v,\{4,5,8,9,12\})-`PBD on `v` elements.
 
     A `(v,\{4,5,8,9,12\})`-PBD exists if and only if `v\equiv 0,1 \pmod 4`. The
     construction implemented here appears page 168 in [Stinson2004]_.

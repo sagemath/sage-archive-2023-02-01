@@ -49,13 +49,11 @@ def IntegerLattice(basis, lll_reduce=True):
     INPUT:
 
       - ``basis``
-
-       - a list of vectors or
-       - a matrix over the integers
-       - an element of an absolute order
-
+       - a list of vectors,
+       - a matrix over the integers, or
+       - an element of an absolute order.
       - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
-        on construction
+        on construction.
 
     EXAMPLES:
 
@@ -176,7 +174,8 @@ def IntegerLattice(basis, lll_reduce=True):
                                                    lll_reduce=lll_reduce)
 
 class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pid):
-    """This class represents submodules of `\\ZZ^n` with a distinguished basis.
+    """
+    This class represents submodules of `\\ZZ^n` with a distinguished basis.
 
     However, most functionality in excess of standard submodules over PID is for
     these submodules considered as discrete subgroups of `\\ZZ^n`, i.e. as
@@ -211,23 +210,17 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         INPUT:
 
         - ``ambient`` -- ambient free module over a principal ideal domain `\ZZ`,
-          i.e. `\\ZZ^n`;
-
-        - ``basis`` - either a list of vectors or a matrix over the integers;
-
+          i.e. `\\ZZ^n`.
+        - ``basis`` - either a list of vectors or a matrix over the integers.
         - ``check`` -- (default: ``True``) if ``False``, correctness of the input
-          will not be checked and type conversion may be omitted, use with care;
-
+          will not be checked and type conversion may be omitted, use with care.
         - ``echelonize`` -- (default:``False``) if ``True``, ``basis`` will be
           echelonized and the result will be used as the default basis of the
-          constructed submodule;
-
+          constructed submodule.
         - `` echelonized_basis`` -- (default: ``None``) if not ``None``, must be
-          the echelonized basis spanning the same submodule as ``basis``;
-
+          the echelonized basis spanning the same submodule as ``basis``.
         - ``already_echelonized`` -- (default: ``False``) if ``True``, ``basis``
-          must be already given in the echelonized form;
-
+          must be already given in the echelonized form.
         - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
           on construction.
 
@@ -292,7 +285,6 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         ``self``, where "best" is defined by the euclidean norm of the first row
         vector.
 
-
         EXAMPLE::
 
             sage: L = IntegerLattice(random_matrix(ZZ, 10, 10), lll_reduce=False)
@@ -325,12 +317,12 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
     def LLL(self, *args, **kwds):
         """
-        Return an LLL reduced basis for ``self``
+        Return an LLL reduced basis for ``self``.
 
         A lattice basis `(b_1, b_2, ..., b_d)` is `(δ,η)`-LLL-reduced if the two
         following conditions hold:
 
-        -  For any `i>j`, we have `|μ_{i, j}| ≦ η`,
+        -  For any `i>j`, we have `|μ_{i, j}| ≦ η`.
 
         -  For any `i<d`, we have `δ|b_i^*|^2 ≦ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
 
@@ -347,6 +339,10 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
         - ``**kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+
+        OUTPUT:
+
+        An integer matrix which is an LLL-reduced basis for this lattice.
 
         EXAMPLE::
 
@@ -396,10 +392,14 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`
-        - ``*kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`
+        - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
+        - ``*kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
 
-        EXAMPLE::
+        OUTPUT:
+
+        An integer matrix which is a BKZ-reduced basis for this lattice.
+
+          EXAMPLE::
 
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=100, q=2^60, seed=42)
             sage: L = IntegerLattice(A, lll_reduce=False)
@@ -456,9 +456,12 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`
-        - ``*kwds`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`
+        - ``*args`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
+        - ``*kwds`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
 
+        OUTPUT:
+
+        An integer matrix which is a HKZ-reduced basis for this lattice.
 
         EXAMPLE::
 
@@ -475,7 +478,11 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     @cached_method
     def volume(self):
         """
-        Return $vol(L)$ which is $\\sqrt{\det(B \cdot B^T)}$ for any basis $B$.
+        Return `vol(L)` which is `\\sqrt{\det(B \cdot B^T)}` for any basis `B`.
+
+        OUTPUT:
+
+        An integer.
 
         EXAMPLE::
 
@@ -494,6 +501,10 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         Return $|\det(G)|$, i.e. the absolute value of the determinant of the
         gram matrix $B \cdot B^T$ for any basis $B$.
 
+        OUTPUT:
+
+        An integer.
+
         EXAMPLE::
 
             sage: L = sage.crypto.gen_lattice(m=10, seed=42, lattice=True)
@@ -505,7 +516,11 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     @cached_method
     def is_unimodular(self):
         """
-        Return True if this lattice is unimodular.
+        Return ``True`` if this lattice is unimodular.
+
+        OUTPUT:
+
+        A boolean.
 
         EXAMPLES::
 
@@ -532,6 +547,10 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         - ``*args`` - passed through to underlying implementation
 
         - ``*kwds`` - passed through to underlying implementation
+
+        OUTPUT:
+
+        A shortest non-zero vector for this lattice.
 
         EXAMPLE::
 
@@ -580,6 +599,14 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     def update_reduced_basis(self, w):
         """
         Inject the vector w and run LLL to update the basis.
+
+        INPUT:
+
+        - ``w`` - a vector.
+
+        OUTPUT:
+
+        Nothing is returned but the internal state is modified.
 
         EXAMPLE::
 

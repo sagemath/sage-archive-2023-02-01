@@ -1338,6 +1338,22 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
+        We make sure :trac:`13624` is fixed:: 
+ 
+            sage: G = DiGraph() 
+            sage: G.add_edge(3333, 88, 'my_label') 
+            sage: G.set_latex_options(edge_labels=True) 
+            sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
+            \begin{tikzpicture}[>=latex,line join=bevel,] 
+            %% 
+            \node (3333) at (...bp,...bp) [draw,draw=none] {$3333$}; 
+              \node (88) at (...bp,...bp) [draw,draw=none] {$88$}; 
+              \draw [black,->] (3333) ..controls (...bp,...bp) and (...bp,...bp)  .. (88); 
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; 
+              \pgfsetstrokecolor{strokecol} 
+              \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$}; 
+            % 
+            \end{tikzpicture} 
 
         Note: there is a lot of overlap between what tkz_picture and
         dot2tex do. It would be best to merge them! dot2tex probably

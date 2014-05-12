@@ -143,7 +143,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             raise TypeError("argument R must be a ring")
         self._alphabet = names
         self.__ngens = self._alphabet.cardinality()
-        CombinatorialFreeModule.__init__(self, R, Words(names),
+        CombinatorialFreeModule.__init__(self, R, Words(names, infinite=False),
             latex_prefix="",
             category=(AlgebrasWithBasis(R), CommutativeAlgebras(R), CoalgebrasWithBasis(R)))
 

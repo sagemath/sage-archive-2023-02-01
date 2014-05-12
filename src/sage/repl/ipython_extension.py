@@ -377,7 +377,7 @@ class SageCustomizations(object):
                                  SagePromptTransformer)
 
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
-            s.physical_line_transforms.insert(0, SagePromptTransformer())
+            s.physical_line_transforms.insert(1, SagePromptTransformer())
             s.python_line_transforms.append(SagePreparseTransformer())
 
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop

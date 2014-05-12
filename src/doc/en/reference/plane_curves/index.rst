@@ -36,7 +36,6 @@ Elliptic and Plane Curves
    sage/schemes/elliptic_curves/period_lattice
    sage/schemes/elliptic_curves/formal_group
    sage/schemes/elliptic_curves/ell_tate_curve
-   sage/schemes/elliptic_curves/monsky_washnitzer
    sage/schemes/elliptic_curves/padic_lseries
    sage/schemes/elliptic_curves/ell_modular_symbols
    sage/schemes/elliptic_curves/modular_parametrization
@@ -59,6 +58,8 @@ Hyperelliptic Curves
    sage/schemes/hyperelliptic_curves/hyperelliptic_generic
 
    sage/schemes/hyperelliptic_curves/mestre
+
+   sage/schemes/hyperelliptic_curves/monsky_washnitzer
 
    sage/schemes/hyperelliptic_curves/jacobian_g2
    sage/schemes/hyperelliptic_curves/jacobian_generic

@@ -27,11 +27,13 @@ from log import (exp, log, ln, polylog, dilog, lambert_w)
 from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
                             dickman_rho)
 
-from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
+from bessel import (Bessel, bessel_I, bessel_J, bessel_K, bessel_Y,
+                    hankel1, hankel2,
+                    spherical_bessel_J, spherical_bessel_Y,
+                    spherical_hankel1, spherical_hankel2,
+)
 
 from special import (hypergeometric_U,
-                     spherical_bessel_J, spherical_bessel_Y,
-                     spherical_hankel1, spherical_hankel2,
                      spherical_harmonic,
                      lngamma, error_fcn, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,

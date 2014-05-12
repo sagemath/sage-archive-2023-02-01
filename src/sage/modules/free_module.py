@@ -2820,7 +2820,7 @@ class FreeModule_generic_pid(FreeModule_generic):
                                                                    lll_reduce=False)
             except TypeError:
                 pass
-                
+
             return FreeModule_submodule_with_basis_pid(
                 self.ambient_module(), basis=basis, check=check,
                 already_echelonized=already_echelonized)

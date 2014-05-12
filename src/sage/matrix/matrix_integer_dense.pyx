@@ -2499,7 +2499,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             - ``'qd1'`` - quad doubles: uses quad_float precision to compute
               Gram-Schmidt, but uses double precision in the search phase of the
               block reduction algorithm. This seems adequate for most purposes,
-              and is faster than ``'qd'``, which uses quad_float precision 
+              and is faster than ``'qd'``, which uses quad_float precision
               uniformly throughout (NTL only).
 
            - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe
@@ -2949,7 +2949,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``cols`` - a list (or set) of integers representing columns 
+        - ``cols`` - a list (or set) of integers representing columns
           of ``self``.
 
         OUTPUT: an integer

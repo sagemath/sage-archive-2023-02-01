@@ -189,9 +189,9 @@ cdef class FP_LLL:
 
         - ``delta`` - parameter `0.25 < \delta < 1.0` (default: `0.99`)
         - ``eta ``  - parameter `0.5 <= \eta < \sqrt{\delta}` (default: `0.51`)
-        - ``method`` - 'proved', 'fast', 'wrapper' (== ``None``), 'heuristic' 
+        - ``method`` - 'proved', 'fast', 'wrapper' (== ``None``), 'heuristic'
           or ``None`` (default: ``None``)
-        - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``, 
+        - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``,
           ``'mpfr'`` or ``None`` for automatic choice (default: ``None``)
         - ``precision`` - precision to use (default: ``0`` for automatic choice)
         - ``verbose`` - be verbose (default: ``False``)

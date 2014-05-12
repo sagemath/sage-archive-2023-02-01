@@ -467,7 +467,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             40 x 40 dense matrix over Integer Ring
 
             sage: L.reduced_basis[0]
-            (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)        
+            (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)
         """
         return self.BKZ(block_size=self.rank())
 

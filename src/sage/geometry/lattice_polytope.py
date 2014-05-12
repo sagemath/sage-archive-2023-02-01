@@ -4660,11 +4660,8 @@ class _PolytopeFace(SageObject):
             sage: face.index_of_face_in_lattice()
             1        
         """
-        n = self._polytope.dim()
-        vertices = self._polytope.vertices_pc().column_matrix().columns()
-        face_vertices = [vertices[i] for i in self._vertices]
-        S = span(face_vertices)
-        return S.index_in(ZZ**n)
+        S = span(self._polytope.vertices_pc()(self._vertices))
+        return S.index_in(self._polytope.lattice())
 
     def interior_points(self):
         r"""
@@ -5005,6 +5002,8 @@ def _palp_canonical_order(V, PM_max, permutations):
           for k in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
     vertices = map(V.module(), Vmin[0].columns())
+    for v in vertices:
+        v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
 
 def _palp_convert_permutation(permutation):

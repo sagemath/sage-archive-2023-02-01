@@ -11,7 +11,7 @@ AUTHORS:
   *  Michael Schneider <mischnei@cdc.informatik.tu-darmstadt.de>
 """
 
-def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
+def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
                 quotient=None, dual=False, ntl=False, lattice=False):
     """
     This function generates different types of integral lattice bases
@@ -254,8 +254,9 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         for i in range(m//2): B.swap_rows(i,m-i-1)
 
     if ntl and lattice:
-        raise ValueError("Cannot specify ntl=True and lattice=True at the same time")
-        
+        raise ValueError("Cannot specify ntl=True and lattice=True "
+                         "at the same time")
+
     if ntl:
         return B._ntl_()
     elif lattice:
@@ -263,4 +264,3 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         return IntegerLattice(B)
     else:
         return B
-        

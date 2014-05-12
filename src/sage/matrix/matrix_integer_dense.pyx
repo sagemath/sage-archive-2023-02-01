@@ -2835,7 +2835,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 r, det2 = A.LLL(a,b, verbose=verb)
                 det2 = ZZ(det2)
                 try:
-                    det = ZZ(det2.sqrt_approx())
+                    det = ZZ(det2.sqrt())
                     self.cache("det", det)
                 except TypeError:
                     pass

@@ -2379,53 +2379,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return len(self.facet_normals()) if self.dim() > 0 else 0
 
-    @cached_method
-    def normal_form(self, algorithm="palp", permutation=False):
+    def normal_form(self):
         r"""
-        Return the normal form of ``self``.
+        Return the normal form of ``self`` as a matrix.
 
-        Two full-dimensional lattice polytopes are in the same
-        ``GL(\mathbb{Z})``-orbit if and only if their normal forms are the
-        same. Normal form is not defined and thus cannot be used for polytopes
-        whose dimension is smaller than the dimension of the ambient space.
-
-        The original algorithm was presented in [KS98]_ and implemented
-        in PALP. A modified version of the PALP algorithm is discussed in
-        [GK13]_ and available here as "palp_modified".
-
-        INPUT:
-
-        - ``algorithm`` -- (default: "palp") The algorithm which is used
-            to compute the normal form. Options are:
-
-            * "palp" -- Run external PALP code, usually the fastest option.
-
-            * "palp_native" -- The original PALP algorithm implemented
-              in sage. Currently considerably slower than PALP.
-
-            * "palp_modified" -- A modified version of the PALP
-              algorithm which determines the maximal vertex-facet
-              pairing matrix first and then computes its
-              automorphisms, while the PALP algorithm does both things
-              concurrently.
-
-        - ``permutation`` -- (default: ``False``) If ``True`` then instead of
-            a matrix a tuple containing the normal form matrix and the
-            permutation applied to vertices to obtain it is returned.
-            Note that the different algorithms may return different results
-            that nevertheless lead to the same normal form.
-
-        OUTPUT:
-
-        A matrix or a tuple of a matrix and a permutation.
-
-        REFERENCES:
-
-        .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of
-            Reflexive Polyhedra in Three Dimensions, arXiv:hep-th/9805190
-        .. [GK13] Roland Grinis and Alexander Kasprzyk, Normal forms of
-            convex lattice polytopes, arXiv:1301.6641
-        
         EXAMPLES:
 
         We compute the normal form of the "diamond"::
@@ -2443,46 +2400,55 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         deprecation(15240, "normal_form() output will change, "
             "please use normal_form_pc().column_matrix() instead "
             "or consider using normal_form_pc() directly!")
-        return self.normal_form_pc(algorithm=algorithm, 
-                                   permutation=permutation).column_matrix()
+        return self.normal_form_pc().column_matrix()
 
     @cached_method
     def normal_form_pc(self, algorithm="palp", permutation=False):
         r"""
         Return the normal form of vertices of ``self``.
 
+        Two full-dimensional lattice polytopes are in the same
+        ``GL(\mathbb{Z})``-orbit if and only if their normal forms are the
+        same. Normal form is not defined and thus cannot be used for polytopes
+        whose dimension is smaller than the dimension of the ambient space.
+
+        The original algorithm was presented in [KS98]_ and implemented
+        in PALP. A modified version of the PALP algorithm is discussed in
+        [GK13]_ and available here as "palp_modified".
+
         INPUT:
 
         - ``algorithm`` -- (default: "palp") The algorithm which is used
-            to compute the normal form. Options are:
+          to compute the normal form. Options are:
 
-            * "palp" -- Run external PALP code, usually the fastest option.
+          * "palp" -- Run external PALP code, usually the fastest option.
 
-            * "palp_native" -- The original PALP algorithm implemented
-              in sage. Currently considerably slower than PALP.
+          * "palp_native" -- The original PALP algorithm implemented
+            in sage. Currently considerably slower than PALP.
 
-            * "palp_modified" -- A modified version of the PALP
-              algorithm which determines the maximal vertex-facet
-              pairing matrix first and then computes its
-              automorphisms, while the PALP algorithm does both things
-              concurrently.
+          * "palp_modified" -- A modified version of the PALP
+            algorithm which determines the maximal vertex-facet
+            pairing matrix first and then computes its
+            automorphisms, while the PALP algorithm does both things
+            concurrently.
 
-        - ``permutation`` -- (default: ``False``) If ``True`` then instead of
-            a matrix a tuple containing the normal form matrix and the
-            permutation applied to vertices to obtain it is returned.
-            Note that the different algorithms may return different results
-            that nevertheless lead to the same normal form.
+        - ``permutation`` -- (default: ``False``) If ``True`` the permutation
+          applied to vertices to obtain the normal form is returned as well.
+          Note that the different algorithms may return different results
+          that nevertheless lead to the same normal form.
 
         OUTPUT:
 
         - a :class:`point collection <PointCollection>` in the :meth:`lattice`
-          of ``self``.
+          of ``self`` or a tuple of it and a permutation.
 
-        Two full-dimensional lattice polytopes are in the same
-        `\mathrm{GL}(\ZZ)`-orbit if and only if their normal forms are the same.
-       
-        Normal form is not defined for polytopes whose dimension is smaller than
-        the dimension of the ambient space.
+        REFERENCES:
+
+        .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of
+            Reflexive Polyhedra in Three Dimensions, arXiv:hep-th/9805190
+            
+        .. [GK13] Roland Grinis and Alexander Kasprzyk, Normal forms of
+            convex lattice polytopes, arXiv:1301.6641
 
         EXAMPLES:
         
@@ -2525,32 +2491,32 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.normal_form()
             Traceback (most recent call last):
             ...
-            ValueError: Normal form is not defined for a 2-dimensional polytope in a 3-dimensional space!
+            ValueError: normal form is not defined for
+            2-d lattice polytope in 3-d lattice M
 
         We can perform the same examples using other algorithms::
 
             sage: o = lattice_polytope.cross_polytope(2)
-            sage: o.normal_form(algorithm="palp_native")
-            [ 1  0  0 -1]
-            [ 0  1 -1  0]
+            sage: o.normal_form_pc(algorithm="palp_native")
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
 
             sage: o = lattice_polytope.cross_polytope(2)
-            sage: o.normal_form(algorithm="palp_modified")
-            [ 1  0  0 -1]
-            [ 0  1 -1  0] 
+            sage: o.normal_form_pc(algorithm="palp_modified")
+            M( 1,  0),
+            M( 0,  1),
+            M( 0, -1),
+            M(-1,  0)
+            in 2-d lattice M
         """
         if self.dim() < self.ambient_dim():
-            raise ValueError(
-            ("Normal form is not defined for a %d-dimensional polytope " +
-            "in a %d-dimensional space!") % (self.dim(), self.ambient_dim()))
+            raise ValueError("normal form is not defined for %s" % self)
         if algorithm == "palp":
-            # Backward compatibility with ReflexivePolytopes
-            if not permutation and hasattr(self, "_normal_form"):
-                result = self._normal_form
-            else:
-                result = read_palp_matrix(self.poly_x("N"),
-                                          permutation=permutation)
-                result = map(self.lattice(), result.columns())
+            result = read_palp_matrix(self.poly_x("N"),
+                                      permutation=permutation)
         elif algorithm == "palp_native":
             result = self._palp_native_normal_form(permutation=permutation)
         elif algorithm == "palp_modified":
@@ -2558,7 +2524,18 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         else:
             raise ValueError('Algorithm must be palp, ' + 
                              'palp_native, or palp_modified.')
-        return PointCollection(result, self.lattice())
+        if permutation:
+            vertices, perm = result
+        else:
+            vertices = result
+        if algorithm == "palp":
+            vertices = vertices.columns()
+        M = self.lattice()
+        vertices = map(M, vertices)
+        for v in vertices:
+            v.set_immutable()
+        vertices = PointCollection(vertices, M)
+        return (vertices, perm) if permutation else vertices
 
     def _palp_modified_normal_form(self, permutation=False):
         r"""

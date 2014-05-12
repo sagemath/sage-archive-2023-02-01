@@ -1428,6 +1428,11 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         This matrix is given by the fox derivatives of the relations
         with respect to the generators.
+        
+        INPUT:
+        
+        - ``im_gens`` -- (optional) if given, the images of the
+        generators are mapped to the given elements.
 
         INPUT:
 
@@ -1436,11 +1441,19 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         OUTPUT:
 
         A matrix with coefficients in the group algebra. If ``im_gens`` is given,
+<<<<<<< HEAD
         the coefficients will live in the same algebra as the given values.
         The result depends on the (fixed) choice of presentation.
 
         EXAMPLES:
 
+=======
+        the coefficients will live in the same algebra as the given values. 
+        The result depends on the (fixed) choice of presentation.
+
+        EXAMPLES:
+        
+>>>>>>> FETCH_HEAD
         ::
 
             sage: G.<a,b,c> = FreeGroup()
@@ -1450,11 +1463,19 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
             [     B[1] - B[a*c*a^-1]                       0 B[a] - B[a*c*a^-1*c^-1]]
             [                      0 B[c] - B[c*b*c^-1*b^-1]      B[1] - B[c*b*c^-1]]
 
+<<<<<<< HEAD
 
         If we introduce the images of the generators, we obtain the result in the corresponding algebra.
 
         ::
 
+=======
+        
+        If we introduce the images of the generators, we obtain the result in the corresponding algebra.
+        
+        ::
+        
+>>>>>>> FETCH_HEAD
             sage: G.<a,b,c,d,e> = FreeGroup()
             sage: H = G.quotient([a*b/a/b, a*c/a/c, a*d/a/d, b*c*d/(c*d*b), b*c*d/(d*b*c)])
             sage: H.alexander_matrix()

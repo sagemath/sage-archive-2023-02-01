@@ -213,9 +213,9 @@ def RandomBipartite(n1,n2, p):
         complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
     """
     if not (p>=0 and p<=1):
-        raise ValueError, "Parameter p is a probability, and so should be a real value between 0 and 1"
+        raise ValueError("Parameter p is a probability, and so should be a real value between 0 and 1")
     if not (n1>0 and n2>0):
-        raise ValueError, "n1 and n2 should be integers strictly greater than 0"
+        raise ValueError("n1 and n2 should be integers strictly greater than 0")
 
     from numpy.random import uniform
 
@@ -240,6 +240,47 @@ def RandomBipartite(n1,n2, p):
     g.set_pos(pos)
 
     return g
+
+def RandomBoundedToleranceGraph(n):
+    r"""
+    Returns a random bounded tolerance graph.
+
+    The random tolerance graph is built from a random bounded
+    tolerance representation by using the function
+    `ToleranceGraph`. This representation is a list
+    `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where
+    `k = n-1` and `I_i = (l_i,r_i)` denotes a random interval and
+    `t_i` a random positive value less then or equal to the length
+    of the interval `I_i`. The width of the representation is
+    limited to n**2 * 2**n.
+
+    .. NOTE::
+
+        The tolerance representation used to create the graph can
+        be recovered using ``get_vertex()`` or ``get_vertices()``.
+
+    INPUT:
+
+    - ``n`` -- number of vertices of the random graph.
+
+    EXAMPLE:
+
+    Every (bounded) tolerance graph is perfect. Hence, the
+    chromatic number is equal to the clique number ::
+
+        sage: g = graphs.RandomBoundedToleranceGraph(8)
+        sage: g.clique_number() == g.chromatic_number()
+        True
+    """
+    from sage.misc.prandom import randint
+    from sage.graphs.generators.intersection import ToleranceGraph
+
+    W = n ** 2 * 2 ** n
+
+    tolrep = map(lambda l_r: (l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])),
+                 [sorted((randint(0, W), randint(0, W))) for i in range(n)])
+
+    return ToleranceGraph(tolrep)
 
 def RandomGNM(n, m, dense=False, seed=None):
     """
@@ -401,6 +442,20 @@ def RandomHolmeKim(n, m, p, seed=None):
 
 def RandomInterval(n):
     """
+    :meth:`RandomInterval` is deprecated.  Use :meth:`RandomIntervalGraph` instead.
+
+    TEST::
+
+        sage: g = graphs.RandomInterval(8)
+        doctest:...: DeprecationWarning: RandomInterval() is deprecated. Use RandomIntervalGraph() instead.
+        See http://trac.sagemath.org/13283 for details.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13283, "RandomInterval() is deprecated.  Use RandomIntervalGraph() instead.")
+    return RandomIntervalGraph(n)
+
+def RandomIntervalGraph(n):
+    """
     Returns a random interval graph.
 
     An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
@@ -431,7 +486,7 @@ def RandomInterval(n):
     As for any interval graph, the chromatic number is equal to
     the clique number ::
 
-        sage: g = graphs.RandomInterval(8)
+        sage: g = graphs.RandomIntervalGraph(8)
         sage: g.clique_number() == g.chromatic_number()
         True
 
@@ -445,11 +500,10 @@ def RandomInterval(n):
     """
 
     from sage.misc.prandom import random
+    from sage.graphs.generators.intersection import IntervalGraph
 
     intervals = [tuple(sorted((random(), random()))) for i in range(n)]
-
-    from sage.graphs.generators.families import IntervalGraph
-    return IntervalGraph(intervals)
+    return IntervalGraph(intervals,True)
 
 def RandomLobster(n, p, q, seed=None):
     """
@@ -646,7 +700,7 @@ def RandomRegular(d, n, seed=None):
         N = networkx.random_regular_graph(d, n, seed=seed)
         if N is False: return False
         return Graph(N, sparse=True)
-    except StandardError:
+    except Exception:
         return False
 
 def RandomShell(constructor, seed=None):
@@ -679,4 +733,52 @@ def RandomShell(constructor, seed=None):
         seed = current_randstate().long_seed()
     import networkx
     return Graph(networkx.random_shell_graph(constructor, seed=seed))
+
+def RandomToleranceGraph(n):
+    r"""
+    Returns a random tolerance graph.
+
+    The random tolerance graph is built from a random tolerance representation
+    by using the function `ToleranceGraph`. This representation is a list
+    `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where `k = n-1` and
+    `I_i = (l_i,r_i)` denotes a random interval and `t_i` a random positive
+    value. The width of the representation is limited to n**2 * 2**n.
+
+    .. NOTE::
+
+        The vertices are named 0, 1, ..., n-1. The tolerance representation used
+        to create the graph is saved with the graph and can be recovered using
+        ``get_vertex()`` or ``get_vertices()``.
+
+    INPUT:
+
+    - ``n`` -- number of vertices of the random graph.
+
+    EXAMPLE:
+
+    Every tolerance graph is perfect. Hence, the chromatic number is equal to
+    the clique number ::
+
+        sage: g = graphs.RandomToleranceGraph(8)
+        sage: g.clique_number() == g.chromatic_number()
+        True
+
+    TEST:
+
+        sage: g = graphs.RandomToleranceGraph(-2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The number `n` of vertices must be >= 0.
+    """
+    from sage.misc.prandom import randint
+    from sage.graphs.generators.intersection import ToleranceGraph
+
+    if n<0:
+        raise ValueError('The number `n` of vertices must be >= 0.')
+
+    W = n**2 * 2**n
+
+    tolrep = [tuple(sorted((randint(0,W), randint(0,W)))) + (randint(0,W),) for i in range(n)]
+
+    return ToleranceGraph(tolrep)
 

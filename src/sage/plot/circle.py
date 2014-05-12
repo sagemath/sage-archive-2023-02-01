@@ -173,7 +173,7 @@ class Circle(GraphicPrimitive):
 
         -  ``z`` - optional 3D height above `xy`-plane.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: circle((0,0), 1).plot3d()
 
@@ -354,4 +354,4 @@ def circle(center, radius, **options):
     elif len(center)==3:
         return g[0].plot3d(z=center[2])
     else:
-        raise ValueError, 'The center of a plotted circle should have two or three coordinates.'
+        raise ValueError('The center of a plotted circle should have two or three coordinates.')

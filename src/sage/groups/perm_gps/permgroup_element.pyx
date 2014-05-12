@@ -63,7 +63,8 @@ include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial
-from sage.matrix.all     import MatrixSpace, is_Matrix
+from sage.matrix.matrix import is_Matrix
+from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
@@ -218,10 +219,9 @@ def standardize_generator(g, convert_dict=None):
     """
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
-    from sage.libs.pari.gen import gen
-    from sage.combinat.permutation import Permutation
+    from sage.libs.pari.all import pari_gen
 
-    if isinstance(g, gen):
+    if isinstance(g, pari_gen):
         g = list(g)
 
     needs_conversion = True

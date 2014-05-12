@@ -27,7 +27,7 @@ AUTHORS:
 
 include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
-
+from sage.misc.constant_function import ConstantFunction
 
 import operator
 
@@ -51,15 +51,74 @@ def is_Morphism(x):
 cdef class Morphism(Map):
 
     def _repr_(self):
+        """
+        Return the string representation of self.
+
+        .. NOTE::
+
+            It uses :meth:`_repr_type` and :meth:`_repr_defn`.
+
+            A morphism that has been subject to
+            :meth:`~sage.categories.map.Map._make_weak_references` has probably
+            been used internally in the coercion system. Hence, it may become
+            defunct by garbage collection of the domain. In this case, a warning
+            is printed accordingly.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t+1])
+            sage: f     # indirect doctest
+            Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+              Defn: t |--> t + 1
+
+        TESTS::
+
+            sage: K = CyclotomicField(12)
+            sage: L = CyclotomicField(132)
+            sage: phi = L._internal_coerce_map_from(K); phi
+            (map internal to coercion system -- copy before use)
+            Generic morphism:
+              From: Cyclotomic Field of order 12 and degree 4
+              To:   Cyclotomic Field of order 132 and degree 40
+
+            sage: del K
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: phi
+            Defunct morphism
+        """
+        D = self.domain()
+        if D is None:
+            return "Defunct morphism"
         if self.is_endomorphism():
-            s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
+            s = "{} endomorphism of {}".format(self._repr_type(), self.domain())
         else:
-            s = "%s morphism:"%self._repr_type()
-            s += "\n  From: %s"%self.domain()
-            s += "\n  To:   %s"%self.codomain()
+            s = "{} morphism:".format(self._repr_type())
+            s += "\n  From: {}".format(self.domain())
+            s += "\n  To:   {}".format(self._codomain)
+        if isinstance(self.domain, ConstantFunction):
+            d = self._repr_defn()
+            if d != '':
+                s += "\n  Defn: " + '\n        '.join(d.split('\n'))
+        else:
+            d = "(map internal to coercion system -- copy before use)"
+            s = d + "\n" + s
+        return s
+
+    def _default_repr_(self):
+        D = self.domain()
+        if D is None:
+            return "Defunct morphism"
+        if self.is_endomorphism():
+            s = "{} endomorphism of {}".format(self._repr_type(), self.domain())
+        else:
+            s = "{} morphism:".format(self._repr_type())
+            s += "\n  From: {}".format(self.domain())
+            s += "\n  To:   {}".format(self._codomain)
         d = self._repr_defn()
         if d != '':
-            s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
+            s += "\n  Defn: " + '\n        '.join(d.split('\n'))
         return s
 
     def _repr_short(self):
@@ -102,6 +161,47 @@ cdef class Morphism(Map):
 
     def is_endomorphism(self):
         return self.parent().is_endomorphism_set()
+
+    def is_identity(self):
+        """
+        Return true if this morphism is the identity morphism.
+
+        .. NOTE::
+
+            Implemented only when the domain has a method gens()
+
+        EXAMPLES:
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t])
+            sage: f.is_identity()
+            True
+            sage: g = R.hom([t+1])
+            sage: g.is_identity()
+            False
+
+        A morphism between two different spaces can't be the identity::
+
+            sage: R2.<t2> = QQ[]
+            sage: h = R.hom([t2])
+            sage: h.is_identity()
+            False
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-06-29)
+        """
+        domain = self.domain()
+        if domain != self.codomain():
+            return False
+        try:
+            gens = domain.gens()
+            for x in gens:
+                if self(x) != x:
+                    return False
+            return True
+        except (AttributeError, NotImplementedError):
+            return NotImplementedError
 
     def __invert__(self):  # notation in python is (~f) for the inverse of f.
         raise NotImplementedError
@@ -150,7 +250,7 @@ cdef class Morphism(Map):
             AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in y over Integer Ring already registered or discovered
 
         """
-        self.codomain().register_coercion(self)
+        self._codomain.register_coercion(self)
 
     def register_as_conversion(self):
         """
@@ -173,13 +273,63 @@ cdef class Morphism(Map):
             sage: ZZ(x)
             -1
         """
-        self.codomain().register_conversion(self)
+        self._codomain.register_conversion(self)
+
+    # You *must* override this method in all cython classes
+    # deriving from this class.
+    # If you are happy with this implementation (typically
+    # is your domain has generators), simply write:
+    # def __hash__(self):
+    #     return Morphism.__hash__(self)
+    def __hash__(self):
+        """
+        Return a hash of this morphism.
+
+        It is the hash of the triple (domain, codomain, definition)
+        where ``definition`` is:
+
+        - a tuple consisting of the images of the generators
+          of the domain if domain has generators
+
+        - the string representation of this morphism otherwise
+
+        AUTHOR:
+
+        - Xavier Caruso (2012-07-09)
+        """
+        domain = self.domain()
+        codomain = self.codomain()
+        try:
+            gens = domain.gens()
+            definition = tuple([self(x) for x in gens])
+        except (AttributeError, NotImplementedError):
+            definition = repr(self)
+        return hash((domain, codomain, definition))
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        if left is right: return 0
+        domain = left.domain()
+        c = cmp(domain, right.domain())
+        if c: return c
+        c = cmp(left.codomain(), right.codomain())
+        if c: return c
+        try:
+            gens = domain.gens()
+            for x in gens:
+                c = cmp(left(x), right(x))
+                if c: return c
+        except (AttributeError, NotImplementedError):
+            raise NotImplementedError
+
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
-        if not self.codomain().has_coerce_map_from(self.domain()):
-            raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain())
+        if not self._codomain.has_coerce_map_from(self.domain()):
+            raise TypeError("Natural coercion morphism from {} to {} not defined.".format(self.domain(), self._codomain))
 
     def _repr_type(self):
         return "Coercion"
@@ -208,13 +358,14 @@ cdef class IdentityMorphism(Morphism):
     cpdef Element _call_(self, x):
         return x
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cpdef Element _call_with_args(self, x, args=(), kwds={}): 
         if len(args) == 0 and len(kwds) == 0:
             return x
-        elif self._codomain._element_init_pass_parent:
-            return self._codomain._element_constructor(self._codomain, x, *args, **kwds)
+        cdef Parent C = self._codomain
+        if C._element_init_pass_parent:
+            return C._element_constructor(C, x, *args, **kwds)
         else:
-            return self._codomain._element_constructor(x, *args, **kwds)
+            return C._element_constructor(x, *args, **kwds)
 
     def __mul__(left, right):
         if not isinstance(right, Map):
@@ -298,10 +449,10 @@ cdef class SetMorphism(Morphism):
         """
         try:
             return self._function(x, *args, **kwds)
-        except StandardError:
+        except Exception:
             raise TypeError, "Underlying map %s does not accept additional arguments"%type(self._function)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
         """
         INPUT:
 
@@ -318,7 +469,7 @@ cdef class SetMorphism(Morphism):
         _slots['_function'] = self._function
         return Map._extra_slots(self, _slots)
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
         """
         INPUT:
         - ``_slots`` -- a dictionary

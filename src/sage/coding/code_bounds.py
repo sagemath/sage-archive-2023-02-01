@@ -232,6 +232,7 @@ def codesize_upper_bound(n,d,q,algorithm=None):
 
     """
     if algorithm=="gap":
+        gap.load_package('guava')
         return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
     if algorithm=="LP":
         return int(delsarte_bound_hamming_space(n,d,q))
@@ -470,7 +471,7 @@ def gv_info_rate(n,delta,q):
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
 
-def entropy(x,q):
+def entropy(x, q=2):
     """
     Computes the entropy at `x` on the `q`-ary symmetric channel.
 
@@ -478,7 +479,8 @@ def entropy(x,q):
 
     - ``x`` - real number in the interval `[0, 1]`.
 
-    - ``q`` - integer greater than 1. This is the base of the logarithm.
+    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+      logarithm.
 
     EXAMPLES::
 
@@ -512,6 +514,56 @@ def entropy(x,q):
         return log(q-1,q)
     H = x*log(q-1,q)-x*log(x,q)-(1-x)*log(1-x,q)
     return H
+
+def entropy_inverse(x, q=2):
+    """
+    Find the inverse of the ``q``-ary entropy function at the point ``x``.
+
+    INPUT:
+
+    - ``x`` -- real number in the interval `[0, 1]`.
+
+    - ``q`` - (default: 2) integer greater than 1. This is the base of the
+      logarithm.
+
+    OUTPUT:
+
+    Real number in the interval `[0, 1-1/q]`. The function has multiple
+    values if we include the entire interval `[0, 1]`; hence only the
+    values in the above interval is returned.
+
+    EXAMPLES::
+
+        sage: from sage.coding.code_bounds import entropy_inverse
+        sage: entropy_inverse(0.1)
+        0.012986862055848683
+        sage: entropy_inverse(1)
+        1/2
+        sage: entropy_inverse(0, 3)
+        0
+        sage: entropy_inverse(1, 3)
+        2/3
+
+    """
+    # No nice way to compute the inverse. We resort to root finding.
+    if x < 0 or x > 1:
+        raise ValueError("The inverse entropy function is defined only for "
+                         "x in the interval [0, 1]")
+    q = ZZ(q)   # This will error out if q is not an integer
+    if q < 2:   # Here we check that q is actually at least 2
+        raise ValueError("The value q must be an integer greater than 1")
+
+    eps  = 4.5e-16 # find_root has about this as the default xtol
+    ymax = 1 - 1/q
+    if x <= eps:
+        return 0
+    if x >= 1-eps:
+        return ymax
+
+    # find_root will error out if the root can not be found
+    from sage.numerical.optimize import find_root
+    f = lambda y: entropy(y, q) - x
+    return find_root(f, 0, ymax)
 
 def gv_bound_asymp(delta,q):
     """

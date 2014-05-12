@@ -25,84 +25,6 @@ from sage.graphs.graph import Graph
 from sage.graphs import graph
 from math import sin, cos, pi
 
-def IntervalGraph(intervals):
-    r"""
-    Returns the graph corresponding to the given intervals.
-
-    An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
-    of intervals : to each interval of the list is associated one
-    vertex, two vertices being adjacent if the two corresponding
-    (closed) intervals intersect.
-
-    INPUT:
-
-    - ``intervals`` -- the list of pairs `(a_i,b_i)`
-      defining the graph.
-
-    .. NOTE::
-
-        * The vertices are named 0, 1, 2, and so on. The
-          intervals used to create the graph are saved with the
-          graph and can be recovered using ``get_vertex()`` or
-          ``get_vertices()``.
-
-        * The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
-
-    EXAMPLE:
-
-    The following line creates the sequence of intervals
-    `(i, i+2)` for i in `[0, ..., 8]`::
-
-        sage: intervals = [(i,i+2) for i in range(9)]
-
-    In the corresponding graph... ::
-
-        sage: g = graphs.IntervalGraph(intervals)
-        sage: g.get_vertex(3)
-        (3, 5)
-        sage: neigh = g.neighbors(3)
-        sage: for v in neigh: print g.get_vertex(v)
-        (1, 3)
-        (2, 4)
-        (4, 6)
-        (5, 7)
-
-    The is_interval() method verifies that this graph is an interval
-    graph. ::
-
-        sage: g.is_interval()
-        True
-
-    The intervals in the list need not be distinct. ::
-
-        sage: intervals = [ (1,2), (1,2), (1,2), (2,3), (3,4) ]
-        sage: g = graphs.IntervalGraph(intervals)
-        sage: g.clique_maximum()
-        [0, 1, 2, 3]
-        sage: g.get_vertices()
-        {0: (1, 2), 1: (1, 2), 2: (1, 2), 3: (2, 3), 4: (3, 4)}
-
-    """
-
-    n = len(intervals)
-    g = graph.Graph(n)
-
-    edges = []
-
-    for i in range(n-1):
-        I = intervals[i]
-        for j in range(i+1,n):
-            J = intervals[j]
-            if max(I) < min(J) or max(J) < min(I): continue
-            edges.append((i,j))
-
-    g.add_edges(edges)
-
-    rep = dict( zip(range(n),intervals) )
-    g.set_vertices(rep)
-
-    return g
-
 def JohnsonGraph(n, k):
     r"""
     Returns the Johnson graph with parameters `n, k`.
@@ -187,9 +109,9 @@ def KneserGraph(n,k):
     """
 
     if not n>0:
-        raise ValueError, "Parameter n should be a strictly positive integer"
+        raise ValueError("Parameter n should be a strictly positive integer")
     if not (k>0 and k<=n):
-        raise ValueError, "Parameter k should be a strictly positive integer inferior to n"
+        raise ValueError("Parameter k should be a strictly positive integer inferior to n")
 
     g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
     from sage.combinat.subset import Subsets
@@ -936,7 +858,7 @@ def FuzzyBallGraph(partition, q):
     """
     from sage.graphs.generators.basic import CompleteGraph
     if len(partition)<1:
-        raise ValueError, "partition must be a nonempty list of positive integers"
+        raise ValueError("partition must be a nonempty list of positive integers")
     n=q+sum(partition)
     g=CompleteGraph(n)
     curr_vertex=0
@@ -1315,7 +1237,7 @@ def MycielskiGraph(k=1, relabel=True):
     g.name("Mycielski Graph " + str(k))
 
     if k<0:
-        raise ValueError, "parameter k must be a nonnegative integer"
+        raise ValueError("parameter k must be a nonnegative integer")
 
     if k == 0:
         return g
@@ -1519,7 +1441,7 @@ def OddGraph(n):
     """
 
     if not n>1:
-        raise ValueError, "Parameter n should be an integer strictly greater than 1"
+        raise ValueError("Parameter n should be an integer strictly greater than 1")
     g = KneserGraph(2*n-1,n-1)
     g.name("Odd Graph with parameter %s" % n)
     return g
@@ -1549,98 +1471,6 @@ def PaleyGraph(q):
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
     loops=False, name = "Paley graph with parameter %d"%q)
-    return g
-
-def PermutationGraph(second_permutation, first_permutation = None):
-    r"""
-    Builds a permutation graph from one (or two) permutations.
-
-    General definition
-
-    A Permutation Graph can be encoded by a permutation `\sigma`
-    of `0, ..., n`. It is then built in the following way :
-
-      Take two horizontal lines in the euclidean plane, and mark points `0,
-      ..., n` from left to right on the first of them. On the second one,
-      still from left to right, mark point in the order in which they appear
-      in `\sigma`. Now, link by a segment the two points marked with 1, then
-      link together the points marked with 2, and so on. The permutation
-      graph defined by the permutation is the intersection graph of those
-      segments : there exists a point in this graph for each element from
-      `1` to `n`, two vertices `i, j` being adjacent if the segments `i` and
-      `j` cross each other.
-
-    The set of edges of the resulting graph is equal to the set of
-    inversions of the inverse of the given permutation.
-
-    INPUT:
-
-    - ``second_permutation`` -- the permutation from which the graph should
-      be built. It corresponds to the ordering of the elements on the second
-      line (see previous definition)
-
-    - ``first_permutation`` (optional) -- the ordering of the elements on
-      the *first* line. This is useful when the elements have no natural
-      ordering, for instance when they are strings, or tuples, or anything
-      else.
-
-      When ``first_permutation == None`` (default), it is set to be equal to
-      ``sorted(second_permutation)``, which just yields the expected
-      ordering when the elements of the graph are integers.
-
-    .. SEEALSO:
-
-      - Recognition of Permutation graphs in the :mod:`comparability module
-        <sage.graphs.comparability>`.
-
-      - Drawings of permutation graphs as intersection graphs of segments is
-        possible through the
-        :meth:`~sage.combinat.permutation.Permutation.show` method of
-        :class:`~sage.combinat.permutation.Permutation` objects.
-
-        The correct argument to use in this case is ``show(representation =
-        "braid")``.
-
-      - :meth:`~sage.combinat.permutation.Permutation.inversions`
-
-    EXAMPLE::
-
-        sage: p = Permutations(5).random_element()
-        sage: edges = graphs.PermutationGraph(p).edges(labels =False)
-        sage: set(edges) == set(p.inverse().inversions())
-        True
-
-    TESTS::
-
-        sage: graphs.PermutationGraph([1, 2, 3], [4, 5, 6])
-        Traceback (most recent call last):
-        ...
-        ValueError: The two permutations do not contain the same set of elements ...
-    """
-    if first_permutation == None:
-        first_permutation = sorted(second_permutation)
-    else:
-        if set(second_permutation) != set(first_permutation):
-            raise ValueError("The two permutations do not contain the same "+
-                             "set of elements ! It is going to be pretty "+
-                             "hard to define a permutation graph from that !")
-
-    vertex_to_index = {}
-    for i, v in enumerate(first_permutation):
-        vertex_to_index[v] = i+1
-
-    from sage.combinat.permutation import Permutation
-    p2 = Permutation(map(lambda x:vertex_to_index[x], second_permutation))
-    p1 = Permutation(map(lambda x:vertex_to_index[x], first_permutation))
-    p2 = p2 * p1.inverse()
-    p2 = p2.inverse()
-
-    g = graph.Graph(name="Permutation graph for "+str(second_permutation))
-    g.add_vertices(second_permutation)
-
-    for u,v in p2.inversions():
-        g.add_edge(first_permutation[u-1], first_permutation[v-1])
-
     return g
 
 def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
@@ -1979,6 +1809,112 @@ def line_graph_forbidden_subgraphs():
                 }))
 
     return graphs
+
+
+def petersen_family(generate=False):
+    r"""
+    Returns the Petersen family
+
+    The Petersen family is a collection of 7 graphs which are the forbidden
+    minors of the linklessly embeddable graphs. For more information see the
+    :wikipedia:`Petersen_family`.
+
+    INPUT:
+
+    - ``generate`` (boolean) -- whether to generate the family from the
+      `\Delta-Y` transformations. When set to ``False`` (default) a hardcoded
+      version of the graphs (with a prettier layout) is returned.
+
+    EXAMPLE::
+
+        sage: graphs.petersen_family()
+        [Petersen graph: Graph on 10 vertices,
+         Complete graph: Graph on 6 vertices,
+         Multipartite Graph with set sizes [3, 3, 1]: Graph on 7 vertices,
+         Graph on 8 vertices,
+         Graph on 9 vertices,
+         Graph on 7 vertices,
+         Graph on 8 vertices]
+
+    The two different inputs generate the same graphs::
+
+        sage: F1 = graphs.petersen_family(generate=False)
+        sage: F2 = graphs.petersen_family(generate=True)
+        sage: F1 = [g.canonical_label().graph6_string() for g in F1]
+        sage: F2 = [g.canonical_label().graph6_string() for g in F2]
+        sage: set(F1) == set(F2)
+        True
+    """
+    from sage.graphs.generators.smallgraphs import PetersenGraph
+    if not generate:
+        from sage.graphs.generators.basic import CompleteGraph, \
+             CompleteBipartiteGraph, CompleteMultipartiteGraph
+        from sage.graphs.graph_plot import _circle_embedding
+        l = [PetersenGraph(), CompleteGraph(6),
+             CompleteMultipartiteGraph([3, 3, 1])]
+        g = CompleteBipartiteGraph(4, 4)
+        g.delete_edge(0, 4)
+        g.name("")
+        l.append(g)
+        g = Graph('HKN?Yeb')
+        _circle_embedding(g, [1, 2, 4, 3, 0, 5])
+        _circle_embedding(g, [6, 7, 8], radius=.6, shift=1.25)
+        l.append(g)
+        g = Graph('Fs\\zw')
+        _circle_embedding(g, [1, 2, 3])
+        _circle_embedding(g, [4, 5, 6], radius=.7)
+        g.get_pos()[0] = (0, 0)
+        l.append(g)
+        g = Graph('GYQ[p{')
+        _circle_embedding(g, [1, 4, 6, 0, 5, 7, 3], shift=0.25)
+        g.get_pos()[2] = (0, 0)
+        l.append(g)
+        return l
+
+    def DeltaYTrans(G, triangle):
+        """
+        Apply a Delta-Y transformation to a given triangle of G.
+        """
+        a, b, c = triangle
+        G = G.copy()
+        G.delete_edges([(a, b), (b, c), (c, a)])
+        v = G.order()
+        G.add_edges([(a, v), (b, v), (c, v)])
+        return G.canonical_label()
+
+    def YDeltaTrans(G, v):
+        """
+        Apply a Y-Delta transformation to a given vertex v of G.
+        """
+        G = G.copy()
+        a, b, c = G.neighbors(v)
+        G.delete_vertex(v)
+        G.add_cycle([a, b, c])
+        return G.canonical_label()
+
+    # We start from the Petersen Graph, and apply Y-Delta transform
+    # for as long as we generate new graphs.
+    P = PetersenGraph()
+
+    l = set([])
+    l_new = [P.canonical_label().graph6_string()]
+
+    while l_new:
+        g = l_new.pop(0)
+        if g in l:
+            continue
+        l.add(g)
+        g = Graph(g)
+        # All possible Delta-Y transforms
+        for t in g.subgraph_search_iterator(Graph({1: [2, 3], 2: [3]})):
+            l_new.append(DeltaYTrans(g, t).graph6_string())
+        # All possible Y-Delta transforms
+        for v in g:
+            if g.degree(v) == 3:
+                l_new.append(YDeltaTrans(g, v).graph6_string())
+
+    return [Graph(x) for x in l]
+
 
 def WheelGraph(n):
     """

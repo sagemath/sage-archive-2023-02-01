@@ -92,7 +92,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
 
             a1, a2, a3, a4, a6 = self.a_invariants()
             if a1 != 0 or a2 != 0:
-                raise NotImplementedError, "Curve must be in weierstrass normal form."
+                raise NotImplementedError("Curve must be in weierstrass normal form.")
 
             f = x*x*x + a2*x*x + a4*x + a6
             h = (f(x**p) - f**p)

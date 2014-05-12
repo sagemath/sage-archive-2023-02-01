@@ -121,62 +121,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
 
-    def copy(self):
-        """
-        Make a copy of self. If self is immutable, the copy will be
-        mutable.
-
-        .. warning::
-
-           This method is deprecated and will be removed from a future
-           version of Sage.  Please use the ``copy()`` function
-           instead.  In other words, instead of doing ``m.copy()``, do ``copy(m)``.
-
-        .. warning::
-
-           The individual elements aren't themselves copied (though
-           the list is copied). This shouldn't matter, since ring
-           elements are (almost!) always immutable in Sage.
-
-        EXAMPLES:
-
-
-        The :meth:`.copy` method is deprecated.  Instead, use the
-        :func:`copy` function::
-
-            sage: a = matrix([[1,2],[3,4]])
-            sage: b = a.copy()
-            doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)
-            See http://trac.sagemath.org/6521 for details.
-            sage: b = copy(a)
-
-        ::
-
-            sage: R.<x> = QQ['x']
-            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
-            [  x + 1     2/3]
-            [1/2*x^2 x^3 + 1]
-            sage: b = copy(a)
-            sage: b[0,0] = 5
-            sage: b
-            [      5     2/3]
-            [1/2*x^2 x^3 + 1]
-            sage: a
-            [  x + 1     2/3]
-            [1/2*x^2 x^3 + 1]
-
-        ::
-
-            sage: b = copy(a)
-            sage: f = b[0,0]; f[0] = 10
-            Traceback (most recent call last):
-            ...
-            IndexError: polynomials are immutable
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(6521, "the .copy() method is deprecated; please use the copy() function instead, for example, copy(M)")
-        return self.__copy__()
-
     def list(self):
         """
         List of the elements of self ordered by elements in each
@@ -1840,7 +1784,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             if callable(rep_mapping):
                 rep = rep_mapping(x)
             # avoid hashing entries, especially algebraic numbers
-            elif rep_mapping and rep_mapping.has_key(x):
+            elif rep_mapping and x in rep_mapping:
                 rep = rep_mapping.get(x)
             else:
                 rep = repr(x)
@@ -3747,7 +3691,17 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_skew_symmetric(self):
         """
-        Returns True if this is a skew symmetric matrix.
+        Return ``True`` if ``self`` is a skew-symmetric matrix.
+
+        Here, "skew-symmetric matrix" means a square matrix `A`
+        satisfying `A^T = -A`. It does not require that the
+        diagonal entries of `A` are `0` (although this
+        automatically follows from `A^T = -A` when `2` is
+        invertible in the ground ring over which the matrix is
+        considered). Skew-symmetric matrices `A` whose diagonal
+        entries are `0` are said to be "alternating", and this
+        property is checked by the :meth:`is_alternating`
+        method.
 
         EXAMPLES::
 
@@ -3756,6 +3710,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             True
             sage: m = matrix(QQ, [[1,2], [2,1]])
             sage: m.is_skew_symmetric()
+            False
+
+        Skew-symmetric is not the same as alternating when
+        `2` is a zero-divisor in the ground ring::
+
+            sage: n = matrix(Zmod(4), [[0, 1], [-1, 2]])
+            sage: n.is_skew_symmetric()
+            True
+
+        but yet the diagonal cannot be completely
+        arbitrary in this case::
+
+            sage: n = matrix(Zmod(4), [[0, 1], [-1, 3]])
+            sage: n.is_skew_symmetric()
             False
         """
         if self._ncols != self._nrows: return False
@@ -3767,6 +3735,51 @@ cdef class Matrix(sage.structure.element.Matrix):
             for j from 0 <= j <= i:
                 if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
                     return False
+        return True
+
+    def is_alternating(self):
+        """
+        Return ``True`` if ``self`` is an alternating matrix.
+
+        Here, "alternating matrix" means a square matrix `A`
+        satisfying `A^T = -A` and such that the diagonal entries
+        of `0`. Notice that the condition that the diagonal
+        entries be `0` is not redundant for matrices over
+        arbitrary ground rings (but it is redundant when `2` is
+        invertible in the ground ring). A square matrix `A` only
+        required to satisfy `A^T = -A` is said to be
+        "skew-symmetric", and this property is checked by the
+        :meth:`is_skew_symmetric` method.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, [[0,2], [-2,0]])
+            sage: m.is_alternating()
+            True
+            sage: m = matrix(QQ, [[1,2], [2,1]])
+            sage: m.is_alternating()
+            False
+
+        In contrast to the property of being skew-symmetric, the
+        property of being alternating does not tolerate nonzero
+        entries on the diagonal even if they are their own
+        negatives::
+
+            sage: n = matrix(Zmod(4), [[0, 1], [-1, 2]])
+            sage: n.is_alternating()
+            False
+        """
+        if self._ncols != self._nrows: return False
+        # could be bigger than an int on a 64-bit platform, this
+        #  is the type used for indexing.
+        cdef Py_ssize_t i,j
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < i:
+                if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
+                    return False
+            if self.get_unsafe(i,i) != 0:
+                return False
         return True
 
     def is_symmetrizable(self, return_diag=False, positive=True):
@@ -4041,7 +4054,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         This returns a tuple so it is immutable; see #10752.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(QQ, 2, 2, range(4))
             sage: A.pivots()
@@ -4414,17 +4427,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             (32, 38, 44, 50)
             sage: (v * m).parent() is m.row(0).parent()
             True
+
+        TESTS:
+
+        Check that :trac:`8198` is fixed::
+
+            sage: R = Qp(5, 5)
+            sage: x = R(5).add_bigoh(1)
+            sage: I = matrix(R, [[1, 0], [0, 1]])
+            sage: v = vector(R, [1, x])
+            sage: v*I
+            (1 + O(5^5), O(5))
+
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if self.nrows() != v.degree():
             raise ArithmeticError("number of rows of matrix must equal degree of vector")
-        s = M(0)
-        zero = self.base_ring()(0)
         cdef Py_ssize_t i
-        for i from 0 <= i < self._nrows:
-            if v[i] != zero:
-                s += v[i]*self.row(i, from_list=True)
-        return s
+        return sum([v[i] * self.row(i, from_list=True)
+                    for i in xrange(self._nrows)], M(0))
 
     cdef Vector _matrix_times_vector_(self, Vector v):
         """
@@ -4440,17 +4461,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             (8, 26, 44, 62)
             sage: (m * v).parent() is m.column(0).parent()
             True
+
+        TESTS:
+
+        Check that :trac:`8198` is fixed::
+
+            sage: R = Qp(5, 5)
+            sage: x = R(5).add_bigoh(1)
+            sage: I = matrix(R, [[1, 0], [0, 1]])
+            sage: v = vector(R, [1, x])
+            sage: I*v
+            (1 + O(5^5), O(5))
+
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
-        s = M(0)
-        for i in xrange(self.ncols()):
-            if v[i] != 0:
-                s = s + self.column(i, from_list=True)*v[i]
-        return s
+        cdef Py_ssize_t i
+        return sum([self.column(i, from_list=True) * v[i]
+                    for i in xrange(self._ncols)], M(0))
 
     def iterates(self, v, n, rows=True):
         r"""

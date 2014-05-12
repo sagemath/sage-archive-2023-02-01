@@ -15,7 +15,7 @@ polynomial, i.e., we verify compatibility condition.
 ::
 
     sage: f = conway_polynomial(2,63)
-    sage: K.<a> = GF(2**63, name='a', modulus=f)
+    sage: K.<a> = GF(2**63, name='a', modulus=f, impl='pari_mod')
     sage: n = f.degree()
     sage: m = 3;
     sage: e = (2^n - 1) / (2^m - 1)
@@ -52,7 +52,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
     EXAMPLES::
 
-        sage: K = FiniteField(10007^10, 'a')
+        sage: K = FiniteField(10007^10, 'a', impl='pari_mod')
         sage: a = K.gen(); a
         a
         sage: loads(a.dumps()) == a
@@ -65,7 +65,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
     TESTS::
 
-        sage: K.<a> = GF(2^16)
+        sage: K.<a> = GF(2^16, impl='pari_mod')
         sage: K(0).is_zero()
         True
         sage: (a - a).is_zero()
@@ -261,15 +261,15 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
                         value = value.Mod(parent._pari_modulus())
                     self.__value = value * parent._pari_one()
                 except RuntimeError:
-                    raise TypeError, "no possible coercion implemented"
+                    raise TypeError("no possible coercion implemented")
             elif isinstance(value, FiniteField_ext_pariElement):
                 if parent != value.parent():
-                    raise TypeError, "no coercion implemented"
+                    raise TypeError("no coercion implemented")
                 else:
                     self.__value = value.__value
             elif isinstance(value, FreeModuleElement):
                 if parent.vector_space() != value.parent():
-                    raise TypeError, "e.parent must match self.vector_space"
+                    raise TypeError("e.parent must match self.vector_space")
                 self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
                 for i in range(len(value)):
                     self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
@@ -299,15 +299,15 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
                     GFp = parent.prime_subfield()
                     self.__value = pari([GFp(c) for c in value]).Polrev("a").Mod(parent._pari_modulus())
             elif isinstance(value, str):
-                raise TypeError, "value must not be a string"
+                raise TypeError("value must not be a string")
             else:
                 try:
                     self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
                 except RuntimeError:
-                    raise TypeError, "no coercion implemented"
+                    raise TypeError("no coercion implemented")
 
         except (AttributeError, TypeError):
-            raise TypeError, "unable to coerce"
+            raise TypeError("unable to coerce")
 
     def __hash__(self):
         """
@@ -315,7 +315,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^15)
+            sage: k.<a> = GF(3^15, impl='pari_mod')
             sage: R = GF(3)['a']; aa = R.gen()
             sage: hash(a^2 + 1) == hash(aa^2 + 1)
             True
@@ -340,7 +340,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         The variable can be any string::
 
-            sage: k = FiniteField(3**4, "alpha")
+            sage: k = FiniteField(3**4, "alpha", impl='pari_mod')
             sage: a = k.gen()
             sage: a.polynomial()
             alpha
@@ -439,7 +439,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         if all:
             return []
         else:
-            raise ValueError, "must be a perfect square."
+            raise ValueError("must be a perfect square.")
 
     def sqrt(self, extend=False, all = False):
         """
@@ -447,7 +447,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^3 - a - 1).sqrt()
             2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
         """
@@ -469,10 +469,10 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             2/3
         """
         if self.parent().degree() != 1:
-            raise ArithmeticError, "finite field must be prime"
+            raise ArithmeticError("finite field must be prime")
         t = arith.rational_reconstruction(int(self), self.parent().characteristic())
         if t == None or t[1] == 0:
-            raise ZeroDivisionError, "unable to compute rational reconstruction"
+            raise ZeroDivisionError("unable to compute rational reconstruction")
         return rational.Rational((t[0],t[1]))
 
     def multiplicative_order(self):
@@ -563,7 +563,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: a._pari_init_()
             'Mod(Mod(1, 3)*a, Mod(1, 3)*a^17 + Mod(2, 3)*a + Mod(1, 3))'
         """
@@ -629,7 +629,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
         F = self.parent()
         if F.order() > 65536:
-            raise TypeError, "order must be at most 65536"
+            raise TypeError("order must be at most 65536")
 
         if self == 0:
             return '0*Z(%s)'%F.order()
@@ -644,7 +644,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<c> = GF(3^17)
+            sage: k.<c> = GF(3^17, impl='pari_mod')
             sage: c^20 # indirect doctest
             c^4 + 2*c^3
         """
@@ -656,7 +656,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: a + a^2 # indirect doctest
             a^2 + a
         """
@@ -668,7 +668,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: a - a # indirect doctest
             0
         """
@@ -680,7 +680,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a^12 + 1)*(a^15 - 1) # indirect doctest
             a^15 + 2*a^12 + a^11 + 2*a^10 + 2
         """
@@ -692,7 +692,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: (a - 1) / (a + 1) # indirect doctest
             2*a^16 + a^15 + 2*a^14 + a^13 + 2*a^12 + a^11 + 2*a^10 + a^9 + 2*a^8 + a^7 + 2*a^6 + a^5 + 2*a^4 + a^3 + 2*a^2 + a + 1
         """
@@ -706,18 +706,18 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: int(b)
             2
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: gen must be of PARI type t_INT or t_POL of degree 0
+            TypeError: Unable to coerce PARI a to an Integer
         """
         try:
             return int(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "cannot coerce to int"
+            raise TypeError("cannot coerce to int")
 
     def _integer_(self, ZZ=None):
         """
@@ -725,7 +725,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: b._integer_()
             2
             sage: a._integer_()
@@ -741,14 +741,14 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: long(b)
             2L
         """
         try:
             return long(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "cannot coerce to long"
+            raise TypeError("cannot coerce to long")
 
     def __float__(self):
         """
@@ -756,20 +756,20 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17); b = k(2)
+            sage: k.<a> = GF(3^17, impl='pari_mod'); b = k(2)
             sage: float(b)
             2.0
         """
         try:
             return float(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "cannot coerce to float"
+            raise TypeError("cannot coerce to float")
 
     def __pow__(self, _right):
         """
         TESTS::
 
-            sage: K.<a> = GF(5^10)
+            sage: K.<a> = GF(5^10, impl='pari_mod')
             sage: n = (2*a)/a
 
         Naively compute `n^{-15}` in PARI, note that the result is `1/3`.
@@ -805,7 +805,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: -a
             2*a
         """
@@ -817,7 +817,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: +a
             a
         """
@@ -829,13 +829,13 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: k.<a> = GF(3^17)
+            sage: k.<a> = GF(3^17, impl='pari_mod')
             sage: abs(a)
             Traceback (most recent call last):
             ...
             ArithmeticError: absolute value not defined
         """
-        raise ArithmeticError, "absolute value not defined"
+        raise ArithmeticError("absolute value not defined")
 
     def __invert__(self):
         """
@@ -852,7 +852,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
 
         if self.__value == 0:
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         return FiniteField_ext_pariElement(self.parent(), ~self.__value, value_from_pari=True)
 
     def lift(self):
@@ -925,7 +925,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
         ::
 
-            sage: F = FiniteField(2^10, 'a')
+            sage: F = FiniteField(2^10, 'a', impl='pari_mod')
             sage: g = F.gen()
             sage: b = g; a = g^37
             sage: a.log(b)
@@ -952,7 +952,7 @@ def _late_import():
     EXAMPLES::
 
         sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
-        sage: k.<a> = GF(3^17)
+        sage: k.<a> = GF(3^17, impl='pari_mod')
         sage: a.__class__ is FiniteField_ext_pariElement # indirect doctest
         False
     """

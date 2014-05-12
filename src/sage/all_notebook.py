@@ -1,4 +1,6 @@
 from sage.all import *
+from sagenb.notebook.all import *
+
 preparser(on=True)
 
 from sage.calculus.predefined import x

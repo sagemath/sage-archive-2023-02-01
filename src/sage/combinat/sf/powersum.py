@@ -42,7 +42,9 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
     def coproduct_on_generators(self, i):
         r"""
-        Returns coproduct on generators for power sums `p_i`.
+        Return coproduct on generators for power sums `p_i`
+        (for `i > 0`).
+
         The elements `p_i` are primitive elements.
 
         INPUT:
@@ -61,15 +63,17 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             sage: p.coproduct_on_generators(2)
             p[] # p[2] + p[2] # p[]
         """
-        def P(k): return Partition([k]) if k else Partition([])
+        Pi = Partition([i])
+        P0 = Partition([])
         T = self.tensor_square()
-        return T.sum_of_monomials( [(P(i), P(0)), (P(0), P(i))] )
+        return T.sum_of_monomials( [(Pi, P0), (P0, Pi)] )
 
     def antipode_on_basis(self, partition):
         r"""
-        Returns the antipode of ``self[partition]``.
-        The antipode on the generator `p_i` is `-p_i` and the
-        antipode on `p_\mu` is `(-1)^{length(\mu)} p_\mu`.
+        Return the antipode of ``self[partition]``.
+
+        The antipode on the generator `p_i` (for `i > 0`) is `-p_i`,
+        and the antipode on `p_\mu` is `(-1)^{length(\mu)} p_\mu`.
 
         INPUT:
 
@@ -98,22 +102,104 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
         return -self[partition]
         #This is slightly faster than: return (-1)**len(partition) * self[partition]
 
+    def bottom_schur_function(self, partition, degree=None):
+        r"""
+        Return the least-degree component of ``s[partition]``,
+        where ``s`` denotes the Schur basis of the symmetric
+        functions, and the grading is not the usual grading on the
+        symmetric functions but rather the grading which gives
+        every `p_i` degree `1`.
+
+        This least-degree component has its degree equal to the
+        Frobenius rank of ``partition``, while the degree with respect
+        to the usual grading is still the size of ``partition``.
+
+        This method requires the base ring to be a (commutative)
+        `\QQ`-algebra. This restriction is unavoidable, since
+        the least-degree component (in general) has noninteger
+        coefficients in all classical bases of the symmetric
+        functions.
+
+        The optional keyword ``degree`` allows taking any
+        homogeneous component rather than merely the least-degree
+        one. Specifically, if ``degree`` is set, then the
+        ``degree``-th component will be returned.
+
+        REFERENCES:
+
+        .. [ClSt03] Peter Clifford, Richard P. Stanley,
+           *Bottom Schur functions*.
+           :arxiv:`math/0311382v2`.
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: p = Sym.p()
+            sage: p.bottom_schur_function([2,2,1])
+            -1/6*p[3, 2] + 1/4*p[4, 1]
+            sage: p.bottom_schur_function([2,1])
+            -1/3*p[3]
+            sage: p.bottom_schur_function([3])
+            1/3*p[3]
+            sage: p.bottom_schur_function([1,1,1])
+            1/3*p[3]
+            sage: p.bottom_schur_function(Partition([1,1,1]))
+            1/3*p[3]
+            sage: p.bottom_schur_function([2,1], degree=1)
+            -1/3*p[3]
+            sage: p.bottom_schur_function([2,1], degree=2)
+            0
+            sage: p.bottom_schur_function([2,1], degree=3)
+            1/3*p[1, 1, 1]
+            sage: p.bottom_schur_function([2,2,1], degree=3)
+            1/8*p[2, 2, 1] - 1/6*p[3, 1, 1]
+        """
+        from sage.combinat.partition import _Partitions
+        s = self.realization_of().schur()
+        partition = _Partitions(partition)
+        if degree is None:
+            degree = partition.frobenius_rank()
+        s_partition = self(s[partition])
+        return self.sum_of_terms([(p, coeff) for p, coeff
+                                  in s_partition if len(p) == degree],
+                                 distinct=True)
+
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):
             r"""
             Return the image of ``self`` under the omega automorphism.
 
-            The omega automorphism is defined to be the unique algebra
+            The *omega automorphism* is defined to be the unique algebra
             endomorphism `\omega` of the ring of symmetric functions that
             satisfies `\omega(e_k) = h_k` for all positive integers `k`
             (where `e_k` stands for the `k`-th elementary symmetric
             function, and `h_k` stands for the `k`-th complete homogeneous
             symmetric function). It furthermore is a Hopf algebra
-            endomorphism, and sends the power-sum symmetric function `p_k`
-            to `(-1)^{k-1} p_k` for every positive integer `k`.
+            endomorphism and an involution, and it is also known as the
+            *omega involution*. It sends the power-sum symmetric function
+            `p_k` to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-            The default implementation converts to the Schurs, then
-            performs the automorphism and changes back.
+            The images of some bases under the omega automorphism are given by
+
+            .. MATH::
+
+                \omega(e_{\lambda}) = h_{\lambda}, \qquad
+                \omega(h_{\lambda}) = e_{\lambda}, \qquad
+                \omega(p_{\lambda}) = (-1)^{|\lambda| - \ell(\lambda)}
+                p_{\lambda}, \qquad
+                \omega(s_{\lambda}) = s_{\lambda^{\prime}},
+
+            where `\lambda` is any partition, where `\ell(\lambda)` denotes
+            the length (:meth:`~sage.combinat.partition.Partition.length`)
+            of the partition `\lambda`, where `\lambda^{\prime}` denotes the
+            conjugate partition
+            (:meth:`~sage.combinat.partition.Partition.conjugate`) of
+            `\lambda`, and where the usual notations for bases are used
+            (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
+            `s` = Schur).
+
+            :meth:`omega_involution()` is a synonym for the :meth:`omega()`
+            method.
 
             OUTPUT:
 
@@ -137,13 +223,15 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             f = lambda part, coeff: (part, (-1)**(sum(part)-len(part)) * coeff)
             return self.map_item(f)
 
+        omega_involution = omega
+
         def scalar(self, x, zee=None):
             r"""
             Return the standard scalar product of ``self`` and ``x``.
 
             INPUT:
 
-            - ``x`` -- an power sum symmetric function
+            - ``x`` -- a power sum symmetric function
             - ``zee`` -- (default: uses standard ``zee`` function) optional
               input specifying the scalar product on the power sum basis with
               normalization `\langle p_{\mu}, p_{\mu} \rangle =
@@ -213,7 +301,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             """
             p = self.parent()
             if 1 not in part:
-                return p(0)
+                return p.zero()
             else:
                 return len([i for i in part if i == 1]) * p(part[:-1])
 
@@ -270,7 +358,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
 
             .. MATH::
 
-                f_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
+                \mathbf{f}_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
                 m_{(n\lambda_1, n\lambda_2, n\lambda_3, \ldots)}
 
             for every partition `(\lambda_1, \lambda_2, \lambda_3, \ldots)`

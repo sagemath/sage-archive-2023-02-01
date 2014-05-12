@@ -1,776 +1,281 @@
-.. _chapter-walk-through:
-
-=======================================
-Walking Through the Development Process
-=======================================
-
-This section presents a general process for working on Sage. We will
-walk through each step of the process, explaining specific steps and
-commands to help you get started on developing Sage. Along the way,
-other sources of information will be presented where you could find
-more detailed information on some particular issue. If you are a
-beginner to Sage development, this introductory guide is here to help
-you become familiar with the Sage development process.
-
-
-.. _section-modify-source:
-
-Modifying Sage source code
---------------------------
-
-The name ``SAGE_ROOT`` refers to the directory where Sage is
-installed on your system, e.g. ``/sage/sage-4.1.2/``. Some people
-install Sage under their home directory, in which case ``SAGE_ROOT``
-would be something like ``/home/username/sage-4.3.1``. Software
-packages that are shipped with Sage would then be located under
-``/home/username/sage-4.3.1``. In other words, ``SAGE_ROOT`` is the
-top-level directory of your Sage installation.
-
-The majority of Sage code for development work is under
-``SAGE_ROOT/devel``, where the symbolic link ``SAGE_ROOT/devel/sage``
-points to the current branch that you are using. The default branch is
-the branch named ``sage-main`` and is also referred to as the main
-branch. By default, the symbolic link ``SAGE_ROOT/devel/sage`` points
-to ``SAGE_ROOT/devel/sage-main``. Under each branch is a directory named
-``sage``, which contains code for interfacing with third-party
-packages and code that comprises the Sage library. You can think of
-the directory ``SAGE_ROOT/devel/sage-main/sage`` (or
-``SAGE_ROOT/devel/sage/sage``) as where the Sage library resides.
-
-Suppose you have modified some part of the Sage library, e.g. add new
-code or delete some code. How do you get Sage to know about your
-changes? You need to rebuild the Sage library so that it is updated
-with your changes. Navigate to ``SAGE_ROOT`` and rebuild the library
-as follows::
-
-    ./sage -b main
-
-If ``SAGE_ROOT/devel/sage`` points to the main branch, you could use
-the above command or more simply the following command::
-
-    ./sage -b
-
-The switch ``-b`` is for (re)building the Sage library and the argument
-``main`` is the branch you want to rebuild. In this case, you want to
-rebuild the Sage library as contained in the main branch, i.e under
-``SAGE_ROOT/devel/sage-main``. In fact, the command ``./sage -b``
-rebuilds whatever branch that the symbolic link
-``SAGE_ROOT/devel/sage`` points to. Any of the above two commands does
-not rebuild everything in the Sage library, but only those files in the
-library that your changes affect. During the rebuild process, the
-affected source files are copied elsewhere and compiled, Cython files
-get converted to C code and compiled, and so on.
+.. _chapter-walkthrough:
+
+========================
+Sage Development Process
+========================
+
+This section is a concise overview of the Sage development process. In
+it, we will see how to make changes to the Sage source code and record
+them in the git revision control system. In the following section on
+:ref:`chapter-git_trac` we will look at communicating these changes
+back to the Sage project.
+
 
-This build process will copy the necessary files to
-``SAGE_ROOT/devel/sage/build`` and
-``SAGE_ROOT/local/lib/python/site-packages``.
-It is very important that you **do not change files** in these
-directories directly!
-If you do that, then those files would get overwritten the next
-time you run ``sage -b``.
+We also have a handy `one-page "cheat sheet"
+<http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
+of commonly used git commands that you can print out and leave on your
+desk.
+
+.. _section-walkthrough-setup-git:
+
+Configuring Git
+===============
+
+One way or another, ``git`` is what Sage uses for tracking changes.
+So first, open a shell (for instance, Terminal on Mac) and check that
+``git`` works::
+    
+    [user@localhost]$ git
+    usage: git [--version] [--help] [-C <path>] [-c name=value]
+    ...
+    The most commonly used git commands are:
+       add        Add file contents to the index
+    ...
+       tag        Create, list, delete or verify a tag object signed with GPG
+    
+    'git help -a' and 'git help -g' lists available subcommands and some
+    concept guides. See 'git help <command>' or 'git help <concept>'
+    to read about a specific subcommand or concept.
 
-You may want to create a totally distinct installation of Sage
-compiled from source, where you will work so as to not impact a
-version of Sage that you actually use. This could be true even if you
-make clones (or sandboxes) as described in the next section.
 
+Don't worry about the giant list of subcommands. You really only need
+a handful for effective development, and we will walk you through them
+in this guide. If you got a "command not found" error, then you don't
+have git installed. Now is the time to install it; see
+:ref:`chapter-git-setup` for instructions.
 
-.. _section-create-sandbox:
+Because we also track who does changes in Sage with git, you must tell
+git how you want to be known. This only needs to be done once::
 
-Creating a sandbox
-------------------
+    [user@localhost]$ git config --global user.name "Your Name"
+    [user@localhost]$ git config --global user.email you@yourdomain.example.com
 
-With ``SAGE_ROOT`` as the default directory, you can create a new
-branch (or clone) named ``test`` with the command::
+If you have multiple accounts / computers use the same name on each of
+them. This name/email combination ends up in commits, so do it now
+before you forget!
 
-    ./sage -clone test
 
-Note that a general way to create a clone is the syntax
-``./sage -clone <branch-name>``, where you should replace
-``<branch-name>`` with the name you want to name your new
-clone. Creating a clone may take a couple of minutes to conclude. The
-result is a whole new subdirectory ``SAGE_ROOT/devel/sage-test`` where
-the name ``sage-`` is automatically prepended to ``test``, and the
-symbolic link ``SAGE_ROOT/devel/sage`` will now point to this new
-subdirectory. Running Sage, or rebuilding, will use this version of
-the source.
+.. _section-walkthrough-sage-source:
 
-Now you can safely experiment with Sage code as much as you would
-like. A cloned version of the Sage library can be found under
+Obtaining the Sage Source Code
+==============================
 
-::
+Obviously one needs the Sage source code to develop.  You can use your
+local installation of Sage, or (to start without Sage) download it
+from github which is a public read-only mirror (=faster) of our
+internal git repository::
 
-    SAGE_ROOT/devel/sage-test/sage
+    [user@localhost]$ git clone git://github.com/sagemath/sage.git
+    Cloning into 'sage'...
+    [...]
+    Checking connectivity... done.
+    
+This creates a directory named ``sage`` containing the sources for the
+current stable and development releases of Sage.  You will need to
+`compile Sage <http://www.sagemath.org/doc/installation/source.html>`_
+in order to use it.
 
-The Sage library consists of Python files (with the file extension
-``.py``) or Cython files (with extension ``.pyx``), organized into
-subdirectories that mirror the module hierarchy reflected in the help
-files, Python types, etc.  (With the ``sage`` symbolic link, you will
-now see why sometimes you see directories that look like
-```.../sage/sage/...``.)
+(For the experts, note that the repository at
+`git.sagemath.org <http://git.sagemath.org>`_ is where development
+actually takes place .)
 
-Apart from the directory that holds the Sage library, another special
-directory is
 
-::
+.. _section-walkthrough-branch:
 
-    SAGE_ROOT/devel/sage-test/doc/en/reference
+Branching Out
+=============
 
-You can think of that directory as containing "table of contents"
-files for documentation, each such file having the extension ``.rst``
-to indicate that they follow the ReST format for documenting source
-code.  Most documentation comes from the docstrings in the source
-files. When you build the HTML or PDF versions of the reference
-manual, the generated output lands in subdirectories of
-``SAGE_ROOT/devel/sage-test/doc/output``.
+In order to start modifying Sage, we want to make a *branch* of Sage.
+A branch is a copy (except that it doesn't take up twice the space) of
+the Sage source code where you can store your modifications to the
+Sage source code and which you can upload to trac tickets.
 
-To make another clone of the main branch, you need to first switch
-back to the untouched code in the main branch.  From ``SAGE_ROOT``,
-type
+It is easy to create a new branch, just check out (switch to) the branch
+from where you want to start (that is, ``master``) and use the ``git
+branch`` command::
 
-::
+    [user@localhost sage]$ git checkout master
+    [user@localhost sage]$ git branch last_twin_prime
+    [user@localhost sage]$ git checkout last_twin_prime
 
-    ./sage -b main
+You can list all branches using::
 
-to switch back to the original version, i.e. the main branch.  Now
-make a new clone as shown above.
+    [user@localhost]$ git branch
+      master
+    * last_twin_prime
 
-If a clone, say ``test``, is a mess and has nothing of value to you,
-switch back to the main branch, then delete the directory
-``SAGE_ROOT/devel/sage-test`` and everything below it. To know which
-branch (or clone) you are using, issue the command
-
-::
-
-    ./sage -branch
-
-This will report the current branch that the symbolic link
-``SAGE_ROOT/devel/sage`` points to. Such information is also reported
-by the command ``./sage`` when the current branch is not the main
-branch.
-
-There are many more arguments you can pass to Sage. For a list of
-basic arguments, execute
-
-::
-
-    ./sage -help
-
-The command
-
-::
-
-    ./sage -advanced
-
-
-will report a list of advanced arguments in addition to the list of
-basic arguments as output by ``./sage -help``.
-
-
-.. _section-review-patch-walkthrough:
-
-Reviewing a patch
------------------
-
-An essential part of improving Sage is reviewing the patches that other
-developers have written; before any patch is accepted into Sage, it needs the
-green light from another developer. This process catches many small bugs and
-omissions that could otherwise easily sneak into such a large project, even if
-it does slow down the development process.
-
-This section goes through the process of downloading and applying
-patches. For detailed information on the review process, see the section
-:ref:`section-review-patches`. William Stein also wrote this
-`blog entry <http://sagemath.blogspot.com/2010/10/how-to-referee-sage-trac-tickets.html>`_
-on his patch reviewing workflow.
-
-When viewing a Trac ticket, you will see available
-patches listed near the top in the Attachments section.  Clicking on the
-file name will show you a `diff <http://en.wikipedia.org/wiki/Diff>`_
-comparison view that is useful for previewing changes; red shading is
-deletions, green shading is additions.  Once you've decided to review the
-patch, download the patch file from the Trac server using the little
-download icon next to the file name.
-
-To apply a patch to the code in your sandbox (see
-:ref:`section-create-sandbox` for information on creating a sandbox),
-follow these steps:
-
-#. Run Sage: from ``SAGE_ROOT``, type ``./sage``.
-#. Apply the patch: at the Sage command line, type::
-
-       hg_sage.apply("<full-path-and-filename.patch>")
-
-#. Quit Sage: use the command ``exit``.
-#. Rebuild Sage: use the command ``./sage -b`` to rebuild the affected
-   files in the Sage library.
-
-In step 2, you are using Sage's simplified interface to the `Mercurial
-<http://mercurial.selenic.com>`_ revision control system.  This command
-will add the patch as a new "changeset" and "commit" the changes.  At the
-Sage command line, you can run ``hg_sage.log()`` to see before/after
-changes to the Sage library. In step 4, you should only see a few files
-copied, modified, etc.  Unaffected files should not be part of this step.
-Look for compilation errors in this output and modify your changes as
-appropriate. Avoid producing patches that result in compilation errors or
-errors in building the documentation. (You want a working Sage
-installation, right?)  See also the section
-:ref:`section-review-patches-queues-walkthrough` for another way to apply
-patches with Mercurial.
-
-To actually test out a patch, do the following.  Even if you're new to Sage
-development and tentative about reviewing, reporting the success or failure
-of these steps on the ticket Trac page will be quite helpful:
-
-#. Experiment with the functionality proposed by the patch. Verify
-   results are correct by hand computations, test bad input, outrageous
-   situations, etc.
-#. Run tests on the affected files. From ``SAGE_ROOT``, issue the command
-   ``./sage -t devel/sage-test/path-to-directory-or-file`` to run doctests
-   on the affected file(s). Failures should be reported on the ticket and
-   are reason to move the ticket to "needs work".  (See
-   :ref:`chapter-doctesting` for more information.)
-#. Test the entire Sage library, including ``#long`` doctests.  From
-   ``SAGE_ROOT``, issue the command ``./sage --testall --long``.  (See
-   :ref:`section-parallel-test-whole-library` for information about testing
-   in parallel.)  This will take a while to complete. No, it is not
-   optional.  It is entirely possible that changes to one part of Sage
-   break something in an entirely different part of Sage; patches which
-   introduce new doctest failures cannot be included in new releases.
-#. Ensure that the documentation builds. From ``SAGE_ROOT``, run
-   ``./sage -docbuild reference html``, which will build the HTML
-   version of the documentation.  Check the "look" of affected files
-   in the output directory for the documentation (see above).
-#. Check for full doctest coverage. From ``SAGE_ROOT``, run
-   ``./sage -coverage <file>``  which will provide a complete report.
-   Less than 100% coverage is another reason to return a patch to
-   "needs work" status.
-#. Look at :ref:`section-review-patches` for more guidelines on reviewing.
-
-
-Once you've tested the patch, either by hand or with doctests (or both!),
-report any failures on the Trac page for the ticket.  Make suggestions
-about simplifying the code or fixing typos you noticed.  Mark it as "needs
-work" if there is anything to do.  Otherwise, mark it as "positive review",
-and mention in a comment all the things you checked.  If you don't feel
-experienced enough for that, add a comment on the Trac page explaining what
-you have checked, what the results were, and that you think someone more
-experienced should take a look.
-
-Tickets relating to doctests or the Sage documentation may be a good place
-to get started reviewing.  A list of such tickets with patches ready for review
-can be found using the following Trac `custom query
-<http://trac.sagemath.org/sage_trac/query?status=needs_review&component=doctest&component=documentation&order=priority&col=id&col=summary&col=status&col=type&col=priority&col=milestone&col=component>`_.
-Alternatively, you can search for tickets needing review in a component
-whose mathematics you know well, or for tickets needing review which have
-priority "minor" or "trivial".
-
-
-Creating a change
------------------
-
-To make a change to Sage (fix a bug, add new functionality), proceed
-as follows:
-
-#. Make a fresh clone, as discussed in :ref:`section-create-sandbox`.
-#. Apply any precursor patches not in your current version, as
-   demonstrated in :ref:`section-review-patch-walkthrough`.
-#. Edit source files (see :ref:`section-modify-source` for location),
-   test building Sage, test functionality, and so on.
-#. Once you have something you like, do everything suggested for
-   reviewing a patch.  It is a waste of time for a reviewer to start
-   on reviewing a patch and find that tests fail, documentation was
-   not tested, etc.  It would save any reviewer a lot of time if your
-   patches have been fully tested before you submit them for review.
-   Everybody makes mistakes, everybody has bugs they did not
-   anticipate, and everybody writes code that can be improved---that is
-   why there are code reviews.  But do not cut corners.
-
-
-.. _section-submitting-change:
-
-Submitting a change
--------------------
-
-Here is how to prepare a patch with your changes:
-
-#. Register for a Trac account at the URL
-   ``http://trac.sagemath.org/sage_trac/register``. If you have
-   problems with the registration process, please refer to the page
-   ``http://www.sagemath.org/contact.html`` for the relevant person to
-   contact about your registration issues. Most people use some
-   variant of their real name, especially if they already have a
-   reputation within mathematics.  Edit the main Trac page where there
-   is a list of developers and add yourself with a link to your web
-   page. Make sure to sort your Trac username alphabetically.
-#. If it does not already exist, make a Trac ticket for your changes.
-   Provide a one-line summary and then a description of the problem.
-   Include a link to a sage-devel discussion if appropriate.  Choose a
-   component, if this is a defect or enhancement, set your real name in
-   the author field.  It works well if you have your Trac settings such
-   that you get an email every time the ticket changes.  Make a note of
-   the ticket number.
-#. Create a ``.hgrc``  Mercurial configuration file in your home
-   directory.  Specify your name and email address here, so it will
-   identify you as the author of a patch, in the form `` Bill Smith
-   <bsmith@bigu.edu>``. Here is a template for your ``.hgrc`` file:
-
-   ::
-
-       [ui]
-       username = Carl Friedrich Gauss <cfgauss@uni-goettingen.de>
-
-       [extensions]
-       # Enable the Mercurial queue extension.
-       hgext.mq =
-
-   The Mercurial project website ``http://mercurial.selenic.com``
-   contains many tutorials on using Mercurial.
-#. If necessary, first switch to the branch holding your changes. From
-   the Sage command line interface, run ``hg_sage.status()``.  The
-   output will be a list of modified files, preceded by a capital ``M``.
-   Check that this is what you expect.  For explanation of other
-   letters, see the Mercurial documentation on the ``hg status``
-   command.
-#. From the Sage command line, run ``hg_sage.diff()``. This will show
-   you the changes you have made. A plus sign is new code being added,
-   a minus sign is code being deleted.  This should look like the
-   changes you have made.
-#. Now run ``hg_sage.commit()`` from the Sage command line.  This will
-   package your changes as a single Mercurial "changeset", allowing
-   others (reviewers, release manager) to add your changes to their
-   versions of Sage.  An editor window will pop up (set your favorite
-   editor in the ``.hgrc`` file mentioned above) where you should
-   enter a *one-line* message describing the patch. This message is
-   known as the commit message for your patch.  You are encouraged to
-   write commit messages of the form
-   ``Trac XXXX: <description-goes-here>`` using the Trac ticket number
-   and then have a concise description, e.g. "fix echelon form error"
-   or "add echelon form over finite fields." Some people also write
-   commit messages in the form ``#xxxx: <description-goes-here>``,
-   which is also acceptable. A key information to provide in a commit
-   message is the ticket number.
-#. Run the command ``hg_sage.log()`` from the Sage command line.  The
-   first entry should be your changeset.  Note the changeset number,
-   which is probably 5 decimal digits.
-#. Next, issue the command
-
-   ::
-
-       hg_sage.export(<changeset-number>, "/path-to-somewhere/trac_XXXX_short_descriptor.patch")
-
-   where ``short_descriptor`` is really short, like
-   ``echelon_form_fix`` or at most ``finite_field_echelon_form``.
-#. You can preview your patch using a "diff viewer". Some people use
-   kompare on Linux, others use kdiff3.
-#. Upload your patch to the Trac server.
-#. Feel free to CC another developer (use their Trac username from the
-   list on the main page) if you think they might be able to review your
-   change.  If somebody else originated, or commented on the Trac ticket,
-   they will be notified of your change if they have set Trac to email
-   them of any changes.
-
-
-Updating a change
------------------
-
-Your first patch would likely have a review that suggests
-changes. Here is one way to update your patch.  (There is probably a
-better way, but the following steps should be easy to follow.)
-
-#. Make a new fresh clone.  Read :ref:`section-create-sandbox` to be
-   sure you clone the right stuff (i.e. do not clone the branch you
-   changed).  We will call this clone ``test2`` here.
-#. Apply your patch, but not with ``hg_sage.apply()``.  You want to
-   make the changes without doing a commit.  (There is a switch that
-   will prevent a commit, but by doing this, you will see how to do
-   this at the system level.)  First make
-   ``SAGE_ROOT/devel/sage-test2/`` your working directory.  Then at
-   the system command line, run::
-
-       patch -p1 </path-to-somewhere/trac_XXXX_short_descriptor.patch
-
-   which will be like you just edited the source files with all the
-   changes from your original patch.  Now you can edit to reflect a
-   reviewer's suggestions and prepare a new patch.
-#. When you upload to Trac, you can replace the file with one of the
-   same name. The comments will include an indication of when the
-   upload happened, so nobody will be confused about when the
-   replacement happened.
-
-
-Being more efficient: Mercurial queues
----------------------------------------
-
-If you are new to Sage development, the material above is
-sufficient to allow you to participate and contribute.  So on a
-first exposure, right here is a good place to stop reading and
-start developing.  However, soon you will have a submitted patch
-that needs repeated revisions, or you will find yourself in the
-middle of creating a patch and also desiring to review a patch,
-or you are creating a new patch and uncover a separate bug that
-you want to isolate and fix independently.  When you reach this
-point come back here and read the remainder about Mercurial
-queues.
-
-Making a new clone for every review and for each revision to a
-patch is a method that is easy to understand.  But it soon feels
-rather inefficient.  Mercurial queues use Sage's Mercurial
-repository for tracking, collecting and organizing changes to
-Sage but are much more flexible and fit better with the way a
-typical Sage developer needs to work.  You will find them much
-more natural and useful than repeatedly making clones and
-adjusting patches in response to reviews.  And you don't need to
-learn anything about Mercurial itself before you can begin.
-
-In a nutshell, Mercurial queues are two stacks of patches (a
-"patch" here means "a named collection of changes").  One stack
-is a sequence of patches applied in the order in the stack. The
-other stack is a set of patches that are "out of the way", but
-still arranged in some order.  Simple commands then allow you to
-move a patch off the top of one stack to the top of the other (in
-either direction).
-
-We will describe first how to get started, then three typical
-activities will show how to use the basic commands. We then finish
-with a "big picture" view, which you can read first if your mind works
-that way.
-
-
-Starting with Mercurial queues
-------------------------------
-
-You might find it most convenient to install a fresh copy of Sage
-as your "development" version.  Instead of a version number for
-the ``SAGE_ROOT`` directory you might name it something like
-``dev``.  Since you will likely keep it constantly upgraded, a
-version number will not make much sense.  Mine lives at
-``/sage/dev`` with other copies right alongside in places like
-``/sage/sage-4.3.1/``.
-
-You also need to install a copy of Mercurial on your system,
-since now you will not be using Sage's simplified interface.  So
-use a package manager, or whatever, to install a recent
-version. Alternatively, you could also use the version of Mercurial
-that is shipped with Sage. To do so, from within your terminal window,
-create an alias similar to the following::
-
-    alias 'hg'='/path/to/SAGE_ROOT/sage -hg'
-
-Afterwards, any time you execute the command ``hg`` in your terminal,
-this would invoke the version of Mercurial that is installed with your
-local Sage installation. However, once you quit or close your
-terminal, the alias ``hg`` would be lost and would no longer point to
-the Mercurial installation that comes with Sage.
-
-You first need to "turn on" support for queues.  It is all
-built-in by default but not visible.  Edit your ``~/.hgrc`` file
-(in your home directory, where your user info is) and add the
-following stanza if it is not present::
-
-     [extensions]
-     # Enable the Mercurial queue extension.
-     hgext.mq =
-
-The main Mercurial repository for the Sage library lives in
-``SAGE_ROOT/devel/sage`` so you will interact with the repository
-using this as the working directory.  This means to actually run
-Sage, or rebuild it, you will use commands such as ``../../sage
--b``.  (The next step, initialization, has been deprecated as
-of version 1.5.)  One time only, for each repository, you need
-to initialize it for use with queues, so do the following::
-
-    cd SAGE_ROOT/devel/sage
-    hg qinit
-
-HG is the symbol for the chemical element mercury, so ``hg`` is
-the executable.  All the commands specific to queues begin with
-the letter "q".  That's all the setup, you are ready to go.  The
-command ``hg help mq`` will give a summary of queue commands. A
-command like ``hg help qpop`` will give documentation for using the
-``qpop`` command.
-
-
-.. _section-review-patches-queues-walkthrough:
-
-Reviewing patches with queues
------------------------------
-
-The two stacks used by queues are called "applied" and
-"unapplied".  The names do a good job of describing the status
-of the patches in each.  Download a patch from Trac as described
-above (:ref:`section-review-patch-walkthrough`) in the usual way.
-Then execute ::
-
-    hg qimport <path-and-filename.patch>
-
-This will add the patch to the top of your unapplied stack.  Use
-``hg qunapplied`` to verify that the patch is in this stack.
-Presumably you want to have the changes in this patch applied to
-your Sage library, so use the simple command ``hg qpush`` to
-accomplish this.  Now issue the command ``hg qapplied`` to see
-the patch now present in the applied stack.  You can now rebuild
-Sage, run the modified version, run tests, build documentation
-and so on, as described above.
-
-Let's suppose the patch you were reviewing was so bad Sage
-wouldn't even build due to compiler errors.  So you have the time
-to review something else.  Let's move the first patch out of the
-way.  The command ``hg qpop`` will move the top patch in the
-applied queue over to the top of the unapplied queue, so you
-would be able to apply and review other patches.  Use ``hg qapplied``
-and ``hg qunapplied`` to verify this movement.  Now download a new
-patch, ``hg qimport`` it, and ``hg qpush`` to apply it.
-
-Suppose this second patch turned out to be too far beyond your
-expertise in a certain area of mathematics or programming.  Pop
-it off the applied stack with ``hg qpop`` so it is now at the top
-of the unapplied stack, sitting on top of the the un-compilable
-patch (you haven't forgotten that one, have you?).  Use ::
-
-    hg qdelete <patch-name>
-
-to totally get rid of it.  Bye-bye. In the meantime, the author
-of the first patch found the single little error that prevented
-the patch from compiling and has posted a very small patch to
-make the correction.  First, apply the original patch again with
-``hg qpush``, then download the small patch with the fix, use
-``hg qimport`` to get it onto the unapplied stack, then finally
-``hg qpush`` to apply it on top of the buggy patch.  Now you
-should be able to compile, experiment and test as usual with both
-patches applied.
-
-So we see you can use ``hg qimport`` and ``hg qdelete`` to move
-patches in and out, ``hg qpop`` and ``hg qpush`` to move patches
-between applied and unapplied states (stacks).  Keep track of
-where you are with liberal use of ``hg qapplied`` and ``hg
-qunapplied``.
-
-You may be wondering what to do if your patches in the stacks end
-up "out of order."  We'll cover that in a bit.
-
-
-Creating your own patch with queues
------------------------------------
-
-Let's suppose you are ready to make some changes to the Sage
-library of your own.  Put anything in the applied stack that you
-need to build on, get everything else out of the way on the
-unapplied stack (see
-:ref:`section-review-patches-queues-walkthrough` for techniques).
-Issue ::
-
-    hg qnew <descriptive-name>
-
-I am always in such a rush, I often forget this step. If you are
-like me, then ::
-
-    hg qnew -f <descriptive-name>
-
-will capture your changes made so far and give you a patch to
-work with.  (In newer versions of Mercurial, the -f flag has been
-deprecated.)  The "descriptive-name" can be anything you like,
-nobody else ever has to see it.  Use a Trac ticket number or
-whatever you please. Edit, build, test, create documentation,
-knock yourself out.  At any time, run ``hg qdiff`` to see your
-changes.
-
-Once satisfied with your work, use ``hg qrefresh`` to save your
-changes into the patch.  Even better is to use the ``-e`` or
-``-m`` switches to allow you to edit (or specify) a summary line
-for the patch.  This was described above as the commit message.
-The use of ``-m`` is illustrated below.  To create a patch file
-in the proper format for submission to Trac, you need a generic
-Mercurial command.  Your patch is at the "tip" of the Mercurial
-repository and you want to export it, with redirection to a file.
-
-::
-
-    hg qrefresh -m "Trac 1234: modified matrix memory management mostly"
-    hg export tip > ~/sage-patches/trac_1234_matrix_memory.patch
-
-Now upload this to the ticket in the usual way.  Note the message
-in the ``-m`` switch is what others will see as a description of
-your patch, not the name you used in ``hg qnew`` initially.
-*Do not use* ``hg qfinish`` when you think a patch is done, despite
-the pleasing sounding name.  It will finalize your patch, add it
-into the main repository, remove it from your queues, and
-generally make it much harder to get back to with subsequent
-edits based on reviewer comments.  Your work is not gone, but it
-will take a few steps to get it out as a patch and back into the
-queues.  You might want to read up on the command ``hg qimport -r`` as
-a possible way to undo an accidental commit.
-
-Of course, the minute you upload, you get a better idea about a
-key step in your algorithm.  Simple---edit some more, then
-``hg qrefresh`` (the message stays put, so you don't have to redo it),
-and ``hg export tip > <filename>``.  You can use a new filename,
-or recycle the previous one.  Trac will let you add a new file,
-or replace the existing one with a file having the same name.
-
-Suppose a reviewer suggests some changes.  You can just keep
-editing the same patch, or you could ``hg qnew`` a second patch
-on top of the old one.  It would depend on circumstances, there
-are situations where either approach would make sense.
-
-Suppose it takes a while for a reviewer to look at your patch.
-Move it off into the unapplied stack with ``hg qpop`` and then
-begin a new project with ``hg qnew <another-name>``.  Or leave
-your patch in the applied queue and start something new that
-relies on your first set of changes (again using ``hg qnew``).
-
-So the sequence ``hg qnew``, ``hg qrefresh``, ``hg export tip >``
-will create a new patch and allow you to easily amend or extend
-it, or totally move it "out of the way" to do other things.
-
-
-Upgrading Sage with queues present
-----------------------------------
-
-When it is time to upgrade Sage to the latest release, you need
-to return your development version back to a virgin state.  Use
-``hg qrefresh`` on whatever patch you are currently creating (if
-any).  Then pop everything off the applied stack with ``hg qpop
--a``, where the switch ``-a`` means "all."  There you are, back to a
-known good state.  Now use the standard commands to upgrade
-Sage::
-
-    cd SAGE_ROOT
-    ./sage -upgrade
-
-Sometimes for intermediate releases you will need a URL as an
-argument to the ``-upgrade`` switch.  Check the Sage discussion
-groups, where these locations are typically announced.  Now you
-can ``hg qpush`` to put all your patches back onto the applied
-stack in the same order.  Realize, however, that the upgrade may
-have changed some of the source code where your patches have
-changes.  Certainly, if you have patches you reviewed positively,
-those exact changes may already be present (so at least ``hg
-qdelete`` those patches before pushing everything back on).
-
-It is also possible to use the Mercurial extension "rebase" to
-manage patches through an upgrade process. First you must enable
-the extension by editing your ``.hgrc`` file to include the
-following::
-
-    [extensions]
-    rebase=
-
-Now, instead of using ``hg qpush`` to forcibly reapply the old
-patches to the new Sage version, you can do the following.
-
-1. Do ``hg update -C -r old.version.number``, where
-   ``old.version.number`` is the old Sage version number you upgraded
-   from, in order to get your working directory back to the good state
-   of the old Sage version;
-2. ``hg qpush -a`` to reapply all your patches to the old Sage files;
-3. ``hg heads`` to find out the exact revision number you want to
-   rebase your patch on;
-4. ``hg rebase -d other.head.rev.number``, where ``other.head.rev.number``
-   is the number you just looked up.
-
-Now your patches should be properly rebased on the new version of
-Sage. It will sometimes happen that the "rebase" extension can't
-quite figure out how to rebase some changes. In that case,
-Mercurial will automatically open a 3-way merge editor to enlist
-your help in resolving the problem. You can configure which
-program this will be by editing your ``.hgrc`` file.
-
-The Big Picture for Mercurial queues
-------------------------------------
-
-At some time when you have a few patches applied, and a few
-unapplied, run ::
-
-    cd SAGE_ROOT/devel/sage
-    hg qapplied
-    hg qunapplied
-    cat .hg/patches/series
-
-The output of the two ``hg`` commands should together look just
-like the output of the ``cat`` command.  The
-``.hg/patches/series`` file has all of the names of your patches
-in some order, and you can imagine a separator that splits the
-list into the applied portion at the start of the file and the
-unapplied portion at the end of the file.  (You can also use the
-command ``hg qseries`` to see a list of all your patches.) The top of
-each stack is on either side of the separator.  (So the order of each
-stack runs in opposite directions in this file.)
-
-The command ``hg qpush`` moves the separator toward the end of the
-file, while ``hg qpop`` moves the separator toward the start of the
-file.  Furthermore, ``hg qnew`` inserts a new patch on the side of the
-separator toward the start of the file, while ``hg qimport`` adds
-an existing patch on the side of the separator toward the end of
-the file. Finally, ``hg qdelete`` totally removes a name from the
-series file.
-
-So what if you want to rearrange the order of your patches (in
-either stack)?  Make sure to ``hg qpop`` until all the affected
-patches are in the unapplied stack.  Open ``.hg/patches/series`` with
-a text editor and rearrange the lines below the imaginary separator.
-Save the series file and confirm the new ordering with
-``hg qapplied`` and ``hg qunapplied``.  Then ``hg qpush`` repeatedly to
-get to where you want to be.
-
-
-More on queues
---------------
-
-So with careful management of your queues and regular upgrades,
-you can contribute to Sage easily, review others' patches, work
-on several projects simultaneously, and so on, all with just a single
-copy of Sage devoted to development.
-
-If you know how "regular" Mercurial functions (and even if you
-don't) you can look at the main Mercurial repository (with
-``hg log | more``) and see how queues "insert" your applied patches
-near the tip of the repository, all "behind the scenes."
-
-There are lots more you can do with queues, but you should
-understand enough now to experiment safely. The following URLs
-contain introductory tutorials on using Mercurial queues:
-
-* http://mercurial.selenic.com/wiki/MqExtension
-* http://wiki.sagemath.org/MercurialQueues
-* https://developer.mozilla.org/en/Mercurial_Queues
-
-Cherry picking
---------------
-
-The "record" extensions allow you to selectively pick (record)
-portions of a patch to group together.  (Also known as "cherry
-picking.") So you can round up related bits and pieces of a patch
-if that makes sense in the context of your work.  To enable this
-feature, just edit your ``.hgrc`` file to include ::
-
-    [extensions]
-    hgext.record=
-
-Use the command ``hg record`` with "regular" Mercurial and ``hg
-qrecord`` if you are working with Mercurial queues.  The use of
-the two is slightly different.  We will illustrate the use of
-``qrecord``.  The command ::
-
-    hg qrecord another-patch
-
-creates a new, empty patch at the top of the applied stack.  It
-then begins to interactively examine your changes at the
-granularity of a patch "hunk."  You can then choose to include
-each "hunk" of changes into this new patch or not.  Then you can
-work with this patch as before with ``hg qrefresh``, ``hg qpop``,
-etc.
-
-For more on record, qrecord and crecord, see
-
-* http://mercurial.selenic.com/wiki/RecordExtension
-
-
-More about Mercurial
---------------------
-
-The online book
-`Mercurial: The Definitive Guide <http://hgbook.red-bean.com>`_
-by Bryan O'Sullivan contains numerous examples on using
-Mercurial. See especially Chapters 12 and 13 for explanation
-on how to effectively use Mercurial queues.
+The asterisk shows you which branch you are on. Without an argument,
+the ``git branch`` command just displays a list of all local branches
+with the current one marked by an asterisk. Also note that ``git
+branch`` creates a new branch, but does not switch to it. For this,
+you have to use ``git checkout``::
+
+    [user@localhost sage]$ git checkout master
+    Switched to branch 'master'
+    Your branch is up-to-date with 'github/master'.
+    [user@localhost sage]$ git branch
+    * master
+      last_twin_prime
+    [user@localhost sage]$ git checkout last_twin_prime
+    Switched to branch 'last_twin_prime'
+
+Note that, unless you explicitly upload ("push") a branch to remote
+git repository, the local branch will only be on your computer and not
+visible to anyone else. 
+
+To avoid typing the new branch name twice you can use the shortcut
+``git checkout -b my_new_branch`` to create and switch to the new
+branch in one command.
+
+
+
+.. _section_walkthrough_logs:
+
+The History
+===========
+
+It is always a good idea to check that you are making your edits on
+the version that you think you are on. The first one shows you the
+topmost commit in detail, including its changes to the sources::
+
+    [user@localhost sage]$ git show
+
+To dig deeper, you can inspect the log::
+
+    [user@localhost sage]$ git log
+
+By default, this lists all commits in reverse chronological order. If
+you find your branch to be in the wrong place, you can use the ``git
+reset --hard`` command to reset it to something else; see
+:ref:`section-git-recovery` for details.
+
+
+
+.. _section-walkthrough-add-edit:
+
+Editing the Source Code
+=======================
+
+Once you have your own branch, feel free to make any changes as you
+like. :ref:`Subsequent chapters <section-writing-code-for-sage>` of
+this developer guide explain how your code should look like to fit
+into Sage, and how we ensure high code quality throughout.
+
+*Status* is probably the most important git command. It tells
+you which files changed, and how to continue with recording the
+changes::
+
+    [user@localhost sage]$ git status
+    On branch master
+    Changes not staged for commit:
+      (use "git add <file>..." to update what will be committed)
+      (use "git checkout -- <file>..." to discard changes in working directory)
+    
+        modified:   some_file.py
+        modified:   src/sage/primes/all.py
+    
+    Untracked files:
+      (use "git add <file>..." to include in what will be committed)
+    
+        src/sage/primes/last_pair.py
+    
+    no changes added to commit (use "git add" and/or "git commit -a")
+
+To dig deeper into what was changed in the files you can use::
+
+    [user@localhost sage]$ git diff some_file.py
+
+to show you the differences.
+
+
+
+.. _section-walkthrough-make:
+
+Rebuilding Sage
+===============
+
+Once you have made any changes you of course want to build Sage and
+try out your edits. As long as you only modified the Sage library
+(that is, Python and Cython files under ``src/sage/...``) you just
+have to run::
+
+    [user@localhost sage]$ ./sage -br
+
+to rebuild the Sage library and then start Sage. This should be quite
+fast. If you made changes to third-party packages then you have to
+run::
+
+    [user@localhost sage]$ make
+
+as if you were `installing Sage from scratch
+<http://www.sagemath.org/doc/installation/source.html>`_.
+However, simply running ``make`` will only recompile packages
+that were changed, so it shoud be much faster than compiling Sage
+the first time. Rarely there are conflicts with other packages,
+or with the already-installed older version of the package that you
+changed, in that case you do have to recompile everything using::
+
+    [user@localhost sage]$ make distclean && make
+
+Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
+and build the documentation (see :ref:`chapter-sage_manuals`).
+
+
+.. _section-walkthrough-commit:
+
+Commits (Snapshots)
+===================
+
+Whenever you have reached your goal, a milestone towards it, or
+just feel like you got some work done you should *commit* your
+changes. A commit is just a snapshot of the state of all files in
+the *repository* (the program you are working on).
+
+Unlike with some other revision control programs, in git you first
+need to *stage* the changed files, which tells git which files you
+want to be part of the next commit::
+
+    [user@localhost sage]$ git status
+    # On branch my_branch
+    # Untracked files:
+    #   (use "git add <file>..." to include in what will be committed)
+    #
+    #       src/sage/primes/last_pair.py
+    nothing added to commit but untracked files present (use "git add" to track)
+
+    [user@localhost sage]$ git add src/sage/primes/last_pair.py
+    [user@localhost sage]$ git status
+    # On branch my_branch
+    # Changes to be committed:
+    #   (use "git reset HEAD <file>..." to unstage)
+    #
+    #   new file:   src/sage/primes/last_pair.py
+    #
+
+Once you are satisfied with the list of staged files, you create a new
+snapshot with the ``git commit`` command::
+
+    [user@localhost sage]$ git commit
+    ... editor opens ...
+    [my_branch 31331f7] Added the very important foobar text file
+     1 file changed, 1 insertion(+)
+      create mode 100644 foobar.txt
+
+This will open an editor for you to write your commit message. The
+commit message should generally have a one-line description, followed
+by an empty line, followed by further explanatory text::
+
+    Added the last twin prime
+
+    This is an example commit message. You see there is a one-line
+    summary followed by more detailed description, if necessary.
+
+You can then continue working towards your next milestone, make
+another commit, repeat until finished. As long as you do not
+``git checkout`` another branch, all commits that you make will be part of
+the branch that you created.
+
+
+
+
+

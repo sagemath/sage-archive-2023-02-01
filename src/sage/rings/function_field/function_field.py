@@ -1,4 +1,4 @@
-r"""
+"""
 Function Fields
 
 AUTHORS:
@@ -12,6 +12,8 @@ AUTHORS:
 - Maarten Derickx (2011-09-11): added doctests
 
 - Julian Rueth (2011-09-14): use @cached_method
+
+- Syed Ahmad Lavasani (2011-12-16): added genus(), is_RationalFunctionField()
 
 EXAMPLES:
 
@@ -78,6 +80,10 @@ from sage.rings.ring import Field
 from function_field_element import FunctionFieldElement, FunctionFieldElement_rational, FunctionFieldElement_polymod
 
 from sage.misc.cachefunc import cached_method
+
+#is needed for genus computation
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.interfaces.all import singular
 
 from sage.categories.function_fields import FunctionFields
 CAT = FunctionFields()
@@ -390,14 +396,14 @@ class FunctionField_polymod(FunctionField):
         """
         from sage.rings.polynomial.all import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
-            raise TypeError, "polynomial must be univariate a polynomial"
+            raise TypeError("polynomial must be univariate a polynomial")
         if names is None:
             names = (polynomial.variable_name(), )
         if polynomial.degree() <= 0:
-            raise ValueError, "polynomial must have positive degree"
+            raise ValueError("polynomial must have positive degree")
         base_field = polynomial.base_ring()
         if not isinstance(base_field, FunctionField):
-            raise TypeError, "polynomial must be over a FunctionField"
+            raise TypeError("polynomial must be over a FunctionField")
         self._element_class = element_class
         self._element_init_pass_parent = False
         self._base_field = base_field
@@ -779,7 +785,7 @@ class FunctionField_polymod(FunctionField):
             ...
             IndexError: Only one generator.
         """
-        if n != 0: raise IndexError, "Only one generator."
+        if n != 0: raise IndexError("Only one generator.")
         return self._gen
 
     def ngens(self):
@@ -912,12 +918,12 @@ class FunctionField_polymod(FunctionField):
             Morphism of function fields defined by xx |--> x, yy |--> y
         """
         if base_morphism is not None:
-            raise NotImplementedError, "Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually."
+            raise NotImplementedError("Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually.")
 
         if not isinstance(im_gens, (list,tuple)):
             im_gens = [im_gens]
         if len(im_gens) == 0:
-            raise ValueError, "no images specified"
+            raise ValueError("no images specified")
 
         if len(im_gens) > 1:
             base_morphism = self.base_field().hom(im_gens[1:], base_morphism)
@@ -930,6 +936,55 @@ class FunctionField_polymod(FunctionField):
 
         from maps import FunctionFieldMorphism_polymod
         return FunctionFieldMorphism_polymod(self.Hom(codomain), im_gens[0], base_morphism)
+
+    @cached_method
+    def genus(self):
+        """
+        Return the genus of this function field
+        For now, the genus is computed using singular
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 - (x^3 + 2*x*y + 1/x))
+            sage: L.genus()
+            3
+        """
+        # unfortunately singular can not compute the genus with the polynomial_ring()._singular_
+        # object because genus method only accepts a ring of transdental degree 2 over a prime field
+        # not a ring of transdental degree 1 over a rational function field of one variable
+
+        if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
+
+            #Making the auxiliary ring which only has polynomials with integral coefficients.
+            tmpAuxRing = PolynomialRing(self._base_field.constant_field(), str(self._base_field.gen())+','+str(self._ring.gen()))
+            intMinPoly, d = self._make_monic_integral(self._polynomial)
+            curveIdeal = tmpAuxRing.ideal(intMinPoly)
+
+            singular.lib('normal.lib') #loading genus method in singular
+            return int(curveIdeal._singular_().genus())
+
+        else:
+            raise NotImplementedError("Computation of genus over this rational function field not implemented yet")
+
+def is_RationalFunctionField(x):
+    """
+    Return True if ``x`` is of rational function field type.
+
+    EXAMPLES::
+
+        sage: from sage.rings.function_field.function_field import is_RationalFunctionField
+        sage: is_RationalFunctionField(QQ)
+        False
+        sage: is_RationalFunctionField(FunctionField(QQ,'t'))
+        True
+    """
+    if isinstance(x, RationalFunctionField):
+        return True
+#   if (x in FunctionFields()):
+#       return x == x.base_field()
+    else:
+        return False
 
 class RationalFunctionField(FunctionField):
     """
@@ -994,11 +1049,11 @@ class RationalFunctionField(FunctionField):
             TypeError: constant_field must be a field
         """
         if names is None:
-            raise ValueError, "variable name must be specified"
+            raise ValueError("variable name must be specified")
         elif not isinstance(names, tuple):
             names = (names, )
         if not constant_field.is_field():
-            raise TypeError, "constant_field must be a field"
+            raise TypeError("constant_field must be a field")
         self._element_class = element_class
         self._element_init_pass_parent = False
         Field.__init__(self, self, names=names, category = category)
@@ -1252,7 +1307,7 @@ class RationalFunctionField(FunctionField):
             IndexError: Only one generator.
         """
         if n != 0:
-            raise IndexError, "Only one generator."
+            raise IndexError("Only one generator.")
         return self._gen
 
     def ngens(self):
@@ -1319,7 +1374,7 @@ class RationalFunctionField(FunctionField):
         if not isinstance(im_gens, (list,tuple)):
             im_gens = [im_gens]
         if len(im_gens) != 1:
-            raise ValueError, "there must be exactly one generator"
+            raise ValueError("there must be exactly one generator")
         x = im_gens[0]
         from maps import FunctionFieldMorphism_rational
         return FunctionFieldMorphism_rational(self.Hom(x.parent()), x)
@@ -1372,3 +1427,17 @@ class RationalFunctionField(FunctionField):
         return self._constant_field
 
     constant_field = constant_base_field
+
+    def genus(self):
+        """
+        Return the genus of this function field
+        This is always equal 0 for a rational function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ);
+            sage: K.genus()
+            0
+        """
+        return 0
+

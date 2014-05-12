@@ -78,7 +78,7 @@ class Core(CombinatorialObject, Element):
             return part
         part = Partition(part)
         if not part.is_core(k):
-            raise ValueError, "%s is not a %s-core"%(part, k)
+            raise ValueError("%s is not a %s-core"%(part, k))
         l = sum(part.k_boundary(k).row_lengths())
         return Cores(k, l)(part)
 
@@ -104,9 +104,55 @@ class Core(CombinatorialObject, Element):
         k = parent.k
         part = Partition(core)
         if not part.is_core(k):
-            raise ValueError, "%s is not a %s-core"%(part, k)
+            raise ValueError("%s is not a %s-core"%(part, k))
         CombinatorialObject.__init__(self, core)
         Element.__init__(self, parent)
+
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: c = Core([4,2,1,1],5)
+            sage: d = Core([4,2,1,1],5)
+            sage: e = Core([4,2,1,1],6)
+            sage: c == [4,2,1,1]
+            False
+            sage: c == d
+            True
+            sage: c == e
+            False
+        """
+        if isinstance(other, Core):
+            return self._list.__eq__(other._list) and self.parent().k == other.parent().k
+        else:
+            return False
+
+    def __hash__(self):
+        """
+        Computes the hash of ``self`` by computing the hash of the
+        underlying list and of the additional parameter.
+        The hash is cached and stored in ``self._hash``.
+
+        EXAMPLES::
+
+            sage: c = Core([4,2,1,1],3)
+            sage: c._hash is None
+            True
+            sage: hash(c) #random
+            1335416675971793195
+            sage: c._hash #random
+            1335416675971793195
+
+        TESTS::
+
+            sage: c = Core([4,2,1,1],5)
+            sage: d = Core([4,2,1,1],6)
+            sage: hash(c) == hash(d)
+            False
+        """
+        if self._hash is None:
+            self._hash = hash(tuple(self._list)) + hash(self.parent().k)
+        return self._hash
 
     def _latex_(self):
         """
@@ -331,7 +377,7 @@ class Core(CombinatorialObject, Element):
             sage: c._transposition_to_reduced_word([2, 2])
             Traceback (most recent call last):
             ...
-            AssertionError: t_0 and t_1 cannot be equal mod k
+            ValueError: t_0 and t_1 cannot be equal mod k
 
             sage: c = Core([],30)
             sage: c._transposition_to_reduced_word([4, 12])
@@ -342,7 +388,8 @@ class Core(CombinatorialObject, Element):
             [1, 2, 0, 1, 2, 0, 2, 1, 0, 2, 1]
         """
         k = self.k()
-        assert (t[0]-t[1])%k != 0, "t_0 and t_1 cannot be equal mod k"
+        if (t[0]-t[1])%k == 0:
+            raise ValueError("t_0 and t_1 cannot be equal mod k")
         if t[0] > t[1]:
             return self._transposition_to_reduced_word([t[1],t[0]])
         else:
@@ -378,10 +425,11 @@ class Core(CombinatorialObject, Element):
             sage: c.weak_le(x)
             Traceback (most recent call last):
             ...
-            AssertionError: The two cores do not have the same k
+            ValueError: The two cores do not have the same k
         """
-        if type(self) == type(other):
-            assert self.k() == other.k(), "The two cores do not have the same k"
+        if isinstance(self, type(other)):
+            if self.k() != other.k():
+                raise ValueError("The two cores do not have the same k")
         else:
             other = Core(other, self.k())
         w = self.to_grassmannian()
@@ -432,15 +480,14 @@ class Core(CombinatorialObject, Element):
             sage: c.strong_le(x)
             Traceback (most recent call last):
             ...
-            AssertionError: The two cores do not have the same k
+            ValueError: The two cores do not have the same k
         """
-        if type(self) == type(other):
-            assert self.k() == other.k(), "The two cores do not have the same k"
+        if isinstance(self, type(other)):
+            if self.k()!=other.k():
+                raise ValueError("The two cores do not have the same k")
         else:
             other = Core(other, self.k())
-        w = self.to_grassmannian()
-        v = other.to_grassmannian()
-        return w.bruhat_le(v)
+        return other.contains(self)
 
     def contains(self, other):
         r"""
@@ -448,7 +495,7 @@ class Core(CombinatorialObject, Element):
 
         INPUT:
 
-        - ``other`` -- another `k`-core
+        - ``other`` -- another `k`-core or a list
 
         OUTPUT: a boolean
 
@@ -465,7 +512,7 @@ class Core(CombinatorialObject, Element):
             False
         """
         la = self.to_partition()
-        mu = other.to_partition()
+        mu = Core(other, self.k()).to_partition()
         return la.contains(mu)
 
     def strong_covers(self):
@@ -481,11 +528,25 @@ class Core(CombinatorialObject, Element):
             sage: c.strong_covers()
             [[5, 3, 1], [4, 2, 1, 1]]
         """
-        w = self.to_grassmannian()
-        S = w.bruhat_upper_covers()
-        S = [x for x in S if x.is_affine_grassmannian()]
-        return [ x.affine_grassmannian_to_core() for x in set(S) ]
+        S = Cores(self.k(), length=self.length()+1)
+        return [ ga for ga in S if ga.contains(self) ]
 
+    def strong_down_list(self):
+        r"""
+        Returns a list of all elements that are covered by ``self`` in strong order.
+
+        EXAMPLES::
+
+            sage: c = Core([1],3)
+            sage: c.strong_down_list()
+            [[]]
+            sage: c = Core([5,3,1],3)
+            sage: c.strong_down_list()
+            [[4, 2], [3, 1, 1]]
+        """
+        if self==[]:
+            return []
+        return [ga for ga in Cores(self.k(), length=self.length()-1) if self.contains(ga)]
 
 def Cores(k, length = None, **kwargs):
     r"""

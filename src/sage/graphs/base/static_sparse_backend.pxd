@@ -7,7 +7,7 @@ include 'sage/ext/stdsage.pxi'
 cdef class StaticSparseCGraph(CGraph):
     cdef short_digraph g
     cdef short_digraph g_rev
-    cdef bint directed
+    cdef bint _directed
 
     cpdef bint has_vertex(self, int n)
     cdef int add_vertex_unsafe(self, int k)

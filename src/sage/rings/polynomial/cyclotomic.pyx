@@ -30,16 +30,13 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
-cdef extern from *:
-    void memset(void *, char, int)
-
 from sage.rings.arith import factor
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod, subsets
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.libs.pari.gen cimport gen
-from sage.libs.pari.gen import pari, PariError
+from sage.libs.pari.all import pari
 
 def cyclotomic_coeffs(nn, sparse=None):
     u"""
@@ -130,7 +127,7 @@ def cyclotomic_coeffs(nn, sparse=None):
     #    For n=10163195, the height of Phi_n(x) is 1376877780831,  40.32 bits.
     #    For n<10163195, the height of Phi_n(x) is <= 74989473, 26.16 bits.
     cdef long fits_long_limit = 169828113 if sizeof(long) >= 8 else 10163195
-    if nn >= fits_long_limit and bateman_bound(nn) > sys.maxint:
+    if nn >= fits_long_limit and bateman_bound(nn) > sys.maxsize:
         # Do this to avoid overflow.
         print "Warning: using PARI (slow!)"
         from sage.interfaces.gp import pari
@@ -147,7 +144,7 @@ def cyclotomic_coeffs(nn, sparse=None):
             d = prod(s)
             max_deg += n / d
 
-    if (<object>max_deg)*sizeof(long) > sys.maxint:
+    if (<object>max_deg)*sizeof(long) > sys.maxsize:
         raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
@@ -284,7 +281,7 @@ def cyclotomic_value(n, x):
         raise ValueError, "n must be positive"
     try:
         return x.parent()(pari.polcyclo_eval(n, x._pari_()))
-    except StandardError:
+    except Exception:
         pass
     # The following is modeled on the implementation in Pari
     factors = factor(n)

@@ -636,7 +636,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_EQ(self.value, c_other.value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare equality: '+str(msg))
         finally:
             libgap_exit()
@@ -662,7 +662,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_LT(self.value, c_other.value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             raise ValueError('libGAP: cannot compare less than: '+str(msg))
         finally:
             libgap_exit()
@@ -693,7 +693,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_SUM(self.value, (<GapElement>right).value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             libGAP_ClearError()
             raise ValueError('libGAP: '+str(msg))
         finally:
@@ -726,7 +726,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_DIFF(self.value, (<GapElement>right).value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             libGAP_ClearError()
             raise ValueError, 'libGAP: '+str(msg)
         finally:
@@ -759,7 +759,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_PROD(self.value, (<GapElement>right).value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             libGAP_ClearError()
             raise ValueError, 'libGAP: '+str(msg)
         finally:
@@ -797,7 +797,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_QUO(self.value, (<GapElement>right).value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             libGAP_ClearError()
             raise ValueError, 'libGAP: '+str(msg)
         finally:
@@ -828,7 +828,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_MOD(self.value, right.value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             libGAP_ClearError()
             raise ValueError, 'libGAP: '+str(msg)
         finally:
@@ -867,7 +867,7 @@ cdef class GapElement(RingElement):
             sig_on()
             result = libGAP_POW(self.value, (<GapElement>right).value)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             libGAP_ClearError()
             raise ValueError, 'libGAP: '+str(msg)
         finally:
@@ -1464,13 +1464,28 @@ cdef class GapElement_Cyclotomic(GapElement):
             zeta3
             sage: libgap.E(3).sage(ring=CyclotomicField(6))
             zeta6 - 1
+
+        TESTS:
+
+        Check that :trac:`15204` is fixed::
+
+            sage: libgap.E(3).sage(ring=UniversalCyclotomicField())
+            E(3)
+            sage: libgap.E(3).sage(ring=CC)
+            -0.500000000000000 + 0.866025403784439*I
         """
         if ring is None:
             conductor = self.Conductor()
             from sage.rings.number_field.number_field import CyclotomicField
             ring = CyclotomicField(conductor.sage())
         else:
-            conductor = ring._n()
+            try:
+                conductor = ring._n()
+            except AttributeError:
+                from sage.rings.number_field.number_field import CyclotomicField
+                conductor = self.Conductor()
+                cf = CyclotomicField(conductor.sage())
+                return ring(cf(self.CoeffsCyc(conductor).sage()))
         coeff = self.CoeffsCyc(conductor).sage()
         return ring(coeff)
 
@@ -2029,7 +2044,7 @@ cdef class GapElement_Function(GapElement):
                 libgap_enter()
                 result = libGAP_CALL_XARGS(self.value, arg_list)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg))
         finally:
             libgap_exit()
@@ -2463,7 +2478,7 @@ cdef class GapElement_Record(GapElement):
             sig_on()
             result = libGAP_ELM_REC(self.value, i)
             sig_off()
-        except RuntimeError, msg:
+        except RuntimeError as msg:
             raise IndexError('libGAP: '+str(msg))
         return make_any_gap_element(self.parent(), result)
 
@@ -2562,4 +2577,3 @@ cdef class GapElement_RecordIterator(object):
         val = make_any_gap_element(self.rec.parent(), result)
         self.i += 1
         return (key, val)
-

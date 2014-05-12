@@ -142,7 +142,7 @@ def subgraphs_to_query(subgraphs, db):
         for i in range(len(subgraphs))[2:]:
             q.union(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),in_place=True)
     else:
-        raise KeyError, 'Unable to initiate query:  Illegal input format for induced_subgraphs.'
+        raise KeyError('Unable to initiate query:  Illegal input format for induced_subgraphs.')
     return q
 
 # tables     columns                    input data type     sqlite data type
@@ -395,7 +395,7 @@ class GraphQuery(GenericGraphQuery):
             for key in kwds:
                 # check validity
                 if not key in valid_kwds:
-                    raise KeyError, '%s is not a valid key for this database.'%str(key)
+                    raise KeyError('%s is not a valid key for this database.'%str(key))
 
                 # designate a query_dict
                 qdict = {'display_cols': None}  # reserve display cols until end
@@ -905,7 +905,7 @@ class GraphDatabase(SQLDatabase):
             sage: interact(f)
             <html>...
         """
-        from sage.server.notebook.interact import input_grid
+        from sagenb.notebook.interact import input_grid
         arg=['%s=%s'%(word,kwds[word]) for word in kwds]
         boxes=["%s=input_grid(1,2,['=',%s])"%(word,kwds[word]) for word in kwds]
         params = ['%s=%s[0]'%tuple(2*[arg[i].split('=')[0]]) for i in range(len(arg))]
@@ -1059,7 +1059,7 @@ class GraphDatabase(SQLDatabase):
             sage: D.interactive_query(display_cols=['graph6','num_vertices','degree_sequence'],num_edges=5,max_degree=3)
             <html>...</html>
         """
-        from sage.server.notebook.interact import interact
+        from sagenb.notebook.interact import interact
         print '<html><h1>Interactive Graph Query</h1></html>'
         f = self._gen_interact_func(display=display_cols,**kwds)
         interact(f)

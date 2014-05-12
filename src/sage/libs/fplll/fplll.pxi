@@ -25,21 +25,21 @@ cdef extern from "fplll/matrix.h" namespace "fplll":
 
         ZZ_mat()
         ZZ_mat(int r, int c)
-        
+
         int getRows()
         int getCols()
 
         T& operator()(int i, int j)
         MatrixRow[T] operator[](int i)
-        
+
         void gen_intrel(int bits)
-        void gen_simdioph(int bits,int bits2)
+        void gen_simdioph(int bits, int bits2)
         void gen_uniform(int bits)
-        void gen_ntrulike(int bits,int q)
-        void gen_ntrulike2(int bits,int q)
+        void gen_ntrulike(int bits, int q)
+        void gen_ntrulike2(int bits, int q)
         void gen_ajtai(double alpha)
-    
-        
+
+
 cdef extern from "fplll/defs.h" namespace "fplll":
 
     cdef enum LLLFlags:
@@ -67,7 +67,7 @@ cdef extern from "fplll/defs.h" namespace "fplll":
         ZT_MPZ
         ZT_LONG
         ZT_DOUBLE
-        
+
     cdef enum FloatType:
         FT_DEFAULT
         FT_DOUBLE
@@ -81,11 +81,16 @@ cdef extern from "fplll/defs.h" namespace "fplll":
 
     cdef double LLL_DEF_DELTA
     cdef double LLL_DEF_ETA
-        
+
 cdef extern from "fplll/fplll.h" namespace "fplll":
 
-    int lllReduction(ZZ_mat[mpz_t] b, double delta, double eta, LLLMethod method, FloatType floatType, int precision, int flags)
-    int lllReduction(ZZ_mat[mpz_t] b, ZZ_mat[mpz_t] u, double delta, double eta, LLLMethod method, FloatType floatType, int precision, int flags)
+    int lllReduction(ZZ_mat[mpz_t] b, double delta, double eta,
+                     LLLMethod method, FloatType floatType,
+                     int precision, int flags)
+    int lllReduction(ZZ_mat[mpz_t] b, ZZ_mat[mpz_t] u,
+                     double delta, double eta,
+                     LLLMethod method, FloatType floatType,
+                     int precision, int flags)
 
     cdef struct BKZParam:
          BKZParam()
@@ -102,19 +107,23 @@ cdef extern from "fplll/fplll.h" namespace "fplll":
 
     int bkzReduction(BKZParam &param)
     int bkzReduction(ZZ_mat[mpz_t] b, int blockSize)
-    
+
     int hkzReduction(ZZ_mat[mpz_t] b)
-    int shortestVector(ZZ_mat[mpz_t] b, vector[Z_NR[mpz_t]] &solCoord, SVPMethod method)
+    int shortestVector(ZZ_mat[mpz_t] b,
+                       vector[Z_NR[mpz_t]] &solCoord,
+                       SVPMethod method)
     const char* getRedStatusStr (int status)
 
 cdef extern from "fplll/util.h" namespace "fplll":
-    void vectMatrixProduct(vector[Z_NR[mpz_t]] &result, vector[Z_NR[mpz_t]] &x, const ZZ_mat[mpz_t] &m)
+    void vectMatrixProduct(vector[Z_NR[mpz_t]] &result,
+                           vector[Z_NR[mpz_t]] &x,
+                           const ZZ_mat[mpz_t] &m)
 
-    
+
 #
 # fpLLL 3.x interface
 #
-    
+
 #
 # fastest LLL
 #
@@ -202,21 +211,24 @@ cdef  extern from "fplll/fplllv31.h":
       int (*LLL)()
       ZZ_mat* (*GetBase)()
 
-    proved_mpfr *proved_mpfr_new "new fplll::proved<mpz_t,mpfr_t>"(ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
+    proved_mpfr *proved_mpfr_new "new fplll::proved<mpz_t,mpfr_t>"(
+        ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
     void proved_mpfr_delete "delete "(proved_mpfr *mem)
 
     ctypedef struct proved_dpe "fplll::proved<mpz_t,dpe_t>":
       int (*LLL)()
       ZZ_mat* (*GetBase)()
 
-    proved_dpe *proved_dpe_new "new fplll::proved<mpz_t,dpe_t>"(ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
+    proved_dpe *proved_dpe_new "new fplll::proved<mpz_t,dpe_t>"(
+        ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
     void proved_dpe_delete "delete "(proved_dpe *mem)
 
     ctypedef struct proved_double "fplll::proved<mpz_t,double>":
       int (*LLL)()
       ZZ_mat* (*GetBase)()
 
-    proved_double *proved_double_new "new fplll::proved<mpz_t,double>"(ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
+    proved_double *proved_double_new "new fplll::proved<mpz_t,double>"(
+        ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
     void proved_double_delete "delete "(proved_double *mem)
 
 #
@@ -228,5 +240,6 @@ cdef  extern from "fplll/fplllv31.h":
       int (*LLL)()
       ZZ_mat* (*GetBase)()
 
-    wrapper *wrapper_new "new fplll::wrapper"(ZZ_mat[mpz_t] *B,int precision, double eta, double delta)
+    wrapper *wrapper_new "new fplll::wrapper"(
+        ZZ_mat[mpz_t] *B, int precision, double eta, double delta)
     void wrapper_delete "delete "(wrapper *mem)

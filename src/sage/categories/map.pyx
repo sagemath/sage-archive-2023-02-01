@@ -25,7 +25,7 @@ import homset
 import weakref
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
-
+from sage.misc.superseded import deprecated_function_alias
 # copied from sage.structure.parent
 cdef inline parent_c(x):
     if PY_TYPE_CHECK(x, Element):
@@ -1438,7 +1438,8 @@ cdef class FormalCompositeMap(Map):
         INPUT:
 
         - ``parent``: a homset
-        - ``first``, ``second``: two maps
+        - ``first``: a map or a list of maps
+        - ``second``: a map or None
 
         ..  NOTE::
 
@@ -1481,17 +1482,22 @@ cdef class FormalCompositeMap(Map):
         """
         Map.__init__(self, parent)
 
-        if isinstance(first,(list,tuple)): 
-            self.__list=first
-            self._coerce_cost = sum((<Map>f)._coerce_cost for f in first)
+        if isinstance(first, (list, tuple)): 
+            self.__list= first
+            self._coerce_cost= sum((<Map>f)._coerce_cost for f in first)
             return
-        
-        self.__list = []
-        if isinstance(first,FormalCompositeMap): self.__list += (<FormalCompositeMap>first).__list
-        else : self.__list +=[first]
-        if isinstance(second,FormalCompositeMap):self.__list += (<FormalCompositeMap>second).__list
-        else: self.__list += [second]
-        self._coerce_cost = (<Map>first)._coerce_cost + (<Map>second)._coerce_cost
+
+        self.__list= []
+        if isinstance(first, FormalCompositeMap): 
+            self.__list+= (<FormalCompositeMap>first).__list
+        else: 
+            self.__list+= [first]
+
+        if isinstance(second, FormalCompositeMap):
+            self.__list+= (<FormalCompositeMap>second).__list
+        else:
+            self.__list+= [second]
+        self._coerce_cost= (<Map>first)._coerce_cost + (<Map>second)._coerce_cost
 
     def __copy__(self):
         """
@@ -1597,13 +1603,15 @@ cdef class FormalCompositeMap(Map):
         """
         return hash(tuple(self.__list))
 
-    def __getitem__(self,i):
+    def __getitem__(self, i):
         """
+        Return the ith-map of the formal composition's list.
+
         Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
         self[i] gives f_i. Support negative indices as the `list.__getitem__`.
         Raise an error if the indice doesn't match, exactly in the same way
         that `list.__getitem__` does. 
-        
+
         EXAMPLES::
             sage: from sage.categories.map import Map
             sage: f=Map(ZZ,QQ)
@@ -1626,7 +1634,7 @@ cdef class FormalCompositeMap(Map):
               To:   Integer Ring
             sage: (f*g)[-3]
             Traceback (most recent call last):
-            ...    
+            ...
             IndexError: list index out of range
             sage: (f*g)[2]
             Traceback (most recent call last):
@@ -1635,6 +1643,7 @@ cdef class FormalCompositeMap(Map):
 
         """
         return self.__list[i]
+
     cpdef Element _call_(self, x):
         """
         Call with a single argument
@@ -1655,7 +1664,7 @@ cdef class FormalCompositeMap(Map):
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
-        Additional rguments are only passed to the second map
+        Additional arguments are only passed to the last applied map.
 
         TEST::
 
@@ -1742,42 +1751,54 @@ cdef class FormalCompositeMap(Map):
             s+= "\nthen\n  %s"%f
         return s
 
-#    def first(self):
-#        """
-#        The first map in the formal composition, where the
-#        composition is ``x|--> second(first(x))``.
+    def head(self):
+        """
+        The first applied map in the formal composition.
 
-#        EXAMPLE::
+        Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
+        self.head() returns f_0.
+        We have: self == self.tail()*self.head().
 
-#            sage: R.<x> = QQ[]
-#            sage: S.<a> = QQ[]
-#            sage: from sage.categories.morphism import SetMorphism
-#            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
-#            sage: g = S.hom([2*x])
-#            sage: (f*g).first() is g
-#            True
-#        """
-#        return self.__list[0]
+        EXAMPLE::
 
-#    def second(self):
-#        """
-#        The second map in the formal composition, where the
-#        composition is x|--> second(first(x)).
+            sage: R.<x> = QQ[]
+            sage: S.<a> = QQ[]
+            sage: from sage.categories.morphism import SetMorphism
+            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
+            sage: g = S.hom([2*x])
+            sage: fg=f*g
+            sage: fg.head() == g
+            True
+            sage: fg == fg.tail()*fg.head()
+            True
+        """
+        return self.__list[0]
 
-#        EXAMPLE::
+    first= deprecated_function_alias(16291, head)
 
-#            sage: R.<x> = QQ[]
-#            sage: S.<a> = QQ[]
-#            sage: from sage.categories.morphism import SetMorphism
-#            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
-#            sage: g = S.hom([2*x])
-#            sage: (f*g).second() is f
-#            True
-#        """
-#        if len(self.__list)==2: return self.__list[1]
-#        return FormalCompositeMap(self.__list[1:])
+    def tail(self):
+        """
+        Return the tail of the list of maps.
 
-    
+        Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
+        self.head() returns f_n o f_{n-1} o ... o f_1.
+        We have: self == self.tail()*self.head().
+
+        EXAMPLE::
+
+            sage: R.<x> = QQ[]
+            sage: S.<a> = QQ[]
+            sage: from sage.categories.morphism import SetMorphism
+            sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
+            sage: g = S.hom([2*x])
+            sage: (f*g).tail() == f
+            True
+        """
+        if len(self.__list)==2: return self.__list[1]
+        return FormalCompositeMap(self.__list[1:])
+
+    second= deprecated_function_alias(16291, tail)
+
     def is_injective(self):
         """
         Tell whether ``self`` is injective.
@@ -1817,9 +1838,11 @@ cdef class FormalCompositeMap(Map):
             False
         """
         without_bij = (f for f in self.__list if not (f.is_injective() and f.is_surjective()))
-        if not next(without_bij).is_injective(): return False
-        
-        if all(f.is_injective() for f in without_bij): return True
+        if not next(without_bij).is_injective(): 
+            return False
+
+        if all(f.is_injective() for f in without_bij): 
+            return True
         raise NotImplementedError, "Not enough information to deduce injectivity."
 
     def is_surjective(self):
@@ -1865,8 +1888,10 @@ cdef class FormalCompositeMap(Map):
             NotImplementedError: Not enough information to deduce surjectivity.
         """
         without_bij = (f for f in self.__list[-1::-1] if not (f.is_injective() and f.is_surjective()))
-        if not next(without_bij).is_surjective(): return False
-        
-        if all(f.is_surjective() for f in without_bij): return True
+        if not next(without_bij).is_surjective(): 
+            return False
+
+        if all(f.is_surjective() for f in without_bij): 
+            return True
         raise NotImplementedError, "Not enough information to deduce surjectivity."
 

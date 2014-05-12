@@ -1349,7 +1349,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else: # since x should coerce into parent, _mon should be (0,...,0)
             self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
-        self._normal_form = None
         CommutativeAlgebraElement.__init__(self, parent)
 
     def __reduce__(self):

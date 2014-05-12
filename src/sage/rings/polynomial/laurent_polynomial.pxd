@@ -12,7 +12,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
     cdef long __n
 
 cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
-    cdef LaurentPolynomial_mpair _normal_form
     cdef ETuple _mon
     cdef MPolynomial _poly
     cdef PolyDict _prod

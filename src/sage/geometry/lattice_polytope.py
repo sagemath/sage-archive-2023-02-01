@@ -2443,7 +2443,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         deprecation(15240, "normal_form() output will change, "
             "please use normal_form_pc().column_matrix() instead "
             "or consider using normal_form_pc() directly!")
-        return self.normal_form_pc().column_matrix()
+        return self.normal_form_pc(algorithm=algorithm, 
+                                   permutation=permutation).column_matrix()
 
     @cached_method
     def normal_form_pc(self, algorithm="palp", permutation=False):

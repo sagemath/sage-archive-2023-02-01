@@ -814,7 +814,7 @@ def OA_from_Vmt(m,t,V):
 
         \{a_{i+k}-a_i:1\leq i \leq m+1,i+k\neq m+2\}
 
-    represent the `m` cyclotomic classes of `\mathbb_{mt+1}` (compute subscripts
+    represent the `m` cyclotomic classes of `\mathbb{F}_{mt+1}` (compute subscripts
     modulo `m+2`). In other words, for fixed `k`, is
     `a_{i+k}-a_i=\omega^{mx+\alpha}` and `a_{j+k}-a_j=\omega^{my+\beta}` then
     `\alpha\not\equiv\beta \mod{m}`

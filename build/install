@@ -53,7 +53,6 @@ fi
 # Create basic directories needed for Sage
 ###############################################################################
 
-mkdir -p "$SAGE_ROOT/tmp"
 mkdir -p "$SAGE_LOGS"
 mkdir -p "$SAGE_LOCAL/bin"
 mkdir -p "$SAGE_LOCAL/etc"

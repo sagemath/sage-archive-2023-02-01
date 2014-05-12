@@ -5,7 +5,7 @@ AUTHORS:
 
 - John H. Palmieri (2009-04)
 
-- D. Benjamin Antieau (2009-06) - added is_connected, generated_subcomplex,
+- D. Benjamin Antieau (2009-06): added is_connected, generated_subcomplex,
   remove_facet, and is_flag_complex methods;
   cached the output of the graph() method.
 
@@ -14,10 +14,13 @@ AUTHORS:
   sure it is immutable. Made :meth:`SimplicialComplex.remove_face()` into a
   mutator. Deprecated the ``vertex_set`` parameter.
 
-- Christian Stump (2011-06) - implementation of is_cohen_macaulay
+- Christian Stump (2011-06): implementation of is_cohen_macaulay
 
 - Travis Scrimshaw (2013-02-16): Allowed :class:`SimplicialComplex` to make
   mutable copies.
+
+- Simon King (2014-05-02): Let simplicial complexes be objects of the
+  category of simplicial complexes.
 
 This module implements the basic structure of finite simplicial
 complexes. Given a set `V` of "vertices", a simplicial complex on `V`
@@ -152,8 +155,10 @@ We can also make mutable copies of an immutable simplicial complex
 #  cohomology: compute cup products (and Massey products?)
 
 from copy import copy
+from sage.misc.lazy_import import lazy_import
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
+from sage.structure.category_object import CategoryObject
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
@@ -163,6 +168,7 @@ from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
+lazy_import('sage.categories.category_types', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
     """
@@ -684,7 +690,7 @@ class Simplex(SageObject):
         """
         return latex(self.__tuple)
 
-class SimplicialComplex(GenericCellComplex):
+class SimplicialComplex(CategoryObject, GenericCellComplex):
     r"""
     Define a simplicial complex.
 
@@ -790,7 +796,11 @@ class SimplicialComplex(GenericCellComplex):
             sage: S = SimplicialComplex((('a', 'b'), ('a', 'c'), ('b', 'c')))
             sage: S == loads(dumps(S))
             True
+
+            sage: TestSuite(S).run()
+            sage: TestSuite(S3).run()
         """
+        CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
         # process kwds
         sort_facets = kwds.get('sort_facets', True)
@@ -3081,19 +3091,6 @@ class SimplicialComplex(GenericCellComplex):
         else:
             return FG.quotient(rels)
 
-    def category(self):
-        """
-        Return the category to which this simplicial complex belongs: the
-        category of all simplicial complexes.
-
-        EXAMPLES::
-
-            sage: SimplicialComplex([[0,1], [1,2,3,4,5]]).category()
-            Category of simplicial complexes
-        """
-        import sage.categories.all
-        return sage.categories.all.SimplicialComplexes()
-
     def is_isomorphic(self,other, certify = False):
         r"""
         Checks whether two simplicial complexes are isomorphic
@@ -3256,7 +3253,16 @@ class SimplicialComplex(GenericCellComplex):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism {0: 0, 1: 1, 2: 3} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+
+            sage: S._Hom_(T, Objects())
+            Traceback (most recent call last):
+            ...
+            TypeError: Category of objects is not a subcategory of SimplicialComplexes()
+            sage: type(Hom(S, T, Objects()))
+            <class 'sage.categories.homset.Homset_with_category'>
         """
+        if not category.is_subcategory(SimplicialComplexes()):
+            raise TypeError("{} is not a subcategory of SimplicialComplexes()".format(category))
         from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
         return SimplicialComplexHomset(self, other)
 

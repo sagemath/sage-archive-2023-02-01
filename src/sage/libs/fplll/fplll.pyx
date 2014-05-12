@@ -18,7 +18,7 @@ AUTHORS:
 #   Sage: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
-#       Copyright (C) 2014 Martin Albrecht <martinralbecht@googlemailc.om>
+#       Copyright (C) 2014 Martin Albrecht <martinralbrecht@googlemail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -41,32 +41,35 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.superseded import deprecation
 
 cdef inline int _check_precision(int precision) except -1:
-    """Check whether the provided precision is within valid bounds. If not raise
-    a TypeError.
+    """
+    Check whether the provided precision is within valid bounds. If not raise
+    a ``TypeError``.
 
     INPUT:
 
-    - ``precision`` - an integer
+    - ``precision`` - an integer.
 
     """
     if precision < 0:
         raise TypeError, "precision must be >= 0"
 
 cdef inline int _check_eta(float eta) except -1:
-    """Check whether the provided parameter $\eta$ is within valid bounds. If
-    not raise a TypeError.
+    """
+    Check whether the provided parameter $\eta$ is within valid bounds. If
+    not raise a ``TypeError``.
 
     INPUT:
 
-    - ``eta`` - a floating point number
+    - ``eta`` - a floating point number.
 
     """
     if eta < 0.5:
         raise TypeError, "eta must be >= 0.5"
 
 cdef inline int _check_delta(float delta) except -1:
-    """Check whether the provided parameter $\delta$ is within valid bounds. If
-    not raise a TypeError.
+    """
+    Check whether the provided parameter $\delta$ is within valid bounds. If
+    not raise a ``TypeError``.
 
     INPUT:
 
@@ -96,23 +99,25 @@ cdef inline FloatType check_float_type(object float_type):
     return float_type_
 
 cdef class FP_LLL:
-    """A basic wrapper class to support conversion to/from Sage integer matrices
-    and executing the LLL computation.
+    """
+    A basic wrapper class to support conversion to/from Sage integer matrices
+    and executing LLL/BKZ computations.
 
     .. note:
 
       Usually you don't want to create this object yourself but use the LLL
-      method of the integer matrices.
+      method of the integer matrices/lattices.
 
     """
 
 
     def __cinit__(self, Matrix_integer_dense A):
-        """Construct a new fpLLL wrapper for the matrix A.
+        """
+        Construct a new fpLLL wrapper for the matrix ``A``.
 
         INPUT:
 
-        - ``A`` - a matrix over the integers
+        - ``A`` - a matrix over the integers.
 
         EXAMPLE::
 
@@ -167,7 +172,11 @@ cdef class FP_LLL:
 
     def _sage_(self):
         """
-        Return a Sage representation of self's matrix.
+        Return a Sage representation of this matrix.
+
+        OUTPUT:
+
+        A Sage representation of this matrix.
 
         EXAMPLE::
 
@@ -182,21 +191,25 @@ cdef class FP_LLL:
     def LLL(self, float delta=LLL_DEF_DELTA, float eta=LLL_DEF_ETA,
             method=None, float_type=None, int precision=0,
             verbose=False, siegel=False, early_red=False):
-        r"""
-        `(\delta,\eta)` LLL reduce this lattice.
+        """
+        (δ,η)-LLL reduce this lattice.
 
         INPUT:
 
-        - ``delta`` - parameter `0.25 < \delta < 1.0` (default: `0.99`)
-        - ``eta ``  - parameter `0.5 <= \eta < \sqrt{\delta}` (default: `0.51`)
+        - ``delta`` - parameter `0.25 < δ < 1.0` (default: ``0.99``).
+        - ``eta `` - parameter `0.5 <= η < \\sqrt{δ}` (default: ``0.51``).
         - ``method`` - 'proved', 'fast', 'wrapper' (== ``None``), 'heuristic'
-          or ``None`` (default: ``None``)
+          or ``None`` (default: ``None``).
         - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``,
-          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``)
-        - ``precision`` - precision to use (default: ``0`` for automatic choice)
-        - ``verbose`` - be verbose (default: ``False``)
-        - ``siegel`` - use Siegel conditioning (default: ``False``)
-        - ``early_red`` -  use early reduction (default: ``False``)
+          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``).
+        - ``precision`` - precision to use (default: ``0`` for automatic choice).
+        - ``verbose`` - be verbose (default: ``False``).
+        - ``siegel`` - use Siegel conditioning (default: ``False``).
+        - ``early_red`` - use early reduction (default: ``False``).
+
+        OUTPUT:
+
+        Nothing is returned but the internal state is modified.
 
         EXAMPLES::
 
@@ -418,21 +431,25 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``block_size`` - 0 < block size <= nrows
-        - ``delta`` - LLL parameter `0.25 < \delta < 1.0` (default: `0.99`)
+        - ``block_size`` - `0 < block\_size <= nrows`.
+        - ``delta`` - LLL parameter `0.25 < δ < 1.0` (default: ``0.99``).
         - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``,
-          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``)
-        - ``verbose`` - be verbose (default: ``False``)
-        - ``no_lll`` -
-        - ``bounded_lll`` -
-        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: `0`
-          for automatic choice)
-        - ``max_loops`` - maximum number of full loops (default: `0`
-          for no restriction)
+          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``).
+        - ``verbose`` - be verbose (default: ``False``).
+        - ``no_lll`` - no LLL? (default: ``False``).
+        - ``bounded_lll`` - bounded LLL (default: ``False``).
+        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: ``0``
+          for automatic choice).
+        - ``max_loops`` - maximum number of full loops (default: ``0``
+          for no restriction).
         - ``max_time`` - stop after time seconds (up to loop completion)
-          (default: `0` for no restricion)
+          (default: ``0`` for no restricion).
         - ``auto_abort`` - heuristic, stop when the average slope of
-           $log(||b_i*||)$ does not decrease fast enough (default: ``False``)
+           `log(||b_i*||)` does not decrease fast enough (default: ``False``).
+
+        OUTPUT:
+
+        Nothing is returned but the internal state is modified.
 
         EXAMPLES::
 
@@ -490,6 +507,32 @@ cdef class FP_LLL:
             raise RuntimeError("%s" % getRedStatusStr(r));
 
     def HKZ(self):
+        """
+        Run HKZ reduction.
+
+        OUTPUT:
+
+        Nothing is returned but the internal state is modified.
+
+        EXAMPLE::
+
+            sage: from sage.libs.fplll.fplll import FP_LLL
+            sage: A = sage.crypto.gen_lattice(type='random', n=1, m=10, q=2^60, seed=42)
+            sage: F = FP_LLL(A)
+            sage: F.HKZ()
+            sage: F._sage_()
+            [ -8  27   7  19  10  -5  14  34   4 -18]
+            [-22  23   3 -14  11  30 -12  26  17  26]
+            [-20   6 -18  33 -26  16   8 -15 -14 -26]
+            [ -2  30   9 -30 -28 -19  -7 -28  12 -15]
+            [-16   1  25 -23 -11 -21 -39   4 -34 -13]
+            [-27  -2 -24 -67  32 -13  -6   0  15  -4]
+            [  9 -12   7  31  22  -7 -63  11  27  36]
+            [ 14  -4   0 -21 -17  -7  -9  35  79 -22]
+            [-17 -16  54  21   0 -17  28 -45  -6  12]
+            [ 43  16   6  30  24  17 -39 -46 -18 -22]
+
+        """
         sig_on()
         cdef int r = hkzReduction(self._lattice[0])
         sig_off()
@@ -502,7 +545,20 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``method`` - "proved" or "fast" (default: "proved")
+        - ``method`` - "proved" or "fast" (default: "proved").
+
+        OUTPUT:
+
+        A shortest non-zero vector for this lattice.
+
+        EXAMPLE::
+
+            sage: from sage.libs.fplll.fplll import FP_LLL
+            sage: A = sage.crypto.gen_lattice(type='random', n=1, m=40, q=2^60, seed=42)
+            sage: F = FP_LLL(A)
+            sage: F.shortest_vector('proved')  == F.shortest_vector('fast')
+            True
+          
         """
         cdef SVPMethod method_
         if method == "proved" or method is None:
@@ -547,16 +603,19 @@ cdef class FP_LLL:
         Perform LLL reduction using fpLLL's \code{wrapper}
         implementation. This implementation invokes a sequence of
         floating point LLL computations such that
-          * the computation is reasonably fast (based on an heuristic model)
-          * the result is proven to be LLL reduced.
+
+        * the computation is reasonably fast (based on an heuristic model)
+        * the result is proven to be LLL reduced.
 
         INPUT:
-            precision -- internal precision (default: auto)
-            eta -- LLL parameter eta with 1/2 <= eta < sqrt(delta) (default: 0.51)
-            delta -- LLL parameter delta with 1/4 < delta <= 1 (default: 0.99)
+
+        - ``precision`` - internal precision (default: auto).
+        - ``eta`` - LLL parameter η with `1/2 <= η < \\sqrt{δ}` (default: ``0.51``).
+        - ``delta`` - LLL parameter δ with `1/4 < δ <= 1` (default: ``0.99``).
 
         OUTPUT:
-            nothing is returned but the internal state modified.
+
+        Nothing is returned but the internal state is modified.
 
         EXAMPLE::
 
@@ -609,21 +668,23 @@ cdef class FP_LLL:
 
     def proved(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
-        Perform LLL reduction using fpLLL's \code{proved}
+        Perform LLL reduction using fpLLL's ``proved``
         implementation. This implementation is the only provable
         correct floating point implementation in the free software
         world. Provability is only guaranteed if the 'mpfr'
         implementation is chosen.
 
         INPUT:
-            precision -- internal precision (default: auto)
-            eta -- LLL parameter eta with 1/2 <= eta < sqrt(delta) (default: 0.51)
-            delta -- LLL parameter delta with 1/4 < delta <= 1 (default: 0.99)
-            implementation -- floating point implementation in ('double', 'dpe', 'mpfr')
-                              (default: 'mpfr')
+        
+         - ``precision`` - internal precision (default: auto).
+         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
+         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
+         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
+           (default: "mpfr").
 
         OUTPUT:
-            nothing is returned but the internal state modified.
+
+        Nothing is returned but the internal state modified.
 
         EXAMPLE::
 
@@ -658,7 +719,7 @@ cdef class FP_LLL:
             True
             sage: L.hermite_form() == A.hermite_form()
             True
-        """
+"""
         deprecation(15976, 'You can just call LLL() instead')
 
         _check_precision(precision)
@@ -697,18 +758,20 @@ cdef class FP_LLL:
 
     def fast(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
-        Perform LLL reduction using fpLLL's \code{fast}
-        implementation. This implementation is the fastest floating
+        Perform LLL reduction using fpLLL's fast
+        implementation.  This implementation is the fastest floating
         point implementation available in the free software world.
 
         INPUT:
-            precision -- internal precision (default: auto)
-            eta -- LLL parameter eta with 1/2 <= eta < sqrt(delta) (default: 0.51)
-            delta -- LLL parameter delta with 1/4 < delta <= 1 (default: 0.99)
-            implementation -- ignored
+        
+        - ``precision`` - internal precision (default: auto).
+        - ``eta`` - LLL parameter η with `1/2 <= η < \sqrt(δ)` (default: ``0.51``).
+        - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
+        - ``implementation`` - ignored.
 
         OUTPUT:
-            nothing is returned but the internal state modified.
+
+        Nothing is returned but the internal is state modified.
 
         EXAMPLE::
 
@@ -739,7 +802,7 @@ cdef class FP_LLL:
 
     def fast_early_red(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
-        Perform LLL reduction using fpLLL's \code{fast}
+        Perform LLL reduction using fpLLL's fast
         implementation with early reduction.
 
         This implementation inserts some early reduction steps inside
@@ -749,13 +812,16 @@ cdef class FP_LLL:
         integer relation detection problems.
 
         INPUT:
-            precision -- internal precision (default: auto)
-            eta -- LLL parameter eta with 1/2 <= eta < sqrt(delta) (default: 0.51)
-            delta -- LLL parameter delta with 1/4 < delta <= 1 (default: 0.99)
-            implementation -- ignored
+        
+         - ``precision`` - internal precision (default: auto).
+         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
+         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
+         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
+           (default: "mpfr").
 
         OUTPUT:
-            nothing is returned but the internal state modified.
+
+        Nothing is returned but the internal state modified.
 
         EXAMPLE::
 
@@ -808,18 +874,20 @@ cdef class FP_LLL:
 
     def heuristic(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
-        Perform LLL reduction using fpLLL's \code{heuristic}
+        Perform LLL reduction using fpLLL's heuristic
         implementation.
 
         INPUT:
-            precision -- internal precision (default: auto)
-            eta -- LLL parameter eta with 1/2 <= eta < sqrt(delta) (default: 0.51)
-            delta -- LLL parameter delta with 1/4 < delta <= 1 (default: 0.99)
-            implementation -- floating point implementation in ('double', 'dpe', 'mpfr')
-                              (default: 'mpfr')
+        
+         - ``precision`` - internal precision (default: auto).
+         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
+         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
+         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
+           (default: "mpfr").
 
         OUTPUT:
-            nothing is returned but the internal state modified.
+
+        Nothing is returned but the internal state modified.
 
         EXAMPLE::
 
@@ -890,7 +958,7 @@ cdef class FP_LLL:
 
     def heuristic_early_red(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
-        Perform LLL reduction using fpLLL's \code{heuristic}
+        Perform LLL reduction using fpLLL's heuristic
         implementation with early reduction.
 
         This implementation inserts some early reduction steps inside
@@ -900,14 +968,16 @@ cdef class FP_LLL:
         or integer relation detection problems.
 
         INPUT:
-            precision -- internal precision (default: auto)
-            eta -- LLL parameter eta with 1/2 <= eta < sqrt(delta) (default: 0.51)
-            delta -- LLL parameter delta with 1/4 < delta <= 1 (default: 0.99)
-            implementation -- floating point implementation in ('double', 'dpe', 'mpfr')
-                              (default: 'mpfr')
+        
+         - ``precision`` - internal precision (default: auto).
+         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
+         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
+         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
+           (default: "mpfr").
 
         OUTPUT:
-            nothing is returned but the internal state modified.
+
+        Nothing is returned but the internal state modified.
 
         EXAMPLE::
 
@@ -981,15 +1051,19 @@ cdef class FP_LLL:
 #
 
 def gen_intrel(int d, int b):
-    """Return a $(d+1 x d)$-dimensional knapsack-type random lattice, where the
-    $x_i$s are random $b$ bits integers.
+    """
+    Return a `(d+1 x d)`-dimensional knapsack-type random lattice, where the
+    $x_i$s are random `b` bits integers.
 
     INPUT:
 
-    - ``d`` - dimension
+    - ``d`` - dimension.
+    - ``b`` - bitsize of entries.
 
-    - ``b``  - bitsize of entries
+    OUTPUT:
 
+    An integer lattice.
+      
     EXAMPLE::
 
         sage: from sage.libs.fplll.fplll import gen_intrel
@@ -1030,16 +1104,19 @@ def gen_intrel(int d, int b):
     return B
 
 def gen_simdioph(int d, int b, int b2):
-    """Return a $d$-dimensional simultaneous diophantine approximation random
-    lattice, where the $d$ $x_i$s are random $b$ bits integers.
+    """
+    Return a `d`-dimensional simultaneous diophantine approximation random
+    lattice, where the `d` `x_i`s are random `b` bits integers.
 
     INPUT:
 
-    - ``d`` - dimension
+    - ``d`` - dimension.
+    - ``b`` - bitsize of entries.
+    - ``b2`` - bitsize of entries.
 
-    - ``b`` - bitsize of entries
-
-    - ``b2`` - bitsize of entries
+    OUTPUT:
+      
+    An integer lattice.
 
     EXAMPLE::
 
@@ -1081,15 +1158,18 @@ def gen_simdioph(int d, int b, int b2):
     return B
 
 def gen_uniform(int nr, int nc, int b):
-    """Return a $(nr x nc)$ matrix where the entries are random $b$ bits integers.
+    """
+    Return a `(nr x nc)` matrix where the entries are random `b` bits integers.
 
     INPUT:
 
-    - ``nr`` - row dimension
+    - ``nr`` - row dimension.
+    - ``nc`` - column dimension.
+    - ``b``- bitsize of entries.
 
-    - ``nc`` - column dimension
+    OUTPUT:
 
-    - ``b``- bitsize of entries
+    An integer lattice.
 
     EXAMPLE::
 
@@ -1131,8 +1211,9 @@ def gen_uniform(int nr, int nc, int b):
     return B
 
 def gen_ntrulike(int d, int b, int q):
-    """Generate a ntru-like lattice of dimension $(2d x 2d)$, with the
-    coefficients $h_i$ chosen as random b bits integers and parameter $q$:
+    """
+    Generate a NTRU-like lattice of dimension `(2d x 2d)`, with the
+    coefficients `h_i` chosen as random `b` bits integers and parameter `q`:
 
 
         [[ 1 0 ... 0 h0      h1 ... h_{d-1} ]
@@ -1144,14 +1225,15 @@ def gen_ntrulike(int d, int b, int q):
          [ ................................ ]
          [ 0 0 ... 0 0       0  ...  q      ]]
 
-
     INPUT:
 
-    - ``d`` - dimension
+    - ``d`` - dimension.
+    - ``b`` - bitsize of entries.
+    - ``q`` - see above.
 
-    - ``b`` - bitsize of entries
+    OUTPUT:
 
-    - ``q`` - see above
+    An integer lattice.
 
     EXAMPLE::
 
@@ -1193,13 +1275,18 @@ def gen_ntrulike(int d, int b, int q):
     return B
 
 def gen_ntrulike2(int d, int b, int q):
-    """Like :func:`gen_ntrulike` but with the $q$ vectors coming first.
+    """
+    Like :func:`gen_ntrulike` but with the `q` vectors coming first.
 
     INPUT:
 
-    - ``d`` - dimension
-    - ``b`` - bitsize of entries
-    - ``q`` -  see gen_ntrulike
+    - ``d`` - dimension.
+    - ``b`` - bitsize of entries.
+    - ``q`` -  see :func:`gen_ntrulike`.
+
+    OUTPUT:
+
+    An integer lattice.
 
     EXAMPLE::
 
@@ -1241,15 +1328,20 @@ def gen_ntrulike2(int d, int b, int q):
     return B
 
 def gen_ajtai(int d, float alpha):
-    r"""Return Ajtai-like $(d x d)$-matrix of floating point parameter $alpha$.
-    The matrix is lower-triangular, $B_{imi}$ is $~2^{(d-i+1)^\alpha}$ and
-    $B_{i,j}$ is $~B_{j,j}/2$ for $j<i$q.
+    """
+    Return Ajtai-like `(d x d)`-matrix of floating point parameter `α`.
+    The matrix is lower-triangular, `B_{imi}` is `~2^{(d-i+1)^α}` and
+    `B_{i,j}` is `~B_{j,j}/2` for `j<i`q.
 
     INPUT:
 
-    - ``d`` - dimension
-    - ``alpha`` - see above
+    - ``d`` - dimension.
+    - ``alpha`` - see above.
 
+    OUTPUT:
+
+    An integer lattice.
+      
     EXAMPLE::
 
         sage: from sage.libs.fplll.fplll import gen_ajtai
@@ -1290,11 +1382,12 @@ def gen_ajtai(int d, float alpha):
     return B
 
 cdef to_sage(ZZ_mat[mpz_t] *A):
-    """Return a Sage integer matrix for A. A is not destroyed.
+    """
+    Return a Sage integer matrix for A. A is not destroyed.
 
     INPUT:
 
-    - ``A`` - ZZ_mat
+    - ``A`` - ZZ_mat.
     """
     cdef int i,j
     cdef mpz_t *t

@@ -2514,27 +2514,30 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         NLT SPECIFIC INPUTS:
 
         - ``prune`` - The optional parameter ``prune`` can be set to any
-           positive number to invoke the Volume Heuristic from [Schnorr and
-           Horner, Eurocrypt '95]. This can significantly reduce the running
-           time, and hence allow much bigger block size, but the quality of the
-           reduction is of course not as good in general. Higher values of
-           ``prune`` mean better quality, and slower running time. When
-           ``prune`` == 0, pruning is disabled. Recommended usage: for
-           ``block_size`` = 30, set 10 = ``prune`` = 15.
+           positive number to invoke the Volume Heuristic from
+           [Schnorr and Horner, Eurocrypt '95]. This can significantly reduce
+           the running time, and hence allow much bigger block size, but the
+           quality of the reduction is of course not as good in general. Higher
+           values of ``prune`` mean better quality, and slower running
+           time. When ``prune=0``, pruning is disabled. Recommended usage: for
+           ``block_size==30``, set ``10 <= prune <=15``.
 
         - ``use_givens`` - use Given's orthogonalization.  This is a bit slower,
            but generally much more stable, and is really the preferred
            orthogonalization strategy. For a nice description of this, see
-           Chapter 5 of [G. Golub and C. van Loan, Matrix Computations, 3rd
-           edition, Johns Hopkins Univ. Press, 1996].
+           Chapter 5 of
+           [G. Golub and C. van Loan, Matrix Computations, 3rd edition, Johns Hopkins Univ. Press, 1996].
 
         fpLLL SPECIFIC INPUTS:
 
-        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: 0 for automatic choice)
-        - ``max_loops`` - maximum number of full loops (default: 0 for no restriction)
-        - ``max_time`` - stop after time seconds (up to loop completion) (default: 0 for no restricion)
+        - ``precision`` - bit precision to use if ``fp=='rr'`` is set (default:
+          ``0`` for automatic choice).
+        - ``max_loops`` - maximum number of full loops (default: ``0`` for no
+          restriction).
+        - ``max_time`` - stop after time seconds (up to loop completion)
+          (default: ``0`` for no restricion).
         - ``auto_abort`` - heuristic, stop when the average slope of
-           $log(||b_i*||)$ does not decrease fast enough (default: ``False``)
+           `log(||b_i*||)` does not decrease fast enough (default: ``False``).
 
         EXAMPLE::
 
@@ -2544,7 +2547,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 2  1  0]
             [-1  1  3]
 
-        sage: A = Matrix(ZZ,3,3,range(1,10))
+            sage: A = Matrix(ZZ,3,3,range(1,10))
             sage: A.BKZ(use_givens=True)
             [ 0  0  0]
             [ 2  1  0]
@@ -2660,7 +2663,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A lattice `(b_1, b_2, ..., b_d)` is `(\delta, \eta)` -LLL-reduced
         if the two following conditions hold:
 
-        -  For any `i>j`, we have `|mu_{i, j}| <= \eta`,
+        -  For any `i>j`, we have `|mu_{i, j}| <= \eta`.
         -  For any `i<d`, we have `\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_i^*|^2`,
 
         where `mu_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the `i`-th vector
@@ -2676,53 +2679,39 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        -  ``delta`` - parameter as described above (default: 0.99)
-
-        -  ``eta`` - parameter as described above (default: 0.501), ignored by NTL
-
+        -  ``delta`` - parameter as described above (default: ``0.99``).
+        -  ``eta`` - parameter as described above (default: ``0.501``), ignored by NTL.
         - ``algorithm`` - string (default: "fpLLL:wrapper") one of the
            algorithms mentioned below
-
         -  ``fp``
-
             - None - NTL's exact reduction or fpLLL's wrapper
-
-            - ``'fp'`` - double precision: NTL's FP or fpLLL's double
-
-            - ``'qd'`` - NTL's QP or fpLLL's long doubles
-
-            - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe
-
-            - ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's MPFR
-
-        - ``prec`` - precision, ignored by NTL (default: auto choose)
-
+            - ``'fp'`` - double precision: NTL's FP or fpLLL's double.
+            - ``'qd'`` - NTL's QP or fpLLL's long doubles.
+            - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe.
+            - ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's MPFR.
+        - ``prec`` - precision, ignored by NTL (default: auto choose).
         - ``early_red`` - perform early reduction, ignored by NTL (default:
-           ``False``)
-
+           ``False``).
         - ``use_givens`` - use Givens orthogonalization (default: False) only
            applicable to approximate reductions and NTL.  This is more stable
            but slower.
-
         - ``use_siegel`` - use Siegel's condition instead of Lovasz's condition,
-          ignored by NTL (default: ``False``)
+          ignored by NTL (default: ``False``).
 
-        Also, if the verbose level is = 2, some more verbose output is printed
+        Also, if the verbose level is >=2, some more verbose output is printed
         during the calculation.
 
         AVAILABLE ALGORITHMS:
 
-        - ``NTL:LLL`` - NTL's LLL + choice of ``fp``
+        - ``NTL:LLL`` - NTL's LLL + choice of ``fp``.
+        - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of ``fp``.
+        - ``fpLLL:fast`` - fpLLL's fast + choice of ``fp``.
+        - ``fpLLL:proved`` - fpLLL's proved + choice of ``fp``.
+        - ``fpLLL:wrapper`` - fpLLL's automatic choice (default).
 
-        - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of ``fp``
+        OUTPUT:
 
-        - ``fpLLL:fast`` - fpLLL's fast + choice of ``fp``
-
-        - ``fpLLL:proved`` - fpLLL's proved + choice of ``fp``
-
-        - ``fpLLL:wrapper`` - fpLLL's automatic choice (default)
-
-        OUTPUT: a matrix over the integers
+        A matrix over the integers.
 
         EXAMPLE::
 

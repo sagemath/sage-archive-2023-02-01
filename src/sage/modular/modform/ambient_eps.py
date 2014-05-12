@@ -193,6 +193,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             return self
         return ambient_R.ModularFormsAmbient_R(self, base_ring = base_ring)
 
+    @cached_method(key=lambda self,sign: rings.Integer(sign)) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return corresponding space of modular symbols with given sign.

@@ -551,7 +551,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 D[ETuple(tmp)] = a
             return D
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         This hash incorporates the variable name in an effort to respect the obvious inclusions
         into multi-variable polynomial rings.
@@ -577,6 +577,19 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f=x/y
             sage: f.subs({x:1})
             1/y
+
+        TESTS:
+
+        Verify that :trac:`16251` has been resolved, i.e., polynomials with
+        unhashable coefficients are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: R.<t,s> = K[]
+            sage: hash(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
         """
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
         cdef long result_mon

@@ -27,7 +27,7 @@ def plane_inequality(v):
     Return the inequality for points on the same side as the origin
     with respect to the plane through v normal to v.
 
-    sage: from sage.lattices.diamond_cutting import plane_inequality
+    sage: from sage.modules.diamond_cutting import plane_inequality
     sage: ieq = plane_inequality([1, -1]); ieq
     [2, -1, 1]
     sage: ieq[0] + vector(ieq[1:]) * vector([1, -1])
@@ -61,7 +61,7 @@ def jacobi(M):
                                 \qquad \text{ when } i = j; \\
         q_{i,j} = 0  \qquad \text{ when } i > j
 
-    for all `1 \leq i \leq n` and `1 \leq j \leq n`. (These
+   for all `1 \leq i \leq n` and `1 \leq j \leq n`. (These
     equalities determine the entries of `Q` uniquely by
     recursion.) This matrix `Q` is defined for all `M` in a
     certain Zariski-dense open subset of the set of all
@@ -69,7 +69,7 @@ def jacobi(M):
 
     EXAMPLES::
 
-        sage: from sage.lattices.diamond_cutting import jacobi
+        sage: from sage.modules.diamond_cutting import jacobi
         sage: jacobi(identity_matrix(3) * 4)
         [4 0 0]
         [0 4 0]
@@ -139,7 +139,7 @@ def diamond_cut(V, GM, C, debug=False):
 
     EXAMPLES::
 
-        sage: from sage.lattices.diamond_cutting import diamond_cut
+        sage: from sage.modules.diamond_cutting import diamond_cut
         sage: V = Polyhedron([[0], [2]])
         sage: GM = matrix([2])
         sage: V = diamond_cut(V, GM, 4)
@@ -248,7 +248,7 @@ def calculate_voronoi_cell(basis, radius=None, debug=False):
 
     EXAMPLES::
 
-        sage: from sage.lattices.diamond_cutting import calculate_voronoi_cell
+        sage: from sage.modules.diamond_cutting import calculate_voronoi_cell
         sage: V = calculate_voronoi_cell(matrix([[1, 0], [0, 1]]))
         sage: V.volume()
         1

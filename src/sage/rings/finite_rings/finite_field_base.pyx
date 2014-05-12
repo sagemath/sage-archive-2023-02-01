@@ -1024,8 +1024,31 @@ cdef class FiniteField(Field):
           variable names of subfields
 
         - ``implementation`` -- string (optional): specifies how to
-          construct the algebraic closure.  For more details, see
+          construct the algebraic closure.  The only value supported
+          at the moment is ``'pseudo_conway'``.  For more details, see
           :mod:`~sage.rings.algebraic_closure_finite_field`.
+
+        OUTPUT:
+
+        An algebraic closure of ``self``.  Note that mathematically
+        speaking, this is only unique up to *non-unique* isomorphism.
+        To obtain canonically defined algebraic closures, one needs an
+        algorithm that also provides a canonical isomorphism between
+        any two algebraic closures constructed using the algorithm.
+
+        This non-uniqueness problem can in principle be solved by
+        using *Conway polynomials*; see for example [CP]_.  These have
+        the drawback that computing them takes a long time.  Therefore
+        Sage implements a variant called *pseudo-Conway polynomials*,
+        which are easier to compute but do not determine an algebraic
+        closure up to unique isomorphism.
+
+        The output of this method is cached, so that within the same
+        Sage session, calling it multiple times will return the same
+        algebraic closure (i.e. the same Sage object).  Despite this,
+        the non-uniqueness of the current implementation means that
+        coercion and pickling cannot work as one might expect.  See
+        below for an example.
 
         EXAMPLE::
 
@@ -1042,9 +1065,24 @@ cdef class FiniteField(Field):
             sage: Ft.gen(3)
             t3
 
+        Because Sage currently only implements algebraic closures
+        using a non-unique definition (see above), it is currently
+        impossible to implement pickling in such a way that a pickled
+        and unpickled element compares equal to the original::
+
+            sage: F = GF(7).algebraic_closure()
+            sage: x = F.gen(2)
+            sage: loads(dumps(x)) == x
+            False
+
         .. NOTE::
 
             This is currently only implemented for prime fields.
+
+        REFERENCE:
+
+        .. [CP] Wikipedia entry on Conway polynomials,
+           :wikipedia:`Conway_polynomial_(finite_fields)`
 
         TEST::
 

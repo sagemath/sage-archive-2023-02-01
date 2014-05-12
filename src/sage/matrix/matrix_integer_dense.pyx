@@ -148,8 +148,12 @@ cdef extern from "iml.h":
                        mpz_t mp_D)
 
 
-fplll_fp_map = {None:None, 'fp':'double', 'qd':'long double', 'xd':'dpe', 'rr':'mpfr'}
-    
+fplll_fp_map = {None: None,
+                'fp': 'double',
+                'qd': 'long double',
+                'xd': 'dpe',
+                'rr': 'mpfr'}
+
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
     Matrix over the integers.
@@ -2482,7 +2486,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        -  ``delta`` - LLL parameter (default: 0.99)
+        -  ``delta`` - LLL parameter (default: `0.99`)
 
         -  ``fp``
 
@@ -2494,9 +2498,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             - ``'qd1'`` - quad doubles: uses quad_float precision to compute
               Gram-Schmidt, but uses double precision in the search phase of the
-              block reduction algorithm. This seems adequate for most purposes, and
-              is faster than 'qd', which uses quad_float precision uniformly
-              throughout (NTL only)
+              block reduction algorithm. This seems adequate for most purposes,
+              and is faster than ``'qd'``, which uses quad_float precision 
+              uniformly throughout (NTL only).
 
            - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe
 
@@ -2508,7 +2512,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            should be between 2 and the number of rows of ``self`` (default: 10)
 
         NLT SPECIFIC INPUTS:
-        
+
         - ``prune`` - The optional parameter ``prune`` can be set to any
            positive number to invoke the Volume Heuristic from [Schnorr and
            Horner, Eurocrypt '95]. This can significantly reduce the running
@@ -2525,7 +2529,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            edition, Johns Hopkins Univ. Press, 1996].
 
         fpLLL SPECIFIC INPUTS:
-        
+
         - ``precision`` - bit precision to use if ``fp=='rr'`` (default: 0 for automatic choice)
         - ``max_loops`` - maximum number of full loops (default: 0 for no restriction)
         - ``max_time`` - stop after time seconds (up to loop completion) (default: 0 for no restricion)
@@ -2593,33 +2597,43 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             if algorithm == "BKZ_FP":
                 if not use_givens:
-                    r = A.BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.BKZ_FP(U=None, delta=delta, BlockSize=block_size,
+                                 prune=prune, verbose=verbose)
                 else:
-                    r = A.G_BKZ_FP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.G_BKZ_FP(U=None, delta=delta, BlockSize=block_size,
+                                   prune=prune, verbose=verbose)
 
             elif algorithm == "BKZ_QP":
                 if not use_givens:
-                    r = A.BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.BKZ_QP(U=None, delta=delta, BlockSize=block_size,
+                                 prune=prune, verbose=verbose)
                 else:
-                    r = A.G_BKZ_QP(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.G_BKZ_QP(U=None, delta=delta, BlockSize=block_size,
+                                   prune=prune, verbose=verbose)
 
             elif algorithm == "BKZ_QP1":
                 if not use_givens:
-                    r = A.BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.BKZ_QP1(U=None, delta=delta, BlockSize=block_size,
+                                  prune=prune, verbose=verbose)
                 else:
-                    r = A.G_BKZ_QP1(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.G_BKZ_QP1(U=None, delta=delta, BlockSize=block_size,
+                                    prune=prune, verbose=verbose)
 
             elif algorithm == "BKZ_XD":
                 if not use_givens:
-                    r = A.BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.BKZ_XD(U=None, delta=delta, BlockSize=block_size,
+                                 prune=prune, verbose=verbose)
                 else:
-                    r = A.G_BKZ_XD(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.G_BKZ_XD(U=None, delta=delta, BlockSize=block_size,
+                                   prune=prune, verbose=verbose)
 
             elif algorithm == "BKZ_RR":
                 if not use_givens:
-                    r = A.BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.BKZ_RR(U=None, delta=delta, BlockSize=block_size,
+                                 prune=prune, verbose=verbose)
                 else:
-                    r = A.G_BKZ_RR(U=None, delta=delta, BlockSize=block_size, prune=prune, verbose=verbose)
+                    r = A.G_BKZ_RR(U=None, delta=delta, BlockSize=block_size,
+                                   prune=prune, verbose=verbose)
 
             self.cache("rank",ZZ(r))
             R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
@@ -2636,7 +2650,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                   max_time=max_time,
                   max_loops=max_loops,
                   auto_abort=auto_abort)
-            R = A._sage_()            
+            R = A._sage_()
         return R
 
     def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False):
@@ -2692,19 +2706,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``use_siegel`` - use Siegel's condition instead of Lovasz's condition,
           ignored by NTL (default: ``False``)
-        
+
         Also, if the verbose level is = 2, some more verbose output is printed
         during the calculation.
 
         AVAILABLE ALGORITHMS:
 
-        - ``NTL:LLL`` - NTL's LLL + choice of fp
+        - ``NTL:LLL`` - NTL's LLL + choice of ``fp``
 
-        - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of fp
+        - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of ``fp``
 
-        - ``fpLLL:fast`` - fpLLL's fast + choice of fp
+        - ``fpLLL:fast`` - fpLLL's fast + choice of ``fp``
 
-        - ``fpLLL:proved`` - fpLLL's proved + choice of fp
+        - ``fpLLL:proved`` - fpLLL's proved + choice of ``fp``
 
         - ``fpLLL:wrapper`` - fpLLL's automatic choice (default)
 
@@ -2773,7 +2787,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           the used algorithms.
         """
         from sage.libs.fplll.fplll import FP_LLL
-        
+
         if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")
             return self
@@ -2782,10 +2796,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         import sage.libs.ntl.all
         ntl_ZZ = sage.libs.ntl.all.ZZ
 
-        if get_verbose() >= 2:
-            verb = True
-        else:
-            verb = False
+        verb = get_verbose() >= 2
 
         if prec < 0:
             raise TypeError("precision prec must be >= 0")
@@ -2812,9 +2823,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             delta = QQ(delta)
             a = delta.numer()
             b = delta.denom()
-            
+
         else:
-            fp = fplll_fp_map[fp]            
+            fp = fplll_fp_map[fp]
             if delta is None:
                 delta = 0.99
             elif delta <= 0.25:
@@ -2890,9 +2901,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``delta`` - parameter as described above (default: 0.99)
+        - ``delta`` - parameter as described above (default: `0.99`)
 
-        - ``eta`` - parameter as described above (default: 0.501)
+        - ``eta`` - parameter as described above (default: `0.501`)
 
         EXAMPLE::
 
@@ -2907,7 +2918,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if eta is None:
             eta = 0.501
         if delta is None:
-            delta = ZZ(99)/ZZ(100)
+            delta = ZZ(99) / ZZ(100)
 
         if delta <= ZZ(1)/ZZ(4):
             raise TypeError("delta must be > 1/4")
@@ -2938,7 +2949,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``cols`` - a list (or set) of integers representing columns of self.
+        - ``cols`` - a list (or set) of integers representing columns 
+          of ``self``.
 
         OUTPUT: an integer
 

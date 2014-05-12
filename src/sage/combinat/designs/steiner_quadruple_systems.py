@@ -69,7 +69,7 @@ This function redistributes its work among 6 constructions :
     Construction `6` | :func:`twelve_n_minus_ten`   | Returns a Steiner Quadruple System on `12n-10` points
 
 It also defines two specific Steiner Quadruple Systems that the constructions
-require, i.e.`SQS_{14}` and `SQS_{38}` as well as the systems of pairs
+require, i.e. `SQS_{14}` and `SQS_{38}` as well as the systems of pairs
 `P_{\alpha}(m)` and `\overline P_{\alpha}(m)` (see [Hanani60]_).
 
 Functions

@@ -20,13 +20,15 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.categories.sets_cat import Sets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element_wrapper import ElementWrapper
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
     A class implementing a raw data structure for cartesian products
-    of sets (and elements thereof). See
-    :const:`~sage.categories.cartesian_product.cartesian_product` for
+    of sets (and elements thereof). See :obj:`cartesian_product` for
     how to construct full fledge cartesian products.
+
+    .. automethod:: _cartesian_product_of_elements
     """
 
     def __init__(self, sets, category, flatten = False):
@@ -179,7 +181,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
         Return the cartesian product of the given ``elements``.
 
         This implements :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements`.
-        <sage.categories.sets_cat.Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements>`.
 
         INPUT:
 
@@ -207,7 +208,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
-    from sage.structure.element_wrapper import ElementWrapper
     class Element(ElementWrapper):
 
         wrapped_class = tuple

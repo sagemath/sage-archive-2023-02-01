@@ -319,7 +319,9 @@ ext_modules = [
     ################################
 
     Extension('sage.functions.prime_pi',
-        sources = ['sage/functions/prime_pi.pyx']),
+        sources = ['sage/functions/prime_pi.pyx'],
+        libraries = ['pari', 'gmp'],
+        extra_compile_args = ['-std=c99']),
 
      ################################
      ##

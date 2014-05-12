@@ -56,7 +56,6 @@ AUTHORS:
 """
 
 import sys, __builtin__
-from sage.matrix.matrix import is_Matrix
 
 class ListFormatter(object):
 
@@ -229,6 +228,9 @@ class ListFormatter(object):
 
 format_list = ListFormatter()
 
+#reserve is_Matrix module-level global to store sage.matrix.matrix.is_Matrix
+#which needs to be imported later.
+is_Matrix = None
 
 class DisplayHookBase(object):
 
@@ -270,13 +272,21 @@ class DisplayHookBase(object):
             sage: shell.displayhook(type)
             <type 'type'>
         """
+        global is_Matrix
+
         if isinstance(obj, type):
             return repr(obj)
-        # On #15036 we remove the reverse binding lookup for determining
-        # the repr of large matrices because it's slow and inappropriate
-        # to do in a general setting. On top level (such as here, in printing
-        # for top level) it is a little more useful and less time-critical, so
-        # we do it here instead.
+
+        # since #15036, we check in displayhook if a matrix is has
+        # large enough dimensions to be printed in abbreviated form.
+        # If so, we append a helpful message to indicate how to print
+        # the entries of the matrix.
+        # we need to do a late import of the is_Matrix method here to
+        # avoid startup problems.
+
+        if is_Matrix is None:
+            import sage.matrix.matrix
+            is_Matrix = sage.matrix.matrix.is_Matrix
         if is_Matrix(obj):
             from sage.matrix.matrix0 import max_rows,max_cols
             if obj.nrows() >= max_rows or obj.ncols() >= max_cols:

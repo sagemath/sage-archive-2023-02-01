@@ -3002,9 +3002,15 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-
             sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
             True
+
+        A multigraph also has a strong orientation ::
+
+            sage: g = Graph([(1,2),(1,2)])
+            sage: g.strong_orientation()
+            Multi-digraph on 2 vertices
+
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=self.allows_multiple_edges())
@@ -3051,7 +3057,7 @@ class Graph(GenericGraph):
         tmp = None
         for e in self.multiple_edges():
             if tmp == (e[0],e[1]):
-                if d.has_edge(e[0].e[1]):
+                if d.has_edge(e[0],e[1]):
                     d.add_edge(e[1],e[0],e[2])
                 else:
                     d.add_edge(e)

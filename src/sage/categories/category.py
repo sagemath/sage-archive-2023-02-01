@@ -106,7 +106,8 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
 
-from weakref import WeakValueDictionary
+import sage.misc.weak_dict
+from sage.misc.weak_dict import WeakValueDictionary
 _join_cache = WeakValueDictionary()
 
 def _join(categories, as_list):
@@ -493,7 +494,7 @@ class Category(UniqueRepresentation, SageObject):
                 self._label = s
                 self.__repr_object_names = s
             else:
-                raise TypeError, "Argument string must be a string."
+                raise TypeError("Argument string must be a string.")
         self.__class__ = dynamic_class("%s_with_category"%self.__class__.__name__,
                                        (self.__class__, self.subcategory_class, ),
                                        cache = False, reduction = None,
@@ -1544,7 +1545,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         categories = tuple(categories)
         if len(categories) == 0:
-            raise ValueError, "The meet of an empty list of categories is not implemented"
+            raise ValueError("The meet of an empty list of categories is not implemented")
         result = categories[0]
         for category in categories[1:]:
             result = result._meet_(category)
@@ -1694,12 +1695,14 @@ class Category(UniqueRepresentation, SageObject):
         full featured version is available elsewhere in Sage, and
         should be used insted.
 
-        Technical note: by default FooBar(...).example() is
+        Technical note: by default ``FooBar(...).example()`` is
         constructed by looking up
-        sage.categories.examples.foo_bar.Example and calling it as
-        ``Example(category = FooBar)``. Extra positional or named
-        parameters are also passed down. Categories are welcome to
-        override this.
+        ``sage.categories.examples.foo_bar.Example`` and calling it as
+        ``Example()``. Extra positional or named parameters are also
+        passed down. For a category over base ring, the base ring is
+        further passed down as an optional argument.
+
+        Categories are welcome to override this default implementation.
 
         EXAMPLES::
 
@@ -1723,6 +1726,13 @@ class Category(UniqueRepresentation, SageObject):
             cls = module.Example
         except AttributeError:
             return NotImplemented
+        # Add the base ring as optional argument if this is a category over base ring
+        # This really should be in Category_over_base_ring.example,
+        # but that would mean duplicating the documentation above.
+        from category_types import Category_over_base_ring
+        if isinstance(self, Category_over_base_ring): # Huh, smelly Run Time Type Checking, isn't it?
+            if "base_ring" not in keywords:
+                keywords["base_ring"]=self.base_ring()
         return cls(*args, **keywords)
 
 
@@ -1884,7 +1894,7 @@ class HomCategory(Category):
         for C in self._all_super_categories_proper:
             if isinstance(C,Category_over_base):
                 return C.base()
-        raise AttributeError, "This hom category has no base"
+        raise AttributeError("This hom category has no base")
 
     def super_categories(self):
         """
@@ -2181,7 +2191,7 @@ class JoinCategory(CategoryWithParameters):
         # Use __super_categories to not overwrite the lazy attribute Category._super_categories
         # Maybe this would not be needed if the flattening/sorting is does consistently?
         self.__super_categories = list(super_categories)
-        if kwds.has_key('name'):
+        if 'name' in kwds:
             Category.__init__(self, kwds['name'])
         else:
             Category.__init__(self)

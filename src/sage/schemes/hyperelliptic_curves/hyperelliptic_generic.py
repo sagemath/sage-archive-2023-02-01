@@ -72,23 +72,30 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def change_ring(self, R):
         """
-        Returns this HyperEllipticCurve over a new base ring R.
+        Returns this HyperellipticCurve over a new base ring R.
 
         EXAMPLES::
 
-            sage: R.<x> = QQ['x']
-            sage: H = HyperellipticCurve(x^3-10*x+9)
+            sage: R.<x> = QQ[]
+            sage: H = HyperellipticCurve(x^5 - 10*x + 9)
             sage: K = Qp(3,5)
-            sage: J.<a> = K.extension(x^30-3)
+            sage: L.<a> = K.extension(x^30-3)
             sage: HK = H.change_ring(K)
-            sage: HJ = HK.change_ring(J); HJ
-            Hyperelliptic Curve over Eisenstein Extension of 3-adic Field with capped relative precision 5 in a defined by (1 + O(3^5))*x^30 + (O(3^6))*x^29 + (O(3^6))*x^28 + (O(3^6))*x^27 + (O(3^6))*x^26 + (O(3^6))*x^25 + (O(3^6))*x^24 + (O(3^6))*x^23 + (O(3^6))*x^22 + (O(3^6))*x^21 + (O(3^6))*x^20 + (O(3^6))*x^19 + (O(3^6))*x^18 + (O(3^6))*x^17 + (O(3^6))*x^16 + (O(3^6))*x^15 + (O(3^6))*x^14 + (O(3^6))*x^13 + (O(3^6))*x^12 + (O(3^6))*x^11 + (O(3^6))*x^10 + (O(3^6))*x^9 + (O(3^6))*x^8 + (O(3^6))*x^7 + (O(3^6))*x^6 + (O(3^6))*x^5 + (O(3^6))*x^4 + (O(3^6))*x^3 + (O(3^6))*x^2 + (O(3^6))*x + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)) defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^3 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
+            sage: HL = HK.change_ring(L); HL
+            Hyperelliptic Curve over Eisenstein Extension of 3-adic Field with capped relative precision 5 in a defined by (1 + O(3^5))*x^30 + (O(3^6))*x^29 + (O(3^6))*x^28 + (O(3^6))*x^27 + (O(3^6))*x^26 + (O(3^6))*x^25 + (O(3^6))*x^24 + (O(3^6))*x^23 + (O(3^6))*x^22 + (O(3^6))*x^21 + (O(3^6))*x^20 + (O(3^6))*x^19 + (O(3^6))*x^18 + (O(3^6))*x^17 + (O(3^6))*x^16 + (O(3^6))*x^15 + (O(3^6))*x^14 + (O(3^6))*x^13 + (O(3^6))*x^12 + (O(3^6))*x^11 + (O(3^6))*x^10 + (O(3^6))*x^9 + (O(3^6))*x^8 + (O(3^6))*x^7 + (O(3^6))*x^6 + (O(3^6))*x^5 + (O(3^6))*x^4 + (O(3^6))*x^3 + (O(3^6))*x^2 + (O(3^6))*x + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)) defined by (1 + O(a^150))*y^2 = (1 + O(a^150))*x^5 + (2 + 2*a^30 + a^60 + 2*a^90 + 2*a^120 + O(a^150))*x + a^60 + O(a^210)
+
+            sage: R.<x> = FiniteField(7)[]
+            sage: H = HyperellipticCurve(x^8 + x + 5)
+            sage: H.base_extend(FiniteField(7^2, 'a'))
+            Hyperelliptic Curve over Finite Field in a of size 7^2 defined by y^2 = x^8 + x + 5
         """
         from constructor import HyperellipticCurve
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.variable_name()
         x = self._printing_ring.base_ring().variable_name()
-        return HyperellipticCurve(f.change_ring(R), h, "%s,%s"%(x,y))
+        return HyperellipticCurve(f.change_ring(R), h.change_ring(R), "%s,%s"%(x,y))
+
+    base_extend = change_ring
 
     def _repr_(self):
         """
@@ -210,7 +217,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if all:
             return []
         else:
-            raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
+            raise ValueError("No point with x-coordinate %s on %s"%(x, self))
 
 
     def genus(self):
@@ -277,14 +284,14 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         f, h = self._hyperelliptic_polynomials
         if h:
-            raise NotImplementedError, "odd_degree_model only implemented for curves in Weierstrass form"
+            raise NotImplementedError("odd_degree_model only implemented for curves in Weierstrass form")
         if f.degree() % 2:
             # already odd, so just yield self
             return self
 
         rts = f.roots(multiplicities=False)
         if not rts:
-            raise ValueError, "No odd degree model exists over field of definition"
+            raise ValueError("No odd degree model exists over field of definition")
         rt = rts[0]
         x = f.parent().gen()
         fnew =  f((x*rt + 1)/x).numerator() # move rt to "infinity"
@@ -335,7 +342,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def monsky_washnitzer_gens(self):
-        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
         return S.gens()
 
@@ -352,7 +359,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             1 dx/2y
 
         """
-        import sage.schemes.elliptic_curves.monsky_washnitzer as m_w
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as m_w
         S = m_w.SpecialHyperellipticQuotientRing(self)
         MW = m_w.MonskyWashnitzerDifferentialRing(S)
         return MW.invariant_differential()
@@ -396,7 +403,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         d = P[1]
         if d == 0:
-            raise TypeError, "P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P
+            raise TypeError("P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P)
         pol = self.hyperelliptic_polynomials()[0]
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
@@ -450,7 +457,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             - Francis Clarke (2012-08-26)
         """
         if P[1] != 0:
-            raise TypeError, "P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P
+            raise TypeError("P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P)
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
         pol = self.hyperelliptic_polynomials()[0]

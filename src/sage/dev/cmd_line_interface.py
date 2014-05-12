@@ -267,9 +267,14 @@ class CmdLineInterface(UserInterface):
              finally:
                 os.close(fd)
         if dim is None:
+            ret = (0,)
+        else:
+            ret = tuple(int(x) for x in dim)
+        if all(ret):
+            return ret
+        else:
             # fallback values
             return (25, 80)
-        return tuple(int(x) for x in dim)
 
     def _ioctl_GWINSZ(self, fd):
         r"""
@@ -343,8 +348,9 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI.show("I ate {0} for dinner.", 'filet mignon') # indirect doctest
-            I ate filet mignon for dinner.
+            sage: UI.info("I ate {0} for dinner, a whole {1} for dessert, and then took a nice walk around the lake.", 'filet mignon', 'apple pie') # indirect doctest
+            #  I ate filet mignon for dinner, a whole apple pie for dessert, and then took a
+            #  nice walk around the lake.
         """
         if len(args) > 0:
             message = message.format(*args)

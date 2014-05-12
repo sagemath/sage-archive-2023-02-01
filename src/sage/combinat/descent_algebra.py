@@ -14,6 +14,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import subsets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -34,7 +35,10 @@ class DescentAlgebra(Parent, UniqueRepresentation):
     Solomon's descent algebra.
 
     The descent algebra `\Sigma_n` over a ring `R` is a subalgebra of the
-    symmetric group algebra `R S_n`.
+    symmetric group algebra `R S_n`. (The product in the latter algebra
+    is defined by `(pq)(i) = q(p(i))` for any two permutations `p` and
+    `q` in `S_n` and every `i \in \{ 1, 2, \ldots, n \}`. The algebra
+    `\Sigma_n` inherits this product.)
 
     There are three bases currently implemented for `\Sigma_n`:
 
@@ -45,8 +49,13 @@ class DescentAlgebra(Parent, UniqueRepresentation):
       which is used to construct the mutually orthogonal idempotents
       of the symmetric group algebra.
 
-    We follow the notations and conventions in [GR1989]_. In order to use
-    the idempotent basis, we require `R` to be a `\QQ`-algebra.
+    The idempotent basis is only defined when `R` is a `\QQ`-algebra.
+
+    We follow the notations and conventions in [GR1989]_, apart from the
+    order of multiplication being different from the one used in that
+    article. Schocker's exposition [Schocker2004]_, in turn, uses the
+    same order of multiplication as we are, but has different notations
+    for the bases.
 
     INPUT:
 
@@ -68,6 +77,10 @@ class DescentAlgebra(Parent, UniqueRepresentation):
        quasi-symmetric functions and the Solomon descent algebra*,
        Journal of Algebra 177 (1995), no. 3, 967-982.
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf
+
+    .. [Schocker2004] Manfred Schocker, *The descent algebra of the
+       symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.
+       http://www.mathematik.uni-bielefeld.de/~ringel/schocker-neu.ps
 
     EXAMPLES::
 
@@ -155,6 +168,20 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         This basis is indexed by `S \subseteq \{1, 2, \ldots, n-1\}`,
         and the basis vector indexed by `S` is the sum of all permutations,
         taken in the symmetric group algebra `R S_n`, whose descent set is `S`.
+        We denote this basis vector by `D_S`.
+
+        Occasionally this basis appears in literature but indexed by
+        compositions of `n` rather than subsets of
+        `\{1, 2, \ldots, n-1\}`. The equivalence between these two
+        indexings is owed to the bijection from the power set of
+        `\{1, 2, \ldots, n-1\}` to the set of all compositions of `n`
+        which sends every subset `\{i_1, i_2, \ldots, i_k\}` of
+        `\{1, 2, \ldots, n-1\}` (with `i_1 < i_2 < \cdots < i_k`) to
+        the composition `(i_1, i_2-i_1, \ldots, i_k-i_{k-1}, n-i_k)`.
+
+        The basis element corresponding to a composition `p` (or to
+        the subset of `\{1, 2, \ldots, n-1\}`) is denoted `\Delta^p`
+        in [Schocker2004]_.
 
         EXAMPLES::
 
@@ -196,7 +223,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
             # Coercion to symmetric group algebra
             SGA = SymmetricGroupAlgebra(alg.base_ring(), alg._n)
-            self.module_morphism(self.to_symmetric_group_algebra,
+            self.module_morphism(self.to_symmetric_group_algebra_on_basis,
                                  codomain=SGA, category=Algebras(alg.base_ring())
                                  ).register_as_coercion()
 
@@ -288,7 +315,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             C = Compositions(n)
             return B.sum_of_terms([(C.from_subset(T, n), (-1)**(len(S)-len(T))) for T in subsets(S)])
 
-        def to_symmetric_group_algebra(self, S):
+        def to_symmetric_group_algebra_on_basis(self, S):
             """
             Return `D_S` as a linear combination of basis elements in the
             symmetric group algebra.
@@ -296,7 +323,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: D = DescentAlgebra(QQ, 4).D()
-                sage: for b in Subsets(3): D.to_symmetric_group_algebra(tuple(b))
+                sage: for b in Subsets(3): D.to_symmetric_group_algebra_on_basis(tuple(b))
                 [1, 2, 3, 4]
                 [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
                 [1, 3, 2, 4] + [1, 4, 2, 3] + [2, 3, 1, 4] + [2, 4, 1, 3] + [3, 4, 1, 2]
@@ -365,15 +392,19 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         :class:`standard basis <DescentAlgebra.D>`. However it is more
         natural to index the subset basis by compositions
         of `n` under the bijection `\{i_1, i_2, \ldots, i_k\} \mapsto
-        (i_1, i_2 - i_1, i_3 - i_2, \ldots, i_k - i_{k-1}, n - i_k)`,
-        which is what Sage uses to index the basis.
+        (i_1, i_2 - i_1, i_3 - i_2, \ldots, i_k - i_{k-1}, n - i_k)`
+        (where `i_1 < i_2 < \cdots < i_k`), which is what Sage uses to
+        index the basis.
+
+        The basis element `B_p` is denoted `\Xi^p` in [Schocker2004]_.
 
         By using compositions of `n`, the product `B_p B_q` becomes a
-        sum over the non-negative-integer matrices `M` with column sum `p`
-        and row sum `q`. The summand corresponding to `M` is `B_c`, where `c`
-        is the composition obtained by reading `M` row-by-row from
-        left-to-right and top-to-bottom and removing all zeroes. This
-        multiplication rule is commonly called "Solomon's Mackey formula".
+        sum over the non-negative-integer matrices `M` with row sum `p`
+        and column sum `q`. The summand corresponding to `M` is `B_c`,
+        where `c` is the composition obtained by reading `M` row-by-row
+        from left-to-right and top-to-bottom and removing all zeroes.
+        This multiplication rule is commonly called "Solomon's Mackey
+        formula".
 
         EXAMPLES::
 
@@ -562,17 +593,34 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         r"""
         The idempotent basis of a descent algebra.
 
-        The idempotent basis `(I_p)_{p \models n}` is a basis for `\Sigma_n`.
+        The idempotent basis `(I_p)_{p \models n}` is a basis for `\Sigma_n`
+        whenever the ground ring is a `\QQ`-algebra. One way to compute it
+        is using the formula (Theorem 3.3 in [GR1989]_)
+
+        .. MATH::
+
+            I_p = \sum_{q \leq p}
+            \frac{(-1)^{l(q)-l(p)}}{\mathbf{k}(q,p)} B_q,
+
+        where `\leq` is the refinement order and `l(r)` denotes the number
+        of parts of any composition `r`, and where `\mathbf{k}(q,p)` is
+        defined as follows: When `q \leq p`, we can write `q` as a
+        concatenation `q_{(1)} q_{(2)} \cdots q_{(k)}` with each `q_{(i)}`
+        being a composition of the `i`-th entry of `p`, and then
+        we set `\mathbf{k}(q,p)` to be the product
+        `l(q_{(1)}) l(q_{(2)}) \cdots l(q_{(k)})`.
+
         Let `\lambda(p)` denote the partition obtained from a composition
         `p` by sorting. This basis is called the idempotent basis since for
         any `q` such that `\lambda(p) = \lambda(q)`, we have:
 
         .. MATH::
 
-            I_p I_q = s(\lambda) I_q
+            I_p I_q = s(\lambda) I_p
 
         where `\lambda` denotes `\lambda(p) = \lambda(q)`, and where
-        `s(\lambda)` is the stabilizer of `\lambda` in `S_n`.
+        `s(\lambda)` is the stabilizer of `\lambda` in `S_n`. (This is
+        part of Theorem 4.2 in [GR1989]_.)
 
         It is also straightforward to compute the idempotents `E_{\lambda}`
         for the symmetric group algebra by the formula
@@ -635,7 +683,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             """
             # These do not act as orthogonal idempotents, so we have to lift
             #   to the B basis to do the multiplication
-            # TODO: if the partitions of p and q match, return s*I_q where
+            # TODO: if the partitions of p and q match, return s*I_p where
             #   s is the size of the stabilizer of the partition of p
             return self(self.to_B_basis(p)*self.to_B_basis(q))
 
@@ -679,7 +727,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             r"""
             Return `I_p` as a linear combination of `B`-basis elements.
 
-            This is computed using the formula (Theorem 3.4 in [GR1989]_)
+            This is computed using the formula (Theorem 3.3 in [GR1989]_)
 
             .. MATH::
 
@@ -730,7 +778,8 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
         def idempotent(self, la):
             """
-            Return the idemponent corresponding to the partition ``la``.
+            Return the idemponent corresponding to the partition ``la``
+            of `n`.
 
             EXAMPLES::
 
@@ -882,4 +931,63 @@ class DescentAlgebraBases(Category_realization_of_parent):
             """
             return self.base_ring().is_commutative() \
                 and self.realization_of()._n <= 2
+
+        @lazy_attribute
+        def to_symmetric_group_algebra(self):
+            """
+            Morphism from ``self`` to the symmetric group algebra.
+
+            EXAMPLES::
+
+                sage: D = DescentAlgebra(QQ, 4).D()
+                sage: D.to_symmetric_group_algebra(D[1,3])
+                [2, 1, 4, 3] + [3, 1, 4, 2] + [3, 2, 4, 1] + [4, 1, 3, 2] + [4, 2, 3, 1]
+                sage: B = DescentAlgebra(QQ, 4).B()
+                sage: B.to_symmetric_group_algebra(B[1,2,1])
+                [1, 2, 3, 4] + [1, 2, 4, 3] + [1, 3, 4, 2] + [2, 1, 3, 4]
+                 + [2, 1, 4, 3] + [2, 3, 4, 1] + [3, 1, 2, 4] + [3, 1, 4, 2]
+                 + [3, 2, 4, 1] + [4, 1, 2, 3] + [4, 1, 3, 2] + [4, 2, 3, 1]
+            """
+            SGA = SymmetricGroupAlgebra(self.base_ring(), self.realization_of()._n)
+            return self.module_morphism(self.to_symmetric_group_algebra_on_basis, codomain=SGA)
+
+        def to_symmetric_group_algebra_on_basis(self, S):
+            """
+            Return the basis element index by ``S`` as a linear combination
+            of basis elements in the symmetric group algebra.
+
+            EXAMPLES::
+
+                sage: B = DescentAlgebra(QQ, 3).B()
+                sage: for c in Compositions(3): B.to_symmetric_group_algebra_on_basis(c)
+                [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
+                [1, 2, 3] + [2, 1, 3] + [3, 1, 2]
+                [1, 2, 3] + [1, 3, 2] + [2, 3, 1]
+                [1, 2, 3]
+                sage: I = DescentAlgebra(QQ, 3).I()
+                sage: for c in Compositions(3): I.to_symmetric_group_algebra_on_basis(c)
+                [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
+                1/2*[1, 2, 3] - 1/2*[1, 3, 2] + 1/2*[2, 1, 3] - 1/2*[2, 3, 1] + 1/2*[3, 1, 2] - 1/2*[3, 2, 1]
+                1/2*[1, 2, 3] + 1/2*[1, 3, 2] - 1/2*[2, 1, 3] + 1/2*[2, 3, 1] - 1/2*[3, 1, 2] - 1/2*[3, 2, 1]
+                1/3*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] + 1/3*[3, 2, 1]
+            """
+            D = self.realization_of().D()
+            return D.to_symmetric_group_algebra(D(self[S]))
+
+    class ElementMethods:
+        def to_symmetric_group_algebra(self):
+            """
+            Return ``self`` in the symmetric group algebra.
+
+            EXAMPLES::
+
+                sage: B = DescentAlgebra(QQ, 4).B()
+                sage: B[1,3].to_symmetric_group_algebra()
+                [1, 2, 3, 4] + [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
+                sage: I = DescentAlgebra(QQ, 4).I()
+                sage: elt = I(B[1,3])
+                sage: elt.to_symmetric_group_algebra()
+                [1, 2, 3, 4] + [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
+            """
+            return self.parent().to_symmetric_group_algebra(self)
 

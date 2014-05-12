@@ -58,15 +58,12 @@ cdef class PolynomialRealDense(Polynomial):
             Traceback (most recent call last):
             ...
             TypeError: Cannot evaluate symbolic expression to a numeric value.
-            sage: from sage.tests.interrupt import *
             sage: sig_on_count()
             0
-            sage: try:
-            ...    interrupt_after_delay()
-            ...    PolynomialRealDense(RR['x'], ZZ)  # Will loop forever
-            ... except KeyboardInterrupt:
-            ...     print "ok"
-            ok
+            sage: alarm(0.5); PolynomialRealDense(RR['x'], ZZ)  # Will loop forever
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
 
         Test that we don't clean up uninitialized coefficients (#9826)::
 
@@ -76,7 +73,6 @@ cdef class PolynomialRealDense(Polynomial):
             Traceback (most recent call last):
             ...
             TypeError: Unable to convert x (='a') to real number.
-
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._base_ring = parent._base
@@ -468,7 +464,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: g = PolynomialRealDense(RR['x'], [1e30, 1])
             sage: f*g
             x^2 + 1.00000000010000e30*x + 1.00000000000000e50
-            sage: f._mul_karatsuba(g)
+            sage: f._mul_karatsuba(g,0)
             x^2 + 1.00000000000000e50
             sage: f = PolynomialRealDense(RR['x'], range(5))
             sage: g = PolynomialRealDense(RR['x'], range(3))

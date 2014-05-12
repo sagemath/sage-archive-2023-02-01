@@ -319,7 +319,7 @@ class Giac(Expect):
         self._expect.sendline(chr(3))  # send ctrl-c
         self._expect.expect(self._prompt)
 #        self._expect.expect(self._prompt)
-        raise RuntimeError, "Ctrl-c pressed while running %s"%self
+        raise RuntimeError("Ctrl-c pressed while running %s"%self)
 
     def __reduce__(self):
         """
@@ -553,18 +553,21 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             return float(self('time() - %s'%float(t)))
 
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
 
             sage: giac._eval_line('2+2')  # optional - giac
             '4'
+
+            sage: A=matrix([range(280)])  # optional - giac
+            sage: GA=giac(A)              # optional - giac
         """
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
                     wait_for_prompt=wait_for_prompt)
             if z.lower().find("error") != -1:
-                raise RuntimeError, "An error occurred running a Giac command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
+                raise RuntimeError("An error occurred running a Giac command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z))
         return z
 
 
@@ -613,7 +616,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         cmd = '%s:=%s:;'%(var,value)   #if giac is not in maple mode ( maple_mode(0))
         out = self.eval(cmd)
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Giac\nCODE:\n\t%s\nGiac ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Giac\nCODE:\n\t%s\nGiac ERROR:\n\t%s"%(cmd, out))
 
 
     def get(self, var):
@@ -886,7 +889,7 @@ class GiacElement(ExpectElement):
         try:
             if P.eval("evalb(%s %s %s)"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
                 return -1
-        except RuntimeError, e:
+        except RuntimeError as e:
             msg = str(e)
             if 'is not valid' in msg and 'to < or <=' in msg:
                 if (hash(str(self)) < hash(str(other))):
@@ -894,7 +897,7 @@ class GiacElement(ExpectElement):
                 else:
                     return 1
             else:
-                raise RuntimeError, e
+                raise RuntimeError(e)
         if P.eval("evalb(%s %s %s)"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
         # everything is supposed to be comparable in Python, so we define
@@ -1045,8 +1048,8 @@ class GiacElement(ExpectElement):
             try:
                 from sage.symbolic.all import SR
                 return SR(result)
-            except StandardError:
-                raise NotImplementedError, "Unable to parse Giac output: %s" % result
+            except Exception:
+                raise NotImplementedError("Unable to parse Giac output: %s" % result)
         else:
             return [entry.sage() for entry in self]
 
@@ -1087,7 +1090,7 @@ class GiacElement(ExpectElement):
             return giac('int(%s,%s)'%(self.name(),var))
         else:
             if max is None:
-                raise ValueError, "neither or both of min/max must be specified."
+                raise ValueError("neither or both of min/max must be specified.")
         return giac('int(%s,%s,%s,%s)'%(self.name(),var,giac(min),giac(max)))
 
     integrate=integral
@@ -1119,7 +1122,7 @@ class GiacElement(ExpectElement):
             return giac('sum(%s,%s)'%(self.name(),var))
         else:
             if max is None:
-                raise ValueError, "neither or both of min/max must be specified."
+                raise ValueError("neither or both of min/max must be specified.")
             return giac('sum(%s,%s,%s,%s)'%(self.name(),var,giac(min),giac(max)))
 
 

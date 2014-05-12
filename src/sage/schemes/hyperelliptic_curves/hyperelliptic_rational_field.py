@@ -9,7 +9,7 @@ Hyperelliptic curves over the rationals
 #*****************************************************************************
 
 import hyperelliptic_generic
-from sage.rings.all import is_pAdicField, is_pAdicRing, pAdicField
+from sage.rings.padics.all import is_pAdicField, is_pAdicRing, pAdicField
 
 class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve_generic):
 
@@ -23,7 +23,7 @@ class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve
             x = self._printing_ring.base_ring().gen()
             return HyperellipticCurve(f.change_ring(R), h, "%s,%s"%(x,y))
 
-        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as monsky_washnitzer
         if is_pAdicField(p) or is_pAdicRing(p):
             K = p
         else:

@@ -30,11 +30,12 @@ graphs. Here is what they can do
     :meth:`~DiGraph.outgoing_edge_iterator` | Return an iterator over all departing edges from vertices
     :meth:`~DiGraph.incoming_edges` | Returns a list of edges arriving at vertices.
     :meth:`~DiGraph.incoming_edge_iterator` | Return an iterator over all arriving edges from vertices
+    :meth:`~DiGraph.sources` | Returns the list of all sources (vertices without incoming edges) of this digraph.
+    :meth:`~DiGraph.sinks` | Returns the list of all sinks (vertices without outoing edges) of this digraph.
     :meth:`~DiGraph.to_undirected` | Returns an undirected version of the graph.
     :meth:`~DiGraph.to_directed` | Since the graph is already directed, simply returns a copy of itself.
     :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
     :meth:`~DiGraph.dig6_string` | Returns the dig6 representation of the digraph as an ASCII string.
-
 
 **Paths and cycles:**
 
@@ -48,6 +49,14 @@ graphs. Here is what they can do
     :meth:`~DiGraph.all_cycles_iterator` | Returns an iterator over all the cycles of self starting
     :meth:`~DiGraph.all_simple_cycles` | Returns a list of all simple cycles of self.
 
+**Representation theory:**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~Digraph.path_semigroup` | Returns the (partial) semigroup formed by the paths of the digraph.
 
 **Connectivity:**
 
@@ -72,10 +81,10 @@ graphs. Here is what they can do
 
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
+    :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
     :meth:`~DiGraph.topological_sort` | Returns a topological sort of the digraph if it is acyclic
-
 
 **Hard stuff:**
 
@@ -253,9 +262,15 @@ class DiGraph(GenericGraph):
 
        * ``"static_sparse"`` -- selects the
          :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
-         than the sparse backend and smaller in memory, but it is immutable).
+         than the sparse backend and smaller in memory, and it is immutable, so
+         that the resulting graphs can be used as dictionary keys).
 
        *Only available when* ``implementation == 'c_graph'``
+
+    - ``immutable`` (boolean) -- whether to create a immutable digraph. Note
+      that ``immutable=True`` is actually a shortcut for
+      ``data_structure='static_sparse'``. Set to ``False`` by default, only
+      available when ``implementation='c_graph'``
 
     -  ``vertex_labels`` - only for implementation == 'c_graph'.
        Whether to allow any object as a vertex (slower), or
@@ -411,6 +426,36 @@ class DiGraph(GenericGraph):
         sage: D._boundary
         []
 
+    Demonstrate that digraphs using the static backend are equal to mutable
+    graphs but can be used as dictionary keys::
+
+        sage: import networkx
+        sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
+        sage: G = DiGraph(g, implementation='networkx')
+        sage: G_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm = DiGraph(G, data_structure="static_sparse")
+        sage: H_imm is G_imm
+        False
+        sage: H_imm == G_imm == G
+        True
+        sage: {G_imm:1}[H_imm]
+        1
+        sage: {G_imm:1}[G]
+        Traceback (most recent call last):
+        ...
+        TypeError: This graph is mutable, and thus not hashable. Create an
+        immutable copy by `g.copy(immutable=True)`
+
+    The error message states that one can also create immutable graphs by
+    specifying the ``immutable`` optional argument (not only by
+    ``data_structure='static_sparse'`` as above)::
+
+        sage: J_imm = DiGraph(G, immutable=True)
+        sage: J_imm == G_imm
+        True
+        sage: type(J_imm._backend) == type(G_imm._backend)
+        True
+
     """
     _directed = True
 
@@ -418,7 +463,7 @@ class DiGraph(GenericGraph):
                  boundary=None, weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
-                 sparse=True):
+                 sparse=True, immutable=False):
         """
         TESTS::
 
@@ -484,6 +529,40 @@ class DiGraph(GenericGraph):
             sage: grafo4 = DiGraph(matad,format = "adjacency_matrix", weighted=True)
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
+
+        Building a DiGraph with ``immutable=False`` returns a mutable graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g = DiGraph(g.edges(),immutable=False)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
+            sage: {g:1}[g]
+            Traceback (most recent call last):
+            ...
+            TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
+            sage: copy(g) is g
+            False
+            sage: {g.copy(immutable=True):1}[g.copy(immutable=True)]
+            1
+
+        But building it with ``immutable=True`` returns an immutable graph::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), immutable=True)
+            sage: g.add_edge("Hey", "Heyyyyyyy")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: {g:1}[g]
+            1
+            sage: copy(g) is g
+            True
+
+        Check the error when multiple edges are sent but ``multiple_edges`` is
+        set to ``False`` (:trac:`16215`)::
+
+            sage: DiGraph([(0,1),(1,0),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multidigraph got several edges (0,1)
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -660,7 +739,7 @@ class DiGraph(GenericGraph):
                 try:
                     e = int(e)
                     assert e >= 0
-                except StandardError:
+                except Exception:
                     if weighted is False:
                         raise ValueError("Non-weighted digraph's"+
                         " adjacency matrix must have only nonnegative"+
@@ -691,8 +770,7 @@ class DiGraph(GenericGraph):
                     if len(NZ) != 2:
                         msg += "There must be two nonzero entries (-1 & 1) per column."
                         assert False
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
                     if L != [-1,0,1]:
                         msg += "Each column represents an edge: -1 goes to 1."
                         assert False
@@ -771,7 +849,8 @@ class DiGraph(GenericGraph):
                 verts = verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        raise ValueError("Non-multidigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
@@ -823,6 +902,9 @@ class DiGraph(GenericGraph):
                 if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
 
+            if immutable:
+                data_structure = 'static_sparse'
+
             # If the data structure is static_sparse, we first build a graph
             # using the sparse data structure, then reencode the resulting graph
             # as a static sparse graph.
@@ -853,7 +935,6 @@ class DiGraph(GenericGraph):
                 self._weighted = weighted
                 self.allow_loops(loops, check=False)
                 self.allow_multiple_edges(multiedges, check=False)
-            self._backend.directed = True
         else:
             raise NotImplementedError("Supported implementations: networkx, c_graph.")
 
@@ -917,6 +998,7 @@ class DiGraph(GenericGraph):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
             self._backend = ib
+            self._immutable = True
 
     ### Formats
     def dig6_string(self):
@@ -1027,6 +1109,18 @@ class DiGraph(GenericGraph):
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
             ...        for i in range(50))                              # long time
             True
+
+        TESTS:
+
+        What about loops?::
+
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: g.allow_loops(True)
+            sage: g.is_directed_acyclic()
+            True
+            sage: g.add_edge(0,0)
+            sage: g.is_directed_acyclic()
+            False
         """
         return self._backend.is_directed_acyclic(certificate = certificate)
 
@@ -1465,6 +1559,44 @@ class DiGraph(GenericGraph):
         """
         return sorted(self.out_degree_iterator(), reverse=True)
 
+    def sources(self):
+        r"""
+        Returns a list of sources of the digraph.
+
+        OUTPUT:
+
+        - list, the vertices of the digraph that have no edges going into them
+
+        EXAMPLES::
+
+            sage: G = DiGraph({1:{3:['a']}, 2:{3:['b']}})
+            sage: G.sources()
+            [1, 2]
+            sage: T = DiGraph({1:{}})
+            sage: T.sources()
+            [1]
+        """
+        return [x for x in self if self.in_degree(x)==0]
+
+    def sinks(self):
+        """
+        Returns a list of sinks of the digraph.
+
+        OUTPUT:
+
+        - list, the vertices of the digraph that have no edges beginning at them
+
+        EXAMPLES::
+
+            sage: G = DiGraph({1:{3:['a']}, 2:{3:['b']}})
+            sage: G.sinks()
+            [3]
+            sage: T = DiGraph({1:{}})
+            sage: T.sinks()
+            [1]
+        """
+        return [x for x in self if self.out_degree(x)==0]
+
 
     def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""
@@ -1595,11 +1727,11 @@ class DiGraph(GenericGraph):
                                           maximization = False)
 
             # An variable for each edge
-            b = p.new_variable(binary = True, dim = 2)
+            b = p.new_variable(binary = True)
 
             # Variables are binary, and their coefficient in the objective is 1
 
-            p.set_objective( p.sum( b[u][v]
+            p.set_objective( p.sum( b[u,v]
                                   for u,v in self.edges(labels = False)))
 
             p.solve(log = verbose)
@@ -1611,7 +1743,7 @@ class DiGraph(GenericGraph):
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
                 for u,v in self.edges(labels = False):
-                    if p.get_values(b[u][v]) < .5:
+                    if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
                 # Is the digraph acyclic ?
@@ -1628,7 +1760,7 @@ class DiGraph(GenericGraph):
                 # constraint !
 
                 p.add_constraint(
-                    p.sum( b[u][v] for u,v in
+                    p.sum( b[u,v] for u,v in
                          zip(certificate, certificate[1:] + [certificate[0]])),
                     min = 1)
 
@@ -1641,7 +1773,7 @@ class DiGraph(GenericGraph):
 
                 # listing the edges contained in the MFAS
                 return [(u,v) for u,v in self.edges(labels = False)
-                        if p.get_values(b[u][v]) > .5]
+                        if p.get_values(b[u,v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1858,20 +1990,20 @@ class DiGraph(GenericGraph):
             if v is None:
                 try:
                     u, v, label = u
-                except StandardError:
+                except Exception:
                     try:
                         u, v = u
-                    except StandardError:
+                    except Exception:
                         pass
         else:
             if v is None:
                 try:
                     u, v = u
-                except StandardError:
+                except Exception:
                     pass
 
         if not self.has_edge(u,v,label):
-            raise ValueError, "Input edge must exist in the digraph."
+            raise ValueError("Input edge must exist in the digraph.")
 
         tempG = self if inplace else self.copy()
 
@@ -2755,6 +2887,24 @@ class DiGraph(GenericGraph):
         """
         return list(self.all_cycles_iterator(starting_vertices=starting_vertices, simple=True, rooted=rooted, max_length=max_length, trivial=trivial))
 
+    def path_semigroup(self):
+        """
+        The partial semigroup formed by the paths of this quiver.
+
+        EXAMPLES::
+
+            sage: Q = DiGraph({1:{2:['a','c']}, 2:{3:['b']}})
+            sage: F = Q.path_semigroup(); F
+            Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices
+            sage: list(F)
+            [e_1, e_2, e_3, a, c, b, a*b, c*b]
+
+        """
+        from sage.quivers.path_semigroup import PathSemigroup
+        # If self is immutable, then the copy is really cheap:
+        # __copy__ just returns self.
+        return PathSemigroup(self.copy(immutable=True))
+
     ### Directed Acyclic Graphs (DAGs)
 
     def topological_sort(self, implementation = "default"):
@@ -3238,6 +3388,33 @@ class DiGraph(GenericGraph):
 
         except AttributeError:
             return len(self.strongly_connected_components()) == 1
+
+    def is_aperiodic(self):
+        r"""
+        Return whether the current ``DiGraph`` is aperiodic.
+
+        A directed graph is aperiodic if there is no integer ``k > 1``
+        that divides the length of every cycle in the graph, cf.
+        :wikipedia:`Aperiodic_graph`.
+
+        EXAMPLES:
+
+        The following graph has period ``2``, so it is not aperiodic::
+
+            sage: g = DiGraph({ 0: [1], 1: [0] })
+            sage: g.is_aperiodic()
+            False
+
+        The following graph has a cycle of length 2 and a cycle of length 3,
+        so it is aperiodic::
+
+            sage: g = DiGraph({ 0: [1, 4], 1: [2], 2: [0], 4: [0]})
+            sage: g.is_aperiodic()
+            True
+
+        """
+        import networkx
+        return networkx.is_aperiodic(self.networkx_graph(copy=False))
 
 import types
 

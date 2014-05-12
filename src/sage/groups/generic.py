@@ -175,8 +175,8 @@ def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
         inverse  = neg
         op = add
     else:
-        if identity==None or inverse==None or op==None:
-            raise ValueError, "identity, inverse and operation must all be specified"
+        if identity is None or inverse is None or op is None:
+            raise ValueError("identity, inverse and operation must all be specified")
 
     if n == 0:
         return identity
@@ -308,22 +308,22 @@ class multiples:
           ``P0`` must be supplied.
         """
         if n<0:
-            raise ValueError, 'n cannot be negative in multiples'
+            raise ValueError('n cannot be negative in multiples')
 
         from operator import mul, add
 
         if operation in multiplication_names:
-            if P0==None: P0 = P.parent()(1)
+            if P0 is None: P0 = P.parent()(1)
             self.op = mul
         elif operation in addition_names:
-            if P0==None: P0 = P.parent()(0)
+            if P0 is None: P0 = P.parent()(0)
             self.op = add
         else:
             self.op = op
-            if P0==None:
-                raise ValueError, "P0 must be supplied when operation is neither addition nor multiplication"
-            if op==None:
-                raise ValueError, "op() must both be supplied when operation is neither addition nor multiplication"
+            if P0 is None:
+                raise ValueError("P0 must be supplied when operation is neither addition nor multiplication")
+            if op is None:
+                raise ValueError("op() must both be supplied when operation is neither addition nor multiplication")
 
         self.P=copy(P)
         self.Q=copy(P0)
@@ -417,12 +417,14 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     An additive example in an elliptic curve group::
 
-        sage: F.<a>=GF(37^5,'a')
-        sage: E=EllipticCurve(F,[1,1])
-        sage: P=E.lift_x(a); P
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
+        sage: F.<a> = GF(37^5)
+        sage: E = EllipticCurve(F, [1,1])
+        sage: P = E.lift_x(a); P
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)  # 32-bit
+        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)  # 64-bit
 
-        This will return a multiple of the order of P:
+    This will return a multiple of the order of P::
+
         sage: bsgs(P,P.parent()(0),Hasse_bounds(F.order()),operation='+')
         69327408
 
@@ -443,15 +445,15 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         inverse  = neg
         op = add
     else:
-        if identity==None or inverse==None or op==None:
-            raise ValueError, "identity, inverse and operation must be given"
+        if identity is None or inverse is None or op is None:
+            raise ValueError("identity, inverse and operation must be given")
 
     lb, ub = bounds
     if lb<0 or ub<lb:
-        raise ValueError, "bsgs() requires 0<=lb<=ub"
+        raise ValueError("bsgs() requires 0<=lb<=ub")
 
     if a.is_zero() and not b.is_zero():
-        raise ValueError, "No solution in bsgs()"
+        raise ValueError("No solution in bsgs()")
 
     ran = 1 + ub - lb   # the length of the interval
 
@@ -466,7 +468,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
             if identity == d:        # identity == b^(-1)*a^i, so return i
                 return Z(i)
             d = op(a,d)
-        raise ValueError, "No solution in bsgs()"
+        raise ValueError("No solution in bsgs()")
 
     m = ran.isqrt()+1  # we need sqrt(ran) rounded up
     table = dict()     # will hold pairs (a^(lb+i),lb+i) for i in range(m)
@@ -483,11 +485,11 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     d=identity
     for i in misc.srange(m):
         j = table.get(d)
-        if not j==None:  # then d == b*a**(-i*m) == a**j
+        if j is not None:  # then d == b*a**(-i*m) == a**j
             return Z(i*m + j)
         d=op(c,d)
 
-    raise ValueError, "Log of %s to the base %s does not exist in %s."%(b,a,bounds)
+    raise ValueError("Log of %s to the base %s does not exist in %s."%(b,a,bounds))
 
 def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     """
@@ -498,18 +500,20 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
 
     INPUT:
 
-    - a - a group element
-    - base - a group element
-    - ord - the order of base or None, in this case we try to compute it
-    - operation - a string  (default: '*')  wether we are in an
-       additive group or a multiplicative one
-    - hash_function - having an efficient hash function is critical
-       for this algorithm (see examples)
+    - ``a`` -- a group element
+    - ``base`` -- a group element
+    - ``ord`` -- the order of ``base`` or ``None``, in this case we try
+      to compute it
+    - ``operation`` -- a string (default: ``'*'``) denoting whether we
+      are in an additive group or a multiplicative one
+    - ``hash_function`` -- having an efficient hash function is critical
+      for this algorithm (see examples)
 
-    OUTPUT: return an integer $n$ such that `a=base^n` (or `a=n*base`)
+    OUTPUT: an integer `n` such that `a = base^n` (or `a = n*base`)
 
-    ALGORITHM: Pollard rho for discrete logarithm, adapted from the article of Edlyn Teske,
-    'A space efficient algorithm for group structure computation'
+    ALGORITHM: Pollard rho for discrete logarithm, adapted from the
+    article of Edlyn Teske, 'A space efficient algorithm for group
+    structure computation'.
 
     EXAMPLES::
 
@@ -518,9 +522,9 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         sage: discrete_log_rho(g^1234, g)
         1234
 
-        sage: F.<a> = GF(37^5, 'a')
+        sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
-        sage: G = 3*31*2^4*E.lift_x(a)
+        sage: G = (3*31*2^4)*E.lift_x(a)
         sage: discrete_log_rho(12345*G, G, ord=46591, operation='+')
         12345
 
@@ -547,15 +551,15 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         ValueError: Pollard rho algorithm failed to find a logarithm
 
     The main limitation on the hash function is that we don't want to have
-    `hash(x*y) = hash(x)+hash(y)`::
+    `hash(x*y) = hash(x) + hash(y)`::
 
         sage: I = IntegerModRing(next_prime(2^23))
         sage: def test():
-        ...       try:
-        ...            discrete_log_rho(I(123456),I(1),operation='+')
-        ...       except StandardError:
-        ...            print "FAILURE"
-        sage: test() # random failure
+        ....:     try:
+        ....:          discrete_log_rho(I(123456),I(1),operation='+')
+        ....:     except Exception:
+        ....:          print "FAILURE"
+        sage: test()  # random failure
         FAILURE
 
     If this happens, we can provide a better hash function::
@@ -573,26 +577,26 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     from operator import mul, add, pow
 
     # should be reasonable choices
-    partition_size=20
-    memory_size=4
+    partition_size = 20
+    memory_size = 4
 
     if operation in addition_names:
-        mult=add
-        power=mul
-        if ord==None:
-            ord=base.additive_order()
+        mult = add
+        power = mul
+        if ord is None:
+            ord = base.additive_order()
     elif operation in multiplication_names:
-        mult=mul
-        power=pow
-        if ord==None:
-            ord=base.multiplicative_order()
+        mult = mul
+        power = pow
+        if ord is None:
+            ord = base.multiplicative_order()
     else:
-        raise(ValueError, "unknown operation")
+        raise ValueError
 
     ord = Integer(ord)
 
     if not ord.is_prime():
-        raise ValueError,"for Pollard rho algorithm the order of the group must be prime"
+        raise ValueError("for Pollard rho algorithm the order of the group must be prime")
 
     # check if we need to set immutable before hashing
     mut = hasattr(base,'set_immutable')
@@ -649,8 +653,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
                 nextsigma = 3*sigma[i0][0] #3 seems a good choice
                 H[x]=(ax,bx)
 
-    raise ValueError, "Pollard rho algorithm failed to find a logarithm"
-
+    raise ValueError("Pollard rho algorithm failed to find a logarithm")
 
 def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -778,22 +781,22 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - John Cremona (2008-02-29) rewrite using ``dict()`` and make generic
 
     """
-    if ord == None:
+    if ord is None:
         if operation in multiplication_names:
             try:
                 ord = base.multiplicative_order()
-            except StandardError:
+            except Exception:
                 ord = base.order()
         elif operation in addition_names:
             try:
                 ord = base.additive_order()
-            except StandardError:
+            except Exception:
                 ord = base.order()
         else:
             try:
                 ord = base.order()
-            except StandardError:
-                raise ValueError, "ord must be specified"
+            except Exception:
+                raise ValueError("ord must be specified")
     try:
         from sage.rings.infinity import Infinity
         if ord==+Infinity:
@@ -813,7 +816,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         from sage.rings.arith import CRT_list
         return  CRT_list(l,[pi**ri for pi,ri in f])
     except ValueError:
-        raise ValueError, "No discrete log of %s found to base %s"%(a,base)
+        raise ValueError("No discrete log of %s found to base %s"%(a,base))
 
 def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     """
@@ -827,6 +830,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
     only a logarithmic amount of memory. It's useful if you have
     bounds on the logarithm. If you are computing logarithms in a
     whole finite group, you should use Pollard Rho algorithm.
+
     INPUT:
 
     - a - a group element
@@ -846,10 +850,11 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         sage: discrete_log_lambda(a^1234567, a, (1200000,1250000))
         1234567
 
-        sage: F.<a> = GF(37^5, 'a')
+        sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
-        sage: P=E.lift_x(a); P
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
+        sage: P = E.lift_x(a); P
+        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)  # 32-bit
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)  # 64-bit
 
     This will return a multiple of the order of P::
 
@@ -876,11 +881,11 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         mult=mul
         power=pow
     else:
-        raise(ValueError, "unknown operation")
+        raise ValueError("unknown operation")
 
     lb,ub = bounds
     if lb<0 or ub<lb:
-        raise ValueError, "discrete_log_lambda() requires 0<=lb<=ub"
+        raise ValueError("discrete_log_lambda() requires 0<=lb<=ub")
 
     # check for mutability
     mut = hasattr(base,'set_immutable')
@@ -917,174 +922,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
             H = mult(H,e)
             d += r
 
-    raise ValueError, "Pollard Lambda failed to find a log"
-
-################################################################
-#
-# Older version of discrete_log.  Works fine but has been
-# superceded by the version which simply calls the more general
-# bsgs() function.
-#
-################################################################
-
-# def old_discrete_log(a, base, ord=None, operation='*',
-#                          identity=None, inverse=None, op=None):
-#     r"""
-#     Totally generic discrete log function.
-
-#     a and base must be elements of some group with identity given by
-#     identity, inverse of x by inverse(x), and group operation on x,y
-#     by op(x,y).
-
-#     If operation is '*' or '+' then the other
-#     arguments are provided automatically; otherwise they must be
-#     provided by the caller.
-
-#     WARNING: If x has a log method, it is likely to be vastly faster
-#     than using this function.  E.g., if x is an integer modulo n, use
-#     its log method instead!
-
-#     INPUT:
-#         a    -- group element
-#         base -- group element (the base)
-#         ord  -- integer (multiple of order of base, or None)
-#         operation -- string: '*', '+', 'other'
-#         identity -- the group's identity
-#         inverse()  -- function of 1 argument x returning inverse of x
-#         op() -- function of 2 arguments x,y returning x*y in group
-
-#     OUTPUT:
-#         Returns an integer $n$ such that $b^n = a$ (or $n*b = a$),
-#         assuming that ord is a multiple of the order of the base $b$.
-#         If ord is not specified an attempt is made to compute it.
-
-#         If no such $n$ exists, this function raises a ValueError exception.
-
-#     ALGORITHM: Baby step giant step.
-
-#     EXAMPLES:
-#         sage: b = Mod(2,37);  a = b^20
-#         sage: old_discrete_log(a, b)
-#         20
-#         sage: b = Mod(2,997);  a = b^20
-#         sage: old_discrete_log(a, b)
-#         20
-
-#         sage: K = GF(3^6,'b')
-#         sage: b = K.gen()
-#         sage: a = b^210
-#         sage: old_discrete_log(a, b, K.order()-1)
-#         210
-
-#         sage: b = Mod(1,37);  x = Mod(2,37)
-#         sage: old_discrete_log(x, b)
-#         Traceback (most recent call last):
-#         ...
-#         ValueError: Log of 2 to the base 1 does not exist.
-#         sage: b = Mod(1,997);  x = Mod(2,997)
-#         sage: old_discrete_log(x, b)
-#         Traceback (most recent call last):
-#         ...
-#         ValueError: Log of 2 to the base 1 does not exist.
-
-#         See trac\#2356:
-#         sage: F.<w> = GF(121)
-#         sage: v = w^120
-#         sage: v.log(w)
-#         0
-
-#         sage: K.<z>=CyclotomicField(230)
-#         sage: w=z^50
-#         sage: old_discrete_log(w,z)
-#         50
-
-#         An example where the order is infinite: note that we must give
-#         an upper bound here:
-#         sage: K.<a> = QuadraticField(23)
-#         sage: eps = 5*a-24        # a fundamental unit
-#         sage: eps.multiplicative_order()
-#         +Infinity
-#         sage: eta = eps^100
-#         sage: old_discrete_log(eta,eps,1000)
-#         100
-
-#         In this case we cannot detect negative powers:
-#         sage: eta = eps^(-3)
-#         sage: old_discrete_log(eta,eps,100)
-#         Traceback (most recent call last):
-#         ...
-#         ValueError: Log of -11515*a - 55224 to the base 5*a - 24 does not exist.
-
-#         But we can invert the base (and negate the result) instead:
-#         sage: - old_discrete_log(eta^-1,eps,100)
-#         -3
-
-#         An additive example: elliptic curve DLOG:
-#         sage: F=GF(37^2,'a')
-#         sage: E=EllipticCurve(F,[1,1])
-#         sage: F.<a>=GF(37^2,'a')
-#         sage: E=EllipticCurve(F,[1,1])
-#         sage: P=E(25*a + 16 , 15*a + 7 )
-#         sage: P.order()
-#         672
-#         sage: Q=39*P; Q
-#         (36*a + 32 : 5*a + 12 : 1)
-#         sage: old_discrete_log(Q,P,P.order(),'+')
-#         39
-
-#     AUTHOR:
-#         -- William Stein and David Joyner (2005-01-05)
-#         -- John Cremona (2008-02-29) rewrite using dict() and make generic
-#     """
-#     Z = integer_ring.ZZ
-#     b = base
-
-#     from operator import inv, mul, neg, add
-
-#     if operation in multiplication_names:
-#         identity = b.parent()(1)
-#         inverse  = inv
-#         op = mul
-#         if ord==None:
-#             ord = b.multiplicative_order()
-#     elif operation in addition_names:
-#         identity = b.parent()(0)
-#         inverse  = neg
-#         op = add
-#         if ord==None:
-#             ord = b.order()
-#     else:
-#         if ord==None or identity==None or inverse==None or op==None:
-#             raise ValueError, "order, identity, inverse and operation must all be specified"
-
-#     ord = Z(ord)
-#     if ord < 100:
-#         c = identity
-#         for i in range(ord):
-#             if c == a:        # is b^i
-#                 return Z(i)
-#             c = op(c,b)
-#         raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
-#     m = ord.isqrt()+1  # we need sqrt(ord) rounded up
-#     table = dict()     # will hold pairs (b^j,j) for j in range(m)
-#     g = identity       # will run through b**j
-#     for j in range(m):
-#         if a==g:
-#             return Z(j)
-#         table[g] = j
-#         g = op(g,b)
-
-#     g = inverse(g)     # this is now b**(-m)
-#     h = op(a,g)        # will run through a*g**i = a*b**(-i*m)
-#     for i in range(1,m):
-#         j = table.get(h)
-#         if not j==None:  # then a*b**(-i*m) == b**j
-#             return Z(i*m + j)
-#         if i < m-1:
-#             h = op(h,g)
-
-#     raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+    raise ValueError("Pollard Lambda failed to find a log")
 
 
 ################################################################
@@ -1146,7 +984,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         try:
             n = P.multiplicative_order()
             m = Q.multiplicative_order()
-        except StandardError:
+        except Exception:
             n = P.order()
             m = Q.order()
     elif operation in addition_names:
@@ -1154,12 +992,12 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
         try:
             n = P.additive_order()
             m = Q.additive_order()
-        except StandardError:
+        except Exception:
             n = P.order()
             m = Q.order()
     else:
-        if op==None:
-            raise ValueError, "operation must be specified"
+        if op is None:
+            raise ValueError("operation must be specified")
         n = P.order()
         m = Q.order()
 
@@ -1179,7 +1017,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
                     m1 * h)
         except ValueError:
             pass # to next h
-    raise ValueError, "No solution found in linear_relation!"
+    raise ValueError("No solution found in linear_relation!")
 
 ################################################################
 #
@@ -1255,7 +1093,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
     elif operation in addition_names:
         identity = P.parent()(0)
     else:
-        raise ValueError, "unknown group operation"
+        raise ValueError("unknown group operation")
 
     if P == identity:
         return Z(1)
@@ -1389,11 +1227,11 @@ def order_from_bounds(P, bounds, d=None, operation='+',
         op = add
         identity = P.parent()(0)
     else:
-        if op==None:
-            raise ValueError, "operation and identity must be specified"
+        if op is None:
+            raise ValueError("operation and identity must be specified")
 
     Q = P
-    if d == None: d = 1
+    if d is None: d = 1
     if d > 1:
         Q = multiple(P,d,operation=operation)
         lb, ub = bounds
@@ -1472,8 +1310,8 @@ def merge_points(P1,P2, operation='+',
         op = add
         identity = g1.parent()(0)
     else:
-        if op==None:
-            raise ValueError, "operation and identity must be specified"
+        if op is None:
+            raise ValueError("operation and identity must be specified")
 
     if check:
         assert multiple(g1,n1,operation=operation) == identity
@@ -1491,4 +1329,3 @@ def merge_points(P1,P2, operation='+',
     g1 = multiple(g1,m1,operation=operation)
     g2 = multiple(g2,m2,operation=operation)
     return (op(g1,g2), m)
-

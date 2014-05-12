@@ -5,6 +5,8 @@ AUTHORS:
 
 - Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
 - Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
+- Syed Ahmad Lavasani: Added function field to _singular_init_ (2011-12-16)
+       Added non-prime finite fields to _singular_init_ (2012-1-22)
 
 TESTS::
 
@@ -46,7 +48,10 @@ from sage.rings.complex_double import is_ComplexDoubleField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.real_double import is_RealDoubleField
 from sage.rings.rational_field import is_RationalField
+from sage.rings.function_field.function_field import is_RationalFunctionField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.integer_ring import ZZ
+
 import sage.rings.arith
 import sage.rings.finite_rings.constructor
 
@@ -168,6 +173,21 @@ class PolynomialRing_singular_repr:
             //                  : names    x y
             //        block   2 : ordering C
 
+            sage: k.<a> = FiniteField(25)
+            sage: R = k['x']
+            sage: K = R.fraction_field()
+            sage: S = K['y']
+            sage: singular(S)
+            //   characteristic : 5
+            //   1 parameter    : x
+            //   minpoly        : 0
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    a y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=a2-a+2
+
         .. warning::
 
             - If the base ring is a finite extension field or a number field
@@ -208,7 +228,7 @@ class PolynomialRing_singular_repr:
             //        block   2 : ordering C
         """
         if not can_convert_to_singular(self):
-            raise TypeError, "no conversion of this ring to a Singular ring defined"
+            raise TypeError("no conversion of this ring to a Singular ring defined")
 
         if self.ngens()==1:
             _vars = '(%s)'%self.gen()
@@ -252,6 +272,7 @@ class PolynomialRing_singular_repr:
             # not the prime field!
             gen = str(base_ring.gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
+
             self.__minpoly = (str(base_ring.modulus()).replace("x",gen)).replace(" ","")
             if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
                 singular.eval("minpoly=%s"%(self.__minpoly) )
@@ -273,12 +294,27 @@ class PolynomialRing_singular_repr:
 
             self.__singular = r
 
-        elif sage.rings.fraction_field.is_FractionField(base_ring) and (base_ring.base_ring() is ZZ or base_ring.base_ring().is_prime_field()):
+        elif sage.rings.fraction_field.is_FractionField(base_ring) and (base_ring.base_ring() is ZZ or base_ring.base_ring().is_prime_field() or is_FiniteField(base_ring.base_ring())):
             if base_ring.ngens()==1:
               gens = str(base_ring.gen())
             else:
               gens = str(base_ring.gens())
-            self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
+
+            if not (not base_ring.base_ring().is_prime_field() and is_FiniteField(base_ring.base_ring())) :
+                self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
+            else:
+                ext_gen = str(base_ring.base_ring().gen())
+                _vars = '(' + ext_gen + ', ' + _vars[1:];
+
+                R = self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
+
+                self.base_ring().__minpoly = (str(base_ring.base_ring().modulus()).replace("x",ext_gen)).replace(" ","")
+                singular.eval('setring '+R._name);
+                self.__singular = singular("std(ideal(%s))"%(self.base_ring().__minpoly),type='qring')
+
+        elif sage.rings.function_field.function_field.is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field():
+            gen = str(base_ring.gen())
+            self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gen), _vars, order=order, check=False)
 
         elif is_IntegerModRing(base_ring):
             ch = base_ring.characteristic()
@@ -291,7 +327,7 @@ class PolynomialRing_singular_repr:
         elif base_ring is ZZ:
             self.__singular = singular.ring("(integer)", _vars, order=order, check=False)
         else:
-            raise TypeError, "no conversion to a Singular ring defined"
+            raise TypeError("no conversion to a Singular ring defined")
 
         return self.__singular
 
@@ -327,9 +363,10 @@ def can_convert_to_singular(R):
              or is_RealDoubleField(base_ring)
              or is_ComplexDoubleField(base_ring)
              or number_field.all.is_NumberField(base_ring)
-             or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ ) )
+             or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ or is_FiniteField(base_ring.base_ring()) ) )
              or base_ring is ZZ
-             or is_IntegerModRing(base_ring) )
+             or is_IntegerModRing(base_ring)
+             or (is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field()) )
 
 
 class Polynomial_singular_repr:
@@ -345,12 +382,9 @@ class Polynomial_singular_repr:
     """
     def _singular_(self, singular=singular_default, have_ring=False):
         return _singular_func(self, singular, have_ring)
+
     def _singular_init_func(self, singular=singular_default, have_ring=False):
         return _singular_init_func(self, singular, have_ring)
-    def lcm(self, singular=singular_default, have_ring=False):
-        return lcm_func(self, singular, have_ring)
-    def resultant(self, other, variable=None):
-        return resultant_func(self, other, variable)
 
 def _singular_func(self, singular=singular_default, have_ring=False):
     """
@@ -412,95 +446,3 @@ def _singular_init_func(self, singular=singular_default, have_ring=False):
     self.__singular = singular(str(self))
 
     return self.__singular
-
-def lcm_func(self, right, have_ring=False):
-    """
-    Returns the least common multiple of this element and the right element.
-
-    INPUT:
-
-    - ``right`` - multivariate polynomial
-    - ``have_ring`` - see ``self._singular_()``. (Default:False)
-
-    OUTPUT: multivariate polynomial representing the least common multiple of
-    self and right
-
-    ALGORITHM: Singular
-
-    EXAMPLES::
-
-        sage: r.<x,y> = PolynomialRing(GF(2**8,'a'),2)
-        sage: a = r.base_ring().0
-        sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
-        sage: f.lcm(x^4)
-        (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
-
-        sage: w = var('w')
-        sage: r.<x,y> = PolynomialRing(NumberField(w^4+1,'a'),2)
-        sage: a = r.base_ring().0
-        sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
-        sage: f.lcm(x^4)
-        (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
-
-    TESTS::
-
-        sage: R.<X>=QQ[]
-        sage: a=R(1)
-        sage: b=X
-        sage: lcm(b,a)
-        X
-        sage: lcm(a,b)
-        X
-    """
-    # Singular doesn't like constant polynomials as the first argument
-    # and nonconstant as the second
-    if self.is_constant() and not right.is_constant():
-        self, right = right, self
-    lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
-    return lcm.sage_poly(self.parent())
-
-
-def resultant_func(self, other, variable=None):
-    """
-    computes the resultant of self and the first argument with
-    respect to the variable given as the second argument.
-
-    If a second argument is not provide the first variable of
-    self.parent() is chosen.
-
-    INPUT:
-
-    - ``other`` - polynomial in ``self.parent()``
-    - ``variable`` - optional variable (of type polynomial) in
-      ``self.parent()``. (Default: None)
-
-    EXAMPLES::
-
-        sage: P.<x,y> = PolynomialRing(QQ,2)
-        sage: a = x+y
-        sage: b = x^3-y^3
-        sage: c = a.resultant(b); c
-        -2*y^3
-        sage: d = a.resultant(b,y); d
-        2*x^3
-
-    TESTS::
-
-        sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-        sage: P.<x,y> = MPolynomialRing_polydict_domain(QQ,2,order='degrevlex')
-        sage: a = x+y
-        sage: b = x^3-y^3
-        sage: c = a.resultant(b); c
-        -2*y^3
-        sage: d = a.resultant(b,y); d
-        2*x^3
-
-    """
-    if variable is None:
-        variable = self.parent().gen(0)
-    rt = self._singular_().resultant(other._singular_(), variable._singular_())
-    r = rt.sage_poly(self.parent())
-    if self.parent().ngens() <= 1 and r.degree() <= 0:
-        return self.parent().base_ring()(r[0])
-    else:
-        return r

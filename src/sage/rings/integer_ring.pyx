@@ -148,12 +148,31 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     The lists are interpreted in little-endian order, so that
     entry ``i`` of the list is the coefficient of ``base^i``::
 
+        sage: Z([4,1,7],base=100)
+        70104
+        sage: Z([4,1,7],base=10)
+        714
         sage: Z([3, 7], 10)
         73
         sage: Z([3, 7], 9)
         66
         sage: Z([], 10)
         0
+
+    Alphanumeric strings can be used for bases 2..36; letters ``a`` to
+    ``z`` represent numbers 10 to 36.  Letter case does not matter.
+    ::
+
+        sage: Z("sage",base=32)
+        928270
+        sage: Z("SAGE",base=32)
+        928270
+        sage: Z("Sage",base=32)
+        928270
+        sage: Z([14, 16, 10, 28],base=32)
+        928270
+        sage: 14 + 16*32 + 10*32^2 + 28*32^3
+        928270
 
     We next illustrate basic arithmetic in `\ZZ`::
 
@@ -226,6 +245,40 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         19
         sage: Z(2 + 3*5 + O(5^3))
         17
+
+    Arbitrary numeric bases are supported; strings or list of integers
+    are used to provide the digits (more details in
+    :class:`IntegerRing_class`)::
+
+        sage: Z("sage",base=32)
+        928270
+        sage: Z([14, 16, 10, 28],base=32)
+        928270
+
+    The :meth:`digits<~sage.rings.integer.Integer.digits>` method
+    allows you to get the list of digits of an integer in a different
+    basis (note that the digits are returned in little-endian order)::
+
+        sage: b = Z([4,1,7],base=100)
+        sage: b
+        70104
+        sage: b.digits(base=71)
+        [27, 64, 13]
+
+        sage: Z(15).digits(2)
+        [1, 1, 1, 1]
+        sage: Z(15).digits(3)
+        [0, 2, 1]
+
+    The :meth:`str<~sage.rings.integer.Integer.str>` method returns a
+    string of the digits, using letters ``a`` to ``z`` to represent
+    digits 10..36::
+
+        sage: Z(928270).str(base=32)
+        'sage'
+
+    Note that :meth:`str<~sage.rings.integer.Integer.str>` only works
+    with bases 2 through 36.
 
     TESTS::
 
@@ -382,8 +435,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring `\ZZ[...]` obtained by adjoining to the integers a list
-        ``x`` of several elements.
+        Return the ring `\ZZ[...]` obtained by adjoining to the integers one
+        or several elements.
 
         EXAMPLES::
 
@@ -404,15 +457,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if x in self:
             return self
-        if isinstance(x, str):
-            return PrincipalIdealDomain.__getitem__(self, x)
-        from sage.symbolic.ring import is_SymbolicVariable
-
-        if is_SymbolicVariable(x):
-            return PrincipalIdealDomain.__getitem__(self, repr(x))
 
         from sage.rings.number_field.all import is_NumberFieldElement
-
         if is_NumberFieldElement(x):
             K, from_K = x.parent().subfield(x)
             return K.order(K.gen())
@@ -1239,26 +1285,6 @@ def IntegerRing():
         True
     """
     return ZZ
-
-def factor(*args, **kwds):
-    """
-    This function is deprecated.  To factor an Integer `n`, call
-    ``n.factor()``. For other objects, use the factor method from
-    :mod:`sage.rings.arith`.
-
-    EXAMPLES::
-
-        sage: sage.rings.integer_ring.factor(1)
-        doctest:...: DeprecationWarning: This function is deprecated...
-        1
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(5945, "This function is deprecated.  Call the factor method of an Integer,"
-                +"or sage.arith.factor instead.")
-    #deprecated 4.6.2
-
-    late_import()
-    return arith.factor(*args, **kwds)
 
 import sage.misc.misc
 def crt_basis(X, xgcd=None):

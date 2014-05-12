@@ -364,19 +364,20 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
         from vector_space_morphism import is_VectorSpaceMorphism, VectorSpaceMorphism
         D = self.domain()
         C = self.codomain()
-        if matrix.is_Matrix(A):
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(A):
             pass
         elif is_VectorSpaceMorphism(A):
             A = A.matrix()
         elif inspect.isfunction(A):
             try:
                 images = [A(g) for g in D.basis()]
-            except (ValueError, TypeError, IndexError), e:
+            except (ValueError, TypeError, IndexError) as e:
                 msg = 'function cannot be applied properly to some basis element because\n' + e.args[0]
                 raise ValueError(msg)
             try:
                 A = matrix.matrix(D.dimension(), C.dimension(), [C.coordinates(C(a)) for a in images])
-            except (ArithmeticError, TypeError), e:
+            except (ArithmeticError, TypeError) as e:
                 msg = 'some image of the function is not in the codomain, because\n' + e.args[0]
                 raise ArithmeticError(msg)
         elif isinstance(A, (list, tuple)):
@@ -386,7 +387,7 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
             try:
                 v = [C(a) for a in A]
                 A = matrix.matrix(D.dimension(), C.dimension(), [C.coordinates(a) for a in v])
-            except (ArithmeticError, TypeError), e:
+            except (ArithmeticError, TypeError) as e:
                 msg = 'some proposed image is not in the codomain, because\n' + e.args[0]
                 raise ArithmeticError(msg)
         else:

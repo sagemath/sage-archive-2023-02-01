@@ -10,7 +10,8 @@ Ambient Spaces
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, is_CommutativeRing, ZZ
+from sage.rings.all import Integer, ZZ
+from sage.rings.commutative_ring import is_CommutativeRing
 
 from sage.schemes.generic.scheme import Scheme
 
@@ -51,10 +52,10 @@ class AmbientSpace(Scheme):
             sage: TestSuite(A).run() # not tested (abstract scheme with no elements?)
         """
         if not is_CommutativeRing(R):
-            raise TypeError, "R (=%s) must be a commutative ring"%R
+            raise TypeError("R (=%s) must be a commutative ring"%R)
         n = Integer(n)
         if n < 0:
-            raise ValueError, "n (=%s) must be nonnegative"%n
+            raise ValueError("n (=%s) must be nonnegative"%n)
         self._dimension_relative = n
         Scheme.__init__(self, R)
 
@@ -375,7 +376,7 @@ class AmbientSpace(Scheme):
         base = self.base_scheme()
         if base.is_noetherian():
             return self.dimension_relative() + base.dimension()
-        raise NotImplementedError, "Cannot compute the dimension of this scheme."
+        raise NotImplementedError("Cannot compute the dimension of this scheme.")
 
     dimension = dimension_absolute
 

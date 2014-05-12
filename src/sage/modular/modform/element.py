@@ -150,9 +150,9 @@ class ModularForm_abstract(ModuleElement):
             ArithmeticError: Modular forms must be in the same ambient space.
         """
         if not isinstance(other, ModularForm_abstract):
-            raise TypeError, "Second argument must be a modular form."
+            raise TypeError("Second argument must be a modular form.")
         if self.parent().ambient() != other.parent().ambient():
-            raise ArithmeticError, "Modular forms must be in the same ambient space."
+            raise ArithmeticError("Modular forms must be in the same ambient space.")
 
     def __call__(self, x, prec=None):
         """
@@ -249,7 +249,7 @@ class ModularForm_abstract(ModuleElement):
         """
         try:
             self._ensure_is_compatible(other)
-        except StandardError:
+        except Exception:
             return self.parent().__cmp__(other.parent())
         if self.element() == other.element():
             return 0
@@ -421,7 +421,7 @@ class ModularForm_abstract(ModuleElement):
             for g in gens:
                 df = self.parent().diamond_bracket_operator(g)(self)
                 if df != (df[i] / self[i]) * self:
-                    raise ValueError, "Form is not an eigenvector for <%s>" % g
+                    raise ValueError("Form is not an eigenvector for <%s>" % g)
                 vals.append(df[i] / self[i])
             return G(vals)
 
@@ -491,7 +491,7 @@ class ModularForm_abstract(ModuleElement):
             prec = self.parent().prec()
         prec = rings.Integer(prec)
         if prec < 0:
-            raise ValueError, "prec (=%s) must be at least 0"%prec
+            raise ValueError("prec (=%s) must be at least 0"%prec)
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
@@ -576,14 +576,14 @@ class ModularForm_abstract(ModuleElement):
             -1
         """
         if self.q_expansion().list()[0] !=0:
-            raise TypeError,"f = %s is not a cusp form"%self
+            raise TypeError("f = %s is not a cusp form"%self)
         from sage.lfunctions.all import Dokchitser
         key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
         w = self.atkin_lehner_eigenvalue()
         if w is None:
-            raise ValueError, "Form is not an eigenform for Atkin-Lehner"
+            raise ValueError("Form is not an eigenform for Atkin-Lehner")
         e = (-1)**(l/2)*w
         L = Dokchitser(conductor = N,
                        gammaV = [0,1],
@@ -626,17 +626,17 @@ class Newform(ModularForm_abstract):
         """
         if check:
             if not space.is_ModularFormsSpace(parent):
-                raise TypeError, "parent must be a space of modular forms"
+                raise TypeError("parent must be a space of modular forms")
             if not is_ModularSymbolsSpace(component):
-                raise TypeError, "component must be a space of modular symbols"
+                raise TypeError("component must be a space of modular symbols")
             if parent.group() != component.group():
-                raise ValueError, "parent and component must be defined by the same congruence subgroup"
+                raise ValueError("parent and component must be defined by the same congruence subgroup")
             if parent.weight() != component.weight():
-                raise ValueError, "parent and component must have the same weight"
+                raise ValueError("parent and component must have the same weight")
             if not component.is_cuspidal():
-                raise ValueError, "component must be cuspidal"
+                raise ValueError("component must be cuspidal")
             if not component.is_simple():
-                raise ValueError, "component must be simple"
+                raise ValueError("component must be simple")
         extension_field = component.eigenvalue(1,name=names).parent()
         if extension_field != parent.base_ring(): # .degree() != 1 and rings.is_NumberField(extension_field):
             assert extension_field.base_field() == parent.base_ring()
@@ -686,7 +686,7 @@ class Newform(ModularForm_abstract):
         """
         try:
             self._ensure_is_compatible(other)
-        except StandardError:
+        except Exception:
             return False
         if isinstance(other, Newform):
             if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
@@ -715,7 +715,7 @@ class Newform(ModularForm_abstract):
         """
         try:
             self._ensure_is_compatible(other)
-        except StandardError:
+        except Exception:
             return self.parent().__cmp__(other.parent())
         if isinstance(other, Newform):
             if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
@@ -937,7 +937,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
         """
         if not isinstance(parent, space.ModularFormsSpace):
-            raise TypeError, "First argument must be an ambient space of modular forms."
+            raise TypeError("First argument must be an ambient space of modular forms.")
         element.HeckeModuleElement.__init__(self, parent, x)
 
     def _compute_q_expansion(self, prec):
@@ -1034,7 +1034,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         # first ensure the levels are equal
         if self.level() != other.level():
-            raise NotImplementedError, "Cannot multiply forms of different levels"
+            raise NotImplementedError("Cannot multiply forms of different levels")
 
         # find out about characters
         try:
@@ -1094,9 +1094,9 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         a = self.q_expansion(prec).list()
         if a[0] == 0:
-            raise TypeError,"f = %s is a cusp form; please use f.cuspform_lseries() instead!"%self
+            raise TypeError("f = %s is a cusp form; please use f.cuspform_lseries() instead!"%self)
         if self.level() != 1:
-            raise TypeError, "f = %s is not a modular form for SL_2(Z)"%self
+            raise TypeError("f = %s is not a modular form for SL_2(Z)"%self)
         from sage.lfunctions.all import Dokchitser
         key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
@@ -1135,8 +1135,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         try:
             f = self.parent().atkin_lehner_operator(d)(self)
         except NotImplementedError:
-            raise NotImplementedError, "Don't know how to compute Atkin-Lehner matrix acting on this space" \
-                + " (try using a newform constructor instead)"
+            raise NotImplementedError("Don't know how to compute Atkin-Lehner matrix acting on this space" \
+                + " (try using a newform constructor instead)")
         if f == self:
             return 1
         elif f == -self:
@@ -1306,14 +1306,14 @@ class EisensteinSeries(ModularFormElement):
         N = parent.level()
         K = parent.base_ring()
         if chi.parent().modulus() != N or psi.parent().modulus() != N:
-            raise ArithmeticError, "Incompatible moduli"
+            raise ArithmeticError("Incompatible moduli")
         if chi.parent().base_ring() != K or psi.parent().base_ring() != K:
-            raise ArithmeticError, "Incompatible base rings"
+            raise ArithmeticError("Incompatible base rings")
         t = int(t)
         #if not isinstance(t, int): raise TypeError, "weight must be an int"
         if parent.weight() == 2 and chi.is_trivial() \
                and psi.is_trivial() and t==1:
-            raise ArithmeticError, "If chi and psi are trivial and k=2, then t must be >1."
+            raise ArithmeticError("If chi and psi are trivial and k=2, then t must be >1.")
         ModularFormElement.__init__(self, parent, vector)
         self.__chi = chi
         self.__psi = psi

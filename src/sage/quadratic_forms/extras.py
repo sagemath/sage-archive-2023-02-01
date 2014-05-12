@@ -63,7 +63,7 @@ def is_triangular_number(n):
             disc_sqrt = ZZ(sqrt(1+8*n))
             a = ZZ( (ZZ(-1) + disc_sqrt) / ZZ(2) )
             return a
-        except StandardError:
+        except Exception:
             return False
 
 
@@ -179,9 +179,9 @@ def least_quadratic_nonresidue(p):
 
     ## Deal with the prime p = 2 and |p| <= 1.
     if p1 == 2:
-        raise ValueError, "Oops!  There are no quadratic non-residues in Z/2Z."
+        raise ValueError("Oops!  There are no quadratic non-residues in Z/2Z.")
     if p1 < 2:
-        raise ValueError, "Oops!  p must be a prime number > 2."
+        raise ValueError("Oops!  p must be a prime number > 2.")
 
     ## Find the smallest non-residue mod p
     ## For 7/8 of primes the answer is 2, 3 or 5:
@@ -193,7 +193,7 @@ def least_quadratic_nonresidue(p):
         return ZZ(5)
     ## default case (first needed for p=71):
     if not p.is_prime():
-        raise ValueError, "Oops!  p must be a prime number > 2."
+        raise ValueError("Oops!  p must be a prime number > 2.")
     from sage.misc.misc import xsrange
     for r in xsrange(7,p):
         if legendre_symbol(r, p) == -1:

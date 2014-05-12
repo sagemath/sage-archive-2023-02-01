@@ -121,7 +121,7 @@ class QuadraticFormLocalRepresentationConditions():
 
         ## Check that the form Q is integer-valued (we can relax this later)
         if Q.base_ring() != ZZ:
-            raise TypeError, "We require that the quadratic form be defined over ZZ (integer-values) for now."
+            raise TypeError("We require that the quadratic form be defined over ZZ (integer-values) for now.")
 
 
         ## Basic structure initialization
@@ -383,7 +383,7 @@ class QuadraticFormLocalRepresentationConditions():
             else:
                 return [p, infinity, infinity, infinity, infinity, None, None, None, None]
 
-        raise RuntimeError, "Error... The dimension stored should be a non-negative integer!"
+        raise RuntimeError("Error... The dimension stored should be a non-negative integer!")
 
 
 
@@ -422,7 +422,7 @@ class QuadraticFormLocalRepresentationConditions():
         if p == infinity:
             v = self.local_repn_array[0]
             if p != v[0]:
-                raise RuntimeError, "Error... The first vector should be for the real numbers!"
+                raise RuntimeError("Error... The first vector should be for the real numbers!")
             return (v[1:3] == [0,0])     ## True iff the form is indefinite
 
         ## Check non-generic "finite" primes
@@ -436,7 +436,7 @@ class QuadraticFormLocalRepresentationConditions():
 
     def is_universal_at_all_finite_primes(self):
         """
-        Determines if the quadratic form represents `Z_p` for all finite/non-archimedian primes.
+        Determines if the quadratic form represents `Z_p` for all finite/non-archimedean primes.
 
         INPUT:
             none
@@ -475,7 +475,7 @@ class QuadraticFormLocalRepresentationConditions():
     def is_universal_at_all_places(self):
         """
         Determines if the quadratic form represents `Z_p` for all
-        finite/non-archimedian primes, and represents all real numbers.
+        finite/non-archimedean primes, and represents all real numbers.
 
         INPUT:
             none
@@ -555,7 +555,7 @@ class QuadraticFormLocalRepresentationConditions():
         """
         ## Sanity Check
         if not m in QQ:
-            raise TypeError, "Oops!  m = " + str(m) +  " is not a rational number!"
+            raise TypeError("Oops!  m = " + str(m) +  " is not a rational number!")
 
        ## Representing zero
         if m == 0:
@@ -823,7 +823,7 @@ def is_locally_universal_at_prime(self, p):
 
 def is_locally_universal_at_all_primes(self):
     """
-    Determines if the quadratic form represents `Z_p` for all finite/non-archimedian primes.
+    Determines if the quadratic form represents `Z_p` for all finite/non-archimedean primes.
 
     INPUT:
         none
@@ -858,7 +858,7 @@ def is_locally_universal_at_all_primes(self):
 def is_locally_universal_at_all_places(self):
     """
     Determines if the quadratic form represents `Z_p` for all
-    finite/non-archimedian primes, and represents all real numbers.
+    finite/non-archimedean primes, and represents all real numbers.
 
     INPUT:
         none

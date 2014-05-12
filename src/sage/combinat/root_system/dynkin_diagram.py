@@ -29,7 +29,6 @@ AUTHORS:
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.matrix.matrix import is_Matrix
-from sage.functions.generalized import sgn
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
@@ -153,6 +152,26 @@ def DynkinDiagram(*args, **kwds):
 
         :func:`CartanType` for a general discussion on Cartan
         types and in particular node labeling conventions.
+
+    TESTS:
+
+    Check that :trac:`15277` is fixed by not having edges from 0's::
+
+        sage: CM = CartanMatrix([[2,-1,0,0],[-3,2,-2,-2],[0,-1,2,-1],[0,-1,-1,2]])
+        sage: CM
+        [ 2 -1  0  0]
+        [-3  2 -2 -2]
+        [ 0 -1  2 -1]
+        [ 0 -1 -1  2]
+        sage: CM.dynkin_diagram().edges()
+        [(0, 1, 3),
+         (1, 0, 1),
+         (1, 2, 1),
+         (1, 3, 1),
+         (2, 1, 2),
+         (2, 3, 1),
+         (3, 1, 2),
+         (3, 2, 1)]
     """
     if len(args) == 0:
         return DynkinDiagram_class()
@@ -160,10 +179,11 @@ def DynkinDiagram(*args, **kwds):
     if is_Matrix(mat):
         mat = CartanMatrix(*args)
     if isinstance(mat, CartanMatrix):
-        if mat.cartan_type() is not None:
+        if mat.cartan_type() is not mat:
             try:
                 return mat.cartan_type().dynkin_diagram()
             except AttributeError:
+                ct = CartanType(*args)
                 raise ValueError("Dynkin diagram data not yet hardcoded for type %s"%ct)
         if len(args) > 1:
             index_set = tuple(args[1])
@@ -172,11 +192,9 @@ def DynkinDiagram(*args, **kwds):
         else:
             index_set = mat.index_set()
         D = DynkinDiagram_class(index_set=index_set)
-        n = mat.nrows()
-        for i in range(n):
-            for j in range(n):
-                if i != j:
-                    D.add_edge(index_set[i], index_set[j], -mat[j,i])
+        for (i, j) in mat.nonzero_positions():
+            if i != j:
+                D.add_edge(index_set[i], index_set[j], -mat[j, i])
         return D
     ct = CartanType(*args)
     try:
@@ -272,7 +290,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     def _latex_(self, scale=0.5):
         r"""
-        Return a latex representation of this dynkin diagram
+        Return a latex representation of this Dynkin diagram
 
         EXAMPLES::
 
@@ -540,6 +558,36 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
     is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
+    def symmetrizer(self):
+        """
+        Return the symmetrizer of the corresponding Cartan matrix.
+
+        EXAMPLES::
+
+            sage: d = DynkinDiagram()
+            sage: d.add_edge(1,2,3)
+            sage: d.add_edge(2,3)
+            sage: d.add_edge(3,4,3)
+            sage: d.symmetrizer()
+            Finite family {1: 9, 2: 3, 3: 3, 4: 1}
+
+        TESTS:
+
+        We check that :trac:`15740` is fixed::
+
+            sage: d = DynkinDiagram()
+            sage: d.add_edge(1,2,3)
+            sage: d.add_edge(2,3)
+            sage: d.add_edge(3,4,3)
+            sage: L = d.root_system().root_lattice()
+            sage: al = L.simple_roots()
+            sage: al[1].associated_coroot()
+            alphacheck[1]
+            sage: al[1].reflection(al[2])
+            alpha[1] + 3*alpha[2]
+        """
+        return self.cartan_matrix().symmetrizer()
+
     def __getitem__(self, i):
         r"""
         With a tuple (i,j) as argument, returns the scalar product
@@ -548,7 +596,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
         Otherwise, behaves as the usual DiGraph.__getitem__
 
-        EXAMPLES: We use the `C_4` dynkin diagram as a cartan
+        EXAMPLES: We use the `C_4` Dynkin diagram as a cartan
         matrix::
 
             sage: g = DynkinDiagram(['C',4])
@@ -630,23 +678,23 @@ def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     """
     if letter is not None:
         if t[0] != letter:
-            raise ValueError, "t[0] must be = '%s'"%letter
+            raise ValueError("t[0] must be = '%s'"%letter)
 
     if length is not None:
         if len(t) != length:
-            raise ValueError, "len(t) must be = %s"%length
+            raise ValueError("len(t) must be = %s"%length)
 
     if affine is not None:
         try:
             if t[2] != affine:
-                raise ValueError, "t[2] must be = %s"%affine
+                raise ValueError("t[2] must be = %s"%affine)
         except IndexError:
-            raise ValueError, "t[2] must be = %s"%affine
+            raise ValueError("t[2] must be = %s"%affine)
 
     if n_ge is not None:
         if t[1] < n_ge:
-            raise ValueError, "t[1] must be >= %s"%n_ge
+            raise ValueError("t[1] must be >= %s"%n_ge)
 
     if n is not None:
         if t[1] != n:
-            raise ValueError, "t[1] must be = %s"%n
+            raise ValueError("t[1] must be = %s"%n)

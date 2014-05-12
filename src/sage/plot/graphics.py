@@ -101,8 +101,8 @@ class Graphics(SageObject):
         sage: h=10; c=0.4; p=0.5;
         sage: G = Graphics()
         sage: for x in srange(1,h+1):
-        ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
-        ...        G+=line(l,color=hue(c + p*(x/h)))
+        ....:     l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
+        ....:     G+=line(l,color=hue(c + p*(x/h)))
         sage: G.show(figsize=[5,5])
 
     We can change the scale of the axes in the graphics before displaying.::
@@ -195,7 +195,7 @@ class Graphics(SageObject):
         if ratio != 'auto' and ratio != 'automatic':
             ratio = float(ratio)
             if ratio <= 0:
-                raise ValueError, "the aspect ratio must be positive or 'automatic'"
+                raise ValueError("the aspect ratio must be positive or 'automatic'")
         else:
             ratio = 'automatic'
         self._extra_kwds['aspect_ratio'] = ratio
@@ -636,9 +636,9 @@ class Graphics(SageObject):
                 self._axes_labels = None
                 return self._axes_labels
         if not isinstance(l, (list, tuple)):
-            raise TypeError, "l must be a list or tuple"
+            raise TypeError("l must be a list or tuple")
         if len(l) != 2:
-            raise ValueError, "l must have length 2"
+            raise ValueError("l must have length 2")
         self._axes_labels = tuple(l)
 
     def axes_label_color(self, c=None):
@@ -915,7 +915,7 @@ class Graphics(SageObject):
         """
         from sage.plot.primitive import GraphicPrimitive
         if not isinstance(x, GraphicPrimitive):
-            raise TypeError, "x must be a GraphicPrimitive"
+            raise TypeError("x must be a GraphicPrimitive")
         self._objects[int(i)] = x
 
     def __radd__(self, other):
@@ -1008,7 +1008,7 @@ class Graphics(SageObject):
             from sage.plot.plot3d.base import Graphics3d
             if isinstance(other, Graphics3d):
                 return self.plot3d() + other
-            raise TypeError, "other (=%s) must be a Graphics objects"%other
+            raise TypeError("other (=%s) must be a Graphics objects"%other)
         g = Graphics()
         g._objects = self._objects + other._objects
         g._show_legend = self._show_legend or other._show_legend
@@ -1598,7 +1598,7 @@ class Graphics(SageObject):
 
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
-            ...             (x,-2,2), (y,-2,2), plot_points=1000)
+            ....:             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=[[1,0],[-1,0,1]])
 
         Add grid lines at specific positions (using iterators).
@@ -1606,7 +1606,7 @@ class Graphics(SageObject):
         ::
 
             sage: def maple_leaf(t):
-            ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
+            ....:     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
             sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) # long time
             sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) # long time
 
@@ -1625,7 +1625,7 @@ class Graphics(SageObject):
 
             sage: b = bar_chart([-3,5,-6,11], color='red')
             sage: b.show(gridlines=([-1,-0.5,..,4],True),
-            ...     gridlinesstyle=dict(color="blue", linestyle=":"))
+            ....:     gridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of the horizontal or vertical grid lines
         separately.
@@ -1634,8 +1634,8 @@ class Graphics(SageObject):
 
             sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, color=hue(0.3))
             sage: p.show(gridlines=True,
-            ...     hgridlinesstyle=dict(color="orange", linewidth=1.0),
-            ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
+            ....:     hgridlinesstyle=dict(color="orange", linewidth=1.0),
+            ....:     vgridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of each grid line individually.
 
@@ -1643,19 +1643,19 @@ class Graphics(SageObject):
 
             sage: x, y = var('x, y')
             sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2,
-            ...             (x,-2,2), (y,-2,2), plot_points=1000)
+            ....:             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=(
-            ...    [
-            ...     (1,{"color":"red","linestyle":":"}),
-            ...     (0,{"color":"blue","linestyle":"--"})
-            ...    ],
-            ...    [
-            ...     (-1,{"color":"red","linestyle":":"}),
-            ...     (0,{"color":"blue","linestyle":"--"}),
-            ...     (1,{"color":"red","linestyle":":"}),
-            ...    ]
-            ...    ),
-            ...    gridlinesstyle=dict(marker='x',color="black"))
+            ....:    [
+            ....:     (1,{"color":"red","linestyle":":"}),
+            ....:     (0,{"color":"blue","linestyle":"--"})
+            ....:    ],
+            ....:    [
+            ....:     (-1,{"color":"red","linestyle":":"}),
+            ....:     (0,{"color":"blue","linestyle":"--"}),
+            ....:     (1,{"color":"red","linestyle":":"}),
+            ....:    ]
+            ....:    ),
+            ....:    gridlinesstyle=dict(marker='x',color="black"))
 
         Grid lines can be added to contour plots.
 
@@ -2596,6 +2596,29 @@ class Graphics(SageObject):
 
         return figure
 
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: c = circle((1,1), 1, color='red')
+            sage: filename = os.path.join(SAGE_TMP, 'test.png')
+            sage: c.save_image(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
+        """
+        self.save(filename, *args, **kwds)
+
+
     # ALLOWED_EXTENSIONS is the list of recognized formats.
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
@@ -2656,7 +2679,7 @@ class Graphics(SageObject):
         ``fig_tight=False``::
 
             sage: c.save(filename, figsize=[8,4], fig_tight=False,
-            ...       xmin=-1, xmax=3, ymin=-1, ymax=3)
+            ....:       xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         You can also pass extra options to the plot command instead of this
         method, e.g. ::
@@ -2807,7 +2830,7 @@ class GraphicsArray(SageObject):
             TypeError: every element of array must be a Graphics object
         """
         if not isinstance(array, (list, tuple)):
-            raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+            raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
         array = list(array)
         self._glist = []
         self._rows = len(array)
@@ -2821,10 +2844,10 @@ class GraphicsArray(SageObject):
         self._dims = self._rows*self._cols
         for row in array: #basically flatten the list
             if not isinstance(row, (list, tuple)) or len(row) != self._cols:
-                raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+                raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))
             for g in row:
                 if not isinstance(g, Graphics):
-                    raise TypeError, "every element of array must be a Graphics object"
+                    raise TypeError("every element of array must be a Graphics object")
                 self._glist.append(g)
         self._figsize = None
 
@@ -3074,6 +3097,28 @@ class GraphicsArray(SageObject):
                          verify=do_verify, axes = axes, **args)
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
                verify=do_verify, axes = axes, **args)
+
+    def save_image(self, filename=None, *args, **kwds):
+        r"""
+        Save an image representation of self.  The image type is
+        determined by the extension of the filename.  For example,
+        this could be ``.png``, ``.jpg``, ``.gif``, ``.pdf``,
+        ``.svg``.  Currently this is implemented by calling the
+        :meth:`save` method of self, passing along all arguments and
+        keywords.
+
+        .. Note::
+
+            Not all image types are necessarily implemented for all
+            graphics types.  See :meth:`save` for more details.
+
+        EXAMPLES::
+
+            sage: plots = [[plot(m*cos(x + n*pi/4), (x,0, 2*pi)) for n in range(3)] for m in range(1,3)]
+            sage: G = graphics_array(plots)
+            sage: G.save_image(tmp_filename()+'.png')
+        """
+        self.save(filename, *args, **kwds)
 
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes = None, **args):

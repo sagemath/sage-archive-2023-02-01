@@ -45,14 +45,15 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-cimport sage.libs.pari.gen
-import sage.libs.pari.gen
-
+import sage.libs.pari.pari_instance
+from sage.libs.pari.pari_instance cimport PariInstance
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
 
@@ -305,7 +306,7 @@ cdef class RealDoubleField_class(Field):
         from real_mpfr import RR, RealField_class
         if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return ToRDF(S)
-        connecting = RR.coerce_map_from(S)
+        connecting = RR._internal_coerce_map_from(S)
         if connecting is not None:
             return ToRDF(RR) * connecting
 
@@ -546,6 +547,70 @@ cdef class RealDoubleField_class(Field):
 
     nan = NaN
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Factor the univariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a univariate polynomial defined over the double precision
+          real numbers
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the double precision real numbers
+          into a unit and monic irreducible factors
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`.
+
+        TESTS::
+
+            sage: R.<x> = RDF[]
+            sage: RDF._factor_univariate_polynomial(x)
+            x
+            sage: RDF._factor_univariate_polynomial(2*x)
+            (2.0) * x
+            sage: RDF._factor_univariate_polynomial(x^2)
+            x^2
+            sage: RDF._factor_univariate_polynomial(x^2 + 1)
+            x^2 + 1.0
+            sage: RDF._factor_univariate_polynomial(x^2 - 1)
+            (x - 1.0) * (x + 1.0)
+
+        The implementation relies on the ``roots()`` method which often reports
+        roots not to be real even though they are::
+
+            sage: f = (x-1)^3
+            sage: f.roots() # random output (unfortunately)
+            [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
+
+        This leads to the following incorrect factorization::
+
+            sage: f.factor() # random output (unfortunately)
+            (1.0*x - 1.00000859959) * (1.0*x^2 - 1.99999140041*x + 0.999991400484)
+
+        """
+        roots = f.roots(sage.rings.complex_double.CDF)
+
+        # collect real roots and conjugate pairs of non-real roots
+        real_roots = [(r, e) for r, e in roots if r.imag().is_zero()]
+        non_real_roots = {r: e for r, e in roots if not r.imag().is_zero()}
+        assert all([non_real_roots[r.conj()] == e for r, e in non_real_roots.items()]), "Bug in root finding code over RDF - roots must always come in conjugate pairs"
+        non_real_roots = [(r, e) for r, e in non_real_roots.items() if r.imag() > 0]
+
+        # turn the roots into irreducible factors
+        x = f.parent().gen()
+        real_factors = [(x - r.real(), e) for r, e in real_roots]
+        non_real_factors = [(x**2 - (r + r.conj()).real()*x + (r*r.conj()).real(), e) for r, e in non_real_roots]
+
+        # make the factors monic
+        from sage.structure.factorization import Factorization
+        return Factorization([(g.monic(), e) for g, e in real_factors + non_real_factors], f.leading_coefficient())
+
+
 cdef class RealDoubleElement(FieldElement):
     """
     An approximation to a real number using double precision floating
@@ -626,10 +691,11 @@ cdef class RealDoubleElement(FieldElement):
 
     def ulp(self):
         """
-        Return the unit of least precision of ``self``, which is the weight of
-        the least significant bit of ``self``. Unless ``self`` is exactly a
-        power of two, it is gap between this number and the next closest
-        distinct  number that can be represented.
+        Returns the unit of least precision of ``self``, which is the
+        weight of the least significant bit of ``self``. This is always
+        a strictly positive number. It is also the gap between this
+        number and the closest number with larger absolute value that
+        can be represented.
 
         EXAMPLES::
 
@@ -649,9 +715,11 @@ cdef class RealDoubleElement(FieldElement):
             sage: b - b.ulp() == b
             False
 
-        Adding or subtracting something less than half an ulp never
-        gives the same number (unless the number is exactly a power of
-        2 and subtracting an ulp decreases the ulp)::
+        Since the default rounding mode is round-to-nearest, adding or
+        subtracting something less than half an ulp always gives the
+        same number, unless the result has a smaller ulp. The latter
+        can only happen if the input number is (up to sign) exactly a
+        power of 2::
 
             sage: a - a.ulp()/3 == a
             True
@@ -689,9 +757,22 @@ cdef class RealDoubleElement(FieldElement):
             +infinity
             sage: (-a).ulp()
             +infinity
-            sage: a = RR('nan')
+            sage: a = RDF('nan')
             sage: a.ulp() is a
             True
+
+        The ulp method works correctly with small numbers::
+
+            sage: u = RDF(0).ulp()
+            sage: u.ulp() == u
+            True
+            sage: x = u * (2^52-1)  # largest denormal number
+            sage: x.ulp() == u
+            True
+            sage: x = u * 2^52  # smallest normal number
+            sage: x.ulp() == u
+            True
+
         """
         # First, check special values
         if self._value == 0:
@@ -704,7 +785,11 @@ cdef class RealDoubleElement(FieldElement):
         # Normal case
         cdef int e
         frexp(self._value, &e)
-        return RealDoubleElement(ldexp(1.0, e-53))
+        e -= 53
+        # Correction for denormals
+        if e < -1074:
+            e = -1074
+        return RealDoubleElement(ldexp(1.0, e))
 
     def real(self):
         """
@@ -1508,8 +1593,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5)._pari_()
             1.50000000000000
         """
-        cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
-        return P.double_to_gen_c(self._value)
+        return pari.double_to_gen_c(self._value)
 
 
     ###########################################
@@ -1688,6 +1772,20 @@ cdef class RealDoubleElement(FieldElement):
             False
         """
         return self._value >= 0
+
+    def is_integer(self):
+        """
+        Return True if this number is a integer
+
+        EXAMPLES::
+
+            sage: RDF(3.5).is_integer()
+            False
+            sage: RDF(3).is_integer()
+            True
+        """
+        return self._value in ZZ
+
 
     def cube_root(self):
         """
@@ -1870,15 +1968,15 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: R = RealField(128)
             sage: def check_error(x):
-            ...     x = RDF(x)
-            ...     log_RDF = x.log()
-            ...     log_RR = R(x).log()
-            ...     diff = R(log_RDF) - log_RR
-            ...     if abs(diff) <= log_RDF.ulp():
-            ...         return True
-            ...     print "logarithm check failed for %s (diff = %s ulp)"% \
-            ...         (x, diff/log_RDF.ulp())
-            ...     return False
+            ....:   x = RDF(x)
+            ....:   log_RDF = x.log()
+            ....:   log_RR = R(x).log()
+            ....:   diff = R(log_RDF) - log_RR
+            ....:   if abs(diff) < log_RDF.ulp():
+            ....:       return True
+            ....:   print "logarithm check failed for %s (diff = %s ulp)"% \
+            ....:       (x, diff/log_RDF.ulp())
+            ....:   return False
             sage: all( check_error(2^x) for x in range(-100,100) )
             True
             sage: all( check_error(x) for x in sxrange(0.01, 2.00, 0.01) )

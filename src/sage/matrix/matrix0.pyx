@@ -1646,42 +1646,30 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
-            "100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)"
+            '100 x 100 dense matrix over Integer Ring'
             sage: print A
-            100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
-
-        If there are several names for the same matrix, write it as "obj"::
-
-            sage: B = A; print B
-            100 x 100 dense matrix over Integer Ring (type 'print obj.str()' to see all of the entries)
-
-        If the matrix doesn't have a name, don't print the extra string::
-
-            sage: A.transpose()
             100 x 100 dense matrix over Integer Ring
-            sage: T = A.transpose(); T
-            100 x 100 dense matrix over Integer Ring (type 'print T.str()' to see all of the entries)
+
+        When a big matrix returned, include a hint on how to get the entries.
+        This is a feature of the sage command-line::
+
+            sage: A
+            100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+
+        But don't do that when the matrix is part of a larger data structure::
+
+            sage: [A]*2
+            [100 x 100 dense matrix over Integer Ring,
+             100 x 100 dense matrix over Integer Ring]
+
         """
-        from sage.misc.sageinspect import sage_getvariablename
         if self._nrows < max_rows and self._ncols < max_cols:
             return self.str()
         if self.is_sparse():
             s = 'sparse'
         else:
             s = 'dense'
-        rep = "%s x %s %s matrix over %s"%(self._nrows, self._ncols, s, self.base_ring())
-        name = sage_getvariablename(self)
-        if isinstance(name, list) and len(name) == 0:
-            # don't print the name if the matrix doesn't have a name
-            return rep
-        if isinstance(name, list):
-            name = [x for x in name if not x.startswith('_')]
-        if len(name) == 1:
-            name = name[0]
-        # now name is either a string (if one choice) or a list (if many)
-        if not isinstance(name, str):
-            name = "obj"
-        return rep + " (type 'print %s.str()' to see all of the entries)" % name
+        return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
 
     def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
         r"""

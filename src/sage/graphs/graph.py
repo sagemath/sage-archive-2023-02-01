@@ -75,8 +75,8 @@ graphs.
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
-    :meth:`~Graph.bridges` | Returns a list of all bridges in the current graph.
-    :meth:`~Graph.spanning_trees` | Returns a list of all spanning trees for the current graph.
+    :meth:`~Graph.bridges` | Returns the list of all bridges.
+    :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
 
 **Clique-related methods:**
 
@@ -1786,7 +1786,7 @@ class Graph(GenericGraph):
 
     def bridges(self):
         r"""
-        Returns a list of the bridges (or cut edges) in the graph.
+        Returns a list of the bridges (or cut edges).
 
         A bridge is an edge so that deleting it disconnects the graph.
 
@@ -1811,7 +1811,7 @@ class Graph(GenericGraph):
 
     def spanning_trees(self):
         """
-        Returns a list of all spanning trees in the graph.
+        Returns a list of all spanning trees.
 
         If the graph is disconnected, returns the empty list.
 
@@ -1819,16 +1819,21 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-             sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
-             sage: len(G.spanning_trees())
-             8
-             sage: G.spanning_trees_count()
-             8
-             sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
-             sage: len(G.spanning_trees())
-             6
-             sage: G.spanning_trees_count()
-             6
+            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
+            sage: len(G.spanning_trees())
+            8
+            sage: G.spanning_trees_count()
+            8
+            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
+            sage: len(G.spanning_trees())
+            6
+            sage: G.spanning_trees_count()
+            6
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+            -- counts the number of spanning trees.
 
         REFERENCES:
 

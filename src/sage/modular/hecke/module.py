@@ -1676,28 +1676,23 @@ class HeckeModule_free_module(HeckeModule_generic):
         -  ``alpha`` - name of generate for eigenvalue field
 
 
-        EXAMPLES: These computations use pseudo-random numbers, so we set
-        the seed for reproducible testing.
+        EXAMPLES:
 
-        ::
+        The outputs of the following tests are very unstable. The algorithms
+        are randomized and depend on cached results. A slight change in the
+        sequence of pseudo-random numbers or a modification in caching is
+        likely to modify the results. We reset the random number generator and
+        clear some caches for reproducibility::
 
             sage: set_random_seed(0)
-
-        The computations also use cached results from other computations,
-        so we clear the caches for reproducible testing.
-
-        ::
-
             sage: ModularSymbols_clear_cache()
 
-        We compute eigenvalues for newforms of level 62.
-
-        ::
+        We compute eigenvalues for newforms of level 62::
 
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()
             sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]
-            [[1, 1, 0], [1, -1, 1/2*alpha + 1/2]]
+            [[1, 1, 0], [1, -1, -alpha - 1]]
 
         Next we define a function that does the above::
 

@@ -2010,14 +2010,18 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
             sage: par1 is par2 and par2 is par3
             True
 
-            sage: par4 = ExteriorAlgebraDifferential(E, {(1,0): 0, (1,2): {}, (0,2): E.zero()})
-            sage: par5 = ExteriorAlgebraDifferential(E, {(1,0): 0, (1,2): 0, (0,2): 0})
-            sage: par4 is par5
+            sage: par4 = ExteriorAlgebraDifferential(E, {})
+            sage: par5 = ExteriorAlgebraDifferential(E, {(1,0): 0, (1,2): {}, (0,2): E.zero()})
+            sage: par6 = ExteriorAlgebraDifferential(E, {(1,0): 0, (1,2): 0, (0,2): 0})
+            sage: par4 is par5 and par5 is par6
             True
         """
         d = {}
 
         for k,v in dict(s_coeff).iteritems():
+            if not v: # Strip terms with 0
+                continue
+
             if isinstance(v, dict):
                 R = E.base_ring()
                 v = E._from_dict({(i,): R(c) for i,c in v.iteritems()})

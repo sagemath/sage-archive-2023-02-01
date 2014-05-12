@@ -47,7 +47,7 @@ def IntegerLattice(basis, lll_reduce=True):
     Construct a new integer lattice from ``basis``.
 
     INPUT:
-    
+
       - ``basis``
 
        - a list of vectors or
@@ -60,8 +60,8 @@ def IntegerLattice(basis, lll_reduce=True):
     EXAMPLES:
 
     We construct a lattice from a list of rows::
-    
-        sage: IntegerLattice([[1,0,3],[0,2,1], [0,2,7]])
+
+        sage: IntegerLattice([[1,0,3], [0,2,1], [0,2,7]])
         Free module of degree 3 and rank 3 over Integer Ring
         User basis matrix:
         [-2  0  0]
@@ -69,7 +69,7 @@ def IntegerLattice(basis, lll_reduce=True):
         [ 1 -2  2]
 
     Sage includes a generator for hard lattices from cryptography::
-    
+
         sage: A = sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True)
         sage: IntegerLattice(A)
         Free module of degree 10 and rank 10 over Integer Ring
@@ -86,7 +86,7 @@ def IntegerLattice(basis, lll_reduce=True):
         [-1 -1  0 -3 -1  2  2  3 -1  0]
 
     You can also construct the lattice directly::
-    
+
         sage: sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True, lattice=True)
         Free module of degree 10 and rank 10 over Integer Ring
         User basis matrix:
@@ -102,7 +102,7 @@ def IntegerLattice(basis, lll_reduce=True):
         [-1 -1  0 -3 -1  2  2  3 -1  0]
 
     We construct an ideal lattice from an element of an absolute order::
-    
+
         sage: K.<a>  = CyclotomicField(17)
         sage: O = K.ring_of_integers()
         sage: f = O.random_element(); f
@@ -144,7 +144,7 @@ def IntegerLattice(basis, lll_reduce=True):
         [0 0 0 0 0 0 0 0 1 0]
         [0 0 0 0 0 0 0 0 0 1]
 
-    
+
     Sage also interfaces with fpLLL's lattice generator::
 
         sage: from sage.libs.fplll.fplll import gen_simdioph
@@ -165,13 +165,15 @@ def IntegerLattice(basis, lll_reduce=True):
         basis = basis.matrix()
     elif isinstance(basis, FreeModule_ambient_pid):
         basis = basis.basis_matrix()
-        
+
     try:
         basis = matrix(ZZ, basis)
     except TypeError:
         raise NotImplementedError("Only integer lattices supported.")
-    
-    return FreeModule_submodule_with_basis_integer(ZZ**basis.ncols(), basis=basis, lll_reduce=lll_reduce)
+
+    return FreeModule_submodule_with_basis_integer(ZZ**basis.ncols(),
+                                                   basis=basis,
+                                                   lll_reduce=lll_reduce)
 
 class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pid):
     """This class represents submodules of `\\ZZ^n` with a distinguished basis.
@@ -180,7 +182,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     these submodules considered as discrete subgroups of `\\ZZ^n`, i.e. as
     lattices. That is, this class provides functions for computing LLL and BKZ
     reduced bases for this free module with respect to the standard euclidean norm.
-    
+
     EXAMPLE::
 
          sage: L = IntegerLattice(sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True)); L
@@ -211,7 +213,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         - ``ambient`` -- ambient free module over a principal ideal domain `\ZZ`,
           i.e. `\\ZZ^n`;
 
-        - ``basis`` - either a list of vectors or a matrix over the integers
+        - ``basis`` - either a list of vectors or a matrix over the integers;
 
         - ``check`` -- (default: ``True``) if ``False``, correctness of the input
           will not be checked and type conversion may be omitted, use with care;
@@ -224,14 +226,14 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
           the echelonized basis spanning the same submodule as ``basis``;
 
         - ``already_echelonized`` -- (default: ``False``) if ``True``, ``basis``
-          must be already given in the echelonized form.
+          must be already given in the echelonized form;
 
         - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
-          on construction
-        
+          on construction.
+
         EXAMPLES::
 
-            sage: IntegerLattice([[1,0,-2],[0,2,5], [0,0,7]])
+            sage: IntegerLattice([[1,0,-2], [0,2,5], [0,0,7]])
             Free module of degree 3 and rank 3 over Integer Ring
             User basis matrix:
             [ 1  0 -2]
@@ -267,7 +269,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         """
         basis = matrix(ZZ, basis)
         self._basis_is_LLL_reduced = False
-        
+
         if lll_reduce:
             basis = matrix([v for v in basis.LLL() if v])
             self._basis_is_LLL_reduced = True
@@ -280,7 +282,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                                                      echelonize=echelonize,
                                                      echelonized_basis=echelonized_basis,
                                                      already_echelonized=already_echelonized)
-        
+
         self._reduced_basis = basis.change_ring(ZZ)
 
     @property
@@ -320,7 +322,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             [ 172  -25   57  248  261  793   76 -839  -41  376]
         """
         return self._reduced_basis
-        
+
     def LLL(self, *args, **kwds):
         """
         Return an LLL reduced basis for ``self``
@@ -344,7 +346,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         INPUT:
 
         - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
-        - ``*kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+        - ``**kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
 
         EXAMPLE::
 
@@ -383,7 +385,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         basis = [v for v in basis.LLL(*args, **kwds) if v]
         basis = matrix(ZZ, len(basis), len(basis[0]), basis)
         basis.set_immutable()
-        
+
         if self.reduced_basis[0].norm() > basis[0].norm():
             self._reduced_basis = basis
         return basis
@@ -406,13 +408,13 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
             sage: L.LLL()
             100 x 100 dense matrix over Integer Ring
-        
+
             sage: min(v.norm().n() for v in L.reduced_basis)
             5.09901951359278
 
             sage: L.BKZ(block_size=10)
             100 x 100 dense matrix over Integer Ring
-        
+
             sage: min(v.norm().n() for v in L.reduced_basis)
             4.12310562561766
 
@@ -437,7 +439,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         A basis `B` of a lattice `L`, with orthogonalized basis `B^*` such
         that `B = M \cdot B^*` is HKZ reduced, if and only if, the following properties are
         satisfied:
-        
+
         #. The basis `B` is size-reduced, i.e., all off-diagonal coefficients of
            `M` satisfy `|μ_{i,j}| ≦ 1/2`
 
@@ -445,13 +447,13 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         #. The projection of the vectors `b_2,…,b_r` orthogonally to `b_1` form
            an HKZ reduced basis.
-       
+
         .. note::
 
             This is realised by calling
             :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ` with
             ``block_size == self.rank()``.
-        
+
         INPUT:
 
         - ``*args`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`
@@ -463,12 +465,12 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L = sage.crypto.gen_lattice(type='random', n=1, m=40, q=2^60, seed=42, lattice=True)
             sage: L.HKZ()
             40 x 40 dense matrix over Integer Ring
-        
+
             sage: L.reduced_basis[0]
             (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)        
         """
         return self.BKZ(block_size=self.rank())
-        
+
 
     @cached_method
     def volume(self):
@@ -547,7 +549,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
             sage: L.shortest_vector(algorithm="pari").norm().n()
             3.74165738677394
-        
+
             sage: L = IntegerLattice(A, lll_reduce=True)
             sage: L.shortest_vector(algorithm="pari").norm().n()
             3.74165738677394
@@ -556,7 +558,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         if algorithm == "pari":
             if self._basis_is_LLL_reduced:
                 B = self.basis_matrix().change_ring(ZZ)
-                qf = self.gram_matrix()                
+                qf = self.gram_matrix()
             else:
                 B = self.reduced_basis.LLL()
                 qf = B*B.transpose()

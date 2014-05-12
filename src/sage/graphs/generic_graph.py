@@ -15493,20 +15493,37 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.graphplot(**options).plot()
 
-    def show(self, **kwds):
+    def show(self, method = "matplotlib", **kwds):
         """
         Shows the (di)graph.
 
         INPUT:
 
-        This method accepts any option understood by
+        - ``method`` --
+
+            - If ``method="matplotlib"`` (default) then graph is drawn as a
+              picture file, then displayed. In this situation, the method
+              accepts any other option understood by
+              :meth:`~sage.graphs.generic_graph.plot` (graph-specific) or by
+              :meth:`sage.plot.graphics.Graphics.show`.
+
+            - If ``method="js"`` the graph is displayed using the `d3.js
+              <http://d3js.org/>`_ library in a browser. In this situation, the
+              method accepts any other option understood by
+              :meth:`sage.graphs.graph_plot_js.show`.
+
+
+        This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
         by :meth:`sage.plot.graphics.Graphics.show`.
 
         .. NOTE::
 
-            See the documentation of the :mod:`sage.graphs.graph_plot` module
-            for information on default arguments of this method.
+            - See the documentation of the :mod:`sage.graphs.graph_plot` module
+              for information on default arguments of this method.
+
+            - For the javascript counterpart, refer to
+              :mod:`sage.graphs.graph_plot_js`.
 
         EXAMPLES::
 
@@ -15514,6 +15531,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()  # long time (3s on sage.math, 2011)
         """
+        if method == "js":
+            from sage.graphs.graph_plot_js import show
+            return show(self, **kwds)
+
         from graph_plot import graphplot_options
 
         # This dictionary only contains the options that graphplot

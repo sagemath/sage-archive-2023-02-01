@@ -1785,23 +1785,23 @@ class Graph(GenericGraph):
         return False
 
     def bridges(self):
-        r"""        
+        r"""
         Returns a list of the bridges (or cut edges) in the graph.
 
         A bridge is an edge so that deleting it disconnects the graph.
 
         .. NOTE::
 
-            - This method assumes the graph is connected.
-        
-        EXAMPLES::    
-        
-             sage: g = 2*graphs.PetersenGraph()                                                      
-             sage: g.add_edge(1,10)                                                                  
-             sage: g.is_connected()                                                                  
-             True                                                                                    
-             sage: g.bridges()                                                                        
-             [(1, 10, None)]                                                                         
+            This method assumes the graph is connected.
+
+        EXAMPLES::
+
+             sage: g = 2*graphs.PetersenGraph()
+             sage: g.add_edge(1,10)
+             sage: g.is_connected()
+             True
+             sage: g.bridges()
+             [(1, 10, None)]
         """
         gs = self.strong_orientation()
         bridges = []
@@ -1811,8 +1811,9 @@ class Graph(GenericGraph):
 
     def spanning_trees(self):
         """
-        Returns a list of all spanning trees in the graph. If the graph is
-        disconnected, returns the empty list.
+        Returns a list of all spanning trees in the graph.
+
+        If the graph is disconnected, returns the empty list.
 
         Uses the Read-Tarjan backtracking algorithm [RT75]_.
 
@@ -1830,67 +1831,53 @@ class Graph(GenericGraph):
              6
 
         REFERENCES:
-        
+
         .. [RT75] Read, R. C. and Tarjan, R. E.
-        Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
-        Networks, Volume 5 (1975), numer 3, pages 237-252.
+          Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
+          Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
         def _recursive_spanning_trees(G,part_G):
-            trees = []
-            
+            """
+            Returns all the spanning trees of G containing part_G (a forest)
+            """
             if not G.is_connected():
                 return []
 
-            if len(G.edges()) == len(part_G.edges()):
-                trees +=[part_G.copy()]
+            if G.size() == part_G.size():
+                return [part_G.copy()]
             else:
-                X = G.edges()
-                for y in part_G.edges():
-                    X.remove(y)
-                e = X[0]
-                part_G.add_edge(e)
-                B = _edges_to_remove(G,part_G)
-                G.delete_edges(B)
-                trees += _recursive_spanning_trees(G,part_G)
-                G.add_edges(B)
+                # Pick an edge e from G-part_G
+                for e in G.edges():
+                    if not part_G.has_edge(e):
+                        break
+
+                # 1) Recursive call with e removed from G
                 G.delete_edge(e)
-                part_G.delete_edge(e)
-                C = G.bridges()
-
-                for x in part_G.edges():
-                    if x in C:
-                        C.remove(x)
- 
-                part_G.add_edges(C)
-
-                trees += _recursive_spanning_trees(G,part_G)        
-                part_G.delete_edges(C)
+                trees = _recursive_spanning_trees(G,part_G)
                 G.add_edge(e)
 
-            return trees
+                # 2) Recursive call with e include in part_G
+                #
+                # e=xy links the CC (connected component) of part_G containing x
+                # with the CC containing y. Any other edge which does that
+                # cannot be added to part_G anymore, and B is the list of them
+                c1 = part_G.connected_component_containing_vertex(e[0])
+                c2 = part_G.connected_component_containing_vertex(e[1])
+                G.delete_edge(e)
+                B = G.edge_boundary(c1,c2,sort=False)
+                G.add_edge(e)
 
-        def _edges_to_remove(G,part_G):
-            """ 
-            Returns the set of edges not in part_G joining 
-            vertices already connected in part_G.
-            """
-            B = []
-            comps = part_G.connected_components()
-            vc_dict = dict()
-            for i in range(len(comps)):
-                for v in comps[i]:
-                    vc_dict[v] = i
-            X = G.edges()
-            for y in part_G.edges(): 
-                X.remove(y)
-            for e in X:
-                if vc_dict[e[0]] == vc_dict[e[1]]:
-                    B.append(e)
-            return B
+                # Actual call
+                part_G.add_edge(e)
+                G.delete_edges(B)
+                trees.extend(_recursive_spanning_trees(G,part_G))
+                G.add_edges(B)
+                part_G.delete_edge(e)
+
+                return trees
 
         if self.is_connected():
-            from sage.graphs.graph import Graph
             part_G = Graph([])
             part_G.add_vertices(self.vertices())
             part_G.add_edges(self.bridges())

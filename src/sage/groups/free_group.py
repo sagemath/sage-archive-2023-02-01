@@ -316,7 +316,7 @@ class FreeGroupElement(ElementLibGAP):
         INPUT:
 
         - ``gen`` -- the generator with respect to which the derivative will be computed.
-        
+
         - ``im_gens`` (optional) -- the images of the generators.
 
         OUTPUT:
@@ -327,7 +327,7 @@ class FreeGroupElement(ElementLibGAP):
         and is given by the map determined by them.
 
         EXAMPLES:
-        
+
         ::
 
             sage: G = FreeGroup(5)
@@ -341,18 +341,18 @@ class FreeGroupElement(ElementLibGAP):
             B[x0^-1*x1*x0]
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x3)
             0
-            
+
         If ``im_gens`` is given, the images of the generators are mapped to them.
-        
+
         ::
-        
+
             sage: F=FreeGroup(3)
             sage: a=F([2,1,3,-1,2])
             sage: a.fox_derivative(F([1]))
             B[x1] - B[x1*x0*x2*x0^-1]
             sage: R.<t>=LaurentPolynomialRing(ZZ)
             sage: a.fox_derivative(F([1]),[t,t,t])
-            -t^2 + t
+            t - t^2
             sage: S.<t1,t2,t3>=LaurentPolynomialRing(ZZ)
             sage: a.fox_derivative(F([1]),[t1,t2,t3])
             -t2*t3 + t2

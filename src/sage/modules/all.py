@@ -15,8 +15,6 @@
 
 from free_module import FreeModule, VectorSpace, span
 
-from free_module_integer import IntegerLattice
-
 from free_quadratic_module import (FreeQuadraticModule, QuadraticSpace,
                                    InnerProductSpace)
 

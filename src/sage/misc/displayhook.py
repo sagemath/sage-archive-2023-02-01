@@ -56,6 +56,8 @@ AUTHORS:
 """
 
 import sys, __builtin__
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.matrix.matrix','is_Matrix')
 
 class ListFormatter(object):
 
@@ -228,10 +230,6 @@ class ListFormatter(object):
 
 format_list = ListFormatter()
 
-#reserve is_Matrix module-level global to store sage.matrix.matrix.is_Matrix
-#which needs to be imported later.
-is_Matrix = None
-
 class DisplayHookBase(object):
 
     def simple_format_obj(self, obj):
@@ -272,8 +270,6 @@ class DisplayHookBase(object):
             sage: shell.displayhook(type)
             <type 'type'>
         """
-        global is_Matrix
-
         if isinstance(obj, type):
             return repr(obj)
 
@@ -284,9 +280,6 @@ class DisplayHookBase(object):
         # we need to do a late import of the is_Matrix method here to
         # avoid startup problems.
 
-        if is_Matrix is None:
-            import sage.matrix.matrix
-            is_Matrix = sage.matrix.matrix.is_Matrix
         if is_Matrix(obj):
             from sage.matrix.matrix0 import max_rows,max_cols
             if obj.nrows() >= max_rows or obj.ncols() >= max_cols:

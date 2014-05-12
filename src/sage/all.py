@@ -65,6 +65,7 @@ Check lazy import of ``interacts``::
 
 import os, sys
 import operator
+import math
 
 from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -84,6 +85,7 @@ from sage.ext.c_lib import AlarmInterrupt, SignalError
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.repl.all       import *
 
 from sage.misc.sh import sh
 

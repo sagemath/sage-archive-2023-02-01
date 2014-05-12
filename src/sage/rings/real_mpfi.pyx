@@ -709,7 +709,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             lower = self.__lower_field._coerce_(x)
             upper = self.__upper_field._coerce_(x)
             return self(lower, upper)
-        except TypeError, msg:
+        except TypeError as msg:
             raise TypeError, "no canonical coercion of element into self"
 
     def __cmp__(self, other):
@@ -1020,18 +1020,6 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         x = self._new()
         mpfi_const_log2(x.value)
         return x
-
-# MPFI does not have factorial
-#     def factorial(self, int n):
-#         """
-#         Return the factorial of the integer n as a real number.
-#         """
-#         cdef RealIntervalFieldElement x
-#         if n < 0:
-#             raise ArithmeticError, "n must be nonnegative"
-#         x = self._new()
-#         mpfr_fac_ui(x.value, n, self.rnd)
-#         return x
 
     def scientific_notation(self, status=None):
         """
@@ -2738,8 +2726,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             6
         """
         cdef RealIntervalFieldElement x
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
         x = self._new()
         mpfi_mul_2exp(x.value, self.value, n)
         return x
@@ -2769,8 +2757,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RIF(1.5)._rshift_(2)
             0.37500000000000000?
         """
-        if n > sys.maxint:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
+        if n > sys.maxsize:
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         cdef RealIntervalFieldElement x
         x = self._new()
         mpfi_div_2exp(x.value, self.value, n)
@@ -3565,7 +3553,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         try:
             other_intv = self._parent(other)
             return mpfi_is_inside(other_intv.value, self.value)
-        except TypeError, msg:
+        except TypeError as msg:
             return False
 
     def contains_zero(self):
@@ -4579,6 +4567,31 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         known_bits = -self.relative_diameter().log2()
 
         return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
+        
+    def factorial(self):
+        """
+        Return the factorial evaluated on ``self``.
+
+        EXAMPLES::
+
+            sage: RIF(5).factorial()
+            120
+            sage: RIF(2.3,5.7).factorial()
+            1.?e3
+            sage: RIF(2.3).factorial()
+            2.683437381955768?
+
+        Recover the factorial as integer::
+
+            sage: f = RealIntervalField(200)(50).factorial()
+            sage: f
+            3.0414093201713378043612608166064768844377641568960512000000000?e64
+            sage: f.unique_integer()
+            30414093201713378043612608166064768844377641568960512000000000000
+            sage: 50.factorial()
+            30414093201713378043612608166064768844377641568960512000000000000
+        """
+        return (self+1).gamma()
 
     def gamma(self):
         """

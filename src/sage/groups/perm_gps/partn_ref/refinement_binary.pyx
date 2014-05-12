@@ -648,7 +648,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                 invariant += 8
                 i = current_cell
                 necessary_to_split_cell = 0
-                while 1:
+                while True:
                     col_degrees[i-current_cell] = col_degree(col_ps, BCS, i, ctrb[current_cell_against], word_ps)
                     if col_degrees[i-current_cell] != col_degrees[0]:
                         necessary_to_split_cell = 1
@@ -668,7 +668,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                             break
                         against_index += 1
                     r = current_cell
-                    while 1:
+                    while True:
                         if r == current_cell or col_ps.levels[r-1] == col_ps.depth:
                             if r != first_largest_subcell:
                                 ctrb[ctrb_len] = r
@@ -683,7 +683,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                 invariant += 64
                 i = current_cell
                 necessary_to_split_cell = 0
-                while 1:
+                while True:
                     word_degrees[i-current_cell] = word_degree(word_ps, BCS, i, ctrb[current_cell_against], col_ps)
                     if word_degrees[i-current_cell] != word_degrees[0]:
                         necessary_to_split_cell = 1
@@ -703,7 +703,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
                             break
                         against_index += 1
                     r = current_cell
-                    while 1:
+                    while True:
                         if r == current_cell or word_ps.levels[r-1] == col_ps.depth:
                             if r != first_largest_subcell:
                                 ctrb[ctrb_len] = r
@@ -960,7 +960,7 @@ cdef inline int col_degree(PartitionStack *col_ps, BinaryCodeStruct BCS, int ent
     bitset_init(word, BCS.degree)
     cdef int degree = 0, word_basis, i, b
     entry = col_ps.entries[entry]
-    while 1:
+    while True:
         BCS.ith_word(BCS, word_ps.entries[cell_index], word)
         degree += bitset_check(word, entry)
         if not word_ps.levels[cell_index] > col_ps.depth:

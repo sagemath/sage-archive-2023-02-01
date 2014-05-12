@@ -167,10 +167,10 @@ REFERENCES:
 #       Copyright (C) 2008 Arnaud bergeron <abergeron@gmail.coms>,
 #       Copyrigth (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -325,7 +325,7 @@ def WordPaths(alphabet, steps=None):
         elif alphabet.cardinality() == 6:
             steps = 'hexagonal_grid'
         else:
-            raise TypeError, "Unable to make a class WordPaths from %s"%alphabet
+            raise TypeError("Unable to make a class WordPaths from %s"%alphabet)
 
     #Returns the class of WordPaths according to the given type of paths
     if isinstance(steps, str):
@@ -342,7 +342,7 @@ def WordPaths(alphabet, steps=None):
         elif steps == 'dyck':
             return WordPaths_dyck(alphabet=alphabet)
         else:
-            raise TypeError, "Unknown type of steps : %s"%steps
+            raise TypeError("Unknown type of steps : %s"%steps)
     else:
         return WordPaths_all(alphabet=alphabet, steps=steps)
 
@@ -414,8 +414,8 @@ class WordPaths_all(Words_over_OrderedAlphabet):
         ls = len(steps)
         la = alphabet.cardinality()
         if la != ls and la != 2*ls:
-            raise TypeError,"size of steps (=%s) must equal the size \
-of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality())
+            raise TypeError("size of steps (=%s) must equal the size \
+of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality()))
 
         #Construction of the steps
         from sage.structure.element import Vector
@@ -425,11 +425,11 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
             try:
                 vsteps = map(vector, steps)
             except (TypeError):
-                raise ValueError, "Can't make vectors from steps"
+                raise ValueError("Can't make vectors from steps")
         try:
             s = sum(vsteps)
         except (TypeError, AttributeError):
-            raise ValueError, "Can't make summable vectors from steps"
+            raise ValueError("Can't make summable vectors from steps")
 
         #Complete vsteps with the opposite vectors if needed
         if la == 2 * ls:
@@ -1404,7 +1404,7 @@ class FiniteWordPath_all(SageObject):
         dimension = self.parent().vector_space().dimension()
         if not dimension in (3, 4):
             msg = "The dimension of the vector space (=%s) must be 3 or 4"%dimension
-            raise TypeError, msg
+            raise TypeError(msg)
         if letters is None:
             letters = self.parent().alphabet()
         if color is None:
@@ -1415,7 +1415,7 @@ class FiniteWordPath_all(SageObject):
         if kind is 'right':
             start = it.next()
         elif kind is not 'left':
-            raise ValueError, 'unknown value for kind (=%s)'%kind
+            raise ValueError('unknown value for kind (=%s)'%kind)
         tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
         return sum(tout)
 
@@ -1738,7 +1738,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         """
         if not self.is_closed():
-            raise TypeError, "the path must be closed to compute its area"
+            raise TypeError("the path must be closed to compute its area")
         return NotImplemented
 
     def height(self):
@@ -2058,7 +2058,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
 
         """
         if not self.is_closed():
-            raise TypeError, "the path must be closed to compute its area"
+            raise TypeError("the path must be closed to compute its area")
         return abs(self._area_vh())
 
     def _area_vh(path, x=0, y=0):

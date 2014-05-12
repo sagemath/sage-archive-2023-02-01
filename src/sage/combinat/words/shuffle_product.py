@@ -18,7 +18,7 @@ Shuffle product of words
 #*****************************************************************************
 from sage.combinat.words.word import Word_class
 from sage.combinat.combinat import CombinatorialClass
-from sage.rings.all import binomial
+from sage.rings.arith import binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.subset import Subsets
 from sage.combinat.composition import Compositions_n, Compositions
@@ -352,8 +352,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
 
             #Choose r of these filled places
             for subset in Subsets(filled_places, r):
-                places_to_fill = unfilled_places + list(subset)
-                places_to_fill.sort()
+                places_to_fill = sorted(unfilled_places + list(subset))
 
                 #Fill in w2 into the places
                 i = 0

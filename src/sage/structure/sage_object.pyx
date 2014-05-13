@@ -223,8 +223,11 @@ cdef class SageObject:
 
     def _cache_key(self):
         r"""
-        Return a hashable key which uniquely identifies this objects for
-        caching.
+        Return a key which uniquely identifies this objects for caching. The
+        output must be hashable itself or a tuple of objects which are hashable
+        or define a ``_cache_key``.
+
+        This method will only be called if the object itself is not hashable.
 
         For most objects this will just be the object itself. However, some
         immutable objects (such as `p`-adic numbers) can not implement a

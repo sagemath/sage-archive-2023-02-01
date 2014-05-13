@@ -1405,6 +1405,84 @@ cdef class MPolynomial(CommutativeRingElement):
        except ValueError:
            raise ArithmeticError, "element is non-invertible"
 
+    def weighted_degree(self, *weights):
+        """
+        Return the weighted degree of ``self``, which is the maximum weighted
+        degree of all monomials in ``self``; the weighted degree of a monomial
+        is the sum of all powers of the variables in the monomial, each power
+        multiplied with its respective weight in ``weights``.
+
+        This method is given for convenience. It is faster to use polynomial
+        rings with weighted term orders and the standard ``degree`` function.
+
+        INPUT:
+
+        - ``weights`` - Either individual numbers, an iterable or a dictionary,
+          specifying the weights of each variable. If it is a dictionary, it
+          maps each variable of ``self`` to its weight. If it is a sequence of
+          individual numbers or a tuple, the weights are specified in the order
+          of the generators as given by ``self.parent().gens()``:
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = GF(7)[]
+            sage: p = x^3 + y + x*z^2
+            sage: p.weighted_degree({z:0, x:1, y:2})
+            3
+            sage: p.weighted_degree(1, 2, 0)
+            3
+            sage: p.weighted_degree((1, 4, 2))
+            5
+            sage: p.weighted_degree((1, 4, 1))
+            4
+            sage: q = R.random_element(100, 20) #random
+            sage: q.weighted_degree(1,1,1) == q.total_degree()
+            True
+
+        Note that only integer weights are allowed
+
+        ::
+
+            sage: p.weighted_degree(x,1,1)
+            Traceback (most recent call last):
+            ...
+            TypeError
+
+        The ``weighted_degree`` coincides with the ``degree`` of a weighted
+        polynomial ring, but the later is faster.
+
+        ::
+
+            sage: K = PolynomialRing(QQ, 'x,y', order=TermOrder('wdegrevlex', (2,3)))
+            sage: p = K.random_element(10)
+            sage: p.degree() == p.weighted_degree(2,3)
+            True
+        """
+        if self.is_zero():
+            #Corner case, note that the degree of zero is a python int
+            return -1
+
+        if len(weights) ==  1:
+            # First unwrap it if it is given as one element argument
+            weights = weights[0]
+
+        if isinstance(weights, dict):
+            weights = [ weights[g] for g in self.parent().gens() ]
+
+        weigths = map(int, weights)
+
+        # Go through each monomial, calculating the weight
+        cdef int deg = -1
+        cdef int n = self.parent().ngens()
+        cdef int i, l
+        for m in self.exponents(as_ETuples=False):
+            l = 0
+            for 0 <= i <= n-1:
+                l += weights[i]*m[i]
+            if deg < l:
+                deg = l
+        return deg
+
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]

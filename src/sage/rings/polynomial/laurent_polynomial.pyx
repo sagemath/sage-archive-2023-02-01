@@ -650,6 +650,28 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         self.__u *= c
         return self
 
+    def is_monomial(self):
+        """
+        Return True if this element is a monomial.  That is, if self is
+        `x^n` for some integer `n`.
+
+        EXAMPLES::
+
+            sage: k.<z> = LaurentPolynomialRing(QQ)
+            sage: z.is_monomial()
+            True
+            sage: k(1).is_monomial()
+            True
+            sage: (z+1).is_monomial()
+            False
+            sage: (z^-2909).is_monomial()
+            True
+            sage: (38*z^-2909).is_monomial()
+            False
+        """
+
+        return self.__u.is_monomial()
+
     def __pow__(_self, r, dummy):
         """
         EXAMPLES::
@@ -1866,6 +1888,28 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else:
             ans._poly -= right._poly
         return ans
+
+    def is_monomial(self):
+        """
+        Return True if this element is a monomial.
+
+        EXAMPLES::
+
+            sage: k.<y,z> = LaurentPolynomialRing(QQ)
+            sage: z.is_monomial()
+            True
+            sage: k(1).is_monomial()
+            True
+            sage: (z+1).is_monomial()
+            False
+            sage: (z^-2909).is_monomial()
+            True
+            sage: (38*z^-2909).is_monomial()
+            False
+        """
+
+        d = self._poly.dict()
+        return len(d) == 1 and 1 in d.values()
 
     cpdef ModuleElement _neg_(self):
         """

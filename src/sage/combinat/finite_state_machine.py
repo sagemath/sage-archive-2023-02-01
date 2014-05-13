@@ -647,6 +647,7 @@ def full_group_by(l, key=lambda x: x):
 
 FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'
+EndOfWordLaTeX = r'\$'
 FSMOldCodeTransducerCartesianProduct = True
 FSMOldProcessOutput = True  # See trac #16132 (deprecation).
 tikz_automata_where = {"right": 0,
@@ -2993,7 +2994,8 @@ class FiniteStateMachine(SageObject):
                       initial_where=None,
                       accepting_style=None,
                       accepting_distance=None,
-                      accepting_where=None):
+                      accepting_where=None,
+                      accepting_show_empty=None):
         r"""
         Set options for LaTeX output via
         :func:`~sage.misc.latex.latex` and therefore
@@ -3049,6 +3051,10 @@ class FiniteStateMachine(SageObject):
           final output word, it is also possible to give an angle
           in degrees.
 
+        - ``accepting_show_empty`` -- if ``True`` the arrow of an
+          empty final output word is labeled as well. Note that this
+          implicitly implies ``accepting_style='accepting by
+          arrow'``. If not given, the default ``False`` is used.
 
         OUTPUT:
 
@@ -3070,8 +3076,9 @@ class FiniteStateMachine(SageObject):
           is a callable without arguments);
 
         - ``format_state_label``, ``format_letter``,
-          ``format_transition_label``, ``accepting_style``, and
-          ``accepting_distance`` of :class:`FiniteStateMachine`.
+          ``format_transition_label``, ``accepting_style``,
+          ``accepting_distance``, and ``accepting_show_empty``
+          of :class:`FiniteStateMachine`.
 
         This function, however, also (somewhat) checks its input and
         serves to collect documentation on all these options.
@@ -3138,7 +3145,7 @@ class FiniteStateMachine(SageObject):
             \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
             \node[state, accepting, accepting where=left] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
             \node[state, accepting, accepting where=45] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
-            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$\mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid {\scriptstyle w_{0} w_{0}}$} ++(45.00:10ex);
             \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
             \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
             \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {${\scriptstyle w_{0}}\mid {\scriptstyle w_{0} w_{2}}$} (v4.231.31);
@@ -3159,6 +3166,38 @@ class FiniteStateMachine(SageObject):
 
         To actually see this, use the live documentation in the Sage notebook
         and execute the cells.
+
+        By changing some of the options, we get the following output::
+
+            sage: T.latex_options(
+            ....:     format_transition_label=T.default_format_transition_label,
+            ....:     accepting_style='accepting by arrow',
+            ....:     accepting_show_empty=True
+            ....:     )
+            sage: latex(T)
+            \begin{tikzpicture}[auto, initial text=, >=latex, accepting text=, accepting/.style=accepting by arrow, accepting distance=10ex]
+            \node[state, initial, initial where=above] (v0) at (0.000000, 0.000000) {$\mathcal{I}$};
+            \node[state] (v1) at (-6.000000, 3.000000) {$\mathbf{0}$};
+            \path[->] (v1.180.00) edge node[rotate=360.00, anchor=south] {$\$ \mid \varepsilon$} ++(180.00:10ex);
+            \node[state] (v2) at (6.000000, 3.000000) {$\mathbf{3}$};
+            \path[->] (v2.45.00) edge node[rotate=45.00, anchor=south] {$\$ \mid w_{0} w_{0}$} ++(45.00:10ex);
+            \node[state] (v3) at (-2.000000, 3.000000) {$\mathbf{1}$};
+            \node[state] (v4) at (2.000000, 3.000000) {$\mathbf{2}$};
+            \path[->] (v0.61.31) edge node[rotate=56.31, anchor=south] {$w_{0}\mid w_{0} w_{2}$} (v4.231.31);
+            \path[->] (v1.-21.57) edge node[rotate=-26.57, anchor=south] {$w_{0}\mid w_{0} w_{0}$} (v0.148.43);
+            \path[->] (v0.31.57) edge node[rotate=26.57, anchor=south] {$w_{0}\mid w_{0} w_{3}$} (v2.201.57);
+            \path[->] (v2) edge[loop below] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v2.-148.43) edge node[rotate=26.57, anchor=north] {$w_{0}\mid w_{0} w_{-3}$} (v0.21.57);
+            \path[->] (v3.-51.31) edge node[rotate=-56.31, anchor=south] {$w_{0}\mid w_{0} w_{-1}$} (v0.118.69);
+            \path[->] (v4) edge[loop right] node[rotate=90, anchor=north] {$w_{0}\mid w_{0}$} ();
+            \path[->] (v3) edge[loop above] node {$w_{0}\mid w_{0}$} ();
+            \path[->] (v1) edge[loop left] node[rotate=90, anchor=south] {$w_{0}\mid w_{0}$} ();
+            \path[->] (v4.-118.69) edge node[rotate=56.31, anchor=north] {$w_{0}\mid w_{0} w_{-2}$} (v0.51.31);
+            \path[->] (v0.158.43) edge node[rotate=333.43, anchor=north] {$w_{0}\mid w_{0} w_{0}$} (v1.328.43);
+            \path[->] (v0.128.69) edge node[rotate=303.69, anchor=north] {$w_{0}\mid w_{0} w_{1}$} (v3.298.69);
+            \path[->] (v0) edge[loop below] node {$w_{0}\mid w_{0}$} ();
+            \end{tikzpicture}
+            sage: view(T) # not tested
 
         TESTS::
 
@@ -3311,6 +3350,9 @@ class FiniteStateMachine(SageObject):
                     raise ValueError('accepting_where for %s must be in %s.' %
                                      (state.label(), permissible))
 
+        if accepting_show_empty is not None:
+            self.accepting_show_empty = accepting_show_empty
+
 
     def _latex_(self):
         r"""
@@ -3381,6 +3423,11 @@ class FiniteStateMachine(SageObject):
             options.append("accepting distance=%s"
                            % accepting_distance)
 
+        if hasattr(self, "accepting_show_empty"):
+            accepting_show_empty = self.accepting_show_empty
+        else:
+            accepting_show_empty = False
+
         result = "\\begin{tikzpicture}[%s]\n" % ", ".join(options)
         j = 0;
         for vertex in self.iter_states():
@@ -3390,7 +3437,8 @@ class FiniteStateMachine(SageObject):
             options = ""
             if vertex.is_final:
                 if not (vertex.final_word_out
-                        and accepting_style == "accepting by arrow"):
+                        and accepting_style == "accepting by arrow") \
+                        and not accepting_show_empty:
                     # otherwise, we draw a custom made accepting path
                     # with label below
                     options += ", accepting"
@@ -3411,14 +3459,15 @@ class FiniteStateMachine(SageObject):
                 options, j, vertex.coordinates[0],
                 vertex.coordinates[1], label)
             vertex._number_ = j
-            if vertex.is_final and vertex.final_word_out:
+            if vertex.is_final and (vertex.final_word_out or accepting_show_empty):
                 angle = 0
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$\$\mid %s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
+                    EndOfWordLaTeX,
                     self.format_transition_label(vertex.final_word_out),
                     angle, accepting_distance)
 

@@ -474,7 +474,7 @@ def _cache_key(o):
     This function is intended for objects which are not hashable such as
     `p`-adic numbers. The difference from calling an object's ``_cache_key``
     method directly, is that it also works for tuples and unpacks them
-    recursively.
+    recursively (if necessary, i.e., if they are not hashable).
 
     EXAMPLES::
 
@@ -492,17 +492,28 @@ def _cache_key(o):
         sage: _cache_key(o)
         (1, 2, (3, (((1,),), 0, 20)))
 
+    Note that tuples are only partially unpacked if some of its entries are
+    hashable::
+
+        sage: o = (matrix([1, 2, 3]), a)
+        sage: _cache_key(o)
+        ([1 2 3], (((1,),), 0, 20))
+
     .. SEEALSO::
 
         :meth:`sage.structure.sage_object.SageObject._cache_key`
 
     """
-    if isinstance(o, sage.structure.sage_object.SageObject):
-        o = o._cache_key()
-    if isinstance(o,tuple):
-        return tuple(_cache_key(item) for item in o)
-    else:
+    try:
+        hash(o)
         return o
+    except TypeError:
+        if isinstance(o, sage.structure.sage_object.SageObject):
+            o = o._cache_key()
+        if isinstance(o,tuple):
+            return tuple(_cache_key(item) for item in o)
+        else:
+            return o
 
 cdef class CachedFunction(object):
     """

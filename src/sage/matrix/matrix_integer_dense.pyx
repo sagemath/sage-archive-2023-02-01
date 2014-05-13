@@ -2530,7 +2530,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         fpLLL SPECIFIC INPUTS:
 
-        - ``precision`` - bit precision to use if ``fp=='rr'`` is set (default:
+        - ``precision`` - bit precision to use if ``fp='rr'`` is set (default:
           ``0`` for automatic choice).
         - ``max_loops`` - maximum number of full loops (default: ``0`` for no
           restriction).

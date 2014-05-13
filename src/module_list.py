@@ -1933,6 +1933,9 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
 
+    Extension('sage.sets.recursively_enumerated_set',
+              sources = ['sage/sets/recursively_enumerated_set.pyx']),
+
     ################################
     ##
     ## sage.stats

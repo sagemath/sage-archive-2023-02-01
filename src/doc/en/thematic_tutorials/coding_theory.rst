@@ -11,8 +11,8 @@ Sage and Coding Theory
 This brief paper surveys recent work in Sage on implementing algorithms
 to compute with linear block codes.
 
-Included in Sage is the group theory package GAP [GAP]_ and GUAVA [GUAVA]_, GAP’s coding
-theory package. All of GUAVA’s functions can be accessed within Sage.
+Included in Sage is the group theory package GAP [GAP]_ and GUAVA [GUAVA]_, GAP's coding
+theory package. All of GUAVA's functions can be accessed within Sage.
 
 General coding theory functions
 ===============================
@@ -73,7 +73,7 @@ call GUAVA:
            return LinearCode(G)
 
 #. The ``spectrum`` (weight distribution), ``minimum_distance`` programs
-   (calling Steve Linton’s C programs in GAP),
+   (calling Steve Linton's C programs in GAP),
    ``characteristic_function`` (as in [vanLint]_), and several implementations of
    the Duursma zeta function (``zeta_polynomial``, ``zeta_function``,
    ``chinen_polynomial``, for example),
@@ -121,7 +121,7 @@ call GUAVA:
 
    Decoding, at the moment, merely uses syndrome decoding via GUAVA.
 
-#. Boolean-valued functions such as “==”, ``is_self_dual``,
+#. Boolean-valued functions such as "==", ``is_self_dual``,
    ``is_self_orthogonal``, ``is_permutation_automorphism``,
 
 #. permutation methods: ``automorphism_group_binary_code``,
@@ -228,7 +228,7 @@ call GUAVA:
 #. design-theoretic methods: ``assmus_mattson_designs`` (implementing
    the Assmus-Mattson Theorem).
 
-   **Theorem 1.** (Assmus and Mattson Theorem. §8.4, page 303 of [HP]_) Let
+   **Theorem 1.** (Assmus and Mattson Theorem. par. 8.4, page 303 of [HP]_) Let
    :math:`A_0, A_1, ..., A_n` be the weight distribution of the
    codewords in a binary linear :math:`[n , k, d]` code :math:`C`, and
    let [1]_ :math:`A_0^\perp, A_1^\perp, ..., A_n^\perp` be the weight
@@ -244,7 +244,7 @@ call GUAVA:
 
    -  If :math:`A_i^\perp\not= 0` and :math:`d^\perp\leq i\leq n-t` then
       :math:`C_i^\perp = \{ c \in C* \ |\ wt(c) = i\}` holds a simple
-      :math:`t`–design.
+      :math:`t`-design.
 
    Some of the terms in the above theorem are recalled below (see for
    details). A **block design** is a pair :math:`(X,B)`, where :math:`X`
@@ -286,12 +286,12 @@ call GUAVA:
    :math:`C^\perp` (of course :math:`C=C^\perp` in this case, so this
    info is extraneous). The test fails to produce 6-designs (ie, the
    hypotheses of the theorem fail to hold, not that the 6-designs
-   definitely don’t exist). The command
+   definitely don't exist). The command
    ``assmus_mattson_designs(C,5,mode="verbose")`` returns the same value
    but prints out more detailed information.
 
    The second example below illustrates the blocks of the
-   :math:`5`–:math:`(24, 8, 1)` design (i.e., the :math:`S(5,8,24)`
+   :math:`5`-:math:`(24, 8, 1)` design (i.e., the :math:`S(5,8,24)`
    Steiner system).
 
    EXAMPLES:
@@ -334,7 +334,7 @@ code. In future work, this will be extended to other base rings.
 Native constructions
 ====================
 
-Sage contains GUAVA but most of GUAVA’s functions have not been
+Sage contains GUAVA but most of GUAVA's functions have not been
 implemented in Python, so they must be called via the GAP interface.
 (See the _`GUAVA manual`: https://code.google.com/p/guava-libraries/
 for details on the syntax of GUAVA.)
@@ -342,7 +342,7 @@ for details on the syntax of GUAVA.)
 In addition, here are some of the special codes implemented natively in
 Python:
 
--  ``BCHCode`` - A ’Bose-Chaudhuri-Hockenghem code’ (or BCH code, for short)
+-  ``BCHCode`` - A 'Bose-Chaudhuri-Hockenghem code' (or BCH code, for short)
    is the largest possible cyclic code of length :math:`n` over field
    :math:`F=GF(q)`, whose generator polynomial has zeros (contained in)
    :math:`\{\alpha^{b},\alpha^{b+1},\ldots \alpha^{b+\delta-2}\}`, where :math:`\alpha` is a primitive
@@ -377,7 +377,7 @@ Python:
          5
 
 -  ``BinaryGolayCode``, ``ExtendedBinaryGolayCode``, ``TernaryGolayCode``, - the
-   well-known “extremal” Golay codes: :wikipedia:`Golay_code`
+   well-known "extremal" Golay codes: :wikipedia:`Golay_code`
 
    EXAMPLES:
 
@@ -439,8 +439,8 @@ Python:
          [0 2 1 0]
          [0 0 2 1]
 
--  ``DuadicCodeEvenPair``, ``DuadicCodeOddPair`` - Constructs the “even” (resp.
-   “odd”) pair of duadic codes associated to a “splitting” :math:`S_1`,
+-  ``DuadicCodeEvenPair``, ``DuadicCodeOddPair`` - Constructs the "even" (resp.
+   "odd") pair of duadic codes associated to a "splitting" :math:`S_1`,
    :math:`S_2` of :math:`n`. This is a special type of cyclic code whose
    generator is determined by :math:`S_1`, :math:`S_2`. See chapter 6 in [HP]_.
 
@@ -504,7 +504,7 @@ Python:
           {\mathbf{F}}^{n-k} \rightarrow
           0.
 
-   Here, “short exact” means (a) the arrow :math:`G` is injective, i.e.,
+   Here, "short exact" means (a) the arrow :math:`G` is injective, i.e.,
    :math:`G` is a full-rank :math:`k\times n` matrix, (b) the arrow
    :math:`H` is surjective, and (c)
    :math:`{\rm image}(G)={\rm kernel}(H)`.
@@ -533,12 +533,12 @@ Python:
          True
 
 -  ``QuadraticResidueCodeEvenPair``, ``QuadraticResidueCodeOddPair``: Quadratic
-   residue codes of a given odd prime length and base ring either don’t
-   exist at all or occur as 4-tuples - a pair of “odd-like” codes and a
-   pair of “even-like” codes. If :math:`n > 2` is prime then (Theorem
+   residue codes of a given odd prime length and base ring either don't
+   exist at all or occur as 4-tuples - a pair of "odd-like" codes and a
+   pair of "even-like" codes. If :math:`n > 2` is prime then (Theorem
    6.6.2 in [HP]_) a QR code exists over :math:`GF(q)` if and only if
    :math:`q` is a quadratic residue :math:`\pmod n`. Here they are
-   constructed as “even-like” (resp., “odd-like”) duadic codes
+   constructed as "even-like" (resp., "odd-like") duadic codes
    associated the splitting :math:`(Q,N) \pmod n`, where :math:`Q` is
    the set of non-zero quadratic residues and :math:`N` is the
    non-residues.
@@ -573,12 +573,12 @@ Python:
 
    This is consistent with Theorem 6.6.9 and Exercise 365 in [HP]_.
 
--  ``RandomLinearCode`` - Repeatedly applies Sage’s ``random_element``
+-  ``RandomLinearCode`` - Repeatedly applies Sage's ``random_element``
    applied to the ambient ``MatrixSpace`` of the generator matrix until a
    full rank matrix is found.
 
--  ``ReedSolomonCode`` - Also called a “generalized Reed-Solomon code” (the
-   “narrow” RS codes codes are also cyclic codes; they are part of GUAVA
+-  ``ReedSolomonCode`` - Also called a "generalized Reed-Solomon code" (the
+   "narrow" RS codes codes are also cyclic codes; they are part of GUAVA
    but have not been ported over to natice Python/Sage yet). Given a
    finite field :math:`\mathbb{F}` of order :math:`q`, let :math:`n` and
    :math:`k` be chosen such that :math:`1 \leq k \leq n \leq q`. Pick
@@ -672,21 +672,21 @@ Bounds
 Regarding bounds on coding theory parameters, this module implements:
 
 -  ``best_known_linear_code_www`` (interface with codetables.de since A.
-   Brouwer’s online tables have been disabled). Explains the
+   Brouwer's online tables have been disabled). Explains the
    construction of the best known linear code over :math:`GF(q)` with
    length :math:`n` and dimension :math:`k`, courtesy of the www page
    http://www.codetables.de/.
 
    INPUT:
 
-   -  ``n`` – integer, the length of the code
+   -  ``n`` - integer, the length of the code
 
-   -  ``k`` – integer, the dimension of the code
+   -  ``k`` - integer, the dimension of the code
 
-   -  ``F`` – finite field, whose field order must be in [2, 3, 4, 5, 7,
+   -  ``F`` - finite field, whose field order must be in [2, 3, 4, 5, 7,
       8, 9]
 
-   -  ``verbose`` – bool (default=False), print verbose mesSage 
+   -  ``verbose`` - bool (default=False), print verbose mesSage 
 
    EXAMPLES:
 
@@ -752,7 +752,7 @@ Regarding bounds on coding theory parameters, this module implements:
 
    This means that there is a :math:`(10,85,3)` binary (non-linear)
    code. Since :math:`85>2^6`, this is a better code that a
-   :math:`[10,6,3]` binary (linear) code, assuming one exists. Let’s use
+   :math:`[10,6,3]` binary (linear) code, assuming one exists. Let's use
    ``best_known_linear_code_www`` to find out:
 
    ::
@@ -821,7 +821,7 @@ Regarding bounds on coding theory parameters, this module implements:
    :math:`\lim_{i\rightarrow \infty} k_i/n_i=R`.
 
    The following theorem describes information-theoretical limits on how
-   “good” a linear code can be.
+   "good" a linear code can be.
 
    **Theorem 2** (Manin [SS]_, chapter 1). There exists a continuous decreasing function
 
@@ -857,12 +857,12 @@ Regarding bounds on coding theory parameters, this module implements:
 
    .. math::
 
-	  \begin{align*}
+      \begin{align*}
       R(C)+\delta(C) \geq 
       &1- \delta(C)\log_q({\frac{q-1}{q}})-\delta(C)\log_q(\delta(C))\\
       &-(1-\delta(C))\log_q(1-\delta(C))-\epsilon.
-	  \end{align*}
-	  
+      \end{align*}
+      
    The curve
    :math:`(\delta, 1- \delta\log_q({\frac{q-1}{q}})-\delta\log_q(\delta)-
    (1-\delta)\log_q(1-\delta)))` is called the **Gilbert-Varshamov
@@ -877,10 +877,10 @@ Regarding bounds on coding theory parameters, this module implements:
        Sage : plot(f,0,1/2)
 
 .. figure:: media/gv-bound-asymp.eps.png
-	:align: center
-	:scale: 50 %
-	
-	Figure 1: Plot of the Gilbert-Varshamov curve using Sage (i.e., ``y = gv_bound_asymp(x, 2)``).
+    :align: center
+    :scale: 50 %
+    
+    Figure 1: Plot of the Gilbert-Varshamov curve using Sage (i.e., ``y = gv_bound_asymp(x, 2)``).
    
 -  ``plotkin_upper_bound(n,q,d)``
 
@@ -888,10 +888,10 @@ Regarding bounds on coding theory parameters, this module implements:
    upper bound.
 
 .. figure:: media/plotkin-bound-asymp.eps.png
-	:align: center
-	:scale: 50 %
-	
-	Figure 2: Plot using Sage of ``y = plotkin_bound_asymp(x, 2)``.
+    :align: center
+    :scale: 50 %
+    
+    Figure 2: Plot using Sage of ``y = plotkin_bound_asymp(x, 2)``.
    
 -  ``griesmer_upper_bound(n,q,d)``, the Griesmer upper bound.
 
@@ -901,10 +901,10 @@ Regarding bounds on coding theory parameters, this module implements:
    bound.
 
 .. figure:: media/elias-bound-asymp.eps.png
-	:align: center
-	:scale: 50 %
-	
-	Figure 3: Plot using Sage of ``y = elias_bound_asymp(x, 2)``.
+    :align: center
+    :scale: 50 %
+    
+    Figure 3: Plot using Sage of ``y = elias_bound_asymp(x, 2)``.
 
 -  ``hamming_upper_bound(n,q,d)``, the Hamming upper bound.
 
@@ -912,10 +912,10 @@ Regarding bounds on coding theory parameters, this module implements:
    upper bound.
 
 .. figure:: media/hamming-bound-asymp.eps.png
-	:align: center
-	:scale: 50 %
-	
-	Figure 4: Plot using Sage of ``y = hamming_bound_asymp(x, 2)``.
+    :align: center
+    :scale: 50 %
+    
+    Figure 4: Plot using Sage of ``y = hamming_bound_asymp(x, 2)``.
 
 -  ``singleton_upper_bound(n,q,d)``, the Singleton upper bound.
 
@@ -923,19 +923,19 @@ Regarding bounds on coding theory parameters, this module implements:
    Singleton upper bound.
 
 .. figure:: media/singleton-bound-asymp.eps.png
-	:align: center
-	:scale: 50 %
-	
-	Figure 5: Plot using Sage of ``y = singleton_bound_asymp(x, 2)``.
+    :align: center
+    :scale: 50 %
+    
+    Figure 5: Plot using Sage of ``y = singleton_bound_asymp(x, 2)``.
 
--  ``mrrw1_bound_asymp(delta,q)``, “first” asymptotic
+-  ``mrrw1_bound_asymp(delta,q)``, "first" asymptotic
    McEliese-Rumsey-Rodemich-Welsh upper bound for the information rate .
 
 .. figure:: media/mrrw1-bound-asymp.eps.png
-	:align: center
-	:scale: 50 %
-	
-	Figure 6: Plot using Sage of ``y = mrrw1_bound_asymp(x, 2)``.
+    :align: center
+    :scale: 50 %
+    
+    Figure 6: Plot using Sage of ``y = mrrw1_bound_asymp(x, 2)``.
 
 Here are all the bounds together: 
 
@@ -957,12 +957,12 @@ Here are all the bounds together:
     Sage : show(P1+P2+P3+P4+P5+P6)
 
 .. figure:: media/all-bounds-asymp.eps.png
-	:align: center
-	:scale: 100 %
-	
-	Figure 7: Plot of the Gilbert-Varshamov (dotted), Elias (red), Plotkin (dashed),
-	Singleton (dash-dotted), Hamming (green), and MRRW (stepped) curves using
-	Sage.
+    :align: center
+    :scale: 100 %
+    
+    Figure 7: Plot of the Gilbert-Varshamov (dotted), Elias (red), Plotkin (dashed),
+    Singleton (dash-dotted), Hamming (green), and MRRW (stepped) curves using
+    Sage.
 
 
 Self-dual codes
@@ -982,7 +982,7 @@ Format of each entry: a Python dictionary with keys ``order autgp``,
 -  ``order autgp`` - order of the permutation automorphism group of
    :math:`C`,
 
--  ``Type`` - the type of :math:`C` (which can be “I” or “II”, in the
+-  ``Type`` - the type of :math:`C` (which can be "I" or "II", in the
    binary case),
 
 -  ``spectrum`` - the spectrum :math:`[A_0,A_1,...,A_n]`,
@@ -998,7 +998,7 @@ self-dual binary codes of length :math:`n` is given:
 | :math:`B_n`   | 1   | 1   | 1   | 2   | 2    | 3    | 4    | 7    | 9    | 16   | 25   | 55   | 103   | 261   | 731   |
 +---------------+-----+-----+-----+-----+------+------+------+------+------+------+------+------+-------+-------+-------+
 
-According to an entry in Sloane’s Online Encyclopedia of Integer
+According to an entry in Sloane's Online Encyclopedia of Integer
 Sequences, http://oeis.org/A003179, the next
 2 entries are: 3295, 24147.
 
@@ -1030,7 +1030,7 @@ A lot of work on the classification of doubly even self-orthogonal codes
 using Sage can be found at http://www.rlmiller.org/de_codes/.
 
 The number of permutation equivalence classes of all doubly even
-:math:`[n,k]`–codes is shown in the table at
+:math:`[n,k]`-codes is shown in the table at
 http://www.rlmiller.org/de_codes/, and the list of codes so far
 discovered is linked from the list entries. Each link on that webpage
 points to a Sage  object file, which when loaded (e.g.,
@@ -1039,29 +1039,29 @@ standard form. The algorithm is described in .
 
 REFERENCES:
 
-.. [GAP] The GAP Group, GAP – Groups, Algorithms, and Programming, Version
-	4.4.10; 2007. http://www.gap-system.org.
+.. [GAP] The GAP Group, GAP - Groups, Algorithms, and Programming, Version
+    4.4.10; 2007. http://www.gap-system.org.
 
 .. [GUAVA] GUAVA, a coding theory package for GAP,
-	http://sage.math.washington.edu/home/wdj/guava/.
+    http://sage.math.washington.edu/home/wdj/guava/.
 
 .. [HP] W. C. Huffman and V. Pless, **Fundamentals of error-correcting codes**,
-	Cambridge Univ. Press, 2003.
+    Cambridge Univ. Press, 2003.
 
 .. [vanLint] J. van Lint, **Introduction to coding theory, 3rd ed.**, Springer-Verlag
-	GTM, 86, 1999.
+    GTM, 86, 1999.
 
 .. [Miller1] Robert Miller, *Graph automorphism computation*, March 2007.
 
-.. [Miller2] ——, *Doubly even codes*, http://www.rlmiller.org/talks/June_Meeting.pdf,
-	June 2007.
+.. [Miller2] ---, *Doubly even codes*, http://www.rlmiller.org/talks/June_Meeting.pdf,
+    June 2007.
 
 .. [Sage] The Sage  Group, Sage : *Mathematical software*, version 3.0.
-	http://www.sagemath.org/.
+    http://www.sagemath.org/.
 
 .. [SS] S. Shokranian and M.A. Shokrollahi, **Coding theory and bilinear
-	complexity**, Scientific Series of the International Bureau, KFA Jülich,
-	Vol. 21, 1994.
+    complexity**, Scientific Series of the International Bureau, KFA Juelich,
+    Vol. 21, 1994.
 
 .. [1]
    For typographical reasons, the output of the program

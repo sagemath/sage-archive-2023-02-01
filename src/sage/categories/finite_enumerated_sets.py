@@ -354,6 +354,18 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             """
             Return the item indexed by ``i``.
 
+            .. WARNING::
+
+                This method is only meant as a convenience shorthand for
+                ``self.unrank(i)`` and
+                ``self.unrank_range(start, stop, step)`` respectively, for
+                casual use (e.g. in interactive sessions). Subclasses are
+                hereby explicitly permitted to overload ``__getitem__``
+                with a different semantic, typically for enumerated sets
+                that are naturally indexed by some `I` not of the
+                form `\{0, 1, \ldots\}`. In particular, generic code
+                *should not* use this shorthand.
+
             EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
@@ -368,14 +380,21 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 sage: C[0:1:2]
                 [1]
 
-                sage: F = Family([0,1,2,3])
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: F[1:]
+                [2, 3]
                 sage: F[:2]
-                (0, 1)
+                [1, 2]
+                sage: F[:2:2]
+                [1]
+                sage: F[1::2]
+                [2]
             """
             try:
                 return self._list[i]
             except AttributeError:
-                if isinstance(i, slice) and i.stop is None and i.step is None:
+                if isinstance(i, slice) and (i.start is None
+                            and i.stop is not None and i.step is None):
                     it = self.__iter__()
                     return [it.next() for j in range(i.stop)]
                 return self.list()[i]

@@ -297,6 +297,18 @@ class EnumeratedSets(Category_singleton):
             r"""
             Return the item indexed by ``i``.
 
+            .. WARNING::
+
+                This method is only meant as a convenience shorthand for
+                ``self.unrank(i)`` and
+                ``self.unrank_range(start, stop, step)`` respectively, for
+                casual use (e.g. in interactive sessions). Subclasses are
+                hereby explicitly permitted to overload ``__getitem__``
+                with a different semantic, typically for enumerated sets
+                that are naturally indexed by some `I` not of the
+                form `\{0, 1, \ldots\}`. In particular, generic code
+                *should not* use this shorthand.
+
             EXAMPLES::
 
                 sage: P = Partitions()

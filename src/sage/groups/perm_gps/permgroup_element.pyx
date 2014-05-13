@@ -63,6 +63,7 @@ include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial
+from sage.matrix.matrix import is_Matrix
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -797,6 +798,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         the indeterminates. This is a right action since the image of
         f(sigma\*x) under tau is f(sigma\*tau\*x).
 
+        Additionally, if ``left`` is a matrix, then sigma acts on the matrix
+        by permuting the rows.
+
         INPUT:
 
 
@@ -818,6 +822,15 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             2*x^2 - y^2 + z^2 + u^2
             sage: (f*sigma)*tau
             2*x^2 - y^2 + z^2 + u^2
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M*sigma
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 5]
+            [0 0 0 4 0]
+
         """
         if not self_on_left:
             left = x
@@ -833,6 +846,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 except IndexError:
                     raise TypeError, "%s does not act on %s"%(self, left.parent())
                 return left(tuple(sigma_x))
+            elif is_Matrix(left):
+                return left.with_permuted_rows(self)
 
     cpdef MonoidElement _mul_(left, MonoidElement _right):
         """

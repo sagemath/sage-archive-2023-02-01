@@ -256,7 +256,7 @@ class EnumeratedSets(Category_singleton):
                 return False
 
         def unrank_range(self, start=None, stop=None, step=None):
-            """
+            r"""
             Return the range of elements of ``self`` starting at ``start``,
             ending at ``stop``, and stepping by ``step``.
 
@@ -330,16 +330,7 @@ class EnumeratedSets(Category_singleton):
                 [1, 1]
             """
             if isinstance(i, slice):
-                if i.stop is None:
-                    return self.list()[i]
-
-                if i.start is None and i.step is None:
-                    it = self.__iter__()
-                    return [it.next() for j in range(i.stop)]
-
-                s = 0 if i.start is None else i.start
-                st = 1 if i.step is None else i.step
-                return [self.unrank(j) for j in range(s, i.stop, st)]
+                return self.unrank_range(i.start, i.stop, i.step)
             return self.unrank(i)
 
         def list(self):

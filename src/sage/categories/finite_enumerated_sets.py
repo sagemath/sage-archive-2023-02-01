@@ -350,8 +350,35 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
         _list_default  = list # needed by the check system.
 
-        def __getitem__(self, i):
+        def unrank_range(self, start=None, stop=None, step=None):
+            r"""
+            Return the range of elements of ``self`` starting at ``start``,
+            ending at ``stop``, and stepping by ``step``.
+
+            See also ``unrank()``.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: F.unrank_range(1)
+                [2, 3]
+                sage: F.unrank_range(stop=2)
+                [1, 2]
+                sage: F.unrank_range(stop=2, step=2)
+                [1]
+                sage: F.unrank_range(start=1, step=2)
+                [2]
             """
+            try:
+                return self._list[start:stop:step]
+            except AttributeError:
+                if start is None and stop is not None and step is None:
+                    it = self.__iter__()
+                    return [it.next() for j in range(stop)]
+                return self.list()[start:stop:step]
+
+        def __getitem__(self, i):
+            r"""
             Return the item indexed by ``i``.
 
             .. WARNING::
@@ -396,7 +423,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 if isinstance(i, slice) and (i.start is None
                             and i.stop is not None and i.step is None):
                     it = self.__iter__()
-                    return [it.next() for j in range(i.stop)]
+                    return [it.next() for j in range(stop)]
                 return self.list()[i]
 
         def _random_element_from_unrank(self):

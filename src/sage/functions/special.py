@@ -662,6 +662,12 @@ def elliptic_j(z):
        sage: elliptic_j(z).real().round()
        -32768
 
+    ::
+
+       sage: tau = (1 + sqrt(-163))/2
+       sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
+       640320
+
    """
    CC = z.parent()
    from sage.rings.complex_field import is_ComplexField

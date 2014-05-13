@@ -176,6 +176,25 @@ cdef class DiscreteGaussianSampler(SageObject):
             sage: min(l), max(l), abs(mean(l)-2.5) < 0.01
             (-2, 7, True)
 
+        These generators cache random bits for performance reasons. Hence, resetting
+        the seed of the PRNG might not have the expected outcome::
+
+            sage: from sage.stats.discrete_gaussians import DiscreteGaussianSampler
+            sage: D = DiscreteGaussianSampler(3.0)
+            sage: sage.misc.randstate.set_random_seed(0); D()
+            3
+            sage: sage.misc.randstate.set_random_seed(0); D()
+            3
+            sage: sage.misc.randstate.set_random_seed(0); D()
+            -3
+
+            sage: D = DiscreteGaussianSampler(3.0)
+            sage: sage.misc.randstate.set_random_seed(0); D()
+            3
+            sage: sage.misc.randstate.set_random_seed(0); D()
+            3
+            sage: sage.misc.randstate.set_random_seed(0); D()
+            -3            
         """
 
         if sigma <= 0.0:

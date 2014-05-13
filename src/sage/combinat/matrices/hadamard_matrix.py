@@ -57,13 +57,13 @@ from sage.rings.arith import is_prime
 def H1(i, j, p):
     """
     Returns the i,j-th entry of the Paley matrix, type I case.
-    The Paley type I case corresponds to the case `p \cong 3 \bmod{4}`
+    The Paley type I case corresponds to the case `p \cong 3 \mod{4}`
     for a prime `p`.
 
     .. TODO::
 
         This construction holds more generally for prime powers `q`
-        congruent to `3 \bmod{4}`. We should implement these but we
+        congruent to `3 \mod{4}`. We should implement these but we
         first need to implement Quadratic character for `GF(q)`.
 
     EXAMPLES::
@@ -83,13 +83,13 @@ def H2(i, j, p):
     """
     Returns the i,j-th entry of the Paley matrix, type II case.
 
-    The Paley type II case corresponds to the case `p \cong 1 \bmod{4}`
+    The Paley type II case corresponds to the case `p \cong 1 \mod{4}`
     for a prime `p` (see [Hora]_).
 
     .. TODO::
 
         This construction holds more generally for prime powers `q`
-        congruent to `1 \bmod{4}`. We should implement these but we
+        congruent to `1 \mod{4}`. We should implement these but we
         first need to implement Quadratic character for `GF(q)`.
 
     EXAMPLES::
@@ -132,7 +132,7 @@ def hadamard_matrix_paleyI(n):
     """
     Implements the Paley type I construction.
 
-    The Paley type I case corresponds to the case `p \cong 3 \bmod{4}` for a
+    The Paley type I case corresponds to the case `p \cong 3 \mod{4}` for a
     prime `p` (see [Hora]_).
 
     EXAMPLES:
@@ -156,7 +156,7 @@ def hadamard_matrix_paleyII(n):
     """
     Implements the Paley type II construction.
 
-    The Paley type II case corresponds to the case `p \cong 1 \bmod{4}` for a
+    The Paley type II case corresponds to the case `p \cong 1 \mod{4}` for a
     prime `p` (see [Hora]_).
 
     EXAMPLES::

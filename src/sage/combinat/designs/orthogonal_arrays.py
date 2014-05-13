@@ -139,6 +139,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         Unknown
         sage: designs.transversal_design(6, 12, existence=True)
         True
+        sage: designs.transversal_design(7, 12, existence=True)
+        True
+        sage: designs.transversal_design(8, 12, existence=True)
+        Unknown
 
         sage: designs.transversal_design(6, 20, existence = True)
         True
@@ -232,7 +236,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
          9: (11, 11)
         10: ( 5, 11)
         11: (13, 13)
-        12: ( 7, 14)
+        12: ( 8, 14)
         13: (15, 15)
         14: ( 7, 15)
         15: ( 7, 17)

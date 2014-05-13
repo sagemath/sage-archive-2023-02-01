@@ -557,6 +557,23 @@ def HadamardDesign(n):
         sage: print designs.HadamardDesign(7)
         HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
+    For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
+    We verify that `NJ = 5J` for this design. ::
+     
+        sage: D = designs.HadamardDesign(11); N = D.incidence_matrix()
+        sage: J = matrix(ZZ, 11, 11, [1]*11*11); N*J
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+        [5 5 5 5 5 5 5 5 5 5 5]
+
     REFERENCES:
 
     - [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
@@ -564,7 +581,7 @@ def HadamardDesign(n):
     """
     from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
     from sage.matrix.constructor import matrix
-    H = hadamard_matrix(n+1)
+    H = hadamard_matrix(n+1) #assumed to be normalised.
     H1 = H.matrix_from_columns(range(1,n+1))
     H2 = H1.matrix_from_rows(range(1,n+1))
     J = matrix(ZZ,n,n,[1]*n*n)
@@ -572,6 +589,66 @@ def HadamardDesign(n):
     A = MS((H2+J)/2) # convert -1's to 0's; coerce entries to ZZ
     # A is the incidence matrix of the block design
     return IncidenceStructureFromMatrix(A,name="HadamardDesign")
+
+def Hadamard3Design(n):
+    """
+    Return the Hadamard 3-design with parameters `3-(n, \\frac n 2, \\frac n 4 - 1)`.
+
+    This is the unique extension of the Hadamard `2`-design (see
+    :meth:`HadamardDesign`).  We implement the description from pp. 12 in
+    [CvL]_.
+
+    INPUT:
+
+    - ``n`` (integer) -- a multiple of 4 such that `n>4`.
+
+    EXAMPLES::
+
+        sage: designs.Hadamard3Design(12)
+        Incidence structure with 12 points and 22 blocks
+
+    We verify that any two blocks of the Hadamard `3`-design `3-(8, 4, 1)`
+    design meet in `0` or `2` points. More generally, it is true that any two
+    blocks of a Hadamard `3`-design meet in `0` or `\\frac{n}{4}` points (for `n
+    > 4`).
+
+    ::
+
+        sage: D = designs.Hadamard3Design(8)
+        sage: N = D.incidence_matrix()
+        sage: N.transpose()*N
+        [4 2 2 2 2 2 2 2 2 2 2 2 2 0]
+        [2 4 2 2 2 2 2 2 2 2 2 2 0 2]
+        [2 2 4 2 2 2 2 2 2 2 2 0 2 2]
+        [2 2 2 4 2 2 2 2 2 2 0 2 2 2]
+        [2 2 2 2 4 2 2 2 2 0 2 2 2 2]
+        [2 2 2 2 2 4 2 2 0 2 2 2 2 2]
+        [2 2 2 2 2 2 4 0 2 2 2 2 2 2]
+        [2 2 2 2 2 2 0 4 2 2 2 2 2 2]
+        [2 2 2 2 2 0 2 2 4 2 2 2 2 2]
+        [2 2 2 2 0 2 2 2 2 4 2 2 2 2]
+        [2 2 2 0 2 2 2 2 2 2 4 2 2 2]
+        [2 2 0 2 2 2 2 2 2 2 2 4 2 2]
+        [2 0 2 2 2 2 2 2 2 2 2 2 4 2]
+        [0 2 2 2 2 2 2 2 2 2 2 2 2 4]
+
+
+    REFERENCES:
+
+    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+      their links, London Math. Soc., 1991.
+    """
+    if n == 1 or n == 4:
+        raise ValueError("The Hadamard design with n = %s does not extend to a three design." % n)
+    from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
+    from sage.matrix.constructor import matrix, block_matrix
+    H = hadamard_matrix(n) #assumed to be normalised.
+    H1 = H.matrix_from_columns(range(1, n))
+    J = matrix(ZZ, n, n-1, [1]*(n-1)*n)
+    A1 = (H1+J)/2
+    A2 = (J-H1)/2
+    A = block_matrix(1, 2, [A1, A2]) #the incidence matrix of the design.
+    return IncidenceStructureFromMatrix(A, name="HadamardThreeDesign")
 
 def BlockDesign(max_pt, blks, name=None, test=True):
     """

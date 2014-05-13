@@ -496,7 +496,7 @@ def tokenize(s):
             skip = 3
         # check to see if '-', '<' or '>' are used incorrectly
         elif s[i] in '<->':
-            raise SyntaxError("'%s' can only be used as part of the operators '<->' or '->'." % (s[i]))
+            raise SyntaxError("'{}' can only be used as part of the operators '<->' or '->'.".format(s[i]))
         if len(tok) > 0:
             toks.append(tok)
             i += skip
@@ -526,7 +526,7 @@ def tokenize(s):
                 msg = 'invalid variable name ' + tok
                 msg += ": identifiers must begin with a letter and contain only "
                 msg += "alphanumerics and underscores"
-                raise NameError, msg
+                raise NameError(msg)
 
     toks.append(')')
     return toks, vars_order

@@ -1459,7 +1459,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         TESTS:
             sage: A = random_matrix(GF(2),0,40)
             sage: A.transpose()
-            40 x 0 dense matrix over Finite Field of size 2
+            40 x 0 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
 
             sage: A = Matrix(GF(2), [1,0])
             sage: B = A.transpose()

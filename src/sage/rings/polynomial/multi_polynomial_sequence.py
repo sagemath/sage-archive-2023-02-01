@@ -125,7 +125,7 @@ easily::
     sage: A,v = F2.coefficient_matrix(sparse=False)
     sage: A.echelonize()
     sage: A
-    6840 x 4474 dense matrix over Finite Field of size 2 (type 'print A.str()' to see all of the entries)
+    6840 x 4474 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
     sage: A.rank()
     4056
     sage: A[4055]*v

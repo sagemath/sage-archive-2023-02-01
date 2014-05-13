@@ -61,7 +61,7 @@ from orthogonal_polys import (chebyshev_T,
 
 from spike_function import spike_function
 
-from prime_pi import prime_pi
+from prime_pi import legendre_phi, partial_sieve_function, prime_pi
 
 from wigner import (wigner_3j, clebsch_gordan, racah, wigner_6j,
                     wigner_9j, gaunt)

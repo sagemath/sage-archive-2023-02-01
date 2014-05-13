@@ -1125,7 +1125,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     say 10,000 entries, each limited to 16 bits.  ::
 
         sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
-        100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
+        100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of

@@ -55,6 +55,7 @@ AUTHORS:
 """
 
 from sage.misc.abstract_method import abstract_method
+from sage.misc.fast_methods import WithEqualityById
 
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -818,7 +819,7 @@ class AlgebraicClosureFiniteField_generic(Field):
         return (self(1), self.gen(2), 1+self.gen(3))
 
 
-class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic):
+class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
     """
     Algebraic closure of a finite field, constructed using
     pseudo-Conway polynomials.
@@ -834,6 +835,15 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         z4^3 + z4^2 + 4*z4
         sage: x**12
         3
+
+    TESTS::
+
+        sage: F3 = GF(3).algebraic_closure()
+        sage: F3 == F3
+        True
+        sage: F5 = GF(5).algebraic_closure()
+        sage: F3 == F5
+        False
 
     """
     def __init__(self, base_ring, name, category=None, lattice=None, use_database=True):
@@ -864,7 +874,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
             sage: F = GF(5).algebraic_closure(implementation='pseudo_conway')
             sage: print F.__class__.__name__
             AlgebraicClosureFiniteField_pseudo_conway_with_category
-            sage: TestSuite(F).run(skip=['_test_elements'])
+            sage: TestSuite(F).run(skip=['_test_elements', '_test_pickling'])
 
             sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
             sage: L = PseudoConwayLattice(11, use_database=False)
@@ -882,8 +892,10 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
 
         .. NOTE::
 
-            In the test suite, ``_test_elements`` has to be skipped
-            for the reason described in
+            In the test suite, ``_test_pickling`` has to be skipped
+            because ``F`` and ``loads(dumps(F))`` cannot consistently
+            be made to compare equal, and ``_test_elements`` has to be
+            skipped for the reason described in
             :meth:`AlgebraicClosureFiniteFieldElement.__init__`.
 
         """
@@ -897,25 +909,6 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
             raise TypeError('lattice must be a pseudo-Conway lattice with characteristic %s' % p)
         self._pseudo_conway_lattice = lattice
         AlgebraicClosureFiniteField_generic.__init__(self, base_ring, name, category)
-
-    def __cmp__(self, other):
-        """
-        Compare ``self`` with ``other``.
-
-        TEST::
-
-            sage: F3 = GF(3).algebraic_closure()
-            sage: F3 == F3
-            True
-            sage: F5 = GF(5).algebraic_closure()
-            sage: F3 == F5
-            False
-
-        """
-        c = AlgebraicClosureFiniteField_generic.__cmp__(self, other)
-        if c != 0:
-            return c
-        return cmp(self._pseudo_conway_lattice, other._pseudo_conway_lattice)
 
     def _get_polynomial(self, n):
         """
@@ -953,6 +946,10 @@ def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=N
     """
     Construct an algebraic closure of a finite field.
 
+    The recommended way to use this functionality is by calling the
+    `:meth:~sage.rings.finite_rings.finite_field_base.FiniteField.algebraic_closure`
+    method of the finite field.
+
     .. NOTE::
 
         Algebraic closures of finite fields in Sage do not have the
@@ -966,10 +963,17 @@ def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=N
         sage: F1 = AlgebraicClosureFiniteField(GF(2), 'z')
         sage: F1 is F
         False
+
+    In the pseudo-Conway implementation, non-identical instances never
+    compare equal::
+
         sage: F1 == F
-        True
+        False
         sage: loads(dumps(F)) == F
-        True
+        False
+
+    This is to ensure that the result of comparing two instances
+    cannot change with time.
 
     """
     if category is None:

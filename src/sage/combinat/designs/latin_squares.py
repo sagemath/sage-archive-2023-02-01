@@ -273,7 +273,7 @@ def latin_square_product(M,N,*others):
         sage: from sage.combinat.designs.latin_squares import latin_square_product
         sage: m=designs.mutually_orthogonal_latin_squares(4,3)[0]
         sage: latin_square_product(m,m,m)
-        64 x 64 sparse matrix over Integer Ring
+        64 x 64 sparse matrix over Integer Ring (use the '.str()' method to see the entries)
     """
     from sage.matrix.constructor import Matrix
     m = M.nrows()

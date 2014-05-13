@@ -881,7 +881,7 @@ class BooleanFormula(object):
 
     def implies(self, other):
         r"""
-        Determine if calling formula implies other formula
+        Determine if calling formula implies other formula.
 
         INPUT:
 
@@ -893,15 +893,13 @@ class BooleanFormula(object):
 
         A boolean value to be determined as follows:
 
-        True - if ``self`` implies ``other``
+        - ``True`` - if ``self`` implies ``other``
 
-        False - if ``self does not imply ``other``
+        - ``False`` - if ``self does not imply ``other``
 
         EXAMPLES:
 
-        This example illustrates determining if one formula implies another
-
-        ::
+        This example illustrates determining if one formula implies another::
 
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("a<->b")

@@ -196,17 +196,18 @@ def formula(s):
 
 def get_formulas(*statements):
     r"""
-    Convert statements and parse trees into instances of :class:`BooleanFormula`
+    Convert statements and parse trees into instances of
+    :class:`BooleanFormula`.
 
     INPUT:
 
-    - ``*statements`` -- strings or lists. A list must be a
-    full syntax parse tree of a formula, and a string must
-    be a string representation of a formula.
+    - ``*statements`` -- strings or lists; a list must be a
+      full syntax parse tree of a formula, and a string must
+      be a string representation of a formula
 
     OUTPUT:
 
-    The converted formulas in a list
+    The converted formulas in a list.
 
     EXAMPLES:
 
@@ -245,7 +246,6 @@ def get_formulas(*statements):
         sage: formulas[2]
         b->(~c<->d)
 
-
     AUTHORS:
 
     - Paul Scurek (2013-08-12)
@@ -278,9 +278,9 @@ def consistent(*formulas):
 
     A boolean value to be determined as follows:
 
-    True - if the formulas are logically consistent
+    - ``True`` - if the formulas are logically consistent
 
-    False - if the formulas are not logically consistent
+    - ``False`` - if the formulas are not logically consistent
 
     EXAMPLES:
 
@@ -318,7 +318,8 @@ def consistent(*formulas):
 
 def valid_consequence(consequence, *formulas):
     r"""
-    Determine if ``consequence`` is a valid consequence of the set of formulas in ``*formulas``.
+    Determine if ``consequence`` is a valid consequence of the set
+    of formulas in ``*formulas``.
 
     INPUT:
 
@@ -330,15 +331,16 @@ def valid_consequence(consequence, *formulas):
 
     A boolean value to be determined as follows:
 
-    True - if ``consequence`` is a valid consequence of the set of ``*formulas``
+    - ``True`` - if ``consequence`` is a valid consequence of the set
+      of ``*formulas``
 
-    False - if ``consequence is not a valid consequence of the set of ``*formulas``
+    - ``False`` - if ``consequence is not a valid consequence of the set
+      of ``*formulas``
 
     EXAMPLES:
 
-    This example illustrates determining if a formula is a valid consequence of a set of other formulas
-
-    ::
+    This example illustrates determining if a formula is a valid
+    consequence of a set of other formulas::
 
         sage: import sage.logic.propcalc as propcalc
         sage: f, g, h, i = propcalc.get_formulas("a&~b", "c->b", "c|e", "e&a")
@@ -383,5 +385,4 @@ def valid_consequence(consequence, *formulas):
     corresponding_conditional = conjunction.ifthen(consequence)
 
     return corresponding_conditional.is_tautology()
-
 

@@ -168,11 +168,11 @@ def get_trees(*statements):
 
     INPUT:
 
-    - ``*statements`` -- strings or :class:`BooleanFormula` instances.
+    - ``*statements`` -- strings or :class:`BooleanFormula` instances
 
     OUTPUT:
 
-    The parse trees in a list
+    The parse trees in a list.
 
     EXAMPLES:
 

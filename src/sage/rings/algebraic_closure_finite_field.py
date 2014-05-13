@@ -540,8 +540,18 @@ class AlgebraicClosureFiniteField_generic(Field):
             sage: type(F(3))
             <class 'sage.rings.algebraic_closure_finite_field.AlgebraicClosureFiniteField_pseudo_conway_with_category.element_class'>
 
+            sage: from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
+            sage: F1 = AlgebraicClosureFiniteField(GF(3), 'z')
+            sage: F2 = AlgebraicClosureFiniteField(GF(3), 'z')
+            sage: F1(F2.gen(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: no conversion defined between different algebraic closures
+
         """
-        if isinstance(x, self.element_class) and x.parent() is self:
+        if isinstance(x, self.element_class):
+            if x.parent() is not self:
+                raise ValueError('no conversion defined between different algebraic closures')
             return x
         else:
             return self.element_class(self, x)

@@ -19,7 +19,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
 
     - ``OA`` -- the Orthogonal Array to be tested
 
-    - ``k,n,t`` integers.
+    - ``k,n,t`` (integers) -- only implemented for `t=2`.
 
     - ``verbose`` (boolean) -- whether to display some information when ``OA``
       is not an orthogona array `OA(k,n)`.
@@ -41,14 +41,38 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
         sage: is_orthogonal_array(OA,8,9,verbose=True)
         Rows 0 and 3 are not orthogonal
         False
+
+    TESTS::
+
+        sage: is_orthogonal_array(OA,8,9,t=3)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: only implemented for t=2
+        sage: is_orthogonal_array([[3]*8],8,9,verbose=True)
+        The number of rows is 1 instead of 9^2=81
+        False
+        sage: is_orthogonal_array([[3]*8],8,9,verbose=True,terminology="MOLS")
+        All matrices do not have dimension n^2=9^2
+        False
+        sage: is_orthogonal_array([[3]*7],8,9,verbose=True)
+        Some row does not have length 8
+        False
+        sage: is_orthogonal_array([[3]*7],8,9,verbose=True,terminology="MOLS")
+        The number of matrices is not 8
+        False
     """
     cdef int n2 = n*n
     cdef int x
-    if any(len(R) != k for R in OA):
-        if verbose:
-            print {"OA"   : "Some row does not have length "+str(k),
-                   "MOLS" : "The number of matrices is not "+str(k)}[terminology]
-        return False
+
+    if t != 2:
+        raise NotImplementedError("only implemented for t=2")
+
+    for R in OA:
+        if len(R) != k:
+            if verbose:
+                print {"OA"   : "Some row does not have length "+str(k),
+                       "MOLS" : "The number of matrices is not "+str(k)}[terminology]
+            return False
 
     if len(OA) != n2:
         if verbose:

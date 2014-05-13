@@ -339,7 +339,7 @@ class Sets(Category_singleton):
 
             .. MATH::
 
-                op_A(e) = r(op_B(l(e))), \text{ for all `e\in A`}
+                op_A(e) = r(op_B(l(e))), \text{ for all } e\in A
 
             This allows for implementing the operations on `A` from
             those on `B`.

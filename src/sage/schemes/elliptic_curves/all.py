@@ -36,8 +36,6 @@ from cm import ( cm_orders,
                  cm_j_invariants_and_orders,
                  hilbert_class_polynomial )
 
-import monsky_washnitzer
-
 from ec_database import elliptic_curves
 
 from kodaira_symbol import KodairaSymbol

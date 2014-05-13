@@ -1646,42 +1646,30 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
-            "100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)"
+            '100 x 100 dense matrix over Integer Ring'
             sage: print A
-            100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
-
-        If there are several names for the same matrix, write it as "obj"::
-
-            sage: B = A; print B
-            100 x 100 dense matrix over Integer Ring (type 'print obj.str()' to see all of the entries)
-
-        If the matrix doesn't have a name, don't print the extra string::
-
-            sage: A.transpose()
             100 x 100 dense matrix over Integer Ring
-            sage: T = A.transpose(); T
-            100 x 100 dense matrix over Integer Ring (type 'print T.str()' to see all of the entries)
+
+        When a big matrix returned, include a hint on how to get the entries.
+        This is a feature of the sage command-line::
+
+            sage: A
+            100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+
+        But don't do that when the matrix is part of a larger data structure::
+
+            sage: [A]*2
+            [100 x 100 dense matrix over Integer Ring,
+             100 x 100 dense matrix over Integer Ring]
+
         """
-        from sage.misc.sageinspect import sage_getvariablename
         if self._nrows < max_rows and self._ncols < max_cols:
             return self.str()
         if self.is_sparse():
             s = 'sparse'
         else:
             s = 'dense'
-        rep = "%s x %s %s matrix over %s"%(self._nrows, self._ncols, s, self.base_ring())
-        name = sage_getvariablename(self)
-        if isinstance(name, list) and len(name) == 0:
-            # don't print the name if the matrix doesn't have a name
-            return rep
-        if isinstance(name, list):
-            name = [x for x in name if not x.startswith('_')]
-        if len(name) == 1:
-            name = name[0]
-        # now name is either a string (if one choice) or a list (if many)
-        if not isinstance(name, str):
-            name = "obj"
-        return rep + " (type 'print %s.str()' to see all of the entries)" % name
+        return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
 
     def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
         r"""
@@ -2125,20 +2113,28 @@ cdef class Matrix(sage.structure.element.Matrix):
     # involve multiplication outside base ring, including
     # with_ versions of these methods for this situation
     ###################################################
+    cdef check_row_bounds(self, Py_ssize_t r1, Py_ssize_t r2):
+        if r1 < 0 or r1 >= self._nrows or r2 < 0 or r2 >= self._nrows:
+            raise IndexError("matrix row index out of range")
+
     cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2):
         if self._is_immutable:
-            raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
+            raise ValueError("Matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = None
-        if r1<0 or r1 >= self._nrows or r2<0 or r2 >= self._nrows:
+        if r1 < 0 or r1 >= self._nrows or r2 < 0 or r2 >= self._nrows:
             raise IndexError("matrix row index out of range")
+
+    cdef check_column_bounds(self, Py_ssize_t c1, Py_ssize_t c2):
+        if c1 < 0 or c1 >= self._ncols or c2 < 0 or c2 >= self._ncols:
+            raise IndexError("matrix column index out of range")
 
     cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2):
         if self._is_immutable:
-            raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
+            raise ValueError("Matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = None
-        if c1<0 or c1 >= self._ncols or c2<0 or c2 >= self._ncols:
+        if c1 < 0 or c1 >= self._ncols or c2 < 0 or c2 >= self._ncols:
             raise IndexError("matrix column index out of range")
 
     def swap_columns(self, Py_ssize_t c1, Py_ssize_t c2):
@@ -2218,6 +2214,105 @@ cdef class Matrix(sage.structure.element.Matrix):
         temp = self.__copy__()
         if c1 != c2:
             temp.swap_columns_c(c1,c2)
+        return temp
+
+    def permute_columns(self, permutation):
+        r"""
+        Permute the columns of ``self`` by applying the permutation
+        group element ``permutation``.
+
+        As a permutation group element acts on integers `\{1, \hdots, n\}`
+        the columns are considered as being numbered from 1 for this
+        operation.
+
+        INPUT:
+
+        - ``permutation`` -- a ``PermutationGroupElement``.
+
+        EXAMPLE: We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M
+            [1 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [0 0 0 4 0]
+            [0 0 0 0 5]
+
+        Next of all, create a permutation group element and act
+        on ``M`` with it::
+
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (1,2,3)(4,5)
+            sage: M.permute_columns(sigma)
+            sage: M
+            [0 0 1 0 0]
+            [2 0 0 0 0]
+            [0 3 0 0 0]
+            [0 0 0 0 4]
+            [0 0 0 5 0]
+
+        """
+        self.check_mutability()
+        for cycle in permutation.cycle_tuples():
+            cycle = [elt-1 for elt in reversed(cycle)]
+            for elt in cycle:
+                self.check_column_bounds(cycle[0], elt)
+                if cycle[0] != elt:
+                    self.swap_columns_c(cycle[0], elt)
+
+    def with_permuted_columns(self, permutation):
+        r"""
+        Return the matrix obtained from permuting the columns
+        of ``self`` by applying the permutation group element
+        ``permutation``.
+
+        As a permutation group element acts on integers `\{1,\hdots,n\}`
+        the columns are considered as being numbered from 1 for this
+        operation.
+
+        INPUT:
+
+        - ``permutation``, a ``PermutationGroupElement``
+
+        OUTPUT:
+
+        - A matrix.
+
+        EXAMPLE: We create some matrix::
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M
+            [1 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [0 0 0 4 0]
+            [0 0 0 0 5]
+
+        Next of all, create a permutation group element and
+        act on ``M``::
+
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (1,2,3)(4,5)
+            sage: M.with_permuted_columns(sigma)
+            [0 0 1 0 0]
+            [2 0 0 0 0]
+            [0 3 0 0 0]
+            [0 0 0 0 4]
+            [0 0 0 5 0]
+        """
+        cdef Matrix temp
+        temp = self.__copy__()
+        for cycle in permutation.cycle_tuples():
+            cycle = [(elt - 1) for elt in reversed(cycle)]
+            for elt in cycle:
+                self.check_column_bounds(cycle[0], elt)
+                if cycle[0] != elt:
+                    temp.swap_columns_c(cycle[0], elt)
         return temp
 
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
@@ -2306,12 +2401,198 @@ cdef class Matrix(sage.structure.element.Matrix):
             temp.swap_rows_c(r1,r2)
         return temp
 
+    def permute_rows(self, permutation):
+        r"""
+        Permute the rows of ``self`` by applying the permutation
+        group element ``permutation``.
+
+        As a permutation group element acts on integers `\{1,\hdots,n\}`
+        the rows are considered as being numbered from 1 for this
+        operation.
+
+        INPUT:
+
+        - ``permutation`` -- a ``PermutationGroupElement``
+
+        EXAMPLE: We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M
+            [1 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [0 0 0 4 0]
+            [0 0 0 0 5]
+
+        Next of all, create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (1,2,3)(4,5)
+            sage: M.permute_rows(sigma)
+            sage: M
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 5]
+            [0 0 0 4 0]
+        """
+        self.check_mutability()
+        for cycle in permutation.cycle_tuples():
+            cycle = [elt - 1 for elt in reversed(cycle)]
+            for elt in cycle:
+                self.check_row_bounds(cycle[0], elt)
+                if cycle[0] != elt:
+                    self.swap_rows_c(cycle[0], elt)
+
+    def with_permuted_rows(self, permutation):
+        r"""
+        Return the matrix obtained from permuting the rows
+        of ``self`` by applying the permutation group element
+        ``permutation``.
+
+        As a permutation group element acts on integers `\{1,\hdots,n\}`
+        the rows are considered as being numbered from 1 for this
+        operation.
+
+        INPUT:
+
+        - ``permutation`` -- a ``PermutationGroupElement``
+
+        OUTPUT:
+
+        - A matrix.
+
+        EXAMPLE: We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M
+            [1 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [0 0 0 4 0]
+            [0 0 0 0 5]
+
+        Next of all, create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (1,2,3)(4,5)
+            sage: M.with_permuted_rows(sigma)
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 5]
+            [0 0 0 4 0]
+        """
+        cdef Matrix temp
+        temp = self.__copy__()
+        for cycle in permutation.cycle_tuples():
+            cycle = [elt - 1 for elt in reversed(cycle)]
+            for elt in cycle:
+                self.check_row_bounds(cycle[0], elt)
+                if cycle[0] != elt:
+                    temp.swap_rows_c(cycle[0], elt)
+        return temp
+
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
         cdef Py_ssize_t c
         for c from 0 <= c < self._ncols:
             a = self.get_unsafe(r2, c)
             self.set_unsafe(r2, c, self.get_unsafe(r1, c))
             self.set_unsafe(r1, c, a)
+
+    def permute_rows_and_columns(self, row_permutation, column_permutation):
+        r"""
+        Permute the rows and columns of ``self`` by applying the permutation
+        group elements ``row_permutation`` and ``column_permutation``
+        respectively.
+        
+        As a permutation group element acts on integers `\{1,\hdots,n\}`
+        the rows and columns are considered as being numbered from 1 for
+        this operation.
+
+        INPUT:
+
+        - ``row_permutation`` -- a ``PermutationGroupElement``
+        - ``column_permutation`` -- a ``PermutationGroupElement``
+
+        OUTPUT:
+
+        - A matrix.
+
+        EXAMPLE: We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M
+            [1 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [0 0 0 4 0]
+            [0 0 0 0 5]
+
+        Next of all, create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (1,2,3)(4,5)
+            sage: M.permute_rows_and_columns(sigma,tau)
+            sage: M
+            [2 0 0 0 0]
+            [0 3 0 0 0]
+            [0 0 0 0 1]
+            [0 0 0 5 0]
+            [0 0 4 0 0]
+        """
+        self.permute_rows(row_permutation)
+        self.permute_columns(column_permutation)
+
+    def with_permuted_rows_and_columns(self,row_permutation,column_permutation):
+        r"""
+        Return the matrix obtained from permuting the rows and
+        columns of ``self`` by applying the permutation group
+        elements ``row_permutation`` and ``column_permutation``.
+        
+        As a permutation group element acts on integers `\{1,\hdots,n\}`
+        the rows are considered as being numbered from 1 for this
+        operation.
+
+        INPUT:
+
+        - ``row_permutation`` -- a ``PermutationGroupElement``
+        - ``column_permutation`` -- a ``PermutationGroupElement``
+
+        OUTPUT:
+
+        - A matrix.
+
+        EXAMPLE: We create a matrix::
+
+            sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
+            sage: M
+            [1 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 3 0 0]
+            [0 0 0 4 0]
+            [0 0 0 0 5]
+
+        Next of all, create a permutation group element and act on ``M``::
+
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: sigma, tau = G.gens()
+            sage: sigma
+            (1,2,3)(4,5)
+            sage: M.with_permuted_rows_and_columns(sigma,tau)
+            [2 0 0 0 0]
+            [0 3 0 0 0]
+            [0 0 0 0 1]
+            [0 0 0 5 0]
+            [0 0 4 0 0]
+        """
+        return self.with_permuted_rows(row_permutation).with_permuted_columns(column_permutation)
 
     def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_col=0):
         """

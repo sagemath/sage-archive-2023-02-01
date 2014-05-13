@@ -31,7 +31,7 @@ from the Handbook of Combinatorial Designs.
            0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
         ________________________________________________________________________________
     <BLANKLINE>
-      0| +oo +oo   1   2   3   4   1   6   7   8   1  10   4  12   1   2  15  16   2  18
+      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   4  12   1   2  15  16   2  18
      20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
      40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   3   2  58
      60|   5  60   5   6  63   7   2  66   4   4   6  70   7  72   2   7   3   6   2  78
@@ -248,25 +248,56 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(5, 5)
         Traceback (most recent call last):
         ...
-        EmptySetError: There exist at most n-1 MOLS of size n.
+        EmptySetError: There exist at most n-1 MOLS of size n if n>=2.
         sage: designs.mutually_orthogonal_latin_squares(6, 4)
         Traceback (most recent call last):
         ...
         NotImplementedError: I don't know how to build these MOLS!
+
+    TESTS:
+
+    The special case `n=1`::
+
+        sage: designs.mutually_orthogonal_latin_squares(1, 3)
+        [[0], [0], [0]]
+        sage: designs.mutually_orthogonal_latin_squares(1, None, existence=True)
+        +Infinity
+        sage: designs.mutually_orthogonal_latin_squares(1, None)
+        Traceback (most recent call last):
+        ...
+        ValueError: there are no bound on k when n=1.
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
 
     # Is k is None we find the largest available
     if k is None:
+        if n == 1:
+            if existence:
+                from sage.rings.infinity import Infinity
+                return Infinity
+            raise ValueError("there are no bound on k when n=1.")
+
         k = orthogonal_array(None,n,existence=True) - 2
         if existence:
             return k
 
-    if k >= n:
+    if n == 1:
+        if existence:
+            return True
+        matrices = [Matrix([[0]])]*k
+
+    elif k >= n:
         if existence:
             return False
-        raise EmptySetError("There exist at most n-1 MOLS of size n.")
+        raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
+
+    elif n == 10 and k == 2:
+        if existence:
+            return True
+
+        from database import MOLS_10_2
+        matrices = MOLS_10_2()
 
     elif (orthogonal_array not in who_asked and
         orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):
@@ -293,16 +324,6 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         matrices = [[M[i*n:(i+1)*n] for i in range(n)] for M in matrices]
         matrices = [Matrix(M) for M in matrices]
 
-        if partitions:
-            partitions = [[[i*n+j for j in range(n)] for i in range(n)],
-                          [[j*n+i for j in range(n)] for i in range(n)]]
-            for m in matrices:
-                partition = [[] for i in range(n)]
-                for i in range(n):
-                    for j in range(n):
-                        partition[m[i,j]].append(i*n+j)
-                partitions.append(partition)
-
     else:
         if existence:
             return Unknown
@@ -310,6 +331,17 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
     if check:
         assert are_mutually_orthogonal_latin_squares(matrices)
+
+    # partitions have been requested but have not been computed yet
+    if partitions is True:
+        partitions = [[[i*n+j for j in range(n)] for i in range(n)],
+                      [[j*n+i for j in range(n)] for i in range(n)]]
+        for m in matrices:
+            partition = [[] for i in range(n)]
+            for i in range(n):
+                for j in range(n):
+                    partition[m[i,j]].append(i*n+j)
+            partitions.append(partition)
 
     if partitions:
         return partitions

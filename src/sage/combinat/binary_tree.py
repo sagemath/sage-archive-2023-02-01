@@ -1516,7 +1516,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES:
 
-        The tree
+        This tree::
 
             |       o    |
             |      / \   |
@@ -1526,7 +1526,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |  / \       |
             | o   o      |
 
-        is Tamari-`\leq` to the tree
+        is Tamari-`\leq` to the following tree::
 
             |     _o_     |
             |    /   \    |

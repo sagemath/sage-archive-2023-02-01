@@ -150,7 +150,7 @@ class AnalyticTypeElement(LatticePosetElement):
             sage: AT("weak").latex_space_name()
             'M^!'
             sage: AT(["quasi", "cusp"]).latex_space_name()
-            'QS'
+            'QC'
             sage: AT([]).latex_space_name()
             'Z'
         """
@@ -165,7 +165,7 @@ class AnalyticTypeElement(LatticePosetElement):
         elif self.parent()("holo")  <= self:
              name += "M"
         elif self.parent()("cusp")  <= self:
-             name += "S"
+             name += "C"
         else:
              name  = "Z"
 
@@ -349,7 +349,6 @@ class AnalyticType(FiniteLatticePoset):
 
     Element = AnalyticTypeElement
 
-    # FIXME: I believe this can be better handled by UniqueRepresentation
     @staticmethod
     def __classcall__(cls):
         r"""
@@ -466,8 +465,6 @@ class AnalyticType(FiniteLatticePoset):
 
         return "Analytic Type"
 
-    ## FIXME: You may not override the __call__ method for parents.
-    ## This is handled by _element constructor_.
     def __call__(self, *args, **kwargs):
         r"""
         Return the result of the corresponding call function
@@ -475,6 +472,11 @@ class AnalyticType(FiniteLatticePoset):
 
         If more than one argument is given it is called with
         the list of those arguments instead.
+
+        .. NOTE::
+
+            The function just extends the ``__call__`` function to allow multiple arguments
+            (see the example below).
 
         EXAMPLES::
 

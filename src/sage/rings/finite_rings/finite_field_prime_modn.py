@@ -76,7 +76,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         """
         p = integer.Integer(p)
         if check and not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
+            raise ArithmeticError("p must be prime")
         self.__char = p
         self._kwargs = {}
         # FiniteField_generic does nothing more than IntegerModRing_generic, and
@@ -184,7 +184,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
                     return integer_mod.IntegerMod_to_IntegerMod(S, self)
                 except TypeError:
                     pass
-        to_ZZ = ZZ.coerce_map_from(S)
+        to_ZZ = ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
@@ -302,7 +302,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             IndexError: only one generator
         """
         if n != 0:
-            raise IndexError, "only one generator"
+            raise IndexError("only one generator")
         return self(1)
 
     def __iter__(self):

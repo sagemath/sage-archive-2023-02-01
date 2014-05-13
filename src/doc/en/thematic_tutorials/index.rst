@@ -69,6 +69,7 @@ Combinatorics
 =============
 
 * :ref:`sage.combinat.tutorial`
+* :ref:`algebraic_combinatorics`
 
 Algebraic Combinatorics
 -----------------------

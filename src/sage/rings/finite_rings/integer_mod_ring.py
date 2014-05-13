@@ -945,7 +945,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 try:
                     y = intmod_gap_to_sage(x)
                     return self.coerce(y)
-                except (ValueError, IndexError, TypeError), msg:
+                except (ValueError, IndexError, TypeError) as msg:
                     raise TypeError("{}\nerror coercing to finite field".format(msg))
 
             raise # Continue up with the original TypeError
@@ -1037,7 +1037,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
             except TypeError:
                 pass
-        to_ZZ = integer_ring.ZZ.coerce_map_from(S)
+        to_ZZ = integer_ring.ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
@@ -1056,7 +1056,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: Z11 == Z11, Z11 == Z12, Z11 == Z13, Z11 == F
             (True, False, False, False)
         """
-        if type(other) is not type(self):   # so that GF(p) =/= Z/pZ
+        if not isinstance(other, type(self)):   # so that GF(p) =/= Z/pZ
             return cmp(type(self), type(other))
         return cmp(self.__order, other.__order)
 

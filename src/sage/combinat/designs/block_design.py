@@ -29,7 +29,12 @@ REFERENCES:
   External Representation of Block Designs' by Peter J. Cameron, Peter
   Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
+.. [We07] Charles Weibel, "Survey of Non-Desarguesian planes" (2007), notices of
+   the AMS, vol. 54 num. 10, pages 1294--1303
+
 AUTHORS:
+
+- Vincent Delecroix (2014): rewrite the part on projective planes :trac:`16281`
 
 - Peter Dobcsanyi and David Joyner (2007-2008)
 
@@ -37,6 +42,10 @@ AUTHORS:
   0.6) written by Peter Dobcsanyi peter@designtheory.org. Thanks go to Robert
   Miller for lots of good design suggestions.
 
+.. TODO::
+
+    Implement finite non-Desarguesian plane as in [We07]_ and
+    :wikipedia:`Non-Desarguesian_plane`.
 
 Functions and methods
 ---------------------
@@ -60,6 +69,8 @@ from sage.rings.arith import binomial, integer_floor
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
 from sage.misc.decorators import rename_keyword
 from sage.rings.finite_rings.constructor import FiniteField
+from sage.categories.sets_cat import EmptySetError
+from sage.misc.unknown import Unknown
 
 ###  utility functions  -------------------------------------------------------
 
@@ -103,7 +114,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
       own implementation. In order to use GAP's implementation instead (i.e. its
       ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
-      GAP's "design" package must be available in this case.
+      GAP's "design" package must be available in this case, and that it can be
+      installed with the ``gap_packages`` spkg.
 
     EXAMPLES:
 
@@ -143,79 +155,262 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def ProjectivePlaneDesign(n, type="Desarguesian"):
+def DesarguesianProjectivePlaneDesign(n, check=True):
     r"""
-    Returns a projective plane of order `n`.
+    Return the Desarguesian projective plane of order ``n`` as a 2-design.
+
+    The Desarguesian projective plane of order `n` can also be defined as the
+    projective plane over a field of order `n`. For more information, have a
+    look at :wikipedia:`Projective_plane`.
+
+    INPUT:
+
+    - ``n`` -- an integer which must be a power of a prime number
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    .. SEEALSO::
+
+        :func:`ProjectiveGeometryDesign`
+
+    EXAMPLES::
+
+        sage: designs.DesarguesianProjectivePlaneDesign(2)
+        Incidence structure with 7 points and 7 blocks
+        sage: designs.DesarguesianProjectivePlaneDesign(3)
+        Incidence structure with 13 points and 13 blocks
+        sage: designs.DesarguesianProjectivePlaneDesign(4)
+        Incidence structure with 21 points and 21 blocks
+        sage: designs.DesarguesianProjectivePlaneDesign(5)
+        Incidence structure with 31 points and 31 blocks
+        sage: designs.DesarguesianProjectivePlaneDesign(6)
+        Traceback (most recent call last):
+        ...
+        ValueError: the order of a finite field must be a prime power.
+    """
+    K = FiniteField(n, 'x')
+    n2 = n**2
+    relabel = {x:i for i,x in enumerate(K)}
+    Kiter = relabel  # it is much faster to iterate throug a dict than through
+                     # the finite field K
+
+    # we decompose the (equivalence class) of points [x:y:z] of the projective
+    # plane into an affine plane, an affine line and a point. At the same time,
+    # we relabel the points with the integers from 0 to n^2 + n as follows:
+    # - the affine plane is the set of points [x:y:1] (i.e. the third coordinate
+    #   is non-zero) and gets relabeled from 0 to n^2-1
+    affine_plane   = lambda x,y: relabel[x] + n * relabel[y]
+
+    # - the affine line is the set of points [x:1:0] (i.e. the third coordinate is
+    #   zero but not the second one) and gets relabeld from n^2 to n^2 + n - 1
+    line_infinity  = lambda x: n2 + relabel[x]
+
+    # - the point is [1:0:0] and gets relabeld n^2 + n
+    point_infinity = n2 + n
+
+    blcks = []
+
+    # the n^2 lines of the form "x = sy + az"
+    for s in Kiter:
+        for a in Kiter:
+            # points in the affine plane
+            blcks.append([affine_plane(s*y+a, y) for y in Kiter])
+            # point at infinity
+            blcks[-1].append(line_infinity(s))
+
+    # the n horizontals of the form "y = az"
+    for a in Kiter:
+        # points in the affine plane
+        blcks.append([affine_plane(x,a) for x in Kiter])
+        # point at infinity
+        blcks[-1].append(point_infinity)
+
+    # the line at infinity "z = 0"
+    blcks.append(range(n2,n2+n+1))
+
+    return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, test=check)
+
+def projective_plane_to_OA(pplane, pt=None, check=True):
+    r"""
+    Return the orthogonal array built from the projective plane ``pplane``.
+
+    The orthogonal array `OA(n+1,n,2)` is obtained from the projective plane
+    ``pplane`` by removing the point ``pt`` and the `n+1` lines that pass
+    through it`. These `n+1` lines form the `n+1` groups while the remaining
+    `n^2+n` lines form the transversals.
+
+    INPUT:
+
+    - ``pplane`` - a projective plane as a 2-design
+
+    - ``pt`` - a point in the projective plane ``pplane``. If it is not provided
+      then it is set to `n^2 + n`.
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    .. SEEALSO:
+
+        The function :func:`OA_to_projective_plane` does the reverse operation.
+        For more on orthogonal arrays, you may have a look at
+        :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.block_design import projective_plane_to_OA
+        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2)
+        sage: projective_plane_to_OA(p2)
+        [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
+        sage: projective_plane_to_OA(p3)
+        [[0, 0, 0, 0],
+         [0, 1, 2, 1],
+         [0, 2, 1, 2],
+         [1, 0, 2, 2],
+         [1, 1, 1, 0],
+         [1, 2, 0, 1],
+         [2, 0, 1, 1],
+         [2, 1, 0, 2],
+         [2, 2, 2, 0]]
+
+        sage: pp = designs.DesarguesianProjectivePlaneDesign(16)
+        sage: _ = projective_plane_to_OA(pp, pt=0)
+        sage: _ = projective_plane_to_OA(pp, pt=3)
+        sage: _ = projective_plane_to_OA(pp, pt=7)
+    """
+    from bibd import _relabel_bibd
+    pplane = pplane.blcks
+    n = len(pplane[0]) - 1
+
+    if pt is None:
+        pt = n**2+n
+
+    assert len(pplane) == n**2+n+1, "pplane is not a projective plane"
+    assert all(len(B) == n+1 for B in pplane), "pplane is not a projective plane"
+
+    pplane = _relabel_bibd(pplane,n**2+n+1,p=n**2+n)
+    OA = [[x%n for x in sorted(X)] for X in pplane if not n**2+n in X]
+
+    assert len(OA) == n**2, "pplane is not a projective plane"
+
+    if check:
+        from orthogonal_arrays import is_orthogonal_array
+        is_orthogonal_array(OA,n+1,n,2)
+
+    return OA
+
+def OA_to_projective_plane(OA, check=True):
+    r"""
+    Return the projective plane associated to an `OA(n+1,n,2)`.
+
+    .. SEEALSO::
+
+        :func:`projective_plane_to_OA` for the function that goes the other way
+        around.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.block_design import projective_plane_to_OA
+        sage: from sage.combinat.designs.block_design import OA_to_projective_plane
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
+        sage: OA3 = projective_plane_to_OA(p3)
+        sage: OA_to_projective_plane(OA3)
+        Incidence structure with 13 points and 13 blocks
+
+        sage: p4 = designs.DesarguesianProjectivePlaneDesign(4)
+        sage: OA4 = projective_plane_to_OA(p4)
+        sage: OA_to_projective_plane(OA4)
+        Incidence structure with 21 points and 21 blocks
+    """
+    n = len(OA[0])-1
+    n2 = n**2
+
+    assert len(OA) == n2, "the orthogonal array does not have parameters k=n+1,t=2"
+
+    blcks = []
+
+    # add the n^2 lines that correspond to transversals
+    for l in OA:
+        blcks.append([i+(n+1)*j for i,j in enumerate(l)])
+
+    # add the n+1 lines that correspond to transversals
+    for i in xrange(n+1):
+        blcks.append(range(i*n, (i+1)*n))
+        blcks[-1].append(n2+n)
+
+    return BlockDesign(n2+n+1, blcks, name="Projective plane of order %d (built from an OA(%d,%d,2))"%(n,n+1,n), test=check)
+
+def projective_plane(n):
+    r"""
+    Returns a projective plane of order ``n`` as a 2-design.
 
     A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
     `n^2+n+1` points. For more information on finite projective planes, see the
     :wikipedia:`Projective_plane#Finite_projective_planes`.
 
+    If no construction is possible, then the function raises a ``EmptySetError``
+    whereas if no construction is available the function raises a
+    ``NotImplementedError``.
+
     INPUT:
 
     - ``n`` -- the finite projective plane's order
 
-    - ``type`` -- When set to ``"Desarguesian"``, the method returns
-      Desarguesian projective planes, i.e. a finite projective plane obtained by
-      considering the 1- and 2- dimensional spaces of `F_n^3`.
-
-      For the moment, no other value is available for this parameter.
-
-    .. SEEALSO::
-
-        :meth:`ProjectiveGeometryDesign`
-
     EXAMPLES::
 
-        sage: designs.ProjectivePlaneDesign(2)
+        sage: designs.projective_plane(2)
         Incidence structure with 7 points and 7 blocks
-
-    Non-existent ones::
-
-        sage: designs.ProjectivePlaneDesign(10)
+        sage: designs.projective_plane(3)
+        Incidence structure with 13 points and 13 blocks
+        sage: designs.projective_plane(4)
+        Incidence structure with 21 points and 21 blocks
+        sage: designs.projective_plane(5)
+        Incidence structure with 31 points and 31 blocks
+        sage: designs.projective_plane(6)
         Traceback (most recent call last):
         ...
-        ValueError: No projective plane design of order 10 exists.
-        sage: designs.ProjectivePlaneDesign(14)
+        EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 6 exists.
+        sage: designs.projective_plane(10)
         Traceback (most recent call last):
         ...
-        ValueError: By the Bruck-Ryser-Chowla theorem, no projective plane of order 14 exists.
-
-    An unknown one::
-
-        sage: designs.ProjectivePlaneDesign(12)
+        EmptySetError: No projective plane of order 10 exists by C. Lam, L. Thiel and S. Swiercz "The nonexistence of finite projective planes of order 10" (1989), Canad. J. Math.
+        sage: designs.projective_plane(12)
         Traceback (most recent call last):
         ...
-        ValueError: If such a projective plane exists, we do not know how to build it.
-
-    TESTS::
-
-        sage: designs.ProjectivePlaneDesign(10, type="AnyThingElse")
+        NotImplementedError: If such a projective plane exists, we do not know how to build it.
+        sage: designs.projective_plane(14)
         Traceback (most recent call last):
         ...
-        ValueError: The value of 'type' must be 'Desarguesian'.
+        EmptySetError: By the Ryser-Chowla theorem, no projective plane of order 14 exists.
     """
-    from sage.rings.arith import two_squares
+    from sage.rings.arith import is_prime_power, two_squares
 
-    if type != "Desarguesian":
-        raise ValueError("The value of 'type' must be 'Desarguesian'.")
+    if n <= 1:
+        raise EmptySetError("There is no projective plane of order <= 1")
 
-    try:
-        F = FiniteField(n, 'x')
-    except ValueError:
-        if n == 10:
-            raise ValueError("No projective plane design of order 10 exists.")
+    if n == 10:
+        ref = ("C. Lam, L. Thiel and S. Swiercz \"The nonexistence of finite "
+               "projective planes of order 10\" (1989), Canad. J. Math.")
+        raise EmptySetError("No projective plane of order 10 exists by %s"%ref)
+
+    if (n%4) in [1,2]:
         try:
-            if (n%4) in [1,2]:
-                two_squares(n)
+            two_squares(n)
         except ValueError:
-            raise ValueError("By the Bruck-Ryser-Chowla theorem, no projective"
-                             " plane of order "+str(n)+" exists.")
+            raise EmptySetError("By the Ryser-Chowla theorem, no projective"
+                         " plane of order "+str(n)+" exists.")
 
-        raise ValueError("If such a projective plane exists, "
-                         "we do not know how to build it.")
+    if not is_prime_power(n):
+        raise NotImplementedError("If such a projective plane exists, we do "
+                                  "not know how to build it.")
 
-    return ProjectiveGeometryDesign(2,1,F)
+    return DesarguesianProjectivePlaneDesign(n)
+
 
 def AffineGeometryDesign(n, d, F):
     r"""
@@ -308,14 +503,14 @@ def WittDesign(n):
 
         sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
         sage: BD.is_block_design()      # optional - gap_packages (design package)
-        (2, 9, 3, 1)
+        (True, [2, 9, 3, 1])
         sage: BD                   # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD             # optional - gap_packages (design package)
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
         sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
-        sage: BD.is_block_design()   # optional - gap_packages (design package)
-        (5, 12, 6, 1)
+        sage: BD.is_block_design()         # optional - gap_packages (design package)
+        (True, [5, 12, 6, 1])
     """
     from sage.interfaces.gap import gap, GapElement
     gap.load_package("design")
@@ -356,94 +551,11 @@ def HadamardDesign(n):
     # A is the incidence matrix of the block design
     return IncidenceStructureFromMatrix(A,name="HadamardDesign")
 
-def steiner_triple_system(n):
-    r"""
-    Returns a Steiner Triple System
-
-    A Steiner Triple System (STS) of a set `\{0,...,n-1\}`
-    is a family `S` of 3-sets such that for any `i \not = j`
-    there exists exactly one set of `S` in which they are
-    both contained.
-
-    It can alternatively be thought of as a factorization of
-    the complete graph `K_n` with triangles.
-
-    A Steiner Triple System of a `n`-set exists if and only if
-    `n \equiv 1 \pmod 6` or `n \equiv 3 \pmod 6`, in which case
-    one can be found through Bose's and Skolem's constructions,
-    respectively [AndHon97]_.
-
-    INPUT:
-
-    - ``n`` returns a Steiner Triple System of `\{0,...,n-1\}`
-
-    EXAMPLE:
-
-    A Steiner Triple System on `9` elements ::
-
-        sage: sts = designs.steiner_triple_system(9)
-        sage: sts
-        Incidence structure with 9 points and 12 blocks
-        sage: list(sts)
-        [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3], [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8], [3, 5, 7], [4, 5, 6]]
-
-    As any pair of vertices is covered once, its parameters are ::
-
-        sage: sts.parameters(t=2)
-        (2, 9, 3, 1)
-
-    An exception is raised for invalid values of ``n`` ::
-
-        sage: designs.steiner_triple_system(10)
-        Traceback (most recent call last):
-        ...
-        ValueError: Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6
-
-    REFERENCE:
-
-    .. [AndHon97] A short course in Combinatorial Designs,
-      Ian Anderson, Iiro Honkala,
-      Internet Editions, Spring 1997,
-      http://www.utu.fi/~honkala/designs.ps
-    """
-
-    name = "Steiner Triple System on "+str(n)+" elements"
-
-    if n%6 == 3:
-        t = (n-3)/6
-        Z = range(2*t+1)
-
-        T = lambda (x,y) : x + (2*t+1)*y
-
-        sts = [[(i,0),(i,1),(i,2)] for i in Z] + \
-            [[(i,k),(j,k),(((t+1)*(i+j)) % (2*t+1),(k+1)%3)] for k in range(3) for i in Z for j in Z if i != j]
-
-    elif n%6 == 1:
-
-        t = (n-1)/6
-        N = range(2*t)
-        T = lambda (x,y) : x+y*t*2 if (x,y) != (-1,-1) else n-1
-
-        L1 = lambda i,j : (i+j) % (int((n-1)/3))
-        L = lambda i,j : L1(i,j)/2 if L1(i,j)%2 == 0 else t+(L1(i,j)-1)/2
-
-        sts = [[(i,0),(i,1),(i,2)] for i in range(t)] + \
-            [[(-1,-1),(i,k),(i-t,(k+1) % 3)] for i in range(t,2*t) for k in [0,1,2]] + \
-            [[(i,k),(j,k),(L(i,j),(k+1) % 3)] for k in [0,1,2] for i in N for j in N if i < j]
-
-    else:
-        raise ValueError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
-
-    from sage.sets.set import Set
-    sts = Set(map(lambda x: Set(map(T,x)),sts))
-
-    return BlockDesign(n, sts, name=name)
-
 def BlockDesign(max_pt, blks, name=None, test=True):
     """
     Returns an instance of the :class:`IncidenceStructure` class.
 
-    Requires each B in blks to be contained in range(max_pt). Does not test if
+    Requires each B in blks to be contained in range(max_pt). Does not check if
     the result is a block design.
 
     EXAMPLES::
@@ -454,11 +566,10 @@ def BlockDesign(max_pt, blks, name=None, test=True):
         Fano plane<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
     """
     nm = name
-    tst = test
-    if nm == None and test:
+    if nm is None and test:
         nm = "BlockDesign"
-    BD = BlockDesign_generic( range(max_pt), blks, name=nm, test=tst )
-    if not(test):
+    BD = BlockDesign_generic( range(max_pt), blks, name=nm, test=test )
+    if not test:
         return BD
     else:
         pars = BD.parameters(t=2)
@@ -473,3 +584,4 @@ def BlockDesign(max_pt, blks, name=None, test=True):
 # specialized methods are implemented later. In that case, BlockDesign_generic
 # should inherit from IncidenceStructure.
 BlockDesign_generic = IncidenceStructure
+

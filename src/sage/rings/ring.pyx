@@ -1929,30 +1929,6 @@ cpdef bint _is_Field(x) except -2:
         x._refine_category_(_Fields)
     return result
 
-def is_Field(x):
-    """
-    Deprecated test of an object being a field.
-
-    NOTE:
-
-    For testing whether ``R`` is a field, use ``R in Fields()``,
-    not ``is_Field(R)``. See :trac:`13370`.
-
-    TESTS::
-
-        sage: from sage.rings.ring import is_Field
-        sage: is_Field(ZZ)
-        doctest:...: DeprecationWarning: use 'R in Fields()', not 'is_Field(R)'
-        See http://trac.sagemath.org/13370 for details.
-        False
-        sage: is_Field(ZZ.quotient(5))
-        True
-
-    """
-    deprecation(13370, "use 'R in Fields()', not 'is_Field(R)'")
-    return _is_Field(x)
-
-# This imports is_Field, so must be executed after is_Field is defined.
 from sage.categories.algebras import Algebras
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.fields import Fields
@@ -2201,36 +2177,41 @@ cdef class Algebra(Ring):
             sage: L.has_standard_involution()
             Traceback (most recent call last):
             ...
-            AttributeError: Basis is not yet implemented for this algebra.
+            NotImplementedError: has_standard_involution is not implemented for this algebra
             """
         field = self.base_ring()
         try:
             basis = self.basis()
         except AttributeError:
-            raise AttributeError, "Basis is not yet implemented for this algebra."
-        #step 1
-        for i in range(1,4):
-            ei = basis[i]
-            a = ei**2
-            coef = a.coefficient_tuple()
-            ti = coef[i]
-            ni = a - ti*ei
-            if ni not in field:
-                return False
-        #step 2
-        for i in range(1,4):
-            for j in range(2,4):
+            raise AttributeError("Basis is not yet implemented for this algebra.")
+        try:
+            # TODO: The following code is specific to the quaterion algebra
+            #   and should belong there
+            #step 1
+            for i in range(1,4):
                 ei = basis[i]
-                ej = basis[j]
                 a = ei**2
                 coef = a.coefficient_tuple()
                 ti = coef[i]
-                b = ej**2
-                coef = b.coefficient_tuple()
-                tj = coef[j]
-                nij = (ei + ej)**2 - (ti + tj)*(ei + ej)
-                if nij not in field:
+                ni = a - ti*ei
+                if ni not in field:
                     return False
+            #step 2
+            for i in range(1,4):
+                for j in range(2,4):
+                    ei = basis[i]
+                    ej = basis[j]
+                    a = ei**2
+                    coef = a.coefficient_tuple()
+                    ti = coef[i]
+                    b = ej**2
+                    coef = b.coefficient_tuple()
+                    tj = coef[j]
+                    nij = (ei + ej)**2 - (ti + tj)*(ei + ej)
+                    if nij not in field:
+                        return False
+        except AttributeError:
+            raise NotImplementedError("has_standard_involution is not implemented for this algebra")
         return True
 
 cdef class CommutativeAlgebra(CommutativeRing):

@@ -2940,6 +2940,7 @@ cdef class Search_iterator:
     cdef bitset_t seen
     cdef bint test_out
     cdef bint test_in
+    cdef in_neighbors
 
     def __init__(self, graph, v, direction=0, reverse=False,
                  ignore_direction=False):
@@ -2994,6 +2995,12 @@ cdef class Search_iterator:
             Traceback (most recent call last):
             ...
             LookupError: Vertex ('') is not a vertex of the graph.
+
+        Immutable graphs (see :trac:`16019`)::
+
+            sage: DiGraph([[1,2]], immutable=True).connected_components()
+            [[1, 2]]
+
         """
         self.graph = graph
         self.direction = direction
@@ -3016,6 +3023,12 @@ cdef class Search_iterator:
 
         self.test_out = (not reverse) or ignore_direction
         self.test_in = reverse or ignore_direction
+
+        if self.test_in: # How do we list in_neighbors ?
+            if self.graph._cg_rev is None:
+                self.in_neighbors = self.graph._cg.in_neighbors
+            else:
+                self.in_neighbors = self.graph._cg_rev.out_neighbors
 
     def __iter__(self):
         r"""
@@ -3057,7 +3070,7 @@ cdef class Search_iterator:
                 if self.test_out:
                     self.stack.extend(self.graph._cg.out_neighbors(v_int))
                 if self.test_in:
-                    self.stack.extend(self.graph._cg_rev.out_neighbors(v_int))
+                    self.stack.extend(self.in_neighbors(v_int))
 
                 break
         else:

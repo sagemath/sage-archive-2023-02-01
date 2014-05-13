@@ -105,6 +105,12 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
          [4, 6, 13, 15, 22], [4, 7, 10, 18, 21], [4, 8, 12, 16, 20],
          [4, 9, 14, 19, 24]]
 
+    Some examples of the maximal number of transversal Sage is able to build::
+
+        sage: TD_4_10 = designs.transversal_design(4,10)
+        sage: designs.transversal_design(5,10,existence=True)
+        Unknown
+
     For prime powers, there is an explicit construction which gives a
     `TD(n+1,n)`::
 
@@ -124,10 +130,10 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
 
         sage: designs.transversal_design(11, 10, existence=True)
         False
-        sage: designs.transversal_design(5, 10, existence=True)
-        Unknown
         sage: designs.transversal_design(4, 10, existence=True)
         True
+        sage: designs.transversal_design(5, 10, existence=True)
+        Unknown
 
         sage: designs.transversal_design(7, 20, existence=True)
         Unknown
@@ -228,11 +234,11 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         11: (13, 13)
         12: ( 7, 14)
         13: (15, 15)
-        14: ( 4, 15)
-        15: ( 5, 17)
+        14: ( 7, 15)
+        15: ( 7, 17)
         16: (18, 18)
         17: (19, 19)
-        18: ( 5, 20)
+        18: ( 6, 20)
         19: (21, 21)
         20: ( 7, 22)
         21: ( 8, 22)
@@ -694,7 +700,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     `OA(k,14,2)`?::
 
         sage: designs.orthogonal_array(None,14,existence=True)
-        3
+        6
 
     If you ask for an orthogonal array that does not exist, then the function
     either raise an `EmptySetError` (if it knows that such an orthogonal array
@@ -729,6 +735,10 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         Traceback (most recent call last):
         ...
         ValueError: there are no bound on k when n=1.
+        sage: designs.orthogonal_array(None,14,existence=True)
+        6
+        sage: designs.orthogonal_array(16,1)
+        [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     """
 
     from sage.rings.finite_rings.constructor import FiniteField

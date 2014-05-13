@@ -1,10 +1,11 @@
 #include "dgs.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <limits.h>
 
 dgs_disc_gauss_sigma2p_t *dgs_disc_gauss_sigma2p_init() {
   dgs_disc_gauss_sigma2p_t *self = (dgs_disc_gauss_sigma2p_t*)calloc(sizeof(dgs_disc_gauss_sigma2p_t),1);
-  if (!self) abort();
+  if (!self) dgs_die("out of memory");
   self->B = dgs_bern_uniform_init(0);
   return self;
 }
@@ -153,6 +154,8 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
 
     if (mpfr_zero_p(self->c_r)) { /* c is an integer */
       self->call = dgs_disc_gauss_mp_call_uniform_table;
+      if (mpz_cmp_ui(self->upper_bound, ULONG_MAX/sizeof(mpfr_t))>0)
+        dgs_die("integer overflow");
       self->rho = (mpfr_t*)malloc(sizeof(mpfr_t)*mpz_get_ui(self->upper_bound));
       if (!self->rho)
         dgs_die("out of memory");
@@ -167,11 +170,13 @@ dgs_disc_gauss_mp_t *dgs_disc_gauss_mp_init(mpfr_t sigma, mpfr_t c, size_t tau, 
         mpfr_init2(self->rho[x], prec);
         mpfr_set(self->rho[x], x_, MPFR_RNDN);
       }
-      mpfr_div_ui(self->rho[0],self->rho[0],2, MPFR_RNDN);
+      mpfr_div_ui(self->rho[0],self->rho[0], 2, MPFR_RNDN);
       mpfr_clear(x_);
 
     } else { /* c is not an integer, we need a bigger table as our nice symmetry is lost */
       self->call = dgs_disc_gauss_mp_call_uniform_table_offset;
+      if (mpz_cmp_ui(self->two_upper_bound_minus_one, ULONG_MAX/sizeof(mpfr_t)) > 0)
+        dgs_die("integer overflow");
       self->rho = (mpfr_t*)malloc(sizeof(mpfr_t)*mpz_get_ui(self->two_upper_bound_minus_one));
       if (!self->rho) dgs_die("out of memory");
 

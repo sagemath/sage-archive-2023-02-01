@@ -10,7 +10,7 @@ of [Pons2013]_.
 
 The Tamari lattice can be defined as a lattice structure on either of several
 classes of Catalan objects, especially binary trees and Dyck paths
-[TamBrack1962]_ [HuangTamari1972]_ [StaEC2]_. An interval can be seen as
+[TamBrack1962]_ [HuangTamari1972]_ [Sta-EC2]_. An interval can be seen as
 a pair of comparable elements. The number of intervals has been given in
 [ChapTamari08]_.
 

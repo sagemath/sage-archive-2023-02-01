@@ -45,56 +45,70 @@ from dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear
 from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear
 from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
 
+
+
 cdef class DiscreteGaussianSampler(SageObject):
-    """A Discrete Gaussian Sampler using rejection sampling."""
-    def __init__(self, sigma, c=0, tau=6, algorithm="uniform+table", precision="mp"):
-        """Construct a new sampler for a discrete Gaussian distribution.
+    """
+    A Discrete Gaussian Sampler using rejection sampling.
+
+    .. automethod:: __init__
+    .. automethod:: __call__
+    """
+
+    # We use tables for σt ≤ table_cutoff
+    table_cutoff = 10**6
+
+    def __init__(self, sigma, c=0, tau=6, algorithm=None, precision="mp"):
+        """
+        Construct a new sampler for a discrete Gaussian distribution.
         
         INPUT:
 
-        - ``sigma`` - samples x are accepted with probability proportional to
-          $exp(-(x-c)^2/(2σ^2))$
+        - ``sigma`` - samples `x` are accepted with probability proportional to
+          `exp(-(x-c)^2/(2σ^2))`
 
         - ``c`` - the mean of the distribution. The value of ``c`` does not have
           to be an integer. However, some algorithms only support integer-valued
-          ``c`` (default: 0)
+          `c` (default: ``0``)
         
-        - ``tau`` - samples outside the range (round(c)-ceil(στ),...,round(c)+ceil(στ)) are
+        - ``tau`` - samples outside the range `(⌊c⌉-⌈στ⌉,...,⌊c⌉+⌈στ⌉)` are
           considered to have probability zero. This bound applies to algorithms which 
-          sample from the uniform distribution (default: 6)
+          sample from the uniform distribution (default: ``6``)
 
-        - ``algorithm`` - see list below (default: "uniform+table")
+        - ``algorithm`` - see list below (default: ``"uniform+table"`` for
+           `σt` bounded by ``DiscreteGaussianSampler.table_cutoff`` and
+           ``"uniform+online"`` for bigger `στ`)
 
         - ``precision`` - either "mp" for multi-precision where the actual
           precision used is taken from sigma or "dp" for double precision. In
           the latter case results are not reproducible across
-          plattforms. (default: "mp")
+          plattforms. (default: ``"mp"``)
 
         ALGORITHMS:
 
-        - "uniform+table" - classical rejection sampling, sampling from the
+        - ``"uniform+table"`` - classical rejection sampling, sampling from the
           uniform distribution and accepted with probability proportional to
-          $exp(-(x-c)^2/(2σ^2))$ where $exp(-(x-c)^2/(2σ^2))$ is precomputed and
-          stored in a table. Any real-valued ``c`` is supported.
+          `exp(-(x-c)^2/(2σ^2))` where `exp(-(x-c)^2/(2σ^2))` is precomputed and
+          stored in a table. Any real-valued `c` is supported.
 
-        - "uniform+logtable" - samples are drawn from a uniform distribution and
-          accepted with probability proportional to $exp(-(x-c)^2/(2σ^2))$ where
-          $exp(-(x-c)^2/(2σ^2))$ is computed using logarithmically many calls to
+        - ``"uniform+logtable"`` - samples are drawn from a uniform distribution and
+          accepted with probability proportional to `exp(-(x-c)^2/(2σ^2))` where
+          `exp(-(x-c)^2/(2σ^2))` is computed using logarithmically many calls to
           Bernoulli distributions. See [DDLL13]_ for details.  Only
-          integer-valued ``c`` are supported.
+          integer-valued `c` are supported.
 
-        - "uniform+online" - samples are drawn from a uniform distribution and
-          accepted with probability proportional to $exp(-(x-c)^2/(2σ^2))$ where
-          $exp(-(x-c)^2/(2σ^2))$ is computed in each invocation. Typically this
-          is very slow.  See [DDLL13]_ for details.  Any real-valued ``c`` is
+        - ``"uniform+online"`` - samples are drawn from a uniform distribution and
+          accepted with probability proportional to `exp(-(x-c)^2/(2σ^2))` where
+          `exp(-(x-c)^2/(2σ^2))` is computed in each invocation. Typically this
+          is very slow.  See [DDLL13]_ for details.  Any real-valued `c` is
           accepted.
 
-        - "sigma2+logtable" - samples are drawn from an easily samplable
+        - ``"sigma2+logtable"`` - samples are drawn from an easily samplable
           distribution k·σ2 and accepted with probability proportional to 
-          $exp(-(x-c)^2/(2σ^2))$ where $exp(-(x-c)^2/(2σ^2))$ is computed using 
+          `exp(-(x-c)^2/(2σ^2))` where `exp(-(x-c)^2/(2σ^2))` is computed using 
           logarithmically many calls to Bernoulli distributions. 
-          See [DDLL13]_ for details. Note that this sampler adjusts sigma to match σ2·k 
-          for some integer k. Only integer-valued ``c`` are supported.
+          See [DDLL13]_ for details. Note that this sampler adjusts sigma to match `σ2·k`
+          for some integer `k`. Only integer-valued `c` are supported.
 
         EXAMPLES::
 
@@ -203,8 +217,15 @@ cdef class DiscreteGaussianSampler(SageObject):
         if tau < 1:
             raise ValueError("tau must be >= 1 but got %d"%tau)
 
-        algorithm_str = algorithm
             
+        if algorithm is None:
+            if sigma*tau <= DiscreteGaussianSampler.table_cutoff:
+                algorithm = "uniform+table"
+            else:
+                algorithm = "uniform+online"
+
+        algorithm_str = algorithm
+                
         if algorithm == "uniform+table":
             algorithm = DGS_DISC_GAUSS_UNIFORM_TABLE
         elif algorithm == "uniform+online":
@@ -332,7 +353,7 @@ cdef class DiscreteGaussianSampler(SageObject):
     @property
     def tau(self):
         """
-        tails are cut at ceil(στ) (inclusive)
+        tails are cut at `⌈στ⌉` (inclusive)
         
         EXAMPLE::
 

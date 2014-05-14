@@ -2428,15 +2428,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-
-        -  ``M`` - gram matrix of a definite quadratic form
-
+        - ``M`` - gram matrix of a definite quadratic form
 
         OUTPUT:
 
-
-        -  ``U`` - unimodular transformation matrix such that
-           U.transpose() \* M \* U  is LLL-reduced.
+        ``U`` - unimodular transformation matrix such that
+        ``U.T * M * U``  is LLL-reduced.
 
         ALGORITHM: Use PARI
 
@@ -2452,7 +2449,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0]
             [0 1]
 
-        Semidefinite and indefinite forms no longer raise a ValueError::
+        Semidefinite and indefinite forms no longer raise a ``ValueError``::
 
             sage: Matrix(ZZ,2,2,[2,6,6,3]).LLL_gram()
             [-3 -1]
@@ -2482,62 +2479,67 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
             precision=0, max_loops=0, max_time=0, auto_abort=False):
-        """Block Korkin-Zolotarev reduction.
+        """
+        Block Korkin-Zolotarev reduction.
 
         INPUT:
 
-        -  ``delta`` - LLL parameter (default: `0.99`)
+        - ``delta`` -- LLL parameter (default: ``0.99``).
 
-        -  ``fp``
+        - ``algorithm`` -- ``"fpLLL"`` or ``"NTL"`` (default: ``"fpLLL"``).
 
-            - None - NTL's exact reduction or fpLLL's wrapper (default)
+        - ``fp`` -- floating point number implementation
 
-            - ``'fp'`` - double precision: NTL's FP or fpLLL's double
+          - ``None`` -- NTL's exact reduction or fpLLL's wrapper (default)
 
-            - ``'qd'`` - NTL's QP or fpLLL's long doubles
+          - ``'fp'`` -- double precision: NTL's FP or fpLLL's double
 
-            - ``'qd1'`` - quad doubles: uses quad_float precision to compute
-              Gram-Schmidt, but uses double precision in the search phase of the
-              block reduction algorithm. This seems adequate for most purposes,
-              and is faster than ``'qd'``, which uses quad_float precision
-              uniformly throughout (NTL only).
+          - ``'qd'`` -- NTL's QP or fpLLL's long doubles
 
-           - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe
+          - ``'qd1'`` -- quad doubles: uses quad_float precision to compute
+            Gram-Schmidt, but uses double precision in the search phase of the
+            block reduction algorithm. This seems adequate for most purposes,
+            and is faster than ``'qd'``, which uses quad_float precision
+            uniformly throughout (NTL only).
 
-           - ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's MPFR
+          - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe.
 
-        - ``block_size`` - specifies the size of the blocks in the
-           reduction. High values yield shorter vectors, but the running time
-           increases double exponentially with ``block_size``. ``block_size``
-           should be between 2 and the number of rows of ``self`` (default: 10)
+          - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR.
+
+        - ``block_size`` -- specifies the size of the blocks in the
+          reduction. High values yield shorter vectors, but the running time
+          increases double exponentially with ``block_size``. ``block_size``
+          should be between 2 and the number of rows of ``self`` (default: ``10``).
 
         NLT SPECIFIC INPUTS:
 
-        - ``prune`` - The optional parameter ``prune`` can be set to any
-           positive number to invoke the Volume Heuristic from
-           [Schnorr and Horner, Eurocrypt '95]. This can significantly reduce
-           the running time, and hence allow much bigger block size, but the
-           quality of the reduction is of course not as good in general. Higher
-           values of ``prune`` mean better quality, and slower running
-           time. When ``prune=0``, pruning is disabled. Recommended usage: for
-           ``block_size==30``, set ``10 <= prune <=15``.
+        - ``prune`` -- The optional parameter ``prune`` can be set to any
+          positive number to invoke the Volume Heuristic from [SH95]_.
+          This can significantly reduce the running time, and hence allow much
+          bigger block size, but the quality of the reduction is of course not
+          as good in general. Higher values of ``prune`` mean better quality,
+          and slower running time. When ``prune=0``, pruning is disabled.
+          Recommended usage: for ``block_size==30``, set ``10 <= prune <=15``
+          (default: ``0``).
 
-        - ``use_givens`` - use Given's orthogonalization.  This is a bit slower,
-           but generally much more stable, and is really the preferred
-           orthogonalization strategy. For a nice description of this, see
-           Chapter 5 of
-           [G. Golub and C. van Loan, Matrix Computations, 3rd edition, Johns Hopkins Univ. Press, 1996].
+        - ``use_givens`` -- use Given's orthogonalization.  This is a bit slower,
+          but generally much more stable, and is really the preferred
+          orthogonalization strategy. For a nice description of this, see
+          Chapter 5 of [GL96]_.
 
         fpLLL SPECIFIC INPUTS:
 
-        - ``precision`` - bit precision to use if ``fp='rr'`` is set (default:
+        - ``precision`` -- bit precision to use if ``fp='rr'`` is set (default:
           ``0`` for automatic choice).
-        - ``max_loops`` - maximum number of full loops (default: ``0`` for no
+
+        - ``max_loops`` -- maximum number of full loops (default: ``0`` for no
           restriction).
-        - ``max_time`` - stop after time seconds (up to loop completion)
+
+        - ``max_time`` -- stop after time seconds (up to loop completion)
           (default: ``0`` for no restricion).
-        - ``auto_abort`` - heuristic, stop when the average slope of
-           `log(||b_i*||)` does not decrease fast enough (default: ``False``).
+
+        - ``auto_abort`` -- heuristic, stop when the average slope of
+          `log(||b_i*||)` does not decrease fast enough (default: ``False``).
 
         EXAMPLE::
 
@@ -2561,7 +2563,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         ALGORITHM:
 
-             Calls either NTL or fpLLL.
+        Calls either NTL or fpLLL.
+
+        REFERENCES:
+
+        .. [SH95] C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
+                  Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology —
+                  EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
+
+        .. [GL96] G. Golub and C. van Loan. *Matrix Computations*. 3rd edition,
+                  Johns Hopkins Univ. Press, 1996.
+
         """
         if delta is None:
             delta = 0.99
@@ -2660,53 +2672,70 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         r"""Returns LLL reduced or approximated LLL reduced lattice R for this
         matrix interpreted as a lattice.
 
-        A lattice `(b_1, b_2, ..., b_d)` is `(\delta, \eta)` -LLL-reduced
+        A lattice `(b_1, b_2, ..., b_d)` is `(̣δ, η)` -LLL-reduced
         if the two following conditions hold:
 
-        -  For any `i>j`, we have `|mu_{i, j}| <= \eta`.
-        -  For any `i<d`, we have `\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_i^*|^2`,
+        -  For any `i>j`, we have `|μ_{i,j}| ≤ η`.
 
-        where `mu_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the `i`-th vector
+        -  For any `i<d`, we have `δ |b_i^*|^2 ≤ |b_{i + 1}^* + μ_{i+1, i} b_i^*|^2`,
+
+        where `μ_{i,j} = 〈b_i, b_j^*〉/〈b_j^*,b_j^*〉` and `b_i^*` is the `i`-th vector
         of the Gram-Schmidt orthogonalisation of `(b_1, b_2, ..., b_d)`.
 
-        The default reduction parameters are `\delta=3/4` and `eta=0.501`. The parameters `\delta`
-        and `\eta` must satisfy: `0.25 < \delta <= 1.0` and `0.5 <= \eta < sqrt(\delta)`.
+        The default reduction parameters are `δ=3/4` and `η=0.501`. The parameters `δ`
+        and `η` must satisfy: `0.25 < δ ≤ 1.0` and `0.5 ≤ η < sqrt(̣̣δ)`.
         Polynomial time complexity is only guaranteed for `\delta < 1`.
 
         The lattice is returned as a matrix. Also the rank (and the determinant) of ``self``
         are cached if those are computed during the reduction. Note that in general this only happens
-        when self.rank() == self.ncols() and the exact algorithm is used.
+        when ``self.rank() == self.ncols()`` and the exact algorithm is used.
 
         INPUT:
 
-        -  ``delta`` - parameter as described above (default: ``0.99``).
-        -  ``eta`` - parameter as described above (default: ``0.501``), ignored by NTL.
-        - ``algorithm`` - string (default: "fpLLL:wrapper") one of the
-           algorithms mentioned below
-        -  ``fp``
-            - None - NTL's exact reduction or fpLLL's wrapper
-            - ``'fp'`` - double precision: NTL's FP or fpLLL's double.
-            - ``'qd'`` - NTL's QP or fpLLL's long doubles.
-            - ``'xd'`` - extended exponent: NTL's XD or fpLLL's dpe.
-            - ``'rr'`` - arbitrary precision: NTL'RR or fpLLL's MPFR.
-        - ``prec`` - precision, ignored by NTL (default: auto choose).
-        - ``early_red`` - perform early reduction, ignored by NTL (default:
-           ``False``).
-        - ``use_givens`` - use Givens orthogonalization (default: False) only
-           applicable to approximate reductions and NTL.  This is more stable
-           but slower.
-        - ``use_siegel`` - use Siegel's condition instead of Lovasz's condition,
+        -  ``delta`` -- `δ` parameter as described above (default: ``0.99``).
+
+        -  ``eta`` -- `η` parameter as described above (default: ``0.501``), ignored by NTL.
+
+        - ``algorithm`` -- string one of the algorithms listed below
+          (default: ``"fpLLL:wrapper"``).
+
+        -  ``fp`` -- floating point number implementation
+
+           - ``None`` -- NTL's exact reduction or fpLLL's wrapper
+
+           - ``'fp'`` -- double precision: NTL's FP or fpLLL's double.
+
+           - ``'qd'`` -- NTL's QP or fpLLL's long doubles.
+
+           - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe.
+
+           - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR.
+
+        - ``prec`` -- precision, ignored by NTL (default: auto choose).
+
+        - ``early_red`` -- perform early reduction, ignored by NTL (default:
+          ``False``).
+
+        - ``use_givens`` -- use Givens orthogonalization only
+          applicable to approximate reductions and NTL.  This is more stable
+          but slower (default: ``False``).
+
+        - ``use_siegel`` -- use Siegel's condition instead of Lovasz's condition,
           ignored by NTL (default: ``False``).
 
-        Also, if the verbose level is >=2, some more verbose output is printed
-        during the calculation.
+        Also, if the verbose level is `≥2`, some more verbose output is printed
+        during the computation.
 
         AVAILABLE ALGORITHMS:
 
         - ``NTL:LLL`` - NTL's LLL + choice of ``fp``.
+
         - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of ``fp``.
+
         - ``fpLLL:fast`` - fpLLL's fast + choice of ``fp``.
+
         - ``fpLLL:proved`` - fpLLL's proved + choice of ``fp``.
+
         - ``fpLLL:wrapper`` - fpLLL's automatic choice (default).
 
         OUTPUT:
@@ -2767,13 +2796,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
-        ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL library
-        depending on the chosen algorithm.
+        .. note::
 
-        REFERENCES:
-
-        - ``ntl.mat_ZZ`` or ``sage.libs.fplll.fplll`` for details on
+          See ``ntl.mat_ZZ`` or ``sage.libs.fplll.fplll`` for details on
           the used algorithms.
+
         """
         from sage.libs.fplll.fplll import FP_LLL
 

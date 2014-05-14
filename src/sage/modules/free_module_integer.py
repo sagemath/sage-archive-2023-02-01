@@ -51,9 +51,13 @@ def IntegerLattice(basis, lll_reduce=True):
     INPUT:
 
       - ``basis``
+
         - a list of vectors,
+
         - a matrix over the integers, or
+
         - an element of an absolute order.
+
       - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
         on construction.
 
@@ -221,16 +225,22 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         - ``ambient`` -- ambient free module over a principal ideal domain `\ZZ`,
           i.e. `\\ZZ^n`.
-        - ``basis`` - either a list of vectors or a matrix over the integers.
+
+        - ``basis`` -- either a list of vectors or a matrix over the integers.
+
         - ``check`` -- (default: ``True``) if ``False``, correctness of the input
           will not be checked and type conversion may be omitted, use with care.
+
         - ``echelonize`` -- (default:``False``) if ``True``, ``basis`` will be
           echelonized and the result will be used as the default basis of the
           constructed submodule.
+
         - `` echelonized_basis`` -- (default: ``None``) if not ``None``, must be
           the echelonized basis spanning the same submodule as ``basis``.
+
         - ``already_echelonized`` -- (default: ``False``) if ``True``, ``basis``
           must be already given in the echelonized form.
+
         - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
           on construction.
 
@@ -350,8 +360,9 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
-        - ``**kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+        - ``*args`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+
+        - ``**kwds`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
 
         OUTPUT:
 
@@ -407,8 +418,9 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
-        - ``*kwds`` - passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
+        - ``*args`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
+
+        - ``*kwds`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
 
         OUTPUT:
 
@@ -473,8 +485,9 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
-        - ``*kwds`` - passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
+        - ``*args`` -- passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
+
+        - ``*kwds`` -- passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
 
         OUTPUT:
 
@@ -561,14 +574,14 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``update_reduced_basis`` -- (default: True) set this flag if the found vector
-          should be used to improve the basis
+        - ``update_reduced_basis`` -- set this flag if the found vector
+          should be used to improve the basis (default: ``True``).
 
-        - ``algorithm`` -- (default: "fplll") either "fplll" or "pari"
+        - ``algorithm`` -- either ``"fplll"`` or ``"pari"`` (default: ``"fplll"``).
 
-        - ``*args`` - passed through to underlying implementation
+        - ``*args`` -- passed through to underlying implementation.
 
-        - ``*kwds`` - passed through to underlying implementation
+        - ``*kwds`` -- passed through to underlying implementation.
 
         OUTPUT:
 
@@ -625,7 +638,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``w`` - a vector.
+        - ``w`` -- a vector.
 
         OUTPUT:
 
@@ -738,7 +751,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
             INPUT:
 
-            - ``ieq`` - an inequality in the form [c, a1, a2, ...]
+            - ``ieq`` -- an inequality in the form [c, a1, a2, ...]
               meaning a1 * x1 + a2 * x2 + ... ≦ c
 
             OUTPUT:

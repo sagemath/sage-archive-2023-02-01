@@ -98,16 +98,18 @@ cdef class Matrix(sage.structure.element.Matrix):
     """
     def __init__(self, parent):
         """
-        The initialization routine of the Matrix base class ensures that it sets
-        the attributes self._parent, self._base_ring, self._nrows, self._ncols.
-        It sets the latter ones by accessing the relevant information on parent,
-        which is often slower than what a more specific subclass can do.
+        The initialization routine of the ``Matrix`` base class ensures
+        that it sets the attributes ``self._parent``, ``self._base_ring``,
+        ``self._nrows``, ``self._ncols``. It sets the latter ones by
+        accessing the relevant information on ``parent``, which is often
+        slower than what a more specific subclass can do.
 
-        Subclasses of Matrix can safely skip calling Matrix.__init__ provided they
-        take care of initializing these attributes themselves.
+        Subclasses of ``Matrix`` can safely skip calling
+        ``Matrix.__init__`` provided they take care of initializing these
+        attributes themselves.
 
-        The private attributes self._is_immutable and self._cache are implicitly
-        initialized to valid values upon memory allocation.
+        The private attributes ``self._is_immutable`` and ``self._cache``
+        are implicitly initialized to valid values upon memory allocation.
 
         EXAMPLES::
 
@@ -123,15 +125,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def list(self):
         """
-        List of the elements of self ordered by elements in each
+        List of the elements of ``self`` ordered by elements in each
         row. It is safe to change the returned list.
 
         .. warning::
 
            This function returns a list of the entries in the matrix
-           self.  It does not return a list of the rows of self, so it
-           is different than the output of list(self), which returns
-           ``[self[0],self[1],...]``.
+           ``self``.  It does not return a list of the rows of ``self``,
+           so it is different than the output of ``list(self)``, which
+           returns ``[self[0],self[1],...]``.
 
         EXAMPLES::
 
@@ -161,12 +163,14 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _list(self):
         """
-        Unsafe version of the list method, mainly for internal use. This
-        may return the list of elements, but as an *unsafe* reference to
-        the underlying list of the object. It is might be dangerous if you
-        change entries of the returned list.
+        Unsafe version of the ``list`` method, mainly for internal use.
+        This may return the list of elements, but as an *unsafe* reference
+        to the underlying list of the object. It is dangerous to change
+        entries of the returned list.
 
-        EXAMPLES: Using _list is potentially fast and memory efficient,
+        EXAMPLES:
+
+        Using ``_list`` is potentially fast and memory efficient,
         but very dangerous (at least for generic dense matrices).
 
         ::
@@ -3762,11 +3766,12 @@ cdef class Matrix(sage.structure.element.Matrix):
         #  is the type used for indexing.
         cdef Py_ssize_t i,j
 
+        zero = self._base_ring.zero()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < i:
                 if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
                     return False
-            if not self.get_unsafe(i,i).is_zero():
+            if not self.get_unsafe(i,i) == zero:
                 return False
         return True
 

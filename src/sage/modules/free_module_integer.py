@@ -14,6 +14,7 @@ TESTS::
     sage: from sage.modules.free_module_integer import IntegerLattice
     sage: L = IntegerLattice(random_matrix(ZZ, 10, 10))
     sage: TestSuite(L).run()
+
 """
 
 #*****************************************************************************
@@ -50,9 +51,9 @@ def IntegerLattice(basis, lll_reduce=True):
     INPUT:
 
       - ``basis``
-       - a list of vectors,
-       - a matrix over the integers, or
-       - an element of an absolute order.
+        - a list of vectors,
+        - a matrix over the integers, or
+        - an element of an absolute order.
       - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
         on construction.
 
@@ -164,6 +165,7 @@ def IntegerLattice(basis, lll_reduce=True):
         [      0       0       0       0       0 1048576       0       0]
         [      0       0       0       0       0       0 1048576       0]
         [      0       0       0       0       0       0       0 1048576]
+
     """
 
     if isinstance(basis, OrderElement_absolute):
@@ -322,6 +324,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             [   1   -9    1    3    1   -3    1   -1   -1    0]
             [   8    5   19    3   27    6   -3    8  -25  -22]
             [ 172  -25   57  248  261  793   76 -839  -41  376]
+
         """
         return self._reduced_basis
 
@@ -387,6 +390,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             [  382  -199 -1839  -482   984   -15  -695   136   682   563]
             sage: L.reduced_basis[0].norm().n()
             1613.74...
+
         """
         basis = self.reduced_basis
         basis = [v for v in basis.LLL(*args, **kwds) if v]
@@ -410,7 +414,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         An integer matrix which is a BKZ-reduced basis for this lattice.
 
-          EXAMPLE::
+        EXAMPLE::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=100, q=2^60, seed=42)
@@ -434,6 +438,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
             If ``block_size == L.rank()`` where ``L`` is this latice, then this
             function performs Hermite-Korkine-Zolotareff (HKZ) reduction.
+
         """
         basis = self.reduced_basis
         basis = [v for v in basis.BKZ(*args, **kwds) if v]
@@ -484,6 +489,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
             sage: L.reduced_basis[0]
             (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)
+
         """
         return self.BKZ(block_size=self.rank())
 
@@ -502,6 +508,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L = sage.crypto.gen_lattice(m=10, seed=42, lattice=True)
             sage: L.volume()
             14641
+
         """
         if self.rank() == self.degree():
             return abs(self.reduced_basis.determinant())
@@ -523,6 +530,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L = sage.crypto.gen_lattice(m=10, seed=42, lattice=True)
             sage: L.discriminant()
             214358881
+
         """
         return abs(self.gram_matrix().determinant())
 
@@ -697,6 +705,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         .. [Vit1996] E. Viterbo, E. Biglieri. Computing the Voronoi Cell
           of a Lattice: The Diamond-Cutting Algorithm.
           IEEE Transactions on Information Theory, 1996.
+
         """
         if not self._basis_is_LLL_reduced:
             self.LLL()

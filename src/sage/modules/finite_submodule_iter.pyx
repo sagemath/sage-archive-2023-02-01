@@ -318,9 +318,12 @@ cdef class FiniteFieldsubspace_projPoint_iterator:
           vectors is provided, then the linear independence of the vectors
           is not checked.
 
-        - ``normalize`` (optional) -- boolean which indicates if the
-          returned vectors should be normalized, i.e. the first nonzero coordinate
-          is equal to 1. Default: False
+        - ``normalize`` (optional; default: ``False``) -- boolean which
+          indicates if the returned vectors should be normalized, i.e. the
+          first nonzero coordinate is equal to 1.
+
+        - ``immutable`` (optional; default: ``False``)  -- set it to
+          ``True`` to return immutable vectors.
 
     EXAMPLES::
 

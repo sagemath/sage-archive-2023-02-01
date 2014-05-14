@@ -52,11 +52,11 @@ def q_number(n, q=None):
 
         sage: from sage.algebras.quantum_groups.q_numbers import q_number
         sage: q_number(2)
-        q + q^-1
+        q^-1 + q
         sage: q_number(3)
-        q^2 + 1 + q^-2
+        q^-2 + 1 + q^2
         sage: q_number(5)
-        q^4 + q^2 + 1 + q^-2 + q^-4
+        q^-4 + q^-2 + 1 + q^2 + q^4
         sage: q_number(5, 1)
         5
 
@@ -106,10 +106,10 @@ def q_factorial(n, q=None):
 
         sage: from sage.algebras.quantum_groups.q_numbers import q_factorial
         sage: q_factorial(3)
-        q^3 + 2*q + 2*q^-1 + q^-3
+        q^-3 + 2*q^-1 + 2*q + q^3
         sage: p = LaurentPolynomialRing(QQ, 'q').gen(0)
         sage: q_factorial(3, p)
-        q^3 + 2*q + 2*q^-1 + q^-3
+        q^-3 + 2*q^-1 + 2*q + q^3
         sage: p = ZZ['p'].gen(0)
         sage: q_factorial(3, p)
         (p^6 + 2*p^4 + 2*p^2 + 1)/p^3

@@ -957,7 +957,7 @@ def AlgebraicClosureFiniteField(base_ring, name, category=None, implementation=N
     Construct an algebraic closure of a finite field.
 
     The recommended way to use this functionality is by calling the
-    `:meth:~sage.rings.finite_rings.finite_field_base.FiniteField.algebraic_closure`
+    :meth:`~sage.rings.finite_rings.finite_field_base.FiniteField.algebraic_closure`
     method of the finite field.
 
     .. NOTE::

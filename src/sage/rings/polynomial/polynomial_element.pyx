@@ -2022,7 +2022,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
         _, R = self.quo_rem(other)
         return R
 
-    mod = __mod__
+    def mod(self, other):
+        """
+        Remainder of division of self by other.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: x % (x+1)
+            -1
+            sage: (x^3 + x - 1) % (x^2 - 1)
+            2*x - 1
+        """
+        return self.__mod__(other)
 
     def _is_atomic(self):
         """

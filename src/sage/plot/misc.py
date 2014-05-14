@@ -234,9 +234,10 @@ def _multiple_of_constant(n,pos,const):
     """
     from sage.misc.latex import latex
     from sage.rings.continued_fraction import continued_fraction
+    from sage.rings.infinity import Infinity
     cf = continued_fraction(n/const)
     k = 1
-    while cf.quotient(k) and cf.denominator(k) < 12:
+    while cf.quotient(k) != Infinity and cf.denominator(k) < 12:
         k += 1
     return '$%s$'%latex(cf.convergent(k-1)*const)
 

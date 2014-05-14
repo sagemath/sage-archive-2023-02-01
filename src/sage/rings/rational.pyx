@@ -2087,15 +2087,15 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         Test larger rationals::
 
-            sage: Q = continued_fraction(pi, bits=3000).convergents()
-            sage: all([RDF(q) == RR(q) for q  in Q])
+            sage: Q = continued_fraction(pi).convergents()[:100]
+            sage: all([RDF(q) == RR(q) for q in Q])
             True
 
         At some point, the continued fraction and direct conversion
         to ``RDF`` should agree::
 
             sage: RDFpi = RDF(pi)
-            sage: all([RDF(q) == RDFpi for q  in Q[20:]])
+            sage: all([RDF(q) == RDFpi for q in Q[20:]])
             True
         """
         return mpq_get_d_nearest(self.value)

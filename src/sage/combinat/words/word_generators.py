@@ -838,9 +838,11 @@ class WordGenerator(object):
         ::
 
             sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
+            doctest:...: DeprecationWarning: the argument 'bits' is deprecated
+            See http://trac.sagemath.org/14567 for details.
             word: 0100101001001010010100100101001001010010...
             sage: _.length()
-            6765
+            +Infinity
 
         ::
 
@@ -867,14 +869,19 @@ class WordGenerator(object):
             sage: u[1:-1] == v[:-2]
             True
         """
+        if bits is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(14567, "the argument 'bits' is deprecated")
+
         if len(set(alphabet)) != 2:
             raise TypeError("alphabet does not contain two distinct elements")
+
         if slope in RR:
             if not 0 < slope < 1:
                 msg = "The argument slope (=%s) must be in ]0,1[."%slope
                 raise ValueError(msg)
-            from sage.rings.all import CFF
-            cf = CFF(slope, bits=bits)
+            from sage.rings.continued_fraction import continued_fraction
+            cf = continued_fraction(slope)
             if cf.length() == Infinity:
                 length = Infinity
             else:
@@ -916,7 +923,7 @@ class WordGenerator(object):
 
         EXAMPLES::
 
-            sage: CFF(1/golden_ratio^2)[:8]
+            sage: continued_fraction(1/golden_ratio^2)[:8]
             [0; 2, 1, 1, 1, 1, 2]
             sage: cf = iter(_)
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
@@ -925,7 +932,7 @@ class WordGenerator(object):
         ::
 
             sage: alpha = (sqrt(3)-1)/2
-            sage: CFF(alpha)[:10]
+            sage: continued_fraction(alpha)[:10]
             [0; 2, 1, 2, 1, 2, 1, 2, 1, 2]
             sage: cf = iter(_)
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))

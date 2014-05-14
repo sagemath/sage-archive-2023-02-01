@@ -1050,7 +1050,7 @@ class Graph(GenericGraph):
             sage: g = Graph([[1,2],[1,2]],multiedges=False)
             Traceback (most recent call last):
             ...
-            ValueError: Non-multigraph input dict has multiple edges (1,2)
+            ValueError: Non-multigraph got several edges (1,2)
 
         An empty list or dictionary defines a simple graph
         (:trac:`10441` and :trac:`12910`)::
@@ -1095,6 +1095,14 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check the error when the input has multiple edges but ``multiple_edges``
+        is set to False (:trac:`16215`)::
+
+            sage: Graph([(0,1),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multigraph got several edges (0,1)
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1240,7 +1248,6 @@ class Graph(GenericGraph):
                     raise ValueError("Two different labels given for the same edge in a graph without multiple edges.")
                 else:
                     raise ValueError("Edges input must all follow the same format.")
-
 
         if format is None:
             import networkx
@@ -1449,8 +1456,8 @@ class Graph(GenericGraph):
                 verts=verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        from sage.misc.prandom import choice
-                        raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
@@ -1483,6 +1490,8 @@ class Graph(GenericGraph):
                 verts = [curve.cremona_label() for curve in data]
 
         # weighted, multiedges, loops, verts and num_verts should now be set
+        #
+        # From now on, we actually build the graph
 
         if implementation == 'networkx':
             import networkx
@@ -1549,12 +1558,11 @@ class Graph(GenericGraph):
             for i in xrange(n):
                 for j in xrange(i):
                     if m[k] == '1':
-                        self.add_edge(i, j)
+                        self._backend.add_edge(i, j, None, False)
                     k += 1
 
         elif format == 'sparse6':
-            for i,j in edges:
-                self.add_edge(i,j)
+            self.add_edges(edges)
 
         elif format == 'adjacency_matrix':
             e = []
@@ -1584,7 +1592,7 @@ class Graph(GenericGraph):
                 for v in xrange(u+1):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
-                        self.add_edge(uu,vv)
+                        self._backend.add_edge(uu,vv,None,False)
 
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
@@ -1592,24 +1600,26 @@ class Graph(GenericGraph):
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
             else:
                 for u in data:
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v]))
+                                self._backend.add_edge(u,v,data[u][v],False)
 
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
-                    if multiedges or hash(u) <= hash(v) or \
-                       v not in data or u not in data[v]:
-                        self.add_edge(u,v)
+                    if (multiedges or hash(u) <= hash(v) or
+                        v not in data or u not in data[v]):
+                        self._backend.add_edge(u,v,None,False)
 
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
@@ -1634,7 +1644,7 @@ class Graph(GenericGraph):
                             P = prime_divisors(n)
                             p_edges = [p for p in p_edges if p in P]
                     if len(p_edges) > 0:
-                        self.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1])
+                        self._backend.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1], False)
         else:
             assert format == 'int'
 
@@ -2992,9 +3002,15 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-
             sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
             True
+
+        A multigraph also has a strong orientation ::
+
+            sage: g = Graph([(1,2),(1,2)])
+            sage: g.strong_orientation()
+            Multi-digraph on 2 vertices
+
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=self.allows_multiple_edges())
@@ -3041,7 +3057,7 @@ class Graph(GenericGraph):
         tmp = None
         for e in self.multiple_edges():
             if tmp == (e[0],e[1]):
-                if d.has_edge(e[0].e[1]):
+                if d.has_edge(e[0],e[1]):
                     d.add_edge(e[1],e[0],e[2])
                 else:
                     d.add_edge(e)

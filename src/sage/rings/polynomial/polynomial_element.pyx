@@ -835,7 +835,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __hash__(self):
         return self._hash_c()
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         This hash incorporates the variable name in an effort to respect
         the obvious inclusions into multi-variable polynomial rings.
@@ -858,6 +858,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x>=IntegerModRing(11)[]
             sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
             True
+
+        TESTS:
+
+        Verify that :trac:`16251` has been resolved, i.e., polynomials with
+        unhashable coefficients are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: R.<t> = K[]
+            sage: hash(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
         """
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
         cdef long result_mon
@@ -866,9 +879,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef int i
         for i from 0<= i <= self.degree():
             if i == 1:
-                # we delay the hashing until now to not waste it one a constant poly
+                # we delay the hashing until now to not waste it on a constant poly
                 var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
-            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
             # This assumption is not true, but I think it is true enough for the purposes and it
             # it allows us to write fast code that omits terms with 0 coefficients.  This is
             # important if we want to maintain the '==' relationship with sparse polys.
@@ -4864,6 +4877,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g = (t + 1)*x + t^2
             sage: f.resultant(g)
             t^4 + t
+
+        Check that :trac:`15061` is fixed::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.resultant(P.derivative())
+            -4 - 4*T + O(T^2)
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4871,9 +4893,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             newself = bigring(self)
             newother = bigring(other)
             return self.parent().base_ring()(newself.resultant(newother,bigring(self.parent().gen())))
-        # Single-variable polynomial or main variable is "x": we can use PARI to compute the resultant
-        res = self._pari_with_name().polresultant(other._pari_with_name())
-        return self.parent().base_ring()(res)
+        # Single-variable polynomial or main variable is "x": we can
+        # try PARI to compute the resultant
+        try:
+            res = self._pari_with_name().polresultant(other._pari_with_name())
+            return self.parent().base_ring()(res)
+        except (TypeError, ValueError):
+            return self.sylvester_matrix(other).det()
 
     def discriminant(self):
         r"""

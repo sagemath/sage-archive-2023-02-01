@@ -741,8 +741,8 @@ class ToricLattice_generic(FreeModule_generic_pid):
         else:
             base_ring = None
         if base_ring is None or base_ring is ZZ:
-            return ToricLattice_sublattice(self.ambient_module(),
-                                           *args, **kwds)
+            gens = args[0] if args else kwds["gens"]
+            return ToricLattice_sublattice(self.ambient_module(), gens)
         else:
             return super(ToricLattice_generic, self).span(*args, **kwds)
 

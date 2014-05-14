@@ -391,7 +391,8 @@ def find_wilson_decomposition(k,n):
     for t in range(max(1,k),n-1):
         u = n%t
         # We ensure that 1<=u, and that there can exists a TD(k,u), i.e k<u+2
-        if u == 0 or k >= u+2:
+        # (unless u == 1)
+        if u == 0 or (u>1 and k >= u+2):
             continue
 
         m = n//t
@@ -441,7 +442,7 @@ def wilson_construction(k,m,t,u, check = True):
         ....:            k,m,t,u = find_wilson_decomposition(k,n)
         ....:            _ = wilson_construction(k,m,t,u, check=True)
         sage: print total
-        32
+        41
     """
     # Raises a NotImplementedError if one of them does not exist.
     TDkm = transversal_design(k,m,check=False)

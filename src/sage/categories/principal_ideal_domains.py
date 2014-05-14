@@ -44,6 +44,23 @@ class PrincipalIdealDomains(Category_singleton):
         """
         return [UniqueFactorizationDomains()]
 
+    def is_structure_category(self):
+        """
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        EXAMPLES:
+
+        The category of principal ideal domains does not define new
+        structrure: a ring-morphism between principal ideal domains is
+        a principal ideal domain-morphism::
+
+            sage: PrincipalIdealDomains().is_structure_category()
+            False
+        """
+        return False
+
     class ParentMethods:
         pass
 

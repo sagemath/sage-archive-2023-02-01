@@ -412,6 +412,29 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
                              self.extra_super_categories(),
                              as_list = True)
 
+    def is_structure_category(self):
+        """
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`
+
+        EXAMPLES:
+
+        By default, a functorial construction category does not define
+        new structure::
+
+            sage: Sets().CartesianProducts().is_structure_category()
+            False
+            sage: Groups().Quotients().is_structure_category()
+            False
+
+        TESTS::
+
+            sage: Sets().CartesianProducts().is_structure_category.__module__
+            'sage.categories.covariant_functorial_construction'
+        """
+        return False
+
     def _repr_object_names(self):
         """
         EXAMPLES::

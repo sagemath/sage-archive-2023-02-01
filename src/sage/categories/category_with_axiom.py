@@ -2190,6 +2190,29 @@ class CategoryWithAxiom(Category):
                              ignore_axioms = ((base_category, axiom),),
                              as_list = True)
 
+    def is_structure_category(self):
+        r"""
+        Return whether ``self`` is a structure category.
+
+        .. SEEALSO:: :meth:`Category.is_structure_category`.
+
+        EXAMPLES::
+
+        By default a category with axiom does not define new
+        structure::
+
+            sage: Sets().Finite().is_structure_category()
+            False
+            sage: Monoids().is_structure_category()
+            False
+
+        TESTS::
+
+            sage: Sets().Finite().is_structure_category.__module__
+            'sage.categories.category_with_axiom'
+        """
+        return False
+
     @staticmethod
     def _repr_object_names_static(category, axioms):
         r"""

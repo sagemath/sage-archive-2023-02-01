@@ -3370,7 +3370,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             # testing the diagonal entries to be zero
             zero = self.parent().base_ring().zero()
             for i from 0 <= i < self._nrows:
-                if not self.get_unsafe(i,i) == zero:
+                if self.get_unsafe(i,i) != zero:
                     return False
             sign = -1
         else:

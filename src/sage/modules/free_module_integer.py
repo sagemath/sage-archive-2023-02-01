@@ -463,7 +463,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         .. note::
 
             This is realised by calling
-            :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ` with
+            :func:`sage.modules.free_module_integer.FreeModule_submodule_with_basis_integer.BKZ` with
             ``block_size == self.rank()``.
 
         INPUT:

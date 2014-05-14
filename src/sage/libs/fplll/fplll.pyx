@@ -558,7 +558,7 @@ cdef class FP_LLL:
             sage: F = FP_LLL(A)
             sage: F.shortest_vector('proved')  == F.shortest_vector('fast')
             True
-          
+
         """
         cdef SVPMethod method_
         if method == "proved" or method is None:
@@ -675,7 +675,7 @@ cdef class FP_LLL:
         implementation is chosen.
 
         INPUT:
-        
+
          - ``precision`` - internal precision (default: auto).
          - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
          - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
@@ -763,7 +763,7 @@ cdef class FP_LLL:
         point implementation available in the free software world.
 
         INPUT:
-        
+
         - ``precision`` - internal precision (default: auto).
         - ``eta`` - LLL parameter η with `1/2 <= η < \sqrt(δ)` (default: ``0.51``).
         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
@@ -812,7 +812,7 @@ cdef class FP_LLL:
         integer relation detection problems.
 
         INPUT:
-        
+
          - ``precision`` - internal precision (default: auto).
          - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
          - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
@@ -878,7 +878,7 @@ cdef class FP_LLL:
         implementation.
 
         INPUT:
-        
+
          - ``precision`` - internal precision (default: auto).
          - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
          - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
@@ -968,7 +968,7 @@ cdef class FP_LLL:
         or integer relation detection problems.
 
         INPUT:
-        
+
          - ``precision`` - internal precision (default: auto).
          - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
          - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
@@ -1063,7 +1063,7 @@ def gen_intrel(int d, int b):
     OUTPUT:
 
     An integer lattice.
-      
+
     EXAMPLE::
 
         sage: from sage.libs.fplll.fplll import gen_intrel
@@ -1115,7 +1115,7 @@ def gen_simdioph(int d, int b, int b2):
     - ``b2`` - bitsize of entries.
 
     OUTPUT:
-      
+
     An integer lattice.
 
     EXAMPLE::
@@ -1341,7 +1341,7 @@ def gen_ajtai(int d, float alpha):
     OUTPUT:
 
     An integer lattice.
-      
+
     EXAMPLE::
 
         sage: from sage.libs.fplll.fplll import gen_ajtai

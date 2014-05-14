@@ -612,7 +612,7 @@ def generic_factory_unpickle(factory, *args):
     unique object behaviour as well::
 
         sage: b = loads(s); b
-        Shiny new thing of level (3,)
+        Shiny new thing of level 3
         sage: a is b
         False
         sage: loads(dumps(b)) is b
@@ -631,7 +631,7 @@ def generic_factory_unpickle(factory, *args):
     #
     # The first argument of a UniqueFactory pickle is a version number. We
     # strip this.
-    return factory(*args[1:-1], **args[-1])
+    return factory(*args[1], **args[2])
 
 def generic_factory_reduce(self, proto):
     """

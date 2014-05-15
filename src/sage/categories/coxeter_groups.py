@@ -10,6 +10,7 @@ Coxeter Groups
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
@@ -18,7 +19,6 @@ from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.sage_object import have_same_parent
-from sage.combinat.finite_class import FiniteCombinatorialClass
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -107,6 +107,8 @@ class CoxeterGroups(Category_singleton):
             [Category of groups, Category of enumerated sets]
         """
         return [Groups(), EnumeratedSets()]
+
+    Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
 
     class ParentMethods:
 
@@ -1202,7 +1204,8 @@ v            EXAMPLES::
             from sage.combinat.backtrack import SearchForest
             W = self.parent()
             if not predicate(W.one()):
-                return FiniteCombinatorialClass([])
+                from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+                return FiniteEnumeratedSet([])
             s = W.simple_reflections()
             def succ(u_v):
                 (u, v) = u_v
@@ -2107,4 +2110,3 @@ v            EXAMPLES::
                 [[1, 2, 3]]
             """
             return self.weak_covers(side = side, index_set = index_set, positive = True)
-

@@ -146,7 +146,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             sage: from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
             sage: RootLatticeRealizations(QQ).super_categories()
-            [Category of modules with basis over Rational Field]
+            [Category of vector spaces with basis over Rational Field]
         """
         return [ModulesWithBasis(self.base_ring())]
 

@@ -405,22 +405,28 @@ class Crystals(Category_singleton):
             else:
                 raise ValueError("direction must be either 'both', 'upper', or 'lower'")
 
-            subset = frozenset(subset)
+            if contained is not None:
+                subset = frozenset(x for x in subset if contained(x))
+            else:
+                subset = frozenset(subset)
+
             if category is None:
                 category = FiniteCrystals()
+            #else:
+            #   category = FiniteCrystals().join(category)
 
             if self in FiniteCrystals() and len(subset) == self.cardinality():
                 if contained is None and index_set == self.index_set():
                     return self
-                return Subcrystal(self, contained, generators,
+                return Subcrystal(self, subset, generators,
                                   virtualization, scaling_factors,
                                   cartan_type, index_set, category)
 
-            if contained is not None:
-                contained = lambda x: x in subset and contained(x)
-            else:
-                contained = lambda x: x in subset
-            return Subcrystal(self, contained, generators,
+            #if contained is not None:
+            #    contained = lambda x: x in subset and contained(x)
+            #else:
+            #    contained = lambda x: x in subset
+            return Subcrystal(self, subset, generators,
                               virtualization, scaling_factors,
                               cartan_type, index_set, category)
 

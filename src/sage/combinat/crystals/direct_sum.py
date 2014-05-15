@@ -90,14 +90,14 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
         We check that direct sum of crystals have unique representation::
 
-            sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
-            sage: C = CrystalOfLetters(['A',2])
-            sage: D1 = DirectSumOfCrystals([B, C])
-            sage: D2 = DirectSumOfCrystals((B, C))
+            sage: B = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: C = crystals.Letters(['A',2])
+            sage: D1 = crystals.DirectSum([B, C])
+            sage: D2 = crystals.DirectSum((B, C))
             sage: D1 is D2
             True
-            sage: D3 = DirectSumOfCrystals([B, C, C])
-            sage: D4 = DirectSumOfCrystals([D1, C])
+            sage: D3 = crystals.DirectSum([B, C, C])
+            sage: D4 = crystals.DirectSum([D1, C])
             sage: D3 is D4
             True
         """

@@ -163,8 +163,11 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
     We check that a few classical crystals embed into `\mathcal{T}(\infty)`::
 
         sage: def crystal_test(B, C):
-        ....:     g = {C.module_generators[0] : B.module_generators[0]}
-        ....:     f = C.crystal_morphism(g)
+        ....:     T = crystals.elementary.T(C.cartan_type(), C.module_generators[0].weight())
+        ....:     TP = crystals.TensorProduct(T, B)
+        ....:     mg = TP(T[0], B.module_generators[0])
+        ....:     g = {C.module_generators[0]: mg}
+        ....:     f = C.crystal_morphism(g, category=HighestWeightCrystals())
         ....:     G = B.digraph(subset=[f(x) for x in C])
         ....:     return G.is_isomorphic(C.digraph(), edge_labels=True)
         sage: B = crystals.infinity.Tableaux(['A',2])

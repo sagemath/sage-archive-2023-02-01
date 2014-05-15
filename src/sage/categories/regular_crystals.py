@@ -131,7 +131,7 @@ class RegularCrystals(Category_singleton):
                     ['A', 2, 1] Crystal morphism:
                       From: The crystal of LS paths of type ['A', 2, 1] and weight Lambda[0]
                       To:   Highest weight crystal of generalized Young walls of Cartan type ['A', 2, 1]
-                             and highest weight Lambda[0].
+                             and highest weight Lambda[0]
                       Defn: (Lambda[0],) |--> []
                     sage: psi.is_isomorphism()
                     True

@@ -101,8 +101,8 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: psi1 = B.crystal_morphism(C.module_generators)
             sage: V1 = psi1.image()
             sage: psi2 = B.crystal_morphism(C.module_generators, index_set=[1,2,3])
@@ -134,8 +134,8 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: TestSuite(V).run()
@@ -151,8 +151,8 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: psi = B.crystal_morphism(C.module_generators)
             sage: psi.image()
             Virtual crystal of The crystal of tableaux of type ['D', 4] and shape(s) [[2]] of type ['B', 3]
@@ -165,8 +165,8 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: mg = C.module_generators[0]
@@ -196,8 +196,8 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: V.virtualization()
@@ -211,8 +211,8 @@ class VirtualCrystal(Subcrystal):
 
         EXAMPLES::
 
-            sage: B = CrystalOfTableaux(['B',3], shape=[1])
-            sage: C = CrystalOfTableaux(['D',4], shape=[2])
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
             sage: psi = B.crystal_morphism(C.module_generators)
             sage: V = psi.image()
             sage: V.scaling_factors()
@@ -231,8 +231,8 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['B',3], shape=[1])
-                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: B = crystals.Tableaux(['B',3], shape=[1])
+                sage: C = crystals.Tableaux(['D',4], shape=[2])
                 sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
@@ -257,8 +257,8 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['B',3], shape=[1])
-                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: B = crystals.Tableaux(['B',3], shape=[1])
+                sage: C = crystals.Tableaux(['D',4], shape=[2])
                 sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
@@ -282,8 +282,8 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['B',3], shape=[1])
-                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: B = crystals.Tableaux(['B',3], shape=[1])
+                sage: C = crystals.Tableaux(['D',4], shape=[2])
                 sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
@@ -301,8 +301,8 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['B',3], shape=[1])
-                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: B = crystals.Tableaux(['B',3], shape=[1])
+                sage: C = crystals.Tableaux(['D',4], shape=[2])
                 sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]
@@ -320,8 +320,8 @@ class VirtualCrystal(Subcrystal):
 
             EXAMPLES::
 
-                sage: B = CrystalOfTableaux(['B',3], shape=[1])
-                sage: C = CrystalOfTableaux(['D',4], shape=[2])
+                sage: B = crystals.Tableaux(['B',3], shape=[1])
+                sage: C = crystals.Tableaux(['D',4], shape=[2])
                 sage: psi = B.crystal_morphism(C.module_generators)
                 sage: V = psi.image()
                 sage: mg = V.module_generators[0]

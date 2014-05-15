@@ -188,9 +188,9 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
         sage: L = sage.modular.modsym.manin_symbols.ManinSymbolList_gamma_h(GammaH(36, [17,19]), 2)
         sage: modS = sparse_2term_quotient(modS_relations(L), 216, QQ)
         sage: T_relation_matrix_wtk_g0(L, modS, QQ, False)
-        72 x 216 dense matrix over Rational Field
+        72 x 216 dense matrix over Rational Field (use the '.str()' method to see the entries)
         sage: T_relation_matrix_wtk_g0(L, modS, GF(17), True)
-        72 x 216 sparse matrix over Finite Field of size 17
+        72 x 216 sparse matrix over Finite Field of size 17 (use the '.str()' method to see the entries)
     """
     tm = misc.verbose()
     row = 0

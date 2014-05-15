@@ -1723,11 +1723,35 @@ class AbstractLabelledTree(AbstractTree):
             1[None[42[], 21[]]]
             sage: LabelledOrderedTree(OrderedTree([[],[[],[]],[]]))
             None[None[], None[None[], None[]], None[]]
+
+        We test that inheriting from `LabelledOrderedTree` allows construction from a
+        `LabelledOrderedTree` (:trac:`16314`)::
+
+            sage: LBTS = LabelledOrderedTrees()
+            sage: class Foo(LabelledOrderedTree):
+            ....:     def bar(self):
+            ....:         print "bar called"
+            sage: foo = Foo(LBTS, [], label=1); foo
+            1[]
+            sage: foo1 = LBTS([LBTS([], label=21)], label=42); foo1
+            42[21[]]
+            sage: foo2 = Foo(LBTS, foo1); foo2
+            42[21[]]
+            sage: foo2[0]
+            21[]
+            sage: foo2.__class__
+            <class '__main__.Foo'>
+            sage: foo2[0].__class__
+            <class '__main__.Foo'>
+            sage: foo2.bar()
+            bar called
+            sage: foo2.label()
+            42
         """
         # We must initialize the label before the subtrees to allows rooted
         # trees canonization. Indeed it needs that ``self``._hash_() is working
         # at the end of the call super(..., self).__init__(...)
-        if isinstance(children, self.__class__):
+        if isinstance(children, AbstractLabelledTree):
             if label is None:
                 self._label = children._label
             else:

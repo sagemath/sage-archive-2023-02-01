@@ -370,14 +370,26 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 [2]
                 sage: F.unrank_range(stop=-1)
                 [1, 2]
+
+                sage: F = FiniteEnumeratedSet([1,2,3,4])
+                sage: F.unrank_range(stop=10)
+                [1, 2, 3, 4]
             """
             try:
                 return self._list[start:stop:step]
             except AttributeError:
-                if start is None and stop is not None and stop > 0 and step is None:
+                pass
+            if start is None and stop is not None and stop > 0 and step is None:
+                card = self.cardinality() # This may set the list
+                try:
+                    return self._list[start:stop:step]
+                except AttributeError:
+                    pass
+                if stop < card:
                     it = self.__iter__()
                     return [it.next() for j in range(stop)]
-                return self.list()[start:stop:step]
+                return self.list()
+            return self.list()[start:stop:step]
 
         def _random_element_from_unrank(self):
             """

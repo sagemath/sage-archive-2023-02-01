@@ -57,8 +57,10 @@ lists of integer exponents.
 from sage.structure.parent_gens import ParentWithGens, normalize_names
 from free_abelian_monoid_element import FreeAbelianMonoidElement
 from sage.rings.integer import Integer
+from sage.rings.all import ZZ
 
 from sage.structure.factory import UniqueFactory
+from sage.misc.decorators import rename_keyword
 
 class FreeAbelianMonoidFactory(UniqueFactory):
     """
@@ -103,10 +105,8 @@ class FreeAbelianMonoidFactory(UniqueFactory):
 
 FreeAbelianMonoid_factory = FreeAbelianMonoidFactory("sage.monoids.free_abelian_monoid.FreeAbelianMonoid_factory")
 
-#from sage.structure.sage_object import register_unpickle_override
-#register_unpickle_override('sage.monoids.free_abelian_monoid', 'FreeAbelianMonoid', FreeAbelianMonoid_factory)
-
-def FreeAbelianMonoid(n=None, names=None, index_set=None, **kwds):
+@rename_keyword(deprecation=15289, n="index_set")
+def FreeAbelianMonoid(index_set=None, names=None, **kwds):
     """
     Return a free abelian monoid on `n` generators or with the generators
     indexed by a set `I`.
@@ -118,11 +118,10 @@ def FreeAbelianMonoid(n=None, names=None, index_set=None, **kwds):
 
     INPUT:
 
-    -  ``n`` -- integer
+    - ``index_set`` -- an indexing set for the generators; if an integer,
+      then this becomes `\{0, 1, \ldots, n-1\}`
 
     -  ``names`` -- names of generators
-
-    - ``index_set`` -- an indexing set for the generators
 
     OUTPUT:
 
@@ -135,24 +134,24 @@ def FreeAbelianMonoid(n=None, names=None, index_set=None, **kwds):
         sage: FreeAbelianMonoid(index_set=ZZ)
         Free abelian monoid indexed by Integer Ring
     """
-    if isinstance(n, str): # Swap args (this works if names is None as well)
-        names, n = n, names
+    if isinstance(index_set, str): # Swap args (this works if names is None as well)
+        names, index_set = index_set, names
 
-    if n is None and names is not None:
+    if index_set is None and names is not None:
         if isinstance(names, str):
-            n = names.count(',')
+            index_set = names.count(',')
         else:
-            n = len(names)
+            index_set = len(names)
 
-    if index_set is not None:
+    if index_set not in ZZ:
         if names is not None:
-            names = normalize_names(int(n), names)
+            names = normalize_names(len(names), names)
         from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
         return IndexedFreeAbelianMonoid(index_set, names=names, **kwds)
 
     if names is None:
         raise ValueError("names must be specified")
-    return FreeAbelianMonoid_factory(n, names)
+    return FreeAbelianMonoid_factory(index_set, names)
 
 def is_FreeAbelianMonoid(x):
     """

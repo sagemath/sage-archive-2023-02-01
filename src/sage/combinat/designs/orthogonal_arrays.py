@@ -242,7 +242,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         15: ( 7, 17)
         16: (18, 18)
         17: (19, 19)
-        18: ( 6, 20)
+        18: ( 8, 20)
         19: (21, 21)
         20: ( 7, 22)
         21: ( 8, 22)

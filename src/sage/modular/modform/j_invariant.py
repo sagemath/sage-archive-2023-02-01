@@ -4,12 +4,20 @@ from sage.rings.all import QQ
 
 def j_invariant_qexp(prec=10, K=QQ):
     r"""
-    Return the $q$-expansion of the $j$-invariant to
-    precision prec in the field $K$.
+    Return the `q`-expansion of the `j`-invariant to
+    precision ``prec`` in the field `K`.
 
-    WARNING: Stupid algorithm -- we divide by Delta, which is slow.
+    .. SEEALSO::
 
-    EXAMPLES:
+        If you want to evaluate (numerically) the `j`-invariant at
+        certain points, see the special function :func:`elliptic_j`.
+
+    .. WARNING::
+
+        Stupid algorithm -- we divide by Delta, which is slow.
+
+    EXAMPLES::
+
         sage: j_invariant_qexp(4)
         q^-1 + 744 + 196884*q + 21493760*q^2 + 864299970*q^3 + O(q^4)
         sage: j_invariant_qexp(2)

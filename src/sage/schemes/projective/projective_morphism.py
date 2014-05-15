@@ -2450,9 +2450,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         periodic_points = self.lift_to_rational_periodic(pos_points,B)
         for p,n in periodic_points:
             for k in range(n):
-                  p.normalize_coordinates()
-                  periodic.add(p)
-                  p = self(p)
+                p.normalize_coordinates()
+                periodic.add(p)
+                p = self(p)
         return(list(periodic))
 
     def rational_preimages(self, Q):

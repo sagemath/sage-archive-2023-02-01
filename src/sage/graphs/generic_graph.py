@@ -9034,13 +9034,15 @@ class GenericGraph(GenericGraph_pyx):
                     u, v = u
                 except Exception:
                     pass
-        if not self.allows_loops() and u==v:
-            return
+
         self._backend.add_edge(u, v, label, self._directed)
 
     def add_edges(self, edges):
         """
         Add edges from an iterable container.
+
+        All elements of ``edges`` must follow the same format, i.e. have the
+        same length.
 
         EXAMPLES::
 
@@ -9052,9 +9054,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = DiGraph()
             sage: H.add_edges( G.edge_iterator() ); H
             Digraph on 20 vertices
+            sage: H.add_edges(iter([]))
+
+            sage: H = Graph()
+            sage: H.add_edges([(0,1),(0,2)])
+            sage: H.edges()
+            [(0, 1, None), (0, 2, None)]
         """
-        for e in edges:
-            self.add_edge(e)
+        it = iter(edges)
+
+        try:
+            e0 = it.next()
+        except StopIteration:
+            return
+
+        if len(e0) == 3:
+            self._backend.add_edge(e0[0], e0[1], e0[2], self._directed)
+            for u,v,label in it:
+                self._backend.add_edge(u, v, label, self._directed)
+        else:
+            self._backend.add_edge(e0[0], e0[1], None, self._directed)
+            for u,v in it:
+                self._backend.add_edge(u, v, None, self._directed)
 
     def subdivide_edge(self, *args):
         """
@@ -9366,7 +9387,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph(multiedges=True,sparse=True)
-            sage: D.add_edges([(0,1,1), (0,1,2), (0,1,3), (1,0), (1,2), (2,3)])
+            sage: D.add_edges([(0,1,1), (0,1,2), (0,1,3), (1,0,None), (1,2,None), (2,3,None)])
             sage: D.edges()
             [(0, 1, 1), (0, 1, 2), (0, 1, 3), (1, 0, None), (1, 2, None), (2, 3, None)]
             sage: D.delete_multiedge( 0, 1 )
@@ -9846,7 +9867,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph(multiedges=True, sparse=True)
-            sage: D.add_edges( [ (0,1,1), (0,1,2), (0,1,3), (0,1,4), (1,2) ] )
+            sage: D.add_edges( [ (0,1,1), (0,1,2), (0,1,3), (0,1,4), (1,2,None) ] )
             sage: D.edges(labels=False)
             [(0, 1), (0, 1), (0, 1), (0, 1), (1, 2)]
             sage: D.remove_multiple_edges()
@@ -13846,7 +13867,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = DiGraph(loops=True,multiedges=True,sparse=True)
-            sage: G.add_edges( [ (0,0), (1,1), (2,2), (2,3,1), (2,3,2), (3,2) ] )
+            sage: G.add_edges( [ (0,0,None), (1,1,None), (2,2,None), (2,3,1), (2,3,2), (3,2,None) ] )
             sage: G.edges(labels=False)
             [(0, 0), (1, 1), (2, 2), (2, 3), (2, 3), (3, 2)]
             sage: H=G.to_simple()
@@ -16628,11 +16649,10 @@ class GenericGraph(GenericGraph_pyx):
         If ``perm`` is a function ``f``, then each vertex ``v`` is
         relabeled to ``f(v)``.
 
-        If ``perm`` is a dictionary ``d``, then each vertex ``v``
-        (which should be a key of ``d``) is relabeled to ``d[v]``.
-        Similarly, if ``perm`` is a list or tuple ``l`` of length
-        ``n``, then each vertex (which should be in `\{0,1,...,n-1\}`)
-        is relabeled to ``l[v]``.
+        If ``perm`` is a dictionary ``d``, then each vertex ``v`` (which should
+        be a key of ``d``) is relabeled to ``d[v]``.  Similarly, if ``perm`` is
+        a list or tuple ``l`` of length ``n``, then the first vertex returned by
+        ``G.vertices()`` is relabeled to ``l[0]``, the second to ``l[1]``, ...
 
         If ``perm`` is a permutation, then each vertex ``v`` is
         relabeled to ``perm(v)``. Caveat: this assumes that the
@@ -16793,6 +16813,12 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: To relabel an immutable graph use inplace=False
+
+        :trac:`16257`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.relabel( [ i+1 for i in range(G.order()) ], inplace=True )
+            sage: G.relabel( [ i+1 for i in range(G.order()) ], inplace=True )
         """
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 
@@ -16817,12 +16843,10 @@ class GenericGraph(GenericGraph_pyx):
         # If perm is not a dictionary, we build one !
 
         if perm is None:
-            verts = self.vertices() # vertices() returns a sorted list:
-            perm = {}; i = 0        # this guarantees consistent relabeling
-            for v in verts:
-                perm[v] = i
-                i += 1
 
+            # vertices() returns a sorted list:
+            # this guarantees consistent relabeling
+            perm = dict({v:i for i,v in enumerate(self.vertices())})
             complete_partial_function = False
             check_input = False
 
@@ -16834,7 +16858,7 @@ class GenericGraph(GenericGraph_pyx):
             perm = copy(perm)
 
         elif isinstance(perm, (list, tuple)):
-            perm = dict( [ [i,perm[i]] for i in xrange(len(perm)) ] )
+            perm = dict(zip(self.vertices(),perm))
 
         elif isinstance(perm, PermutationGroupElement):
             n = self.order()

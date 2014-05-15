@@ -2531,7 +2531,7 @@ class FiniteStateMachine(SageObject):
 
 
     def adjacency_matrix(self, input=None,
-                         entry=(lambda transition:var('x')**transition.word_out[0])):
+                         entry=None):
         """
         Returns the adjacency matrix of the underlying graph.
 
@@ -2540,9 +2540,11 @@ class FiniteStateMachine(SageObject):
         - ``input`` -- Only transitions with input label ``input`` are
           respected.
 
-        - ``entry`` -- The function ``entry`` takes a transition and
-          the return value is written in the matrix as the entry
-          ``(transition.from_state, transition.to_state)``.
+        - ``entry`` -- The function ``entry`` takes a transition and the
+          return value is written in the matrix as the entry
+          ``(transition.from_state, transition.to_state)``. The default
+          value (``None``) of entry takes the variable ``x`` to the
+          power of the sum of the output word of the transition.
 
         OUTPUT:
 
@@ -2552,9 +2554,6 @@ class FiniteStateMachine(SageObject):
         machine is relabeled at the beginning.  If there are more than
         one transitions between two states, then the different return
         values of ``entry`` are added up.
-
-        The default value of entry takes the variable ``x`` to the
-        power of the output word of the transition.
 
         EXAMPLES::
 
@@ -2583,21 +2582,44 @@ class FiniteStateMachine(SageObject):
             [e^(I*t)       0       0       0       0]
             [      0       0 e^(I*t)       0       0]
             [      0       0       0       0 e^(I*t)]
+            sage: a = Automaton([(0, 1, 0),
+            ....:                (1, 2, 0),
+            ....:                (2, 0, 1),
+            ....:                (2, 1, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: a.adjacency_matrix()
+            [0 1 0]
+            [0 0 1]
+            [1 1 0]
 
         """
+        def default_function(transitions):
+            var('x')
+            return x**sum(transition.word_out)
+
+        if entry is None:
+            entry = default_function
+
         relabeledFSM = self
         l = len(relabeledFSM.states())
         for state in self.states():
-            if state.label() not in ZZ or state.label() >= l or state.label() < 0:
+            if state.label() not in ZZ or state.label() >= l \
+                     or state.label() < 0:
                 relabeledFSM = self.relabeled()
                 break
         dictionary = {}
         for transition in relabeledFSM.iter_transitions():
             if input is None or transition.word_in == [input]:
-                if (transition.from_state.label(), transition.to_state.label()) in dictionary:
-                    dictionary[(transition.from_state.label(), transition.to_state.label())] += entry(transition)
+                if (transition.from_state.label(),
+                    transition.to_state.label()) in dictionary:
+                    dictionary[(transition.from_state.label(),
+                                transition.to_state.label())] \
+                                += entry(transition)
                 else:
-                    dictionary[(transition.from_state.label(), transition.to_state.label())] = entry(transition)
+                    dictionary[(transition.from_state.label(),
+                                transition.to_state.label())] \
+                                = entry(transition)
         return matrix(len(relabeledFSM.states()), dictionary)
 
 

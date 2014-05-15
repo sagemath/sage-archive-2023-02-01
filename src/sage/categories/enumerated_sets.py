@@ -279,9 +279,16 @@ class EnumeratedSets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: infinite list
+                sage: P.unrank_range(stop=-3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
             """
             if stop is None:
                 return self.list()[start::step]
+
+            if stop < 0:
+                return self.list()[start:stop:step]
 
             if start is None and step is None:
                 it = self.__iter__()
@@ -328,6 +335,30 @@ class EnumeratedSets(Category_singleton):
                 NotImplementedError: infinite list
                 sage: P[3]
                 [1, 1]
+
+            ::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C.list()
+                [1, 2, 3]
+                sage: C[1]
+                2
+                sage: C[:]
+                [1, 2, 3]
+                sage: C[1:]
+                [2, 3]
+                sage: C[0:1:2]
+                [1]
+
+                sage: F = FiniteEnumeratedSet([1,2,3])
+                sage: F[1:]
+                [2, 3]
+                sage: F[:2]
+                [1, 2]
+                sage: F[:2:2]
+                [1]
+                sage: F[1::2]
+                [2]
             """
             if isinstance(i, slice):
                 return self.unrank_range(i.start, i.stop, i.step)

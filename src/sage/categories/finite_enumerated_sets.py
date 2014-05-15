@@ -368,63 +368,16 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 [1]
                 sage: F.unrank_range(start=1, step=2)
                 [2]
+                sage: F.unrank_range(stop=-1)
+                [1, 2]
             """
             try:
                 return self._list[start:stop:step]
             except AttributeError:
-                if start is None and stop is not None and step is None:
+                if start is None and stop is not None and stop > 0 and step is None:
                     it = self.__iter__()
                     return [it.next() for j in range(stop)]
                 return self.list()[start:stop:step]
-
-        def __getitem__(self, i):
-            r"""
-            Return the item indexed by ``i``.
-
-            .. WARNING::
-
-                This method is only meant as a convenience shorthand for
-                ``self.unrank(i)`` and
-                ``self.unrank_range(start, stop, step)`` respectively, for
-                casual use (e.g. in interactive sessions). Subclasses are
-                hereby explicitly permitted to overload ``__getitem__``
-                with a different semantic, typically for enumerated sets
-                that are naturally indexed by some `I` not of the
-                form `\{0, 1, \ldots\}`. In particular, generic code
-                *should not* use this shorthand.
-
-            EXAMPLES::
-
-                sage: C = FiniteEnumeratedSets().example()
-                sage: C.list()
-                [1, 2, 3]
-                sage: C[1]
-                2
-                sage: C[:]
-                [1, 2, 3]
-                sage: C[1:]
-                [2, 3]
-                sage: C[0:1:2]
-                [1]
-
-                sage: F = FiniteEnumeratedSet([1,2,3])
-                sage: F[1:]
-                [2, 3]
-                sage: F[:2]
-                [1, 2]
-                sage: F[:2:2]
-                [1]
-                sage: F[1::2]
-                [2]
-            """
-            try:
-                return self._list[i]
-            except AttributeError:
-                if isinstance(i, slice) and (i.start is None
-                            and i.stop is not None and i.step is None):
-                    it = self.__iter__()
-                    return [it.next() for j in range(stop)]
-                return self.list()[i]
 
         def _random_element_from_unrank(self):
             """

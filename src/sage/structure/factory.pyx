@@ -537,6 +537,70 @@ cdef class UniqueFactory(SageObject):
         """
         return generic_factory_unpickle, obj._factory_data
 
+# This is used to handle old UniqueFactory pickles
+factory_unpickles = {}
+
+def register_factory_unpickle(name, callable):
+    """
+    Register a callable to handle the unpickling from an old
+    :class:`UniqueFactory` object.
+
+    :class:`UniqueFactory` pickles use a global name through
+    :func:`generic_factory_unpickle()`, so the usual
+    :func:`~sage.structure.sage_object.register_unpickle_override()`
+    cannot be used here.
+
+    .. SEEALSO::
+
+        :func:`generic_factory_unpickle()`
+
+    TESTS:
+
+    This is similar to the example given in
+    :func:`generic_factory_unpickle()`, but here we will use a function to
+    explicitly return a polynomial ring.
+
+    First, we create the factory. In a doctest, it is needed to explicitly put
+    it into ``__main__``, so that it can be located when pickling. Also, it is
+    needed that we work with a new-style class::
+
+        sage: from sage.structure.factory import UniqueFactory, register_factory_unpickle
+        sage: import __main__
+        sage: class OldStuff(object):
+        ....:     def __init__(self, n, **extras):
+        ....:         self.n = n
+        ....:     def __repr__(self):
+        ....:         return "Rotten old thing of level {}".format(self.n)
+        sage: __main__.OldStuff = OldStuff
+        sage: class MyFactory(UniqueFactory):
+        ....:     def create_object(self, version, key, **extras):
+        ....:         return OldStuff(key[0])
+        ....:     def create_key(self, *args):
+        ....:         return args
+        sage: F = MyFactory('__main__.F')
+        sage: __main__.F = F
+        sage: a = F(3); a
+        Rotten old thing of level 3
+        sage: loads(dumps(a)) is a
+        True
+
+    Now, we create a pickle (the string returned by ``dumps(a)``)::
+
+        sage: s = dumps(a)
+
+    We create the function which will handle the unpickling::
+
+        sage: def foo(n, **kwds):
+        ....:     return PolynomialRing(QQ, n, 'x')
+        sage: register_factory_unpickle('__main__.F', foo)
+
+    The old pickle correctly unpickles as an explicit polynomial ring::
+
+        sage: loads(s)
+        Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+    """
+    #global factory_unpickles
+    factory_unpickles[name] = callable
 
 def generic_factory_unpickle(factory, *args):
     """
@@ -590,7 +654,7 @@ def generic_factory_unpickle(factory, *args):
         sage: loads(dumps(a)) is a
         True
 
-    Now, we create a pickle (the string returned by ``dumps(a)``::
+    Now, we create a pickle (the string returned by ``dumps(a)``)::
 
         sage: s = dumps(a)
 
@@ -660,6 +724,11 @@ def lookup_global(name):
         sage: lookup_global('sage.rings.all.ZZ')
         Integer Ring
     """
+    try:
+        return factory_unpickles[name]
+    except KeyError:
+        pass
+
     if '.' in name:
         module, name = name.rsplit('.', 1)
         all = __import__(module, fromlist=[name])

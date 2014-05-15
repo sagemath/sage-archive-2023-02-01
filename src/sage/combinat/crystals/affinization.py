@@ -71,10 +71,12 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         """
         Initialize ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We skip the Stembridge axioms test since this this is an abstract
 
             sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
-            sage: TestSuite(A).run() # long time
+            sage: TestSuite(A).run(skip="_test_stembridge_local_axioms") # long time
         """
         if not B.cartan_type().is_affine():
             raise ValueError("must be an affine crystal")
@@ -107,6 +109,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         """
         return self.cartan_type().root_system().ambient_space()
 
+    # TODO: This should become unnecessary once we have a proper category for KR crystals
     def digraph(self, subset=None, index_set=None):
         """
         Return the DiGraph associated with ``self``. See
@@ -187,6 +190,8 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
                 sage: mg = A.module_generators[0]
                 sage: mg == mg
                 True
+                sage: mg == mg.f(2).e(2)
+                True
                 sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
                 sage: A = crystals.Affinization(KT)
                 sage: A(KT.module_generators[3], 1).f(0) == A.module_generators[0]
@@ -197,7 +202,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             return self.parent() == other.parent() \
                     and self._b == other._b and self._m == other._m
 
-        def __neq__(self, other):
+        def __ne__(self, other):
             """
             Check inequality.
 
@@ -207,10 +212,30 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
                 sage: mg = A.module_generators[0]
                 sage: mg != mg.f(2)
                 True
-                sage: mg != mg
+                sage: mg != mg.f(2).e(2)
                 False
             """
             return not self.__eq__(other)
+
+        def __lt__(self, other):
+            """
+            Check less than.
+
+            EXAMPLES::
+
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: sorted(S)
+                [[[1, 1], [2, 2]](0),
+                 [[1, 1], [2, 3]](0),
+                 [[1, 2], [2, 3]](0),
+                 [[1, 1], [3, 3]](0),
+                 [[1, 1], [2, 3]](1),
+                 [[1, 2], [2, 3]](1),
+                 [[1, 2], [3, 3]](1),
+                 [[2, 2], [3, 3]](2)]
+            """
+            return self._m < other._m or (self._m == other._m and self._b < other._b)
 
         def e(self, i):
             """

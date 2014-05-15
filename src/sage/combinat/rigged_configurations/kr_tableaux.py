@@ -502,7 +502,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: K = KirillovReshetikhinTableaux(['A',2,1], 1, 1)
+            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1, model='KR')
             sage: K.affinization()
             Affinization of Kirillov-Reshetikhin tableaux of type ['A', 2, 1] and shape (1, 1)
         """

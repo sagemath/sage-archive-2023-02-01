@@ -2569,6 +2569,18 @@ class FiniteStateMachine(SageObject):
             [x 0 0 0 1]
             [0 x x 0 0]
             [0 0 0 x x]
+
+        This is equivalent to::
+
+            sage: matrix(B)
+            [1 1 0 0 0]
+            [0 0 1 1 0]
+            [x 0 0 0 1]
+            [0 x x 0 0]
+            [0 0 0 x x]
+
+        It is also possible to use other entries in the adjacency matrix::
+
             sage: B.adjacency_matrix(entry=(lambda transition: 1))
             [1 1 0 0 0]
             [0 0 1 1 0]
@@ -2603,7 +2615,7 @@ class FiniteStateMachine(SageObject):
 
         relabeledFSM = self
         l = len(relabeledFSM.states())
-        for state in self.states():
+        for state in self.iter_states():
             if state.label() not in ZZ or state.label() >= l \
                      or state.label() < 0:
                 relabeledFSM = self.relabeled()

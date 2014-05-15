@@ -3152,6 +3152,12 @@ class GenericGraph(GenericGraph_pyx):
           that will be used as root for all spanning out-trees if the graph
           is a directed graph.  This argument is ignored if the graph is not a digraph.
 
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.graph.Graph.spanning_trees` -- enumerates all
+            spanning trees of a graph.
+
+
         REFERENCES:
 
         - [1] http://mathworld.wolfram.com/MatrixTreeTheorem.html

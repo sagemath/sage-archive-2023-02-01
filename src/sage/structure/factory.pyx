@@ -577,9 +577,9 @@ def register_factory_unpickle(name, callable):
         ....:         return OldStuff(key[0])
         ....:     def create_key(self, *args):
         ....:         return args
-        sage: F = MyFactory('__main__.F')
-        sage: __main__.F = F
-        sage: a = F(3); a
+        sage: G = MyFactory('__main__.G')
+        sage: __main__.G = G
+        sage: a = G(3); a
         Rotten old thing of level 3
         sage: loads(dumps(a)) is a
         True
@@ -592,7 +592,7 @@ def register_factory_unpickle(name, callable):
 
         sage: def foo(n, **kwds):
         ....:     return PolynomialRing(QQ, n, 'x')
-        sage: register_factory_unpickle('__main__.F', foo)
+        sage: register_factory_unpickle('__main__.G', foo)
 
     The old pickle correctly unpickles as an explicit polynomial ring::
 

@@ -1844,51 +1844,51 @@ class Graph(GenericGraph):
           Networks, Volume 5 (1975), numer 3, pages 237-252.
         """
 
-        def _recursive_spanning_trees(G,part_G):
+        def _recursive_spanning_trees(G,forest):
             """
-            Returns all the spanning trees of G containing part_G (a forest)
+            Returns all the spanning trees of G containing forest
             """
             if not G.is_connected():
                 return []
 
-            if G.size() == part_G.size():
-                return [part_G.copy()]
+            if G.size() == forest.size():
+                return [forest.copy()]
             else:
-                # Pick an edge e from G-part_G
+                # Pick an edge e from G-forest
                 for e in G.edges():
-                    if not part_G.has_edge(e):
+                    if not forest.has_edge(e):
                         break
 
                 # 1) Recursive call with e removed from G
                 G.delete_edge(e)
-                trees = _recursive_spanning_trees(G,part_G)
+                trees = _recursive_spanning_trees(G,forest)
                 G.add_edge(e)
 
-                # 2) Recursive call with e include in part_G
+                # 2) Recursive call with e include in forest
                 #
-                # e=xy links the CC (connected component) of part_G containing x
+                # e=xy links the CC (connected component) of forest containing x
                 # with the CC containing y. Any other edge which does that
-                # cannot be added to part_G anymore, and B is the list of them
-                c1 = part_G.connected_component_containing_vertex(e[0])
-                c2 = part_G.connected_component_containing_vertex(e[1])
+                # cannot be added to forest anymore, and B is the list of them
+                c1 = forest.connected_component_containing_vertex(e[0])
+                c2 = forest.connected_component_containing_vertex(e[1])
                 G.delete_edge(e)
                 B = G.edge_boundary(c1,c2,sort=False)
                 G.add_edge(e)
 
                 # Actual call
-                part_G.add_edge(e)
+                forest.add_edge(e)
                 G.delete_edges(B)
-                trees.extend(_recursive_spanning_trees(G,part_G))
+                trees.extend(_recursive_spanning_trees(G,forest))
                 G.add_edges(B)
-                part_G.delete_edge(e)
+                forest.delete_edge(e)
 
                 return trees
 
         if self.is_connected():
-            part_G = Graph([])
-            part_G.add_vertices(self.vertices())
-            part_G.add_edges(self.bridges())
-            return _recursive_spanning_trees(self,part_G)
+            forest = Graph([])
+            forest.add_vertices(self.vertices())
+            forest.add_edges(self.bridges())
+            return _recursive_spanning_trees(self,forest)
         else:
             return []
 

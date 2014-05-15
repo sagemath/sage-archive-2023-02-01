@@ -180,7 +180,7 @@ class PariRing(UniqueRepresentation, ring.Ring):
         return False
 
     def characteristic(self):
-        raise RuntimeError, "Not defined."
+        raise RuntimeError("Not defined.")
         #return 0
 
     def random_element(self, x=None, y=None, distribution=None):
@@ -214,12 +214,6 @@ class PariRing(UniqueRepresentation, ring.Ring):
         """
         from sage.all import ZZ
         return self(ZZ.random_element(x,y,distribution))
-
-    def random(self, bound=0):
-        """
-        Deprecated.  Use self.random_element() instead.
-        """
-        raise NotImplementedError, "Deprecated: use random_element() instead"
 
     def zeta(self):
         """

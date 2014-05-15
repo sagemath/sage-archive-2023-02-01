@@ -44,7 +44,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
         sage: A.base_ring()
         Rational Field
         sage: A.basis().keys()
-        Words over {'a', 'b', 'c'}
+        Finite Words over {'a', 'b', 'c'}
 
         sage: (a,b,c) = A.algebra_generators()
         sage: a^3, b^2
@@ -410,7 +410,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
             if len(mcs) == 1 and one in mcs:
                 return self.parent()( ~mcs[ one ] )
             else:
-                raise ValueError, "cannot invert self (= %s)"%self
+                raise ValueError("cannot invert self (= %s)"%self)
 
 
     class CartesianProducts(CartesianProductsCategory):

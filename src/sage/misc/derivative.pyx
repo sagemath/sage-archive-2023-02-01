@@ -158,7 +158,7 @@ def derivative_parse(args):
             # process iteration count
             count = int(arg)
             if count < 0:
-                raise ValueError, "derivative counts must be non-negative"
+                raise ValueError("derivative counts must be non-negative")
             if not got_var:
                 var = None
             for i from 0 <= i < count:
@@ -175,7 +175,6 @@ def derivative_parse(args):
         output.append(var)
 
     return output
-
 
 
 def multi_derivative(F, args):

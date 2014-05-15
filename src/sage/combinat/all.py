@@ -3,8 +3,7 @@ from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
         UnionCombinatorialClass, MapCombinatorialClass, \
         InfiniteAbstractCombinatorialClass, \
-        combinations, combinations_iterator, \
-        number_of_combinations, arrangements, number_of_arrangements, \
+        number_of_combinations, number_of_arrangements, \
         derangements, number_of_derangements, tuples, number_of_tuples, \
         unordered_tuples, number_of_unordered_tuples, permutations, \
         permutations_iterator, number_of_permutations, cyclic_permutations, \
@@ -57,11 +56,7 @@ from partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
      PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
 #Functions being deprecated from partition
-from partition import partitions_set, RestrictedPartitions, number_of_partitions_set,\
-    ordered_partitions, number_of_ordered_partitions, partitions,\
-     cyclic_permutations_of_partition, cyclic_permutations_of_partition_iterator,\
-     partitions_greatest, partitions_greatest_eq, partitions_tuples,\
-     number_of_partitions_tuples, partition_power
+from partition import RestrictedPartitions
 
 from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
 from skew_partition import SkewPartition, SkewPartitions
@@ -139,7 +134,18 @@ from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
-from backtrack import TransitiveIdeal, TransitiveIdealGraded, SearchForest
+
+from sage.misc.superseded import deprecated_callable_import
+deprecated_callable_import(6637,
+                           'sage.combinat.backtrack',
+                           globals(),
+                           locals(),
+                           ["SearchForest", 
+                            "TransitiveIdeal", 
+                            "TransitiveIdealGraded"],
+                           ("This class soon will not be available in that "
+                            "way anymore. Use RecursivelyEnumeratedSet "
+                            "instead."))
 
 # Cluster Algebras and Quivers
 from cluster_algebra_quiver.all import *
@@ -176,6 +182,8 @@ from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatter
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.finite_state_machine',
             ['Automaton', 'Transducer', 'FiniteStateMachine'])
+lazy_import('sage.combinat.finite_state_machine_generators',
+            ['transducers'])
 # Binary Recurrence Sequences
 from binary_recurrence_sequences import BinaryRecurrenceSequence
 

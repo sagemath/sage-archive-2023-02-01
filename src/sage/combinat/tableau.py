@@ -611,7 +611,7 @@ class Tableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError, "The cell (%d,%d) is not contained in %s"%(i,j,self)
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
 
     def level(self):
         """
@@ -1314,8 +1314,7 @@ class Tableau(CombinatorialObject, Element):
             sage: Tableau([[5, 3], [2, 4]]).is_standard()
             False
         """
-        entries=self.entries()
-        entries.sort()
+        entries=sorted(self.entries())
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
 
     def is_increasing(self):
@@ -1967,7 +1966,7 @@ class Tableau(CombinatorialObject, Element):
             [[1, 1, 2, 2, 3], [2, 2, 3, 5], [3, 4, 5], [4, 6, 6], [5]]
         """
         if not isinstance(right, Tableau):
-            raise TypeError, "right must be a Tableau"
+            raise TypeError("right must be a Tableau")
 
         row = len(right)
         product = copy.deepcopy(left)
@@ -2543,7 +2542,7 @@ class Tableau(CombinatorialObject, Element):
                 tab[r].append(m)
 
             else:
-                raise IndexError, '%s is not an addable cell of the tableau' % ((r,c),)
+                raise IndexError('%s is not an addable cell of the tableau' % ((r,c),))
 
         # attempt to return a tableau of the same type as self
         if tab in self.parent():
@@ -3068,7 +3067,7 @@ class Tableau(CombinatorialObject, Element):
             sage: sorted(t._segments().items())
             [((0, 2), 2), ((0, 3), 3), ((0, 5), 4), ((1, 3), 1), ((1, 5), 2), ((2, 4), 1)]
 
-            sage: B = CrystalOfTableaux("A4", shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4", shape=[4,3,2,1])
             sage: t = B[31].to_tableau()
             sage: sorted(t._segments().items())
             [((0, 5), 3), ((1, 4), 2), ((2, 4), 1)]
@@ -3102,7 +3101,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t.seg()
             6
 
-            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
             sage: t = B[31].to_tableau()
             sage: t.seg()
             3
@@ -3130,7 +3129,7 @@ class Tableau(CombinatorialObject, Element):
             sage: t.flush()
             3
 
-            sage: B = CrystalOfTableaux("A4",shape=[4,3,2,1])
+            sage: B = crystals.Tableaux("A4",shape=[4,3,2,1])
             sage: t = B[32].to_tableau()
             sage: t.flush()
             4
@@ -5939,112 +5938,6 @@ def symmetric_group_action_on_values(word, perm):
             for i in range(nbr-dif,ma):
                 w[places_r[i]] = l
     return w
-
-
-# August 2012: Deprecation of internal classes seems to be unnecessarily painful...
-def Tableau_class(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.Tableau_class([[3,2]])
-        doctest:1: DeprecationWarning: this class is deprecated. Use Tableau_class instead
-        See http://trac.sagemath.org/9265 for details.
-        [[3, 2]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use Tableau_class instead')
-    return Tableau(*args, **kargs)
-
-def Tableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.Tableaux_n(3)
-        doctest:1: DeprecationWarning: this class is deprecated. Use Tableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Tableaux of size 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use Tableaux_size instead')
-    return Tableaux(*args, **kargs)
-
-def SemistandardTableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_n(3)
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of size 3 and maximum entry 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def SemistandardTableaux_nmu(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_nmu(3,[2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_size_weight instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of size 3 and weight [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size_weight instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def SemistandardTableaux_p(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_p([2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_shape instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of shape [2, 1] and maximum entry 3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def SemistandardTableaux_pmu(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.SemistandardTableaux_pmu([2,1],[2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardTableaux_shape_weight instead
-        See http://trac.sagemath.org/9265 for details.
-        Semistandard tableaux of shape [2, 1] and weight [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape_weight instead')
-    return SemistandardTableaux(*args, **kargs)
-
-def StandardTableaux_n(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.StandardTableaux_n(2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use StandardTableaux_size instead
-        See http://trac.sagemath.org/9265 for details.
-        Standard tableaux of size 2
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use StandardTableaux_size instead')
-    return StandardTableaux(*args, **kargs)
-
-def StandardTableaux_partition(*args, **kargs):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.tableau.StandardTableaux_partition([2,1])
-        doctest:1: DeprecationWarning: this class is deprecated. Use StandardTableaux_shape instead
-        See http://trac.sagemath.org/9265 for details.
-        Standard tableaux of shape [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(9265,'this class is deprecated. Use StandardTableaux_shape instead')
-    return StandardTableaux(*args, **kargs)
 
 # October 2012: fixing outdated pickles which use classed being deprecated
 from sage.structure.sage_object import register_unpickle_override

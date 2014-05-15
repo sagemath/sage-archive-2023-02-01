@@ -518,7 +518,7 @@ def is_anisotropic(self, p):
     if (n == 1):
         return (self[0,0] != 0)
 
-    raise NotImplementedError, "Oops!  We haven't established a convention for 0-dim'l quadratic forms... =("
+    raise NotImplementedError("Oops!  We haven't established a convention for 0-dim'l quadratic forms... =(")
 
 
 def is_isotropic(self, p):
@@ -677,7 +677,7 @@ def compute_definiteness(self):
     """
     ## Sanity Check
     if not ((self.base_ring() == ZZ) or (self.base_ring() == QQ) or (self.base_ring() == RR)):
-        raise NotImplementedError, "Oops!  We can only check definiteness over ZZ, QQ, and RR for now."
+        raise NotImplementedError("Oops!  We can only check definiteness over ZZ, QQ, and RR for now.")
 
     ## Some useful variables
     n = self.dim()
@@ -752,7 +752,7 @@ def compute_definiteness_string_by_determinants(self):
     """
     ## Sanity Check
     if not ((self.base_ring() == ZZ) or (self.base_ring() == QQ) or (self.base_ring() == RR)):
-        raise NotImplementedError, "Oops!  We can only check definiteness over ZZ, QQ, and RR for now."
+        raise NotImplementedError("Oops!  We can only check definiteness over ZZ, QQ, and RR for now.")
 
     ## Some useful variables
     n = self.dim()

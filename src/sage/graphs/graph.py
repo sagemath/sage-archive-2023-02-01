@@ -481,11 +481,11 @@ And you can view it in three dimensions via jmol with ``show3d()``. ::
 
     sage: G.show3d()
 
-Or it can be rendered with `\mbox{\rm\LaTeX}`.  This requires the right
+Or it can be rendered with `\LaTeX`.  This requires the right
 additions to a standard `\mbox{\rm\TeX}` installation.  Then standard
 Sage commands, such as ``view(G)`` will display the graph, or
 ``latex(G)`` will produce a string suitable for inclusion in a
-`\mbox{\rm\LaTeX}` document.  More details on this are at
+`\LaTeX` document.  More details on this are at
 the :mod:`sage.graphs.graph_latex` module. ::
 
     sage: from sage.graphs.graph_latex import check_tkz_graph
@@ -1050,7 +1050,7 @@ class Graph(GenericGraph):
             sage: g = Graph([[1,2],[1,2]],multiedges=False)
             Traceback (most recent call last):
             ...
-            ValueError: Non-multigraph input dict has multiple edges (1,2)
+            ValueError: Non-multigraph got several edges (1,2)
 
         An empty list or dictionary defines a simple graph
         (:trac:`10441` and :trac:`12910`)::
@@ -1095,6 +1095,14 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check the error when the input has multiple edges but ``multiple_edges``
+        is set to False (:trac:`16215`)::
+
+            sage: Graph([(0,1),(0,1)], multiedges=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-multigraph got several edges (0,1)
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1241,7 +1249,6 @@ class Graph(GenericGraph):
                 else:
                     raise ValueError("Edges input must all follow the same format.")
 
-
         if format is None:
             import networkx
             data = networkx.MultiGraph(data)
@@ -1362,8 +1369,7 @@ class Graph(GenericGraph):
                         assert False
                     else:
                         positions.append(tuple(NZ))
-                    L = uniq(c.list())
-                    L.sort()
+                    L = sorted(uniq(c.list()))
 
                     if data.nrows() != (2 if len(NZ) == 2 else 1):
                         desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
@@ -1450,8 +1456,8 @@ class Graph(GenericGraph):
                 verts=verts.union([v for v in data[u] if v not in verts])
                 if len(uniq(data[u])) != len(data[u]):
                     if multiedges is False:
-                        from sage.misc.prandom import choice
-                        raise ValueError("Non-multigraph input dict has multiple edges (%s,%s)"%(u, choice([v for v in data[u] if data[u].count(v) > 1])))
+                        v = (v for v in data[u] if data[u].count(v) > 1).next()
+                        raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
                     if multiedges is None: multiedges = True
             if multiedges is None: multiedges = False
             num_verts = len(verts)
@@ -1484,6 +1490,8 @@ class Graph(GenericGraph):
                 verts = [curve.cremona_label() for curve in data]
 
         # weighted, multiedges, loops, verts and num_verts should now be set
+        #
+        # From now on, we actually build the graph
 
         if implementation == 'networkx':
             import networkx
@@ -1550,12 +1558,11 @@ class Graph(GenericGraph):
             for i in xrange(n):
                 for j in xrange(i):
                     if m[k] == '1':
-                        self.add_edge(i, j)
+                        self._backend.add_edge(i, j, None, False)
                     k += 1
 
         elif format == 'sparse6':
-            for i,j in edges:
-                self.add_edge(i,j)
+            self.add_edges(edges)
 
         elif format == 'adjacency_matrix':
             e = []
@@ -1585,7 +1592,7 @@ class Graph(GenericGraph):
                 for v in xrange(u+1):
                     uu,vv = verts[u], verts[v]
                     if f(uu,vv):
-                        self.add_edge(uu,vv)
+                        self._backend.add_edge(uu,vv,None,False)
 
         elif format == 'dict_of_dicts':
             if convert_empty_dict_labels_to_None:
@@ -1593,24 +1600,26 @@ class Graph(GenericGraph):
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
             else:
                 for u in data:
                     for v in data[u]:
                         if hash(u) <= hash(v) or v not in data or u not in data[v]:
                             if multiedges:
-                                self.add_edges([(u,v,l) for l in data[u][v]])
+                                for l in data[u][v]:
+                                    self._backend.add_edge(u,v,l,False)
                             else:
-                                self.add_edge((u,v,data[u][v]))
+                                self._backend.add_edge(u,v,data[u][v],False)
 
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:
-                    if multiedges or hash(u) <= hash(v) or \
-                       v not in data or u not in data[v]:
-                        self.add_edge(u,v)
+                    if (multiedges or hash(u) <= hash(v) or
+                        v not in data or u not in data[v]):
+                        self._backend.add_edge(u,v,None,False)
 
         elif format == 'elliptic_curve_congruence':
             from sage.rings.arith import lcm, prime_divisors
@@ -1635,7 +1644,7 @@ class Graph(GenericGraph):
                             P = prime_divisors(n)
                             p_edges = [p for p in p_edges if p in P]
                     if len(p_edges) > 0:
-                        self.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1])
+                        self._backend.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1], False)
         else:
             assert format == 'int'
 
@@ -2912,12 +2921,12 @@ class Graph(GenericGraph):
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-        b = p.new_variable()
+        b = p.new_variable(binary=True)
 
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
         if bounds is None:
-            raise ValueError,"The `bounds` keyword can not be equal to None"
+            raise ValueError("The `bounds` keyword can not be equal to None")
         elif isinstance(bounds,dict):
             f_bounds = lambda x: bounds[x]
         else:
@@ -2935,7 +2944,6 @@ class Graph(GenericGraph):
             p.add_constraint(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]), min=minimum, max=maximum)
 
         p.set_objective(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
-        p.set_binary(b)
 
         try:
             p.solve(log=verbose)
@@ -2994,9 +3002,15 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-
             sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
             True
+
+        A multigraph also has a strong orientation ::
+
+            sage: g = Graph([(1,2),(1,2)])
+            sage: g.strong_orientation()
+            Multi-digraph on 2 vertices
+
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=self.allows_multiple_edges())
@@ -3043,7 +3057,7 @@ class Graph(GenericGraph):
         tmp = None
         for e in self.multiple_edges():
             if tmp == (e[0],e[1]):
-                if d.has_edge(e[0].e[1]):
+                if d.has_edge(e[0],e[1]):
                     d.add_edge(e[1],e[0],e[2])
                 else:
                     d.add_edge(e)
@@ -3120,20 +3134,18 @@ class Graph(GenericGraph):
         # and indicates whether the edge uv
         # with u<v goes from u to v ( equal to 0 )
         # or from v to u ( equal to 1)
-        orientation = p.new_variable(dim=2)
+        orientation = p.new_variable(binary=True)
 
-        degree = p.new_variable()
+        degree = p.new_variable(nonnegative=True)
 
         # Whether an edge adjacent to a vertex u counts
         # positively or negatively
         outgoing = lambda u,v,variable : (1-variable) if u>v else variable
 
         for u in self:
-            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v)][max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
+            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v),max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
 
         p.set_objective(degree['max'])
-
-        p.set_binary(orientation)
 
         p.solve(log=verbose)
 
@@ -3152,7 +3164,7 @@ class Graph(GenericGraph):
             if u>v:
                 u,v=v,u
 
-            if orientation[min(u,v)][max(u,v)] == 1:
+            if orientation[min(u,v),max(u,v)] == 1:
                 edges.append((max(u,v),min(u,v)))
             else:
                 edges.append((min(u,v),max(u,v)))
@@ -3261,7 +3273,8 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict(map(lambda (x,y):(y,x), list(enumerate(vertices))))
+        vertices_id = dict(map(lambda x_y: (x_y[1], x_y[0]),
+                               list(enumerate(vertices))))
 
         b = {}
 
@@ -3642,17 +3655,16 @@ class Graph(GenericGraph):
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            b = p.new_variable(dim=2)
+            b = p.new_variable(binary = True)
             p.set_objective(
-                p.sum([weight(w) * b[min(u, v)][max(u, v)]
+                p.sum([weight(w) * b[min(u, v),max(u, v)]
                      for u, v, w in g.edges()]))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum([b[min(u, v)][max(u, v)]
+                    p.sum([b[min(u, v),max(u, v)]
                          for u in g.neighbors(v)]), max=1)
-            p.set_binary(b)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -3662,7 +3674,7 @@ class Graph(GenericGraph):
                 p.solve(log=verbose)
                 b = p.get_values(b)
                 return [(u, v, w) for u, v, w in g.edges()
-                        if b[min(u, v)][max(u, v)] == 1]
+                        if b[min(u, v),max(u, v)] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
@@ -3758,7 +3770,7 @@ class Graph(GenericGraph):
         if core:
 
             # the value of m is one if the corresponding vertex of h is used.
-            m = p.new_variable()
+            m = p.new_variable(nonnegative=True)
             for uh in H:
                 for ug in self:
                     p.add_constraint(b[ug,uh] <= m[uh])
@@ -3836,8 +3848,8 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(constraint_generation = True)
 
         # One variable per edge
-        r = p.new_variable(dim = 2)
-        R = lambda x,y : r[x][y] if x<y else r[y][x]
+        r = p.new_variable(nonnegative=True)
+        R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
         p.set_objective( p.sum( R(u,v) for u,v in g.edges(labels = False)))
@@ -3949,8 +3961,8 @@ class Graph(GenericGraph):
 
         p = MixedIntegerLinearProgram(maximization=True, solver = solver)
 
-        d = p.new_variable()
-        one = p.new_variable()
+        d = p.new_variable(nonnegative=True)
+        one = p.new_variable(nonnegative=True)
 
         # Reorders u and v so that uv and vu are not considered
         # to be different edges
@@ -4062,7 +4074,7 @@ class Graph(GenericGraph):
 
         # Boolean variable indicating whether the vertex
         # is the representative of some set
-        vertex_taken=p.new_variable()
+        vertex_taken=p.new_variable(binary=True)
 
         # Boolean variable in two dimension whose first
         # element is a vertex and whose second element
@@ -4070,7 +4082,7 @@ class Graph(GenericGraph):
         # When true, indicated that the vertex is the representant
         # of the corresponding set
 
-        classss=p.new_variable(dim=2)
+        classss=p.new_variable(binary = True)
 
         # Associates to the vertices the classes
         # to which they belong
@@ -4080,12 +4092,12 @@ class Graph(GenericGraph):
             [lists[v].append(i) for v in f]
 
             # a classss has exactly one representant
-            p.add_constraint(p.sum([classss[v][i] for v in f]),max=1,min=1)
+            p.add_constraint(p.sum([classss[v,i] for v in f]),max=1,min=1)
 
         # A vertex represents at most one classss (vertex_taken is binary), and
         # vertex_taken[v]==1 if v is the representative of some classss
 
-        [p.add_constraint(p.sum([classss[v][i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
+        [p.add_constraint(p.sum([classss[v,i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
 
         # Two adjacent vertices can not both be representants of a set
 
@@ -4093,9 +4105,6 @@ class Graph(GenericGraph):
             p.add_constraint(vertex_taken[u]+vertex_taken[v],max=1)
 
         p.set_objective(None)
-
-        p.set_binary(vertex_taken)
-        p.set_binary(classss)
 
         try:
             p.solve(log=verbose)
@@ -4107,7 +4116,7 @@ class Graph(GenericGraph):
         repr=[]
         for i,f in enumerate(family):
             for v in f:
-                if classss[v][i]==1:
+                if classss[v,i]==1:
                     repr.append(v)
                     break
 
@@ -4205,64 +4214,61 @@ class Graph(GenericGraph):
         p = MixedIntegerLinearProgram(solver=solver)
 
         # sorts an edge
-        S = lambda (x,y) : (x,y) if x<y else (y,x)
+        S = lambda x_y: x_y if x_y[0] < x_y[1] else (x_y[1], x_y[0])
 
         # rs = Representative set of a vertex
-        # for h in H, v in G is such that rs[h][v] == 1 if and only if v
+        # for h in H, v in G is such that rs[h,v] == 1 if and only if v
         # is a representant of h in self
-        rs = p.new_variable(dim=2)
+        rs = p.new_variable(binary = True)
 
         for v in self:
-            p.add_constraint(p.sum([rs[h][v] for h in H]), max = 1)
+            p.add_constraint(p.sum([rs[h,v] for h in H]), max = 1)
 
         # We ensure that the set of representatives of a
         # vertex h contains a tree, and thus is connected
 
         # edges represents the edges of the tree
-        edges = p.new_variable(dim = 2)
+        edges = p.new_variable(binary = True)
 
         # there can be a edge for h between two vertices
         # only if those vertices represent h
         for u,v in self.edges(labels=None):
             for h in H:
-                p.add_constraint(edges[h][S((u,v))] - rs[h][u], max = 0 )
-                p.add_constraint(edges[h][S((u,v))] - rs[h][v], max = 0 )
+                p.add_constraint(edges[h,S((u,v))] - rs[h,u], max = 0 )
+                p.add_constraint(edges[h,S((u,v))] - rs[h,v], max = 0 )
 
         # The number of edges of the tree in h is exactly the cardinal
         # of its representative set minus 1
 
         for h in H:
-            p.add_constraint(p.sum([edges[h][S(e)] for e in self.edges(labels=None)])-p.sum([rs[h][v] for v in self]), min=-1, max=-1)
+            p.add_constraint(p.sum([edges[h,S(e)] for e in self.edges(labels=None)])-p.sum([rs[h,v] for v in self]), min=-1, max=-1)
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
-        r_edges = p.new_variable(dim=2)
+        r_edges = p.new_variable(nonnegative=True)
 
         for h in H:
             for u,v in self.edges(labels=None):
-                p.add_constraint(r_edges[h][(u,v)] + r_edges[h][(v,u)] - edges[h][S((u,v))], min = 0)
+                p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,S((u,v))], min = 0)
 
             for v in self:
-                p.add_constraint(p.sum([r_edges[h][(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
+                p.add_constraint(p.sum([r_edges[h,(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
-        h_edges = p.new_variable(dim=2)
+        h_edges = p.new_variable(nonnegative=True)
 
         for h1, h2 in H.edges(labels=None):
 
             for v1, v2 in self.edges(labels=None):
 
-                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h2][v2], max = 0)
-                p.add_constraint(h_edges[(h1,h2)][S((v1,v2))] - rs[h1][v1], max = 0)
+                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h2,v2], max = 0)
+                p.add_constraint(h_edges[(h1,h2),S((v1,v2))] - rs[h1,v1], max = 0)
 
-                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h1][v2], max = 0)
-                p.add_constraint(h_edges[(h2,h1)][S((v1,v2))] - rs[h2][v1], max = 0)
+                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h1,v2], max = 0)
+                p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h2,v1], max = 0)
 
-            p.add_constraint(p.sum([h_edges[(h1,h2)][S(e)] + h_edges[(h2,h1)][S(e)] for e in self.edges(labels=None) ]), min = 1)
-
-        p.set_binary(rs)
-        p.set_binary(edges)
+            p.add_constraint(p.sum([h_edges[(h1,h2),S(e)] + h_edges[(h2,h1),S(e)] for e in self.edges(labels=None) ]), min = 1)
 
         p.set_objective(None)
 
@@ -4275,7 +4281,7 @@ class Graph(GenericGraph):
 
         rs_dict = {}
         for h in H:
-            rs_dict[h] = [v for v in self if rs[h][v]==1]
+            rs_dict[h] = [v for v in self if rs[h,v]==1]
 
         return rs_dict
 
@@ -4725,18 +4731,18 @@ class Graph(GenericGraph):
         # Vertex representant #
         #######################
         #
-        # v_repr[h][g] = 1 if vertex h from H is represented by vertex
+        # v_repr[h,g] = 1 if vertex h from H is represented by vertex
         # g from G, 0 otherwise
 
-        v_repr = p.new_variable(binary = True, dim = 2)
+        v_repr = p.new_variable(binary = True)
 
         # Exactly one representant per vertex of H
         for h in H:
-            p.add_constraint( p.sum( v_repr[h][g] for g in G), min = 1, max = 1)
+            p.add_constraint( p.sum( v_repr[h,g] for g in G), min = 1, max = 1)
 
         # A vertex of G can only represent one vertex of H
         for g in G:
-            p.add_constraint( p.sum( v_repr[h][g] for h in H), max = 1)
+            p.add_constraint( p.sum( v_repr[h,g] for h in H), max = 1)
 
         ###################
         # Is representent #
@@ -4748,7 +4754,7 @@ class Graph(GenericGraph):
 
         for g in G:
             for h in H:
-                p.add_constraint( v_repr[h][g] - is_repr[g], max = 0)
+                p.add_constraint( v_repr[h,g] - is_repr[g], max = 0)
 
         ###################################
         # paths between the representents #
@@ -4759,16 +4765,16 @@ class Graph(GenericGraph):
         # a flow of intensity 1 from one to the other.
         # We are then writing a flow problem for each edge of H.
         #
-        # The variable flow[(h1,h2)][(g1,g2)] indicates the amount of
+        # The variable flow[(h1,h2),(g1,g2)] indicates the amount of
         # flow on the edge (g1,g2) representing the edge (h1,h2).
 
-        flow = p.new_variable(binary = True, dim = 2)
+        flow = p.new_variable(binary = True)
 
         # This lambda function returns the balance of flow
         # corresponding to commodity C at vertex v v
 
-        flow_in = lambda C, v : p.sum( flow[C][(v,u)] for u in G.neighbors(v) )
-        flow_out = lambda C, v : p.sum( flow[C][(u,v)] for u in G.neighbors(v) )
+        flow_in = lambda C, v : p.sum( flow[C,(v,u)] for u in G.neighbors(v) )
+        flow_out = lambda C, v : p.sum( flow[C,(u,v)] for u in G.neighbors(v) )
 
         flow_balance = lambda C, v : flow_in(C,v) - flow_out(C,v)
 
@@ -4780,7 +4786,7 @@ class Graph(GenericGraph):
                 # a representant of h1 or h2 in G, or a reprensentant
                 # of none
 
-                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1][v] - v_repr[h2][v] )
+                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v] )
 
         #############################
         # Internal vertex of a path #
@@ -4789,13 +4795,12 @@ class Graph(GenericGraph):
         # is_internal[C][g] = 1 if a vertex v from G is located on the
         # path representing the edge (=commodity) C
 
-        is_internal = p.new_variable(dim = 2, binary = True)
+        is_internal = p.new_variable(binary = True)
 
         # When is a vertex internal for a commodity ?
         for C in H.edges(labels = False):
             for g in G:
-                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C][g], max = 1)
-
+                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max = 1)
 
         ############################
         # Two paths do not cross ! #
@@ -4805,7 +4810,7 @@ class Graph(GenericGraph):
         # the vertex is a representent
 
         for g in G:
-            p.add_constraint( p.sum( is_internal[C][g] for C in H.edges(labels = False))
+            p.add_constraint( p.sum( is_internal[C,g] for C in H.edges(labels = False))
                               + is_repr[g], max = 1 )
 
         # (The following inequalities are not necessary, but they seem
@@ -4818,8 +4823,8 @@ class Graph(GenericGraph):
 
         for g1,g2 in G.edges(labels = None):
 
-            p.add_constraint(   p.sum( flow[C][(g1,g2)] for C in H.edges(labels = False) )
-                              + p.sum( flow[C][(g2,g1)] for C in H.edges(labels = False) ),
+            p.add_constraint(   p.sum( flow[C,(g1,g2)] for C in H.edges(labels = False) )
+                              + p.sum( flow[C,(g2,g1)] for C in H.edges(labels = False) ),
                                 max = 1)
 
 
@@ -4838,12 +4843,11 @@ class Graph(GenericGraph):
         v_repr = p.get_values(v_repr)
         flow = p.get_values(flow)
 
-
         for u,v in minor.edges(labels = False):
             used = False
             for C in H.edges(labels = False):
 
-                if flow[C][(u,v)] + flow[C][(v,u)] > .5:
+                if flow[C,(u,v)] + flow[C,(v,u)] > .5:
                     used = True
                     minor.set_edge_label(u,v,C)
                     break
@@ -4856,7 +4860,7 @@ class Graph(GenericGraph):
         for g in minor:
             if is_repr[g] > .5:
                 for h in H:
-                    if v_repr[h][v] > .5:
+                    if v_repr[h,v] > .5:
                         minor.set_vertex(g,h)
                         break
 
@@ -4864,16 +4868,33 @@ class Graph(GenericGraph):
 
     ### Cliques
 
-    def cliques_maximal(self):
+    def cliques_maximal(self, algorithm = "native"):
         """
         Returns the list of all maximal cliques, with each clique represented
         by a list of vertices. A clique is an induced complete subgraph, and a
         maximal clique is one not contained in a larger one.
 
+        INPUT:
+
+        - ``algorithm`` -- can be set to ``"native"`` (default) to use Sage's
+          own implementation, or to ``"NetworkX"`` to use NetworkX'
+          implementation of the Bron and Kerbosch Algorithm [BroKer1973]_.
+
+
         .. NOTE::
 
-            Currently only implemented for undirected graphs. Use to_undirected
-            to convert a digraph to an undirected graph.
+            This method sorts its output before returning it. If you prefer to
+            save the extra time, you can call
+            :class:`sage.graphs.independent_sets.IndependentSets` directly.
+
+        .. NOTE::
+
+            Sage's implementation of the enumeration of *maximal* independent
+            sets is not much faster than NetworkX' (expect a 2x speedup), which
+            is surprising as it is written in Cython. This being said, the
+            algorithm from NetworkX appears to be sligthly different from this
+            one, and that would be a good thing to explore if one wants to
+            improve the implementation.
 
         ALGORITHM:
 
@@ -4890,21 +4911,37 @@ class Graph(GenericGraph):
         EXAMPLES::
 
             sage: graphs.ChvatalGraph().cliques_maximal()
-            [[0, 1], [0, 4], [0, 6], [0, 9], [2, 1], [2, 3], [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [5, 1], [5, 4], [5, 10], [5, 11], [7, 1], [7, 8], [7, 11], [8, 4], [8, 10], [10, 6], [10, 9], [11, 6], [11, 9]]
+            [[0, 1], [0, 4], [0, 6], [0, 9], [1, 2], [1, 5], [1, 7], [2, 3],
+             [2, 6], [2, 8], [3, 4], [3, 7], [3, 9], [4, 5], [4, 8], [5, 10],
+             [5, 11], [6, 10], [6, 11], [7, 8], [7, 11], [8, 10], [9, 10], [9, 11]]
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_maximal()
             [[0, 1, 2], [0, 1, 3]]
             sage: C=graphs.PetersenGraph()
             sage: C.cliques_maximal()
-            [[0, 1], [0, 4], [0, 5], [2, 1], [2, 3], [2, 7], [3, 4], [3, 8], [6, 1], [6, 8], [6, 9], [7, 5], [7, 9], [8, 5], [9, 4]]
+            [[0, 1], [0, 4], [0, 5], [1, 2], [1, 6], [2, 3], [2, 7], [3, 4],
+             [3, 8], [4, 9], [5, 7], [5, 8], [6, 8], [6, 9], [7, 9]]
             sage: C = Graph('DJ{')
             sage: C.cliques_maximal()
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
 
+        Comparing the two implementations::
+
+            sage: g = graphs.RandomGNP(20,.7)
+            sage: s1 = Set(map(Set, g.cliques_maximal(algorithm="NetworkX")))
+            sage: s2 = Set(map(Set, g.cliques_maximal(algorithm="native")))
+            sage: s1 == s2
+            True
         """
-        import networkx
-        return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+        if algorithm == "native":
+            from sage.graphs.independent_sets import IndependentSets
+            return sorted(IndependentSets(self, maximal = True, complement = True))
+        elif algorithm == "NetworkX":
+            import networkx
+            return sorted(networkx.find_cliques(self.networkx_graph(copy=False)))
+        else:
+            raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
     cliques = deprecated_function_alias(5739, cliques_maximal)
 
@@ -5068,7 +5105,7 @@ class Graph(GenericGraph):
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_number_of(cliques=E)
             {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
@@ -5096,6 +5133,8 @@ class Graph(GenericGraph):
         Returns a graph constructed with maximal cliques as vertices, and
         edges between maximal cliques with common members in the original
         graph.
+
+        For more information, see the :wikipedia:`Clique_graph`.
 
         .. NOTE::
 
@@ -5157,6 +5196,10 @@ class Graph(GenericGraph):
 
         Equivalently, an independent set is defined as the complement of a
         vertex cover.
+
+        For more information, see the
+        :wikipedia:`Independent_set_(graph_theory)` and the
+        :wikipedia:`Vertex_cover`.
 
         INPUT:
 
@@ -5456,7 +5499,7 @@ class Graph(GenericGraph):
 
             from sage.numerical.mip import MixedIntegerLinearProgram
             p = MixedIntegerLinearProgram(maximization=False, solver=solver)
-            b = p.new_variable()
+            b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
             p.set_objective(p.sum([b[v] for v in g.vertices()]))
@@ -5464,8 +5507,6 @@ class Graph(GenericGraph):
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
-
-            p.set_binary(b)
 
             if value_only:
                 size_cover_g = p.solve(objective_only=True, log=verbosity)
@@ -5531,7 +5572,7 @@ class Graph(GenericGraph):
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
             {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
@@ -5594,9 +5635,9 @@ class Graph(GenericGraph):
             {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
             sage: E = C.cliques_maximal()
             sage: E
-            [[4, 0], [4, 1, 2, 3]]
+            [[0, 4], [1, 2, 3, 4]]
             sage: C.cliques_containing_vertex(cliques=E)
-            {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
+            {0: [[0, 4]], 1: [[1, 2, 3, 4]], 2: [[1, 2, 3, 4]], 3: [[1, 2, 3, 4]], 4: [[0, 4], [1, 2, 3, 4]]}
             sage: F = graphs.Grid2dGraph(2,3)
             sage: X = F.cliques_containing_vertex()
             sage: for v in sorted(X.iterkeys()):

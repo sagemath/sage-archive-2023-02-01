@@ -138,7 +138,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pol = pari("x^3 + 5/3*x"); pol.list()
             [0, 5/3, 0, 1]
 
-        For power series or laurent series, we get all coefficients starting
+        For power series or Laurent series, we get all coefficients starting
         from the lowest degree term.  This includes trailing zeros::
 
             sage: R.<x> = LaurentSeriesRing(QQ)
@@ -1528,11 +1528,19 @@ cdef class gen(sage.structure.element.RingElement):
             False
             sage: n.isprime(2)
             False
+            sage: n = pari(2^31-1)
+            sage: n.isprime(1)
+            (True, [2, 3, 1; 3, 5, 1; 7, 3, 1; 11, 3, 1; 31, 2, 1; 151, 3, 1; 331, 3, 1])
         """
+        cdef GEN x
         pari_catch_sig_on()
-        cdef long t = signe(gisprime(self.g, flag))
-        P.clear_stack()
-        return t != 0
+        x = gisprime(self.g, flag)
+        if typ(x) != t_INT:
+            # case flag=1 with prime input: x is the certificate
+            return True, P.new_gen(x)
+        else:
+            pari_catch_sig_off()
+            return signe(x) != 0
 
     def qfbhclassno(gen n):
         r"""
@@ -1595,7 +1603,8 @@ cdef class gen(sage.structure.element.RingElement):
         OUTPUT:
 
 
-        -  ``bool`` - True or False
+        -  ``bool`` - True or False, or when flag=1, either False or a tuple
+           (True, cert) where ``cert`` is a primality certificate.
 
 
         EXAMPLES::
@@ -2173,63 +2182,83 @@ cdef class gen(sage.structure.element.RingElement):
         pari_catch_sig_on()
         return P.new_gen(Qfb0(a.g, t0.g, t1.g, t2.g, prec_bits_to_words(precision)))
 
-
-    def Ser(gen x, v=-1, long seriesprecision=16):
+    def Ser(gen f, v=-1, long precision=-1):
         """
-        Ser(x,v=x): Create a power series from x with main variable v and
-        return the result.
-
-        - If x is a scalar, this gives a constant power series with
-          precision given by the default series precision, as returned
-          by get_series_precision().
-
-        - If x is a polynomial, the precision is the greatest of
-          get_series_precision() and the degree of the polynomial.
-
-        - If x is a vector, the precision is similarly given, and the
-          coefficients of the vector are understood to be the
-          coefficients of the power series starting from the constant
-          term (i.e. the reverse of the function Pol).
-
-        .. warning::
-
-           This is *not* a substitution function. It will not
-           transform an object containing variables of higher priority
-           than v.
+        Return a power series or Laurent series in the variable `v`
+        constructed from the object `f`.
 
         INPUT:
 
+        - ``f`` -- PARI gen
 
-        -  ``x`` - gen
+        - ``v`` -- PARI variable (default: `x`)
 
-        -  ``v`` - PARI variable (default: x)
-
+        - ``precision`` -- the desired relative precision (default:
+          the value returned by ``pari.get_series_precision()``).
+          This is the absolute precision minus the `v`-adic valuation.
 
         OUTPUT:
 
+        - PARI object of type ``t_SER``
 
-        -  ``gen`` - PARI object of PARI type t_SER
+        The series is constructed from `f` in the following way:
 
+        - If `f` is a scalar, a constant power series is returned.
+
+        - If `f` is a polynomial, it is converted into a power series
+          in the obvious way.
+
+        - If `f` is a rational function, it will be expanded in a
+          Laurent series around `v = 0`.
+
+        - If `f` is a vector, its coefficients become the coefficients
+          of the power series, starting from the constant term.  This
+          is the convention used by the function ``Polrev()``, and the
+          reverse of that used by ``Pol()``.
+
+        .. warning::
+
+           This function will not transform objects containing
+           variables of higher priority than `v`.
 
         EXAMPLES::
 
             sage: pari(2).Ser()
             2 + O(x^16)
-            sage: x = pari([1,2,3,4,5])
-            sage: x.Ser()
-            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^5)
-            sage: f = x.Ser('v'); print f
-            1 + 2*v + 3*v^2 + 4*v^3 + 5*v^4 + O(v^5)
-            sage: pari(1)/f
-            1 - 2*v + v^2 + O(v^5)
-            sage: pari('x^5').Ser(seriesprecision=20)
-            x^5 + O(x^25)
-            sage: pari('1/x').Ser(seriesprecision=1)
-            x^-1 + O(x^0)
-        """
-        pari_catch_sig_on()
-        return P.new_gen(gtoser(x.g, P.get_var(v), seriesprecision))
+            sage: pari(Mod(0, 7)).Ser()
+            O(x^16)
 
+            sage: x = pari([1, 2, 3, 4, 5])
+            sage: x.Ser()
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^16)
+            sage: f = x.Ser('v'); print f
+            1 + 2*v + 3*v^2 + 4*v^3 + 5*v^4 + O(v^16)
+            sage: pari(1)/f
+            1 - 2*v + v^2 + 6*v^5 - 17*v^6 + 16*v^7 - 5*v^8 + 36*v^10 - 132*v^11 + 181*v^12 - 110*v^13 + 25*v^14 + 216*v^15 + O(v^16)
+
+            sage: pari('x^5').Ser(precision=20)
+            x^5 + O(x^25)
+            sage: pari('1/x').Ser(precision=1)
+            x^-1 + O(x^0)
+
+        """
+        if precision < 0:
+            precision = P.get_series_precision()
+        pari_catch_sig_on()
+        cdef long vn = P.get_var(v)
+        if isexactzero(f.g):
+            # Special case for f = 0, because scalarser() is broken
+            # in PARI 2.5.5, causing e.g. Ser(gen_0) to give O(x^0).
+            # This is fixed in PARI 2.6.
+            if vn == -1:
+                vn = 0  # otherwise the variable will be called '#'
+            return P.new_gen(zeroser(vn, precision))
+        elif typ(f.g) == t_VEC:
+            # The precision flag is ignored for vectors, so we first
+            # convert the vector to a polynomial.
+            return P.new_gen(gtoser(gtopolyrev(f.g, vn), vn, precision))
+        else:
+            return P.new_gen(gtoser(f.g, vn, precision))
 
     def Set(gen x):
         """
@@ -3718,7 +3747,7 @@ cdef class gen(sage.structure.element.RingElement):
     def _valp(gen x):
         """
         Return the valuation of x where x is a p-adic number (t_PADIC)
-        or a laurent series (t_SER).  If x is a different type, this
+        or a Laurent series (t_SER).  If x is a different type, this
         will give a bogus number.
 
         EXAMPLES::
@@ -4833,7 +4862,7 @@ cdef class gen(sage.structure.element.RingElement):
             -2.18503986326152
             sage: C.<i> = ComplexField()
             sage: pari(i).tan()
-            0.E-19 + 0.761594155955765*I
+            0.761594155955765*I
         """
         pari_catch_sig_on()
         return P.new_gen(gtan(x.g, prec_bits_to_words(precision)))
@@ -4853,7 +4882,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.761594155955765
             sage: C.<i> = ComplexField()
             sage: z = pari(i); z
-            0.E-19 + 1.00000000000000*I
+            1.00000000000000*I
             sage: result = z.tanh()
             sage: result.real() <= 1e-18
             True
@@ -4938,7 +4967,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.18920711500272 + 0.E-19*I                 # 32-bit
             1.18920711500272 + 2.71050543121376 E-20*I  # 64-bit
             sage: pari(i).weber(1)
-            1.09050773266526 + 0.E-19*I
+            1.09050773266526
             sage: pari(i).weber(2)
             1.09050773266526
         """
@@ -7541,8 +7570,9 @@ cdef class gen(sage.structure.element.RingElement):
 
         This is currently implemented in 3 cases:
         
-        - univariate polynomials (using a single unnamed argument or
-          keyword arguments),
+        - univariate polynomials, rational functions, power series and
+          Laurent series (using a single unnamed argument or keyword
+          arguments),
         - any PARI object supporting the PARI function ``substvec``
           (in particular, multivariate polynomials) using keyword
           arguments,
@@ -7560,11 +7590,41 @@ cdef class gen(sage.structure.element.RingElement):
             0
             sage: f.eval(x=2)
             5
+            sage: (1/f).eval(x=1)
+            1/2
 
         The notation ``f(x)`` is an alternative for ``f.eval(x)``::
 
             sage: f(3) == f.eval(3)
             True
+
+        Evaluating power series::
+
+            sage: f = pari('1 + x + x^3 + O(x^7)')
+            sage: f(2*pari('y')^2)
+            1 + 2*y^2 + 8*y^6 + O(y^14)
+
+        Substituting zero is sometimes possible, and trying to do so
+        in illegal cases can raise various errors::
+
+            sage: pari('1 + O(x^3)').eval(0)
+            1
+            sage: pari('1/x').eval(0)
+            Traceback (most recent call last):
+            ...
+            PariError: division by zero
+            sage: pari('1/x + O(x^2)').eval(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: substituting 0 in Laurent series with negative valuation
+            sage: pari('1/x + O(x^2)').eval(pari('O(x^3)'))
+            Traceback (most recent call last):
+            ...
+            PariError: division by zero
+            sage: pari('O(x^0)').eval(0)
+            Traceback (most recent call last):
+            ...
+            PariError: non existent component in truecoeff
 
         Evaluating multivariate polynomials::
         
@@ -7578,7 +7638,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f(1, 2)
             Traceback (most recent call last):
             ...
-            TypeError: evaluating a polynomial takes exactly 1 argument (2 given)
+            TypeError: evaluating PARI t_POL takes exactly 1 argument (2 given)
             sage: f(y='x', x='2*y')
             x^2 + 8*y^3
             sage: f()
@@ -7659,18 +7719,37 @@ cdef class gen(sage.structure.element.RingElement):
                 return None
             return P.new_gen(result)
 
-        # Evaluate univariate polynomial using *args
+        # Evaluate univariate polynomials, rational functions and
+        # series using *args
         if nargs > 0:
             if nkwds > 0:
                 raise TypeError("mixing unnamed and keyword arguments not allowed when evaluating a PARI object")
-            if t == t_POL:
-                # evaluate univariate polynomial
-                if nargs != 1:
-                    raise TypeError("evaluating a polynomial takes exactly 1 argument (%d given)"%nargs)
-                t0 = objtogen(args[0])
-                pari_catch_sig_on()
+            if not (t == t_POL or t == t_RFRAC or t == t_SER):
+                raise TypeError("cannot evaluate PARI %s using unnamed arguments" % self.type())
+            if nargs != 1:
+                raise TypeError("evaluating PARI %s takes exactly 1 argument (%d given)"
+                                % (self.type(), nargs))
+
+            t0 = objtogen(args[0])
+            pari_catch_sig_on()
+            if t == t_POL or t == t_RFRAC:
                 return P.new_gen(poleval(self.g, t0.g))
-            raise TypeError("cannot evaluate %s using unnamed arguments"%self.type())
+            else:  # t == t_SER
+                if isexactzero(t0.g):
+                    # Work around the fact that PARI currently doesn't
+                    # support substituting exact 0 in a power series.
+                    # We don't try to imitate this when using keyword
+                    # arguments, and hope this will be fixed in a
+                    # future PARI version.
+                    if valp(self.g) < 0:
+                        pari_catch_sig_off()
+                        raise ZeroDivisionError('substituting 0 in Laurent series with negative valuation')
+                    elif valp(self.g) == 0:
+                        return P.new_gen(polcoeff0(self.g, 0, -1))
+                    else:
+                        pari_catch_sig_off()
+                        return P.PARI_ZERO
+                return P.new_gen(gsubst(self.g, varn(self.g), t0.g))
 
         # Call substvec() using **kwds
         vstr = kwds.keys()            # Variables as Python strings
@@ -7723,7 +7802,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari("12345")(4)
             Traceback (most recent call last):
             ...
-            TypeError: cannot evaluate t_INT using unnamed arguments
+            TypeError: cannot evaluate PARI t_INT using unnamed arguments
         """
         return self.eval(*args, **kwds)
 

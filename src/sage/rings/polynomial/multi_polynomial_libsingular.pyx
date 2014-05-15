@@ -2504,13 +2504,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         INPUT:
 
-        - ``x`` - multivariate polynomial (a generator of the parent of
-          self) If x is not specified (or is ``None``), return the total
-          degree, which is the maximum degree of any monomial.
-          Note that a matrix term ordering alters the grading
-          of the generators of the ring; see the tests below.
-          To avoid this behavior, use either ``exponents()``
-          for the exponents themselves, or the optional argument ``std_grading=False``.
+        - ``x`` - (default: ``None``) a multivariate polynomial which is (or
+          coerces to) a generator of the parent of self. If ``x`` is ``None``,
+          return the total degree, which is the maximum degree of any monomial.
+          Note that a matrix term ordering alters the grading of the generators
+          of the ring; see the tests below.  To avoid this behavior, use either
+          ``exponents()`` for the exponents themselves, or the optional
+          argument ``std_grading=False``.
 
         OUTPUT:
             integer
@@ -2536,11 +2536,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P(1).degree(x)
             0
 
-        With a matrix term ordering, the grading of the generators
-        is determined by the first row of the matrix.
-        This affects the behavior of `degree()` when no variable is specified.
-        To evaluate the degree with a standard grading,
-        use the optional argument ``std_grading=True``.
+        With a matrix term ordering, the grading of the generators is
+        determined by the first row of the matrix.  This affects the behavior
+        of ``degree()`` when no variable is specified.
+        To evaluate the degree with a standard grading, use the optional
+        argument ``std_grading=True``.
 
             sage: tord = TermOrder(matrix([3,0,1,1,1,0,1,0,0]))
             sage: R.<x,y,z> = PolynomialRing(QQ,'x',3,order=tord)
@@ -2551,6 +2551,51 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: x.degree(x), y.degree(y), z.degree(z)
             (1, 1, 1)
 
+        The following example is inspired by trac 11652::
+
+            sage: R.<p,q,t> = ZZ[]
+            sage: poly = p+q^2+t^3
+            sage: poly = poly.polynomial(t)[0]
+            sage: poly
+            q^2 + p
+
+        There is no canonical coercion from ``R`` to the parent of ``poly``, so
+        this doesn't work::
+
+            sage: poly.degree(q)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must canonically coerce to parent
+
+        Using a non-canonical coercion does work, but we require this
+        to be done explicitly, since it can lead to confusing results
+        if done automatically::
+
+            sage: poly.degree(poly.parent()(q))
+            2
+            sage: poly.degree(poly.parent()(p))
+            1
+            sage: T.<x,y> = ZZ[]
+            sage: poly.degree(poly.parent()(x))  # noncanonical coercions can be confusing
+            1
+
+        The argument to degree has to be a generator::
+
+            sage: pp = poly.parent().gen(0)
+            sage: poly.degree(pp)
+            1
+            sage: poly.degree(pp+1)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument must be a generator
+
+        Canonical coercions are used::
+
+            sage: S = ZZ['p,q']
+            sage: poly.degree(S.0)
+            1
+            sage: poly.degree(S.1)
+            2
         """
         cdef ring *r = self._parent_ring
         cdef poly *p = self._poly
@@ -2560,9 +2605,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             else:
                 return self.total_degree(std_grading=True)
 
-        # TODO: we can do this faster
-        if not x in self._parent.gens():
-            raise TypeError("x must be one of the generators of the parent.")
+        if not x.parent() is self.parent():
+            try:
+                x = self.parent().coerce(x)
+            except TypeError:
+                raise TypeError("argument must canonically coerce to parent")
+        if not x.is_generator():
+            raise TypeError("argument must be a generator")
 
         return singular_polynomial_deg(p, x._poly, r)
 
@@ -4167,7 +4216,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     and (<MPolynomial_libsingular>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
-                except TypeError, msg:
+                except TypeError as msg:
                     id_Delete(&fI,r)
                     id_Delete(&_I,r)
                     raise TypeError, msg
@@ -4265,7 +4314,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                    and (<MPolynomial_libsingular>f)._parent is parent):
                 try:
                     f = parent._coerce_c(f)
-                except TypeError, msg:
+                except TypeError as msg:
                     id_Delete(&_I,r)
                     raise TypeError, msg
 
@@ -4397,14 +4446,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     @coerce_binop
     def lcm(self, MPolynomial_libsingular g):
         """
-        Return the least common multiple of self and g.
-
-        INPUT:
-
-        - ``g`` - polynomial
-
-        OUTPUT:
-            polynomial
+        Return the least common multiple of ``self`` and `g`.
 
         EXAMPLES::
 
@@ -4419,6 +4461,19 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: q = 3*(z^4+2)*(y+z)
             sage: lcm(p,q)
             6*x*y*z^4 + 6*y^2*z^4 + 6*x*z^5 + 6*y*z^5 + 12*x*y + 12*y^2 + 12*x*z + 12*y*z
+
+            sage: r.<x,y> = PolynomialRing(GF(2**8, 'a'), 2)
+            sage: a = r.base_ring().0
+            sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
+            sage: f.lcm(x^4)
+            (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + (a^5)*x^4
+
+            sage: w = var('w')
+            sage: r.<x,y> = PolynomialRing(NumberField(w^4 + 1, 'a'), 2)
+            sage: a = r.base_ring().0
+            sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
+            sage: f.lcm(x^4)
+            (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ret, *prod, *gcd
@@ -4806,7 +4861,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         p = pDiff(self._poly, var_i)
         return new_MP(self._parent,p)
 
-
     def integral(self, MPolynomial_libsingular var):
         """
         Integrates this polynomial with respect to the provided
@@ -4827,6 +4881,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.integral(y)
             x^3*y^3 + 5/3*y^3 + 3*x*y + 2*y
 
+        Check that :trac:`15896` is solved::
+
+            sage: s = x+y
+            sage: s.integral(x)+x
+            1/2*x^2 + x*y + x
+            sage: s.integral(x)*s
+            1/2*x^3 + 3/2*x^2*y + x*y^2
+
         TESTS::
 
             sage: z, w = polygen(QQ, 'z, w')
@@ -4834,30 +4896,51 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             TypeError: the variable is not in the same ring as self
-        """
-        if var is None:
-            raise ValueError("please specify a variable")
 
-        ring = var.parent()
-        if ring is not self._parent:
+            sage: f.integral(y**2)
+            Traceback (most recent call last):
+            ...
+            TypeError: not a variable in the same ring as self
+
+            sage: x,y = polygen(ZZ,'x,y')
+            sage: y.integral(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: the ring must contain the rational numbers
+        """
+        cdef int index
+
+        ambient_ring = var.parent()
+        if ambient_ring is not self._parent:
             raise TypeError("the variable is not in the same ring as self")
 
-        if not ring.has_coerce_map_from(RationalField()):
+        if not ambient_ring.has_coerce_map_from(RationalField()):
             raise TypeError("the ring must contain the rational numbers")
 
-        gens = ring.gens()
-
+        gens = ambient_ring.gens()
         try:
             index = gens.index(var)
         except ValueError:
             raise TypeError("not a variable in the same ring as self")
 
-        d = {}
-        v = ETuple({index:1}, len(gens))
-        for (exp, coeff) in self.dict().iteritems():
-            d[exp.eadd(v)] = coeff / (1+exp[index])
-        return MPolynomial_polydict(self.parent(), d)
+        cdef poly *_p, *mon
+        cdef ring *_ring = self._parent_ring
+        if _ring != currRing:
+            rChangeCurrRing(_ring)
 
+        v = ETuple({index: 1}, len(gens))
+
+        _p = p_ISet(0, _ring)
+        for (exp, coeff) in self.dict().iteritems():
+            nexp = exp.eadd(v)  # new exponent
+            mon = p_Init(_ring)
+            p_SetCoeff(mon, sa2si(coeff / (1 + exp[index]), _ring), _ring)
+            for pos in nexp.nonzero_positions():
+                overflow_check(nexp[pos], _ring)
+                p_SetExp(mon, pos + 1, nexp[pos], _ring)
+            p_Setm(mon, _ring)
+            _p = p_Add_q(_p, mon, _ring)
+        return new_MP(self._parent, _p)
 
     def resultant(self, MPolynomial_libsingular other, variable=None):
         """

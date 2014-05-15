@@ -996,7 +996,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return sib.name('vector')(self.base_ring(),
                                       [sib(e, 2) for e in self])
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
         Implements numerical approximation of a free module element
         by calling the ``n()`` method on all of its entries.
@@ -1114,7 +1114,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: u
             (0.5000, 0.0000, 0.0000, 0.3333, 0.0000, 0.0000, 0.0000, 0.2500)
         """
-        return vector([e.n(prec, digits) for e in self])
+        return vector([e.n(prec, digits, algorithm) for e in self])
 
     def transpose(self):
         r"""
@@ -4512,7 +4512,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         return len(self._entries)
 
-    def _numerical_approx(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Returns a numerical approximation of self by calling the n() method
         on all of its entries.
@@ -4529,5 +4529,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: _.parent()
             Sparse vector space of dimension 3 over Real Field with 75 bits of precision
         """
-        return vector(dict([(e[0],e[1].n(prec, digits)) for e in self._entries.iteritems()]), sparse=True)
+        return vector(dict([(e[0], e[1].n(prec, digits, algorithm)) for e in
+                            self._entries.iteritems()]), sparse=True)
 

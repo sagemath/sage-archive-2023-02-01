@@ -15,7 +15,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.category import HomCategory
-from category import JoinCategory
+from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
 from tensor import TensorProductsCategory
 from dual import DualObjectsCategory
@@ -37,8 +37,8 @@ class Modules(Category_module):
 
     INPUT:
 
-      - ``base_ring`` -- a ring `R`
-      - ``dispatch`` -- a boolean (for internal use; default: ``True``)
+    - ``base_ring`` -- a ring `R` or subcategory of ``Rings()``
+    - ``dispatch`` -- a boolean (for internal use; default: ``True``)
 
     When the base ring is a field, the category of vector spaces is
     returned instead (unless ``dispatch == False``).
@@ -57,6 +57,11 @@ class Modules(Category_module):
         Category of modules over Integer Ring
         sage: Modules(QQ)
         Category of vector spaces over Rational Field
+
+        sage: Modules(Rings())
+        Category of modules over rings
+        sage: Modules(FiniteFields())
+        Category of vector spaces over finite fields
 
         sage: Modules(Integers(9))
         Category of modules over Ring of integers modulo 9
@@ -139,7 +144,8 @@ class Modules(Category_module):
             sage: TestSuite(C).run()
         """
         if dispatch:
-            if base_ring in _Fields:
+            if base_ring in _Fields or (isinstance(base_ring, Category)
+                                        and base_ring.is_subcategory(_Fields)):
                 from vector_spaces import VectorSpaces
                 return VectorSpaces(base_ring, check=False)
         result = super(Modules, cls).__classcall__(cls, base_ring)
@@ -168,10 +174,12 @@ class Modules(Category_module):
         @cached_method
         def base_ring(self):
             """
-            Return the base ring for ``self``.
+            Return the base ring (category) for ``self``.
 
             This implements a ``base_ring`` method for join categories
             which are subcategories of some ``Modules(K)``.
+
+            .. TODO:: handle base being a category
 
             .. NOTE::
 
@@ -453,6 +461,16 @@ class Modules(Category_module):
             return [Modules(self.base_category.base_ring())]
 
         class ParentMethods:
+
+            @cached_method
+            def base_ring(self):
+                """
+                Return the base ring of ``self``
+
+                EXAMPLES::
+
+                """
+                return self.domain().base_ring()
 
             @cached_method
             def zero(self):

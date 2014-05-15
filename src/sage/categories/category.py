@@ -854,7 +854,8 @@ class Category(UniqueRepresentation, SageObject):
                                           [self._super_categories],
                                           category_sort_key)
         if not sorted(result, key = category_sort_key, reverse=True) == result:
-            warn("Inconsistent sorting results for all super categories of %s"%self.__class__)
+            warn("Inconsistent sorting results for all super categories of {}".format(
+                 self.__class__))
         self._super_categories_for_classes = bases
         return [self] + result
 
@@ -2661,16 +2662,19 @@ class JoinCategory(CategoryWithParameters):
          Category of commutative additive monoids, ..., Category of additive magmas,
          Category of sets, Category of sets with partial maps, Category of objects]
 
-    By :trac:`11935`, join categories and categories over base
-    rings inherit from :class:`CategoryWithParameters`. This allows
-    for sharing parent and element classes between similar
-    categories. For example, since polynomial rings belong to a join
-    category and since the underlying implementation is the same for
-    all finite fields, we have::
+    By :trac:`11935`, join categories and categories over base rings
+    inherit from :class:`CategoryWithParameters`. This allows for
+    sharing parent and element classes between similar categories. For
+    example, since group algebras belong to a join category and since
+    the underlying implementation is the same for all finite fields,
+    we have::
 
-        sage: GF(3)['x'].category()
-        Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 3
-        sage: type(GF(3)['x']) is type(GF(5)['z'])
+        sage: G = SymmetricGroup(10)
+        sage: A3 = G.algebra(GF(3))
+        sage: A5 = G.algebra(GF(5))
+        sage: type(A3.category())
+        <class 'sage.categories.category.JoinCategory_with_category'>
+        sage: type(A3) is type(A5)
         True
 
     .. automethod:: _repr_object_names
@@ -2762,7 +2766,7 @@ class JoinCategory(CategoryWithParameters):
 
         EXAMPLE::
 
-            sage: QQ['x'].category().is_subcategory(Category.join([Rings(), VectorSpaces(QQ)]))  # indirect doctest
+            sage: QQ['x'].category().is_subcategory(Category.join([Rings(), VectorSpaces(QuotientFields())]))  # indirect doctest
             True
         """
         return all(category.is_subcategory(X) for X in self._super_categories)

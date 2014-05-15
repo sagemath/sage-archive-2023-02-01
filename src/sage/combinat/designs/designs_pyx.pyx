@@ -85,18 +85,11 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     # A copy of OA
     cdef unsigned short * OAc = <unsigned short *> sage_malloc(k*n2*sizeof(unsigned short))
 
-    # A cache to multiply by n
-    cdef unsigned int * times_n = <unsigned int *> sage_malloc((n+1)*sizeof(unsigned int))
-
     cdef unsigned short * C1
     cdef unsigned short * C2
 
     # failed malloc ?
-    if OAc is NULL or times_n is NULL:
-        if OAc is not NULL:
-            sage_free(OAc)
-        if times_n is not NULL:
-            sage_free(times_n)
+    if OAc is NULL:
         raise MemoryError
 
     # Filling OAc
@@ -108,12 +101,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
                     print {"OA"   : "{} is not in the interval [0..{}]".format(x,n-1),
                            "MOLS" : "Entry {} was expected to be in the interbal [0..{}]".format(x,n-1)}[terminology]
                 sage_free(OAc)
-                sage_free(times_n)
                 return False
-
-    # Filling times_n
-    for i in range(n+1):
-        times_n[i] = i*n
 
     # A bitset to keep trac of pairs of values
     cdef bitset_t seen
@@ -125,11 +113,10 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
             C2 = OAc+j*n2
             bitset_set_first_n(seen, 0) # No pair has been seen yet
             for l in range(n2):
-                bitset_add(seen,times_n[C1[l]]+C2[l])
+                bitset_add(seen,n*C1[l]+C2[l])
 
             if bitset_len(seen) != n2: # Have we seen all pairs ?
                 sage_free(OAc)
-                sage_free(times_n)
                 bitset_free(seen)
                 if verbose:
                     print {"OA"   : "Rows {} and {} are not orthogonal".format(i,j),
@@ -137,6 +124,5 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
                 return False
 
     sage_free(OAc)
-    sage_free(times_n)
     bitset_free(seen)
     return True

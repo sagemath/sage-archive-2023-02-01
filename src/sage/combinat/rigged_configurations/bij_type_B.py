@@ -580,7 +580,7 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                                                           self.cur_partitions[-1].rigging,
                                                           self.cur_partitions[-1].vacancy_numbers)
 
-                bij = RCToKRTBijectionTypeA2Odd(RC(*self.cur_partitions))
+                bij = RCToKRTBijectionTypeA2Odd(RC(*self.cur_partitions, use_vacancy_numbers=True))
                 for i in range(len(self.cur_dims)):
                     if bij.cur_dims[i][0] != self.n:
                         bij.cur_dims[i][1] *= 2

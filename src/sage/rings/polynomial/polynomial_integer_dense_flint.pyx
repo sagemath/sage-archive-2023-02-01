@@ -555,12 +555,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Attempts to divide self by right, and return a quotient and remainder.
 
-        If right is monic, then it returns ``(q, r)`` where `self = q * right + r`
-        and `deg(r) < deg(right)`.
-
-        If right is not monic, then it returns `(q, 0)` where q = self/right if
-        right exactly divides self, otherwise it raises an exception.
-
         EXAMPLES::
 
             sage: R.<x> = PolynomialRing(ZZ)
@@ -583,9 +577,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: f = x^2
             sage: f.quo_rem(2*x - 1)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
+            (0, x^2)
 
         TESTS::
 
@@ -610,13 +602,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: parent(f.quo_rem(g)[0])
             Univariate Polynomial Ring in x over Rational Field
             sage: f.quo_rem(3)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
+            (0, x + 1)
             sage: (5*x+7).quo_rem(3)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
+            (x + 2, 2*x + 1)
         """
         if right.is_zero():
             raise ZeroDivisionError, "division by zero polynomial"
@@ -630,9 +618,6 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_on()
         fmpz_poly_divrem(qq.__poly, rr.__poly, self.__poly, right.__poly)
         sig_off()
-
-        if not right.leading_coefficient().is_one() and not rr.is_zero():
-            raise ArithmeticError("division not exact in Z[x] (consider coercing to Q[x] first)")
         return qq, rr
 
     cpdef bint is_zero(self):

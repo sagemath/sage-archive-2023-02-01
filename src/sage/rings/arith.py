@@ -2046,9 +2046,8 @@ def power_mod(a,n,m):
         4
         sage: R.<x> = ZZ[]
         sage: power_mod(3*x, 10, 7)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
+        4*x^10
+
         sage: power_mod(11,1,0)
         Traceback (most recent call last):
         ...

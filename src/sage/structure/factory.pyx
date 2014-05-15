@@ -538,7 +538,7 @@ cdef class UniqueFactory(SageObject):
         return generic_factory_unpickle, obj._factory_data
 
 
-def generic_factory_unpickle(UniqueFactory factory, *args):
+def generic_factory_unpickle(factory, *args):
     """
     Method used for unpickling the object.
 
@@ -554,8 +554,84 @@ def generic_factory_unpickle(UniqueFactory factory, *args):
         True
         sage: sage.structure.factory.generic_factory_unpickle(*data) is V
         True
+
+    TESTS:
+
+    The following was enabled in :trac:`16349`. Suppose we have defined
+    (somewhere in the library of an old Sage version) a unique factory; in our
+    example below, it returns polynomial rings. Now suppose that we want to
+    replace the factory by something else, say, a class that provides the
+    unique parent behaviour using
+    :class:`~sage.structure.unique_representation.UniqueRepresentation`. We
+    show here how to make it possible to unpickle a pickle created with the
+    factory, automatically turning it into an instance of the new class.
+
+    First, we create the factory. In a doctest, it is needed to explicitly put
+    it into ``__main__``, so that it can be located when pickling. Also, it is
+    needed that we work with a new-style class::
+
+        sage: from sage.structure.factory import UniqueFactory
+        sage: import __main__
+        sage: class OldStuff(object):
+        ....:     def __init__(self, n, **extras):
+        ....:         self.n = n
+        ....:     def __repr__(self):
+        ....:         return "Rotten old thing of level {}".format(self.n)
+        sage: __main__.OldStuff = OldStuff
+        sage: class MyFactory(UniqueFactory):
+        ....:     def create_object(self, version, key, **extras):
+        ....:         return OldStuff(key[0])
+        ....:     def create_key(self, *args):
+        ....:         return args
+        sage: F = MyFactory('__main__.F')
+        sage: __main__.F = F
+        sage: a = F(3); a
+        Rotten old thing of level 3
+        sage: loads(dumps(a)) is a
+        True
+
+    Now, we create a pickle (the string returned by ``dumps(a)``::
+
+        sage: s = dumps(a)
+
+    We create a new class, derived from
+    :class:`~sage.structure.unique_representation.UniqueRepresentation`, that
+    shall replace the old factory. In particular, the class has to have the
+    same name as the old factory, and has to be put into the same module
+    (here: ``__main__``). We turn it into a sub-class of the old class, but
+    this is just to save the effort of writing a new init method::
+
+        sage: from sage.structure.unique_representation import UniqueRepresentation
+        sage: class F(UniqueRepresentation, OldStuff):
+        ....:     def __repr__(self):
+        ....:         return "Shiny new thing of level {}".format(self.n)
+        sage: __main__.F = F
+
+    The old pickle correctly unpickles as an instance of the new class, which
+    is of course different from the instance of the old class, but exhibits
+    unique object behaviour as well::
+
+        sage: b = loads(s); b
+        Shiny new thing of level 3
+        sage: a is b
+        False
+        sage: loads(dumps(b)) is b
+        True
+
     """
-    return factory.get_object(*args)
+    cdef UniqueFactory F
+    if factory is not None:
+        try:
+            F = factory
+            return F.get_object(*args)
+        except TypeError:
+            pass
+    # See trac #16349: When replacing a UniqueFactory by something else (e.g.,
+    # a UniqueRepresentation), then we get the object by calling.
+    #
+    # The first argument of a UniqueFactory pickle is a version number. We
+    # strip this.
+    return factory(*args[1], **args[2])
 
 def generic_factory_reduce(self, proto):
     """

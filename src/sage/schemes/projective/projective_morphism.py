@@ -20,6 +20,8 @@ AUTHORS:
 
 - Brian Stout, Ben Hutz (Nov 2013) - added minimal model functionality
 
+- Dillon Rose (2014-01):  Speed enhancements
+
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -62,6 +64,7 @@ from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -172,7 +175,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f(P([1,1,1]))
             (1 : 1/2 : 1)
-
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
@@ -243,8 +245,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2+x*y,y^2])
             sage: Q = P(z,1)
-            sage: f._fast_eval(list(Q))
-            [z + z^2, 1]
+            sage: f(Q)
+            (z + z^2 : 1)
 
             ::
 
@@ -254,8 +256,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H=End(P)
             sage: f=H([x^2+x*y,y^2])
             sage: Q=P(z^2,1)
-            sage: f._fast_eval(list(Q))
-            [zbar^2, 1.00000000000000]
+            sage: f(Q)
+            (zbar^2 : 1.00000000000000)
 
             ::
 
@@ -1898,7 +1900,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if not (q in badprimes):
                 F = self.change_ring(GF(q))
                 parallel_data.append(((F,), {}))
-  
+
         parallel_iter = p_iter_fork(num_cpus, 0)
         parallel_results = list(parallel_iter(parallel_function, parallel_data))
 
@@ -2427,18 +2429,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             p = next_prime(p + 1)
         B = e ** self.height_difference_bound()
 
-        f=self.change_ring(GF(p))
-        all_points=f.possible_periods(True) #return the list of points and their periods.
-        pos_points=[]
+        f = self.change_ring(GF(p))
+        all_points = f.possible_periods(True) #return the list of points and their periods.
+        pos_points = []
         for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
+            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
-        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+        periodic_points = self.lift_to_rational_periodic(pos_points,B)
         for p,n in periodic_points:
             for k in range(n):
                 p.normalize_coordinates()
                 periodic.add(p)
-                p=self(p)
+                p = self(p)
         return(list(periodic))
 
     def rational_preimages(self, Q):
@@ -2616,12 +2618,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be QQ")
 
-        PS=self.domain()
-        RPS=PS.base_ring()
-        preperiodic=set()
-        while points!=[]:
-            P=points.pop()
-            preimages=self.rational_preimages(P)
+        PS = self.domain()
+        RPS = PS.base_ring()
+        preperiodic = set()
+        while points != []:
+            P = points.pop()
+            preimages = self.rational_preimages(P)
             for i in range(len(preimages)):
                 if not preimages[i] in preperiodic:
                     points.append(preimages[i])
@@ -2929,8 +2931,8 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
             sage: H = End(P)
             sage: f = H([x^2-y^2,y^2])
-            sage: f.possible_periods(True)
-            [[(1 : 0), 1], [(0 : 1), 2], [(3 : 1), 3], [(3 : 1), 36]]
+            sage: sorted(f.possible_periods(True))
+            [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
         ::
 
@@ -2942,86 +2944,10 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         .. TODO::
 
-            - do not reutrn duplicate points
+            - do not return duplicate points
 
-            - check == False to speed up?
-
-            - move to Cython
+            - improve hash to reduce memory of pointtable
 
         """
-        if not is_PrimeFiniteField(self.domain().base_ring()):
-            raise TypeError("Must be prime field")
-        if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of projective space")
-
-        PS = self.domain()
-        p = PS.base_ring().order()
-        N = PS.dimension_relative()
-        pointsdict = PS.rational_points_dictionary() #assume p is prime
-        pointslist = list(pointsdict)
-        hashlist = pointsdict.values()
-        pointtable = [[0, 0] for i in range(len(pointsdict))]
-        index = 1
-        periods = set()
-        points_periods = []
-        for j in range(len(pointsdict)):
-            hashP = hashlist[j]
-            if pointtable[hashP][1] == 0:
-                startindex = index
-                P = pointslist[j]
-                while pointtable[hashP][1] == 0:
-                    pointtable[hashP][1] = index
-                    Q = self(P)
-                    Q.normalize_coordinates()
-                    hashQ = pointsdict[Q]
-                    pointtable[hashP][0] = hashQ
-                    P = Q
-                    hashP = hashQ
-                    index += 1
-                if pointtable[hashP][1] >= startindex:
-                    period = index - pointtable[hashP][1]
-                    periods.add(period)
-                    points_periods.append([P, period])
-                    l = P.multiplier(self, period, False)
-                    lorders = set()
-                    for poly, _ in l.charpoly().factor():
-                        if poly.degree() == 1:
-                            eig = -poly.constant_coefficient()
-                            if not eig:
-                                continue # exclude 0
-                        else:
-                            eig = GF(p ** poly.degree(), 't', modulus=poly).gen()
-                        if eig:
-                            lorders.add(eig.multiplicative_order())
-                    S = subsets(lorders)
-                    S.next()   # get rid of the empty set
-                    rvalues = set()
-                    for s in S:
-                        rvalues.add(lcm(s))
-                    rvalues = list(rvalues)
-                    if N == 1:
-                        for k in range(len(rvalues)):
-                            r = rvalues[k]
-                            periods.add(period * r)
-                            points_periods.append([P, period * r])
-                            if p == 2 or p == 3: #need e=1 for N=1, QQ
-                                periods.add(period * r * p)
-                                points_periods.append([P, period * r * p])
-                    else:
-                        for k in range(len(rvalues)):
-                            r = rvalues[k]
-                            periods.add(period * r)
-                            periods.add(period * r * p)
-                            points_periods.append([P, period * r])
-                            points_periods.append([P, period * r * p])
-                            if p == 2:  #need e=3 for N>1, QQ
-                                periods.add(period * r * 4)
-                                points_periods.append([P, period * r * 4])
-                                periods.add(period * r * 8)
-                                points_periods.append([P, period * r * 8])
-
-        if return_points == False:
-            return(sorted(periods))
-        else:
-            return(points_periods)
+        return _fast_possible_periods(self,return_points)
 

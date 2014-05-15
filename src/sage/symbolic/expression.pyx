@@ -9838,6 +9838,8 @@ cdef class Expression(CommutativeRingElement):
 
             sage: abs(log(x))._plot_fast_callable(x)(-0.2)
             3.52985761682672
+            sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
+            sage: plot(abs(f(x)), 0,5)
         """
         from sage.ext.fast_callable import fast_callable
         return fast_callable(self, vars=vars, expect_one_var=True)

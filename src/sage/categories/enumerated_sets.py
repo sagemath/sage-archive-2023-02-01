@@ -283,6 +283,10 @@ class EnumeratedSets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: infinite list
+                sage: P.unrank_range(start=-3)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: infinite list
             """
             if stop is None:
                 return self.list()[start::step]
@@ -290,12 +294,13 @@ class EnumeratedSets(Category_singleton):
             if stop < 0:
                 return self.list()[start:stop:step]
 
-            if start is None and step is None:
-                it = self.__iter__()
-                return [it.next() for j in range(stop)]
-
             if start is None:
+                if step is None:
+                    it = self.__iter__()
+                    return [it.next() for j in range(stop)]
                 start = 0
+            if start < 0:
+                return self.list()[start:stop:step]
             if step is None:
                 step = 1
             return [self.unrank(j) for j in range(start, stop, step)]

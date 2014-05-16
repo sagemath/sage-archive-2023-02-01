@@ -435,13 +435,13 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             4.17330740711759e15
 
             sage: L.LLL()
-            60 x 60 dense matrix over Integer Ring
+            60 x 60 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
             sage: min(v.norm().n() for v in L.reduced_basis)
             5.19615242270663
 
             sage: L.BKZ(block_size=10)
-            60 x 60 dense matrix over Integer Ring
+            60 x 60 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
             sage: min(v.norm().n() for v in L.reduced_basis)
             4.12310562561766
@@ -498,7 +498,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: L = sage.crypto.gen_lattice(type='random', n=1, m=40, q=2^60, seed=42, lattice=True)
             sage: L.HKZ()
-            40 x 40 dense matrix over Integer Ring
+            40 x 40 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
             sage: L.reduced_basis[0]
             (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)

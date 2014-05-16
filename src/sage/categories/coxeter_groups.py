@@ -13,7 +13,6 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
-from sage.misc.superseded import deprecation
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -447,7 +446,7 @@ class CoxeterGroups(Category_singleton):
 
         semigroup_generators = group_generators
 
-        def simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -488,13 +487,10 @@ class CoxeterGroups(Category_singleton):
             """
             if not (i in self.index_set() or i == 0):
                 raise ValueError("%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set()))
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return lambda x: x.apply_simple_projection(i, side = side, length_increasing = length_increasing)
 
         @cached_method
-        def simple_projections(self, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projections(self, side = 'right', length_increasing = True):
             r"""
             Returns the family of simple projections, also known as 0-Hecke or Demazure operators.
 
@@ -545,9 +541,6 @@ class CoxeterGroups(Category_singleton):
                 (1, 3, 2, 0)
             """
             from sage.sets.family import Family
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projections is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, length_increasing = length_increasing))
 
         def demazure_product(self,Q):
@@ -1121,7 +1114,7 @@ v            EXAMPLES::
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def apply_simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -1158,11 +1151,6 @@ v            EXAMPLES::
                 s1*s2*s3*s4*s3
 
             """
-
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ElementMethods.apply_simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
-
             if self.has_descent(i, side = side, positive = length_increasing):
                 return self.apply_simple_reflection(i, side=side)
             return self

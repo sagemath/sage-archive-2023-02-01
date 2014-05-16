@@ -464,7 +464,7 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
         sage: _is_valid_digraph_edge_set( [[0,1,'a'],[2,3,(1,-1)]] )
         The given digraph has edge labels which are not integral or integral 2-tuples.
         False
-        sage: _is_valid_digraph_edge_set( [[0,1],[2,3,(1,-1)]] )
+        sage: _is_valid_digraph_edge_set( [[0,1,None],[2,3,(1,-1)]] )
         True
         sage: _is_valid_digraph_edge_set( [[0,1,'a'],[2,3,(1,-1)],[3,2,(1,-1)]] )
         The given digraph or edge list contains oriented 2-cycles.

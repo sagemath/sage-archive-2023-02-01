@@ -1297,7 +1297,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 if self._rank > 3: self._info['simply_laced'] = True
                 self._info['skew_symmetric'] = True
                 if self._bi_rank == [1,1]:
-                    self._graph.add_edges( [(0,1,2),(1,2)] )
+                    self._graph.add_edges( [(0,1,2),(1,2,None)] )
                 else:
                     self._digraph.add_edge( self._rank - 2, 0 )
                     for i in xrange(self._rank-2):
@@ -1358,37 +1358,37 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._rank = rank
                 self._info['mutation_finite'] = True
                 self._info['finite'] = True
-                self._graph.add_edges( [ (0,1),(1,2,(2,-1)),(2,3) ] )
+                self._graph.add_edges( [ (0,1,None),(1,2,(2,-1)),(2,3,None) ] )
             elif rank == 4 and twist == 1:
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1), (1,2),(2,3,(1,-2)),(3,4) ] )
+                self._graph.add_edges( [ (0,1,None), (1,2,None),(2,3,(1,-2)),(3,4,None) ] )
             elif rank == 4 and twist == -1:
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1), (1,2),(2,3,(2,-1)),(3,4) ] )
+                self._graph.add_edges( [ (0,1,None), (1,2,None),(2,3,(2,-1)),(3,4,None) ] )
             elif rank == 4 and (twist == [1,2]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (2,3,(2,-1)), (4,2,(1,-2)), (3,4,2), (4,5), (5,3) ])
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (2,3,(2,-1)), (4,2,(1,-2)), (3,4,2), (4,5,None), (5,3,None) ])
             elif rank == 4 and (twist == [2,1]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (2,3,(1,-2)), (4,2,(2,-1)), (3,4,2), (4,5), (5,3) ])
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (2,3,(1,-2)), (4,2,(2,-1)), (3,4,2), (4,5,None), (5,3,None) ])
             elif rank == 4 and twist == [2,2]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (3,1), (2,3,2), (4,2,(2,-1)), (3,4,(1,-2)), (5,4) ] )
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (3,1,None), (2,3,2), (4,2,(2,-1)), (3,4,(1,-2)), (5,4,None) ] )
             elif rank == 4 and twist == [1,1]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2), (3,1), (2,3,2), (4,2,(1,-2)), (3,4,(2,-1)), (5,4) ] )
+                self._digraph.add_edges( [ (0,1,None), (1,2,None), (3,1,None), (2,3,2), (4,2,(1,-2)), (3,4,(2,-1)), (5,4,None) ] )
             else:
                 _mutation_type_error( data )
 
@@ -1403,34 +1403,34 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1),(1,2,(1,-3)) ] )
+                self._graph.add_edges( [ (0,1,None),(1,2,(1,-3)) ] )
             elif rank == 2 and twist == 1:
                 self._rank = rank + 1
                 self._info['mutation_finite'] = True
                 self._info['affine'] = True
-                self._graph.add_edges( [ (0,1),(1,2,(3,-1)) ] )
+                self._graph.add_edges( [ (0,1,None),(1,2,(3,-1)) ] )
             elif rank == 2 and (twist == [1,3]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2,(3,-1)),
+                self._digraph.add_edges( [ (0,1,None), (1,2,(3,-1)),
                                            (3,1,(1,-3)), (2,3,2)] )
             elif rank == 2 and (twist == [3,1]):
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (0,1), (1,2,(1,-3)),
+                self._digraph.add_edges( [ (0,1,None), (1,2,(1,-3)),
                                            (3,1,(3,-1)), (2,3,2)] )
             elif rank == 2 and twist == [3,3]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (1,0), (0,2,2), (3,0,(3,-1)), (2,1), (2,3, (1,-3))])
+                self._digraph.add_edges( [ (1,0,None), (0,2,2), (3,0,(3,-1)), (2,1,None), (2,3, (1,-3))])
             elif rank == 2 and twist == [1,1]:
                 self._rank = rank + 2
                 self._info['mutation_finite'] = True
                 self._info['elliptic'] = True
-                self._digraph.add_edges( [ (1,0), (0,2,2), (3,0,(1,-3)), (2,1), (2,3,(3,-1)) ] )
+                self._digraph.add_edges( [ (1,0,None), (0,2,2), (3,0,(1,-3)), (2,1,None), (2,3,(3,-1)) ] )
             else:
                 _mutation_type_error( data )
 
@@ -1519,9 +1519,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 self._rank = rank
                 self._info['mutation_finite'] = True
                 self._info['skew_symmetric'] = True
-                self._digraph.add_edges( [ (0,1,2),(1,2),(2,0),(2,3),(3,4,2),(4,2),(2,5) ] )
+                self._digraph.add_edges( [ (0,1,2),(1,2,None),(2,0,None),(2,3,None),(3,4,2),(4,2,None),(2,5,None) ] )
                 if rank == 7:
-                    self._digraph.add_edges( [ (5,6,2),(6,2) ] )
+                    self._digraph.add_edges( [ (5,6,2),(6,2,None) ] )
             else:
                 _mutation_type_error( data )
 

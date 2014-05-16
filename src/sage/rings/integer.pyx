@@ -203,8 +203,52 @@ cdef int set_mpz(Integer self, mpz_t value):
 cdef set_from_Integer(Integer self, Integer other):
     mpz_set(self.value, other.value)
 
-cdef set_from_int(Integer self, int other):
-    mpz_set_si(self.value, other)
+cdef set_from_pari_gen(Integer self, pari_gen x):
+    r"""
+    EXAMPLES::
+
+        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1)]]
+        [1, 1152921504606846976, 2, 1]
+        sage: Integer(pari(2.1)) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral real number to an Integer
+    """
+    # Simplify and lift until we get an integer
+    while typ((<pari_gen>x).g) != t_INT:
+        x = x.simplify()
+        paritype = typ((<pari_gen>x).g)
+        if paritype == t_INT:
+            break
+        elif paritype == t_REAL:
+            # Check that the fractional part is zero
+            if not x.frac().gequal0():
+                raise TypeError, "Attempt to coerce non-integral real number to an Integer"
+            # floor yields an integer
+            x = x.floor()
+            break
+        elif paritype == t_PADIC:
+            if x._valp() < 0:
+                raise TypeError("Cannot convert p-adic with negative valuation to an integer")
+            # Lifting a PADIC yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_INTMOD:
+            # Lifting an INTMOD yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_POLMOD:
+            x = x.lift()
+        elif paritype == t_FFELT:
+            # x = (f modulo defining polynomial of finite field);
+            # we extract f.
+            sig_on()
+            x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
+        else:
+            raise TypeError, "Unable to coerce PARI %s to an Integer"%x
+
+    # Now we have a true PARI integer, convert it to Sage
+    t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
 cdef mpz_t* get_value(Integer self):
     return &self.value
@@ -627,13 +671,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_si(self.value, 0)
 
         else:
-            # First do all the type-check versions; these are fast.
+            # First do all the type-check versions (these are fast to test),
+            # except those for which the conversion itself will be slow.
 
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
-
-            elif PY_TYPE_CHECK(x, bool):
-                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif PyInt_Check(x):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
@@ -649,98 +691,60 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     raise TypeError, "Cannot convert non-integral float to integer"
 
             elif PY_TYPE_CHECK(x, pari_gen):
-                # Simplify and lift until we get an integer
-                while typ((<pari_gen>x).g) != t_INT:
-                    x = x.simplify()
-                    paritype = typ((<pari_gen>x).g)
-                    if paritype == t_INT:
-                        break
-                    elif paritype == t_REAL:
-                        # Check that the fractional part is zero
-                        if not x.frac().gequal0():
-                            raise TypeError, "Attempt to coerce non-integral real number to an Integer"
-                        # floor yields an integer
-                        x = x.floor()
-                        break
-                    elif paritype == t_PADIC:
-                        if x._valp() < 0:
-                            raise TypeError("Cannot convert p-adic with negative valuation to an integer")
-                        # Lifting a PADIC yields an integer
-                        x = x.lift()
-                        break
-                    elif paritype == t_INTMOD:
-                        # Lifting an INTMOD yields an integer
-                        x = x.lift()
-                        break
-                    elif paritype == t_POLMOD:
-                        x = x.lift()
-                    elif paritype == t_FFELT:
-                        # x = (f modulo defining polynomial of finite field);
-                        # we extract f.
-                        sig_on()
-                        x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
-                    else:
-                        raise TypeError, "Unable to coerce PARI %s to an Integer"%x
-
-                # Now we have a true PARI integer, convert it to Sage
-                t_INT_to_ZZ(self.value, (<pari_gen>x).g)
-
-            elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
-                if base < 0 or base > 36:
-                    raise ValueError, "`base` (=%s) must be between 2 and 36."%base
-                ibase = base
-                xs = x
-                if xs[0] == c'+':
-                    xs += 1
-                if mpz_set_str(self.value, xs, ibase) != 0:
-                    raise TypeError, "unable to convert x (=%s) to an integer"%x
-
-            elif PyObject_HasAttrString(x, "_integer_"):
-                # TODO: Note that PyObject_GetAttrString returns NULL if
-                # the attribute was not found. If we could test for this,
-                # we could skip the double lookup. Unfortunately Cython doesn't
-                # seem to let us do this; it flags an error if the function
-                # returns NULL, because it can't construct an "object" object
-                # out of the NULL pointer. This really sucks. Perhaps we could
-                # make the function prototype have return type void*, but
-                # then how do we make Cython handle the reference counting?
-                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))(the_integer_ring))
-
-            elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
-                b = the_integer_ring(base)
-                if b == 2: # we use a faster method
-                    for j from 0 <= j < len(x):
-                        otmp = x[j]
-                        if not PY_TYPE_CHECK(otmp, Integer):
-                            # should probably also have fast code for Python ints...
-                            otmp = Integer(otmp)
-                        if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
-                            mpz_setbit(self.value, j)
-                        elif mpz_sgn((<Integer>otmp).value) != 0:
-                            # one of the entries was something other than 0 or 1.
-                            break
-                    else:
-                        return
-                tmp = the_integer_ring(0)
-                for i in range(len(x)):
-                    tmp += the_integer_ring(x[i])*b**i
-                mpz_set(self.value, tmp.value)
+                set_from_pari_gen(self, x)
 
             else:
+
+                otmp = getattr(x, "_integer_", None)
+                if otmp is not None:
+                    set_from_Integer(self, otmp(the_integer_ring))
+                    return
+
+                if PY_TYPE_CHECK(x, Element):
+                    try:
+                        lift = x.lift()
+                        if lift._parent is the_integer_ring:
+                            set_from_Integer(self, lift)
+                            return
+                    except AttributeError:
+                        pass
+
+                elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
+                    if base < 0 or base > 36:
+                        raise ValueError, "`base` (=%s) must be between 2 and 36."%base
+                    ibase = base
+                    xs = x
+                    if xs[0] == c'+':
+                        xs += 1
+                    if mpz_set_str(self.value, xs, ibase) != 0:
+                        raise TypeError, "unable to convert x (=%s) to an integer"%x
+                    return
+
+                elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
+                    b = the_integer_ring(base)
+                    if b == 2: # we use a faster method
+                        for j from 0 <= j < len(x):
+                            otmp = x[j]
+                            if not PY_TYPE_CHECK(otmp, Integer):
+                                # should probably also have fast code for Python ints...
+                                otmp = Integer(otmp)
+                            if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
+                                mpz_setbit(self.value, j)
+                            elif mpz_sgn((<Integer>otmp).value) != 0:
+                                # one of the entries was something other than 0 or 1.
+                                break
+                        else:
+                            return
+                    tmp = the_integer_ring(0)
+                    for i in range(len(x)):
+                        tmp += the_integer_ring(x[i])*b**i
+                    mpz_set(self.value, tmp.value)
+                    return
+
                 import numpy
                 if isinstance(x, numpy.integer):
                     mpz_set_pylong(self.value, x.__long__())
                     return
-
-                elif PY_TYPE_CHECK(x, Element):
-                    try:
-                        lift = x.lift()
-                        if lift._parent != (<Element>x)._parent:
-                            tmp = the_integer_ring(lift)
-                            mpz_swap(tmp.value, self.value)
-                            return
-                    except AttributeError:
-                        pass
 
                 raise TypeError, "unable to coerce %s to an integer" % type(x)
 

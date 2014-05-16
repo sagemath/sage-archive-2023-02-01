@@ -93,6 +93,8 @@ __append_to_doc(
      "BrouwerHaemersGraph",
      "BuckyBall",
      "CameronGraph",
+     "Cell600",
+     "Cell120",
      "ChvatalGraph",
      "ClebschGraph",
      "CoxeterGraph",
@@ -1268,6 +1270,8 @@ class GraphGenerators():
     BrouwerHaemersGraph      = staticmethod(sage.graphs.generators.smallgraphs.BrouwerHaemersGraph)
     BuckyBall                = staticmethod(sage.graphs.generators.smallgraphs.BuckyBall)
     CameronGraph             = staticmethod(sage.graphs.generators.smallgraphs.CameronGraph)
+    Cell600                  = staticmethod(sage.graphs.generators.smallgraphs.Cell600)
+    Cell120                  = staticmethod(sage.graphs.generators.smallgraphs.Cell120)
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
     CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)
@@ -1578,7 +1582,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
                         yield a
                 else:
                     for possibility in check_aut(z_aut_gens, cut_vert, n):
-                        if m_z.relabel(possibility, inplace=False) == g:
+                        if m_z.relabel(dict(enumerate(possibility)), check_input=False, inplace=False) == g:
                             for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig, loops=loops, implementation=implementation, sparse=sparse):
                                 yield a
                             break

@@ -429,19 +429,19 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         EXAMPLE::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
-            sage: A = sage.crypto.gen_lattice(type='random', n=1, m=100, q=2^60, seed=42)
+            sage: A = sage.crypto.gen_lattice(type='random', n=1, m=60, q=2^60, seed=42)
             sage: L = IntegerLattice(A, lll_reduce=False)
             sage: min(v.norm().n() for v in L.reduced_basis)
             4.17330740711759e15
 
             sage: L.LLL()
-            100 x 100 dense matrix over Integer Ring
+            60 x 60 dense matrix over Integer Ring
 
             sage: min(v.norm().n() for v in L.reduced_basis)
-            5.09901951359278
+            5.19615242270663
 
             sage: L.BKZ(block_size=10)
-            100 x 100 dense matrix over Integer Ring
+            60 x 60 dense matrix over Integer Ring
 
             sage: min(v.norm().n() for v in L.reduced_basis)
             4.12310562561766
@@ -696,8 +696,8 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             [  1  -1   2   1]
             [ -6   0   3   3]
             [ -6 -24  -6  -5]
-            sage: V = L.voronoi_cell()
-            sage: V.volume()
+            sage: V = L.voronoi_cell() # long time
+            sage: V.volume()           # long time
             678
             sage: sqrt(L.discriminant())
             678

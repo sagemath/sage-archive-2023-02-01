@@ -1932,8 +1932,6 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
                     return f
         elif algorithm == "first_lexicographic":
             for g in self.polynomials(max_degree=n-1):
-                if g.degree() < 1:
-                    continue
                 f = self.gen()**n + g
                 if f.is_irreducible():
                     return f

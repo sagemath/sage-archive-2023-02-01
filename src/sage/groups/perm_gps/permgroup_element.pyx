@@ -67,7 +67,9 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
+from sage.interfaces.all import gap
+from sage.interfaces.gap import is_GapElement
+from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.misc.superseded import deprecated_function_alias

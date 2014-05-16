@@ -5,8 +5,7 @@ from four_ti_2 import four_ti_2
 from axiom import Axiom, axiom, axiom_console
 from fricas import FriCAS, fricas, fricas_console
 
-from expect import is_ExpectElement
-from gap import gap, gap_reset_workspace, gap_console, set_gap_memory_pool_size, is_GapElement, Gap
+from gap import gap, gap_reset_workspace, gap_console, set_gap_memory_pool_size, Gap
 from gap3 import gap3, gap3_console, gap3_version, Gap3
 from genus2reduction import genus2reduction, Genus2reduction
 from gfan import gfan,  Gfan
@@ -30,7 +29,7 @@ from mwrank import mwrank, Mwrank, mwrank_console
 from octave import octave, octave_console, octave_version, Octave
 from qepcad import qepcad, qepcad_console, qepcad_version, qepcad_formula
 from qsieve import qsieve
-from singular import singular, singular_console, singular_version, is_SingularElement, Singular
+from singular import singular, singular_console, singular_version, Singular
 from sage0 import sage0 as sage0, sage0_console, sage0_version, Sage
 from scilab import scilab
 from tachyon import tachyon_rt

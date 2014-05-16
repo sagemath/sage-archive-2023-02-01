@@ -59,7 +59,7 @@ from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
 from sage.rings.real_mpfr import RealField, is_RealField, RR

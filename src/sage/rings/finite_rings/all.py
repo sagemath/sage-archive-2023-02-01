@@ -18,7 +18,7 @@ Finite Fields.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from constructor import FiniteField, is_FiniteField, is_PrimeFiniteField
+from constructor import FiniteField, is_FiniteField
 from conway_polynomials import conway_polynomial, exists_conway_polynomial
 GF = FiniteField
 

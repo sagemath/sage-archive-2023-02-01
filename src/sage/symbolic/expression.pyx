@@ -9231,7 +9231,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x)==0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == -1/2*pi + 2*pi*z...], [x == 1/2*pi + 2*pi*z...]]
+            [[x == 1/2*pi + pi*z82]]
 
         If a returned unsolved expression has a denominator, but the
         original one did not, this may also be true::

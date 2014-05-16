@@ -22,6 +22,7 @@ Functions
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+from designs_pyx import is_orthogonal_array
 
 def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     r"""
@@ -359,7 +360,6 @@ def is_transversal_design(B,k,n, verbose=False):
         sage: is_transversal_design(TD, 4, 4)
         False
     """
-    from designs_pyx import is_orthogonal_array
     return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
 @cached_function
@@ -838,7 +838,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         raise NotImplementedError("I don't know how to build this orthogonal array!")
 
     if check:
-        from designs_pyx import is_orthogonal_array
         assert is_orthogonal_array(OA,k,n,t)
 
     return OA
@@ -1014,6 +1013,70 @@ def OA_from_Vmt(m,t,V):
     M = OA_from_quasi_difference_matrix(M,Fq,add_col = False)
 
     return M
+
+def OA_from_PBD(k,n,PBD, check=True):
+    r"""
+    Returns an `OA(k,n)` from a PBD
+
+    **Construction**
+
+    Let `\\mathcal B` be a `(n,K,1)`-PBD. If there exists for every `i\in K` a
+    `TD(k,i)-i\times TD(k,1)` (i.e. if there exist `k` idempotent MOLS), then
+    one can obtain a `OA(k,n)` by concatenating:
+
+    - A `TD(k,i)-i\times TD(k,1)` defined over the elements of `B` for every `B
+      \in \\mathcal B`.
+
+    - The rows `(i,...,i)` of length `k` for every `i\in [n]`.
+
+    .. NOTE::
+
+        This function raises an exception when Sage is unable to build the
+        necessary designs.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``PBD`` -- a PBD on `0,...,n-1`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_66
+        sage: OA = OA_7_66() # indirect doctest
+        sage: print is_orthogonal_array(OA,7,66,2)
+        True
+    """
+    # Size of the sets of the PBD
+    K = set(map(len,PBD))
+
+    # Building the OA
+    OAs ={i:orthogonal_array(k,i) for i in K}
+
+    # Turning them into IMOLS
+    for i,OA in OAs.items():
+        for ii in range(i):
+            try:
+                OAs[i].remove([ii]*k)
+            except ValueError:
+                raise RuntimeError("I was not able to build an IMOLS({},{})".format(k,i))
+
+    OA = []
+    # For every block B of the PBD we add to the OA rows covering all pairs of
+    # (distinct) coordinates within the elements of B.
+    for S in PBD:
+        for B in OAs[len(S)]:
+            OA.append([S[i] for i in B])
+
+    # Adding the 0..0, 1..1, 2..2 .... rows
+    for i in range(n):
+        OA.append([i]*k)
+
+    if check:
+        assert is_orthogonal_array(OA,k,n,2)
+
+    return OA
 
 def OA_from_wider_OA(OA,k):
     r"""

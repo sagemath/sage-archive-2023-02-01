@@ -270,7 +270,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: sorted(maxima.completions('gc', verbose=False))
-            ['gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
+            ['gcd', 'gcdex', 'gcfactor', 'gctime']
         """
         if verbose:
             print s,
@@ -420,7 +420,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.29.1'
+            '5.33.0'
         """
         return maxima_version()
 
@@ -2352,7 +2352,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.29.1'
+        '5.33.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 

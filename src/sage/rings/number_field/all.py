@@ -1,5 +1,4 @@
 from number_field import (NumberField, NumberFieldTower, CyclotomicField, QuadraticField,
-                          is_CyclotomicField,
                           is_fundamental_discriminant)
 from number_field_element import NumberFieldElement
 

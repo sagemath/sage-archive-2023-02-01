@@ -49,7 +49,6 @@ Miscellaneous
    sage/misc/messaging
    sage/misc/viewer
    sage/misc/session
-   sage/misc/indexed_generators
 
 
 Profiling and Performance Testing

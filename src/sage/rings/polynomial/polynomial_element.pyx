@@ -3624,7 +3624,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         name = sage.structure.parent_gens.normalize_names(1, names)[0]
 
         from sage.rings.number_field.number_field_base import is_NumberField
-        from sage.rings.finite_rings.all import is_FiniteField
+        from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
         f = self.monic()            # Given polynomial, made monic
         F = f.parent().base_ring()  # Base field

@@ -2173,7 +2173,7 @@ def SymplecticGraph(d,q):
     G.relabel()
     return G
 
-def PolarGraph(m,q,sign="+"):
+def PolarGraph(m, q, sign="+"):
     r"""
     Returns the Polar Graph `O^{\epsilon}(m,q)`.
 
@@ -2189,26 +2189,29 @@ def PolarGraph(m,q,sign="+"):
 
     EXAMPLES::
 
-        sage: G=graphs.PolarGraph(6,3,"+"); G
+        sage: G = graphs.PolarGraph(6,3,"+"); G
         Polar Graph O^+(6, 3): Graph on 130 vertices
         sage: G.is_strongly_regular(parameters=True)
         (130, 48, 20, 16)
-        sage: G=graphs.PolarGraph(6,3,"-"); G
+
+        sage: G = graphs.PolarGraph(6,3,"-"); G
         Polar Graph O^-(6, 3): Graph on 112 vertices
         sage: G.is_strongly_regular(parameters=True)
         (112, 30, 2, 10)
-        sage: G=graphs.PolarGraph(5,3); G
+
+        sage: G = graphs.PolarGraph(5,3); G
         Polar Graph O(5, 3): Graph on 40 vertices
         sage: G.is_strongly_regular(parameters=True)
         (40, 12, 2, 4)
 
     TESTS::
 
-        sage: G=graphs.PolarGraph(4,3,"")
+        sage: G = graphs.PolarGraph(4,3,"")
         Traceback (most recent call last):
         ...
         ValueError: sign must be equal to either '-' or '+' when m is even
-        sage: G=graphs.PolarGraph(5,3,"-")
+
+        sage: G = graphs.PolarGraph(5,3,"-")
         Traceback (most recent call last):
         ...
         ValueError: sign must be equal to either '' or '+' when m is odd
@@ -2219,37 +2222,39 @@ def PolarGraph(m,q,sign="+"):
     from sage.interfaces.gap import gap
     from itertools import combinations
 
-    if m%2 == 0:
-        if sign!="+" and sign!="-":
-            raise ValueError("sign must be equal to either '-' or '+' when m is even")
+    if m % 2 == 0:
+        if sign != "+" and sign != "-":
+            raise ValueError("sign must be equal to either '-' or '+' when "
+                             "m is even")
     else:
         if sign != "" and sign != "+":
-            raise ValueError("sign must be equal to either '' or '+' when m is odd")
+            raise ValueError("sign must be equal to either '' or '+' when "
+                             "m is odd")
         sign = ""
 
-    Fq = FiniteField(q,'x')
+    Fq = FiniteField(q, 'x')
     e = {'+': 1,
-         '-':-1,
+         '-': -1,
          '' : 0}[sign]
 
-    M = gap("InvariantQuadraticForm(GO"+str((e,m,q))+").matrix")
+    M = gap("InvariantQuadraticForm(GO" + str((e, m, q)) + ").matrix")
     M = [[Fq(x) for x in R] for R in M]
     M = Matrix(M).dict().items()
-    PG = ProjectiveSpace(m-1,Fq)
-    m_over_two = m//2
+    PG = ProjectiveSpace(m - 1, Fq)
+    m_over_two = m // 2
 
-    def F(x,y):
-        return sum([c*x[i]*y[j] for (i,j),c in M])
+    def F(x, y):
+        return sum([c * x[i] * y[j] for (i, j), c in M])
 
-    V = [x for x in PG if F(x,x)==0]
+    V = [x for x in PG if F(x, x) == 0]
 
     G = Graph()
     G.add_vertices(V)
-    for u,v in combinations(V,2):
-        uminusv = [x-y for x,y in zip(u,v)]
-        if F(uminusv,uminusv) == 0:
-            G.add_edge(u,v)
+    for u, v in combinations(V, 2):
+        uminusv = [x - y for x, y in zip(u, v)]
+        if F(uminusv, uminusv) == 0:
+            G.add_edge(u, v)
 
     G.relabel()
-    G.name("Polar Graph O"+("^"+sign if sign else "")+str((m,q)))
+    G.name("Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G

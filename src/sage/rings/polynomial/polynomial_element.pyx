@@ -1483,7 +1483,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (x**1000000+x+a).any_root()
             Traceback (most recent call last):
             ...
-            AlarmInterrupt:
+            AlarmInterrupt
 
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():

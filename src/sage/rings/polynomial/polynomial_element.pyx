@@ -1518,13 +1518,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if degree is None:
                 x = self.parent().gen()
                 if allowed_deg_mult == 1:
-                    self = self.gcd(x**q-x)
+                    xq = pow(x,q,self)
+                    self = self.gcd(xq-x)
                     degree = -1
                     if self.degree() == 0:
                         raise ValueError, "no roots B %s"%self
                 else:
                     xq = x
                     d = Integer(0)
+                    sig_on()
                     while True:
                         # one pass for roots that actually lie within ring.
                         e = self.degree()
@@ -1545,11 +1547,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             break
                         if d == allowed_deg_mult:
                             break
+                    sig_off()
                     if degree is None:
                         if allowed_deg_mult == 1:
                             raise ValueError, "no roots C %s"%self
                         xq = x
                         d = Integer(0)
+                        sig_on()
                         while True:
                             # now another for roots that will lie in an extension.
                             e = self.degree()
@@ -1568,6 +1572,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                                 self = A
                                 degree = -d
                                 break
+                        sig_off()
             if degree == 0:
                 raise ValueError, "degree should be nonzero"
             R = self.parent()
@@ -1575,10 +1580,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if degree > 0:
                 xq = x
                 d = 0
+                sig_on()
                 while True:
                     e = self.degree()
                     if 2*d > e:
                         if degree != e:
+                            sig_off()
                             raise ValueError, "no roots D %s"%self
                         break
                     d = d+1
@@ -1588,6 +1595,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     A = self.gcd(xq-x)
                     if A != 1:
                         self = self // A
+                sig_off()
                 if d == degree:
                     self = self.gcd(xq-x)
                     if self.degree() == 0:
@@ -1608,6 +1616,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 except IndexError:
                     raise ValueError, "no roots F %s"%self
             if q % 2 == 0:
+                sig_on()
                 while True:
                     T = R.random_element(2*degree-1)
                     if T == 0:
@@ -1620,10 +1629,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     hd = h.degree()
                     if hd != 0 or hd != self.degree():
                         if 2*hd <= self.degree():
+                            sig_off()
                             return h.any_root(ring, -degree, True)
                         else:
+                            sig_off()
                             return (self//h).any_root(ring, -degree, True)
             else:
+                sig_on()
                 while True:
                     T = R.random_element(2*degree-1)
                     if T == 0:
@@ -1633,8 +1645,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     hd = h.degree()
                     if hd != 0 and hd != self.degree():
                         if 2*hd <= self.degree():
+                            sig_off()
                             return h.any_root(ring, -degree, True)
                         else:
+                            sig_off()
                             return (self//h).any_root(ring, -degree, True)
         else:
             return self.roots(ring=ring, multiplicities=False)[0]

@@ -1,4 +1,4 @@
-from category import    is_Category, Category, HomCategory
+from category import Category, HomCategory
 
 from category_types import(
                         Elements,
@@ -10,12 +10,11 @@ from category_types import(
 from tensor     import tensor
 from cartesian_product import cartesian_product
 
-from functor  import (is_Functor,
-                      ForgetfulFunctor,
+from functor  import (ForgetfulFunctor,
                       IdentityFunctor)
 
-from homset   import (Hom, hom, is_Homset,
-                      End, end, is_Endset,
+from homset   import (Hom, hom,
+                      End, end,
                       Homset, HomsetWithBase)
 
 from morphism import Morphism, is_Morphism

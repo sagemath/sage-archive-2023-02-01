@@ -1,4 +1,4 @@
-from set import Set, is_Set
+from set import Set
 from integer_range import IntegerRange
 from non_negative_integers import NonNegativeIntegers
 from positive_integers import PositiveIntegers

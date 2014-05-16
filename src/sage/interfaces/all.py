@@ -11,16 +11,16 @@ from gap3 import gap3, gap3_console, gap3_version, Gap3
 from genus2reduction import genus2reduction, Genus2reduction
 from gfan import gfan,  Gfan
 from giac import giac, giac_console, Giac
-from gp import gp, gp_console, gp_version, is_GpElement, Gp
+from gp import gp, gp_console, gp_version, Gp
 from gnuplot import gnuplot, gnuplot_console
-from kash import  kash, kash_console, kash_version, is_KashElement, Kash
+from kash import  kash, kash_console, kash_version, Kash
 from lisp import lisp, lisp_console, Lisp
-from magma import magma, magma_console, magma_version, Magma, is_MagmaElement
+from magma import magma, magma_console, magma_version, Magma
 from magma_free import magma_free
 from macaulay2 import macaulay2, macaulay2_console, Macaulay2
 from maple import maple, maple_console, Maple
 from maxima_abstract import maxima_console
-from maxima import maxima, is_MaximaElement, Maxima
+from maxima import maxima, Maxima
 # import problems
 #from maxima_lib import maxima_lib
 from mathematica import mathematica, mathematica_console, Mathematica
@@ -38,7 +38,7 @@ from psage import PSage
 from ecm import ECM, ecm
 from povray import povray
 from lie import lie, lie_console, LiE
-from r import r, r_console, R, r_version, is_RElement
+from r import r, r_console, R, r_version
 from read_data import read_data
 
 interfaces = ['gap', 'gap3', 'giac', 'gp', 'mathematica', 'gnuplot', \

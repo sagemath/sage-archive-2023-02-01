@@ -10,10 +10,9 @@ from permgroup_named import (SymmetricGroup, AlternatingGroup,
 
 from permgroup import  PermutationGroup, PermutationGroup_generic, PermutationGroup_subgroup, direct_product_permgroups
 
-from permgroup_element import PermutationGroupElement,is_PermutationGroupElement
+from permgroup_element import PermutationGroupElement
 
-from permgroup_morphism import (is_PermutationGroupMorphism,
-                                PermutationGroupMorphism as PermutationGroupMap,
+from permgroup_morphism import (PermutationGroupMorphism as PermutationGroupMap,
                                 PermutationGroupMorphism_im_gens,
                                 PermutationGroupMorphism_id)
 PermutationGroupMorphism = PermutationGroupMorphism_im_gens

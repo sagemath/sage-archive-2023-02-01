@@ -18,7 +18,7 @@ Polynomials
 #*****************************************************************************
 
 # Quotient of polynomial ring
-from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotientRing
+from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # Univariate Polynomial Rings
@@ -40,7 +40,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialR
 from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
 
 # Laurent Polynomial Rings
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, is_LaurentPolynomialRing
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
 # Infinite Polynomial Rings
 from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing

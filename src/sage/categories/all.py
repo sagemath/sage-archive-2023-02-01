@@ -17,7 +17,7 @@ from homset   import (Hom, hom,
                       End, end,
                       Homset, HomsetWithBase)
 
-from morphism import Morphism, is_Morphism
+from morphism import Morphism
 
 from basic import *
 

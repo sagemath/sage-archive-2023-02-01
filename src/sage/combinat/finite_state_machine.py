@@ -2280,7 +2280,7 @@ class FiniteStateMachine(SageObject):
         if determine_alphabets:
             self.determine_alphabets()
 
-        if with_final_word_out:
+        if with_final_word_out is not None:
             self.construct_final_word_out(with_final_word_out)
 
 

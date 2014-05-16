@@ -2113,6 +2113,17 @@ class FiniteStateMachine(SageObject):
         sage: F.transitions()
         [Transition from 'a' to 'a': 1|-]
 
+    Use ``with_final_word_out`` to construct final output::
+
+        sage: T = Transducer([(0, 1, 0, 0), (1, 0, 0, 0)],
+        ....:                initial_states=[0],
+        ....:                final_states=[0],
+        ....:                with_final_word_out=0)
+        sage: for s in T.iter_final_states():
+        ....:     print s, s.final_word_out
+        0 []
+        1 [0]
+
     TESTS::
 
         sage: a = FSMState('S_a', 'a')

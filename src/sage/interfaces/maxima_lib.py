@@ -653,7 +653,7 @@ class MaximaLib(MaximaAbstract):
             constraints; using the 'assume' command before integral evaluation
             *may* help (example of legal syntax is 'assume(a>0)', see
             `assume?` for more details)
-            Is  a  positive or negative?
+            Is a positive or negative?
             sage: assume(a>0)
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
             2/9*sqrt(3)*b^2*arctan(1/3*sqrt(3)*(2*(b*x + a)^(1/3) + a^(1/3))/a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
@@ -664,9 +664,9 @@ class MaximaLib(MaximaAbstract):
             ...
             ValueError: Computation failed since Maxima requested additional
             constraints; using the 'assume' command before integral evaluation
-            *may* help (example of legal syntax is 'assume(n+1>0)',
+            *may* help (example of legal syntax is 'assume(n>0)',
             see `assume?` for more details)
-            Is  n+1  zero or nonzero?
+            Is n equal to -1?
             sage: assume(n+1>0)
             sage: integral(x^n,x)
             x^(n + 1)/(n + 1)
@@ -741,8 +741,8 @@ class MaximaLib(MaximaAbstract):
             elif "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
-                k = s.find(' ',4)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
+                k = s.find(' ', 3)
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
             else:
                 raise error
 
@@ -763,7 +763,7 @@ class MaximaLib(MaximaAbstract):
             constraints; using the 'assume' command before summation *may* help
             (example of legal syntax is 'assume(abs(q)-1>0)', see `assume?`
             for more details)
-            Is  abs(q)-1  positive, negative, or zero?
+            Is abs(q)-1 positive, negative or zero?
             sage: assume(q > 1)
             sage: sum(a*q^k, k, 0, oo)
             Traceback (most recent call last):
@@ -789,8 +789,8 @@ class MaximaLib(MaximaAbstract):
             elif "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
-                k = s.find(' ',4)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
+                k = s.find(' ', 3)
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
             else:
                 raise error
 
@@ -815,7 +815,7 @@ class MaximaLib(MaximaAbstract):
             ValueError: Computation failed since Maxima requested additional
             constraints; using the 'assume' command before limit evaluation
             *may* help (see `assume?` for more details)
-            Is  a  positive, negative, or zero?
+            Is a positive, negative or zero?
             sage: assume(a>0)
             sage: limit(x^a,x=0)
             Traceback (most recent call last):

@@ -56,13 +56,13 @@ AUTHORS:
 #*****************************************************************************
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.finite_posets import FinitePosets, Posets
+from sage.categories.posets import Posets
+from sage.combinat.posets.posets import Poset, FinitePoset
+from sage.categories.finite_posets import FinitePosets
 from sage.combinat.binary_tree import BinaryTrees
 from sage.combinat.binary_tree import LabelledBinaryTrees
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.permutation import Permutation
-from sage.combinat.posets.posets import Poset
-from sage.combinat.posets.posets import FinitePoset
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex

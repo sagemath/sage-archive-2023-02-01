@@ -1478,7 +1478,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Also check that such computations can be interrupted::
 
             sage: K.<a> = GF(2**8)
-            sage: x = polygen(a)
+            sage: x = polygen(K)
             sage: alarm(1)
             sage: (x**1000000+x+a).any_root()
             Traceback (most recent call last):

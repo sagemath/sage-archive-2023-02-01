@@ -2,7 +2,6 @@ from number_field import (NumberField, NumberFieldTower, CyclotomicField, Quadra
                           is_CyclotomicField,
                           is_fundamental_discriminant)
 from number_field_element import NumberFieldElement
-from number_field_ideal import is_NumberFieldFractionalIdeal
 
 from order import EquationOrder
 

@@ -896,7 +896,7 @@ cdef class FiniteField(Field):
             Univariate Quotient Polynomial Ring in x over Finite Field in z4 of size 3^4 with modulus x^5 + x^2 + x + 2
         """
         from constructor import GF
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.integer import Integer
         if name is None and names is not None:
             name = names

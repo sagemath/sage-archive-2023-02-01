@@ -158,7 +158,7 @@ AUTHORS:
 
 from sage.rings.power_series_ring_element import PowerSeries
 
-from sage.rings.polynomial.all import is_PolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 
 from sage.rings.integer import Integer

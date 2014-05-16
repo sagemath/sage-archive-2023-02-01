@@ -23,21 +23,18 @@ from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuo
 
 # Univariate Polynomial Rings
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_ring import polygen, polygens, is_PolynomialRing
-from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial
+from sage.rings.polynomial.polynomial_ring import polygen, polygens
+from sage.rings.polynomial.polynomial_element import Polynomial
 
 # Multivariate Polynomial Rings
-from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
+from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function
 
 # Generic convolution
 from sage.rings.polynomial.convolution import convolution
 
 # Boolean Polynomial Rings
 from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor as BooleanPolynomialRing
-
-from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
 
 # Laurent Polynomial Rings
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing

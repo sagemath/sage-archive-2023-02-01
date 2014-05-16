@@ -699,7 +699,16 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
+            -1/4*(2*x - sin(2*x))*realpart(sgn(x)) + 1/2*x + 1/4*sin(2*x)
+
+        Note that the last example yielded the same answer in a
+        simpler form in earlier versions of Maxima (<= 5.29.1), namely
+        ``-1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x``.  This
+        is because Maxima no longer simplifies ``realpart(signum(x))``
+        to ``signum(x)``::
+
+            sage: maxima("realpart(signum(x))")
+            'realpart(signum(x))
 
         An example from sage-support thread e641001f8b8d1129::
 

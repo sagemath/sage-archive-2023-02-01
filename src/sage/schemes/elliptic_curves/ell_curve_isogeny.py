@@ -71,7 +71,7 @@ from sage.rings.all import Integer, ZZ
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
-from sage.schemes.elliptic_curves.all import is_EllipticCurve
+from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 
 from sage.rings.number_field.number_field_base import is_NumberField
 

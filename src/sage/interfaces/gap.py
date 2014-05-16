@@ -1833,19 +1833,3 @@ def gap_console():
     cmd += ' ' + os.path.join(SAGE_EXTCODE,'gap','console.g')
     os.system(cmd)
 
-def gap_version():
-    """
-    Returns the version of GAP being used.
-
-    EXAMPLES::
-
-        sage: print gap_version()
-        doctest:...: DeprecationWarning: use gap.version() instead
-        See http://trac.sagemath.org/13211 for details.
-        4.7...
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13211, 'use gap.version() instead')
-    return gap.eval('VERSION')[1:-1]
-
-

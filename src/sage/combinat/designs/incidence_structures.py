@@ -220,13 +220,13 @@ class IncidenceStructure(object):
             sage: from sage.combinat.designs.block_design import BlockDesign
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
+            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (1,2)(5,6), (1,3)(2,4), (0,1)(4,5)]
             sage: BD = BlockDesign(4,[[0],[0,1],[1,2],[3,3]],test=False)
             sage: G = BD.automorphism_group(); G
             Permutation Group with generators [()]
             sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
+            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (1,2)(5,6), (1,3)(2,4), (0,1)(4,5)]
             sage: BlockDesign(4,[[0,1,2,3],[1,2,3]],test=False).automorphism_group().cardinality()
             6
         """
@@ -237,13 +237,7 @@ class IncidenceStructure(object):
         M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
-        v = len(self.points())
-        G = SymmetricGroup(v)
-        gns = []
-        for g in gens:
-            L = [j+1 for j in g]
-            gns.append(G(L))
-        return PermutationGroup(gns)
+        return PermutationGroup(gens, domain=range(self.v))
 
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """

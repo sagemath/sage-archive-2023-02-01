@@ -47,7 +47,8 @@ AUTHORS:
 - Miguel Angel Marco Buzunariz
 - Volker Braun
 - Robert Lipshitz
-- Thierry Monteil: add a ``__hash__`` method consistent with the word problem to ensure correct Cayley graph computations.
+- Thierry Monteil: add a ``__hash__`` method consistent with the word
+  problem to ensure correct Cayley graph computations.
 """
 
 ##############################################################################
@@ -123,6 +124,22 @@ class Braid(FinitelyPresentedGroupElement):
             True
             sage: hash(s0*s1) == hash(s1*s0)
             False
+
+        We check that :trac:`16059` is fixed::
+
+            sage: def ball(G, r):
+            ....:     ret = set()
+            ....:     ret.add(G.one())
+            ....:     for length in range(1, r):
+            ....:         for w in Words(alphabet=G.gens(), length=length):
+            ....:              ret.add(prod(w))
+            ....:     return ret
+            sage: B = BraidGroup(4)
+            sage: GB = B.cayley_graph(elements=ball(B, 4), generators=B.gens()); GB
+            Digraph on 31 vertices
+            sage: F = FreeGroup(3)
+            sage: GF = F.cayley_graph(elements=ball(F, 4), generators=F.gens()); GF
+            Digraph on 40 vertices
         """
         return hash(tuple(i.Tietze() for i in self.left_normal_form()))
 
@@ -1118,8 +1135,8 @@ def BraidGroup(n=None, names='s'):
         sage: BraidGroup(3, 'g').generators()
         (g0, g1)
 
-    Since the word problem for the Braid groups is solvable, their Cayley graph
-    can be localy obtained as follows (see :trac:`16059`)::
+    Since the word problem for the Braid groups is solvable, their Cayley
+    graph can be localy obtained as follows::
 
         sage: B = BraidGroup(4)
         sage: ball = set()

@@ -476,7 +476,7 @@ class RiggedConfigurationElement(ClonableArray):
                 if vac_num < partition.rigging[i]:
                     raise ValueError("rigging can be at most the vacancy number")
 
-    def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False):
+    def to_tensor_product_of_kirillov_reshetikhin_tableaux(self, display_steps=False, display_graph=False):
         r"""
         Perform the bijection from this rigged configuration to a tensor
         product of Kirillov-Reshetikhin tableaux given in [RigConBijection]_
@@ -493,6 +493,8 @@ class RiggedConfigurationElement(ClonableArray):
 
         - ``display_steps`` -- (default: ``False``) boolean which indicates
           if we want to output each step in the algorithm
+        - ``display_graph` -- (default: ``False``) boolean which indicates
+          if we want to construct and display a graph of the bijection
 
         OUTPUT:
 
@@ -527,7 +529,7 @@ class RiggedConfigurationElement(ClonableArray):
             True
         """
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
-        return RCToKRTBijection(self).run(display_steps)
+        return RCToKRTBijection(self).run(display_steps, display_graph)
 
     def to_tensor_product_of_kirillov_reshetikhin_crystals(self, display_steps=False):
         r"""

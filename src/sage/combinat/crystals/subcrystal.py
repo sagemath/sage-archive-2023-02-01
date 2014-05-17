@@ -148,6 +148,8 @@ class Subcrystal(Parent, UniqueRepresentation):
 
             sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
+            sage: S._containing(B(5,2,4))
+            sage: S._containing(B(4,2,4))
         """
         if self._contained is None:
             return True
@@ -184,7 +186,8 @@ class Subcrystal(Parent, UniqueRepresentation):
 
         # TODO: make this work for infinite crystals
         import warnings
-        warnings.warn("Testing containment in an infinite virtual crystal defaults to returning True")
+        warnings.warn("Testing containment in an infinite crystal"
+                      " defaults to returning True")
         return True
 
     def cardinality(self):

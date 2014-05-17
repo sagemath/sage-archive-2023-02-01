@@ -36,36 +36,33 @@ from sage.sets.family import Family
 
 class VirtualCrystal(Subcrystal):
     r"""
-    A virtual crystal `\widehat{B}` of an ambient crystal `B` is a crystal
-    formed by taking a subset of `B` and whose crystal structure is given by
+    A virtual crystal `V` of an ambient crystal `\widehat{B}` is a crystal
+    formed by taking a subset of `\widehat{B}` and whose crystal structure
+    is given by
 
     .. MATH::
 
-        \widehat{e}_i = \prod_{j \in \sigma_i} e_j^{\gamma_i}, \quad
-        \widehat{f}_i = \prod_{j \in \sigma_i} f_j^{\gamma_i},
+        e_i = \prod_{j \in \sigma_i} \widehat{e}_j^{\gamma_i}, \quad
+        f_i = \prod_{j \in \sigma_i} \widehat{f{_j^{\gamma_i},
 
     .. MATH::
 
-        \widehat{\varepsilon}_i = \frac{\varepsilon_j}{\gamma_j}, \quad
-        \widehat{\varphi}_i = \frac{\varphi_j}{\gamma_j}, \quad
+        \varepsilon_i = \frac{\widehat{\varepsilon}_j}{\gamma_j}, \quad
+        \varphi_i = \frac{\widehat{\varphi}_j}{\gamma_j}, \quad
+        \operatorname{wt} = \Psi^{-1} \circ \widehat{\operatorname{wt}}
 
-    where `\sigma_i` is a set of indices in `B` and the *scaling factors*
-    `\gamma_i \in \ZZ`. We note that for the crystal to be well-defined,
+    where `\sigma_i` is a set of indices in `B`, `\gamma_i \in \ZZ` are
+    the *scaling factors*, and `\Psi : P \to \widehat{P}` is an embedding
+    of the weight lattices. We note that for the crystal to be well-defined,
     we must have
 
     .. MATH::
 
-        \varepsilon_j = \varepsilon_{j^{\prime}},
-        \quad \varphi_j = \varphi_{j^{\prime}}
+        \widehat{\varepsilon}_j = \widehat{\varepsilon|j^{\prime}},
+        \quad \widehat{\varphi}_j = \widehat{\varphi}_{j^{\prime}}
 
     for all `j, j^{\prime} \in \sigma_i` and that the order that the Kashiwara
     operators in the ambient space are applied does not affect the result.
-    We define the weight `\widehat{\mathrm{wt}}` to be such that
-
-    .. MATH::
-
-        \widehat{\mathrm{wt}}(b) = c_i \widehat{\Lambda}_i =
-        c_i \sum_{j \in \sigma_i} \gamma_j \Lambda_j = \mathrm{wt}(b).
 
     INPUT:
 
@@ -329,6 +326,8 @@ class VirtualCrystal(Subcrystal):
                 (1, 0, 0)
                 sage: mg.f(1).weight()
                 (0, 1, 0)
+                sage: all(V(psi(x)).weight() == x.weight() for x in B)
+                True
             """
             P = self.parent()
             WLR = P.weight_lattice_realization()
@@ -337,7 +336,8 @@ class VirtualCrystal(Subcrystal):
             La = WLR.fundamental_weights()
             v = P._virtualization
             sf = P._scaling_factors
-            return WLR.sum(wt.scalar(ac[v[i][0]]) / sf[i] * La[i] for i in self.index_set())
+            return WLR.sum(wt.scalar(ac[v[i][0]]) / sf[i] * La[i]
+                           for i in self.index_set())
 
 # TODO: implement a devirtualization map
 

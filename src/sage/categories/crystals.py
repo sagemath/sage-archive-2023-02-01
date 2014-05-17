@@ -571,10 +571,10 @@ class Crystals(Category_singleton):
                 if hasattr(on_gens, 'codomain'):
                     codomain = on_gens.codomain()
                 elif isinstance(on_gens, (list, tuple)):
-                    if len(on_gens) != 0:
+                    if on_gens:
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
-                    if len(on_gens) != 0:
+                    if on_gens:
                         codomain = on_gens.values()[0].parent()
                 else:
                     for x in self.module_generators:

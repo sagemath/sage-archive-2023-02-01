@@ -60,7 +60,7 @@ def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
 
     EXAMPLES::
 
-        sage: K = crystals.kirillov_reshetikhin.LSPaths(['A',2,1],2)
+        sage: K = crystals.kirillov_reshetikhin.LSPaths(['A',2,1],2) # indirect doctest
         sage: KR = crystals.KirillovReshetikhin(['A',2,1],2,1)
         sage: G = K.digraph()
         sage: GR = KR.digraph()
@@ -97,7 +97,6 @@ def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
         sage: GR = KR.digraph()
         sage: G.is_isomorphic(GR, edge_labels = True)
         True
-
 
     TESTS::
 
@@ -832,9 +831,9 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
             [[1, 3], [2, 4]]
         """
         T = self.classical_crystal
-        return Promotion(T,
-                         lambda x: T(x.to_tableau().promotion(self._cartan_type[1])),
-                         cache=False)
+        return DiagramAutomorphism(T,
+                 lambda x: T(x.to_tableau().promotion(self._cartan_type[1])),
+                 cache=False)
 
     @cached_method
     def promotion_inverse(self):
@@ -856,7 +855,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
             [[1, 2], [3, 3]]
         """
         T = self.classical_crystal
-        return PromotionInverse(T,
+        return DiagramAutomorphismInverse(T,
                  lambda x: T(x.to_tableau().promotion_inverse(self._cartan_type[1])),
                  cache=False)
 
@@ -957,7 +956,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         T = self.classical_decomposition()
         ind = list(T.index_set())
         ind.remove(1)
-        return Promotion(T, self.promotion_on_highest_weight_vectors(), ind)
+        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind)
 
     def promotion_inverse(self):
         """
@@ -1338,7 +1337,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         """
         T = self.classical_decomposition()
         ind = [1,2,3,4,5]
-        return Promotion(T, self.promotion_on_highest_weight_vectors(), ind,
+        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind,
                          automorphism=self.dynkin_diagram_automorphism)
 
     @cached_method
@@ -3046,7 +3045,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return Promotion(T, self.promotion_on_highest_weight_vectors(), ind)
+        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind)
 
     @cached_method
     def promotion_inverse(self):
@@ -3074,7 +3073,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return Promotion(T, self.promotion_on_highest_weight_vectors_inverse(), ind)
+        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors_inverse(), ind)
 
 #####################################################################
 
@@ -3353,6 +3352,8 @@ def horizontal_dominoes_removed(r, s):
     two = lambda x : 2*(x-int(s/2)) + s
     return [Partition([two(y) for y in x]) for x in list]
 
+#####################################################################
+## Morphisms
 
 class AmbientRetractMap(Map):
     r"""
@@ -3362,6 +3363,12 @@ class AmbientRetractMap(Map):
                  similarity_factor_domain=None, automorphism=None):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['B',3,1], 3,1)
+            sage: phi = K.from_ambient_crystal()
+            sage: TestSuite(phi).run(skip=['_test_category', '_test_pickling'])
         """
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         from sage.categories.homset import Hom
@@ -3382,12 +3389,25 @@ class AmbientRetractMap(Map):
         Return a string describing ``self``.
 
         EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['B',3,1], 3,1)
+            sage: phi = K.from_ambient_crystal()
+            sage: phi._repr_type()
+            'Ambient retract'
         """
-        return "ambient retract"
+        return "Ambient retract"
 
     def _call_(self, x):
         """
         A fast map from the virtual image to the base crystal.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['B',3,1], 3,1)
+            sage: phi = K.from_ambient_crystal()
+            sage: b = K.ambient_crystal()(rows=[[1],[2],[-3]])
+            sage: phi(b)
+            [++-, []]
         """
         automorphism = self._automorphism
         sfd = self._similarity_factor_domain
@@ -3400,9 +3420,13 @@ class AmbientRetractMap(Map):
                 return d
         return self._pdict_inv[x]
 
-class Promotion(CrystalMorphism):
+class DiagramAutomorphism(CrystalMorphism):
     """
-    The promotion operator.
+    The diagram automorphism.
+
+    For example, in type `A_n^{(1)}` this is the promotion operator and in
+    type `D_n^{(1)}`, this corresponds to the automorphism induced from
+    interchanging the `0` and `1` nodes in the Dynkin diagram.
 
     INPUT:
 
@@ -3449,6 +3473,9 @@ class Promotion(CrystalMorphism):
 
             sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: p = K.promotion()
+            sage: elt = K(3,1,3,1)
+            sage: p(elt.lift())
+            [[2, 2], [4, 4]]
         """
         # We do our own caching so we can take advantage of known images above us
         if x in self._cache:
@@ -3487,11 +3514,11 @@ class Promotion(CrystalMorphism):
 
             sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: K.promotion()._repr_type()
-            'Promotion'
+            'Diagram automorphism'
         """
-        return "Promotion"
+        return "Diagram automorphism"
 
-class PromotionInverse(Promotion):
+class DiagramAutomorphismInverse(DiagramAutomorphism):
     r"""
     The inverse promotion operator.
     """
@@ -3503,165 +3530,7 @@ class PromotionInverse(Promotion):
 
             sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
             sage: K.promotion_inverse()._repr_type()
-            'Inverse promotion'
+            'Inverse diagram automorphism'
         """
-        return "Inverse promotion"
-
-# I'm keeping this here in case this is faster for constructing KR crystals
-#   than using the CrystalMorphism class
-def crystal_morphism(C, g, index_set=None, automorphism=lambda i: i,
-                     direction='down', direction_image='down',
-                     similarity_factor=None, similarity_factor_domain=None,
-                     cached=False, acyclic=True):
-    r"""
-    Constructs a morphism from the crystal ``C`` to another crystal.
-
-    The input ``g`` can either be a function of a (sub)set of elements of
-    ``C`` to element in another crystal or a dictionary between certain
-    elements. Usually one would map highest weight elements or crystal
-    generators to each other using ``g``.
-
-    Specifying index_set gives the opportunity to define the morphism as
-    `I`-crystals where `I` is ``index_set``. If ``index_set`` is not
-    specified, the index set of ``C`` is used. It is also possible to define
-    twisted-morphisms by specifying an automorphism on the nodes in
-    the Dynkin diagram (i.e. the ``index_set``).
-
-    The option direction and direction_image indicate whether to use
-    `f_i` or `e_i` in ``C`` or the image crystal to construct the morphism,
-    depending on whether the direction is set to ``'down'`` or ``'up'``.
-
-    It is also possible to set a ``similarity_factor``. This should be a
-    dictionary between the elements in the index set and positive integers.
-    The crystal operator `f_i` then gets mapped to `f_i^{m_i}` where `m_i`
-    is ``similarity_factor[i]``. Setting ``similarity_factor_domain`` to a
-    dictionary between the index set and positive integers has the effect
-    that `f_i^{m_i}` gets mapped to `f_i` where `m_i` is
-    ``similarity_factor_domain[i]``.
-
-    Finally, it is possible to set the option ``acyclic = False``. This
-    calculates an isomorphism for cyclic crystals (for example finite
-    affine crystals). In this case the input function ``g`` is supposed
-    to be given as a dictionary.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.crystals.kirillov_reshetikhin import crystal_morphism
-        sage: C2 = crystals.Letters(['A',2])
-        sage: C3 = crystals.Letters(['A',3])
-        sage: g = {C2.module_generators[0] : C3.module_generators[0]}
-        sage: g_full = crystal_morphism(C2, g)
-        sage: g_full(C2(1))
-        1
-        sage: g_full(C2(2))
-        2
-        sage: g = {C2(1) : C2(3)}
-        sage: g_full = crystal_morphism(C2, g, automorphism=lambda i: 3-i, direction_image='up')
-        sage: [g_full(b) for b in C2]
-        [3, 2, 1]
-        sage: T = crystals.Tableaux(['A',2], shape = [2])
-        sage: g = {C2(1) : T(rows=[[1,1]])}
-        sage: g_full = crystal_morphism(C2, g, similarity_factor={1:2, 2:2})
-        sage: [g_full(b) for b in C2]
-        [[[1, 1]], [[2, 2]], [[3, 3]]]
-        sage: g = {T(rows=[[1,1]]) : C2(1)}
-        sage: g_full = crystal_morphism(T, g, similarity_factor_domain={1:2, 2:2})
-        sage: g_full(T(rows=[[2,2]]))
-        2
-
-        sage: B1 = crystals.KirillovReshetikhin(['A',2,1],1,1)
-        sage: B2 = crystals.KirillovReshetikhin(['A',2,1],1,2)
-        sage: T = crystals.TensorProduct(B1, B2)
-        sage: T1 = crystals.TensorProduct(B2, B1)
-        sage: La = T.weight_lattice_realization().fundamental_weights()
-        sage: t = [b for b in T if b.weight() == -3*La[0] + 3*La[1]][0]
-        sage: t1 = [b for b in T1 if b.weight() == -3*La[0] + 3*La[1]][0]
-        sage: g = {t:t1}
-        sage: f = crystal_morphism(T, g, acyclic=False)
-        sage: [[b,f(b)] for b in T]
-        [[[[[1]], [[1, 1]]], [[[1, 1]], [[1]]]],
-        [[[[1]], [[1, 2]]], [[[1, 1]], [[2]]]],
-        [[[[1]], [[2, 2]]], [[[1, 2]], [[2]]]],
-        [[[[1]], [[1, 3]]], [[[1, 1]], [[3]]]],
-        [[[[1]], [[2, 3]]], [[[1, 2]], [[3]]]],
-        [[[[1]], [[3, 3]]], [[[1, 3]], [[3]]]],
-        [[[[2]], [[1, 1]]], [[[1, 2]], [[1]]]],
-        [[[[2]], [[1, 2]]], [[[2, 2]], [[1]]]],
-        [[[[2]], [[2, 2]]], [[[2, 2]], [[2]]]],
-        [[[[2]], [[1, 3]]], [[[2, 3]], [[1]]]],
-        [[[[2]], [[2, 3]]], [[[2, 2]], [[3]]]],
-        [[[[2]], [[3, 3]]], [[[2, 3]], [[3]]]],
-        [[[[3]], [[1, 1]]], [[[1, 3]], [[1]]]],
-        [[[[3]], [[1, 2]]], [[[1, 3]], [[2]]]],
-        [[[[3]], [[2, 2]]], [[[2, 3]], [[2]]]],
-        [[[[3]], [[1, 3]]], [[[3, 3]], [[1]]]],
-        [[[[3]], [[2, 3]]], [[[3, 3]], [[2]]]],
-        [[[[3]], [[3, 3]]], [[[3, 3]], [[3]]]]]
-    """
-    if index_set is None:
-        index_set = C.index_set()
-    if similarity_factor is None:
-        similarity_factor = dict( (i,1) for i in index_set )
-    if similarity_factor_domain is None:
-        similarity_factor_domain = dict( (i,1) for i in index_set )
-    if direction == 'down':
-        e_string = 'e_string'
-    else:
-        e_string = 'f_string'
-    if direction_image == 'down':
-        f_string = 'f_string'
-    else:
-        f_string = 'e_string'
-
-    if acyclic:
-        if type(g) == dict:
-            g = g.__getitem__
-
-        def morphism(b):
-            for i in index_set:
-                c = getattr(b, e_string)([i for k in range(similarity_factor_domain[i])])
-                if c is not None:
-                    d = getattr(morphism(c), f_string)([automorphism(i) for k in range(similarity_factor[i])])
-                    if d is not None:
-                        return d
-                    else:
-                        raise ValueError("This is not a morphism!")
-                    #now we know that b is hw
-            return g(b)
-
-    else:
-        import copy
-        morphism = copy.copy(g)
-        known = set( g.keys() )
-        todo = copy.copy(known)
-        images = set( [g[x] for x in known] )
-        # Invariants:
-        # - images contains all known morphism(x)
-        # - known contains all elements x for which we know morphism(x)
-        # - todo  contains all elements x for which we haven't propagated to each child
-        while todo != set( [] ):
-            x = todo.pop()
-            for i in index_set:
-                eix  = getattr(x, f_string)([i for k in range(similarity_factor_domain[i])])
-                eigx = getattr(morphism[x], f_string)([automorphism(i) for k in range(similarity_factor[i])])
-                if bool(eix is None) != bool(eigx is None):
-                    # This is not a crystal morphism!
-                    raise ValueError("This is not a morphism!") #, print("x="x,"g(x)="g(x),"i="i)
-                if (eix is not None) and (eix not in known):
-                    todo.add(eix)
-                    known.add(eix)
-                    morphism[eix] = eigx
-                    images.add(eigx)
-        # Check that the module generators are indeed module generators
-        assert(len(known) == C.cardinality())
-        # We may not want to systematically run those tests,
-        # to allow for non bijective crystal morphism
-        # Add an option CheckBijective?
-        if not ( len(known) == len(images) and len(images) == images.pop().parent().cardinality() ):
-            return(None)
-        return morphism.__getitem__
-
-    if cached:
-        return morphism
-    return CachedFunction(morphism)
+        return "Inverse diagram automorphism"
 

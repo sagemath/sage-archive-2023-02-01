@@ -19,6 +19,7 @@ from sage.misc.latex import latex
 from sage.combinat import ranker
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.integer import Integer
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
 class Crystals(Category_singleton):
     r"""
@@ -297,14 +298,16 @@ class Crystals(Category_singleton):
             if index_set is None:
                 index_set = self.index_set()
             if max_depth < float('inf'):
-                from sage.combinat.backtrack import TransitiveIdealGraded
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             self.module_generators, max_depth).__iter__()
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(lambda x: [x.f(i) for i in index_set]
-                                           + [x.e(i) for i in index_set],
-                                   self.module_generators).__iter__()
+                return RecursivelyEnumeratedSet(self.module_generators,
+                                                lambda x: [x.f(i) for i in index_set]
+                                                        + [x.e(i) for i in index_set],
+                                                structure=None, enumeration='breadth',
+                                                max_depth=max_depth).__iter__()
+            return RecursivelyEnumeratedSet(self.module_generators,
+                                            lambda x: [x.f(i) for i in index_set]
+                                                    + [x.e(i) for i in index_set],
+                                            structure=None,
+                                            enumeration='naive').__iter__()
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both", contained=None,
@@ -391,20 +394,27 @@ class Crystals(Category_singleton):
                                       cartan_type, index_set, category)
 
             # TODO: Make this work for virtual crystals as well
-            from sage.combinat.backtrack import TransitiveIdealGraded
             if direction == 'both':
-                subset = TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             generators, max_depth)
+                subset = RecursivelyEnumeratedSet(generators, 
+                                                  lambda x: [x.f(i) for i in index_set]
+                                                          + [x.e(i) for i in index_set],
+                                                  structure=None, enumeration='breadth',
+                                                  max_depth=max_depth)
             elif direction == 'upper':
-                subset = TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
-                                             generators, max_depth)
+                subset = RecursivelyEnumeratedSet(generators, 
+                                                  lambda x: [x.e(i) for i in index_set],
+                                                  structure=None, enumeration='breadth',
+                                                  max_depth=max_depth)
             elif direction == 'lower':
-                subset = TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                             generators, max_depth)
+                subset = RecursivelyEnumeratedSet(generators, 
+                                                  lambda x: [x.f(i) for i in index_set],
+                                                  structure=None, enumeration='breadth',
+                                                  max_depth=max_depth)
             else:
                 raise ValueError("direction must be either 'both', 'upper', or 'lower'")
 
+            # We perform the filtering here since checking containment
+            #   in a frozenset should be fast
             if contained is not None:
                 subset = frozenset(x for x in subset if contained(x))
             else:
@@ -412,20 +422,16 @@ class Crystals(Category_singleton):
 
             if category is None:
                 category = FiniteCrystals()
-            #else:
-            #   category = FiniteCrystals().join(category)
+            else:
+               category = FiniteCrystals().join(category)
 
             if self in FiniteCrystals() and len(subset) == self.cardinality():
-                if contained is None and index_set == self.index_set():
+                if index_set == self.index_set():
                     return self
                 return Subcrystal(self, subset, generators,
                                   virtualization, scaling_factors,
                                   cartan_type, index_set, category)
 
-            #if contained is not None:
-            #    contained = lambda x: x in subset and contained(x)
-            #else:
-            #    contained = lambda x: x in subset
             return Subcrystal(self, subset, generators,
                               virtualization, scaling_factors,
                               cartan_type, index_set, category)

@@ -3,7 +3,7 @@ Other miscellaneous arithmetic implemented in C for speed.
 
 AUTHORS:
 
-- Vincent Delecroix (2014)
+- Vincent Delecroix (2014): implementation of sum of squares (:trac:`16374`)
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -22,17 +22,17 @@ import integer
 
 zero = integer.smallInteger(0)
 
-cdef int two_squares_c(unsigned int n, unsigned int *p, unsigned int *q):
+cdef int two_squares_c(unsigned int n, unsigned int *res):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
-    If ``1`` is returned, the the value of ``p`` and ``q`` are set to the
-    lexicographically smallest solution of `p^2 + q^2 = n`.
+    If ``1`` is returned, the the value of ``res[0]`` and ``res[1]`` are set to the
+    lexicographically smallest solution of `a^2 + b^2 = n`.
     """
     cdef unsigned int fac,i,ii,j,jj,nn
 
     if n == 0:
-        p[0] = q[0] = 0
+        res[0] = res[1] = 0
         return 1
 
     # if n = 0 mod 4 then i and j must be even
@@ -64,14 +64,14 @@ cdef int two_squares_c(unsigned int n, unsigned int *p, unsigned int *q):
                 # j = (j+nn/j)/2
                 jj = j*j
             if jj == nn:
-                p[0] = i<<fac; q[0] = j<<fac
+                res[0] = i<<fac; res[1] = j<<fac
                 return 1
             i += 1
             ii = i*i
-    else: # n%4 = 2
+    else: # n mod 4 = 2
         i = ii = 1
         j = <unsigned int> sqrt(n)
-        j += (1-j%2)
+        j += 1 - j%2
         jj = j*j
         while ii <= n/2:
             nn = n - ii
@@ -82,7 +82,7 @@ cdef int two_squares_c(unsigned int n, unsigned int *p, unsigned int *q):
                 # j = (j+nn/j)/2
                 jj = j*j
             if jj == nn:
-                p[0] = i<<fac; q[0] = j<<fac
+                res[0] = i<<fac; res[1] = j<<fac
                 return 1
             i += 2
             ii = i*i
@@ -90,17 +90,18 @@ cdef int two_squares_c(unsigned int n, unsigned int *p, unsigned int *q):
     return 0
 
 
-cdef int three_squares_c(unsigned int n, unsigned int *p, unsigned int *q,  unsigned int *r):
+cdef int three_squares_c(unsigned int n, unsigned int *res):
     r"""
     Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
 
-    If ``1`` is returned, the the value of ``p``, ``q`` and ``r`` are set to the
-    lexicographically smallest solution of `p^2 + q^2 + r^2 = n`.
+    If ``1`` is returned, the the value of ``res[0]``, ``res[1]`` and ``res[2]``
+    are set to the lexicographically smallest solution of `a^2 + b^2 + c^2 = n`.
     """
-    cdef unsigned int i,j,k,fac
+    cdef unsigned int i,fac
+    cdef unsigned int j[2]
 
     if n == 0:
-        p[0] = q[0] = r[0] = 0
+        res[0] = res[1] = res[2] = 0
         return 1
 
     # if n == 0 mod 4 then i,j,k must be even
@@ -117,10 +118,10 @@ cdef int three_squares_c(unsigned int n, unsigned int *p, unsigned int *q,  unsi
         return 0
 
     i = 0
-    while not two_squares_c(n-i*i, &j, &k):
+    while not two_squares_c(n-i*i, j):
         i += 1
 
-    p[0] = i<<fac; q[0] = j<<fac; r[0] = k<<fac
+    res[0] = i<<fac; res[1] = (j[0])<<fac; res[2] = (j[1])<<fac
     return 1
 
 def two_squares_pyx(unsigned int n):
@@ -158,10 +159,10 @@ def two_squares_pyx(unsigned int n):
         sage: two_squares_pyx(106)
         (5, 9)
     """
-    cdef unsigned int i,j
+    cdef unsigned int i[2]
 
-    if two_squares_c(n, &i, &j):
-        return (integer.smallInteger(i), integer.smallInteger(j))
+    if two_squares_c(n, i):
+        return (integer.smallInteger(i[0]), integer.smallInteger(i[1]))
 
     raise ValueError("%d is not a sum of 2 squares"%n)
 
@@ -184,38 +185,38 @@ def three_squares_pyx(unsigned int n):
     EXAMPLES::
 
         sage: from sage.rings.arith_pyx import three_squares_pyx
-        sage: three_squares(0)
+        sage: three_squares_pyx(0)
         (0, 0, 0)
-        sage: three_squares(1)
+        sage: three_squares_pyx(1)
         (0, 0, 1)
-        sage: three_squares(2)
+        sage: three_squares_pyx(2)
         (0, 1, 1)
-        sage: three_squares(3)
+        sage: three_squares_pyx(3)
         (1, 1, 1)
-        sage: three_squares(4)
+        sage: three_squares_pyx(4)
         (0, 0, 2)
-        sage: three_squares(5)
+        sage: three_squares_pyx(5)
         (0, 1, 2)
-        sage: three_squares(6)
+        sage: three_squares_pyx(6)
         (1, 1, 2)
-        sage: three_squares(7)
+        sage: three_squares_pyx(7)
         Traceback (most recent call last):
         ...
         ValueError: 7 is not a sum of 3 squares
-        sage: three_squares(107)
+        sage: three_squares_pyx(107)
         (1, 5, 9)
     """
-    cdef unsigned int i,j,k
+    cdef unsigned int i[3]
 
-    if three_squares_c(n, &i, &j, &k):
-        return (integer.smallInteger(i), integer.smallInteger(j), integer.smallInteger(k))
+    if three_squares_c(n, i):
+        return (integer.smallInteger(i[0]), integer.smallInteger(i[1]), integer.smallInteger(i[2]))
 
     raise ValueError("%d is not a sum of 3 squares"%n)
 
 def four_squares_pyx(unsigned int n):
     r"""
-    Return the lexicographically smallest 4-tuple of non-negative integers
-    ``(i,j,k,l)`` such that `i^2 + j^2 + k^2 + l^2 = n`.
+    Return a 4-tuple of non-negative integers ``(i,j,k,l)`` such that `i^2 + j^2
+    + k^2 + l^2 = n`.
 
     .. NOTE::
 
@@ -232,56 +233,35 @@ def four_squares_pyx(unsigned int n):
 
         sage: from sage.rings.arith_pyx import four_squares_pyx
         sage: four_squares_pyx(15447)
-        (1, 1, 39, 118)
-        sage: 1^2 + 1^2 + 39^2 + 118^2
+        (1, 11, 14, 123)
+        sage: 1^2 + 11^2 + 14^2 + 123^2
         15447
+
         sage: four_squares_pyx(523439)
-        (1, 3, 175, 702)
-        sage: 1^2 + 3^2 + 273^2 + 670^2
+        (1, 15, 22, 723)
+        sage: 1^2 + 15^2 + 22^2 + 723^2
         523439
-
-    Because the output is the lexicographically smallest solution, the function
-    can be used to see how many squares are needed to sum up to ``n``::
-
-        sage: four_squares_pyx(169)
-        (0, 0, 0, 13)
-        sage: four_squares_pyx(113)
-        (0, 0, 7, 8)
-        sage: four_squares_pyx(114)
-        (0, 1, 7, 8)
-        sage: four_squares_pyx(119)
-        (1, 1, 6, 9)
 
     TESTS::
 
         sage: all(sum(i**2 for i in four_squares_pyx(n)) == n for n in xrange(500,1000))
         True
-        sage: four_squares_pyx(0)
-        (0, 0, 0, 0)
-        sage: four_squares_pyx(4)
-        (0, 0, 0, 2)
-        sage: four_squares_pyx(679)
-        (1, 1, 1, 26)
-        sage: four_squares_pyx(892)
-        (1, 1, 7, 29)
     """
-    cdef unsigned int j,k,l,fac
+    cdef unsigned int i[3]
+    cdef unsigned int j, nn
 
     if n == 0:
         return (zero, zero, zero, zero)
 
-    # Because of Legendre three squares theorem, if we divide n by 4^a and
-    # multiply the solution by 2^a we stil obtain the lexicographically smallest
-    # solution
-    fac = 0
-    while n%4 == 0:
-        n >>= 2
-        fac += 1
+    # we pick the largest square we can for j
+    j = (<unsigned int> sqrt(<double> n)) + 1
+    while j*j > n:
+        j -= 1
 
-    if n%8 == 7:
-        three_squares_c(n-1, &j, &k, &l)
-        return (integer.smallInteger(1<<fac), integer.smallInteger(j<<fac),
-                integer.smallInteger(k<<fac), integer.smallInteger(l<<fac))
-    else:
-        three_squares_c(n, &j, &k, &l)
-        return (zero, integer.smallInteger(j<<fac), integer.smallInteger(k<<fac), integer.smallInteger(l<<fac))
+    nn = n - j*j
+    while not three_squares_c(nn, i):
+        j = j-1
+        nn = n - j*j
+
+    return (integer.smallInteger(i[0]), integer.smallInteger(i[1]),
+            integer.smallInteger(i[2]), integer.smallInteger(j))

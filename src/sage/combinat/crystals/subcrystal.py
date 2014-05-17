@@ -149,7 +149,9 @@ class Subcrystal(Parent, UniqueRepresentation):
             sage: B = crystals.Tableaux(['A',4], shape=[2,1])
             sage: S = B.subcrystal(generators=(B(2,1,1), B(5,2,4)), index_set=[1,2])
             sage: S._containing(B(5,2,4))
+            True
             sage: S._containing(B(4,2,4))
+            True
         """
         if self._contained is None:
             return True

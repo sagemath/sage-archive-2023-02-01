@@ -57,9 +57,12 @@ Implemented constructions :
   :func:`OA(12,144) <OA_12_144>`,
   :func:`OA(10,154) <OA_10_154>`,
   :func:`OA(12,210) <OA_12_210>`,
+  :func:`OA(18,273) <OA_18_273>`,
   :func:`OA(12,276) <OA_12_276>`,
   :func:`OA(12,298) <OA_12_298>`,
-  :func:`OA(12,342) <OA_12_342>`
+  :func:`OA(12,342) <OA_12_342>`,
+  :func:`OA(12,474) <OA_12_474>`,
+  :func:`OA(33,993) <OA_33_993>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -2388,6 +2391,37 @@ def OA_12_210():
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
     return M
 
+def OA_18_273():
+    r"""
+    Returns an OA(18,273)
+
+    Given by Julian R. Abel.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_18_273
+        sage: OA = OA_18_273()
+        sage: print is_orthogonal_array(OA,18,273,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(18,273,existence=True)
+        True
+    """
+    M = orthogonal_array(17,17)
+    M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, ... rows.
+    B = (1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256) # (273,17,1) difference set
+    M = [[B[x] for x in R] for R in M]
+    M.append([0]*17)
+    Mb = zip(*M)
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(273)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    return M
+
 def OA_12_276():
     r"""
     Returns an OA(12,276)
@@ -2469,6 +2503,66 @@ def OA_12_342():
     M = OA_from_Vmt(10,31,[0,1,3,57,128,247,289,239,70,271,96])
     return M
 
+def OA_12_474():
+    r"""
+    Returns an OA(12,474)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_474
+        sage: OA = OA_12_474()
+        sage: print is_orthogonal_array(OA,12,474,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,474,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,43,[0,1,6,29,170,207,385,290,375,32,336])
+    return M
+
+def OA_33_993():
+    r"""
+    Returns an OA(33,993)
+
+    Given by Julian R. Abel.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_33_993
+        sage: OA = OA_33_993()                          # not tested -- too long
+        sage: print is_orthogonal_array(OA,33,993,2)    # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(33,993,existence=True)
+        True
+    """
+    M = orthogonal_array(32,32)
+    M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, ... rows.
+    B = (0,74,81,126,254,282,308,331,344,375,387,409,525,563, # (993,32,1) difference set
+         572,611,631,661,694,702,734,763,798,809,814,851,906,
+         908,909,923,927,933)
+    M = [[B[x] for x in R] for R in M]
+    M.append([0]*32)
+    Mb = zip(*M)
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(993)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    return M
+
 # Index of the OA constructions
 #
 # Associates to n the pair (k,f) where f() is a function that returns an OA(k,n)
@@ -2518,8 +2612,10 @@ OA_constructions = {
     144 : (12 , OA_12_144),
     154 : (10 , OA_10_154),
     210 : (12 , OA_12_210),
+    273 : (18 , OA_18_273),
     276 : (12 , OA_12_276),
     298 : (12 , OA_12_298),
-    342 : (12 , OA_12_342)
+    342 : (12 , OA_12_342),
+    474 : (12 , OA_12_474),
+    993 : (33 , OA_33_993)
 }
-

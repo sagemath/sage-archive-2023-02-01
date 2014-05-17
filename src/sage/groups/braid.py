@@ -42,11 +42,12 @@ element by a braid::
     sage: f1^-1 * b1
     f1*f2^-1*f1^-1
 
-AUTHOR:
+AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Volker Braun
 - Robert Lipshitz
+- Thierry Monteil: add a ``__hash__`` method consistent with the word problem to ensure correct Cayley graph computations.
 """
 
 ##############################################################################
@@ -110,6 +111,20 @@ class Braid(FinitelyPresentedGroupElement):
         nfself = map(lambda i: i.Tietze(), self.left_normal_form())
         nfother = map(lambda i: i.Tietze(), other.left_normal_form())
         return cmp(nfself, nfother)
+
+    def __hash__(self):
+        r"""
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: B.<s0,s1,s2> = BraidGroup(4)
+            sage: hash(s0*s2) == hash(s2*s0)
+            True
+            sage: hash(s0*s1) == hash(s1*s0)
+            False
+        """
+        return hash(tuple(i.Tietze() for i in self.left_normal_form()))
 
     def _latex_(self):
         """
@@ -1102,6 +1117,18 @@ def BraidGroup(n=None, names='s'):
         (s0, s1)
         sage: BraidGroup(3, 'g').generators()
         (g0, g1)
+
+    Since the word problem for the Braid groups is solvable, their Cayley graph
+    can be localy obtained as follows (see :trac:`16059`)::
+
+        sage: B = BraidGroup(4)
+        sage: ball = set()
+        sage: ball.add(B.one())
+        sage: for length in range(1, 4):
+        ....:     for w in Words(alphabet=B.gens(), length=length):
+        ....:         ball.add(prod(w))
+        sage: G = B.cayley_graph(elements=ball, generators=B.gens()) ; G
+        Digraph on 31 vertices
 
     TESTS::
 

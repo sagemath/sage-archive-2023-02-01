@@ -1205,9 +1205,14 @@ class Category(UniqueRepresentation, SageObject):
         """
         Return whether ``self`` is a full subcategory of ``other``.
 
-        This is computed by testing if ``self`` is a subcategory of
-        ``other``, and checking whether they have the same structure,
-        as determined by :meth:`super_structure_categories` from the
+        A subcategory `B` of a category `A` is a *full subcategory* if
+        any `A`-morphism between two objects of `B` is also a
+        `B`-morphism (the reciprocal always holds: any `B`-morphism
+        between two objects of `B` is an `A`-morphism).
+
+        This is computed by testing whether ``self`` is a subcategory
+        of ``other`` and whether they have the same structure, as
+        determined by :meth:`super_structure_categories` from the
         result of :meth:`is_structure_category` on the super
         categories.
 
@@ -1234,6 +1239,50 @@ class Category(UniqueRepresentation, SageObject):
         return self.is_subcategory(other) and \
            len(self.super_structure_categories()) == \
            len(other.super_structure_categories())
+
+    @cached_method
+    def full_super_categories(self):
+        """
+        Return the *immediate* full super categories of ``self``.
+
+        Return the categories C in ``self.super_categories()`` such
+        that ``self`` is a full subcategory of ``C``.
+
+        .. SEEALSO::
+
+            - :meth:`super_categories`
+            - :meth:`is_full_subcategory`
+
+        .. NOTE::
+
+            The current implementation selects the full subcategories
+            among the immediate super categories of ``self``. This
+            assumes that, if `A,B,C` is a chain of categories and `A`
+            is a full subcategory of `C`, then `A` is a full
+            subcategory of `B` and `B` is a full subcategory of
+            `C`. This is correct with the current model for full
+            subcategories, but this model might be too restrictive in
+            certain situations.
+
+        EXAMPLES:
+
+        A semigroup morphism between two finite semigroups is a finite
+        semigroup morphism::
+
+            sage: Semigroups().Finite().full_super_categories()
+            [Category of Semigroups]
+
+        On the other hand a semigroup morphism between two monoids is
+        not necessarily a monoid morphism (which must map the unit to
+        the unit)::
+
+            sage: Monoids().super_categories()
+            [Category of semigroups, Category of unital magmas]
+            sage: Monoids().full_super_categories()
+            []
+        """
+        return [C for C in self.super_categories()
+                if self.is_full_subcategory(C)]
 
     ##########################################################################
     # Test methods
@@ -1314,6 +1363,14 @@ class Category(UniqueRepresentation, SageObject):
         if not isinstance(self, JoinCategory):
             tester.assert_(all(self._cmp_key > cat._cmp_key      for cat in self._super_categories))
         tester.assert_(self.is_subcategory( Category.join(self.super_categories()) )) # Not an obviously passing test with axioms
+
+        for category in self._all_super_categories_proper:
+            if self.is_full_subcategory(category):
+                tester.assert_(any(cat.is_subcategory(category)
+                                   for cat in self.full_super_categories()),
+                               "Every full super category should be a super category"
+                               "of some immediate full super category")
+
         if self.is_subcategory(Sets()):
             tester.assert_(isinstance(self.parent_class, type))
             tester.assert_(isinstance(self.element_class, type))

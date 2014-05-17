@@ -2173,12 +2173,12 @@ def SymplecticGraph(d,q):
     G.relabel()
     return G
 
-def PolarGraph(m, q, sign="+"):
+def OrthogonalPolarGraph(m, q, sign="+"):
     r"""
-    Returns the Polar Graph `O^{\epsilon}(m,q)`.
+    Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
 
-    For more information on Polar graphs, see see the `page of Andries Brouwer's
-    website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    For more information on Orthogonal Polar graphs, see see the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -2189,35 +2189,36 @@ def PolarGraph(m, q, sign="+"):
 
     EXAMPLES::
 
-        sage: G = graphs.PolarGraph(6,3,"+"); G
-        Polar Graph O^+(6, 3): Graph on 130 vertices
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
+        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
         sage: G.is_strongly_regular(parameters=True)
         (130, 48, 20, 16)
 
-        sage: G = graphs.PolarGraph(6,3,"-"); G
-        Polar Graph O^-(6, 3): Graph on 112 vertices
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
+        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
         sage: G.is_strongly_regular(parameters=True)
         (112, 30, 2, 10)
 
-        sage: G = graphs.PolarGraph(5,3); G
-        Polar Graph O(5, 3): Graph on 40 vertices
+        sage: G = graphs.OrthogonalPolarGraph(5,3); G
+        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
         sage: G.is_strongly_regular(parameters=True)
         (40, 12, 2, 4)
 
     TESTS::
 
-        sage: G = graphs.PolarGraph(4,3,"")
+        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
         Traceback (most recent call last):
         ...
         ValueError: sign must be equal to either '-' or '+' when m is even
 
-        sage: G = graphs.PolarGraph(5,3,"-")
+        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
         Traceback (most recent call last):
         ...
         ValueError: sign must be equal to either '' or '+' when m is odd
     """
     from sage.schemes.projective.projective_space import ProjectiveSpace
     from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
     from sage.interfaces.gap import gap
     from itertools import combinations
@@ -2232,29 +2233,27 @@ def PolarGraph(m, q, sign="+"):
                              "m is odd")
         sign = ""
 
-    Fq = FiniteField(q, 'x')
+    Fq = FiniteField(q, prefix='x', conway=True)
     e = {'+': 1,
          '-': -1,
          '' : 0}[sign]
 
     M = gap("InvariantQuadraticForm(GO" + str((e, m, q)) + ").matrix")
     M = [[Fq(x) for x in R] for R in M]
-    M = Matrix(M).dict().items()
+    M = Matrix(M)
     PG = ProjectiveSpace(m - 1, Fq)
     m_over_two = m // 2
 
-    def F(x, y):
-        return sum([c * x[i] * y[j] for (i, j), c in M])
+    def F(x):
+        return x*M*x
 
-    V = [x for x in PG if F(x, x) == 0]
+    def FF(x,y):
+        return F(vector([xx-yy for xx,yy in zip(x,y)]))
 
-    G = Graph()
-    G.add_vertices(V)
-    for u, v in combinations(V, 2):
-        uminusv = [x - y for x, y in zip(u, v)]
-        if F(uminusv, uminusv) == 0:
-            G.add_edge(u, v)
+    V = [x for x in PG if F(vector(x)) == 0]
+
+    G = Graph([V,lambda x,y:FF(x,y)==0],loops=False)
 
     G.relabel()
-    G.name("Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
+    G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G

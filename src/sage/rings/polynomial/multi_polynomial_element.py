@@ -144,7 +144,7 @@ class MPolynomial_element(MPolynomial):
             x = x[0]
         n = self.parent().ngens()
         if len(x) != n:
-            raise TypeError, "x must be of correct length"
+            raise TypeError("x must be of correct length")
         if n == 0:
             return self
         try:
@@ -295,7 +295,7 @@ class MPolynomial_element(MPolynomial):
 
     def __rpow__(self, n):
         if not isinstance(n, (int, long, sage.rings.integer.Integer)):
-            raise TypeError, "The exponent must be an integer."
+            raise TypeError("The exponent must be an integer.")
         return self.parent()(self.__element**n)
 
     def element(self):
@@ -501,9 +501,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if x is None:
             return self.element().degree(None)
         if not (isinstance(x, MPolynomial) and x.parent() is self.parent() and x.is_generator()):
-            raise TypeError, "x must be one of the generators of the parent."
+            raise TypeError("x must be one of the generators of the parent.")
         return self.element().degree(x.element())
-
 
     def total_degree(self):
         """
@@ -598,7 +597,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             -a
         """
         if not (isinstance(mon, MPolynomial) and mon.parent() is self.parent() and mon.is_monomial()):
-            raise TypeError, "mon must be a monomial in the parent of self."
+            raise TypeError("mon must be a monomial in the parent of self.")
         R = self.parent().base_ring()
         return R(self.element().monomial_coefficient(mon.element().dict()))
 
@@ -748,9 +747,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         looking_for = None
         if isinstance(degrees, MPolynomial) and degrees.parent() == self.parent() and degrees.is_monomial():
             looking_for = [e if e > 0 else None for e in degrees.exponents()[0]]
-        elif type(degrees) is list:
+        elif isinstance(degrees, list):
             looking_for = degrees
-        elif type(degrees) is dict:
+        elif isinstance(degrees, dict):
             poly_vars = self.parent().gens()
             looking_for = [None] * len(poly_vars)
             for d, exp in degrees.items():
@@ -758,7 +757,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                     if d == poly_vars[i]:
                         looking_for[i] = exp
         if not looking_for:
-            raise ValueError, "You must pass a dictionary list or monomial."
+            raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
     def exponents(self):
@@ -813,10 +812,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         d = self.element().dict()
         k = d.keys()
         if len(k) != 1:
-            raise ArithmeticError, "is not a unit"
+            raise ArithmeticError("is not a unit")
         k = k[0]
         if k != polydict.ETuple([0]*self.parent().ngens()):
-            raise ArithmeticError, "is not a unit"
+            raise ArithmeticError("is not a unit")
         return ~d[k]
 
     def is_homogeneous(self):
@@ -989,9 +988,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         variables = list(self.parent().gens())
         for i in range(0,len(variables)):
-            if kw.has_key(str(variables[i])):
+            if str(variables[i]) in kw:
                 variables[i]=kw[str(variables[i])]
-            elif fixed and fixed.has_key(variables[i]):
+            elif fixed and variables[i] in fixed:
                 variables[i] = fixed[variables[i]]
         return self(tuple(variables))
 
@@ -1130,7 +1129,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 return R(self)
 
         if not self.is_univariate():
-            raise TypeError, "polynomial must involve at most one variable"
+            raise TypeError("polynomial must involve at most one variable")
 
         #construct ring if None
         if R is None:
@@ -1406,7 +1405,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
-        if type(self) is not type(right) or self.parent() is not right.parent():
+        if not isinstance(self, type(right)) or self.parent() is not right.parent():
             self, right = canonical_coercion(self, right)
             return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
@@ -1609,7 +1608,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         # raise error if trying to factor zero
         if self == 0:
-            raise ArithmeticError, "Prime factorization of 0 not defined."
+            raise ArithmeticError("Prime factorization of 0 not defined.")
 
         # if number of variables is zero ...
         if R.ngens() == 0:
@@ -1630,17 +1629,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         base_ring = self.base_ring()
         if base_ring.is_finite():
             if base_ring.characteristic() > 1<<29:
-                raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+                raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
         if proof:
-            raise NotImplementedError, "proof = True factorization not implemented.  Call factor with proof=False."
+            raise NotImplementedError("proof = True factorization not implemented.  Call factor with proof=False.")
 
         R._singular_().set_ring()
         S = self._singular_().factorize()
         factors = S[1]
         exponents = S[2]
-        v = [(R(factors[i+1]), sage.rings.integer.Integer(exponents[i+1])) \
-                        for i in range(len(factors))]
-        v.sort()
+        v = sorted([(R(factors[i+1]), sage.rings.integer.Integer(exponents[i+1])) \
+                        for i in range(len(factors))])
         unit = R(1)
         for i in range(len(v)):
             if v[i][0].is_unit():
@@ -1675,7 +1673,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         try:
             M = Is.lift(fs)._sage_(P)
         except TypeError:
-            raise ArithmeticError, "f is not in I"
+            raise ArithmeticError("f is not in I")
         return Sequence(M.list(), P, check=False, immutable=True)
 
     #def gcd(self, f):
@@ -1725,7 +1723,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         ALGORITHM: Use Singular.
         """
-        if type(self) is not type(right) or self.parent() is not right.parent():
+        if not isinstance(self, type(right)) or self.parent() is not right.parent():
             self, right = canonical_coercion(self, right)
             return self.quo_rem(right)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         R = self.parent()
@@ -1790,7 +1788,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             I = I.gens()
 
         if not k.is_field():
-            raise TypeError, "Can only reduce polynomials over fields."
+            raise TypeError("Can only reduce polynomials over fields.")
 
         try:
             fs = self._singular_()

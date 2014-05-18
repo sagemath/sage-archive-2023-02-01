@@ -179,7 +179,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         from constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
-            raise ArithmeticError, "q must be a prime power"
+            raise ArithmeticError("q must be a prime power")
         from sage.structure.proof.all import arithmetic
         proof = arithmetic()
         if proof:
@@ -188,12 +188,12 @@ class FiniteField_ext_pari(FiniteField_generic):
             from sage.rings.arith import is_pseudoprime_small_power
             F = is_pseudoprime_small_power(q, get_data=True)
         if len(F) != 1:
-            raise ArithmeticError, "q must be a prime power"
+            raise ArithmeticError("q must be a prime power")
 
         if F[0][1] > 1:
             base_ring = GF(F[0][0])
         else:
-            raise ValueError, "The size of the finite field must not be prime."
+            raise ValueError("The size of the finite field must not be prime.")
             #base_ring = self
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
@@ -521,14 +521,14 @@ class FiniteField_ext_pari(FiniteField_generic):
                 return element_ext_pari.FiniteField_ext_pariElement(self, x)
             else:
                 # This is where we *would* do coercion from one finite field to another...
-                raise TypeError, "no coercion defined"
+                raise TypeError("no coercion defined")
 
         elif sage.interfaces.gap.is_GapElement(x):
             from sage.interfaces.gap import gfq_gap_to_sage
             try:
                 return gfq_gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
-                raise TypeError, "no coercion defined"
+                raise TypeError("no coercion defined")
 
         if isinstance(x, (int, long, integer.Integer, rational.Rational,
                           pari.pari_gen, list)):
@@ -539,7 +539,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             if x.is_constant():
                 return self(x.constant_coefficient())
             else:
-                raise TypeError, "no coercion defined"
+                raise TypeError("no coercion defined")
 
         elif isinstance(x, polynomial_element.Polynomial):
             if x.is_constant():
@@ -557,7 +557,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                     return self(x)
             if t[2] == 'I': #t_INT and t_INTMOD
                 return self(x)
-            raise TypeError, "string element does not match this finite field"
+            raise TypeError("string element does not match this finite field")
 
         try:
             if x.parent() == self.vector_space():
@@ -567,8 +567,8 @@ class FiniteField_ext_pari(FiniteField_generic):
             pass
         try:
             return element_ext_pari.FiniteField_ext_pariElement(self, integer.Integer(x))
-        except TypeError, msg:
-            raise TypeError, "%s\nno coercion defined"%msg
+        except TypeError as msg:
+            raise TypeError("%s\nno coercion defined"%msg)
 
     def __len__(self):
         """

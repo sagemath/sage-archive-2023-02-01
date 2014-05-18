@@ -119,6 +119,7 @@ Categories
    sage/categories/pointed_sets
    sage/categories/principal_ideal_domains
    sage/categories/quotient_fields
+   sage/categories/regular_crystals
    sage/categories/right_modules
    sage/categories/ring_ideals
    sage/categories/rings

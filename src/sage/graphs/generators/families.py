@@ -2184,8 +2184,9 @@ def AffinePolarGraph(d,q,sign="+"):
     Note that `VO^+(d,q),VO^-(d,q)` are strongly regular graphs, while `VO(d,q)`
     is not.
 
-    For more information on Affine Polar graphs, see the corresponding `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
+    For more information on Affine Polar graphs, see `Affine Polar
+    Graph page of Andries Brouwer's website
+    <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
 
     INPUT:
 
@@ -2197,6 +2198,12 @@ def AffinePolarGraph(d,q,sign="+"):
     - ``sign`` -- must be qual to ``"+"``, ``"-"``, or ``None`` to compute
       (respectively) `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`. By default
       ``sign="+"``.
+
+    .. NOTE::
+
+        The graph `VO^\epsilon(d,q)` is the graph induced by the
+        non-neighbors of a vertex in an :meth:`Orthogonal Polar Graph
+        <OrthogonalPolarGraph>` `O^\epsilon(d+2,q)`.
 
     EXAMPLES:
 
@@ -2296,7 +2303,6 @@ def OrthogonalPolarGraph(m, q, sign="+"):
         Traceback (most recent call last):
         ...
         ValueError: sign must be equal to either '-' or '+' when m is even
-
         sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
         Traceback (most recent call last):
         ...

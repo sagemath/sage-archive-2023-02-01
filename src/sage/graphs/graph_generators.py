@@ -175,7 +175,8 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["BalancedTree",
+    ["AffinePolarGraph",
+     "BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
      "CirculantGraph",
@@ -1345,6 +1346,7 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    AffinePolarGraph       = staticmethod(sage.graphs.generators.families.AffinePolarGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)

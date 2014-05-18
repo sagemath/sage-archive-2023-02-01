@@ -4048,10 +4048,10 @@ class GenericGraph(GenericGraph_pyx):
                     faces = len(self.faces(self._embedding))
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
-                return (2-verts+edges-faces)//2
+                return (2-verts+edges-faces) // 2
             else: # compute genus on the provided dict
                 faces = len(self.faces(on_embedding))
-                return (2-verts+edges-faces)//2
+                return (2-verts+edges-faces) // 2
         else: # then compute either maximal or minimal genus of all embeddings
             import genus
 
@@ -12849,7 +12849,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.is_directed():
             from sage.graphs.digraph_generators import digraphs
-            return self.subgraph_search_count(digraphs.Circuit(3))//3
+            return self.subgraph_search_count(digraphs.Circuit(3)) // 3
 
         else:
             if algorithm=='iter':
@@ -12861,7 +12861,7 @@ class GenericGraph(GenericGraph_pyx):
                 return tr//3
 
             elif algorithm=='matrix':
-                return (self.adjacency_matrix()**3).trace()//6
+                return (self.adjacency_matrix()**3).trace() // 6
 
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))

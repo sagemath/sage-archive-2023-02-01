@@ -784,7 +784,7 @@ def adem(a, b, c=0, p=2):
         elif a == 0: return {(b,): 1}
         elif a >= 2*b: return {(a,b): 1}
         result = {}
-        for c in range(1+a//2):
+        for c in range(1 + a//2):
             if binomial_mod2(b-c-1, a-2*c) == 1:
                 if c == 0:
                     result[(a+b,)] = 1

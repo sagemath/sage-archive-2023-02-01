@@ -2196,7 +2196,7 @@ class CategoryWithAxiom(Category):
 
         .. SEEALSO:: :meth:`Category.is_structure_category`.
 
-        EXAMPLES::
+        EXAMPLES:
 
         By default a category with axiom does not define new
         structure::

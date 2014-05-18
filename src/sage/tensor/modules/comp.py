@@ -614,13 +614,13 @@ class Components(SageObject):
             no_format = True
             if isinstance(args[0], slice):
                 indices = args[0]
-            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+            elif isinstance(args[0], (tuple, list)): # to ensure equivalence between
                 indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
             else:
                 indices = tuple(args)
         else:
             # Determining from the input the list of indices and the format
-            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+            if isinstance(args, (int, Integer, slice)):
                 indices = args
             elif isinstance(args[0], slice):
                 indices = args[0]
@@ -736,13 +736,13 @@ class Components(SageObject):
         if isinstance(args, list):  # case of [[...]] syntax
             if isinstance(args[0], slice):
                 indices = args[0]
-            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+            elif isinstance(args[0], (tuple, list)): # to ensure equivalence between
                 indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
             else:
                 indices = tuple(args)
         else:
             # Determining from the input the list of indices and the format
-            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+            if isinstance(args, (int, Integer, slice)):
                 indices = args
             elif isinstance(args[0], slice):
                 indices = args[0]
@@ -967,7 +967,7 @@ class Components(SageObject):
 
     def __ne__(self, other):
         r"""
-        Inequality operator. 
+        Non-equality operator. 
         
         INPUT:
         
@@ -1312,7 +1312,10 @@ class Components(SageObject):
         if pos2 < 0 or pos2 > other.nid - 1:
             raise IndexError("pos2 out of range.")
         return (self*other).self_contract(pos1, 
-                                          pos2+self.nid) #!# correct but not optimal
+                                          pos2+self.nid) 
+        #!# the above is correct (in particular the symmetries are delt by 
+        #   self_contract()), but it is not optimal (unnecessary terms are 
+        #   evaluated when performing the tensor product self*other)
 
     def index_generator(self):
         r"""
@@ -2069,13 +2072,13 @@ class CompWithSym(Components):
             no_format = True
             if isinstance(args[0], slice):
                 indices = args[0]
-            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+            elif isinstance(args[0], (tuple, list)): # to ensure equivalence between
                 indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
             else:
                 indices = tuple(args)
         else:
             # Determining from the input the list of indices and the format
-            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+            if isinstance(args, (int, Integer, slice)):
                 indices = args
             elif isinstance(args[0], slice):
                 indices = args[0]
@@ -2133,13 +2136,13 @@ class CompWithSym(Components):
         if isinstance(args, list):  # case of [[...]] syntax
             if isinstance(args[0], slice):
                 indices = args[0]
-            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+            elif isinstance(args[0], (tuple, list)): # to ensure equivalence between
                 indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
             else:
                 indices = tuple(args)
         else:
             # Determining from the input the list of indices and the format
-            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+            if isinstance(args, (int, Integer, slice)):
                 indices = args
             elif isinstance(args[0], slice):
                 indices = args[0]
@@ -2359,7 +2362,7 @@ class CompWithSym(Components):
 
     def self_contract(self, pos1, pos2):
         r""" 
-        Index contraction, , taking care of the symmetries.
+        Index contraction, taking care of the symmetries.
         
         INPUT:
             
@@ -2556,7 +2559,7 @@ class CompWithSym(Components):
                                      self.sindex, self.output_formatter, 
                                      sym=sym_res, antisym=antisym_res)
             # The contraction itself:
-            for ind_res in result.index_generator():
+            for ind_res in result.non_redundant_index_generator():
                 ind = list(ind_res)
                 ind.insert(pos1, 0)
                 ind.insert(pos2, 0)
@@ -3410,13 +3413,13 @@ class CompFullySym(CompWithSym):
             no_format = True
             if isinstance(args[0], slice):
                 indices = args[0]
-            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+            elif isinstance(args[0], (tuple, list)): # to ensure equivalence between
                 indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
             else:
                 indices = tuple(args)
         else:
             # Determining from the input the list of indices and the format
-            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+            if isinstance(args, (int, Integer, slice)):
                 indices = args
             elif isinstance(args[0], slice):
                 indices = args[0]
@@ -3463,13 +3466,13 @@ class CompFullySym(CompWithSym):
         if isinstance(args, list):  # case of [[...]] syntax
             if isinstance(args[0], slice):
                 indices = args[0]
-            elif isinstance(args[0], tuple) or isinstance(args[0], list): # to ensure equivalence between
+            elif isinstance(args[0], (tuple, list)): # to ensure equivalence between
                 indices = args[0]           # [[(i,j,...)]] or [[[i,j,...]]] and [[i,j,...]]
             else:
                 indices = tuple(args)
         else:
             # Determining from the input the list of indices and the format
-            if isinstance(args, (int, Integer)) or isinstance(args, slice):
+            if isinstance(args, (int, Integer, slice)):
                 indices = args
             elif isinstance(args[0], slice):
                 indices = args[0]

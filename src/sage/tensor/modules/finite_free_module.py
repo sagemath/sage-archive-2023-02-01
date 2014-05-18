@@ -398,7 +398,7 @@ class FiniteFreeModule(UniqueRepresentation, Module):
         self.output_formatter = output_formatter
         # Dictionary of the tensor modules built on self 
         #   (dict. keys = (k,l) --the tensor type)
-        self._tensor_modules = {(1,0): self} # self is considered as the sets of
+        self._tensor_modules = {(1,0): self} # self is considered as the set of
                                             # tensors of type (1,0)
         self.known_bases = []  # List of known bases on the free module
         self.def_basis = None # default basis

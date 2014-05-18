@@ -414,6 +414,7 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         FreeModuleAutomorphism.__init__(self, fmodule, name=name, 
                                         latex_name=latex_name)
         self._inverse = self    # the identity is its own inverse
+        self.comp() # Initializing the components in the module's default basis
 
     def _repr_(self):
         r"""
@@ -458,7 +459,7 @@ class FreeModuleIdentityMap(FreeModuleAutomorphism):
         
         - ``basis`` -- (default: None) module basis in which the components 
           are required; if none is provided, the components are assumed to 
-          refer to the domain's default basis
+          refer to the module's default basis
  
         OUTPUT: 
         

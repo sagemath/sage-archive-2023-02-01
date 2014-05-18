@@ -146,6 +146,25 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
         return FreeModuleCoBasis(self, self.symbol, 
                                                 latex_symbol=self.latex_symbol)
 
+    def _new_instance(self, symbol, latex_symbol=None):
+        r"""
+        Construct a new basis on the same module as ``self``. 
+        
+        INPUT:
+        
+        - ``symbol`` -- (string) a letter (of a few letters) to denote a
+          generic element of the basis
+        - ``latex_symbol`` -- (string; default: None) symbol to denote a 
+          generic element of the basis; if None, the value of ``symbol`` is 
+          used. 
+
+        OUTPUT:
+        
+        - instance of :class:`FreeModuleBasis`
+                
+        """
+        return FreeModuleBasis(self.fmodule, symbol, latex_symbol=latex_symbol)
+        
     ###### End of methods to be redefined by derived classes ######
 
 
@@ -202,9 +221,15 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
 
     def __eq__(self, other):
         r"""
-        Comparison operator
+        Equality (comparison) operator
         """
         return other is self
+
+    def __ne__(self, other):
+        r"""
+        Non-equality operator.
+        """
+        return not self.__eq__(other)
         
     def __getitem__(self, index):
         r"""
@@ -278,9 +303,9 @@ class FreeModuleBasis(UniqueRepresentation, SageObject):
             raise TypeError("The argument change_of_basis must be some " +
                             "instance of FreeModuleAutomorphism.")
         fmodule = self.fmodule
-        # self.__class__ is used instead of FreeModuleBasis for a correct
+        # self._new_instance used instead of FreeModuleBasis for a correct
         # construction in case of derived classes:
-        the_new_basis = self.__class__(fmodule, symbol, latex_symbol)
+        the_new_basis = self._new_instance(symbol, latex_symbol=latex_symbol)
         transf = change_of_basis.copy()
         inv_transf = change_of_basis.inverse().copy()
         si = fmodule.sindex

@@ -79,7 +79,16 @@ EXAMPLES:
         sage: t.view(e)  # expansion of t on the basis e_i*e^j of T^(1,1)(M) 
         t = -3 e_0*e^0
 
-    Since e is M's default basis, shorcuts for the above writings are::
+    The commands t.set_comp(e) and t.comp(e) can be abridged by providing 
+    the basis as the first argument in the square brackets::
+    
+        sage: t[e,0,0] = -3
+        sage: t[e,:]
+        [-3  0  0]
+        [ 0  0  0]
+        [ 0  0  0]
+
+    Actually, since e is M's default basis, the mention of e can be omitted::
     
         sage: t[0,0] = -3
         sage: t[:]
@@ -159,9 +168,6 @@ EXAMPLES:
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement  
-#!# or from sage.structure.element import Element
-# to avoid arithmetics defined in ModuleElement ??
-
 from comp import Components, CompWithSym, CompFullySym, CompFullyAntiSym
 
 class FreeModuleTensor(ModuleElement):
@@ -851,32 +857,73 @@ class FreeModuleTensor(ModuleElement):
         for other_basis in to_be_deleted:
             del self.components[other_basis]
 
-    def __getitem__(self, indices):
+    def __getitem__(self, args):
         r"""
-        Return a component w.r.t. the free module's default basis.
+        Return a component w.r.t. some basis.
 
         INPUT:
         
-        - ``indices`` -- list of indices defining the component
+        - ``args`` -- list of indices defining the component; if [:] is 
+          provided, all the components are returned. The basis can be passed
+          as the first item of ``args``; if not, the free module's default 
+          basis is assumed. 
     
         """
-        return self.comp()[indices]
-        
-    def __setitem__(self, indices, value):
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], (int, Integer, slice)):
+                basis = self.fmodule.def_basis
+            else:
+                basis = args[0]
+                args = args[1:]
+        else:
+            if isinstance(args, (int, Integer, slice)):
+                basis = self.fmodule.def_basis
+            elif not isinstance(args[0], (int, Integer, slice)):
+                basis = args[0]
+                args = args[1:]
+                if len(args)==1:
+                    args = args[0]  # to accommodate for [e,:] syntax 
+            else:
+                basis = self.fmodule.def_basis
+        return self.comp(basis)[args]
+
+       
+    def __setitem__(self, args, value):
         r"""
-        Set a component w.r.t. the free module's default basis.
+        Set a component w.r.t. some basis.
 
         INPUT:
-        
-        - ``indices`` -- list of indices defining the component
-    
+
+        - ``args`` -- list of indices defining the component; if [:] is 
+          provided, all the components are set. The basis can be passed
+          as the first item of ``args``; if not, the free module's default 
+          basis is assumed. 
+        - ``value`` -- the value to be set or a list of values if ``args``
+          == ``[:]``
+   
         """        
-        self.set_comp()[indices] = value
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], (int, Integer, slice, tuple)):
+                basis = self.fmodule.def_basis
+            else:
+                basis = args[0]
+                args = args[1:]
+        else:
+            if isinstance(args, (int, Integer, slice)):
+                basis = self.fmodule.def_basis
+            elif not isinstance(args[0], (int, Integer, slice)):
+                basis = args[0]
+                args = args[1:]
+                if len(args)==1:
+                    args = args[0]  # to accommodate for [e,:] syntax 
+            else:
+                basis = self.fmodule.def_basis
+        self.set_comp(basis)[args] = value
 
 
     def copy(self):
         r"""
-        Returns an exact copy of ``self``.
+        Return an exact copy of ``self``.
         
         The name and the derived quantities are not copied. 
         
@@ -1152,12 +1199,10 @@ class FreeModuleTensor(ModuleElement):
         - the tensor resulting from the addition of ``self`` and ``other``
         
         """
+        # No need for consistency check since self and other are guaranted
+        # to belong to the same tensor module
         if other == 0:
             return +self
-        if not isinstance(other, FreeModuleTensor):
-            raise TypeError("For the addition, other must be a tensor.")
-        if other.tensor_type != self.tensor_type:
-            raise TypeError("The two tensors are not of the same type.")
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("No common basis for the addition.")
@@ -1182,12 +1227,10 @@ class FreeModuleTensor(ModuleElement):
         - the tensor resulting from the subtraction of ``other`` from ``self``
         
         """
+        # No need for consistency check since self and other are guaranted
+        # to belong to the same tensor module
         if other == 0:
             return +self
-        if not isinstance(other, FreeModuleTensor):
-            raise TypeError("For the subtraction, other must be a tensor.")
-        if other.tensor_type != self.tensor_type:
-            raise TypeError("The two tensors are not of the same type.")
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("No common basis for the subtraction.")
@@ -1204,6 +1247,7 @@ class FreeModuleTensor(ModuleElement):
         Multiplication on the left by ``other``. 
         
         """
+        #!# The following test is probably not necessary:
         if isinstance(other, FreeModuleTensor):
             raise NotImplementedError("Left tensor product not implemented.")
         # Left multiplication by a scalar: 
@@ -1218,12 +1262,16 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Addition on the left with ``other``. 
         
+        This allows to write "0 + t", where "t" is a tensor
+        
         """
         return self.__add__(other)
 
     def __rsub__(self, other):
         r"""
         Subtraction from ``other``. 
+
+        This allows to write "0 - t", where "t" is a tensor
         
         """
         return (-self).__add__(other)
@@ -1574,14 +1622,14 @@ class FreeModuleTensor(ModuleElement):
         
             sage: A = M.automorphism()
             sage: A[:] =  [[0,0,1], [1,0,0], [0,-1,0]]
-            sage: f = e.new_basis(A, 'f')
-            sage: b.comp(f)[:]  # forces the computation of b's components w.r.t. basis f
+            sage: h = e.new_basis(A, 'h')
+            sage: b.comp(h)[:]  # forces the computation of b's components w.r.t. basis h
             [-2 -3  0]
             [ 7  6 -4]
             [ 3 -1 -2]
-            sage: b.del_other_comp(f)  # deletes components w.r.t. basis e
+            sage: b.del_other_comp(h)  # deletes components w.r.t. basis e
             sage: b.components.keys()  # indeed:
-            [basis (f_0,f_1,f_2) on the rank-3 free module M over the Integer Ring]
+            [basis (h_0,h_1,h_2) on the rank-3 free module M over the Integer Ring]
             sage: a.components.keys()  # while a is known only in basis e:
             [basis (e_0,e_1,e_2) on the rank-3 free module M over the Integer Ring]
             sage: s1 = a.contract(1, b, 1) ; s1  # yet the computation is possible

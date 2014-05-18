@@ -2193,12 +2193,10 @@ def OrthogonalPolarGraph(m, q, sign="+"):
         Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
         sage: G.is_strongly_regular(parameters=True)
         (130, 48, 20, 16)
-
         sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
         Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
         sage: G.is_strongly_regular(parameters=True)
         (112, 30, 2, 10)
-
         sage: G = graphs.OrthogonalPolarGraph(5,3); G
         Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
         sage: G.is_strongly_regular(parameters=True)

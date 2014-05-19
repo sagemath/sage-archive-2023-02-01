@@ -5406,8 +5406,8 @@ class Automaton(FiniteStateMachine):
             ....:                (1, 0, -1), (2, 0, -2), (3, 0, -3)],
             ....:               initial_states=[0], final_states=[0, 1, 2, 3])
             sage: B = A.determinisation().relabeled()
-            sage: all(filter(lambda t:t.to_state.label == 2,
-            ....:            B.state(2).transitions))
+            sage: all(t.to_state.label() == 2 for t in
+            ....:     B.state(2).transitions)
             True
             sage: B.state(2).is_final
             False

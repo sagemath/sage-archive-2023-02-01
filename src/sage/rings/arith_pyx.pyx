@@ -22,7 +22,7 @@ import integer
 
 zero = integer.smallInteger(0)
 
-cdef int two_squares_c(unsigned int n, unsigned int *res):
+cdef int two_squares_c(unsigned int n, unsigned int res[2]):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
@@ -53,9 +53,9 @@ cdef int two_squares_c(unsigned int n, unsigned int *res):
     # if n=2 mod 4 then i and j must be odd
     if n%4 == 1:
         i = ii = 0
-        j = <unsigned int> sqrt(n) + 1
+        j = <unsigned int> sqrt(<double> n + .5)
         jj = j*j
-        while ii <= n/2:
+        while ii <= jj:
             nn = n - ii
             while jj > nn:
                 j -= 1
@@ -73,7 +73,7 @@ cdef int two_squares_c(unsigned int n, unsigned int *res):
         j = <unsigned int> sqrt(n)
         j += 1 - j%2
         jj = j*j
-        while ii <= n/2:
+        while ii <= jj:
             nn = n - ii
             while jj > nn:
                 j -= 2
@@ -89,13 +89,12 @@ cdef int two_squares_c(unsigned int n, unsigned int *res):
 
     return 0
 
-
-cdef int three_squares_c(unsigned int n, unsigned int *res):
+cdef int three_squares_c(unsigned int n, unsigned int res[3]):
     r"""
     Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
 
     If ``1`` is returned, the the value of ``res[0]``, ``res[1]`` and ``res[2]``
-    are set to the lexicographically smallest solution of `a^2 + b^2 + c^2 = n`.
+    are set to a solution of `a^2 + b^2 + c^2 = n` such that `a \leq b \leq c`.
     """
     cdef unsigned int i,fac
     cdef unsigned int j[2]
@@ -117,17 +116,17 @@ cdef int three_squares_c(unsigned int n, unsigned int *res):
     if n%8 == 7:
         return 0
 
-    i = 0
+    i = <unsigned int> sqrt(<double>n + .5)  # rounding is toward zero and hence
+                                             # i^2 <= n
     while not two_squares_c(n-i*i, j):
-        i += 1
+        i -= 1
 
-    res[0] = i<<fac; res[1] = (j[0])<<fac; res[2] = (j[1])<<fac
+    res[0] = (j[0])<<fac; res[1] = (j[1])<<fac; res[2] = i<<fac
     return 1
 
 def two_squares_pyx(unsigned int n):
     r"""
-    Return the lexicographically smallest pair of non-negative integers
-    ``(i,j)`` such that `i^2 + j^2 = n`.
+    Return a pair of non-negative integers ``(i,j)`` such that `i^2 + j^2 = n`.
 
     If ``n`` is not a sum of two squares, a ``ValueError`` is raised.
 
@@ -141,7 +140,7 @@ def two_squares_pyx(unsigned int n):
 
     .. SEEALSO::
 
-        :func:`~sage.arith.two_squares` is much more suited for large inputs
+        :func:`~sage.rings.arith.two_squares` is much more suited for large inputs
 
     EXAMPLES::
 
@@ -158,6 +157,13 @@ def two_squares_pyx(unsigned int n):
         ValueError: 3 is not a sum of 2 squares
         sage: two_squares_pyx(106)
         (5, 9)
+
+    TESTS::
+
+        sage: s = lambda (x,y) : x**2 + y**2
+        sage: for ij in Subsets(Subsets(45000,15).random_element(),2):
+        ....:     if s(two_squares_pyx(s(ij))) != s(ij):
+        ....:         print "hey"
     """
     cdef unsigned int i[2]
 
@@ -169,7 +175,7 @@ def two_squares_pyx(unsigned int n):
 def three_squares_pyx(unsigned int n):
     r"""
     If ``n`` is a sum of three squares return a 3-tuple ``(i,j,k)`` of Sage integers
-    so that `i^2 + j^2 + k^2 = n`. Otherwise raise a ``ValueError``.
+    so that `i^2 + j^2 + k^2 = n` and `i \leq j \leq k`. Otherwise raise a ``ValueError``.
 
     .. NOTE::
 
@@ -177,10 +183,6 @@ def three_squares_pyx(unsigned int n):
         values of ``n``. For that reason, the input must fit into an ``unsigned
         int`` (whose limit might be  `2^{32}-1=4294967295` or
         `2^{64}-1=18446744073709551615` depending on your plateform).
-
-    .. SEEALSO::
-
-        :func:`~sage.arith.three_squares` is much more suited for large input
 
     EXAMPLES::
 
@@ -205,6 +207,13 @@ def three_squares_pyx(unsigned int n):
         ValueError: 7 is not a sum of 3 squares
         sage: three_squares_pyx(107)
         (1, 5, 9)
+
+    TESTS::
+
+        sage: s = lambda (x,y,z) : x**2 + y**2 + z**2
+        sage: for ijk in Subsets(Subsets(35000,15).random_element(),3):
+        ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
+        ....:         print "hey"
     """
     cdef unsigned int i[3]
 
@@ -216,7 +225,7 @@ def three_squares_pyx(unsigned int n):
 def four_squares_pyx(unsigned int n):
     r"""
     Return a 4-tuple of non-negative integers ``(i,j,k,l)`` such that `i^2 + j^2
-    + k^2 + l^2 = n`.
+    + k^2 + l^2 = n` and `i \leq j \leq k \leq l`.
 
     .. NOTE::
 
@@ -227,41 +236,44 @@ def four_squares_pyx(unsigned int n):
 
     .. SEEALSO::
 
-        :func:`~sage.arith.four_squares` is much more suited for large input
+        :func:`~sage.rings.arith.four_squares` is much more suited for large input
 
     EXAMPLES::
 
         sage: from sage.rings.arith_pyx import four_squares_pyx
         sage: four_squares_pyx(15447)
-        (1, 11, 14, 123)
-        sage: 1^2 + 11^2 + 14^2 + 123^2
+        (2, 5, 17, 123)
+        sage: 2^2 + 5^2 + 17^2 + 123^2
         15447
 
         sage: four_squares_pyx(523439)
-        (1, 15, 22, 723)
-        sage: 1^2 + 15^2 + 22^2 + 723^2
+        (3, 5, 26, 723)
+        sage: 3^2 + 5^2 + 26^2 + 723^2
         523439
 
     TESTS::
 
-        sage: all(sum(i**2 for i in four_squares_pyx(n)) == n for n in xrange(500,1000))
+        sage: s = lambda (x,y,z,t): x**2 + y**2 + z**2 + t**2
+        sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
         True
     """
     cdef unsigned int i[3]
-    cdef unsigned int j, nn
+    cdef unsigned int fac,j, nn
 
     if n == 0:
         return (zero, zero, zero, zero)
 
+    # division by power of 4
+    fac = 0
+    while n%4 == 0:
+        n >>= 2
+        fac += 1
+
     # we pick the largest square we can for j
-    j = (<unsigned int> sqrt(<double> n)) + 1
-    while j*j > n:
+    j = <unsigned int> sqrt(<double> n + .5)  # rounding is toward zero and
+                                              # hence j^2 <= n
+    while not three_squares_c(n-j*j, i):
         j -= 1
 
-    nn = n - j*j
-    while not three_squares_c(nn, i):
-        j = j-1
-        nn = n - j*j
-
-    return (integer.smallInteger(i[0]), integer.smallInteger(i[1]),
-            integer.smallInteger(i[2]), integer.smallInteger(j))
+    return (integer.smallInteger((i[0])<<fac), integer.smallInteger((i[1])<<fac),
+            integer.smallInteger((i[2])<<fac), integer.smallInteger(j<<fac))

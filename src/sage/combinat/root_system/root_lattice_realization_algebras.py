@@ -414,7 +414,7 @@ class Algebras(AlgebrasCategory):
             The names dominant and antidominant for the conventions were chosen with regards to
             the nonsymmetric Macdonald polynomials. The `Y` operators for the Macdonald polynomials
             in the "dominant" convention satisfy `Y_\lambda = T_{t_{\lambda}}` for `\lambda` dominant.
-            This is also the convention used in [Haiman_ICM]_. For the "antidominant" convention,
+            This is also the convention used in [Haiman06]_. For the "antidominant" convention,
             `Y_\lambda = T_{t_{\lambda}}` with `\lambda` antidominant.
 
             .. SEEALSO::
@@ -747,11 +747,11 @@ class Algebras(AlgebrasCategory):
             r"""
             Return the `T_0^\vee` operator acting on the basis.
 
-            This implements the formula for `T_{0'}` in Section 6.12 of [Haiman_ICM]_.
+            This implements the formula for `T_{0'}` in Section 6.12 of [Haiman06]_.
 
             REFERENCES:
 
-            .. [Haiman_ICM] M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics, ICM 2006.
+            .. [Haiman06] M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics, ICM 2006.
 
             .. WARNING::
 

@@ -84,7 +84,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
     By setting `q_1=t`, `q_2=-1` and using the
     :meth:`.root_lattice_realization_algebras.Algebras.ElementMethods.expand`
     method, we recover the nonsymmetric Macdonald polynomial as
-    computed by [Haglund_Haiman_Loehr_2006]_'s combinatorial formula::
+    computed by [HHL06]_'s combinatorial formula::
 
         sage: K = QQ['q,t'].fraction_field()
         sage: q,t = K.gens()
@@ -346,11 +346,11 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
        Proceedings of the International Congress of Mathematicians,
        Madrid 2006, Vol. III, 843-872.
 
-    .. [Haglund_Haiman_Loehr_2006] J. Haglund, M. Haiman and N. Loehr,
+    .. [HHL06] J. Haglund, M. Haiman and N. Loehr,
        A combinatorial formula for nonsymmetric Macdonald polynomials,
        Amer. J. Math. 130, No. 2 (2008), 359-383.
 
-    .. [LNSSS_2012] C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
+    .. [LNSSS12] C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
        A uniform model for Kirillov-Reshetikhin crystals I: Lifting
        the parabolic quantum Bruhat graph, preprint arXiv.1211.2042
        [math.QA]
@@ -377,7 +377,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     In type `A`, there is also a combinatorial implementation of the
     nonsymmetric Macdonald polynomials in terms of augmented diagram
-    fillings as in [Haglund_Haiman_Loehr_2006]_. See
+    fillings as in [HHL06]_. See
     :func:`sage.combinat.sf.ns_macdonald.E`.  First we check that
     these polynomials are indeed eigenvectors of the Cherednik
     operators::
@@ -446,7 +446,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E[L0([0,-2])]
         ((-q*t+q)/(-q*t+1))*B[(-1, -1)] + B[(0, -2)]
 
-    Systematic checks with Sage's implementation of [Haglund_Haiman_Loehr_2006]_::
+    Systematic checks with Sage's implementation of [HHL06]_::
 
         sage: assert all(EE([x,y]) == NS.E([x,y]) for d in range(5) for x,y in IntegerVectors(d,2))
 
@@ -578,7 +578,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
     Next we test that the nonsymmetric Macdonald polynomials at `t=0`
     match with the one-dimensional configuration sums involving
     Kirillov-Reshetikhin crystals for various types. See
-    [LNSSS_2012]_::
+    [LNSSS12]_::
 
         sage: K = QQ['q,t'].fraction_field()
         sage: q,t = K.gens()
@@ -937,7 +937,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         AssertionError
 
     We proceed by comparing against the examples from the appendix of
-    [Haglund_Haiman_Loehr_2006]_ in type `A_2^{(1)}`::
+    [HHL06]_ in type `A_2^{(1)}`::
 
         sage: K = QQ['q','t'].fraction_field()
         sage: q,t = K.gens()
@@ -968,8 +968,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: EE([0,2,0])
         ((-t + 1)/(-q^2*t^2 + 1))*x1^2 + ((-q^2*t^3 + q^2*t^2 - q*t^2 + 2*q*t - q + t - 1)/(-q^3*t^3 + q^2*t^2 + q*t - 1))*x1*x2 + x2^2 + ((q*t^2 - 2*q*t + q)/(q^3*t^3 - q^2*t^2 - q*t + 1))*x1*x3 + ((-q*t + q)/(-q*t + 1))*x2*x3
 
-    Systematic checks with Sage's implementation of
-    [Haglund_Haiman_Loehr_2006]_::
+    Systematic checks with Sage's implementation of [HHL06]_::
 
         sage: import sage.combinat.sf.ns_macdonald as NS
         sage: assert all(EE([x,y,z]) == NS.E([x,y,z]) for d in range(5) for x,y,z in IntegerVectors(d,3)) # long time (9s)
@@ -1637,7 +1636,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
             - This method is only really needed for
               `\lambda^\vee=\alpha^\vee_i` with `i=0,...,n`.
 
-        See Corollary 6.11 of [Haiman_ICM]_.
+        See Corollary 6.11 of [Haiman06]_.
 
         EXAMPLES::
 
@@ -1702,11 +1701,11 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
             1/(q*t^2)
 
         The expected value can more or less be read off from equation
-        (37), Corollary 6.15 of [Haiman_ICM]_
+        (37), Corollary 6.15 of [Haiman06]_
 
         .. TODO::
 
-            - Use proposition 6.9 of [Haiman_ICM]_ to check the action
+            - Use proposition 6.9 of [Haiman06]_ to check the action
               of the `Y` s on monomials.
 
             - Generalize to any `q_1`, `q_2`.
@@ -1723,7 +1722,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         assert L0.is_parent_of(mu)
         # Should we view mu as a translation, and ask for its alcove walk?
         muaff = self.affine_lift(mu) # embeds mu at level 1 in L_prime
-        w = reversed(mu.reduced_word(I0, positive=False)) # the reduced word for w_\mu, Prop. 6.9 of [Haiman_ICM]_
+        w = reversed(mu.reduced_word(I0, positive=False)) # the reduced word for w_\mu, Prop. 6.9 of [Haiman06]_
         # mu should be scaled to make sure it implements a translation
         #w = reversed(L.reduced_word_of_translation(L(mu)))
         #x = L.embed_at_level(L0.rho(),1)

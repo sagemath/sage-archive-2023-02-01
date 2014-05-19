@@ -2068,7 +2068,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
-            x^3 + x + 1
+            -1
 
 
         EXAMPLE: Multivariate polynomials

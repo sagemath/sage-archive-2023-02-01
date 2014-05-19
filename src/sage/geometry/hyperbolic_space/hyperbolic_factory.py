@@ -1,7 +1,10 @@
 r"""
-AUTHORS:
-- Greg Laun (2013): initial version
+Hyerbolic Factory
 
+AUTHORS:
+
+- Greg Laun (2013): initial version
+"""
 
 #***********************************************************************
 #       Copyright (C) 2013 Greg Laun <glaun@math.umd.edu>
@@ -11,42 +14,37 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
-"""
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.functions.other','sqrt')
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModel')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPoint')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPoint')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometry')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesic')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model',
+            ['HyperbolicModel', 'HyperbolicModelUHP', 'HyperbolicModelPD',
+             'HyperbolicModelKM', 'HyperbolicModelHM', 'HyperbolicBdryPointHM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicUHP')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point',
+            ['HyperbolicPoint', 'HyperbolicPointUHP', 'HyperbolicPointPD',
+             'HyperbolicPointKM', 'HyperbolicPointHM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicPD')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point',
+            ['HyperbolicBdryPoint', 'HyperbolicBdryPointUHP',
+             'HyperbolicBdryPointPD', 'HyperbolicBdryPointKM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelKM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointKM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointKM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryKM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry',
+            ['HyperbolicIsometry', 'HyperbolicIsometryUHP',
+             'HyperbolicIsometryPD', 'HyperbolicIsometryKM',
+             'HyperbolicIsometryHM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicHM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic',
+            ['HyperbolicGeodesic', 'HyperbolicGeodesicUHP',
+             'HyperbolicGeodesicPD', 'HyperbolicGeodesicKM',
+             'HyperbolicGeodesicHM'])
 
-class HyperbolicAbstractFactory (UniqueRepresentation):
+class HyperbolicAbstractFactory(UniqueRepresentation):
+    """
+    Abstract factory for creating the hyperbolic models.
+    """
     HModel = HyperbolicModel
     HPoint = HyperbolicPoint
     HBdryPoint = HyperbolicBdryPoint
@@ -72,7 +70,6 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
 
             sage: HyperbolicFactoryHM.get_model()
             <class 'sage.geometry.hyperbolic_space.hyperbolic_model.HyperbolicModelHM'>
-
         """
         return cls.HModel
 
@@ -85,18 +82,19 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_factory import *
             sage: HyperbolicFactoryUHP.get_interior_point(2 + 3*I)
-            Point in UHP 3*I + 2.
+            Point in UHP 3*I + 2
 
             sage: HyperbolicFactoryPD.get_interior_point(0)
-            Point in PD 0.
+            Point in PD 0
 
             sage: HyperbolicFactoryKM.get_interior_point((0,0))
-            Point in KM (0, 0).
+            Point in KM (0, 0)
 
             sage: HyperbolicFactoryHM.get_interior_point((0,0,1))
-            Point in HM (0, 0, 1).
+            Point in HM (0, 0, 1)
 
-            sage: p = HyperbolicFactoryUHP.get_interior_point(I, color="red"); p.graphics_options()
+            sage: p = HyperbolicFactoryUHP.get_interior_point(I, color="red")
+            sage: p.graphics_options()
             {'color': 'red'}
         """
         return cls.HPoint(coordinates, **graphics_options)
@@ -111,16 +109,16 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_factory import *
             sage: HyperbolicFactoryUHP.get_bdry_point(12)
-            Boundary point in UHP 12.
+            Boundary point in UHP 12
 
             sage: HyperbolicFactoryUHP.get_bdry_point(infinity)
-            Boundary point in UHP +Infinity.
+            Boundary point in UHP +Infinity
 
             sage: HyperbolicFactoryPD.get_bdry_point(I)
-            Boundary point in PD I.
+            Boundary point in PD I
 
             sage: HyperbolicFactoryKM.get_bdry_point((0,-1))
-            Boundary point in KM (0, -1).
+            Boundary point in KM (0, -1)
         """
         return cls.HBdryPoint(coordinates, **graphics_options)
 
@@ -129,43 +127,43 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
         r"""
         Automatically determine the type of point to return given either
         (1) the coordinates of a point in the interior or ideal boundary
-        of hyperbolic space or (2) a HyperbolicPoint or
-        HyperbolicBdryPoint object.
+        of hyperbolic space or (2) a :class:`HyperbolicPoint` or
+        :class:`HyperbolicBdryPoint` object.
 
         INPUT:
 
-        - a point in hyperbolic space or on the ideal boundary.
+        - a point in hyperbolic space or on the ideal boundary
 
         OUTPUT:
 
-        - A HyperbolicPoint or HyperbolicBdryPoint.
+        - a :class:`HyperbolicPoint` or :class:`HyperbolicBdryPoint`
 
-        EXAMPLES::
+        EXAMPLES:
 
         We can create an interior point via the coordinates::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_factory import *
             sage: p = HyperbolicFactoryUHP.get_point(2*I); p
-            Point in UHP 2*I.
+            Point in UHP 2*I
 
         Or we can create a boundary point via the coordinates::
 
             sage: q = HyperbolicFactoryUHP.get_point(23); q
-            Boundary point in UHP 23.
+            Boundary point in UHP 23
 
         Or we can create both types of points by passing the
         HyperbolicPoint or HyperbolicBdryPoint object::
 
             sage: HyperbolicFactoryUHP.get_point(p)
-            Point in UHP 2*I.
+            Point in UHP 2*I
 
             sage: HyperbolicFactoryUHP.get_point(q)
-            Boundary point in UHP 23.
+            Boundary point in UHP 23
 
             sage: HyperbolicFactoryUHP.get_point(12 - I)
             Traceback (most recent call last):
             ...
-            ValueError: -I + 12 is neither an interior nor boundary point in the UHP model.
+            ValueError: -I + 12 is neither an interior nor boundary point in the UHP model
         """
         from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPoint
         if isinstance(coordinates, HyperbolicPoint):
@@ -176,9 +174,8 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
         elif cls.HModel.bdry_point_in_model(coordinates):
             return cls.HBdryPoint(coordinates, **graphics_options)
         else:
-            e_1 = "{0} is neither an interior nor boundary".format(coordinates)
-            e_2 = " point in the {0} model.".format(cls.get_model().short_name)
-            raise ValueError(e_1 + e_2)
+            raise ValueError("{0} is neither an interior nor boundary".format(coordinates)
+                             + " point in the {0} model".format(cls.get_model().short_name))
 
     @classmethod
     def get_geodesic(cls, start, end, **graphics_options):
@@ -189,16 +186,16 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_factory import *
             sage: HyperbolicFactoryUHP.get_geodesic(I, 2*I)
-            Geodesic in UHP from I to 2*I.
+            Geodesic in UHP from I to 2*I
 
             sage: HyperbolicFactoryPD.get_geodesic(0, I/2)
-            Geodesic in PD from 0 to 1/2*I.
+            Geodesic in PD from 0 to 1/2*I
 
             sage: HyperbolicFactoryKM.get_geodesic((1/2, 1/2), (0,0))
-            Geodesic in KM from (1/2, 1/2) to (0, 0).
+            Geodesic in KM from (1/2, 1/2) to (0, 0)
 
             sage: HyperbolicFactoryHM.get_geodesic((0,0,1), (1,0, sqrt(2)))
-            Geodesic in HM from (0, 0, 1) to (1, 0, sqrt(2)).
+            Geodesic in HM from (0, 0, 1) to (1, 0, sqrt(2))
         """
         return cls.HGeodesic(start, end, **graphics_options)
 
@@ -213,24 +210,24 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
             sage: HyperbolicFactoryUHP.get_isometry(identity_matrix(2))
             Isometry in UHP
             [1 0]
-            [0 1].
+            [0 1]
 
             sage: HyperbolicFactoryPD.get_isometry(identity_matrix(2))
             Isometry in PD
             [1 0]
-            [0 1].
+            [0 1]
 
             sage: HyperbolicFactoryKM.get_isometry(identity_matrix(3))
             Isometry in KM
             [1 0 0]
             [0 1 0]
-            [0 0 1].
+            [0 0 1]
 
             sage: HyperbolicFactoryHM.get_isometry(identity_matrix(3))
             Isometry in HM
             [1 0 0]
             [0 1 0]
-            [0 0 1].
+            [0 0 1]
         """
         return cls.HIsometry(A)
 
@@ -250,7 +247,10 @@ class HyperbolicAbstractFactory (UniqueRepresentation):
         """
         return None
 
-class HyperbolicFactoryUHP (HyperbolicAbstractFactory, UniqueRepresentation):
+class HyperbolicFactoryUHP(HyperbolicAbstractFactory, UniqueRepresentation):
+    """
+    Factory for creating the UHP model.
+    """
     HModel = HyperbolicModelUHP
     HPoint = HyperbolicPointUHP
     HBdryPoint = HyperbolicBdryPointUHP
@@ -276,7 +276,10 @@ class HyperbolicFactoryUHP (HyperbolicAbstractFactory, UniqueRepresentation):
         bd_max = bdry_options.get('bd_max', 5)
         return line(((bd_min, 0), (bd_max, 0)), color='black')
 
-class HyperbolicFactoryPD (HyperbolicAbstractFactory, UniqueRepresentation):
+class HyperbolicFactoryPD(HyperbolicAbstractFactory, UniqueRepresentation):
+    """
+    Factory for creating the PD model.
+    """
     from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelPD
     HModel = HyperbolicModelPD
     HPoint = HyperbolicPointPD
@@ -299,10 +302,13 @@ class HyperbolicFactoryPD (HyperbolicAbstractFactory, UniqueRepresentation):
             sage: circ = HyperbolicFactoryPD.get_background_graphic()
         """
         from sage.plot.circle import circle
-        return circle((0,0),1, axes=False, color = 'black')
+        return circle((0,0), 1, axes=False, color='black')
 
 
-class HyperbolicFactoryKM (HyperbolicAbstractFactory, UniqueRepresentation):
+class HyperbolicFactoryKM(HyperbolicAbstractFactory, UniqueRepresentation):
+    """
+    Factory for creating the KM model.
+    """
     from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelKM
     HModel = HyperbolicModelKM
     HPoint = HyperbolicPointKM
@@ -325,9 +331,12 @@ class HyperbolicFactoryKM (HyperbolicAbstractFactory, UniqueRepresentation):
             sage: circ = HyperbolicFactoryKM.get_background_graphic()
         """
         from sage.plot.circle import circle
-        return circle((0,0),1, axes=False, color = 'black')
+        return circle((0,0), 1, axes=False, color='black')
 
 class HyperbolicFactoryHM (HyperbolicAbstractFactory, UniqueRepresentation):
+    """
+    Factory for creating the HM model.
+    """
     HModel = HyperbolicModelHM
     HPoint = HyperbolicPointHM
     HIsometry = HyperbolicIsometryHM
@@ -355,3 +364,4 @@ class HyperbolicFactoryHM (HyperbolicAbstractFactory, UniqueRepresentation):
         (x,y) = var('x,y')
         return plot3d((1 + x**2 + y**2).sqrt(), (x, -x_max, x_max),\
                           (y,-x_max, x_max), opacity = hyperboloid_opacity, **bdry_options)
+

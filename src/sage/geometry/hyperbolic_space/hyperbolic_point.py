@@ -15,7 +15,7 @@ We can construct points in the upper half plane model, abbreviated
 UHP for convenience::
 
     sage: UHP.point(2 + I)
-    Point in UHP I + 2.
+    Point in UHP I + 2
     sage: g = UHP.point(3 + I)
     sage: g.dist(UHP.point(I))
     arccosh(11/2)
@@ -36,25 +36,18 @@ from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.latex import latex
 
-lazy_import('sage.plot.point', 'point')
-lazy_import('sage.rings.all', 'RR')
-lazy_import('sage.rings.all', 'CC')
+lazy_import('sage.rings.all', ['RR', 'CC'])
 lazy_import('sage.functions.other', 'real')
-
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicAbstractFactory')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods', 'HyperbolicAbstractMethods')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods', 'HyperbolicMethodsUHP')
-lazy_import('sage.geometry.hyperbolic_space.model_factory', 'ModelFactory')
-
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods', 'HyperbolicMethodsUHP')
-
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryKM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryHM')
-
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesic')
 lazy_import('sage.modules.free_module_element', 'vector')
+
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods',
+            ['HyperbolicAbstractMethods', 'HyperbolicMethodsUHP'])
+lazy_import('sage.geometry.hyperbolic_space.model_factory', 'ModelFactory')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory',
+            ['HyperbolicAbstractFactory', 'HyperbolicFactoryUHP',
+             'HyperbolicFactoryPD', 'HyperbolicFactoryKM',
+             'HyperbolicFactoryHM'])
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesic')
 
 
 class HyperbolicPoint(SageObject):
@@ -64,11 +57,7 @@ class HyperbolicPoint(SageObject):
 
     INPUT:
 
-    - The coordinates of a hyperbolic point in the appropriate model.
-
-    OUTPUT:
-
-    - A hyperbolic point.
+    - the coordinates of a hyperbolic point in the appropriate model
 
     EXAMPLES:
 
@@ -77,10 +66,10 @@ class HyperbolicPoint(SageObject):
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
         sage: p = HyperbolicPointUHP(.2 + .3*I); p
-        Point in UHP 0.200000000000000 + 0.300000000000000*I.
+        Point in UHP 0.200000000000000 + 0.300000000000000*I
 
         sage: q = HyperbolicPointPD(0.2 + 0.3*I); q
-        Point in PD 0.200000000000000 + 0.300000000000000*I.
+        Point in PD 0.200000000000000 + 0.300000000000000*I
 
         sage: p == q
         False
@@ -95,25 +84,26 @@ class HyperbolicPoint(SageObject):
         sage: HyperbolicPointUHP(0.2 - 0.3*I)
         Traceback (most recent call last):
         ...
-        ValueError: 0.200000000000000 - 0.300000000000000*I is not a valid point in the UHP model.
+        ValueError: 0.200000000000000 - 0.300000000000000*I is not a valid point in the UHP model
 
         sage: HyperbolicPointPD(1.2)
         Traceback (most recent call last):
         ...
-        ValueError: 1.20000000000000 is not a valid point in the PD model.
+        ValueError: 1.20000000000000 is not a valid point in the PD model
 
         sage: HyperbolicPointKM((1,1))
         Traceback (most recent call last):
         ...
-        ValueError: (1, 1) is not a valid point in the KM model.
+        ValueError: (1, 1) is not a valid point in the KM model
 
         sage: HyperbolicPointHM((1, 1, 1))
         Traceback (most recent call last):
         ...
-        ValueError: (1, 1, 1) is not a valid point in the HM model.
+        ValueError: (1, 1, 1) is not a valid point in the HM model
     """
     HFactory =  HyperbolicAbstractFactory
     HMethods = HyperbolicAbstractMethods
+
     def __init__(self, coordinates, **graphics_options):
         r"""
         See ``HyperbolicPoint`` for full documentation.
@@ -123,22 +113,21 @@ class HyperbolicPoint(SageObject):
             sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
             sage: p = HyperbolicPointUHP(I)
             sage: p
-            Point in UHP I.
+            Point in UHP I
         """
         if self.model().point_in_model(coordinates):
-            if type(coordinates) == tuple:
+            if isinstance(coordinates, tuple):
                 coordinates = vector(coordinates)
             self._coordinates = coordinates
         else:
             raise ValueError(
                 "{0} is not a valid".format(coordinates) +
-                " point in the {0} model.".format(self.model().short_name)
-                )
+                " point in the {0} model".format(self.model().short_name))
         self._graphics_options = graphics_options
 
- #####################
- # "Private" Methods #
- #####################
+    #####################
+    # "Private" Methods #
+    #####################
 
     @lazy_attribute
     def _cached_coordinates(self):
@@ -157,34 +146,33 @@ class HyperbolicPoint(SageObject):
         """
         return self.model().point_to_model(self.coordinates(),
                                            self.HMethods.model_name())
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return a string representation of ``self``.
 
         OUTPUT:
 
-        - string.
+        - string
 
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
-            sage: HyperbolicPointUHP(3 + 4*I).__repr__()
-            'Point in UHP 4*I + 3.'
+            sage: HyperbolicPointUHP(3 + 4*I)
+            Point in UHP 4*I + 3
 
-            sage: HyperbolicPointPD(1/2 + I/2).__repr__()
-            'Point in PD 1/2*I + 1/2.'
+            sage: HyperbolicPointPD(1/2 + I/2)
+            Point in PD 1/2*I + 1/2
 
-            sage: HyperbolicPointKM((1/2, 1/2)).__repr__()
-            'Point in KM (1/2, 1/2).'
+            sage: HyperbolicPointKM((1/2, 1/2))
+            Point in KM (1/2, 1/2)
 
-            sage: HyperbolicPointHM((0,0,1)).__repr__()
-            'Point in HM (0, 0, 1).'
+            sage: HyperbolicPointHM((0,0,1))
+            Point in HM (0, 0, 1)
         """
-        return "Point in {0} {1}.".format(self.model_name(),
-                                          self.coordinates())
+        return "Point in {0} {1}".format(self.model_name(), self.coordinates())
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
@@ -193,13 +181,13 @@ class HyperbolicPoint(SageObject):
             0
             sage: q = HM.point((0,0,1))
             sage: latex(q)
-            \left(0, 0, 1\right)
+            \left(0,\,0,\,1\right)
         """
         return latex(self.coordinates())
 
     def __eq__(self, other):
         r"""
-        Return True if self is equal to other.
+        Return ``True`` if ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -245,10 +233,10 @@ class HyperbolicPoint(SageObject):
 
             sage: A = matrix(2, [0, 1, 1, 0])
             sage: A*UHP.point(2 + I)
-            Point in UHP 1/5*I + 2/5.
+            Point in UHP 1/5*I + 2/5
             sage: B = diagonal_matrix([-1, -1, 1])
             sage: B*HM.point((0, 1, sqrt(2)))
-            Point in HM (0, -1, sqrt(2)).
+            Point in HM (0, -1, sqrt(2))
         """
         from sage.matrix.matrix import is_Matrix
         if is_Matrix(other):
@@ -258,9 +246,9 @@ class HyperbolicPoint(SageObject):
             raise TypeError("unsupported operand type(s) for *:"
                             "{0} and {1}".format(self, other))
 
-#######################
-# Setters and Getters #
-#######################
+    #######################
+    # Setters and Getters #
+    #######################
 
     def coordinates(self):
         r"""
@@ -286,7 +274,7 @@ class HyperbolicPoint(SageObject):
     @classmethod
     def model(cls):
         r"""
-        Return the model to which the HyperbolicPoint belongs.
+        Return the model to which the :class:`HyperbolicPoint` belongs.
 
         EXAMPLES::
 
@@ -333,23 +321,23 @@ class HyperbolicPoint(SageObject):
 
         INPUT:
 
-        - ``model_name`` -- a string representing the image model.
+        - ``model_name`` -- a string representing the image model
 
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_point import *
             sage: HyperbolicPointUHP(I).to_model('PD')
-            Point in PD 0.
+            Point in PD 0
         """
         factory = ModelFactory.find_factory(model_name)
         coordinates = self.model().point_to_model(self.coordinates(),
                                                   model_name)
         return factory.get_point(coordinates)
 
-    def update_graphics(self, update = False, **options):
+    def update_graphics(self, update=False, **options):
         r"""
-        Update the graphics options of a HyperbolicPoint.  If update is
-        True, update rather than overwrite.
+        Update the graphics options of a HyperbolicPoint.  If ``update`` is
+        ``True``, update rather than overwrite.
 
         EXAMPLES::
 
@@ -365,7 +353,6 @@ class HyperbolicPoint(SageObject):
 
             sage: p.update_graphics(True, size = 20); p.graphics_options()
             {'color': 'blue', 'size': 20}
-
         """
         if not update:
             self._graphics_options = {}
@@ -384,22 +371,22 @@ class HyperbolicPoint(SageObject):
         """
         return self._graphics_options
 
-###################################
-# Methods implemented in HMethods #
-###################################
+    ###################################
+    # Methods implemented in HMethods #
+    ###################################
 
     def dist(self, other):
         r"""
         Calculate the hyperbolic distance between two points in the same
         model.
 
-        INPUTS:
+        INPUT:
 
-        - ``other`` -- a hyperbolic point in the same model as ``self``.
+        - ``other`` -- a hyperbolic point in the same model as ``self``
 
-        OUTPUTS:
+        OUTPUT:
 
-        - the hyperbolic distance.
+        - the hyperbolic distance
 
         EXAMPLES::
 
@@ -452,29 +439,29 @@ class HyperbolicPoint(SageObject):
             sage: z.symmetry_in()
             Isometry in UHP
             [  3/2 -13/2]
-            [  1/2  -3/2].
+            [  1/2  -3/2]
 
             sage: HyperbolicPointUHP(I).symmetry_in()
             Isometry in UHP
             [ 0 -1]
-            [ 1  0].
+            [ 1  0]
 
             sage: HyperbolicPointPD(0).symmetry_in()
             Isometry in PD
             [-I  0]
-            [ 0  I].
+            [ 0  I]
 
             sage: HyperbolicPointKM((0, 0)).symmetry_in()
             Isometry in KM
             [-1  0  0]
             [ 0 -1  0]
-            [ 0  0  1].
+            [ 0  0  1]
 
             sage: HyperbolicPointHM((0,0,1)).symmetry_in()
             Isometry in HM
             [-1  0  0]
             [ 0 -1  0]
-            [ 0  0  1].
+            [ 0  0  1]
 
             sage: p = HyperbolicPointUHP.random_element()
             sage: A = p.symmetry_in()
@@ -521,11 +508,11 @@ class HyperbolicPoint(SageObject):
         p = cls.HMethods.model().point_to_model(p, cls.model().short_name)
         return cls.HFactory.get_point(p)
 
-###########
-# Display #
-###########
+    ###########
+    # Display #
+    ###########
 
-    def show(self, boundary = True, **options):
+    def show(self, boundary=True, **options):
         r"""
         EXAMPLES::
 
@@ -546,34 +533,31 @@ class HyperbolicPoint(SageObject):
             p = map(numerical_approx, p)
         else:
             p = numerical_approx(p)
+        from sage.plot.point import point
         pic = point(p, **opts)
         if boundary:
             bd_pic = self.HFactory.get_background_graphic()
             pic = bd_pic + pic
         return pic
 
-class HyperbolicPointUHP (HyperbolicPoint):
+class HyperbolicPointUHP(HyperbolicPoint):
     r"""
-    Create a point in the UHP model.
+    A point in the UHP model.
 
     INPUT:
 
-    - The coordinates of a point in the unit disk in the complex plane `\CC`.
-
-    OUTPUT:
-
-    - A hyperbolic point.
+    - the coordinates of a point in the unit disk in the complex plane `\CC`
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointUHP
         sage: HyperbolicPointUHP(2*I)
-        Point in UHP 2*I.
+        Point in UHP 2*I
     """
     HFactory = HyperbolicFactoryUHP
     HMethods = HyperbolicMethodsUHP
 
-    def show(self, boundary = True, **options):
+    def show(self, boundary=True, **options):
         r"""
         EXAMPLES::
 
@@ -589,6 +573,7 @@ class HyperbolicPointUHP (HyperbolicPoint):
         from sage.misc.functional import numerical_approx
         p = self.coordinates() + 0*I
         p = numerical_approx(p)
+        from sage.plot.point import point
         pic = point(p, **opts)
         if boundary:
             cent = real(p)
@@ -603,38 +588,30 @@ class HyperbolicPointPD (HyperbolicPoint):
 
     INPUT:
 
-    - The coordinates of a point in the unit disk in the complex plane `\CC`.
-
-    OUTPUT:
-
-    - A hyperbolic point.
+    - the coordinates of a point in the unit disk in the complex plane `\CC`
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointPD
         sage: HyperbolicPointPD(0)
-        Point in PD 0.
+        Point in PD 0
     """
     HFactory = HyperbolicFactoryPD
     HMethods = HyperbolicMethodsUHP
 
-class HyperbolicPointKM (HyperbolicPoint):
+class HyperbolicPointKM(HyperbolicPoint):
     r"""
     Create a point in the KM model.
 
     INPUT:
 
-    - The coordinates of a point in the unit disk in the real plane `\RR^2`.
-
-    OUTPUT:
-
-    - A hyperbolic point.
+    - the coordinates of a point in the unit disk in the real plane `\RR^2`
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointKM
         sage: HyperbolicPointKM((0,0))
-        Point in KM (0, 0).
+        Point in KM (0, 0)
     """
     HFactory = HyperbolicFactoryKM
     HMethods = HyperbolicMethodsUHP
@@ -645,17 +622,15 @@ class HyperbolicPointHM (HyperbolicPoint):
 
     INPUT:
 
-    - The coordinates of a point in the hyperboloid given by `x^2 + y^2 - z^2 = -1`.
-
-    OUTPUT:
-
-    - A hyperbolic point.
+    - the coordinates of a point in the hyperboloid given
+      by `x^2 + y^2 - z^2 = -1`
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPointHM
         sage: HyperbolicPointHM((0,0,1))
-        Point in HM (0, 0, 1).
+        Point in HM (0, 0, 1)
     """
     HFactory = HyperbolicFactoryHM
     HMethods = HyperbolicMethodsUHP
+

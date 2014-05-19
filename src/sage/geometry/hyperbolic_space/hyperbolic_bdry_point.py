@@ -20,7 +20,7 @@ We can construct boundary points in the upper half plane model,
 abbreviated UHP for convenience::
 
     sage: UHP.point(3)
-    Boundary point in UHP 3.
+    Boundary point in UHP 3
 
 Points on the boundary are infinitely far from interior points::
 
@@ -41,20 +41,17 @@ Points on the boundary are infinitely far from interior points::
 from sage.geometry.hyperbolic_space.hyperbolic_point import HyperbolicPoint
 from sage.symbolic.pynac import I
 from sage.rings.infinity import infinity
+from sage.rings.all import RR
 from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.plot.point', 'point')
-lazy_import('sage.rings.all', 'RR')
-
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicAbstractFactory')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods', 'HyperbolicAbstractMethods')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods', 'HyperbolicMethodsUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryKM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryHM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory',
+            ['HyperbolicAbstractFactory', 'HyperbolicFactoryHM',
+             'HyperbolicFactoryUHP', 'HyperbolicFactoryPD',
+             'HyperbolicFactoryKM'])
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_methods',
+            ['HyperbolicAbstractMethods', 'HyperbolicMethodsUHP'])
 lazy_import('sage.modules.free_module_element', 'vector')
-
 
 
 class HyperbolicBdryPoint(HyperbolicPoint):
@@ -64,11 +61,7 @@ class HyperbolicBdryPoint(HyperbolicPoint):
 
     INPUT:
 
-    - The coordinates of a hyperbolic boundary point in the appropriate model.
-
-    OUTPUT:
-
-    - A hyperbolic boundary point.
+    - the coordinates of a hyperbolic boundary point in the appropriate model
 
     EXAMPLES:
 
@@ -76,10 +69,10 @@ class HyperbolicBdryPoint(HyperbolicPoint):
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import *
         sage: p = HyperbolicBdryPointUHP(1); p
-        Boundary point in UHP 1.
+        Boundary point in UHP 1
 
         sage: q = HyperbolicBdryPointPD(1); q
-        Boundary point in PD 1.
+        Boundary point in PD 1
 
         sage: p == q
         False
@@ -92,7 +85,7 @@ class HyperbolicBdryPoint(HyperbolicPoint):
         sage: HyperbolicBdryPointUHP(0.2 + 0.3*I)
         Traceback (most recent call last):
         ...
-        ValueError: 0.200000000000000 + 0.300000000000000*I is not a valid boundary point in the UHP model.
+        ValueError: 0.200000000000000 + 0.300000000000000*I is not a valid boundary point in the UHP model
     """
     def __init__(self, coordinates, **graphics_options):
         r"""
@@ -102,68 +95,64 @@ class HyperbolicBdryPoint(HyperbolicPoint):
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import *
             sage: HyperbolicBdryPointUHP(1)
-            Boundary point in UHP 1.
+            Boundary point in UHP 1
         """
         if not self.model().bounded:
             raise NotImplementedError(
                 "{0} is not a bounded model; boundary"
-                " points not implemented.".format(self.model_name()))
+                " points not implemented".format(self.model_name()))
         elif self.model().bdry_point_in_model(coordinates):
             if type(coordinates) == tuple:
                 coordinates = vector(coordinates)
             self._coordinates = coordinates
         else:
             raise ValueError(
-                "{0} is not a valid".format(coordinates) + " boundary point"
-                " in the {0} model.".format(self.model_name()))
+                "{0} is not a valid".format(coordinates) +
+                " boundary point in the {0} model".format(self.model_name()))
         self._graphics_options = graphics_options
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return a string representation of ``self``.
 
         OUTPUT:
 
-        - string.
+        - string
 
         EXAMPLES::
 
             sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import *
-            sage: HyperbolicBdryPointUHP(infinity).__repr__()
-            'Boundary point in UHP +Infinity.'
+            sage: HyperbolicBdryPointUHP(infinity)
+            Boundary point in UHP +Infinity
 
-            sage: HyperbolicBdryPointPD(-1).__repr__()
-            'Boundary point in PD -1.'
+            sage: HyperbolicBdryPointPD(-1)
+            Boundary point in PD -1
 
-            sage: HyperbolicBdryPointKM((0, -1)).__repr__()
-            'Boundary point in KM (0, -1).'
+            sage: HyperbolicBdryPointKM((0, -1))
+            Boundary point in KM (0, -1)
         """
-        return "Boundary point in {0} {1}.".format(self.model_name(),
+        return "Boundary point in {0} {1}".format(self.model_name(),
                                                    self.coordinates())
 
 
-class HyperbolicBdryPointUHP (HyperbolicBdryPoint):
+class HyperbolicBdryPointUHP(HyperbolicBdryPoint):
     r"""
     Create a boundary point for the UHP model.
 
     INPUT:
 
-    - The coordinates of a hyperbolic boundary point in the upper half plane.
-
-    OUTPUT:
-
-    - A hyperbolic boundary point.
+    - the coordinates of a hyperbolic boundary point in the upper half plane
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointUHP
         sage: q = HyperbolicBdryPointUHP(1); q
-        Boundary point in UHP 1.
+        Boundary point in UHP 1
     """
     HFactory = HyperbolicFactoryUHP
     HMethods = HyperbolicMethodsUHP
 
-    def show(self, boundary = True, **options):
+    def show(self, boundary=True, **options):
         r"""
         EXAMPLES::
 
@@ -172,15 +161,15 @@ class HyperbolicBdryPointUHP (HyperbolicBdryPoint):
             sage: HyperbolicBdryPointUHP(infinity).show()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Can't draw the point infinity.
+            NotImplementedError: can't draw the point infinity
         """
-        opts = dict([('axes', False),('aspect_ratio',1)])
+        opts = dict([('axes', False), ('aspect_ratio',1)])
         opts.update(self.graphics_options())
         opts.update(options)
         from sage.misc.functional import numerical_approx
         p = self.coordinates()
         if p == infinity:
-            raise NotImplementedError("Can't draw the point infinity.")
+            raise NotImplementedError("can't draw the point infinity")
         p = numerical_approx(p)
         pic = point((p, 0), **opts)
         if boundary:
@@ -190,50 +179,42 @@ class HyperbolicBdryPointUHP (HyperbolicBdryPoint):
         return pic
 
 
-class HyperbolicBdryPointPD (HyperbolicBdryPoint):
+class HyperbolicBdryPointPD(HyperbolicBdryPoint):
     r"""
     Create a boundary point for the PD model.
 
     INPUT:
 
-    - The coordinates of a hyperbolic boundary point in the Poincare disk.
-
-    OUTPUT:
-
-    - A hyperbolic boundary point.
+    - the coordinates of a hyperbolic boundary point in the Poincare disk
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointPD
         sage: q = HyperbolicBdryPointPD(1); q
-        Boundary point in PD 1.
+        Boundary point in PD 1
     """
     HFactory = HyperbolicFactoryPD
     HMethods = HyperbolicMethodsUHP
 
 
-class HyperbolicBdryPointKM (HyperbolicBdryPoint):
+class HyperbolicBdryPointKM(HyperbolicBdryPoint):
     r"""
     Create a boundary point for the KM model.
 
     INPUT:
 
-    - The coordinates of a hyperbolic boundary point in the Klein disk.
-
-    OUTPUT:
-
-    - A hyperbolic boundary point.
+    - the coordinates of a hyperbolic boundary point in the Klein disk
 
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_bdry_point import HyperbolicBdryPointKM
         sage: q = HyperbolicBdryPointKM((1,0)); q
-        Boundary point in KM (1, 0).
+        Boundary point in KM (1, 0)
     """
     HFactory = HyperbolicFactoryKM
     HMethods = HyperbolicMethodsUHP
 
-class HyperbolicBdryPointHM (HyperbolicBdryPoint):
+class HyperbolicBdryPointHM(HyperbolicBdryPoint):
     r"""
     A dummy class for the boundary points of the hyperboloid model.  The model
     is not bounded, so there are no boundary points.  The class is needed for
@@ -245,7 +226,8 @@ class HyperbolicBdryPointHM (HyperbolicBdryPoint):
         sage: q = HyperbolicBdryPointHM((1,0,0)); q
         Traceback (most recent call last):
         ...
-        NotImplementedError: HM is not a bounded model; boundary points not implemented.
+        NotImplementedError: HM is not a bounded model; boundary points not implemented
     """
     HFactory = HyperbolicFactoryHM
     HMethods = HyperbolicMethodsUHP
+

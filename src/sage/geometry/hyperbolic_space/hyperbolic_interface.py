@@ -19,11 +19,10 @@ AUTHORS:
 EXAMPLES::
 
     sage: UHP.point(2 + I)
-    Point in UHP I + 2.
+    Point in UHP I + 2
 
     sage: PD.point(1/2 + I/2)
-    Point in PD 1/2*I + 1/2.
-
+    Point in PD 1/2*I + 1/2
 """
 
 #***********************************************************************
@@ -39,46 +38,38 @@ EXAMPLES::
 #***********************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModel')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', 'HyperbolicModelKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model',
+            ['HyperbolicModel','HyperbolicModelUHP',
+             'HyperbolicModelPD', 'HyperbolicModelHM', 'HyperbolicModelKM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactory')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory', 'HyperbolicFactoryKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_factory',
+            ['HyperbolicFactory', 'HyperbolicFactoryUHP',
+             'HyperbolicFactoryPD', 'HyperbolicFactoryHM',
+             'HyperbolicFactoryKM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPoint')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point', 'HyperbolicPointKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_point',
+            ['HyperbolicPoint', 'HyperbolicPointUHP', 'HyperbolicPointPD',
+             'HyperbolicPointHM', 'HyperbolicPointKM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point', 'HyperbolicBdryPointKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_bdry_point',
+            ['HyperbolicBdryPointUHP', 'HyperbolicBdryPointPD',
+             'HyperbolicBdryPointHM', 'HyperbolicBdryPointKM'])
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesic')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic', 'HyperbolicGeodesicKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_geodesic',
+            ['HyperbolicGeodesic', 'HyperbolicGeodesicUHP',
+             'HyperbolicGeodesicPD', 'HyperbolicGeodesicHM',
+             'HyperbolicGeodesicKM'])
 
 
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometry')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryUHP')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryPD')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryHM')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry', 'HyperbolicIsometryKM')
+lazy_import('sage.geometry.hyperbolic_space.hyperbolic_isometry',
+            ['HyperbolicIsometry', 'HyperbolicIsometryUHP',
+             'HyperbolicIsometryPD', 'HyperbolicIsometryHM',
+             'HyperbolicIsometryKM'])
 
 
 class HyperbolicUserInterface(UniqueRepresentation):
     r"""
-    Abstract base class for Hyperbolic Interfaces.  These provide a user
+    Abstract base class for hyperbolic interfaces.  These provide a user
     interface for interacting with models of hyperbolic geometry without
     having the interface dictate the class structure.
     """
@@ -145,29 +136,29 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def point(cls, p, **kwargs):
         r"""
-        Return a HyperbolicPoint object in the current model with
-        coordinates ``p``.
+        Return a :class:`HyperbolicPoint` object in the current
+        model with coordinates ``p``.
 
         EXAMPLES::
 
             sage: UHP.point(0)
-            Boundary point in UHP 0.
+            Boundary point in UHP 0
 
             sage: PD.point(I/2)
-            Point in PD 1/2*I.
+            Point in PD 1/2*I
 
             sage: KM.point((0,1))
-            Boundary point in KM (0, 1).
+            Boundary point in KM (0, 1)
 
             sage: HM.point((0,0,1))
-            Point in HM (0, 0, 1).
+            Point in HM (0, 0, 1)
         """
         return cls.HFactory.get_point(p, **kwargs)
 
     @classmethod
     def point_in_model(cls, p):
         r"""
-        Return True if ``p`` gives the coordinates of a point in the
+        Return ``True`` if ``p`` gives the coordinates of a point in the
         interior of hyperbolic space in the model.
 
         EXAMPLES::
@@ -184,7 +175,7 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def bdry_point_in_model(cls, p):
         r"""
-        Return True if ``p`` gives the coordinates of a point on the
+        Return ``True`` if ``p`` gives the coordinates of a point on the
         ideal boundary of hyperbolic space in the current model.
 
         EXAMPLES::
@@ -199,8 +190,8 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A):
         r"""
-        Return True if the matrix ``A`` acts isometrically on hyperbolic
-        space in the current model.
+        Return ``True`` if the matrix ``A`` acts isometrically on
+        hyperbolic space in the current model.
 
         EXAMPLES::
 
@@ -213,30 +204,30 @@ class HyperbolicUserInterface(UniqueRepresentation):
     @classmethod
     def geodesic(cls, start, end, **kwargs):
         r"""
-        Return an oriented HyperbolicGeodesic object in the current
-        model that starts at ``start`` and ends at ``end``.
+        Return an oriented :class:`HyperbolicGeodesic` object in the
+        current model that starts at ``start`` and ends at ``end``.
 
         EXAMPLES::
 
             sage: UHP.geodesic(1, 0)
-            Geodesic in UHP from 1 to 0.
+            Geodesic in UHP from 1 to 0
 
             sage: PD.geodesic(1, 0)
-            Geodesic in PD from 1 to 0.
+            Geodesic in PD from 1 to 0
 
             sage: KM.geodesic((0,1/2), (1/2, 0))
-            Geodesic in KM from (0, 1/2) to (1/2, 0).
+            Geodesic in KM from (0, 1/2) to (1/2, 0)
 
             sage: HM.geodesic((0,0,1), (0,1, sqrt(2)))
-            Geodesic in HM from (0, 0, 1) to (0, 1, sqrt(2)).
+            Geodesic in HM from (0, 0, 1) to (0, 1, sqrt(2))
         """
         return cls.HFactory.get_geodesic(start, end, **kwargs)
 
     @classmethod
     def isometry(cls, A):
         r"""
-        Return an HyperbolicIsometry object in the current model that
-        coincides with (in the case of linear isometry groups) or lifts
+        Return an :class:`HyperbolicIsometry` object in the current model
+        that coincides with (in the case of linear isometry groups) or lifts
         to (in the case of projective isometry groups) the matrix ``A``.
 
         EXAMPLES::
@@ -244,24 +235,24 @@ class HyperbolicUserInterface(UniqueRepresentation):
             sage: UHP.isometry(identity_matrix(2))
             Isometry in UHP
             [1 0]
-            [0 1].
+            [0 1]
 
             sage: PD.isometry(identity_matrix(2))
             Isometry in PD
             [1 0]
-            [0 1].
+            [0 1]
 
             sage: KM.isometry(identity_matrix(3))
             Isometry in KM
             [1 0 0]
             [0 1 0]
-            [0 0 1].
+            [0 0 1]
 
             sage: HM.isometry(identity_matrix(3))
             Isometry in HM
             [1 0 0]
             [0 1 0]
-            [0 0 1].
+            [0 0 1]
         """
         return cls.HFactory.get_isometry(A)
 
@@ -306,22 +297,24 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         INPUT:
 
-        - ``p1``, ``p2`` -- points in the ideal boundary of hyperbolic space either as coordinates or as HyperbolicPoints.
+        - ``p1``, ``p2`` -- points in the ideal boundary of hyperbolic
+          space either as coordinates or as :class:`HyperbolicPoint`.
 
         OUTPUT:
 
-        - A HyperbolicIsometry in the current model whose classification is hyperbolic that fixes ``p1`` and ``p2``.
+        - a :class:`HyperbolicIsometry` in the current model whose
+          classification is hyperbolic that fixes ``p1`` and ``p2``
 
         EXAMPLES::
 
             sage: UHP.isometry_from_fixed_points(0, 4)
             Isometry in UHP
             [  -1    0]
-            [-1/5 -1/5].
+            [-1/5 -1/5]
             sage: UHP.isometry_from_fixed_points(UHP.point(0), UHP.point(4))
             Isometry in UHP
             [  -1    0]
-            [-1/5 -1/5].
+            [-1/5 -1/5]
         """
         return cls.HIsometry.isometry_from_fixed_points(cls.point(p1),
                                                         cls.point(p2))
@@ -332,8 +325,8 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         INPUT:
 
-        - ``a`` -- a hyperbolic point.
-        - ``b`` -- a hyperbolic point.
+        - ``a`` -- a hyperbolic point
+        - ``b`` -- a hyperbolic point
 
         EXAMPLES::
 
@@ -354,9 +347,11 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         INPUT:
 
-        - ``p`` -- a point in the current model of hyperbolic space either as coordinates or as a HyperbolicPoint.
+        - ``p`` -- a point in the current model of hyperbolic space
+          either as coordinates or as a :class:`HyperbolicPoint`
 
-        - ``model`` -- the name of an implemented model of hyperbolic space of the same dimension.
+        - ``model`` -- the name of an implemented model of hyperbolic
+          space of the same dimension
 
         EXAMPLES::
 
@@ -366,7 +361,6 @@ class HyperbolicUserInterface(UniqueRepresentation):
             +Infinity
             sage: UHP.point_to_model(UHP.point(I), 'HM')
             (0, 0, 1)
-
         """
         if isinstance(p, HyperbolicPoint):
             p = p.coordinates()
@@ -380,8 +374,9 @@ class HyperbolicUserInterface(UniqueRepresentation):
 
         INPUT:
 
-        - ``A`` -- a matrix acting isometrically on the current model.
-        - ``model`` -- the name of an implemented model of hyperbolic space of the same dimension.
+        - ``A`` -- a matrix acting isometrically on the current model
+        - ``model`` -- the name of an implemented model of hyperbolic
+          space of the same dimension
 
         EXAMPLES::
 
@@ -404,8 +399,9 @@ class UHP(HyperbolicUserInterface):
     Hyperbolic interface for the UHP model.
 
     EXAMPLES::
+
         sage: UHP.point(I)
-        Point in UHP I.
+        Point in UHP I
     """
     HModel = HyperbolicModelUHP
     HFactory = HyperbolicFactoryUHP
@@ -419,8 +415,9 @@ class PD(HyperbolicUserInterface):
     Hyperbolic interface for the PD model.
 
     EXAMPLES::
+
         sage: PD.point(I)
-        Boundary point in PD I.
+        Boundary point in PD I
     """
     HModel = HyperbolicModelPD
     HFactory = HyperbolicFactoryPD
@@ -434,8 +431,9 @@ class KM(HyperbolicUserInterface):
     Hyperbolic interface for the KM model.
 
     EXAMPLES::
+
         sage: KM.point((0,0))
-        Point in KM (0, 0).
+        Point in KM (0, 0)
     """
     HModel = HyperbolicModelKM
     HFactory = HyperbolicFactoryKM
@@ -449,11 +447,13 @@ class HM(HyperbolicUserInterface):
     Hyperbolic interface for the HM model.
 
     EXAMPLES::
+
         sage: HM.point((0,0,1))
-        Point in HM (0, 0, 1).
+        Point in HM (0, 0, 1)
     """
     HModel = HyperbolicModelHM
     HFactory = HyperbolicFactoryHM
     HPoint = HyperbolicPointHM
     HIsometry = HyperbolicIsometryHM
     HGeodesic = HyperbolicGeodesicHM
+

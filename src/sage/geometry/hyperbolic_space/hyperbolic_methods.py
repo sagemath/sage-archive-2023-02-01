@@ -2,55 +2,48 @@ r"""
 Hyperbolic Methods
 
 This module should not be used directly by users.  It is provided for
-developers of sage.
+developers of Sage.
 
 This module implements computational methods for some models of
 hyperbolic space.  The methods may operate on points, geodesics, or
 isometries of hyperbolic space.  However, instead of taking
-HyperbolicPoint, HyperbolicGeodesic, or HyperbolicIsometry objects as
+:class:`HyperbolicPoint`, :class:`HyperbolicGeodesic`, or
+:class:`HyperbolicIsometry` objects as
 input, they instead take the coordinates of points, the endpoints of
 geodesics, or matrices.  Similarly, they output coordinates or matrices
-rather than Hyperbolic objects.
+rather than hyperbolic objects.
 
-The methods are factored out of the HyperbolicPoint, HyperbolicGeodesic,
-and HyperbolicIsometry classes to allow the implementation of additional
-models of hyperbolic space with minimal work.  For example, to implement
-a model of 2-dimensional hyperbolic space, as long as one provides an
-isometry of that model with the upper half plane, one can use the upper
-half plane methods to do computations.  This prevents, for example,
-having to work out an efficient algorithm for computing the midpoint of
-a geodesic in every model.  Isometries are implemented in the
-HyperbolicModel module, and it is primarily in that model that new code
-must be added to implement a new model of hyperbolic space.
+The methods are factored out of the :class:`HyperbolicPoint`,
+:class:`HyperbolicGeodesic`, and :class:`HyperbolicIsometry` classes
+to allow the implementation of additional models of hyperbolic space
+with minimal work.  For example, to implement a model of 2-dimensional
+hyperbolic space, as long as one provides an isometry of that model with
+the upper half plane, one can use the upper half plane methods to do
+computations.  This prevents, for example, having to work out an
+efficient algorithm for computing the midpoint of a geodesic in every model.
+Isometries are implemented in the :class:`HyperbolicModel` module, and it
+is primarily in that model that new code must be added to implement
+a new model of hyperbolic space.
 
 In practice, all of the current models of 2 dimensional hyperbolic space
 use the upper half plane model for their computations.  This can lead to
 some problems, such as long coordinate strings for symbolic points.  For
-example, the vector (1, 0, sqrt(2)) defines a point in the hyperboloid
+example, the vector ``(1, 0, sqrt(2))`` defines a point in the hyperboloid
 model.  Performing mapping this point to the upper half plane and
 performing computations there may return with vector whose components
-are unsimplified strings have several sqrt(2)'s.  Presently, this
+are unsimplified strings have several ``sqrt(2)``'s.  Presently, this
 drawback is outweighed by the rapidity with which new models can be
 implemented.
 
 AUTHORS:
 
-- Greg Laun (2013): Refactoring, rewrites, all docstrings.
-- Rania Amer (2011): some UHP and PD methods.
-- Jean-Philippe Burelle (2011): some UHP and PD methods.
-- Zach Groton (2011): some UHP and PD methods.
-- Greg Laun (2011): some UHP and PD methods.
-- Jeremy Lent (2011): some UHP and PD methods.
-- Leila Vaden (2011): some UHP and PD methods.
-- Derrick Wigglesworth (2011): some UHP and PD methods.
-- Bill Goldman (2011): many UHP and PD methods, implemented in Mathematica.
+- Bill Goldman, Derrick Wigglesworth, Leila Vaden, Jeremy Lent, Zach Groton,
+  Jean-Philippe Burelle, Rania Amer, Greg Laun (2011): initial algorithms
 """
 
 #***********************************************************************
 #
 #       Copyright (C) 2013 Greg Laun <glaun@math.umd.edu>
-#
-#
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -104,15 +97,15 @@ class HyperbolicAbstractMethods(UniqueRepresentation):
         return cls.HModel.short_name
 
 
-class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
+class HyperbolicMethodsUHP(HyperbolicAbstractMethods):
     r"""
     Hyperbolic methods for the UHP model of hyperbolic space.
     """
     HModel = HyperbolicModelUHP
 
-#################
-# Point Methods #
-#################
+    #################
+    # Point Methods #
+    #################
 
     @classmethod
     def point_dist(cls, p1, p2):
@@ -157,7 +150,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         r"""
         Return a random point in the upper half
         plane.  The points are uniformly distributed over the rectangle
-        `[-10,10]x[-10i,10i]`.
+        `[-10,10] \times [-10i,10i]`.
 
         EXAMPLES::
 
@@ -174,9 +167,9 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         return RR.random_element(min = real_min ,max=real_max) +\
             I*RR.random_element(min = imag_min,max = imag_max)
 
-####################
-# Geodesic Methods #
-####################
+    ####################
+    # Geodesic Methods #
+    ####################
 
     @classmethod
     def boundary_points(cls, p1, p2):
@@ -187,11 +180,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``p1``, ``p2`` -- points in the hyperbolic plane.
+        - ``p1``, ``p2`` -- points in the hyperbolic plane
 
         OUTPUT:
 
-        - a list of boundary points.
+        - a list of boundary points
 
         EXAMPLES::
 
@@ -256,11 +249,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``other`` -- a hyperbolic geodesic in current model.
+        - ``other`` -- a hyperbolic geodesic in current model
 
         OUTPUT:
 
-        - a hyperbolic geodesic.
+        - a hyperbolic geodesic
 
         EXAMPLES::
 
@@ -292,11 +285,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``other`` -- a hyperbolic geodesic in the current model.
+        - ``other`` -- a hyperbolic geodesic in the current model
 
         OUTPUT:
 
-        - a hyperbolic point.
+        - a hyperbolic point
 
         EXAMPLES::
 
@@ -411,11 +404,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``other`` -- a hyperbolic point in the same model.
+        - ``other`` -- a hyperbolic point in the same model
 
         OUTPUT:
 
-        - the hyperbolic distance.
+        - the hyperbolic distance
 
         EXAMPLES::
 
@@ -457,7 +450,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``start`` -- a real number or infinity.
+        - ``start`` -- a real number or infinity
         - ``end`` -- a real number or infinity
 
         EXAMPLES::
@@ -485,11 +478,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        -``other`` -- a hyperbolic geodesic in the UHP model.
+        -``other`` -- a hyperbolic geodesic in the UHP model
 
         OUTPUT:
 
-        - The angle in radians between the two given geodesics
+        - the angle in radians between the two given geodesics
 
         EXAMPLES::
 
@@ -525,13 +518,14 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             return real(arccos((b_1+b_2)/abs(b_2-b_1)))
 
 
-####################
-# Isometry Methods #
-####################
+    ####################
+    # Isometry Methods #
+    ####################
+
     @classmethod
     def orientation_preserving(cls, M):
         r"""
-        Return `True` if self is orientation preserving and `False`
+        Return ``True`` if ``self`` is orientation preserving and ``False``
         otherwise.
 
         EXAMPLES::
@@ -608,7 +602,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     def translation_length(cls, M):
         r"""
         For hyperbolic elements, return the translation length.
-        Otherwise, raise a ValueError.
+        Otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -630,8 +624,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         if cls.classification(M) in ['hyperbolic',
                                      'oriention-reversing hyperbolic']:
             return 2*arccosh(tau/2)
-            raise TypeError("Translation length is only defined for hyperbolic"
-                            " transformations.")
+            raise TypeError("translation length is only defined for hyperbolic"
+                            " transformations")
 
     @classmethod
     def isometry_from_fixed_points(cls, repel, attract):
@@ -646,15 +640,14 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             sage: HyperbolicMethodsUHP.isometry_from_fixed_points(2 + I, 3 + I)
             Traceback (most recent call last):
             ...
-            ValueError: Fixed points of hyperbolic elements must be ideal.
+            ValueError: fixed points of hyperbolic elements must be ideal
 
             sage: HyperbolicMethodsUHP.isometry_from_fixed_points(2, 0)
             [  -1    0]
             [-1/3 -1/3]
         """
         if imag(repel) + imag(attract) > EPSILON:
-            raise ValueError("Fixed points of hyperbolic elements must be"
-                             " ideal.")
+            raise ValueError("fixed points of hyperbolic elements must be ideal")
         repel = real(repel)
         attract = real(attract)
         if repel == infinity:
@@ -677,7 +670,7 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         OUTPUT:
 
-        - a list of hyperbolic points.
+        - a list of hyperbolic points
 
         EXAMPLES::
 
@@ -693,15 +686,15 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             sage: HyperbolicMethodsUHP.fixed_point_set(identity_matrix(2))
             Traceback (most recent call last):
             ...
-            ValueError: The identity transformation fixes the entire hyperbolic plane.
+            ValueError: the identity transformation fixes the entire hyperbolic plane
         """
         d = sqrt(M.det()**2)
         M = M/sqrt(d)
         tau = M.trace()**2
         M_cls = cls.classification(M)
         if M_cls == 'identity':
-            raise ValueError("The identity transformation fixes the entire "
-                             "hyperbolic plane.")
+            raise ValueError("the identity transformation fixes the entire "
+                             "hyperbolic plane")
         if M_cls == 'parabolic':
             if abs(M[1,0]) < EPSILON:
                 return [infinity]
@@ -745,11 +738,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     def repelling_fixed_point(cls, M):
         r"""
         For a hyperbolic isometry, return the attracting fixed point.
-        Otherwise raise a ValueError.
+        Otherwise raise a ``ValueError``.
 
         OUTPUT:
 
-        - a hyperbolic point.
+        - a hyperbolic point
 
         EXAMPLES::
 
@@ -760,8 +753,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         """
         if cls.classification(M) not in ['hyperbolic',
                                          'orientation-reversing hyperbolic']:
-            raise ValueError("Repelling fixed point is defined only" +
-                             "for hyperbolic isometries.")
+            raise ValueError("repelling fixed point is defined only"
+                             "for hyperbolic isometries")
         v = M.eigenmatrix_right()[1].column(1)
         if v[1] == 0:
             return infinity
@@ -771,11 +764,11 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
     def attracting_fixed_point(cls, M):
         r"""
         For a hyperbolic isometry, return the attracting fixed point.
-        Otherwise raise a ValueError.
+        Otherwise raise a ``ValueError``.
 
         OUTPUT:
 
-        - a hyperbolic point.
+        - a hyperbolic point
 
         EXAMPLES::
 
@@ -786,8 +779,8 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         """
         if cls.classification(M) not in \
                 ['hyperbolic', 'orientation-reversing hyperbolic']:
-            raise ValueError("Attracting fixed point is defined only" +
-                             "for hyperbolic isometries.")
+            raise ValueError("attracting fixed point is defined only" +
+                             "for hyperbolic isometries")
         v = M.eigenmatrix_right()[1].column(0)
         if v[1] == 0:
             return infinity
@@ -800,11 +793,12 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - ``preserve_orientation`` -- if ``True`` return an orientation-preserving isometry.
+        - ``preserve_orientation`` -- if ``True`` return an
+          orientation-preserving isometry
 
         OUTPUT:
 
-        - a hyperbolic isometry.
+        - a hyperbolic isometry
 
         EXAMPLES::
 
@@ -830,10 +824,9 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
             else:
                 return M
 
-###################
-# Helping Methods #
-###################
-
+    ###################
+    # Helping Methods #
+    ###################
 
     @classmethod
     def _to_std_geod(cls, start, p, end):
@@ -867,12 +860,13 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
 
         INPUT:
 
-        - A list of three distinct elements of three distinct elements of `\mathbb{CP}^1` in affine coordinates.  That is, each element must be a complex number, `\infty`, or symbolic.
+        - A list of three distinct elements of three distinct elements
+          of `\mathbb{CP}^1` in affine coordinates.  That is, each element
+          must be a complex number, `\infty`, or symbolic.
 
         OUTPUT:
 
-        - An element of '\GL(2,\CC)`.
-
+        - an element of '\GL(2,\CC)`
 
         EXAMPLES::
 
@@ -928,3 +922,4 @@ class HyperbolicMethodsUHP (HyperbolicAbstractMethods):
         A = cls._crossratio_matrix(z[0],z[1],z[2])
         B = cls._crossratio_matrix(w[0],w[1],w[2])
         return B.inverse()*A
+

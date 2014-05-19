@@ -14,7 +14,8 @@ Abstractly, a model of hyperbolic space is a connected, simply connected
 manifold equipped with a complete Riemannian metric of constant curvature
 `-1`.  This module records information sufficient to enable computations
 in hyperbolic space without explicitly specifying the underlying set or
-its Riemannian metric.  Although, see the `SageManifolds <http://sagemanifolds.obspm.fr/>`_ project if 
+its Riemannian metric.  Although, see the
+`SageManifolds <http://sagemanifolds.obspm.fr/>`_ project if 
 you would like to take this approach.
 
 This module implements the abstract base class for a model of hyperbolic
@@ -70,34 +71,27 @@ and isometries in hyperbolic space:
 #
 #       Copyright (C) 2013 Greg Laun <glaun@math.umd.edu>
 #
-#
-#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.lazy_import import lazy_import
 from sage.functions.other import imag, real
 from sage.rings.all import CC, RR
+from sage.rings.integer import Integer
 from sage.symbolic.pynac import I
 from sage.rings.infinity import infinity
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
+from sage.matrix.all import matrix
 
 lazy_import('sage.misc.misc', 'attrcall')
-lazy_import('sage.matrix.all', 'matrix')
-lazy_import('sage.rings.integer', 'Integer')
 lazy_import('sage.modules.free_module_element', 'vector')
-
 lazy_import('sage.functions.other','sqrt')
 
-
 lazy_import('sage.geometry.hyperbolic_space.model_factory', 'ModelFactory')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', '_SL2R_to_SO21')
-lazy_import('sage.geometry.hyperbolic_space.hyperbolic_model', '_SO21_to_SL2R')
-
-
 
 
 class HyperbolicModel(UniqueRepresentation):
@@ -117,16 +111,16 @@ class HyperbolicModel(UniqueRepresentation):
     @classmethod
     def point_in_model(cls, p): #Abstract
         r"""
-        Return true if the point is in the given model and false
+        Return ``True`` if the point is in the given model and ``False``
         otherwise.
 
         INPUT:
 
-        - Any object that can converted into a complex number.
+        - any object that can converted into a complex number
 
         OUTPUT:
 
-        - Boolean.
+        - boolean
 
         EXAMPLES::
 
@@ -141,7 +135,7 @@ class HyperbolicModel(UniqueRepresentation):
     def point_test(cls, p): #Abstract
         r"""
         Test whether a point is in the model.  If the point is in the
-        model, do nothing.  Otherwise, raise a ValueError.
+        model, do nothing.  Otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -150,25 +144,25 @@ class HyperbolicModel(UniqueRepresentation):
             sage: HyperbolicModelUHP.point_test(2 - I)
             Traceback (most recent call last):
             ...
-            ValueError: -I + 2 is not a valid point in the UHP model.
+            ValueError: -I + 2 is not a valid point in the UHP model
         """
         if not (cls.point_in_model(p) or cls.bdry_point_in_model(p)):
-            error_string = "{0} is not a valid point in the {1} model."
+            error_string = "{0} is not a valid point in the {1} model"
             raise ValueError(error_string.format(p, cls.short_name))
 
     @classmethod
-    def bdry_point_in_model(cls,p): #Abstract
+    def bdry_point_in_model(cls, p): #Abstract
         r"""
-        Return true if the point is on the ideal boundary of hyperbolic
-        space and false otherwise.
+        Return ``True`` if the point is on the ideal boundary of hyperbolic
+        space and ``False`` otherwise.
 
         INPUT:
 
-        - Any object that can converted into a complex number.
+        - any object that can converted into a complex number
 
         OUTPUT:
 
-        - Boolean.
+        - boolean
 
         EXAMPLES::
 
@@ -181,7 +175,7 @@ class HyperbolicModel(UniqueRepresentation):
     def bdry_point_test(cls, p): #Abstract
         r"""
         Test whether a point is in the model.  If the point is in the
-        model, do nothing.  Otherwise, raise a ValueError.
+        model, do nothing.  Otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -190,10 +184,10 @@ class HyperbolicModel(UniqueRepresentation):
             sage: HyperbolicModelUHP.bdry_point_test(1 + I)
             Traceback (most recent call last):
             ...
-            ValueError: I + 1 is not a valid boundary point in the UHP model.
+            ValueError: I + 1 is not a valid boundary point in the UHP model
         """
         if not cls.bounded or not cls.bdry_point_in_model(p):
-            error_string = "{0} is not a valid boundary point in the {1} model."
+            error_string = "{0} is not a valid boundary point in the {1} model"
             raise ValueError(error_string.format(p, cls.short_name))
 
     @classmethod
@@ -204,11 +198,11 @@ class HyperbolicModel(UniqueRepresentation):
 
         INPUT:
 
-        - A matrix that represents an isometry in the appropriate model.
+        - a matrix that represents an isometry in the appropriate model
 
         OUTPUT:
 
-        - Boolean.
+        - boolean
 
         EXAMPLES::
 
@@ -224,7 +218,7 @@ class HyperbolicModel(UniqueRepresentation):
     def isometry_act_on_point(cls, A, p): #Abtsract
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
-        return image of ``p`` unduer the action ``A \cdot p``.
+        return image of ``p`` unduer the action `A \cdot p`.
 
         EXAMPLES::
 
@@ -234,13 +228,13 @@ class HyperbolicModel(UniqueRepresentation):
             sage: bool(norm(HyperbolicModelUHP.isometry_act_on_point(I2, p) - p) < 10**-9)
             True
         """
-        return A*vector(p)
+        return A * vector(p)
 
     @classmethod
     def isometry_test(cls, A): #Abstract
         r"""
         Test whether an isometry is in the model.  If the isometry is in
-        the model, do nothing.  Otherwise, raise a ValueError.
+        the model, do nothing.  Otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -265,12 +259,13 @@ class HyperbolicModel(UniqueRepresentation):
 
         INPUT:
 
-        - ``coordinates`` -- the coordinates of a valid point in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``coordinates`` -- the coordinates of a valid point in the
+          current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
 
@@ -303,13 +298,13 @@ class HyperbolicModel(UniqueRepresentation):
             sage: UHP.point_to_model(infinity, 'HM')
             Traceback (most recent call last):
             ...
-            NotImplementedError: Boundary points are not implemented for the HM model.
+            NotImplementedError: boundary points are not implemented for the HM model
         """
         cls.point_test(coordinates)
         model = ModelFactory.find_model(model_name)
         if (not model.bounded) and cls.bdry_point_in_model(coordinates):
-            raise NotImplementedError("Boundary points are not implemented for"
-                                      " the {0} model.".format(model_name))
+            raise NotImplementedError("boundary points are not implemented for"
+                                      " the {0} model".format(model_name))
         return cls.pt_conversion_dict[model_name](coordinates)
 
     @classmethod
@@ -320,12 +315,12 @@ class HyperbolicModel(UniqueRepresentation):
 
         INPUT:
 
-        - ``A`` -- a matrix in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``A`` -- a matrix in the current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
 
@@ -361,7 +356,7 @@ class HyperbolicModel(UniqueRepresentation):
         cls.isometry_test(A)
         return cls.isom_conversion_dict[model_name](A)
 
-class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
+class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
     r"""
     Upper Half Plane model.
     """
@@ -421,7 +416,7 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
     def bdry_point_in_model(cls,p): #UHP
         r"""
         Check whether a complex number is a real number or ``\infty``.
-        In the UHP.model_name_name, this is the ideal boundary of
+        In the ``UHP.model_name_name``, this is the ideal boundary of
         hyperbolic space.
 
         EXAMPLES::
@@ -450,7 +445,7 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
     def isometry_act_on_point(cls, A, p): #UHP
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
-        return image of ``p`` unduer the action ``A \cdot p``.
+        return image of ``p`` unduer the action `A \cdot p`.
 
         EXAMPLES::
 
@@ -466,7 +461,7 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
     def isometry_in_model(cls,A): #UHP
         r"""
         Check that ``A`` acts as an isometry on the upper half plane.
-        That is, ``A`` must be an invertible ``2 x 2`` matrix with real
+        That is, ``A`` must be an invertible `2 \times 2` matrix with real
         entries.
 
         EXAMPLES::
@@ -490,12 +485,13 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
 
         INPUT:
 
-        - ``coordinates`` -- the coordinates of a valid point in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``coordinates`` -- the coordinates of a valid point in the
+          current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
 
@@ -514,13 +510,13 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
             sage: UHP.point_to_model(infinity, 'HM')
             Traceback (most recent call last):
             ...
-            NotImplementedError: Boundary points are not implemented for the HM model.
+            NotImplementedError: boundary points are not implemented for the HM model
         """
         p = coordinates
         if (cls.bdry_point_in_model(p) and not
                 ModelFactory.find_model(model_name).bounded):
-            raise NotImplementedError("Boundary points are not implemented for"
-                                      " the {0} model.".format(model_name))
+            raise NotImplementedError("boundary points are not implemented for"
+                                      " the {0} model".format(model_name))
         if p == infinity:
             return {
                 'UHP' : p,
@@ -537,12 +533,12 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
 
         INPUT:
 
-        - ``A`` -- a matrix in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``A`` -- a matrix in the current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
             sage: from sage.geometry.hyperbolic_space.hyperbolic_model import HyperbolicModelUHP
@@ -556,7 +552,7 @@ class HyperbolicModelUHP (HyperbolicModel, UniqueRepresentation):
         return cls.isom_conversion_dict[model_name](A)
 
 
-class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
+class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
     r"""
     Poincare Disk Model.
     """
@@ -593,7 +589,7 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
     @classmethod
     def point_in_model(cls, p): #PD
         r"""
-        Check whether a complex number lies in the open  unit disk.
+        Check whether a complex number lies in the open unit disk.
 
         EXAMPLES::
 
@@ -612,7 +608,7 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
     @classmethod
     def bdry_point_in_model(cls,p): #PD
         r"""
-        Check whether a complex number lies in the open  unit disk.
+        Check whether a complex number lies in the open unit disk.
 
         EXAMPLES::
 
@@ -632,7 +628,7 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
     def isometry_act_on_point(cls, A, p): #PD
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
-        return image of ``p`` unduer the action ``A \cdot p``.
+        return image of ``p`` unduer the action `A \cdot p`.
 
         EXAMPLES::
 
@@ -651,7 +647,7 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A): #PD
         r"""
-        Check if the given matrix A is in the group U(1,1).
+        Check if the given matrix ``A`` is in the group `U(1,1)`.
 
         EXAMPLES::
 
@@ -673,12 +669,13 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
 
         INPUT:
 
-        - ``coordinates`` -- the coordinates of a valid point in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``coordinates`` -- the coordinates of a valid point in the
+          current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
 
@@ -704,17 +701,18 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
 
         INPUT:
 
-        - ``A`` -- a matrix in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``A`` -- a matrix in the current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES:
 
         We check that orientation-reversing isometries behave as they
         should::
+
             sage: PD.isometry_to_model(matrix(2,[0,I,I,0]),'UHP')
             [ 0 -1]
             [-1  0]
@@ -725,7 +723,7 @@ class HyperbolicModelPD (HyperbolicModel, UniqueRepresentation):
             return cls.isom_conversion_dict[model_name](I*A)
         return cls.isom_conversion_dict[model_name](A)
 
-class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
+class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
     r"""
     Klein Model.
     """
@@ -789,14 +787,14 @@ class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
             sage: KM.bdry_point_in_model((1 , .2))
             False
         """
-        return  len(p) == 2 and bool(abs(p[0]**2 + p[1]**2 - 1) < EPSILON)
+        return len(p) == 2 and bool(abs(p[0]**2 + p[1]**2 - 1) < EPSILON)
 
 
     @classmethod #KM
     def isometry_act_on_point(cls, A, p): #KM
         r"""
         Given an isometry ``A`` and a point ``p`` in the current model,
-        return image of ``p`` unduer the action ``A \cdot p``.
+        return image of ``p`` unduer the action `A \cdot p`.
 
         EXAMPLES::
 
@@ -814,7 +812,7 @@ class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A): #KM
         r"""
-        Check if the given matrix A is in the group SO(2,1).
+        Check if the given matrix ``A`` is in the group `SO(2,1)`.
 
         EXAMPLES::
 
@@ -834,12 +832,13 @@ class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
 
         INPUT:
 
-        - ``coordinates`` -- the coordinates of a valid point in the current model.
-        - ``model_name`` -- a string denoting the model to be converted to.
+        - ``coordinates`` -- the coordinates of a valid point in the
+          current model
+        - ``model_name`` -- a string denoting the model to be converted to
 
         OUTPUT:
 
-        - the coordinates of a point in the ``short_name`` model.
+        - the coordinates of a point in the ``short_name`` model
 
         EXAMPLES::
 
@@ -858,7 +857,7 @@ class HyperbolicModelKM (HyperbolicModel, UniqueRepresentation):
                                                             model_name)
 
 
-class HyperbolicModelHM (HyperbolicModel, UniqueRepresentation):
+class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
     r"""
     Hyperboloid Model.
     """
@@ -905,7 +904,7 @@ class HyperbolicModelHM (HyperbolicModel, UniqueRepresentation):
     @classmethod
     def bdry_point_in_model(cls,p):  #HM
         r"""
-        Return False since the Hyperboloid model has no boundary points.
+        Return ``False`` since the Hyperboloid model has no boundary points.
 
         EXAMPLES::
 
@@ -924,7 +923,7 @@ class HyperbolicModelHM (HyperbolicModel, UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A):  #HM
         r"""
-        Test that the matrix ``A`` is in the group ``SO (2,1)^+``.
+        Test that the matrix ``A`` is in the group `SO (2,1)^+`.
 
         EXAMPLES::
 
@@ -937,8 +936,8 @@ class HyperbolicModelHM (HyperbolicModel, UniqueRepresentation):
 
 def _SL2R_to_SO21 (A):
     r"""
-    Given a matrix in SL(2,R) return its irreducible representation in
-    O(2,1).
+    Given a matrix in `SL(2, \RR)` return its irreducible representation in
+    `O(2,1)`.
 
     Note that this is not the only homomorphism, but it is the only one
     that works in the context of the implemented 2D hyperbolic geometry
@@ -973,7 +972,7 @@ def _SL2R_to_SO21 (A):
 
 def _SO21_to_SL2R (M):
     r"""
-    A homomorphism from ``SO(2 ,1)``to ``SL (2, \Bold{R})``.
+    A homomorphism from `SO(2 ,1)` to `SL (2, \RR)`.
 
     Note that this is not the only homomorphism, but it is the only one
     that works in the context of the implemented 2D hyperbolic geometry
@@ -1024,18 +1023,17 @@ def _SO21_to_SL2R (M):
 
 def _mobius_transform(A, z):
     r"""
-    Given a matrix `A' in `GL(2,\mathbb{C})' and a point `z' in
-    the complex plan return the mobius transformation action of `A'
-    on `z'.
+    Given a matrix ``A`` in `GL(2,\CC)` and a point ``z`` in the complex
+    plane return the mobius transformation action of ``A`` on ``z``.
 
     INPUT:
 
-    - ``A`` -- a `2`x`2` invertible matrix over the complex numbers.
-    - `z` -- a complex number or infinity.
+    - ``A`` -- a `2 \times 2` invertible matrix over the complex numbers
+    - ``z`` -- a complex number or infinity
 
     OUTPUT:
 
-    - A complex number or infinity.
+    - a complex number or infinity
 
     EXAMPLES::
 
@@ -1046,20 +1044,20 @@ def _mobius_transform(A, z):
         sage: mobius_transform(matrix(2,[1,0,0,1]),x + I*y)
         x + I*y
 
-        The matrix must be square and `2`x`2`::
+    The matrix must be square and `2`x`2`::
 
         sage: mobius_transform(matrix([[3,1,2],[1,2,5]]),I)
         Traceback (most recent call last):
         ...
-        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring.
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
 
         sage: mobius_transform(identity_matrix(3),I)
         Traceback (most recent call last):
         ...
-        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring.
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
 
-        The matrix can be symbolic or can be a matrix over the real
-        or complex numbers, but must be invertible::
+    The matrix can be symbolic or can be a matrix over the real
+    or complex numbers, but must be invertible::
 
         sage: (a,b,c,d) = var('a,b,c,d');
         sage: mobius_transform(matrix(2,[a,b,c,d]),I)
@@ -1067,8 +1065,8 @@ def _mobius_transform(A, z):
 
         sage: mobius_transform(matrix(2,[0,0,0,0]),I)
         Traceback (most recent call last):
-            ...
-        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring.
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
     """
     if A.ncols() == 2 and A.nrows() == 2 and A.det() != 0:
             (a,b,c,d) = A.list()
@@ -1086,7 +1084,8 @@ def _mobius_transform(A, z):
                 return (a*w + b)/(c*w + d)
     else:
         raise TypeError("A must be an invertible 2x2 matrix over the"
-                        " complex numbers or a symbolic ring.")
+                        " complex numbers or a symbolic ring")
+
 def _PD_preserve_orientation(A):
     r"""
     For a PD isometry, determine if it preserves orientation.
@@ -1094,6 +1093,7 @@ def _PD_preserve_orientation(A):
     of the determinant, and it is used a few times in this file.
 
     EXAMPLES::
+
         sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _PD_preserve_orientation as orient
         sage: orient(matrix(2, [-I, 0, 0, I]))
         True
@@ -1102,3 +1102,4 @@ def _PD_preserve_orientation(A):
     """
     return bool(A[1][0] == A[0][1].conjugate() and A[1][1] == A[0][0].conjugate()
                 and abs(A[0][0]) - abs(A[0][1]) != 0)
+

@@ -2279,8 +2279,8 @@ def OrthogonalPolarGraph(m, q, sign="+"):
 
     - ``m,q`` (integers) -- `q` must be a prime power.
 
-    - ``sign`` -- one of ``"+"`` or ``"-"`` when `m` is even, and
-      ``"+"``(default) otherwise.
+    - ``sign`` -- ``"+"`` or ``"-"`` if `m` is even, ``"+"`` (default)
+      otherwise.
 
     EXAMPLES::
 

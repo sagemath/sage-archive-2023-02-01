@@ -1482,7 +1482,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.rings.sum_of_squares_pyx',
+    Extension('sage.rings.sum_of_squares',
               sources = ['sage/rings/sum_of_squares.pyx'],
               libraries = ['m']),
 

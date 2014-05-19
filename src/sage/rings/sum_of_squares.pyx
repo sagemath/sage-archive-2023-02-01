@@ -1,9 +1,10 @@
 r"""
-Other miscellaneous arithmetic implemented in C for speed.
+Implement fast version of decomposition of (small) integers into sum of squares
+by direct method not relying on factorisation.
 
 AUTHORS:
 
-- Vincent Delecroix (2014): implementation of sum of squares (:trac:`16374`)
+- Vincent Delecroix (2014): first implementation (:trac:`16374`)
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -22,14 +23,15 @@ import integer
 
 zero = integer.smallInteger(0)
 
-cdef int two_squares_c(unsigned int n, unsigned int res[2]):
+cdef int two_squares_c(unsigned long n, unsigned long res[2]):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
     If ``1`` is returned, the the value of ``res[0]`` and ``res[1]`` are set to the
     lexicographically smallest solution of `a^2 + b^2 = n`.
     """
-    cdef unsigned int fac,i,ii,j,jj,nn
+    cdef unsigned int fac
+    cdef unsigned long i,ii,j,jj,nn
 
     if n == 0:
         res[0] = res[1] = 0
@@ -53,7 +55,7 @@ cdef int two_squares_c(unsigned int n, unsigned int res[2]):
     # if n=2 mod 4 then i and j must be odd
     if n%4 == 1:
         i = ii = 0
-        j = <unsigned int> sqrt(<double> n + .5)
+        j = <unsigned long> sqrt(<double> n)
         jj = j*j
         while ii <= jj:
             nn = n - ii
@@ -70,7 +72,7 @@ cdef int two_squares_c(unsigned int n, unsigned int res[2]):
             ii = i*i
     else: # n mod 4 = 2
         i = ii = 1
-        j = <unsigned int> sqrt(n)
+        j = <unsigned long> sqrt(<double> n)
         j += 1 - j%2
         jj = j*j
         while ii <= jj:
@@ -89,15 +91,16 @@ cdef int two_squares_c(unsigned int n, unsigned int res[2]):
 
     return 0
 
-cdef int three_squares_c(unsigned int n, unsigned int res[3]):
+cdef int three_squares_c(unsigned long n, unsigned long res[3]):
     r"""
     Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
 
     If ``1`` is returned, the the value of ``res[0]``, ``res[1]`` and ``res[2]``
     are set to a solution of `a^2 + b^2 + c^2 = n` such that `a \leq b \leq c`.
     """
-    cdef unsigned int i,fac
-    cdef unsigned int j[2]
+    cdef unsigned int fac
+    cdef unsigned long i
+    cdef unsigned long j[2]
 
     if n == 0:
         res[0] = res[1] = res[2] = 0
@@ -116,15 +119,14 @@ cdef int three_squares_c(unsigned int n, unsigned int res[3]):
     if n%8 == 7:
         return 0
 
-    i = <unsigned int> sqrt(<double>n + .5)  # rounding is toward zero and hence
-                                             # i^2 <= n
+    i = <unsigned long> sqrt(<double> n)
     while not two_squares_c(n-i*i, j):
         i -= 1
 
     res[0] = (j[0])<<fac; res[1] = (j[1])<<fac; res[2] = i<<fac
     return 1
 
-def two_squares_pyx(unsigned int n):
+def two_squares_pyx(unsigned long n):
     r"""
     Return a pair of non-negative integers ``(i,j)`` such that `i^2 + j^2 = n`.
 
@@ -134,9 +136,7 @@ def two_squares_pyx(unsigned int n):
 
         The algorithm used here is relatively naive and only has interest for
         small values of ``n``. For that reason, the input must fit into an
-        ``unsigned int`` (whose limit might be  `2^{32}-1=4294967295` or
-        `2^{64}-1=18446744073709551615` depending on your computer and operating
-        system).
+        ``unsigned long`` (whose limit might depend on your platform).
 
     .. SEEALSO::
 
@@ -144,7 +144,7 @@ def two_squares_pyx(unsigned int n):
 
     EXAMPLES::
 
-        sage: from sage.rings.arith_pyx import two_squares_pyx
+        sage: from sage.rings.sum_of_squares import two_squares_pyx
         sage: two_squares_pyx(0)
         (0, 0)
         sage: two_squares_pyx(1)
@@ -164,29 +164,32 @@ def two_squares_pyx(unsigned int n):
         sage: for ij in Subsets(Subsets(45000,15).random_element(),2):
         ....:     if s(two_squares_pyx(s(ij))) != s(ij):
         ....:         print "hey"
+
+        sage: for n in xrange(45000):
+        ....:     if two_squares_pyx(n**2) != (0, n):
+        ....:         print "hey"
     """
-    cdef unsigned int i[2]
+    cdef unsigned long i[2]
 
     if two_squares_c(n, i):
         return (integer.smallInteger(i[0]), integer.smallInteger(i[1]))
 
     raise ValueError("%d is not a sum of 2 squares"%n)
 
-def three_squares_pyx(unsigned int n):
+def three_squares_pyx(unsigned long n):
     r"""
     If ``n`` is a sum of three squares return a 3-tuple ``(i,j,k)`` of Sage integers
-    so that `i^2 + j^2 + k^2 = n` and `i \leq j \leq k`. Otherwise raise a ``ValueError``.
+    such that `i^2 + j^2 + k^2 = n` and `i \leq j \leq k`. Otherwise raise a ``ValueError``.
 
     .. NOTE::
 
         The algorithm used is relatively naive and only has interest for small
         values of ``n``. For that reason, the input must fit into an ``unsigned
-        int`` (whose limit might be  `2^{32}-1=4294967295` or
-        `2^{64}-1=18446744073709551615` depending on your plateform).
+        long`` (whose limit might depend on your platform).
 
     EXAMPLES::
 
-        sage: from sage.rings.arith_pyx import three_squares_pyx
+        sage: from sage.rings.sum_of_squares import three_squares_pyx
         sage: three_squares_pyx(0)
         (0, 0, 0)
         sage: three_squares_pyx(1)
@@ -215,14 +218,14 @@ def three_squares_pyx(unsigned int n):
         ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
         ....:         print "hey"
     """
-    cdef unsigned int i[3]
+    cdef unsigned long i[3]
 
     if three_squares_c(n, i):
         return (integer.smallInteger(i[0]), integer.smallInteger(i[1]), integer.smallInteger(i[2]))
 
     raise ValueError("%d is not a sum of 3 squares"%n)
 
-def four_squares_pyx(unsigned int n):
+def four_squares_pyx(unsigned long n):
     r"""
     Return a 4-tuple of non-negative integers ``(i,j,k,l)`` such that `i^2 + j^2
     + k^2 + l^2 = n` and `i \leq j \leq k \leq l`.
@@ -231,8 +234,7 @@ def four_squares_pyx(unsigned int n):
 
         The algorithm used here is relatively naive and only has interest for
         small values of ``n``. For that reason, the input must fit into an
-        ``unsigned int`` (whose limit might be  `2^{32}-1=4294967295` or
-        `2^{64}-1=18446744073709551615` depending on your plateform).
+        ``unsigned long`` (whose limit depends on your platform).
 
     .. SEEALSO::
 
@@ -240,7 +242,7 @@ def four_squares_pyx(unsigned int n):
 
     EXAMPLES::
 
-        sage: from sage.rings.arith_pyx import four_squares_pyx
+        sage: from sage.rings.sum_of_squares import four_squares_pyx
         sage: four_squares_pyx(15447)
         (2, 5, 17, 123)
         sage: 2^2 + 5^2 + 17^2 + 123^2
@@ -257,8 +259,9 @@ def four_squares_pyx(unsigned int n):
         sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
         True
     """
-    cdef unsigned int i[3]
-    cdef unsigned int fac,j, nn
+    cdef unsigned int fac
+    cdef unsigned long i[3]
+    cdef unsigned long j, nn
 
     if n == 0:
         return (zero, zero, zero, zero)
@@ -270,8 +273,7 @@ def four_squares_pyx(unsigned int n):
         fac += 1
 
     # we pick the largest square we can for j
-    j = <unsigned int> sqrt(<double> n + .5)  # rounding is toward zero and
-                                              # hence j^2 <= n
+    j = <unsigned long> sqrt(<double> n)
     while not three_squares_c(n-j*j, i):
         j -= 1
 

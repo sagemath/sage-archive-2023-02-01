@@ -39,7 +39,7 @@ Miscellaneous
    sage/misc/sagedoc
    sage/misc/edit_module
    sage/rings/arith
-   sage/rings/arith_pyx
+   sage/rings/sum_of_squares
    sage/misc/nested_class
    sage/misc/nested_class_test
    sage/misc/classcall_metaclass

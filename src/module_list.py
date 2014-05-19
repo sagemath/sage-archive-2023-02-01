@@ -1482,8 +1482,8 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.rings.arith_pyx',
-              sources = ['sage/rings/arith_pyx.pyx'],
+    Extension('sage.rings.sum_of_squares_pyx',
+              sources = ['sage/rings/sum_of_squares.pyx'],
               libraries = ['m']),
 
     Extension('sage.rings.bernmm',

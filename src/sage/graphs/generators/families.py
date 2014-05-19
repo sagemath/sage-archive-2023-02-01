@@ -2218,7 +2218,7 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
-    from sage.interfaces.gap import gap
+    from sage.libs.gap.libgap import libgap
     from itertools import combinations
 
     if m % 2 == 0:
@@ -2231,26 +2231,21 @@ def OrthogonalPolarGraph(m, q, sign="+"):
                              "m is odd")
         sign = ""
 
-    Fq = FiniteField(q, prefix='x', conway=True)
     e = {'+': 1,
          '-': -1,
          '' : 0}[sign]
 
-    M = gap("InvariantQuadraticForm(GO" + str((e, m, q)) + ").matrix")
-    M = [[Fq(x) for x in R] for R in M]
-    M = Matrix(M)
+    M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(e,m,q))['matrix'])
+    Fq = libgap.GF(q).sage()
     PG = ProjectiveSpace(m - 1, Fq)
     m_over_two = m // 2
 
     def F(x):
         return x*M*x
 
-    def FF(x,y):
-        return F(vector([xx-yy for xx,yy in zip(x,y)]))
-
     V = [x for x in PG if F(vector(x)) == 0]
 
-    G = Graph([V,lambda x,y:FF(x,y)==0],loops=False)
+    G = Graph([V,lambda x,y:F(vector(x)-vector(y))==0],loops=False)
 
     G.relabel()
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))

@@ -124,22 +124,6 @@ class Braid(FinitelyPresentedGroupElement):
             True
             sage: hash(s0*s1) == hash(s1*s0)
             False
-
-        We check that :trac:`16059` is fixed::
-
-            sage: def ball(G, r):
-            ....:     ret = set()
-            ....:     ret.add(G.one())
-            ....:     for length in range(1, r):
-            ....:         for w in Words(alphabet=G.gens(), length=length):
-            ....:              ret.add(prod(w))
-            ....:     return ret
-            sage: B = BraidGroup(4)
-            sage: GB = B.cayley_graph(elements=ball(B, 4), generators=B.gens()); GB
-            Digraph on 31 vertices
-            sage: F = FreeGroup(3)
-            sage: GF = F.cayley_graph(elements=ball(F, 4), generators=F.gens()); GF
-            Digraph on 40 vertices
         """
         return hash(tuple(i.Tietze() for i in self.left_normal_form()))
 
@@ -1135,17 +1119,26 @@ def BraidGroup(n=None, names='s'):
         sage: BraidGroup(3, 'g').generators()
         (g0, g1)
 
-    Since the word problem for the Braid groups is solvable, their Cayley
-    graph can be localy obtained as follows::
+    Since the word problem for the braid groups is solvable, their Cayley graph
+    can be localy obtained as follows (see :trac:`16059`)::
 
+        sage: def ball(group, radius):
+        ....:     ret = set()
+        ....:     ret.add(group.one())
+        ....:     for length in range(1, radius):
+        ....:         for w in Words(alphabet=group.gens(), length=length):
+        ....:              ret.add(prod(w))
+        ....:     return ret
         sage: B = BraidGroup(4)
-        sage: ball = set()
-        sage: ball.add(B.one())
-        sage: for length in range(1, 4):
-        ....:     for w in Words(alphabet=B.gens(), length=length):
-        ....:         ball.add(prod(w))
-        sage: G = B.cayley_graph(elements=ball, generators=B.gens()) ; G
+        sage: GB = B.cayley_graph(elements=ball(B, 4), generators=B.gens()); GB
         Digraph on 31 vertices
+
+    Since the braid group has nontrivial relations, this graph contains less
+    vertices than the one associated to the free group (which is a tree)::
+
+        sage: F = FreeGroup(3)
+        sage: GF = F.cayley_graph(elements=ball(F, 4), generators=F.gens()); GF
+        Digraph on 40 vertices
 
     TESTS::
 

@@ -2250,18 +2250,17 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
+    from sage.libs.gap.libgap import libgap
     from itertools import combinations
 
-    m = gap("InvariantQuadraticForm(GO("+str(s)+","+str(d)+","+str(q)+")).matrix")
-    F = FiniteField(q,"x",conway=True)
+    M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(s,d,q))['matrix'])
+    F = libgap.GF(q).sage()
     V = list(VectorSpace(F,d))
-    M = [[F(y) for y in mm] for mm in m]
-    M = Matrix(F,M)
 
     G = Graph()
     G.add_vertices(map(tuple,V))
     for x,y in combinations(V,2):
-        if not (x-y)*(M*(x-y)):
+        if not (x-y)*M*(x-y):
             G.add_edge(tuple(x),tuple(y))
 
     G.name("Affine Polar Graph VO^"+str('+' if s == 1 else '-')+"("+str(d)+","+str(q)+")")

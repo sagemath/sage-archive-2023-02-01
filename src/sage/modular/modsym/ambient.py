@@ -89,6 +89,7 @@ import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.all as rings
 import sage.rings.arith as arith
+import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
 from sage.modular.cusps import Cusp
@@ -479,7 +480,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return sum([c*self(y) for c, y in x], self(0))
 
         elif isinstance(x, list):
-            if len(x) == 3 and rings.is_MPolynomial(x[0]):
+            if len(x) == 3 and sage.rings.polynomial.multi_polynomial_element.is_MPolynomial(x[0]):
                 return self.modular_symbol_sum(x)
             else:
                 return self.modular_symbol(x)

@@ -946,7 +946,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except (NotImplementedError, PariError):
             raise TypeError("error coercing to finite field")
         except TypeError:
-            if sage.interfaces.all.is_GapElement(x):
+            if sage.interfaces.gap.is_GapElement(x):
                 from sage.interfaces.gap import intmod_gap_to_sage
                 try:
                     y = intmod_gap_to_sage(x)

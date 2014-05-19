@@ -120,7 +120,8 @@ import power_series_poly
 import power_series_mpoly
 import power_series_ring_element
 
-from polynomial.all import is_MPolynomialRing, is_PolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
 from polynomial.polynomial_ring_constructor import PolynomialRing
 import laurent_series_ring
 import laurent_series_ring_element

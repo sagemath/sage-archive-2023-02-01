@@ -60,7 +60,7 @@ from sage.plot.plot import generate_plot_points
 
 import sage.rings.arith as arith
 import sage.rings.all as rings
-from sage.rings.number_field.all import is_NumberField
+from sage.rings.number_field.number_field_base import is_NumberField
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method, cached_function
 

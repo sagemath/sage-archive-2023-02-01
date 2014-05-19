@@ -2227,7 +2227,7 @@ def png(x, filename, density=150, debug=False,
     if not pdflatex:
         engine = "latex"
     import sage.plot.all
-    if sage.plot.all.is_Graphics(x):
+    if sage.plot.graphics.is_Graphics(x):
         x.save(filename)
         return
     # if not graphics: create a string of latex code to write in a file

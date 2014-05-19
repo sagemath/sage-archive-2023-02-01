@@ -2173,7 +2173,7 @@ def SymplecticGraph(d,q):
     G.relabel()
     return G
 
-def AffinePolarGraph(d,q,sign="+"):
+def AffineOrthogonalPolarGraph(d,q,sign="+"):
     r"""
     Returns the affine polar graph `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`.
 
@@ -2185,7 +2185,7 @@ def AffinePolarGraph(d,q,sign="+"):
     is not.
 
     For more information on Affine Polar graphs, see `Affine Polar
-    Graph page of Andries Brouwer's website
+    Graphs page of Andries Brouwer's website
     <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
 
     INPUT:
@@ -2210,25 +2210,25 @@ def AffinePolarGraph(d,q,sign="+"):
     The :meth:`Brouwer-Haemers graph <BrouwerHaemersGraph>` is isomorphic to
     `VO^-(4,3)`::
 
-        sage: g = graphs.AffinePolarGraph(4,3,"-")
+        sage: g = graphs.AffineOrthogonalPolarGraph(4,3,"-")
         sage: g.is_isomorphic(graphs.BrouwerHaemersGraph())
         True
 
     Some examples from `Brouwer's table or strongly regular graphs
     <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
 
-        sage: g = graphs.AffinePolarGraph(6,2,"-"); g
+        sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"-"); g
         Affine Polar Graph VO^-(6,2): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
         (64, 27, 10, 12)
-        sage: g = graphs.AffinePolarGraph(6,2,"+"); g
+        sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"+"); g
         Affine Polar Graph VO^+(6,2): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
         (64, 35, 18, 20)
 
     When ``sign is None``::
 
-        sage: g = graphs.AffinePolarGraph(5,2,None); g
+        sage: g = graphs.AffineOrthogonalPolarGraph(5,2,None); g
         Affine Polar Graph VO^-(5,2): Graph on 32 vertices
         sage: g.is_strongly_regular(parameters=True)
         False
@@ -2253,7 +2253,7 @@ def AffinePolarGraph(d,q,sign="+"):
     from itertools import combinations
 
     m = gap("InvariantQuadraticForm(GO("+str(s)+","+str(d)+","+str(q)+")).matrix")
-    F = FiniteField(q,"x")
+    F = FiniteField(q,"x",conway=True)
     V = list(VectorSpace(F,d))
     M = [[F(y) for y in mm] for mm in m]
     M = Matrix(F,M)

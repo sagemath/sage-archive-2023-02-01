@@ -868,7 +868,7 @@ def plot(funcs, *args, **kwds):
     displaying::
 
         sage: G = plot(exp, 1, 10) # long time
-        sage: G.show(scale=('semilogy', 2)) # long time 
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     The algorithm used to insert extra points is actually pretty
     simple. On the picture drawn by the lines below::

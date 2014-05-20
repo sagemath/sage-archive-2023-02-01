@@ -134,7 +134,18 @@ from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
-from backtrack import TransitiveIdeal, TransitiveIdealGraded, SearchForest
+
+from sage.misc.superseded import deprecated_callable_import
+deprecated_callable_import(6637,
+                           'sage.combinat.backtrack',
+                           globals(),
+                           locals(),
+                           ["SearchForest", 
+                            "TransitiveIdeal", 
+                            "TransitiveIdealGraded"],
+                           ("This class soon will not be available in that "
+                            "way anymore. Use RecursivelyEnumeratedSet "
+                            "instead."))
 
 # Cluster Algebras and Quivers
 from cluster_algebra_quiver.all import *
@@ -171,6 +182,8 @@ from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatter
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.finite_state_machine',
             ['Automaton', 'Transducer', 'FiniteStateMachine'])
+lazy_import('sage.combinat.finite_state_machine_generators',
+            ['transducers'])
 # Binary Recurrence Sequences
 from binary_recurrence_sequences import BinaryRecurrenceSequence
 

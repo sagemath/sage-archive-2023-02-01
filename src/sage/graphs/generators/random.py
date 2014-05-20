@@ -213,9 +213,9 @@ def RandomBipartite(n1,n2, p):
         complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
     """
     if not (p>=0 and p<=1):
-        raise ValueError, "Parameter p is a probability, and so should be a real value between 0 and 1"
+        raise ValueError("Parameter p is a probability, and so should be a real value between 0 and 1")
     if not (n1>0 and n2>0):
-        raise ValueError, "n1 and n2 should be integers strictly greater than 0"
+        raise ValueError("n1 and n2 should be integers strictly greater than 0")
 
     from numpy.random import uniform
 

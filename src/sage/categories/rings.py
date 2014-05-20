@@ -152,9 +152,9 @@ class Rings(Category_singleton):
 
             """
             if category is not None and not category.is_subcategory(Rings()):
-                raise TypeError, "%s is not a subcategory of Rings()"%category
+                raise TypeError("%s is not a subcategory of Rings()"%category)
             if Y not in Rings():
-                raise TypeError, "%s is not a ring"%Y
+                raise TypeError("%s is not a ring"%Y)
             from sage.rings.homset import RingHomset
             return RingHomset(self, Y, category = category)
 
@@ -244,7 +244,7 @@ class Rings(Category_singleton):
                 elif side=='right':
                     return self.ideal(x,side='twosided')
             # duck typing failed
-            raise TypeError, "Don't know how to transform %s into an ideal of %s"%(x,self)
+            raise TypeError("Don't know how to transform %s into an ideal of %s"%(x,self))
 
         @cached_method
         def ideal_monoid(self):
@@ -407,7 +407,7 @@ class Rings(Category_singleton):
                             elif hasattr(first,'parent'):
                                 gens = [first]
                             else:
-                                raise ArithmeticError, "There is no coercion from %s to %s"%(first,self)
+                                raise ArithmeticError("There is no coercion from %s to %s"%(first,self))
                         except TypeError: # first may be a ring element
                             pass
                         break
@@ -516,11 +516,10 @@ class Rings(Category_singleton):
                 sage: class PowerIdeal(Ideal_nc):
                 ...    def __init__(self, R, n):
                 ...        self._power = n
-                ...        self._power = n
                 ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
                 ...    def reduce(self,x):
                 ...        R = self.ring()
-                ...        return add([c*R(m) for c,m in x if len(m)<self._power],R(0))
+                ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
                 ...
                 sage: I = PowerIdeal(F,3)
                 sage: Q = Rings().parent_class.quotient(F,I); Q
@@ -535,10 +534,10 @@ class Rings(Category_singleton):
                 xbar*ybar
                 sage: Q.0*Q.1*Q.0
                 0
-
             """
             from sage.rings.quotient_ring import QuotientRing
             return QuotientRing(self, I, names=names)
+
         def quo(self, I, names=None):
             """
             Quotient of a ring by a two-sided ideal.
@@ -637,7 +636,7 @@ class Rings(Category_singleton):
                 ...
                 TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
             """
-            raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
+            raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
         def __getitem__(self, arg):
             """
@@ -862,7 +861,7 @@ def _gen_names(elts):
     """
     from sage.symbolic.ring import is_SymbolicVariable
     from sage.combinat.words.words import Words
-    it = iter(Words("abcdefghijklmnopqrstuvwxyz"))
+    it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     it.next() # skip empty word
     for x in elts:
         name = str(x)

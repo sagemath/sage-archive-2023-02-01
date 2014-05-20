@@ -52,7 +52,6 @@ class PolyhedralSets(Category_over_base_ring):
             sage: PolyhedralSets(AA)
             Category of Polyhedra over Algebraic Real Field
         """
-        from sage.rings.all import ZZ, QQ, RDF
         Category_over_base_ring.__init__(self, R, 'Polyhedra')
 
     @cached_method

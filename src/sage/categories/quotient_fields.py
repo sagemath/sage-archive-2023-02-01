@@ -113,7 +113,7 @@ class QuotientFields(Category_singleton):
             try:
                 other = self.parent()(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -192,7 +192,7 @@ class QuotientFields(Category_singleton):
             try:
                 other = self.parent()(other)
             except (TypeError, ValueError):
-                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+                raise ArithmeticError("The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm")
             try:
                 selfN = self.numerator()
                 selfD = self.denominator()
@@ -401,12 +401,26 @@ class QuotientFields(Category_singleton):
                 (0, [1/x])
                 sage: (1/x+1/x^3).partial_fraction_decomposition()
                 (0, [1/x, 1/x^3])
+                
+            This was fixed in :trac:`16240`::
+            
+                sage: R.<x> = QQ['x']
+                sage: p=1/(-x + 1)
+                sage: whole,parts = p.partial_fraction_decomposition()
+                sage: p == sum(parts)
+                True
+                sage: p=3/(-x^4 + 1)
+                sage: whole,parts = p.partial_fraction_decomposition()
+                sage: p == sum(parts)
+                True
+                sage: p=(6*x^2 - 9*x + 5)/(-x^3 + 3*x^2 - 3*x + 1)
+                sage: whole,parts = p.partial_fraction_decomposition()
+                sage: p == sum(parts)
+                True
             """
             denom = self.denominator()
             whole, numer = self.numerator().quo_rem(denom)
             factors = denom.factor()
-            if factors.unit() != 1:
-                numer *= ~factors.unit()
             if not self.parent().is_exact():
                 # factors not grouped in this case
                 all = {}

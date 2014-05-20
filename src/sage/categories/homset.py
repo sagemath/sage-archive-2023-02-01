@@ -83,7 +83,7 @@ import types
 from sage.structure.coerce_dict import TripleDict
 _cache = TripleDict(53, weak_values=True)
 
-def Hom(X, Y, category=None):
+def Hom(X, Y, category=None, check=True):
     """
     Create the space of homomorphisms from X to Y in the category ``category``.
 
@@ -97,6 +97,10 @@ def Hom(X, Y, category=None):
     - ``category`` -- a category in which the morphisms must be.
       (default: the meet of the categories of ``X`` and ``Y``)
       Both ``X`` and ``Y`` must belong to that category.
+
+    - ``check`` -- a boolean (default: ``True``): whether to check the
+      input, and in particular that ``X`` and ``Y`` belong to
+      ``category``.
 
     OUTPUT: a homset in category
 
@@ -155,7 +159,7 @@ def Hom(X, Y, category=None):
         sage: Hom(X, Y, Groups())
         Traceback (most recent call last):
         ...
-        TypeError: Integer Ring is not in Category of groups
+        ValueError: Integer Ring is not in Category of groups
 
     A parent (or a parent class of a category) may specify how to
     construct certain homsets by implementing a method ``_Hom_(self,
@@ -263,12 +267,84 @@ def Hom(X, Y, category=None):
         - Specify the protocol for the ``_Hom_`` hook in case of ambiguity
           (e.g. if both a parent and some category thereof provide one).
 
-    TESTS::
+    TESTS:
+
+    Facade parents over plain Python types are supported::
 
         sage: R = sage.structure.parent.Set_PythonType(int)
         sage: S = sage.structure.parent.Set_PythonType(float)
         sage: Hom(R, S)
         Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+
+    Checks that the domain and codomain are in the specified
+    category. Case of a non parent::
+
+        sage: S = SimplicialComplex([[1,2], [1,4]]); S.rename("S")
+        sage: Hom(S, S, SimplicialComplexes())
+        Set of Morphisms from S to S in Category of simplicial complexes
+
+        sage: H = Hom(Set(), S, Sets())
+        Traceback (most recent call last):
+        ...
+        ValueError: S is not in Category of sets
+
+        sage: H = Hom(S, Set(), Sets())
+        Traceback (most recent call last):
+        ...
+        ValueError: S is not in Category of sets
+
+        sage: H = Hom(S, S, ChainComplexes(QQ))
+        Traceback (most recent call last):
+        ...
+        ValueError: S is not in Category of chain complexes over Rational Field
+
+    Those checks are done with the natural idiom ``X in category``,
+    and not ``X.category().is_subcategory(category)`` as it used to be
+    before :trac:16275:` (see :trac:`15801` for a real use case)::
+
+        sage: class PermissiveCategory(Category):
+        ....:     def super_categories(self): return [Objects()]
+        ....:     def __contains__(self, X): return True
+        sage: C = PermissiveCategory(); C.rename("Permissive category")
+        sage: S.category().is_subcategory(C)
+        False
+        sage: S in C
+        True
+        sage: Hom(S, S, C)
+        Set of Morphisms from S to S in Permissive category
+
+    With ``check=False``, unitialized parents, as can appear upon
+    unpickling, are supported. Case of a parent::
+
+        sage: cls = type(Set())
+        sage: S = unpickle_newobj(cls, ())  # A non parent
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False);
+        sage: H = Hom(S, S, Sets(),                check=False)
+        sage: H = Hom(S, S, ChainComplexes(QQ),    check=False)
+
+    Case of a non parent::
+
+        sage: cls = type(SimplicialComplex([[1,2], [1,4]]))
+        sage: S = unpickle_newobj(cls, ())
+        sage: H = Hom(S, S, Sets(),                check=False)
+        sage: H = Hom(S, S, Groups(),              check=False)
+        sage: H = Hom(S, S, SimplicialComplexes(), check=False)
+
+    Typical example where unpickling involves calling Hom on an
+    unitialized parent::
+
+        sage: P.<x,y> = QQ['x,y']
+        sage: Q = P.quotient([x^2-1,y^2-1])
+        sage: q = Q.an_element()
+        sage: explain_pickle(dumps(Q))
+        pg_...
+        ... = pg_dynamic_class('QuotientRing_generic_with_category', (pg_QuotientRing_generic, pg_getattr(..., 'parent_class')), None, None, pg_QuotientRing_generic)
+        si... = unpickle_newobj(..., ())
+        ...
+        si... = pg_unpickle_MPolynomialRing_libsingular(..., ('x', 'y'), ...)
+        si... = ... pg_Hom(si..., si..., ...) ...
+        sage: Q == loads(dumps(Q))
+        True
     """
     # This should use cache_function instead
     # However some special handling is currently needed for
@@ -290,52 +366,31 @@ def Hom(X, Y, category=None):
     if category is None:
         category = X.category()._meet_(Y.category())
         # Recurse to make sure that Hom(X, Y) and Hom(X, Y, category) are identical
-        H = Hom(X, Y, category)
+        # No need to check the input again
+        H = Hom(X, Y, category, check=False)
     else:
-        if not isinstance(category, Category):
-            raise TypeError("Argument category (= {}) must be a category.".format(category))
-        # See trac #14793: It can happen, that Hom(X,X) is called during
-        # unpickling of an instance X of a Python class at a time when
-        # X.__dict__ is empty.  In some of these cases, X.category() would
-        # raise a error or would return a too large category (Sets(), for
-        # example) and (worse!) would assign this larger category to the
-        # X._category cdef attribute, so that it would subsequently seem that
-        # X's category was properly initialised.
-
-        # However, if the above scenario happens, then *before* calling
-        # X.category(), X._is_category_initialised() will correctly say that
-        # it is not initialised. Moreover, since X.__class__ is a Python
-        # class, we will find that `isinstance(X, category.parent_class)`. If
-        # this is the case, then we trust that we indeed are in the process of
-        # unpickling X.  Hence, we will trust that `category` has the correct
-        # value, and we will thus skip the test whether `X in category`.
-        try:
-            unpickle_X = (not X._is_category_initialized()) and isinstance(X,category.parent_class)
-        except AttributeError: # this happens for simplicial complexes
-            unpickle_X = False
-        try:
-            unpickle_Y = (not Y._is_category_initialized()) and isinstance(Y,category.parent_class)
-        except AttributeError:
-            unpickle_Y = False
-        if unpickle_X:
-            cat_X = category
-        else:
-            try:
-                cat_X = X.category()
-            except BaseException:
-                raise TypeError, "%s is not in %s"%(X, category)
-        if unpickle_Y:
-            cat_Y = category
-        else:
-            try:
-                cat_Y = Y.category()
-            except BaseException:
-                raise TypeError, "%s is not in %s"%(Y, category)
-
-        if not cat_X.is_subcategory(category):
-            raise TypeError, "%s is not in %s"%(X, category)
-        if not cat_Y.is_subcategory(category):
-            raise TypeError, "%s is not in %s"%(Y, category)
+        if check:
+            if not isinstance(category, Category):
+                raise TypeError("Argument category (= {}) must be a category.".format(category))
+            for O in [X, Y]:
+                try:
+                    category_mismatch = O not in category
+                except BaseException:
+                    # An error should not happen, this here is just to be on
+                    # the safe side.
+                    category_mismatch = True
+                # A category mismatch does not necessarily mean that an error
+                # should be raised. Instead, it could be the case that we are
+                # unpickling an old pickle (that doesn't set the "check"
+                # argument to False). In this case, it could be that the
+                # (co)domain is not properly initialised, which we are
+                # checking now. See trac #16275 and #14793.
+                if category_mismatch and O._is_category_initialized():
+                    # At this point, we can be rather sure that O is properly
+                    # initialised, and thus its string representation is
+                    # available for the following error message. It simply
+                    # belongs to the wrong category.
+                    raise ValueError("{} is not in {}".format(O, category))
 
         # Construct H
         try: # _Hom_ hook from the parent
@@ -352,7 +407,7 @@ def Hom(X, Y, category=None):
                 H = category.parent_class._Hom_(X, Y, category = category)
             except (AttributeError, TypeError):
                 # By default, construct a plain homset.
-                H = Homset(X, Y, category = category)
+                H = Homset(X, Y, category = category, check=check)
     _cache[key] = H
     if isinstance(X, UniqueRepresentation) and isinstance(Y, UniqueRepresentation):
         if not isinstance(H, WithEqualityById):
@@ -505,7 +560,7 @@ class Homset(Set_generic):
         self.__category = category
         if check:
             if not isinstance(category, Category):
-                raise TypeError, "category (=%s) must be a category"%category
+                raise TypeError("category (=%s) must be a category"%category)
             #if not X in category:
             #    raise TypeError, "X (=%s) must be in category (=%s)"%(X, category)
             #if not Y in category:
@@ -515,11 +570,40 @@ class Homset(Set_generic):
 
     def __reduce__(self):
         """
-        Pickling, using the cache of the :func:`~sage.categories.homset.Hom` function.
+        Implement pickling by construction for Homsets.
+
+        Homsets are unpickled using the function
+        :func:`~sage.categories.homset.Hom` which is cached:
+        ``Hom(domain, codomain, category, check=False)``.
+
+        .. NOTE::
+
+            It can happen, that ``Hom(X,X)`` is called during
+            unpickling with an unitialized instance ``X`` of a Python
+            class. In some of these cases, testing that ``X in
+            category`` can trigger ``X.category()``. This in turn can
+            raise a error, or return a too large category (``Sets()``,
+            for example) and (worse!) assign this larger category to
+            the ``X._category`` cdef attribute, so that it would
+            subsequently seem that ``X``'s category was initialised.
+
+            Beside speed considerations, this is the main rationale
+            for disabling checks upon unpickling.
+
+            .. SEEALSO:: :trac:`14793`, :trac:`16275`
+
+        EXAMPLES::
+
+            sage: H = Hom(QQ^2, QQ^3)
+            sage: H.__reduce__()
+            (<function Hom at ...>,
+             (Vector space of dimension 2 over Rational Field,
+              Vector space of dimension 3 over Rational Field,
+              Category of vector spaces over Rational Field,
+              False))
 
         TESTS::
 
-            sage: H = Hom(QQ^2, QQ^3)
             sage: loads(H.dumps()) is H
             True
 
@@ -533,9 +617,8 @@ class Homset(Set_generic):
             False
             sage: H == loads(dumps(H))
             True
-
         """
-        return Hom, (self._domain, self._codomain, self.__category)
+        return Hom, (self._domain, self._codomain, self.__category, False)
 
     def _repr_(self):
         """
@@ -773,19 +856,19 @@ class Homset(Set_generic):
                 if x.domain() != self.domain():
                     mor = x.domain()._internal_coerce_map_from(self.domain())
                     if mor is None:
-                        raise TypeError, "Incompatible domains: x (=%s) cannot be an element of %s"%(x,self)
+                        raise TypeError("Incompatible domains: x (=%s) cannot be an element of %s"%(x,self))
                     x = x * mor
                 if x.codomain() != self.codomain():
                     mor = self.codomain()._internal_coerce_map_from(x.codomain())
                     if mor is None:
-                        raise TypeError, "Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self)
+                        raise TypeError("Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self))
                     x = mor * x
                 return x
 
         if isinstance(x, (types.FunctionType, types.MethodType, ConstantFunction)):
             return self.element_class_set_morphism(self, x)
 
-        raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
+        raise TypeError("Unable to coerce x (=%s) to a morphism in %s"%(x,self))
 
     @lazy_attribute
     def element_class_set_morphism(self):
@@ -905,7 +988,7 @@ class Homset(Set_generic):
         if self.is_endomorphism_set():
             return morphism.IdentityMorphism(self)
         else:
-            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
+            raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 
     def domain(self):
         """

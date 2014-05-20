@@ -60,7 +60,7 @@ class IndexedMonoidElement(MonoidElement):
             F[0]^4*F[1]^7
             sage: TestSuite(x).run()
 
-            sage: F = FreeMonoid(index_set='abcde')
+            sage: F = FreeMonoid(index_set=tuple('abcde'))
             sage: a,b,c,d,e = F.gens()
             sage: a in F
             True
@@ -416,7 +416,7 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
 
         EXAMPLES::
 
-            sage: F = FreeMonoid(index_set='abcde')
+            sage: F = FreeMonoid(index_set=tuple('abcde'))
             sage: x = F( [(1, 2), (0, 1), (3, 2), (0, 1)] )
             sage: y = F( ((1, 2), (0, 1), [3, 2], [0, 1]) )
             sage: z = F( reversed([(0, 1), (3, 2), (0, 1), (1, 2)]) )
@@ -663,7 +663,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
 
             sage: F = FreeAbelianMonoid(index_set=['a','b','c'])
             sage: G = FreeAbelianMonoid(index_set=('a','b','c'))
-            sage: H = FreeAbelianMonoid(index_set='abc')
+            sage: H = FreeAbelianMonoid(index_set=tuple('abc'))
             sage: F is G and F is H
             True
 
@@ -696,12 +696,12 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
 
             sage: F = FreeMonoid(index_set=ZZ)
             sage: TestSuite(F).run()
-            sage: F = FreeMonoid(index_set='abcde')
+            sage: F = FreeMonoid(index_set=tuple('abcde'))
             sage: TestSuite(F).run()
 
             sage: F = FreeAbelianMonoid(index_set=ZZ)
             sage: TestSuite(F).run()
-            sage: F = FreeAbelianMonoid(index_set='abcde')
+            sage: F = FreeAbelianMonoid(index_set=tuple('abcde'))
             sage: TestSuite(F).run()
         """
         self._indices = indices
@@ -743,7 +743,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: G = FreeAbelianMonoid(index_set=ZZ)
             sage: G.an_element()
             F[-1]^3*F[0]*F[1]^3
-            sage: G = FreeMonoid(index_set='ab')
+            sage: G = FreeMonoid(index_set=tuple('ab'))
             sage: G.an_element()
             F['a']^2*F['b']^2
         """
@@ -796,7 +796,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: F.monoid_generators()
             Lazy family (Generator map from Integer Ring to
              Free abelian monoid indexed by Integer Ring(i))_{i in Integer Ring}
-            sage: F = FreeAbelianMonoid(index_set='abcde')
+            sage: F = FreeAbelianMonoid(index_set=tuple('abcde'))
             sage: sorted(F.monoid_generators())
             [F['a'], F['b'], F['c'], F['d'], F['e']]
         """

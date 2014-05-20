@@ -155,7 +155,15 @@ class DoubleDescriptionPair(SageObject):
 
     def _make_new(self, A_rows, R_cols):
         r"""
-        Construct a new double description pair
+        Construct a new double description pair.
+
+        INPUT:
+
+        - ``A_rows`` -- list of row vectors of the matrix `A`. These
+          encode the inequalities.
+
+        - ``R_cols`` -- list of column vectors of the matrix
+          `R`. These encode the rays.
 
         OUTPUT:
 
@@ -182,7 +190,7 @@ class DoubleDescriptionPair(SageObject):
 
     def _repr_(self):
         r"""
-        Return string representation
+        Return string representation.
 
         OUTPUT:
         
@@ -214,12 +222,13 @@ class DoubleDescriptionPair(SageObject):
 
     def inner_product_matrix(self):
         """
-        Return the inner product matrix between the rows of A and the columns of R
+        Return the inner product matrix between the rows of `A`
+        and the columns of `R`.
 
         OUTPUT:
 
         A matrix over the base ring. There is one row for each row of
-        A and one column for each column of R.
+        `A` and one column for each column of `R`.
         
         EXAMPLES::
         
@@ -242,7 +251,7 @@ class DoubleDescriptionPair(SageObject):
 
     def cone(self):
         """
-        Return the cone defined by `A`
+        Return the cone defined by `A`.
 
         This method is for debugging only. Assumes that the base ring
         is `\QQ`.
@@ -274,7 +283,7 @@ class DoubleDescriptionPair(SageObject):
 
     def verify(self):
         r"""
-        Validate the double description pair
+        Validate the double description pair.
         
         This method used the PPL backend to check that the double
         description pair is valid. An assertion is triggered if it is
@@ -297,7 +306,7 @@ class DoubleDescriptionPair(SageObject):
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         from sage.rings.all import QQ
-        if self.problem.base_ring() != QQ:
+        if self.problem.base_ring() is not QQ:
             return
         A_cone = self.cone()
         R_cone = Polyhedron(vertices=[[0]*self.problem.dim()], rays=self.R, 
@@ -345,7 +354,7 @@ class DoubleDescriptionPair(SageObject):
     @cached_method
     def zero_set(self, ray):
         """
-        Return the zero set (active set) `Z(r)`
+        Return the zero set (active set) `Z(r)`.
         
         INPUT:
 
@@ -369,7 +378,7 @@ class DoubleDescriptionPair(SageObject):
 
     def is_extremal(self, ray):
         """
-        Test whether the ray is extremal
+        Test whether the ray is extremal.
 
         EXAMPLES::
 
@@ -384,7 +393,7 @@ class DoubleDescriptionPair(SageObject):
 
     def are_adjacent(self, r1, r2):
         """
-        Return whether the two rays are adjacent
+        Return whether the two rays are adjacent.
 
         INPUT:
 
@@ -441,7 +450,7 @@ class DoubleDescriptionPair(SageObject):
 
     def first_coordinate_plane(self):
         """
-        Restrict to the first coordinate plane
+        Restrict to the first coordinate plane.
 
         OUTPUT:
 
@@ -486,7 +495,7 @@ class Problem(SageObject):
         INPUT:
 
         - ``A`` -- a matrix. The rows of the matrix are interpreted as
-          homogeneous inequalities `Ax \geq 0`. Must have maximal rank.
+          homogeneous inequalities `A x \geq 0`. Must have maximal rank.
 
         TESTS::
 

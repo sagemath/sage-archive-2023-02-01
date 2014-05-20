@@ -223,10 +223,6 @@ from sage.misc.decorators import rename_keyword
 from misc import _make_listlist, _common_length_of
 
 
-
-
-
-
 #########################################################################
 @rename_keyword(deprecation=11634, field='base_ring')
 def Polyhedron(vertices=None, rays=None, lines=None,
@@ -391,7 +387,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
             base_ring = ZZ
 
     # set ambient_dim
-    if ambient_dim is not None and deduced_ambient_dim!=ambient_dim:
+    if ambient_dim is not None and deduced_ambient_dim != ambient_dim:
         raise ValueError('Ambient space dimension mismatch. Try removing the "ambient_dim" parameter.')
     ambient_dim = deduced_ambient_dim
 
@@ -412,13 +408,13 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 base_ring = ZZ
             else:   # integral inequalities usually do not determine a latice polytope!
                 base_ring = QQ
-            convert=False
+            convert = False
         elif all(is_Rational(x) for x in values):
             base_ring = QQ
-            convert=False
+            convert = False
         elif all(is_RealDoubleElement(x) for x in values):
             base_ring = RDF
-            convert=False
+            convert = False
         else:
             try:
                 map(ZZ, values)
@@ -434,7 +430,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 if QQ.has_coerce_map_from(common_ring):
                     base_ring = QQ
                     convert = True
-                elif common_ring == RR:   # DWIM: replace with RDF
+                elif common_ring is RR:   # DWIM: replace with RDF
                     base_ring = RDF
                     convert = True
                 else:

@@ -95,7 +95,7 @@ class PivotedInequalities(SageObject):
 
     def _pivot_inequalities(self, A):
         """
-        Pick pivots for inequalities
+        Pick pivots for inequalities.
 
         INPUT: 
 
@@ -121,15 +121,16 @@ class PivotedInequalities(SageObject):
 
     def _unpivot_ray(self, ray):
         """
-        Undo the pivoting to go back to the original inequalities containing a linear subspace
+        Undo the pivoting to go back to the original inequalities
+        containing a linear subspace.
 
         INPUT:
 
-        - ``ray`` -- ray in the pivoted coordinates
+        - ``ray`` -- ray in the pivoted coordinates.
 
         OUTPUT:
 
-        Ray in the original coordinates
+        Ray in the original coordinates.
 
         EXAMPLES::
 
@@ -153,7 +154,7 @@ class Hrep2Vrep(PivotedInequalities):
 
     def __init__(self, base_ring, dim, inequalities, equations):
         """
-        Convert H-representation to a minimal V-representation
+        Convert H-representation to a minimal V-representation.
 
         INPUT:
 
@@ -269,7 +270,8 @@ class Hrep2Vrep(PivotedInequalities):
 
     def _extract_Vrep(self, DD):
         """
-        Extract the V-representation from the extremal rays of the homogeneous cone
+        Extract the V-representation from the extremal rays
+        of the homogeneous cone.
 
         The V-representation is the intersection of the cone generated
         by the rays `R` and ``self._linear_subspace`` with the
@@ -338,7 +340,7 @@ class Hrep2Vrep(PivotedInequalities):
     
     def verify(self, inequalities, equations):
         """
-        Compare result to PPL if the base ring is QQ
+        Compare result to PPL if the base ring is QQ.
 
         This method is for debugging purposes and compares the
         computation with another backend if available.
@@ -355,7 +357,7 @@ class Hrep2Vrep(PivotedInequalities):
         """
         from sage.rings.all import QQ
         from sage.geometry.polyhedron.constructor import Polyhedron
-        if self.base_ring != QQ:
+        if self.base_ring is not QQ:
             return
         P = Polyhedron(vertices=self.vertices, rays=self.rays, lines=self.lines, 
                        base_ring=QQ, ambient_dim=self.dim, backend='ppl')
@@ -376,7 +378,7 @@ class Vrep2Hrep(PivotedInequalities):
 
     def __init__(self, base_ring, dim, vertices, rays, lines):
         """
-        Convert V-representation to a minimal H-representation
+        Convert V-representation to a minimal H-representation.
     
         INPUT:
     
@@ -444,7 +446,7 @@ class Vrep2Hrep(PivotedInequalities):
 
     def _init_Vrep(self, vertices, rays, lines):
         """
-        Split off the linear subspace from the inequalities and select pivots
+        Split off the linear subspace from the inequalities and select pivots.
 
         INPUT:
 
@@ -497,7 +499,7 @@ class Vrep2Hrep(PivotedInequalities):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation.
 
         OUTPUT:
 
@@ -519,7 +521,7 @@ class Vrep2Hrep(PivotedInequalities):
 
     def verify(self, vertices, rays, lines):
         """
-        Compare result to PPL if the base ring is QQ
+        Compare result to PPL if the base ring is QQ.
 
         This method is for debugging purposes and compares the
         computation with another backend if available.
@@ -539,7 +541,7 @@ class Vrep2Hrep(PivotedInequalities):
         """
         from sage.rings.all import QQ
         from sage.geometry.polyhedron.constructor import Polyhedron
-        if self.base_ring != QQ:
+        if self.base_ring is not QQ:
             return
         P = Polyhedron(vertices=vertices, rays=rays, lines=lines, 
                        base_ring=QQ, ambient_dim=self.dim)

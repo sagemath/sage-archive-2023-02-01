@@ -39,7 +39,7 @@ class Polyhedron_field(Polyhedron_base):
 
     EXAMPLES::
 
-        sage: p = Polyhedron(vertices=[(0,0),(AA(2).sqrt(),0),(0,AA(3).sqrt())], 
+        sage: p = Polyhedron(vertices=[(0,0),(AA(2).sqrt(),0),(0,AA(3).sqrt())],
         ....:                rays=[(1,1)], lines=[], backend='field', base_ring=AA)
         sage: TestSuite(p).run()
 
@@ -115,7 +115,8 @@ class Polyhedron_field(Polyhedron_base):
         """
         return x>0
 
-    def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
+    def _init_from_Vrepresentation(self, vertices, rays, lines,
+                                   minimize=True, verbose=False):
         """
         Construct polyhedron from V-representation data.
 
@@ -181,7 +182,7 @@ class Polyhedron_field(Polyhedron_base):
 
     def _init_Vrepresentation_backend(self, Vrep):
         """
-        Create the Vrepresentation objects from the ppl polyhedron.
+        Create the V-representation objects from the ppl polyhedron.
 
         EXAMPLES::
 
@@ -208,7 +209,7 @@ class Polyhedron_field(Polyhedron_base):
 
     def _init_Hrepresentation_backend(self, Hrep):
         """
-        Create the Hrepresentation objects from the ppl polyhedron.
+        Create the H-representation objects from the ppl polyhedron.
 
         EXAMPLES::
 
@@ -248,5 +249,3 @@ class Polyhedron_field(Polyhedron_base):
             sage: Polyhedron(backend='field')._init_empty_polyhedron()
         """
         super(Polyhedron_field, self)._init_empty_polyhedron()
-
-

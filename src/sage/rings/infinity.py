@@ -612,7 +612,13 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             A number less than infinity
             sage: UnsignedInfinityRing(a - 2)
             A number less than infinity
+            sage: UnsignedInfinityRing(RDF(oo)), UnsignedInfinityRing(RDF(-oo))
+            (Infinity, Infinity)
             sage: UnsignedInfinityRing(RR(oo)), UnsignedInfinityRing(RR(-oo))
+            (Infinity, Infinity)
+            sage: UnsignedInfinityRing(CDF(oo)), UnsignedInfinityRing(CDF(-oo))
+            (Infinity, Infinity)
+            sage: UnsignedInfinityRing(CC(oo)), UnsignedInfinityRing(CC(-oo))
             (Infinity, Infinity)
             sage: UnsignedInfinityRing(RIF(oo)), UnsignedInfinityRing(RIF(-oo))
             (Infinity, Infinity)
@@ -975,6 +981,8 @@ class InfinityRing_class(_uniq, Ring):
             A positive finite number
             sage: InfinityRing(a - 2)
             A negative finite number
+            sage: InfinityRing(RDF(oo)), InfinityRing(RDF(-oo))
+            (+Infinity, -Infinity)
             sage: InfinityRing(RR(oo)), InfinityRing(RR(-oo))
             (+Infinity, -Infinity)
             sage: InfinityRing(RIF(oo)), InfinityRing(RIF(-oo))
@@ -991,6 +999,23 @@ class InfinityRing_class(_uniq, Ring):
             (True, True)
             sage: SR(oo).is_positive_infinity(), SR(-oo).is_negative_infinity()
             (True, True)
+
+        Complex infinity raises an exception. This is fine (there is
+        no coercion, so there is no promise of functoriality)::
+
+            sage: i_infinity = CC(0, oo)
+            sage: InfinityRing(CC(oo)), InfinityRing(CC(-oo))
+            (+Infinity, -Infinity)
+            sage: InfinityRing(i_infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite but not with +/- phase
+            sage: InfinityRing(CDF(oo)), InfinityRing(CDF(-oo))
+            (+Infinity, -Infinity)
+            sage: InfinityRing(CDF(i_infinity))
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite but not with +/- phase
         """
         # Lazy elements can wrap infinity or not, unwrap first
         from sage.rings.real_lazy import LazyWrapper
@@ -1021,6 +1046,8 @@ class InfinityRing_class(_uniq, Ring):
                     return self.gen(0)
                 if x.is_negative_infinity():
                     return self.gen(1)
+                if x.is_infinity():
+                    raise ValueError('infinite but not with +/- phase')
             except AttributeError:
                 pass
 
@@ -1028,7 +1055,7 @@ class InfinityRing_class(_uniq, Ring):
         return FiniteNumber(self, cmp(x, 0))
 
     def _coerce_map_from_(self, R):
-        """
+        r"""
         There is a coercion from anything that has a coercion into the reals.
 
         The way Sage works is that everything that should be
@@ -1048,8 +1075,6 @@ class InfinityRing_class(_uniq, Ring):
             True
             sage: InfinityRing.has_coerce_map_from(RIF)
             True
-            sage: InfinityRing.has_coerce_map_from(CC)
-            False
 
         As explained above, comparison works by coercing to the
         infinity ring::
@@ -1072,8 +1097,20 @@ class InfinityRing_class(_uniq, Ring):
             True
             sage: InfinityRing.has_coerce_map_from(SR)
             False
+
+        Complex numbers do not coerce into the infinity ring (what
+        would `i \infty` coerce to?). This is fine since they can not
+        be compared, so we do not have to enforce consistency when
+        comparing with infinity either::
+
+            sage: InfinityRing.has_coerce_map_from(CDF)
+            False
+            sage: InfinityRing.has_coerce_map_from(CC)
+            False
+            sage: CC(0, oo) < CC(1)   # does not coerce to infinity ring
+            True
         """
-        from sage.rings.real_mpfr import RealField, mpfr_prec_min
+        from sage.rings.real_mpfr import mpfr_prec_min, RealField
         if RealField(mpfr_prec_min()).has_coerce_map_from(R):
             return True
         from sage.rings.real_mpfi import RealIntervalField_class

@@ -922,17 +922,7 @@ class TransitiveIdeal(RecursivelyEnumeratedSet_generic):
             [1, 2]
 
         """
-        known = set(self._generators)
-        todo = known.copy()
-        while len(todo) > 0:
-            x = todo.pop()
-            yield x
-            for y in self._succ(x):
-                if y == None or y in known:
-                    continue
-                todo.add(y)
-                known.add(y)
-        return
+        return self.naive_search_iterator()
 
 class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
     r"""
@@ -1046,19 +1036,5 @@ class TransitiveIdealGraded(RecursivelyEnumeratedSet_generic):
             sage: list(C)
             [0, 1]
         """
-        current_level = self._generators
-        known = set(current_level)
-        depth = 0
-        while len(current_level) > 0 and depth <= self._max_depth:
-            next_level = set()
-            for x in current_level:
-                yield x
-                for y in self._succ(x):
-                    if y == None or y in known:
-                        continue
-                    next_level.add(y)
-                    known.add(y)
-            current_level = next_level
-            depth += 1
-        return
+        return self.breadth_first_search_iterator()
 

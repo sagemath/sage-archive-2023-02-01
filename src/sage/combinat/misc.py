@@ -384,7 +384,7 @@ def check_integer_list_constraints(l, **kwargs):
     filters['inner'] = lambda x: len(x) >= len(inner) and max([inner[i]-x[i] for i in range(len(inner))]) <= 0
 
     for key in kwargs:
-        result = filter( filters[key], result )
+        result = list(filter( filters[key], result ))
 
     if singleton:
         try:

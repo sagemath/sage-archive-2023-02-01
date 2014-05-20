@@ -452,7 +452,7 @@ class CombinatorialFreeModuleElement(Element):
             return 0
         nonzero = lambda mc: mc[1] != 0
         v = sorted(filter(nonzero, left._monomial_coefficients.items()))
-        w = filter(nonzero, right._monomial_coefficients.items())
+        w = list(filter(nonzero, right._monomial_coefficients.items()))
         w.sort()
         return cmp(v, w)
 

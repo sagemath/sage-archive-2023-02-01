@@ -2256,9 +2256,8 @@ class Polyhedron_base(Element):
                                                [self.vertices().index(q) for q in proj_verts]])
                 else:
                     vs = a_face[1][:]
-                    adj = dict([a[0], filter(lambda p: p in a_face[1], a[1])]
-                               for a in filter(lambda va: va[0] in a_face[1],
-                                               self.vertex_adjacencies()))
+                    adj = dict([a[0], [p for p in a[1] if p in a_face[1]]]
+                               for a in [va for va in self.vertex_adjacencies() if va[0] in a_face[1]])
                     t = vs[0]
                     vs.remove(t)
                     ts = adj[t]
@@ -3865,7 +3864,7 @@ class Polyhedron_base(Element):
             pass
         if self.is_lattice_polytope():
             return list(lp.points_pc())
-        return filter(lambda p: self.contains(p), lp.points_pc())
+        return [p for p in lp.points_pc() if self.contains(p)]
 
     @cached_method
     def bounding_box(self, integral=False):

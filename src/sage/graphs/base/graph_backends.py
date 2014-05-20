@@ -839,7 +839,7 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         vertices = list(vertices)
         nones = vertices.count(None)
-        vertices = filter(lambda v: v is not None, vertices)
+        vertices = [v for v in vertices if v is not None]
         self._nxg.add_nodes_from(vertices)
 
         new_names = []

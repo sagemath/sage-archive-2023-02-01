@@ -216,9 +216,8 @@ class FiniteSemigroups(Category):
                 sage: sorted(map(sorted, S.j_classes_of_idempotents()))
                 [['a'], ['ab', 'ba'], ['abc', 'acb', 'bac', 'bca', 'cab', 'cba'], ['ac', 'ca'], ['b'], ['bc', 'cb'], ['c']]
             """
-            return filter(lambda l: len(l) > 0,
-                          map(lambda cl: filter(attrcall('is_idempotent'), cl),
-                              self.j_classes()))
+            return [l for l in map(lambda cl: list(filter(attrcall('is_idempotent'), cl)),
+                              self.j_classes()) if len(l) > 0]
 
         @cached_method
         def j_transversal_of_idempotents(self):
@@ -236,8 +235,7 @@ class FiniteSemigroups(Category):
                     if x.is_idempotent():
                         return x
                 return None
-            return filter(lambda x: not x is None,
-                          map(first_idempotent, self.j_classes()))
+            return [x for x in map(first_idempotent, self.j_classes()) if not x is None]
 
         # TODO: compute eJe, where J is the J-class of e
         # TODO: construct the action of self on it, as a permutation group

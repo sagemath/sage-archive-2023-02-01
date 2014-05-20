@@ -3641,7 +3641,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             return tuple(gens)
 
         gens = list(parallelotope_points(self.rays(), N)) + list(self.rays())
-        gens = filter(lambda v: gcd(v) == 1, gens)
+        gens = [v for v in gens if gcd(v) == 1]
         return PointCollection(gens, N)
 
     @cached_method

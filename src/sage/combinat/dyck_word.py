@@ -932,7 +932,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([]).number_of_open_symbols()
             0
         """
-        return len(filter(lambda x: x == open_symbol, self))
+        return len([x for x in self if x == open_symbol])
 
     size = deprecated_function_alias(13550, number_of_open_symbols)
 
@@ -952,7 +952,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([]).number_of_close_symbols()
             0
         """
-        return len(filter(lambda x: x == close_symbol, self))
+        return len([x for x in self if x == close_symbol])
 
     def is_complete(self):
         r"""
@@ -1488,8 +1488,8 @@ class DyckWord(CombinatorialObject, Element):
             else:
                 close_positions.append(i + 1)
         from sage.combinat.tableau import StandardTableau
-        return StandardTableau(filter(lambda x: x != [], [open_positions,
-                                                          close_positions]))
+        return StandardTableau([x for x in [open_positions,
+                                                          close_positions] if x != []])
 
     @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):

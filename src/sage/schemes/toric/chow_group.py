@@ -1180,8 +1180,8 @@ class ChowGroup_degree_class(SageObject):
         if len(invariants)==0:
             return '0'
 
-        free = filter(lambda x:x==0, invariants)
-        tors = filter(lambda x:x> 0, invariants)
+        free = [x for x in invariants if x==0]
+        tors = [x for x in invariants if x> 0]
 
         if self._Chow_group.base_ring()==ZZ:
             ring = 'Z'

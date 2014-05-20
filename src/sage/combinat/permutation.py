@@ -1782,8 +1782,7 @@ class Permutation(CombinatorialObject, Element):
         """
         if k > len(self):
             return []
-        return filter( lambda pos: all( pos[i] < pos[i+1] for i in range(k-1) ),
-                                           subword.Subwords(self, k) )
+        return [pos for pos in subword.Subwords(self, k) if all( pos[i] < pos[i+1] for i in range(k-1) )]
 
     def number_of_noninversions(self, k):
         r"""
@@ -2127,7 +2126,7 @@ class Permutation(CombinatorialObject, Element):
         r=[]
         for x in self:
             if max(r+[0]) > x:
-                y = min(filter(lambda z: z > x, r))
+                y = min([z for z in r if z > x])
                 r[r.index(y)] = x
             else:
                 r.append(x)
@@ -6352,7 +6351,7 @@ def from_major_code(mc, final_descent=False):
         d.reverse()
 
         #a is the list of all positions which are not descents
-        a = filter(lambda x: x not in d, range(len(w)))
+        a = [x for x in range(len(w)) if x not in d]
 
         #d_k = -1    -- 0 in the lemma, but -1 due to 0-based indexing
         d.append(-1)
@@ -7112,7 +7111,7 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
                     m = p[i]
 
             new_p = []
-            non_minima = filter(lambda x: x not in minima, range(self.n, 0, -1))
+            non_minima = [x for x in range(self.n, 0, -1) if x not in minima]
             a = 0
             b = 0
             for i in range(self.n):

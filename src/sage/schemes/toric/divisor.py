@@ -1573,7 +1573,7 @@ class ToricDivisor_generic(Divisor_generic):
             if cone.is_trivial():
                 return False
             return all(ray_is_negative[i] for i in cone.ambient_ray_indices())
-        negative_cones = filter(cone_is_negative, flatten(fan.cones()))
+        negative_cones = list(filter(cone_is_negative, flatten(fan.cones())))
         return SimplicialComplex([c.ambient_ray_indices() for c in negative_cones])
 
     def _sheaf_cohomology(self, cplx):

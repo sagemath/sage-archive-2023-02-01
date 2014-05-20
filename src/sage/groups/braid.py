@@ -678,7 +678,7 @@ class Braid(FinitelyPresentedGroupElement):
                     i += 1
             j += 1
             i = 0
-        form = filter(lambda a: a.length()>0, form)
+        form = [a for a in form if a.length()>0]
         while form!=[] and form[0]==Delta:
             form.pop(0)
             delta = delta-1

@@ -1468,7 +1468,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
             sage: M = ModularSymbols(37,4)
             sage: M._degeneracy_raising_matrix_1(ModularSymbols(74, 4))
-            20 x 58 dense matrix over Rational Field
+            20 x 58 dense matrix over Rational Field (use the '.str()' method to see the entries)
         """
         raise NotImplementedError
 
@@ -2225,8 +2225,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # of the basis of the underlying vector space of self, and compute
         # the Z-module they span.
 
-        G = list(G)
-        G.sort()
+        G = sorted(G)
         B = self._manin_gens_to_basis.matrix_from_rows(list(G)).dense_matrix()
         B, d = B._clear_denom()
         if algorithm == 'default':
@@ -2505,7 +2504,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
 
             sage: M = ModularSymbols(37,4)
             sage: M._degeneracy_raising_matrix_1(ModularSymbols(74, 4))
-            20 x 58 dense matrix over Rational Field
+            20 x 58 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: M.dimension()
             20
             sage: ModularSymbols(74,4).dimension()
@@ -3148,7 +3147,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
             sage: M = ModularSymbols(Gamma1(7),3)
             sage: N = ModularSymbols(Gamma1(21), 3)
             sage: M._degeneracy_raising_matrix_1(N)
-            8 x 64 dense matrix over Rational Field
+            8 x 64 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: M.dimension()
             8
             sage: N.dimension()

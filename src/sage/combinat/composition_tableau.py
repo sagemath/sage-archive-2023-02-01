@@ -165,7 +165,7 @@ class CompositionTableau(CombinatorialObject, Element):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError, "The cell (%d,%d) is not contained in %s"%(i,j,self)
+            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
 
     def pp(self):
         r"""
@@ -221,8 +221,7 @@ class CompositionTableau(CombinatorialObject, Element):
         for row in self:
             for (col,i) in enumerate(row):
                 cols[i] = col
-        des_set = [i for i in cols if i+1 in cols and cols[i+1] >= cols[i]]
-        des_set.sort()
+        des_set = sorted([i for i in cols if i+1 in cols and cols[i+1] >= cols[i]])
         return des_set
 
     def descent_composition(self):

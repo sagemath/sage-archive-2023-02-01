@@ -97,6 +97,7 @@ import real_mpfr
 RR = real_mpfr.RealField()
 
 from real_double import RealDoubleElement, RDF
+from sage.rings.integer_ring import ZZ
 
 
 from sage.structure.parent_gens import ParentWithGens
@@ -416,11 +417,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         if S in [int, float, ZZ, QQ, RDF, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return FloatToCDF(S)
         elif RR.has_coerce_map_from(S):
-            return FloatToCDF(RR) * RR.coerce_map_from(S)
+            return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
         elif isinstance(S, ComplexField_class) and S.prec() >= 53:
             return CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
-            return CCtoCDF(CC, self) * CC.coerce_map_from(S)
+            return CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
 
     def _magma_init_(self, magma):
         r"""
@@ -1054,14 +1055,22 @@ cdef class ComplexDoubleElement(FieldElement):
 
     cdef GEN _gen(self):
         cdef GEN y
-        y = cgetg(3, t_COMPLEX)    # allocate space for a complex number
-        set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
-        set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
+        if self._complex.dat[1] == 0:
+            # Return t_REAL
+            y = pari.double_to_GEN(self._complex.dat[0])
+        else:
+            # Return t_COMPLEX
+            y = cgetg(3, t_COMPLEX)
+            if self._complex.dat[0] == 0:
+                set_gel(y, 1, gen_0)
+            else:
+                set_gel(y, 1, pari.double_to_GEN(self._complex.dat[0]))
+            set_gel(y, 2, pari.double_to_GEN(self._complex.dat[1]))
         return y
 
     def _pari_(self):
         """
-        Return PARI version of ``self``.
+        Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
 
         EXAMPLES::
 
@@ -1069,6 +1078,10 @@ cdef class ComplexDoubleElement(FieldElement):
             1.00000000000000 + 2.00000000000000*I
             sage: pari(CDF(1,2))
             1.00000000000000 + 2.00000000000000*I
+            sage: pari(CDF(2.0))
+            2.00000000000000
+            sage: pari(CDF(I))
+            1.00000000000000*I
         """
         pari_catch_sig_on()
         return pari.new_gen(self._gen())
@@ -1478,6 +1491,22 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         return True
+
+    def is_integer(self):
+        """
+        Returns True if this number is a integer
+
+        EXAMPLES::
+
+            sage: CDF(0.5).is_integer()
+            False
+            sage: CDF(I).is_integer()
+            False
+            sage: CDF(2).is_integer()
+            True
+        """
+        return (self.real() in ZZ) and (self.imag()==0)
+
 
     def _pow_(self, ComplexDoubleElement a):
         """

@@ -352,14 +352,14 @@ cdef class Element(sage_object.SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.structure.parent import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -434,12 +434,17 @@ cdef class Element(sage_object.SageObject):
             False
         """
         cls = self.__class__
-        res = cls.__new__(cls)
-        res._set_parent(self._parent)
+        cdef Element res = cls.__new__(cls)
+        res._parent = self._parent
         try:
-            res.__dict__ = self.__dict__.copy()
+            D = self.__dict__
         except AttributeError:
-            pass
+            return res
+        for k,v in D.iteritems():
+            try:
+                setattr(res, k, v)
+            except AttributeError:
+                pass
         return res
 
     def __hash__(self):
@@ -628,7 +633,7 @@ cdef class Element(sage_object.SageObject):
                 variables.append(gen)
         return self(*variables)
 
-    def numerical_approx (self, prec=None, digits=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         """
         Return a numerical approximation of x with at least prec bits of
         precision.
@@ -641,11 +646,20 @@ cdef class Element(sage_object.SageObject):
             3.141592654
             sage: pi.n(prec=20)   # 20 bits
             3.1416
+
+        TESTS:
+
+        Check that :trac:`14778` is fixed::
+
+            sage: (0).n(algorithm='foo')
+            0.000000000000000
         """
         import sage.misc.functional
-        return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
-    n=numerical_approx
-    N=n
+        return sage.misc.functional.numerical_approx(self, prec=prec,
+                                                     digits=digits,
+                                                     algorithm=algorithm)
+    n = numerical_approx
+    N = n
 
     def _mpmath_(self, prec=53, rounding=None):
         """
@@ -1394,7 +1408,7 @@ cdef class MonoidElement(Element):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
             return coercion_model.bin_op(left, right, mul)
-        except TypeError, msg:
+        except TypeError as msg:
             if isinstance(left, (int, long)) and left==1:
                 return right
             elif isinstance(right, (int, long)) and right==1:
@@ -3107,9 +3121,9 @@ cdef class NamedBinopMethod:
         self._func = func
         if name is None:
             if isinstance(func, types.FunctionType):
-                name = func.func_name
+                name = func.__name__
             if isinstance(func, types.UnboundMethodType):
-                name = func.im_func.func_name
+                name = func.__func__.__name__
             else:
                 name = func.__name__
         self._name = name

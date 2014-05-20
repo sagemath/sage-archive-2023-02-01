@@ -255,7 +255,7 @@ class EllipticCurveLocalData(SageObject):
         K = E.base_field()
         p = check_prime(K,P) # error handling done in that function
         if algorithm != "pari" and algorithm != "generic":
-            raise ValueError, "algorithm must be one of 'pari', 'generic'"
+            raise ValueError("algorithm must be one of 'pari', 'generic'")
 
         self._reduction_type = None
         if K is QQ:
@@ -372,7 +372,7 @@ class EllipticCurveLocalData(SageObject):
             try:
                 return self._Emin
             except AttributeError:
-                raise ValueError, "the argument reduce must not be False if algorithm=pari is used"
+                raise ValueError("the argument reduce must not be False if algorithm=pari is used")
 
     def prime(self):
         """
@@ -838,14 +838,14 @@ class EllipticCurveLocalData(SageObject):
             (a1, a2, a3, a4, a6) = C.a_invariants()
             (b2, b4, b6, b8) = C.b_invariants()
             if min([pval(a) for a in (a1, a2, a3, a4, a6) if a != 0]) < 0:
-                raise RuntimeError, "Non-integral model after first transform!"
+                raise RuntimeError("Non-integral model after first transform!")
             verbose("After first transform %s\n, [a1,a2,a3,a4,a6] = %s\n, valuations = %s"%([r, 0, t], [a1, a2, a3, a4, a6], [pval(a1), pval(a2), pval(a3), pval(a4), pval(a6)]), t, 2)
             if pval(a3) == 0:
-                raise RuntimeError, "p does not divide a3 after first transform!"
+                raise RuntimeError("p does not divide a3 after first transform!")
             if pval(a4) == 0:
-                raise RuntimeError, "p does not divide a4 after first transform!"
+                raise RuntimeError("p does not divide a4 after first transform!")
             if pval(a6) == 0:
-                raise RuntimeError, "p does not divide a6 after first transform!"
+                raise RuntimeError("p does not divide a6 after first transform!")
 
             # Now we test for Types In, II, III, IV
             # NB the c invariants never change.
@@ -904,17 +904,17 @@ class EllipticCurveLocalData(SageObject):
             (b2, b4, b6, b8) = C.b_invariants()
             verbose("After second transform %s\n[a1, a2, a3, a4, a6] = %s\nValuations: %s"%([0, s, t], [a1,a2,a3,a4,a6],[pval(a1),pval(a2),pval(a3),pval(a4),pval(a6)]), t, 2)
             if pval(a1) == 0:
-                raise RuntimeError, "p does not divide a1 after second transform!"
+                raise RuntimeError("p does not divide a1 after second transform!")
             if pval(a2) == 0:
-                raise RuntimeError, "p does not divide a2 after second transform!"
+                raise RuntimeError("p does not divide a2 after second transform!")
             if pval(a3) < 2:
-                raise RuntimeError, "p^2 does not divide a3 after second transform!"
+                raise RuntimeError("p^2 does not divide a3 after second transform!")
             if pval(a4) < 2:
-                raise RuntimeError, "p^2 does not divide a4 after second transform!"
+                raise RuntimeError("p^2 does not divide a4 after second transform!")
             if pval(a6) < 3:
-                raise RuntimeError, "p^3 does not divide a6 after second transform!"
+                raise RuntimeError("p^3 does not divide a6 after second transform!")
             if min(pval(a1), pval(a2), pval(a3), pval(a4), pval(a6)) < 0:
-                raise RuntimeError, "Non-integral model after second transform!"
+                raise RuntimeError("Non-integral model after second transform!")
 
             # Analyze roots of the cubic T^3 + bT^2 + cT + d = 0 mod P, where
             # b = a2/p, c = a4/p^2, d = a6/p^3
@@ -1018,9 +1018,9 @@ class EllipticCurveLocalData(SageObject):
                 (b2, b4, b6, b8) = C.b_invariants()
                 verbose("After third transform %s\n[a1,a2,a3,a4,a6] = %s\nValuations: %s"%([r,0,0],[a1,a2,a3,a4,a6],[pval(ai) for ai in [a1,a2,a3,a4,a6]]), t, 2)
                 if min(pval(ai) for ai in [a1,a2,a3,a4,a6]) < 0:
-                    raise RuntimeError, "Non-integral model after third transform!"
+                    raise RuntimeError("Non-integral model after third transform!")
                 if pval(a2) < 2 or pval(a4) < 3 or pval(a6) < 4:
-                    raise RuntimeError, "Cubic after transform does not have a triple root at 0"
+                    raise RuntimeError("Cubic after transform does not have a triple root at 0")
                 a3t = preduce(a3/pi2)
                 a6t = preduce(a6/pi4)
                 # We test for Type IV*
@@ -1109,29 +1109,29 @@ def check_prime(K,P):
             if P.is_prime():
                 return P
             else:
-                raise TypeError, "%s is not prime"%P
+                raise TypeError("%s is not prime"%P)
         else:
             if is_Ideal(P) and P.base_ring() is ZZ and P.is_prime():
                 return P.gen()
-        raise TypeError, "%s is not a prime ideal of %s"%(P,ZZ)
+        raise TypeError("%s is not a prime ideal of %s"%(P,ZZ))
 
     if not is_NumberField(K):
-        raise TypeError, "%s is not a number field"%K
+        raise TypeError("%s is not a number field"%K)
 
     if is_NumberFieldFractionalIdeal(P):
         if P.is_prime():
             return P
         else:
-            raise TypeError, "%s is not a prime ideal of %s"%(P,K)
+            raise TypeError("%s is not a prime ideal of %s"%(P,K))
 
     if is_NumberFieldElement(P):
         if P in K:
             P = K.ideal(P)
         else:
-            raise TypeError, "%s is not an element of %s"%(P,K)
+            raise TypeError("%s is not an element of %s"%(P,K))
         if P.is_prime():
             return P
         else:
-            raise TypeError, "%s is not a prime ideal of %s"%(P,K)
+            raise TypeError("%s is not a prime ideal of %s"%(P,K))
 
-    raise TypeError, "%s is not a valid prime of %s"%(P,K)
+    raise TypeError("%s is not a valid prime of %s"%(P,K))

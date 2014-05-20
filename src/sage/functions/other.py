@@ -192,7 +192,7 @@ class Function_erf(BuiltinFunction):
             return x
         return None
 
-    def _evalf_(self, x, parent):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -433,7 +433,7 @@ class Function_ceil(BuiltinFunction):
                     return ceil(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
+                raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -594,7 +594,7 @@ class Function_floor(BuiltinFunction):
                     return floor(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
-                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
+                raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
 
         except TypeError:
             # If x cannot be coerced into a RealField, then
@@ -780,7 +780,7 @@ class Function_gamma(GinacFunction):
         # without specifying an explicit embedding into CC any more
         try:
             res = GinacFunction.__call__(self, x, coerce=coerce, hold=hold)
-        except TypeError, err:
+        except TypeError as err:
             # the __call__() method returns a TypeError for fast float arguments
             # as well, we only proceed if the error message says that
             # the arguments cannot be coerced to SR
@@ -953,7 +953,7 @@ class Function_gamma_inc(BuiltinFunction):
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
-    def _evalf_(self, x, y, parent=None):
+    def _evalf_(self, x, y, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1051,7 +1051,7 @@ def gamma(a, *args, **kwds):
     if not args:
         return gamma1(a, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"%(len(args)+1))
     return incomplete_gamma(a,args[0],**kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
@@ -1211,7 +1211,7 @@ def psi(x, *args, **kwds):
     if not args:
         return psi1(x, **kwds)
     if len(args) > 1:
-        raise TypeError, "Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1)
+        raise TypeError("Symbolic function psi takes at most 2 arguments (%s given)"%(len(args)+1))
     return psi2(x,args[0],**kwds)
 
 # We have to add the wrapper function manually to the symbol_table when we have
@@ -1869,7 +1869,7 @@ class Function_arg(BuiltinFunction):
             # or x involves an expression such as sqrt(2)
             return None
 
-    def _evalf_(self, x, parent_d=None):
+    def _evalf_(self, x, parent=None, algorithm=None):
         """
         EXAMPLES::
 
@@ -1895,24 +1895,32 @@ class Function_arg(BuiltinFunction):
             3.14159265358979
             sage: arg(2.0+3*i)
             0.982793723247329
+
+        TESTS:
+
+        Make sure that the ``_evalf_`` method works when it receives a
+        keyword argument ``parent`` :trac:`12289`::
+
+            sage: arg(5+I, hold=True).n()
+            0.197395559849881
         """
         try:
             return x.arg()
         except AttributeError:
             pass
         # try to find a parent that support .arg()
-        if parent_d is None:
-            parent_d = s_parent(x)
+        if parent is None:
+            parent = s_parent(x)
         try:
-            parent_d = parent_d.complex_field()
+            parent = parent.complex_field()
         except AttributeError:
             from sage.rings.complex_field import ComplexField
             try:
-                parent_d = ComplexField(x.prec())
+                parent = ComplexField(x.prec())
             except AttributeError:
-                parent_d = ComplexField()
+                parent = ComplexField()
 
-        return parent_d(x).arg()
+        return parent(x).arg()
 
 arg=Function_arg()
 

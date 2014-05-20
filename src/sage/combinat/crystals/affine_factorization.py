@@ -1,5 +1,5 @@
 r"""
-Type A crystal on affine factorizations
+Affine factorization crystal of type `A`
 """
 #*****************************************************************************
 #  Copyright (C) 2014 Anne Schilling <anne at math.ucdavis.edu>
@@ -34,11 +34,10 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
         sage: W = WeylGroup(['A',3,1], prefix='s')
         sage: w = W.from_reduced_word([2,3,2,1])
-        sage: B = AffineFactorizationCrystal(w,3); B
-        Crystal on affine factorizations of type A3 associated to s2*s3*s2*s1
+        sage: B = crystals.AffineFactorization(w,3); B
+        Crystal on affine factorizations of type A2 associated to s2*s3*s2*s1
         sage: B.list()
         [(1, s2, s3*s2*s1),
          (1, s3*s2, s3*s1),
@@ -58,8 +57,8 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     We can also access the crystal by specifying a skew shape in terms of `k`-bounded partitions::
 
-        sage: AffineFactorizationCrystal([[3,1,1],[1]], 3, k=3)
-        Crystal on affine factorizations of type A3 associated to s2*s3*s2*s1
+        sage: crystals.AffineFactorization([[3,1,1],[1]], 3, k=3)
+        Crystal on affine factorizations of type A2 associated to s2*s3*s2*s1
 
     We can compute the highest weight elements::
 
@@ -71,7 +70,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     And show that this crystal is isomorphic to the tableau model of the same weight::
 
-        sage: C = CrystalOfTableaux(['A',2],shape=[3,1])
+        sage: C = crystals.Tableaux(['A',2],shape=[3,1])
         sage: GC = C.digraph()
         sage: GB = B.digraph()
         sage: GC.is_isomorphic(GB, edge_labels=True)
@@ -86,7 +85,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
     The cut point `x` is not supposed to occur in the reduced words for `w`::
 
-        sage: B = AffineFactorizationCrystal([[3,2],[2]],4,x=0,k=3)
+        sage: B = crystals.AffineFactorization([[3,2],[2]],4,x=0,k=3)
         Traceback (most recent call last):
         ...
         ValueError: x cannot be in reduced word of s0*s3*s2
@@ -98,10 +97,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-            sage: A = AffineFactorizationCrystal([[3,1],[1]], 4, k=3); A
-            Crystal on affine factorizations of type A4 associated to s3*s2*s1
-            sage: AC = AffineFactorizationCrystal([Core([4,1],4),Core([1],4)], 4, k=3)
+            sage: A = crystals.AffineFactorization([[3,1],[1]], 4, k=3); A
+            Crystal on affine factorizations of type A3 associated to s3*s2*s1
+            sage: AC = crystals.AffineFactorization([Core([4,1],4),Core([1],4)], 4, k=3)
             sage: AC is A
             True
         """
@@ -116,19 +114,18 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             w0 = W.from_reduced_word(w[0].from_kbounded_to_reduced_word(k))
             w1 = W.from_reduced_word(w[1].from_kbounded_to_reduced_word(k))
             w = w0*(w1.inverse())
-        return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x, k)
+        return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x)
 
-    def __init__(self, w, n, x = None, k = None):
+    def __init__(self, w, n, x = None):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-            sage: B = AffineFactorizationCrystal([[3,2],[2]],4,x=0,k=3)
+            sage: B = crystals.AffineFactorization([[3,2],[2]],4,x=0,k=3)
             Traceback (most recent call last):
             ...
             ValueError: x cannot be in reduced word of s0*s3*s2
 
-            sage: B = AffineFactorizationCrystal([[3,2],[2]],4,k=3)
+            sage: B = crystals.AffineFactorization([[3,2],[2]],4,k=3)
             sage: B.x
             1
             sage: B.w
@@ -140,10 +137,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
             sage: W = WeylGroup(['A',3,1], prefix='s')
             sage: w = W.from_reduced_word([2,3,2,1])
-            sage: B = AffineFactorizationCrystal(w,3)
+            sage: B = crystals.AffineFactorization(w,3)
             sage: TestSuite(B).run()
         """
         Parent.__init__(self, category = ClassicalCrystals())
@@ -152,7 +148,14 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         self.w = w
         cartan_type = CartanType(['A',n-1])
         self._cartan_type = cartan_type
-        generators = [tuple(p) for p in affine_factorizations(w, n)]
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.rings.all import QQ
+        Sym = SymmetricFunctions(QQ)
+        s = Sym.schur()
+        support = s(w.stanley_symmetric_function()).support()
+        support = [ [0]*(n-len(mu))+[mu[len(mu)-i-1] for i in range(len(mu))] for mu in support]
+        generators = [tuple(p) for mu in support for p in affine_factorizations(w,n,mu)]
+        #generators = [tuple(p) for p in affine_factorizations(w, n)]
         self.module_generators = [self(t) for t in generators]
         if x is None:
             if generators != []:
@@ -168,16 +171,15 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
             sage: W = WeylGroup(['A',3,1], prefix='s')
             sage: w = W.from_reduced_word([3,2,1])
-            sage: AffineFactorizationCrystal(w,4)
-            Crystal on affine factorizations of type A4 associated to s3*s2*s1
+            sage: crystals.AffineFactorization(w,4)
+            Crystal on affine factorizations of type A3 associated to s3*s2*s1
 
-            sage: AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
-            Crystal on affine factorizations of type A4 associated to s3*s2*s1
+            sage: crystals.AffineFactorization([[3,1],[1]], 4, k=3)
+            Crystal on affine factorizations of type A3 associated to s3*s2*s1
         """
-        return "Crystal on affine factorizations of type A{} associated to {}".format(self.n, self.w)
+        return "Crystal on affine factorizations of type A{} associated to {}".format(self.n-1, self.w)
 
     # temporary workaround while an_element is overriden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
@@ -190,9 +192,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-                sage: B = AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
-                sage: t = B(B.module_generators[1]); t
+                sage: B = crystals.AffineFactorization([[3,1],[1]], 4, k=3)
+                sage: W = B.w.parent()
+                sage: t = B((W.one(),W.one(),W.from_reduced_word([3]),W.from_reduced_word([2,1]))); t
                 (1, 1, s3, s2*s1)
                 sage: t.e(1)
                 (1, 1, 1, s3*s2*s1)
@@ -222,9 +224,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-                sage: B = AffineFactorizationCrystal([[3,1],[1]], 4, k=3)
-                sage: t = B(B.module_generators[1]); t
+                sage: B = crystals.AffineFactorization([[3,1],[1]], 4, k=3)
+                sage: W = B.w.parent()
+                sage: t = B((W.one(),W.one(),W.from_reduced_word([3]),W.from_reduced_word([2,1]))); t
                 (1, 1, s3, s2*s1)
                 sage: t.f(2)
                 (1, s3, 1, s2*s1)
@@ -256,9 +258,9 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: from sage.combinat.crystals.affine_factorization import AffineFactorizationCrystal
-                sage: B = AffineFactorizationCrystal([[3,1],[1]], 3, k=3, x=4)
-                sage: t = B(B.module_generators[1]); t
+                sage: B = crystals.AffineFactorization([[3,1],[1]], 3, k=3, x=4)
+                sage: W = B.w.parent()
+                sage: t = B((W.one(),W.from_reduced_word([3]),W.from_reduced_word([2,1]))); t
                 (1, s3, s2*s1)
                 sage: t.bracketing(1)
                 [[3], [2, 1]]
@@ -282,15 +284,17 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             return [[j for j in left_unbracketed],[j for j in right_n]]
 
 
-def affine_factorizations(w, l):
+def affine_factorizations(w, l, weight=None):
     r"""
-    Return all factorizations of `w` into `l` factors.
+    Return all factorizations of ``w`` into ``l`` factors or of weight ``weight``.
 
     INPUT:
 
     - ``w`` -- an (affine) permutation or element of the (affine) Weyl group
 
     - ``l`` -- nonegative integer
+
+    - ``weight`` -- (default: None) tuple of nonnegative integers specifying the length of the factors
 
     EXAMPLES::
 
@@ -308,12 +312,60 @@ def affine_factorizations(w, l):
        [s3*s2, s3, s1*s0, s1],
        [s3*s2, s3*s1, s0, s1],
        [s3*s2*s1, s3, s0, s1]]
-    """
-    if l==0:
-        if w.is_one():
-            return [[]]
-        else:
-            return []
-    else:
-        return [[u]+p for (u,v) in w.left_pieri_factorizations() for p in affine_factorizations(v,l-1) ]
 
+       sage: W = WeylGroup(['A',2], prefix='s')
+       sage: w0 = W.long_element()
+       sage: affine_factorizations(w0,3)
+       [[1, s1, s2*s1],
+       [1, s2*s1, s2],
+       [s1, 1, s2*s1],
+       [s1, s2, s1],
+       [s1, s2*s1, 1],
+       [s2, s1, s2],
+       [s2*s1, 1, s2],
+       [s2*s1, s2, 1]]
+       sage: affine_factorizations(w0,3,(0,1,2))
+       [[1, s1, s2*s1]]
+       sage: affine_factorizations(w0,3,(1,1,1))
+       [[s1, s2, s1], [s2, s1, s2]]
+       sage: W = WeylGroup(['A',3], prefix='s')
+       sage: w0 = W.long_element()
+       sage: affine_factorizations(w0,6,(1,1,1,1,1,1))
+       [[s1, s2, s1, s3, s2, s1],
+       [s1, s2, s3, s1, s2, s1],
+       [s1, s2, s3, s2, s1, s2],
+       [s1, s3, s2, s1, s3, s2],
+       [s1, s3, s2, s3, s1, s2],
+       [s2, s1, s2, s3, s2, s1],
+       [s2, s1, s3, s2, s1, s3],
+       [s2, s1, s3, s2, s3, s1],
+       [s2, s3, s1, s2, s1, s3],
+       [s2, s3, s1, s2, s3, s1],
+       [s2, s3, s2, s1, s2, s3],
+       [s3, s1, s2, s1, s3, s2],
+       [s3, s1, s2, s3, s1, s2],
+       [s3, s2, s1, s2, s3, s2],
+       [s3, s2, s1, s3, s2, s3],
+       [s3, s2, s3, s1, s2, s3]]
+       sage: affine_factorizations(w0,6,(0,0,0,1,2,3))
+       [[1, 1, 1, s1, s2*s1, s3*s2*s1]]
+    """
+    if weight is None:
+        if l==0:
+            if w.is_one():
+                return [[]]
+            else:
+                return []
+        else:
+            return [[u]+p for (u,v) in w.left_pieri_factorizations() for p in affine_factorizations(v,l-1) ]
+    else:
+        if l != len(weight):
+            return []
+        if l==0:
+            if w.is_one():
+                return [[]]
+            else:
+                return []
+        else:
+            return [[u]+p for (u,v) in w.left_pieri_factorizations(max_length=weight[0]) if u.length() == weight[0]
+                    for p in affine_factorizations(v,l-1,weight[1:]) ]

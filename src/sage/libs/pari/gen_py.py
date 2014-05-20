@@ -239,7 +239,7 @@ def python(z, locals=None):
         tx = z.real().type()
         ty = z.imag().type()
         if tx in ["t_INTMOD", "t_PADIC"] or ty in ["t_INTMOD", "t_PADIC"]:
-            raise NotImplementedError, "No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components"
+            raise NotImplementedError("No conversion to python available for t_COMPLEX with t_INTMOD or t_PADIC components")
         if tx == "t_REAL" or ty == "t_REAL":
             xprec = z.real().precision() # will be 0 if exact
             yprec = z.imag().precision() # will be 0 if exact
@@ -256,7 +256,7 @@ def python(z, locals=None):
             return QuadraticField(-1,'i')([python(c) for c in list(z)])
         if tx == "t_INT" or ty == "t_INT":
             return QuadraticField(-1,'i').ring_of_integers()([python(c) for c in list(z)])
-        raise NotImplementedError, "No conversion to python available for t_COMPLEX with components %s"%(tx,ty)
+        raise NotImplementedError("No conversion to python available for t_COMPLEX with components %s"%(tx,ty))
     elif t == "t_VEC":
         return [python(x) for x in z.python_list()]
     elif t == "t_VECSMALL":

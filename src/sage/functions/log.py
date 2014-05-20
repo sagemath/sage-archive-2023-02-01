@@ -129,6 +129,15 @@ class Function_exp(GinacFunction):
             doctest:...: DeprecationWarning: The prec keyword argument is deprecated. Explicitly set the precision of the input, for example exp(RealField(300)(1)), or use the prec argument to .n() for exact inputs, e.g., exp(1).n(300), instead.
             See http://trac.sagemath.org/7490 for details.
             7.3890560989306502272304274606
+
+        Ensure that :trac:`13608` is fixed::
+
+            sage: import mpmath
+            sage: a = mpmath.mpf('0.5')
+            sage: exp(a)
+            mpf('1.6487212707001282')
+            sage: a.exp
+            -1
         """
         if prec is not None:
             from sage.misc.superseded import deprecation
@@ -651,7 +660,7 @@ class Function_lambert_w(BuiltinFunction):
                 return sage_structure_coerce_parent(z)(Integer(-1))
         return None
 
-    def _evalf_(self, n, z, parent=None):
+    def _evalf_(self, n, z, parent=None, algorithm=None):
         """
         EXAMPLES::
 

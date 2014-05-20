@@ -23,6 +23,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 
 from sage.misc.cachefunc import cached_method
+from functools import reduce
 
 
 class FiniteDimensionalAlgebra(Algebra):

@@ -224,6 +224,7 @@ from sage.rings.all import Integer, ZZ, lcm
 from sage.misc.cachefunc import cached_method
 
 import sage.misc.weak_dict
+from functools import reduce
 _fgp_module = sage.misc.weak_dict.WeakValueDictionary()
 
 

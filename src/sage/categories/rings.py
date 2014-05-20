@@ -19,6 +19,7 @@ from sage.categories.category_singleton import Category_singleton
 from category import HomCategory
 from sage.misc.cachefunc import cached_method
 import sage
+from functools import reduce
 
 class Rings(Category_singleton):
     """

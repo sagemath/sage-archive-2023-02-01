@@ -38,6 +38,7 @@ from padic_base_leaves import pAdicRingCappedRelative, \
 ######################################################
 
 from padic_extension_leaves import *
+from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
 ext_table = {}

@@ -10,7 +10,7 @@ include "sage/misc/bitset.pxi"
 
 def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="OA"):
     r"""
-    Check that the integer matrix `M` is an `OA(k,n,t)`.
+    Check that the integer matrix `OA` is an `OA(k,n,t)`.
 
     See :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
     for a definition.

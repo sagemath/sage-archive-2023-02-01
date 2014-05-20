@@ -75,7 +75,7 @@ REFERENCES:
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
-DEBUG = True
+VERIFY_RESULT = True
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -736,7 +736,7 @@ class StandardAlgorithm(Problem):
         DD, remaining = self.initial_pair()
         for a in remaining:
             DD = DD.add_inequality(a)
-            if DEBUG:
+            if VERIFY_RESULT:
                 DD.verify()
         return DD
 

@@ -60,7 +60,7 @@ from sage.geometry.polyhedron.double_description import StandardAlgorithm as Alg
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
-DEBUG = True
+VERIFY_RESULT = True
 
 
 class PivotedInequalities(SageObject):
@@ -204,7 +204,7 @@ class Hrep2Vrep(PivotedInequalities):
         A = self._init_Vrep(inequalities, equations)
         DD = Algorithm(A).run()
         self._extract_Vrep(DD)
-        if DEBUG: 
+        if VERIFY_RESULT: 
             self.verify(inequalities, equations)
 
     def _init_Vrep(self, inequalities, equations):
@@ -441,7 +441,7 @@ class Vrep2Hrep(PivotedInequalities):
         A = self._init_Vrep(vertices, rays, lines)
         DD = Algorithm(A).run()
         self._extract_Hrep(DD)
-        if DEBUG: 
+        if VERIFY_RESULT: 
             self.verify(vertices, rays, lines)
 
     def _init_Vrep(self, vertices, rays, lines):

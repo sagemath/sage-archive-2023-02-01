@@ -16,7 +16,7 @@ AUTHORS:
 #*****************************************************************************
 
 cdef extern from "math.h":
-    double sqrt(double)
+    long double sqrtl(long double)
 
 cimport integer
 import integer
@@ -55,7 +55,7 @@ cdef int two_squares_c(unsigned long n, unsigned long res[2]):
     # if n=2 mod 4 then i and j must be odd
     if n%4 == 1:
         i = ii = 0
-        j = <unsigned long> sqrt(<double> n)
+        j = <unsigned long> sqrtl(<long double> n)
         jj = j*j
         while ii <= jj:
             nn = n - ii
@@ -72,7 +72,7 @@ cdef int two_squares_c(unsigned long n, unsigned long res[2]):
             ii = i*i
     else: # n mod 4 = 2
         i = ii = 1
-        j = <unsigned long> sqrt(<double> n)
+        j = <unsigned long> sqrtl(<long double> n)
         j += 1 - j%2
         jj = j*j
         while ii <= jj:
@@ -119,7 +119,7 @@ cdef int three_squares_c(unsigned long n, unsigned long res[3]):
     if n%8 == 7:
         return 0
 
-    i = <unsigned long> sqrt(<double> n)
+    i = <unsigned long> sqrtl(<long double> n)
     while not two_squares_c(n-i*i, j):
         i -= 1
 
@@ -273,7 +273,7 @@ def four_squares_pyx(unsigned long n):
         fac += 1
 
     # we pick the largest square we can for j
-    j = <unsigned long> sqrt(<double> n)
+    j = <unsigned long> sqrtl(<long double> n)
     while not three_squares_c(n-j*j, i):
         j -= 1
 

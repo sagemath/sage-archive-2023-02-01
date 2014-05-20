@@ -4785,7 +4785,9 @@ cdef class Expression(CommutativeRingElement):
             sage: t = x - unsigned_infinity; t
             Infinity
             sage: t.n()
-            +infinity
+            Traceback (most recent call last):
+            ...
+            ValueError: can only convert signed infinity to RR
 
         Some expressions cannot be evaluated numerically::
 

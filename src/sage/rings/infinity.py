@@ -175,6 +175,14 @@ still get an error::
     ...
     SignError: cannot add positive finite value to negative finite value
 
+Signed infinity can also be represented by RR / RDF elements. But
+unsigned infinity cannot::
+
+    sage: oo in RR, oo in RDF
+    (True, True)
+    sage: unsigned_infinity in RR, unsigned_infinity in RDF
+    (False, False)
+
 TESTS::
 
     sage: P = InfinityRing
@@ -462,7 +470,13 @@ class AnInfinity(object):
             -infinity
             sage: (-infinity).__float__() # random
             -inf
+            sage: float(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: unsigned infinity cannot be represented in a float
         """
+        if self._sign == 0:
+            raise ValueError('unsigned infinity cannot be represented in a float')
         return float(self._sign_char + 'inf')
 
     def lcm(self, x):

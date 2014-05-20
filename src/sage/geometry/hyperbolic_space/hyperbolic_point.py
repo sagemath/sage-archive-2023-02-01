@@ -222,8 +222,8 @@ class HyperbolicPoint(SageObject):
             sage: p1 == p2
             True
         """
-        return (self.model_name() == other.model_name() and
-            bool(self.coordinates() == other.coordinates()))
+        return (self.model_name() == other.model_name()
+                and bool(self.coordinates() == other.coordinates()))
 
     def __rmul__(self, other):
         r"""
@@ -330,8 +330,7 @@ class HyperbolicPoint(SageObject):
             Point in PD 0
         """
         factory = ModelFactory.find_factory(model_name)
-        coordinates = self.model().point_to_model(self.coordinates(),
-                                                  model_name)
+        coordinates = self.model().point_to_model(self.coordinates(), model_name)
         return factory.get_point(coordinates)
 
     def update_graphics(self, update=False, **options):

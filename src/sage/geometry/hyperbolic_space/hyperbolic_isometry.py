@@ -68,10 +68,6 @@ class HyperbolicIsometry(SageObject):
     - ``A`` -- a matrix representing a hyperbolic isometry in the
       appropriate model
 
-    OUTPUT:
-
-    - a hyperbolic isometry
-
     EXAMPLES::
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
@@ -193,7 +189,7 @@ class HyperbolicIsometry(SageObject):
             [41 15]
             [30 11]
         """
-        return type (self) (self.matrix()**n)
+        return self.__class__(self.matrix()**n)
 
     def __mul__(self, other):
         r"""
@@ -242,17 +238,17 @@ class HyperbolicIsometry(SageObject):
     # def __call__ (self, other):
     #     r"""
     #     EXAMPLES::
-
+    #
     #         sage: from sage.geometry.hyperbolic_space.hyperbolic_isometry import *
     #         sage: A = HyperbolicIsometryUHP(Matrix(2,[5,2,1,2]))
     #         sage: p = UHP.point(2 + I)
     #         sage: A(p)
     #         Point in UHP 8/17*I + 53/17.
-
+    #
     #         sage: g = UHP.geodesic(2 + I,4 + I)
     #         sage: A (g)
     #         Geodesic in UHP from 8/17*I + 53/17 to 8/37*I + 137/37.
-
+    #
     #         sage: A = diagonal_matrix([1, -1, 1])
     #         sage: A = HyperbolicIsometryHM(A)
     #         sage: A.orientation_preserving()
@@ -269,9 +265,9 @@ class HyperbolicIsometry(SageObject):
     #     return self.HFactory.get_point(self.model().isometry_act_on_point(
     #         self.matrix(), other.coordinates()))
 
-#######################
-# Setters and Getters #
-#######################
+    #######################
+    # Setters and Getters #
+    #######################
 
     def matrix(self):
         r"""
@@ -366,13 +362,13 @@ class HyperbolicIsometry(SageObject):
         matrix = self.model().isometry_to_model(self.matrix(),  model_name)
         return factory.get_isometry(matrix)
 
-###################
-# Boolean Methods #
-###################
+    ###################
+    # Boolean Methods #
+    ###################
 
     def orientation_preserving(self):
         r"""
-        Return `True` if self is orientation preserving and `False`
+        Return ``True`` if ``self`` is orientation preserving and ``False``
         otherwise.
 
         EXAMPLES::
@@ -387,9 +383,9 @@ class HyperbolicIsometry(SageObject):
         """
         return self.HMethods.orientation_preserving(self._cached_matrix)
 
-###################################
-# Methods implemented in HMethods #
-###################################
+    ###################################
+    # Methods implemented in HMethods #
+    ###################################
 
     def classification(self):
         r"""
@@ -420,8 +416,8 @@ class HyperbolicIsometry(SageObject):
 
     def translation_length(self):
         r"""
-        For hyperbolic elements, return the translation length.
-        Otherwise, raise a ValueError.
+        For hyperbolic elements, return the translation length;
+        otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -444,7 +440,7 @@ class HyperbolicIsometry(SageObject):
     def axis(self, **graphics_options):
         r"""
         For a hyperbolic isometry, return the axis of the
-        transformation.  Otherwise raise a ValueError.
+        transformation; otherwise raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -492,7 +488,6 @@ class HyperbolicIsometry(SageObject):
             sage: A.fixed_point_set()
             [Boundary point in UHP 1, Boundary point in UHP -1]
 
-
        ::
 
             sage: B = HyperbolicIsometryUHP(identity_matrix(2))
@@ -528,8 +523,8 @@ class HyperbolicIsometry(SageObject):
 
     def repelling_fixed_point(self, **graphics_options):
         r"""
-        For a hyperbolic isometry, return the attracting fixed point.
-        Otherwise raise a ``ValueError``.
+        For a hyperbolic isometry, return the attracting fixed point;
+        otherwise raise a ``ValueError``.
 
         OUTPUT:
 
@@ -548,8 +543,8 @@ class HyperbolicIsometry(SageObject):
 
     def attracting_fixed_point(self, **graphics_options):
         r"""
-        For a hyperbolic isometry, return the attracting fixed point.
-        Otherwise raise a `ValueError``.
+        For a hyperbolic isometry, return the attracting fixed point;
+        otherwise raise a `ValueError``.
 
         OUTPUT:
 
@@ -605,11 +600,12 @@ class HyperbolicIsometry(SageObject):
 
         INPUT:
 
-        - ``preserve_orientation`` -- if ``True`` return an orientation- preserving isometry.
+        - ``preserve_orientation`` -- if ``True`` return an
+          orientation-preserving isometry
 
         OUTPUT:
 
-        - a hyperbolic isometry.
+        - a hyperbolic isometry
 
         EXAMPLES::
 
@@ -624,17 +620,13 @@ class HyperbolicIsometry(SageObject):
         return cls.HFactory.get_isometry(A)
 
 
-class HyperbolicIsometryUHP (HyperbolicIsometry):
+class HyperbolicIsometryUHP(HyperbolicIsometry):
     r"""
     Create a hyperbolic isometry in the UHP model.
 
     INPUT:
 
-    - A matrix in `GL(2,\RR)`.
-
-    OUTPUT:
-
-    - A hyperbolic isometry.
+    - a matrix in `GL(2, \RR)`
 
     EXAMPLES::
 
@@ -645,17 +637,13 @@ class HyperbolicIsometryUHP (HyperbolicIsometry):
     HFactory = HyperbolicFactoryUHP
     HMethods = HyperbolicMethodsUHP
 
-class HyperbolicIsometryPD (HyperbolicIsometry):
+class HyperbolicIsometryPD(HyperbolicIsometry):
     r"""
     Create a hyperbolic isometry in the PD model.
 
     INPUT:
 
-    - A matrix in `PU(1,1)`.
-
-    OUTPUT:
-
-    - A hyperbolic isometry.
+    - a matrix in `PU(1,1)`
 
     EXAMPLES::
 
@@ -665,17 +653,13 @@ class HyperbolicIsometryPD (HyperbolicIsometry):
     HFactory = HyperbolicFactoryPD
     HMethods = HyperbolicMethodsUHP
 
-class HyperbolicIsometryKM (HyperbolicIsometry):
+class HyperbolicIsometryKM(HyperbolicIsometry):
     r"""
     Create a hyperbolic isometry in the KM model.
 
     INPUT:
 
-    - A matrix in `SO(2,1)`.
-
-    OUTPUT:
-
-    - A hyperbolic isometry.
+    - a matrix in `SO(2,1)`
 
     EXAMPLES::
 
@@ -685,17 +669,13 @@ class HyperbolicIsometryKM (HyperbolicIsometry):
     HFactory = HyperbolicFactoryKM
     HMethods = HyperbolicMethodsUHP
 
-class HyperbolicIsometryHM (HyperbolicIsometry):
+class HyperbolicIsometryHM(HyperbolicIsometry):
     r"""
     Create a hyperbolic isometry in the HM model.
 
     INPUT:
 
-    - A matrix in `SO(2,1)`.
-
-    OUTPUT:
-
-    - A hyperbolic isometry.
+    - a matrix in `SO(2,1)`
 
     EXAMPLES::
 
@@ -704,3 +684,4 @@ class HyperbolicIsometryHM (HyperbolicIsometry):
     """
     HFactory = HyperbolicFactoryHM
     HMethods = HyperbolicMethodsUHP
+

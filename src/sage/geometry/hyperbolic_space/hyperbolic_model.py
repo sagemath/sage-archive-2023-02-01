@@ -93,6 +93,181 @@ lazy_import('sage.functions.other','sqrt')
 
 lazy_import('sage.geometry.hyperbolic_space.model_factory', 'ModelFactory')
 
+#####################################################################
+## Some helper functions
+
+def SL2R_to_SO21(A):
+    r"""
+    Given a matrix in `SL(2, \RR)` return its irreducible representation in
+    `O(2,1)`.
+
+    Note that this is not the only homomorphism, but it is the only one
+    that works in the context of the implemented 2D hyperbolic geometry
+    models.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import SL2R_to_SO21
+        sage: A = SL2R_to_SO21(identity_matrix(2))
+        sage: J =  matrix([[1,0,0],[0,1,0],[0,0,-1]]) #Lorentzian Gram matrix
+        sage: norm(A.transpose()*J*A - J) < 10**-4
+        True
+    """
+    a,b,c,d = (A/A.det().sqrt()).list()
+    B = matrix(3, [a*d + b*c, a*c - b*d, a*c + b*d, a*b - c*d,
+                   Integer(1)/Integer(2)*a**2 - Integer(1)/Integer(2)*b**2 -
+                   Integer(1)/Integer(2)*c**2 + Integer(1)/Integer(2)*d**2,
+                   Integer(1)/Integer(2)*a**2 + Integer(1)/Integer(2)*b**2 -
+                   Integer(1)/Integer(2)*c**2 - Integer(1)/Integer(2)*d**2,
+                   a*b + c*d, Integer(1)/Integer(2)*a**2 -
+                   Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 -
+                   Integer(1)/Integer(2)*d**2, Integer(1)/Integer(2)*a**2 +
+                   Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 +
+                   Integer(1)/Integer(2)*d**2])
+    B = B.apply_map(attrcall('real')) # Kill ~0 imaginary parts
+    if A.det() > 0:
+        return B
+    else:
+        # Orientation-reversing isometries swap the nappes of
+        #  the lightcone.  This fixes that issue.
+        return -B
+
+def SO21_to_SL2R(M):
+    r"""
+    A homomorphism from `SO(2, 1)` to `SL(2, \RR)`.
+
+    Note that this is not the only homomorphism, but it is the only one
+    that works in the context of the implemented 2D hyperbolic geometry
+    models.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import SO21_to_SL2R
+        sage: (SO21_to_SL2R(identity_matrix(3)) - identity_matrix(2)).norm() < 10**-4
+        True
+    """
+    ####################################################################
+    # SL(2,R) is the double cover of SO (2,1)^+, so we need to choose  #
+    # a lift.  I have formulas for the absolute values of each entry   #
+    # a,b ,c,d of the lift matrix(2,[a,b,c,d]), but we need to choose  #
+    # one entry to be positive.  I choose d for no particular reason,  #
+    # unless d = 0, then we choose c > 0.  The basic strategy for this #
+    # function is to find the linear map induced by the SO(2,1)        #
+    # element on the Lie algebra sl(2, R).  This corresponds to the    #
+    # Adjoint action by a matrix A or -A in SL(2,R).  To find which    #
+    # matrix let X,Y,Z be a basis for sl(2,R) and look at the images   #
+    # of X,Y,Z as well as the second and third standard basis vectors  #
+    # for 2x2 matrices (these are traceless, so are in the Lie         #
+    # algebra).  These corresponds to AXA^-1 etc and give formulas     #
+    # for the entries of A.                                            #
+    ####################################################################
+    (m_1,m_2,m_3,m_4,m_5,m_6,m_7,m_8,m_9) = M.list()
+    d = sqrt(Integer(1)/Integer(2)*m_5 - Integer(1)/Integer(2)*m_6 -
+             Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
+    if M.det() > 0: #EPSILON?
+        det_sign = 1
+    elif M.det() < 0: #EPSILON?
+        det_sign = -1
+    if d > 0: #EPSILON?
+        c = (-Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/d
+        b = (-Integer(1)/Integer(2)*m_2 + Integer(1)/Integer(2)*m_3)/d
+        ad = det_sign*1 + b*c # ad - bc = pm 1
+        a = ad/d
+    else: # d is 0, so we make c > 0
+        c = sqrt(-Integer(1)/Integer(2)*m_5 - Integer(1)/Integer(2)*m_6 +
+                  Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
+        d = (-Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/c
+            #d = 0, so ad - bc = -bc = pm 1.
+        b = - (det_sign*1)/c
+        a = (Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/b
+    A = matrix(2,[a,b,c,d])
+    return A
+
+def mobius_transform(A, z):
+    r"""
+    Given a matrix ``A`` in `GL(2, \CC)` and a point ``z`` in the complex
+    plane return the mobius transformation action of ``A`` on ``z``.
+
+    INPUT:
+
+    - ``A`` -- a `2 \times 2` invertible matrix over the complex numbers
+    - ``z`` -- a complex number or infinity
+
+    OUTPUT:
+
+    - a complex number or infinity
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import mobius_transform as mobius_transform
+        sage: mobius_transform(matrix(2,[1,2,3,4]),2 + I)
+        2/109*I + 43/109
+        sage: y = var('y')
+        sage: mobius_transform(matrix(2,[1,0,0,1]),x + I*y)
+        x + I*y
+
+    The matrix must be square and `2`x`2`::
+
+        sage: mobius_transform(matrix([[3,1,2],[1,2,5]]),I)
+        Traceback (most recent call last):
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
+
+        sage: mobius_transform(identity_matrix(3),I)
+        Traceback (most recent call last):
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
+
+    The matrix can be symbolic or can be a matrix over the real
+    or complex numbers, but must be invertible::
+
+        sage: (a,b,c,d) = var('a,b,c,d');
+        sage: mobius_transform(matrix(2,[a,b,c,d]),I)
+        (I*a + b)/(I*c + d)
+
+        sage: mobius_transform(matrix(2,[0,0,0,0]),I)
+        Traceback (most recent call last):
+        ...
+        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
+    """
+    if A.ncols() == 2 and A.nrows() == 2 and A.det() != 0:
+            (a,b,c,d) = A.list()
+            if z == infinity:
+                if c == 0:
+                    return infinity
+                return a/c
+            if a*d - b*c < 0:
+                w = z.conjugate() # Reverses orientation
+            else:
+                w = z
+            if c*z + d == 0:
+                return infinity
+            else:
+                return (a*w + b)/(c*w + d)
+    else:
+        raise TypeError("A must be an invertible 2x2 matrix over the"
+                        " complex numbers or a symbolic ring")
+
+def PD_preserve_orientation(A):
+    r"""
+    For a PD isometry, determine if it preserves orientation.
+    This test is more more involved than just checking the sign
+    of the determinant, and it is used a few times in this file.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import PD_preserve_orientation as orient
+        sage: orient(matrix(2, [-I, 0, 0, I]))
+        True
+        sage: orient(matrix(2, [0, I, I, 0]))
+        False
+    """
+    return bool(A[1][0] == A[0][1].conjugate() and A[1][1] == A[0][0].conjugate()
+                and abs(A[0][0]) - abs(A[0][1]) != 0)
+
+
+#####################################################################
+## The actual classes
 
 class HyperbolicModel(UniqueRepresentation):
     r"""
@@ -175,7 +350,7 @@ class HyperbolicModel(UniqueRepresentation):
     def bdry_point_test(cls, p): #Abstract
         r"""
         Test whether a point is in the model.  If the point is in the
-        model, do nothing.  Otherwise, raise a ``ValueError``.
+        model, do nothing; otherwise raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -193,8 +368,8 @@ class HyperbolicModel(UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A): #Abstract
         r"""
-        Return true if the input matrix represents an isometry of the
-        given model and false otherwise.
+        Return ``True`` if the input matrix represents an isometry of the
+        given model and ``False`` otherwise.
 
         INPUT:
 
@@ -234,7 +409,7 @@ class HyperbolicModel(UniqueRepresentation):
     def isometry_test(cls, A): #Abstract
         r"""
         Test whether an isometry is in the model.  If the isometry is in
-        the model, do nothing.  Otherwise, raise a ``ValueError``.
+        the model, do nothing; otherwise, raise a ``ValueError``.
 
         EXAMPLES::
 
@@ -365,7 +540,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
     bounded = True
     conformal = True
     dimension = 2
-    isometry_group = "PSL (2,\\Bold{R})"
+    isometry_group = "PSL(2, \\Bold{R})"
     isometry_group_is_projective = True
     pt_conversion_dict = {
         'UHP' : lambda p :  p,
@@ -378,12 +553,11 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
                                                             imag(p)**2 + 1))
         }
     isom_conversion_dict = {
-            'UHP': lambda A : A,
-            'PD' : lambda A :  matrix(2,[1,-I,-I,1])*A*\
-                matrix(2,[1,I,I,1])/Integer(2),
-            'HM' : lambda A : _SL2R_to_SO21(A),
-            'KM' : lambda A : _SL2R_to_SO21(A)
-            }
+        'UHP': lambda A : A,
+        'PD' : lambda A : matrix(2,[1,-I,-I,1]) * A * matrix(2,[1,I,I,1])/Integer(2),
+        'HM' : SL2R_to_SO21,
+        'KM' : SL2R_to_SO21
+        }
 
     @classmethod
     def point_in_model(cls, p): #UHP
@@ -439,7 +613,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
             False
         """
         im = abs(imag(CC(p)).n())
-        return bool( (im < EPSILON)  or (p == infinity))
+        return bool( (im < EPSILON) or (p == infinity) )
 
     @classmethod #UHP
     def isometry_act_on_point(cls, A, p): #UHP
@@ -455,7 +629,7 @@ class HyperbolicModelUHP(HyperbolicModel, UniqueRepresentation):
             sage: bool(norm(HyperbolicModelUHP.isometry_act_on_point(I2, p) - p) < 10**-9)
             True
         """
-        return _mobius_transform(A, p)
+        return mobius_transform(A, p)
 
     @classmethod
     def isometry_in_model(cls,A): #UHP
@@ -580,9 +754,9 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
             'PD' : lambda A : A,
             'UHP': lambda A :  (matrix(2,[1,I,I,1])*A*
                 matrix(2,[1,-I,-I,1])/Integer(2)),
-            'KM' : lambda A : _SL2R_to_SO21( matrix(2,[1,I,I,1])*A*
+            'KM' : lambda A : SL2R_to_SO21( matrix(2,[1,I,I,1]) * A *
                                              matrix(2,[1,-I,-I,1])/Integer(2)),
-            'HM' : lambda A : _SL2R_to_SO21( matrix(2,[1,I,I,1])*A*
+            'HM' : lambda A : SL2R_to_SO21( matrix(2,[1,I,I,1]) * A *
                                              matrix(2,[1,-I,-I,1])/Integer(2))
             }
 
@@ -638,9 +812,9 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
             sage: bool(norm(HyperbolicModelPD.isometry_act_on_point(I2, q) - q) < 10**-9)
             True
         """
-        _image = _mobius_transform(A, p)
-        if not _PD_preserve_orientation(A):
-            return _mobius_transform(I*matrix(2,[0,1,1,0]), _image)
+        _image = mobius_transform(A, p)
+        if not PD_preserve_orientation(A):
+            return mobius_transform(I*matrix(2,[0,1,1,0]), _image)
         return _image
 
 
@@ -659,7 +833,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
         # alpha = A[0][0]
         # beta = A[0][1]
         # Orientation preserving and reversing
-        return _PD_preserve_orientation(A) or _PD_preserve_orientation(I*A)
+        return PD_preserve_orientation(A) or PD_preserve_orientation(I*A)
 
     @classmethod
     def point_to_model(cls, coordinates, model_name): #PD
@@ -719,7 +893,7 @@ class HyperbolicModelPD(HyperbolicModel, UniqueRepresentation):
         """
         cls.isometry_test(A)
         # Check for orientation-reversing isometries.
-        if (not _PD_preserve_orientation(A) and model_name == 'UHP'):
+        if (not PD_preserve_orientation(A) and model_name == 'UHP'):
             return cls.isom_conversion_dict[model_name](I*A)
         return cls.isom_conversion_dict[model_name](A)
 
@@ -733,7 +907,7 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
     conformal = False
     dimension = 2
     isometry_group_is_projective = True
-    isometry_group = "PSO (2, 1)"
+    isometry_group = "PSO(2, 1)"
     pt_conversion_dict = {
             'UHP' : lambda p:  -p[0]/(p[1] - 1) +\
                 I*(-(sqrt(-p[0]**2 -p[1]**2 + 1) - p[0]**2 - p[1]**2 +
@@ -745,8 +919,8 @@ class HyperbolicModelKM(HyperbolicModel, UniqueRepresentation):
                                        p[1]**2))/(1 - p[0]**2 - p[1]**2)
             }
     isom_conversion_dict = {
-            'UHP' : lambda A :  _SO21_to_SL2R(A) ,
-            'PD' : lambda A :   matrix(2,[1,-I,-I,1])*_SO21_to_SL2R(A)*\
+            'UHP' : SO21_to_SL2R,
+            'PD' : lambda A :   matrix(2,[1,-I,-I,1]) * SO21_to_SL2R(A) *\
                 matrix(2,[1,I,I,1])/Integer(2),
             'KM' : lambda A :  A,
             'HM' : lambda A :  A
@@ -866,7 +1040,7 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
     bounded = False
     conformal = True
     dimension = 2
-    isometry_group = "SO (2, 1)"
+    isometry_group = "SO(2, 1)"
     pt_conversion_dict = {
             'UHP' : lambda p : -((p[0]*p[2] + p[0]) +
                                  I*(p[2] +1))/((p[1] - 1)*p[2] - p[0]**2 -
@@ -876,8 +1050,8 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
             'HM' : lambda p : p
             }
     isom_conversion_dict =  {
-            'UHP' : lambda A : _SO21_to_SL2R(A) ,
-            'PD' : lambda A :  matrix(2,[1,-I,-I,1])*_SO21_to_SL2R(A)*\
+            'UHP' : SO21_to_SL2R,
+            'PD' : lambda A : matrix(2,[1,-I,-I,1]) * SO21_to_SL2R(A) *\
                 matrix(2,[1,I,I,1])/Integer(2),
             'KM' : lambda A : A,
             'HM' : lambda A : A
@@ -923,7 +1097,7 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
     @classmethod
     def isometry_in_model(cls, A):  #HM
         r"""
-        Test that the matrix ``A`` is in the group `SO (2,1)^+`.
+        Test that the matrix ``A`` is in the group `SO(2,1)^+`.
 
         EXAMPLES::
 
@@ -933,173 +1107,4 @@ class HyperbolicModelHM(HyperbolicModel, UniqueRepresentation):
         """
         from sage.geometry.hyperbolic_space.hyperbolic_constants import LORENTZ_GRAM
         return bool((A*LORENTZ_GRAM*A.transpose() - LORENTZ_GRAM).norm()**2 < EPSILON)
-
-def _SL2R_to_SO21 (A):
-    r"""
-    Given a matrix in `SL(2, \RR)` return its irreducible representation in
-    `O(2,1)`.
-
-    Note that this is not the only homomorphism, but it is the only one
-    that works in the context of the implemented 2D hyperbolic geometry
-    models.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _SL2R_to_SO21
-        sage: A = _SL2R_to_SO21(identity_matrix(2))
-        sage: J =  matrix([[1,0,0],[0,1,0],[0,0,-1]]) #Lorentzian Gram matrix
-        sage: norm(A.transpose()*J*A - J) < 10**-4
-        True
-    """
-    a,b,c,d = (A/A.det().sqrt()).list()
-    B = matrix(3, [a*d + b*c, a*c - b*d, a*c + b*d, a*b - c*d,
-                   Integer(1)/Integer(2)*a**2 - Integer(1)/Integer(2)*b**2 -
-                   Integer(1)/Integer(2)*c**2 + Integer(1)/Integer(2)*d**2,
-                   Integer(1)/Integer(2)*a**2 + Integer(1)/Integer(2)*b**2 -
-                   Integer(1)/Integer(2)*c**2 - Integer(1)/Integer(2)*d**2,
-                   a*b + c*d, Integer(1)/Integer(2)*a**2 -
-                   Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 -
-                   Integer(1)/Integer(2)*d**2, Integer(1)/Integer(2)*a**2 +
-                   Integer(1)/Integer(2)*b**2 + Integer(1)/Integer(2)*c**2 +
-                   Integer(1)/Integer(2)*d**2])
-    B = B.apply_map(attrcall('real')) # Kill ~0 imaginary parts
-    if A.det() > 0:
-        return B
-    else:
-        # Orientation-reversing isometries swap the nappes of
-        #  the lightcone.  This fixes that issue.
-        return -B
-
-def _SO21_to_SL2R (M):
-    r"""
-    A homomorphism from `SO(2 ,1)` to `SL (2, \RR)`.
-
-    Note that this is not the only homomorphism, but it is the only one
-    that works in the context of the implemented 2D hyperbolic geometry
-    models.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _SO21_to_SL2R
-        sage: (_SO21_to_SL2R(identity_matrix(3)) - identity_matrix(2)).norm() < 10**-4
-        True
-    """
-    ####################################################################
-    # SL (2,R) is the double cover of SO (2,1)^+, so we need to choose #
-    # a lift.  I have formulas for the absolute values of each entry  #
-    # a,b ,c,d of the lift matrix(2,[a,b,c,d]), but we need to choose #
-    # one entry to be positive.  I choose d for no particular reason, #
-    # unless d = 0, then we choose c > 0.  The basic strategy for this #
-    # function is to find the linear map induced by the SO (2,1)      #
-    # element on the Lie algebra sl (2, R).  This corresponds to the  #
-    # Adjoint action by a matrix A or -A in SL (2,R).  To find which  #
-    # matrix let X,Y,Z be a basis for sl(2,R) and look at the images  #
-    # of X,Y,Z as well as the second and third standard basis vectors #
-    # for 2x2 matrices (these are traceless, so are in the Lie        #
-    # algebra).  These corresponds to AXA^-1 etc and give formulas    #
-    # for the entries of A.                                            #
-    ####################################################################
-    (m_1,m_2,m_3,m_4,m_5,m_6,m_7,m_8,m_9) = M.list()
-    d = sqrt(Integer(1)/Integer(2)*m_5 - Integer(1)/Integer(2)*m_6 -
-             Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
-    if M.det() > 0: #EPSILON?
-        det_sign = 1
-    elif M.det() < 0: #EPSILON?
-        det_sign = -1
-    if d > 0: #EPSILON?
-        c = (-Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/d
-        b = (-Integer(1)/Integer(2)*m_2 + Integer(1)/Integer(2)*m_3)/d
-        ad = det_sign*1 + b*c # ad - bc = pm 1
-        a = ad/d
-    else: # d is 0, so we make c > 0
-        c = sqrt(-Integer(1)/Integer(2)*m_5 - Integer(1)/Integer(2)*m_6 +
-                  Integer(1)/Integer(2)*m_8 + Integer(1)/Integer(2)*m_9)
-        d = (-Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/c
-            #d = 0, so ad - bc = -bc = pm 1.
-        b = - (det_sign*1)/c
-        a = (Integer(1)/Integer(2)*m_4 + Integer(1)/Integer(2)*m_7)/b
-    A = matrix(2,[a,b,c,d])
-    return A
-
-def _mobius_transform(A, z):
-    r"""
-    Given a matrix ``A`` in `GL(2,\CC)` and a point ``z`` in the complex
-    plane return the mobius transformation action of ``A`` on ``z``.
-
-    INPUT:
-
-    - ``A`` -- a `2 \times 2` invertible matrix over the complex numbers
-    - ``z`` -- a complex number or infinity
-
-    OUTPUT:
-
-    - a complex number or infinity
-
-    EXAMPLES::
-
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _mobius_transform as mobius_transform
-        sage: mobius_transform(matrix(2,[1,2,3,4]),2 + I)
-        2/109*I + 43/109
-        sage: y = var('y')
-        sage: mobius_transform(matrix(2,[1,0,0,1]),x + I*y)
-        x + I*y
-
-    The matrix must be square and `2`x`2`::
-
-        sage: mobius_transform(matrix([[3,1,2],[1,2,5]]),I)
-        Traceback (most recent call last):
-        ...
-        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
-
-        sage: mobius_transform(identity_matrix(3),I)
-        Traceback (most recent call last):
-        ...
-        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
-
-    The matrix can be symbolic or can be a matrix over the real
-    or complex numbers, but must be invertible::
-
-        sage: (a,b,c,d) = var('a,b,c,d');
-        sage: mobius_transform(matrix(2,[a,b,c,d]),I)
-        (I*a + b)/(I*c + d)
-
-        sage: mobius_transform(matrix(2,[0,0,0,0]),I)
-        Traceback (most recent call last):
-        ...
-        TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
-    """
-    if A.ncols() == 2 and A.nrows() == 2 and A.det() != 0:
-            (a,b,c,d) = A.list()
-            if z == infinity:
-                if c == 0:
-                    return infinity
-                return a/c
-            if a*d - b*c < 0:
-                w = z.conjugate() # Reverses orientation
-            else:
-                w = z
-            if c*z + d == 0:
-                return infinity
-            else:
-                return (a*w + b)/(c*w + d)
-    else:
-        raise TypeError("A must be an invertible 2x2 matrix over the"
-                        " complex numbers or a symbolic ring")
-
-def _PD_preserve_orientation(A):
-    r"""
-    For a PD isometry, determine if it preserves orientation.
-    This test is more more involved than just checking the sign
-    of the determinant, and it is used a few times in this file.
-
-    EXAMPLES::
-
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_model import _PD_preserve_orientation as orient
-        sage: orient(matrix(2, [-I, 0, 0, I]))
-        True
-        sage: orient(matrix(2, [0, I, I, 0]))
-        False
-    """
-    return bool(A[1][0] == A[0][1].conjugate() and A[1][1] == A[0][0].conjugate()
-                and abs(A[0][0]) - abs(A[0][1]) != 0)
 

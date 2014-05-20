@@ -178,8 +178,8 @@ class HyperbolicGeodesic(SageObject):
             True
         """
         if self.model().bounded:
-            return (self.model().bdry_point_in_model(self.start().coordinates()) and
-                self.model().bdry_point_in_model(self.end().coordinates()))
+            return (self.model().bdry_point_in_model(self.start().coordinates())
+                    and self.model().bdry_point_in_model(self.end().coordinates()))
         else:
             return False #All non-bounded geodesics start life incomplete.
 
@@ -202,9 +202,8 @@ class HyperbolicGeodesic(SageObject):
             sage: HyperbolicGeodesicHM((0,0,1), (0, 1, sqrt(Integer(2))))
             Geodesic in HM from (0, 0, 1) to (0, 1, sqrt(2))
         """
-        return "Geodesic in {0} from {1} to {2}".format(  \
-            self.model_name(), self.start().coordinates(), \
-                self.end().coordinates())
+        return "Geodesic in {0} from {1} to {2}".format(self.model_name(),
+                self.start().coordinates(), self.end().coordinates())
 
     def __eq__(self, other):
         r"""
@@ -436,8 +435,8 @@ class HyperbolicGeodesic(SageObject):
         """
         p1, p2 = self.complete().endpoints()
         q1, q2 = other.complete().endpoints()
-        return ((self != other) and  ((p1 in [q1, q2]) or (p2 in [q1,q2])) and
-                self.model() == other.model())
+        return ((self != other) and  ((p1 in [q1, q2]) or (p2 in [q1,q2]))
+                and self.model() == other.model())
 
     def is_ultra_parallel(self,other):
         r"""
@@ -539,7 +538,7 @@ class HyperbolicGeodesic(SageObject):
             NotImplementedError: boundary points are not implemented in the HM model
         """
         if not self.model().bounded:
-            raise NotImplementedError("boundary points are not implemented in the "\
+            raise NotImplementedError("boundary points are not implemented in the "
                                           + "{0} model".format(self.model_name()))
         if self.is_complete():
             return self.endpoints()
@@ -601,8 +600,8 @@ class HyperbolicGeodesic(SageObject):
         if not self.is_complete():
             return self
         ends = self.HMethods.uncomplete(*self._cached_endpoints)
-        ends = [self.HMethods.model().point_to_model(k, self.model_name()) for
-                k in ends]
+        ends = [self.HMethods.model().point_to_model(k, self.model_name())
+                for k in ends]
         return self.HFactory.get_geodesic(*ends)
 
     def reflection_in(self):
@@ -674,8 +673,8 @@ class HyperbolicGeodesic(SageObject):
         perp_ends = self.HMethods.common_perpendicular(
             *(self._cached_endpoints + other._cached_endpoints))
         M = self.HMethods.model()
-        perp_ends = [M.point_to_model(k, self.model_name()) for
-                                      k in perp_ends]
+        perp_ends = [M.point_to_model(k, self.model_name())
+                     for k in perp_ends]
         return self.HFactory.get_geodesic(*perp_ends, **graphics_options)
 
     def intersection(self, other, **graphics_options):
@@ -762,8 +761,8 @@ class HyperbolicGeodesic(SageObject):
         bisect_ends = self.HMethods.perpendicular_bisector(
             *self._cached_endpoints)
         M = self.HMethods.model()
-        bisect_ends = [M.point_to_model(k, self.model_name()) for
-                                      k in bisect_ends]
+        bisect_ends = [M.point_to_model(k, self.model_name())
+                       for k in bisect_ends]
         return self.HFactory.get_geodesic(*bisect_ends, **graphics_options)
 
     @classmethod
@@ -781,8 +780,8 @@ class HyperbolicGeodesic(SageObject):
         # Some kwargs are for parametrizing the random geodesic
         # others are for graphics options.  Is there a better way to do this?
         g_ends = [cls.HMethods.random_point(**kwargs) for k in range(2)]
-        g_ends = [cls.HMethods.model().point_to_model(k, cls.model_name())\
-                         for k in g_ends]
+        g_ends = [cls.HMethods.model().point_to_model(k, cls.model_name())
+                  for k in g_ends]
         return cls.HFactory.get_geodesic(*g_ends, **kwargs)
 
     def midpoint(self, **graphics_options):
@@ -808,7 +807,7 @@ class HyperbolicGeodesic(SageObject):
         if self.is_complete():
             raise ValueError("midpoint not defined for complete geodesics")
         mid = self.HMethods.midpoint(*self._cached_endpoints,
-                                      **graphics_options)
+                                     **graphics_options)
         mid = self.HMethods.model().point_to_model(mid, self.model_name())
         return self.HFactory.get_point(mid)
 
@@ -901,7 +900,7 @@ class HyperbolicGeodesic(SageObject):
                 self.intersection (other)
             except ValueError:
                 print("Warning: Geodesic segments do not intersect. "
-                      "The angle between them is not defined. \n"
+                      "The angle between them is not defined.\n"
                       "Returning the angle between their completions.")
                 return self.complete().angle(other.complete())
         return self.HMethods.angle(*(self._cached_endpoints +
@@ -922,7 +921,7 @@ class HyperbolicGeodesic(SageObject):
         return end1.dist(end2)
 
 
-class HyperbolicGeodesicUHP (HyperbolicGeodesic):
+class HyperbolicGeodesicUHP(HyperbolicGeodesic):
     r"""
     Create a geodesic in the upper half plane model.
 
@@ -1077,7 +1076,7 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         return pic
 
 
-class HyperbolicGeodesicKM (HyperbolicGeodesic):
+class HyperbolicGeodesicKM(HyperbolicGeodesic):
     r"""
     Create a geodesic in the Klein disk model.
 
@@ -1098,7 +1097,7 @@ class HyperbolicGeodesicKM (HyperbolicGeodesic):
     HFactory = HyperbolicFactoryKM
     HMethods = HyperbolicMethodsUHP
 
-    def show(self, boundary = True, **options):
+    def show(self, boundary=True, **options):
         r"""
         EXAMPLES::
 

@@ -346,11 +346,20 @@ class AnInfinity(object):
 
             sage: unsigned_infinity = UnsignedInfinityRing.gen()
             sage: unsigned_infinity + unsigned_infinity
-            Infinity
+            Traceback (most recent call last):
+            ...
+            SignError: cannot add unsigned infinities
+            sage: unsigned_infinity + oo*i
+            Traceback (most recent call last):
+            ...
+            SignError: cannot add unsigned infinities
             sage: unsigned_infinity + 88/3
             Infinity
         """
         if isinstance(other, AnInfinity):
+            if self._sign == 0:
+                # just like oo - oo is undefined
+                raise SignError("cannot add unsigned infinities")
             if self._sign != other._sign:
                 raise SignError("cannot add infinity to minus infinity")
         return self
@@ -376,11 +385,15 @@ class AnInfinity(object):
             sage: unsigned_infinity - unsigned_infinity
             Traceback (most recent call last):
             ...
-            ValueError: oo - oo not defined
+            SignError: cannot subtract unsigned infinities
+            sage: unsigned_infinity - oo*i
+            Traceback (most recent call last):
+            ...
+            SignError: cannot subtract unsigned infinities
         """
         if isinstance(other, AnInfinity):
             if self._sign == 0:
-                raise ValueError("oo - oo not defined")
+                raise SignError("cannot subtract unsigned infinities")
             elif self._sign == other._sign:
                 raise SignError("cannot add infinity to minus infinity")
         return self

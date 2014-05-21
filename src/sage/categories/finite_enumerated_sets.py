@@ -14,6 +14,7 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
+lazy_import("sage.rings.integer", "Integer")
 
 class FiniteEnumeratedSets(CategoryWithAxiom):
     """
@@ -144,7 +145,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             c = 0
             for _ in self:
                 c += 1
-            from sage.rings.integer import Integer
             return Integer(c)
 
         #Set cardinality to the default implementation
@@ -197,7 +197,6 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 lst = self._list
             except AttributeError:
                 lst = self.list()
-            from sage.rings.integer import Integer
             return Integer(len(lst))
 
         def _unrank_from_list(self, r):
@@ -455,6 +454,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 ...
                 AssertionError: False is not true
             """
+            # isinstance with LazyImported classes is not robust
             from sage.rings.integer import Integer
             tester = self._tester(**options)
             if self.cardinality != self._cardinality_from_iterator:

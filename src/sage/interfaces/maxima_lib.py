@@ -562,6 +562,7 @@ class MaximaLib(MaximaAbstract):
             'm'
             sage: maxima_lib.get('m')
             'x+cos(19)'
+            sage: maxima_lib.clear('m')
         """
         name = self._next_var_name() if name is None else name
         if isinstance(value,EclObject):
@@ -776,6 +777,16 @@ class MaximaLib(MaximaAbstract):
             sage: forget()
             sage: assumptions() # check the assumptions were really forgotten
             []
+
+        Taking the sum of all natural numbers informs us that the sum
+        is divergent.  Maxima (before 5.29.1) used to ask questions
+        about `m`, leading to a different error (see :trac:`11990`)::
+
+            sage: m = var('m')
+            sage: sum(m, m, 0, infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: Sum is divergent.
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));

@@ -7337,7 +7337,7 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: SR(10).gamma()
             362880
-            sage: SR(10.0r).gamma()
+            sage: SR(10.0r).gamma()  # For ARM: rel tol 2e-15
             362880.0
             sage: SR(CDF(1,1)).gamma()
             0.498015668118 - 0.154949828302*I

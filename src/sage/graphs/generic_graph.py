@@ -10201,11 +10201,11 @@ class GenericGraph(GenericGraph_pyx):
         else:
             vertices = [v for v in vertices if v in self]
         if labels:
-            filter = lambda v, self: (v, self._backend.degree(v, self._directed))
+            filter_ = lambda v, self: (v, self._backend.degree(v, self._directed))
         else:
-            filter = lambda v, self: self._backend.degree(v, self._directed)
+            filter_ = lambda v, self: self._backend.degree(v, self._directed)
         for v in vertices:
-            yield list(filter(v, self))
+            yield filter_(v, self)
 
     def degree_sequence(self):
         r"""

@@ -5411,7 +5411,7 @@ class Automaton(FiniteStateMachine):
             True
             sage: B.state(2).is_final
             False
-            sage: B.delete_state(2) # this is a sink
+            sage: B.delete_state(2)  # this is a sink
             sage: sorted(B.transitions())
             [Transition from 0 to 1: 1|-,
              Transition from 1 to 0: -1|-,
@@ -5447,10 +5447,20 @@ class Automaton(FiniteStateMachine):
             (False, 'A')
             sage: auto.states()
             ['A', 'C', 'B']
-            sage: auto.determinisation()
+            sage: Ddet = auto.determinisation()
+            sage: Ddet
             Automaton with 3 states
+            sage: Ddet.is_deterministic()
+            True
+            sage: sorted(Ddet.transitions())
+            [Transition from frozenset(['A']) to frozenset(['A', 'B']): 'a'|-,
+             Transition from frozenset(['A']) to frozenset(['A']): 'b'|-,
+             Transition from frozenset(['A', 'B']) to frozenset(['A', 'B']): 'a'|-,
+             Transition from frozenset(['A', 'B']) to frozenset(['A', 'C']): 'b'|-,
+             Transition from frozenset(['A', 'C']) to frozenset(['A', 'B']): 'a'|-,
+             Transition from frozenset(['A', 'C']) to frozenset(['A']): 'b'|-]
         """
-        if any(len(t.word_in)>1 for t in self.iter_transitions()):
+        if any(len(t.word_in) > 1 for t in self.iter_transitions()):
             return self.split_transitions().determinisation()
 
         epsilon_successors = {}
@@ -5472,7 +5482,6 @@ class Automaton(FiniteStateMachine):
                 for direct_successor in direct_epsilon_successors[state]:
                     epsilon_successors[state] = epsilon_successors[state].union(epsilon_successors[direct_successor])
                 count_epsilon_successors += len(epsilon_successors[state])
-
 
         def set_transition(states, letter):
             result = set()

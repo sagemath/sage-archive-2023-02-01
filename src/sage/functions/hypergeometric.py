@@ -142,7 +142,7 @@ Series expansions of confluent hypergeometric functions::
     1 + 1*x + 1/2*x^2 + Order(x^3)
     sage: hypergeometric_U(2, 2, x).series(x == 3, 100).subs(x=1).n()
     0.403652637676806
-    sage: hypergeometric_U(2, 2, 1).n()                              
+    sage: hypergeometric_U(2, 2, 1).n()
     0.403652637676806
 """
 #*****************************************************************************
@@ -880,21 +880,21 @@ class Hypergeometric_M(BuiltinFunction):
     The confluent hypergeometric function of the first kind,
     `y = M(a,b,z)`, is defined to be the solution to Kummer's differential
     equation
-    
+
     .. math::
-    
+
              zy'' + (b-z)y' - ay = 0.
 
     This is not the same as Kummer's `U`-hypergeometric function, though it
     satisfies the same DE that `M` does.
-    
+
     .. warning::
 
        In the literature, both are called "Kummer confluent
        hypergeometric" functions.
-    
+
     EXAMPLES::
-    
+
         sage: hypergeometric_M(1, 1, 1)
         hypergeometric_M(1, 1, 1)
         sage: hypergeometric_M(1, 1, 1.)
@@ -904,9 +904,9 @@ class Hypergeometric_M(BuiltinFunction):
         sage: hypergeometric_M(1, 1, 1).simplify_hypergeometric()
         e
         sage: hypergeometric_M(1, 1/2, x).simplify_hypergeometric()
-        (-I*sqrt(pi)*x*e^x*erf(I*sqrt(-x)) + sqrt(-x))/sqrt(-x)
+        (-I*sqrt(pi)*x*erf(I*sqrt(-x))*e^x + sqrt(-x))/sqrt(-x)
         sage: hypergeometric_M(1, 3/2, 1).simplify_hypergeometric()
-        1/2*sqrt(pi)*e*erf(1)
+        1/2*sqrt(pi)*erf(1)*e
     """
     def __init__(self):
         BuiltinFunction.__init__(self, 'hypergeometric_M', nargs=3,
@@ -925,7 +925,7 @@ class Hypergeometric_M(BuiltinFunction):
             return Integer(1)
         return
 
-    def _evalf_(self, a, b, z, parent):
+    def _evalf_(self, a, b, z, parent, algorithm=None):
         from mpmath import hyp1f1
         return mpmath_utils.call(hyp1f1, a, b, z, parent=parent)
 
@@ -956,9 +956,9 @@ class Hypergeometric_U(BuiltinFunction):
     The confluent hypergeometric function of the second kind,
     `y = U(a,b,z)`, is defined to be the solution to Kummer's differential
     equation
-    
+
     .. math::
-    
+
              zy'' + (b-z)y' - ay = 0.
 
     This satisfies `U(a,b,z) \sim z^{-a}`, as
@@ -967,14 +967,14 @@ class Hypergeometric_U(BuiltinFunction):
     `M`-hypergeometric function, denoted sometimes as
     `_1F_1(\alpha,\beta,z)`, though it satisfies the same DE that
     `U` does.
-    
+
     .. warning::
 
        In the literature, both are called "Kummer confluent
        hypergeometric" functions.
-    
+
     EXAMPLES::
-    
+
         sage: hypergeometric_U(1, 1, 1)
         hypergeometric_U(1, 1, 1)
         sage: hypergeometric_U(1, 1, 1.)
@@ -1006,7 +1006,7 @@ class Hypergeometric_U(BuiltinFunction):
             return self._evalf_(a, b, z, parent=parent(co))
         return
 
-    def _evalf_(self, a, b, z, parent):
+    def _evalf_(self, a, b, z, parent, algorithm=None):
         from mpmath import hyperu
         return mpmath_utils.call(hyperu, a, b, z, parent=parent)
 
@@ -1026,9 +1026,9 @@ class Hypergeometric_U(BuiltinFunction):
                 sage: a, b, z = var('a b z')
                 sage: hypergeometric_U(a, b, z).generalized()
                 z^(-a)*hypergeometric((a, a - b + 1), (), -1/z)
-                sage: hypergeometric_U(1, 3, 1/2).generalized()            
+                sage: hypergeometric_U(1, 3, 1/2).generalized()
                 2*hypergeometric((1, -1), (), -2)
-                sage: hypergeometric_U(3, I, 2).generalized()  
+                sage: hypergeometric_U(3, I, 2).generalized()
                 1/8*hypergeometric((3, -I + 4), (), -1/2)
 
             """

@@ -486,9 +486,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             if self.cartan_type().is_finite():
                 return ()
             if self.cartan_type().is_affine():
-                a = self.cartan_type().a()
-                alpha = self.simple_roots()
-                return (sum(a[i] * alpha[i] for i in self.index_set()),)
+                return (self.null_root(),)
             raise ValueError("only implemented for finite and affine types")
 
         ##########################################################################
@@ -528,14 +526,13 @@ class RootLatticeRealizations(Category_over_base_ring):
                 The result should be an enumerated set, and handle
                 infinite root systems.
             """
-            # Once negative_roots() works for infinite root systems
-            #if not self.cartan_type().is_finite():
-            #    from sage.sets.disjoint_union_enumerated_sets \
-            #                    import DisjointUnionEnumeratedSets
-            #    D =  DisjointUnionEnumeratedSets([self.positive_roots(),
-            #                                      self.negative_roots()])
-            #    D.rename("All roots of type {}".format(self.cartan_type()))
-            #    return D
+            if not self.cartan_type().is_finite():
+                from sage.sets.disjoint_union_enumerated_sets \
+                                import DisjointUnionEnumeratedSets
+                D =  DisjointUnionEnumeratedSets([self.positive_roots(),
+                                                  self.negative_roots()])
+                D.rename("All roots of type {}".format(self.cartan_type()))
+                return D
 
             return list(self.positive_roots()) + list(self.negative_roots())
 
@@ -676,30 +673,36 @@ class RootLatticeRealizations(Category_over_base_ring):
             Q = RootSystem(self.cartan_type().classical()).root_space(self.base_ring())
 
             # Start with the classical positive roots
-            P = Family(Q.positive_real_roots(), lambda x: self.sum_of_terms(x))
+            alpha = self.simple_roots()
+            def lift(x):
+                """
+                Lift up the classical element into ``self``.
+                """
+                return self.sum(c*alpha[i] for i,c in x)
+            P = Family(Q.positive_real_roots(), lift)
 
             # Add all of the delta shifts
-            delta = self.basic_imaginary_roots()[0]
+            delta = self.null_root()
             if self.cartan_type().is_untwisted_affine():
                 C = CartesianProduct(PositiveIntegers(), Q.roots())
-                F = Family(C, lambda x: self.sum_of_terms(x[1]) + x[0]*delta)
+                F = Family(C, lambda x: lift(x[1]) + x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, F])
             elif self.cartan_type().type() == 'BC' or self.cartan_type().dual().type() == 'BC':
                 Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
                 Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
-                Fs = Family(Cl, lambda x: (self.sum_of_terms(x[1]) + (2*x[0]-1)*delta) / 2)
-                Fm = Family(Cs, lambda x: self.sum_of_terms(x[1]) + x[0]*delta)
-                Fl = Family(Cl, lambda x: self.sum_of_terms(x[1]) + 2*x[0]*delta)
+                Fs = Family(Cl, lambda x: (lift(x[1]) + (2*x[0]-1)*delta) / 2)
+                Fm = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
+                Fl = Family(Cl, lambda x: lift(x[1]) + 2*x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, Fs, Fm, Fl])
             else: # Other twisted types
                 Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
                 Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
-                Fs = Family(Cs, lambda x: self.sum_of_terms(x[1]) + x[0]*delta)
+                Fs = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
                 if self.cartan_type().dual() == 'G': # D_4^3
                     k = 3
                 else:
                     k = 2
-                Fl = Family(Cl, lambda x: self.sum_of_terms(x[1]) + x[0]*k*delta)
+                Fl = Family(Cl, lambda x: lift(x[1]) + x[0]*k*delta)
                 D = DisjointUnionEnumeratedSets([P, Fs, Fl])
 
             # Return the final union
@@ -731,7 +734,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             if not self.cartan_type().is_affine():
                 raise NotImplementedError("only implemented for finite and affine Cartan types")
             from sage.sets.positive_integers import PositiveIntegers
-            delta = self.basic_imaginary_roots()[0]
+            delta = self.null_root()
             F = Family(PositiveIntegers(), lambda x: x*delta)
             F.rename("Positive imaginary roots of type {}".format(self.cartan_type()))
             return F

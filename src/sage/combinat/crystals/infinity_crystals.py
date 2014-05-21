@@ -667,7 +667,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             ret = []
             for i in word:
                 a = 0
-                while self.e(i) != None:
+                while self.e(i) is not None:
                     self = self.e(i)
                     a += 1
                 ret.append(a)

@@ -689,7 +689,7 @@ class Crystals(Category_singleton):
                 string_datum = []
                 for j in word:
                     turtlewalk = 0
-                    while not turtle.e(j) == None:
+                    while turtle.e(j) is not None:
                         turtle = turtle.e(j)
                         turtlewalk += 1
                     string_datum.append(turtlewalk)
@@ -739,7 +739,7 @@ class Crystals(Category_singleton):
             for i in range(size):
                 for j in range(1,3):
                     dest = self.list()[i].f(j)
-                    if not dest == None:
+                    if dest is not None:
                         dest = self.list().index(dest)
                         if j == 1:
                             col = "red;"

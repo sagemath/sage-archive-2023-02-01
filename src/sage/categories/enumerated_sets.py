@@ -424,7 +424,7 @@ class EnumeratedSets(Category_singleton):
                 except (TypeError, ValueError, IndexError):
                     break
 
-                if u == None:
+                if u is None:
                     break
                 else:
                     yield u

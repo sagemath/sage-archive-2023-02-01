@@ -6419,7 +6419,7 @@ class FiniteStateMachine(SageObject):
             sage: A.predecessors(A.state('F'), valid_input=[['c', 'b'], 'a'])
             ['F', 'C', 'B']
         """
-        if valid_input != None:
+        if valid_input is not None:
             valid_list = list()
             for input in valid_input:
                 input_list = input

@@ -1489,7 +1489,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         break
                     except ValueError:
                         pass
-                assert a != None
+                assert a is not None
                 a *= (m*n1a)
                 if debug: print "linear relation gives m=",m,", a=",a
                 if debug: assert m*Q==a*P1
@@ -1675,7 +1675,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return True
         elif self.base_field().characteristic() != other.base_field().characteristic():
             raise ValueError("The base fields must have the same characteristic.")
-        elif field==None:
+        elif field is None:
             if self.base_field().degree() == other.base_field().degree():
                 if self.cardinality() == other.cardinality():
                     return True

@@ -159,7 +159,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if not isinstance(base_ring, rings.Ring) and base_ring.is_field():
             raise TypeError("base_ring must be a commutative ring")
 
-        if character == None and arithgroup.is_Gamma0(group):
+        if character is None and arithgroup.is_Gamma0(group):
             character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
         space.ModularSymbolsSpace.__init__(self, group, weight,
@@ -174,7 +174,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             formula = None
 
         rank = self.rank()
-        if formula != None:
+        if formula is not None:
             assert rank == formula, \
                    "Computed dimension (=%s) of ambient space \"%s\" doesn't match dimension formula (=%s)!\n"%(d, self, formula) + \
                    "ModularSymbolsAmbient: group = %s, weight = %s, sign = %s, base_ring = %s, character = %s"%(

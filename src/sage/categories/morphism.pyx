@@ -540,9 +540,9 @@ cdef class SetMorphism(Morphism):
             (False, True, False, False, False, False)
             sage: f == i, f != i, f < i, f > i, f <= i, f >= i
             (False, True, False, False, False, False)
-            sage: f == 0, f == int(0), f == None
+            sage: f == 0, f == int(0), f is None
             (False, False, False)
-            sage: f != 0, f != int(0), f != None
+            sage: f != 0, f != int(0), f is not None
             (True, True, True)
         """
         if op == Py_EQ or op == Py_LE or op == Py_GE:

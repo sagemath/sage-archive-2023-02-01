@@ -135,9 +135,9 @@ class Expect(Interface):
         Interface.__init__(self, name)
         self.__is_remote = False
         self.__remote_cleaner = remote_cleaner
-        if command == None:
+        if command is None:
             command = name
-        if not server is None:
+        if server is not None:
             if ulimit:
                 command = 'sage-native-execute ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
             else:
@@ -164,7 +164,7 @@ class Expect(Interface):
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
         self.__verbose_start = verbose_start
-        if not path is None:
+        if path is not None:
             self.__path = path
         elif script_subdirectory is None:
             self.__path = '.'
@@ -231,7 +231,7 @@ class Expect(Interface):
         done, new = self._get(wait=wait, alternate_prompt=alternate_prompt)
         try:
             if done:
-                #if not new is None:
+                #if new is not None:
                 X = self.__so_far + new
                 del self.__so_far
                 return True, X, new
@@ -1331,7 +1331,7 @@ class ExpectElement(InterfaceElement):
         try:
             if hasattr(self,'_name'):
                 P = self.parent()
-                if not (P is None):
+                if P is not None:
                     P.clear(self._name)
 
         except (RuntimeError, ExceptionPexpect) as msg:    # needed to avoid infinite loops in some rare cases

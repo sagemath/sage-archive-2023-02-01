@@ -838,7 +838,7 @@ class CoxeterGroups(Category_singleton):
 
                 TODO: side, index_set, positive
             """
-            if index_set==None:
+            if index_set is None:
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, side = side, positive = positive) ]
 

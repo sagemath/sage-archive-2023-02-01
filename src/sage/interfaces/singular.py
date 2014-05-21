@@ -1678,7 +1678,7 @@ class SingularElement(ExpectElement):
                             power=1
                         exp[var_dict[var]]=power
 
-                if kcache==None:
+                if kcache is None:
                     sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
@@ -1707,7 +1707,7 @@ class SingularElement(ExpectElement):
                     else:
                         exp = int(1)
 
-                if kcache==None:
+                if kcache is None:
                     sage_repr[exp]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]

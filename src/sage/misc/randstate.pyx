@@ -765,7 +765,7 @@ cdef class randstate:
              gp.setrand(seed)
 
              if prev is not None:
-                 if prev._gp_saved_seeds == None:
+                 if prev._gp_saved_seeds is None:
                      prev._gp_saved_seeds = weakref.WeakKeyDictionary()
                  prev._gp_saved_seeds[gp] = prev_seed
 

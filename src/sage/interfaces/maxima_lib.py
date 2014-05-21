@@ -750,7 +750,15 @@ class MaximaLib(MaximaAbstract):
         """
         Helper function to wrap calculus use of Maxima's summation.
 
-        TESTS::
+        TESTS:
+
+        Check that :trac:`16224` is fixed::
+
+            sage: k = var('k')
+            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).simplify_radical()
+            cosh(x)
+
+        ::
 
             sage: x, y, k, n = var('x, y, k, n')
             sage: sum(binomial(n,k) * x^k * y^(n-k), k, 0, n)

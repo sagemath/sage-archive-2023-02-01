@@ -7185,10 +7185,7 @@ class Automaton(FiniteStateMachine):
         epsilon_successors = {}
         direct_epsilon_successors = {}
         for state in self.states():
-            direct_epsilon_successors[state] = set(map(lambda t:t.to_state,
-                                                       [transition for transition in self.transitions(state) if len(transition.word_in) == 0]
-                                                       )
-                                                   )
+            direct_epsilon_successors[state] = set(transition.to_state for transition in self.transitions(state) if len(transition.word_in) == 0)
             epsilon_successors[state] = set([state])
 
         old_count_epsilon_successors = 0

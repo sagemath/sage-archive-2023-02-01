@@ -1662,11 +1662,11 @@ class Partition(CombinatorialObject, Element):
         mu = self
         muconj = mu.conjugate()     # Naive implementation
         if len(mu) <= len(muconj):
-            a = [x for x in [val-i-1 for i, val in enumerate(mu)] if x>=0]
-            b = [x for x in [muconj[i]-i-1 for i in range(len(a))] if x>=0]
+            a = [x for x in (val-i-1 for i, val in enumerate(mu)) if x>=0]
+            b = [x for x in (muconj[i]-i-1 for i in range(len(a))) if x>=0]
         else:
-            b = [x for x in [val-i-1 for i, val in enumerate(muconj)] if x>=0]
-            a = [x for x in [mu[i]-i-1 for i in range(len(b))] if x>=0]
+            b = [x for x in (val-i-1 for i, val in enumerate(muconj)) if x>=0]
+            a = [x for x in (mu[i]-i-1 for i in range(len(b))) if x>=0]
         return (a,b)
 
     def frobenius_rank(self):

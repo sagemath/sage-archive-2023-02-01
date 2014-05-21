@@ -81,7 +81,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
         if len(eldv) == 0:
             return "0"
         rank = len([x for x in eldv if x == 0])
-        torsion = sorted([x for x in eldv if x])
+        torsion = sorted(x for x in eldv if x)
         if rank > 4:
             g = ["Z^%s" % rank]
         else:
@@ -117,7 +117,7 @@ class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
         if len(eldv) == 0:
             return "0"
         rank = len([x for x in eldv if x == 0])
-        torsion = sorted([x for x in eldv if x])
+        torsion = sorted(x for x in eldv if x)
         if rank > 4:
             g = ["\\ZZ^{{{}}}".format(rank)]
         else:

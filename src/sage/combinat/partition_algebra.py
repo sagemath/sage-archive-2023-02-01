@@ -1589,8 +1589,7 @@ def is_planar(sp):
         #Get the positive and negative entries of this
         #part
         ap = [x for x in to_consider[i] if x>0]
-        an = [x for x in to_consider[i] if x<0]
-        an = map(abs, an)
+        an = [abs(x) for x in to_consider[i] if x<0]
         #print a, ap, an
 
 
@@ -1602,8 +1601,7 @@ def is_planar(sp):
                     continue
                 #Get the positive and negative entries of this part
                 bp = [x for x in to_consider[j] if x>0]
-                bn = [x for x in to_consider[j] if x<0]
-                bn = map(abs, bn)
+                bn = [abs(x) for x in to_consider[j] if x<0]
 
                 #Skip the ones that don't involve numbers in both
                 #the bottom and top rows

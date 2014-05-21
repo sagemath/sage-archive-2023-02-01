@@ -2533,14 +2533,14 @@ def is_row_and_col_balanced(T1, T2):
     """
 
     for r in range(T1.nrows()):
-        val1 = set([x for x in T1.row(r) if x >= 0])
-        val2 = set([x for x in T2.row(r) if x >= 0])
+        val1 = set(x for x in T1.row(r) if x >= 0)
+        val2 = set(x for x in T2.row(r) if x >= 0)
 
         if val1 != val2: return False
 
     for c in range(T1.ncols()):
-        val1 = set([x for x in T1.column(c) if x >= 0])
-        val2 = set([x for x in T2.column(c) if x >= 0])
+        val1 = set(x for x in T1.column(c) if x >= 0)
+        val2 = set(x for x in T2.column(c) if x >= 0)
 
         if val1 != val2: return False
 

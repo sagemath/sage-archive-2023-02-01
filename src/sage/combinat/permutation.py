@@ -2126,7 +2126,7 @@ class Permutation(CombinatorialObject, Element):
         r=[]
         for x in self:
             if max(r+[0]) > x:
-                y = min([z for z in r if z > x])
+                y = min(z for z in r if z > x)
                 r[r.index(y)] = x
             else:
                 r.append(x)

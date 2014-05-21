@@ -1188,7 +1188,7 @@ class WeakTableau_core(WeakTableau_abstract):
         """
         R = [v for v in self.shape().to_partition().cells() if self[v[0]][v[1]] < r]
         L = [v for v in sw if self[v[0]][v[1]] <= r]
-        return max([v[0] for v in L+R])
+        return max(v[0] for v in L+R)
 
 class WeakTableaux_core(WeakTableaux_abstract):
     r"""
@@ -2359,7 +2359,7 @@ class StrongTableau(ClonableList):
         outer_shape = Core(map(len, T),k+1)
         inner_shape = Core([x for x in [row.count(None) for row in T] if x>0], k+1)
         Te = [v for row in T for v in row if v is not None]+[0]
-        count_marks = tuple([Te.count(-(i+1)) for i in range(-min(Te))])
+        count_marks = tuple(Te.count(-(i+1)) for i in range(-min(Te)))
         if not all( v==1 for v in count_marks ):
             # if T is not standard -> turn into standard
             if weight is not None and tuple(weight)!=count_marks:

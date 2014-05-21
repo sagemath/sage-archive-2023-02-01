@@ -1180,8 +1180,8 @@ class Composition(CombinatorialObject, Element):
             return SkewPartition([[],[]])
 
         return SkewPartition(
-            [ [x for x in [l for l in reversed(outer)] if x != 0],
-              [x for x in [l for l in reversed(inner)] if x != 0]])
+            [ [x for x in (l for l in reversed(outer)) if x != 0],
+              [x for x in (l for l in reversed(inner)) if x != 0]])
 
 
     def shuffle_product(self, other, overlap=False):

@@ -294,7 +294,7 @@ def hasse_invariant(self, p):
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         
-        ::
+    ::
         
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
@@ -302,7 +302,7 @@ def hasse_invariant(self, p):
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
         
-        ::
+    ::
         
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1,5])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
@@ -310,20 +310,12 @@ def hasse_invariant(self, p):
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
         
-        ::
+    ::
         
         sage: K.<a>=NumberField(x^2-23)
-        sage: Q=DiagonalQuadraticForm(K,[23,23,2,1])
-        sage: p=K.primes_of_bounded_norm(7)[2];p
-        Fractional ideal (a + 4)
-        sage: Q.hasse_invariant(p)
-        1
-        
-        ::
-        sage: K.<a> = NumberField(x^2-5)
-        sage: Q=DiagonalQuadraticForm(K,[1,2,-a])
-        sage: [Q.hasse_invariant(p) for p in K.primes_of_bounded_norm(20)]
-        [-1, 1, -1, 1, 1, 1, 1]
+        sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
+        sage: [Q.hasse_invariant(p) for p in K.primes_above(19)]
+        [1, -1]
         
         """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
@@ -386,7 +378,7 @@ def hasse_invariant__OMeara(self, p):
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         
-        ::
+    ::
         
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
@@ -394,7 +386,7 @@ def hasse_invariant__OMeara(self, p):
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
         
-        ::
+    ::
         
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1,5])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
@@ -402,14 +394,13 @@ def hasse_invariant__OMeara(self, p):
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
         
-        ::
+    ::
         
         sage: K.<a>=NumberField(x^2-23)
-        sage: Q=QuadraticForm(K,2,[1,2,-1])
-        sage: p=K.primes_of_bounded_norm(3)[0];p
-        Fractional ideal (a - 5)
-        sage: Q.hasse_invariant__OMeara(p)
-        1
+        sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
+        sage: [Q.hasse_invariant__OMeara(p) for p in K.primes_above(19)]
+        [1, 1]
+        
     """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
 

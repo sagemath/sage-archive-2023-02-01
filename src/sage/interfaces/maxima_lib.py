@@ -729,6 +729,24 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(f, (x, -infinity, infinity))
             1/3*pi^2
 
+        Sometimes one needs different simplification settings, such as
+        ``radexpand``, to compute an integral (see :trac:`10955`)::
+
+            sage: f = sqrt(x + 1/x^2)
+            sage: maxima = sage.calculus.calculus.maxima
+            sage: maxima('radexpand')
+            true
+            sage: integrate(f, x)
+            integrate(sqrt(x + 1/x^2), x)
+            sage: maxima('radexpand: all')
+            all
+            sage: g = integrate(f, x); g
+            2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
+            sage: (f - g.diff(x)).simplify_radical()
+            0
+            sage: maxima('radexpand: true')
+            true
+
         """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))

@@ -1478,6 +1478,39 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for _ in range(40):
             ....:     f = R.random_element(degree=4)
             ....:     assert f(f.any_root(K)) == 0
+
+        Check that our Cantor-Zassenhaus implementation does not loop
+        over finite fields of even characteristic (see :trac:`16162`)::
+
+            sage: K.<a> = GF(2**8)
+            sage: x = polygen(K)
+            sage: (x**2+x+1).any_root() # used to loop
+            Traceback (most recent call last):
+            ...
+            ValueError: no roots A 1
+            sage: (x**2+a+1).any_root()
+            a^7 + a^2
+
+        Also check that such computations can be interrupted::
+
+            sage: K.<a> = GF(2**8)
+            sage: x = polygen(K)
+            sage: alarm(1)
+            sage: (x**1000000+x+a).any_root()
+            Traceback (most recent call last):
+            ...
+            AlarmInterrupt
+
+        Check root computation over large finite fields::
+
+            sage: K.<a> = GF(2**50)
+            sage: x = polygen(K)
+            sage: (x**10+x+a).any_root()
+            a^49 + a^47 + a^44 + a^42 + a^41 + a^39 + a^38 + a^37 + a^36 + a^34 + a^33 + a^29 + a^27 + a^26 + a^25 + a^23 + a^18 + a^13 + a^7 + a^5 + a^4 + a^3 + a^2 + a
+            sage: K.<a> = GF(2**150)
+            sage: x = polygen(K)
+            sage: (x**10+x+a).any_root()
+            a^149 + a^148 + a^146 + a^144 + a^143 + a^140 + a^138 + a^136 + a^134 + a^132 + a^131 + a^130 + a^129 + a^127 + a^123 + a^120 + a^118 + a^114 + a^113 + a^112 + a^111 + a^108 + a^104 + a^103 + a^102 + a^99 + a^98 + a^94 + a^91 + a^90 + a^88 + a^79 + a^78 + a^75 + a^73 + a^72 + a^67 + a^65 + a^64 + a^63 + a^62 + a^61 + a^59 + a^57 + a^52 + a^50 + a^48 + a^47 + a^46 + a^45 + a^43 + a^41 + a^39 + a^37 + a^34 + a^31 + a^29 + a^27 + a^25 + a^23 + a^22 + a^20 + a^18 + a^16 + a^14 + a^11 + a^10 + a^8 + a^6 + a^5 + a^4 + a + 1
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():
             if self.degree() < 0:
@@ -1501,7 +1534,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if ring is None:
                 allowed_deg_mult = Integer(1)
             else:
-                if not self.base_ring().is_prime_field():
+                if not (self.base_ring().is_field() and self.base_ring().is_finite()):
                     raise NotImplementedError
                 if ring.characteristic() != self.base_ring().characteristic():
                     raise ValueError, "ring must be an extension of the base ring"
@@ -1511,7 +1544,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if degree is None:
                 x = self.parent().gen()
                 if allowed_deg_mult == 1:
-                    self = self.gcd(x**q-x)
+                    xq = pow(x,q,self)
+                    self = self.gcd(xq-x)
                     degree = -1
                     if self.degree() == 0:
                         raise ValueError, "no roots B %s"%self
@@ -1528,7 +1562,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             break
                         while d < allowed_deg_mult:
                             d = d+1
-                            xq = xq**q % self
+                            xq = pow(xq,q,self)
                             if d.divides(allowed_deg_mult):
                                 break
                         A = self.gcd(xq-x)
@@ -1553,7 +1587,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             while True:
                                 # we waste a little effort here in computing the xq again.
                                 d = d+1
-                                xq = xq**q % self
+                                xq = pow(xq,q,self)
                                 if allowed_deg_mult.divides(d):
                                     break
                             A = self.gcd(xq-x)
@@ -1575,7 +1609,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             raise ValueError, "no roots D %s"%self
                         break
                     d = d+1
-                    xq = xq**q % self
+                    xq = pow(xq,q,self)
                     if d == degree:
                         break
                     A = self.gcd(xq-x)
@@ -1601,28 +1635,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 except IndexError:
                     raise ValueError, "no roots F %s"%self
             if q % 2 == 0:
-                T = x
-                while True:
-                    C = T
-                    for i in range(degree-1):
-                        C = T + C**q % self
-                    h = self.gcd(C)
-                    hd = h.degree()
-                    if hd == 0 or hd == self.degree():
-                        T = T * x**q
-                    else:
-                        if 2*hd <= self.degree():
-                            return h.any_root(ring, -degree, True)
-                        else:
-                            return (self//h).any_root(ring, -degree, True)
-            else:
-                from sage.rings.arith import power_mod
                 while True:
                     T = R.random_element(2*degree-1)
                     if T == 0:
                         continue
                     T = T.monic()
-                    h = self.gcd(power_mod(T, Integer((q**degree-1)/2), self)-1)
+                    C = T
+                    for i in range(degree-1):
+                        C = T + pow(C,q,self)
+                    h = self.gcd(C)
+                    hd = h.degree()
+                    if hd != 0 or hd != self.degree():
+                        if 2*hd <= self.degree():
+                            return h.any_root(ring, -degree, True)
+                        else:
+                            return (self//h).any_root(ring, -degree, True)
+            else:
+                while True:
+                    T = R.random_element(2*degree-1)
+                    if T == 0:
+                        continue
+                    T = T.monic()
+                    h = self.gcd(pow(T, Integer((q**degree-1)/2), self)-1)
                     hd = h.degree()
                     if hd != 0 and hd != self.degree():
                         if 2*hd <= self.degree():

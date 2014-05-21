@@ -376,8 +376,9 @@ class Singular(Expect):
             sage: singular == loads(dumps(singular))
             True
         """
-        prompt = '\n> '
+        prompt = '> '
         Expect.__init__(self,
+                        terminal_echo=False,
                         name = 'singular',
                         prompt = prompt,
                         command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
@@ -467,9 +468,7 @@ class Singular(Expect):
         EXAMPLES::
 
             sage: singular._read_in_file_command('test')
-            '< "test";'
-
-        ::
+            '< "...";'
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
@@ -480,7 +479,6 @@ class Singular(Expect):
             '2'
         """
         return '< "%s";'%filename
-
 
     def eval(self, x, allow_semicolon=True, strip=True, **kwds):
         r"""

@@ -6288,11 +6288,11 @@ class FiniteStateMachine(SageObject):
         cache = {}
 
         def find_final_word_out(state):
-            #The return value is the output which is produced when
-            #reading the given letters until a final state is reached.
-            #If no final state can be reached, then None is returned.
-            #For final states, the final word out is returned.
-            #For final states with empty final output, that is [].
+            # The return value is the output which is produced when
+            # reading the given letters until a final state is reached.
+            # If no final state can be reached, then None is returned.
+            # For final states, the final word out is returned.
+            # For final states with empty final output, that is [].
             position, letter = trailing_letters.next()
             if state.is_final:
                 return state.final_word_out

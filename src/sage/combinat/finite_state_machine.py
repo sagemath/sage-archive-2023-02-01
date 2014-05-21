@@ -2903,6 +2903,14 @@ class FiniteStateMachine(SageObject):
             \node[state] (v0) at (3.000000, 0.000000) {$0$};
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
+
+        TEST:
+
+            Check that #16357 is fixed::
+
+                sage: T = Transducer()
+                sage: T.format_transition_label_reversed([])
+                '\\varepsilon'
         """
         return self.default_format_transition_label(reversed(word))
 
@@ -2976,9 +2984,20 @@ class FiniteStateMachine(SageObject):
                 \node[state] (v1) at (-3.000000, 0.000000) {$1$};
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
                 \end{tikzpicture}
+
+        TEST:
+
+            Check that #16357 is fixed::
+
+                sage: T = Transducer()
+                sage: T.default_format_transition_label([])
+                '\\varepsilon'
+                sage: T.default_format_transition_label(iter([]))
+                '\\varepsilon'
         """
-        if word:
-            return " ".join(imap(self.format_letter, word))
+        result = " ".join(imap(self.format_letter, word))
+        if result:
+            return result
         else:
             return EmptyWordLaTeX
 

@@ -5459,6 +5459,10 @@ class Automaton(FiniteStateMachine):
              Transition from frozenset(['A', 'B']) to frozenset(['A', 'C']): 'b'|-,
              Transition from frozenset(['A', 'C']) to frozenset(['A', 'B']): 'a'|-,
              Transition from frozenset(['A', 'C']) to frozenset(['A']): 'b'|-]
+            sage: Ddet.initial_states()
+            [frozenset(['A'])]
+            sage: Ddet.final_states()
+            [frozenset(['A', 'C'])]
         """
         if any(len(t.word_in) > 1 for t in self.iter_transitions()):
             return self.split_transitions().determinisation()

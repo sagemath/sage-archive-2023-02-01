@@ -25,4 +25,6 @@ Modules
    sage/modules/fg_pid/fgp_element
    sage/modules/fg_pid/fgp_morphism
 
+   sage/modules/diamond_cutting
+
 .. include:: ../footer.txt

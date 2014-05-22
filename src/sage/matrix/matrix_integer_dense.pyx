@@ -2484,9 +2484,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``delta`` -- LLL parameter (default: ``0.99``)
+        - ``delta`` -- (default: ``0.99``) LLL parameter
 
-        - ``algorithm`` -- ``"fpLLL"`` or ``"NTL"`` (default: ``"fpLLL"``)
+        - ``algorithm`` -- (default: ``"fpLLL"``) ``"fpLLL"`` or ``"NTL"``
 
         - ``fp`` -- floating point number implementation
 
@@ -2530,19 +2530,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         fpLLL SPECIFIC INPUTS:
 
-        - ``precision`` -- bit precision to use if ``fp='rr'`` is set (default:
-          ``0`` for automatic choice).
+        - ``precision`` -- (default: ``0`` for automatic choice) bit
+          precision to use if ``fp='rr'`` is set
 
-        - ``max_loops`` -- maximum number of full loops (default: ``0`` for no
-          restriction).
+        - ``max_loops`` -- (default: ``0`` for no restriction) maximum
+          number of full loops
 
-        - ``max_time`` -- stop after time seconds (up to loop completion)
-          (default: ``0`` for no restricion).
+        - ``max_time`` -- (default: ``0`` for no restricion) stop after
+          time seconds (up to loop completion)
 
-        - ``auto_abort`` -- heuristic, stop when the average slope of
-          `log(||b_i*||)` does not decrease fast enough (default: ``False``).
+        - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
+          average slope of `\log(||b_i^*||)` does not decrease fast enough
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(ZZ,3,3,range(1,10))
             sage: A.BKZ()
@@ -2688,7 +2688,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         The default reduction parameters are `δ=3/4` and `η=0.501`. The
         parameters `δ` and `η` must satisfy: `0.25 < δ ≤ 1.0` and
-        `0.5 ≤ η < \sqrt(̣̣δ)`. Polynomial time complexity is only
+        `0.5 ≤ η < \sqrt{δ}`. Polynomial time complexity is only
         guaranteed for `\delta < 1`.
 
         The lattice is returned as a matrix. Also the rank (and the

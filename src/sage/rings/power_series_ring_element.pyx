@@ -178,9 +178,9 @@ cdef class PowerSeries(AlgebraElement):
         
         EXAMPLES::
         
-        sage: R.<x> = PowerSeriesRing(ZZ)
-        sage: (1+x^2).__hash__()     # random
-        15360174650385709
+            sage: R.<x> = PowerSeriesRing(ZZ)
+            sage: (1+x^2).__hash__()     # random
+            15360174650385709
         """
         return hash(self.polynomial())
 
@@ -339,7 +339,7 @@ cdef class PowerSeries(AlgebraElement):
         Thus, e.g., `f = 1 + q + O(q^2)` is equal to `g = 1 + O(q)`.
 
         This is how PARI defines equality of power series, but not how
-        Magma defines equality. (Magma would declare `f` and g unequal.)
+        Magma defines equality. (Magma would declare `f` and `g` unequal.)
         The PARI/Sage convention is consistent with the idea that
         comparison should take place after coercing both elements into
         a common parent.  Hence, in the above example `f` is truncated
@@ -932,8 +932,10 @@ cdef class PowerSeries(AlgebraElement):
 
     def is_unit(self):
         """
-        Return True if this power series is invertible, which is the case
-        precisely when the constant term is invertible.
+        Return True if this power series is invertible.
+        
+        A power series is invertible precisely when the
+        constant term is invertible.
 
         EXAMPLES::
 
@@ -952,7 +954,9 @@ cdef class PowerSeries(AlgebraElement):
     def __invert__(self):
         """
         Return the inverse of the power series (i.e., a series `Y` such
-        that `XY = 1`). The first nonzero coefficient must be a unit in
+        that `XY = 1`).
+        
+        The first nonzero coefficient must be a unit in
         the coefficient ring. If the valuation of the series is positive,
         this function will return a :doc:`laurent_series_ring_element`.
 
@@ -1265,7 +1269,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def sqrt(self, prec=None, extend=False, all=False, name=None):
         r"""
-        The square root function.
+        Return a square root of self.
 
         INPUT:
 

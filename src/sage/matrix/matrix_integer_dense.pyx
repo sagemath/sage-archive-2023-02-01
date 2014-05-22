@@ -2424,11 +2424,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     ####################################################################################
     def LLL_gram(self):
         """
-        LLL reduction of the lattice whose gram matrix is self.
+        LLL reduction of the lattice whose gram matrix is ``self``.
 
         INPUT:
 
-        - ``M`` - gram matrix of a definite quadratic form
+        - ``M`` -- gram matrix of a definite quadratic form
 
         OUTPUT:
 
@@ -2484,9 +2484,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``delta`` -- LLL parameter (default: ``0.99``).
+        - ``delta`` -- LLL parameter (default: ``0.99``)
 
-        - ``algorithm`` -- ``"fpLLL"`` or ``"NTL"`` (default: ``"fpLLL"``).
+        - ``algorithm`` -- ``"fpLLL"`` or ``"NTL"`` (default: ``"fpLLL"``)
 
         - ``fp`` -- floating point number implementation
 
@@ -2496,34 +2496,35 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
           - ``'qd'`` -- NTL's QP or fpLLL's long doubles
 
-          - ``'qd1'`` -- quad doubles: uses quad_float precision to compute
+          - ``'qd1'`` -- quad doubles: Uses ``quad_float`` precision to compute
             Gram-Schmidt, but uses double precision in the search phase of the
             block reduction algorithm. This seems adequate for most purposes,
             and is faster than ``'qd'``, which uses quad_float precision
             uniformly throughout (NTL only).
 
-          - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe.
+          - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe
 
-          - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR.
+          - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR
 
-        - ``block_size`` -- specifies the size of the blocks in the
-          reduction. High values yield shorter vectors, but the running time
-          increases double exponentially with ``block_size``. ``block_size``
-          should be between 2 and the number of rows of ``self`` (default: ``10``).
+        - ``block_size`` -- (default: ``10``) Specifies the size of the blocks
+          in the reduction. High values yield shorter vectors, but the running
+          time increases double exponentially with ``block_size``.
+          ``block_size`` should be between 2 and the number of rows
+          of ``self``.
 
         NLT SPECIFIC INPUTS:
 
-        - ``prune`` -- The optional parameter ``prune`` can be set to any
-          positive number to invoke the Volume Heuristic from [SH95]_.
-          This can significantly reduce the running time, and hence allow much
-          bigger block size, but the quality of the reduction is of course not
-          as good in general. Higher values of ``prune`` mean better quality,
-          and slower running time. When ``prune=0``, pruning is disabled.
-          Recommended usage: for ``block_size==30``, set ``10 <= prune <=15``
-          (default: ``0``).
+        - ``prune`` -- (default: ``0``) The optional parameter ``prune`` can
+          be set to any positive number to invoke the Volume Heuristic from
+          [SH95]_. This can significantly reduce the running time, and hence
+          allow much bigger block size, but the quality of the reduction is
+          of course not as good in general. Higher values of ``prune`` mean
+          better quality, and slower running time. When ``prune`` is ``0``,
+          pruning is disabled. Recommended usage: for ``block_size==30``, set
+          ``10 <= prune <=15``.
 
-        - ``use_givens`` -- use Given's orthogonalization.  This is a bit slower,
-          but generally much more stable, and is really the preferred
+        - ``use_givens`` -- Use Given's orthogonalization.  This is a bit
+          slower, but generally much more stable, and is really the preferred
           orthogonalization strategy. For a nice description of this, see
           Chapter 5 of [GL96]_.
 
@@ -2568,11 +2569,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         REFERENCES:
 
         .. [SH95] C. P. Schnorr and H. H. Hörner. *Attacking the Chor-Rivest
-                  Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology —
-                  EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
+           Cryptosystem by Improved Lattice Reduction*. Advances in Cryptology
+           - EUROCRYPT '95. LNCS Volume 921, 1995, pp 1-12.
 
-        .. [GL96] G. Golub and C. van Loan. *Matrix Computations*. 3rd edition,
-                  Johns Hopkins Univ. Press, 1996.
+        .. [GL96] G. Golub and C. van Loan. *Matrix Computations*.
+           3rd edition, Johns Hopkins Univ. Press, 1996.
 
         """
         if delta is None:
@@ -2669,62 +2670,64 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return R
 
     def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False):
-        r"""Returns LLL reduced or approximated LLL reduced lattice R for this
+        r"""
+        Return LLL reduced or approximated LLL reduced lattice `R` for this
         matrix interpreted as a lattice.
 
-        A lattice `(b_1, b_2, ..., b_d)` is `(̣δ, η)` -LLL-reduced
+        A lattice `(b_1, b_2, ..., b_d)` is `(̣δ, η)`-LLL-reduced
         if the two following conditions hold:
 
         -  For any `i>j`, we have `|μ_{i,j}| ≤ η`.
 
-        -  For any `i<d`, we have `δ |b_i^*|^2 ≤ |b_{i + 1}^* + μ_{i+1, i} b_i^*|^2`,
+        -  For any `i<d`, we have `δ |b_i^*|^2 ≤ |b_{i + 1}^*
+           + μ_{i+1, i} b_i^*|^2`,
 
-        where `μ_{i,j} = 〈b_i, b_j^*〉/〈b_j^*,b_j^*〉` and `b_i^*` is the `i`-th vector
-        of the Gram-Schmidt orthogonalisation of `(b_1, b_2, ..., b_d)`.
+        where `μ_{i,j} = 〈b_i, b_j^*〉/〈b_j^*,b_j^*〉` and `b_i^*` is the
+        `i`-th vector of the Gram-Schmidt orthogonalisation of
+        `(b_1, b_2, ..., b_d)`.
 
-        The default reduction parameters are `δ=3/4` and `η=0.501`. The parameters `δ`
-        and `η` must satisfy: `0.25 < δ ≤ 1.0` and `0.5 ≤ η < sqrt(̣̣δ)`.
-        Polynomial time complexity is only guaranteed for `\delta < 1`.
+        The default reduction parameters are `δ=3/4` and `η=0.501`. The
+        parameters `δ` and `η` must satisfy: `0.25 < δ ≤ 1.0` and
+        `0.5 ≤ η < \sqrt(̣̣δ)`. Polynomial time complexity is only
+        guaranteed for `\delta < 1`.
 
-        The lattice is returned as a matrix. Also the rank (and the determinant) of ``self``
-        are cached if those are computed during the reduction. Note that in general this only happens
-        when ``self.rank() == self.ncols()`` and the exact algorithm is used.
+        The lattice is returned as a matrix. Also the rank (and the
+        determinant) of ``self`` are cached if those are computed during
+        the reduction. Note that in general this only happens when
+        ``self.rank() == self.ncols()`` and the exact algorithm is used.
 
         INPUT:
 
-        -  ``delta`` -- `δ` parameter as described above (default: ``0.99``).
+        - ``delta`` -- (default: ``0.99``) `δ` parameter as described above
 
-        -  ``eta`` -- `η` parameter as described above (default: ``0.501``), ignored by NTL.
+        - ``eta`` -- (default: ``0.501``) `η` parameter as described above,
+          ignored by NTL
 
         - ``algorithm`` -- string one of the algorithms listed below
           (default: ``"fpLLL:wrapper"``).
 
-        -  ``fp`` -- floating point number implementation
+        - ``fp`` -- floating point number implementation:
 
-           - ``None`` -- NTL's exact reduction or fpLLL's wrapper
+          - ``None`` -- NTL's exact reduction or fpLLL's wrapper
+          - ``'fp'`` -- double precision: NTL's FP or fpLLL's double
+          - ``'qd'`` -- NTL's QP or fpLLL's long doubles
+          - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe
+          - ``'rr'`` -- arbitrary precision: NTL's RR or fpLLL's MPFR
 
-           - ``'fp'`` -- double precision: NTL's FP or fpLLL's double.
+        - ``prec`` -- (default: auto choose) precision, ignored by NTL
 
-           - ``'qd'`` -- NTL's QP or fpLLL's long doubles.
+        - ``early_red`` -- (default: ``False``) perform early reduction,
+          ignored by NTL
 
-           - ``'xd'`` -- extended exponent: NTL's XD or fpLLL's dpe.
+        - ``use_givens`` -- (default: ``False``) use Givens orthogonalization
+          only applicable to approximate reductions and NTL; this is more
+          stable but slower 
 
-           - ``'rr'`` -- arbitrary precision: NTL'RR or fpLLL's MPFR.
+        - ``use_siegel`` -- (default: ``False``) use Siegel's condition
+          instead of Lovasz's condition, ignored by NTL
 
-        - ``prec`` -- precision, ignored by NTL (default: auto choose).
-
-        - ``early_red`` -- perform early reduction, ignored by NTL (default:
-          ``False``).
-
-        - ``use_givens`` -- use Givens orthogonalization only
-          applicable to approximate reductions and NTL.  This is more stable
-          but slower (default: ``False``).
-
-        - ``use_siegel`` -- use Siegel's condition instead of Lovasz's condition,
-          ignored by NTL (default: ``False``).
-
-        Also, if the verbose level is `≥2`, some more verbose output is printed
-        during the computation.
+        Also, if the verbose level is `≥2`, some more verbose output is
+        printed during the computation.
 
         AVAILABLE ALGORITHMS:
 
@@ -2742,7 +2745,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         A matrix over the integers.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(ZZ,3,3,range(1,10))
             sage: A.LLL()
@@ -2753,8 +2756,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         We compute the extended GCD of a list of integers using LLL, this
         example is from the Magma handbook::
 
-            sage: Q = [ 67015143, 248934363018, 109210, 25590011055, 74631449, \
-                        10230248, 709487, 68965012139, 972065, 864972271 ]
+            sage: Q = [ 67015143, 248934363018, 109210, 25590011055, 74631449,
+            ....:       10230248, 709487, 68965012139, 972065, 864972271 ]
             sage: n = len(Q)
             sage: S = 100
             sage: X = Matrix(ZZ, n, n + 1)
@@ -2796,7 +2799,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
-        .. note::
+        .. NOTE::
 
           See ``ntl.mat_ZZ`` or ``sage.libs.fplll.fplll`` for details on
           the used algorithms.
@@ -2912,16 +2915,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return R
 
     def is_LLL_reduced(self, delta=None, eta=None):
-        r"""Return ``True`` if this lattice is `(\delta, \eta)`-LLL reduced.
+        r"""
+        Return ``True`` if this lattice is `(\delta, \eta)`-LLL reduced.
         See ``self.LLL`` for a definition of LLL reduction.
 
         INPUT:
 
-        - ``delta`` - parameter as described above (default: `0.99`)
+        - ``delta`` -- (default: `0.99`) parameter `\delta` as described above
 
-        - ``eta`` - parameter as described above (default: `0.501`)
+        - ``eta`` -- (default: `0.501`) parameter `\eta` as described above
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(ZZ, 10, 10)
             sage: L = A.LLL()
@@ -2929,14 +2933,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             False
             sage: L.is_LLL_reduced()
             True
-
         """
         if eta is None:
             eta = 0.501
         if delta is None:
             delta = ZZ(99) / ZZ(100)
 
-        if delta <= ZZ(1)/ZZ(4):
+        if delta <= ZZ(1) / ZZ(4):
             raise TypeError("delta must be > 1/4")
         elif delta > 1:
             raise TypeError("delta must be <= 1")
@@ -2960,13 +2963,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return True
 
     def prod_of_row_sums(self, cols):
-        """Return the product of the sums of the entries in the submatrix of
-        self with given columns.
+        """
+        Return the product of the sums of the entries in the submatrix of
+        ``self`` with given columns.
 
         INPUT:
 
-        - ``cols`` - a list (or set) of integers representing columns
-          of ``self``.
+        - ``cols`` -- a list (or set) of integers representing columns
+          of ``self``
 
         OUTPUT: an integer
 

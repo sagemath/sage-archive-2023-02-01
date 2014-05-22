@@ -45,21 +45,21 @@ from sage.structure.parent import Parent
 from sage.rings.number_field.number_field_element import OrderElement_absolute
 
 def IntegerLattice(basis, lll_reduce=True):
-    """
+    r"""
     Construct a new integer lattice from ``basis``.
 
     INPUT:
 
-      - ``basis``
+    - ``basis``
 
-        - a list of vectors,
+      - a list of vectors,
 
-        - a matrix over the integers, or
+      - a matrix over the integers, or
 
-        - an element of an absolute order.
+      - an element of an absolute order.
 
-      - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
-        on construction.
+    - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
+      on construction.
 
     EXAMPLES:
 
@@ -136,7 +136,7 @@ def IntegerLattice(basis, lll_reduce=True):
         [ 3  1 -6  0  3  1 -5  2  2  8 -4  4 -3  2 -6 -7]
         [ 2  6 -4  4  0 -1  7  0 -6  3  9  1 -3 -1  4  3]
 
-    We construct `\\ZZ^n`::
+    We construct `\ZZ^n`::
 
         sage: from sage.modules.free_module_integer import IntegerLattice
         sage: IntegerLattice(ZZ^10)
@@ -180,20 +180,21 @@ def IntegerLattice(basis, lll_reduce=True):
     try:
         basis = matrix(ZZ, basis)
     except TypeError:
-        raise NotImplementedError("Only integer lattices supported.")
+        raise NotImplementedError("only integer lattices supported")
 
     return FreeModule_submodule_with_basis_integer(ZZ**basis.ncols(),
                                                    basis=basis,
                                                    lll_reduce=lll_reduce)
 
 class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pid):
-    """
-    This class represents submodules of `\\ZZ^n` with a distinguished basis.
+    r"""
+    This class represents submodules of `\ZZ^n` with a distinguished basis.
 
-    However, most functionality in excess of standard submodules over PID is for
-    these submodules considered as discrete subgroups of `\\ZZ^n`, i.e. as
-    lattices. That is, this class provides functions for computing LLL and BKZ
-    reduced bases for this free module with respect to the standard euclidean norm.
+    However, most functionality in excess of standard submodules over PID
+    is for these submodules considered as discrete subgroups of `\ZZ^n`, i.e.
+    as lattices. That is, this class provides functions for computing LLL
+    and BKZ reduced bases for this free module with respect to the standard
+    Euclidean norm.
 
     EXAMPLE::
 
@@ -218,31 +219,32 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     def __init__(self, ambient, basis, check=True, echelonize=False,
                  echelonized_basis=None, already_echelonized=False,
                  lll_reduce=True):
-        """
-        Construct a new submodule of `\\ZZ^n` with a distinguished basis.
+        r"""
+        Construct a new submodule of `\ZZ^n` with a distinguished basis.
 
         INPUT:
 
-        - ``ambient`` -- ambient free module over a principal ideal domain `\ZZ`,
-          i.e. `\\ZZ^n`.
+        - ``ambient`` -- ambient free module over a principal ideal domain
+          `\ZZ`, i.e. `\ZZ^n`
 
-        - ``basis`` -- either a list of vectors or a matrix over the integers.
+        - ``basis`` -- either a list of vectors or a matrix over the integers
 
-        - ``check`` -- (default: ``True``) if ``False``, correctness of the input
-          will not be checked and type conversion may be omitted, use with care.
+        - ``check`` -- (default: ``True``) if ``False``, correctness of
+          the input will not be checked and type conversion may be omitted,
+          use with care
 
         - ``echelonize`` -- (default:``False``) if ``True``, ``basis`` will be
           echelonized and the result will be used as the default basis of the
-          constructed submodule.
+          constructed submodule
 
-        - `` echelonized_basis`` -- (default: ``None``) if not ``None``, must be
-          the echelonized basis spanning the same submodule as ``basis``.
+        - `` echelonized_basis`` -- (default: ``None``) if not ``None``, must
+          be the echelonized basis spanning the same submodule as ``basis``
 
-        - ``already_echelonized`` -- (default: ``False``) if ``True``, ``basis``
-          must be already given in the echelonized form.
+        - ``already_echelonized`` -- (default: ``False``) if ``True``,
+          ``basis`` must be already given in the echelonized form
 
         - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
-          on construction.
+          on construction
 
         EXAMPLES::
 
@@ -303,8 +305,8 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     def reduced_basis(self):
         """
         This attribute caches the currently best known reduced basis for
-        ``self``, where "best" is defined by the euclidean norm of the first row
-        vector.
+        ``self``, where "best" is defined by the Euclidean norm of the
+        first row vector.
 
         EXAMPLE::
 
@@ -342,15 +344,17 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         """
         Return an LLL reduced basis for ``self``.
 
-        A lattice basis `(b_1, b_2, ..., b_d)` is `(δ,η)`-LLL-reduced if the two
-        following conditions hold:
+        A lattice basis `(b_1, b_2, ..., b_d)` is `(δ,η)`-LLL-reduced if
+        the two following conditions hold:
 
-        -  For any `i>j`, we have `|μ_{i, j}| ≦ η`.
+        -  For any `i > j`, we have `|μ_{i, j}| ≦ η`.
 
-        -  For any `i<d`, we have `δ|b_i^*|^2 ≦ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
+        -  For any `i < d`, we have
+           `δ|b_i^*|^2 ≦ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
 
-        where `μ_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the `i`-th vector
-        of the Gram-Schmidt orthogonalisation of `(b_1, b_2, …, b_d)`.
+        where `μ_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the
+        `i`-th vector of the Gram-Schmidt orthogonalisation of
+        `(b_1, b_2, …, b_d)`.
 
         The default reduction parameters are `δ=3/4` and `η=0.501`.
 
@@ -360,15 +364,17 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+        - ``*args`` -- passed through to
+          :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
 
-        - ``**kwds`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
+        - ``**kwds`` -- passed through to
+          :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`
 
         OUTPUT:
 
         An integer matrix which is an LLL-reduced basis for this lattice.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: A = random_matrix(ZZ, 10, 10, x=-2000, y=2000)
@@ -418,15 +424,17 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
+        - ``*args`` -- passed through to
+          :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`
 
-        - ``*kwds`` -- passed through to :func:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`.
+        - ``*kwds`` -- passed through to
+          :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.BKZ`
 
         OUTPUT:
 
         An integer matrix which is a BKZ-reduced basis for this lattice.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=60, q=2^60, seed=42)
@@ -446,11 +454,10 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: min(v.norm().n() for v in L.reduced_basis)
             4.12310562561766
 
-        .. note::
+        .. NOTE::
 
-            If ``block_size == L.rank()`` where ``L`` is this latice, then this
-            function performs Hermite-Korkine-Zolotareff (HKZ) reduction.
-
+            If ``block_size == L.rank()`` where ``L`` is this latice, then
+            this function performs Hermite-Korkine-Zolotareff (HKZ) reduction.
         """
         basis = self.reduced_basis
         basis = [v for v in basis.BKZ(*args, **kwds) if v]
@@ -462,22 +469,22 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         return basis
 
     def HKZ(self, *args, **kwds):
-        """
+        r"""
         Hermite-Korkine-Zolotarev (HKZ) reduce the basis.
 
         A basis `B` of a lattice `L`, with orthogonalized basis `B^*` such
-        that `B = M \cdot B^*` is HKZ reduced, if and only if, the following properties are
-        satisfied:
+        that `B = M \cdot B^*` is HKZ reduced, if and only if, the following
+        properties are satisfied:
 
-        #. The basis `B` is size-reduced, i.e., all off-diagonal coefficients of
-           `M` satisfy `|μ_{i,j}| ≦ 1/2`
+        #. The basis `B` is size-reduced, i.e., all off-diagonal
+           coefficients of `M` satisfy `|μ_{i,j}| ≦ 1/2`
 
         #. The vector `b_1` realizes the first minimum `λ_1(L)`.
 
-        #. The projection of the vectors `b_2,…,b_r` orthogonally to `b_1` form
-           an HKZ reduced basis.
+        #. The projection of the vectors `b_2,…,b_r` orthogonally to `b_1`
+           form an HKZ reduced basis.
 
-        .. note::
+        .. NOTE::
 
             This is realised by calling
             :func:`sage.modules.free_module_integer.FreeModule_submodule_with_basis_integer.BKZ` with
@@ -485,9 +492,9 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``*args`` -- passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
+        - ``*args`` -- passed through to :meth:`BKZ`
 
-        - ``*kwds`` -- passed through to :func:`sage.lattices.integer_lattice.IntegerLattice.BKZ`.
+        - ``*kwds`` -- passed through to :meth:`BKZ`
 
         OUTPUT:
 
@@ -501,16 +508,16 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             40 x 40 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
             sage: L.reduced_basis[0]
-            (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)
-
+            (-1, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0,
+             -1, 1, 0, 1, 1, 0, 0, 0, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0)
         """
         return self.BKZ(block_size=self.rank())
 
 
     @cached_method
     def volume(self):
-        """
-        Return `vol(L)` which is `\\sqrt{\det(B \cdot B^T)}` for any basis `B`.
+        r"""
+        Return `vol(L)` which is `\sqrt{\det(B \cdot B^T)}` for any basis `B`.
 
         OUTPUT:
 
@@ -521,7 +528,6 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L = sage.crypto.gen_lattice(m=10, seed=42, lattice=True)
             sage: L.volume()
             14641
-
         """
         if self.rank() == self.degree():
             return abs(self.reduced_basis.determinant())
@@ -530,9 +536,9 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
     @cached_method
     def discriminant(self):
-        """
-        Return $|\det(G)|$, i.e. the absolute value of the determinant of the
-        gram matrix $B \cdot B^T$ for any basis $B$.
+        r"""
+        Return `|\det(G)|`, i.e. the absolute value of the determinant of the
+        Gram matrix `B \cdot B^T` for any basis `B`.
 
         OUTPUT:
 
@@ -543,7 +549,6 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L = sage.crypto.gen_lattice(m=10, seed=42, lattice=True)
             sage: L.discriminant()
             214358881
-
         """
         return abs(self.gram_matrix().determinant())
 
@@ -574,20 +579,21 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``update_reduced_basis`` -- set this flag if the found vector
-          should be used to improve the basis (default: ``True``).
+        - ``update_reduced_basis`` -- (default: ``True``) set this flag if
+          the found vector should be used to improve the basis 
 
-        - ``algorithm`` -- either ``"fplll"`` or ``"pari"`` (default: ``"fplll"``).
+        - ``algorithm`` -- (default: ``"fplll"``) either ``"fplll"`` or
+          ``"pari"``
 
-        - ``*args`` -- passed through to underlying implementation.
+        - ``*args`` -- passed through to underlying implementation
 
-        - ``*kwds`` -- passed through to underlying implementation.
+        - ``*kwds`` -- passed through to underlying implementation
 
         OUTPUT:
 
         A shortest non-zero vector for this lattice.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=30, q=2^40, seed=42)
@@ -608,7 +614,6 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L = IntegerLattice(A, lll_reduce=True)
             sage: L.shortest_vector(algorithm="pari").norm().n()
             3.74165738677394
-
         """
         if algorithm == "pari":
             if self._basis_is_LLL_reduced:
@@ -626,7 +631,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             L = FP_LLL(self.reduced_basis)
             w = L.shortest_vector(*args, **kwds)
         else:
-            raise ValueError("Algorithm '%s' unknown."%algorithm)
+            raise ValueError("algorithm '{}' unknown".format(algorithm))
 
         if update_reduced_basis:
             self.update_reduced_basis(w)
@@ -634,11 +639,11 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
     def update_reduced_basis(self, w):
         """
-        Inject the vector w and run LLL to update the basis.
+        Inject the vector ``w`` and run LLL to update the basis.
 
         INPUT:
 
-        - ``w`` -- a vector.
+        - ``w`` -- a vector
 
         OUTPUT:
 
@@ -654,7 +659,6 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: L.update_reduced_basis(v)
             sage: bool(L.reduced_basis[0].norm() < B[0].norm())
             True
-
         """
         w = matrix(ZZ, w)
         L = w.stack(self.reduced_basis).LLL()
@@ -669,8 +673,8 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``radius`` -- radius of ball containing considered vertices
-          (default: automatic determination).
+        - ``radius`` -- (default: automatic determination) radius of ball
+          containing considered vertices
 
         OUTPUT:
 
@@ -687,7 +691,8 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             sage: V.Vrepresentation()
             (A vertex at (1/2, -1/2), A vertex at (1/2, 1/2), A vertex at (-1/2, 1/2), A vertex at (-1/2, -1/2))
 
-        The volume of the Voronoi cell is the square root of the discriminant of the lattice::
+        The volume of the Voronoi cell is the square root of the
+        discriminant of the lattice::
 
             sage: L = IntegerLattice(Matrix(ZZ, 4, 4, [[0,0,1,-1],[1,-1,2,1],[-6,0,3,3,],[-6,-24,-6,-5]])); L
             Free module of degree 4 and rank 4 over Integer Ring
@@ -711,14 +716,13 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         ALGORITHM:
 
-        Uses parts of the algorithm from [Vit1996].
+        Uses parts of the algorithm from [Vit1996]_.
 
         REFERENCES:
 
-        .. [Vit1996] E. Viterbo, E. Biglieri. Computing the Voronoi Cell
-          of a Lattice: The Diamond-Cutting Algorithm.
-          IEEE Transactions on Information Theory, 1996.
-
+        .. [Vit1996] E. Viterbo, E. Biglieri. *Computing the Voronoi Cell
+           of a Lattice: The Diamond-Cutting Algorithm*.
+           IEEE Transactions on Information Theory, 1996.
         """
         if not self._basis_is_LLL_reduced:
             self.LLL()
@@ -772,7 +776,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         INPUT:
 
-        - ``t`` -- the target vector to compute the closest vector to.
+        - ``t`` -- the target vector to compute the closest vector to
 
         OUTPUT:
 
@@ -787,14 +791,14 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         ALGORITHM:
 
-        Uses the algorithm from [Mic2010].
+        Uses the algorithm from [Mic2010]_.
 
         REFERENCES:
 
-        .. [Mic2010] D. Micciancio, P. Voulgaris. A Deterministic Single
-          Exponential Time Algorithm for Most Lattice Problems based on
-          Voronoi Cell Computations.
-          Proceedings of the 42nd ACM Symposium Theory of Computation, 2010.
+        .. [Mic2010] D. Micciancio, P. Voulgaris. *A Deterministic Single
+           Exponential Time Algorithm for Most Lattice Problems based on
+           Voronoi Cell Computations*.
+           Proceedings of the 42nd ACM Symposium Theory of Computation, 2010.
         """
         voronoi_cell = self.voronoi_cell()
 
@@ -824,3 +828,4 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             t_new = t_new - CVPP_2V(t_new, V_scaled, ZZ(2 ** (i - 1)) * voronoi_cell)
             i -= 1
         return t - t_new
+

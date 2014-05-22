@@ -1,4 +1,5 @@
-"""Wrapper for the fpLLL library by Damien Stehle, Xavier Pujol and David Cade
+"""
+Wrapper for the fpLLL library by Damien Stehle, Xavier Pujol and David Cade
 found at
 
    http://perso.ens-lyon.fr/damien.stehle/fplll/
@@ -47,39 +48,39 @@ cdef inline int _check_precision(int precision) except -1:
 
     INPUT:
 
-    - ``precision`` - an integer.
+    - ``precision`` -- an integer
 
     """
     if precision < 0:
-        raise TypeError, "precision must be >= 0"
+        raise TypeError("precision must be >= 0")
 
 cdef inline int _check_eta(float eta) except -1:
-    """
-    Check whether the provided parameter $\eta$ is within valid bounds. If
+    r"""
+    Check whether the provided parameter `\eta` is within valid bounds. If
     not raise a ``TypeError``.
 
     INPUT:
 
-    - ``eta`` - a floating point number.
+    - ``eta`` -- a floating point number
 
     """
     if eta < 0.5:
-        raise TypeError, "eta must be >= 0.5"
+        raise TypeError("eta must be >= 0.5")
 
 cdef inline int _check_delta(float delta) except -1:
     """
-    Check whether the provided parameter $\delta$ is within valid bounds. If
+    Check whether the provided parameter `\delta` is within valid bounds. If
     not raise a ``TypeError``.
 
     INPUT:
 
-    - ``delta`` - a floating point number
+    - ``delta`` -- a floating point number
 
     """
     if delta <= 0.25:
-        raise TypeError, "delta must be > 0.25"
+        raise TypeError("delta must be > 0.25")
     elif delta > 1.0:
-        raise TypeError, "delta must be <= 1.0"
+        raise TypeError("delta must be <= 1.0")
 
 cdef inline FloatType check_float_type(object float_type):
     cdef FloatType float_type_
@@ -117,7 +118,7 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``A`` - a matrix over the integers.
+        - ``A`` -- a matrix over the integers
 
         EXAMPLE::
 
@@ -196,16 +197,28 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``delta`` - parameter `0.25 < δ < 1.0` (default: ``0.99``).
-        - ``eta `` - parameter `0.5 <= η < \\sqrt{δ}` (default: ``0.51``).
-        - ``method`` - 'proved', 'fast', 'wrapper' (== ``None``), 'heuristic'
-          or ``None`` (default: ``None``).
-        - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``,
-          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``).
-        - ``precision`` - precision to use (default: ``0`` for automatic choice).
-        - ``verbose`` - be verbose (default: ``False``).
-        - ``siegel`` - use Siegel conditioning (default: ``False``).
-        - ``early_red`` - use early reduction (default: ``False``).
+        - ``delta`` -- parameter `0.25 < δ < 1.0` (default: ``0.99``)
+        - ``eta `` -- parameter `0.5 <= η < \\sqrt{δ}` (default: ``0.51``)
+        - ``method`` -- (default: ``None``) can be one of the following:
+
+          * ``'wrapper'`` (``None``)
+          * ``'proved'``
+          * ``'fast'``
+          * ``'heuristic'``
+
+        - ``float_type`` -- (default: ``None``) can be one of the following:
+
+          * ``None`` - for automatic choice
+          * ``'double'``
+          * ``'long double'``
+          * ``'dpe'``
+          * ``'mpfr'``
+
+        - ``precision`` -- (default: ``0`` for automatic choice) precision
+          to use
+        - ``verbose`` -- (default: ``False``) be verbose
+        - ``siegel`` -- (default: ``False``) use Siegel conditioning
+        - ``early_red`` -- (default: ``False``) use early reduction
 
         OUTPUT:
 
@@ -395,7 +408,7 @@ cdef class FP_LLL:
         elif method == "fast":
             method_ = LM_FAST
         else:
-            raise ValueError("Method '%s' unknown." % method)
+            raise ValueError("method '{}' unknown".format(method))
 
         cdef int flags = LLL_DEFAULT
 
@@ -418,10 +431,11 @@ cdef class FP_LLL:
                              "float type 'double' or 'long double'")
 
         sig_on()
-        cdef int r = lllReduction(self._lattice[0], delta, eta, method_, check_float_type(float_type), precision, flags)
+        cdef int r = lllReduction(self._lattice[0], delta, eta, method_,
+                                  check_float_type(float_type), precision, flags)
         sig_off()
         if r:
-            raise RuntimeError("%s" % getRedStatusStr(r));
+            raise RuntimeError( str(getRedStatusStr(r)) )
 
     def BKZ(self, int block_size, double delta=LLL_DEF_DELTA,
             float_type=None, int precision=0, int max_loops=0, int max_time=0,
@@ -431,21 +445,27 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``block_size`` - `0 < block\_size <= nrows`.
-        - ``delta`` - LLL parameter `0.25 < δ < 1.0` (default: ``0.99``).
-        - ``float_type`` - ``'double'``, ``'long double'``, ``'dpe'``,
-          ``'mpfr'`` or ``None`` for automatic choice (default: ``None``).
-        - ``verbose`` - be verbose (default: ``False``).
-        - ``no_lll`` - no LLL? (default: ``False``).
-        - ``bounded_lll`` - bounded LLL (default: ``False``).
-        - ``precision`` - bit precision to use if ``fp=='rr'`` (default: ``0``
-          for automatic choice).
-        - ``max_loops`` - maximum number of full loops (default: ``0``
-          for no restriction).
-        - ``max_time`` - stop after time seconds (up to loop completion)
-          (default: ``0`` for no restricion).
-        - ``auto_abort`` - heuristic, stop when the average slope of
-           `log(||b_i*||)` does not decrease fast enough (default: ``False``).
+        - ``block_size`` -- an integer from 1 to ``nrows``
+        - ``delta`` -- (default: ``0.99``) LLL parameter `0.25 < δ < 1.0`
+        - ``float_type`` -- (default: ``None``) can be one of the following:
+
+          * ``None`` - for automatic choice
+          * ``'double'``
+          * ``'long double'``
+          * ``'dpe'``
+          * ``'mpfr'``
+
+        - ``verbose`` -- (default: ``False``) be verbose
+        - ``no_lll`` -- (default: ``False``) to use LLL
+        - ``bounded_lll`` -- (default: ``False``) bounded LLL
+        - ``precision`` -- (default: ``0`` for automatic choice) bit
+          precision to use if ``fp`` is ``'rr'``
+        - ``max_loops`` -- (default: ``0`` for no restriction) maximum
+          number of full loops
+        - ``max_time`` -- (default: ``0`` for no restricion) stop after
+          time seconds (up to loop completion)
+        - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
+          average slope of `log(||b_i*||)` does not decrease fast enough
 
         OUTPUT:
 
@@ -467,11 +487,11 @@ cdef class FP_LLL:
 
         """
         if block_size <= 0:
-            raise ValueError("Block size must be > 0.")
+            raise ValueError("block size must be > 0")
         if max_loops < 0:
-            raise ValueError("Maximum number of loops must be >= 0.")
+            raise ValueError("maximum number of loops must be >= 0")
         if max_time < 0:
-            raise ValueError("Maximum time must be >= 0.")
+            raise ValueError("maximum time must be >= 0")
 
         _check_delta(delta)
         _check_precision(precision)
@@ -504,7 +524,7 @@ cdef class FP_LLL:
         cdef int r = bkzReduction(o)
         sig_off()
         if r:
-            raise RuntimeError("%s" % getRedStatusStr(r));
+            raise RuntimeError( str(getRedStatusStr(r)) )
 
     def HKZ(self):
         """
@@ -537,7 +557,7 @@ cdef class FP_LLL:
         cdef int r = hkzReduction(self._lattice[0])
         sig_off()
         if r:
-            raise RuntimeError("%s" % getRedStatusStr(r));
+            raise RuntimeError( str(getRedStatusStr(r)) )
 
     def shortest_vector(self, method=None):
         """
@@ -545,7 +565,7 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``method`` - "proved" or "fast" (default: "proved").
+        - ``method`` - (default: ``"proved"``) ``"proved"`` or ``"fast"``
 
         OUTPUT:
 
@@ -566,15 +586,16 @@ cdef class FP_LLL:
         elif method == "fast":
             method_ = SVPM_FAST
         else:
-            raise ValueError("Method '%s' unknown." % method)
+            raise ValueError("method '{}' unknown".format(method))
 
         cdef int r
 
         cdef ZZ_mat[mpz_t] u
 
-        r = lllReduction(self._lattice[0], u, LLL_DEF_DELTA, LLL_DEF_ETA, LM_WRAPPER, FT_DEFAULT, 0, LLL_DEFAULT)
+        r = lllReduction(self._lattice[0], u, LLL_DEF_DELTA, LLL_DEF_ETA,
+                         LM_WRAPPER, FT_DEFAULT, 0, LLL_DEFAULT)
         if r:
-            raise RuntimeError("%s" % getRedStatusStr(r));
+            raise RuntimeError( str(getRedStatusStr(r)) )
 
         cdef vector[Z_NR[mpz_t]] solCoord
         cdef vector[Z_NR[mpz_t]] solution
@@ -583,7 +604,7 @@ cdef class FP_LLL:
         r = shortestVector(self._lattice[0], solCoord, method_)
         sig_off()
         if r:
-            raise RuntimeError("fpLLL's SVP solver returned an error (%d)" % r);
+            raise RuntimeError("fpLLL's SVP solver returned an error ({:d})".format(r))
 
         vectMatrixProduct(solution, solCoord, self._lattice[0])
 
@@ -609,9 +630,10 @@ cdef class FP_LLL:
 
         INPUT:
 
-        - ``precision`` - internal precision (default: auto).
-        - ``eta`` - LLL parameter η with `1/2 <= η < \\sqrt{δ}` (default: ``0.51``).
-        - ``delta`` - LLL parameter δ with `1/4 < δ <= 1` (default: ``0.99``).
+        - ``precision`` -- (default: auto) internal precision
+        - ``eta`` -- (default: ``0.51``) LLL parameter η with
+          `1/2 <= η < \\sqrt{δ}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter δ with `1/4 < δ <= 1`
 
         OUTPUT:
 
@@ -663,7 +685,7 @@ cdef class FP_LLL:
         sig_off()
         wrapper_delete(w)
         if ret != 0:
-            raise RuntimeError, "fpLLL returned %d != 0" % ret
+            raise RuntimeError("fpLLL returned {:d} != 0".format(ret))
 
 
     def proved(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
@@ -676,11 +698,17 @@ cdef class FP_LLL:
 
         INPUT:
 
-         - ``precision`` - internal precision (default: auto).
-         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
-         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
-         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
-           (default: "mpfr").
+        - ``precision`` -- (default: auto) internal precision
+        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
+          `1/2 <= η < \sqrt{δ}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
+          `1/4 < δ <= 1`
+        - ``implementation`` -- (default: "mpfr") which floating point
+          implementation to use, can be one of the following:
+
+          * ``"double"``
+          * ``"dpe"``
+          * ``"mpfr"``
 
         OUTPUT:
 
@@ -719,7 +747,7 @@ cdef class FP_LLL:
             True
             sage: L.hermite_form() == A.hermite_form()
             True
-"""
+        """
         deprecation(15976, 'You can just call LLL() instead')
 
         _check_precision(precision)
@@ -754,20 +782,22 @@ cdef class FP_LLL:
            proved_mpfr_delete(pmpfr)
 
         if ret != 0:
-            raise RuntimeError, "fpLLL returned %d != 0" % ret
+            raise RuntimeError("fpLLL returned {:d} != 0".format(ret))
 
     def fast(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
         """
         Perform LLL reduction using fpLLL's fast
         implementation.  This implementation is the fastest floating
-        point implementation available in the free software world.
+        point implementation currently available in the free software world.
 
         INPUT:
 
-        - ``precision`` - internal precision (default: auto).
-        - ``eta`` - LLL parameter η with `1/2 <= η < \sqrt(δ)` (default: ``0.51``).
-        - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
-        - ``implementation`` - ignored.
+        - ``precision`` -- (default: auto) internal precision
+        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
+          `1/2 <= η < \sqrt{δ}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
+          `1/4 < δ <= 1`
+        - ``implementation`` -- ignored
 
         OUTPUT:
 
@@ -813,11 +843,17 @@ cdef class FP_LLL:
 
         INPUT:
 
-         - ``precision`` - internal precision (default: auto).
-         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
-         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
-         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
-           (default: "mpfr").
+        - ``precision`` -- (default: auto) internal precision
+        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
+          `1/2 <= η < \sqrt{δ}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
+          `1/4 < δ <= 1`
+        - ``implementation`` -- (default: "mpfr") which floating point
+          implementation to use, can be one of the following:
+
+          * ``"double"``
+          * ``"dpe"``
+          * ``"mpfr"``
 
         OUTPUT:
 
@@ -969,11 +1005,17 @@ cdef class FP_LLL:
 
         INPUT:
 
-         - ``precision`` - internal precision (default: auto).
-         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
-         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
-         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
-           (default: "mpfr").
+        - ``precision`` -- (default: auto) internal precision
+        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
+          `1/2 <= η < \sqrt{δ}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
+          `1/4 < δ <= 1`
+        - ``implementation`` -- (default: "mpfr") which floating point
+          implementation to use, can be one of the following:
+
+          * ``"double"``
+          * ``"dpe"``
+          * ``"mpfr"``
 
         OUTPUT:
 
@@ -1051,14 +1093,14 @@ cdef class FP_LLL:
 #
 
 def gen_intrel(int d, int b):
-    """
-    Return a `(d+1 x d)`-dimensional knapsack-type random lattice, where the
-    $x_i$s are random `b` bits integers.
+    r"""
+    Return a `(d+1 \times d)`-dimensional knapsack-type random lattice, where the
+    `x_i`'s are random `b` bits integers.
 
     INPUT:
 
-    - ``d`` - dimension.
-    - ``b`` - bitsize of entries.
+    - ``d`` -- dimension
+    - ``b`` -- bitsize of entries
 
     OUTPUT:
 
@@ -1106,13 +1148,13 @@ def gen_intrel(int d, int b):
 def gen_simdioph(int d, int b, int b2):
     """
     Return a `d`-dimensional simultaneous diophantine approximation random
-    lattice, where the `d` `x_i`s are random `b` bits integers.
+    lattice, where the `d` `x_i`'s are random `b` bits integers.
 
     INPUT:
 
-    - ``d`` - dimension.
-    - ``b`` - bitsize of entries.
-    - ``b2`` - bitsize of entries.
+    - ``d`` -- dimension
+    - ``b`` -- bitsize of entries
+    - ``b2`` -- bitsize of entries
 
     OUTPUT:
 
@@ -1158,14 +1200,15 @@ def gen_simdioph(int d, int b, int b2):
     return B
 
 def gen_uniform(int nr, int nc, int b):
-    """
-    Return a `(nr x nc)` matrix where the entries are random `b` bits integers.
+    r"""
+    Return a `(nr \times nc)` matrix where the entries are random `b`
+    bits integers.
 
     INPUT:
 
-    - ``nr`` - row dimension.
-    - ``nc`` - column dimension.
-    - ``b``- bitsize of entries.
+    - ``nr`` -- row dimension
+    - ``nc`` -- column dimension
+    - ``b`` -- bitsize of entries
 
     OUTPUT:
 
@@ -1211,10 +1254,9 @@ def gen_uniform(int nr, int nc, int b):
     return B
 
 def gen_ntrulike(int d, int b, int q):
-    """
-    Generate a NTRU-like lattice of dimension `(2d x 2d)`, with the
-    coefficients `h_i` chosen as random `b` bits integers and parameter `q`:
-
+    r"""
+    Generate a NTRU-like lattice of dimension `(2d \times 2d)`, with the
+    coefficients `h_i` chosen as random `b` bits integers and parameter `q`::
 
         [[ 1 0 ... 0 h0      h1 ... h_{d-1} ]
          [ 0 1 ... 0 h1      h2 ... h0      ]
@@ -1227,9 +1269,9 @@ def gen_ntrulike(int d, int b, int q):
 
     INPUT:
 
-    - ``d`` - dimension.
-    - ``b`` - bitsize of entries.
-    - ``q`` - see above.
+    - ``d`` -- dimension
+    - ``b`` -- bitsize of entries
+    - ``q`` -- the `q` above
 
     OUTPUT:
 
@@ -1280,9 +1322,9 @@ def gen_ntrulike2(int d, int b, int q):
 
     INPUT:
 
-    - ``d`` - dimension.
-    - ``b`` - bitsize of entries.
-    - ``q`` -  see :func:`gen_ntrulike`.
+    - ``d`` -- dimension
+    - ``b`` -- bitsize of entries
+    - ``q`` -- see :func:`gen_ntrulike`
 
     OUTPUT:
 
@@ -1328,15 +1370,15 @@ def gen_ntrulike2(int d, int b, int q):
     return B
 
 def gen_ajtai(int d, float alpha):
-    """
-    Return Ajtai-like `(d x d)`-matrix of floating point parameter `α`.
-    The matrix is lower-triangular, `B_{imi}` is `~2^{(d-i+1)^α}` and
-    `B_{i,j}` is `~B_{j,j}/2` for `j<i`q.
+    r"""
+    Return Ajtai-like `(d \times d)`-matrix of floating point parameter
+    `\alpha`. The matrix is lower-triangular, `B_{imi}` is
+    `~2^{ (d-i+1)^{\alpha} }` and `B_{i,j}` is `~B_{j,j} / 2` for `j < i`.
 
     INPUT:
 
-    - ``d`` - dimension.
-    - ``alpha`` - see above.
+    - ``d`` -- dimension
+    - ``alpha`` -- the `\alpha` above
 
     OUTPUT:
 
@@ -1383,11 +1425,11 @@ def gen_ajtai(int d, float alpha):
 
 cdef to_sage(ZZ_mat[mpz_t] *A):
     """
-    Return a Sage integer matrix for A. A is not destroyed.
+    Return a Sage integer matrix for ``A``. ``A`` is not destroyed.
 
     INPUT:
 
-    - ``A`` - ZZ_mat.
+    - ``A`` -- ZZ_mat
     """
     cdef int i,j
     cdef mpz_t *t

@@ -25,15 +25,16 @@ from math import sqrt, floor, ceil
 def plane_inequality(v):
     """
     Return the inequality for points on the same side as the origin
-    with respect to the plane through v normal to v.
+    with respect to the plane through ``v`` normal to ``v``.
 
-    sage: from sage.modules.diamond_cutting import plane_inequality
-    sage: ieq = plane_inequality([1, -1]); ieq
-    [2, -1, 1]
-    sage: ieq[0] + vector(ieq[1:]) * vector([1, -1])
-    0
+    EXAMPLES::
+
+        sage: from sage.modules.diamond_cutting import plane_inequality
+        sage: ieq = plane_inequality([1, -1]); ieq
+        [2, -1, 1]
+        sage: ieq[0] + vector(ieq[1:]) * vector([1, -1])
+        0
     """
-
     v = vector(v)
     c = -v * v
     if c < 0:
@@ -54,14 +55,17 @@ def jacobi(M):
 
     .. MATH::
 
-        q_{i,j} = \frac{1}{q_{i,i}}
-                  \left( m_{i,j} - \sum_{r<i} q_{r,r} q_{r,i} q_{r,j} \right)
-                                \qquad \text{ when } i < j; \\
-        q_{i,j} = a_{i,j} - \sum_{r<i} q_{r,r} q_{r,i}^2
-                                \qquad \text{ when } i = j; \\
-        q_{i,j} = 0  \qquad \text{ when } i > j
+        q_{i,j} = \begin{cases}
 
-   for all `1 \leq i \leq n` and `1 \leq j \leq n`. (These
+            \frac{1}{q_{i,i}}
+            \left( m_{i,j} - \sum_{r<i} q_{r,r} q_{r,i} q_{r,j} \right)
+                                & i < j, \\
+            a_{i,j} - \sum_{r<i} q_{r,r} q_{r,i}^2
+                                & i = j, \\
+            0 & i > j,
+        \end{cases}
+
+    for all `1 \leq i \leq n` and `1 \leq j \leq n`. (These
     equalities determine the entries of `Q` uniquely by
     recursion.) This matrix `Q` is defined for all `M` in a
     certain Zariski-dense open subset of the set of all
@@ -100,11 +104,10 @@ def jacobi(M):
         sage: M = Matrix(QQ, [[3,6,-1,7],[6,9,8,5],[-1,8,2,4],[7,5,4,0]])
         sage: testall(M)
         True
-
     """
-
     dim = M.dimensions()
-    assert dim[0] == dim[1]
+    if dim[0] != dim[1]:
+        raise ValueError("the matrix must be square")
     dim = dim[0]
     q = [list(row) for row in M]
     for i in range(dim - 1):
@@ -119,19 +122,20 @@ def jacobi(M):
             q[i][j] = 0
     return matrix(q)
 
-def diamond_cut(V, GM, C, debug=False):
-    """
-    Perform diamond cutting on polyhedron V with basis matrix GM and radius C.
+def diamond_cut(V, GM, C, verbose=False):
+    r"""
+    Perform diamond cutting on polyhedron ``V`` with basis matrix ``GM``
+    and radius ``C``.
 
     INPUT:
 
-    - ``V``: polyhedron to cut from;
+    - ``V`` -- polyhedron to cut from
 
-    - ``GM``: half of the basis matrix of the lattice;
+    - ``GM`` -- half of the basis matrix of the lattice
 
-    - ``C``: radius to use in cutting algorithm;
+    - ``C`` -- radius to use in cutting algorithm
 
-    - ``debug``: whether to print debug information.
+    - ``verbose`` -- (default: ``False``) whether to print debug information
 
     OUTPUT:
 
@@ -146,15 +150,15 @@ def diamond_cut(V, GM, C, debug=False):
         sage: V.vertices()
         (A vertex at (2), A vertex at (0))
     """
-
     # coerce to floats
     GM = GM.N()
     C = float(C)
-    if debug:
-        print "Cut\n%s\nwith radius %s" % (GM, C)
+    if verbose:
+        print("Cut\n{}\nwith radius {}".format(GM, C))
 
     dim = GM.dimensions()
-    assert dim[0] == dim[1]
+    if dim[0] != dim[1]:
+        raise ValueError("the matrix must be square")
     dim = dim[0]
     T = [0] * dim
     U = [0] * dim
@@ -163,12 +167,12 @@ def diamond_cut(V, GM, C, debug=False):
 
     # calculate the Gram matrix
     q = matrix([[sum(GM[i][k] * GM[j][k] for k in range(dim)) for j in range(dim)] for i in range(dim)])
-    if debug:
-        print "q:\n%s" % q.N()
+    if verbose:
+        print( "q:\n{}".format(q.N()) )
     # apply Cholesky/Jacobi decomposition
     q = jacobi(q)
-    if debug:
-        print "q:\n%s" % q.N()
+    if verbose:
+        print( "q:\n{}".format(q.N()) )
 
     i = dim - 1
     T[i] = C
@@ -178,21 +182,21 @@ def diamond_cut(V, GM, C, debug=False):
     cut_count = 0
     inequalities = []
     while True:
-        if debug:
-            print "Dimension: %d" % i
+        if verbose:
+            print("Dimension: {}".format(i))
         if new_dimension:
             Z = sqrt(T[i] / q[i][i])
-            if debug:
-                print "Z: %s" % Z
+            if verbose:
+                print("Z: {}".format(Z))
             L[i] = int(floor(Z - U[i]))
-            if debug:
-                print "L: %s" % L
+            if verbose:
+                print("L: {}".format(L))
             x[i] = int(ceil(-Z - U[i]) - 1)
             new_dimension = False
 
         x[i] += 1
-        if debug:
-            print "x: %s" % x
+        if verbose:
+            print("x: {}".format(x))
         if x[i] > L[i]:
             i += 1
         elif i > 0:
@@ -220,13 +224,13 @@ def diamond_cut(V, GM, C, debug=False):
                 #cut = Polyhedron(ieqs=[plane_inequality(hv)])
                 #V = V.intersection(cut)
 
-    if debug:
-        print "Final cut"
+    if verbose:
+        print("Final cut")
     cut = Polyhedron(ieqs=inequalities)
     V = V.intersection(cut)
 
-    if debug:
-        print "End"
+    if verbose:
+        print("End")
 
     return V
 
@@ -236,11 +240,11 @@ def calculate_voronoi_cell(basis, radius=None, debug=False):
 
     INPUT:
 
-    - ``basis``: embedded basis matrix of the lattice;
+    - ``basis`` -- embedded basis matrix of the lattice
 
-    - ``radius``: radius of basis vectors to consider;
+    - ``radius`` -- radius of basis vectors to consider
 
-    - ``debug``: whether to print debug information.
+    - ``debug`` -- whether to print debug information
 
     OUTPUT:
 
@@ -265,7 +269,8 @@ def calculate_voronoi_cell(basis, radius=None, debug=False):
         basis = basis.LLL()
         basis = matrix([v for v in basis if v])
         dim = basis.dimensions()
-    assert dim[0] == dim[1]
+    if dim[0] != dim[1]:
+        raise ValueError("invalid matrix")
     basis = basis / 2
 
     ieqs = []
@@ -284,7 +289,8 @@ def calculate_voronoi_cell(basis, radius=None, debug=False):
         # remove inequalities introduced by artificial basis points
         H = V.Hrepresentation()
         H = [v for v in H if all(not V._is_zero(v.A() * w / 2 - v.b() and
-            not V._is_zero(v.A() * (-w) / 2 - v.b())) for w in additional_vectors)]
+             not V._is_zero(v.A() * (-w) / 2 - v.b())) for w in additional_vectors)]
         V = Polyhedron(ieqs=H)
 
     return V
+

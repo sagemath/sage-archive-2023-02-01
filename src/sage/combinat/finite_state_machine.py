@@ -7546,8 +7546,7 @@ class Automaton(FiniteStateMachine):
         Therefore, the colors of the constituent states have to be
         hashable.
 
-        The input alphabet must be specified. It is restricted to nice
-        cases: input words have to have length at most `1`.
+        The input alphabet must be specified.
 
         EXAMPLES::
 
@@ -7576,6 +7575,26 @@ class Automaton(FiniteStateMachine):
             [frozenset(['A']), frozenset(['A', 'B']),
             frozenset(['A', 'C']), frozenset(['A', 'C', 'B'])]
 
+        ::
+
+            sage: A = Automaton([(0, 1, 1), (0, 2, [1, 1]), (0, 3, [1, 1, 1]),
+            ....:                (1, 0, -1), (2, 0, -2), (3, 0, -3)],
+            ....:               initial_states=[0], final_states=[0, 1, 2, 3])
+            sage: B = A.determinisation().relabeled()
+            sage: all(t.to_state.label() == 2 for t in
+            ....:     B.state(2).transitions)
+            True
+            sage: B.state(2).is_final
+            False
+            sage: B.delete_state(2)  # this is a sink
+            sage: sorted(B.transitions())
+            [Transition from 0 to 1: 1|-,
+             Transition from 1 to 0: -1|-,
+             Transition from 1 to 3: 1|-,
+             Transition from 3 to 0: -2|-,
+             Transition from 3 to 4: 1|-,
+             Transition from 4 to 0: -3|-]
+
         Note that colors of states have to be hashable::
 
             sage: A = Automaton([[0, 0, 0]], initial_states=[0])
@@ -7603,21 +7622,33 @@ class Automaton(FiniteStateMachine):
             (False, 'A')
             sage: auto.states()
             ['A', 'C', 'B']
-            sage: auto.determinisation()
+            sage: Ddet = auto.determinisation()
+            sage: Ddet
             Automaton with 3 states
+            sage: Ddet.is_deterministic()
+            True
+            sage: sorted(Ddet.transitions())
+            [Transition from frozenset(['A']) to frozenset(['A', 'B']): 'a'|-,
+             Transition from frozenset(['A']) to frozenset(['A']): 'b'|-,
+             Transition from frozenset(['A', 'B']) to frozenset(['A', 'B']): 'a'|-,
+             Transition from frozenset(['A', 'B']) to frozenset(['A', 'C']): 'b'|-,
+             Transition from frozenset(['A', 'C']) to frozenset(['A', 'B']): 'a'|-,
+             Transition from frozenset(['A', 'C']) to frozenset(['A']): 'b'|-]
+            sage: Ddet.initial_states()
+            [frozenset(['A'])]
+            sage: Ddet.final_states()
+            [frozenset(['A', 'C'])]
         """
-        for transition in self.transitions():
-            assert len(transition.word_in) <= 1, "%s has input label of length > 1, which we cannot handle" % (transition,)
+        if any(len(t.word_in) > 1 for t in self.iter_transitions()):
+            return self.split_transitions().determinisation()
 
         epsilon_successors = {}
         direct_epsilon_successors = {}
-        for state in self.states():
-            direct_epsilon_successors[state] = set(map(lambda t:t.to_state,
-                                                       filter(lambda transition: len(transition.word_in) == 0,
-                                                              self.transitions(state)
-                                                              )
-                                                       )
-                                                   )
+        for state in self.iter_states():
+            direct_epsilon_successors[state] = set(
+                t.to_state
+                for t in self.iter_transitions(state)
+                if not t.word_in)
             epsilon_successors[state] = set([state])
 
         old_count_epsilon_successors = 0
@@ -7626,30 +7657,28 @@ class Automaton(FiniteStateMachine):
         while old_count_epsilon_successors < count_epsilon_successors:
             old_count_epsilon_successors = count_epsilon_successors
             count_epsilon_successors = 0
-            for state in self.states():
+            for state in self.iter_states():
                 for direct_successor in direct_epsilon_successors[state]:
                     epsilon_successors[state] = epsilon_successors[state].union(epsilon_successors[direct_successor])
                 count_epsilon_successors += len(epsilon_successors[state])
 
-
         def set_transition(states, letter):
             result = set()
             for state in states:
-                for transition in self.transitions(state):
+                for transition in self.iter_transitions(state):
                     if transition.word_in == [letter]:
                         result.add(transition.to_state)
-            result = result.union(*map(lambda s:epsilon_successors[s], result))
+            result = result.union(*(epsilon_successors[s] for s in result))
             return (frozenset(result), [])
 
         result = self.empty_copy()
-        new_initial_states = [frozenset([state for state in self.initial_states()])]
+        new_initial_states = [frozenset(self.iter_initial_states())]
         result.add_from_transition_function(set_transition,
                                             initial_states=new_initial_states)
 
-        for state in result.states():
-            if any(map(lambda s: s.is_final, state.label())):
-                state.is_final = True
-            state.color = frozenset(map(lambda s: s.color, state.label()))
+        for state in result.iter_states():
+            state.is_final = any(s.is_final for s in state.label())
+            state.color = frozenset(s.color for s in state.label())
 
         return result
 

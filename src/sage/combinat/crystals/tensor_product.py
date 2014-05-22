@@ -1817,23 +1817,23 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             if isinstance(args[0], Tableau):
                 options['rows'] = args[0]
         if 'list' in options:
-            list = options['list']
+            list_ = options['list']
         elif 'rows' in options:
             rows=options['rows']
 #            list=Tableau(rows).to_word_by_column()
             rows=Tableau(rows).conjugate()
-            list=[]
+            list_ = []
             for col in rows:
                 col.reverse()
-                list+=col
+                list_ += col
         elif 'columns' in options:
             columns=options['columns']
-            list=[]
+            list_ = []
             for col in columns:
-                list+=col
+                list_ += col
         else:
-            list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, list(map(parent.letters, list)))
+            list_ = [i for i in args]
+        TensorProductOfRegularCrystalsElement.__init__(self, parent, list(map(parent.letters, list_)))
 
     def _repr_(self):
         """

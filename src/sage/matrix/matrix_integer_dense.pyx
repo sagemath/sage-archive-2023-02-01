@@ -2677,19 +2677,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A lattice `(b_1, b_2, ..., b_d)` is `(̣δ, η)`-LLL-reduced
         if the two following conditions hold:
 
-        -  For any `i>j`, we have `|μ_{i,j}| ≤ η`.
+        -  For any `i > j`, we have `\lvert \mu_{i,j} \rvert \leq \eta`.
 
-        -  For any `i<d`, we have `δ |b_i^*|^2 ≤ |b_{i + 1}^*
-           + μ_{i+1, i} b_i^*|^2`,
+        -  For any `i < d`, we have `\delta \lvert b_i^* \rvert^2 \leq
+           \lvert b_{i + 1}^* + \mu_{i+1, i} b_i^* \rvert^2`,
 
-        where `μ_{i,j} = 〈b_i, b_j^*〉/〈b_j^*,b_j^*〉` and `b_i^*` is the
-        `i`-th vector of the Gram-Schmidt orthogonalisation of
-        `(b_1, b_2, ..., b_d)`.
+        where `μ_{i,j} = \langle b_i, b_j^* \rangle / \langle b_j^*, b_j^*
+        \rangle` and `b_i^*` is the `i`-th vector of the Gram-Schmidt
+        orthogonalisation of `(b_1, b_2, ..., b_d)`.
 
-        The default reduction parameters are `δ=3/4` and `η=0.501`. The
-        parameters `δ` and `η` must satisfy: `0.25 < δ ≤ 1.0` and
-        `0.5 ≤ η < \sqrt{δ}`. Polynomial time complexity is only
-        guaranteed for `\delta < 1`.
+        The default reduction parameters are `\delta = 3/4` and `\eta = 0.501`.
+        The parameters `\delta` and `\eta` must satisfy: `0.25 < \delta
+        \leq 1.0` and `0.5 \leq \eta < \sqrt{\delta}`. Polynomial time
+        complexity is only guaranteed for `\delta < 1`.
 
         The lattice is returned as a matrix. Also the rank (and the
         determinant) of ``self`` are cached if those are computed during
@@ -2698,9 +2698,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
-        - ``delta`` -- (default: ``0.99``) `δ` parameter as described above
+        - ``delta`` -- (default: ``0.99``) `\delta` parameter as described
+          above
 
-        - ``eta`` -- (default: ``0.501``) `η` parameter as described above,
+        - ``eta`` -- (default: ``0.501``) `\eta` parameter as described above,
           ignored by NTL
 
         - ``algorithm`` -- string one of the algorithms listed below
@@ -2726,8 +2727,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         - ``use_siegel`` -- (default: ``False``) use Siegel's condition
           instead of Lovasz's condition, ignored by NTL
 
-        Also, if the verbose level is `≥2`, some more verbose output is
-        printed during the computation.
+        Also, if the verbose level is at least `2`, some more verbose output
+        is printed during the computation.
 
         AVAILABLE ALGORITHMS:
 

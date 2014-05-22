@@ -50,13 +50,13 @@ def IntegerLattice(basis, lll_reduce=True):
 
     INPUT:
 
-    - ``basis``
+    - ``basis`` -- can be one of the following:
 
-      - a list of vectors,
+      - a list of vectors
 
-      - a matrix over the integers, or
+      - a matrix over the integers
 
-      - an element of an absolute order.
+      - an element of an absolute order
 
     - ``lll_reduce`` -- (default: ``True``) run LLL reduction on the basis
       on construction.
@@ -341,26 +341,28 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         return self._reduced_basis
 
     def LLL(self, *args, **kwds):
-        """
+        r"""
         Return an LLL reduced basis for ``self``.
 
-        A lattice basis `(b_1, b_2, ..., b_d)` is `(δ,η)`-LLL-reduced if
-        the two following conditions hold:
+        A lattice basis `(b_1, b_2, ..., b_d)` is `(\delta, \eta)`-LLL-reduced
+        if the two following conditions hold:
 
-        -  For any `i > j`, we have `|μ_{i, j}| ≦ η`.
+        -  For any `i > j`, we have `\lvert \mu_{i, j} \rvert \leq η`.
 
         -  For any `i < d`, we have
-           `δ|b_i^*|^2 ≦ |b_{i+1}^* + μ_{i+1, i} b_i^*|^2`,
+           `\delta \lvert b_i^* \rvert^2 \leq \lvert b_{i+1}^* +
+           \mu_{i+1, i} b_i^* \rvert^2`,
 
-        where `μ_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>` and `b_i^*` is the
-        `i`-th vector of the Gram-Schmidt orthogonalisation of
-        `(b_1, b_2, …, b_d)`.
+        where `\mu_{i,j} = \langle b_i, b_j^* \rangle / \langle b_j^*,b_j^*
+        \rangle` and `b_i^*` is the `i`-th vector of the Gram-Schmidt
+        orthogonalisation of `(b_1, b_2, \ldots, b_d)`.
 
-        The default reduction parameters are `δ=3/4` and `η=0.501`.
+        The default reduction parameters are `\delta = 3/4` and
+        `\eta = 0.501`.
 
-        The parameters `δ` and `η` must satisfy: `0.25 < δ ≦ 1.0` and
-        `0.5 ≦ η < √δ`. Polynomial time complexity is only guaranteed
-        for `δ < 1`.
+        The parameters `\delta` and `\eta` must satisfy:
+        `0.25 < \delta \leq 1.0` and `0.5 \leq \eta < \sqrt{\delta}`.
+        Polynomial time complexity is only guaranteed for `\delta < 1`.
 
         INPUT:
 
@@ -477,12 +479,12 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         properties are satisfied:
 
         #. The basis `B` is size-reduced, i.e., all off-diagonal
-           coefficients of `M` satisfy `|μ_{i,j}| ≦ 1/2`
+           coefficients of `M` satisfy `|\mu_{i,j}| \leq 1/2`
 
-        #. The vector `b_1` realizes the first minimum `λ_1(L)`.
+        #. The vector `b_1` realizes the first minimum `\lambda_1(L)`.
 
-        #. The projection of the vectors `b_2,…,b_r` orthogonally to `b_1`
-           form an HKZ reduced basis.
+        #. The projection of the vectors `b_2, \ldots,b_r` orthogonally to
+           `b_1` form an HKZ reduced basis.
 
         .. NOTE::
 
@@ -574,7 +576,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
     @cached_method
     def shortest_vector(self, update_reduced_basis=True, algorithm="fplll", *args, **kwds):
-        """
+        r"""
         Return a shortest vector.
 
         INPUT:
@@ -587,7 +589,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         - ``*args`` -- passed through to underlying implementation
 
-        - ``*kwds`` -- passed through to underlying implementation
+        - ``**kwds`` -- passed through to underlying implementation
 
         OUTPUT:
 

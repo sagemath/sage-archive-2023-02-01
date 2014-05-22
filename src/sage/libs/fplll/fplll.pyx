@@ -1,8 +1,8 @@
-"""
-Wrapper for the fpLLL library by Damien Stehle, Xavier Pujol and David Cade
-found at
+r"""
+fpLLL library
 
-   http://perso.ens-lyon.fr/damien.stehle/fplll/
+Wrapper for the fpLLL library by Damien Stehle, Xavier Pujol and David Cade
+found at http://perso.ens-lyon.fr/damien.stehle/fplll/.
 
 This wrapper provides access to fpLLL's LLL, BKZ and enumeration
 implementations.
@@ -192,13 +192,14 @@ cdef class FP_LLL:
     def LLL(self, float delta=LLL_DEF_DELTA, float eta=LLL_DEF_ETA,
             method=None, float_type=None, int precision=0,
             verbose=False, siegel=False, early_red=False):
-        """
-        (δ,η)-LLL reduce this lattice.
+        r"""
+        `(\delta,\eta)`-LLL reduce this lattice.
 
         INPUT:
 
-        - ``delta`` -- parameter `0.25 < δ < 1.0` (default: ``0.99``)
-        - ``eta `` -- parameter `0.5 <= η < \\sqrt{δ}` (default: ``0.51``)
+        - ``delta`` -- (default: ``0.99``) parameter `0.25 < \delta < 1.0`
+        - ``eta `` -- (default: ``0.51``) parameter `0.5 \leq \eta <
+          \sqrt{\delta}`
         - ``method`` -- (default: ``None``) can be one of the following:
 
           * ``'wrapper'`` (``None``)
@@ -440,13 +441,13 @@ cdef class FP_LLL:
     def BKZ(self, int block_size, double delta=LLL_DEF_DELTA,
             float_type=None, int precision=0, int max_loops=0, int max_time=0,
             verbose=False, no_lll=False, bounded_lll=False, auto_abort=False):
-        """
+        r"""
         Run BKZ reduction.
 
         INPUT:
 
         - ``block_size`` -- an integer from 1 to ``nrows``
-        - ``delta`` -- (default: ``0.99``) LLL parameter `0.25 < δ < 1.0`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `0.25 < \delta < 1.0`
         - ``float_type`` -- (default: ``None``) can be one of the following:
 
           * ``None`` - for automatic choice
@@ -465,7 +466,8 @@ cdef class FP_LLL:
         - ``max_time`` -- (default: ``0`` for no restricion) stop after
           time seconds (up to loop completion)
         - ``auto_abort`` -- (default: ``False``) heuristic, stop when the
-          average slope of `log(||b_i*||)` does not decrease fast enough
+          average slope of `\log(\lVert b_i^* \rVert)` does not decrease
+          fast enough
 
         OUTPUT:
 
@@ -620,7 +622,7 @@ cdef class FP_LLL:
     #
 
     def wrapper(self, int precision=0, float eta=0.51, float delta=0.99):
-        """
+        r"""
         Perform LLL reduction using fpLLL's \code{wrapper}
         implementation. This implementation invokes a sequence of
         floating point LLL computations such that
@@ -631,9 +633,10 @@ cdef class FP_LLL:
         INPUT:
 
         - ``precision`` -- (default: auto) internal precision
-        - ``eta`` -- (default: ``0.51``) LLL parameter η with
-          `1/2 <= η < \\sqrt{δ}`
-        - ``delta`` -- (default: ``0.99``) LLL parameter δ with `1/4 < δ <= 1`
+        - ``eta`` -- (default: ``0.51``) LLL parameter `\eta` with
+          `1/2 \leq \eta < \sqrt{\delta}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `\delta` with
+          `1/4 < \delta \leq 1`
 
         OUTPUT:
 
@@ -693,17 +696,17 @@ cdef class FP_LLL:
         Perform LLL reduction using fpLLL's ``proved``
         implementation. This implementation is the only provable
         correct floating point implementation in the free software
-        world. Provability is only guaranteed if the 'mpfr'
+        world. Provability is only guaranteed if the ``'mpfr'``
         implementation is chosen.
 
         INPUT:
 
         - ``precision`` -- (default: auto) internal precision
-        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
-          `1/2 <= η < \sqrt{δ}`
-        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
-          `1/4 < δ <= 1`
-        - ``implementation`` -- (default: "mpfr") which floating point
+        - ``eta`` -- (default: ``0.51``) LLL parameter `\eta` with
+          `1/2 \leq \eta < \sqrt{δ}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `\delta` with
+          `1/4 < \delta \leq 1`
+        - ``implementation`` -- (default: ``"mpfr"``) which floating point
           implementation to use, can be one of the following:
 
           * ``"double"``
@@ -785,7 +788,7 @@ cdef class FP_LLL:
             raise RuntimeError("fpLLL returned {:d} != 0".format(ret))
 
     def fast(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
-        """
+        r"""
         Perform LLL reduction using fpLLL's fast
         implementation.  This implementation is the fastest floating
         point implementation currently available in the free software world.
@@ -793,10 +796,10 @@ cdef class FP_LLL:
         INPUT:
 
         - ``precision`` -- (default: auto) internal precision
-        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
-          `1/2 <= η < \sqrt{δ}`
-        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
-          `1/4 < δ <= 1`
+        - ``eta`` -- (default: ``0.51``) LLL parameter `\eta` with
+          `1/2 \leq \eta < \sqrt{\delta}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `\delta` with
+          `1/4 < \delta \leq 1`
         - ``implementation`` -- ignored
 
         OUTPUT:
@@ -831,7 +834,7 @@ cdef class FP_LLL:
         fast_double_delete(pdouble)
 
     def fast_early_red(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
-        """
+        r"""
         Perform LLL reduction using fpLLL's fast
         implementation with early reduction.
 
@@ -844,11 +847,11 @@ cdef class FP_LLL:
         INPUT:
 
         - ``precision`` -- (default: auto) internal precision
-        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
-          `1/2 <= η < \sqrt{δ}`
-        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
-          `1/4 < δ <= 1`
-        - ``implementation`` -- (default: "mpfr") which floating point
+        - ``eta`` -- (default: ``0.51``) LLL parameter `\eta` with
+          `1/2 \leq \eta < \sqrt{\delta}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `\delta` with
+          `1/4 < \delta \leq 1`
+        - ``implementation`` -- (default: ``"mpfr"``) which floating point
           implementation to use, can be one of the following:
 
           * ``"double"``
@@ -909,17 +912,23 @@ cdef class FP_LLL:
         fast_early_red_double_delete(pdouble)
 
     def heuristic(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
-        """
+        r"""
         Perform LLL reduction using fpLLL's heuristic
         implementation.
 
         INPUT:
 
-         - ``precision`` - internal precision (default: auto).
-         - ``eta`` - LLL parameter η with 1/2 <= η < \sqrt{δ} (default: ``0.51``).
-         - ``delta`` - LLL parameter δ with 1/4 < δ <= 1 (default: ``0.99``).
-         - ``implementation`` - floating point implementation in ("double", "dpe", "mpfr")
-           (default: "mpfr").
+        - ``precision`` -- (default: auto) internal precision
+        - ``eta`` -- (default: ``0.51``) LLL parameter `\eta` with
+          `1/2 \leq \eta < \sqrt{\delta}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `\delta` with
+          `1/4 < \delta \leq 1`
+        - ``implementation`` -- (default: ``"mpfr"``) which floating point
+          implementation to use, can be one of the following:
+
+          * ``"double"``
+          * ``"dpe"``
+          * ``"mpfr"``
 
         OUTPUT:
 
@@ -993,7 +1002,7 @@ cdef class FP_LLL:
             heuristic_mpfr_delete(pmpfr)
 
     def heuristic_early_red(self, int precision=0, float eta=0.51, float delta=0.99, implementation=None):
-        """
+        r"""
         Perform LLL reduction using fpLLL's heuristic
         implementation with early reduction.
 
@@ -1006,11 +1015,11 @@ cdef class FP_LLL:
         INPUT:
 
         - ``precision`` -- (default: auto) internal precision
-        - ``eta`` -- (default: ``0.51``) LLL parameter `η` with
-          `1/2 <= η < \sqrt{δ}`
-        - ``delta`` -- (default: ``0.99``) LLL parameter `δ` with
-          `1/4 < δ <= 1`
-        - ``implementation`` -- (default: "mpfr") which floating point
+        - ``eta`` -- (default: ``0.51``) LLL parameter `\eta` with
+          `1/2 \leq \eta < \sqrt{\delta}`
+        - ``delta`` -- (default: ``0.99``) LLL parameter `\delta` with
+          `1/4 < \delta \leq 1`
+        - ``implementation`` -- (default: ``"mpfr"``) which floating point
           implementation to use, can be one of the following:
 
           * ``"double"``
@@ -1094,8 +1103,8 @@ cdef class FP_LLL:
 
 def gen_intrel(int d, int b):
     r"""
-    Return a `(d+1 \times d)`-dimensional knapsack-type random lattice, where the
-    `x_i`'s are random `b` bits integers.
+    Return a `(d+1 \times d)`-dimensional knapsack-type random lattice,
+    where the `x_i`'s are random ``b`` bits integers.
 
     INPUT:
 
@@ -1147,8 +1156,8 @@ def gen_intrel(int d, int b):
 
 def gen_simdioph(int d, int b, int b2):
     """
-    Return a `d`-dimensional simultaneous diophantine approximation random
-    lattice, where the `d` `x_i`'s are random `b` bits integers.
+    Return a ``d``-dimensional simultaneous diophantine approximation random
+    lattice, where the ``d`` `x_i`'s are random ``b`` bits integers.
 
     INPUT:
 
@@ -1201,7 +1210,7 @@ def gen_simdioph(int d, int b, int b2):
 
 def gen_uniform(int nr, int nc, int b):
     r"""
-    Return a `(nr \times nc)` matrix where the entries are random `b`
+    Return a `(nr \times nc)` matrix where the entries are random ``b``
     bits integers.
 
     INPUT:

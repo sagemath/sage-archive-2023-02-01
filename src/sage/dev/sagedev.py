@@ -2714,17 +2714,16 @@ class SageDev(MercurialPatchMixin):
                     self._UI.show("Abandoning #{0}.".format(ticket))
                     self.abandon(ticket, helpful=False)
 
-    def abandon(self, ticket_or_branch=None, helpful=True):
+    def abandon(self, ticket_or_branch, helpful=True):
         r"""
         Abandon a ticket or branch.
 
         INPUT:
 
         - ``ticket_or_branch`` -- an integer or string identifying a ticket or
-          the name of a local branch or ``None`` (default: ``None``), remove
-          the branch ``ticket_or_branch`` or the branch for the ticket
-          ``ticket_or_branch`` (or the current branch if ``None``). Also
-          removes the users remote tracking branch.
+          the name of a local branch, remove the branch ``ticket_or_branch`` or
+          the branch for the ticket ``ticket_or_branch``. Also removes the
+          users remote tracking branch.
 
         - ``helpful`` -- boolean (default: ``True``). Whether to print
           informational messages to guide new users.
@@ -2783,6 +2782,14 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev merge" to include another ticket/branch.
             #  Use "sage --dev commit" to save changes into a new commit.
+
+        Verify that :trac:`16249` has been resolved::
+
+            sage: dev.abandon()
+            Traceback (most recent call last):
+            ...
+            TypeError: abandon() takes at least 2 arguments (1 given)
+
         """
         ticket = None
 

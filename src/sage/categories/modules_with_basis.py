@@ -1040,7 +1040,8 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: ModulesWithBasis(QQ).CartesianProducts().extra_super_categories()
                 [Category of modules with basis over Rational Field]
                 sage: ModulesWithBasis(QQ).CartesianProducts().super_categories()
-                [Category of modules with basis over Rational Field, Category of Cartesian products of sets]
+                [Category of modules with basis over Rational Field,
+                 Category of Cartesian products of commutative additive groups]
             """
             return [self.base_category()]
 

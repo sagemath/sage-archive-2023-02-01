@@ -10,11 +10,11 @@ diff -ru src/IntegerProgramming/Makefile.in b/IntegerProgramming/Makefile.in
 -	${INSTALL_PROGRAM} $(MAIN3) ${bindir}
 -	${INSTALL_PROGRAM} $(MAIN4) ${bindir}
 -	${INSTALL_PROGRAM} $(LLL) ${bindir}
-+	${INSTALL_PROGRAM} $(MAIN1).exe ${bindir}
-+	${INSTALL_PROGRAM} $(MAIN2).exe ${bindir}
-+	${INSTALL_PROGRAM} $(MAIN3).exe ${bindir}
-+	${INSTALL_PROGRAM} $(MAIN4).exe ${bindir}
-+	${INSTALL_PROGRAM} $(LLL).exe ${bindir}
++	${INSTALL_PROGRAM} $(MAIN1)$(EXEEXT) ${bindir}
++	${INSTALL_PROGRAM} $(MAIN2)$(EXEEXT) ${bindir}
++	${INSTALL_PROGRAM} $(MAIN3)$(EXEEXT) ${bindir}
++	${INSTALL_PROGRAM} $(MAIN4)$(EXEEXT) ${bindir}
++	${INSTALL_PROGRAM} $(LLL)$(EXEEXT) ${bindir}
  
  install-bindist: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4)
  	${MKINSTALLDIRS} ${install_bindir}

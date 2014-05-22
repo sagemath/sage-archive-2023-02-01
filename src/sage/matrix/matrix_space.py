@@ -249,9 +249,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             Basis matrix:
             124 x 125 dense matrix over Rational Field
             sage: MatrixSpace(ZZ,20,20)(1) \ MatrixSpace(ZZ,20,1).random_element()
-            20 x 1 dense matrix over Rational Field
+            20 x 1 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: MatrixSpace(ZZ,200,200)(1) \ MatrixSpace(ZZ,200,1).random_element()
-            200 x 1 dense matrix over Rational Field
+            200 x 1 dense matrix over Rational Field (use the '.str()' method to see the entries)
             sage: A = MatrixSpace(RDF,1000,1000).random_element()
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B

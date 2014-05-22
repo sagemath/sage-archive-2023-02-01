@@ -44,6 +44,7 @@ Currently, this module gathers the following designs :
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
+    :meth:`~sage.combinat.designs.block_design.Hadamard3Design`
     :meth:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`
     :meth:`~sage.combinat.designs.orthogonal_arrays.transversal_design`
     :meth:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
@@ -56,7 +57,7 @@ which queries the LJCR.
 
 .. TODO::
 
-    Implement DerivedDesign, ComplementaryDesign, and Hadamard3Design
+    Implement DerivedDesign and ComplementaryDesign.
 
 REFERENCES:
 
@@ -64,10 +65,12 @@ REFERENCES:
   http://www.ccrwest.org/cover.html
 """
 from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
-                                                ProjectivePlaneDesign,
+                                                DesarguesianProjectivePlaneDesign,
+                                                projective_plane,
                                                 AffineGeometryDesign,
                                                 WittDesign,
-                                                HadamardDesign)
+                                                HadamardDesign,
+                                                Hadamard3Design)
 
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 

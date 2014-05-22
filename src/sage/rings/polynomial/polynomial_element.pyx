@@ -91,7 +91,10 @@ import polynomial_fateman
 
 from sage.rings.integer cimport Integer
 from sage.rings.ideal import is_Ideal
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.misc.cachefunc import cached_function
 
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
@@ -832,7 +835,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __hash__(self):
         return self._hash_c()
 
-    cdef long _hash_c(self):
+    cdef long _hash_c(self) except -1:
         """
         This hash incorporates the variable name in an effort to respect
         the obvious inclusions into multi-variable polynomial rings.
@@ -855,6 +858,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x>=IntegerModRing(11)[]
             sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
             True
+
+        TESTS:
+
+        Verify that :trac:`16251` has been resolved, i.e., polynomials with
+        unhashable coefficients are unhashable::
+
+            sage: K.<a> = Qq(9)
+            sage: R.<t> = K[]
+            sage: hash(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+
         """
         cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
         cdef long result_mon
@@ -863,9 +879,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef int i
         for i from 0<= i <= self.degree():
             if i == 1:
-                # we delay the hashing until now to not waste it one a constant poly
+                # we delay the hashing until now to not waste it on a constant poly
                 var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
-            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
             # This assumption is not true, but I think it is true enough for the purposes and it
             # it allows us to write fast code that omits terms with 0 coefficients.  This is
             # important if we want to maintain the '==' relationship with sparse polys.
@@ -4861,6 +4877,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g = (t + 1)*x + t^2
             sage: f.resultant(g)
             t^4 + t
+
+        Check that :trac:`15061` is fixed::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.resultant(P.derivative())
+            -4 - 4*T + O(T^2)
         """
         variable = self.variable_name()
         if variable != 'x' and self.parent()._mpoly_base_ring() != self.parent().base_ring():
@@ -4868,9 +4893,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             newself = bigring(self)
             newother = bigring(other)
             return self.parent().base_ring()(newself.resultant(newother,bigring(self.parent().gen())))
-        # Single-variable polynomial or main variable is "x": we can use PARI to compute the resultant
-        res = self._pari_with_name().polresultant(other._pari_with_name())
-        return self.parent().base_ring()(res)
+        # Single-variable polynomial or main variable is "x": we can
+        # try PARI to compute the resultant
+        try:
+            res = self._pari_with_name().polresultant(other._pari_with_name())
+            return self.parent().base_ring()(res)
+        except (TypeError, ValueError):
+            return self.sylvester_matrix(other).det()
 
     def discriminant(self):
         r"""
@@ -4891,8 +4920,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. note::
 
-           Uses the identity `R_n(f) := (-1)^(n (n-1)/2) R(f,
-           f') a_n^(n-k-2)`, where `n` is the degree of self,
+           Uses the identity `R_n(f) := (-1)^{n (n-1)/2} R(f,
+           f') a_n^{n-k-2}`, where `n` is the degree of self,
            `a_n` is the leading coefficient of self, `f'`
            is the derivative of `f`, and `k` is the degree
            of `f'`. Calls :meth:`.resultant`.
@@ -4971,10 +5000,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<s> = PolynomialRing(Qp(2))
             sage: (s^2).discriminant()
             0
+
+        TESTS:
+
+        This was fixed by :trac:`16014`::
+
+            sage: PR.<b,t1,t2,x1,y1,x2,y2> = QQ[]
+            sage: PRmu.<mu> = PR[]
+            sage: E1 = diagonal_matrix(PR, [1, b^2, -b^2])
+            sage: M = matrix(PR, [[1,-t1,x1-t1*y1],[t1,1,y1+t1*x1],[0,0,1]])
+            sage: E1 = M.transpose()*E1*M
+            sage: E2 = E1.subs(t1=t2, x1=x2, y1=y2)
+            sage: det(mu*E1 + E2).discriminant().degrees()
+            (24, 12, 12, 8, 8, 8, 8)
+
+        This addresses an issue raised by :trac:`15061`::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: F = R([1,1],2)
+            sage: RP.<x> = PolynomialRing(R)
+            sage: P = x^2 - F
+            sage: P.discriminant()
+            4 + 4*T + O(T^2)
         """
+        # Late import to avoid cyclic dependencies:
+        from sage.rings.power_series_ring import is_PowerSeriesRing
         if self.is_zero():
             return self.parent().zero_element()
         n = self.degree()
+        base_ring = self.parent().base_ring()
+        if (is_MPolynomialRing(base_ring) or
+            is_PowerSeriesRing(base_ring)):
+            # It is often cheaper to compute discriminant of simple
+            # multivariate polynomial and substitute the real
+            # coefficients into that result (see #16014).
+            return universal_discriminant(n)(list(self))
         d = self.derivative()
         k = d.degree()
 
@@ -7353,6 +7413,42 @@ cdef class Polynomial_generic_dense(Polynomial):
 
 def make_generic_polynomial(parent, coeffs):
     return parent(coeffs)
+
+@cached_function
+def universal_discriminant(n):
+    r"""
+    Return the discriminant of the 'universal' univariate polynomial
+    `a_n x^n + \cdots + a_1 x + a_0` in `\ZZ[a_0, \ldots, a_n][x]`.
+
+    INPUT:
+
+    - ``n`` - degree of the polynomial
+
+    OUTPUT:
+
+    The discriminant as a polynomial in `n + 1` variables over `\ZZ`.
+    The result will be cached, so subsequent computations of
+    discriminants of the same degree will be faster.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_element import universal_discriminant
+        sage: universal_discriminant(1)
+        1
+        sage: universal_discriminant(2)
+        a1^2 - 4*a0*a2
+        sage: universal_discriminant(3)
+        a1^2*a2^2 - 4*a0*a2^3 - 4*a1^3*a3 + 18*a0*a1*a2*a3 - 27*a0^2*a3^2
+        sage: universal_discriminant(4).degrees()
+        (3, 4, 4, 4, 3)
+
+    .. SEEALSO::
+        :meth:`Polynomial.discriminant`
+    """
+    pr1 = PolynomialRing(ZZ, n + 1, 'a')
+    pr2 = PolynomialRing(pr1, 'x')
+    p = pr2(list(pr1.gens()))
+    return (1 - (n&2))*p.resultant(p.derivative())//pr1.gen(n)
 
 cdef class ConstantPolynomialSection(Map):
     """

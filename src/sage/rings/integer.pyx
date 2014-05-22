@@ -146,6 +146,7 @@ include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
+from libc.stdint cimport uint64_t
 include "sage/ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
@@ -3183,7 +3184,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = Integer(17); float(n)
             17.0
             sage: n = Integer(902834098234908209348209834092834098); float(n)
-            9.028340982349081e+35
+            9.028340982349083e+35
             sage: n = Integer(-57); float(n)
             -57.0
             sage: n.__float__()
@@ -3191,7 +3192,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(n.__float__())
             <type 'float'>
         """
-        return mpz_get_d(self.value)
+        return mpz_get_d_nearest(self.value)
 
     def _rpy_(self):
         """
@@ -6468,3 +6469,111 @@ cdef inline Integer smallInteger(long value):
         z = PY_NEW(Integer)
         mpz_set_si(z.value, value)
         return z
+
+
+# The except value is just some random double, it doesn't matter what it is.
+cdef double mpz_get_d_nearest(mpz_t x) except? -648555075988944.5:
+    """
+    Convert a ``mpz_t`` to a ``double``, with round-to-nearest-even.
+    This differs from ``mpz_get_d()`` which does round-to-zero.
+
+    TESTS::
+
+        sage: x = ZZ(); float(x)
+        0.0
+        sage: x = 2^54 - 1
+        sage: float(x)
+        1.8014398509481984e+16
+        sage: float(-x)
+        -1.8014398509481984e+16
+        sage: x = 2^10000; float(x)
+        inf
+        sage: float(-x)
+        -inf
+
+    ::
+
+        sage: x = (2^53 - 1) * 2^971; float(x)  # Largest double
+        1.7976931348623157e+308
+        sage: float(-x)
+        -1.7976931348623157e+308
+        sage: x = (2^53) * 2^971; float(x)
+        inf
+        sage: float(-x)
+        -inf
+        sage: x = ZZ((2^53 - 1/2) * 2^971); float(x)
+        inf
+        sage: float(-x)
+        -inf
+        sage: x = ZZ((2^53 - 3/4) * 2^971); float(x)
+        1.7976931348623157e+308
+        sage: float(-x)
+        -1.7976931348623157e+308
+
+    AUTHORS:
+
+    - Jeroen Demeyer (:trac:`16385`, based on :trac:`14416`)
+    """
+    cdef mp_bitcnt_t sx = mpz_sizeinbase(x, 2)
+
+    # Easy case: x is exactly representable as double.
+    if sx <= 53:
+        return mpz_get_d(x)
+
+    cdef int resultsign = mpz_sgn(x)
+
+    # Check for overflow
+    if sx > 1024:
+        if resultsign < 0:
+            return -1.0/0.0
+        else:
+            return 1.0/0.0
+
+    # General case
+
+    # We should shift x right by this amount in order
+    # to have 54 bits remaining.
+    cdef mp_bitcnt_t shift = sx - 54
+
+    # Compute q = trunc(x / 2^shift) and let remainder_is_zero be True
+    # if and only if no truncation occurred.
+    cdef int remainder_is_zero
+    remainder_is_zero = mpz_divisible_2exp_p(x, shift)
+
+    sig_on()
+
+    cdef mpz_t q
+    mpz_init(q)
+    mpz_tdiv_q_2exp(q, x, shift)
+
+    # Convert abs(q) to a 64-bit integer.
+    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef uint64_t q64
+    if sizeof(mp_limb_t) >= 8:
+        q64 = q_limbs[0]
+    else:
+        assert sizeof(mp_limb_t) == 4
+        q64 = q_limbs[1]
+        q64 = (q64 << 32) + q_limbs[0]
+
+    mpz_clear(q)
+    sig_off()
+
+    # Round q from 54 to 53 bits of precision.
+    if ((q64 & 1) == 0):
+        # Round towards zero
+        pass
+    else:
+        if not remainder_is_zero:
+            # Remainder is non-zero: round away from zero
+            q64 += 1
+        else:
+            # Halfway case: round to even
+            q64 += (q64 & 2) - 1
+
+    # The conversion of q64 to double is *exact*.
+    # This is because q64 is even and satisfies 2^53 <= q64 <= 2^54.
+    cdef double d = <double>q64
+    if resultsign < 0:
+        d = -d
+    return ldexp(d, shift)

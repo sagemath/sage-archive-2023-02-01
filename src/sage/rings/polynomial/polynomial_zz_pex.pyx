@@ -262,6 +262,16 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             ...
             TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() accepts no named argument except 'y'
 
+        Check that polynomial evaluation works when using logarithmic
+        representation of finite field elements (:trac:`16383`)::
+
+            sage: for i in xrange(10):
+            ....:     F = FiniteField(random_prime(15) ** ZZ.random_element(2, 5), 'a', repr='log')
+            ....:     b = F.random_element()
+            ....:     P = PolynomialRing(F, 'x')
+            ....:     f = P.random_element(8)
+            ....:     assert f(b) == sum(c * b^i for i, c in enumerate(f))
+
         """
         cdef ntl_ZZ_pE _a
         cdef ZZ_pE_c c_b
@@ -289,9 +299,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         _a = self._parent._modulus.ZZ_pE(list(a.polynomial()))
         ZZ_pEX_eval(c_b, self.x, _a.x)
-
-        R = K.polynomial_ring()
-        return K(str(R(ZZ_pE_c_to_list(c_b))))
+        return K(ZZ_pE_c_to_list(c_b))
 
     def resultant(self, other):
         """

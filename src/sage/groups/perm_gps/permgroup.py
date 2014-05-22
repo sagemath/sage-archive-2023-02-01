@@ -239,7 +239,7 @@ def from_gap_list(G, src):
     srcs = src.split("),")
     for i in range(len(srcs[:-1])):
         srcs[i] = srcs[i] + ")"
-    srcs = map(G, srcs)
+    srcs = list(map(G, srcs))
     return srcs
 
 def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, category=None):

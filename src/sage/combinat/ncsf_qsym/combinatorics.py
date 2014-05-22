@@ -96,7 +96,7 @@ def coeff_ell(J,I):
         sage: coeff_ell(Composition([2,1]), Composition([3]))
         2
     """
-    return prod(map(len, J.refinement_splitting(I)))
+    return prod(list(map(len, J.refinement_splitting(I))))
 
 def coeff_sp(J,I):
     r"""

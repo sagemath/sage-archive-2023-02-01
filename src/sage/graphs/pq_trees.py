@@ -586,8 +586,7 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = dict([(x_y[0], len(x_y[1])) for x_y in sorting.iteritems()])
 
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
@@ -833,8 +832,7 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = dict(map(lambda x_y: (x_y[0], len(x_y[1])),
-                          sorting.iteritems()))
+        counts = dict([(x_y[0], len(x_y[1])) for x_y in sorting.iteritems()])
 
         ###################################################################
         #                                                                 #

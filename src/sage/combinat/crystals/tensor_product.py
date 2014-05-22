@@ -1735,7 +1735,7 @@ class CrystalOfTableaux(CrystalOfWords):
         module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
         if invert:
             f = lambda x : -x if x == type[1] else x
-            module_generator = map(f, module_generator)
+            module_generator = list(map(f, module_generator))
         return self(list=[self.letters(x) for x in module_generator])
 
     def _element_constructor_(self, *args, **options):
@@ -1833,7 +1833,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
                 list+=col
         else:
             list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, map(parent.letters, list))
+        TensorProductOfRegularCrystalsElement.__init__(self, parent, list(map(parent.letters, list)))
 
     def _repr_(self):
         """

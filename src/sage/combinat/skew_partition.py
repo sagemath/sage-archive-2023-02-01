@@ -262,7 +262,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp.outer()
             [3, 2, 1]
         """
-        skp = map(_Partitions, skp)
+        skp = list(map(_Partitions, skp))
         if skp not in SkewPartitions():
             raise ValueError("invalid skew partition: %s"%skp)
         return SkewPartitions()(skp)
@@ -311,7 +311,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: print SkewPartition([[3,2,1],[2,1]])._repr_lists()
             [[3, 2, 1], [2, 1]]
         """
-        return repr(map(list, self))
+        return repr(list(map(list, self)))
 
     def _latex_(self):
         r"""
@@ -669,7 +669,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: SkewPartition([[3,2,1],[2]]).conjugate()
             [3, 2, 1] / [1, 1]
         """
-        return SkewPartition(map(lambda x: x.conjugate(), self))
+        return SkewPartition([x.conjugate() for x in self])
 
     def outer_corners(self):
         """
@@ -950,7 +950,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: type(s.to_list())
             <type 'list'>
         """
-        return map(list, list(self))
+        return list(map(list, list(self)))
 
     def to_dag(self):
         """
@@ -1163,7 +1163,7 @@ def row_lengths_aux(skp):
     if skp[0] == []:
         return []
     else:
-        return map(lambda x: x[0] - x[1], zip(skp[0], skp[1]))
+        return [x[0] - x[1] for x in zip(skp[0], skp[1])]
 
 class SkewPartitions(Parent, UniqueRepresentation):
     """
@@ -1757,9 +1757,9 @@ class SkewPartitions_rowlengths(SkewPartitions):
         for i in range(nn+1):
             (skp1, skp2) = sskp
             skp2 += [0]*(len(skp1)-len(skp2))
-            skp1 = map(lambda x: x + i + mm, skp1)
+            skp1 = [x + i + mm for x in skp1]
             skp1 += [ck]
-            skp2 = map(lambda x: x + i + mm, skp2)
+            skp2 = [x + i + mm for x in skp2]
             skp2 = filter(lambda x: x != 0, skp2)
             yield SkewPartition([skp1, skp2])
 

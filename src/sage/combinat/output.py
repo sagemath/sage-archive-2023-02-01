@@ -292,7 +292,7 @@ def tex_from_skew_array(array, with_lines=False, align='b'):
         end_line=lambda r: r'\\'
 
     # now we draw the array
-    tex=r'\raisebox{-.6ex}{$\begin{array}[%s]{*{%s}c}'%(align,max(map(len,array)))
+    tex=r'\raisebox{-.6ex}{$\begin{array}[%s]{*{%s}c}'%(align,max(list(map(len,array))))
     tex+=end_line(0)+'\n'
     for r in xrange(len(array)):
         tex+='&'.join('' if c is None else r'\lr{%s}'%c for c in array[r])

@@ -207,7 +207,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             self._basis_name = "standard"
             p_set = subsets(range(1, alg._n))
             CombinatorialFreeModule.__init__(self, alg.base_ring(),
-                                             map(tuple, p_set),
+                                             list(map(tuple, p_set)),
                                              category=DescentAlgebraBases(alg),
                                              bracket="", prefix=prefix)
 
@@ -449,7 +449,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             IM = IntegerMatrices(list(p), list(q))
             P = Compositions(self.realization_of()._n)
             to_composition = lambda m: P( filter(lambda x: x != 0, m.list()) )
-            return self.sum_of_monomials(map(to_composition, IM))
+            return self.sum_of_monomials(list(map(to_composition, IM)))
 
         @cached_method
         def one_basis(self):

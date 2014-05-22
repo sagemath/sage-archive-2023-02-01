@@ -70,7 +70,7 @@ class Hypergraph:
             Hypergraph on 6 vertices containing 4 sets
         """
         from sage.sets.set import Set
-        self._sets = map(Set, sets)
+        self._sets = list(map(Set, sets))
         self._domain = set([])
         for s in sets:
             for i in s:
@@ -238,7 +238,7 @@ class Hypergraph:
             # Reorders the vertices of s according to their angle with the
             # "center", i.e. the vertex representing the set s
             cx, cy = pos[s]
-            s = map(lambda x: pos[x], s)
+            s = [pos[x] for x in s]
             s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 
             for x in s:

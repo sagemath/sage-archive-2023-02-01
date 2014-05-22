@@ -750,7 +750,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
             return [[1, g, pari('xF-1')]]
         else:
             Px = PolynomialRing(QQ, 'xF')
-            return [[ZZ(1), map(QQ, g), Px.gen()-1]]
+            return [[ZZ(1), list(map(QQ, g)), Px.gen()-1]]
 
     if verbose:
         saveout = sys.stdout
@@ -894,15 +894,15 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [map(ZZ, counts),
-                [[s[0], map(QQ, s[1].reverse().Vec()), s[2].coeffs()]
+        return [list(map(ZZ, counts)),
+                [[s[0], list(map(QQ, s[1].reverse().Vec())), s[2].coeffs()]
                  for s in S]
                ]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[s[0], Px(map(QQ, s[1].list())), s[2]] for s in S]
+        return [[s[0], Px(list(map(QQ, s[1].list()))), s[2]] for s in S]
 
 def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
                                      return_pari_objects=True):
@@ -1015,12 +1015,12 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False,
 
     # Make sure to return elements that belong to Sage
     if return_seqs:
-        return [map(ZZ, counts),
-                [[ZZ(s[0]), map(QQ, s[1].reverse().Vec())] for s in S]]
+        return [list(map(ZZ, counts)),
+                [[ZZ(s[0]), list(map(QQ, s[1].reverse().Vec()))] for s in S]]
     elif return_pari_objects:
         return S
     else:
         Px = PolynomialRing(QQ, 'x')
-        return [[ZZ(s[0]), Px(map(QQ, s[1].list()))]
+        return [[ZZ(s[0]), Px(list(map(QQ, s[1].list())))]
                 for s in S]
 

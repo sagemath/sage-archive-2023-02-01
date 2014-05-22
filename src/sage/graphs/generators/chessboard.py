@@ -164,7 +164,7 @@ def ChessboardGraphGenerator(dim_list,
 
     # We build the set of vertices of the d-dimensionnal chessboard
     from itertools import product
-    V = map(list,list(product(*map(range,dim))))
+    V = list(map(list,list(product(*list(map(range,dim))))))
 
     from sage.combinat.combination import Combinations
     combin = Combinations(range(nb_dim),2)

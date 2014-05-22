@@ -492,7 +492,7 @@ class LWE(SageObject):
             self.__s = vector(self.K, self.n, [self.D() for _ in range(n)])
         else:
             try:
-                lb, ub = map(ZZ,secret_dist)
+                lb, ub = list(map(ZZ,secret_dist))
                 self.__s = vector(self.K, self.n, [randint(lb,ub) for _ in range(n)])
             except (IndexError, TypeError):
                 raise TypeError("Parameter secret_dist=%s not understood."%(secret_dist))

@@ -162,7 +162,7 @@ class ArithmeticSubgroup(group.Group):
         if isinstance(x, type([])) and len(x) == 4:
             if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
                 return False
-            a,b,c,d = map(ZZ, x)
+            a,b,c,d = list(map(ZZ, x))
             if a*d - b*c != 1: return False
             return self._contains_sl2(a,b,c,d)
         else:

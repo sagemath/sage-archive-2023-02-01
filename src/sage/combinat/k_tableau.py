@@ -2356,7 +2356,7 @@ class StrongTableau(ClonableList):
         """
         if isinstance(T, cls):
             return T
-        outer_shape = Core(map(len, T),k+1)
+        outer_shape = Core(list(map(len, T)),k+1)
         inner_shape = Core(filter(lambda x: x>0, [row.count(None) for row in T]), k+1)
         Te = [v for row in T for v in row if v is not None]+[0]
         count_marks = tuple([Te.count(-(i+1)) for i in range(-min(Te))])
@@ -2490,8 +2490,8 @@ class StrongTableau(ClonableList):
             True
         """
         T = self.to_standard_list()
-        size = Core(map(len,T), self.k+1).length()
-        inner_size = Core(map(len,filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x==None, row ), T))),self.k+1).length()
+        size = Core(list(map(len,T)), self.k+1).length()
+        inner_size = Core(list(map(len,filter(lambda y: len(y)>0, [filter(lambda x: x==None, row ) for row in T]))),self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
@@ -3562,7 +3562,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_unmarked_standard_list()
             []
         """
-        return map(lambda x: map(nabs,x), self.to_standard_list())
+        return [list(map(nabs,x)) for x in self.to_standard_list()]
 
     def _latex_(self):
         r"""
@@ -3638,8 +3638,8 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x==None or abs(x)<=rr, row ), self.to_standard_list()))
-        new_parent = StrongTableaux( self.k, (Core(map(len, rest_tab), self.k+1), self.inner_shape()), self.weight()[:r] )
+        rest_tab = filter(lambda y: len(y)>0, [filter(lambda x: x==None or abs(x)<=rr, row ) for row in self.to_standard_list()])
+        new_parent = StrongTableaux( self.k, (Core(list(map(len, rest_tab)), self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 
     def set_weight( self, mu ):
@@ -4122,7 +4122,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         else:
             for T in cls.standard_unmarked_iterator(k, size-1, outer_shape, inner_shape):
                 for TT in cls.follows_tableau_unsigned_standard(T, k):
-                    if outer_shape is None or Core(outer_shape, k+1).contains(map(len,TT)):
+                    if outer_shape is None or Core(outer_shape, k+1).contains(list(map(len,TT))):
                         yield TT
 
     @classmethod
@@ -4264,7 +4264,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: T
             [[None, -10, -4], [4]]
         """
-        innershape = Core(map(len, Tlist), k+1)
+        innershape = Core(list(map(len, Tlist)), k+1)
         outershape = innershape.affine_symmetric_group_action(tij, transposition=True)
         if outershape.length()==innershape.length()+1:
             for c in SkewPartition([outershape.to_partition(),innershape.to_partition()]).cells():
@@ -4316,7 +4316,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         v = max([0]+[abs(v) for rows in Tlist for v in rows if v is not None])+1
         out = []
-        sh = Core(map(len, Tlist), k+1)
+        sh = Core(list(map(len, Tlist)), k+1)
         for ga in sh.strong_covers():
             T = copy.deepcopy(Tlist)
             T += [[] for i in range(len(ga)-len(T))]
@@ -4469,7 +4469,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         marks = [v for row in T for v in row if v!=None and v<0]+[0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
-        sh = Core(map(len,T), k+1)
+        sh = Core(list(map(len,T)), k+1)
         for v in range(m,0,-1):
             for j in range(len(LL[0]),-len(LL)-1,-1):
                 if -v in [LL[i][i+j] for i in range(len(LL)) if len(LL[i])>j+i and i+j>=0]:

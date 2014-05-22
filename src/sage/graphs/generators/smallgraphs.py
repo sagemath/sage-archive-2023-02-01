@@ -1357,7 +1357,7 @@ def BrouwerHaemersGraph():
     V = VectorSpace(F,d)
     M = Matrix(F,identity_matrix(d))
     M[1,1]=-1
-    G = Graph([map(tuple,V), lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
+    G = Graph([list(map(tuple,V)), lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
     G.relabel()
     ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 48, 49, 50, 51, 52, 53,
@@ -3323,7 +3323,7 @@ def M22Graph():
         (77, 16, 0, 4)
     """
     from sage.groups.perm_gps.permgroup_named import MathieuGroup
-    sets = map(tuple,MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets"))
+    sets = list(map(tuple,MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets")))
     g = Graph([sets, lambda x,y : not any(xx in y for xx in x)], name="M22 Graph")
     g.relabel()
     ordering = [0, 1, 3, 4, 5, 6, 7, 10, 12, 19, 20, 31, 2, 24, 35, 34, 22, 32,
@@ -3471,7 +3471,7 @@ def McLaughlinGraph():
     from sage.sets.set import Set
 
     blocks = WittDesign(23).blocks()
-    blocks = map(Set, blocks)
+    blocks = list(map(Set, blocks))
     B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
     g = Graph()

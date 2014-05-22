@@ -151,7 +151,7 @@ def _MOLS_from_string(s,k):
     for i,l in enumerate(s.split()):
         l = [ord(x) - 97 for x in l]
         matrices[i%k].append(l)
-    return map(Matrix, matrices)
+    return list(map(Matrix, matrices))
 
 def MOLS_10_2():
     r"""
@@ -801,7 +801,7 @@ def OA_6_34():
             Mb[3].append(d)
             Mb[4].append(e)
             Mb[5].append(f)
-            a,b,c,d,e,f = map(times4,[e,a,b,c,d,f])
+            a,b,c,d,e,f = list(map(times4,[e,a,b,c,d,f]))
 
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = False)
     return M
@@ -1676,7 +1676,7 @@ def OA_7_60():
     onezero = G((1,0))
 
     for R in zip(*M60):
-        a,b,c,d,e,f = map(G,R)
+        a,b,c,d,e,f = list(map(G,R))
         M60b[0].extend([a,c,b,-d,-e,-f])
         M60b[1].extend([b,a,c,-e,-f,-d])
         M60b[2].extend([c,b,a,-f,-d,-e])

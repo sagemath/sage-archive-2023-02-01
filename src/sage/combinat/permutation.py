@@ -505,7 +505,7 @@ class Permutation(CombinatorialObject, Element):
             cycles[-1] = cycles[-1][:-1]
             cycle_list = []
             for c in cycles:
-                cycle_list.append(map(int, c.split(",")))
+                cycle_list.append(list(map(int, c.split(","))))
 
             return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
 
@@ -515,7 +515,7 @@ class Permutation(CombinatorialObject, Element):
             return RSK_inverse(*l, output='permutation')
         elif isinstance(l, (tuple, list)) and len(l) == 2 and \
             all(isinstance(x, list) for x in l):
-            P,Q = map(tableau.Tableau, l)
+            P,Q = list(map(tableau.Tableau, l))
             return RSK_inverse(P, Q, 'permutation')
 
         # if it's a tuple or nonempty list of tuples, also assume cycle
@@ -525,8 +525,8 @@ class Permutation(CombinatorialObject, Element):
              all(isinstance(x, tuple) for x in l)):
             if len(l) >= 1 and (isinstance(l[0],(int,Integer)) or len(l[0]) > 0):
                 if isinstance(l[0], tuple):
-                    n = max( map(max, l) )
-                    return from_cycles(n, map(list, l))
+                    n = max( list(map(max, l)) )
+                    return from_cycles(n, list(map(list, l)))
                 else:
                     n = max(l)
                     l = [list(l)]
@@ -2149,7 +2149,7 @@ class Permutation(CombinatorialObject, Element):
             [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
         """
         patt=range(1,self.longest_increasing_subsequence_length()+1)
-        return map(lambda m : map(lambda i : self[i],m) , self.pattern_positions(patt))
+        return [[self[i] for i in m] for m in self.pattern_positions(patt)]
 
     def cycle_type(self):
         r"""
@@ -2445,7 +2445,7 @@ class Permutation(CombinatorialObject, Element):
         for d in descents:
             pp = p[:d] + [p[d+1], p[d]] + p[d+2:]
             z = lambda x: x + [d+1]
-            rws += (map(z, P(pp).reduced_words()))
+            rws += (list(map(z, P(pp).reduced_words())))
 
         return rws
 
@@ -3132,7 +3132,7 @@ class Permutation(CombinatorialObject, Element):
         n = len(p)
         P = Permutations()
 
-        for z in P(map(lambda x: n+1-x, p)).bruhat_inversions_iterator():
+        for z in P([n+1-x for x in p]).bruhat_inversions_iterator():
             pp = p[:]
             pp[z[0]] = p[z[1]]
             pp[z[1]] = p[z[0]]
@@ -3560,7 +3560,7 @@ class Permutation(CombinatorialObject, Element):
         if l > n:
             return False
         for pos in subword.Subwords(range(n),l):
-            if to_standard(map(lambda z: p[z] , pos)) == patt:
+            if to_standard([p[z] for z in pos]) == patt:
                 return True
         return False
 
@@ -3592,7 +3592,7 @@ class Permutation(CombinatorialObject, Element):
         """
         p = self
 
-        return list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
+        return list(itertools.ifilter(lambda pos: to_standard([p[z] for z in pos]) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
 
     @combinatorial_map(name='Simion-Schmidt map')
     def simion_schmidt(self, avoid=[1,2,3]):
@@ -3683,7 +3683,7 @@ class Permutation(CombinatorialObject, Element):
             [3, 1, 2]
         """
         n = len(self)
-        return self.__class__(self.parent(), map(lambda x: n - x + 1, self) )
+        return self.__class__(self.parent(), [n - x + 1 for x in self] )
 
     @combinatorial_map(name='permutation poset')
     def permutation_poset(self):
@@ -3763,7 +3763,7 @@ class Permutation(CombinatorialObject, Element):
         """
         if len(a) != len(self):
             raise ValueError("len(a) must equal len(self)")
-        return map(lambda i: a[i-1], self)
+        return [a[i-1] for i in self]
 
     ######################
     # Robinson-Schensted #
@@ -4544,7 +4544,7 @@ class Permutations(Parent, UniqueRepresentation):
                     return Permutations_nk(n,k)
             else:
                 #In this case, we have that n is a list
-                if map(n.index, n) == range(len(n)):
+                if list(map(n.index, n)) == range(len(n)):
                     if k is None:
                         return Permutations_set(n)
                     else:
@@ -4791,7 +4791,7 @@ class Permutations_mset(Permutations):
         mset = self.mset
         n = len(self.mset)
         lmset = list(mset)
-        mset_list = sorted(map(lambda x: lmset.index(x), lmset))
+        mset_list = sorted([lmset.index(x) for x in lmset])
 
         yield self.element_class(self, [lmset[x] for x in mset_list])
 
@@ -4959,7 +4959,7 @@ class Permutations_set(Permutations):
         s = self._set
         n = len(s)
         lset = list(s)
-        set_list = sorted(map(lambda x: lset.index(x), lset))
+        set_list = sorted([lset.index(x) for x in lset])
 
         yield self.element_class(self, [lset[x] for x in set_list])
 
@@ -5096,7 +5096,7 @@ class Permutations_msetk(Permutations_mset):
         """
         mset = self.mset
         lmset = list(mset)
-        mset_list = map(lambda x: lmset.index(x), lmset)
+        mset_list = [lmset.index(x) for x in lmset]
         indices = eval(gap.eval('Arrangements(%s,%s)'%(mset_list, self.k)))
         for ktuple in indices:
             yield self.element_class(self, [lmset[x] for x in ktuple])
@@ -5243,7 +5243,7 @@ class Arrangements(Permutations):
             True
         """
         mset = tuple(mset)
-        if map(mset.index, mset) == range(len(mset)):
+        if list(map(mset.index, mset)) == range(len(mset)):
             return Arrangements_setk(mset, k)
         return Arrangements_msetk(mset, k)
 
@@ -6027,7 +6027,7 @@ def descents_composition_list(dc):
          [4, 3, 5, 1, 2],
          [5, 3, 4, 1, 2]]
     """
-    return map(lambda p: p.inverse(), StandardPermutations_recoils(dc).list())
+    return [p.inverse() for p in StandardPermutations_recoils(dc).list()]
 
 def descents_composition_first(dc):
     r"""
@@ -6659,7 +6659,7 @@ class CyclicPermutations(Permutations_mset):
             content = [1]*len(self.mset)
         else:
             content = [0]*len(self.mset)
-            index_list = map(self.mset.index, self.mset)
+            index_list = list(map(self.mset.index, self.mset))
             for i in index_list:
                 content[i] += 1
 
@@ -6769,7 +6769,7 @@ class CyclicPermutationsOfPartition(Permutations):
                 sage: elt = CP[0]
                 sage: elt.check()
             """
-            if map(sorted, self) != map(sorted, self.parent().partition):
+            if list(map(sorted, self)) != list(map(sorted, self.parent().partition)):
                 raise ValueError("Invalid cyclic permutation of the partition"%self.parent().partition)
 
     def _repr_(self):
@@ -6779,7 +6779,7 @@ class CyclicPermutationsOfPartition(Permutations):
             sage: CyclicPermutationsOfPartition([[1,2,3,4],[5,6,7]])
             Cyclic permutations of partition [[1, 2, 3, 4], [5, 6, 7]]
         """
-        return "Cyclic permutations of partition %s"%map(list, self.partition)
+        return "Cyclic permutations of partition %s"%list(map(list, self.partition))
 
     def __iter__(self, distinct=False):
         """
@@ -7047,7 +7047,7 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
         for i in range(1, self.n-1):
             for left in StandardPermutations_avoiding_132(i):
                 for right in StandardPermutations_avoiding_132(self.n-i-1):
-                    yield self.element_class(self, map(lambda x: x+(self.n-i-1), left) + [self.n] + list(right) )
+                    yield self.element_class(self, [x+(self.n-i-1) for x in left] + [self.n] + list(right) )
 
 
         #Yield all the 132 avoiding permutations to the left

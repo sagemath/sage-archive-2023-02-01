@@ -99,7 +99,7 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], return_vars=True)
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
     """
-    if max(map(len, ranges)) != min(map(len, ranges)):
+    if max(list(map(len, ranges))) != min(list(map(len, ranges))):
         raise ValueError("Some variable ranges specify variables while others do not")
 
     if len(ranges[0])==3:

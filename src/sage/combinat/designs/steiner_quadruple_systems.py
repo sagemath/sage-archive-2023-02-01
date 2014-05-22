@@ -170,7 +170,7 @@ def three_n_minus_two(n,B):
     for j in xrange(n-1):
         Y.append((r(0,j),r(1,j),r(2,j),3*n-3))
 
-    Y = tuple(map(tuple,map(sorted,Y)))
+    Y = tuple(map(tuple,list(map(sorted,Y))))
     return Y
 
 # Construction 3
@@ -237,7 +237,7 @@ def three_n_minus_eight(n, B):
                     Y.append(tuple(sorted((r(i,ra),r(i,sa),r(i+1,raa), r(i+1,saa)))))
 
 
-    Y = tuple(map(tuple,map(sorted,Y)))
+    Y = tuple(map(tuple,list(map(sorted,Y))))
     return Y
 
 # Construction 4
@@ -302,7 +302,7 @@ def three_n_minus_four(n, B):
                 for raa,saa in P(alpha, 6*k+4):
                     Y.append(tuple(sorted((r(i,ra),r(i,sa),r(i+1,raa), r(i+1,saa)))))
 
-    Y = tuple(map(tuple,map(sorted,Y)))
+    Y = tuple(map(tuple,list(map(sorted,Y))))
     return Y
 
 # Construction 5
@@ -380,7 +380,7 @@ def four_n_minus_six(n, B):
                 for raa,saa in P(alpha,k):
                     Y.append((r(h,0,ra),r(h,0,sa),r(h,1,raa),r(h,1,saa)))
 
-    Y = tuple(map(tuple,map(sorted,Y)))
+    Y = tuple(map(tuple,list(map(sorted,Y))))
     return Y
 
 # Construction 6

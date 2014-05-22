@@ -2343,12 +2343,12 @@ class SingularGBLogPrettyPrinter:
             # collect stats returned about avoided reductions to zero
             match = re.match(SingularGBLogPrettyPrinter.crt_lne1,line)
             if match:
-                self.prod,self.chain = map(int,re.match(SingularGBLogPrettyPrinter.crt_lne1,line).groups())
+                self.prod,self.chain = list(map(int,re.match(SingularGBLogPrettyPrinter.crt_lne1,line).groups()))
                 self.storage = ""
                 continue
             match = re.match(SingularGBLogPrettyPrinter.crt_lne2,line)
             if match:
-                self.nf,self.prod,self.ext_prod = map(int,re.match(SingularGBLogPrettyPrinter.crt_lne2,line).groups())
+                self.nf,self.prod,self.ext_prod = list(map(int,re.match(SingularGBLogPrettyPrinter.crt_lne2,line).groups()))
                 self.storage = ""
                 continue
 

@@ -290,7 +290,7 @@ def _equalize_perms(l):
         sage: l
         [[0, 1, 2, 3], [1, 0, 2, 3], [3, 0, 1, 2]]
     """
-    n=max(map(len,l))
+    n=max(list(map(len,l)))
     if n ==0:
         n = 1
     for p in l:

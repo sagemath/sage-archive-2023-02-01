@@ -2434,7 +2434,7 @@ class Graphics(SageObject):
             else: # log scale
                 from sage.misc.misc import srange
                 base_inv = 1.0/basex
-                subs = map(float, srange(2*base_inv, 1, base_inv))
+                subs = list(map(float, srange(2*base_inv, 1, base_inv)))
                 subplot.xaxis.set_minor_locator(LogLocator(base=basex,
                                                            subs=subs))
             if isinstance(y_locator, (NullLocator, FixedLocator)):
@@ -2444,7 +2444,7 @@ class Graphics(SageObject):
             else: # log scale
                 from sage.misc.misc import srange
                 base_inv = 1.0/basey
-                subs = map(float, srange(2*base_inv, 1, base_inv))
+                subs = list(map(float, srange(2*base_inv, 1, base_inv)))
                 subplot.yaxis.set_minor_locator(LogLocator(base=basey,
                                                            subs=subs))
 

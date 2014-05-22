@@ -26,7 +26,7 @@ class FDerivativeOperator(object):
             D[0, 1](foo)
         """
         self._f = function
-        self._parameter_set = map(int, parameter_set)
+        self._parameter_set = list(map(int, parameter_set))
 
     def __call__(self, *args):
         """

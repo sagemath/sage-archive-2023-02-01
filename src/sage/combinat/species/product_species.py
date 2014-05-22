@@ -34,7 +34,7 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
             sage: (S*S*S).structures(['a','b','c']).random_element()
             ({'c'}*{'a'})*{'b'}
         """
-        left, right = map(repr, self._list)
+        left, right = list(map(repr, self._list))
         if "*" in left:
             left = "(%s)"%left
         if "*" in right:

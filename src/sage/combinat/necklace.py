@@ -181,7 +181,7 @@ class Necklaces_evaluation(CombinatorialClass):
         if self.e == []:
             return
         for z in _sfc(self.e):
-            yield map(lambda x: x+1, z)
+            yield [x+1 for x in z]
 
 
 

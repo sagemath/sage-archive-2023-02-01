@@ -370,7 +370,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        self._block_sizes = map(len, self.blocks())
+        self._block_sizes = list(map(len, self.blocks()))
         return self._block_sizes
 
     def _gap_(self):

@@ -2893,14 +2893,14 @@ class MagmaGBLogPrettyPrinter:
             if re.match(MagmaGBLogPrettyPrinter.deg_curr,line):
                 match = re.match(MagmaGBLogPrettyPrinter.deg_curr,line)
 
-                nbasis,npairs,deg,npairs_deg = map(int,match.groups())
+                nbasis,npairs,deg,npairs_deg = list(map(int,match.groups()))
 
                 self.curr_deg = deg
                 self.curr_npairs = npairs
 
             if re.match(MagmaGBLogPrettyPrinter.pol_curr,line):
                 match = re.match(MagmaGBLogPrettyPrinter.pol_curr,line)
-                pol_curr,col_curr = map(int,match.groups())
+                pol_curr,col_curr = list(map(int,match.groups()))
 
                 if pol_curr != 0:
                     if self.max_deg < self.curr_deg:

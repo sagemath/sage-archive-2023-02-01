@@ -203,7 +203,7 @@ class AsciiArt(SageObject):
         self._is_atomic = atomic
 
         self._h = len(lines)
-        self._l = max(map(lambda line: len(line), lines) + [0])
+        self._l = max([len(line) for line in lines] + [0])
 
     def __getitem__(self, key):
         r"""

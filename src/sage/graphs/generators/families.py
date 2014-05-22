@@ -2168,7 +2168,7 @@ def SymplecticGraph(d,q):
 
     V = VectorSpace(F,d)
     PV = list(ProjectiveSpace(d-1,F))
-    G = Graph([map(tuple,PV), lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
+    G = Graph([list(map(tuple,PV)), lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
     G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
     G.relabel()
     return G

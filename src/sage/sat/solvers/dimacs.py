@@ -453,7 +453,7 @@ class RSat(DIMACS):
                 if "UNSAT" in line:
                     return False
             if line.startswith("v"):
-                lits = map(int, line[2:-2].strip().split(" "))
+                lits = list(map(int, line[2:-2].strip().split(" ")))
                 for e in lits:
                     s[abs(e)] = e>0
         return tuple(s)
@@ -499,7 +499,7 @@ class Glucose(DIMACS):
                 if "UNSAT" in line:
                     return False
             try:
-                s = map(int, line[:-2].strip().split(" "))
+                s = list(map(int, line[:-2].strip().split(" ")))
                 s = (None,) + tuple(e>0 for e in s)
                 return s
             except ValueError:

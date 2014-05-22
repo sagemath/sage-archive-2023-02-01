@@ -564,7 +564,7 @@ class SkewTableau(CombinatorialObject, Element):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
+        return SkewTableau( filter(lambda z: z != [], [filter(lambda y: y is None or y <= n, x) for x in t]) )
 
     def restriction_outer_shape(self, n):
         """

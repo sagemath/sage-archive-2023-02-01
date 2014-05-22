@@ -662,7 +662,7 @@ class Polyomino(SageObject):
             [[0, 0, 0], [1, 2, 1]]
         """
         zipped_coords = zip(*self)
-        return [map(min, zipped_coords), map(max, zipped_coords)]
+        return [list(map(min, zipped_coords)), list(map(max, zipped_coords))]
 
     def translated(self, box):
         r"""
@@ -732,7 +732,7 @@ class Polyomino(SageObject):
         if not len(box) == self._dimension:
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
-        minxyz, maxxyz = map(vector, self.bounding_box())
+        minxyz, maxxyz = list(map(vector, self.bounding_box()))
         size = maxxyz - minxyz
         cano = self.canonical()
         for v in xmrange(vector(box) - vector(size), tuple):

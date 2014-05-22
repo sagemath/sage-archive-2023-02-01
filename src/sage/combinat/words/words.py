@@ -1010,7 +1010,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         #if l == Integer(0):
         #    yield self()
         for w in xmrange([self.size_of_alphabet()]*l):
-            yield self(map(lambda x: self.alphabet().unrank(x), w))
+            yield self([self.alphabet().unrank(x) for x in w])
 
     def random_element(self):
         r"""

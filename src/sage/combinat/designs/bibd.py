@@ -252,7 +252,7 @@ def steiner_triple_system(n):
         raise ValueError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
 
     from sage.sets.set import Set
-    sts = Set(map(lambda x: Set(map(T,x)),sts))
+    sts = Set([Set(list(map(T,x))) for x in sts])
 
     return BlockDesign(n, sts, name=name)
 

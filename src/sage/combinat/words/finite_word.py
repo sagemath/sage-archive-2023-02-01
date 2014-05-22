@@ -240,7 +240,7 @@ class FiniteWord_class(Word_class):
         global word_options
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = map(str, self)
+            letters = list(map(str, self))
             if all(len(a)==1 for a in letters):
                 return ''.join(letters)
             else:
@@ -2967,7 +2967,7 @@ exponent %s: the length of the word (%s) times the exponent \
         -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
             Ser. A 13:90–99, 1972.
         """
-        return max(map(FiniteWord_class.order, self.factor_iterator()))
+        return max(list(map(FiniteWord_class.order, self.factor_iterator())))
 
     def is_overlap(self):
         r"""
@@ -3971,8 +3971,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         idx = 0
         tab = {}
-        ret = map(lambda w: tab.setdefault(w, len(tab)) + 1, \
-                                self._return_words_list(fact))
+        ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
         return Word(ret)
 

@@ -364,7 +364,7 @@ class DyckWord(CombinatorialObject, Element):
             raise ValueError("You have not specified a Dyck word.")
 
         if isinstance(dw, str):
-            l = map(replace_parens, dw)
+            l = list(map(replace_parens, dw))
         else:
             l = dw
 

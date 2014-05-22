@@ -1115,7 +1115,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 parent = self.parent()
                 M = parent.realization_of().M()
                 C = parent._basis_keys
-                dct = {C(map(lambda i: n * i, I)): coeff
+                dct = {C([n * i for i in I]): coeff
                        for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)

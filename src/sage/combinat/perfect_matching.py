@@ -174,7 +174,7 @@ class PerfectMatching(ElementWrapper):
         if (isinstance(p, list) or isinstance(p, tuple)) and (
                 all([isinstance(x, list) or isinstance(x, tuple) for x in p])):
             objects = Set(flatten(p))
-            data = (map(tuple, p))
+            data = (list(map(tuple, p)))
             #check if the data are correct
             if not all([len(t) == 2 for t in data]):
                 raise ValueError("%s is not a valid perfect matching:\n"
@@ -185,7 +185,7 @@ class PerfectMatching(ElementWrapper):
         # Second case: p is a permutation or a list of integers, we have to
         # check if it is a fix-point-free involution.
         elif ((isinstance(p, list) and
-               all(map(lambda x: (isinstance(x, Integer) or isinstance(x, int)), p)))
+               all([(isinstance(x, Integer) or isinstance(x, int)) for x in p]))
               or isinstance(p, Permutation)):
             p = Permutation(p)
             n = len(p)
@@ -293,7 +293,7 @@ class PerfectMatching(ElementWrapper):
                 return False
         except AttributeError:
             return False
-        return Set(map(Set, self.value)) == Set(map(Set, other.value))
+        return Set(list(map(Set, self.value))) == Set(list(map(Set, other.value)))
 
     def size(self):
         r"""
@@ -343,7 +343,7 @@ class PerfectMatching(ElementWrapper):
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
         """
-        return self.parent()(map(lambda t: tuple(map(p, t)), self.value))
+        return self.parent()([tuple(map(p, t)) for t in self.value])
 
     def loops_iterator(self, other=None):
         r"""

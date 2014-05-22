@@ -463,7 +463,7 @@ class OEIS:
                    'start':str(first_result)}
         url = oeis_url + "search?" + urlencode(options)
         sequence_list = _fetch(url).split('\n\n')[2:-1]
-        return FancyTuple(map(OEISSequence, sequence_list))
+        return FancyTuple(list(map(OEISSequence, sequence_list)))
 
     def find_by_subsequence(self, subsequence, max_results=3, first_result=0):
         r"""
@@ -1443,7 +1443,7 @@ class OEISSequence(SageObject):
             elif format == 'raw':
                 return FancyTuple(self._fields['H'])
             elif format == 'html':
-                html(FancyTuple(map(url_absolute, self._fields['H'])))
+                html(FancyTuple(list(map(url_absolute, self._fields['H']))))
             elif format == 'url':
                 url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
                 return FancyTuple(url_list)
@@ -1522,7 +1522,7 @@ class OEISSequence(SageObject):
         """
         ref_list = re.findall('A[0-9]{6}', " ".join(self._fields['Y']))
         if fetch:
-            return FancyTuple(map(oeis.find_by_id, ref_list))
+            return FancyTuple(list(map(oeis.find_by_id, ref_list)))
         else:
             return tuple(ref_list)
 
@@ -1791,8 +1791,7 @@ class FancyTuple(tuple):
             4: 4
         """
         length = len(str(len(self)-1))
-        return '\n'.join(map(lambda i: ('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]),
-                             range(len(self))))
+        return '\n'.join([('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))])
 
 oeis = OEIS()
 

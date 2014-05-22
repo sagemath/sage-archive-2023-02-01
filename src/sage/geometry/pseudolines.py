@@ -244,7 +244,7 @@ class PseudolineArrangement:
         if (encoding == "transpositions" or
             (encoding == "auto" and len(seq[0]) == 2 and len(seq) > 3)):
 
-            self._n = max(map(max, seq)) + 1
+            self._n = max(list(map(max, seq))) + 1
             if (self._n * (self._n-1))/2 != len(seq):
                 raise ValueError(
                     "A line is numbered "+str(self._n-1)+" but the number"+
@@ -263,9 +263,9 @@ class PseudolineArrangement:
             (encoding == "auto" and (len(seq[0]) == len(seq)-1) and max(seq[0]) > 1)):
 
             self._n = len(seq)
-            self._permutations = map(list,seq)
+            self._permutations = list(map(list,seq))
 
-            if max(map(max, seq)) != self._n -1 :
+            if max(list(map(max, seq))) != self._n -1 :
                 raise ValueError("Are the lines really numbered from 0 to n-1?")
 
         # Felsner encoding
@@ -362,7 +362,7 @@ class PseudolineArrangement:
 
             crossings -= 1
 
-        if max(map(len,perm)) != 0:
+        if max(list(map(len,perm))) != 0:
             raise ValueError("There has been an error while computing the transpositions.")
 
         return t

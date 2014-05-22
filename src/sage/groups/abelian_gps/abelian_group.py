@@ -293,7 +293,7 @@ def word_problem(words, g, verbose = False):
     """
     from sage.interfaces.all import gap
     G = g.parent()
-    invs = map(str, G.gens_orders())
+    invs = list(map(str, G.gens_orders()))
     gap.eval("l:=One(Rationals)")
     s1 = 'A:=AbelianGroup([' + ','.join(invs) + '])'
     gap.eval(s1)

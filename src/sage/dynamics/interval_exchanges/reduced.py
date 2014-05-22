@@ -379,8 +379,8 @@ def alphabetized_atwin(twin, alphabet):
     """
     l = [[],[]]
 
-    l[0] = map(lambda x: alphabet.unrank(x), range(len(twin[0])))
-    l[1] = map(lambda x: alphabet.unrank(x), twin[1])
+    l[0] = [alphabet.unrank(x) for x in range(len(twin[0]))]
+    l[1] = [alphabet.unrank(x) for x in twin[1]]
 
     return l
 
@@ -511,8 +511,8 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: iet.GeneralizedPermutation(p.list(),reduced=True) == p
             True
         """
-        a0 = map(self._alphabet.unrank, range(0,len(self)))
-        a1 = map(self._alphabet.unrank, self._twin[1])
+        a0 = list(map(self._alphabet.unrank, range(0,len(self))))
+        a1 = list(map(self._alphabet.unrank, self._twin[1]))
         return [a0,a1]
 
     def is_identity(self):
@@ -1458,12 +1458,12 @@ class FlippedReducedPermutationIET(
             True
         """
         if flips:
-            a0 = zip(map(self.alphabet().unrank, range(0,len(self))), self._flips[0])
-            a1 = zip(map(self.alphabet().unrank, self._twin[1]), self._flips[1])
+            a0 = zip(list(map(self.alphabet().unrank, range(0,len(self)))), self._flips[0])
+            a1 = zip(list(map(self.alphabet().unrank, self._twin[1])), self._flips[1])
 
         else:
-            a0 = map(self.alphabet().unrank, range(0,len(self)))
-            a1 = map(self.alphabet().unrank, self._twin[1])
+            a0 = list(map(self.alphabet().unrank, range(0,len(self))))
+            a1 = list(map(self.alphabet().unrank, self._twin[1]))
 
         return [a0,a1]
 

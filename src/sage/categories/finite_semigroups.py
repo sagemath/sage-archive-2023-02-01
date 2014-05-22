@@ -217,8 +217,7 @@ class FiniteSemigroups(Category):
                 [['a'], ['ab', 'ba'], ['abc', 'acb', 'bac', 'bca', 'cab', 'cba'], ['ac', 'ca'], ['b'], ['bc', 'cb'], ['c']]
             """
             return filter(lambda l: len(l) > 0,
-                          map(lambda cl: filter(attrcall('is_idempotent'), cl),
-                              self.j_classes()))
+                          [filter(attrcall('is_idempotent'), cl) for cl in self.j_classes()])
 
         @cached_method
         def j_transversal_of_idempotents(self):
@@ -237,7 +236,7 @@ class FiniteSemigroups(Category):
                         return x
                 return None
             return filter(lambda x: not x is None,
-                          map(first_idempotent, self.j_classes()))
+                          list(map(first_idempotent, self.j_classes())))
 
         # TODO: compute eJe, where J is the J-class of e
         # TODO: construct the action of self on it, as a permutation group

@@ -784,7 +784,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             return True
 
         from itertools import product
-        OA = map(list, product(range(n), repeat=k))
+        OA = list(map(list, product(range(n), repeat=k)))
 
     elif n in OA_constructions and k <= OA_constructions[n][0]:
         if existence:

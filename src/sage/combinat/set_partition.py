@@ -231,7 +231,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return map(sorted, self) < map(sorted, y)
+        return list(map(sorted, self)) < list(map(sorted, y))
 
     def __gt__(self, y):
         """
@@ -259,7 +259,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return map(sorted, self) > map(sorted, y)
+        return list(map(sorted, self)) > list(map(sorted, y))
 
     def __le__(self, y):
         """
@@ -403,7 +403,7 @@ class SetPartition(ClonableArray):
             sage: S([[1,3],[2,4]])
             {{1, 3}, {2, 4}}
         """
-        return '{' + ', '.join(map(lambda x: '{' + repr(sorted(x))[1:-1] + '}', self)) + '}'
+        return '{' + ', '.join(['{' + repr(sorted(x))[1:-1] + '}' for x in self]) + '}'
 
     def _latex_(self):
         r"""
@@ -559,7 +559,7 @@ class SetPartition(ClonableArray):
             sage: x.apply_permutation(q)
             {{1, 4, 5}, {2, 3}}
         """
-        return self.__class__(self.parent(), [Set(map(p, B)) for B in self])
+        return self.__class__(self.parent(), [Set(list(map(p, B))) for B in self])
 
     def is_noncrossing(self):
         r"""
@@ -577,8 +577,8 @@ class SetPartition(ClonableArray):
         AUTHOR: Florent Hivert
         """
         l = list(self)
-        mins = map(min, l)
-        maxs = map(max, l)
+        mins = list(map(min, l))
+        maxs = list(map(max, l))
 
         for i in range(1, len(l)):
             for j in range(i):
@@ -688,7 +688,7 @@ class SetPartition(ClonableArray):
         """
         if len(self) == 0:
             return self
-        temp = map(list, self)
+        temp = list(map(list, self))
         mins = [min(p) for p in temp]
         over_max = max([max(p) for p in temp]) + 1
         ret = [[] for i in range(len(temp))]
@@ -808,8 +808,8 @@ class SetPartition(ClonableArray):
             sub_parts = [list(self[i-1]) for i in part] # -1 for indexing
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
-            mins = map(min, sub_parts)
-            over_max = max(map(max, sub_parts)) + 1
+            mins = list(map(min, sub_parts))
+            over_max = max(list(map(max, sub_parts))) + 1
             temp = [[] for i in range(len(part))]
             while min(mins) != over_max:
                 m = min(mins)
@@ -841,7 +841,7 @@ class SetPartition(ClonableArray):
             [{}]
         """
         L = [SetPartitions(part) for part in self]
-        return [SetPartition(sum(map(list, x), [])) for x in CartesianProduct(*L)]
+        return [SetPartition(sum(list(map(list, x)), [])) for x in CartesianProduct(*L)]
 
     def coarsenings(self):
         """
@@ -1017,7 +1017,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         # Check that all parts are disjoint
-        base_set = reduce( lambda x,y: x.union(y), map(Set, x), Set([]) )
+        base_set = reduce( lambda x,y: x.union(y), list(map(Set, x)), Set([]) )
         if len(base_set) != sum(map(len, x)):
             return False
 
@@ -1084,7 +1084,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             if expo[i] != 0:
                 nonzero.append([i, expo[i]])
 
-        taillesblocs = map(lambda x: (x[0])*(x[1]), nonzero)
+        taillesblocs = [(x[0])*(x[1]) for x in nonzero]
 
         blocs = OrderedSetPartitions(self._set, taillesblocs)
 

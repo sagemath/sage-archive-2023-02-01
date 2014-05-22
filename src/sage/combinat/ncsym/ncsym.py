@@ -503,7 +503,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             P = SetPartitions()
             n = A.size()
             B = [Set([y+n for y in b]) for b in B] # Shift B by n
-            unions = lambda m: map(lambda x: reduce(lambda a,b: a.union(b), x), m)
+            unions = lambda m: [reduce(lambda a,b: a.union(b), x) for x in m]
             return self.sum_of_terms([(P(unions(m)), 1) for m in matchings(A, B)], distinct=True)
 
         def coproduct_on_basis(self, A):
@@ -664,7 +664,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             la = Partition(la) # Make sure it is a partition
             R = self.base_ring()
             P = SetPartitions()
-            c = R( prod(map(factorial, la), R.one()) / factorial(la.size()) )
+            c = R( prod(list(map(factorial, la)), R.one()) / factorial(la.size()) )
             return self.sum_of_terms([(P(m), c) for m in SetPartitions(sum(la), la)], distinct=True)
 
         class Element(CombinatorialFreeModule.Element):
@@ -746,7 +746,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                     6*m[1, 1, 1]
                 """
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
-                c = lambda la: prod(map(factorial, la.to_exp()))
+                c = lambda la: prod(list(map(factorial, la.to_exp())))
                 return m.sum_of_terms([(i.shape(), coeff*c(i.shape())) for (i, coeff) in self])
 
     m = monomial
@@ -923,7 +923,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                     e[1, 1, 1]
                 """
                 e = SymmetricFunctions(self.parent().base_ring()).e()
-                c = lambda la: prod(map(factorial, la))
+                c = lambda la: prod(list(map(factorial, la)))
                 return e.sum_of_terms([(i.shape(), coeff*c(i.shape())) for (i, coeff) in self])
 
     e = elementary
@@ -977,7 +977,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             """
             P = SetPartitions()
             m = self.realization_of().m()
-            coeff = lambda B: prod(map(factorial, B.shape()), self.base_ring().one())
+            coeff = lambda B: prod(list(map(factorial, B.shape())), self.base_ring().one())
             return m.sum_of_terms([(P(B), coeff(A.inf(B))) for B in SetPartitions(A.size())], distinct=True)
 
         @cached_method
@@ -1093,7 +1093,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                     h[1, 1, 1]
                 """
                 h = SymmetricFunctions(self.parent().base_ring()).h()
-                c = lambda la: prod(map(factorial, la))
+                c = lambda la: prod(list(map(factorial, la)))
                 return h.sum_of_terms([(i.shape(), coeff*c(i.shape())) for (i, coeff) in self])
 
     h = homogeneous

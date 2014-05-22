@@ -817,7 +817,7 @@ class Triangulation(Element):
             Graph on 8 vertices
 
         """
-        vertices = map(Set,list(self))
+        vertices = list(map(Set,list(self)))
         return Graph([vertices,
                   lambda x,y: len(x-y)==1])
 

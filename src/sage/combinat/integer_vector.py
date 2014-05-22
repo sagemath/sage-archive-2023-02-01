@@ -705,7 +705,7 @@ class IntegerVectors_nk(CombinatorialClass):
             return [[self.n]]
 
         res = self._list_rec(self.n, self.k)
-        return map(list, res)
+        return list(map(list, res))
 
 
     def __iter__(self):
@@ -974,12 +974,12 @@ class IntegerVectors_nkconstraints(CombinatorialClass):
         min_slope = constraints.get('min_slope', -infinity)
         max_slope = constraints.get('max_slope', infinity)
         if 'outer' in self.constraints:
-            ceiling = list2func( map(lambda i: min(max_part, i), self.constraints['outer']), default=max_part )
+            ceiling = list2func( [min(max_part, i) for i in self.constraints['outer']], default=max_part )
         else:
             ceiling = constant_func(max_part)
 
         if 'inner' in self.constraints:
-            floor = list2func( map(lambda i: max(min_part, i), self.constraints['inner']), default=min_part )
+            floor = list2func( [max(min_part, i) for i in self.constraints['inner']], default=min_part )
         else:
             floor = constant_func(min_part)
 

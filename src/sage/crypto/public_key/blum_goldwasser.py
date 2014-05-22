@@ -364,7 +364,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         for i in xrange(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
-            M.append(map(xor, p, c[i]))
+            M.append(list(map(xor, p, c[i])))
             x0 = x1
         return M
 
@@ -545,7 +545,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             p = least_significant_bits(x1, h)
             # xor p with a sub-block of length h. There are t sub-blocks of
             # length h each.
-            C.append(map(xor, p, map(to_int, M[i*h : (i+1)*h])))
+            C.append(list(map(xor, p, list(map(to_int, M[i*h : (i+1)*h])))))
             x0 = x1
         x1 = power_mod(x0, 2, n)
         return (C, x1)

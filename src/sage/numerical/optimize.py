@@ -317,7 +317,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     from scipy import optimize
     if isinstance(func, Expression):
         var_list=func.variables()
-        var_names=map(str,var_list)
+        var_names=list(map(str,var_list))
         fast_f=fast_callable(func, vars=var_names, domain=float)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
@@ -328,25 +328,25 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
     if algorithm=="default":
         if gradient==None:
-            min=optimize.fmin(f,map(float,x0),**args)
+            min=optimize.fmin(f,list(map(float,x0)),**args)
         else:
-            min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
+            min= optimize.fmin_bfgs(f,list(map(float,x0)),fprime=gradient,**args)
     else:
         if algorithm=="simplex":
-            min= optimize.fmin(f,map(float,x0),**args)
+            min= optimize.fmin(f,list(map(float,x0)),**args)
         elif algorithm=="bfgs":
-            min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
+            min= optimize.fmin_bfgs(f,list(map(float,x0)),fprime=gradient,**args)
         elif algorithm=="cg":
-            min= optimize.fmin_cg(f,map(float,x0),fprime=gradient,**args)
+            min= optimize.fmin_cg(f,list(map(float,x0)),fprime=gradient,**args)
         elif algorithm=="powell":
-            min= optimize.fmin_powell(f,map(float,x0),**args)
+            min= optimize.fmin_powell(f,list(map(float,x0)),**args)
         elif algorithm=="ncg":
             if isinstance(func, Expression):
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
                 hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
-                min= optimize.fmin_ncg(f,map(float,x0),fprime=gradient,fhess=hessian,fhess_p=hessian_p,**args)
+                min= optimize.fmin_ncg(f,list(map(float,x0)),fprime=gradient,fhess=hessian,fhess_p=hessian_p,**args)
     return vector(RDF,min)
 
 def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args):
@@ -433,7 +433,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
     if isinstance(func, Expression):
         var_list=func.variables()
-        var_names=map(str,var_list)
+        var_names=list(map(str,var_list))
         fast_f=func._fast_float_(*var_names)
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
@@ -678,7 +678,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     if isinstance(model, Expression):
         var_list = variables + parameters
-        var_names = map(str, var_list)
+        var_names = list(map(str, var_list))
         func = model._fast_float_(*var_names)
     else:
         func = model

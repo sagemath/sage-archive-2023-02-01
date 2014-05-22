@@ -1164,9 +1164,7 @@ class AbstractTree(object):
                 """
                 name = reduce(
                     lambda x, y: x + y,
-                    map(
-                        lambda x: chr(ord(x) + 49),
-                        list(str(num[0]))),
+                    [chr(ord(x) + 49) for x in list(str(num[0]))],
                     "")
                 node = cmd + name
                 nodes.append((name,

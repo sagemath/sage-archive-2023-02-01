@@ -2620,7 +2620,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         """
         if self._graph is None:
             edges = self.n_faces(1)
-            vertices = map(min, filter(lambda f: f.dimension() == 0, self._facets))
+            vertices = list(map(min, filter(lambda f: f.dimension() == 0, self._facets)))
             used_vertices = []  # vertices which are in an edge
             d = {}
             for e in edges:

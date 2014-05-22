@@ -948,7 +948,7 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()(map(len,self.refinement_splitting(J)))
+        return Compositions()(list(map(len,self.refinement_splitting(J))))
 
     refinement = deprecated_function_alias(13243, refinement_splitting_lengths)
 

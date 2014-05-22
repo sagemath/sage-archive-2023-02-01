@@ -96,7 +96,7 @@ def weak_popov_form(M,ascend=True):
     from sage.misc.functional import numerator
     if R0 in _Fields:
         den = lcm([a.denominator() for a in M.list()])
-        num = matrix([(lambda x : map(numerator,  x))(v) for v in map(list,(M*den).rows())])
+        num = matrix([(lambda x : list(map(numerator,  x)))(v) for v in map(list,(M*den).rows())])
     else:
         # No need to clear denominators
         den = R.one_element()

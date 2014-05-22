@@ -1931,7 +1931,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         """
         point = list(point)
         try:
-            abs_point = map(abs, point)
+            abs_point = list(map(abs, point))
         except ArithmeticError:
             # our base ring does not know abs
             abs_point = point
@@ -2389,7 +2389,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             return result
 
         # construct the affine algebraic scheme to use as patch
-        polynomials = map(pullback_polynomial, polynomials)
+        polynomials = list(map(pullback_polynomial, polynomials))
         patch_cover = sage.schemes.affine.affine_space.AffineSpace(R)
         polynomials = list(I.gens()) + polynomials
         polynomials = filter( lambda x:not x.is_zero(), polynomials)

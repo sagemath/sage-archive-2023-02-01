@@ -352,7 +352,7 @@ def rgbcolor(c, space='rgb'):
     elif isinstance(c, (list, tuple)):
         if len(c) != 3:
             raise ValueError("color list or tuple '%s' must have 3 entries, one for each RGB, HSV, HLS, or HSL channel" % (c, ))
-        c = map(mod_one, list(c))
+        c = list(map(mod_one, list(c)))
         if space == 'rgb':
             return tuple(c)
         elif space == 'hsv':
@@ -656,7 +656,7 @@ class Color(object):
         if isinstance(color, Color):
             color = color._rgb
         if isinstance(color, (list, tuple)) and len(color) == 3:
-            color = map(float, color)
+            color = list(map(float, color))
             return Color(rgbcolor([(1 - fraction) * a + fraction * b
                                    for a, b in zip(self._rgb, color)]))
         raise TypeError("%s must be a Color or float-convertible 3-tuple/list" % (color, ))
@@ -1263,7 +1263,7 @@ def float_to_html(r, g, b):
     from sage.rings.integer import Integer
     from math import floor
 
-    r, g, b = map(mod_one, (r, g, b))
+    r, g, b = list(map(mod_one, (r, g, b)))
     rr = Integer(int(floor(r * 255))).str(base = 16)
     gg = Integer(int(floor(g * 255))).str(base = 16)
     bb = Integer(int(floor(b * 255))).str(base = 16)
@@ -1385,7 +1385,7 @@ def get_cmap(cmap):
         return cm.__dict__[cmap]
 
     elif isinstance(cmap, (list, tuple)):
-        cmap = map(rgbcolor, cmap)
+        cmap = list(map(rgbcolor, cmap))
         return ListedColormap(cmap)
 
 

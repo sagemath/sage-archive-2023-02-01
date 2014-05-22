@@ -3273,8 +3273,7 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict(map(lambda x_y: (x_y[1], x_y[0]),
-                               list(enumerate(vertices))))
+        vertices_id = dict([(x_y[1], x_y[0]) for x_y in list(enumerate(vertices))])
 
         b = {}
 
@@ -3284,7 +3283,7 @@ class Graph(GenericGraph):
             b = bound
         else:
             try:
-                b = dict(zip(vertices,map(bound, vertices)))
+                b = dict(zip(vertices,list(map(bound, vertices))))
 
             except TypeError:
                 b = dict(zip(vertices, [bound]*n))
@@ -3780,7 +3779,7 @@ class Graph(GenericGraph):
         try:
             p.solve(log = verbose)
             b = p.get_values(b)
-            mapping = dict(map(lambda y:y[0],filter(lambda x:x[1], b.items())))
+            mapping = dict([y[0] for y in filter(lambda x:x[1], b.items())])
             return mapping
 
         except MIPSolverException:
@@ -3873,7 +3872,7 @@ class Graph(GenericGraph):
             matching = g.matching()
 
             # If the maximum matching has weight at most 1, we are done !
-            if sum(map(lambda x:x[2],matching)) <= 1:
+            if sum([x[2] for x in matching]) <= 1:
                 break
 
             # Otherwise, we add a new constraint
@@ -5977,7 +5976,7 @@ class Graph(GenericGraph):
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], map(relabel,x[1])) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x[0], list(map(relabel,x[1]))) if isinstance(x,tuple) else id_label[x]
 
         return relabel(D)
 

@@ -4973,11 +4973,9 @@ class FiniteStateMachine(SageObject):
         def accessible(sf, read):
             trans = filter(lambda x: x.word_in[0] == read,
                            self.transitions(sf))
-            return map(lambda x: (deepcopy(x.to_state, memo), x.word_out),
-                       trans)
+            return [(deepcopy(x.to_state, memo), x.word_out) for x in trans]
 
-        new_initial_states=map(lambda x: deepcopy(x, memo),
-                               self.initial_states())
+        new_initial_states=[deepcopy(x, memo) for x in self.initial_states()]
         result = self.empty_copy()
         result.add_from_transition_function(accessible,
                                             initial_states=new_initial_states)
@@ -5201,12 +5199,12 @@ class FiniteStateMachine(SageObject):
                                        transition2.to_state),
                                       word[0], word[1])
         for state in result.states():
-            if all(map(lambda s: s.is_initial, state.label())):
+            if all([s.is_initial for s in state.label()]):
                 state.is_initial = True
-            if all(map(lambda s: s.is_final, state.label())):
+            if all([s.is_final for s in state.label()]):
                 state.is_final = True
                 state.final_word_out = final_function(*state.label())
-            state.color = tuple(map(lambda s: s.color, state.label()))
+            state.color = tuple([s.color for s in state.label()])
 
         if only_accessible_components:
             if result.input_alphabet is None:
@@ -5492,9 +5490,9 @@ class FiniteStateMachine(SageObject):
                                        initial_states=new_initial_states)
 
         for state in F.states():
-            if all(map(lambda s: s.is_final, state.label())):
+            if all([s.is_final for s in state.label()]):
                 state.is_final = True
-            state.color = tuple(map(lambda s: s.color, state.label()))
+            state.color = tuple([s.color for s in state.label()])
 
         return F
 
@@ -5785,7 +5783,7 @@ class FiniteStateMachine(SageObject):
         condensation = DG.strongly_connected_components_digraph()
         final_labels = filter(lambda v: condensation.out_degree(v) == 0,
                               condensation.vertices())
-        return [self.induced_sub_finite_state_machine(map(self.state, component))
+        return [self.induced_sub_finite_state_machine(list(map(self.state, component)))
                 for component in final_labels]
 
 
@@ -5912,8 +5910,7 @@ class FiniteStateMachine(SageObject):
                     self.transitions(state))) \
                    or state.is_final and not state.final_word_out:
                 return tuple()
-            first_letters = map(lambda transition: transition.word_out[0],
-                                self.transitions(state))
+            first_letters = [transition.word_out[0] for transition in self.transitions(state)]
             if state.is_final:
                 first_letters = first_letters + [state.final_word_out[0]]
             if not first_letters:
@@ -7190,11 +7187,9 @@ class Automaton(FiniteStateMachine):
         epsilon_successors = {}
         direct_epsilon_successors = {}
         for state in self.states():
-            direct_epsilon_successors[state] = set(map(lambda t:t.to_state,
-                                                       filter(lambda transition: len(transition.word_in) == 0,
+            direct_epsilon_successors[state] = set([t.to_state for t in filter(lambda transition: len(transition.word_in) == 0,
                                                               self.transitions(state)
-                                                              )
-                                                       )
+                                                              )]
                                                    )
             epsilon_successors[state] = set([state])
 
@@ -7216,7 +7211,7 @@ class Automaton(FiniteStateMachine):
                 for transition in self.transitions(state):
                     if transition.word_in == [letter]:
                         result.add(transition.to_state)
-            result = result.union(*map(lambda s:epsilon_successors[s], result))
+            result = result.union(*[epsilon_successors[s] for s in result])
             return (frozenset(result), [])
 
         result = self.empty_copy()
@@ -7225,9 +7220,9 @@ class Automaton(FiniteStateMachine):
                                             initial_states=new_initial_states)
 
         for state in result.states():
-            if any(map(lambda s: s.is_final, state.label())):
+            if any([s.is_final for s in state.label()]):
                 state.is_final = True
-            state.color = frozenset(map(lambda s: s.color, state.label()))
+            state.color = frozenset([s.color for s in state.label()])
 
         return result
 

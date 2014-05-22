@@ -1244,7 +1244,7 @@ class HyperplaneArrangementElement(Element):
             raise ValueError('characteristic must be zero')
         from sage.functions.generalized import sign
         values = [hyperplane(p) for hyperplane in self]
-        signs = vector(ZZ, map(sign, values))
+        signs = vector(ZZ, list(map(sign, values)))
         signs.set_immutable()
         return signs
     
@@ -1377,7 +1377,7 @@ class HyperplaneArrangementElement(Element):
                 if len(b_list) == 1:
                     return b_list
                 return [b_list[0], b_list[-1]]
-            b_list_list = map(skip, b_list_list)
+            b_list_list = list(map(skip, b_list_list))
         M = Matroid(groundset=range(len(parallels)), matrix=matrix(A_list).transpose())
         d = self.dimension()
         # vertices are solutions v * lhs = rhs
@@ -2135,7 +2135,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         # process positional arguments
         AA = self.ambient_space()
         try:
-            hyperplanes = map(AA, args)
+            hyperplanes = list(map(AA, args))
         except (TypeError, ValueError, AttributeError):
             if len(args) > 1:
                 raise
@@ -2143,7 +2143,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             if hasattr(arg, 'Hrepresentation'):
                 hyperplanes = [AA(h) for h in arg.Hrepresentation()]
             else:
-                hyperplanes = map(AA, arg)
+                hyperplanes = list(map(AA, arg))
         hyperplanes = [h.primitive(signed) for h in hyperplanes]
         n = len(hyperplanes)
         hyperplanes = tuple(uniq(hyperplanes))

@@ -560,7 +560,7 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
         """
         self._partition = partition
         beta = sorted(self._partition, reverse=True)
-        root = tuple(sum(map(range,beta), []))[::-1]
+        root = tuple(sum(list(map(range,beta)), []))[::-1]
         operators = [SwapIncreasingOperator(i) for i in range(sum(partition)-1)]
         super(YangBaxterGraph_partition, self).__init__(root, operators)
 

@@ -447,7 +447,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         vertex_to_element = self._poset._vertex_to_element
         for lin_ext in self._linear_extensions_of_hasse_diagram:
-            yield self._element_constructor_(map(vertex_to_element,lin_ext))
+            yield self._element_constructor_(list(map(vertex_to_element,lin_ext)))
 
     def __contains__(self, obj):
         """
@@ -673,7 +673,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         if not isinstance(lst, (list, tuple)):
             raise TypeError("Input should be a list or tuple.")
-        lst = map(self._poset, lst)
+        lst = list(map(self._poset, lst))
         if self._is_facade:
             return lst
         else:

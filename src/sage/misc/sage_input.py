@@ -524,10 +524,10 @@ class SageInputBuilder:
             return SIE_literal_stringrep(self, repr(x))
 
         if isinstance(x, tuple):
-            return SIE_tuple(self, map(self, x), False)
+            return SIE_tuple(self, list(map(self, x)), False)
 
         if isinstance(x, list):
-            return SIE_tuple(self, map(self, x), True)
+            return SIE_tuple(self, list(map(self, x)), True)
 
         if isinstance(x, dict):
             return self.dict(x)
@@ -1385,7 +1385,7 @@ class SageInputExpression(object):
             sage: sie(4)
             {call: {atomic:3}({atomic:4})}
         """
-        args = map(self._sie_builder, args)
+        args = list(map(self._sie_builder, args))
         for k in kwargs:
             kwargs[k] = self._sie_builder(kwargs[k])
         return SIE_call(self._sie_builder, self, args, kwargs)

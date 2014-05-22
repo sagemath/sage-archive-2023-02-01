@@ -285,7 +285,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         """
@@ -615,7 +615,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         if sgs is None:
             self._sgs = G.strong_generating_system()
         else:
-            self._sgs = map(lambda x: list(x), list(sgs))
+            self._sgs = [list(x) for x in list(sgs)]
 
     def _repr_(self):
         r"""
@@ -756,7 +756,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             return self.elements_of_depth_iterator(self._sum)
         else:
             SF = SearchForest((self([0]*(self.n), check=False),),
-                              lambda x : map(lambda y : self(y, check=False), canonical_children(self._sgs, x, self._max_part)),
+                              lambda x : [self(y, check=False) for y in canonical_children(self._sgs, x, self._max_part)],
                               algorithm = 'breadth')
             if self._sum is None:
                 return iter(SF)

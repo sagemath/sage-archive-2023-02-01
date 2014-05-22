@@ -128,7 +128,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         E = 0
         Omega = self.probability_space()
         for x in Omega._function.keys():
-            E += Omega(x) * self(map(x))
+            E += Omega(x) * self(list(map(x)))
         return E
 
     def variance(self):
@@ -167,7 +167,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         mu = self.translation_expectation(map)
         var = 0
         for x in Omega._function.keys():
-            var += Omega(x) * (self(map(x)) - mu)**2
+            var += Omega(x) * (self(list(map(x))) - mu)**2
         return var
 
     def covariance(self, other):
@@ -213,7 +213,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         muY = other.translation_expectation(map)
         cov = 0
         for x in Omega._function.keys():
-            cov += Omega(x)*(self(x) - muX)*(other(map(x)) - muY)
+            cov += Omega(x)*(self(x) - muX)*(other(list(map(x))) - muY)
         return cov
 
     def standard_deviation(self):

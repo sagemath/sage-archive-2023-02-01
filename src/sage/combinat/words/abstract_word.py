@@ -123,7 +123,7 @@ class Word_class(SageObject):
             suffix = ""
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = map(str, letters)
+            letters = list(map(str, letters))
             if all(len(a)==1 for a in letters):
                 return ''.join(letters) + suffix
             elif suffix == "...":

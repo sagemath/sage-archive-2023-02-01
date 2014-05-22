@@ -521,7 +521,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
             return super(SchemeHomset_points_toric_field, self).cardinality()
         q = variety.base_ring().order()
         n = variety.dimension()
-        d = map(len, variety.fan().cones())
+        d = list(map(len, variety.fan().cones()))
         return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
 
     def __iter__(self):

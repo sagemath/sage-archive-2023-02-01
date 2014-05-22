@@ -319,7 +319,9 @@ ext_modules = [
     ################################
 
     Extension('sage.functions.prime_pi',
-        sources = ['sage/functions/prime_pi.pyx']),
+        sources = ['sage/functions/prime_pi.pyx'],
+        libraries = ['pari', 'gmp'],
+        extra_compile_args = ['-std=c99']),
 
      ################################
      ##
@@ -1923,6 +1925,9 @@ ext_modules = [
               libraries = ['gmp', 'flint'],
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
+
+    Extension('sage.sets.recursively_enumerated_set',
+              sources = ['sage/sets/recursively_enumerated_set.pyx']),
 
     ################################
     ##

@@ -3152,10 +3152,21 @@ cdef class EltPair:
 
             sage: from sage.structure.parent import EltPair
             sage: a = EltPair(ZZ, QQ, "coerce")
-            sage: hash(a) == hash((ZZ, QQ, "coerce"))
+            sage: b = EltPair(ZZ, QQ, "coerce")
+            sage: hash(a) == hash(b)
             True
+
+        TESTS:
+
+        Verify that :trac:`16341` has been resolved::
+
+            sage: K.<a> = Qq(9)
+            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E.get_action(ZZ)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+
         """
-        return hash((self.x, self.y, self.tag))
+        return hash((id(self.x), id(self.y), id(self.tag)))
 
     def short_repr(self):
         return self.tag, hex(<long><void*>self.x), hex(<long><void*>self.y)

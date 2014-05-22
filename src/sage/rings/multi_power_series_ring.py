@@ -1,5 +1,5 @@
 r"""
-Multivariate Power Series Rings.
+Multivariate Power Series Rings
 
 Construct a multivariate power series ring (in finitely many variables)
 over a given (commutative) base ring.

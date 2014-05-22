@@ -1600,7 +1600,7 @@ class LPProblemStandardForm(LPProblem):
         n = len(c)
         A = A.matrix_from_columns(range(k) + range(k + 1, n))
         b = copy(b)
-        c = vector(ZZ, n - 1)
+        c = vector(self.base_ring(), n - 1)
         for cj, xj in zip(*self.Abcx()[-2:]):
             if xj in N:
                 c[N.index(xj)] += cj

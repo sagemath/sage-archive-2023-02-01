@@ -241,6 +241,16 @@ class SageMagics(Magics):
                               1  4    1  3    1  2    2 ]
               1  3    1  2    2       2       3       3 ]
               2  4,   3  4,   3   ,   4   ,   4   ,   4 ]
+
+        As yet another option, typeset mode. This is used in the emacs
+        interface::
+
+            sage: shell.run_cell('%display typeset')
+            sage: shell.run_cell('1/2')
+            <html><script type="math/tex">...\frac{1}{2}</script></html>
+
+        Switch back::
+
             sage: shell.run_cell('%display simple')
         """
         args = args.strip().split()
@@ -250,7 +260,7 @@ class SageMagics(Magics):
                     self._magic_display_status == 'simple' else 'simple')
         else:
             mode = args[0]
-            if mode not in ('simple', 'ascii_art'):
+            if mode not in ('simple', 'ascii_art', 'typeset'):
                 raise ValueError('unrecognized display type "%s"'%mode)
             self._magic_display_status = mode
 

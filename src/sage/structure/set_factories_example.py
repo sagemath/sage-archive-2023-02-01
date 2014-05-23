@@ -2,14 +2,13 @@ r"""
 An example of set factory
 =========================
 
-The goal of this module is to exemplify the use of set factories. Note that
-the written code is intentionally kept minimal; many things and in particular
-several iterators could be written in a more efficient way.
+The goal of this module is to exemplify the use of set factories. Note
+that the code is intentionally kept minimal; many things and in
+particular several iterators could be written in a more efficient way.
 
 .. SEEALSO:: :mod:`.set_factories` for an introduction to set
     factories, their specifications, and examples of their use and
     implementation based on this module.
-
 """
 #*****************************************************************************
 #  Copyright (C) 2012 Florent Hivert <florent.hivert at lri.fr>
@@ -33,9 +32,9 @@ MAX = 5
 
 class XYPairsFactory(SetFactory):
     r"""
-    An example of factory for sets of pairs of integers.
+    An example of set factory, for sets of pairs of integers.
 
-    .. SEEALSO:: :mod:`.set_factories` for an introduction to factories.
+    .. SEEALSO:: :mod:`.set_factories` for an introduction to set factories.
     """
     def __call__(self, x=None, y=None, policy=None):
         r"""
@@ -53,10 +52,15 @@ class XYPairsFactory(SetFactory):
 
         .. SEEALSO:: :class:`.set_factories.SetFactoryPolicy`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Let us first create the set factory::
 
             sage: from sage.structure.set_factories_example import XYPairsFactory
             sage: XYPairs = XYPairsFactory()
+
+        One can then use the set factory to construct a set::
+
             sage: P = XYPairs(); P.list()
             [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (0, 4), (1, 4), (2, 4), (3, 4), (4, 4)]
 
@@ -191,11 +195,12 @@ class AllPairs(ParentWithSetFactory, DisjointUnionEnumeratedSets):
             sage: TestSuite(XYPairs()).run()
         """
         ParentWithSetFactory.__init__(self, (), policy,
-            category=FiniteEnumeratedSets())
-        DisjointUnionEnumeratedSets.__init__(
-            self, LazyFamily(range(MAX), self._single_pair),
-            facade=True, keepkey=False,
-            category=self.category())
+                                      category=FiniteEnumeratedSets())
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             LazyFamily(range(MAX),
+                                                        self._single_pair),
+                                             facade=True, keepkey=False,
+                                             category=self.category())
 
     def _single_pair(self, letter):
         r"""
@@ -251,7 +256,7 @@ class PairsX_(ParentWithSetFactory, UniqueRepresentation):
         """
         self._x = x
         ParentWithSetFactory.__init__(self, (x, None), policy,
-            category=FiniteEnumeratedSets())
+                                      category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -324,7 +329,7 @@ class Pairs_Y(ParentWithSetFactory, DisjointUnionEnumeratedSets):
         """
         self._y = y
         ParentWithSetFactory.__init__(self, (None, y), policy,
-            category=FiniteEnumeratedSets())
+                                      category=FiniteEnumeratedSets())
         DisjointUnionEnumeratedSets.__init__(
             self, LazyFamily(range(MAX), self._single_pair),
             facade=True, keepkey=False,
@@ -396,7 +401,7 @@ class SingletonPair(ParentWithSetFactory, UniqueRepresentation):
         """
         self._xy = (x, y)
         ParentWithSetFactory.__init__(self, (x, y), policy,
-            category=FiniteEnumeratedSets())
+                                      category=FiniteEnumeratedSets())
 
     def _repr_(self):
         """

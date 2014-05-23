@@ -1887,6 +1887,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         latex = sage.misc.latex.latex
         matrix_delimiters = latex.matrix_delimiters()
+        align = latex.matrix_column_alignment()
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
@@ -1920,7 +1921,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             tmp.append(str(row))
         s = " \\\\\n".join(tmp)
 
-        tmp = ['r'*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
+        tmp = [align*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
         format = '|'.join(tmp)
 
         return "\\left" + matrix_delimiters[0] + "\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right" + matrix_delimiters[1]

@@ -405,7 +405,7 @@ def tokenize(s):
         # check to see if '-', '<' or '>' are used incorrectly
         elif s[i] in '<->':
             msg = "'{}' can only be used as part of the operators '<->' or '->'.".format(s[i])
-            raise SyntaxError, msg
+            raise SyntaxError(msg)
 
         if len(tok) > 0:
             toks.append(tok)
@@ -436,7 +436,7 @@ def tokenize(s):
             msg = "invalid variable name " + tok
             msg += ": identifiers must begin with a letter and contain only "
             msg += "alphanumerics and underscores"
-            raise NameError, msg
+            raise NameError(msg)
 
     toks.append(')')
     return toks, vars_order
@@ -460,7 +460,7 @@ def tree_parse(toks, polish=False):
 
     - If ``False``, then return a simplified parse tree.
 
-    - Is ``True``, then return the full syntax parse tree.
+    - If ``True``, then return the full syntax parse tree.
 
     EXAMPLES:
 

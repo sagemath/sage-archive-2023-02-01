@@ -168,7 +168,7 @@ class Truthtable:
 
         EXAMPLES:
 
-        This example illustrates how to get the latex represenation of
+        This example illustrates how to get the latex representation of
         the table::
 
             sage: import sage.logic.propcalc as propcalc

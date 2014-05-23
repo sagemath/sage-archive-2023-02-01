@@ -371,7 +371,7 @@ class BooleanFormula:
 
     def __xor__(self, other):
         r"""
-        Overload the ``^`` operator to xor two statements together.
+        Overload the ``^`` operator to 'xor' two statements together.
 
         INPUT:
 
@@ -396,7 +396,7 @@ class BooleanFormula:
 
     def __pow__(self, other):
         r"""
-        Overload the ``^`` operator to xor two statements together.
+        Overload the ``^`` operator to 'xor' two statements together.
 
         INPUT:
 
@@ -421,14 +421,14 @@ class BooleanFormula:
 
             This function seems to be identical to ``__xor__``.
             Thus, this function should be replaced with ``__xor__`` everywhere
-            that it appears in the logic module.  Then it can be deleted
+            that it appears in the logic module. Then it can be deleted
             altogether.
         """
         return self.add_statement(other, '^')
 
     def __invert__(self):
         r"""
-        Overload the ``~`` operator to not a statement.
+        Overload the ``~`` operator to 'not' a statement.
 
         OUTPUT:
 
@@ -460,15 +460,15 @@ class BooleanFormula:
 
         A boolean formula of the form ``self -> other``.
 
-       EXAMPLES:
+        EXAMPLES:
 
-       This example illustrates how to combine two formulas with '->'::
+        This example illustrates how to combine two formulas with '->'::
 
-           sage: import sage.logic.propcalc as propcalc
-           sage: s = propcalc.formula("a&b")
-           sage: f = propcalc.formula("c^d")
-           sage: s.ifthen(f)
-           (a&b)->(c^d)
+            sage: import sage.logic.propcalc as propcalc
+            sage: s = propcalc.formula("a&b")
+            sage: f = propcalc.formula("c^d")
+            sage: s.ifthen(f)
+            (a&b)->(c^d)
         """
         return self.add_statement(other, '->')
 
@@ -703,7 +703,6 @@ class BooleanFormula:
             sage: f = propcalc.formula("a&b")
             sage: f.is_tautology()
             False
-
         """
         return not (~self).is_satisfiable()
 
@@ -730,13 +729,9 @@ class BooleanFormula:
             sage: f.is_contradiction()
             True
 
-        ::
-
             sage: f = propcalc.formula("a|~a")
             sage: f.is_contradiction()
             False
-
-        ::
 
             sage: f = propcalc.formula("a|b")
             sage: f.is_contradiction()
@@ -764,17 +759,13 @@ class BooleanFormula:
 
         EXAMPLES:
 
-        This example shows how to check for logical equivalence.
-
-        ::
+        This example shows how to check for logical equivalence::
 
             sage: import sage.logic.propcalc as propcalc
             sage: f = propcalc.formula("(a|b)&c")
             sage: g = propcalc.formula("c&(a|b)")
             sage: f.equivalent(g)
             True
-
-        ::
 
             sage: g = propcalc.formula("a|b&c")
             sage: f.equivalent(g)
@@ -974,7 +965,8 @@ class BooleanFormula:
 #            True   True   False  True
 #            True   True   True   True
 #
-#        NOTES:
+#        .. NOTES::
+#
 #            If the instance of boolean formula has not been converted to
 #            cnf form by a call to convert_cnf() or convert_cnf_recur()
 #            satformat() will call convert_cnf().  Please see the notes for

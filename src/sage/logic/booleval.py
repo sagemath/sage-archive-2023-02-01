@@ -1,5 +1,5 @@
 r"""
-Evaluatation of Boolean Formulas
+Evaluation of Boolean Formulas
 
 AUTHORS:
 

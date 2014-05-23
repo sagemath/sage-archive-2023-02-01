@@ -388,7 +388,7 @@ def hasse_invariant__OMeara(self, p):
 
     ::
 
-        sage: Q = DiagonalQuadraticForm(ZZ, [1,-1,5])
+        sage: Q=DiagonalQuadraticForm(ZZ,[1,-1-1])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]

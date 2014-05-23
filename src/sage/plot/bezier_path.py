@@ -104,7 +104,7 @@ class BezierPath(GraphicPrimitive_xydata):
             sage: B._plot3d_options()
             {'thickness': 2}
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         if 'thickness' in options:

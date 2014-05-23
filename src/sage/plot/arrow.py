@@ -245,7 +245,7 @@ class Arrow(GraphicPrimitive):
             sage: q.thickness
             5
         """
-        if options == None:
+        if options is None:
             options = self.options()
         options = dict(self.options())
         options_3d = {}

@@ -931,7 +931,7 @@ class Sha(SageObject):
                 LE1, err_E = E.lseries().at1(k_E)
                 err_F = max(err_F, MIN_ERR)
                 err_E = max(err_E, MIN_ERR)
-                if regulator != None:
+                if regulator is not None:
                     hZ = regulator/2
                 else:
                     hZ = F.regulator(use_database=True)/2
@@ -941,7 +941,7 @@ class Sha(SageObject):
 
             else:          # E has odd rank
 
-                if regulator != None:
+                if regulator is not None:
                     hZ = regulator/2
                 else:
                     hZ = E.regulator(use_database=True)/2

@@ -976,7 +976,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         key = (bound, anemic)
 
         try:
-            if self.__decomposition[key] != None:
+            if self.__decomposition[key] is not None:
                 return self.__decomposition[key]
         except AttributeError:
             self.__decomposition = {}

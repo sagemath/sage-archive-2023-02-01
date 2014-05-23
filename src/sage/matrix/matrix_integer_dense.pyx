@@ -2346,7 +2346,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         tm = verbose("computing right kernel matrix over the integers for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
 
         algorithm = kwds.pop('algorithm', None)
-        if algorithm == None:
+        if algorithm is None:
           algorithm = 'default'
 
         if algorithm == 'default':
@@ -2822,8 +2822,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise TypeError("precision prec must be >= 0")
         prec = int(prec)
 
-        if algorithm == "NTL:LLL":
-            if fp == None:
+        if algorithm == 'NTL:LLL':
+            if fp is None:
                 algorithm = 'NTL:LLL'
             elif fp == 'fp':
                 algorithm = 'NTL:LLL_FP'

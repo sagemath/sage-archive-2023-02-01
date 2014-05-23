@@ -256,7 +256,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
         """
-        if ncols == None: ncols = nrows
+        if ncols is None: ncols = nrows
         from sage.categories.all import Modules, Algebras
         parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
         # Temporary until the inheritance glitches are fixed
@@ -276,7 +276,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         self.__nrows = nrows
         self.__is_sparse = sparse
-        if ncols == None:
+        if ncols is None:
             self.__ncols = nrows
         else:
             self.__ncols = ncols

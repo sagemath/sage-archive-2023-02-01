@@ -420,19 +420,19 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         """
         from ell_generic import is_EllipticCurve
 
-        if E!=None:
+        if E is not None:
             if not is_EllipticCurve(E):
                 raise ValueError("First argument must be an elliptic curve or None")
-        if F!=None:
+        if F is not None:
             if not is_EllipticCurve(F):
                 raise ValueError("Third argument must be an elliptic curve or None")
-        if urst!=None:
+        if urst is not None:
             if len(urst)!=4:
                 raise ValueError("Second argument must be [u,r,s,t] or None")
-        if len([par for par in [E,urst,F] if par!=None])<2:
+        if len([par for par in [E,urst,F] if par is not None])<2:
             raise ValueError("At most 1 argument can be None")
 
-        if F==None:  # easy case
+        if F is None:  # easy case
             baseWI.__init__(self,*urst)
             F=EllipticCurve(baseWI.__call__(self,list(E.a_invariants())))
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
@@ -440,7 +440,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             self._codomain_curve = F
             return
 
-        if E==None:  # easy case in reverse
+        if E is None:  # easy case in reverse
             baseWI.__init__(self,*urst)
             inv_urst=baseWI.__invert__(self)
             E=EllipticCurve(baseWI.__call__(inv_urst,list(F.a_invariants())))
@@ -449,9 +449,9 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             self._codomain_curve = F
             return
 
-        if urst==None: # try to construct the morphism
+        if urst is None: # try to construct the morphism
             urst=isomorphisms(E,F,True)
-            if urst==None:
+            if urst is None:
                 raise ValueError("Elliptic curves not isomorphic.")
             baseWI.__init__(self, *urst)
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))

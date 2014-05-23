@@ -779,7 +779,7 @@ class MathematicaElement(ExpectElement):
             elif m.end() < len(res) and res[m.end()] == '(':
                 for t in autotrans:
                     f = find_func(t(m.group()), create_when_missing = False)
-                    if f != None:
+                    if f is not None:
                         lsymbols[m.group()] = f
                         break
                 else:

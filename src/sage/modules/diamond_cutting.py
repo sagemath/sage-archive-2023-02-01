@@ -217,7 +217,7 @@ def diamond_cut(V, GM, C, verbose=False):
 
             for hv in [hv, -hv]:
                 cut_count += 1
-                if debug:
+                if verbose:
                     print "\n%d) Cut using normal vector %s" % (cut_count, hv)
                 hv = [QQ(round(elmt, 6)) for elmt in hv]
                 inequalities.append(plane_inequality(hv))
@@ -234,7 +234,7 @@ def diamond_cut(V, GM, C, verbose=False):
 
     return V
 
-def calculate_voronoi_cell(basis, radius=None, debug=False):
+def calculate_voronoi_cell(basis, radius=None, verbose=False):
     """
     Calculate the Voronoi cell of the lattice defined by basis
 
@@ -244,7 +244,7 @@ def calculate_voronoi_cell(basis, radius=None, debug=False):
 
     - ``radius`` -- radius of basis vectors to consider
 
-    - ``debug`` -- whether to print debug information
+    - ``verbose`` -- whether to print debug information
 
     OUTPUT:
 
@@ -283,7 +283,7 @@ def calculate_voronoi_cell(basis, radius=None, debug=False):
     if radius is None:
         radius = 2 * max(abs(v) ** 2 for v in basis)
 
-    V = diamond_cut(Q, basis, radius, debug=debug)
+    V = diamond_cut(Q, basis, radius, verbose=verbose)
 
     if artificial_length is not None:
         # remove inequalities introduced by artificial basis points

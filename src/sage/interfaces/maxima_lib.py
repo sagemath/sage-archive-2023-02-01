@@ -699,7 +699,7 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            -1/4*(2*x - sin(2*x))*realpart(sgn(x)) + 1/2*x + 1/4*sin(2*x)
+            -1/4*(2*x - sin(2*x))*real_part(sgn(x)) + 1/2*x + 1/4*sin(2*x)
 
         Note that the last example yielded the same answer in a
         simpler form in earlier versions of Maxima (<= 5.29.1), namely

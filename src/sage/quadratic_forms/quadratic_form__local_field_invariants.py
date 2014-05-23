@@ -293,53 +293,53 @@ def hasse_invariant(self, p):
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
-        
+
     ::
-        
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
-        
+
     ::
-        
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1,5])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
-        
+
     ::
-        
+
         sage: K.<a>=NumberField(x^2-23)
         sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
         sage: [Q.hasse_invariant(p) for p in K.primes_above(19)]
         [1, -1]
-        
-        """
+
+    """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
 
     Diag = self.rational_diagonal_form()
     R = Diag.base_ring()
-    
+
     ## DIAGNOSTIC
     #print "\n Q = " + str(self)
     #print "\n Q diagonalized at p = " + str(p) + " gives " + str(Diag)
-    
+
     hasse_temp = 1
     n = Diag.dim()
-    
+
     if R == QQ:
         for j in range(n-1):
             for k in range(j+1, n):
                 hasse_temp = hasse_temp * hilbert_symbol(Diag[j,j], Diag[k,k], p)
-    
+
     else:
         for j in range(n-1):
             for k in range(j+1, n):
                 hasse_temp = hasse_temp * R.hilbert_symbol(Diag[j,j], Diag[k,k], p)
-    
+
     return hasse_temp
 
 
@@ -377,52 +377,52 @@ def hasse_invariant__OMeara(self, p):
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
-        
+
     ::
-        
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
-        
+
     ::
-        
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,-1,5])
         sage: [Q.hasse_invariant(p) for p in prime_range(20)]
         [1, 1, 1, 1, 1, 1, 1, 1]
         sage: [Q.hasse_invariant__OMeara(p) for p in prime_range(20)]
         [-1, 1, 1, 1, 1, 1, 1, 1]
-        
+
     ::
-        
+
         sage: K.<a>=NumberField(x^2-23)
         sage: Q=DiagonalQuadraticForm(K,[-a,a+2])
         sage: [Q.hasse_invariant__OMeara(p) for p in K.primes_above(19)]
         [1, 1]
-        
+
     """
     ## TO DO: Need to deal with the case n=1 separately somewhere!
 
     Diag = self.rational_diagonal_form()
     R = Diag.base_ring()
-    
+
     ## DIAGNOSTIC
     #print "\n Q = " + str(self)
     #print "\n Q diagonalized at p = " + str(p) + " gives " + str(Diag)
-    
+
     hasse_temp = 1
     n = Diag.dim()
     if R == QQ:
         for j in range(n):
             for k in range(j, n):
                 hasse_temp = hasse_temp * hilbert_symbol(Diag[j,j], Diag[k,k], p)
-    
+
     else:
         for j in range(n):
             for k in range(j, n):
                 hasse_temp = hasse_temp * R.hilbert_symbol(Diag[j,j], Diag[k,k], p)
-    
+
     return hasse_temp
 
 

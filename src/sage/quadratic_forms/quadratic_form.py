@@ -70,9 +70,10 @@ def is_QuadraticForm(Q):
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
-        sage: is_QuadraticForm(Q)  ##random -- deprecated
+        sage: from sage.quadratic_forms.quadratic_form import is_QuadraticForm
+        sage: is_QuadraticForm(Q)  ##random
         True
-        sage: is_QuadraticForm(2)  ##random -- deprecated
+        sage: is_QuadraticForm(2)  ##random
         False
 
     """

@@ -36,7 +36,7 @@ from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
-from sage.rings.finite_rings.all import is_FiniteFieldElement
+from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 import ell_point
 from sage.rings.arith import gcd, lcm

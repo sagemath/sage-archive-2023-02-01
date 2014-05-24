@@ -191,7 +191,7 @@ class SageMagics(Magics):
     _magic_display_status = 'simple'
     @line_magic
     def display(self, args):
-        """
+        r"""
         A magic command to switch between simple display and ASCII art display.
 
         - ``args`` -- string. The mode (``ascii_art`` (and optionally a ``width``) or ``simple``)

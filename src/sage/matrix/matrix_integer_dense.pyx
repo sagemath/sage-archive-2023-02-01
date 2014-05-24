@@ -2674,7 +2674,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Return LLL reduced or approximated LLL reduced lattice `R` for this
         matrix interpreted as a lattice.
 
-        A lattice `(b_1, b_2, ..., b_d)` is `(̣δ, η)`-LLL-reduced
+        A lattice `(b_1, b_2, ..., b_d)` is `(\delta, \eta)`-LLL-reduced
         if the two following conditions hold:
 
         -  For any `i > j`, we have `\lvert \mu_{i,j} \rvert \leq \eta`.

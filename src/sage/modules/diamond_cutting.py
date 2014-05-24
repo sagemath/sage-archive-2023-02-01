@@ -55,13 +55,10 @@ def jacobi(M):
 
     .. MATH::
 
-        q_{i,j} = \begin{cases}
-
-            \frac{1}{q_{i,i}}
-            \left( m_{i,j} - \sum_{r<i} q_{r,r} q_{r,i} q_{r,j} \right)
-                                & i < j, \\
-            a_{i,j} - \sum_{r<i} q_{r,r} q_{r,i}^2
-                                & i = j, \\
+        q_{i,j} =
+        \begin{cases}
+            \frac{1}{q_{i,i}} \left( m_{i,j} - \sum_{r<i} q_{r,r} q_{r,i} q_{r,j} \right) & i < j, \\
+            a_{i,j} - \sum_{r<i} q_{r,r} q_{r,i}^2 & i = j, \\
             0 & i > j,
         \end{cases}
 

@@ -194,7 +194,10 @@ class SageMagics(Magics):
         r"""
         A magic command to switch between simple display and ASCII art display.
 
-        - ``args`` -- string. The mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
+        - ``args`` -- string.  See
+          :meth:`sage.misc.display_hook.DisplayHookBase.set_display`
+          for allowed values. If the mode is ``ascii_art``, it can
+          optionally be followed by a width.
 
         How to use: if you want activate the ASCII art mod::
 
@@ -252,6 +255,14 @@ class SageMagics(Magics):
         Switch back::
 
             sage: shell.run_cell('%display simple')
+
+        TESTS::
+
+            sage: shell.run_cell('%display invalid_mode')
+            ---------------------------------------------------------------------------
+            ValueError                                Traceback (most recent call last)
+            ...
+            ValueError: invalid mode set
         """
         args = args.strip().split()
         if not args:
@@ -260,8 +271,6 @@ class SageMagics(Magics):
                     self._magic_display_status == 'simple' else 'simple')
         else:
             mode = args[0]
-            if mode not in ('simple', 'ascii_art', 'typeset'):
-                raise ValueError('unrecognized display type "%s"'%mode)
             self._magic_display_status = mode
 
         if self._magic_display_status == 'ascii_art' and len(args) > 1:

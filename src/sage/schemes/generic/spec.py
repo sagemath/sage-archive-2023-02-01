@@ -266,7 +266,7 @@ class Spec(AffineScheme):
         """
         if is_CommutativeRing(x):
             return self.point_homset(x)
-        from sage.schemes.all import is_Scheme
+        from sage.schemes.generic.scheme import is_Scheme
         if is_Scheme(x):
             return x.Hom(self)
 

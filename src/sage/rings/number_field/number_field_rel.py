@@ -100,6 +100,7 @@ import sage.rings.polynomial.polynomial_element as polynomial_element
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 import number_field_element
+import sage.rings.number_field.number_field_ideal_rel
 from number_field_ideal import is_NumberFieldIdeal
 from sage.rings.number_field.number_field import NumberField, NumberField_generic, put_natural_embedding_first, proof_flag
 from sage.rings.number_field.number_field_base import is_NumberField

@@ -1202,11 +1202,11 @@ cdef class NumberFieldElement(FieldElement):
             return self.is_norm(L, element=True, proof=proof)[0]
 
         K = self.parent()
-        from sage.rings.number_field.all import is_AbsoluteNumberField, \
-                                                is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
             raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
 
+        from sage.rings.number_field.number_field import is_AbsoluteNumberField
         if is_AbsoluteNumberField(L):
             Lrel = L.relativize(K.hom(L), ('a', 'b'))
             b, x = self.is_norm(Lrel, element=True, proof=proof)
@@ -1317,7 +1317,7 @@ cdef class NumberFieldElement(FieldElement):
         - Francis Clarke (2010-12-26)
         """
         K = self.parent()
-        from sage.rings.number_field.all import is_RelativeNumberField
+        from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         if (not is_RelativeNumberField(L)) or L.base_field() != K:
             raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
 

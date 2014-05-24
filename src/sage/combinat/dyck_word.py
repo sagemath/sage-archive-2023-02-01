@@ -2304,18 +2304,41 @@ class DyckWord_complete(DyckWord):
         r"""
         Map ``self`` to a triangulation.
 
-        .. TODO::
+        OUTPUT:
 
-            Implement :meth:`DyckWord_complete.to_triangulation`.
+        a list of pairs `(i, j)` of integers between `0` and `n+1`, where
+        `n` is the size of ``self``
 
-        TESTS::
+        This list gives the edges in a triangulation of the regular
+        polygon with `n+2` vertices.
+
+        In the implemented bijection, the set of smallest vertices of the
+        edges in a triangulation is an encoding of the Dyck word.
+
+        EXAMPLES::
 
             sage: DyckWord([1, 1, 0, 0]).to_triangulation()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: TODO
+            [(0, 2)]
+            sage: [t.to_triangulation() for t in DyckWords(3)]
+            [[(2, 4), (1, 4)],
+            [(2, 4), (0, 2)],
+            [(1, 3), (1, 4)],
+            [(1, 3), (0, 3)],
+            [(0, 2), (0, 3)]]
         """
-        raise NotImplementedError("TODO")
+        n = self.number_of_open_symbols()
+        l = range(n + 2)
+        coheight = n
+        edges = []
+        for letter in self[:-1]:
+            if letter == 1:
+                coheight -= 1
+            else:
+                i = l.index(coheight)
+                end = l[i + 2]
+                l.pop(i + 1)
+                edges += [(coheight, end)]
+        return edges
 
     def to_non_decreasing_parking_function(self):
         r"""

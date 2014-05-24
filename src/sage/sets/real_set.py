@@ -51,10 +51,6 @@ AUTHORS:
 - Jordi Saludes (2011-12-10): Documentation and file reorganization.
 
 - Volker Braun (2013-06-22): Rewrite
-
-This module has, in part, received funding from the European Union's
-Seventh Framework Programme (FP7/2007-2013) under grant agreement
-FP7-ICT-247914.
 """
 
 ########################################################################

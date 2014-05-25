@@ -1050,7 +1050,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         ValueError: Computation failed since Maxima requested additional
         constraints; using the 'assume' command before limit evaluation
         *may* help (see `assume?` for more details)
-        Is  a  positive, negative, or zero?
+        Is a positive, negative or zero?
 
     With this example, Maxima is looking for a LOT of information::
 

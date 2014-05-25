@@ -309,7 +309,7 @@ class Function_Bessel_J(BuiltinFunction):
             sage: bessel_J(0, 1.0, "maxima", 53)
             doctest:1: DeprecationWarning: precision argument is deprecated; algorithm argument is currently deprecated, but will be available as a named keyword in the future
             See http://trac.sagemath.org/4102 for details.
-            .7651976865579666
+            0.7651976865579666
         """
         if len(args) > 2 or len(kwds) > 0:
             from sage.misc.superseded import deprecation
@@ -1485,8 +1485,8 @@ class _Bessel():
             bessel_j(6,pi)
             sage: b.n(53)
             0.0145459669825056
-            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)
-            0.0294619840059568
+            sage: _Bessel(6, typ='I', algorithm="maxima")(pi)  # rel tol 5e-13
+            0.02946198400594384
             sage: _Bessel(6, typ='Y', algorithm="maxima")(pi)
             -4.33932818939038
 

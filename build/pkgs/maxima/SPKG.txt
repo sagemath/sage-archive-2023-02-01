@@ -29,43 +29,55 @@ COPYING.
 
  * The Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html
 
+== Dependencies ==
+
+ * ECL (Embedded Common Lisp)
+
 == Special Update/Build Instructions ==
 
- * Make sure the patches still apply cleanly.
+1. Go to http://sourceforge.net/projects/maxima/files/Maxima-source/
+   and download the source tarball maxima-x.y.z.tar.gz.
 
- * Run the `spkg-src` script after updating to a newer upstream
-   release. It removes a large amount of unused documentation and
-   disables the associated Makefiles, reducing the size of the SPKG
-   greatly.
+2. Extract the tarball.
 
-=============================================================
+3. In the directory maxima-x.y.z, run the spkg-src script.
 
-How to make a new version of the Maxima spkg.
+4. Compress the directory into a new file maxima-x.y.z.tar.bz2 and
+   place it in the upstream/ directory.
 
-  1. Go to http://sourceforge.net/project/showfiles.php?group_id=4933
-     and download the source tar.gz ball.  That's near the bottom
-     of that page (i.e., hard to find if you don't scroll past
-     all the big red adds).
+5. Make sure the patches still apply cleanly, and update them if
+   necessary.
 
-  2. Extract the tarball to replace the src/ subdirectory of this package.
+6. Test the resulting package.
 
-  3. Create an spkg from this directory, with
-        sage -pkg maxima-x.y.z
+Here's what spkg-src does:
 
-  4. Test the resulting maxima-??.spkg.
+ * Removes the unneeded PDF figures from the documentation.
 
-=============================================================
+ * Removes the foreign language versions of the info files.
 
-Here's what spkg-dist does:
+The following patches are applied:
 
-* Removes the foreign language versions of the info files,
-  since they add several MEGS (and they weren't in previous
-  versions of Maxima).  This means making empty directories
-  and changing the Makefile.in's.
+ * 0001-taylor2-Avoid-blowing-the-stack-when-diff-expand-isn.patch:
+   Fix for Maxima bug #2520 (abs_integrate fails on abs(sin(x)) and
+   abs(cos(x))).  Introduced in Trac #13364 (Upgrade Maxima to
+   5.29.1).
 
-* In the past, before doing step 3 above, one would also type
+ * build-fasl.patch: Build a fasl library for ecl in addition to an
+   executable program.  Introduced in Trac #16178 (Build maxima fasl
+   without asdf).
 
-       ./spkg-dist
+ * infodir.patch: Correct the path to the Info directory.
 
-  However, this caused problems with calling automake because
-  of the changed .in files.
+ * matrixexp.patch: Fix matrixexp(matrix([%i*%pi])), which broke after
+   Maxima 5.29.1.  Introduced in Trac #13973.
+
+ * maxima_bug_2526.patch: Fix for Maxima bug #2526 (abs_integrate
+   fails on integrate(sqrt(x + sqrt(x)), x)).  Introduced in Trac
+   #13364 (Upgrade Maxima to 5.29.1).
+
+ * maxima.system.patch: Set c::*compile-in-constants* to t.
+
+ * undoing_true_false_printing_patch.patch: Revert an upstream change
+   causing '?' to be printed around some words.  Introduced in Trac
+   #13364 (Upgrade Maxima to 5.29.1).

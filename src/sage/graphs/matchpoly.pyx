@@ -223,8 +223,8 @@ def matching_polynomial(G, complement=True, name=None):
     # in increasing order of degree
 
     L = []
-    for v, d in G.degree_iterator(labels=True):
-        L.append((d, v))
+    for vv, d in G.degree_iterator(labels=True):
+        L.append((d, vv))
     L.sort()
     d = {}
     for i from 0 <= i < nverts:

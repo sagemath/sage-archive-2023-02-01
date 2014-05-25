@@ -851,7 +851,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             REFERENCES:
 
             .. [Reiner97] Victor Reiner. *Non-crossing partitions for
-               classical reﬂection groups*. Discrete Mathematics 177 (1997) 
+               classical reflection groups*. Discrete Mathematics 177 (1997) 
             .. [Arm06] Drew Armstrong. *Generalized Noncrossing Partitions and
                Combinatorics of Coxeter Groups*. :arxiv:`math/0611106`
             """
@@ -862,7 +862,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             Return the lattice of `m`-nonnesting partitions
 
             This has been defined by Athanasiadis, see chapter 5 of [Arm06]_.
-            
+
             INPUT:
 
             - `m` -- integer

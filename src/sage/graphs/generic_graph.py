@@ -1348,7 +1348,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         n = self.order()
         if sparse is None:
-            if n <= 256 or self.density() > 0.05:
+            try:
+                dens = self.density()
+            except TypeError:
+                dens = 1
+            if n <= 256 or dens > 0.05:
                 sparse=False
             else:
                 sparse=True

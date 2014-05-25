@@ -5,8 +5,8 @@ Abstract
 ========
 
 Python handles multiple inheritance by computing, for each class,
-a linear extension of all its super classes (the Method Resolution
-Order, MRO). The MRO is calculated recursively from local
+a linear extension of the poset of all its super classes (the Method
+Resolution Order, MRO). The MRO is calculated recursively from local
 information (the *ordered* list of the direct super classes), with
 the so-called ``C3`` algorithm. This algorithm can fail if the local
 information is not consistent; worst, there exist hierarchies of
@@ -78,7 +78,7 @@ consistently (here for ``A2`` w.r.t. ``A1``)::
     order (MRO) for bases ...
 
 There actually exist hierarchies of classes for which ``C3`` fails
-whatever the order of the bases is chosen; the smallest such example,
+whatever order of the bases is chosen; the smallest such example,
 admittedly artificial, has ten classes (see below). Still, this
 highlights that this problem has to be tackled in a systematic way.
 
@@ -408,8 +408,8 @@ cdef class CmpKey:
       :class:`Objects() <Objects>` is the largest category.
 
     - If `A != B` and taking the join of `A` and `B` makes sense
-      (e.g. taking the join of Algebras(GF(5)) and Algebras(QQ)
-      does not make sense), then `A<B` or `B<A`.
+      (e.g. taking the join of ``Algebras(GF(5))`` and
+      ``Algebras(QQ)`` does not make sense), then `A<B` or `B<A`.
 
     The rationale for the inversion above between `A<B` and
     ``A._cmp_key > B._cmp_key`` is that we want the order to

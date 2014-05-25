@@ -409,8 +409,6 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: s.is_integral_domain()
                 True
 
-            The following doctest is disabled pending :trac:`10963`::
-
                 sage: s = SymmetricFunctions(Zmod(14)).s() # not tested
                 sage: s.is_integral_domain() # not tested
                 False

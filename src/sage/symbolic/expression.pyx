@@ -145,12 +145,14 @@ from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
+cimport sage.symbolic.comparison
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.dynamic_class import dynamic_class
+
 
 # a small overestimate of log(10,2)
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363
@@ -3061,6 +3063,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
         """
+        #print 'cmp'
         return (<Element>left)._cmp(right)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
@@ -3110,7 +3113,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: Argument 'right' has incorrect type (expected
             sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
         """
-        return print_order_compare(left._gobj, right._gobj)
+        return sage.symbolic.comparison.print_order_c(left, right)
 
     cpdef int _cmp_mul(Expression left, Expression right) except -2:
         """

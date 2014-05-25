@@ -991,7 +991,7 @@ def primes(start, stop=None, proof=None):
     from sage.rings.infinity import infinity
 
     start = ZZ(start)
-    if stop == None:
+    if stop is None:
         stop = start
         start = ZZ(2)
     elif stop != infinity:
@@ -4364,7 +4364,7 @@ def convergents(v):
 ##     See Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants
 ##     """
 ##     m = len(v)
-##     if n == None or m < n:
+##     if n is None or m < n:
 ##         n = m
 ##     if n == 0:
 ##         return 1
@@ -4434,7 +4434,7 @@ def continuant(v, n=None):
     - Jaap Spies (2007-02-06)
     """
     m = len(v)
-    if n == None or m < n:
+    if n is None or m < n:
         n = m
     if n == 0:
         return 1

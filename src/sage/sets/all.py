@@ -1,4 +1,8 @@
-from set import Set, is_Set
+from sage.misc.lazy_import import lazy_import
+
+lazy_import('sage.sets.real_set', 'RealSet')
+
+from set import Set
 from integer_range import IntegerRange
 from non_negative_integers import NonNegativeIntegers
 from positive_integers import PositiveIntegers

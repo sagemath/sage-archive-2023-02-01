@@ -2069,6 +2069,15 @@ ext_modules = [
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
+              
+    ################################
+    ## 
+    ## sage.schemes
+    ##
+    ################################
+              
+    Extension('sage.schemes.projective.projective_morphism_helper',
+              sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]
 
 # Optional extensions :

@@ -1273,7 +1273,7 @@ class GroebnerFan(SageObject):
         if larger:
             cmd += ' -L'
         s = self.gfan(cmd, I=self._gfan_reduced_groebner_bases().replace(' ',','), format=False)
-        if file != None:
+        if file is not None:
             open(file,'w').write(s)
         sp = s.split('\n')
         sp2 = []

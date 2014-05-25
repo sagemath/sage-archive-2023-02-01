@@ -1080,7 +1080,7 @@ class Gap(Gap_generic):
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache, server is None)
         cmd += " -b -p -T"
-        if max_workspace_size == None:
+        if max_workspace_size is None:
             max_workspace_size = _get_gap_memory_pool_size_MB()
         cmd += ' -o ' + str(max_workspace_size)
         cmd += ' -s ' + str(max_workspace_size)
@@ -1277,7 +1277,7 @@ class Gap(Gap_generic):
         line = Expect.eval(self, "? %s"%s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
-        if match == None:
+        if match is None:
             print line
         else:
             (sline,) = match.groups()

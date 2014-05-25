@@ -1014,7 +1014,7 @@ class QuiverRepElement(ModuleElement):
         # Make sure the input is an element of the quiver algebra and get the
         # coefficients of the monomials in it
         parent = self.parent()
-        mons = parent._base(other).monomial_coefficients()
+        mons = parent._actor(other).monomial_coefficients()
         result = parent()   # this must not be the cached parent.zero(),
                              # since otherwise it gets changed in place!!
 
@@ -1411,8 +1411,8 @@ class QuiverRep_generic(WithEqualityById, Module):
         #      edge.
         Q = P.quiver()
         self._semigroup = P
+        self._actor = P.algebra(k)
         self._quiver = Q
-        self._base_ring = k
         self._spaces = {}
         self._maps = {}
 
@@ -1455,7 +1455,7 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         self._assert_valid_quiverrep()
 
-        super(QuiverRep_generic, self).__init__(P.algebra(k))
+        super(QuiverRep_generic, self).__init__(k) # Or explicitly Module.__init__(self, k)?
 
     def _assert_valid_quiverrep(self):
         r"""
@@ -1579,7 +1579,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         for e in self._quiver.edges():
             maps[e] = self._maps[e].restrict_domain(spaces[e[0]]).restrict_codomain(spaces[e[1]])
 
-        return self._semigroup.representation(self._base_ring, spaces, maps)
+        return self._semigroup.representation(self.base_ring(), spaces, maps)
 
     def _coerce_map_from_(self, domain):
         """
@@ -1726,27 +1726,24 @@ class QuiverRep_generic(WithEqualityById, Module):
         """
         return self._quiver
 
-    def base_ring(self):
-        """
-        Return the base ring of the representation.
+    def actor(self):
+        r"""
+        Return the quiver path algebra acting on this representation.
 
         OUTPUT:
 
-        - ring
-
-        .. TODO::
-
-            Get rid of this method. The convention for modules in Sage is
-            that the base ring is the same as the base of the module.
+        - a quiver path algebra
 
         EXAMPLES::
 
             sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: M = Q.representation(GF(5))
-            sage: M.base_ring() is GF(5)
-            True
+            sage: M.base_ring()
+            Finite Field of size 5
+            sage: M.actor()
+            Path algebra of Multi-digraph on 2 vertices over Finite Field of size 5
         """
-        return self._base_ring
+        return self._actor
 
     ###########################################################################
     #                                                                         #
@@ -2273,7 +2270,7 @@ class QuiverRep_generic(WithEqualityById, Module):
                 maps[e] = spaces[e[0]].hom([self._maps[e](factor.lift(x))
                                             for x in spaces[e[0]].gens()], spaces[e[1]])
 
-        return self._semigroup.representation(self._base_ring, spaces, maps)
+        return self._semigroup.representation(self.base_ring(), spaces, maps)
 
     def socle(self):
         """
@@ -2403,15 +2400,15 @@ class QuiverRep_generic(WithEqualityById, Module):
                 basis.extend(bases[v])
 
         if isinstance(self, QuiverRep_with_path_basis):
-            result = self._semigroup.reverse().representation(self._base_ring, basis, option='dual paths')
+            result = self._semigroup.reverse().representation(self.base_ring(), basis, option='dual paths')
             result._maps = maps
             result._bases = bases
         elif isinstance(self, QuiverRep_with_dual_path_basis):
-            result = self._semigroup.reverse().representation(self._base_ring, basis, option='paths')
+            result = self._semigroup.reverse().representation(self.base_ring(), basis, option='paths')
             result._maps = maps
             result._bases = bases
         else:
-            result = self._semigroup.reverse().representation(self._base_ring, spaces, maps)
+            result = self._semigroup.reverse().representation(self.base_ring(), spaces, maps)
 
         return result
 
@@ -2447,7 +2444,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             (7, 2, 1)
         """
         from sage.quivers.homspace import QuiverHomSpace
-        return QuiverHomSpace(self, self._semigroup.free_module(self._base_ring)).left_module(basis)
+        return QuiverHomSpace(self, self._semigroup.free_module(self.base_ring())).left_module(basis)
 
     def Hom(self, codomain):
         """
@@ -2542,14 +2539,14 @@ class QuiverRep_generic(WithEqualityById, Module):
                 raise ValueError("modules must be a QuiverRep or a list of QuiverReps")
             if self._quiver is not mods[i]._quiver:
                 raise ValueError("cannot direct sum modules of different quivers")
-            if self._base_ring is not mods[i]._base_ring:
+            if self.base_ring() is not mods[i].base_ring():
                 raise ValueError("cannot direct sum modules with different base rings")
 
         # Get the dimensions of all spaces at each vertex
         dims = dict((v, [x._spaces[v].dimension() for x in mods]) for v in self._quiver)
 
         # Create spaces of the correct dimensions
-        spaces = dict((v, self._base_ring**sum(dims[v])) for v in self._quiver)
+        spaces = dict((v, self.base_ring()**sum(dims[v])) for v in self._quiver)
 
         # Take block sums of matrices to form the maps
         from sage.matrix.constructor import block_diagonal_matrix
@@ -2558,7 +2555,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             maps[e] = block_diagonal_matrix([x._maps[e].matrix() for x in mods], subdivide=False)
 
         # Create the QuiverRep, return if the maps aren't wanted
-        result = self._semigroup.representation(self._base_ring, spaces, maps)
+        result = self._semigroup.representation(self.base_ring(), spaces, maps)
         if not return_maps:
             return result
 
@@ -2623,7 +2620,7 @@ class QuiverRep_generic(WithEqualityById, Module):
         lifts = [proj_to_top.lift(x) for x in gens]
 
         # Get projective summands of the cover
-        Ps = [self._semigroup.P(self._base_ring, x.support()[0]) for x in gens]
+        Ps = [self._semigroup.P(self.base_ring(), x.support()[0]) for x in gens]
 
         # Factor the maps through self
         maps = [Ps[i].hom(lifts[i], self) for i in range(0, len(gens))]
@@ -2813,7 +2810,6 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             sage: TestSuite(M).run()
         """
         self._quiver = Q = P.quiver()
-        self._base_ring = k
 
         # Add the paths to the basis dictionary.  The terminal vertex is the
         # key
@@ -2828,11 +2824,11 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
         for e in Q.edges():
             arrow = P(e)
             # Start with the zero matrix and fill in from there
-            maps[e] = Matrix(self._base_ring, len(self._bases[e[0]]), len(self._bases[e[1]]))
+            maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
                 # Add an entry to the matrix coresponding to where the new path is found
                 j = self._bases[e[1]].index(self._bases[e[0]][i]*arrow)
-                maps[e][i, j] = self._base_ring.one()
+                maps[e][i, j] = k.one()
 
         # Create the spaces and then the representation
         spaces = dict((v, len(self._bases[v])) for v in Q)
@@ -2847,12 +2843,12 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             for v in self._quiver:
                 # Start with the zero matrix and fill in
                 l = len(self._bases[v])
-                action_mats[e][v] = Matrix(self._base_ring, l, l)
+                action_mats[e][v] = Matrix(k, l, l)
 
                 for j in range(0, l):
                     if e[1] == self._bases[v][j].initial_vertex():
                         try:
-                            action_mats[e][v][self._bases[v].index(P(e)*self._bases[v][j]), j] = self._base_ring.one()
+                            action_mats[e][v][self._bases[v].index(P(e)*self._bases[v][j]), j] = k.one()
                         except ValueError:
                             # There is no left action
                             return
@@ -2865,13 +2861,13 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             for v in self._quiver:
                 # Start with the zero matrix and fill in
                 l = len(self._bases[v])
-                action_mats[e][v] = Matrix(self._base_ring, l, l)
+                action_mats[e][v] = Matrix(k, l, l)
 
                 # Paths not beginning at vert are sent to zero, paths beginning
                 # at vert are fixed
                 for i in range(0, l):
                     if self._bases[v][i].initial_vertex() == vert:
-                        action_mats[e][v][i, i] = self._base_ring.one()
+                        action_mats[e][v][i, i] = k.one()
 
         # Define the method and save the matrices
         self.left_edge_action = self._left_edge_action
@@ -3028,7 +3024,6 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
             sage: TestSuite(N).run()
         """
         self._quiver = Q = P.quiver()
-        self._base_ring = k
 
         # Add the paths to the basis dictionary.  The initial vertex is the
         # key
@@ -3043,12 +3038,12 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
         for e in Q.edges():
             arrow = P(e)
             # Start with the zero matrix and fill in from there
-            maps[e] = Matrix(self._base_ring, len(self._bases[e[0]]), len(self._bases[e[1]]))
+            maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
                 # Add an entry to the matrix coresponding to where the new path is found
                 if self._bases[e[0]][i] % arrow in self._bases[e[1]]:
                     j = self._bases[e[1]].index(self._bases[e[0]][i] % e)
-                    maps[e][i, j] = self._base_ring.one()
+                    maps[e][i, j] = k.one()
 
         # Create the spaces and then the representation
         spaces = dict((v, len(self._bases[v])) for v in Q)

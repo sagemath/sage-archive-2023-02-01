@@ -216,7 +216,7 @@ def fq(n, q = None):
         sage: fq(3)
         (q^6 - q^5 - q^4 + q^2 + q - 1)/q^6
     """
-    if q == None:
+    if q is None:
         q = ZZ['q'].gen()
     return reduce(mul, [1-q**(-i-1) for i in range(n)], 1)
 
@@ -512,7 +512,7 @@ class PrimarySimilarityClassType(Element):
             sage: PT.centralizer_group_card()
             q^8 - q^6 - q^4 + q^2
         """
-        if q == None:
+        if q is None:
             R = FractionField(ZZ['q'])
             q = R.gen()
         return self.statistic(centralizer_group_cardinality, q = q)

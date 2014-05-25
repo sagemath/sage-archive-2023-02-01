@@ -93,7 +93,7 @@ class SpecFunctor(Functor, UniqueRepresentation):
 
             sage: from sage.schemes.generic.spec import SpecFunctor
             sage: SpecFunctor()
-            Spec functor from Category of commutative rings to Category of Schemes
+            Spec functor from Category of commutative rings to Category of schemes
             sage: SpecFunctor(QQ)
             Spec functor from Category of commutative rings to Category of schemes over Rational Field
 

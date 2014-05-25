@@ -852,7 +852,7 @@ class AffineScheme(Scheme):
             sage: S
             Spectrum of Integer Ring
             sage: S.category()
-            Category of Schemes
+            Category of schemes
             sage: type(S)
             <class 'sage.schemes.generic.scheme.AffineScheme_with_category'>
         """

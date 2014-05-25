@@ -10,16 +10,15 @@ Coxeter Groups
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import attrcall, uniq
-from sage.misc.superseded import deprecation
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.sage_object import have_same_parent
-from sage.combinat.finite_class import FiniteCombinatorialClass
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -108,6 +107,9 @@ class CoxeterGroups(Category_singleton):
             [Category of groups, Category of enumerated sets]
         """
         return [Groups(), EnumeratedSets()]
+
+    Finite = LazyImport('sage.categories.finite_coxeter_groups', 'FiniteCoxeterGroups')
+    Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')
 
     class ParentMethods:
 
@@ -447,7 +449,7 @@ class CoxeterGroups(Category_singleton):
 
         semigroup_generators = group_generators
 
-        def simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -488,13 +490,10 @@ class CoxeterGroups(Category_singleton):
             """
             if not (i in self.index_set() or i == 0):
                 raise ValueError("%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set()))
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return lambda x: x.apply_simple_projection(i, side = side, length_increasing = length_increasing)
 
         @cached_method
-        def simple_projections(self, side = 'right', length_increasing = True, toward_max = None):
+        def simple_projections(self, side = 'right', length_increasing = True):
             r"""
             Returns the family of simple projections, also known as 0-Hecke or Demazure operators.
 
@@ -545,9 +544,6 @@ class CoxeterGroups(Category_singleton):
                 (1, 3, 2, 0)
             """
             from sage.sets.family import Family
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projections is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
             return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, length_increasing = length_increasing))
 
         def demazure_product(self,Q):
@@ -843,7 +839,7 @@ class CoxeterGroups(Category_singleton):
 
                 TODO: side, index_set, positive
             """
-            if index_set==None:
+            if index_set is None:
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, side = side, positive = positive) ]
 
@@ -1121,7 +1117,7 @@ v            EXAMPLES::
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
+        def apply_simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
             INPUT:
 
@@ -1158,11 +1154,6 @@ v            EXAMPLES::
                 s1*s2*s3*s4*s3
 
             """
-
-            if toward_max is not None:
-                deprecation("the toward_max option of CoxeterGroups.ElementMethods.apply_simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
-                length_increasing = toward_max
-
             if self.has_descent(i, side = side, positive = length_increasing):
                 return self.apply_simple_reflection(i, side=side)
             return self
@@ -1214,7 +1205,8 @@ v            EXAMPLES::
             from sage.combinat.backtrack import SearchForest
             W = self.parent()
             if not predicate(W.one()):
-                return FiniteCombinatorialClass([])
+                from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+                return FiniteEnumeratedSet([])
             s = W.simple_reflections()
             def succ(u_v):
                 (u, v) = u_v
@@ -2119,4 +2111,3 @@ v            EXAMPLES::
                 [[1, 2, 3]]
             """
             return self.weak_covers(side = side, index_set = index_set, positive = True)
-

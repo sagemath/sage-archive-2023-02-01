@@ -318,7 +318,8 @@ class Gap(Parent):
             sage: libgap.has_coerce_map_from(CyclotomicField(5))
             True
         """
-        from sage.rings.all import ZZ, QQ, is_CyclotomicField
+        from sage.rings.all import ZZ, QQ
+        from sage.rings.number_field.number_field import is_CyclotomicField
         if S in (ZZ, QQ) or is_CyclotomicField(S):
             return True
 

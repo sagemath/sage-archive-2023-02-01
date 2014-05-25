@@ -319,7 +319,9 @@ ext_modules = [
     ################################
 
     Extension('sage.functions.prime_pi',
-        sources = ['sage/functions/prime_pi.pyx']),
+        sources = ['sage/functions/prime_pi.pyx'],
+        libraries = ['pari', 'gmp'],
+        extra_compile_args = ['-std=c99']),
 
      ################################
      ##
@@ -1931,6 +1933,9 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
 
+    Extension('sage.sets.recursively_enumerated_set',
+              sources = ['sage/sets/recursively_enumerated_set.pyx']),
+
     ################################
     ##
     ## sage.stats
@@ -2064,6 +2069,15 @@ ext_modules = [
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
+              
+    ################################
+    ## 
+    ## sage.schemes
+    ##
+    ################################
+              
+    Extension('sage.schemes.projective.projective_morphism_helper',
+              sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
     ]
 
 # Optional extensions :

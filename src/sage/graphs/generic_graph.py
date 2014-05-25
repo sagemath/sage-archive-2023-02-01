@@ -1,5 +1,5 @@
 r"""
-Generic graphs
+Generic graphs (common to directed/undirected)
 
 This module implements the base class for graphs and digraphs, and methods that
 can be applied on both. Here is what it can do:

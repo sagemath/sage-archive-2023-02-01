@@ -1,5 +1,5 @@
 """
-Block designs.
+Block designs
 
 A module to help with constructions and computations of block
 designs and other incidence structures.

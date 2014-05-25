@@ -1,5 +1,5 @@
 r"""
-Mixed integer linear programming
+Mixed Integer Linear Programming
 
 A linear program (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_)
 is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_

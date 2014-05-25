@@ -1,5 +1,5 @@
 """
-Chromatic Polynomial Routine
+Chromatic Polynomial
 
 AUTHORS:
     -- Gordon Royle - original C implementation

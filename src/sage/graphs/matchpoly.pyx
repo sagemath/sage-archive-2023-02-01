@@ -1,5 +1,5 @@
 """
-Matching Polynomial Routine
+Matching Polynomial
 
 This module contains the following methods:
 

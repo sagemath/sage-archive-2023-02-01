@@ -1,5 +1,5 @@
 r"""
-Information System on Graph Classes and their Inclusions
+ISGCI: Information System on Graph Classes and their Inclusions
 
 This module implements an interface to the `ISGCI <http://www.graphclasses.org/>`_ database in Sage.
 

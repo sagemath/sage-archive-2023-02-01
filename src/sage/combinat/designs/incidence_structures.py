@@ -1,5 +1,5 @@
 """
-Incidence structures.
+Incidence structures
 
 An incidence structure is specified by a list of points, blocks, and
 an incidence matrix ([1]_, [2]_).

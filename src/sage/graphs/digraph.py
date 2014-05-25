@@ -1168,7 +1168,7 @@ class DiGraph(GenericGraph):
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
         """
-        if sparse != None:
+        if sparse is not None:
             deprecation(14806,"The 'sparse' keyword has been deprecated, and "
                         "is now replaced by 'data_structure' which has a different "
                         "meaning. Please consult the documentation.")
@@ -2009,7 +2009,7 @@ class DiGraph(GenericGraph):
 
         tempG = self if inplace else self.copy()
 
-        if label == None:
+        if label is None:
             if not tempG.allows_multiple_edges():
                 label = tempG.edge_label(u,v)
             else:

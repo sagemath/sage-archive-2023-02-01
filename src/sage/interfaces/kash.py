@@ -461,7 +461,7 @@ class Kash(Expect):
 
 
         cmd = "kash3 -b -c -d  "
-        if max_workspace_size != None:
+        if max_workspace_size is not None:
             cmd += " -a %s"%int(max_workspace)
         Expect.__init__(self,
                         name = 'kash',

@@ -2174,7 +2174,7 @@ exponent %s: the length of the word (%s) times the exponent \
             word: abbabaab
         """
         #If the length of the lps of self[:-1] is not known:
-        if l == None:
+        if l is None:
             for i in range(self.length()+1):
                 fact = self[i:]
                 if fact.is_palindrome(f=f):
@@ -5240,7 +5240,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word("abba").swap(1,-1)
             word: aabb
         """
-        if j == None:
+        if j is None:
             j = i+1
         new = list(self)
         (new[i], new[j]) = (new[j], new[i])

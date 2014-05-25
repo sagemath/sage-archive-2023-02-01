@@ -1106,7 +1106,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T = crystals.TensorProduct(C,C)
             sage: T(C(1),C(2)).e(1) == T(C(1),C(1))
             True
-            sage: T(C(2),C(1)).e(1) == None
+            sage: T(C(2),C(1)).e(1) is None
             True
             sage: T(C(2),C(2)).e(1) == T(C(1),C(2))
             True

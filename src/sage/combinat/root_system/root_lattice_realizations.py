@@ -848,6 +848,13 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: P.coxeter_transformation()**10 == 1
                 True
 
+                sage: R = RootSystem(['B', 3])
+                sage: RS = R.root_lattice()
+                sage: P = RS.nonnesting_partition_lattice(); P
+                Finite lattice containing 20 elements
+                sage: P.coxeter_transformation()**7 == 1
+                True
+
             REFERENCES:
 
             .. [Reiner97] Victor Reiner. *Non-crossing partitions for

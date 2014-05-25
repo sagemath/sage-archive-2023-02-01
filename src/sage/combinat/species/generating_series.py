@@ -969,5 +969,59 @@ class CycleIndexSeries(LazyPowerSeries):
 
         return parent.sum(res)
 
+    def compositional_inverse(self):
+        r"""
+        Return the compositional inverse of ``self`` if possible.
+        (Specifically, if ``self`` is of the form `0 + p_{1} + \dots`.)
+
+        The compositional inverse is the inverse with respect to
+        plethystic substitution. (This is the operation on cycle index
+        series which corresponds to substitution, a.k.a. partitional
+        composition, on the level of species. See Section 2.2 of
+        [BLL-Intro]_ for a definition of this operation.)
+
+        EXAMPLES::
+
+            sage: Eplus = species.SetSpecies(min=1).cycle_index_series()
+            sage: Eplus(Eplus.compositional_inverse()).coefficients(8)
+            [0, p[1], 0, 0, 0, 0, 0, 0]
+
+
+        ALGORITHM:
+
+        Let `F` be a species satisfying `F = 0 + X + F_2 + F_3 + \dots` for `X` the species of singletons.
+        (Equivalently, `\lvert F[\varnothing] \rvert = 0` and `\lvert F[\{1\}] \rvert = 1`.)
+        Then there exists a (virtual) species `G` satisfying `F \circ G = G \circ F = X`.
+
+        It follows that `(F - X) \circ G = F \circ G - X \circ G = X - G`.
+        Rearranging, we obtain the recursive equation `G = X - (F - X) \circ G`, which can be
+        solved using iterative methods.
+        
+        .. WARNING::
+        
+            This algorithm is functional but can be very slow.
+            Use with caution!
+
+        .. SEEALSO::
+        
+            The compositional inverse `\Omega` of the species `E_{+}` of nonempty sets can be handled much more efficiently
+            using specialized methods. These are implemented in
+            :class:`~sage.combinat.species.combinatorial_logarithm.CombinatorialLogarithmSeries`.
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar
+        """
+        cisr = self.parent()
+        sfa = cisr._base
+
+        X = cisr([0, sfa([1]), 0])
+
+        assert self.coefficients(2) == X.coefficients(2)
+
+        res = cisr()
+        res.define(X - (self - X).compose(res))
+
+        return res
 
 

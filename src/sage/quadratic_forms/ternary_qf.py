@@ -1748,7 +1748,7 @@ class TernaryQF(SageObject):
 
         """
 
-        if TernaryQF.possible_automorphisms == None:
+        if TernaryQF.possible_automorphisms is None:
 
              I = [-1, 0, 1]
              auts = [matrix(ZZ, 3, [a, b, c, d, e, f, g, h, i]) for a in I for b in I for c in I for d in I for e in I for f in I for g in I for h in I for i in I]
@@ -1811,7 +1811,7 @@ class TernaryQF(SageObject):
         if not self.is_definite():
            raise ValueError("Oops, only implemented for definite forms.")
 
-        if self._automorphisms != None:
+        if self._automorphisms is not None:
             return self._automorphisms
 
         if self.is_positive_definite():
@@ -2042,7 +2042,7 @@ class TernaryQF(SageObject):
         if not self.is_definite():
            raise ValueError("Oops, only implemented for definite forms.")
 
-        if self._number_of_automorphisms != None:
+        if self._number_of_automorphisms is not None:
             return self._number_of_automorphisms
 
         if slow:
@@ -2126,5 +2126,5 @@ def find_a_ternary_qf_by_level_disc(N, d):
     """
 
     q = _find_a_ternary_qf_by_level_disc(N, d)
-    if q != None:
+    if q is not None:
         return TernaryQF(q)

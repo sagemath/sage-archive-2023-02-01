@@ -25,7 +25,7 @@ from free_module import CombinatorialFreeModule
 from combinatorial_algebra import CombinatorialAlgebra
 from debruijn_sequence import DeBruijnSequences
 
-from schubert_polynomial import SchubertPolynomialRing, is_SchubertPolynomial
+from schubert_polynomial import SchubertPolynomialRing
 from symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetricGroupT
 from symmetric_group_representations import SymmetricGroupRepresentation, SymmetricGroupRepresentations
 from yang_baxter_graph import YangBaxterGraph
@@ -151,6 +151,8 @@ deprecated_callable_import(6637,
 from cluster_algebra_quiver.all import *
 
 #import lrcalc
+
+import ranker
 
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors

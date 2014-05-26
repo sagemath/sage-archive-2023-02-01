@@ -13,6 +13,7 @@ Root Systems
    ../sage/combinat/root_system/root_system
    ../sage/combinat/root_system/plot
    ../sage/combinat/root_system/root_lattice_realizations
+   ../sage/combinat/root_system/root_lattice_realization_algebras
    ../sage/combinat/root_system/weight_lattice_realizations
    ../sage/combinat/root_system/root_space
    ../sage/combinat/root_system/weight_space
@@ -23,6 +24,8 @@ Root Systems
 
    ../sage/combinat/root_system/weyl_characters
    ../sage/combinat/root_system/branching_rules
+   ../sage/combinat/root_system/hecke_algebra_representation
+   ../sage/combinat/root_system/non_symmetric_macdonald_polynomials
 
    root_systems_types
 

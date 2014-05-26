@@ -139,10 +139,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             Ring endomorphism of Finite Field in a of size 73^2
               Defn: a |--> 72*a + 3
         """
-        try:
-            return im_gens[0] == codomain._coerce_(self.gen(0))
-        except TypeError:
-            return False
+        return (codomain.characteristic().divides(self.characteristic()) and
+                len(im_gens) == 1 and im_gens[0] == codomain.one_element())
 
     def _coerce_map_from_(self, S):
         """

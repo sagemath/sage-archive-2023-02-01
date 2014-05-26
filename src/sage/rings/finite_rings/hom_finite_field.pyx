@@ -267,8 +267,6 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: f(a*b) == f(a) * f(b)
             True
         """
-        if not self.domain().has_coerce_map_from(x.parent()):
-            raise TypeError("%s does not coerce to %s" % (x, self.domain()))
         return x.polynomial()(self.im_gens()[0])
 
 

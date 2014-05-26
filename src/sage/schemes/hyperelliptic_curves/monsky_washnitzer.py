@@ -1721,7 +1721,8 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
 
 import weakref
 
-from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
+from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
+from sage.schemes.hyperelliptic_curves.hyperelliptic_generic import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import QQ
 

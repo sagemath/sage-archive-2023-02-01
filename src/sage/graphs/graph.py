@@ -63,7 +63,7 @@ graphs.
     :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
     :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
 
-**Connectivity and orientations:**
+**Connectivity, orientations, trees:**
 
 .. csv-table::
     :class: contentstable
@@ -75,6 +75,8 @@ graphs.
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
     :meth:`~Graph.degree_constrained_subgraph` | Returns a degree-constrained subgraph.
+    :meth:`~Graph.bridges` | Returns the list of all bridges.
+    :meth:`~Graph.spanning_trees` | Returns the list of all spanning trees.
 
 **Clique-related methods:**
 
@@ -1783,6 +1785,112 @@ class Graph(GenericGraph):
             False
         """
         return False
+
+    def bridges(self):
+        r"""
+        Returns a list of the bridges (or cut edges).
+
+        A bridge is an edge so that deleting it disconnects the graph.
+
+        .. NOTE::
+
+            This method assumes the graph is connected.
+
+        EXAMPLES::
+
+             sage: g = 2*graphs.PetersenGraph()
+             sage: g.add_edge(1,10)
+             sage: g.is_connected()
+             True
+             sage: g.bridges()
+             [(1, 10, None)]
+        """
+        gs = self.strong_orientation()
+        bridges = []
+        for scc in gs.strongly_connected_components():
+            bridges.extend(gs.edge_boundary(scc))
+        return bridges
+
+    def spanning_trees(self):
+        """
+        Returns a list of all spanning trees.
+
+        If the graph is disconnected, returns the empty list.
+
+        Uses the Read-Tarjan backtracking algorithm [RT75]_.
+
+        EXAMPLES::
+
+            sage: G = Graph([(1,2),(1,2),(1,3),(1,3),(2,3),(1,4)])
+            sage: len(G.spanning_trees())
+            8
+            sage: G.spanning_trees_count()
+            8
+            sage: G = Graph([(1,2),(2,3),(3,1),(3,4),(4,5),(4,5),(4,6)])
+            sage: len(G.spanning_trees())
+            6
+            sage: G.spanning_trees_count()
+            6
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.spanning_trees_count`
+            -- counts the number of spanning trees.
+
+        REFERENCES:
+
+        .. [RT75] Read, R. C. and Tarjan, R. E.
+          Bounds on Backtrack Algoritms for Listing Cycles, Paths, and Spanning Trees
+          Networks, Volume 5 (1975), numer 3, pages 237-252.
+        """
+
+        def _recursive_spanning_trees(G,forest):
+            """
+            Returns all the spanning trees of G containing forest
+            """
+            if not G.is_connected():
+                return []
+
+            if G.size() == forest.size():
+                return [forest.copy()]
+            else:
+                # Pick an edge e from G-forest
+                for e in G.edges():
+                    if not forest.has_edge(e):
+                        break
+
+                # 1) Recursive call with e removed from G
+                G.delete_edge(e)
+                trees = _recursive_spanning_trees(G,forest)
+                G.add_edge(e)
+
+                # 2) Recursive call with e include in forest
+                #
+                # e=xy links the CC (connected component) of forest containing x
+                # with the CC containing y. Any other edge which does that
+                # cannot be added to forest anymore, and B is the list of them
+                c1 = forest.connected_component_containing_vertex(e[0])
+                c2 = forest.connected_component_containing_vertex(e[1])
+                G.delete_edge(e)
+                B = G.edge_boundary(c1,c2,sort=False)
+                G.add_edge(e)
+
+                # Actual call
+                forest.add_edge(e)
+                G.delete_edges(B)
+                trees.extend(_recursive_spanning_trees(G,forest))
+                G.add_edges(B)
+                forest.delete_edge(e)
+
+                return trees
+
+        if self.is_connected():
+            forest = Graph([])
+            forest.add_vertices(self.vertices())
+            forest.add_edges(self.bridges())
+            return _recursive_spanning_trees(self,forest)
+        else:
+            return []
 
     ### Properties
     def is_tree(self, certificate=False, output='vertex'):
@@ -4425,7 +4533,7 @@ class Graph(GenericGraph):
             1.0
         """
         import networkx
-        if v==None:
+        if v is None:
             return networkx.degree_centrality(self.networkx_graph(copy=False))
         else:
             return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
@@ -4500,8 +4608,8 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
         """
-        if sparse != None:
-            if data_structure != None:
+        if sparse is not None:
+            if data_structure is not None:
                 raise ValueError("The 'sparse' argument is an alias for "
                                  "'data_structure'. Please do not define both.")
             data_structure = "sparse" if sparse else "dense"
@@ -5596,7 +5704,7 @@ class Graph(GenericGraph):
 
         if algorithm=="cliquer":
             from sage.graphs.cliquer import clique_number
-            if vertices==None:
+            if vertices is None:
                 vertices=self
             value={}
             for v in vertices:
@@ -5820,7 +5928,7 @@ class Graph(GenericGraph):
         for v in verts:
 
             # If all the vertices have a degree larger than k, we can
-            # return our answer if k != None
+            # return our answer if k is not None
             if k is not None and core[v] >= k:
                 return verts[:vert_pos[v]], verts[vert_pos[v]:]
 
@@ -6512,4 +6620,3 @@ def compare_edges(x, y):
             return 1
         else:
             return 0
-

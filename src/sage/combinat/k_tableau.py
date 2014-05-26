@@ -2491,13 +2491,13 @@ class StrongTableau(ClonableList):
         """
         T = self.to_standard_list()
         size = Core(map(len,T), self.k+1).length()
-        inner_size = Core(map(len,[y for y in map(lambda row: [x for x in row if x==None], T) if len(y)>0]),self.k+1).length()
+        inner_size = Core(map(len,[y for y in map(lambda row: [x for x in row if x is None], T) if len(y)>0]),self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
             for j in range(len(T[i])):
                 v = T[i][j]
-                if v!=None and v<0 and ((i!=0 and T[i-1][j]==abs(v)) or (j<len(T[i])-1 and T[i][j+1]==abs(v))):
+                if v is not None and v<0 and ((i!=0 and T[i-1][j]==abs(v)) or (j<len(T[i])-1 and T[i][j+1]==abs(v))):
                     return False
         return True
 
@@ -3589,7 +3589,7 @@ class StrongTableau(ClonableList):
             }
         """
         def chi(x):
-            if x==None:
+            if x is None:
                 return ""
             if x in ZZ:
                 s = "%s"%abs(x)
@@ -4466,7 +4466,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             []
         """
         LL = list(T)
-        marks = [v for row in T for v in row if v!=None and v<0]+[0]
+        marks = [v for row in T for v in row if v is not None and v<0]+[0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
         sh = Core(map(len,T), k+1)
@@ -4481,7 +4481,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         if msh.length()==sh.length()-1:
                             # if applying t_{j-l,j+1} reduces the size of the shape by 1
                             valcells = [LL[c[0]][c[1]] for c in SkewPartition([sh.to_partition(),msh.to_partition()]).cells()]
-                            if all(x!=None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v]==[-v]:
+                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and [x for x in valcells if x==-v] == [-v]:
                                 # if all values are \pm v and exactly one of them is -v
                                 transeq.append([j-l, j+1])
                                 LL = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]

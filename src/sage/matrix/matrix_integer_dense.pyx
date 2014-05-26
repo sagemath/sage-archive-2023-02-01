@@ -2341,7 +2341,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         tm = verbose("computing right kernel matrix over the integers for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
 
         algorithm = kwds.pop('algorithm', None)
-        if algorithm == None:
+        if algorithm is None:
           algorithm = 'default'
 
         if algorithm == 'default':
@@ -2776,7 +2776,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         # FP choice
         if algorithm == 'NTL:LLL':
-            if fp == None:
+            if fp is None:
                 algorithm = 'NTL:LLL_FP'
             elif fp == 'fp':
                 algorithm = 'NTL:LLL_FP'
@@ -2787,7 +2787,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             elif fp == 'rr':
                 algorithm = 'NTL:LLL_RR'
         elif algorithm == 'fpLLL:heuristic':
-            if fp == None:
+            if fp is None:
                 raise TypeError("if 'fpLLL:heuristic' is chosen, a floating point number implementation must be chosen")
             elif fp == 'fp':
                 fp = 'double'

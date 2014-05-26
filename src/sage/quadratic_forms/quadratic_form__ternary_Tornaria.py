@@ -26,7 +26,7 @@ from sage.modules.free_module_element import vector
 
 ## TO DO -- Add second argument
 #  def __call__(self,v,w=None):
-#    if w==None:
+#    if w is None:
 #        return half(v * self._matrix_() * v)
 #    else:
 #      return v * self._matrix_() * w

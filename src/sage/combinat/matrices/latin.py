@@ -148,6 +148,7 @@ from sage.misc.flatten import flatten
 #load "dancing_links.sage"
 
 from dlxcpp import DLXCPP
+from functools import reduce
 
 class LatinSquare:
     def __init__(self, *args):

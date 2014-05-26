@@ -88,6 +88,7 @@ from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
 from sage.rings.all import Infinity, ZZ
 from sage.rings.infinity import is_Infinite
+from functools import reduce
 
 class FanMorphism(FreeModuleMorphism):
     r"""

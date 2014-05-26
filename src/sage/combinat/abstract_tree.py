@@ -66,6 +66,7 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
+from functools import reduce
 
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not

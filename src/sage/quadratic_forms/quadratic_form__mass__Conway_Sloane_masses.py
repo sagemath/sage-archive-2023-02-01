@@ -97,7 +97,7 @@ def parity(self, allow_rescaling_flag=True):
     Q0 = J0[1]
 
     ## The lattice is even if there is no component of scale (power) 0
-    if J0 == None:
+    if J0 is None:
         return "even"
 
     ## Look for a 1x1 block in the 0-th Jordan component (which by

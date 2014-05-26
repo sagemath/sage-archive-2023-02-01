@@ -1959,6 +1959,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.structure.bounded_integer_sequences',
+              sources = ['sage/structure/bounded_integer_sequences.pyx']),
+
     Extension('sage.structure.category_object',
               sources = ['sage/structure/category_object.pyx']),
 

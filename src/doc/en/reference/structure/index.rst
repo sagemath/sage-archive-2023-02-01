@@ -16,6 +16,7 @@ Basic Structures
    sage/structure/unique_representation
    sage/structure/factory
    sage/structure/dynamic_class
+   sage/structure/bounded_integer_sequences
    sage/structure/list_clone
    sage/structure/list_clone_demo
    sage/structure/mutability

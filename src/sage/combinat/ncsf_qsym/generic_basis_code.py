@@ -41,19 +41,22 @@ from sage.categories.realizations import RealizationsCategory
 
 class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
-    def _repr_(self):
+    def _repr_object_names(self):
         r"""
-        String representation of this category
+        Return the name of the objects of this category.
 
         TESTS::
 
-            sage: R = NonCommutativeSymmetricFunctions(ZZ).R()
-            sage: C = R.category().super_categories()[0]
-            sage: C._repr_()
-            'Category of bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the Integer Ring'
+            sage: from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
+            sage: QSym = QuasiSymmetricFunctions(QQ)
+            sage: C = BasesOfQSymOrNCSF(QSym)
+            sage: C._repr_object_names()
+            'bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the Rational Field'
+            sage: C
+            Category of bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the Rational Field
 
         """
-        return "Category of bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the %s" % self.base().base_ring()
+        return "bases of Non-Commutative Symmetric Functions or Quasisymmetric functions over the %s" % self.base().base_ring()
 
     def super_categories(self):
         r"""
@@ -64,8 +67,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
             sage: BasesOfQSymOrNCSF(QSym).super_categories()
             [Category of realizations of Quasisymmetric functions over the Rational Field,
              Category of graded hopf algebras with basis over Rational Field,
-             Join of Category of graded hopf algebras over Rational Field and Category of realizations of hopf algebras over Rational Field]
-
+             Join of Category of realizations of hopf algebras over Rational Field and
+             Category of graded algebras over Rational Field]
         """
         R = self.base().base_ring()
         from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis

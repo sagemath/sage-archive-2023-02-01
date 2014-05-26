@@ -597,7 +597,7 @@ class Polyhedron_base(Element):
         render_method = [ None, None, render_2d, render_3d, render_4d ]
         if self.ambient_dim() < len(render_method):
             render = render_method[self.ambient_dim()]
-            if render != None:
+            if render is not None:
                 return render(self, *opts)
         raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
                                   '-dimensional polyhedra not implemented')
@@ -3376,7 +3376,7 @@ class Polyhedron_base(Element):
             4
         """
         proj = self.projection()
-        if projection_dir == None:
+        if projection_dir is None:
             vertices = self.vertices()
             facet = self.Hrepresentation(0)
             f0 = [ v.index() for v in facet.incident() ]

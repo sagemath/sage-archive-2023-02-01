@@ -79,7 +79,7 @@ from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_s
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 
-from sage.interfaces.all import is_SingularElement
+from sage.interfaces.singular import is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 

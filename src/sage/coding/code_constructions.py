@@ -1267,9 +1267,9 @@ def ReedSolomonCode(n,k,F,pts = None):
     power = lambda x,n,F: (x==0 and n==0) and F(1) or F(x**n) # since 0^0 is undefined
     if n>q or k>n or k>q:
         raise ValueError("RS codes does not exist with the given input.")
-    if not(pts == None) and not(len(pts)==n):
+    if pts is not None and len(pts) != n:
         raise ValueError("You must provide exactly %s distinct points of %s"%(n,F))
-    if (pts == None):
+    if (pts is None):
         pts = []
         i = 0
         for x in F:

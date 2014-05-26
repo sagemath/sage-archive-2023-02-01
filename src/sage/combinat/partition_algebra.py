@@ -1794,7 +1794,7 @@ def to_set_partition(l,k=None):
         sage: pa.to_set_partition([[1,-1],[2,-2]]) == pa.identity(2)
         True
     """
-    if k == None:
+    if k is None:
         if l == []:
             return Set([])
         else:

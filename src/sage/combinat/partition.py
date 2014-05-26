@@ -1739,7 +1739,7 @@ class Partition(CombinatorialObject, Element):
             [4, 3, 2, 0]
         """
         true_length = len(self)
-        if length == None:
+        if length is None:
             length = true_length
         elif length < true_length:
             raise ValueError("length must be at least the length of the partition")

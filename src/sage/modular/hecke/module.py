@@ -550,6 +550,22 @@ class HeckeModule_free_module(HeckeModule_generic):
 #            return True
 #        return x.element() in self.free_module()
 
+    def _repr_(self):
+        r"""
+
+        EXAMPLES::
+
+            sage: M = sage.modular.hecke.module.HeckeModule_free_module(QQ, 12, -4); M
+            <class 'sage.modular.hecke.module.HeckeModule_free_module_with_category'>
+
+        .. TODO::
+
+            Implement a nicer repr, or implement the methods required
+            by :class:`ModulesWithBasis` to benefit from
+            :meth:`ModulesWithBasis.ParentMethods._repr_`.
+        """
+        return repr(type(self))
+
     def __getitem__(self, n):
         r"""
         Return the nth term in the decomposition of self. See the docstring for
@@ -976,7 +992,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         key = (bound, anemic)
 
         try:
-            if self.__decomposition[key] != None:
+            if self.__decomposition[key] is not None:
                 return self.__decomposition[key]
         except AttributeError:
             self.__decomposition = {}

@@ -372,7 +372,7 @@ def OA_6_20():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_20
         sage: OA = OA_6_20()
         sage: print is_orthogonal_array(OA,6,20,2)
@@ -418,7 +418,7 @@ def OA_7_21():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_21
         sage: OA = OA_7_21()
         sage: print is_orthogonal_array(OA,7,21,2)
@@ -460,7 +460,7 @@ def OA_5_22():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_5_22
         sage: OA = OA_5_22()
         sage: print is_orthogonal_array(OA,5,22,2)
@@ -512,7 +512,7 @@ def OA_9_24():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_24
         sage: OA = OA_9_24()
         sage: print is_orthogonal_array(OA,9,24,2)
@@ -563,7 +563,7 @@ def OA_6_26():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_26
         sage: OA = OA_6_26()
         sage: print is_orthogonal_array(OA,6,26,2)
@@ -611,7 +611,7 @@ def OA_7_28():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_28
         sage: OA = OA_7_28()
         sage: print is_orthogonal_array(OA,7,28,2)
@@ -663,7 +663,7 @@ def OA_6_30():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_30
         sage: OA = OA_6_30()
         sage: print is_orthogonal_array(OA,6,30,2)
@@ -715,7 +715,7 @@ def OA_7_33():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_33
         sage: OA = OA_7_33()
         sage: print is_orthogonal_array(OA,7,33,2)
@@ -766,7 +766,7 @@ def OA_6_34():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_34
         sage: OA = OA_6_34()
         sage: print is_orthogonal_array(OA,6,34,2)
@@ -818,7 +818,7 @@ def OA_7_35():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_35
         sage: OA = OA_7_35()
         sage: print is_orthogonal_array(OA,7,35,2)
@@ -856,7 +856,7 @@ def OA_10_36():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_36
         sage: OA = OA_10_36()
         sage: print is_orthogonal_array(OA,10,36,2)
@@ -914,7 +914,7 @@ def OA_6_38():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_38
         sage: OA = OA_6_38()
         sage: print is_orthogonal_array(OA,6,38,2)
@@ -963,7 +963,7 @@ def OA_7_39():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_39
         sage: OA = OA_7_39()
         sage: print is_orthogonal_array(OA,7,39,2)
@@ -1014,7 +1014,7 @@ def OA_9_40():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_40
         sage: OA = OA_9_40()
         sage: print is_orthogonal_array(OA,9,40,2)
@@ -1088,7 +1088,7 @@ def OA_7_42():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_42
         sage: OA = OA_7_42()
         sage: print is_orthogonal_array(OA,7,42,2)
@@ -1133,7 +1133,7 @@ def OA_7_44():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_44
         sage: OA = OA_7_44()
         sage: print is_orthogonal_array(OA,7,44,2)
@@ -1202,7 +1202,7 @@ def OA_8_45():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_45
         sage: OA = OA_8_45()
         sage: print is_orthogonal_array(OA,8,45,2)
@@ -1261,7 +1261,7 @@ def OA_6_46():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_46
         sage: OA = OA_6_46()
         sage: print is_orthogonal_array(OA,6,46,2)
@@ -1287,7 +1287,7 @@ def OA_10_48():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_48
         sage: OA = OA_10_48()
         sage: print is_orthogonal_array(OA,10,48,2)
@@ -1344,7 +1344,7 @@ def OA_8_50():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_50
         sage: OA = OA_8_50()
         sage: print is_orthogonal_array(OA,8,50,2)
@@ -1370,7 +1370,7 @@ def OA_7_51():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_51
         sage: OA = OA_7_51()
         sage: print is_orthogonal_array(OA,7,51,2)
@@ -1416,7 +1416,7 @@ def OA_7_52():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_52
         sage: OA = OA_7_52()
         sage: print is_orthogonal_array(OA,7,52,2)
@@ -1497,7 +1497,7 @@ def OA_7_54():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_54
         sage: OA = OA_7_54()
         sage: print is_orthogonal_array(OA,7,54,2)
@@ -1543,7 +1543,7 @@ def OA_8_55():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_55
         sage: OA = OA_8_55()
         sage: print is_orthogonal_array(OA,8,55,2)
@@ -1589,7 +1589,7 @@ def OA_9_56():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_56
         sage: OA = OA_9_56()
         sage: print is_orthogonal_array(OA,9,56,2)
@@ -1652,7 +1652,7 @@ def OA_7_60():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_60
         sage: OA = OA_7_60()
         sage: print is_orthogonal_array(OA,7,60,2)
@@ -1699,7 +1699,7 @@ def OA_7_62():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_62
         sage: OA = OA_7_62()
         sage: print is_orthogonal_array(OA,7,62,2)
@@ -1745,7 +1745,7 @@ def OA_9_65():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_65
         sage: OA = OA_9_65()
         sage: print is_orthogonal_array(OA,9,65,2)
@@ -1781,7 +1781,7 @@ def OA_9_75():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_75
         sage: OA = OA_9_75()
         sage: print is_orthogonal_array(OA,9,75,2)
@@ -1836,7 +1836,7 @@ def OA_11_80():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_80
         sage: OA = OA_11_80()
         sage: print is_orthogonal_array(OA,11,80,2)
@@ -1906,7 +1906,7 @@ def OA_10_82():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_82
         sage: OA = OA_10_82()
         sage: print is_orthogonal_array(OA,10,82,2)
@@ -1933,7 +1933,7 @@ def OA_10_100():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_100
         sage: OA = OA_10_100()
         sage: print is_orthogonal_array(OA,10,100,2)
@@ -1960,7 +1960,7 @@ def OA_12_144():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_12_144
         sage: OA = OA_12_144()
         sage: print is_orthogonal_array(OA,12,144,2)
@@ -1987,7 +1987,7 @@ def OA_12_210():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_12_210
         sage: OA = OA_12_210()
         sage: print is_orthogonal_array(OA,12,210,2)

@@ -299,7 +299,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     assert len(OA) == n**2, "pplane is not a projective plane"
 
     if check:
-        from orthogonal_arrays import is_orthogonal_array
+        from designs_pyx import is_orthogonal_array
         is_orthogonal_array(OA,n+1,n,2)
 
     return OA

@@ -1174,7 +1174,7 @@ def genus(T1, T2):
     """
 
     cells_map, t1, t2, t3 = tau123(T1, T2)
-    return (len(t1.to_cycles()) + len(t2.to_cycles()) + len(t3.to_cycles()) - T1.nr_filled_cells() - 2)/(-2)
+    return (len(t1.to_cycles()) + len(t2.to_cycles()) + len(t3.to_cycles()) - T1.nr_filled_cells() - 2) // (-2)
 
 def tau123(T1, T2):
     """
@@ -1816,7 +1816,7 @@ def elementary_abelian_2group(s):
         L_prev = elementary_abelian_2group(s-1)
         L = LatinSquare(2**s, 2**s)
 
-        offset = L.nrows()/2
+        offset = L.nrows() // 2
 
         for r in range(L_prev.nrows()):
             for c in range(L_prev.ncols()):

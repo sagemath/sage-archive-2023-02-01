@@ -593,8 +593,8 @@ class GenericGraph(GenericGraph_pyx):
             total_length = n*n
             bit = lambda x,y : x*n + y
         else:
-            total_length = int(n*(n - 1))/int(2)
-            n_ch_2 = lambda b : int(b*(b-1))/int(2)
+            total_length = (n*(n - 1))//2
+            n_ch_2 = lambda b : int(b*(b-1))//2
             bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
         for u,v,_ in self.edge_iterator():
@@ -2711,10 +2711,10 @@ class GenericGraph(GenericGraph_pyx):
                             return False
                         else:
                             # if there was another vertex with the same sign of difference...
-                            if uv[(diff+1)/2] is not None:
+                            if uv[(diff+1)//2] is not None:
                                 return False # ... the graph is not semi-eulerian
                             else:
-                                uv[(diff+1)/2] = v
+                                uv[(diff+1)//2] = v
                     else:
                         return False
         else:
@@ -4054,10 +4054,10 @@ class GenericGraph(GenericGraph_pyx):
                     faces = len(self.faces(self._embedding))
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
-                return (2-verts+edges-faces)/2
+                return (2-verts+edges-faces) // 2
             else: # compute genus on the provided dict
                 faces = len(self.faces(on_embedding))
-                return (2-verts+edges-faces)/2
+                return (2-verts+edges-faces) // 2
         else: # then compute either maximal or minimal genus of all embeddings
             import genus
 
@@ -12855,7 +12855,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.is_directed():
             from sage.graphs.digraph_generators import digraphs
-            return self.subgraph_search_count(digraphs.Circuit(3))/3
+            return self.subgraph_search_count(digraphs.Circuit(3)) // 3
 
         else:
             if algorithm=='iter':
@@ -12864,10 +12864,10 @@ class GenericGraph(GenericGraph_pyx):
                 ggnx = self.networkx_graph()
                 for u in ggnx.nodes_iter():
                     tr += sum(ggnx.has_edge(v,w) for v,w in Combinations(ggnx.neighbors(u),2))
-                return tr/3
+                return tr//3
 
             elif algorithm=='matrix':
-                return (self.adjacency_matrix()**3).trace()/6
+                return (self.adjacency_matrix()**3).trace() // 6
 
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))

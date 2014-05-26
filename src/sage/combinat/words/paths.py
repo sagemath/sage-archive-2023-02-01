@@ -2097,7 +2097,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             elif move == A:
                 area -= y
                 x -= 1
-        return area/2
+        return area // 2
 
     def is_simple(self):
         r"""

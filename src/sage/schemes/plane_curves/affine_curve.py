@@ -155,7 +155,7 @@ class AffineCurve_generic(Curve_generic):
         S.eval('poly f = '+str(ft) + ';')
         c = S('coeffs(%s, t)'%ft)
         N = int(c.size())
-        b = ["%s[%s,1],"%(c.name(), i) for i in range(2,N/2-4)]
+        b = ["%s[%s,1],"%(c.name(), i) for i in range(2,N//2-4)]
         b = ''.join(b)
         b = b[:len(b)-1] # to cut off the trailing comma
         cmd = 'ideal I = '+b
@@ -385,7 +385,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             # with the expect interface could crop up.  Also, this is vastly
             # faster (and more robust).
             v = singular('POINTS').sage_flattened_str_list()
-            pnts = [self(int(v[3*i]), int(v[3*i+1])) for i in range(len(v)/3) if int(v[3*i+2])!=0]
+            pnts = [self(int(v[3*i]), int(v[3*i+1])) for i in range(len(v)//3) if int(v[3*i+2])!=0]
             # remove multiple points
             pnts = sorted(set(pnts))
             return pnts

@@ -1753,7 +1753,7 @@ class Graph(GenericGraph):
 
             # split into groups of 6, and convert numbers to decimal, adding 63
             six_bits = ''
-            for i in range(len(s)/6):
+            for i in range(len(s)//6):
                 six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
             return ':' + generic_graph_pyx.N(n) + six_bits
 

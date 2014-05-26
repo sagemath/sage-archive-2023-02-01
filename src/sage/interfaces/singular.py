@@ -1653,7 +1653,7 @@ class SingularElement(ExpectElement):
         if singular_poly_list == ['1','0'] :
             return R(0)
 
-        coeff_start = int(len(singular_poly_list)/2)
+        coeff_start = len(singular_poly_list) // 2
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented

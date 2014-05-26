@@ -575,7 +575,7 @@ class MaximaLib(MaximaAbstract):
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
-                self.missing_assumption(s)
+                self._missing_assumption(s)
             else:
                 raise error
         return name
@@ -743,7 +743,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Principal Value' in s:
                 raise ValueError("Integral is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-                self.missing_assumption(s)
+                self._missing_assumption(s)
             else:
                 raise
 
@@ -803,7 +803,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Pole encountered' in s:
                 raise ValueError("Sum is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-                self.missing_assumption(s)
+                self._missing_assumption(s)
             else:
                 raise
 
@@ -861,7 +861,7 @@ class MaximaLib(MaximaAbstract):
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
-                self.missing_assumption(s)
+                self._missing_assumption(s)
             else:
                 raise
 
@@ -882,10 +882,19 @@ class MaximaLib(MaximaAbstract):
             L.append(max_minus)
         return max_to_sr(maxima_eval(([max_tlimit],L)))
     
-    def missing_assumption(self,errstr):
+    def _missing_assumption(self,errstr):
         """
         Helper function for unified handling of failed computation because an
         assumption was missing.
+        
+        EXAMPLES::
+        
+            sage: from sage.interfaces.maxima_lib import maxima_lib
+            sage: maxima_lib._missing_assumption('Is xyz a thing?')
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed ...
+            Is xyz a thing?
         """
         j = errstr.find('Is ')
         errstr = errstr[j:]

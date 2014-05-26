@@ -535,6 +535,7 @@ class RegularCrystals(Category_singleton):
                 sage: t._test_stembridge_local_axioms(verbose=True)
                 True
             """
+            from sage.combinat.subset import Subsets
             tester = self._tester(**options)
             goodness=True
             if index_set is None: index_set=self.index_set()

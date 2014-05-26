@@ -1083,7 +1083,7 @@ class GraphLatex(SageObject):
 
         if not(option_name in GraphLatex.__graphlatex_options):
             raise ValueError( "%s is not a LaTeX option for a graph." % option_name )
-        if option_value == None:    # clear the option, if set
+        if option_value is None:    # clear the option, if set
             if option_name in self._options:
                 del self._options[option_name]
         else:

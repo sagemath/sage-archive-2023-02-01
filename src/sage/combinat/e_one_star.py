@@ -1127,7 +1127,7 @@ class Patch(SageObject):
             return G
 
         if self.dimension() == 3:
-            if projmat == None:
+            if projmat is None:
                 projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
 
             G = Graphics()
@@ -1287,7 +1287,7 @@ class Patch(SageObject):
         if self.dimension() != 3:
             raise NotImplementedError("Tikz Plotting is implemented only for patches in three dimensions.")
 
-        if projmat == None:
+        if projmat is None:
             projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])*scale
 
         e1 = projmat*vector([1,0,0])

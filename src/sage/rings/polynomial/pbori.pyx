@@ -3304,7 +3304,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y + x + y + 1).degree(x)
             1
         """
-        if x != None:
+        if x is not None:
             if self._pbpoly.set().multiplesOf((<BooleanPolynomial>x)._pbpoly.firstTerm()).isZero():
                 return 0
             else:
@@ -3811,7 +3811,7 @@ cdef class BooleanPolynomial(MPolynomial):
             raise ValueError, "polynomial must involve at most one variable"
 
         #construct ring if none
-        if R == None:
+        if R is None:
             if self.is_constant():
                 R = GF(2)['x']
             else:

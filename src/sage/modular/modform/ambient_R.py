@@ -104,7 +104,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             sage: len(S.basis()) == dimension_cusp_forms(Gamma1(29), 2)
             True
         """
-        if prec == None:
+        if prec is None:
             prec = self.prec()
         R = self._q_expansion_ring()
         c = self.base_ring().characteristic()

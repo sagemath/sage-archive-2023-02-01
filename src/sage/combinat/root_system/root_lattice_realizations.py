@@ -16,6 +16,7 @@ from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.superseded import deprecated_function_alias
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
@@ -147,9 +148,11 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             sage: from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
             sage: RootLatticeRealizations(QQ).super_categories()
-            [Category of modules with basis over Rational Field]
+            [Category of vector spaces with basis over Rational Field]
         """
         return [ModulesWithBasis(self.base_ring())]
+
+    Algebras = LazyImport('sage.combinat.root_system.root_lattice_realization_algebras', 'Algebras')
 
     class ParentMethods:
 
@@ -270,6 +273,24 @@ class RootLatticeRealizations(Category_over_base_ring):
 
 
             return s.strip()
+
+        def some_elements(self):
+            """
+            Return some elements of this root lattice realization
+
+            EXAMPLES::
+
+                sage: L = RootSystem(["A",2]).weight_lattice()
+                sage: L.some_elements()
+                [2*Lambda[1] + 2*Lambda[2], 2*Lambda[1] - Lambda[2], -Lambda[1] + 2*Lambda[2], Lambda[1], Lambda[2]]
+                sage: L = RootSystem(["A",2]).root_lattice()
+                sage: L.some_elements()
+                [2*alpha[1] + 2*alpha[2], alpha[1], alpha[2]]
+            """
+            result = [self.an_element()]+list(self.simple_roots())
+            if hasattr(self, "fundamental_weights"):
+                result += list(self.fundamental_weights())
+            return result
 
         ##########################################################################
         # checks
@@ -489,6 +510,33 @@ class RootLatticeRealizations(Category_over_base_ring):
                 return (self.null_root(),)
             raise ValueError("only implemented for finite and affine types")
 
+        @cached_method
+        def simple_roots_tilde(self):
+            r"""
+            Return the basic imaginary roots of ``self``.
+
+            The basic imaginary roots `\delta` are the set of imaginary roots
+            in `-C^{\vee}` where `C` is the dominant chamger (i.e.,
+            `\langle \beta, \alpha_i^{\vee} \rangle \leq 0` for all `i \in I`).
+            All imaginary roots are `W`-conjugate to a simple imaginary root.
+
+            EXAMPLES::
+
+                sage: RootSystem(['A', 2]).root_lattice().basic_imaginary_roots()
+                ()
+                sage: Q = RootSystem(['A', 2, 1]).root_lattice()
+                sage: Q.basic_imaginary_roots()
+                (alpha[0] + alpha[1] + alpha[2],)
+                sage: delta = Q.basic_imaginary_roots()[0]
+                sage: all(delta.scalar(Q.simple_coroot(i)) <= 0 for i in Q.index_set())
+                True
+            """
+            if self.cartan_type().is_finite():
+                return ()
+            if self.cartan_type().is_affine():
+                return (self.null_root(),)
+            raise ValueError("only implemented for finite and affine types")
+
         ##########################################################################
         # roots
         ##########################################################################
@@ -574,7 +622,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 raise NotImplementedError("only implemented for finite Cartan types")
             return filter(lambda x: x.is_long_root(), self.roots())
 
-        def positive_roots(self, index_set=None):
+        @cached_method
+        def positive_roots(self, index_set = None):
             r"""
             Return the positive roots of ``self``.
 
@@ -588,8 +637,11 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(['A',3]).root_lattice()
                 sage: sorted(L.positive_roots())
-                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3],
-                 alpha[2], alpha[2] + alpha[3], alpha[3]]
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
+                sage: sorted(L.positive_roots((1,2)))
+                [alpha[1], alpha[1] + alpha[2], alpha[2]]
+                sage: sorted(L.positive_roots(()))
+                []
 
                 sage: L = RootSystem(['A',3,1]).root_lattice()
                 sage: PR = L.positive_roots(); PR
@@ -614,7 +666,57 @@ class RootLatticeRealizations(Category_over_base_ring):
                                                     self.positive_imaginary_roots()])
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("Only implemented for finite Cartan type")
-            return TransitiveIdealGraded(attrcall('pred'), self.simple_roots())
+            if index_set is None:
+                index_set = tuple(self.cartan_type().index_set())
+            return TransitiveIdealGraded(attrcall('pred', index_set=index_set), [self.simple_root(i) for i in index_set])
+
+        @cached_method
+        def nonparabolic_positive_roots(self, index_set = None):
+            r"""
+            Return the positive roots of ``self`` that are not in the
+            parabolic subsystem indicated by ``index_set``.
+
+            If ``index_set`` is None, as in :meth:`positive_roots`
+            it is assumed to be the entire Dynkin node set. Then the
+            parabolic subsystem consists of all positive roots and the
+            empty list is returned.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A',3]).root_lattice()
+                sage: L.nonparabolic_positive_roots()
+                []
+                sage: sorted(L.nonparabolic_positive_roots((1,2)))
+                [alpha[1] + alpha[2] + alpha[3], alpha[2] + alpha[3], alpha[3]]
+                sage: sorted(L.nonparabolic_positive_roots(()))
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
+
+            """
+            if not self.cartan_type().is_finite():
+                raise NotImplementedError, "Only implemented for finite Cartan type"
+            if index_set is None:
+                return []
+            return [x for x in self.positive_roots() if not x in self.positive_roots(index_set)]
+
+        @cached_method
+        def nonparabolic_positive_root_sum(self, index_set=None):
+            r"""
+            Return the sum of positive roots not in a parabolic subsystem.
+
+            The conventions for ``index_set`` are as in :meth:`nonparabolic_positive_roots`.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['A',3]).root_lattice()
+                sage: Q.nonparabolic_positive_root_sum((1,2))
+                alpha[1] + 2*alpha[2] + 3*alpha[3]
+                sage: Q.nonparabolic_positive_root_sum()
+                0
+                sage: Q.nonparabolic_positive_root_sum(())
+                3*alpha[1] + 4*alpha[2] + 3*alpha[3]
+
+            """
+            return self.sum(self.nonparabolic_positive_roots(index_set))
 
         def positive_real_roots(self):
             """
@@ -2897,7 +2999,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: len(L.fundamental_weights()[2].orbit())
                 6
             """
-            return [x for x in TransitiveIdeal(attrcall('simple_reflections'), [self])]
+            return [x for x in TransitiveIdealGraded(attrcall('simple_reflections'), [self])]
 
         ##########################################################################
         #
@@ -2997,7 +3099,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (alpha[1]+alpha[2]+alpha[4]).first_descent([1,2,5,3,4])
                 5
             """
-            if index_set == None:
+            if index_set is None:
                 index_set = self.parent().index_set()
             for i in index_set:
                 if self.has_descent(i, positive):
@@ -3015,7 +3117,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (alpha[1]+alpha[2]+alpha[4]).descents()
                 [3, 5]
             """
-            if index_set==None:
+            if index_set is None:
                 index_set=self.parent().index_set()
             return [ i for i in index_set if self.has_descent(i, positive) ]
 
@@ -3208,9 +3310,17 @@ class RootLatticeRealizations(Category_over_base_ring):
         # weak order
         ##########################################################################
 
-        def succ(self):
+        def succ(self, index_set=None):
             r"""
-            Returns the immediate successors of self for the weak order
+            Return the immediate successors of ``self`` for the weak order.
+
+            INPUT:
+
+            - ``index_set`` - a subset (as a list or iterable) of the
+              nodes of the dynkin diagram; (default: ``None`` for all of them)
+
+            If ``index_set`` is specified, the successors for the
+            corresponding parabolic subsystem are returned.
 
             EXAMPLES::
 
@@ -3222,12 +3332,24 @@ class RootLatticeRealizations(Category_over_base_ring):
                 [-Lambda[1] + 2*Lambda[2] + Lambda[3], 2*Lambda[1] - Lambda[2] + 2*Lambda[3], Lambda[1] + 2*Lambda[2] - Lambda[3]]
                 sage: (-L.rho()).succ()
                 []
-           """
-            return [ self.simple_reflection(i) for i in self.descents(positive=True) ]
+                sage: L.rho().succ(index_set=[1])
+                [-Lambda[1] + 2*Lambda[2] + Lambda[3]]
+                sage: L.rho().succ(index_set=[2])
+                [2*Lambda[1] - Lambda[2] + 2*Lambda[3]]
+            """
+            return [ self.simple_reflection(i) for i in self.descents(index_set=index_set, positive=True) ]
 
-        def pred(self):
+        def pred(self, index_set=None):
             r"""
-            Returns the immediate predecessors of self for the weak order
+            Return the immediate predecessors of ``self`` for the weak order.
+
+            INPUT:
+
+            - ``index_set`` - a subset (as a list or iterable) of the
+              nodes of the dynkin diagram; (default: ``None`` for all of them)
+
+            If ``index_set`` is specified, the successors for the
+            corresponding parabolic subsystem are returned.
 
             EXAMPLES::
 
@@ -3239,8 +3361,10 @@ class RootLatticeRealizations(Category_over_base_ring):
                 []
                 sage: (-L.rho()).pred()
                 [Lambda[1] - 2*Lambda[2] - Lambda[3], -2*Lambda[1] + Lambda[2] - 2*Lambda[3], -Lambda[1] - 2*Lambda[2] + Lambda[3]]
+                sage: (-L.rho()).pred(index_set=[1])
+                [Lambda[1] - 2*Lambda[2] - Lambda[3]]
             """
-            return [ self.simple_reflection(i) for i in self.descents() ]
+            return [ self.simple_reflection(i) for i in self.descents(index_set) ]
 
         def greater(self):
             r"""

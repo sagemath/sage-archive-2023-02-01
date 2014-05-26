@@ -1702,13 +1702,28 @@ cdef class CachedMethodCaller(CachedFunction):
         parent or element class of a category (:trac:`11115`).
         See :class:`CachedMethodCaller` for examples.
 
+        Verify that :trac:`16337` has been resolved::
+
+            sage: class Foo:
+            ....:     @cached_method(key=lambda self,y: y+1)
+            ....:     def f(self, y):
+            ....:         return y - 1
+            sage: class Bar:
+            ....:     f = Foo.f
+
+            sage: b = Bar()
+            sage: b.f(0)
+            -1
+            sage: b.f.cache
+            {1: -1}
+
         """
         # This is for Parents or Elements that do not allow attribute assignment
         try:
             return (<dict>inst.__cached_methods)[self._cachedmethod._cachedfunc.__name__]
         except (AttributeError,TypeError,KeyError):
             pass
-        Caller = CachedMethodCaller(self._cachedmethod, inst, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__)
+        Caller = CachedMethodCaller(self._cachedmethod, inst, cache=self._cachedmethod._get_instance_cache(inst), inst_in_key=self._inst_in_key, name=self._cachedmethod._cachedfunc.__name__, key=self.key)
         try:
             setattr(inst,self._cachedmethod._cachedfunc.__name__, Caller)
             return Caller
@@ -2296,6 +2311,19 @@ cdef class CachedMethod(object):
             sage: a.g is a.g
             True
 
+        Verify that :trac:`16337` has been resolved::
+
+            sage: class Foo:
+            ....:     @cached_method(key=lambda self, x:x+1)
+            ....:     def f(self, x=0):
+            ....:         return x
+
+            sage: a = Foo()
+            sage: a.f(0)
+            0
+            sage: a.f.cache
+            {1: 0}
+
         """
         # This is for Parents or Elements that do not allow attribute assignment:
         cdef str name
@@ -2413,6 +2441,20 @@ cdef class CachedSpecialMethod(CachedMethod):
             5
             sage: hash(c)
             5
+
+        Verify that :trac:`16337` has been resolved::
+
+            sage: class Foo:
+            ....:     @cached_method(key=lambda self, x:x+1)
+            ....:     def __hash__(self, x=0):
+            ....:         return x
+
+            sage: a = Foo()
+            sage: a.__hash__(0)
+            0
+            sage: a.__hash__.cache
+            {1: 0}
+
         """
         # This is for Parents or Elements that do not allow attribute assignment:
         cdef str name
@@ -2450,7 +2492,8 @@ cdef class CachedSpecialMethod(CachedMethod):
                 self.nargs = 2 # don't need the exact number
                 Caller = CachedMethodCaller(self, inst,
                                             cache=self._get_instance_cache(inst),
-                                            name=name)
+                                            name=name,
+                                            key=self._cachedfunc.key)
         elif self.nargs == 1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:

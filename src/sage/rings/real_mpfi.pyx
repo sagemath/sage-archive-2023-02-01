@@ -181,6 +181,34 @@ EXAMPLES::
     -1
     sage: cmp(RIF(0, 1), RIF(0, 1))
     0
+
+Comparison with infinity is defined through coercion to the infinity
+ring where semi-infinite intervals are sent to their central value
+(plus or minus infinity); This implements the above convention for
+inequalities::
+
+    sage: InfinityRing.has_coerce_map_from(RIF)
+    True
+    sage: -oo < RIF(-1,1) < oo
+    True
+    sage: -oo < RIF(0,oo) <= oo
+    True
+    sage: -oo <= RIF(-oo,-1) < oo
+    True
+
+Comparison by equality shows what the semi-infinite intervals actually
+coerce to::
+
+    sage: RIF(1,oo) == oo
+    True
+    sage: RIF(-oo,-1) == -oo
+    True
+
+For lack of a better value in the infinity ring, the doubly infinite
+interval coerces to plus infinity::
+
+    sage: RIF(-oo,oo) == oo
+    True
 """
 
 ############################################################################

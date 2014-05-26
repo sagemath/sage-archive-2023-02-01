@@ -135,7 +135,7 @@ class FiniteField_givaro(FiniteField):
             else:
                 raise ValueError("Conway polynomial not found")
 
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(modulus):
             modulus = modulus.list()
 

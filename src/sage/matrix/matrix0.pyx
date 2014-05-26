@@ -98,16 +98,18 @@ cdef class Matrix(sage.structure.element.Matrix):
     """
     def __init__(self, parent):
         """
-        The initialization routine of the Matrix base class ensures that it sets
-        the attributes self._parent, self._base_ring, self._nrows, self._ncols.
-        It sets the latter ones by accessing the relevant information on parent,
-        which is often slower than what a more specific subclass can do.
+        The initialization routine of the ``Matrix`` base class ensures
+        that it sets the attributes ``self._parent``, ``self._base_ring``,
+        ``self._nrows``, ``self._ncols``. It sets the latter ones by
+        accessing the relevant information on ``parent``, which is often
+        slower than what a more specific subclass can do.
 
-        Subclasses of Matrix can safely skip calling Matrix.__init__ provided they
-        take care of initializing these attributes themselves.
+        Subclasses of ``Matrix`` can safely skip calling
+        ``Matrix.__init__`` provided they take care of initializing these
+        attributes themselves.
 
-        The private attributes self._is_immutable and self._cache are implicitly
-        initialized to valid values upon memory allocation.
+        The private attributes ``self._is_immutable`` and ``self._cache``
+        are implicitly initialized to valid values upon memory allocation.
 
         EXAMPLES::
 
@@ -123,15 +125,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def list(self):
         """
-        List of the elements of self ordered by elements in each
+        List of the elements of ``self`` ordered by elements in each
         row. It is safe to change the returned list.
 
         .. warning::
 
            This function returns a list of the entries in the matrix
-           self.  It does not return a list of the rows of self, so it
-           is different than the output of list(self), which returns
-           ``[self[0],self[1],...]``.
+           ``self``.  It does not return a list of the rows of ``self``,
+           so it is different than the output of ``list(self)``, which
+           returns ``[self[0],self[1],...]``.
 
         EXAMPLES::
 
@@ -161,12 +163,14 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _list(self):
         """
-        Unsafe version of the list method, mainly for internal use. This
-        may return the list of elements, but as an *unsafe* reference to
-        the underlying list of the object. It is might be dangerous if you
-        change entries of the returned list.
+        Unsafe version of the ``list`` method, mainly for internal use.
+        This may return the list of elements, but as an *unsafe* reference
+        to the underlying list of the object. It is dangerous to change
+        entries of the returned list.
 
-        EXAMPLES: Using _list is potentially fast and memory efficient,
+        EXAMPLES:
+
+        Using ``_list`` is potentially fast and memory efficient,
         but very dangerous (at least for generic dense matrices).
 
         ::
@@ -1883,6 +1887,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         latex = sage.misc.latex.latex
         matrix_delimiters = latex.matrix_delimiters()
+        align = latex.matrix_column_alignment()
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
@@ -1916,7 +1921,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             tmp.append(str(row))
         s = " \\\\\n".join(tmp)
 
-        tmp = ['r'*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
+        tmp = [align*(b-a) for a,b in zip([0] + col_divs, col_divs + [nc])]
         format = '|'.join(tmp)
 
         return "\\left" + matrix_delimiters[0] + "\\begin{array}{%s}\n"%format + s + "\n\\end{array}\\right" + matrix_delimiters[1]
@@ -3366,7 +3371,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             # testing the diagonal entries to be zero
             zero = self.parent().base_ring().zero()
             for i from 0 <= i < self._nrows:
-                if not self.get_unsafe(i,i) == zero:
+                if self.get_unsafe(i,i) != zero:
                     return False
             sign = -1
         else:
@@ -3731,8 +3736,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         Here, "alternating matrix" means a square matrix `A`
         satisfying `A^T = -A` and such that the diagonal entries
-        of `0`. Notice that the condition that the diagonal
-        entries be `0` is not redundant for matrices over
+        of `A` are `0`. Notice that the condition that the
+        diagonal entries be `0` is not redundant for matrices over
         arbitrary ground rings (but it is redundant when `2` is
         invertible in the ground ring). A square matrix `A` only
         required to satisfy `A^T = -A` is said to be
@@ -3762,11 +3767,12 @@ cdef class Matrix(sage.structure.element.Matrix):
         #  is the type used for indexing.
         cdef Py_ssize_t i,j
 
+        zero = self._base_ring.zero()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < i:
                 if self.get_unsafe(i,j) != -self.get_unsafe(j,i):
                     return False
-            if self.get_unsafe(i,i) != 0:
+            if not self.get_unsafe(i,i) == zero:
                 return False
         return True
 
@@ -4000,7 +4006,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: B.left_kernel().dimension()
             0
 
-        For "rectangular" matrices, invertibility is always
+        For *rectangular* matrices, invertibility is always
         ``False``, but asking about singularity will give an error. ::
 
             sage: C = matrix(QQ, 5, range(30))
@@ -4024,8 +4030,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d.is_unit()
             False
         """
-        if self.ncols() == self.nrows():
-            return self.rank() != self.nrows()
+        if self._ncols == self._nrows:
+            return self.rank() != self._nrows
         else:
             raise ValueError("self must be a square matrix")
 

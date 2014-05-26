@@ -35,9 +35,5 @@ rm -rf msvc contrib/encodings contrib/unicode
 cd src
 rm -rf gc-unstable libffi
 
-# Remove almost everything from gmp directory
-mv gmp gmp-remove
-# Save a few files
-mkdir gmp
-cp -p gmp-remove/config.* gmp-remove/configfsf.* gmp-remove/install*sh gmp
-rm -rf gmp-remove
+# Remove gmp directory
+rm -rf gmp

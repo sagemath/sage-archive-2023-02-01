@@ -1253,7 +1253,7 @@ class BranchingRule(SageObject):
             A2(0,1) + A2(1,0) + A2(0,2) + 2*A2(1,1) + A2(2,0) + A2(1,2) + A2(2,1)
 
         """
-        if style == None:
+        if style is None:
             style = chi.parent()._style
         S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(self.Stype(), style=style)
         return chi.branch(S, rule=self)

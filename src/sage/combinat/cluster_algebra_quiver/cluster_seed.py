@@ -126,7 +126,7 @@ class ClusterSeed(SageObject):
             quiver = ClusterQuiver( data, frozen=frozen )
             self.__init__( quiver )
 
-        if is_principal != None:
+        if is_principal is not None:
             self._is_principal = is_principal
 
     def __eq__(self, other):

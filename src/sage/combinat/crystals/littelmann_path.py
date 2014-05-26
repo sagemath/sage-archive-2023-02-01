@@ -526,7 +526,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             dual_path = dual_path.e(i, power, to_string_end, length_only)
             if length_only:
                 return dual_path
-            if dual_path == None:
+            if dual_path is None:
                 return None
             return dual_path.dualize()
 

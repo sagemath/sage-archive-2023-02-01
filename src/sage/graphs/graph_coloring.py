@@ -400,7 +400,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
 
-    # If k==None, tries to find an optimal coloring
+    # If k is None, tries to find an optimal coloring
     if k is None:
         # No need to start a linear program if the graph is an
         # independent set or bipartite.

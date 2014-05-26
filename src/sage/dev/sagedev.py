@@ -3191,11 +3191,11 @@ class SageDev(MercurialPatchMixin):
         remote_branch = None
 
         if ticket_or_branch == 'dependencies':
-            if current_ticket == None:
+            if current_ticket is None:
                 raise SageDevValueError("dependencies can only be merged if currently on a ticket.")
             if pull == False:
                 raise SageDevValueError('"pull" must not be "False" when merging dependencies.')
-            if create_dependency != None:
+            if create_dependency is not None:
                 raise SageDevValueError('"create_dependency" must not be set when merging dependencies.')
             for dependency in self._dependencies_for_ticket(current_ticket):
                 self._UI.debug("Merging dependency #{0}.".format(dependency))

@@ -79,7 +79,7 @@ def Subwords(w, k=None):
         sage: S.list()
         [['a', 'b'], ['a', 'c'], ['b', 'c']]
     """
-    if k == None:
+    if k is None:
         return Subwords_w(w)
     else:
         if k not in range(0, len(w)+1):

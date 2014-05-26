@@ -214,7 +214,7 @@ Sage example in ./calculus.tex, line 597::
 Sage example in ./calculus.tex, line 605::
 
     sage: find_root(expr, 0.1, pi)
-    2.0943951023931957
+    2.094395102393195...
 
 Sage example in ./calculus.tex, line 610::
 

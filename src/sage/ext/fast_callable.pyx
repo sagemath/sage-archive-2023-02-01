@@ -386,6 +386,32 @@ def fast_callable(x, domain=None, vars=None,
         sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
         0.5514266812416906
+         
+    Check that fast_callable also works for symbolic functions with evaluation
+    functions:
+
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: x,y = var('x,y')
+        sage: f = function('f', evalf_func=evalf_func)
+        sage: fc = fast_callable(f(x, y), vars=[x, y])
+        sage: fc(3, 4)
+        f(3, 4)
+
+    And also when there are complex values involved:
+
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: g = function('g', evalf_func=evalf_func)
+        sage: fc = fast_callable(g(x, y), vars=[x, y])
+        sage: fc(3, 4)
+        g(3, 4)
+        sage: fc2 = fast_callable(g(x, y), domain=complex, vars=[x, y])
+        sage: fc2(3, 4)
+        12j
+        sage: fc3 = fast_callable(g(x, y), domain=float, vars=[x, y])
+        sage: fc3(3, 4)
+        Traceback (most recent call last):
+            ...
+        TypeError: unable to simplify to float approximation
     """
     cdef Expression et
     if isinstance(x, Expression):

@@ -3310,7 +3310,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         if not self.is_square():
             raise ValueError('Schur decomposition requires a square matrix, not a {0} x {1} matrix'.format(self.nrows(), self.ncols()))
-        if base_ring == None:
+        if base_ring is None:
             base_ring = self.base_ring()
         if not base_ring in [RDF, CDF]:
             raise ValueError('base ring of Schur decomposition matrices must be RDF or CDF, not {0}'.format(base_ring))

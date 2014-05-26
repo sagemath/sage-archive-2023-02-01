@@ -569,21 +569,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return integer_ring_python.iterator(self)
 
-    def list(self):
-        """
-        Raise a ``NotImplementedError`` since this is an inifinte list.
-
-        This can be removed once this is a proper :class:`Parent`.
-
-        EXAMPLES::
-
-            sage: ZZ.list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: infinite list
-        """
-        raise NotImplementedError("infinite list")
-
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i
         i = PY_NEW(integer.Integer)

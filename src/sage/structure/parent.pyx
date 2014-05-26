@@ -1293,6 +1293,8 @@ cdef class Parent(category_object.CategoryObject):
         else:
             return (<map.Map>mor)._call_(x)
 
+    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
+    # all Sage enumerated sets are in this category
     def _list_from_iterator_cached(self):
         r"""
         Return a list of the elements of ``self``.
@@ -1396,11 +1398,8 @@ cdef class Parent(category_object.CategoryObject):
             pass
         # if known to be infinite, give up
         # if unsure, proceed (which will hang for an infinite set)
-        try:
-            if not self.is_finite():
-                raise ValueError('since it is infinite, cannot list %s' % self )
-        except (AttributeError, NotImplementedError):
-            pass
+        if self in Sets().Infinite():
+            raise NotImplementedError('since it is infinite, cannot list %s' % self )
         the_list = list(self.__iter__())
         try:
             self._list = the_list

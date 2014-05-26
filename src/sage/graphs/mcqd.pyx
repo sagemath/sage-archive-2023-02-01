@@ -61,4 +61,6 @@ def mcqd(G):
     sage_free(c[0])
     sage_free(c)
     sage_free(qmax)
+    del C
+
     return answer

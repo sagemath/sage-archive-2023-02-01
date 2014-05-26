@@ -6,7 +6,11 @@ to transversal designs.
 
 .. TODO::
 
-    Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+    - Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+
+    - A resolvable `OA(k,n)` is equivalent to a `OA(k+1,n)`. Sage should be able
+      to return resolvable OA, with sorted rows (so that building the
+      decomposition is easy.
 
 REFERENCES:
 

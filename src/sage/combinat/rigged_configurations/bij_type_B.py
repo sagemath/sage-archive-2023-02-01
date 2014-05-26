@@ -524,15 +524,17 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
     Specific implementation of the bijection from rigged configurations to
     tensor products of KR tableaux for type `B_n^{(1)}`.
     """
-    def run(self, verbose=False):
+    def run(self, verbose=False, build_graph=False):
         """
         Run the bijection from rigged configurations to tensor product of KR
         tableaux for type `B_n^{(1)}`.
 
         INPUT:
 
-        - ``verbose`` -- (Default: ``False``) Display each step in the
+        - ``verbose`` -- (default: ``False``) display each step in the
           bijection
+        - ``build_graph`` -- (default: ``False``) build the graph of each
+          step in the bijection
 
         EXAMPLES::
 
@@ -589,6 +591,10 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         bij.cur_partitions[i]._list[j] *= 2
                         bij.cur_partitions[i].rigging[j] *= 2
                         bij.cur_partitions[i].vacancy_numbers[j] *= 2
+
+                if build_graph:
+                    y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                    self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
         
                 # Perform the type A_{2n-1}^{(2)} bijection
         
@@ -603,6 +609,10 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         # All it does is update the vacancy numbers on the RC side
                         for a in range(self.n):
                             bij._update_vacancy_numbers(a)
+
+                        if build_graph:
+                            y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                            self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
         
                     while bij.cur_dims[0][0] > 0:
                         if verbose:
@@ -616,6 +626,10 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         b = bij.next_state(bij.cur_dims[0][0])
                         # Make sure we have a crystal letter
                         ret_crystal_path[-1].append(letters(b)) # Append the rank
+
+                        if build_graph:
+                            y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                            self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
 
                     bij.cur_dims.pop(0) # Pop off the leading column
 
@@ -639,6 +653,10 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         self.cur_partitions[i]._list[j] //= 2
                         self.cur_partitions[i].rigging[j] //= 2
                         self.cur_partitions[i].vacancy_numbers[j] //= 2
+
+                if build_graph:
+                    y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                    self._graph.append([self._graph[-1][1], (y, len(self._graph)), '1/2x'])
             else:
                 # Perform the regular type B_n^{(1)} bijection
 
@@ -662,6 +680,10 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         for a in range(self.n):
                             self._update_vacancy_numbers(a)
 
+                        if build_graph:
+                            y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                            self._graph.append([self._graph[-1][1], (y, len(self._graph)), '2x'])
+
                     while self.cur_dims[0][0] > 0:
                         if verbose:
                             print("====================")
@@ -676,7 +698,19 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                         # Make sure we have a crystal letter
                         ret_crystal_path[-1].append(letters(b)) # Append the rank
 
+                        if build_graph:
+                            y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
+                            self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
+
                     self.cur_dims.pop(0) # Pop off the leading column
+
+        if build_graph:
+            self._graph.pop(0) # Remove the dummy at the start
+            from sage.graphs.digraph import DiGraph
+            from sage.graphs.dot2tex_utils import have_dot2tex
+            self._graph = DiGraph(self._graph)
+            if have_dot2tex():
+                self._graph.set_latex_options(format="dot2tex", edge_labels=True)
 
         return self.KRT(pathlist=ret_crystal_path)
 

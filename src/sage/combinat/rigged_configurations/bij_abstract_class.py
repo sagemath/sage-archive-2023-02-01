@@ -346,7 +346,7 @@ class RCToKRTBijectionAbstract:
         """
         return isinstance(rhs, RCToKRTBijectionAbstract)
 
-    def run(self, verbose=False, display_graph=False):
+    def run(self, verbose=False, build_graph=False):
         """
         Run the bijection from rigged configurations to tensor product of KR
         tableaux.
@@ -355,7 +355,7 @@ class RCToKRTBijectionAbstract:
 
         - ``verbose`` -- (default: ``False``) display each step in the
           bijection
-        - ``display_graph`` -- (default: ``False``) build the graph of each
+        - ``build_graph`` -- (default: ``False``) build the graph of each
           step in the bijection
 
         EXAMPLES::
@@ -397,7 +397,7 @@ class RCToKRTBijectionAbstract:
                     for a in range(self.n):
                         self._update_vacancy_numbers(a)
 
-                    if display_graph:
+                    if build_graph:
                         y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
 
@@ -415,21 +415,19 @@ class RCToKRTBijectionAbstract:
                     # Make sure we have a crystal letter
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
 
-                    if display_graph:
+                    if build_graph:
                         y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions])
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), letters(b)])
 
                 self.cur_dims.pop(0) # Pop off the leading column
 
-        if display_graph:
+        if build_graph:
             self._graph.pop(0) # Remove the dummy at the start
             from sage.graphs.digraph import DiGraph
             from sage.graphs.dot2tex_utils import have_dot2tex
-            from sage.misc.latex import view
             self._graph = DiGraph(self._graph)
             if have_dot2tex():
                 self._graph.set_latex_options(format="dot2tex", edge_labels=True)
-            view(self._graph, tightpage=True)
 
         # Basic check to make sure we end with the empty configuration
         #tot_len = sum([len(rp) for rp in self.cur_partitions])

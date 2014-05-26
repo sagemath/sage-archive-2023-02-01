@@ -68,6 +68,7 @@ import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 
@@ -124,7 +125,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sage: Z.is_field()
         False
         sage: Z.category()
-        Category of euclidean domains
+        Join of Category of euclidean domains
+            and Category of infinite enumerated sets
         sage: Z(2^(2^5) + 1)
         4294967297
 
@@ -294,8 +296,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: from sage.rings.integer_ring import IntegerRing_class
             sage: A = IntegerRing_class()
 
+        We check that ``ZZ`` is an infinite enumerated set
+        (see :trac:`16239`)::
+
+            sage: A in InfiniteEnumeratedSets()
+            True
         """
-        ParentWithGens.__init__(self, self, ('x',), normalize=False, category = EuclideanDomains())
+        ParentWithGens.__init__(self, self, ('x',), normalize=False,
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -560,6 +568,21 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             -2
         """
         return integer_ring_python.iterator(self)
+
+    def list(self):
+        """
+        Raise a ``NotImplementedError`` since this is an inifinte list.
+
+        This can be removed once this is a proper :class:`Parent`.
+
+        EXAMPLES::
+
+            sage: ZZ.list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: infinite list
+        """
+        raise NotImplementedError("infinite list")
 
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i

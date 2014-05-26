@@ -141,15 +141,6 @@ def convert_to_milnor_matrix(n, basis, p=2):
 
     ``matrix`` - change-of-basis matrix, a square matrix over ``GF(p)``
 
-    .. note::
-
-        This is called internally.  It is not intended for casual
-        users, so no error checking is made on the integer `n`, the
-        basis name, or the prime.  Also, users should call
-        :func:`convert_to_milnor_matrix` instead of this function
-        (which has a trailing underscore in its name), because the
-        former is the cached version of the latter.
-
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_bases import convert_to_milnor_matrix
@@ -157,7 +148,7 @@ def convert_to_milnor_matrix(n, basis, p=2):
         [0 1]
         [1 1]
         sage: convert_to_milnor_matrix(45, 'milnor')
-        111 x 111 dense matrix over Finite Field of size 2
+        111 x 111 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: convert_to_milnor_matrix(12,'wall')
         [1 0 0 1 0 0 0]
         [1 1 0 0 0 1 0]
@@ -233,7 +224,7 @@ def convert_from_milnor_matrix(n, basis, p=2):
         [1 1 1 0 0 0 0]
         [1 0 1 0 1 0 1]
         sage: convert_from_milnor_matrix(38,'serre_cartan')
-        72 x 72 dense matrix over Finite Field of size 2
+        72 x 72 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: x = convert_to_milnor_matrix(20,'wood_y')
         sage: y = convert_from_milnor_matrix(20,'wood_y')
         sage: x*y
@@ -292,13 +283,6 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
 
     Tuple of objects representing basis elements for the Steenrod algebra
     in dimension n.
-
-    .. note::
-
-        Users should use :func:`steenrod_algebra_basis` instead of
-        this function (which has a trailing underscore in its name):
-        :func:`steenrod_algebra_basis` is the cached version of this
-        one, and so will be faster.
 
     The choices for the string ``basis`` are as follows; see the
     documentation for :mod:`sage.algebras.steenrod.steenrod_algebra`
@@ -947,6 +931,7 @@ def atomic_basis(n, basis, **kwds):
                 result.append(tuple(big_list))
         return tuple(result)
 
+@cached_function
 def arnonC_basis(n,bound=1):
     r"""
     Arnon's C basis in dimension `n`.
@@ -1140,9 +1125,9 @@ def steenrod_basis_error_check(dim, p):
     """
     import sage.misc.misc as misc
 
-    # Apparently, in this test function, we don't want to benefit from caching.
-    # Hence, the uncached version of steenrod_algebra_basis and of
-    # convert_to-milnor_matrix are used.
+    # In this test function, we don't want to use caching.
+    # Hence, the uncached versions of steenrod_algebra_basis
+    # and of convert_to_milnor_matrix are used.
     if p == 2:
         bases = ('adem','woody', 'woodz', 'wall', 'arnona', 'arnonc',
                  'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz',

@@ -298,7 +298,7 @@ def _extract_source(lines, lineno):
         ['  class f():\n', '    pass\n']
     """
     if lineno < 1:
-        raise ValueError("Line numbering starts at 1! (tried to extract line %s)" % lineno)
+        raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
     if isinstance(lines, str):
@@ -1918,13 +1918,6 @@ def sage_getvariablename(self, omit_underscore_names=True):
 
         sage: sage_getvariablename(random_matrix(ZZ, 60))
         []
-
-    Test that the problem in #10275 has been fixed::
-
-        sage: M = random_matrix(ZZ, 30); M
-        30 x 30 dense matrix over Integer Ring (type 'print M.str()' to see all of the entries)
-        sage: M.hermite_form()
-        30 x 30 dense matrix over Integer Ring
     """
     result = []
     for frame in inspect.stack():

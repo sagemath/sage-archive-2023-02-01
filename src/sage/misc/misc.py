@@ -12,7 +12,15 @@ AUTHORS:
 
 TESTS:
 
-Check the fix from trac #8323::
+The following test, verifying that :trac:`16181` has been resolved, needs
+to stay at the beginning of this file so that its context is not
+poisoned by other tests::
+
+    sage: sage.misc.misc.inject_variable('a', 0)
+    sage: a
+    0
+
+Check the fix from :trac:`8323`::
 
     sage: 'name' in globals()
     False
@@ -93,7 +101,7 @@ sage_makedirs(DOT_SAGE)
 _mode = os.stat(DOT_SAGE)[stat.ST_MODE]
 _desired_mode = 040700     # drwx------
 if _mode != _desired_mode:
-    print "Setting permissions of DOT_SAGE directory so only you can read and write it."
+    print("Setting permissions of DOT_SAGE directory so only you can read and write it.")
     # Change mode of DOT_SAGE.
     os.chmod(DOT_SAGE, _desired_mode)
 
@@ -443,7 +451,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         mesg = "Finished."
 
     # see recipe 14.7 in Python Cookbook
-    if caller_name == None:
+    if caller_name is None:
         caller_name = frame.co_name
         if caller_name == "?: ":
             caller_name = ""
@@ -454,14 +462,14 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         s = "verbose %s (%s: %s, %s) %s"%(level, lineno, short_file_name, caller_name, mesg)
     if t!=0:
         s = s + " (time = %s)"%cputime(t)
-    print s
+    print(s)
     sys.stdout.flush()
     #open(LOGFILE,"a").write(s+"\n")
     return cputime()
 
 def todo(mesg=""):
     caller_name = sys._getframe(1).f_code.co_name
-    raise NotImplementedError("%s: todo -- %s"%(caller_name, mesg))
+    raise NotImplementedError("{}: todo -- {}".format(caller_name, mesg))
 
 def set_verbose(level, files='all'):
     """
@@ -887,7 +895,7 @@ def newton_method_sizes(N):
 
     N = int(N)
     if N < 1:
-        raise ValueError("N (=%s) must be a positive integer" % N)
+        raise ValueError("N (={}) must be a positive integer".format(N))
 
     output = []
     while N > 1:
@@ -996,7 +1004,7 @@ def self_compose(f, n):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError("n must be a nonnegative integer, not %s." % n)
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     return lambda x: nest(f, n, x)
 
@@ -1041,7 +1049,7 @@ def nest(f, n, x):
 
     typecheck(n, (int, long, Integer), 'n')
     if n < 0:
-        raise ValueError("n must be a nonnegative integer, not %s." % n)
+        raise ValueError("n must be a nonnegative integer, not {}.".format(n))
 
     for i in xrange(n):
         x = f(x)
@@ -1755,7 +1763,7 @@ def typecheck(x, C, var="x"):
     error message.
     """
     if not isinstance(x, C):
-        raise TypeError("%s (=%s) must be of type %s."%(var,x,C))
+        raise TypeError("{} (={}) must be of type {}.".format(var, x, C))
 
 #################################################################
 # This will likely eventually be useful.
@@ -2216,6 +2224,21 @@ def attrcall(name, *args, **kwds):
     """
     return AttrCallObject(name, args, kwds)
 
+def call_method(obj, name, *args, **kwds):
+    """
+    Call the method ``name`` on ``obj``.
+
+    This has to exist somewhere in Python!!!
+
+    .. SEEALSO:: :func:`operator.methodcaller` :func:`attrcal`
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import call_method
+        sage: call_method(1, "__add__", 2)
+        3
+    """
+    return getattr(obj, name)(*args, **kwds)
 
 def is_in_string(line, pos):
     r"""
@@ -2267,7 +2290,7 @@ def is_in_string(line, pos):
 
 def get_main_globals():
     """
-    Return the main global namespace
+    Return the main global namespace.
 
     EXAMPLES::
 
@@ -2287,9 +2310,9 @@ def get_main_globals():
     from any function, even if it is in a Python module::
 
         sage: def f():
-        ...       G = get_main_globals()
-        ...       assert G['bli'] == 14
-        ...       G['blo'] = 42
+        ....:     G = get_main_globals()
+        ....:     assert G['bli'] == 14
+        ....:     G['blo'] = 42
         sage: bli = 14
         sage: f()
         sage: blo
@@ -2311,7 +2334,7 @@ def get_main_globals():
     depth = 0
     while True:
         G = sys._getframe(depth).f_globals
-        if G["__name__"] == "__main__" and G["__package__"] is None:
+        if G.get("__name__", None) == "__main__":
             break
         depth += 1
     return G
@@ -2319,11 +2342,12 @@ def get_main_globals():
 
 def inject_variable(name, value):
     """
-    inject a variable into the main global namespace
+    Inject a variable into the main global namespace.
 
     INPUT:
-     - ``name``  - a string
-     - ``value`` - anything
+
+    - ``name``  -- a string
+    - ``value`` -- anything
 
     EXAMPLES::
 

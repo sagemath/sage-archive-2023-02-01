@@ -352,14 +352,14 @@ cdef class Element(sage_object.SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['N', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integer', 'is_integral', ...]
         """
         from sage.structure.parent import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -1915,11 +1915,9 @@ def is_CommutativeRingElement(x):
     return IS_INSTANCE(x, CommutativeRingElement)
 
 cdef class CommutativeRingElement(RingElement):
-    def _im_gens_(self, codomain, im_gens):
-        if len(im_gens) == 1 and self._parent.gen(0) == 1:
-            return codomain(self)
-        raise NotImplementedError
-
+    """
+    Base class for elements of commutative rings.
+    """
     def inverse_mod(self, I):
         r"""
         Return an inverse of self modulo the ideal `I`, if defined,
@@ -2070,7 +2068,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
-            x^3 + x + 1
+            -1
 
 
         EXAMPLE: Multivariate polynomials

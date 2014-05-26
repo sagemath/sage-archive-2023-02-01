@@ -223,7 +223,7 @@ class SteinWatkinsAllData:
             if len(L) == 0:
                 continue
             if L[0] != '[': # new curve
-                if C != None:
+                if C is not None:
                     yield C
                 x = L.split()
                 N = int(x[0])

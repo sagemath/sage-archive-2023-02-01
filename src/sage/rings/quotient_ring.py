@@ -36,7 +36,7 @@ form of an element `x` with respect to `I` (i.e., we have
     ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
     ...    def reduce(self,x):
     ...        R = self.ring()
-    ...        return add([c*R(m) for c,m in x if len(m)<self._power],R(0))
+    ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
     ...
     sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
     sage: I3 = PowerIdeal(F,3); I3
@@ -49,7 +49,7 @@ Free algebras have a custom quotient method that seves at creating
 finite dimensional quotients defined by multiplication matrices. We
 are bypassing it, so that we obtain the default quotient::
 
-    sage: Q3.<a,b,c> = super(sage.rings.ring.Ring,F).quotient(I3)
+    sage: Q3.<a,b,c> = F.quotient(I3)
     sage: Q3
     Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by
     the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2,
@@ -72,7 +72,7 @@ quotient ring is commutative::
     sage: I2 = PowerIdeal(F,2); I2
     Twosided Ideal (x^2, x*y, x*z, y*x, y^2, y*z, z*x, z*y, z^2) of Free Algebra
     on 3 generators (x, y, z) over Rational Field
-    sage: Q2.<a,b,c> = super(sage.rings.ring.Ring,F).quotient(I2)
+    sage: Q2.<a,b,c> = F.quotient(I2)
     sage: Q2.is_commutative()
     True
     sage: (a+b+2)^4
@@ -114,7 +114,7 @@ import commutative_ring, ring
 import ideal
 import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
 from sage.categories.commutative_rings import CommutativeRings

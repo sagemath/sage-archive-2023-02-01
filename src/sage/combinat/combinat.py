@@ -96,7 +96,6 @@ contains the following combinatorial functions:
 .. TODO::
 
     GUAVA commands:
-        * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
         * VandermondeMat
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.
@@ -847,9 +846,9 @@ class CombinatorialObject(SageObject):
             sage: sorted(L, cmp)
             [[1], [2], [3], [4]]
             sage: f = Foo([4])
-            sage: f == None
+            sage: f is None
             False
-            sage: f != None
+            sage: f is not None
             True
 
         .. WARNING::
@@ -1449,7 +1448,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError):
                 break
 
-            if l == None:
+            if l is None:
                 break
             else:
                 li.append(l)
@@ -1477,7 +1476,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError, IndexError):
                 break
 
-            if u == None:
+            if u is None:
                 break
             else:
                 yield u

@@ -296,6 +296,8 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{2510}{+}
 \DeclareUnicodeCharacter{2514}{+}
 \DeclareUnicodeCharacter{2518}{+}
+\let\textLaTeX\LaTeX
+\renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
 """
 
 # Documents to append as an appendix to all manuals.

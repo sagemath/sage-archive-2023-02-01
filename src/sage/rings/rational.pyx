@@ -1232,7 +1232,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if not element:
             return self.is_norm(L, element=True, proof=proof)[0]
 
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(L):
             raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
         if L.degree() == 1 or self.is_zero():
@@ -1314,7 +1314,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         - Marco Streng (2010-12-03)
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         if not is_NumberField(K):
             raise ValueError, "K must be a NumberField in bnfisnorm"
 
@@ -3187,6 +3187,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             True
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
+
+
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    is_integer = is_integral
+
 
     def is_S_integral(self, S=[]):
         r"""

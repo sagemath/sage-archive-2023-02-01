@@ -282,7 +282,7 @@ class GenericGraphQuery(SQLQuery):
             21                   D@O                  5                    2
             22                   D?[                  5                    3
         """
-        if database == None: database = GraphDatabase()
+        if database is None: database = GraphDatabase()
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
         SQLQuery.__init__(self,database,query_string,param_tuple)
@@ -376,7 +376,7 @@ class GraphQuery(GenericGraphQuery):
             F_?Hg                7                    [1, 1, 1, 1, 1, 2, 3]
             F_?XO                7                    [1, 1, 1, 1, 2, 2, 2]
         """
-        if graph_db == None: graph_db = GraphDatabase()
+        if graph_db is None: graph_db = GraphDatabase()
         if query_dict is not None:
             if query_dict['expression'][0] == 'degree_sequence':
                 query_dict['expression'][3] = degseq_to_data(query_dict['expression'][3])

@@ -660,7 +660,7 @@ class Function_gamma(GinacFunction):
             sage: gamma1(x/2)(x=5)
             3/4*sqrt(pi)
 
-            sage: gamma1(float(6))
+            sage: gamma1(float(6))  # For ARM: rel tol 3e-16
             120.0
             sage: gamma1(x)
             gamma(x)

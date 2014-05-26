@@ -894,50 +894,70 @@ def OA_with_holes(k,n,x,existence=False):
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_with_holes
         sage: OA_with_holes(3,3,3)
-        ((2, 2, 2),
-         (2, 1, 0),
-         (2, 0, 1),
-         (1, 2, 0),
-         (1, 1, 1),
-         (1, 0, 2),
-         (0, 2, 1),
-         (0, 1, 2),
-         (0, 0, 0))
+        ((0, 0, 0), (0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0), (2, 2, 2))
 
     TESTS::
 
         sage: OA_with_holes(8,4,3,existence=True)
-        False
+        Unknown
         sage: OA_with_holes(8,4,3)
         Traceback (most recent call last):
         ...
-        ValueError: I don't know how to build an OA(8,4)
+        ValueError: I was not able to build this OA(8,4)-3.OA(8,1)
         sage: OA_with_holes(4,3,2,existence=True)
-        False
+        Unknown
         sage: OA_with_holes(4,3,2)
         Traceback (most recent call last):
         ...
         ValueError: I was not able to build this OA(4,3)-2.OA(4,1)
+        sage: n=10
+        sage: k=designs.orthogonal_array(None,n,existence=True)
+        sage: OA_with_holes(k,n,3,existence=True)
+        True
+        sage: _ = OA_with_holes(k,n,3)
     """
-    from sage.graphs.generators.intersection import OrthogonalArrayGraph
-    try:
-        g = OrthogonalArrayGraph(k,n)
-    except:
+    if x > n:
         if existence:
             return False
-        raise ValueError("I don't know how to build an OA({},{})".format(k,n))
+        raise ValueError("There is no OA(k,n)-x.OA(k,1) when x>n")
 
-    from sage.graphs.graph import Graph
-    independent_set = g.subgraph_search(Graph(x),induced = True)
-    if x and not independent_set:
+    OA = None
+
+    # Easy case
+    if x <= 1:
         if existence:
-            return False
+            return orthogonal_array(k,n,existence=True)
+        OA = orthogonal_array(k,n)
+        independent_set = []
+
+    # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
+    elif orthogonal_array(k+1,n,existence=True):
+        if existence:
+            return True
+        OA = orthogonal_array(k+1,n)
+        independent_set = [B[:-1] for B in OA if B[-1] == 0][:x]
+        OA = [B[:-1] for B in OA]
+
+    # We try to find the disjoint blocks in an OA(k,n)
+    elif orthogonal_array(k,n,existence=True):
+        from sage.graphs.generators.intersection import OrthogonalArrayGraph
+        from sage.graphs.graph import Graph
+
+        g = OrthogonalArrayGraph(k,n)
+        independent_set = g.subgraph_search(Graph(x),induced = True)
+
+        if independent_set:
+            if existence:
+                return True
+            OA = g.vertices()
+
+    if not OA:
+        if existence:
+            return Unknown
         raise ValueError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
 
-    if existence:
-        return True
-
-    OA = tuple(map(tuple,OA_relabel(g.vertices(),k,n,blocks=independent_set)))
+    assert x == len(independent_set)
+    OA = tuple(map(tuple,OA_relabel(OA,k,n,blocks=independent_set)))
     return OA
 
 def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):

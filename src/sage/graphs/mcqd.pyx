@@ -24,21 +24,16 @@ def mcqd(G):
     # - c points toward each row of the matrix
     # - qmax stores the max clique
     cdef bool ** c = <bool **> sage_malloc(n*sizeof(bool *))
-    cdef bool * c0 = <bool *> sage_malloc(n*n*sizeof(bool))
+    cdef bool * c0 = <bool *> sage_calloc(n*n,sizeof(bool))
     cdef int * qmax = <int *> sage_malloc(n*sizeof(int))
-
+    sage_free(NULL)
     if c == NULL or c0 == NULL or qmax == NULL:
-        if c == NULL:
-            sage_free(c)
-        if c0 == NULL:
-            sage_free(c0)
-        if qmax == NULL:
-            sage_free(qmax)
+        sage_free(c)
+        sage_free(c0)
+        sage_free(qmax)
         raise MemoryError("Allocation Failed")
 
     c[0] = c0
-
-    memset(c[0],0,n*n*sizeof(bool))
 
     # Defines c
     cdef int i,ui,vi

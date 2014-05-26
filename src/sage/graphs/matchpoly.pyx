@@ -208,7 +208,7 @@ def matching_polynomial(G, complement=True, name=None):
         x^12
     """
 
-    cdef int nverts, nedges, i, j, v, cur
+    cdef int nverts, nedges, i, j, cur
     cdef int *edges1, *edges2, *edges_mem, **edges
     cdef fmpz_poly_t pol
 
@@ -233,8 +233,8 @@ def matching_polynomial(G, complement=True, name=None):
     # in increasing order of degree
 
     L = []
-    for vv, d in G.degree_iterator(labels=True):
-        L.append((d, vv))
+    for v, d in G.degree_iterator(labels=True):
+        L.append((d, v))
     L.sort()
     d = {}
     for i from 0 <= i < nverts:

@@ -356,3 +356,71 @@ def ToleranceGraph(tolrep):
     g.set_vertices(rep)
 
     return g
+
+def OrthogonalArrayGraph(k,n):
+    r"""
+    Returns the graph of an `OA(k,n)`.
+
+    The intersection graph of the block of a `TD(k,n)` (see
+    :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`) is a
+    strongly regular graph.
+
+    As transversal designs and orthogonal arrays are equivalent
+    objects, this graph can also be built from the blocks of an
+    `OA(k,n)`, two of them being adjacent if one of their coordinates
+    match.
+
+    For more information on these graphs, see `Andries Brouwer's page
+    on Orthogonal Array graphs <www.win.tue.nl/~aeb/graphs/OA.html>`_.
+
+    .. WARNING::
+
+        Brouwer's website uses the notation `OA(n,k)` instead of `OA(k,n)` !
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    EXAMPLES::
+
+        sage: G = graphs.OrthogonalArrayGraph(5,5); G
+        OA(5,5): Graph on 25 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (25, 20, 15, 20)
+        sage: G = graphs.OrthogonalArrayGraph(4,10); G
+        OA(4,10): Graph on 100 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (100, 36, 14, 12)
+
+    TESTS::
+
+        sage: G = graphs.OrthogonalArrayGraph(4,6)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this orthogonal array!
+        sage: G = graphs.OrthogonalArrayGraph(8,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: There is no OA(8,2). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !
+    """
+    if n>1 and k>=n+2:
+        raise ValueError("There is no OA({},{}). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !".format(k,n))
+
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
+    from itertools import combinations
+
+    OA = map(tuple,orthogonal_array(k,n))
+
+    d = [[[] for j in range(n)] for i in range(k)]
+    for R in OA:
+        for i,x in enumerate(R):
+            d[i][x].append(R)
+
+    g = Graph()
+    for l in d:
+        for ll in l:
+            g.add_edges(combinations(ll,2))
+
+    g.name("OA({},{})".format(k,n))
+
+    return g

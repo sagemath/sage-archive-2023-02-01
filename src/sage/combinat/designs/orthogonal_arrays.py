@@ -861,6 +861,156 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     return OA
 
+@cached_function
+def OA_with_holes(k,n,x,existence=False):
+    r"""
+    Returns an `OA(k,n)-x.OA(k,1)`.
+
+    A `TD(k,n)-x.TD(k,1)` is a tranversal design from which have been
+    removed `x` disjoint blocks. The counterpart in Orthogonal Arrays,
+    i.e. an `OA(k,n)-x.OA(k,1)`, is an OA from which have been removed
+    `x` blocks such that for each of the `k` columns the blocks all
+    have different coordinates.
+
+    INPUT:
+
+    - ``k,n,x`` (integers)
+
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+    .. NOTE::
+
+        The final OA is labelled in such a way that the `x.TD(k-1)`
+        are blocks ``[n-x,...,n-x]`` to ``[n-1,...,n-1]``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_with_holes
+        sage: OA_with_holes(3,3,3)
+        ((2, 2, 2),
+         (2, 1, 0),
+         (2, 0, 1),
+         (1, 2, 0),
+         (1, 1, 1),
+         (1, 0, 2),
+         (0, 2, 1),
+         (0, 1, 2),
+         (0, 0, 0))
+
+    TESTS::
+
+        sage: OA_with_holes(8,4,3,existence=True)
+        False
+        sage: OA_with_holes(8,4,3)
+        Traceback (most recent call last):
+        ...
+        ValueError: I don't know how to build an OA(8,4)
+        sage: OA_with_holes(4,3,2,existence=True)
+        False
+        sage: OA_with_holes(4,3,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: I was not able to build this OA(4,3)-2.OA(4,1)
+    """
+    from sage.graphs.generators.intersection import OrthogonalArrayGraph
+    try:
+        g = OrthogonalArrayGraph(k,n)
+    except:
+        if existence:
+            return False
+        raise ValueError("I don't know how to build an OA({},{})".format(k,n))
+
+    from sage.graphs.graph import Graph
+    independent_set = g.subgraph_search(Graph(x),induced = True)
+    if x and not independent_set:
+        if existence:
+            return False
+        raise ValueError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
+
+    if existence:
+        return True
+
+    OA = tuple(map(tuple,OA_relabel(g.vertices(),k,n,blocks=independent_set)))
+    return OA
+
+def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
+    r"""
+    Returns a relabelled version of the OA.
+
+    INPUT:
+
+    - ``OA`` -- an OA, or rather a list of blocks of length `k`, each
+      of which contains integers from `0` to `n-1`.
+
+    - ``k,n`` (integers)
+
+    - ``blocks`` (list of blocks) -- relabels the integers of the OA
+      from `[0..n-1]` into `[0..n-1]` in such a way that the `i`
+      blocks from ``block`` are respectively relabeled as
+      ``[n-i,...,n-i]``, ..., ``[n-1,...,n-1]``. Thus, the blocks from
+      this list are expected to have disjoint values for each
+      coordinate.
+
+      If set to the empty list (default) no such relabelling is
+      performed.
+
+    - ``matrix`` -- a matrix of dimensions `k,n` such that if the i th
+      coordinate of a block is `x`, this `x` will be relabelled with
+      ``matrix[i][x]``. This is not necessarily an integer between `0`
+      and `n-1`, and it is not necessarily an integer either. This is
+      performed *after* the previous relabelling.
+
+      If set to ``None`` (default) no such relabelling is performed.
+
+      .. NOTE::
+
+          A ``None`` coordinate in one block remains a ``None``
+          coordinate in the final block.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
+        sage: OA_relabel(designs.orthogonal_array(3,2),3,2,matrix=[["A","B"],["C","D"],["E","F"]])
+        [['A', 'C', 'E'], ['A', 'D', 'F'], ['B', 'C', 'F'], ['B', 'D', 'E']]
+
+    Making sure that ``[2,2,2,2]`` is a block of `OA(4,3)`. We do this
+    by relabelling block ``[0,0,0,0]`` which belongs to the design.
+
+        sage: designs.orthogonal_array(4,3)
+        [[0, 0, 0, 0], [0, 1, 2, 1], [0, 2, 1, 2], [1, 0, 2, 2], [1, 1, 1, 0], [1, 2, 0, 1], [2, 0, 1, 1], [2, 1, 0, 2], [2, 2, 2, 0]]
+        sage: OA_relabel(designs.orthogonal_array(4,3),4,3,blocks=[[0,0,0,0]])
+        [[2, 2, 2, 2], [2, 0, 1, 0], [2, 1, 0, 1], [0, 2, 1, 1], [0, 0, 0, 2], [0, 1, 2, 0], [1, 2, 0, 0], [1, 0, 2, 1], [1, 1, 1, 2]]
+
+    TESTS::
+
+        sage: OA_relabel(designs.orthogonal_array(3,2),3,2,blocks=[[0,1],[0,1]])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Two block have the same coordinate for one of the k dimensions
+
+    """
+    if blocks:
+        l = []
+        for i,B in enumerate(zip(*blocks)): # the blocks are disjoint
+            if len(B) != len(set(B)):
+                raise RuntimeError("Two block have the same coordinate for one of the k dimensions")
+
+            l.append(dict(zip([xx for xx in range(n) if xx not in B] + list(B),range(n))))
+
+        OA = [[l[i][x] for i,x in enumerate(R)] for R in OA]
+
+    if matrix:
+        OA = [[matrix[i][j] if j is not None else None for i,j in enumerate(R)] for R in OA]
+
+    return OA
+
 def OA_from_quasi_difference_matrix(M,G,add_col=True):
     r"""
     Returns an Orthogonal Array from a Quasi-Difference matrix

@@ -832,6 +832,13 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 [0 1 1 1]
                 [0 1 2 1]
                 [1 1 1 0]
+
+                sage: P = RootSystem(['A',4,2]).weight_lattice()
+                sage: P._symmetric_form_matrix
+                [  0   0   0 1/2]
+                [  0   2   2   1]
+                [  0   2   4   1]
+                [1/2   1   1   0]
             """
             from sage.matrix.constructor import matrix
             ct = self.cartan_type()
@@ -853,7 +860,12 @@ class WeightLatticeRealizations(Category_over_base_ring):
             M = matrix.block([[ M, matrix([[1]] + [[0]]*r) ]])
             M = M.inverse()
 
-            A = cm.symmetrized_matrix().stack(matrix([~a[0]]+[0]*(r-1)))
+            if a[0] != 1:
+                from sage.rings.all import QQ
+                S = matrix([~a[0]]+[0]*(r-1))
+                A = cm.symmetrized_matrix().change_ring(QQ).stack(S)
+            else:
+                A = cm.symmetrized_matrix().stack(matrix([1]+[0]*(r-1)))
             A = matrix.block([[A, matrix([[~a[0]]] + [[0]]*r)]])
             return M.transpose() * A * M
 
@@ -923,6 +935,15 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: La = P.basis()
                 sage: [La[0].symmetric_form(al) for al in P.simple_roots()]
                 [0, 0, 0]
+
+            TESTS:
+
+            We check that `A_{2n}^{(2)}` has 3 different root lengths::
+
+                sage: P = RootSystem(['A',4,2]).weight_lattice()
+                sage: al = P.simple_roots()
+                sage: [al[i].symmetric_form(al[i]) for i in P.index_set()]
+                [2, 4, 8]
             """
             P = self.parent()
             ct = P.cartan_type()

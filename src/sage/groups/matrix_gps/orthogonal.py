@@ -76,7 +76,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, is_FiniteField
+from sage.rings.all import ZZ
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (

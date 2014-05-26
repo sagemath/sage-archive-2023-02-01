@@ -36,7 +36,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose
 from sage.misc.temporary_file import graphics_filename
-from sage.rings.number_field.all import is_NumberField
+from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
@@ -4693,16 +4693,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: A._eigenspace_format('galois') == 'galois'
             True
 
-        The algebraic closure of the rationals, the field of algebraic numbers,
-        (aka ``QQbar``) is implemented, while in general the algebraic closure
-        of a finite field is not implemented.  ::
+        The algebraic closure of the rationals (the field ``QQbar`` of
+        algebraic numbers) is implemented, as are algebraic closures
+        of finite fields::
 
             sage: A = matrix(QQ, 2, range(4))
             sage: A._eigenspace_format(None) == 'all'
             True
             sage: B = matrix(GF(13), 2, range(4))
-            sage: B._eigenspace_format(None) == 'galois'
-            True
+            sage: B._eigenspace_format(None)
+            'all'
 
         Subrings are promoted to fraction fields and then checked for the
         existence of algebraic closures.  ::
@@ -4715,19 +4715,12 @@ cdef class Matrix(matrix1.Matrix):
             msg = "format keyword must be None, 'all' or 'galois', not {0}"
             raise ValueError(msg.format(format))
 
-        # For subrings of implemented algebraically closed fields we
-        #   default to all eigenspaces in the absence of a format keyword
-        # Add newly implemented algebraically closed fields to list below
-        #   and implement the determintion of the actual eigenvalues
-        #   in the eigenspace_left() routine
+        # In the absence of a format keyword, we default to 'all' for
+        # subrings of fields of which an algebraic closure is implemented.
         if format is None:
-            R = self.base_ring()
-            from sage.rings.qqbar import QQbar
             try:
-                if R.fraction_field().algebraic_closure() in [QQbar]:
-                    return 'all'
-                else:
-                    return 'galois'
+                F = self.base_ring().fraction_field().algebraic_closure()
+                return 'all'
             except (NotImplementedError, AttributeError):
                 return 'galois'
         else:
@@ -10679,14 +10672,8 @@ cdef class Matrix(matrix1.Matrix):
             ValueError: matrix is not positive definite,
             so cannot compute Cholesky decomposition
 
-        Even in light of the above, you can sometimes get lucky
-        and arrive at a situation where a particular matrix has
-        a Cholesky decomposition when the general characteristics
-        of the matrix suggest this routine would fail. In this
-        example, the indefinite factorization produces a
-        diagonal matrix whose elements from the finite field
-        convert naturally to positive integers and are also
-        perfect squares.  ::
+        In certain cases, the algorithm can find an analogue of the
+        Cholesky decomposition over finite fields::
 
             sage: F.<a> = FiniteField(5^3)
             sage: A = matrix(F, [[         4,       2*a^2 + 3,         4*a + 1],
@@ -10697,6 +10684,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: L = A.cholesky()
             sage: L*L.transpose() == A
             True
+
+            sage: F = FiniteField(7)
+            sage: A = matrix(F, [[4, 0], [0, 3]])
+            sage: A.cholesky()
+            [       2        0]
+            [       0 2*z2 + 6]
 
         TESTS:
 
@@ -10752,8 +10745,7 @@ cdef class Matrix(matrix1.Matrix):
                     except (NotImplementedError, AttributeError):
                         msg = "base field needs an algebraic closure with square roots, not {0}"
                         raise TypeError(msg.format(F))
-                    # try again
-                    sqrt = F(x.sqrt())
+                    sqrt = F(x).sqrt()
                 splits.append(sqrt)
             # move square root of the diagonal matrix
             # into the lower triangular matrix

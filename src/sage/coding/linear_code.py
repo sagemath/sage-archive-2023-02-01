@@ -851,10 +851,18 @@ class LinearCode(module.Module_old):
              [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
              [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
              [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: L = list(C)
+            sage: L[10].is_immutable()
+            True
+
         """
         from sage.modules.finite_submodule_iter import \
                                                 FiniteFieldsubspace_iterator
-        return FiniteFieldsubspace_iterator(self.gen_mat())
+        return FiniteFieldsubspace_iterator(self.gen_mat(), immutable=True)
 
     def ambient_space(self):
         r"""
@@ -1699,6 +1707,11 @@ class LinearCode(module.Module_old):
             0 and 'q^k -1' (=624), inclusive, where 'q' is the size of the
             base field and 'k' is the dimension of the code.
 
+        Check that codewords are immutable. See :trac:`16338`::
+
+            sage: C[0].is_immutable()
+            True
+
         """
         # IMPORTANT: If the __iter__() function implementation is changed
         # then the implementation here must also be changed so that
@@ -1727,6 +1740,10 @@ class LinearCode(module.Module_old):
         for g in G:
             codeword += sum([ivec[j+row*m]*A[j] for j in xrange(m)])*g
             row += 1
+
+        # The codewords for a specific code can not change. So, we set them
+        # to be immutable.
+        codeword.set_immutable()
         return codeword
 
     def gen_mat(self):

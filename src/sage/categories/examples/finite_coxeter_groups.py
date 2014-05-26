@@ -12,7 +12,7 @@ Examples of finite Coxeter groups
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
-from sage.categories.all import CoxeterGroups, FiniteCoxeterGroups
+from sage.categories.all import FiniteCoxeterGroups
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.functional import is_odd, is_even
 

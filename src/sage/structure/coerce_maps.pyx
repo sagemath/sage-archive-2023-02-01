@@ -22,6 +22,19 @@ cdef class DefaultConvertMap(Map):
     passing in the codomain as the first argument.
     """
     def __init__(self, domain, codomain, force_use=False):
+        """
+        TESTS:
+
+        Maps of this type are morphisms in the category of sets with
+        partial maps (see :trac:`15618`)::
+
+            sage: f = GF(11).convert_map_from(GF(7)); f
+            Conversion map:
+              From: Finite Field of size 7
+              To:   Finite Field of size 11
+            sage: f.parent()
+            Set of Morphisms from Finite Field of size 7 to Finite Field of size 11 in Category of sets with partial maps
+        """
         if not PY_TYPE_CHECK(domain, Parent):
             domain = Set_PythonType(domain)
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps

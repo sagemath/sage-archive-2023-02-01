@@ -223,7 +223,7 @@ class IncidenceStructure(object):
             sage: G.is_isomorphic(PGL(3,2))
             True
             sage: G
-            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(5,7), (1,2)(5,6)]
+            Permutation Group with generators [(2,3)(4,5), (2,4)(3,5), (1,2)(4,6), (0,1)(4,5)]
 
         A non self-dual example::
 
@@ -241,13 +241,7 @@ class IncidenceStructure(object):
         M2 = MatrixStruct(M1)
         M2.run()
         gens = M2.automorphism_group()[0]
-        v = len(self.points())
-        G = SymmetricGroup(v)
-        gns = []
-        for g in gens:
-            L = [j+1 for j in g]
-            gns.append(G(L))
-        return PermutationGroup(gns)
+        return PermutationGroup(gens, domain=range(self.v))
 
     def block_design_checker(self, t, v, k, lmbda, type=None):
         """

@@ -418,6 +418,44 @@ def BIBD_from_TD(v,k,existence=False):
 
     return BIBD
 
+def BIBD_from_DF(G, D, l=1, check=True):
+    r"""
+    Return the BIBD associated to the difference family ``D`` on the group ``G``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.bibd import BIBD_from_DF
+        sage: G = Zmod(21)
+        sage: D = [[0,1,4,14,16]]
+        sage: BIBD_from_DF(G, D)
+        [[0, 1, 4, 14, 16],
+         [1, 2, 5, 15, 17],
+         [2, 3, 6, 16, 18],
+         [3, 4, 7, 17, 19],
+         [4, 5, 8, 18, 20],
+         [5, 6, 9, 19, 0],
+         [6, 7, 10, 20, 1],
+         [7, 8, 11, 0, 2],
+         [8, 9, 12, 1, 3],
+         [9, 10, 13, 2, 4],
+         [10, 11, 14, 3, 5],
+         [11, 12, 15, 4, 6],
+         [12, 13, 16, 5, 7],
+         [13, 14, 17, 6, 8],
+         [14, 15, 18, 7, 9],
+         [15, 16, 19, 8, 10],
+         [16, 17, 20, 9, 11],
+         [17, 18, 0, 10, 12],
+         [18, 19, 1, 11, 13],
+         [19, 20, 2, 12, 14],
+         [20, 0, 3, 13, 15]]
+    """
+    r = {e:i for i,e in enumerate(G)}
+    bibd = [[r[G(x)+g] for x in d] for d in D for g in r]
+    if check:
+        assert _check_pbd(bibd, G.cardinality(), [len(D[0])])
+    return bibd
+
 
 ################
 # (v,4,1)-BIBD #
@@ -831,6 +869,7 @@ def _get_t_u(v):
 # (v,5,1)-BIBD #
 ################
 
+
 def v_5_1_BIBD(v, check=True):
     r"""
     Returns a `(v,5,1)`-BIBD.
@@ -854,44 +893,41 @@ def v_5_1_BIBD(v, check=True):
         ....:    _ = v_5_1_BIBD(i+1)
         ....:    _ = v_5_1_BIBD(i+5)
     """
-    assert (v%20 == 5 or v%20 == 1)
-
     v = int(v)
 
-    # Builds a BIBD from a difference family F over a group G
-    def bibd_from_difference_family(L,G):
-        r = {e:i for i,e in enumerate(G)}
-        return [[r[G(x if isinstance(x,(list,tuple)) else [x])+g] for x in l] for l in L for g in r]
+    assert (v > 1)
+    assert ((v-1)%4 == 0 and (v*(v-1))%20 == 0)
+    assert (v%20 == 5 or v%20 == 1)
 
     # Lemma 27
-    if v%5 == 0 and (v/5)%4 == 1 and is_prime_power(v//5):
+    if v%5 == 0 and (v//5)%4 == 1 and is_prime_power(v//5):
         bibd = BIBD_5q_5_for_q_prime_power(v//5)
     # Lemma 28
     elif v == 21:
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-        bibd = bibd_from_difference_family([[0,1,4,14,16]],AdditiveAbelianGroup([21]))
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        bibd = BIBD_from_DF(Zmod(21), [[0,1,4,14,16]], check=False)
     elif v == 41:
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-        bibd = bibd_from_difference_family([[0,1,4,11,29],[0,2,8,17,22]],AdditiveAbelianGroup([41]))
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        bibd = BIBD_from_DF(Zmod(41), [[0,1,4,11,29],[0,2,8,17,22]], check=False)
     elif v == 61:
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-        bibd = bibd_from_difference_family([[0,1,3,13,34],[0,4,9,23,45],[0,6,17,24,32]],AdditiveAbelianGroup([61]))
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        bibd = BIBD_from_DF(Zmod(61), [[0,1,3,13,34],[0,4,9,23,45],[0,6,17,24,32]], check=False)
     elif v == 81:
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
         D = [[(0, 0, 0, 1), (2, 0, 0, 1), (0, 0, 2, 1), (1, 2, 0, 2), (0, 1, 1, 1)],
              [(0, 0, 1, 0), (1, 1, 0, 2), (0, 2, 1, 0), (1, 2, 0, 1), (1, 1, 1, 0)],
              [(2, 2, 1, 1), (1, 2, 2, 2), (2, 0, 1, 2), (0, 1, 2, 1), (1, 1, 0, 0)],
              [(0, 2, 0, 2), (1, 1, 0, 1), (1, 2, 1, 2), (1, 2, 1, 0), (0, 2, 1, 1)]]
-        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([3]*4))
+        bibd = BIBD_from_DF(AdditiveAbelianGroup([3]*4), D, check=False)
     elif v == 161:
         # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
         D = [(0, 19, 34, 73, 80), (0, 16, 44, 71, 79), (0, 12, 33, 74, 78), (0, 13, 30, 72, 77), (0, 11, 36, 67, 76), (0, 18, 32, 69, 75), (0, 10, 48, 68, 70), (0, 3, 29, 52, 53)]
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([161]))
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        bibd = BIBD_from_DF(Zmod(161), D, check=False)
     elif v == 281:
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
         D = [[3**(2*a+56*b) for b in range(5)] for a in range(14)]
-        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([281]))
+        bibd = BIBD_from_DF(Zmod(281), D, check=False)
     # Lemma 29
     elif v == 165:
         bibd = BIBD_from_PBD(v_5_1_BIBD(41,check=False),165,5,check=False)
@@ -903,13 +939,13 @@ def v_5_1_BIBD(v, check=True):
     # Lemma 30
     elif v == 141:
         # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
         D = [(0, 33, 60, 92, 97), (0, 3, 45, 88, 110), (0, 18, 39, 68, 139), (0, 12, 67, 75, 113), (0, 1, 15, 84, 94), (0, 7, 11, 24, 30), (0, 36, 90, 116, 125)]
-        bibd = bibd_from_difference_family(D,AdditiveAbelianGroup([141]))
+        bibd = BIBD_from_DF(Zmod(141), D, check=False)
 
     # Theorem 31.2
-    elif (v-1)/4 in [80, 81, 85, 86, 90, 91, 95, 96, 110, 111, 115, 116, 120, 121, 250, 251, 255, 256, 260, 261, 265, 266, 270, 271]:
-        r = (v-1)/4
+    elif (v-1)//4 in [80, 81, 85, 86, 90, 91, 95, 96, 110, 111, 115, 116, 120, 121, 250, 251, 255, 256, 260, 261, 265, 266, 270, 271]:
+        r = (v-1)//4
         if r <= 96:
             k,t,u = 5, 16, r-80
         elif r <= 121:

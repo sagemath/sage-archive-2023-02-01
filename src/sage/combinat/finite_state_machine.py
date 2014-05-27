@@ -4438,10 +4438,6 @@ class FiniteStateMachine(SageObject):
           processing (in the case the finite state machine runs as
           transducer).
 
-        Note that in the case the finite state machine is not
-        deterministic, one possible path is gone. This means, that in
-        this case the output can be wrong.
-
         EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
@@ -4464,6 +4460,25 @@ class FiniteStateMachine(SageObject):
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
+
+        Non-deterministic finite state machines cannot be handeled.
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)],
+            ....:     initial_states=[0])
+            sage: T.process([0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered when processing input
+            sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0)],
+            ....:     initial_states=[0])
+            sage: T.process([0])
+            (False, None, None)
+            sage: T.process([0, 0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered when processing input
         """
         it = self.iter_process(*args, **kwargs)
         for _ in it:
@@ -7619,7 +7634,10 @@ class Automaton(FiniteStateMachine):
             sage: auto.is_deterministic()
             False
             sage: auto.process(list('aaab'))
-            (False, 'A')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non-deterministic path encountered
+            when processing input
             sage: auto.states()
             ['A', 'C', 'B']
             sage: Ddet = auto.determinisation()
@@ -8751,6 +8769,22 @@ class FSMProcessIterator(SageObject):
                             found = True
                         except ValueError:
                             pass
+
+                        if found:
+                            transitions = ( t for t
+                                            in self.current_state.transitions
+                                            if t.word_in[:len(next_word)]
+                                            == next_word )
+                            try:
+                                transitions.next()
+                                transitions.next()
+                                raise NotImplementedError("Non-deterministic "
+                                                          "path encountered "
+                                                          "when processing "
+                                                          "input")
+                            except StopIteration:
+                                pass
+
                 except StopIteration:
                     # this means input tape is finished
                     if len(next_word) > 0:

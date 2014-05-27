@@ -51,10 +51,14 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
          sage: C.an_element()^2
          ('abcdabcd', 1, 1/4)
          sage: C.category()
-         Category of Cartesian products of monoids
+         Join of Category of monoids
+             and Category of Cartesian products of semigroups
+             and Category of Cartesian products of unital magmas
 
          sage: Monoids().CartesianProducts()
-         Category of Cartesian products of monoids
+         Join of Category of monoids
+             and Category of Cartesian products of semigroups
+             and Category of Cartesian products of unital magmas
 
     The Cartesian product functor is covariant: if ``A`` is a
     subcategory of ``B``, then ``A.CartesianProducts()`` is a
@@ -62,6 +66,17 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
     :class:`~sage.categories.covariant_functorial_construction.CovariantFunctorialConstruction`)::
 
          sage: C.categories()
+         [Join of ...,
+          Category of monoids,
+          Category of Cartesian products of semigroups,
+          Category of semigroups,
+          Category of Cartesian products of unital magmas,
+          Category of Cartesian products of magmas,
+          Category of unital magmas,
+          Category of magmas,
+          Category of Cartesian products of sets,
+          Category of sets, ...]
+
          [Category of Cartesian products of monoids,
           Category of monoids,
           Category of Cartesian products of semigroups,

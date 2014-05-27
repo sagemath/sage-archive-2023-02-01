@@ -228,7 +228,9 @@ cdef class CategoryObject(sage_object.SageObject):
         EXAMPLES::
 
             sage: ZZ.categories()
-            [Category of euclidean domains,
+            [Join of Category of euclidean domains
+                 and Category of infinite enumerated sets,
+             Category of euclidean domains,
              Category of principal ideal domains,
              Category of unique factorization domains,
              Category of gcd domains,

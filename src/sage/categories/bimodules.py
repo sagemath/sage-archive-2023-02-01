@@ -70,10 +70,12 @@ class Bimodules(CategoryWithParameters):
         EXAMPLES::
 
             sage: Bimodules(QQ,ZZ)._make_named_class_key('parent_class')
-            (Category of quotient fields, Category of euclidean domains)
+            (Category of quotient fields,
+             Join of Category of euclidean domains and Category of infinite enumerated sets)
 
             sage: Bimodules(Fields(), ZZ)._make_named_class_key('element_class')
-            (Category of fields, Category of euclidean domains)
+            (Category of fields,
+             Join of Category of euclidean domains and Category of infinite enumerated sets)
 
             sage: Bimodules(QQ, Rings())._make_named_class_key('element_class')
             (Category of quotient fields, Category of rings)

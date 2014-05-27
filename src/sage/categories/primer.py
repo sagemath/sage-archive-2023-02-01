@@ -341,10 +341,12 @@ categories and their super categories::
     Integer Ring
 
     sage: ZZ.category()
-    Category of euclidean domains
+    Join of Category of euclidean domains
+        and Category of infinite enumerated sets
 
     sage: ZZ.categories()
-    [Category of euclidean domains, Category of principal ideal domains,
+    [Join of Category of euclidean domains and Category of infinite enumerated sets,
+     Category of euclidean domains, Category of principal ideal domains,
      Category of unique factorization domains, Category of gcd domains,
      Category of integral domains, Category of domains,
      Category of commutative rings, Category of rings, ...
@@ -352,7 +354,8 @@ categories and their super categories::
      Category of monoids, Category of semigroups,
      Category of commutative magmas, Category of unital magmas, Category of magmas,
      Category of commutative additive groups, ..., Category of additive magmas,
-     Category of sets,
+     Category of infinite enumerated sets, Category of enumerated sets,
+     Category of infinite sets, Category of sets,
      Category of sets with partial maps,
      Category of objects]
 

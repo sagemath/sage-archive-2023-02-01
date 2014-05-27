@@ -301,7 +301,7 @@ cdef class Element(sage_object.SageObject):
         category of ``CommutativeRings()``::
 
             sage: 1.is_idempotent
-            <bound method EuclideanDomains.element_class.is_idempotent of 1>
+            <bound method JoinCategory.element_class.is_idempotent of 1>
             sage: 1.is_idempotent.__module__
             'sage.categories.magmas'
 

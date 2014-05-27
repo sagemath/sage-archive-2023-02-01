@@ -235,7 +235,7 @@ def find_objects_from_name(name, module_name=None):
 
         sage: import sympy
         sage: dt.find_objects_from_name('RR')
-        [Real Field with 53 bits of precision, RR]
+        [Real Field with 53 bits of precision, RR, Real Field with 53 bits of precision]
         sage: dt.find_objects_from_name('RR', 'sage')
         [Real Field with 53 bits of precision]
         sage: dt.find_objects_from_name('RR', 'sympy')

@@ -138,10 +138,6 @@ cdef class Map(Element):
         else:
             self._coerce_cost = 10000 # inexact morphisms are bad.
 
-    def _set_parent(self, parent):
-        super(Map, self)._set_parent(parent)
-        self._category_for = parent.homset_category()
-
     def __copy__(self):
         """
         Return copy, with strong references to domain and codomain.
@@ -181,7 +177,7 @@ cdef class Map(Element):
         cdef Map out = Element.__copy__(self)
         # Element.__copy__ updates the __dict__, but not the slots.
         # Let's do this now, but with strong references.
-        out._set_parent(self.parent())  # self._parent might be None
+        out._parent = self.parent() # self._parent might be None
         out._update_slots(self._extra_slots({}))
         return out
 
@@ -294,6 +290,8 @@ cdef class Map(Element):
         if not isinstance(self.domain, ConstantFunction):
             return
         self.domain = weakref.ref(self.domain())
+        # Save the category before clearing the parent.
+        self._category_for = self._parent.homset_category()
         self._parent = None
 
     def _make_strong_references(self):
@@ -620,6 +618,13 @@ cdef class Map(Element):
 
         FIXME: find a better name for this method
         """
+        if self._category_for is None:
+            # This can happen if the map is the result of unpickling.
+            # We have initialised self._parent, but could not set
+            # self._category_for at that moment, because it could
+            # happen that the parent was not fully constructed and
+            # did not know its category yet.
+            self._category_for = self._parent.homset_category()
         return self._category_for
 
     def __call__(self, x, *args, **kwds):

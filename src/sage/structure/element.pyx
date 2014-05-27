@@ -1934,11 +1934,8 @@ def is_CommutativeRingElement(x):
 
     TESTS::
 
+        sage: from sage.rings.commutative_ring_element import is_CommutativeRingElement
         sage: is_CommutativeRingElement(oo)
-        doctest:...: DeprecationWarning: 
-        Using is_CommutativeRingElement from the top level is deprecated since it was designed to be used by developers rather than end users.
-        It most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in.
-        See http://trac.sagemath.org/10107 for details.
         False
 
         sage: is_CommutativeRingElement(1)
@@ -2978,12 +2975,9 @@ def is_AlgebraElement(x):
 
     TESTS::
 
+        sage: from sage.structure.element import is_AlgebraElement
         sage: R.<x,y> = FreeAlgebra(QQ,2)
         sage: is_AlgebraElement(x*y)
-        doctest:...: DeprecationWarning: 
-        Using is_AlgebraElement from the top level is deprecated since it was designed to be used by developers rather than end users.
-        It most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in.
-        See http://trac.sagemath.org/10107 for details.
         True
 
         sage: is_AlgebraElement(1)
@@ -3009,11 +3003,8 @@ def is_InfinityElement(x):
 
     TESTS::
 
+        sage: from sage.structure.element import is_InfinityElement
         sage: is_InfinityElement(1)
-        doctest:...: DeprecationWarning: 
-        Using is_InfinityElement from the top level is deprecated since it was designed to be used by developers rather than end users.
-        It most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in.
-        See http://trac.sagemath.org/10107 for details.
         False
 
         sage: is_InfinityElement(oo)

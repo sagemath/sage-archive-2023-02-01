@@ -217,18 +217,22 @@ class IncidenceStructure(object):
 
         EXAMPLES::
 
-            sage: from sage.combinat.designs.block_design import BlockDesign
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
-            sage: BD = BlockDesign(4,[[0],[0,1],[1,2],[3,3]],test=False)
-            sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [()]
-            sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: G = BD.automorphism_group(); G
-            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
-            sage: BlockDesign(4,[[0,1,2,3],[1,2,3]],test=False).automorphism_group().cardinality()
+            sage: P = designs.DesarguesianProjectivePlaneDesign(2); P
+            Incidence structure with 7 points and 7 blocks
+            sage: G = P.automorphism_group()
+            sage: G.is_isomorphic(PGL(3,2))
+            True
+            sage: G
+            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(5,7), (1,2)(5,6)]
+
+        A non self-dual example::
+
+            sage: from sage.combinat.designs.incidence_structures import IncidenceStructure
+            sage: IS = IncidenceStructure(range(4), [[0,1,2,3],[1,2,3]])
+            sage: IS.automorphism_group().cardinality()
             6
+            sage: IS.dual_design().automorphism_group().cardinality()
+            1
         """
         from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
         from sage.groups.perm_gps.permgroup import PermutationGroup

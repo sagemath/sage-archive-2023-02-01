@@ -1350,13 +1350,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         n = self.order()
         if sparse is None:
-            if self.has_multiple_edges():
-                sparse = False
-            else:                
-                if n <= 256 or self.density() > 0.05:
-                    sparse=False
-                else:
-                    sparse=True
+            sparse=True
+            if self.has_multiple_edges() or n <= 256 or self.density() > 0.05:
+                sparse=False
         verts = self.vertices(boundary_first=boundary_first)
         new_indices = dict((v,i) for i,v in enumerate(verts))
         D = {}

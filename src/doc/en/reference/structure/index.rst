@@ -31,6 +31,7 @@ Basic Structures
    sage/sets/disjoint_union_enumerated_sets
    sage/sets/set_from_iterator
    sage/sets/finite_enumerated_set
+   sage/sets/recursively_enumerated_set
    sage/sets/finite_set_maps
    sage/sets/finite_set_map_cy
    sage/sets/integer_range

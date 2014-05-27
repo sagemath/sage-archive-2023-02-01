@@ -1104,6 +1104,28 @@ cdef class PowerSeries(AlgebraElement):
     def __rshift__(self, n):
         return self.parent()(self.polynomial() >> n, self.prec())
 
+    def is_monomial(self):
+        """
+        Return True if this element is a monomial.  That is, if self is
+        `x^n` for some non-negative integer `n`.
+
+        EXAMPLES::
+
+            sage: k.<z> = PowerSeriesRing(QQ, 'z')
+            sage: z.is_monomial()
+            True
+            sage: k(1).is_monomial()
+            True
+            sage: (z+1).is_monomial()
+            False
+            sage: (z^2909).is_monomial()
+            True
+            sage: (3*z^2909).is_monomial()
+            False
+        """
+
+        return self.polynomial().is_monomial()
+
     def is_square(self):
         """
         Returns True if this function has a square root in this ring, e.g.

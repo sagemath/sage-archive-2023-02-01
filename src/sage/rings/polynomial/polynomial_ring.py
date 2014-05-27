@@ -1901,7 +1901,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
           - ``'random'``: try random polynomials until an irreducible
             one is found.
 
-          - ``'first_lexicographic'``: try random polynomials in
+          - ``'first_lexicographic'``: try polynomials in
             lexicographic order until an irreducible one is found.
 
         OUTPUT:

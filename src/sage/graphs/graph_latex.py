@@ -450,6 +450,7 @@ def setup_latex_preamble():
         True
     """
     latex.add_package_to_preamble_if_available("tikz")
+    latex.add_to_mathjax_avoid_list("tikz")
     latex.add_package_to_preamble_if_available("tkz-graph")
     latex.add_package_to_preamble_if_available("tkz-berge")
     if have_tkz_graph():
@@ -1082,7 +1083,7 @@ class GraphLatex(SageObject):
 
         if not(option_name in GraphLatex.__graphlatex_options):
             raise ValueError( "%s is not a LaTeX option for a graph." % option_name )
-        if option_value == None:    # clear the option, if set
+        if option_value is None:    # clear the option, if set
             if option_name in self._options:
                 del self._options[option_name]
         else:
@@ -1337,6 +1338,22 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
+        We make sure :trac:`13624` is fixed:: 
+ 
+            sage: G = DiGraph() 
+            sage: G.add_edge(3333, 88, 'my_label') 
+            sage: G.set_latex_options(edge_labels=True) 
+            sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
+            \begin{tikzpicture}[>=latex,line join=bevel,] 
+            %% 
+            \node (3333) at (...bp,...bp) [draw,draw=none] {$3333$}; 
+              \node (88) at (...bp,...bp) [draw,draw=none] {$88$}; 
+              \draw [black,->] (3333) ..controls (...bp,...bp) and (...bp,...bp)  .. (88); 
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; 
+              \pgfsetstrokecolor{strokecol} 
+              \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$}; 
+            % 
+            \end{tikzpicture} 
 
         Note: there is a lot of overlap between what tkz_picture and
         dot2tex do. It would be best to merge them! dot2tex probably

@@ -764,11 +764,11 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         N = self.level()
         d = None
         eps = self.character()
-        if eps == None:
+        if eps is None:
             f = 1
         else:
             f = eps.conductor()
-        if p == None:
+        if p is None:
             D = arith.prime_divisors(N)
         else:
             if N % p != 0:

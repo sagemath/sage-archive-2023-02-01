@@ -855,7 +855,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         K = G.base_ring()
         if is_ComplexField(K):
             return self.gauss_sum_numerical()
-        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
+        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
         g = 0
         m = G.modulus()
@@ -924,7 +924,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or is_RationalField(K)
+        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)
                 or is_ComplexField(K)):
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
 
@@ -1087,7 +1087,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
+        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         g = 0
         m = G.modulus()
@@ -1134,7 +1134,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not (rings.is_CyclotomicField(K) or is_RationalField(K)):
+        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError("Kloosterman sums only currently implemented when the base ring is a cyclotomic field or QQ.")
         phi = K.complex_embedding(prec)
         CC = phi.codomain()
@@ -1507,10 +1507,15 @@ class DirichletCharacter(MultiplicativeGroupElement):
             zeta10^3 - zeta10^2 + zeta10 - 1,
             zeta10^2]
 
-        Test that :trac:`14368` is fixed::
+        TESTS:
 
-            sage: DirichletGroup(1).list()[0].values()
+        Test that :trac:`11783` and :trac:`14368` are fixed::
+
+            sage: chi = DirichletGroup(1).list()[0]
+            sage: chi.values()
             [1]
+            sage: chi(1)
+            1
         """
         try:
             return self.__values

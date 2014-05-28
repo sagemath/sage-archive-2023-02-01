@@ -426,9 +426,21 @@ class Magmas(Category_singleton):
             class ElementMethods:
                 def __invert__(self):
                     r"""
-                    Return the inverse of ``self``.
+                    Return the inverse of ``self``, if it exists.
 
-                    It is obtained by inverting each cartesian factor.
+                    The inverse is computed by inverting each
+                    cartesian factor and attempting to convert the
+                    result back to the original parent.
+
+                    For example, if one of the cartesian factor is an
+                    element ``x`` of `\ZZ`, the result of ``~x`` is in
+                    `\QQ`. So we need to convert it back to `\ZZ`. As
+                    a side effect, this checks that ``x`` is indeed
+                    invertible in `\ZZ`.
+
+                    If needed an optimized version without this
+                    conversion could be implemented in
+                    :class:`Magmas.Unital.Inverse.ElementMethods`.
 
                     EXAMPLES::
 
@@ -446,13 +458,14 @@ class Magmas(Category_singleton):
                         ...
                         ZeroDivisionError: rational division by zero
 
-                    Hem, at least this ought to fail::
-
                         sage: ~C([2,2,2,2])
-                        (1/2, 1/2, 0.500000000000000, 3)
-
+                        Traceback (most recent call last)
+                        ...
+                        TypeError: no conversion of this rational to integer
                     """
-                    return self.parent()._cartesian_product_of_elements(
+                    # variant without coercion:
+                    # return self.parent()._cartesian_product_of_elements(
+                    return self.parent()(
                         ~x for x in self.cartesian_factors())
 
         class Algebras(AlgebrasCategory):

@@ -246,7 +246,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
         ...
         ValueError: The two permutations do not contain the same set of elements ...
     """
-    if first_permutation == None:
+    if first_permutation is None:
         first_permutation = sorted(second_permutation)
     else:
         if set(second_permutation) != set(first_permutation):

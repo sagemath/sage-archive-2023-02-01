@@ -464,7 +464,7 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
         sage: _is_valid_digraph_edge_set( [[0,1,'a'],[2,3,(1,-1)]] )
         The given digraph has edge labels which are not integral or integral 2-tuples.
         False
-        sage: _is_valid_digraph_edge_set( [[0,1],[2,3,(1,-1)]] )
+        sage: _is_valid_digraph_edge_set( [[0,1,None],[2,3,(1,-1)]] )
         True
         sage: _is_valid_digraph_edge_set( [[0,1,'a'],[2,3,(1,-1)],[3,2,(1,-1)]] )
         The given digraph or edge list contains oriented 2-cycles.
@@ -486,14 +486,14 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
             return False
 
         # checks if all edge labels are 'None', positive integers or tuples of positive integers
-        if not all( i == None or ( i in ZZ and i > 0 ) or ( isinstance(i, tuple) and len(i) == 2 and i[0] in ZZ and i[1] in ZZ ) for i in dg.edge_labels() ):
+        if not all( i is None or ( i in ZZ and i > 0 ) or ( isinstance(i, tuple) and len(i) == 2 and i[0] in ZZ and i[1] in ZZ ) for i in dg.edge_labels() ):
             print "The given digraph has edge labels which are not integral or integral 2-tuples."
             return False
 
         # checks if all edge labels for multiple edges are 'None' or positive integers
         if dg.has_multiple_edges():
             for e in set( dg.multiple_edges(labels=False) ):
-                if not all( i == None or ( i in ZZ and i > 0 ) for i in dg.edge_label( e[0], e[1] ) ):
+                if not all( i is None or ( i in ZZ and i > 0 ) for i in dg.edge_label( e[0], e[1] ) ):
                     print "The given digraph or edge list contains multiple edges with non-integral labels."
                     return False
 

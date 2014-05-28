@@ -13,9 +13,42 @@ are equivalent to Transversal Designs and specific Orthogonal Arrays.
 For more information on MOLS, see the :wikipedia:`Wikipedia entry on MOLS
 <Graeco-Latin_square#Mutually_orthogonal_Latin_squares>`.
 
+The following table prints the maximum number of MOLS that Sage can build for
+every order `n<300`, similarly to the `table of MOLS
+<http://books.google.fr/books?id=S9FA9rq1BgoC&dq=handbook%20combinatorial%20designs%20MOLS%2010000&pg=PA176>`_
+from the Handbook of Combinatorial Designs.
+
+::
+
+    sage: def MOLS_table(number_of_lines):
+    ....:     print "     "+join(['%3s'%str(i) for i in range(20)])
+    ....:     print "    "+"_"*80
+    ....:     for i in range(20*15):
+    ....:         if i%20==0:
+    ....:             print "\n"+'%3s'%str(i)+"|",
+    ....:         print '%3s'%str(designs.mutually_orthogonal_latin_squares(i,None,existence=True) if i>1 else "+oo"),
+    sage: MOLS_table(15) # long time
+           0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
+        ________________________________________________________________________________
+    <BLANKLINE>
+      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   3  18
+     20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
+     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   3   2  58
+     60|   5  60   5   6  63   7   2  66   4   4   6  70   7  72   3   7   3   6   3  78
+     80|   9  80   8  82   6   6   6   3   7  88   3   6   4   4   3   6   7  96   6   8
+    100|   8 100   6 102   7   4   5 106   5 108   4   6   7 112   3   7   5   8   3   6
+    120|   6 120   4   6   5 124   6 126 127   5   6 130   6   6   4   6   7 136   4 138
+    140|   6   7   6  10  10   7   6   7   5 148   6 150   7   8   5   5   5 156   4   6
+    160|   7   7   4 162   5   7   4 166   7 168   6   8   6 172   6   6  10   6   6 178
+    180|   6 180   6   6   7   8   6  10   6   6   4 190   7 192   6   7   6 196   6 198
+    200|   7   7   6   7   5   6   6   8  12  10  10 210   6   7   6   7   7   8   5  10
+    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   5 238
+    240|   7 240   6 242   6   7   6  12   7   7   5 250   6  10   4   7 255 256   4   7
+    260|   6   8   7 262   7   8   6  10   6 268   6 270  15   7   5  10   6 276   6   8
+    280|   7 280   6 282   6  12   6   7  15 288   6   6   5 292   6   6   7  10   6  12
+
 TODO:
 
-* Implement Wilson's construction (page 146 of [Stinson2004]_)
 * Look at [ColDin01]_.
 
 REFERENCES:
@@ -29,7 +62,12 @@ REFERENCES:
   Volume 95, Issues 1-2, Pages 9-48,
   Journal of Statistical Planning and Inference,
   Springer, 1 May 2001.
+
+Functions
+---------
 """
+from sage.categories.sets_cat import EmptySetError
+from sage.misc.unknown import Unknown
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
     r"""
@@ -57,7 +95,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         matrices 0 and 2 are not orthogonal
         False
 
-        sage: m = designs.mutually_orthogonal_latin_squares(8)
+        sage: m = designs.mutually_orthogonal_latin_squares(8,7)
         sage: are_mutually_orthogonal_latin_squares(m)
         True
     """
@@ -91,8 +129,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
 
     return True
 
-
-def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
+def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False, who_asked=tuple()):
     r"""
     Returns `k` Mutually Orthogonal `n\times n` Latin Squares (MOLS).
 
@@ -105,13 +142,8 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
 
     - ``n`` (integer) -- size of the latin square.
 
-    - ``k`` (integer) -- returns `k` MOLS. If set to ``None`` (default), returns
-      the maximum number of MOLS that Sage can build.
-
-      .. WARNING::
-
-          This has no reason to be the maximum number of `n\times n` MOLS, just
-          the best Sage can do !
+    - ``k`` (integer) -- number of MOLS. If ``k=None`` it is set to the largest
+      value available.
 
     - ``partition`` (boolean) -- a Latin Square can be seen as 3 partitions of
       the `n^2` cells of the array into `n` sets of size `n`, respectively :
@@ -128,26 +160,53 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
       partitions satisfying this intersection property instead of the `k+2` MOLS
       (though the data is exactly the same in both cases).
 
+    - ``existence`` (boolean) -- instead of building the design, returns:
+
+        - ``True`` -- meaning that Sage knows how to build the design
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          design, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the design does not exist.
+
+      .. NOTE::
+
+          When ``k=None`` and ``existence=True`` the function returns an
+          integer, i.e. the largest `k` such that we can build a `k` MOLS of
+          order `n`.
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    - ``who_asked`` (internal use only) -- because of the equivalence between
+      OA/TD/MOLS, each of the three constructors calls the others. We must keep
+      track of who calls who in order to avoid infinite loops. ``who_asked`` is
+      the tuple of the other functions that were called before this one.
+
     EXAMPLES::
 
-        sage: designs.mutually_orthogonal_latin_squares(5)
+        sage: designs.mutually_orthogonal_latin_squares(5,4)
         [
-        [0 1 2 3 4]  [0 1 2 3 4]  [0 1 2 3 4]  [0 1 2 3 4]
-        [3 0 1 4 2]  [4 3 0 2 1]  [1 2 4 0 3]  [2 4 3 1 0]
-        [4 3 0 2 1]  [1 2 4 0 3]  [2 4 3 1 0]  [3 0 1 4 2]
-        [1 2 4 0 3]  [2 4 3 1 0]  [3 0 1 4 2]  [4 3 0 2 1]
-        [2 4 3 1 0], [3 0 1 4 2], [4 3 0 2 1], [1 2 4 0 3]
+        [0 2 4 1 3]  [0 3 1 4 2]  [0 4 3 2 1]  [0 1 2 3 4]
+        [4 1 3 0 2]  [3 1 4 2 0]  [2 1 0 4 3]  [4 0 1 2 3]
+        [3 0 2 4 1]  [1 4 2 0 3]  [4 3 2 1 0]  [3 4 0 1 2]
+        [2 4 1 3 0]  [4 2 0 3 1]  [1 0 4 3 2]  [2 3 4 0 1]
+        [1 3 0 2 4], [2 0 3 1 4], [3 2 1 0 4], [1 2 3 4 0]
         ]
+
         sage: designs.mutually_orthogonal_latin_squares(7,3)
         [
-        [0 1 2 3 4 5 6]  [0 1 2 3 4 5 6]  [0 1 2 3 4 5 6]
-        [4 0 3 1 6 2 5]  [5 6 0 4 2 1 3]  [6 4 1 0 5 3 2]
-        [5 6 0 4 2 1 3]  [6 4 1 0 5 3 2]  [1 3 5 2 0 6 4]
-        [6 4 1 0 5 3 2]  [1 3 5 2 0 6 4]  [2 5 4 6 3 0 1]
-        [1 3 5 2 0 6 4]  [2 5 4 6 3 0 1]  [3 2 6 5 1 4 0]
-        [2 5 4 6 3 0 1]  [3 2 6 5 1 4 0]  [4 0 3 1 6 2 5]
-        [3 2 6 5 1 4 0], [4 0 3 1 6 2 5], [5 6 0 4 2 1 3]
+        [0 2 4 6 1 3 5]  [0 3 6 2 5 1 4]  [0 4 1 5 2 6 3]
+        [6 1 3 5 0 2 4]  [5 1 4 0 3 6 2]  [4 1 5 2 6 3 0]
+        [5 0 2 4 6 1 3]  [3 6 2 5 1 4 0]  [1 5 2 6 3 0 4]
+        [4 6 1 3 5 0 2]  [1 4 0 3 6 2 5]  [5 2 6 3 0 4 1]
+        [3 5 0 2 4 6 1]  [6 2 5 1 4 0 3]  [2 6 3 0 4 1 5]
+        [2 4 6 1 3 5 0]  [4 0 3 6 2 5 1]  [6 3 0 4 1 5 2]
+        [1 3 5 0 2 4 6], [2 5 1 4 0 3 6], [3 0 4 1 5 2 6]
         ]
+
         sage: designs.mutually_orthogonal_latin_squares(5,2,partitions=True)
         [[[0, 1, 2, 3, 4],
           [5, 6, 7, 8, 9],
@@ -159,84 +218,152 @@ def mutually_orthogonal_latin_squares(n,k=None, partitions = False):
           [2, 7, 12, 17, 22],
           [3, 8, 13, 18, 23],
           [4, 9, 14, 19, 24]],
-        [[0, 6, 12, 18, 24],
-          [1, 7, 14, 15, 23],
-          [2, 9, 13, 16, 20],
-          [3, 5, 11, 19, 22],
-          [4, 8, 10, 17, 21]],
-        [[0, 7, 13, 19, 21],
-          [1, 9, 10, 18, 22],
-          [2, 8, 11, 15, 24],
+         [[0, 8, 11, 19, 22],
           [3, 6, 14, 17, 20],
-          [4, 5, 12, 16, 23]]]
+          [1, 9, 12, 15, 23],
+          [4, 7, 10, 18, 21],
+          [2, 5, 13, 16, 24]],
+         [[0, 9, 13, 17, 21],
+          [2, 6, 10, 19, 23],
+          [4, 8, 12, 16, 20],
+          [1, 5, 14, 18, 22],
+          [3, 7, 11, 15, 24]]]
 
-    TESTS::
+    What is the maximum number of MOLS of size 8 that Sage knows how to build?::
 
-        sage: designs.mutually_orthogonal_latin_squares(5,5)
+        sage: designs.mutually_orthogonal_latin_squares(8,None,existence=True)
+        7
+
+    If you only want to know if Sage is able to build a given set of MOLS, just
+    set the argument ``existence`` to ``True``::
+
+        sage: designs.mutually_orthogonal_latin_squares(5, 5, existence=True)
+        False
+        sage: designs.mutually_orthogonal_latin_squares(6, 4, existence=True)
+        Unknown
+
+    If you ask for such a MOLS then you will respecively get an informative
+    ``EmptySetError`` or ``NotImplementedError``::
+
+        sage: designs.mutually_orthogonal_latin_squares(5, 5)
         Traceback (most recent call last):
         ...
-        ValueError: There exist at most n-1 MOLS of size n.
+        EmptySetError: There exist at most n-1 MOLS of size n if n>=2.
+        sage: designs.mutually_orthogonal_latin_squares(6, 4)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build these MOLS!
+
+    TESTS:
+
+    The special case `n=1`::
+
+        sage: designs.mutually_orthogonal_latin_squares(1, 3)
+        [[0], [0], [0]]
+        sage: designs.mutually_orthogonal_latin_squares(1, None, existence=True)
+        +Infinity
+        sage: designs.mutually_orthogonal_latin_squares(1, None)
+        Traceback (most recent call last):
+        ...
+        ValueError: there are no bound on k when n=1.
+        sage: designs.mutually_orthogonal_latin_squares(10,2,existence=True)
+        True
+        sage: designs.mutually_orthogonal_latin_squares(10,2)
+        [
+        [1 8 9 0 2 4 6 3 5 7]  [1 7 6 5 0 9 8 2 3 4]
+        [7 2 8 9 0 3 5 4 6 1]  [8 2 1 7 6 0 9 3 4 5]
+        [6 1 3 8 9 0 4 5 7 2]  [9 8 3 2 1 7 0 4 5 6]
+        [5 7 2 4 8 9 0 6 1 3]  [0 9 8 4 3 2 1 5 6 7]
+        [0 6 1 3 5 8 9 7 2 4]  [2 0 9 8 5 4 3 6 7 1]
+        [9 0 7 2 4 6 8 1 3 5]  [4 3 0 9 8 6 5 7 1 2]
+        [8 9 0 1 3 5 7 2 4 6]  [6 5 4 0 9 8 7 1 2 3]
+        [2 3 4 5 6 7 1 8 9 0]  [3 4 5 6 7 1 2 8 0 9]
+        [3 4 5 6 7 1 2 0 8 9]  [5 6 7 1 2 3 4 0 9 8]
+        [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
+        ]
     """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.combinat.designs.block_design import AffineGeometryDesign
-    from sage.rings.arith import is_prime_power
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
     from sage.rings.arith import factor
+    from database import MOLS_constructions
 
-    if k is not None and k >= n:
-        raise ValueError("There exist at most n-1 MOLS of size n.")
+    # Is k is None we find the largest available
+    if k is None:
+        if n == 1:
+            if existence:
+                from sage.rings.infinity import Infinity
+                return Infinity
+            raise ValueError("there are no bound on k when n=1.")
 
-    if is_prime_power(n):
-        if k is None:
-            k = n-1
-        # Section 6.4.1 of [Stinson2004]
-        Fp = FiniteField(n,'x')
-        B = AffineGeometryDesign(2,1,Fp).blocks()
-        parallel_classes = [[] for _ in range(k+2)]
-        for b in B:
-            for p in parallel_classes:
-                if (not p) or all(i not in p[0] for i in b):
-                    p.append(b)
-                    break
+        k = orthogonal_array(None,n,existence=True) - 2
+        if existence:
+            return k
 
-        if partitions:
-            return parallel_classes
+    if n == 1:
+        if existence:
+            return True
+        matrices = [Matrix([[0]])]*k
 
-        coord = {v:i
-                 for i,L in enumerate(parallel_classes[0]) for v in L}
-        coord = {v:(coord[v],i)
-                 for i,L in enumerate(parallel_classes[1]) for v in L}
+    elif k >= n:
+        if existence:
+            return False
+        raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
 
-        matrices = []
-        for P in parallel_classes[2:]:
-            matrices.append(Matrix({coord[v]:i for i,L in enumerate(P) for v in L }))
-        return matrices
-    else:
-        # Theorem 6.33 of [Stinson2004], MacNeish's theorem.
-        subcases = [p**i for p,i in factor(n)]
-        s = min(subcases)-1
-        if k is None:
-            k = s
-        elif k > s:
-            raise NotImplementedError("I don't know how to build these MOLS.")
-        subcalls = [mutually_orthogonal_latin_squares(p,k) for p in subcases]
-        matrices = [latin_square_product(*[sc[i] for sc in subcalls])
-                    for i in range(k)]
+    elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
+        if existence:
+            return True
+        _, construction = MOLS_constructions[n]
 
-        if partitions:
-            partitions = [[[i*n+j for j in range(n)] for i in range(n)],
-                          [[j*n+i for j in range(n)] for i in range(n)]]
-            for m in matrices:
-                partition = [[] for i in range(n)]
-                for i in range(n):
-                    for j in range(n):
-                        partition[m[i,j]].append(i*n+j)
-                partitions.append(partition)
+        matrices = construction()[:k]
 
-            return partitions
+    elif (orthogonal_array not in who_asked and
+        orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)) is not Unknown):
 
+        # Forwarding non-existence results
+        if orthogonal_array(k+2,n,existence=True,who_asked = who_asked+(mutually_orthogonal_latin_squares,)):
+            if existence:
+                return True
         else:
-            return matrices
+            if existence:
+                return False
+            raise EmptySetError("These MOLS do not exist!")
+
+        OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
+        OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
+
+        # We first define matrices as lists of n^2 values
+        matrices = [[] for _ in range(k)]
+        for L in OA:
+            for i in range(2,k+2):
+                matrices[i-2].append(L[i])
+
+        # The real matrices
+        matrices = [[M[i*n:(i+1)*n] for i in range(n)] for M in matrices]
+        matrices = [Matrix(M) for M in matrices]
+
+    else:
+        if existence:
+            return Unknown
+        raise NotImplementedError("I don't know how to build these MOLS!")
+
+    if check:
+        assert are_mutually_orthogonal_latin_squares(matrices)
+
+    # partitions have been requested but have not been computed yet
+    if partitions is True:
+        partitions = [[[i*n+j for j in range(n)] for i in range(n)],
+                      [[j*n+i for j in range(n)] for i in range(n)]]
+        for m in matrices:
+            partition = [[] for i in range(n)]
+            for i in range(n):
+                for j in range(n):
+                    partition[m[i,j]].append(i*n+j)
+            partitions.append(partition)
+
+    if partitions:
+        return partitions
+    else:
+        return matrices
 
 def latin_square_product(M,N,*others):
     r"""
@@ -258,9 +385,9 @@ def latin_square_product(M,N,*others):
     EXAMPLES::
 
         sage: from sage.combinat.designs.latin_squares import latin_square_product
-        sage: m=designs.mutually_orthogonal_latin_squares(4)[0]
+        sage: m=designs.mutually_orthogonal_latin_squares(4,3)[0]
         sage: latin_square_product(m,m,m)
-        64 x 64 sparse matrix over Integer Ring
+        64 x 64 sparse matrix over Integer Ring (use the '.str()' method to see the entries)
     """
     from sage.matrix.constructor import Matrix
     m = M.nrows()

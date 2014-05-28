@@ -867,7 +867,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         if ZZ is None:
             import integer_ring
             ZZ = integer_ring.ZZ
-        if num_bound == None:
+        if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
             den = ZZ.random_element(*args, **kwds)
             while den == 0: den = ZZ.random_element(*args, **kwds)

@@ -149,7 +149,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         identity_matrix, block_matrix
     from sage.matrix.matrix_space import MatrixSpace
     from sage.rings.integer_ring import IntegerRing
-    if seed != None:
+    if seed is not None:
         from sage.misc.randstate import set_random_seed
         set_random_seed(seed)
 
@@ -165,7 +165,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         A = A.stack(R.random_element())
 
     elif type == 'ideal':
-        if quotient == None: raise \
+        if quotient is None: raise \
             ValueError('ideal bases require a quotient polynomial')
         x = quotient.default_variable()
         if n != quotient.degree(x): raise \

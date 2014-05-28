@@ -26,7 +26,7 @@ echo "GAP was configured with $GAParch_system"
 
 # location of the corresponding gap installation
 # only used for the testsuite
-CPPFLAGS="$CPPFLAGS"'-DSYS_DEFAULT_PATHS=\"'"$SAGE_LOCAL/gap/latest"'\"'
+CPPFLAGS="$CPPFLAGS"' -DSYS_DEFAULT_PATHS=\"'"$SAGE_LOCAL/gap/latest"'\"'
 
 cd src
 

@@ -983,16 +983,24 @@ class CycleIndexSeries(LazyPowerSeries):
         (Specifically, if ``self`` is of the form `0 + p_{1} + \dots`.)
 
         The compositional inverse is the inverse with respect to
-        plethystic substitution. (This is the operation on cycle index
+        plethystic substitution. This is the operation on cycle index
         series which corresponds to substitution, a.k.a. partitional
         composition, on the level of species. See Section 2.2 of
-        [BLL]_ for a definition of this operation.)
+        [BLL]_ for a definition of this operation.
 
         EXAMPLES::
 
             sage: Eplus = species.SetSpecies(min=1).cycle_index_series()
             sage: Eplus(Eplus.compositional_inverse()).coefficients(8)
             [0, p[1], 0, 0, 0, 0, 0, 0]
+
+        TESTS::
+
+            sage: Eplus = species.SetSpecies(min=2).cycle_index_series()
+            sage: Eplus.compositional_inverse()
+            Traceback (most recent call last):
+            ...
+            ValueError: not an invertible series
 
         ALGORITHM:
 
@@ -1025,7 +1033,8 @@ class CycleIndexSeries(LazyPowerSeries):
 
         X = cisr([0, sfa([1]), 0])
 
-        assert self.coefficients(2) == X.coefficients(2)
+        if self.coefficients(2) != X.coefficients(2):
+            raise ValueError('not an invertible series')
 
         res = cisr()
         res.define(X - (self - X).compose(res))

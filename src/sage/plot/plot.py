@@ -1761,9 +1761,12 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     TESTS:
 
-    We check to see that the x/y min/max data are set correctly.
+    We check to see whether elements of the Symbolic Ring are properly
+    handled; see :trac:`16378` ::
 
-    ::
+        sage: list_plot([1+I, 2+I])
+
+    We check to see that the x/y min/max data are set correctly::
 
         sage: d = list_plot([(100,100), (120, 120)]).get_minmax_data()
         sage: d['xmin']
@@ -1791,8 +1794,17 @@ def list_plot(data, plotjoined=False, **kwargs):
         from sage.rings.all import RDF
         tmp = RDF(data[0])
         data = list(enumerate(data))
-    except TypeError:
-        pass
+    except TypeError: # we can get this TypeError if the element is a list
+                      # or tuple or numpy array, or an element of CC, CDF
+        # We also want to avoid doing CC(data[0]) here since it will go
+        # through if data[0] is really a tuple and every element of the
+        # data will be converted to a complex and later converted back to
+        # a tuple.
+        # So, the only other check we need to do is whether data[0] is an
+        # element of the Symbolic Ring.
+        if data[0] in sage.symbolic.ring.SR:
+            data = list(enumerate(data))
+
     try:
         if plotjoined:
             return line(data, **kwargs)

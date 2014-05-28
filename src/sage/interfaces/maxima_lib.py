@@ -850,6 +850,15 @@ class MaximaLib(MaximaAbstract):
             sage: limit(1/f(n), n=infinity)
             1/2
 
+        The following limit computation used to incorrectly return 0
+        or infinity, depending on the domain (see :trac:`15033`)::
+
+            sage: m = sage.calculus.calculus.maxima
+            sage: _ = m.eval('domain: real')   # much faster than 'domain: complex'
+            sage: limit(gamma(x + 1/2)/(sqrt(x)*gamma(x)), x=infinity)
+            1
+            sage: _ = m.eval('domain: complex')
+
         """
         try:
             L=[sr_to_max(SR(a)) for a in [expr,v,a]]

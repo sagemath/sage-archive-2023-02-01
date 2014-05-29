@@ -1766,6 +1766,10 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         sage: list_plot([1+I, 2+I])
 
+        sage: list_plot([1+I, 2, CC(3+I)])
+
+        sage: list_plot([2, SR(1), CC(1+i)])
+
     We check to see that the x/y min/max data are set correctly::
 
         sage: d = list_plot([(100,100), (120, 120)]).get_minmax_data()

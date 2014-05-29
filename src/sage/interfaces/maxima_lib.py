@@ -842,13 +842,21 @@ class MaximaLib(MaximaAbstract):
             []
 
         The second limit below was computed incorrectly prior to
-        maxima-5.24 (:trac:`10868`)::
+        Maxima 5.24 (:trac:`10868`)::
 
             sage: f(n) = 2 + 1/factorial(n)
             sage: limit(f(n), n=infinity)
             2
             sage: limit(1/f(n), n=infinity)
             1/2
+
+        The limit below was computed incorrectly prior to Maxima 5.30
+        (see :trac:`13526`)::
+
+            sage: n = var('n')
+            sage: l = (3^n + (-2)^n) / (3^(n+1) + (-2)^(n+1))
+            sage: l.limit(n=oo)
+            1/3
 
         """
         try:

@@ -562,6 +562,7 @@ class MaximaLib(MaximaAbstract):
             'm'
             sage: maxima_lib.get('m')
             'x+cos(19)'
+            sage: maxima_lib.clear('m')
         """
         name = self._next_var_name() if name is None else name
         if isinstance(value,EclObject):
@@ -753,13 +754,21 @@ class MaximaLib(MaximaAbstract):
                 k = s.find(' ', 3)
                 raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
             else:
-                raise error
+                raise
 
     def sr_sum(self,*args):
         """
         Helper function to wrap calculus use of Maxima's summation.
 
-        TESTS::
+        TESTS:
+
+        Check that :trac:`16224` is fixed::
+
+            sage: k = var('k')
+            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).simplify_radical()
+            cosh(x)
+
+        ::
 
             sage: x, y, k, n = var('x, y, k, n')
             sage: sum(binomial(n,k) * x^k * y^(n-k), k, 0, n)
@@ -785,6 +794,23 @@ class MaximaLib(MaximaAbstract):
             sage: forget()
             sage: assumptions() # check the assumptions were really forgotten
             []
+
+        Taking the sum of all natural numbers informs us that the sum
+        is divergent.  Maxima (before 5.29.1) used to ask questions
+        about `m`, leading to a different error (see :trac:`11990`)::
+
+            sage: m = var('m')
+            sage: sum(m, m, 0, infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: Sum is divergent.
+
+        An error with an infinite sum in Maxima (before 5.30.0,
+        see :trac:`13712`)::
+
+            sage: n = var('n')
+            sage: sum(1/((2*n-1)^2*(2*n+1)^2*(2*n+3)^2), n, 0, oo)
+            3/256*pi^2
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
@@ -801,7 +827,7 @@ class MaximaLib(MaximaAbstract):
                 k = s.find(' ', 3)
                 raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
             else:
-                raise error
+                raise
 
     def sr_limit(self,expr,v,a,dir=None):
         """
@@ -865,7 +891,7 @@ class MaximaLib(MaximaAbstract):
                 s = s[j:]
                 raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s)
             else:
-                raise error
+                raise
 
     def sr_tlimit(self,expr,v,a,dir=None):
         """
@@ -1057,7 +1083,7 @@ NIL=EclObject("NIL")
 
 ## Dictionaries for standard operators
 sage_op_dict = {
-    sage.symbolic.expression.operator.abs : "MABS",
+    sage.functions.other.abs : "MABS",
     sage.symbolic.expression.operator.add : "MPLUS",
     sage.symbolic.expression.operator.div : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
@@ -1071,19 +1097,6 @@ sage_op_dict = {
     sage.symbolic.expression.operator.pow : "MEXPT",
     sage.symbolic.expression.operator.or_ : "MOR",
     sage.symbolic.expression.operator.and_ : "MAND",
-    sage.functions.trig.acos : "%ACOS",
-    sage.functions.trig.acot : "%ACOT",
-    sage.functions.trig.acsc : "%ACSC",
-    sage.functions.trig.asec : "%ASEC",
-    sage.functions.trig.asin : "%ASIN",
-    sage.functions.trig.atan : "%ATAN",
-    sage.functions.trig.cos : "%COS",
-    sage.functions.trig.cot : "%COT",
-    sage.functions.trig.csc : "%CSC",
-    sage.functions.trig.sec : "%SEC",
-    sage.functions.trig.sin : "%SIN",
-    sage.functions.trig.tan : "%TAN",
-    sage.functions.log.exp : "%EXP",
     sage.functions.log.ln : "%LOG",
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
@@ -1494,7 +1507,11 @@ def sr_to_max(expr):
             # so calling maxima(expr) can change the structure of expr
             #op_max=caar(maxima(expr).ecl())
             # This should be safe if we treated all special operators above
+            #furthermore, this should already use any _maxima_ methods on op, so use any
+            #conversion methods that are registered in pynac.
             op_max=maxima(op).ecl()
+            if op_max in max_op_dict:
+                raise RuntimeError("Encountered operator mismatch in sr-to-maxima translation")
             sage_op_dict[op]=op_max
             max_op_dict[op_max]=op
         return EclObject(([sage_op_dict[op]],
@@ -1512,6 +1529,9 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
+max_to_pynac_table = sage.symbolic.pynac.symbol_table['maxima']
+
+
 def max_to_sr(expr):
     r"""
     Convert a Maxima object into a symbolic expression.
@@ -1543,12 +1563,20 @@ def max_to_sr(expr):
         if op_max in special_max_to_sage:
             return special_max_to_sage[op_max](expr)
         if not(op_max in max_op_dict):
-            # This could be unsafe if the conversion to SR
-            # changes the structure of expr
-            sage_expr=SR(maxima(expr))
-            max_op_dict[op_max]=sage_expr.operator()
-            sage_op_dict[sage_expr.operator()]=op_max
-        op=max_op_dict[op_max]
+            op_max_str=maxprint(op_max).python()[1:-1]
+            if op_max_str in max_to_pynac_table:
+                op = max_to_pynac_table[op_max_str]
+            else:
+                # This could be unsafe if the conversion to SR
+                # changes the structure of expr
+                sage_expr=SR(maxima(expr))
+                op=sage_expr.operator()
+            if op in sage_op_dict:
+                raise RuntimeError("Encountered operator mismatch in maxima-to-sr translation")
+            max_op_dict[op_max]=op
+            sage_op_dict[op]=op_max
+        else:
+            op=max_op_dict[op_max]
         max_args=cdr(expr)
         args=[max_to_sr(a) for a in max_args]
         return op(*args)

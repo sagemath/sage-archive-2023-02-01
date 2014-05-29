@@ -590,6 +590,12 @@ cdef class RealField_class(sage.rings.ring.Field):
             1.5625
             sage: a.str(2)
             '1.1001000000000000000'
+            sage: R(oo)
+            +infinity
+            sage: R(unsigned_infinity)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only convert signed infinity to RR
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -1366,15 +1372,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
         else:
             s = str(x).replace(' ','')
-            if mpfr_set_str(self.value, s, base, parent.rnd):
-                if s == 'NaN' or s == '@NaN@':
-                    mpfr_set_nan(self.value)
-                elif s == '+infinity':
-                    mpfr_set_inf(self.value, 1)
-                elif s == '-infinity':
-                    mpfr_set_inf(self.value, -1)
-                else:
-                    raise TypeError, "Unable to convert x (='%s') to real number."%s
+            s_lower = s.lower()
+            if s_lower == 'infinity':
+                raise ValueError('can only convert signed infinity to RR')
+            elif mpfr_set_str(self.value, s, base, parent.rnd) == 0:
+                pass
+            elif s == 'NaN' or s == '@NaN@':
+                mpfr_set_nan(self.value)
+            elif s_lower == '+infinity':
+                mpfr_set_inf(self.value, 1)
+            elif s_lower == '-infinity':
+                mpfr_set_inf(self.value, -1)
+            else:
+                raise TypeError("Unable to convert x (='%s') to real number."%s)
 
     cdef _set_from_GEN_REAL(self, GEN g):
         """
@@ -3406,11 +3416,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert NaN or infinity to rational number
-            sage: RR('infinity').nearby_rational(max_denominator=1000)
+            sage: RR(oo).nearby_rational(max_denominator=1000)
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert NaN or infinity to rational number
-            sage: RR('infinity').nearby_rational(max_error=0.01)
+            sage: RR(oo).nearby_rational(max_error=0.01)
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert NaN or infinity to rational number

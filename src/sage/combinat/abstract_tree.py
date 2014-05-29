@@ -641,7 +641,7 @@ class AbstractTree(object):
         stack = [self]
         while len(stack) > 0:
             node = stack[-1]
-            if node != None:
+            if node is not None:
                 # A "None" on the stack means that the node right before
                 # it on the stack has already been "exploded" into
                 # subtrees, and should not be exploded again, but instead

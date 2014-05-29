@@ -265,7 +265,7 @@ class JonesDatabase:
              Number Field in c with defining polynomial x^3 - x^2 - 48*x - 188]
         """
         Z = self.get(S, var=var)
-        if d == None:
+        if d is None:
             Z = [(k.degree(), k.discriminant().abs(), k.discriminant() > 0, k) for k in Z]
         else:
             Z = [(k.discriminant().abs(), k.discriminant() > 0, k) for k in Z if k.degree() == d]

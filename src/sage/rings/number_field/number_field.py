@@ -4244,7 +4244,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^2 - 1/2, 'a').discriminant()
             8
         """
-        if v == None:
+        if v is None:
             try:
                 return self.__disc
             except AttributeError:
@@ -4462,7 +4462,7 @@ class NumberField_generic(number_field_base.NumberField):
         try:
             return self.__gen
         except AttributeError:
-            if self.__polynomial != None:
+            if self.__polynomial is not None:
                 X = self.__polynomial.parent().gen()
             else:
                 X = PolynomialRing(rational_field.RationalField()).gen()
@@ -8957,7 +8957,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: CyclotomicField(18).discriminant()
             -19683
         """
-        if v == None:
+        if v is None:
             try:
                 return self.__disc
             except AttributeError:

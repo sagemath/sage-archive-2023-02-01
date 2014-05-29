@@ -93,7 +93,7 @@ cdef class ntl_mat_ZZ:
         mat_ZZ_SetDims(&self.x, nrows, ncols)
         self.__nrows = nrows
         self.__ncols = ncols
-        if v != None:
+        if v is not None:
             for i from 0 <= i < nrows:
                 for j from 0 <= j < ncols:
                     tmp = ntl_ZZ(v[i*ncols+j])
@@ -413,7 +413,7 @@ cdef class ntl_mat_ZZ:
             ]
         """
         cdef ntl_ZZ _D
-        if D == None:
+        if D is None:
             _D = self.determinant()
         else:
             _D = ntl_ZZ(D)

@@ -10,12 +10,11 @@ Crystals
 
 from sage.misc.cachefunc import CachedFunction, cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.latex import latex
-from sage.combinat import ranker
 from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.rings.integer import Integer
 
 class Crystals(Category_singleton):
     r"""
@@ -121,6 +120,7 @@ class Crystals(Category_singleton):
         if choice == "naive":
             return examples.NaiveCrystal(**kwds)
         else:
+            from sage.rings.integer import Integer
             if isinstance(choice, Integer):
                 return examples.HighestWeightCrystalOfTypeA(n=choice, **kwds)
             else:
@@ -689,7 +689,7 @@ class Crystals(Category_singleton):
                 string_datum = []
                 for j in word:
                     turtlewalk = 0
-                    while not turtle.e(j) == None:
+                    while turtle.e(j) is not None:
                         turtle = turtle.e(j)
                         turtlewalk += 1
                     string_datum.append(turtlewalk)
@@ -739,7 +739,7 @@ class Crystals(Category_singleton):
             for i in range(size):
                 for j in range(1,3):
                     dest = self.list()[i].f(j)
-                    if not dest == None:
+                    if dest is not None:
                         dest = self.list().index(dest)
                         if j == 1:
                             col = "red;"
@@ -777,6 +777,7 @@ class Crystals(Category_singleton):
                 'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$1$" ];\n  N_1 [ label = " ", texlbl = "$2$" ];\n  N_2 [ label = " ", texlbl = "$3$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
             """
             import re
+            from sage.combinat import ranker
             rank = ranker.from_list(self.list())[0]
             vertex_key = lambda x: "N_"+str(rank(x))
 
@@ -1199,4 +1200,6 @@ class Crystals(Category_singleton):
             """
             return self.parent().subcrystal(generators=[self], index_set=index_set,
                                             max_depth=max_depth, direction=direction)
+
+    Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals')
 

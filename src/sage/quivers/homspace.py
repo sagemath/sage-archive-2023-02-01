@@ -102,9 +102,9 @@ class QuiverHomSpace(Homset):
         self._semigroup = domain._semigroup
 
         # Check that the bases are compatible, and then initialise the homset:
-        if codomain._base_ring != domain._base_ring:
+        if codomain.base_ring() != domain.base_ring():
             raise ValueError("representations are not over the same base ring")
-        Homset.__init__(self, domain, codomain, category=category, base = domain._base_ring)
+        Homset.__init__(self, domain, codomain, category=category, base = domain.base_ring())
 
         # To compute the Hom Space we set up a 'generic' homomorphism where the
         # maps at each vertex are described by matrices whose entries are
@@ -142,7 +142,7 @@ class QuiverHomSpace(Homset):
         # the rows correspond to variables, and .kernel() will give a right
         # kernel as is needed.
         from sage.matrix.constructor import Matrix
-        coef_mat = Matrix(codomain._base_ring, varstart[-1], eqs)
+        coef_mat = Matrix(codomain.base_ring(), varstart[-1], eqs)
 
         # eqn keeps track of what equation we are on.  If the maps X and Y are
         # assigned to an edge e and A and B are the matrices of variables that

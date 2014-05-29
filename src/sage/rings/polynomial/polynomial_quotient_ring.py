@@ -951,7 +951,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: len(iso_classes[1][1])
             2
         """
-        from sage.rings.number_field.all import is_NumberField
+        from sage.rings.number_field.number_field_base import is_NumberField
         K = self.base_ring()
         if not is_NumberField(K) or not self.__polynomial.is_squarefree():
             raise NotImplementedError

@@ -12,7 +12,7 @@ def mcqd(G):
 
     TESTS::
 
-        sage: from sage.graphs.mcqd import mcqd
+        sage: from sage.graphs.mcqd import mcqd         # optional - mcqd
         sage: for i in range(10):                       # optional - mcqd
         ...       g = graphs.RandomGNP(15,.5)           # optional - mcqd
         ...       if g.clique_number() != len(mcqd(g)): # optional - mcqd

@@ -822,6 +822,13 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Sum is divergent.
+
+        An error with an infinite sum in Maxima (before 5.30.0,
+        see :trac:`13712`)::
+
+            sage: n = var('n')
+            sage: sum(1/((2*n-1)^2*(2*n+1)^2*(2*n+3)^2), n, 0, oo)
+            3/256*pi^2
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));

@@ -391,6 +391,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         scalar = LCM(map(lambda x: QQ(x).denominator(), sym))
         return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
 
+    @cached_method
+    def symmetrized_matrix(self):
+        """
+        Return the symmetrized matrix of ``self`` if symmetrizable.
+
+        EXAMPLES::
+
+            sage: cm = CartanMatrix(['B',4,1])
+            sage: cm.symmetrized_matrix()
+            [ 4  0 -2  0  0]
+            [ 0  4 -2  0  0]
+            [-2 -2  4 -2  0]
+            [ 0  0 -2  4 -2]
+            [ 0  0  0 -2  2]
+        """
+        M = matrix.diagonal(list(self.symmetrizer())) * self
+        M.set_immutable()
+        return M
+
     ##########################################################################
     # Cartan type methods
 

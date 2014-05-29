@@ -5069,6 +5069,10 @@ class Graph(GenericGraph):
 
              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
+           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
+
         .. NOTE::
 
             Currently only implemented for undirected graphs. Use to_undirected
@@ -5101,7 +5105,8 @@ class Graph(GenericGraph):
             sage: C.clique_maximum(algorithm = "BFS")
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only 'MILP' and 'Cliquer' are supported.
+            NotImplementedError: Only 'MILP', 'Cliquer' and 'mcqd' are supported.
+
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm=="Cliquer":
@@ -5109,8 +5114,14 @@ class Graph(GenericGraph):
             return max_clique(self)
         elif algorithm == "MILP":
             return self.complement().independent_set(algorithm = algorithm)
+        elif algorithm == "mcqd":
+            try:
+                from sage.graphs.mcqd import mcqd
+            except ImportError:
+                raise ImportError("Please install the mcqd package")
+            return mcqd(self)
         else:
-            raise NotImplementedError("Only 'MILP' and 'Cliquer' are supported.")
+            raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
 
     def clique_number(self, algorithm="Cliquer", cliques=None):
         r"""
@@ -5126,15 +5137,21 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer [NisOst2003]_.
+           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer
+             [NisOst2003]_.
 
-           - If ``algorithm = "networkx"`` - This function is based on NetworkX's implementation
-             of the Bron and Kerbosch Algorithm [BroKer1973]_.
+           - If ``algorithm = "networkx"`` - This function is based on
+             NetworkX's implementation of the Bron and Kerbosch Algorithm
+             [BroKer1973]_.
 
            - If ``algorithm = "MILP"``, the problem is solved through a Mixed
              Integer Linear Program.
 
              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
+
+           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
 
         - ``cliques`` - an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
@@ -5173,6 +5190,10 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: g.clique_number(algorithm="MILP")
             2
+            sage: for i in range(10):                                            # optional - mcqd
+            ...       g = graphs.RandomGNP(15,.5)                                # optional - mcqd
+            ...       if g.clique_number() != g.clique_number(algorithm="mcqd"): # optional - mcqd
+            ...           print "This is dead wrong !"                           # optional - mcqd
         """
         self._scream_if_not_simple(allow_loops=False)
         if algorithm=="Cliquer":
@@ -5183,8 +5204,14 @@ class Graph(GenericGraph):
             return networkx.graph_clique_number(self.networkx_graph(copy=False),cliques)
         elif algorithm == "MILP":
             return len(self.complement().independent_set(algorithm = algorithm))
+        elif algorithm == "mcqd":
+            try:
+                from sage.graphs.mcqd import mcqd
+            except ImportError:
+                raise ImportError("Please install the mcqd package")
+            return len(mcqd(self))
         else:
-            raise NotImplementedError("Only 'networkx' 'MILP' and 'Cliquer' are supported.")
+            raise NotImplementedError("Only 'networkx' 'MILP' 'Cliquer' and 'mcqd' are supported.")
 
     def cliques_number_of(self, vertices=None, cliques=None):
         """
@@ -5323,6 +5350,10 @@ class Graph(GenericGraph):
 
               (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
+           * If ``algorithm = "mcqd"`` - Uses the MCQD solver
+             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+             package must be installed.
+
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a maximum independent set is returned. Otherwise,
           a maximum independent set is returned as a list of vertices.
@@ -5349,9 +5380,9 @@ class Graph(GenericGraph):
 
         .. NOTE::
 
-            While Cliquer is usually (and by far) the most efficient of the two
-            implementations, the Mixed Integer Linear Program formulation
-            sometimes proves faster on very "symmetrical" graphs.
+            While Cliquer/MCAD are usually (and by far) the most efficient
+            implementations, the MILP formulation sometimes proves faster on
+            very "symmetrical" graphs.
 
         EXAMPLES:
 
@@ -5405,6 +5436,10 @@ class Graph(GenericGraph):
 
           - ``"MILP"`` will compute a minimum vertex cover through a mixed
             integer linear program.
+
+          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            package must be installed.
 
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a minimum vertex cover is returned. Otherwise,
@@ -5480,13 +5515,17 @@ class Graph(GenericGraph):
            ...       if g.size() != 0:
            ...           print "This thing is not a vertex cover !"
 
+        Testing mcqd::
+
+            sage: graphs.PetersenGraph().vertex_cover(algorithm="mcqd",value_only=True) # optional - mcqd
+            6
 
         Given a wrong algorithm::
 
             sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm must be either "Cliquer" or "MILP".
+            ValueError: The algorithm must be "Cliquer" "MILP" or "mcqd".
 
         REFERENCE:
 
@@ -5595,9 +5634,8 @@ class Graph(GenericGraph):
             size_cover_g = 0
             cover_g = []
 
-        elif algorithm == "Cliquer":
-            from sage.graphs.cliquer import max_clique
-            independent = max_clique(g.complement())
+        elif algorithm == "Cliquer" or algorithm == "mcqd":
+            independent = g.complement().clique_maximum(algorithm=algorithm)
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
@@ -5623,7 +5661,7 @@ class Graph(GenericGraph):
                 b = p.get_values(b)
                 cover_g = [v for v in g.vertices() if b[v] == 1]
         else:
-            raise ValueError("The algorithm must be either \"Cliquer\" or \"MILP\".")
+            raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
 
         #########################
         # Returning the results #

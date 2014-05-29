@@ -3789,6 +3789,40 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
         """
         return catalan_number(self.k1)
 
+    def random_element(self):
+        """
+        Return a random complete Dyck word of semilength `n`
+
+        The algorithm is based on a classical combinatorial fact. One
+        chooses at random a word with `n` 0's and `n` 1's. One
+        then considers every 1 as an ascending step and every 0 as a
+        descending step, and one finds the lowest point of the
+        path. One then cuts the path at this point and builds a Dyck word
+        by exchanging the two parts of the word.
+
+        EXAMPLES::
+
+            sage: dw = DyckWords(8)
+            sage: dw.random_element()   # random
+            [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+        """
+        from sage.misc.prandom import shuffle
+        n = self.k1
+        w = [0] * n + [1] * n
+        shuffle(w)
+        idx = 0
+        height = 0
+        height_min = 0
+        for i in range(2 * n):
+            if w[i] == 1:
+                height += 1
+            else:
+                height -= 1
+                if height < height_min:
+                    height_min = height
+                    idx = i + 1
+        return self(w[idx:] + w[:idx])
+
     def _iter_by_recursion(self):
         """
         Iterate over ``self`` by recursively using the position of

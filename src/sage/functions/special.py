@@ -620,8 +620,9 @@ def spherical_hankel2(n,x):
 
 class SphericalHarmonic(BuiltinFunction):
     r"""
-    Returns the spherical harmonic function `Y_n^m(\theta, \varphi)`. For
-    integers `n > -1`, `|m|\leq n`, simplification is done automatically.
+    Returns the spherical harmonic function `Y_n^m(\theta, \varphi)`.
+
+    For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
     Numeric evaluation is supported for complex `n` and `m`.
 
     Reference: Merzbacher 9.64
@@ -647,7 +648,7 @@ class SphericalHarmonic(BuiltinFunction):
             sage: n, m, theta, phi = var('n m theta phi')
             sage: spherical_harmonic(n, m, theta, phi)._sympy_()
             Ynm(n, m, theta, phi)
-            """
+        """
         BuiltinFunction.__init__(self, 'spherical_harmonic', nargs=4,
                                  conversions=dict(
                                     maple='SphericalY',
@@ -703,8 +704,8 @@ class SphericalHarmonic(BuiltinFunction):
 
             sage: n, m, theta, phi = var('n m theta phi')
             sage: spherical_harmonic(n, m, theta, phi).diff(theta)
-            m*cot(theta)*spherical_harmonic(n, m, theta, phi) +...
-            sqrt(-(m + n + 1)*(m - n))*e^(-I*phi)*spherical_harmonic(n, m + 1, theta, phi)
+            m*cot(theta)*spherical_harmonic(n, m, theta, phi)
+             + sqrt(-(m + n + 1)*(m - n))*e^(-I*phi)*spherical_harmonic(n, m + 1, theta, phi)
             sage: spherical_harmonic(n, m, theta, phi).diff(phi)
             I*m*spherical_harmonic(n, m, theta, phi)
         """
@@ -714,9 +715,9 @@ class SphericalHarmonic(BuiltinFunction):
                     spherical_harmonic(n, m + 1, theta, phi))
         if diff_param == 3:
             return I * m * spherical_harmonic(n, m, theta, phi)
-        else:
-            raise ValueError('only derivative with respect to theta or phi '
-                             'supported.')
+
+        raise ValueError('only derivative with respect to theta or phi'
+                         ' supported')
 
     def _latex_(self):
         r"""
@@ -736,7 +737,7 @@ class SphericalHarmonic(BuiltinFunction):
             Y_{3}^{2}\left(x, y\right)
         """
         return r"Y_{{{}}}^{{{}}}\left({}, {}\right)".format(
-            latex(n), latex(m), latex(theta), latex(phi))
+                 latex(n), latex(m), latex(theta), latex(phi))
 
 spherical_harmonic = SphericalHarmonic()
 

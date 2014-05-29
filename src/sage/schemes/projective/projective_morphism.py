@@ -20,6 +20,8 @@ AUTHORS:
 
 - Brian Stout, Ben Hutz (Nov 2013) - added minimal model functionality
 
+- Dillon Rose (2014-01):  Speed enhancements
+
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -62,6 +64,7 @@ from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
@@ -172,7 +175,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f(P([1,1,1]))
             (1 : 1/2 : 1)
-
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
@@ -933,18 +935,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def dehomogenize(self, n):
         r"""
-        Returns the standard dehomogenization at the nth coordinate `(\frac{self[0]}{self[n]},\frac{self[1]}{self[n]},...)`.
+        Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain
+        and the ``n[1]`` coordinate for the codomain.
 
         Note that the new function is defined over the fraction field
         of the base ring of ``self``.
 
         INPUT:
 
-        - ``n`` -- a nonnegative integer
+        - ``n`` -- a tuple of nonnegative integers.  If ``n`` is an integer, then the two values of
+            the tuple are assumed to be the same.
 
         OUTPUT:
 
-        - :class:`SchemeMorphism_polynomial_affine_space` (on nth affine patch)
+        - :class:`SchemeMorphism_polynomial_affine_space`
 
         EXAMPLES::
 
@@ -955,6 +959,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Affine Space of dimension 1 over Integer Ring
               Defn: Defined on coordinates by sending (x) to
                     (x^2/(x^2 + 1))
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-y^2,y^2])
+            sage: f.dehomogenize((0,1))
+            Scheme morphism:
+              From: Affine Space of dimension 1 over Rational Field
+              To:   Affine Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (x) to
+                    ((-x^2 + 1)/x^2)
 
         ::
 
@@ -991,21 +1007,42 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               Defn: Defined on coordinates by sending (x0, x1) to
                     (x1^2/x0, x1^2/x0)
         """
-        PS = self.domain()
-        A = PS.ambient_space()
-        if self._polys[n].substitute({A.gen(n):1}) == 0:
+        #the dehomogenizations are stored for future use.
+        try:
+            return self.__dehomogenization[n]
+        except AttributeError:
+            self.__dehomogenization = {}
+        except KeyError:
+            pass
+        #it is possible to dehomogenize the domain and codomain at different coordinates
+        if isinstance(n,(tuple,list)):
+            ind=tuple(n)
+        else:
+            ind=(n,n)
+        PS_domain = self.domain()
+        A_domain = PS_domain.ambient_space()
+        if self._polys[ind[1]].substitute({A_domain.gen(ind[0]):1}) == 0:
             raise ValueError("Can't dehomogenize at 0 coordinate.")
         else:
-            Aff = PS.affine_patch(n)
-            S = Aff.ambient_space().coordinate_ring()
-            R = A.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, n)] + [1] + [S.gen(j) for j in range(n, A.dimension_relative())], S)
+            Aff_domain = PS_domain.affine_patch(ind[0])
+            S = Aff_domain.ambient_space().coordinate_ring()
+            N = A_domain.dimension_relative()
+            R = A_domain.coordinate_ring()
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
             F = []
-            for i in range(0, A.dimension_relative() + 1):
-                if i != n:
-                    F.append(phi(self._polys[i]) / phi(self._polys[n]))
-            H = Hom(Aff, Aff)
-            return(H(F))
+            G = phi(self._polys[ind[1]])
+            for i in range(0, N + 1):
+                if i != ind[1]:
+                    F.append(phi(self._polys[i]) / G)
+            H = Hom(Aff_domain, self.codomain().affine_patch(ind[1]))
+            #since often you dehomogenize at the same coordinate in domain
+            #and codomain it should be stored appropriately.
+            if ind == (n,n):
+                self.__dehomogenization[ind]=H(F)
+                return self.__dehomogenization[ind]
+            else:
+                self.__dehomogenization[n]=H(F)
+                return self.__dehomogenization[n]
 
     def orbit(self, P, N, **kwds):
         r"""
@@ -1699,7 +1736,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         Q = P
         Q.normalize_coordinates()
         index = N
-        indexlist = []
+        indexlist = [] #keep track of which dehomogenizations are needed
         while Q[index] == 0:
             index -= 1
         indexlist.append(index)
@@ -1711,20 +1748,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] == 0:
                 index -= 1
             indexlist.append(index)
-            S = PolynomialRing(FractionField(self.codomain().base_ring()), N, 'x')
-            CR = self.coordinate_ring()
-            map_vars = list(S.gens())
-            map_vars.insert(indexlist[i], 1)
-            phi = CR.hom(map_vars, S)
-            #make map between correct affine patches
-            for j in range(N + 1):
-                if j != indexlist[i + 1]:
-                    F.append(phi(self._polys[j]) / phi(self._polys[indexlist[i + 1]]))
-                J = matrix(FractionField(S), N, N)
-            for j1 in range(0, N):
-                for j2 in range(0, N):
-                    J[j1, j2] = F[j1].derivative(S.gen(j2))
-            l = J(tuple(Q.dehomogenize(indexlist[i]))) * l #get the correct order for chain rule matrix multiplication
+            #dehomogenize and compute multiplier
+            F = self.dehomogenize((indexlist[i],indexlist[i+1]))
+            l = F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l #get the correct order for chain rule matrix multiplication
             Q = R
         return l
 
@@ -1764,8 +1790,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2-29/16*y^2,y^2])
             sage: f._multipliermod(P(5,4),3,11,2)
             [80]
-
-        .. TODO:: would be better to keep the dehomogenizations for reuse
         """
         N = self.domain().dimension_relative()
         BR = FractionField(self.codomain().base_ring())
@@ -1774,7 +1798,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         g = gcd(Q._coords) #we can't use normalize_coordinates since it can cause denominators
         Q.scale_by(1 / g)
         index = N
-        indexlist = []
+        indexlist = [] #keep track of which dehomogenizations are needed
         while Q[index] % p == 0:
             index -= 1
         indexlist.append(index)
@@ -1789,19 +1813,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             while R[index] % p == 0:
                 index -= 1
             indexlist.append(index)
-            S = PolynomialRing(BR, N, 'x')
-            CR = self.coordinate_ring()
-            map_vars = list(S.gens())
-            map_vars.insert(indexlist[i], 1)
-            phi = CR.hom(map_vars, S)
-            for j in range(N + 1):
-                if j != indexlist[i + 1]:
-                    F.append(phi(self._polys[j]) / phi(self._polys[indexlist[i + 1]]))
-            J = matrix(FractionField(S), N, N)
-            for j1 in range(0, N):
-                for j2 in range(0, N):
-                    J[j1, j2] = F[j1].derivative(S.gen(j2))
-            l = (J(tuple(Q.dehomogenize(indexlist[i]))) * l) % (p ** k)
+            #dehomogenize and compute multiplier
+            F = self.dehomogenize((indexlist[i],indexlist[i+1]))
+            l = (F.jacobian()(tuple(Q.dehomogenize(indexlist[i])))*l) % (p ** k)
             Q = R
         return(l)
 
@@ -1884,7 +1898,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             except TypeError:
                 raise TypeError("Prime bounds must be integers")
 
-        if badprimes == None:
+        if badprimes is None:
             badprimes = self.primes_of_bad_reduction()
 
         firstgood = 0
@@ -1898,7 +1912,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             if not (q in badprimes):
                 F = self.change_ring(GF(q))
                 parallel_data.append(((F,), {}))
-  
+
         parallel_iter = p_iter_fork(num_cpus, 0)
         parallel_results = list(parallel_iter(parallel_function, parallel_data))
 
@@ -2182,7 +2196,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if points_modp == []:
             return([])
         else:
-            if B == None:
+            if B is None:
                 B = e ** self.height_difference_bound()
 
             p = points_modp[0][0].codomain().base_ring().characteristic()
@@ -2416,9 +2430,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             except TypeError:
                 raise TypeError("Prime bounds must be integers")
 
-        if badprimes == None:
+        if badprimes is None:
             badprimes = self.primes_of_bad_reduction()
-        if periods == None:
+        if periods is None:
             periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes)
         PS = self.domain()
         R = PS.base_ring()
@@ -2427,18 +2441,18 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             p = next_prime(p + 1)
         B = e ** self.height_difference_bound()
 
-        f=self.change_ring(GF(p))
-        all_points=f.possible_periods(True) #return the list of points and their periods.
-        pos_points=[]
+        f = self.change_ring(GF(p))
+        all_points = f.possible_periods(True) #return the list of points and their periods.
+        pos_points = []
         for i in range(len(all_points)):
-            if all_points[i][1] in periods and  (all_points[i] in pos_points)==False:  #check period, remove duplicates
+            if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
                 pos_points.append(all_points[i])
-        periodic_points=self.lift_to_rational_periodic(pos_points,B)
+        periodic_points = self.lift_to_rational_periodic(pos_points,B)
         for p,n in periodic_points:
             for k in range(n):
                 p.normalize_coordinates()
                 periodic.add(p)
-                p=self(p)
+                p = self(p)
         return(list(periodic))
 
     def rational_preimages(self, Q):
@@ -2616,12 +2630,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if self.domain().base_ring() != QQ:
             raise NotImplementedError("Must be QQ")
 
-        PS=self.domain()
-        RPS=PS.base_ring()
-        preperiodic=set()
-        while points!=[]:
-            P=points.pop()
-            preimages=self.rational_preimages(P)
+        PS = self.domain()
+        RPS = PS.base_ring()
+        preperiodic = set()
+        while points != []:
+            P = points.pop()
+            preimages = self.rational_preimages(P)
             for i in range(len(preimages)):
                 if not preimages[i] in preperiodic:
                     points.append(preimages[i])
@@ -2699,9 +2713,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         badprimes = kwds.pop("bad_primes", None)
         periods = kwds.pop("periods", None)
         primebound = kwds.pop("prime_bound", [1, 20])
-        if badprimes == None:
+        if badprimes is None:
             badprimes = self.primes_of_bad_reduction()
-        if periods == None:
+        if periods is None:
             periods = self.possible_periods(prime_bound=primebound, bad_primes=badprimes) #determine the set of possible periods
         if periods == []:
             return([]) #no rational preperiodic points
@@ -2929,8 +2943,8 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: P.<x,y> = ProjectiveSpace(GF(13),1)
             sage: H = End(P)
             sage: f = H([x^2-y^2,y^2])
-            sage: f.possible_periods(True)
-            [[(1 : 0), 1], [(0 : 1), 2], [(3 : 1), 3], [(3 : 1), 36]]
+            sage: sorted(f.possible_periods(True))
+            [[(0 : 1), 2], [(1 : 0), 1], [(3 : 1), 3], [(3 : 1), 36]]
 
         ::
 
@@ -2942,86 +2956,10 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         .. TODO::
 
-            - do not reutrn duplicate points
+            - do not return duplicate points
 
-            - check == False to speed up?
-
-            - move to Cython
+            - improve hash to reduce memory of pointtable
 
         """
-        if not is_PrimeFiniteField(self.domain().base_ring()):
-            raise TypeError("Must be prime field")
-        if not self.is_endomorphism():
-            raise NotImplementedError("Must be an endomorphism of projective space")
-
-        PS = self.domain()
-        p = PS.base_ring().order()
-        N = PS.dimension_relative()
-        pointsdict = PS.rational_points_dictionary() #assume p is prime
-        pointslist = list(pointsdict)
-        hashlist = pointsdict.values()
-        pointtable = [[0, 0] for i in range(len(pointsdict))]
-        index = 1
-        periods = set()
-        points_periods = []
-        for j in range(len(pointsdict)):
-            hashP = hashlist[j]
-            if pointtable[hashP][1] == 0:
-                startindex = index
-                P = pointslist[j]
-                while pointtable[hashP][1] == 0:
-                    pointtable[hashP][1] = index
-                    Q = self(P)
-                    Q.normalize_coordinates()
-                    hashQ = pointsdict[Q]
-                    pointtable[hashP][0] = hashQ
-                    P = Q
-                    hashP = hashQ
-                    index += 1
-                if pointtable[hashP][1] >= startindex:
-                    period = index - pointtable[hashP][1]
-                    periods.add(period)
-                    points_periods.append([P, period])
-                    l = P.multiplier(self, period, False)
-                    lorders = set()
-                    for poly, _ in l.charpoly().factor():
-                        if poly.degree() == 1:
-                            eig = -poly.constant_coefficient()
-                            if not eig:
-                                continue # exclude 0
-                        else:
-                            eig = GF(p ** poly.degree(), 't', modulus=poly).gen()
-                        if eig:
-                            lorders.add(eig.multiplicative_order())
-                    S = subsets(lorders)
-                    S.next()   # get rid of the empty set
-                    rvalues = set()
-                    for s in S:
-                        rvalues.add(lcm(s))
-                    rvalues = list(rvalues)
-                    if N == 1:
-                        for k in range(len(rvalues)):
-                            r = rvalues[k]
-                            periods.add(period * r)
-                            points_periods.append([P, period * r])
-                            if p == 2 or p == 3: #need e=1 for N=1, QQ
-                                periods.add(period * r * p)
-                                points_periods.append([P, period * r * p])
-                    else:
-                        for k in range(len(rvalues)):
-                            r = rvalues[k]
-                            periods.add(period * r)
-                            periods.add(period * r * p)
-                            points_periods.append([P, period * r])
-                            points_periods.append([P, period * r * p])
-                            if p == 2:  #need e=3 for N>1, QQ
-                                periods.add(period * r * 4)
-                                points_periods.append([P, period * r * 4])
-                                periods.add(period * r * 8)
-                                points_periods.append([P, period * r * 8])
-
-        if return_points == False:
-            return(sorted(periods))
-        else:
-            return(points_periods)
+        return _fast_possible_periods(self,return_points)
 

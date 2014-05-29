@@ -811,6 +811,15 @@ class MaximaLib(MaximaAbstract):
             sage: n = var('n')
             sage: sum(1/((2*n-1)^2*(2*n+1)^2*(2*n+3)^2), n, 0, oo)
             3/256*pi^2
+
+        Maxima correctly detects division by zero in a symbolic sum
+        (see :trac:`11894`)::
+
+            sage: sum(1/(m^4 + 2*m^3 + 3*m^2 + 2*m)^2, m, 0, infinity)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));

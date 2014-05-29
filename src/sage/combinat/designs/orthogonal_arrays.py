@@ -944,12 +944,24 @@ def OA_with_holes(k,n,x,existence=False):
         from sage.graphs.graph import Graph
 
         g = OrthogonalArrayGraph(k,n)
-        independent_set = g.subgraph_search(Graph(x),induced = True)
 
-        if independent_set:
+        # Computing an independent set of order x with a Linear Program
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        p = MixedIntegerLinearProgram()
+        b = p.new_variable(binary=True)
+        p.add_constraint(p.sum(b[v] for v in g) == x)
+        for u,v in g.edges(labels=False):
+            p.add_constraint(b[u]+b[v] <=1)
+
+        try:
+            p.solve()
             if existence:
                 return True
+            b = p.get_values(b)
+            independent_set = [v for v,i in b.items() if i]
             OA = g.vertices()
+        except MIPSolverException:
+            pass
 
     if not OA:
         if existence:

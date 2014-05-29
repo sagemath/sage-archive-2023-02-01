@@ -1345,14 +1345,14 @@ class GenericGraph(GenericGraph_pyx):
             Full MatrixSpace of 256 by 256 dense matrices over Integer Ring
             sage: graphs.CubeGraph(9).adjacency_matrix().parent()
             Full MatrixSpace of 512 by 512 sparse matrices over Integer Ring
+            sage: Graph([(i,i+1) for i in range(500)]+[(0,1),], multiedges=True).adjacency_matrix().parent()
+            Full MatrixSpace of 501 by 501 dense matrices over Integer Ring
         """
         n = self.order()
         if sparse is None:
-            if n <= 256 or self.density() > 0.05:
+            sparse=True
+            if self.has_multiple_edges() or n <= 256 or self.density() > 0.05:
                 sparse=False
-            else:
-                sparse=True
-
         verts = self.vertices(boundary_first=boundary_first)
         new_indices = dict((v,i) for i,v in enumerate(verts))
         D = {}

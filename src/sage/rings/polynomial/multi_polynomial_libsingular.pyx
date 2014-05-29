@@ -3529,7 +3529,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise TypeError, "polynomial must involve at most one variable"
 
         #construct ring if none
-        if R == None:
+        if R is None:
             if self.is_constant():
                 R = self.base_ring()['x']
             else:
@@ -4861,7 +4861,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         p = pDiff(self._poly, var_i)
         return new_MP(self._parent,p)
 
-
     def integral(self, MPolynomial_libsingular var):
         """
         Integrates this polynomial with respect to the provided
@@ -4882,6 +4881,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.integral(y)
             x^3*y^3 + 5/3*y^3 + 3*x*y + 2*y
 
+        Check that :trac:`15896` is solved::
+
+            sage: s = x+y
+            sage: s.integral(x)+x
+            1/2*x^2 + x*y + x
+            sage: s.integral(x)*s
+            1/2*x^3 + 3/2*x^2*y + x*y^2
+
         TESTS::
 
             sage: z, w = polygen(QQ, 'z, w')
@@ -4889,30 +4896,51 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             TypeError: the variable is not in the same ring as self
-        """
-        if var is None:
-            raise ValueError("please specify a variable")
 
-        ring = var.parent()
-        if ring is not self._parent:
+            sage: f.integral(y**2)
+            Traceback (most recent call last):
+            ...
+            TypeError: not a variable in the same ring as self
+
+            sage: x,y = polygen(ZZ,'x,y')
+            sage: y.integral(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: the ring must contain the rational numbers
+        """
+        cdef int index
+
+        ambient_ring = var.parent()
+        if ambient_ring is not self._parent:
             raise TypeError("the variable is not in the same ring as self")
 
-        if not ring.has_coerce_map_from(RationalField()):
+        if not ambient_ring.has_coerce_map_from(RationalField()):
             raise TypeError("the ring must contain the rational numbers")
 
-        gens = ring.gens()
-
+        gens = ambient_ring.gens()
         try:
             index = gens.index(var)
         except ValueError:
             raise TypeError("not a variable in the same ring as self")
 
-        d = {}
-        v = ETuple({index:1}, len(gens))
-        for (exp, coeff) in self.dict().iteritems():
-            d[exp.eadd(v)] = coeff / (1+exp[index])
-        return MPolynomial_polydict(self.parent(), d)
+        cdef poly *_p, *mon
+        cdef ring *_ring = self._parent_ring
+        if _ring != currRing:
+            rChangeCurrRing(_ring)
 
+        v = ETuple({index: 1}, len(gens))
+
+        _p = p_ISet(0, _ring)
+        for (exp, coeff) in self.dict().iteritems():
+            nexp = exp.eadd(v)  # new exponent
+            mon = p_Init(_ring)
+            p_SetCoeff(mon, sa2si(coeff / (1 + exp[index]), _ring), _ring)
+            for pos in nexp.nonzero_positions():
+                overflow_check(nexp[pos], _ring)
+                p_SetExp(mon, pos + 1, nexp[pos], _ring)
+            p_Setm(mon, _ring)
+            _p = p_Add_q(_p, mon, _ring)
+        return new_MP(self._parent, _p)
 
     def resultant(self, MPolynomial_libsingular other, variable=None):
         """

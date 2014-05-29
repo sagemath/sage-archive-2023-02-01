@@ -232,12 +232,18 @@ def SagePromptTransformer():
         sage: spt.push("....: 2+2")
         '2+2'
 
-    To match IPython behavior, this only strips one prompt::
+    This should strip multiple prompts: see :trac:`16297`::
 
-        sage: spt.push("sage: sage: 2+2")
-        'sage: 2+2'
-        sage: spt.push("sage: ....: 2+2")
-        '....: 2+2'
+        sage: spt.push("sage:   sage: 2+2")
+        '2+2'
+        sage: spt.push("   sage: ....: 2+2")
+        '2+2'
+
+    The prompt contains a trailing space. Extra spaces between the
+    last prompt and the remainder should not be stripped::
+
+        sage: spt.push("   sage: ....:    2+2")
+        '   2+2'
 
     We test that the input transformer is enabled on the Sage command
     line::
@@ -253,7 +259,7 @@ def SagePromptTransformer():
         sage: shell.run_cell('    sage: 1+1')
         2
     """
-    _sage_prompt_re = re.compile(r'^(:?sage: |\.\.\.\.: )')
+    _sage_prompt_re = re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+')
     return _strip_prompts(_sage_prompt_re)
 
 ###################

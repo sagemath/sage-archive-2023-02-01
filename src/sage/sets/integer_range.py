@@ -233,11 +233,11 @@ class IntegerRange(UniqueRepresentation, Parent):
 
         # If begin and end are infinite, middle_point and step will defined the set.
         if begin == -Infinity and end == Infinity:
-            if middle_point == None:
+            if middle_point is None:
                 raise ValueError("Can't iterate over this set, please provide middle_point")
 
         # If we have a middle point, we go on the special enumeration way...
-        if middle_point != None:
+        if middle_point is not None:
             return IntegerRangeFromMiddle(begin, end, step, middle_point)
 
         if (begin == -Infinity) or (begin == Infinity):
@@ -783,7 +783,7 @@ class IntegerRangeFromMiddle(IntegerRange):
             (0, 10, -10, 20, 30, 40, 50, 60)
         """
         n = self._middle_point
-        while n != None:
+        while n is not None:
             yield n
             n = self.next(n)
 

@@ -1370,7 +1370,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: A = random_matrix(K, 1000, 1000)
             sage: A.set_immutable()
             sage: {A:1} #indirect doctest
-            {1000 x 1000 dense matrix over Finite Field in a of size 2^4 (type 'print A.str()' to see all of the entries): 1}
+            {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
 
         """
         return self._hash()

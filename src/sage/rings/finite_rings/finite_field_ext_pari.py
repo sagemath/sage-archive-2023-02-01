@@ -520,7 +520,6 @@ class FiniteField_ext_pari(FiniteField_generic):
                 # canonically isomorphic finite fields
                 return element_ext_pari.FiniteField_ext_pariElement(self, x)
             else:
-                # This is where we *would* do coercion from one finite field to another...
                 raise TypeError("no coercion defined")
 
         elif sage.interfaces.gap.is_GapElement(x):

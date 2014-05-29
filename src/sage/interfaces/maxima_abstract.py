@@ -270,7 +270,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: sorted(maxima.completions('gc', verbose=False))
-            ['gcd', 'gcdex', 'gcfactor', 'gcprint', 'gctime']
+            ['gcd', 'gcdex', 'gcfactor', 'gctime']
         """
         if verbose:
             print s,
@@ -420,7 +420,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.29.1'
+            '5.33.0'
         """
         return maxima_version()
 
@@ -601,11 +601,11 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: f = maxima.function('x', 'sin(x)')
-            sage: f(3.2)
-            -.058374143427580...
+            sage: f(3.2)  # abs tol 2e-16
+            -0.058374143427579909
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
-            sage: f(2,3.5)
-            sin(2)-.9364566872907963
+            sage: f(2, 3.5)  # abs tol 2e-16
+            sin(2)-0.9364566872907963
             sage: f
             sin(x)+cos(y)
 
@@ -1513,7 +1513,7 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (.5284822353142306, 4.16331413788384...e-11, 231, 0)
+            (0.5284822353142306, 4.16331413788384...e-11, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::
@@ -2352,7 +2352,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.29.1'
+        '5.33.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 

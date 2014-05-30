@@ -283,7 +283,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             ...
             TypeError: len() of unsized object
         """
-        raise TypeError, 'len() of unsized object'
+        raise TypeError('len() of unsized object')
 
     def construction(self):
         r"""
@@ -363,7 +363,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         elif S is int:
             return rational.int_to_Q()
         elif ZZ.has_coerce_map_from(S):
-            return rational.Z_to_Q() * ZZ.coerce_map_from(S)
+            return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
@@ -576,7 +576,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             ValueError: no embeddings of the rational field into K.
         """
         if K.characteristic() != 0:
-            raise ValueError, "no embeddings of the rational field into K."
+            raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
 
     def complex_embedding(self, prec=53):
@@ -625,7 +625,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def degree(self):
         r"""
@@ -867,7 +867,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         if ZZ is None:
             import integer_ring
             ZZ = integer_ring.ZZ
-        if num_bound == None:
+        if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
             den = ZZ.random_element(*args, **kwds)
             while den == 0: den = ZZ.random_element(*args, **kwds)
@@ -911,7 +911,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         elif n == 2:
             return rational.Rational(-1)
         else:
-            raise ValueError, "no n-th root of unity in rational field"
+            raise ValueError("no n-th root of unity in rational field")
 
     #################################
     ## Coercions to interfaces

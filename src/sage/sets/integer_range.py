@@ -233,11 +233,11 @@ class IntegerRange(UniqueRepresentation, Parent):
 
         # If begin and end are infinite, middle_point and step will defined the set.
         if begin == -Infinity and end == Infinity:
-            if middle_point == None:
+            if middle_point is None:
                 raise ValueError("Can't iterate over this set, please provide middle_point")
 
         # If we have a middle point, we go on the special enumeration way...
-        if middle_point != None:
+        if middle_point is not None:
             return IntegerRangeFromMiddle(begin, end, step, middle_point)
 
         if (begin == -Infinity) or (begin == Infinity):
@@ -272,7 +272,7 @@ class IntegerRange(UniqueRepresentation, Parent):
                 return Integer(el)
             return el
         else:
-            raise ValueError, "%s not in %s"%(el, self)
+            raise ValueError("%s not in %s"%(el, self))
 
     element_class = Integer
 
@@ -417,7 +417,7 @@ class IntegerRangeFinite(IntegerRange):
             IndexError: 87 not in self
         """
         if x not in self:
-            raise IndexError, "%s not in self"%x
+            raise IndexError("%s not in self"%x)
         return Integer((x - self._begin)/self._step)
 
     def __getitem__(self, i):
@@ -589,7 +589,7 @@ class IntegerRangeInfinite(IntegerRange):
             IndexError: 22 not in self
         """
         if x not in self:
-            raise IndexError, "%s not in self"%x
+            raise IndexError("%s not in self"%x)
         return Integer((x - self._begin)/self._step)
 
     def __getitem__(self, i):
@@ -603,7 +603,7 @@ class IntegerRangeInfinite(IntegerRange):
             -5
         """
         if isinstance(i,slice):
-            raise NotImplementedError, "not yet"
+            raise NotImplementedError("not yet")
 
         if isinstance(i, int):
             i = Integer(i)
@@ -611,7 +611,7 @@ class IntegerRangeInfinite(IntegerRange):
             raise ValueError
 
         if i < 0:
-            raise IndexError, "out of range"
+            raise IndexError("out of range")
         else:
             return self._begin + i * self._step
 
@@ -783,7 +783,7 @@ class IntegerRangeFromMiddle(IntegerRange):
             (0, 10, -10, 20, 30, 40, 50, 60)
         """
         n = self._middle_point
-        while n != None:
+        while n is not None:
             yield n
             n = self.next(n)
 

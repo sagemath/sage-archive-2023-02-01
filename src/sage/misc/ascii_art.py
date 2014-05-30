@@ -38,7 +38,7 @@ EXAMPLES::
 This method :meth:`ascii_art` could be automatically use by the display hook
 manager activated by the magic function: ``%display ascii_art``::
 
-    sage: from sage.misc.interpreter import get_test_shell
+    sage: from sage.repl.interpreter import get_test_shell
     sage: shell = get_test_shell()
     sage: shell.run_cell('%display ascii_art')
     sage: shell.run_cell("i = var('i')")
@@ -199,7 +199,7 @@ class AsciiArt(SageObject):
         self._is_uniq = True
         self._matrix = lines
         self._breakpoints = breakpoints
-        self._baseline = baseline if baseline != None else 0
+        self._baseline = baseline if baseline is not None else 0
         self._is_atomic = atomic
 
         self._h = len(lines)
@@ -696,7 +696,7 @@ class AsciiArt(SageObject):
         new_h = AsciiArt._compute_new_h(self, Nelt)
         new_baseline = AsciiArt._compute_new_baseline(self, Nelt)
 
-        if self._baseline != None and Nelt._baseline != None:
+        if self._baseline is not None and Nelt._baseline is not None:
             # left traitement
             for line in self._matrix:
                 new_matrix.append(line + " "** Integer(self._l - len(line)))
@@ -848,7 +848,7 @@ def _ascii_art_iter(iter, func=lambda elem, _: ascii_art(elem)):
     for elem in iter:
         if bool:
             #print repr_elems.get_baseline()
-            if repr_elems._baseline != None:
+            if repr_elems._baseline is not None:
                 repr_elems += AsciiArt(
                     ["" ** Integer(repr_elems._h - 1 - repr_elems._baseline) ] +
                     [", "],

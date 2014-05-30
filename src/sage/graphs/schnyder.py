@@ -167,8 +167,7 @@ def _normal_label(g, comb_emb, external_face):
 
     labels = {}
 
-    external_vertices = [external_face[0][0], external_face[1][0], external_face[2][0]]
-    external_vertices.sort()
+    external_vertices = sorted([external_face[0][0], external_face[1][0], external_face[2][0]])
     v1,v2,v3 = external_vertices
     v1_neighbors = Set(g.neighbors(v1))
 

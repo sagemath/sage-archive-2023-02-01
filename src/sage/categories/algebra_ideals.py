@@ -10,10 +10,8 @@ AlgebraIdeals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from category_types import Category_ideal
 from algebra_modules import AlgebraModules
-from commutative_algebras import CommutativeAlgebras
 
 class AlgebraIdeals(Category_ideal):
     """
@@ -21,22 +19,25 @@ class AlgebraIdeals(Category_ideal):
 
     EXAMPLES::
 
-        sage: AlgebraIdeals(FreeAlgebra(QQ,2,'a,b'))
-        Category of algebra ideals in Free Algebra on 2 generators (a, b) over Rational Field
+        sage: AlgebraIdeals(QQ['a'])
+        Category of algebra ideals in Univariate Polynomial Ring in a over Rational Field
 
-    TODO:
-     - If useful, implement AlgebraLeftIdeals and AlgebraRightIdeals
-       of which AlgebraIdeals would be a subcategory
+    .. TODO::
 
-     - Make AlgebraIdeals(R), return CommutativeAlgebraIdeals(R) when R is
-       commutative
+        - Add support for non commutative rings (this is currently not
+          supported by the subcategory :class:`AlgebraModules`).
+        - Make ``AlgebraIdeals(R)``, return ``CommutativeAlgebraIdeals(R)``
+          when ``R`` is commutative.
+        - If useful, implement ``AlgebraLeftIdeals`` and
+          ``AlgebraRightIdeals`` of which ``AlgebraIdeals``
+          would be a subcategory.
     """
     def __init__(self, A):
         """
         EXAMPLES::
 
-            sage: AlgebraIdeals(FreeAlgebra(QQ,2,'a,b'))
-            Category of algebra ideals in Free Algebra on 2 generators (a, b) over Rational Field
+            sage: AlgebraIdeals(QQ['a'])
+            Category of algebra ideals in Univariate Polynomial Ring in a over Rational Field
             sage: AlgebraIdeals(QQ)
             Traceback (most recent call last):
             ...
@@ -44,11 +45,11 @@ class AlgebraIdeals(Category_ideal):
 
         TESTS::
 
-            sage: TestSuite(AlgebraIdeals(FreeAlgebra(QQ,2,'a,b'))).run()
+            sage: TestSuite(AlgebraIdeals(QQ['a'])).run()
         """
         from sage.algebras.algebra import is_Algebra
         if not is_Algebra(A): # A not in Algebras() ?
-            raise TypeError, "A (=%s) must be an algebra"%A
+            raise TypeError("A (=%s) must be an algebra"%A)
         Category_ideal.__init__(self, A)
 
     def algebra(self):

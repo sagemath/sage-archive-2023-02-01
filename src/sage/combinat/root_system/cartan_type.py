@@ -7,7 +7,7 @@ groups, Lie algebras, Lie groups, crystals, etc. up to an
 isomorphism. *Cartan types* are a standard set of names for those
 Dynkin diagrams (see :wikipedia:`Dynkin_diagram`).
 
-Let us consider for example, the Cartan type `A_4`::
+Let us consider, for example, the Cartan type `A_4`::
 
     sage: T = CartanType(['A', 4])
     sage: T
@@ -46,7 +46,7 @@ root system::
     sage: RootSystem(T)
     Root system of type ['A', 4]
 
-The associated Weyl group is the symmetric group `S_{n+1}`::
+The associated Weyl group of `A_n` is the symmetric group `S_{n+1}`::
 
     sage: W = WeylGroup(T)
     sage: W
@@ -60,13 +60,13 @@ while the Lie algebra is `sl_{n+1}`, and the Lie group `SL_{n+1}`
 One may also construct crystals associated to various Dynkin diagrams.
 For example::
 
-    sage: C = CrystalOfLetters(T)
+    sage: C = crystals.Letters(T)
     sage: C
     The crystal of letters for type ['A', 4]
     sage: C.list()
     [1, 2, 3, 4, 5]
 
-    sage: C = CrystalOfTableaux(T, shape=[2])
+    sage: C = crystals.Tableaux(T, shape=[2])
     sage: C
     The crystal of tableaux of type ['A', 4] and shape(s) [[2]]
     sage: C.cardinality()
@@ -170,7 +170,7 @@ Contributions implementing other conventions are very welcome.
 Another option is to build from scratch a new Dynkin diagram.  The
 architecture has been designed to make it fairly easy to add other
 labelling conventions. In particular, we strived at choosing type free
-algorithms whenever possible, so in principle most feature should
+algorithms whenever possible, so in principle most features should
 remain available even with custom Cartan types. This has not been used
 much yet, so some rough corners certainly remain.
 
@@ -534,6 +534,20 @@ class CartanTypeFactory(SageObject):
             sage: fct = CartanType(['C', 4, 1]).as_folding()
             sage: CartanType(fct)
             ['C', 4, 1]
+
+        Check that :trac:`13774` is fixed::
+
+            sage: CT = CartanType([['A',2]])
+            sage: CT.is_irreducible()
+            True
+            sage: CT.cartan_matrix()
+            [ 2 -1]
+            [-1  2]
+            sage: CT = CartanType(['A2'])   
+            sage: CT.is_irreducible()
+            True
+            sage: CartanType('A2')
+            ['A', 2]
         """
         if len(args) == 1:
             t = args[0]
@@ -542,9 +556,12 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, CartanType_abstract):
             return t
         if hasattr(t, "cartan_type"):
-            return  t.cartan_type()
+            return t.cartan_type()
 
-        if type(t)==str:
+        if len(t) == 1: # Fix for trac #13774
+            t = t[0]
+
+        if isinstance(t, str):
             if "x" in t:
                 import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
@@ -557,7 +574,7 @@ class CartanTypeFactory(SageObject):
 
         t = list(t)
 
-        if type(t[0]) == str and t[1] in ZZ and t[1] >= 0:
+        if isinstance(t[0], str) and t[1] in ZZ and t[1] >= 0:
             letter, n = t[0], t[1]
             if len(t) == 2:
                 if letter == "A":
@@ -605,7 +622,7 @@ class CartanTypeFactory(SageObject):
                         import type_I
                         return type_I.CartanType(n)
             if len(t) == 3:
-                if t[2] == 1: # Untwisted affind
+                if t[2] == 1: # Untwisted affine
                     if letter == "A":
                         if n >= 1:
                             import type_A_affine
@@ -2073,6 +2090,31 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         tester = self._tester(**options)
         tester.assertTrue( self.classical().dual() == self.dual().classical() )
         tester.assertTrue( self.special_node() == self.dual().special_node() )
+
+    def other_affinization(self):
+        """
+        Return the other affinization of the same classical type.
+
+        EXAMPLES::
+
+            sage: CartanType(["A", 3, 1]).other_affinization()
+            ['A', 3, 1]
+            sage: CartanType(["B", 3, 1]).other_affinization()
+            ['C', 3, 1]^*
+            sage: CartanType(["C", 3, 1]).dual().other_affinization()
+            ['B', 3, 1]
+
+        Is this what we want?::
+
+            sage: CartanType(["BC", 3, 2]).dual().other_affinization()
+            ['B', 3, 1]
+        """
+        if self.is_untwisted_affine():
+            result = self.classical().dual().affine().dual()
+        else:
+            result = self.dual().classical().dual().affine()
+        assert result.classical() is self.classical()
+        return result
 
 ##############################################################################
 # Concrete base classes

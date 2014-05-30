@@ -117,6 +117,10 @@ AUTHORS:
 
 - Paul Scurek (2013-08-03): added polish_notation, full_tree,
   updated docstring formatting
+
+- Paul Scurek (2013-08-08): added
+  :meth:`~sage.logic.boolformula.BooleanFormula.implies()`
+
 """
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein.gmail.com>
@@ -144,7 +148,7 @@ latex_operators = [('&', '\\wedge '),
                    ('->', '\\rightarrow ')]
 
 
-class BooleanFormula:
+class BooleanFormula(object):
     __expression = ""
     __tree = []
     __vars_order = []
@@ -875,6 +879,52 @@ class BooleanFormula:
         """
         return not self.is_satisfiable()
 
+    def implies(self, other):
+        r"""
+        Determine if calling formula implies other formula.
+
+        INPUT:
+
+        - ``self`` -- calling object
+
+        - ``other`` -- instance of :class:`BooleanFormula`
+
+        OUTPUT:
+
+        A boolean value to be determined as follows:
+
+        - ``True`` - if ``self`` implies ``other``
+
+        - ``False`` - if ``self does not imply ``other``
+
+        EXAMPLES:
+
+        This example illustrates determining if one formula implies another::
+
+            sage: import sage.logic.propcalc as propcalc
+            sage: f = propcalc.formula("a<->b")
+            sage: g = propcalc.formula("b->a")
+            sage: f.implies(g)
+            True
+
+        ::
+
+            sage: h = propcalc.formula("a->(a|~b)")
+            sage: i = propcalc.formula("a")
+            sage: h.implies(i)
+            False
+
+        AUTHORS:
+
+        - Paul Scurek (2013-08-08)
+        """
+        # input validation
+        if not isinstance(other, BooleanFormula):
+            raise TypeError("implies() takes an instance of the BooleanFormula() class as input")
+
+        conditional = self.ifthen(other)
+        return (conditional).is_tautology()
+
     def equivalent(self, other):
         r"""
         Determine if two formulas are semantically equivalent.
@@ -1187,11 +1237,11 @@ class BooleanFormula:
             apply the function to every branch of a parse tree, pass the
             function as an argument in :func:`apply_func` in logicparser.py.
         """
-        if type(tree[1]) is not TupleType and not (tree[1] is None):
+        if not isinstance(tree[1], TupleType) and not (tree[1] is None):
             lval = ('prop', tree[1])
         else:
             lval = tree[1]
-        if type(tree[2]) is not TupleType and not(tree[2] is None):
+        if not isinstance(tree[2], TupleType) and not(tree[2] is None):
             rval = ('prop', tree[2])
         else:
             rval = tree[2]
@@ -1398,7 +1448,7 @@ class BooleanFormula:
             To apply the function to an entire parse tree, pass the function
             as an argument to :func:`apply_func` in logicparser.py.
         """
-        if tree[0] == '~' and type(tree[1]) is ListType:
+        if tree[0] == '~' and isinstance(tree[1], ListType):
             op = tree[1][0]
             if op != '~':
                 if op == '&':
@@ -1446,11 +1496,11 @@ class BooleanFormula:
             To apply the function to an entire parse tree, pass the function
             as an argument to :func:`apply_func` in logicparser.py.
         """
-        if tree[0] == '|' and type(tree[2]) is ListType and tree[2][0] == '&':
+        if tree[0] == '|' and isinstance(tree[2], ListType) and tree[2][0] == '&':
             new_tree = ['&', ['|', tree[1], tree[2][1]],
                         ['|', tree[1], tree[2][2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)
-        if tree[0] == '|' and type(tree[1]) is ListType and tree[1][0] == '&':
+        if tree[0] == '|' and isinstance(tree[1], ListType) and tree[1][0] == '&':
             new_tree = ['&', ['|', tree[1][1], tree[2]],
                         ['|', tree[1][2], tree[2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)

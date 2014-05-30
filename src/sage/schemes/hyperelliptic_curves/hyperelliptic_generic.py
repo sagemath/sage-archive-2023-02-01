@@ -58,7 +58,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             F = y**2*z**(deg-2) + F0*y*z**(deg-dh-1) - F1*z**(deg-df)
         plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
         R = PP.base_ring()
-        if names == None:
+        if names is None:
             names = ["x","y"]
         elif isinstance(names,str):
             names = names.split(",")
@@ -217,7 +217,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if all:
             return []
         else:
-            raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
+            raise ValueError("No point with x-coordinate %s on %s"%(x, self))
 
 
     def genus(self):
@@ -284,14 +284,14 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         f, h = self._hyperelliptic_polynomials
         if h:
-            raise NotImplementedError, "odd_degree_model only implemented for curves in Weierstrass form"
+            raise NotImplementedError("odd_degree_model only implemented for curves in Weierstrass form")
         if f.degree() % 2:
             # already odd, so just yield self
             return self
 
         rts = f.roots(multiplicities=False)
         if not rts:
-            raise ValueError, "No odd degree model exists over field of definition"
+            raise ValueError("No odd degree model exists over field of definition")
         rt = rts[0]
         x = f.parent().gen()
         fnew =  f((x*rt + 1)/x).numerator() # move rt to "infinity"
@@ -342,7 +342,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def monsky_washnitzer_gens(self):
-        import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self)
         return S.gens()
 
@@ -359,7 +359,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             1 dx/2y
 
         """
-        import sage.schemes.elliptic_curves.monsky_washnitzer as m_w
+        import sage.schemes.hyperelliptic_curves.monsky_washnitzer as m_w
         S = m_w.SpecialHyperellipticQuotientRing(self)
         MW = m_w.MonskyWashnitzerDifferentialRing(S)
         return MW.invariant_differential()
@@ -403,7 +403,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         d = P[1]
         if d == 0:
-            raise TypeError, "P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P
+            raise TypeError("P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P)
         pol = self.hyperelliptic_polynomials()[0]
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
@@ -457,7 +457,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             - Francis Clarke (2012-08-26)
         """
         if P[1] != 0:
-            raise TypeError, "P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P
+            raise TypeError("P = %s is not a finite Weierstrass point. Use local_coordinates_at_nonweierstrass instead!"%P)
         L = PowerSeriesRing(self.base_ring(), name)
         t = L.gen()
         pol = self.hyperelliptic_polynomials()[0]

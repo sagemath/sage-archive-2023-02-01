@@ -34,6 +34,7 @@ all-sage: \
      $(INST)/$(CONWAY) \
      $(INST)/$(CVXOPT) \
      $(INST)/$(CYTHON) \
+     $(INST)/$(DATEUTIL) \
      $(INST)/$(DOCUTILS) \
      $(INST)/$(ECL) \
      $(INST)/$(ECLIB) \
@@ -89,6 +90,7 @@ all-sage: \
      $(INST)/$(PYCRYPTO) \
      $(INST)/$(PYGMENTS) \
      $(INST)/$(PYNAC) \
+     $(INST)/$(PYPARSING) \
      $(INST)/$(PYTHON) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
@@ -101,6 +103,7 @@ all-sage: \
      $(INST)/$(SCONS) \
      $(INST)/$(SETUPTOOLS) \
      $(INST)/$(SINGULAR) \
+     $(INST)/$(SIX) \
      $(INST)/$(SPHINX) \
      $(INST)/$(SQLALCHEMY) \
      $(INST)/$(SQLITE) \
@@ -108,6 +111,7 @@ all-sage: \
      $(INST)/$(SYMPOW) \
      $(INST)/$(SYMPY) \
      $(INST)/$(TACHYON) \
+     $(INST)/$(TORNADO) \
      $(INST)/$(NCURSES) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
@@ -154,12 +158,12 @@ $(INST)/prereq: ../configure
 	        echo "If you would like to try to build Sage anyway (to help porting),"; \
 	        echo "export the variable 'SAGE_PORT' to something non-empty."; \
 	        exit 1; \
-    	else \
+	    else \
 	        echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
-    	fi; )
+	    fi; )
 	touch $@
 
-$(INST)/$(BZIP2): $(INST)/prereq
+$(INST)/$(BZIP2): $(INST)/prereq $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"
 
 $(INST)/$(PATCH): $(INST)/$(BZIP2)
@@ -172,7 +176,7 @@ $(INST)/$(PATCH): $(INST)/$(BZIP2)
 $(INST)/$(ATLAS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ATLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(ATLAS).log"
 
-$(INST)/$(BOEHM_GC):
+$(INST)/$(BOEHM_GC): $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(BOEHM_GC) 2>&1" "tee -a $(SAGE_LOGS)/$(BOEHM_GC).log"
 
 $(INST)/$(BOOST_CROPPED):
@@ -181,7 +185,7 @@ $(INST)/$(BOOST_CROPPED):
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
 
-$(INST)/$(NCURSES):
+$(INST)/$(NCURSES): $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(NCURSES) 2>&1" "tee -a $(SAGE_LOGS)/$(NCURSES).log"
 
 $(INST)/$(READLINE): $(INST)/$(NCURSES)
@@ -207,7 +211,7 @@ $(INST)/$(GRAPHS):
 $(INST)/$(GLPK): $(INST)/$(MPIR) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GLPK) 2>&1" "tee -a $(SAGE_LOGS)/$(GLPK).log"
 
-$(INST)/$(PYTHON): $(INST)/$(ZLIB) $(INST)/$(BZIP2) \
+$(INST)/$(PYTHON): $(INST)/$(ZLIB) $(INST)/$(BZIP2) $(INST)/$(PKGCONF) \
 		   $(INST)/$(READLINE) $(INST)/$(SQLITE) $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(PYTHON) 2>&1" "tee -a $(SAGE_LOGS)/$(PYTHON).log"
 
@@ -357,9 +361,23 @@ $(INST)/$(FREETYPE): $(INST)/$(LIBPNG)
 $(INST)/$(LIBPNG): $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(LIBPNG) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBPNG).log"
 
+$(INST)/$(SIX): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(SIX) 2>&1" "tee -a $(SAGE_LOGS)/$(SIX).log"
+
+$(INST)/$(DATEUTIL): $(INST)/$(PYTHON) $(INST)/$(SIX) $(INST)/$(SETUPTOOLS)
+	+$(PIPE) "$(SAGE_SPKG) $(DATEUTIL) 2>&1" "tee -a $(SAGE_LOGS)/$(DATEUTIL).log"
+
+$(INST)/$(PYPARSING): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(PYPARSING) 2>&1" "tee -a $(SAGE_LOGS)/$(PYPARSING).log"
+
+$(INST)/$(TORNADO): $(INST)/$(PYTHON)
+	+$(PIPE) "$(SAGE_SPKG) $(TORNADO) 2>&1" "tee -a $(SAGE_LOGS)/$(TORNADO).log"
+
 $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 		       $(INST)/$(FREETYPE) $(INST)/$(LIBPNG) \
-		       $(INST)/$(GDMODULE)
+		       $(INST)/$(GDMODULE) $(INST)/$(DATEUTIL) \
+		       $(INST)/$(PKGCONF) $(INST)/$(PYPARSING) \
+                       $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(MATPLOTLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(MATPLOTLIB).log"
 
 $(INST)/$(CDDLIB): $(INST)/$(MPIR)
@@ -383,7 +401,7 @@ $(INST)/$(ECL): $(INST)/$(MPIR) $(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
 $(INST)/$(MAXIMA): $(INST)/$(ECL)
 	+$(PIPE) "$(SAGE_SPKG) $(MAXIMA) 2>&1" "tee -a $(SAGE_LOGS)/$(MAXIMA).log"
 
-$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE)
+$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE) $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
 $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
@@ -404,7 +422,7 @@ $(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(NTL)
 $(INST)/$(ECLIB): $(INST)/$(PARI) $(INST)/$(NTL) $(INST)/$(FLINT)
 	+$(PIPE) "$(SAGE_SPKG) $(ECLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(ECLIB).log"
 
-$(INST)/$(M4RI): $(INST)/$(LIBPNG)
+$(INST)/$(M4RI): $(INST)/$(LIBPNG) $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
 $(INST)/$(M4RIE): $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
@@ -509,7 +527,7 @@ $(INST)/$(PKGCONF):
 $(INST)/$(PKGCONFIG): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 	+$(PIPE) "$(SAGE_SPKG) $(PKGCONFIG) 2>&1" "tee -a $(SAGE_LOGS)/$(PKGCONFIG).log"
 
-$(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
+$(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(PKGCONF)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
 $(INST)/$(SCIPY): $(INST)/$(ATLAS) $(INST)/$(NUMPY)

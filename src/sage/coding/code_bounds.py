@@ -232,6 +232,7 @@ def codesize_upper_bound(n,d,q,algorithm=None):
 
     """
     if algorithm=="gap":
+        gap.load_package('guava')
         return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
     if algorithm=="LP":
         return int(delsarte_bound_hamming_space(n,d,q))
@@ -265,7 +266,7 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     if algorithm=="LP":
         return delsarte_bound_additive_hamming_space(n,d,q)
 
-    else:       # algorithm==None or algorithm="gap":
+    else:       # algorithm==None or algorithm=="gap":
         return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
 
 

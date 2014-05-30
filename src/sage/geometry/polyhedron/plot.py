@@ -319,7 +319,7 @@ class ProjectionFuncStereographic():
         pproj = vector(RDF,self.projection_point)
         self.psize = norm(pproj)
         if (self.psize).is_zero():
-            raise ValueError, "projection direction must be a non-zero vector."
+            raise ValueError("projection direction must be a non-zero vector.")
         v = vector(RDF, [0.0]*(self.dim-1) + [self.psize]) - pproj
         polediff = matrix(RDF,v).transpose()
         denom = RDF((polediff.transpose()*polediff)[0][0])
@@ -363,8 +363,8 @@ class ProjectionFuncStereographic():
         img = self.house * x
         denom = self.psize-img[self.dim-1]
         if denom.is_zero():
-            raise ValueError, 'Point cannot coincide with ' \
-                'coordinate singularity at ' + repr(x)
+            raise ValueError('Point cannot coincide with ' \
+                'coordinate singularity at ' + repr(x))
         return vector(RDF, [img[i]/denom for i in range(self.dim-1)])
 
 
@@ -394,7 +394,7 @@ class ProjectionFuncSchlegel():
         """
         self.projection_dir = vector(RDF, projection_direction)
         if norm(self.projection_dir).is_zero():
-            raise ValueError, "projection direction must be a non-zero vector."
+            raise ValueError("projection direction must be a non-zero vector.")
         self.dim = self.projection_dir.degree()
         spcenter = height * self.projection_dir/norm(self.projection_dir)
         self.height = height
@@ -422,13 +422,13 @@ class ProjectionFuncSchlegel():
         """
         v = vector(RDF,x)
         if v.is_zero():
-            raise ValueError, "The origin must not be a vertex."
+            raise ValueError("The origin must not be a vertex.")
         v = v/norm(v)         # normalize vertices to unit sphere
         v = self.house*v      # reflect so self.projection_dir is at "north pole"
         denom = self.height-v[self.dim-1]
         if denom.is_zero():
-            raise ValueError, 'Point cannot coincide with ' \
-                'coordinate singularity at ' + repr(x)
+            raise ValueError('Point cannot coincide with ' \
+                'coordinate singularity at ' + repr(x))
         return vector(RDF, [ v[i]/denom for i in range(self.dim-1) ])
 
 
@@ -572,7 +572,7 @@ class Projection(SageObject):
             sage: Projection( polytopes.twenty_four_cell() ).stereographic([2,0,0,0])
             The projection of a polyhedron into 3 dimensions
         """
-        if projection_point == None:
+        if projection_point is None:
             projection_point = [1] + [0]*(self.polyhedron_ambient_dim-1)
         return self.__call__(ProjectionFuncStereographic(projection_point))
 
@@ -605,14 +605,14 @@ class Projection(SageObject):
             The projection of a polyhedron into 3 dimensions
 
         """
-        if projection_direction == None:
+        if projection_direction is None:
             for poly in self.polygons:
                 center = sum([self.coords[i] for i in poly]) / len(poly)
                 print center, "\n"
                 if not center.is_zero():
                     projection_direction = center
                     break
-        if projection_direction == None:
+        if projection_direction is None:
             from sage.rings.arith import primes_first_n
             projection_direction = primes_first_n(self.polyhedron_ambient_dim)
         return self.__call__(ProjectionFuncSchlegel(projection_direction, height = height))

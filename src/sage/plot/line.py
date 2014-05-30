@@ -107,7 +107,7 @@ class Line(GraphicPrimitive_xydata):
             Traceback (most recent call last):
             NotImplementedError: Invalid 3d line style: ':'
         """
-        if options == None:
+        if options is None:
             options = dict(self.options())
         options_3d = {}
         if 'thickness' in options:
@@ -434,8 +434,9 @@ def line2d(points, **options):
 
     A red plot of the Jacobi elliptic function `\text{sn}(x,2)`, `-3 < x < 3`::
 
-        sage: L = [(i/100.0, jacobi('sn', i/100.0 ,2.0)) for i in range(-300,300,30)]
-        sage: line(L, rgbcolor=(3/4,1/4,1/8))
+        sage: L = [(i/100.0, real_part(jacobi('sn', i/100.0, 2.0))) for i in
+        ....:      range(-300, 300, 30)]
+        sage: line(L, rgbcolor=(3/4, 1/4, 1/8))
 
     A red plot of `J`-Bessel function `J_2(x)`, `0 < x < 10`::
 

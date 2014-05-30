@@ -171,7 +171,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
         """
-        if (type(children) is str):  # if the input is the repr of a binary tree
+        if (isinstance(children, str)):  # if the input is the repr of a binary tree
             children = children.replace(".","None")
             from ast import literal_eval
             children = literal_eval(children)
@@ -768,7 +768,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         from sage.combinat.dyck_word import DyckWord
         if usemap not in ["1L0R", "1R0L", "L1R0", "R1L0"]:
-            raise ValueError, "%s is not a correct map"%(usemap)
+            raise ValueError("%s is not a correct map"%(usemap))
         return DyckWord(self._to_dyck_word_rec(usemap))
 
     def _to_ordered_tree(self, bijection="left", root=None):
@@ -2912,6 +2912,23 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         ....:     t1c[1,1,1] = t2
         sage: t1 == t1c
         False
+
+    We check for :trac:`16314`::
+
+        sage: t1 = LBT([ LBT([LBT([], label=2),
+        ....:                 LBT([], label=5)], label=6),
+        ....:            None], label=4); t1
+        4[6[2[., .], 5[., .]], .]
+        sage: class Foo(LabelledBinaryTree):
+        ....:     pass
+        sage: t2 = Foo(t1.parent(), t1); t2
+        4[6[2[., .], 5[., .]], .]
+        sage: t2.label()
+        4
+        sage: t2[0].label()
+        6
+        sage: t2.__class__, t2[0].__class__
+        (<class '__main__.Foo'>, <class '__main__.Foo'>)
     """
     __metaclass__ = ClasscallMetaclass
 

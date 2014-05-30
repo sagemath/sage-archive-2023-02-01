@@ -14,20 +14,21 @@ ctypedef struct biseq_t:  # bounded integer sequence type
                               # the result.
 
 cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL
+   # Allocate memory (filled with zero) for a bounded integer sequence
+   # of length l with items fitting in itemsize bits.
 
-#cdef inline void dealloc_biseq(biseq_t S)
-
-cdef biseq_t* list2biseq(biseq_t S, list data) except NULL
+cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL
    # Assumes that S is allocated
 
-cdef list biseq2list(biseq_t S)
+cdef list biseq_to_list(biseq_t S)
+   # Convert a bounded integer sequence to a list
 
-cdef str biseq2str(biseq_t S)
+cdef str biseq_to_str(biseq_t S)
+   # String representation of bounded integer sequence as comma
+   # separated list
 
 cdef biseq_t* concat_biseq(biseq_t S1, biseq_t S2) except NULL
    # Does not test whether the sequences have the same bound!
-
-#cdef inline int cmp_biseq(biseq_t S1, biseq_t S2)
 
 cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
    # Is S1=S2+something? Does not check whether the sequences have the same
@@ -39,8 +40,8 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start)
    # same bound!
 
 cdef int index_biseq(biseq_t S, int item, size_t start)
-   # Returns the position *in S* of the item in S[start:], or -1 if S does not
-   # contain the item.
+   # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
+   # does not contain the item.
 
 cdef int getitem_biseq(biseq_t S, unsigned long int index)
    # Returns S[index], without checking margins
@@ -52,3 +53,5 @@ cdef class BoundedIntegerSequence:
     cdef biseq_t data
     cdef str str(self)
     cpdef bint startswith(self, BoundedIntegerSequence other)
+
+cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned int itembitsize, size_t length)

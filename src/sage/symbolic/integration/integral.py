@@ -668,6 +668,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: F = integrate(f, t, 1, Infinity)
         sage: F(x=1, a=7).numerical_approx() # abs tol 1e-10
         4.32025625668262
+        sage: forget()
 
     Verify that MinusInfinity works with sympy (:trac:`12345`)::
 

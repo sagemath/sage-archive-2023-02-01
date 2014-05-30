@@ -3794,34 +3794,40 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
         Return a random complete Dyck word of semilength `n`
 
         The algorithm is based on a classical combinatorial fact. One
-        chooses at random a word with `n` 0's and `n` 1's. One
+        chooses at random a word with `n` 0's and `n+1` 1's. One
         then considers every 1 as an ascending step and every 0 as a
         descending step, and one finds the lowest point of the
         path. One then cuts the path at this point and builds a Dyck word
-        by exchanging the two parts of the word.
+        by exchanging the two parts of the word and removing the initial step.
+
+        .. TODO::
+
+            extend this to m-Dyck words 
 
         EXAMPLES::
 
             sage: dw = DyckWords(8)
-            sage: dw.random_element()   # random
-            [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0]
+            sage: dw.random_element()  # random
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0]
         """
         from sage.misc.prandom import shuffle
         n = self.k1
-        w = [0] * n + [1] * n
+        w = [0] * n + [1] * (n + 1)
         shuffle(w)
+        # rather use sample(range(2*n+1,n) ?
         idx = 0
         height = 0
         height_min = 0
         for i in range(2 * n):
             if w[i] == 1:
-                height += 1
+                height += n
             else:
-                height -= 1
+                height -= n + 1
                 if height < height_min:
                     height_min = height
                     idx = i + 1
-        return self(w[idx:] + w[:idx])
+        w = w[idx:] + w[:idx]
+        return self(w[1:])
 
     def _iter_by_recursion(self):
         """

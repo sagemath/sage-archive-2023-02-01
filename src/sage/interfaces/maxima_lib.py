@@ -724,11 +724,17 @@ class MaximaLib(MaximaAbstract):
             4
 
         This definite integral returned zero (incorrectly) in at least
-        maxima-5.23. The correct answer is now given (:trac:`11591`)::
+        Maxima 5.23. The correct answer is now given (:trac:`11591`)::
 
             sage: f = (x^2)*exp(x) / (1+exp(x))^2
             sage: integrate(f, (x, -infinity, infinity))
             1/3*pi^2
+
+        The following integral was computed incorrectly in versions of
+        Maxima before 5.27 (see :trac:`12947`)::
+
+            sage: integrate(x*cos(x^3),(x,0,1/2)).n()
+            0.124756040961038
 
         """
         try:

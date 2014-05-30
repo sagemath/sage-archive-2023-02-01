@@ -272,7 +272,7 @@ cdef class BoundedIntegerSequence:
     To distinguish from tuples or lists, we use pointed brackets for the
     string representation of bounded integer sequences::
 
-        sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+        sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
         sage: S = BoundedIntegerSequence(21, [2, 7, 20]); S
         <2, 7, 20>
 
@@ -434,7 +434,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])  # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
 
@@ -452,7 +452,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: del S     # indirect doctest
 
@@ -471,7 +471,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(57, L)   # indirect doctest
             sage: list(S) == L
@@ -511,7 +511,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(11, [4,1,6,2,7,20,9])
             sage: copy(S) is S
             True
@@ -523,7 +523,7 @@ cdef class BoundedIntegerSequence:
         """
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(57, L)   # indirect doctest
             sage: len(S) == len(L)
@@ -541,7 +541,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])   # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
 
@@ -556,7 +556,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])   # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
 
@@ -572,7 +572,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(51, [4,1,6,2,7,20,9])
             sage: S.bound()
@@ -588,7 +588,7 @@ cdef class BoundedIntegerSequence:
         """
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(27, L)
             sage: list(S) == L   # indirect doctest
@@ -616,7 +616,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: S[2]
             6
@@ -667,7 +667,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: 6 in S
             True
@@ -701,7 +701,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: L = [randint(0,26) for i in range(5000)]
             sage: S = BoundedIntegerSequence(27, L)
             sage: L0 = L[:1000]
@@ -737,7 +737,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,6,20,9])
             sage: S.index(6)
             2
@@ -800,7 +800,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(21, [4,1,6,2,8,15])
             sage: S+T
@@ -814,7 +814,7 @@ cdef class BoundedIntegerSequence:
             sage: T+list(S)
             Traceback (most recent call last):
             ...
-            TypeError:  Cannot convert list to sage.structure.bounded_integer_sequences.BoundedIntegerSequence
+            TypeError:  Cannot convert list to sage.misc.bounded_integer_sequences.BoundedIntegerSequence
             sage: T+None
             Traceback (most recent call last):
             ...
@@ -849,7 +849,7 @@ cdef class BoundedIntegerSequence:
 
         Comparison by bound::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(51, [4,1,6,2,7,20,9])
             sage: S < T
@@ -903,7 +903,7 @@ cdef class BoundedIntegerSequence:
 
         EXAMPLES::
 
-            sage: from sage.structure.bounded_integer_sequences import BoundedIntegerSequence
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: S = BoundedIntegerSequence(21, [4,1,6,2,7,20,9])
             sage: T = BoundedIntegerSequence(51, [4,1,6,2,7,20,9])
             sage: S == T

@@ -1191,6 +1191,9 @@ ext_modules = [
               sources = ['sage/misc/bitset.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.misc.bounded_integer_sequences',
+              sources = ['sage/misc/bounded_integer_sequences.pyx']),
+
     Extension('sage.misc.cachefunc',
               sources = ['sage/misc/cachefunc.pyx']),
 
@@ -1963,9 +1966,6 @@ ext_modules = [
     ## sage.structure
     ##
     ################################
-
-    Extension('sage.structure.bounded_integer_sequences',
-              sources = ['sage/structure/bounded_integer_sequences.pyx']),
 
     Extension('sage.structure.category_object',
               sources = ['sage/structure/category_object.pyx']),

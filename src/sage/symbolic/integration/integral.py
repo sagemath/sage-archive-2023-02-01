@@ -679,6 +679,12 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
         0.285736646322858
 
+    Check that :trac:`14209` is fixed::
+
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

@@ -521,6 +521,14 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         else:
             raise NotImplementedError("module must be a vector space")
 
+    def eigenspaces(self):
+        ev=self.eigenvectors()
+        res=[]
+        for vec in ev:
+            vs=Sequence(vec[1]).universe()
+            res.append((vec[0],vs.subspace(vec[1])))
+        return res
+
     def minimal_polynomial(self,var='x'):
         r"""
         Computes the minimal polynomial.

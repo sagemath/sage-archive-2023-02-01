@@ -23,8 +23,17 @@ include "sage/ext/python.pxi"
 cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
+cdef extern from "gmp.h":
+    cdef int mp_bits_per_limb
+    mp_limb_t mpn_rshift(mp_ptr res, mp_ptr src, mp_size_t n, unsigned int count)
+    void mpn_copyi(mp_ptr res, mp_ptr src, mp_size_t n)
+
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)
+
+cdef size_t times_size_of_limb = [1,2,4,8,16,32,64].index(sizeof(mp_limb_t))
+cdef size_t times_mp_bits_per_limb = [1,2,4,8,16,32,64,128,256].index(mp_bits_per_limb)
+cdef size_t mod_mp_bits_per_limb = ((<size_t>1)<<times_mp_bits_per_limb)-1
 
 cdef tuple ZeroNone = (0,None)
 cdef PyObject* zeroNone = <PyObject*>ZeroNone
@@ -52,6 +61,7 @@ cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
     out.bitsize = l*itemsize
     out.length = l
     out.itembitsize = itemsize
+    out.mask_item = ((<unsigned int>1)<<itemsize)-1
     sig_on()
     mpz_init2(out.data, out.bitsize+64)
     sig_off()
@@ -164,6 +174,7 @@ cdef biseq_t *concat_biseq(biseq_t S1, biseq_t S2) except NULL:
     out.bitsize = S1.bitsize+S2.bitsize
     out.length = S1.length+S2.length
     out.itembitsize = S1.itembitsize # do not test == S2.itembitsize
+    out.mask_item = S1.mask_item
     sig_on()
     mpz_init2(out.data, out.bitsize+64)
     sig_off()
@@ -241,22 +252,30 @@ cdef int index_biseq(biseq_t S, int item, size_t start):
     mpz_clear(mpz_item)
     return -1
 
-cdef int getitem_biseq(biseq_t S, unsigned long int index):
+cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
     """
     Get item S[index], without checking margins.
 
     """
-    cdef mpz_t tmp, item
-    sig_on()
-    mpz_init_set(tmp, S.data)
-    mpz_init2(item, S.itembitsize)
-    sig_off()
-    mpz_fdiv_q_2exp(tmp, tmp, index*S.itembitsize)
-    mpz_fdiv_r_2exp(item, tmp, S.itembitsize)
-    cdef int out = mpz_get_si(item)
-    mpz_clear(item)
-    mpz_clear(tmp)
-    return out
+    cdef __mpz_struct seq
+    seq = deref(<__mpz_struct*>S.data)
+    cdef unsigned long int limb_index, bit_index, limb_size
+    index *= S.itembitsize
+    limb_index = index>>times_mp_bits_per_limb
+    bit_index  = index&mod_mp_bits_per_limb
+    limb_size = ((bit_index+S.itembitsize-1)>>times_mp_bits_per_limb)+1
+    cdef mp_limb_t* tmp_limb
+    cdef unsigned int out
+    if bit_index:
+        tmp_limb = <mp_limb_t*>sage_malloc(limb_size<<times_size_of_limb)
+        if tmp_limb==NULL:
+            raise MemoryError
+        mpn_rshift(tmp_limb, seq._mp_d+limb_index, limb_size, bit_index)
+        out = <unsigned int>deref(tmp_limb)
+        sage_free(tmp_limb)
+    else:
+        out = <unsigned int>deref(seq._mp_d+limb_index)
+    return out&S.mask_item
 
 cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
     """
@@ -1036,6 +1055,7 @@ cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned 
     mpz_init2(out.data.data, bitsize+64)
     out.data.bitsize = bitsize
     out.data.itembitsize = itembitsize
+    out.data.mask_item = ((<unsigned int>1)<<itembitsize)-1
     out.data.length = length
     mpz_set_str(out.data.data, data, 32)
     return out

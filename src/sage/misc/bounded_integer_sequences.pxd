@@ -8,6 +8,7 @@ ctypedef struct biseq_t:  # bounded integer sequence type
                               # items of this sequence, but store the
                               # bitlength that is sufficient to store one
                               # item.
+    unsigned int mask_item    # "bla&mask_item" greps onethe item bla starts with
     size_t length             # Number of items in this sequence.
                               # bitsize=length*itembitsize, but we do not want
                               # to repeat this multiplication and thus store
@@ -43,7 +44,7 @@ cdef int index_biseq(biseq_t S, int item, size_t start)
    # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
    # does not contain the item.
 
-cdef int getitem_biseq(biseq_t S, unsigned long int index)
+cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1
    # Returns S[index], without checking margins
 
 cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL

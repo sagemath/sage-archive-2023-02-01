@@ -44,6 +44,9 @@ Clayton Smith's construction [ClaytonSmith]_.
 Functions
 ---------
 """
+
+from sage.categories.sets_cat import EmptySetError
+from sage.misc.unknown import Unknown
 from design_catalog import transversal_design
 from block_design import BlockDesign
 from sage.rings.arith import binomial
@@ -112,6 +115,10 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         Traceback (most recent call last):
         ...
         ValueError: No such design exists !
+        sage: designs.BalancedIncompleteBlockDesign(16,6)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this design.
 
     TESTS::
 
@@ -123,21 +130,27 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
 
         sage: _ = designs.BalancedIncompleteBlockDesign(21,5)
 
-    A trivial BIBD::
+    Some trivial BIBD::
 
         sage: designs.BalancedIncompleteBlockDesign(10,10)
         Incidence structure with 10 points and 1 blocks
+        sage: designs.BalancedIncompleteBlockDesign(1,10)
+        Incidence structure with 1 points and 0 blocks
     """
-    if ((binomial(v,2)%binomial(k,2) != 0) or
-        (v-1)%(k-1) != 0):
+    if v == 1:
         if existence:
-            return False
-        raise ValueError("No such design exists !")
+            return True
+        return BlockDesign(v, [], test=False)
 
     if k == v:
         if existence:
             return True
-        return BlockDesign(v,[range(v)], test=False)
+        return BlockDesign(v, [range(v)], test=False)
+
+    if v < k or k < 2 or (v-1) % (k-1) != 0 or (v*(v-1)) % (k*(k-1)) != 0:
+        if existence:
+            return False
+        raise EmptySetError("No such design exists !")
 
     if k == 2:
         if existence:
@@ -175,7 +188,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         if B.low_bd() > expected_n_of_blocks:
             if existence:
                 return False
-            raise ValueError("No such design exists !")
+            raise EmptySetError("No such design exists !")
         B = B.incidence_structure()
         if len(B.blcks) == expected_n_of_blocks:
             if existence:
@@ -184,10 +197,9 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
                 return B
 
     if existence:
-        from sage.misc.unknown import Unknown
         return Unknown
     else:
-        raise ValueError("I don't know how to build this design.")
+        raise NotImplementedError("I don't know how to build this design.")
 
 def steiner_triple_system(n):
     r"""
@@ -230,7 +242,7 @@ def steiner_triple_system(n):
         sage: designs.steiner_triple_system(10)
         Traceback (most recent call last):
         ...
-        ValueError: Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6
+        EmptySetError: Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6
 
     REFERENCE:
 
@@ -265,7 +277,7 @@ def steiner_triple_system(n):
             [[(i,k),(j,k),(L(i,j),(k+1) % 3)] for k in [0,1,2] for i in N for j in N if i < j]
 
     else:
-        raise ValueError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
+        raise EmptySetError("Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6")
 
     from sage.sets.set import Set
     sts = Set(map(lambda x: Set(map(T,x)),sts))
@@ -418,16 +430,29 @@ def BIBD_from_TD(v,k,existence=False):
 
     return BIBD
 
-def BIBD_from_DF(G, D, l=1, check=True):
+def difference_family_to_BIBD(G, D, check=True):
     r"""
     Return the BIBD associated to the difference family ``D`` on the group ``G``.
 
+    Let `G` be a finite Abelian group. A *simple `(G,k)`-difference family* (or
+    a *`(G,k,1)`-difference family*) is a family `B = \{B_1,B_2,\ldots,B_b\}` of
+    `k`-subsets of `G` such that for each element of `G \backslash \{0\}` there
+    exists a unique `s \in \{1,\ldots,b\}` and a unique pair of distinct
+    elements `x,y \in B_s` such that `x - y = g`.
+
+    If `\{B_1, B_2, \ldots, B_b\}` is a simple `(G,k)`-difference family then
+    its set of translates `\{B_i + g; i \in \{1,\ldots,b\}, g \in G\}` is a
+    `(v,k,1)`-BIBD where `v` is the cardinality of `G`.
+
     EXAMPLES::
 
-        sage: from sage.combinat.designs.bibd import BIBD_from_DF
         sage: G = Zmod(21)
         sage: D = [[0,1,4,14,16]]
-        sage: BIBD_from_DF(G, D)
+        sage: print sorted(G(x-y) for x in D[0] for y in D[0] if x != y)
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+        sage: from sage.combinat.designs.bibd import difference_family_to_BIBD
+        sage: difference_family_to_BIBD(G, D)
         [[0, 1, 4, 14, 16],
          [1, 2, 5, 15, 17],
          [2, 3, 6, 16, 18],
@@ -455,6 +480,9 @@ def BIBD_from_DF(G, D, l=1, check=True):
     if check:
         assert _check_pbd(bibd, G.cardinality(), [len(D[0])])
     return bibd
+
+
+
 
 
 ################
@@ -497,7 +525,7 @@ def v_4_1_BIBD(v, check=True):
     if v == 0:
         return []
     if v <= 12 or v%12 not in [1,4]:
-        raise ValueError("A K_4-decomposition of K_v exists iif v=2,4 mod 12, v>12 or v==0")
+        raise EmptySetError("A K_4-decomposition of K_v exists iif v=2,4 mod 12, v>12 or v==0")
 
     # Step 1. Base cases.
     if v == 13:
@@ -905,29 +933,29 @@ def v_5_1_BIBD(v, check=True):
     # Lemma 28
     elif v == 21:
         from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_DF(Zmod(21), [[0,1,4,14,16]], check=False)
+        bibd = difference_family_to_BIBD(Zmod(21), [[0,1,4,14,16]], check=False)
     elif v == 41:
         from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_DF(Zmod(41), [[0,1,4,11,29],[0,2,8,17,22]], check=False)
+        bibd = difference_family_to_BIBD(Zmod(41), [[0,1,4,11,29],[0,2,8,17,22]], check=False)
     elif v == 61:
         from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_DF(Zmod(61), [[0,1,3,13,34],[0,4,9,23,45],[0,6,17,24,32]], check=False)
+        bibd = difference_family_to_BIBD(Zmod(61), [[0,1,3,13,34],[0,4,9,23,45],[0,6,17,24,32]], check=False)
     elif v == 81:
         from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
         D = [[(0, 0, 0, 1), (2, 0, 0, 1), (0, 0, 2, 1), (1, 2, 0, 2), (0, 1, 1, 1)],
              [(0, 0, 1, 0), (1, 1, 0, 2), (0, 2, 1, 0), (1, 2, 0, 1), (1, 1, 1, 0)],
              [(2, 2, 1, 1), (1, 2, 2, 2), (2, 0, 1, 2), (0, 1, 2, 1), (1, 1, 0, 0)],
              [(0, 2, 0, 2), (1, 1, 0, 1), (1, 2, 1, 2), (1, 2, 1, 0), (0, 2, 1, 1)]]
-        bibd = BIBD_from_DF(AdditiveAbelianGroup([3]*4), D, check=False)
+        bibd = difference_family_to_BIBD(AdditiveAbelianGroup([3]*4), D, check=False)
     elif v == 161:
         # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
         D = [(0, 19, 34, 73, 80), (0, 16, 44, 71, 79), (0, 12, 33, 74, 78), (0, 13, 30, 72, 77), (0, 11, 36, 67, 76), (0, 18, 32, 69, 75), (0, 10, 48, 68, 70), (0, 3, 29, 52, 53)]
         from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_DF(Zmod(161), D, check=False)
+        bibd = difference_family_to_BIBD(Zmod(161), D, check=False)
     elif v == 281:
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         D = [[3**(2*a+56*b) for b in range(5)] for a in range(14)]
-        bibd = BIBD_from_DF(Zmod(281), D, check=False)
+        bibd = difference_family_to_BIBD(Zmod(281), D, check=False)
     # Lemma 29
     elif v == 165:
         bibd = BIBD_from_PBD(v_5_1_BIBD(41,check=False),165,5,check=False)
@@ -941,7 +969,7 @@ def v_5_1_BIBD(v, check=True):
         # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         D = [(0, 33, 60, 92, 97), (0, 3, 45, 88, 110), (0, 18, 39, 68, 139), (0, 12, 67, 75, 113), (0, 1, 15, 84, 94), (0, 7, 11, 24, 30), (0, 36, 90, 116, 125)]
-        bibd = BIBD_from_DF(Zmod(141), D, check=False)
+        bibd = difference_family_to_BIBD(Zmod(141), D, check=False)
 
     # Theorem 31.2
     elif (v-1)//4 in [80, 81, 85, 86, 90, 91, 95, 96, 110, 111, 115, 116, 120, 121, 250, 251, 255, 256, 260, 261, 265, 266, 270, 271]:

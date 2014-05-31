@@ -587,7 +587,7 @@ fi
 
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     shopt -s nocaseglob      # see trac:16415
-    mv 2>/dev/null "${PKG_NAME_UPSTREAM%.tar*}" src
+    mv "${PKG_NAME_UPSTREAM%.tar*}"* src
     shopt -u nocaseglob
     echo "Finished set up"
 else

@@ -452,6 +452,15 @@ class CFiniteSequence(FractionFieldElement):
             sage: r = CFiniteSequence((-2*x^3 + x^2 - x + 1)/(2*x^2 - 3*x + 1))
             sage: r[0:5]
             [1, 2, 5, 9, 17]
+            sage: s=CFiniteSequence((1-x)/(-x^2 - x + 1))
+            sage: s[0:5]
+            [1, 0, 1, 1, 2]
+            sage: s=CFiniteSequence((1+x^20+x^40)/(1-x^12)/(1-x^30))
+            sage: s[0:20]
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+            sage: s=CFiniteSequence(1/((1-x^2)*(1-x^6)*(1-x^8)*(1-x^12)))
+            sage: s[999998]
+            289362268629630
         """
 
         if isinstance(key, slice):
@@ -472,8 +481,12 @@ class CFiniteSequence(FractionFieldElement):
             A = Matrix(QQ, 1, d, self._c)
             B = Matrix.identity(QQ, d - 1)
             C = Matrix(QQ, d - 1, 1, 0)
-            V = Matrix(QQ, d, 1, self._aa[:d][::-1])
+            if quo == 0:
+                V = Matrix(QQ, d, 1, self._a[:d][::-1])
+            else:
+                V = Matrix(QQ, d, 1, self._aa[:d][::-1])
             M = Matrix.block([[A], [B, C]], subdivide=False)
+
             return wp + list(M ** (key - self._off) * V)[d-1][0]
         else:
             raise TypeError, "Invalid argument type."
@@ -495,7 +508,6 @@ class CFiniteSequence(FractionFieldElement):
         if self.numerator() == 0:
             return 0
         return self.numerator() / self.denominator()
-#        return (self.numerator().parent().gen())**self._off * self.numerator() / self.denominator()
 
     def recurrence_repr(self):
         """
@@ -509,31 +521,42 @@ class CFiniteSequence(FractionFieldElement):
 
             sage: R.<x> = QQ[]
             sage: CFiniteSequence((2-x)/(1-x-x^2)).recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 1*a(n) + 1*a(n+1), starting a(0...) = [2, 1]'
+            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(0...) = [2, 1]'
             sage: CFiniteSequence(x/(1-x)^3).recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n) - 3*a(n+1) + 1*a(n+2), starting a(1...) = [1, 3, 6]'
+            'Homogenous linear recurrence with constant coefficients of degree 3: a(n+3) = 3*a(n+2) - 3*a(n+1) + a(n), starting a(1...) = [1, 3, 6]'
             sage: CFiniteSequence(1).recurrence_repr()
             'Finite sequence [1], offset 0'
             sage: r = CFiniteSequence((-2*x^3 + x^2 - x + 1)/(2*x^2 - 3*x + 1))
             sage: r.recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n) - 2*a(n+1), starting a(0...) = [1, 2, 5, 9]'
+            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 3*a(n+1) - 2*a(n), starting a(0...) = [1, 2, 5, 9]'
             sage: r = CFiniteSequence(x^3/(1-x-x^2))
             sage: r.recurrence_repr()
-            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = 1*a(n) + 1*a(n+1), starting a(3...) = [1, 1, 2, 3]'
+            'Homogenous linear recurrence with constant coefficients of degree 2: a(n+2) = a(n+1) + a(n), starting a(3...) = [1, 1, 2, 3]'
         """
         
         if self._deg == 0:
-            return 'Finite sequence ' + str(self._a) + ', offset ' + str(self._off)
+            return 'Finite sequence %s, offset %d' % (str(self._a), self._off)
         else:
-            cstr = 'a(n+' + str(self._deg) + ') = ' + str(self._c[0]) + '*a(n)'
+            if self._c[0] == 1:
+                cstr = 'a(n+%d) = a(n+%d)' % (self._deg, self._deg-1) 
+            elif self._c[0] == -1:
+                cstr = 'a(n+%d) = -a(n+%d)' % (self._deg, self._deg-1) 
+            else:
+                cstr = 'a(n+%d) = %s*a(n+%d)' % (self._deg, str(self._c[0]), self._deg-1) 
             for i in range(1, self._deg):
+                j = self._deg - i - 1
                 if self._c[i] < 0:
-                    cstr = cstr + ' - ' + str(-(self._c[i])) + '*a(n+' + str(i) + ')'
+                    if self._c[i] == -1:
+                        cstr = cstr + ' - a(n+%d)' % (j,)
+                    else:
+                        cstr = cstr + ' - %d*a(n+%d)' % (-(self._c[i]), j)  
                 elif self._c[i] > 0:
-                    cstr = cstr + ' + ' + str(self._c[i]) + '*a(n+' + str(i) + ')'
-                else:
-                    cstr = cstr + ' + ' + str(self._c[i]) + '*a(n+' + str(i) + ')'
-        astr = ', starting a(' + str(self._off) + '...) = ['
+                    if self._c[i] == 1:
+                        cstr = cstr + ' + a(n+%d)' % (j,)
+                    else:
+                        cstr = cstr + ' + %d*a(n+%d)' % (self._c[i], j)
+            cstr = cstr.replace('+0', '')
+        astr = ', starting a(%s...) = [' % str(self._off)
         maxwexp = self.numerator().quo_rem(self.denominator())[0].degree() + 1
         for i in range(maxwexp + self._deg):
             astr = astr + str(self.__getitem__(self._off + i)) + ', '

@@ -26,7 +26,11 @@ cdef extern from "mpz_pylong.h":
 cdef extern from "gmp.h":
     cdef int mp_bits_per_limb
     mp_limb_t mpn_rshift(mp_ptr res, mp_ptr src, mp_size_t n, unsigned int count)
+    mp_limb_t mpn_lshift(mp_ptr res, mp_ptr src, mp_size_t n, unsigned int count)
     void mpn_copyi(mp_ptr res, mp_ptr src, mp_size_t n)
+    void mpn_ior_n (mp_limb_t *rp, mp_limb_t *s1p, mp_limb_t *s2p, mp_size_t n)
+    void mpn_zero (mp_limb_t *rp, mp_size_t n)
+    void mpn_copyd (mp_limb_t *rp, mp_limb_t *s1p, mp_size_t n)
 
 cdef extern from "Python.h":
     bint PySlice_Check(PyObject* ob)
@@ -40,7 +44,7 @@ cdef PyObject* zeroNone = <PyObject*>ZeroNone
 cdef dict EmptyDict = {}
 cdef PyObject* emptyDict = <PyObject*>EmptyDict
 
-from cython.operator import dereference as deref
+from cython.operator import dereference as deref, preincrement as preinc
 
 ###################
 #  Boilerplate
@@ -53,9 +57,9 @@ from cython.operator import dereference as deref
 
 cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
     """
-    Allocate memory (filled with zero) for a bounded integer sequence of
-    length l with items fitting in itemsize bits. Returns a pointer to the
-    bounded integer sequence, or NULL on error.
+    Allocate memory for a bounded integer sequence of length l with items
+    fitting in itemsize bits. Returns a pointer to the bounded integer
+    sequence, or NULL on error.
     """
     cdef biseq_t out
     out.bitsize = l*itemsize
@@ -63,7 +67,7 @@ cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL:
     out.itembitsize = itemsize
     out.mask_item = ((<unsigned int>1)<<itemsize)-1
     sig_on()
-    mpz_init2(out.data, out.bitsize+64)
+    mpz_init2(out.data, out.bitsize+mp_bits_per_limb)
     sig_off()
     return &out
 
@@ -81,22 +85,33 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
 
     """
     cdef unsigned long int item
-    cdef mpz_t tmp
-    cdef unsigned long int shift = 0
-    mpz_init(tmp)
-    try:
-        sig_on()
-        for item in data:
-            mpz_set_ui(tmp, item)
-            mpz_fdiv_r_2exp(tmp, tmp, S.itembitsize)
-            mpz_mul_2exp(tmp, tmp, shift)
-            mpz_ior(S.data, S.data, tmp)
-            shift += S.itembitsize
-        sig_off()
-    except (TypeError, OverflowError):
-        sig_off()
-        S.itembitsize=0   # this is the error value
-    mpz_clear(tmp)
+    cdef __mpz_struct *S_boil
+    S_boil = <__mpz_struct*>S.data
+    cdef mp_limb_t item_limb, *tmp_limb
+    S_boil._mp_size = (((len(data)*S.itembitsize)-1)>>times_mp_bits_per_limb)+1
+    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    if tmp_limb==NULL:
+        raise MemoryError("Cannot even allocate two long integers")
+    cdef int offset_mod, offset_div
+    cdef int offset = 0
+    if not data:
+        return &S
+    for item in data:
+        item_limb = <mp_limb_t>(item&S.mask_item)
+        offset_mod = offset&mod_mp_bits_per_limb
+        offset_div = offset>>times_mp_bits_per_limb
+        if offset_mod:
+            tmp_limb[1] = mpn_lshift(tmp_limb, &item_limb, 1, offset_mod)
+            if offset_div < S_boil._mp_size:
+                S_boil._mp_d[offset_div] |= tmp_limb[0]
+                S_boil._mp_d[offset_div+1] = tmp_limb[1]
+            else:
+                S_boil._mp_d[offset_div] |= tmp_limb[0]
+        else:
+            tmp_limb[0] = item_limb
+            S_boil._mp_d[offset_div] = tmp_limb[0]
+        offset += S.itembitsize
+    sage_free(tmp_limb)
     return &S
 
 cdef list biseq_to_list(biseq_t S):
@@ -176,7 +191,7 @@ cdef biseq_t *concat_biseq(biseq_t S1, biseq_t S2) except NULL:
     out.itembitsize = S1.itembitsize # do not test == S2.itembitsize
     out.mask_item = S1.mask_item
     sig_on()
-    mpz_init2(out.data, out.bitsize+64)
+    mpz_init2(out.data, out.bitsize+mp_bits_per_limb)
     sig_off()
     mpz_mul_2exp(out.data, S2.data, S1.bitsize)
     mpz_ior(out.data, out.data, S1.data)
@@ -491,7 +506,7 @@ cdef class BoundedIntegerSequence:
         sage: BoundedIntegerSequence(16, [2, 7, -20])
         Traceback (most recent call last):
         ...
-        ValueError: List of non-negative integers expected
+        OverflowError: can't convert negative value to unsigned long
         sage: BoundedIntegerSequence(1, [2, 7, 0])
         <0, 1, 0>
         sage: BoundedIntegerSequence(0, [2, 7, 0])
@@ -590,8 +605,6 @@ cdef class BoundedIntegerSequence:
         if bound==0:
             raise ValueError("Positive bound expected")
         self.data = deref(list_to_biseq(self.data, data))
-        if not self.data.itembitsize:
-            raise ValueError("List of non-negative integers expected")
 
     def __copy__(self):
         """
@@ -1052,7 +1065,7 @@ cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned 
 
     """
     cdef BoundedIntegerSequence out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
-    mpz_init2(out.data.data, bitsize+64)
+    mpz_init2(out.data.data, bitsize+mp_bits_per_limb)
     out.data.bitsize = bitsize
     out.data.itembitsize = itembitsize
     out.data.mask_item = ((<unsigned int>1)<<itembitsize)-1

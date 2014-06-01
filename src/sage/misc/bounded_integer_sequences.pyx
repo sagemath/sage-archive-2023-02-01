@@ -292,29 +292,39 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     mpz_clear(tmp)
     return -1
 
-cdef int index_biseq(biseq_t S, int item, size_t start):
+cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
     """
     Returns the position in S of an item in S[start:], or -1 if S[start:] does
     not contain the item.
 
     """
-    if start>=S.length:
-        return -1
-    cdef mpz_t tmp, mpz_item
-    sig_on()
-    mpz_init_set(tmp, S.data)
-    sig_off()
-    mpz_fdiv_q_2exp(tmp, tmp, start*S.itembitsize)
-    mpz_init_set_ui(mpz_item, item)
-    cdef size_t i
-    for i from start<=i<S.length:
-        if mpz_congruent_2exp_p(tmp, mpz_item, S.itembitsize):
-            mpz_clear(tmp)
-            mpz_clear(mpz_item)
-            return i
-        mpz_fdiv_q_2exp(tmp, tmp, S.itembitsize)
-    mpz_clear(tmp)
-    mpz_clear(mpz_item)
+    cdef __mpz_struct seq
+    seq = deref(<__mpz_struct*>S.data)
+
+    cdef unsigned int n, limb_index, bit_index
+    cdef mp_limb_t *tmp_limb
+    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    if tmp_limb==NULL:
+        raise MemoryError("Cannot even allocate two long integers")
+    item &= S.mask_item
+    n = 0
+    cdef int index = 0
+    for index from 0<=index<S.length:
+        limb_index = n>>times_mp_bits_per_limb
+        bit_index  = n&mod_mp_bits_per_limb
+        if bit_index:
+            if bit_index+S.itembitsize >= mp_bits_per_limb:
+                mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
+                if item==(tmp_limb[0]&S.mask_item):
+                    sage_free(tmp_limb)
+                    return index
+            elif item==(((seq._mp_d[limb_index])>>bit_index)&S.mask_item):
+                sage_free(tmp_limb)
+                return index
+        elif item==(seq._mp_d[limb_index]&S.mask_item):
+            return index
+        n += S.itembitsize
+    sage_free(tmp_limb)
     return -1
 
 cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:

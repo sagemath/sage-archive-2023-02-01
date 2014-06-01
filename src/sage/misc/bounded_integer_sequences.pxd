@@ -40,7 +40,7 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start)
    # if S2 is not a subsequence. Does not check whether the sequences have the
    # same bound!
 
-cdef int index_biseq(biseq_t S, int item, size_t start)
+cdef int index_biseq(biseq_t S, int item, size_t start) except -2
    # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
    # does not contain the item.
 

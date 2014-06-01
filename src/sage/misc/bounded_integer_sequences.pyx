@@ -278,17 +278,32 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     """
     if S1.length<S2.length+start:
         return -1
+    cdef __mpz_struct seq
+    cdef unsigned int limb_size
+    seq = deref(<__mpz_struct*>S2.data)
+    limb_size = seq._mp_size+1
     cdef mpz_t tmp
+    # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
+    # S2, for each shift.
     sig_on()
-    mpz_init_set(tmp, S1.data)
+    mpz_init2(tmp, S2.bitsize+mp_bits_per_limb)
     sig_off()
-    mpz_fdiv_q_2exp(tmp, tmp, start*S1.itembitsize)
-    cdef size_t i
-    for i from start<=i<=S1.length-S2.length:
+    (<__mpz_struct*>tmp)._mp_size = seq._mp_size
+    seq = deref(<__mpz_struct*>S1.data)
+    cdef unsigned int n, limb_index, bit_index
+    n = 0
+    cdef int index = 0
+    for index from 0<=index<=S1.length-S2.length:
+        limb_index = n>>times_mp_bits_per_limb
+        bit_index  = n&mod_mp_bits_per_limb
+        if bit_index:
+            mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size, bit_index)
+        else:
+            mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, limb_size)
         if mpz_congruent_2exp_p(tmp, S2.data, S2.bitsize):
             mpz_clear(tmp)
-            return i
-        mpz_fdiv_q_2exp(tmp, tmp, S1.itembitsize)
+            return index
+        n += S1.itembitsize
     mpz_clear(tmp)
     return -1
 

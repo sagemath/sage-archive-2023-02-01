@@ -5,6 +5,49 @@ AUTHORS:
 
 - Simon King (2014): initial version
 
+This module provides :class:`BoundedIntegerSequence`, which implements
+sequences of bounded integers and is for many (but not all) operations faster
+than representing the same sequence as a Python :class:`tuple`.
+
+It also provides some boilerplate functions that can be cimported in Cython
+modules::
+
+    cdef biseq_t* allocate_biseq(size_t l, unsigned long int itemsize) except NULL
+       # Allocate memory (filled with zero) for a bounded integer sequence
+       # of length l with items fitting in itemsize bits.
+
+    cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL
+       # Assumes that S is allocated
+
+    cdef list biseq_to_list(biseq_t S)
+       # Convert a bounded integer sequence to a list
+
+    cdef str biseq_to_str(biseq_t S)
+       # String representation of bounded integer sequence as comma
+       # separated list
+
+    cdef biseq_t* concat_biseq(biseq_t S1, biseq_t S2) except NULL
+       # Does not test whether the sequences have the same bound!
+
+    cdef inline bint startswith_biseq(biseq_t S1, biseq_t S2)
+       # Is S1=S2+something? Does not check whether the sequences have the same
+       # bound!
+
+    cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start)
+       # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
+       # if S2 is not a subsequence. Does not check whether the sequences have the
+       # same bound!
+
+    cdef int index_biseq(biseq_t S, int item, size_t start)
+       # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
+       # does not contain the item.
+
+    cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1
+       # Returns S[index], without checking margins
+
+    cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL
+       # Returns the biseq S[start:stop:step]
+
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Simon King <simon.king@uni-jena.de>
@@ -842,6 +885,23 @@ cdef class BoundedIntegerSequence:
         return contains_biseq(self.data, right.data, 0)>=0
 
     cpdef list list(self):
+        """
+        Converts this bounded integer sequence to a list
+
+        NOTE:
+
+        A conversion to a list is also possible by iterating over the
+        sequence, which actually is faster.
+
+        EXAMPLES::
+
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: L = [randint(0,26) for i in range(5000)]
+            sage: S = BoundedIntegerSequence(32, L)
+            sage: S.list() == list(S) == L
+            True
+
+        """
         return biseq_to_list(self.data)
 
     cpdef bint startswith(self, BoundedIntegerSequence other):

@@ -54,5 +54,6 @@ cdef class BoundedIntegerSequence:
     cdef biseq_t data
     cdef str str(self)
     cpdef bint startswith(self, BoundedIntegerSequence other)
+    cpdef list list(self)
 
 cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned int itembitsize, size_t length)

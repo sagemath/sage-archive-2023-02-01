@@ -118,21 +118,29 @@ cdef list biseq_to_list(biseq_t S):
     """
     Convert a bounded integer sequence to a list of integers.
     """
-    cdef mpz_t tmp, item
-    sig_on()
-    mpz_init_set(tmp, S.data)
-    mpz_init(item)
-    
+    cdef __mpz_struct seq
+    seq = deref(<__mpz_struct*>S.data)
+    cdef unsigned int index, limb_index, bit_index
+    index = 0
+    cdef mp_limb_t *tmp_limb
+    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    if tmp_limb==NULL:
+        raise MemoryError("Cannot even allocate two long integers")
     cdef list L = []
-    cdef size_t i
-    for i from S.length > i > 0:
-        mpz_fdiv_r_2exp(item, tmp, S.itembitsize)
-        L.append(mpz_get_ui(item))
-        mpz_fdiv_q_2exp(tmp, tmp, S.itembitsize)
-    L.append(mpz_get_ui(tmp))
-    sig_off()
-    mpz_clear(tmp)
-    mpz_clear(item)
+    cdef size_t n
+    for n from S.length>=n>0:
+        limb_index = index>>times_mp_bits_per_limb
+        bit_index  = index&mod_mp_bits_per_limb
+        if bit_index:
+            if bit_index+S.itembitsize >= mp_bits_per_limb:
+                mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
+                L.append(tmp_limb[0]&S.mask_item)
+            else:
+                L.append(((seq._mp_d[limb_index])>>bit_index)&S.mask_item)
+        else:
+            L.append(seq._mp_d[limb_index]&S.mask_item)
+        index += S.itembitsize
+    sage_free(tmp_limb)
     return L
 
 cdef str biseq_to_str(biseq_t S):
@@ -140,30 +148,29 @@ cdef str biseq_to_str(biseq_t S):
     String representation of bounded integer sequence as comma
     separated list of integers
     """
-    cdef mpz_t tmp, item
-    if S.length==0:
-        return ""
-    sig_on()
-    mpz_init_set(tmp, S.data)
-    cdef char* s_item
-    # allocate enough memory to s_item
-    mpz_init_set_ui(item,1)
-    mpz_mul_2exp(item, item, S.itembitsize)
-    cdef size_t item10len = mpz_sizeinbase(item, 10)+2
-    s_item = <char *>PyMem_Malloc(item10len)
-    sig_off()
-    if s_item == NULL:
-        raise MemoryError, "Unable to allocate enough memory for the string representation of bounded integer sequence."
+    cdef __mpz_struct seq
+    seq = deref(<__mpz_struct*>S.data)
+    cdef unsigned int index, limb_index, bit_index
+    index = 0
+    cdef mp_limb_t *tmp_limb
+    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    if tmp_limb==NULL:
+        raise MemoryError("Cannot even allocate two long integers")
     cdef list L = []
-    cdef size_t i
-    for i from S.length > i > 0:
-        mpz_fdiv_r_2exp(item, tmp, S.itembitsize)
-        L.append(<object>PyString_FromString(mpz_get_str(s_item, 10, item)))
-        mpz_fdiv_q_2exp(tmp, tmp, S.itembitsize)
-    L.append(<object>PyString_FromString(mpz_get_str(s_item, 10, tmp)))
-    mpz_clear(tmp)
-    mpz_clear(item)
-    PyMem_Free(s_item)
+    cdef size_t n
+    for n from S.length>=n>0:
+        limb_index = index>>times_mp_bits_per_limb
+        bit_index  = index&mod_mp_bits_per_limb
+        if bit_index:
+            if bit_index+S.itembitsize >= mp_bits_per_limb:
+                mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
+                L.append(repr(<int>(tmp_limb[0]&S.mask_item)))
+            else:
+                L.append(repr(<int>(((seq._mp_d[limb_index])>>bit_index)&S.mask_item)))
+        else:
+            L.append(repr(<int>(seq._mp_d[limb_index]&S.mask_item)))
+        index += S.itembitsize
+    sage_free(tmp_limb)
     return ', '.join(L)
 
 #
@@ -278,18 +285,21 @@ cdef int getitem_biseq(biseq_t S, unsigned long int index) except -1:
     index *= S.itembitsize
     limb_index = index>>times_mp_bits_per_limb
     bit_index  = index&mod_mp_bits_per_limb
-    limb_size = ((bit_index+S.itembitsize-1)>>times_mp_bits_per_limb)+1
     cdef mp_limb_t* tmp_limb
-    cdef unsigned int out
+    cdef int out
     if bit_index:
-        tmp_limb = <mp_limb_t*>sage_malloc(limb_size<<times_size_of_limb)
-        if tmp_limb==NULL:
-            raise MemoryError
-        mpn_rshift(tmp_limb, seq._mp_d+limb_index, limb_size, bit_index)
-        out = <unsigned int>deref(tmp_limb)
-        sage_free(tmp_limb)
+        limb_size = ((bit_index+S.itembitsize-1)>>times_mp_bits_per_limb)+1
+        if limb_size!=1:
+            tmp_limb = <mp_limb_t*>sage_malloc(limb_size<<times_size_of_limb)
+            if tmp_limb==NULL:
+                raise MemoryError
+            mpn_rshift(tmp_limb, seq._mp_d+limb_index, limb_size, bit_index)
+            out = <int>deref(tmp_limb)
+            sage_free(tmp_limb)
+        else:
+            out = (<int>(seq._mp_d[limb_index]))>>bit_index
     else:
-        out = <unsigned int>deref(seq._mp_d+limb_index)
+        out = <int>(seq._mp_d[limb_index])
     return out&S.mask_item
 
 cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
@@ -723,20 +733,28 @@ cdef class BoundedIntegerSequence:
             True
 
         """
-        cdef size_t i
-        cdef mpz_t tmp,item
-        if self.data.length>0:
-            sig_on()
-            mpz_init_set(tmp, self.data.data)
-            mpz_init2(item, self.data.itembitsize)
-            sig_off()
-            for i from self.data.length>i>0:
-                mpz_fdiv_r_2exp(item, tmp, self.data.itembitsize)
-                yield mpz_get_si(item)
-                mpz_fdiv_q_2exp(tmp, tmp, self.data.itembitsize)
-            yield mpz_get_si(tmp)
-            mpz_clear(tmp)
-            mpz_clear(item)
+        cdef __mpz_struct seq
+        seq = deref(<__mpz_struct*>self.data.data)
+        cdef unsigned int index, limb_index, bit_index
+        index = 0
+        cdef mp_limb_t *tmp_limb
+        tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+        if tmp_limb==NULL:
+            raise MemoryError("Cannot even allocate two long integers")
+        cdef size_t n
+        for n from self.data.length>=n>0:
+            limb_index = index>>times_mp_bits_per_limb
+            bit_index  = index&mod_mp_bits_per_limb
+            if bit_index:
+                if bit_index+self.data.itembitsize >= mp_bits_per_limb:
+                    mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
+                    yield <int>(tmp_limb[0]&self.data.mask_item)
+                else:
+                    yield <int>(((seq._mp_d[limb_index])>>bit_index)&self.data.mask_item)
+            else:
+                yield <int>(seq._mp_d[limb_index]&self.data.mask_item)
+            index += self.data.itembitsize
+        sage_free(tmp_limb)
 
     def __getitem__(self, index):
         """
@@ -822,6 +840,9 @@ cdef class BoundedIntegerSequence:
         if self.data.itembitsize!=right.data.itembitsize:
             return False
         return contains_biseq(self.data, right.data, 0)>=0
+
+    cpdef list list(self):
+        return biseq_to_list(self.data)
 
     cpdef bint startswith(self, BoundedIntegerSequence other):
         """
@@ -946,12 +967,12 @@ cdef class BoundedIntegerSequence:
             sage: T+None
             Traceback (most recent call last):
             ...
-            TypeError: Can not concatenate bounded integer sequence and None
+            TypeError: Cannot concatenate bounded integer sequence and None
 
         """
         cdef BoundedIntegerSequence myself, right, out
         if other is None or self is None:
-            raise TypeError('Can not concatenate bounded integer sequence and None')
+            raise TypeError('Cannot concatenate bounded integer sequence and None')
         myself = self  # may result in a type error
         right = other  #  --"--
         if right.data.itembitsize!=myself.data.itembitsize:

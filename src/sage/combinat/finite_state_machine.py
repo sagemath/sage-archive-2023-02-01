@@ -5743,6 +5743,23 @@ class FiniteStateMachine(SageObject):
             ....:                 initial_states=['1'], final_states=['1', '2'])
             sage: aut.transposition().initial_states()
             ['1', '2']
+
+
+        TESTS:
+
+        If a final state of ``self`` has a non-empty final output word,
+        transposition is not implemented::
+
+            sage: T = Transducer([('1', '1', 1, 0), ('1', '2', 0, 1),
+            ....:                 ('2', '2', 0, 2)],
+            ....:                 initial_states=['1'],
+            ....:                 final_states=['1', '2'])
+            sage: T.state('1').final_word_out = [2, 5]
+            sage: T.transposition()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Transposition for transducers with
+            final output words is not implemented.
         """
         transposition = self.empty_copy()
 
@@ -5762,6 +5779,10 @@ class FiniteStateMachine(SageObject):
 
         for final in self.final_states():
             state = transposition.state(final.label())
+            if final.final_word_out:
+                raise NotImplementedError("Transposition for transducers " \
+                                          "with final output words is not " \
+                                          "implemented.")
             if not final.is_initial:
                 state.is_final = False
                 state.is_initial = True

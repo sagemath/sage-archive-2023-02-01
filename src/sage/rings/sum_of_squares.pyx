@@ -15,23 +15,24 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from "math.h":
-    long double sqrtl(long double)
+from libc.math cimport sqrt
+from libc.stdint cimport uint_fast32_t
+
+include "sage/ext/interrupt.pxi"
 
 cimport integer
 import integer
 
 zero = integer.smallInteger(0)
 
-cdef int two_squares_c(unsigned long n, unsigned long res[2]):
+cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
     r"""
     Return ``1`` if ``n`` is a sum of two squares and ``0`` otherwise.
 
     If ``1`` is returned, the the value of ``res[0]`` and ``res[1]`` are set to the
     lexicographically smallest solution of `a^2 + b^2 = n`.
     """
-    cdef unsigned int fac
-    cdef unsigned long i,ii,j,jj,nn
+    cdef uint_fast32_t fac,i,ii,j,jj,nn
 
     if n == 0:
         res[0] = res[1] = 0
@@ -55,7 +56,7 @@ cdef int two_squares_c(unsigned long n, unsigned long res[2]):
     # if n=2 mod 4 then i and j must be odd
     if n%4 == 1:
         i = ii = 0
-        j = <unsigned long> sqrtl(<long double> n)
+        j = <uint_fast32_t> sqrt(<double> n)
         jj = j*j
         while ii <= jj:
             nn = n - ii
@@ -72,7 +73,7 @@ cdef int two_squares_c(unsigned long n, unsigned long res[2]):
             ii = i*i
     else: # n mod 4 = 2
         i = ii = 1
-        j = <unsigned long> sqrtl(<long double> n)
+        j = <uint_fast32_t> sqrt(<double> n)
         j += 1 - j%2
         jj = j*j
         while ii <= jj:
@@ -91,16 +92,15 @@ cdef int two_squares_c(unsigned long n, unsigned long res[2]):
 
     return 0
 
-cdef int three_squares_c(unsigned long n, unsigned long res[3]):
+cdef int three_squares_c(uint_fast32_t n, uint_fast32_t res[3]):
     r"""
     Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
 
     If ``1`` is returned, the the value of ``res[0]``, ``res[1]`` and ``res[2]``
     are set to a solution of `a^2 + b^2 + c^2 = n` such that `a \leq b \leq c`.
     """
-    cdef unsigned int fac
-    cdef unsigned long i
-    cdef unsigned long j[2]
+    cdef uint_fast32_t fac,i
+    cdef uint_fast32_t j[2]
 
     if n == 0:
         res[0] = res[1] = res[2] = 0
@@ -119,24 +119,20 @@ cdef int three_squares_c(unsigned long n, unsigned long res[3]):
     if n%8 == 7:
         return 0
 
-    i = <unsigned long> sqrtl(<long double> n)
+    i = <uint_fast32_t> sqrt(<double> n)
     while not two_squares_c(n-i*i, j):
         i -= 1
 
     res[0] = (j[0])<<fac; res[1] = (j[1])<<fac; res[2] = i<<fac
     return 1
 
-def two_squares_pyx(unsigned long n):
+def two_squares_pyx(uint_fast32_t n):
     r"""
     Return a pair of non-negative integers ``(i,j)`` such that `i^2 + j^2 = n`.
 
-    If ``n`` is not a sum of two squares, a ``ValueError`` is raised.
-
-    .. NOTE::
-
-        The algorithm used here is relatively naive and only has interest for
-        small values of ``n``. For that reason, the input must fit into an
-        ``unsigned long`` (whose limit might depend on your platform).
+    If ``n`` is not a sum of two squares, a ``ValueError`` is raised. The input
+    is automatically converted to an integer on 32 bits. So you should not call
+    this function with integers larger or equal `2^32=4294967296`.
 
     .. SEEALSO::
 
@@ -168,24 +164,33 @@ def two_squares_pyx(unsigned long n):
         sage: for n in xrange(45000):
         ....:     if two_squares_pyx(n**2) != (0, n):
         ....:         print "hey"
-    """
-    cdef unsigned long i[2]
 
+        sage: two_squares_pyx(2**32 + 2**32)  # not tested -- platform dependent
+        Traceback (most recent call last):
+        ...
+        OverflowError: the input must be smaller than 2^32
+    """
+    cdef uint_fast32_t i[2]
+
+    if n >= 0X100000000:
+        raise OverflowError("the input must be smaller than 2^32")
+
+
+    sig_on()
     if two_squares_c(n, i):
         return (integer.smallInteger(i[0]), integer.smallInteger(i[1]))
+    sig_off()
 
     raise ValueError("%d is not a sum of 2 squares"%n)
 
-def three_squares_pyx(unsigned long n):
+def three_squares_pyx(uint_fast32_t n):
     r"""
     If ``n`` is a sum of three squares return a 3-tuple ``(i,j,k)`` of Sage integers
     such that `i^2 + j^2 + k^2 = n` and `i \leq j \leq k`. Otherwise raise a ``ValueError``.
 
-    .. NOTE::
-
-        The algorithm used is relatively naive and only has interest for small
-        values of ``n``. For that reason, the input must fit into an ``unsigned
-        long`` (whose limit might depend on your platform).
+    The input is automatically converted to an integer on 32 bits. So you
+    should not call this function with integers larger or equal
+    `2^32=4294967296`.
 
     EXAMPLES::
 
@@ -217,24 +222,32 @@ def three_squares_pyx(unsigned long n):
         sage: for ijk in Subsets(Subsets(35000,15).random_element(),3):
         ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
         ....:         print "hey"
-    """
-    cdef unsigned long i[3]
 
+        sage: three_squares_pyx(2**32 + 2**32)  # not tested - platform dependent
+        Traceback (most recent call last):
+        ...
+        OverflowError: the input must be smaller than 2^32
+    """
+    cdef uint_fast32_t i[3]
+
+    if n >= 0X100000000:
+        raise OverflowError("the input must be smaller than 2^32")
+
+    sig_on()
     if three_squares_c(n, i):
         return (integer.smallInteger(i[0]), integer.smallInteger(i[1]), integer.smallInteger(i[2]))
+    sig_off()
 
     raise ValueError("%d is not a sum of 3 squares"%n)
 
-def four_squares_pyx(unsigned long n):
+def four_squares_pyx(uint_fast32_t n):
     r"""
     Return a 4-tuple of non-negative integers ``(i,j,k,l)`` such that `i^2 + j^2
     + k^2 + l^2 = n` and `i \leq j \leq k \leq l`.
 
-    .. NOTE::
-
-        The algorithm used here is relatively naive and only has interest for
-        small values of ``n``. For that reason, the input must fit into an
-        ``unsigned long`` (whose limit depends on your platform).
+    The input is automatically converted to an integer on 32 bits. So you
+    should not call this function with integers larger or equal
+    `2^32=4294967296`.
 
     .. SEEALSO::
 
@@ -258,13 +271,20 @@ def four_squares_pyx(unsigned long n):
         sage: s = lambda (x,y,z,t): x**2 + y**2 + z**2 + t**2
         sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
         True
+
+        sage: four_squares_pyx(2**32 + 2**32)  # not tested - platform dependent
+        Traceback (most recent call last):
+        ...
+        OverflowError: the input must be smaller than 2^32
     """
-    cdef unsigned int fac
-    cdef unsigned long i[3]
-    cdef unsigned long j, nn
+    cdef uint_fast32_t fac,j, nn
+    cdef uint_fast32_t i[3]
 
     if n == 0:
         return (zero, zero, zero, zero)
+
+    if n >= 0X100000000:
+        raise OverflowError("the input must be smaller than 2^32")
 
     # division by power of 4
     fac = 0
@@ -272,10 +292,12 @@ def four_squares_pyx(unsigned long n):
         n >>= 2
         fac += 1
 
+    sig_on()
     # we pick the largest square we can for j
-    j = <unsigned long> sqrtl(<long double> n)
+    j = <uint_fast32_t> sqrt(<double> n)
     while not three_squares_c(n-j*j, i):
         j -= 1
+    sig_off()
 
     return (integer.smallInteger((i[0])<<fac), integer.smallInteger((i[1])<<fac),
             integer.smallInteger((i[2])<<fac), integer.smallInteger(j<<fac))

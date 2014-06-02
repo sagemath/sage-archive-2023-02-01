@@ -1,3 +1,36 @@
+r"""
+Co-operative games with N players.
+
+<Paragraph description>
+
+AUTHOR::
+- JAMES CAMPBELL 06-2014
+
+
+EXAMPLES::
+    sage: test_function = {(): 0,
+    ....:                  ('A',): 6,
+    ....:                  ('B',): 12,
+    ....:                  ('C',): 42,
+    ....:                  ('A', 'B',): 12,
+    ....:                  ('A', 'C',): 42,
+    ....:                  ('B', 'C',): 42,
+    ....:                  ('A', 'B', 'C',): 42}
+    sage:
+    sage: test_game = CooperativeGame(test_function, ['A', 'B', 'C'])
+    sage: print test_game.shapley_value()
+    [2, 5, 35]
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2013 YOUR NAME <your email>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from itertools import permutations
 
 class CooperativeGame():
@@ -53,17 +86,3 @@ class CooperativeGame():
                 return predecessors
             else:
                 predecessors.append(k)
-
-"""
-test_function = {(): 0,
-                 ('A',): 6,
-                 ('B',): 12,
-                 ('C',): 42,
-                 ('A', 'B',): 12,
-                 ('A', 'C',): 42,
-                 ('B', 'C',): 42,
-                 ('A', 'B', 'C',): 42}
-
-test_game = CooperativeGame(test_function, ['A', 'B', 'C'])
-print test_game.shapley_value()
-"""

@@ -35,6 +35,21 @@ from sage.env import SAGE_DOC, SAGE_SRC
 execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
+def delete_empty_directories(root_dir, verbose=True):
+    """
+    Delete all empty directories found under ``root_dir``
+
+    INPUT:
+
+    - ``root_dir`` -- string. A valid directory name.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
+        if not dirnames + filenames:
+            if verbose:
+                print('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
+
+
 def print_build_error():
     """
     Print docbuild error and hint how to solve it
@@ -1422,6 +1437,8 @@ class IntersphinxCache:
             return i
 
 if __name__ == '__main__':
+    delete_empty_directories(SAGE_DOC)
+
     # Parse the command-line.
     parser = setup_parser()
     options, args = parser.parse_args()

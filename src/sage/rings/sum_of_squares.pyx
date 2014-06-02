@@ -178,6 +178,7 @@ def two_squares_pyx(uint_fast32_t n):
 
     sig_on()
     if two_squares_c(n, i):
+        sig_off()
         return (integer.smallInteger(i[0]), integer.smallInteger(i[1]))
     sig_off()
 
@@ -235,6 +236,7 @@ def three_squares_pyx(uint_fast32_t n):
 
     sig_on()
     if three_squares_c(n, i):
+        sig_off()
         return (integer.smallInteger(i[0]), integer.smallInteger(i[1]), integer.smallInteger(i[2]))
     sig_off()
 

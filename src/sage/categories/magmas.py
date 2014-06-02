@@ -459,7 +459,7 @@ class Magmas(Category_singleton):
                         ZeroDivisionError: rational division by zero
 
                         sage: ~C([2,2,2,2])
-                        Traceback (most recent call last)
+                        Traceback (most recent call last):
                         ...
                         TypeError: no conversion of this rational to integer
                     """

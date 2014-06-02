@@ -913,10 +913,10 @@ class AdditiveMagmas(Category_singleton):
                         the assertion that the inputs are parents in
                         ``cartesian_product``::
 
-                        sage: cartesian_product([ZZ, NN, RR])
-                        Traceback (most recent call last):
-                        ...
-                        AssertionError
+                            sage: cartesian_product([ZZ, NN, RR])
+                            Traceback (most recent call last):
+                            ...
+                            AssertionError
                     """
                     return self.parent()(
                         -x for x in self.cartesian_factors())

@@ -1161,7 +1161,7 @@ class FSMState(SageObject):
             'A'
         """
         new = FSMState(self.label(), self.word_out,
-                       self.is_initial, self.is_final)
+                       self.is_initial, self.is_final, self.final_word_out)
         if hasattr(self, 'hook'):
             new.hook = self.hook
         return new

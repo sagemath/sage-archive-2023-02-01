@@ -52,7 +52,8 @@ def is_triangular_number(n):
         sage: is_triangular_number(10^6 * (10^6 +1)/2)
         1000000
     """
-    if n < 0:
+    from sage.rings.arith import is_square
+    if n < 0 or not is_square(8*n+1):
         return False
     elif n == 0:
         return ZZ(0)

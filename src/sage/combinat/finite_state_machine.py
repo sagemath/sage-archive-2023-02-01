@@ -6190,8 +6190,8 @@ class FiniteStateMachine(SageObject):
         Non-initial states may be merged with initial states, the
         resulting state is an initial state.
 
-        All states in a class must have the same ``is_final`` and
-        ``word_out`` values.
+        All states in a class must have the same ``is_final``,
+        ``final_word_out`` and ``word_out`` values.
 
         EXAMPLES::
 
@@ -6222,6 +6222,22 @@ class FiniteStateMachine(SageObject):
             Traceback (most recent call last):
                 ...
             AssertionError: Transitions of state 'A' and 'B' are incompatible.
+
+        TESTS::
+
+            sage: fsm = FiniteStateMachine([("A", "B", 0, 1), ("A", "B", 1, 0),
+            ....:                           ("B", "C", 0, 0), ("B", "C", 1, 1),
+            ....:                           ("C", "D", 0, 1), ("C", "D", 1, 0),
+            ....:                           ("D", "A", 0, 0), ("D", "A", 1, 1)],
+            ....:                           final_states=["A", "C"])
+            sage: fsm.state("A").final_word_out = 1
+            sage: fsm.state("C").final_word_out = 2
+            sage: fsmq = fsm.quotient([[fsm.state("A"), fsm.state("C")],
+            ....:                      [fsm.state("B"), fsm.state("D")]])
+            Traceback (most recent call last):
+                ...
+            AssertionError: Class ['A', 'C'] mixes
+            final states with different final output words.
         """
         new = self.empty_copy()
         state_mapping = {}
@@ -6260,6 +6276,9 @@ class FiniteStateMachine(SageObject):
                     [(state_mapping[t.to_state], t.word_in, t.word_out)
                      for t in state.transitions]), \
                     "Transitions of state %s and %s are incompatible." % (c[0], state)
+                assert new_state.final_word_out == state.final_word_out, \
+                    "Class %s mixes final states with different " \
+                    "final output words." % (c,)
         return new
 
 
@@ -8121,6 +8140,25 @@ class Transducer(FiniteStateMachine):
             ValueError: An epsilon-transition (with empty input or output)
             was found.
 
+        TESTS::
+
+            sage: transducer1 = Transducer([('1', '2', 1, 0)],
+            ....:                          initial_states=['1'],
+            ....:                          final_states=['2'],
+            ....:                          determine_alphabets=True)
+            sage: transducer2 = Transducer([('A', 'B', 1, 0)],
+            ....:                          initial_states=['A'],
+            ....:                          final_states=['B'],
+            ....:                          determine_alphabets=True)
+            sage: res = transducer1.intersection(transducer2)
+            sage: res.final_states()
+            [('2', 'B')]
+            sage: transducer1.state('2').final_word_out = 1
+            sage: transducer2.state('B').final_word_out = 2
+            sage: res = transducer1.intersection(transducer2)
+            sage: res.final_states()
+            []
+
         REFERENCES:
 
         .. [BaWo2012] Javier Baliosian and Dina Wonsever, *Finite State
@@ -8142,10 +8180,20 @@ class Transducer(FiniteStateMachine):
             else:
                 raise LookupError
 
-        return self.product_FiniteStateMachine(
-            other,
-            function,
-            only_accessible_components=only_accessible_components)
+        new = self.product_FiniteStateMachine(
+               other,
+               function,
+               only_accessible_components=only_accessible_components,
+               final_function=lambda s1, s2: s1.final_word_out)
+
+        for state in new.iter_final_states():
+            state0 = self.state(state.label()[0])
+            state1 = other.state(state.label()[1])
+            if state0.final_word_out != state1.final_word_out:
+                state.final_word_out = None
+                state.is_final = False
+
+        return new
 
 
     def cartesian_product(self, other, only_accessible_components=True):

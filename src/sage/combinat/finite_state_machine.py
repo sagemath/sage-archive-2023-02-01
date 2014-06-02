@@ -374,6 +374,7 @@ temporarily set
     sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
     sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
     sage: Gray_transducer = xor_transducer(product_transducer)
+    sage: Gray_transducer.construct_final_word_out([0])
     sage: Gray_transducer.transitions()
     [Transition from (('I', 0), 0) to ((0, 0), 0): 0|-,
      Transition from (('I', 0), 0) to ((1, 0), 0): 1|-,
@@ -408,7 +409,7 @@ This is due to the left shift which delays its output.
 ::
 
     sage: for n in srange(10):
-    ....:     Gray_transducer(n.bits() + [0])
+    ....:     Gray_transducer(n.bits())
     []
     [1]
     [1, 1]
@@ -6930,13 +6931,6 @@ class FiniteStateMachine(SageObject):
         see [HKW2014]_, Theorem 2 for details. If those exponents are
         integers, we can use a polynomial ring.
 
-        .. WARNING::
-
-            If not all states are final, we only print a warning. This is
-            for a transitional period to accomodate subsequential
-            transducers while those are not yet implemented
-            (cf. :trac:`16191`).
-
         EXAMPLES:
 
         #.  A trivial example: write the negative of the input::
@@ -6970,7 +6964,8 @@ class FiniteStateMachine(SageObject):
                 ....:                   (1, 1, 1, 0),
                 ....:                   (1, '.1', 0, None)],
                 ....:                  initial_states=[0],
-                ....:                  final_states=[0])
+                ....:                  final_states=[0],
+                ....:                  with_final_word_out=[0])
 
             As an example, we compute the NAF of `27` by this
             transducer. Note that we have to add two trailing (at the
@@ -7016,19 +7011,12 @@ class FiniteStateMachine(SageObject):
             Now, we actually compute the asymptotic moments::
 
                 sage: moments = NAFweight.asymptotic_moments()
-                verbose 0 (...) Not all states are final. Proceeding
-                under the assumption that you know what you are doing.
                 sage: moments['expectation']
                 1/3*n + Order(1)
                 sage: moments['variance']
                 2/27*n + Order(1)
                 sage: moments['covariance']
                 Order(1)
-
-            In this case, we can ignore the warning: we could have all
-            states as final states if we would have a final output
-            label, i.e., a subsequential transducer. However, this is
-            not yet implemented in this package, cf. :trac:`16191`.
 
         #.  This is Example 3.1 in [HKW2014]_, where a transducer with
             variable output labels is given. There, the aim was to
@@ -7061,19 +7049,12 @@ class FiniteStateMachine(SageObject):
             <finite_state_machine_gray_code_example>`)::
 
                 sage: moments = transducers.GrayCode().asymptotic_moments()
-                verbose 0 (...) Not all states are final. Proceeding
-                under the assumption that you know what you are doing.
                 sage: moments['expectation']
                 1/2*n + Order(1)
                 sage: moments['variance']
                 1/4*n + Order(1)
                 sage: moments['covariance']
                 Order(1)
-
-            Also in this case, we can ignore the warning: we could have
-            all states as final states if we would have a final output
-            label, i.e., a subsequential transducer. However, this is
-            not yet implemented in this package, cf. :trac:`16191`.
 
         #.  This is the first part of Example 6.3 in [HKW2014]_,
             counting the number of 10 blocks in the standard binary
@@ -7268,6 +7249,14 @@ class FiniteStateMachine(SageObject):
                 significant performance degradation.
                 7/6*n + Order(1)
 
+        #.  All states of ``self`` have to be final::
+
+                sage: T = Transducer([(0, 1, 1, 4)], initial_states=[0])
+                sage: T.asymptotic_moments()
+                Traceback (most recent call last):
+                ...
+                ValueError: Not all states are final.
+
         ALGORITHM:
 
         See [HKW2014]_, Theorem 2.
@@ -7295,9 +7284,7 @@ class FiniteStateMachine(SageObject):
             raise ValueError("A unique initial state is required.")
 
         if len(self.final_states()) != len(self.states()):
-            verbose("Not all states are final. Proceeding under the "
-                    "assumption that you know what you are doing.",
-                    level=0)
+            raise ValueError("Not all states are final.")
 
         if not self.is_complete():
             raise NotImplementedError("This finite state machine is "

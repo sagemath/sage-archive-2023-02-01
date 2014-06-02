@@ -525,7 +525,7 @@ class TransducerGenerators(object):
             Transducer with 3 states
             sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: for v in srange(0, 10):
-            ....:     print v, G(v.digits(base=2) + [0])
+            ....:     print v, G(v.digits(base=2))
             0 []
             1 [1]
             2 [1, 1]
@@ -553,7 +553,8 @@ class TransducerGenerators(object):
                            [2, 1, z, o],
                            [2, 2, o, z]],
                           initial_states=[0],
-                          final_states=[1])
+                          final_states=[1],
+                          with_final_word_out=[0])
 
 
 # Easy access to the transducer generators from the command line:

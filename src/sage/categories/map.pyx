@@ -1757,7 +1757,7 @@ cdef class FormalCompositeMap(Map):
 
         Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
         self.head() returns f_0.
-        We have: self == self.tail()*self.head().
+        We have: self == self.then()*self.head().
 
         EXAMPLE::
 
@@ -1769,20 +1769,18 @@ cdef class FormalCompositeMap(Map):
             sage: fg=f*g
             sage: fg.head() == g
             True
-            sage: fg == fg.tail()*fg.head()
+            sage: fg == fg.then()*fg.head()
             True
         """
         return self.__list[0]
 
-    first= deprecated_function_alias(16291, head)
-
-    def tail(self):
+    def then(self):
         """
         Return the tail of the list of maps.
 
         Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
         self.head() returns f_n o f_{n-1} o ... o f_1.
-        We have: self == self.tail()*self.head().
+        We have: self == self.then()*self.head().
 
         EXAMPLE::
 
@@ -1791,13 +1789,13 @@ cdef class FormalCompositeMap(Map):
             sage: from sage.categories.morphism import SetMorphism
             sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
             sage: g = S.hom([2*x])
-            sage: (f*g).tail() == f
+            sage: (f*g).then() == f
             True
         """
         if len(self.__list)==2: return self.__list[1]
         return FormalCompositeMap(self.__list[1:])
 
-    second= deprecated_function_alias(16291, tail)
+    second= deprecated_function_alias(16291, then)
 
     def is_injective(self):
         """

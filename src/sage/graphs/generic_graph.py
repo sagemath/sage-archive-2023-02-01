@@ -15537,7 +15537,7 @@ class GenericGraph(GenericGraph_pyx):
             - If ``method="js"`` the graph is displayed using the `d3.js
               <http://d3js.org/>`_ library in a browser. In this situation, the
               method accepts any other option understood by
-              :meth:`sage.graphs.graph_plot_js.show`.
+              :meth:`sage.graphs.graph_plot_js.gen_html_code`.
 
 
         This method accepts any other option understood by
@@ -15559,8 +15559,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.show()  # long time (3s on sage.math, 2011)
         """
         if method == "js":
-            from sage.graphs.graph_plot_js import show
-            return show(self, **kwds)
+            from sage.graphs.graph_plot_js import gen_html_code
+            from sage.doctest import DOCTEST_MODE
+            filename = gen_html_code(self, **kwds)
+
+            if DOCTEST_MODE:
+                return
+            from sage.misc.viewer import browser
+            import os
+            os.system('%s %s 2>/dev/null 1>/dev/null &'% (browser(), filename))
+            return
 
         from graph_plot import graphplot_options
 

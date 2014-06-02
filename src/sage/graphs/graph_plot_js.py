@@ -32,7 +32,7 @@ The ID of a vertex is its index in the vertex list.
 
     - ``color`` -- color (hexadecimal code)
 
-    -``curve`` -- distance from the barycenter of the two endpoints and the
+    - ``curve`` -- distance from the barycenter of the two endpoints and the
       center of the edge. It defines the curve of the edge, which can be useful
       for multigraphs.
 
@@ -40,8 +40,9 @@ The ID of a vertex is its index in the vertex list.
   the `i` th vertex.
 
 It also contains the definition of some numerical/boolean variables whose
-definition can be found in the documentation of :meth:`show` : ``directed``,
-``charge``, ``link_distance``, ``link_strength``, ``gravity``, ``vertex_size``,
+definition can be found in the documentation of
+:meth:`~sage.graphs.generic_graph.GenericGraph.show` : ``directed``, ``charge``,
+``link_distance``, ``link_strength``, ``gravity``, ``vertex_size``,
 ``edge_thickness``.
 
 .. TODO::
@@ -61,7 +62,6 @@ Functions
 """
 from sage.misc.temporary_file import tmp_filename
 from sage.plot.colors import rainbow
-import os
 
 #*****************************************************************************
 #       Copyright (C) 2013 Nathann Cohen <nathann.cohen@gmail.com>
@@ -74,20 +74,24 @@ import os
 #*****************************************************************************
 
 
-def show(G,
-         vertex_labels=False,
-         edge_labels=False,
-         vertex_partition=[],
-         edge_partition=[],
-         force_spring_layout=False,
-         charge=-120,
-         link_distance=30,
-         link_strength=2,
-         gravity=.04,
-         vertex_size=7,
-         edge_thickness=4):
+def gen_html_code(G,
+                  vertex_labels=False,
+                  edge_labels=False,
+                  vertex_partition=[],
+                  edge_partition=[],
+                  force_spring_layout=False,
+                  charge=-120,
+                  link_distance=30,
+                  link_strength=2,
+                  gravity=.04,
+                  vertex_size=7,
+                  edge_thickness=4):
     r"""
-    Displays the graph in a browser using `d3.js <http://d3js.org/>`_.
+    Creates a .html file showing the graph using `d3.js <http://d3js.org/>`_.
+
+    This function returns the name of the .html file. If you want to
+    visualize the actual graph use
+    :meth:`~sage.graphs.generic_graph.GenericGraph.show`.
 
     INPUT:
 
@@ -107,8 +111,9 @@ def show(G,
       instead. Set to ``[]`` by default.
 
     - ``force_spring_layout`` -- whether to take sage's position into account if
-      there is one (see :meth:`~Graph.get_pos` and :meth:`~Graph.set_pos`), or
-      to compute a spring layout. Set to ``False`` by default.
+      there is one (see :meth:`~sage.graphs.generic_graph.GenericGraph.` and
+      :meth:`~sage.graphs.generic_graph.GenericGraph.`), or to compute a spring
+      layout. Set to ``False`` by default.
 
     - ``vertex_size`` -- The size of a vertex' circle. Set to `7` by default.
 
@@ -153,6 +158,10 @@ def show(G,
         ....:        edge_partition=[[("11","12","2"),("21","21","a")]],
         ....:        edge_thickness=4) # optional -- internet
 
+    TESTS::
+
+        sage: from sage.graphs.graph_plot_js import gen_html_code
+        sage: filename = gen_html_code(graphs.PetersenGraph())
     """
     directed = G.is_directed()
     multiple_edges = G.has_multiple_edges()
@@ -255,8 +264,8 @@ def show(G,
                                    "vertex_size": int(vertex_size),
                                    "edge_thickness": int(edge_thickness)})
 
-    from sage.misc.misc import SAGE_SRC
-    js_code_file = open(SAGE_SRC+"/sage/graphs/graph_plot_js.html", 'r')
+    from sage.env import SAGE_EXTCODE
+    js_code_file = open(SAGE_EXTCODE+"/graphs/graph_plot_js.html", 'r')
     js_code = js_code_file.read().replace("// HEREEEEEEEEEEE", string)
     js_code_file.close()
 
@@ -266,7 +275,4 @@ def show(G,
     f.write(js_code)
     f.close()
 
-    # Opens the browser
-    from sage.misc.viewer import browser
-    os.system('%s %s 2>/dev/null 1>/dev/null &'
-              % (browser(), filename))
+    return filename

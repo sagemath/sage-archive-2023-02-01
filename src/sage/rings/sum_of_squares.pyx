@@ -15,7 +15,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from libc.math cimport sqrt
 from libc.stdint cimport uint_fast32_t, uint32_t
 
@@ -126,8 +125,6 @@ cdef int three_squares_c(uint_fast32_t n, uint_fast32_t res[3]):
 
     return 1
 
-
-
 def two_squares_pyx(uint32_t n):
     r"""
     Return a pair of non-negative integers ``(i,j)`` such that `i^2 + j^2 = n`.
@@ -156,7 +153,7 @@ def two_squares_pyx(uint32_t n):
         sage: two_squares_pyx(106)
         (5, 9)
 
-        sage: two_squares_pyx(2**32 + 2**32)
+        sage: two_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
         OverflowError: value too large to convert to uint32_t
@@ -183,6 +180,34 @@ def two_squares_pyx(uint32_t n):
     sig_off()
 
     raise ValueError("%d is not a sum of 2 squares"%n)
+
+def is_sum_of_two_squares_pyx(uint32_t n):
+    r"""
+    Return ``True`` if ``n`` is a sum of two squares and ``False`` otherwise.
+
+    The input must be smaller than `2^32 = 4294967296`, otherwise an
+    ``OverflowError`` is raised.
+
+    EXAMPLES::
+
+        sage: from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
+        sage: filter(is_sum_of_two_squares_pyx, range(30))
+        [0, 1, 2, 4, 5, 8, 9, 10, 13, 16, 17, 18, 20, 25, 26, 29]
+
+        sage: is_sum_of_two_squares_pyx(2**32)
+        Traceback (most recent call last):
+        ...
+        OverflowError: value too large to convert to uint32_t
+    """
+    cdef uint_fast32_t i[2]
+
+    sig_on()
+    if two_squares_c(n, i):
+        sig_off()
+        return True
+    else:
+        sig_off()
+        return False
 
 def three_squares_pyx(uint32_t n):
     r"""
@@ -216,7 +241,7 @@ def three_squares_pyx(uint32_t n):
         sage: three_squares_pyx(107)
         (1, 5, 9)
 
-        sage: three_squares_pyx(2**32 + 2**32)
+        sage: three_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
         OverflowError: value too large to convert to uint32_t
@@ -263,7 +288,7 @@ def four_squares_pyx(uint32_t n):
         sage: 3^2 + 5^2 + 26^2 + 723^2
         523439
 
-        sage: four_squares_pyx(2**32 + 2**32)
+        sage: four_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
         OverflowError: value too large to convert to uint32_t

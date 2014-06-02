@@ -60,6 +60,7 @@
 
 -(IBAction)showPreferences:(id)sender;
 
+-(void)ensureReadWrite;
 -(void)setupPaths;
 
 // Quit

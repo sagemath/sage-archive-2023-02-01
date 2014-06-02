@@ -1437,8 +1437,6 @@ class IntersphinxCache:
             return i
 
 if __name__ == '__main__':
-    delete_empty_directories(SAGE_DOC)
-
     # Parse the command-line.
     parser = setup_parser()
     options, args = parser.parse_args()
@@ -1450,6 +1448,7 @@ if __name__ == '__main__':
     except ValueError:
         help_message_short(parser=parser, error=True)
         sys.exit(1)
+    delete_empty_directories(SAGE_DOC)
 
     # Set up module-wide logging.
     logger = setup_logger(options.verbose, options.color)

@@ -33,11 +33,16 @@ so on partitions::
 
     sage: def up_operator_on_partitions(la):
     ....:     covers = Y.upper_covers(la)
-    ....:     return sum(QQY(c) for c in covers)
+    ....:     return QQY.sum_of_monomials(covers)
 
     sage: def down_operator_on_partitions(la):
     ....:     covers = Y.lower_covers(la)
-    ....:     return sum(QQY(c) for c in covers)
+    ....:     return QQY.sum_of_monomials(covers)
+
+As a shorthand, one also can write the above as:
+
+    sage: up_operator_on_partitions   = QQY.sum_of_monomials * Y.upper_covers
+    sage: down_operator_on_partitions = QQY.sum_of_monomials * Y.lower_covers
 
 Here is the result when we apply the operators to the partition `(2,1)`::
 
@@ -49,11 +54,8 @@ Here is the result when we apply the operators to the partition `(2,1)`::
 
 Now we define the up and down operator on `\QQ Y`::
 
-    sage: def up_operator(b):
-    ....:     return sum(b.coefficient(p)*up_operator_on_partitions(p) for p in b.support())
-
-    sage: def down_operator(b):
-    ....:     return sum(b.coefficient(p)*down_operator_on_partitions(p) for p in b.support())
+    sage: up_operator   = QQY.module_morphism(up_operator_on_partitions)
+    sage: down_operator = QQY.module_morphism(down_operator_on_partitions)
 
 We can check the identity `D_{i+1} U_i - U_{i-1} D_i = I_i` explicitly on
 all partitions of 3 (so for `i=3`)::
@@ -72,7 +74,7 @@ of shape `\lambda`::
     sage: u
     B[[1, 1, 1, 1]] + 3*B[[2, 1, 1]] + 2*B[[2, 2]] + 3*B[[3, 1]] + B[[4]]
 
-For example, the number of standard Young tableaux of shape `(2,1,1)` is 3::
+For example, the number of standard Young tableaux of shape `(2,1,1)` is `3`::
 
     sage: StandardTableaux([2,1,1]).cardinality()
     3
@@ -84,11 +86,12 @@ We can test this in general::
 
 We can also check this against the hook length formula (Theorem 8.1)::
 
-    sage: def hook_length(p):
+    sage: def hook_length_formula(p):
     ....:     n = p.size()
     ....:     return factorial(n) / prod(p.hook_length(*c) for c in p.cells())
+
     sage: for la in u.support():
-    ....:     assert u[la] == hook_length(la)
+    ....:     assert u[la] == hook_length_formula(la)
 
 RSK Algorithm
 -------------

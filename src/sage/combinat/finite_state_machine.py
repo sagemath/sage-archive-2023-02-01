@@ -6085,7 +6085,8 @@ class FiniteStateMachine(SageObject):
         - `p_a.\mathit{word}_\mathit{in}=p_b.\mathit{word}_\mathit{in}`,
         - `p_a.\mathit{word}_\mathit{out}=p_b.\mathit{word}_\mathit{out}`,
         - `a'` and `b'` have the same output label, and
-        - `a'` and `b'` are both final or both non-final.
+        - `a'` and `b'` are both final or both non-final and have the
+          same final output word.
 
         The function :meth:`.equivalence_classes` returns a list of
         the equivalence classes to this equivalence relation.
@@ -6104,6 +6105,11 @@ class FiniteStateMachine(SageObject):
             ....:                           ("D", "A", 0, 0), ("D", "A", 1, 1)])
             sage: fsm.equivalence_classes()
             [['A', 'C'], ['B', 'D']]
+            sage: fsm.state("A").is_final = True
+            sage: fsm.state("A").final_word_out = 1
+            sage: fsm.equivalence_classes()
+            [['A'], ['B'], ['D'], ['C']]
+
         """
 
         # Two states `a` and `b` are j-equivalent if and only if there
@@ -6127,7 +6133,8 @@ class FiniteStateMachine(SageObject):
 
         # initialize with 0-equivalence
         classes_previous = []
-        key_0 = lambda state: (state.is_final, state.color, state.word_out)
+        key_0 = lambda state: (state.is_final, state.color, state.word_out,
+                               state.final_word_out)
         states_grouped = full_group_by(self.states(), key=key_0)
         classes_current = [equivalence_class for
                            (key,equivalence_class) in states_grouped]

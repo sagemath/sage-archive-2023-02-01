@@ -4499,7 +4499,7 @@ class FiniteStateMachine(SageObject):
             sage: T.process([0])
             Traceback (most recent call last):
             ...
-            NotImplementedError: Non-deterministic path encountered when processing input
+            NotImplementedError: Non-deterministic path encountered when processing input.
             sage: T = Transducer([(0, 1, [0, 0], 0), (0, 2, [0, 0, 1], 0),
             ....:                 (0, 1, 1, 2), (1, 0, [], 1), (1, 1, 1, 3)],
             ....:     initial_states=[0], final_states=[0, 1])
@@ -4508,7 +4508,7 @@ class FiniteStateMachine(SageObject):
             sage: T.process([0, 0])
             Traceback (most recent call last):
             ...
-            NotImplementedError: Non-deterministic path encountered when processing input
+            NotImplementedError: Non-deterministic path encountered when processing input.
             sage: T.process([1])
             (True, 1, [2])
             sage: T.process([1, 1])
@@ -7673,7 +7673,7 @@ class Automaton(FiniteStateMachine):
             Traceback (most recent call last):
             ...
             NotImplementedError: Non-deterministic path encountered
-            when processing input
+            when processing input.
             sage: auto.states()
             ['A', 'C', 'B']
             sage: Ddet = auto.determinisation()
@@ -8808,7 +8808,7 @@ class FSMProcessIterator(SageObject):
                             raise NotImplementedError("Non-deterministic "
                                                       "path encountered "
                                                       "when processing "
-                                                      "input")
+                                                      "input.")
 
                 except StopIteration:
                     # this means input tape is finished

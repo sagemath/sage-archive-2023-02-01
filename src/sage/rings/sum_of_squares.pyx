@@ -15,15 +15,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 from libc.math cimport sqrt
-from libc.stdint cimport uint_fast32_t
+from libc.stdint cimport uint_fast32_t, uint32_t
 
 include "sage/ext/interrupt.pxi"
 
 cimport integer
 import integer
-
-zero = integer.smallInteger(0)
 
 cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
     r"""
@@ -100,7 +99,6 @@ cdef int three_squares_c(uint_fast32_t n, uint_fast32_t res[3]):
     are set to a solution of `a^2 + b^2 + c^2 = n` such that `a \leq b \leq c`.
     """
     cdef uint_fast32_t fac,i
-    cdef uint_fast32_t j[2]
 
     if n == 0:
         res[0] = res[1] = res[2] = 0
@@ -120,19 +118,23 @@ cdef int three_squares_c(uint_fast32_t n, uint_fast32_t res[3]):
         return 0
 
     i = <uint_fast32_t> sqrt(<double> n)
-    while not two_squares_c(n-i*i, j):
+    while not two_squares_c(n-i*i, res):
         i -= 1
+    res[0] <<= fac
+    res[1] <<= fac
+    res[2] = i<<fac
 
-    res[0] = (j[0])<<fac; res[1] = (j[1])<<fac; res[2] = i<<fac
     return 1
 
-def two_squares_pyx(uint_fast32_t n):
+
+
+def two_squares_pyx(uint32_t n):
     r"""
     Return a pair of non-negative integers ``(i,j)`` such that `i^2 + j^2 = n`.
 
     If ``n`` is not a sum of two squares, a ``ValueError`` is raised. The input
-    is automatically converted to an integer on 32 bits. So you should not call
-    this function with integers larger or equal `2^32=4294967296`.
+    must be lesser than `2^32=4294967296`, otherwise an ``OverflowError`` is
+    raised.
 
     .. SEEALSO::
 
@@ -154,6 +156,11 @@ def two_squares_pyx(uint_fast32_t n):
         sage: two_squares_pyx(106)
         (5, 9)
 
+        sage: two_squares_pyx(2**32 + 2**32)
+        Traceback (most recent call last):
+        ...
+        OverflowError: value too large to convert to uint32_t
+
     TESTS::
 
         sage: s = lambda (x,y) : x**2 + y**2
@@ -161,20 +168,13 @@ def two_squares_pyx(uint_fast32_t n):
         ....:     if s(two_squares_pyx(s(ij))) != s(ij):
         ....:         print "hey"
 
-        sage: for n in xrange(45000):
+        sage: for n in xrange(1,65536):
         ....:     if two_squares_pyx(n**2) != (0, n):
         ....:         print "hey"
-
-        sage: two_squares_pyx(2**32 + 2**32)  # not tested -- platform dependent
-        Traceback (most recent call last):
-        ...
-        OverflowError: the input must be smaller than 2^32
+        ....:     if two_squares_pyx(n**2+1) != (1, n):
+        ....:         print "ho"
     """
     cdef uint_fast32_t i[2]
-
-    if n >= 0X100000000:
-        raise OverflowError("the input must be smaller than 2^32")
-
 
     sig_on()
     if two_squares_c(n, i):
@@ -184,14 +184,13 @@ def two_squares_pyx(uint_fast32_t n):
 
     raise ValueError("%d is not a sum of 2 squares"%n)
 
-def three_squares_pyx(uint_fast32_t n):
+def three_squares_pyx(uint32_t n):
     r"""
     If ``n`` is a sum of three squares return a 3-tuple ``(i,j,k)`` of Sage integers
     such that `i^2 + j^2 + k^2 = n` and `i \leq j \leq k`. Otherwise raise a ``ValueError``.
 
-    The input is automatically converted to an integer on 32 bits. So you
-    should not call this function with integers larger or equal
-    `2^32=4294967296`.
+    The input must be lesser than `2^32=4294967296`, otherwise an
+    ``OverflowError`` is raised.
 
     EXAMPLES::
 
@@ -217,22 +216,19 @@ def three_squares_pyx(uint_fast32_t n):
         sage: three_squares_pyx(107)
         (1, 5, 9)
 
+        sage: three_squares_pyx(2**32 + 2**32)
+        Traceback (most recent call last):
+        ...
+        OverflowError: value too large to convert to uint32_t
+
     TESTS::
 
         sage: s = lambda (x,y,z) : x**2 + y**2 + z**2
         sage: for ijk in Subsets(Subsets(35000,15).random_element(),3):
         ....:     if s(three_squares_pyx(s(ijk))) != s(ijk):
         ....:         print "hey"
-
-        sage: three_squares_pyx(2**32 + 2**32)  # not tested - platform dependent
-        Traceback (most recent call last):
-        ...
-        OverflowError: the input must be smaller than 2^32
     """
     cdef uint_fast32_t i[3]
-
-    if n >= 0X100000000:
-        raise OverflowError("the input must be smaller than 2^32")
 
     sig_on()
     if three_squares_c(n, i):
@@ -242,14 +238,13 @@ def three_squares_pyx(uint_fast32_t n):
 
     raise ValueError("%d is not a sum of 3 squares"%n)
 
-def four_squares_pyx(uint_fast32_t n):
+def four_squares_pyx(uint32_t n):
     r"""
     Return a 4-tuple of non-negative integers ``(i,j,k,l)`` such that `i^2 + j^2
     + k^2 + l^2 = n` and `i \leq j \leq k \leq l`.
 
-    The input is automatically converted to an integer on 32 bits. So you
-    should not call this function with integers larger or equal
-    `2^32=4294967296`.
+    The input must be lesser than `2^32=4294967296`, otherwise an
+    ``OverflowError`` is raised.
 
     .. SEEALSO::
 
@@ -268,25 +263,25 @@ def four_squares_pyx(uint_fast32_t n):
         sage: 3^2 + 5^2 + 26^2 + 723^2
         523439
 
+        sage: four_squares_pyx(2**32 + 2**32)
+        Traceback (most recent call last):
+        ...
+        OverflowError: value too large to convert to uint32_t
+
     TESTS::
+
+        sage: four_squares_pyx(0)
+        (0, 0, 0, 0)
 
         sage: s = lambda (x,y,z,t): x**2 + y**2 + z**2 + t**2
         sage: all(s(four_squares_pyx(n)) == n for n in xrange(5000,10000))
         True
-
-        sage: four_squares_pyx(2**32 + 2**32)  # not tested - platform dependent
-        Traceback (most recent call last):
-        ...
-        OverflowError: the input must be smaller than 2^32
     """
-    cdef uint_fast32_t fac,j, nn
+    cdef uint_fast32_t fac, j, nn
     cdef uint_fast32_t i[3]
 
     if n == 0:
-        return (zero, zero, zero, zero)
-
-    if n >= 0X100000000:
-        raise OverflowError("the input must be smaller than 2^32")
+        return (integer.smallInteger(0),)*4
 
     # division by power of 4
     fac = 0

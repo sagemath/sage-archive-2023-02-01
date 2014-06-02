@@ -99,10 +99,36 @@ class Link:
             return self._gauss_code
 
         elif self._braid != None:
-            return "Not Implemented Error"
+            L = self.braid()
+            B = L.parent()
+            l = self.braidword()
+            L = Link(B(l)).dt_code()
+            gc = Link(dt_code = L).gauss_code()
+            return gc
 
         elif self._dt_code != None:
-            return "Not Implemented Error"
+            dt = self._dt_code
+            gauss = []
+            y = [None for i in range(2*len(dt))]
+            x = [0 for i in range(2*len(dt))]
+            for i in range(len(dt)):
+                x[2*i] = 2*i + 1
+                x[2*i + 1] = dt[i]
+            for i in range(len(dt)):
+                if x[2*i+1] > 0:
+                    y[2*i+1] = 'under'
+                    y[2*i] = 'over'
+                elif x[2*i+1] < 0:
+                    y[2*i+1] = 'over'
+                    y[2*i] = 'under'
+            for i in range(1,len(x)+1):
+                for j in range(0,len(x)):
+                    if abs(x[j]) == i:
+                        if y[j] == 'under':
+                            gauss.append(-(j//2 + 1))
+                        elif y[j] == 'over':
+                            gauss.append(j//2 + 1)
+            return gauss
 
     def dt_code(self):
         r"""
@@ -120,10 +146,67 @@ class Link:
             return self._dt_code
 
         elif self._braid != None:
-            return "Not Implemented Error"
+            b = list(self._braid.Tietze())
+            N = len(b)
+            label = [0 for i in range(2*N)]
+            string = 1
+            next_label = 1
+            type1 = 0
+            crossing = 0
+            while(next_label <= 2*N):
+                string_found = 0
+                for i in range(crossing, N):
+                    if(abs(b[i]) == string or abs(b[i]) == string - 1):
+                        string_found = 1
+                        crossing = i
+                        break
+                if(string_found == 0):
+                    for i in range(0,crossing):
+                        if(abs(b[i]) == string or abs(b[i]) == string - 1):
+                            string_found = 1
+                            crossing = i
+                            break
+                if(label[2*crossing + next_label%2] == 1):
+                    return "error"
+                else:
+                    label[2*crossing + next_label%2] =  next_label
+                    next_label = next_label + 1
+                if(type1 == 0):
+                    if(b[crossing] < 0):
+                        type1 = 1
+                    else:
+                        type1 = -1
+                else:
+                    type1 = -1 * type1
+                    if((abs(b[crossing]) == string and b[crossing] * type1 > 0) or (abs(b[crossing]) != string and b[crossing] * type1 < 0)):
+                        if(next_label%2 == 1):
+                            label[2*crossing] = label[2*crossing] * -1
+                if(abs(b[crossing]) == string):
+                    string = string + 1
+                else:
+                    string = string - 1
+                crossing = crossing + 1
 
+            code = [0 for i in range(N)]
+            for i in range(N):
+                for j in range(N):
+                    if label[2*j+1] == 2*i+1:
+                        code[i] = label[2*j]
+                        break
+            return code
+
+         #this needs to further worked upon, the signs are not taken in consideration yet
         elif self._gauss_code != None:
-            return "Not Implemented Error"
+            gc = self._gauss_code
+            l = [0 for i in range(len(gc))]
+            for i in range(len(gc)):
+                k = abs(gc[i])
+                if l[2*(k-1)] == 0:
+                    l[2*(k-1)] = i + 1
+                else:
+                    l[2*k-1] = i + 1
+            l = [l[i] for i in range(len(gc)) if l[i]%2 == 0]
+            return l
 
     def _braidwordcomponents(self):
         r"""
@@ -156,14 +239,11 @@ class Link:
             raise Exception("The braid remains the same with no components")
         else:
             l = list(set([abs(k) for k in ml]))
-            sorting1 = list(set(range(min(l),max(l)+1)) - set(l))
-            sorting = list(set(range(min(l),max(l)+1)) - set(sorting1))
-            missing = list(set(range(sorting[0],sorting[-1]+1)) - set(sorting))
-            if len(missing) == 0:
-                x = []
-                x.append(ml)
-                return x
+            missing1 = list(set(range(min(l),max(l)+1)) - set(l))
+            if len(missing1) == 0:
+                return [ml]
             else:
+                missing = sorted(missing1)
                 x = [[] for i in range(len(missing) + 1)]
                 for i in range(len(missing)):
                     for j in range(len(ml)):
@@ -409,18 +489,12 @@ class Link:
         if b == []:
             return 0
         else:
-            b = max(self.braid().Tietze())
-            B = BraidGroup(b+1)
-            g = []
+            B = self.braid().parent()
             x = self._braidwordcomponents()
-            s = []
-            t = []
             q = []
             genus = 0
-            for i in range(len(x)):
-                s.append(Link(B(x[i])).smallest_equivalent())
-            for i in range(len(s)):
-                t.append(Link(B(s[i])).link_number())
+            s = [Link(B(x[i])).smallest_equivalent() for i in range(len(x))]
+            t = [Link(B(s[i])).link_number() for i in range(len(s))]
             for i in range(len(s)):
                 if s[i] == []:
                     s[i].append(-2)
@@ -428,8 +502,7 @@ class Link:
                 q1 = (abs(k)+1 for k in s[i])
                 q2 = max(q1)
                 q.append(q2)
-            for i in range(len(x)):
-                g.append(((2 - t[i]) + len(x[i]) - q[i])/2)
+            g = [((2 - t[i]) + len(x[i]) - q[i])/2 for i in range(len(x))]
             for i in range(len(g)):
                 genus = genus + g[i]
             return genus
@@ -530,6 +603,37 @@ class Link:
         t = R.gen()
         m2 = self.Seifert_Matrix() - t* (self.Seifert_Matrix().transpose())
         return m2.determinant()
+
+    def knot_determinant(self):
+        r"""
+        Returns the determinant of the knot
+
+        INPUT:
+            - Either a braidword, gauss_code, dt_code
+
+        OUTPUT:
+            - Determinant of the Knot
+
+        EXAMPLES::
+
+            sage: from sage.knots import link
+            sage: B = BraidGroup(4)
+            sage: L = link.Link(B([-1, 2, 1, 2]))
+            sage: L.knot_determinant()
+            1
+            sage: B = BraidGroup(8)
+            sage: L = link.Link(B([2, 4, 2, 3, 1, 2]))
+            sage: L.knot_determinant()
+            3
+            sage: L = link.Link(B([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
+            sage: L.knot_determinant()
+            65
+        """
+        if self.is_knot() == True:
+            a = self.alexander_polynomial()
+            return abs(a(-1))
+        else:
+            return "is defined for a knot"
 
     def arf_invariant(self):
         r"""

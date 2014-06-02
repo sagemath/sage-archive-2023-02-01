@@ -915,6 +915,14 @@ def OA_with_holes(k,n,x,existence=False):
         sage: OA_with_holes(k,n,3,existence=True)
         True
         sage: _ = OA_with_holes(k,n,3)
+
+    REFERENCES:
+
+    .. [BvR82] More mutually orthogonal Latin squares,
+      Andries Brouwer and John van Rees
+      Discrete Mathematics
+      vol.39, num.3, pages 263-281
+      1982
     """
     if x > n:
         if existence:
@@ -929,6 +937,10 @@ def OA_with_holes(k,n,x,existence=False):
             return orthogonal_array(k,n,existence=True)
         OA = orthogonal_array(k,n)
         independent_set = []
+
+    elif x <= 3 and n>k-1 and k>=3 and existence:
+        # This is lemma 2.3 from [BvR82]_ with u=1
+        return True
 
     # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
     elif orthogonal_array(k+1,n,existence=True):

@@ -3794,12 +3794,14 @@ class FiniteStateMachine(SageObject):
 
             sage: T = Transducer([(1, 1, 1, 0), (1, 2, 2, 1),
             ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
+            ....:                final_states=[1],
             ....:                determine_alphabets=False)
+            sage: T.state(1).final_word_out = [1, 4]
             sage: (T.input_alphabet, T.output_alphabet)
             (None, None)
             sage: T.determine_alphabets()
             sage: (T.input_alphabet, T.output_alphabet)
-            ([0, 1, 2], [0, 1])
+            ([0, 1, 2], [0, 1, 4])
        """
         if reset:
             ain = set()
@@ -3812,6 +3814,9 @@ class FiniteStateMachine(SageObject):
             for letter in t.word_in:
                 ain.add(letter)
             for letter in t.word_out:
+                aout.add(letter)
+        for s in self.iter_final_states():
+            for letter in s.final_word_out:
                 aout.add(letter)
         self.input_alphabet = list(ain)
         self.output_alphabet = list(aout)

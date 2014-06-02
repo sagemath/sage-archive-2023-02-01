@@ -4,11 +4,32 @@ Co-operative games with N players.
 <Paragraph description>
 
 AUTHOR::
-- JAMES CAMPBELL 06-2014
+- James Campbell 06-2014
 
 
 EXAMPLES::
-    sage: test_function = {(): 0,
+Basic example of how to implement a co-operative game.
+
+::
+
+sage: test_function = {(): 0,
+    ....:                  ('1',): 6,
+    ....:                  ('2',): 12,
+    ....:                  ('3',): 42,
+    ....:                  ('1', '2',): 12,
+    ....:                  ('1', '3',): 42,
+    ....:                  ('2', '3',): 42,
+    ....:                  ('1', '2', '3',): 42}
+    sage:
+    sage: test_game = CooperativeGame(test_function, ['A', 'B', 'C'])
+    sage: print test_game.shapley_value()
+    [2, 5, 35]
+
+We can also use strings instead of numbers.
+
+::
+
+    sage: letter_function = {(): 0,
     ....:                  ('A',): 6,
     ....:                  ('B',): 12,
     ....:                  ('C',): 42,
@@ -17,13 +38,13 @@ EXAMPLES::
     ....:                  ('B', 'C',): 42,
     ....:                  ('A', 'B', 'C',): 42}
     sage:
-    sage: test_game = CooperativeGame(test_function, ['A', 'B', 'C'])
-    sage: print test_game.shapley_value()
+    sage: letter_game = CooperativeGame(test_function, ['A', 'B', 'C'])
+    sage: print letter_game.shapley_value()
     [2, 5, 35]
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 YOUR NAME <your email>
+#       Copyright (C) 2014 James Campbell james.campbell@tanti.org.uk
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +53,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import permutations
+
 
 class CooperativeGame():
     def __init__(self, characteristic_function, player_list):
@@ -46,7 +68,7 @@ class CooperativeGame():
         payoff_vector = []
         for i in self.player_list:
             player_contribution = self.marginal_contributions(i)
-            average  = sum(player_contribution) / len(player_contribution)
+            average = sum(player_contribution) / len(player_contribution)
             payoff_vector.append(average)
         return payoff_vector
 

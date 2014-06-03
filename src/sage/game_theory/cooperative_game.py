@@ -2,8 +2,11 @@ r"""
 Co-operative games with N players.
 
 This module implements characteristic function cooperative games.
-The main contribution is a class for a characteristic function game that takes a characteristic function (as a dictionary) as an input.
-Methods to calculate the Shapley value (a fair way of sharing common resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as test properties of the game (monotonicity, super additivity) are also included.
+The main contribution is a class for a characteristic function game
+that takes a characteristic function (as a dictionary) as an input.
+Methods to calculate the Shapley value (a fair way of sharing common
+resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
+test properties of the game (monotonicity, super additivity) are also included.
 
 AUTHOR::
 - James Campbell 06-2014: Original version
@@ -21,7 +24,6 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import permutations
-import copy
 
 
 class CooperativeGame():
@@ -31,9 +33,41 @@ class CooperativeGame():
         problems, but can also provide other information.
 
         EXAMPLES::
-        Basic example of how to implement a co-operative game.
+        Basic example of how to implement a co-operative game. ::
 
-        ::
+            sage: test_function = {(): 0,
+            ....:                  ('1',): 6,
+            ....:                  ('2',): 12,
+            ....:                  ('3',): 42,
+            ....:                  ('1', '2',): 12,
+            ....:                  ('1', '3',): 42,
+            ....:                  ('2', '3',): 42,
+            ....:                  ('1', '2', '3',): 42}
+            sage: test_game = CooperativeGame(test_function, ['1', '2', '3'])
+
+        We can also use strings instead of numbers. ::
+
+            sage: letter_function = {(): 0,
+            ....:                  ('A',): 6,
+            ....:                  ('B',): 12,
+            ....:                  ('C',): 42,
+            ....:                  ('A', 'B',): 12,
+            ....:                  ('A', 'C',): 42,
+            ....:                  ('B', 'C',): 42,
+            ....:                  ('A', 'B', 'C',): 42}
+            sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
+        """
+        self.char_fun = characteristic_function
+        self.number_players = len(player_list)
+        self.player_list = player_list
+        self.payoff_vector = False
+
+    def shapley_value(self):
+        r"""
+        Return the payoff vector for co-operative game.
+
+        EXAMPLES::
+        A typical example of the use of shapley_value. ::
 
             sage: test_function = {(): 0,
             ....:                  ('1',): 6,
@@ -46,31 +80,6 @@ class CooperativeGame():
             sage: test_game = CooperativeGame(test_function, ['1', '2', '3'])
             sage: print test_game.shapley_value()
             [2, 5, 35]
-
-        We can also use strings instead of numbers.
-
-        ::
-
-            sage: letter_function = {(): 0,
-            ....:                  ('A',): 6,
-            ....:                  ('B',): 12,
-            ....:                  ('C',): 42,
-            ....:                  ('A', 'B',): 12,
-            ....:                  ('A', 'C',): 42,
-            ....:                  ('B', 'C',): 42,
-            ....:                  ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
-            sage: print letter_game.shapley_value()
-            [2, 5, 35]
-        """
-        self.char_fun = characteristic_function
-        self.number_players = len(player_list)
-        self.player_list = player_list
-        self.payoff_vector = False
-
-    def shapley_value(self):
-        r"""
-        Return the payoff vector for co-operative game.
         """
         payoff_vector = []
         for i in self.player_list:
@@ -98,7 +107,7 @@ class CooperativeGame():
 
     def marginal_of_pi(self, player, pi):
         predecessors, player_and_pred = self.get_predecessors(player, pi)
-        if predecessors == None:
+        if predecessors is None:
             predecessors = ()
         else:
             predecessors = tuple(predecessors)
@@ -118,4 +127,3 @@ class CooperativeGame():
             else:
                 pred.append(k)
                 play_and_pred.append(k)
-

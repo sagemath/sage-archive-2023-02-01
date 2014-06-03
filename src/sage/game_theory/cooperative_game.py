@@ -145,3 +145,14 @@ class CooperativeGame(SageObject):
             else:
                 pred.append(k)
                 play_and_pred.append(k)
+
+    def show(self):
+        np = self.number_players
+        cf = self.char_fun
+        pv = self.payoff_vector
+        print "A Co-operative Game with %s players" % np
+        print "It's Characteristic Function is %s" % cf
+        if pv is False:
+            print "And it has no Payoff Vector"
+        else:
+            print "And its Payoff Vector is %s" % pv

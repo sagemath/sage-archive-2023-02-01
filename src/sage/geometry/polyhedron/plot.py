@@ -482,6 +482,7 @@ class Projection(SageObject):
         self.arrows = Sequence([])
         self.polygons = Sequence([])
         self.polyhedron_ambient_dim = polyhedron.ambient_dim()
+        self.polyhedron_dim = polyhedron.dim()
 
         if polyhedron.ambient_dim() == 2:
             self._init_from_2d(polyhedron)
@@ -677,16 +678,15 @@ class Projection(SageObject):
             sage: p.show.__doc__ == render_2d.__doc__
             True
         """
-        ambiant_dimension = len(self.transformed_coords[0])
+        self.dimension = len(self.transformed_coords[0])
 
-        if ambiant_dimension == 2:
+        if self.dimension == 2:
             self.show = lambda **kwds: render_2d(self,**kwds)
             self.show.__doc__ = render_2d.__doc__
-        elif ambiant_dimension == 3:
+        elif self.dimension == 3:
             self.show = lambda **kwds: render_3d(self,**kwds)
             self.show.__doc__ = render_3d.__doc__
         else:
-            self.dimension = ambiant_dimension
             try:
                 del self.show
             except AttributeError:
@@ -708,7 +708,7 @@ class Projection(SageObject):
             of a polyhedron into 2 dimensions>
         """
         assert polyhedron.ambient_dim() == 2, "Requires polyhedron in 2d"
-        self.dimension = polyhedron.dim()
+        self.dimension = 2
         self._init_points(polyhedron)
         self._init_lines_arrows(polyhedron)
         self._init_area_2d(polyhedron)
@@ -729,7 +729,7 @@ class Projection(SageObject):
             of a polyhedron into 3 dimensions>
         """
         assert polyhedron.ambient_dim() == 3, "Requires polyhedron in 3d"
-        self.dimension = polyhedron.dim()
+        self.dimension = 3
         self._init_points(polyhedron)
         self._init_lines_arrows(polyhedron)
         self._init_solid_3d(polyhedron)
@@ -1141,7 +1141,7 @@ class Projection(SageObject):
         elif self.polyhedron_ambient_dim == 2:
             return self._tikz_2d(scale, edge_color, facet_color, opacity,
                                  vertex_color, axis)
-        elif self.dimension == 2:
+        elif self.polyhedron_dim == 2:
             return self._tikz_2d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
         else:

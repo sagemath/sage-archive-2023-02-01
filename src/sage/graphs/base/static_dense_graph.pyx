@@ -152,7 +152,7 @@ def is_strongly_regular(g, parameters = False):
         sage: g.is_strongly_regular()
         False
     """
-    g._scream_if_not_simple(allow_loops=True)
+    g._scream_if_not_simple()
     cdef binary_matrix_t m
     cdef int n = g.order()
     cdef int inter

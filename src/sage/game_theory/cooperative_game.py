@@ -267,7 +267,7 @@ class CooperativeGame(SageObject):
         else:
             return False
 
-    def is_nullplayer(self):
+    def nullplayer(self):
         r"""
         Returns True if the current payoff_vector possesses the null player property.
 
@@ -275,7 +275,7 @@ class CooperativeGame(SageObject):
         A payoff_vector that returns True. ::
 
             sage: letter_function = {(): 0,
-            ....:                    ('A',): 6,
+            ....:                    ('A',): 0,
             ....:                    ('B',): 12,
             ....:                    ('C',): 42,
             ....:                    ('A', 'B',): 12,
@@ -283,13 +283,13 @@ class CooperativeGame(SageObject):
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
             sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
-            sage: letter_game.is_nullplayer()
-            True
+            sage: letter_game.nullplayer()
+            [('A',)]
 
         A payoff_vector that returns False. ::
 
             sage: A_function = {(): 0,
-            ....:               (1,): 0,
+            ....:               (1,): 6,
             ....:               (2,): 12,
             ....:               (3,): 42,
             ....:               (1, 2,): 12,
@@ -297,29 +297,22 @@ class CooperativeGame(SageObject):
             ....:               (2, 3,): 55,
             ....:               (1, 2, 3,): 55}
             sage: A_game = CooperativeGame(A_function, [10, 10, 25])
-            sage: A_game.is_nullplayer()
-            False
+            sage: A_game.nullplayer()
+            []
         """
         sets = list(self.char_fun.keys())
-        element = [i for i in sets if len(i) == 1]
-        other = [i for i in sets]
-        status = True
-        for j in element:
-            for k in other:
-                union = tuple(sorted(set(j) | set(k)))
-                if self.char_fun[union] == self.char_fun[k]:
-                    pass
-                else:
-                    status = False
-                    break
-
-            if status is False:
-                pass
-            elif self.payoff_vector[element.index(j)] == 0:
-                pass
+        player = [(i,) for i in self.player_list if self.char_fun[(i,)] == 0]
+        nulls = []
+        for k in player:
+            test = [set(m) for m in sets if k in m]
+            results = []
+            for j in test:
+                results.append(self.char_fun[tuple(j.remove(k))] == self.char_fun[tuple(j)])
+            if all(results):
+                nulls.append(k)
             else:
-                return False
-        return True
+                pass
+        return nulls
 
     def is_symmetry(self):
         r"""

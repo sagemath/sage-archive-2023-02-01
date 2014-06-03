@@ -1764,6 +1764,8 @@ class Graphics(SageObject):
         specify ``ticks`` manually, this safety measure can be defeated::
 
             sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[[1],[1]])
+            doctest:...: UserWarning: The x-axis contains fewer than 2 ticks; the logarithmic scale of the plot may not be apparent to the reader.
+            doctest:...: UserWarning: The y-axis contains fewer than 2 ticks; the logarithmic scale of the plot may not be apparent to the reader.
 
         This one works, since the horizontal axis is automatically expanded
         to contain two ticks and the vertical axis is provided with two ticks::
@@ -2056,6 +2058,22 @@ class Graphics(SageObject):
         subplot.yaxis.set_major_locator(y_locator)
         subplot.xaxis.set_major_formatter(x_formatter)
         subplot.yaxis.set_major_formatter(y_formatter)
+
+        # Check for whether there will be too few ticks in the log scale case.
+        # If there are not enough ticks (2 or more) to determine that the scale
+        # is non-linear, we throw a warning.
+        from warnings import warn
+        tickwarnmsg  = 'The %s-axis contains fewer than 2 ticks; '
+        tickwarnmsg += 'the logarithmic scale of the plot may not be apparent '
+        tickwarnmsg += 'to the reader.'
+
+        if (scale[0] == 'log' and not isinstance(x_locator, NullLocator)
+                and len(subplot.xaxis.get_ticklocs()) < 2):
+            warn(tickwarnmsg % 'x')
+
+        if (scale[1] == 'log' and not isinstance(y_locator, NullLocator)
+                and len(subplot.yaxis.get_ticklocs()) < 2):
+            warn(tickwarnmsg % 'y')
 
         return (subplot, x_locator, y_locator, x_formatter, y_formatter)
 

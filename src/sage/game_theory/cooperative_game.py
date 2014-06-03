@@ -221,7 +221,7 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
+            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
             sage: letter_game.show()
             A Co-operative Game with 3 players
             Characteristic Function is
@@ -233,7 +233,7 @@ class CooperativeGame(SageObject):
                  ('B',) : 12
                  ('A', 'C') : 42
                  ('A', 'B', 'C') : 42
-            Payoff vector is [14, 14, 14]
+            Payoff vector is {'A': 14, 'C': 14, 'B': 14}
             sage: letter_game.shapley_value()
             {'A': 2, 'C': 35, 'B': 5}
             sage: letter_game.show()
@@ -276,11 +276,11 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
+            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
             sage: letter_game.is_efficient()
             True
         """
-        if sum(self.payoff_vector) == self.char_fun[tuple(self.player_list)]:
+        if sum(self.payoff_vector.values()) == self.char_fun[tuple(self.player_list)]:
             return True
         else:
             return False
@@ -300,7 +300,7 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
+            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
             sage: letter_game.nullplayer()
             [('A',)]
 
@@ -314,7 +314,7 @@ class CooperativeGame(SageObject):
             ....:               (1, 3,): 42,
             ....:               (2, 3,): 55,
             ....:               (1, 2, 3,): 55}
-            sage: A_game = CooperativeGame(A_function, [10, 10, 25])
+            sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
             sage: A_game.nullplayer()
             []
         """
@@ -346,30 +346,25 @@ class CooperativeGame(SageObject):
             ....:                     (1, 3,): 42,
             ....:                     (2, 3,): 42,
             ....:                     (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function, [2, 5, 35])
+            sage: integer_game = CooperativeGame(integer_function, {1: 2, 2: 5, 3: 35})
             sage: integer_game.is_symmetry()
             False
         """
         sets = list(self.char_fun.keys())
         element = [i for i in sets if len(i) == 1]
-        other = [i for i in sets if len(i) > 0]
-        status = True
+        other = [i for i in sets]
         for j, k in combinations(element, 2):
             for m in other:
                 junion = tuple(set(j) | set(m))
                 kunion = tuple(set(k) | set(m))
-                if self.char_fun[junion] == self.char_fun[kunion]:
+                results = []
+                results.append(self.char_fun[junion] == self.char_fun[kunion])
+                if all(results) and self.payoff_vector[j[0]] == self.payoff_vector[k[0]]:
                     pass
+                elif all(results):
+                    return False
                 else:
-                    status = False
-                    break
-
-            if status is False:
-                pass
-            elif self.payoff_vector[self.player_list.index(j)] == self.payoff_vector[self.player_list.index(k)]:
-                pass
-            else:
-                return False
+                    pass
         return True
 
     def is_additivity(self):

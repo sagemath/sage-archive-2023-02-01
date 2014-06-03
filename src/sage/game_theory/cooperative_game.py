@@ -224,14 +224,30 @@ class CooperativeGame(SageObject):
             sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
             sage: letter_game.show()
             A Co-operative Game with 3 players
-            It's Characteristic Function is {('A',): 6, ('B', 'C'): 42, (): 0, ('C',): 42, ('A', 'B'): 12, ('B',): 12, ('A', 'C'): 42, ('A', 'B', 'C'): 42}
-            And its Payoff Vector is [14, 14, 14]
+            Characteristic Function is
+                 ('A',) : 6
+                 ('B', 'C') : 42
+                 () : 0
+                 ('C',) : 42
+                 ('A', 'B') : 12
+                 ('B',) : 12
+                 ('A', 'C') : 42
+                 ('A', 'B', 'C') : 42
+            Payoff vector is [14, 14, 14]
             sage: letter_game.shapley_value()
             [2, 5, 35]
             sage: letter_game.show()
             A Co-operative Game with 3 players
-            It's Characteristic Function is {('A',): 6, ('B', 'C'): 42, (): 0, ('C',): 42, ('A', 'B'): 12, ('B',): 12, ('A', 'C'): 42, ('A', 'B', 'C'): 42}
-            And its Payoff Vector is [2, 5, 35]
+            Characteristic Function is
+                 ('A',) : 6
+                 ('B', 'C') : 42
+                 () : 0
+                 ('C',) : 42
+                 ('A', 'B') : 12
+                 ('B',) : 12
+                 ('A', 'C') : 42
+                 ('A', 'B', 'C') : 42
+            Payoff vector is [2, 5, 35]
         """
         np = self.number_players
         cf = self.char_fun
@@ -323,8 +339,8 @@ class CooperativeGame(SageObject):
         EXAMPLES::
 
             sage: integer_function = {(): 0,
-            ....:                     (1,): 6,
-            ....:                     (2,): 12,
+            ....:                     (1,): 5,
+            ....:                     (2,): 5,
             ....:                     (3,): 42,
             ....:                     (1, 2,): 12,
             ....:                     (1, 3,): 42,
@@ -332,7 +348,7 @@ class CooperativeGame(SageObject):
             ....:                     (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function, [2, 5, 35])
             sage: integer_game.is_symmetry()
-            True
+            False
         """
         sets = list(self.char_fun.keys())
         element = [i for i in sets if len(i) == 1]
@@ -350,7 +366,7 @@ class CooperativeGame(SageObject):
 
             if status is False:
                 pass
-            elif self.char_fun[j] == self.char_fun[k]:
+            elif self.payoff_vector[self.player_list.index(j)] == self.payoff_vector[self.player_list.index(k)]:
                 pass
             else:
                 return False

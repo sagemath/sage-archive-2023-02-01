@@ -241,9 +241,9 @@ class CooperativeGame(SageObject):
         for key in cf:
             print "\t %s : %s" %(key, cf[key])
         if pv is False:
-            print "And it has no Shapley Value"
+            print "And it has no payoff vector"
         else:
-            print "Shapley Value is %s" % pv
+            print "Payoff vector is %s" % pv
 
     def is_efficient(self):
         r"""

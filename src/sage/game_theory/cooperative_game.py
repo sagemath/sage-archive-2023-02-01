@@ -21,6 +21,7 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import permutations
+import copy
 
 
 class CooperativeGame():
@@ -96,8 +97,7 @@ class CooperativeGame():
         return contributions
 
     def marginal_of_pi(self, player, pi):
-        player_and_pred = self.get_predecessors_and_player(player, pi)
-        predecessors = [x for x in player_and_pred if x != player]
+        predecessors, player_and_pred = self.get_predecessors(player, pi)
         if predecessors == None:
             predecessors = ()
         else:
@@ -106,13 +106,16 @@ class CooperativeGame():
         value = self.char_fun[player_and_pred] - self.char_fun[predecessors]
         return value
 
-    def get_predecessors_and_player(self, player, permutation):
-        predecessors = []
+    def get_predecessors(self, player, permutation):
+        pred = []
+        play_and_pred = []
         for k in permutation:
             if k == player:
-                predecessors.append(k)
-                predecessors.sort()
-                return predecessors
+                play_and_pred.append(k)
+                pred.sort()
+                play_and_pred.sort()
+                return pred, play_and_pred
             else:
-                predecessors.append(k)
+                pred.append(k)
+                play_and_pred.append(k)
 

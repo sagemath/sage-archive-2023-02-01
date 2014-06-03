@@ -38,7 +38,7 @@ class CooperativeGame(SageObject):
                 the empty set, they must all end with a comma.
         * Value - A real number representing each set of players contribution.
 
-    - payoff_vector - default = ``False``, a list can be passed instead but
+    - payoff_vector - default = ``False``, a dictionary can be passed instead but
                       this will be overwritten if shapley_value is called.
 
     EXAMPLES::
@@ -95,15 +95,15 @@ class CooperativeGame(SageObject):
             sage: integer_game.payoff_vector
             False
             sage: integer_game.shapley_value()
-            [2, 5, 35]
+            {1: 2, 2: 5, 3: 35}
             sage: integer_game.payoff_vector
-            [2, 5, 35]
+            {1: 2, 2: 5, 3: 35}
         """
-        payoff_vector = []
+        payoff_vector = {}
         for i in self.player_list:
             player_contribution = self.marginal_contributions(i)
             average = sum(player_contribution) / len(player_contribution)
-            payoff_vector.append(average)
+            payoff_vector[i] = average
         self.payoff_vector = payoff_vector
         return payoff_vector
 
@@ -235,7 +235,7 @@ class CooperativeGame(SageObject):
                  ('A', 'B', 'C') : 42
             Payoff vector is [14, 14, 14]
             sage: letter_game.shapley_value()
-            [2, 5, 35]
+            {'A': 2, 'C': 35, 'B': 5}
             sage: letter_game.show()
             A Co-operative Game with 3 players
             Characteristic Function is
@@ -247,7 +247,7 @@ class CooperativeGame(SageObject):
                  ('B',) : 12
                  ('A', 'C') : 42
                  ('A', 'B', 'C') : 42
-            Payoff vector is [2, 5, 35]
+            Payoff vector is {'A': 2, 'C': 35, 'B': 5}
         """
         np = self.number_players
         cf = self.char_fun

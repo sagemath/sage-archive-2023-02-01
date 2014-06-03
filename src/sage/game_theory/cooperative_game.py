@@ -58,7 +58,7 @@ class CooperativeGame():
             ....:                  ('A', 'C',): 42,
             ....:                  ('B', 'C',): 42,
             ....:                  ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(test_function, ['A', 'B', 'C'])
+            sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
             sage: print letter_game.shapley_value()
             [2, 5, 35]
         """
@@ -115,3 +115,4 @@ class CooperativeGame():
                 return predecessors
             else:
                 predecessors.append(k)
+

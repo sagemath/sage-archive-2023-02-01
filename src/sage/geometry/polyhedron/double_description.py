@@ -28,20 +28,20 @@ The implementation works over any exact field that is embedded in
 `\RR`, for example::
 
     sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
-    sage: A = matrix(AA, [(1,0,1), (0,1,1), (-AA(2).sqrt(),-AA(3).sqrt(),1), 
+    sage: A = matrix(AA, [(1,0,1), (0,1,1), (-AA(2).sqrt(),-AA(3).sqrt(),1),
     ....:                 (-AA(3).sqrt(),-AA(2).sqrt(),1)])
     sage: alg = StandardAlgorithm(A)
     sage: alg.run().R
-    ((-0.4177376677004119?, 0.5822623322995881?, 0.4177376677004119?), 
-     (-0.2411809548974793?, -0.2411809548974793?, 0.2411809548974793?), 
-     (0.07665629029830300?, 0.07665629029830300?, 0.2411809548974793?), 
+    ((-0.4177376677004119?, 0.5822623322995881?, 0.4177376677004119?),
+     (-0.2411809548974793?, -0.2411809548974793?, 0.2411809548974793?),
+     (0.07665629029830300?, 0.07665629029830300?, 0.2411809548974793?),
      (0.5822623322995881?, -0.4177376677004119?, 0.4177376677004119?))
 
 REFERENCES:
 
 ..  [FukudaProdon]
     Komei Fukuda , Alain Prodon:
-    Double Description Method Revisited,    
+    Double Description Method Revisited,
     Combinatorics and Computer Science, volume 1120 of Lecture Notes
     in Computer Science, page 91-111. Springer (1996)
 """
@@ -110,7 +110,7 @@ def random_inequalities(d, n):
         if A.rank() == min(n, d) and not any(a == 0 for a in A.rows()):
             break
     return StandardAlgorithm(A)
-    
+
 
 class DoubleDescriptionPair(SageObject):
 
@@ -118,7 +118,7 @@ class DoubleDescriptionPair(SageObject):
         r"""
         Base class for a double description pair `(A, R)`
 
-        .. warning:: 
+        .. warning::
 
             You should use the :meth:`Problem.initial_pair` or
             :meth:`Problem.run` to generate double description pairs
@@ -141,7 +141,7 @@ class DoubleDescriptionPair(SageObject):
             ....:     DoubleDescriptionPair, Problem
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: alg = Problem(A)
-            sage: DoubleDescriptionPair(alg, 
+            sage: DoubleDescriptionPair(alg,
             ....:     [(1, 0, 1), (0, 1, 1), (-1, -1, 1)],
             ....:     [(2/3, -1/3, 1/3), (-1/3, 2/3, 1/3), (-1/3, -1/3, 1/3)])
             Double description pair (A, R) defined by
@@ -183,7 +183,7 @@ class DoubleDescriptionPair(SageObject):
                 [-1 -1  1]        [ 1/3  1/3  1/3]
             sage: DDnew is DD
             False
-            sage: DDnew.__class__ is DD.__class__ 
+            sage: DDnew.__class__ is DD.__class__
             True
         """
         return self.__class__(self.problem, A_rows, R_cols)
@@ -193,7 +193,7 @@ class DoubleDescriptionPair(SageObject):
         Return string representation.
 
         OUTPUT:
-        
+
         String.
 
         EXAMPLES::
@@ -229,9 +229,9 @@ class DoubleDescriptionPair(SageObject):
 
         A matrix over the base ring. There is one row for each row of
         `A` and one column for each column of `R`.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: alg = StandardAlgorithm(A)
@@ -268,15 +268,15 @@ class DoubleDescriptionPair(SageObject):
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: DD, _ = StandardAlgorithm(A).initial_pair()
             sage: DD.cone().Hrepresentation()
-            (An inequality (-1, -1, 1) x + 0 >= 0, 
-             An inequality (0, 1, 1) x + 0 >= 0, 
+            (An inequality (-1, -1, 1) x + 0 >= 0,
+             An inequality (0, 1, 1) x + 0 >= 0,
              An inequality (1, 0, 1) x + 0 >= 0)
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         assert self.problem.base_ring() == QQ    # required for PPL backend
-        
+
         if len(self.A) == 0:
-            return Polyhedron(vertices=[[0]*self.problem.dim()], backend='ppl')
+            return Polyhedron(vertices=[[0] * self.problem.dim()], backend='ppl')
         else:
             ieqs = [[0] + list(a) for a in self.A]
             return Polyhedron(ieqs=ieqs, base_ring=self.problem.base_ring(), backend='ppl')
@@ -284,18 +284,18 @@ class DoubleDescriptionPair(SageObject):
     def verify(self):
         r"""
         Validate the double description pair.
-        
+
         This method used the PPL backend to check that the double
         description pair is valid. An assertion is triggered if it is
         not. Does nothing if the base ring is not `\QQ`.
-        
+
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.double_description import \
             ....:     DoubleDescriptionPair, Problem
             sage: A = matrix(QQ, [(1,0,1), (0,1,1), (-1,-1,1)])
             sage: alg = Problem(A)
-            sage: DD = DoubleDescriptionPair(alg, 
+            sage: DD = DoubleDescriptionPair(alg,
             ....:     [(1, 0, 3), (0, 1, 1), (-1, -1, 1)],
             ....:     [(2/3, -1/3, 1/3), (-1/3, 2/3, 1/3), (-1/3, -1/3, 1/3)])
             sage: DD.verify()
@@ -309,7 +309,7 @@ class DoubleDescriptionPair(SageObject):
         if self.problem.base_ring() is not QQ:
             return
         A_cone = self.cone()
-        R_cone = Polyhedron(vertices=[[0]*self.problem.dim()], rays=self.R, 
+        R_cone = Polyhedron(vertices=[[0] * self.problem.dim()], rays=self.R,
                             base_ring=self.problem.base_ring(), backend='ppl')
         assert A_cone == R_cone
         assert A_cone.n_inequalities() <= len(self.A)
@@ -318,7 +318,7 @@ class DoubleDescriptionPair(SageObject):
     def R_by_sign(self, a):
         """
         Classify the rays into those that are positive, zero, and negative on `a`.
-        
+
         INPUT:
 
         - ``a`` -- vector. Coefficient vector of a homogeneous inequality.
@@ -355,7 +355,7 @@ class DoubleDescriptionPair(SageObject):
     def zero_set(self, ray):
         """
         Return the zero set (active set) `Z(r)`.
-        
+
         INPUT:
 
         - ``ray`` -- a ray vector.
@@ -425,13 +425,13 @@ class DoubleDescriptionPair(SageObject):
         """
         Return the dual.
 
-        OUTPUT: 
-        
+        OUTPUT:
+
         For the double description pair `(A, R)` this method returns
         the dual double description pair `(R^T, A^T)`
 
         EXAMPLES::
-        
+
             sage: from sage.geometry.polyhedron.double_description import Problem
             sage: A = matrix(QQ, [(0,1,0), (1,0,0), (0,-1,1), (-1,0,1)])
             sage: DD, _ = Problem(A).initial_pair()
@@ -468,7 +468,7 @@ class DoubleDescriptionPair(SageObject):
                 [-1  1]        [ 1/2  1/2]
             sage: DD.first_coordinate_plane()
             Double description pair (A, R) defined by
-                [ 1  1]    
+                [ 1  1]
             A = [-1  1],   R = [  0]
                 [-1  0]        [1/2]
                 [ 1  0]
@@ -478,7 +478,6 @@ class DoubleDescriptionPair(SageObject):
         a_neg = vector(R, [-1] + [0] * (d - 1))
         a_pos = vector(R, [+1] + [0] * (d - 1))
         return self.add_inequality(a_neg).add_inequality(a_pos)
-
 
 
 class Problem(SageObject):
@@ -527,7 +526,7 @@ class Problem(SageObject):
             ((1, 1), (-1, 1))
         """
         rows = [a.change_ring(self._field) for a in self._A.rows()]
-        map(lambda a:a.set_immutable(), rows)
+        map(lambda a: a.set_immutable(), rows)
         return tuple(rows)
 
     @cached_method
@@ -538,7 +537,7 @@ class Problem(SageObject):
         OUTPUT:
 
         Matrix whose rows are the inequalities.
-       
+
         EXAMPLES::
 
             sage: A = matrix([(1, 1), (-1, 1)])
@@ -574,7 +573,7 @@ class Problem(SageObject):
         OUTPUT:
 
         Integer. The ambient space dimension of the cone.
-        
+
         EXAMPLES::
 
             sage: A = matrix(QQ, [(1, 1), (-1, 1)])
@@ -582,9 +581,9 @@ class Problem(SageObject):
             sage: Problem(A).dim()
             2
         """
-        
+
         return self._A.ncols()
-        
+
     def _repr_(self):
         """
         Return a string representation.
@@ -634,9 +633,6 @@ class Problem(SageObject):
         I = identity_matrix(self.base_ring(), self.dim())
         R = matrix(A0).solve_right(I)
         return self.pair_class(self, A0, R.columns()), list(Ac)
-        
-
-
 
 
 class StandardDoubleDescriptionPair(DoubleDescriptionPair):
@@ -646,7 +642,7 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
     See :class:`StandardAlgorithm`.
 
     TESTS::
-    
+
         sage: A = matrix([(-1, 1, 0), (-1, 2, 1), (1/2, -1/2, -1)])
         sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
         sage: DD, _ = StandardAlgorithm(A).initial_pair()
@@ -665,7 +661,7 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
         OUTPUT:
 
         A new :class:`StandardDoubleDescriptionPair` instance.
-        
+
         EXAMPLES::
 
             sage: A = matrix([(-1, 1, 0), (-1, 2, 1), (1/2, -1/2, -1)])
@@ -676,7 +672,7 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
                 [  -1    1    0]        [   1    1    0    0]
             A = [  -1    2    1],   R = [   1    1    1    1]
                 [ 1/2 -1/2   -1]        [   0   -1 -1/2   -2]
-                [   1    0    0]    
+                [   1    0    0]
         """
         from sage.combinat.cartesian_product import CartesianProduct
         R_pos, R_nul, R_neg = self.R_by_sign(a)
@@ -692,12 +688,12 @@ class StandardDoubleDescriptionPair(DoubleDescriptionPair):
         R_new = tuple(R_pos + R_nul + R_new)
         A_new = self.A + (a,)
         return self._make_new(A_new, R_new)
-    
-    
+
+
 class StandardAlgorithm(Problem):
     """
     Standard implementation of the double description algorithm
-    
+
     See [FukudaProdon]_ for the definition of the "Standard
     Algorithm".
 
@@ -739,5 +735,3 @@ class StandardAlgorithm(Problem):
             if VERIFY_RESULT:
                 DD.verify()
         return DD
-
-

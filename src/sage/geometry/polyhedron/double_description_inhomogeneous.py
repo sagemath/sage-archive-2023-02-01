@@ -74,9 +74,9 @@ class PivotedInequalities(SageObject):
         - ``base_ring`` -- a field.
 
         - ``dim`` -- integer. The ambient space dimension.
-    
+
         EXAMPLES::
-    
+
             sage: from sage.geometry.polyhedron.double_description_inhomogeneous \
             ....:     import PivotedInequalities
             sage: piv = PivotedInequalities(QQ, 2)
@@ -97,7 +97,7 @@ class PivotedInequalities(SageObject):
         """
         Pick pivots for inequalities.
 
-        INPUT: 
+        INPUT:
 
         - ``A`` -- matrix. The inequalities.
 
@@ -149,7 +149,6 @@ class PivotedInequalities(SageObject):
         return vector(self.base_ring, result)
 
 
-
 class Hrep2Vrep(PivotedInequalities):
 
     def __init__(self, base_ring, dim, inequalities, equations):
@@ -161,15 +160,15 @@ class Hrep2Vrep(PivotedInequalities):
         - ``base_ring`` -- a field.
 
         - ``dim`` -- integer. The ambient space dimension.
-    
+
         - ``inequalities`` -- list of inequalities. Each inequalitiy
           is given as constant term, ``dim`` coefficients.
 
         - ``equations`` -- list of equations. Same notation as for
           inequalities.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep
             sage: Hrep2Vrep(QQ, 2, [(1,2,3), (2,4,3)], [])
             [-1/2|-1/2  1/2|]
@@ -204,7 +203,7 @@ class Hrep2Vrep(PivotedInequalities):
         A = self._init_Vrep(inequalities, equations)
         DD = Algorithm(A).run()
         self._extract_Vrep(DD)
-        if VERIFY_RESULT: 
+        if VERIFY_RESULT:
             self.verify(inequalities, equations)
 
     def _init_Vrep(self, inequalities, equations):
@@ -212,7 +211,7 @@ class Hrep2Vrep(PivotedInequalities):
         Split off the linear subspace from the inequalities and select pivots
 
         INPUT:
-        
+
         - ``inequalities``, ``equations`` -- see :class:`Vrep2Hrep`.
 
         OUTPUT:
@@ -244,7 +243,7 @@ class Hrep2Vrep(PivotedInequalities):
         chosen to be zero.
 
         EXAMPLES::
-        
+
             sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep
             sage: H = Hrep2Vrep(QQ, 2, [(1,2,3)], [])
             sage: H._split_linear_subspace()
@@ -266,7 +265,7 @@ class Hrep2Vrep(PivotedInequalities):
             return None, L0
         else:
             l1 = L1.pop()
-            return l1, L0 + [l-l[0]*l1 for l in L1]
+            return l1, L0 + [l - l[0] * l1 for l in L1]
 
     def _extract_Vrep(self, DD):
         """
@@ -299,7 +298,7 @@ class Hrep2Vrep(PivotedInequalities):
             # we can shift all rays to have x_0 = 0, stay extremal
             L1 = [line1]
             R1 = []
-            R0 = [r - r[0]*line1 for r in R]
+            R0 = [r - r[0] * line1 for r in R]
         else:
             # have to really intersect with x_0 = 0
             L1 = []
@@ -318,7 +317,7 @@ class Hrep2Vrep(PivotedInequalities):
         else:
             # empty polyhedron
             self.rays = self.lines = []
-        
+
     def _repr_(self):
         """
         Return a string representation.
@@ -331,13 +330,14 @@ class Hrep2Vrep(PivotedInequalities):
             '[-1/2| 1/2|]'
         """
         from sage.matrix.constructor import block_matrix
+
         def make_matrix(rows):
             return matrix(self.base_ring, len(rows), self.dim, rows).transpose()
         V = make_matrix(self.vertices)
         R = make_matrix(self.rays)
         L = make_matrix(self.lines)
         return str(block_matrix([[V, R, L]]))
-    
+
     def verify(self, inequalities, equations):
         """
         Compare result to PPL if the base ring is QQ.
@@ -359,7 +359,7 @@ class Hrep2Vrep(PivotedInequalities):
         from sage.geometry.polyhedron.constructor import Polyhedron
         if self.base_ring is not QQ:
             return
-        P = Polyhedron(vertices=self.vertices, rays=self.rays, lines=self.lines, 
+        P = Polyhedron(vertices=self.vertices, rays=self.rays, lines=self.lines,
                        base_ring=QQ, ambient_dim=self.dim, backend='ppl')
         Q = Polyhedron(ieqs=inequalities, eqns=equations,
                        base_ring=QQ, ambient_dim=self.dim, backend='ppl')
@@ -367,11 +367,9 @@ class Hrep2Vrep(PivotedInequalities):
            (len(self.vertices) != P.n_vertices()) or \
            (len(self.rays) != P.n_rays()) or \
            (len(self.lines) != P.n_lines()):
-            print 'incorrect!', 
+            print 'incorrect!',
             print Q.Vrepresentation()
             print P.Hrepresentation()
-        
-
 
 
 class Vrep2Hrep(PivotedInequalities):
@@ -379,11 +377,11 @@ class Vrep2Hrep(PivotedInequalities):
     def __init__(self, base_ring, dim, vertices, rays, lines):
         """
         Convert V-representation to a minimal H-representation.
-    
+
         INPUT:
-    
+
         - ``base_ring`` -- a field.
-        
+
         - ``dim`` -- integer. The ambient space dimension.
 
         - ``vertices`` -- list of vertices. Each vertex is given as
@@ -391,48 +389,48 @@ class Vrep2Hrep(PivotedInequalities):
 
         - ``rays`` -- list of rays. Each ray is given as
           list of ``dim`` coordinates, not all zero.
-        
+
         - ``lines`` -- list of line generators. Each line is given as
           list of ``dim`` coordinates, not all zero.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Vrep2Hrep
             sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [(-1/2,2/3), (1/2,-1/3)], [])
             [1 2 3]
             [2 4 3]
             [-----]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(1,0), (-1/2,0)], [], [(1,-2/3)])
             [ 1/3  2/3    1]
             [ 2/3 -2/3   -1]
             [--------------]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [(1/2,0)], [(1,-2/3)])
             [1 2 3]
             [-----]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(1,1), (0,4), (-2,-3)], [], [])
             [ 8/13  7/13 -2/13]
             [ 1/13 -4/13  3/13]
             [ 4/13 -3/13 -1/13]
             [-----------------]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(-19/5,22/5), (-1/2,0)], [(2/33,-1/33), (1/11,-2/33)], [])
             [10/11 -2/11 -4/11]
             [ 66/5 132/5  99/5]
             [ 2/11  4/11  6/11]
             [-----------------]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(0,0)], [(1/2,-1/3), (1/3,-1/6)], [])
             [  0  -6 -12]
             [  0  12  18]
             [-----------]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [], [(1,-2/3)])
             [-----]
             [1 2 3]
-    
+
             sage: Vrep2Hrep(QQ, 2, [(-1/2,0)], [], [(1,-2/3), (1,0)])
             []
         """
@@ -441,7 +439,7 @@ class Vrep2Hrep(PivotedInequalities):
         A = self._init_Vrep(vertices, rays, lines)
         DD = Algorithm(A).run()
         self._extract_Hrep(DD)
-        if VERIFY_RESULT: 
+        if VERIFY_RESULT:
             self.verify(vertices, rays, lines)
 
     def _init_Vrep(self, vertices, rays, lines):
@@ -466,10 +464,10 @@ class Vrep2Hrep(PivotedInequalities):
             [   0  1/2 -1/3]
         """
         homogeneous = \
-            [ [1] + list(v) for v in vertices ] + \
-            [ [0] + list(r) for r in rays ] + \
-            [ [0] + list(l) for l in lines] + \
-            [ [0] + [-x for x in l] for l in lines]
+            [[1] + list(v) for v in vertices] + \
+            [[0] + list(r) for r in rays] + \
+            [[0] + list(l) for l in lines] + \
+            [[0] + [-x for x in l] for l in lines]
         A = matrix(self.base_ring, homogeneous)
         return self._pivot_inequalities(A)
 
@@ -483,7 +481,7 @@ class Vrep2Hrep(PivotedInequalities):
           :class:`~sage.geometry.polyhedron.double_description.DoubleDescriptionPair`.
 
         EXAMPLES::
-        
+
             sage: from sage.geometry.polyhedron.double_description_inhomogeneous import Vrep2Hrep
             sage: V2H = Vrep2Hrep(QQ, 1, [(-1/2,), (2/3)], [], [])
             sage: from sage.geometry.polyhedron.double_description import StandardAlgorithm
@@ -513,8 +511,9 @@ class Vrep2Hrep(PivotedInequalities):
             '[1 2 3]\n[2 4 3]\n[-----]'
         """
         from sage.matrix.constructor import block_matrix
+
         def make_matrix(cols):
-            return matrix(self.base_ring, len(cols), self.dim+1, cols)
+            return matrix(self.base_ring, len(cols), self.dim + 1, cols)
         I = make_matrix(self.inequalities)
         E = make_matrix(self.equations)
         return str(block_matrix([[I], [E]]))
@@ -527,7 +526,7 @@ class Vrep2Hrep(PivotedInequalities):
         computation with another backend if available.
 
         INPUT:
-        
+
         - ``vertices``, ``rays``, ``lines`` -- see :class:`Vrep2Hrep`.
 
         EXAMPLES::
@@ -543,7 +542,7 @@ class Vrep2Hrep(PivotedInequalities):
         from sage.geometry.polyhedron.constructor import Polyhedron
         if self.base_ring is not QQ:
             return
-        P = Polyhedron(vertices=vertices, rays=rays, lines=lines, 
+        P = Polyhedron(vertices=vertices, rays=rays, lines=lines,
                        base_ring=QQ, ambient_dim=self.dim)
         trivial = [1] + [0] * self.dim   # always true equation
         Q = Polyhedron(ieqs=self.inequalities + [trivial], eqns=self.equations,

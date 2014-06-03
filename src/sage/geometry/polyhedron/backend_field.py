@@ -12,12 +12,12 @@ EXAMPLES::
     sage: p2 = (1/2, AA(3).sqrt()/2)
     sage: equilateral_triangle = Polyhedron([p0, p1, p2])
     sage: equilateral_triangle.vertices()
-    (A vertex at (0, 0), 
-     A vertex at (1, 0), 
+    (A vertex at (0, 0),
+     A vertex at (1, 0),
      A vertex at (0.500000000000000?, 0.866025403784439?))
     sage: equilateral_triangle.inequalities()
-    (An inequality (-1, -0.5773502691896258?) x + 1 >= 0,  
-     An inequality (1, -0.5773502691896258?) x + 0 >= 0, 
+    (An inequality (-1, -0.5773502691896258?) x + 1 >= 0,
+     An inequality (1, -0.5773502691896258?) x + 0 >= 0,
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
 """
 #*****************************************************************************
@@ -76,7 +76,7 @@ class Polyhedron_field(Polyhedron_base):
             sage: p._is_zero(1/100000)
             False
         """
-        return x==0
+        return x == 0
 
     def _is_nonneg(self, x):
         """
@@ -98,7 +98,7 @@ class Polyhedron_field(Polyhedron_base):
             sage: p._is_nonneg(-1/100000)
             False
         """
-        return x>=0
+        return x >= 0
 
     def _is_positive(self, x):
         """
@@ -120,7 +120,7 @@ class Polyhedron_field(Polyhedron_base):
             sage: p._is_positive(0)
             False
         """
-        return x>0
+        return x > 0
 
     def _init_from_Vrepresentation(self, vertices, rays, lines,
                                    minimize=True, verbose=False):
@@ -129,7 +129,7 @@ class Polyhedron_field(Polyhedron_base):
 
         INPUT:
 
-        - ``vertices`` -- list of point. Each point can be specified
+        - ``vertices`` -- list of points. Each point can be specified
            as any iterable container of
            :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
 
@@ -152,7 +152,7 @@ class Polyhedron_field(Polyhedron_base):
         """
         from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep, Vrep2Hrep
         H = Vrep2Hrep(self.base_ring(), self.ambient_dim(), vertices, rays, lines)
-        V = Hrep2Vrep(self.base_ring(), self.ambient_dim(), 
+        V = Hrep2Vrep(self.base_ring(), self.ambient_dim(),
                       H.inequalities, H.equations)
         self._init_Vrepresentation_backend(V)
         self._init_Hrepresentation_backend(H)
@@ -182,7 +182,7 @@ class Polyhedron_field(Polyhedron_base):
         """
         from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep, Vrep2Hrep
         V = Hrep2Vrep(self.base_ring(), self.ambient_dim(), ieqs, eqns)
-        H = Vrep2Hrep(self.base_ring(), self.ambient_dim(), 
+        H = Vrep2Hrep(self.base_ring(), self.ambient_dim(),
                       V.vertices, V.rays, V.lines)
         self._init_Vrepresentation_backend(V)
         self._init_Hrepresentation_backend(H)
@@ -221,7 +221,7 @@ class Polyhedron_field(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/sqrt(2)),(sqrt(2),0),(4,sqrt(5)/6)],
-            ...                  base_ring=AA, backend='field')  # indirect doctest
+            ....:                base_ring=AA, backend='field')  # indirect doctest
             sage: p.Hrepresentation()
             (An inequality (-0.1582178750233332?, 1.097777812326429?) x + 0.2237538646678492? >= 0,
              An inequality (-0.1419794359520263?, -1.698172434277148?) x + 1.200789243901438? >= 0,

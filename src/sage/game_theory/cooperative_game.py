@@ -237,11 +237,13 @@ class CooperativeGame(SageObject):
         cf = self.char_fun
         pv = self.payoff_vector
         print "A Co-operative Game with %s players" % np
-        print "It's Characteristic Function is %s" % cf
+        print "Characteristic Function is"
+        for key in cf:
+            print "\t %s : %s" %(key, cf[key])
         if pv is False:
-            print "And it has no Payoff Vector"
+            print "And it has no payoff vector"
         else:
-            print "And its Payoff Vector is %s" % pv
+            print "Payoff vector is %s" % pv
 
     def is_efficient(self):
         r"""

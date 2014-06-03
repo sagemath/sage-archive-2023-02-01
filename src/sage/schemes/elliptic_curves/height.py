@@ -925,7 +925,7 @@ class EllipticCurveCanonicalHeight:
             sage: alpha
             1.12272013439355
 
-        Compare with `\log(\eps_v)=0.344562...` in [CPS]_::
+        Compare with `\log(\epsilon_v)=0.344562...` in [CPS]_::
 
             sage: 3*alpha.log()
             0.347263296676126

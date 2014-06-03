@@ -227,3 +227,27 @@ class CooperativeGame(SageObject):
             print "And it has no Payoff Vector"
         else:
             print "And its Payoff Vector is %s" % pv
+
+    def is_efficient(self):
+        r"""
+        Returns True if the current payoff_vector is efficient.
+        """
+        if sum(self.payoff_vector) == self.char_fun[tuple(self.player_list)]:
+            return True
+        else:
+            return False
+
+    def is_nullplayer(self):
+        r"""
+        Returns True if the current payoff_vector possesses the null player property.
+        """
+
+    def is_symmetry(self):
+        r"""
+        Returns True if the current payoff_vector ipossesses the symmetry property.
+        """
+
+    def is_additivity(self):
+        r"""
+        Returns True if the current payoff_vector possesses the additivity property.
+        """

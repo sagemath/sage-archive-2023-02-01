@@ -39,8 +39,6 @@ class CooperativeGame(SageObject):
                 the empty set, they must all end with a comma.
         * Value - A real number representing each set of players contribution.
 
-    - player_list - a list of all the players.
-
     - payoff_vector - default = ``False``, a list can be passed instead but
                       this will be overwritten if shapley_value is called.
 
@@ -55,7 +53,7 @@ class CooperativeGame(SageObject):
         ....:                     (1, 3,): 42,
         ....:                     (2, 3,): 42,
         ....:                     (1, 2, 3,): 42}
-        sage: integer_game = CooperativeGame(integer_function, [1, 2, 3])
+        sage: integer_game = CooperativeGame(integer_function)
 
     We can also use strings instead of numbers. ::
 
@@ -67,13 +65,13 @@ class CooperativeGame(SageObject):
         ....:                    ('A', 'C',): 42,
         ....:                    ('B', 'C',): 42,
         ....:                    ('A', 'B', 'C',): 42}
-        sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
+        sage: letter_game = CooperativeGame(letter_function)
     """
 
-    def __init__(self, characteristic_function, player_list, payoff_vector=False):
+    def __init__(self, characteristic_function, payoff_vector=False):
         self.char_fun = characteristic_function
-        self.number_players = len(player_list)
-        self.player_list = player_list
+        self.player_list = list(characteristic_function.keys()[-1])
+        self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
 
     def shapley_value(self):
@@ -91,7 +89,9 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3,): 42,
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
-            sage: test_game = CooperativeGame(test_function, [1, 2, 3])
+            sage: test_game = CooperativeGame(test_function)
+            sage: test_game.player_list
+            [1, 2, 3]
             sage: test_game.payoff_vector
             False
             sage: print test_game.shapley_value()
@@ -134,7 +134,7 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3,): 42,
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
-            sage: test_game = CooperativeGame(test_function, [1, 2, 3])
+            sage: test_game = CooperativeGame(test_function)
             sage: test_game.is_superadditive()
             False
 
@@ -148,7 +148,7 @@ class CooperativeGame(SageObject):
             ....:               (1, 3,): 48,
             ....:               (2, 3,): 55,
             ....:               (1, 2, 3,): 80}
-            sage: A_game = CooperativeGame(A_function, [1, 2, 3])
+            sage: A_game = CooperativeGame(A_function)
             sage: A_game.is_superadditive()
             True
         """
@@ -206,7 +206,7 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'], [14, 14, 14])
+            sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
             sage: letter_game.show()
             A Co-operative Game with 3 players
             It's Characteristic Function is {('A',): 6, ('B', 'C'): 42, (): 0, ('C',): 42, ('A', 'B'): 12, ('B',): 12, ('A', 'C'): 42, ('A', 'B', 'C'): 42}

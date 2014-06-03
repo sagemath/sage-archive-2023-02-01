@@ -662,9 +662,7 @@ two_pi_i_CIF = CIF(0, 2*RIF.pi())
 
 def rat_term_CIF(z, try_strict=True):
     r"""
-    Compute the value of `u/(1-u)^2` in CIF.
-
-    Here, `\text{rat_term}(z) = u/(1-u)^2` where `u=\exp(2\pi i z)`.
+    Compute the value of `u/(1-u)^2` in ``CIF``, where `u=\exp(2\pi i z)`.
 
     INPUT:
 
@@ -1601,7 +1599,7 @@ class EllipticCurveCanonicalHeight:
     @cached_method
     def wp_on_grid(self, v, N, half=False):
         r"""
-        Returns an array of the values of `\wp` on an `N\time N` grid.
+        Return an array of the values of `\wp` on an `N\times N` grid.
 
         INPUT:
 

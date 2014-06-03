@@ -42,7 +42,8 @@ class CooperativeGame(SageObject):
                       this will be overwritten if shapley_value is called.
 
     EXAMPLES::
-    Basic example of how to implement a co-operative game. ::
+    Basic example of how to implement a co-operative game. These functions will
+    be used repeatedly in other examples. ::
 
         sage: integer_function = {(): 0,
         ....:                     (1,): 6,
@@ -80,7 +81,7 @@ class CooperativeGame(SageObject):
         EXAMPLES::
         A typical example of the use of shapley_value. ::
 
-            sage: test_function = {(): 0,
+            sage: integer_function = {(): 0,
             ....:                  (1,): 6,
             ....:                  (2,): 12,
             ....:                  (3,): 42,
@@ -88,14 +89,14 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3,): 42,
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
-            sage: test_game = CooperativeGame(test_function)
-            sage: test_game.player_list
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.player_list
             [1, 2, 3]
-            sage: test_game.payoff_vector
+            sage: integer_game.payoff_vector
             False
-            sage: test_game.shapley_value()
+            sage: integer_game.shapley_value()
             [2, 5, 35]
-            sage: test_game.payoff_vector
+            sage: integer_game.payoff_vector
             [2, 5, 35]
         """
         payoff_vector = []
@@ -109,6 +110,21 @@ class CooperativeGame(SageObject):
     def is_monotone(self):
         r"""
         Returns True if co-operative game is monotonic.
+
+        EXAMPLES::
+        Shows the use of is_monotone on a simple game. ::
+
+            sage: integer_function = {(): 0,
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.is_monotone()
+            True
         """
         sets = list(self.char_fun.keys())
         for i, k in permutations(sets, 2):
@@ -125,7 +141,7 @@ class CooperativeGame(SageObject):
         EXAMPLES::
         An exmple that returns False. ::
 
-            sage: test_function = {(): 0,
+            sage: integer_function = {(): 0,
             ....:                  (1,): 6,
             ....:                  (2,): 12,
             ....:                  (3,): 42,
@@ -133,8 +149,8 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3,): 42,
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
-            sage: test_game = CooperativeGame(test_function)
-            sage: test_game.is_superadditive()
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.is_superadditive()
             False
 
         An exmple that returns True. ::
@@ -230,6 +246,21 @@ class CooperativeGame(SageObject):
     def is_efficient(self):
         r"""
         Returns True if the current payoff_vector is efficient.
+
+        EXAMPLES::
+        An efficient payoff_vector.::
+
+            sage: letter_function = {(): 0,
+            ....:                    ('A',): 6,
+            ....:                    ('B',): 12,
+            ....:                    ('C',): 42,
+            ....:                    ('A', 'B',): 12,
+            ....:                    ('A', 'C',): 42,
+            ....:                    ('B', 'C',): 42,
+            ....:                    ('A', 'B', 'C',): 42}
+            sage: letter_game = CooperativeGame(letter_function, [14, 14, 14])
+            sage: letter_game.is_efficient()
+            True
         """
         if sum(self.payoff_vector) == self.char_fun[tuple(self.player_list)]:
             return True
@@ -239,6 +270,20 @@ class CooperativeGame(SageObject):
     def is_nullplayer(self):
         r"""
         Returns True if the current payoff_vector possesses the null player property.
+
+        EXAMPLES::
+
+            sage: integer_function = {(): 0,
+            ....:                     (1,): 6,
+            ....:                     (2,): 12,
+            ....:                     (3,): 42,
+            ....:                     (1, 2,): 12,
+            ....:                     (1, 3,): 42,
+            ....:                     (2, 3,): 42,
+            ....:                     (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function, [2, 5, 35])
+            sage: integer_game.is_symmetry()
+            True
         """
         sets = list(self.char_fun.keys())
         element = [i for i in sets if len(i) == 1]
@@ -263,7 +308,21 @@ class CooperativeGame(SageObject):
 
     def is_symmetry(self):
         r"""
-        Returns True if the current payoff_vector ipossesses the symmetry property.
+        Returns True if the current payoff_vector possesses the symmetry property.
+
+        EXAMPLES::
+
+            sage: integer_function = {(): 0,
+            ....:                     (1,): 6,
+            ....:                     (2,): 12,
+            ....:                     (3,): 42,
+            ....:                     (1, 2,): 12,
+            ....:                     (1, 3,): 42,
+            ....:                     (2, 3,): 42,
+            ....:                     (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function, [2, 5, 35])
+            sage: integer_game.is_symmetry()
+            True
         """
         sets = list(self.char_fun.keys())
         element = [i for i in sets if len(i) == 1]

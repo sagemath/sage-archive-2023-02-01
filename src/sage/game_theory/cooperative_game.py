@@ -246,7 +246,7 @@ class CooperativeGame(SageObject):
         status = True
         for j in element:
             for k in other:
-                union = tuple(set(j) | set(k))
+                union = tuple(sorted(set(j) | set(k)))
                 if self.char_fun[union] == self.char_fun[j]:
                     pass
                 else:

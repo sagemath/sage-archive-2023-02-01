@@ -123,6 +123,14 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if co-operative game is superadditive.
         """
+        sets = list(self.char_fun.keys())
+        for i, k in permutations(sets, 2):
+            j = tuple(set(i) | set(k))
+            if self.char_fun[j] < self.char_fun[i] + self.char_fun[k]:
+                return False
+            else:
+                pass
+        return True
 
     def marginal_contributions(self, player):
         contributions = []

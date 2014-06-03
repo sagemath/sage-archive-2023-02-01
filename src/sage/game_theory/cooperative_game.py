@@ -64,6 +64,7 @@ class CooperativeGame():
         self.char_fun = characteristic_function
         self.number_players = len(player_list)
         self.player_list = player_list
+        self.payoff_vector = False
 
     def shapley_value(self):
         r"""
@@ -74,6 +75,7 @@ class CooperativeGame():
             player_contribution = self.marginal_contributions(i)
             average = sum(player_contribution) / len(player_contribution)
             payoff_vector.append(average)
+        self.payoff_vector = payoff_vector
         return payoff_vector
 
     def is_monotone():

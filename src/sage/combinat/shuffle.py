@@ -128,9 +128,9 @@ class SetShuffleProduct(SageObject):
                 if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
                     self._element_constructor = e.parent()._element_constructor_
                 else:
-                    self._element_constructor = list
+                    self._element_constructor_ = list
             except StopIteration:
-                self._element_constructor = list
+                self._element_constructor_ = list
 
     def _repr_(self):
         """
@@ -268,7 +268,7 @@ class ShuffleProduct(SageObject):
             if hasattr(l1, "parent") and hasattr(l1.parent(), "_element_constructor_"):
                 self._element_constructor = l1.parent()._element_constructor_
             else:
-                self._element_constructor = list
+                self._element_constructor_ = list
         else:
             self._element_constructor = element_constructor
 

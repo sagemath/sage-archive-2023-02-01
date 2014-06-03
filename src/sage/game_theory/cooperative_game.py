@@ -2,8 +2,7 @@ r"""
 Co-operative games with N players.
 
 This module implements characteristic function cooperative games.
-The main contribution is a class for a characteristic function game
-that takes a characteristic function (as a dictionary) as an input.
+The main contribution is a class for a characteristic function game.
 Methods to calculate the Shapley value (a fair way of sharing common
 resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
 test properties of the game (monotonicity, super additivity) are also included.

@@ -147,6 +147,30 @@ class CooperativeGame(SageObject):
                 play_and_pred.append(k)
 
     def show(self):
+        r"""
+        EXAMPLES::
+        Typical use of the show function.::
+
+            sage: letter_function = {(): 0,
+            ....:                  ('A',): 6,
+            ....:                  ('B',): 12,
+            ....:                  ('C',): 42,
+            ....:                  ('A', 'B',): 12,
+            ....:                  ('A', 'C',): 42,
+            ....:                  ('B', 'C',): 42,
+            ....:                  ('A', 'B', 'C',): 42}
+            sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'], [14, 14, 14])
+            sage: letter_game.show()
+            A Co-operative Game with 3 players
+            It's Characteristic Function is {('A',): 6, ('B', 'C'): 42, (): 0, ('C',): 42, ('A', 'B'): 12, ('B',): 12, ('A', 'C'): 42, ('A', 'B', 'C'): 42}
+            And its Payoff Vector is [14, 14, 14]
+            sage: letter_game.shapley_value()
+            [2, 5, 35]
+            sage: letter_game.show()
+            A Co-operative Game with 3 players
+            It's Characteristic Function is {('A',): 6, ('B', 'C'): 42, (): 0, ('C',): 42, ('A', 'B'): 12, ('B',): 12, ('A', 'C'): 42, ('A', 'B', 'C'): 42}
+            And its Payoff Vector is [2, 5, 35]
+        """
         np = self.number_players
         cf = self.char_fun
         pv = self.payoff_vector

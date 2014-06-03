@@ -22,7 +22,7 @@ AUTHOR::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from itertools import permutations
+from itertools import permutations, combinations
 from sage.structure.sage_object import SageObject
 
 
@@ -242,7 +242,7 @@ class CooperativeGame(SageObject):
         """
         sets = list(self.char_fun.keys())
         element = [i for i in sets if len(i) == 1]
-        other = [i for i in sets if len(i) > 1]
+        other = [i for i in sets if len(i) > 0]
         status = True
         for j in element:
             for k in other:
@@ -255,7 +255,7 @@ class CooperativeGame(SageObject):
 
             if status is False:
                 pass
-            elif status is True and self.char_fun[j] == 0:
+            elif self.char_fun[j] == 0:
                 pass
             else:
                 return False
@@ -265,6 +265,27 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if the current payoff_vector ipossesses the symmetry property.
         """
+        sets = list(self.char_fun.keys())
+        element = [i for i in sets if len(i) == 1]
+        other = [i for i in sets if len(i) > 0]
+        status = True
+        for j, k in combinations(element, 2):
+            for m in other:
+                junion = tuple(set(j) | set(m))
+                kunion = tuple(set(k) | set(m))
+                if self.char_fun[junion] == self.char_fun[kunion]:
+                    pass
+                else:
+                    status = False
+                    break
+
+            if status is False:
+                pass
+            elif self.char_fun[j] == self.char_fun[k]:
+                pass
+            else:
+                return False
+        return True
 
     def is_additivity(self):
         r"""

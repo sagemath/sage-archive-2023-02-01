@@ -199,9 +199,6 @@ __ http://wiki.sagemath.org/combinat
   of files
 - ``--coverageall`` -- give summary info about doctest coverage of
   all files in the Sage library
-- ``--sync-build`` -- delete any files in :file:`$SAGE_ROOT/devel/sage/build/`
-  which don't have a corresponding source file in
-  :file:`$SAGE_ROOT/devel/sage/sage/`
 
 .. rubric:: Documentation
 

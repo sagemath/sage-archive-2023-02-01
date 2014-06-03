@@ -677,15 +677,16 @@ class Projection(SageObject):
             sage: p.show.__doc__ == render_2d.__doc__
             True
         """
-        self.dimension = len(self.transformed_coords[0])
+        ambiant_dimension = len(self.transformed_coords[0])
 
-        if self.dimension == 2:
+        if ambiant_dimension == 2:
             self.show = lambda **kwds: render_2d(self,**kwds)
             self.show.__doc__ = render_2d.__doc__
-        elif self.dimension == 3:
+        elif ambiant_dimension == 3:
             self.show = lambda **kwds: render_3d(self,**kwds)
             self.show.__doc__ = render_3d.__doc__
         else:
+            self.dimension = ambiant_dimension
             try:
                 del self.show
             except AttributeError:
@@ -707,7 +708,7 @@ class Projection(SageObject):
             of a polyhedron into 2 dimensions>
         """
         assert polyhedron.ambient_dim() == 2, "Requires polyhedron in 2d"
-        self.dimension = 2
+        self.dimension = polyhedron.dim()
         self._init_points(polyhedron)
         self._init_lines_arrows(polyhedron)
         self._init_area_2d(polyhedron)
@@ -728,7 +729,7 @@ class Projection(SageObject):
             of a polyhedron into 3 dimensions>
         """
         assert polyhedron.ambient_dim() == 3, "Requires polyhedron in 3d"
-        self.dimension = 3
+        self.dimension = polyhedron.dim()
         self._init_points(polyhedron)
         self._init_lines_arrows(polyhedron)
         self._init_solid_3d(polyhedron)
@@ -1290,6 +1291,15 @@ class Projection(SageObject):
                 z={(-0.739905cm, -0.192276cm)},
             sage: open('polytope-tikz3.tex', 'w').write(Image)    # not tested
 
+            sage: p = Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
+            sage: proj = p.projection()
+            sage: Img = proj.tikz([1,1,1],130,axis=True)
+            sage: print '\n'.join(Img.splitlines()[21:25])
+            %% Drawing the interior
+            %%
+            \fill[facet] (1.00, 0.000, 0.000) -- (0.000, 0.000, 1.00) -- (0.000, 1.00, 0.000) -- cycle {};
+            %%
+
         .. NOTE::
 
             The ``facet_color`` is the filing color of the polytope (polygon).
@@ -1407,6 +1417,22 @@ class Projection(SageObject):
                 y={(-0.243536cm, 0.519228cm)},
                 z={(0.968782cm, 0.170622cm)},
             sage: open('polytope-tikz1.tex', 'w').write(Image)    # not tested
+
+            sage: Associahedron = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
+            sage: ImageAsso = Associahedron.projection().tikz([-15,-755,-655], 116, scale=1)
+            sage: print '\n'.join(ImageAsso.splitlines()[29:41])
+            %% Drawing edges in the back
+            %%
+            \draw[edge,back] (-0.500, -0.500, -0.500) -- (-1.00, 0.000, 0.000);
+            \draw[edge,back] (-0.500, -0.500, -0.500) -- (0.000, -1.00, 0.000);
+            \draw[edge,back] (-0.500, -0.500, -0.500) -- (0.000, 0.000, -1.00);
+            \draw[edge,back] (-1.00, 0.000, 0.000) -- (-1.00, 0.000, 1.00);
+            \draw[edge,back] (-1.00, 0.000, 0.000) -- (-1.00, 1.00, 0.000);
+            \draw[edge,back] (0.000, -1.00, 0.000) -- (0.000, -1.00, 1.00);
+            \draw[edge,back] (0.000, -1.00, 0.000) -- (1.00, -1.00, 0.000);
+            \draw[edge,back] (0.000, 0.000, -1.00) -- (0.000, 1.00, -1.00);
+            \draw[edge,back] (0.000, 0.000, -1.00) -- (1.00, 0.000, -1.00);
+            %%
         """
         view_vector = vector(RDF, view)
         rot = rotate_arbitrary(view_vector, -(angle/360)*2*pi)
@@ -1466,7 +1492,7 @@ class Projection(SageObject):
 
             H_v1 = set(self.parent_polyhedron.Vrepresentation(index1).incident())
             H_v2 = set(self.parent_polyhedron.Vrepresentation(index2).incident())
-            H_v12 = [h for h in H_v1.intersection(H_v2) if h in back_facets]
+            H_v12 = [h for h in H_v1.intersection(H_v2) if facets.index(h) in back_facets]
 
             # The back edge has to be between two vertices in the Back
             # AND such that the 2 facets touching them are in the Back

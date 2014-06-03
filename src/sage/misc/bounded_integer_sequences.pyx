@@ -131,10 +131,9 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
     cdef __mpz_struct *S_boil
     S_boil = <__mpz_struct*>S.data
     cdef mp_limb_t item_limb, *tmp_limb
-    S_boil._mp_size = (((len(data)*S.itembitsize)-1)>>times_mp_bits_per_limb)+1
-    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    tmp_limb = <mp_limb_t*>sage_malloc(sizeof(mp_limb_t))
     if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate two long integers")
+        raise MemoryError("Cannot even allocate one long integer")
     cdef int offset_mod, offset_div
     cdef int offset = 0
     if not data:
@@ -144,16 +143,15 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL:
         offset_mod = offset&mod_mp_bits_per_limb
         offset_div = offset>>times_mp_bits_per_limb
         if offset_mod:
-            tmp_limb[1] = mpn_lshift(tmp_limb, &item_limb, 1, offset_mod)
-            if offset_div < S_boil._mp_size:
-                S_boil._mp_d[offset_div] |= tmp_limb[0]
-                S_boil._mp_d[offset_div+1] = tmp_limb[1]
-            else:
-                S_boil._mp_d[offset_div] |= tmp_limb[0]
+            S_boil._mp_d[offset_div+1] = mpn_lshift(tmp_limb, &item_limb, 1, offset_mod)
+            S_boil._mp_d[offset_div] |= tmp_limb[0]
         else:
-            tmp_limb[0] = item_limb
-            S_boil._mp_d[offset_div] = tmp_limb[0]
+            S_boil._mp_d[offset_div] = item_limb
         offset += S.itembitsize
+    if offset_mod and S_boil._mp_d[offset_div+1]:
+        S_boil._mp_size = offset_div+2
+    else:
+        S_boil._mp_size = offset_div+1
     sage_free(tmp_limb)
     return &S
 
@@ -379,7 +377,7 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
     - A pointer to the resulting bounded integer sequence, or NULL on error.
 
     """
-    cdef unsigned long int length, length1
+    cdef unsigned long int length, total_shift, n
     if step>0:
         if stop>start:
             length = ((stop-start-1)//step)+1
@@ -392,40 +390,61 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             length = ((stop-start+1)//step)+1
     cdef biseq_t out
     out = deref(allocate_biseq(length, S.itembitsize))
-    cdef mpz_t tmp
+    cdef unsigned int offset_mod, offset_div, limb_size
+    total_shift = start*S.itembitsize
     if step==1:
-        sig_on()
-        mpz_init_set(tmp, S.data)
-        sig_off()
-        mpz_fdiv_q_2exp(tmp, tmp, start*S.itembitsize)
-        mpz_fdiv_r_2exp(out.data, tmp, out.bitsize)
-        mpz_clear(tmp)
+        # allocate_biseq allocates one limb more than strictly needed. This is
+        # enough to shift a limb* array directly to its ._mp_d field.
+        offset_mod = total_shift&mod_mp_bits_per_limb
+        offset_div = total_shift>>times_mp_bits_per_limb
+        limb_size = ((offset_mod+out.bitsize-1)>>times_mp_bits_per_limb)+1
+        mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
+        (<__mpz_struct*>(out.data))._mp_size = limb_size
+        mpz_fdiv_r_2exp(out.data, out.data, out.bitsize)
         return &out
-    cdef mpz_t item
-    sig_on()
-    mpz_init_set(tmp, S.data)
-    mpz_init2(item, S.itembitsize)
-    sig_off()
-    cdef unsigned long int bitstep
-    if step>0:
-        mpz_fdiv_q_2exp(tmp, tmp, start*S.itembitsize)
-        bitstep = out.itembitsize*step
-        for i from 0<=i<length:
-            mpz_fdiv_r_2exp(item, tmp, out.itembitsize)
-            mpz_mul_2exp(item, item, i*out.itembitsize)
-            mpz_ior(out.data, out.data, item)
-            mpz_fdiv_q_2exp(tmp, tmp, bitstep)
+
+    # Convention for variable names: We move data from *_src to *_tgt
+    # tmp_limb is used to temporarily store the data that we move/shift
+    cdef mp_limb_t *tmp_limb
+    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
+    if tmp_limb==NULL:
+        raise MemoryError("Cannot even allocate two long integers")
+    cdef int offset_mod_src, offset_div_src
+    cdef int offset_src = total_shift
+    cdef __mpz_struct *seq_src
+    seq_src = <__mpz_struct*>S.data
+    cdef int bitstep = step*S.itembitsize
+    cdef int offset_mod_tgt, offset_div_tgt
+    cdef int offset_tgt = 0
+    cdef __mpz_struct *seq_tgt
+    seq_tgt = <__mpz_struct*>out.data
+    for n from length>=n>0:
+        offset_div_src = offset_src>>times_mp_bits_per_limb
+        offset_mod_src = offset_src&mod_mp_bits_per_limb
+        offset_div_tgt = offset_tgt>>times_mp_bits_per_limb
+        offset_mod_tgt = offset_tgt&mod_mp_bits_per_limb
+        # put data from src to tmp_limb[0]
+        if offset_mod_src:
+            if offset_mod_src+S.itembitsize >= mp_bits_per_limb:
+                mpn_rshift(tmp_limb, seq_src._mp_d+offset_div_src, 2, offset_mod_src)
+            else:
+                tmp_limb[0] = (seq_src._mp_d[offset_div_src])>>offset_mod_src
+        else:
+            tmp_limb[0] = seq_src._mp_d[offset_div_src]
+        tmp_limb[0] &= S.mask_item
+        # put data from tmp_limb[0] to tgt
+        if offset_mod_tgt:
+            seq_tgt._mp_d[offset_div_tgt+1] = mpn_lshift(tmp_limb, tmp_limb, 1, offset_mod_tgt)
+            seq_tgt._mp_d[offset_div_tgt]  |= tmp_limb[0]
+        else:
+            seq_tgt._mp_d[offset_div_tgt] = tmp_limb[0]
+        offset_tgt += S.itembitsize
+        offset_src += bitstep
+    if offset_mod_tgt and seq_tgt._mp_d[offset_div_tgt+1]:
+        seq_tgt._mp_size = offset_div_tgt+2
     else:
-        bitstep = out.itembitsize*(-step)
-        length1 = length-1
-        mpz_fdiv_q_2exp(tmp, tmp, (start+length1*step)*S.itembitsize)
-        for i from 0<=i<length:
-            mpz_fdiv_r_2exp(item, tmp, out.itembitsize)
-            mpz_mul_2exp(item, item, (length1-i)*out.itembitsize)
-            mpz_ior(out.data, out.data, item)
-            mpz_fdiv_q_2exp(tmp, tmp, bitstep)
-    mpz_clear(tmp)
-    mpz_clear(item)
+        seq_tgt._mp_size = offset_div_tgt+1
+    sage_free(tmp_limb)
     return &out
 
 ###########################################
@@ -574,7 +593,7 @@ cdef class BoundedIntegerSequence:
         False
         sage: len(S) == len(T)
         True
-        sage: list(S)> list(T) # direct lexicographic ordering is different
+        sage: list(S) > list(T) # direct lexicographic ordering is different
         True
 
     TESTS:

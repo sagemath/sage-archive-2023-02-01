@@ -20,10 +20,17 @@ EXAMPLES::
      An inequality (1, -0.5773502691896258?) x + 0 >= 0, 
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
 """
+#*****************************************************************************
+#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-from sage.rings.all import ZZ, QQ
-from sage.rings.integer import LCM_list
-from sage.matrix.constructor import matrix
+
 from base import Polyhedron_base
 
 
@@ -182,7 +189,7 @@ class Polyhedron_field(Polyhedron_base):
 
     def _init_Vrepresentation_backend(self, Vrep):
         """
-        Create the V-representation objects from the ppl polyhedron.
+        Create the V-representation objects from the double description.
 
         EXAMPLES::
 
@@ -209,7 +216,7 @@ class Polyhedron_field(Polyhedron_base):
 
     def _init_Hrepresentation_backend(self, Hrep):
         """
-        Create the H-representation objects from the ppl polyhedron.
+        Create the H-representation objects from the double description.
 
         EXAMPLES::
 

@@ -41,6 +41,9 @@ class CooperativeGame(SageObject):
 
     - player_list - a list of all the players.
 
+    - payoff_vector - default = ``False``, a list can be passed instead but
+                      this will be overwritten if shapley_value is called.
+
     EXAMPLES::
     Basic example of how to implement a co-operative game. ::
 
@@ -67,11 +70,11 @@ class CooperativeGame(SageObject):
         sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
     """
 
-    def __init__(self, characteristic_function, player_list):
+    def __init__(self, characteristic_function, player_list, payoff_vector=False):
         self.char_fun = characteristic_function
         self.number_players = len(player_list)
         self.player_list = player_list
-        self.payoff_vector = False
+        self.payoff_vector = payoff_vector
 
     def shapley_value(self):
         r"""
@@ -89,7 +92,11 @@ class CooperativeGame(SageObject):
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
             sage: test_game = CooperativeGame(test_function, [1, 2, 3])
+            sage: test_game.payoff_vector
+            False
             sage: print test_game.shapley_value()
+            [2, 5, 35]
+            sage: test_game.payoff_vector
             [2, 5, 35]
         """
         payoff_vector = []

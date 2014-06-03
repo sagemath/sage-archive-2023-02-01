@@ -93,7 +93,7 @@ class CooperativeGame(SageObject):
             [1, 2, 3]
             sage: test_game.payoff_vector
             False
-            sage: print test_game.shapley_value()
+            sage: test_game.shapley_value()
             [2, 5, 35]
             sage: test_game.payoff_vector
             [2, 5, 35]
@@ -240,6 +240,26 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if the current payoff_vector possesses the null player property.
         """
+        sets = list(self.char_fun.keys())
+        element = [i for i in sets if len(i) == 1]
+        other = [i for i in sets if len(i) > 1]
+        status = True
+        for j in element:
+            for k in other:
+                union = tuple(set(j) | set(k))
+                if self.char_fun[union] == self.char_fun[j]:
+                    pass
+                else:
+                    status = False
+                    break
+
+            if status is False:
+                pass
+            elif status is True and self.char_fun[j] == 0:
+                pass
+            else:
+                return False
+        return True
 
     def is_symmetry(self):
         r"""

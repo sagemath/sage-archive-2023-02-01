@@ -24,39 +24,50 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import permutations
+from sage.structure.sage_object import SageObject
 
 
-class CooperativeGame():
+class CooperativeGame(SageObject):
+    r"""
+    An object representing a co-operative game. Primarily used to compute the
+    Shapley Value, but can also provide other information.
+
+    INPUT:
+
+    - characteristic_function - a dictionary containing all possible sets of players.
+        * Key - Each set must be entered as a tuple, not a string. Apart from
+                the empty set, they must all end with a comma.
+        * Value - A real number representing each set of players contribution.
+
+    - player_list - a list of all the players.
+
+    EXAMPLES::
+    Basic example of how to implement a co-operative game. ::
+
+        sage: integer_function = {(): 0,
+        ....:                  (1,): 6,
+        ....:                  (2,): 12,
+        ....:                  (3,): 42,
+        ....:                  (1, 2,): 12,
+        ....:                  (1, 3,): 42,
+        ....:                  (2, 3,): 42,
+        ....:                  (1, 2, 3,): 42}
+        sage: integer_game = CooperativeGame(integer_function, [1, 2, 3])
+
+    We can also use strings instead of numbers. ::
+
+        sage: letter_function = {(): 0,
+        ....:                  ('A',): 6,
+        ....:                  ('B',): 12,
+        ....:                  ('C',): 42,
+        ....:                  ('A', 'B',): 12,
+        ....:                  ('A', 'C',): 42,
+        ....:                  ('B', 'C',): 42,
+        ....:                  ('A', 'B', 'C',): 42}
+        sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
+    """
+
     def __init__(self, characteristic_function, player_list):
-        r"""
-        An object representing a co-operative game. Primarily used to solve
-        problems, but can also provide other information.
-
-        EXAMPLES::
-        Basic example of how to implement a co-operative game. ::
-
-            sage: test_function = {(): 0,
-            ....:                  ('1',): 6,
-            ....:                  ('2',): 12,
-            ....:                  ('3',): 42,
-            ....:                  ('1', '2',): 12,
-            ....:                  ('1', '3',): 42,
-            ....:                  ('2', '3',): 42,
-            ....:                  ('1', '2', '3',): 42}
-            sage: test_game = CooperativeGame(test_function, ['1', '2', '3'])
-
-        We can also use strings instead of numbers. ::
-
-            sage: letter_function = {(): 0,
-            ....:                  ('A',): 6,
-            ....:                  ('B',): 12,
-            ....:                  ('C',): 42,
-            ....:                  ('A', 'B',): 12,
-            ....:                  ('A', 'C',): 42,
-            ....:                  ('B', 'C',): 42,
-            ....:                  ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, ['A', 'B', 'C'])
-        """
         self.char_fun = characteristic_function
         self.number_players = len(player_list)
         self.player_list = player_list
@@ -70,14 +81,14 @@ class CooperativeGame():
         A typical example of the use of shapley_value. ::
 
             sage: test_function = {(): 0,
-            ....:                  ('1',): 6,
-            ....:                  ('2',): 12,
-            ....:                  ('3',): 42,
-            ....:                  ('1', '2',): 12,
-            ....:                  ('1', '3',): 42,
-            ....:                  ('2', '3',): 42,
-            ....:                  ('1', '2', '3',): 42}
-            sage: test_game = CooperativeGame(test_function, ['1', '2', '3'])
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: test_game = CooperativeGame(test_function, [1, 2, 3])
             sage: print test_game.shapley_value()
             [2, 5, 35]
         """

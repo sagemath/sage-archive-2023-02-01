@@ -2087,24 +2087,15 @@ class ClusterSeed(SageObject):
         n = self.n()
         pairs = [(i, j) for i in mut_class for j in mut_class if i != j]
         for (i, j) in pairs:
+            B = i.b_matrix()
             for k in range(n):
-                B = i.b_matrix()
-                count = 0
-                green = False
-                for i2 in range(n, 2 * n):
-                    if B[i2][k] <= 0:
-                        count += 1
+                count = len([i2 for i2 in range(n, 2 * n) if B[i2][k] <= 0])
                 green = (count == n)
-                S1 = i
-                NewS1 = S1.mutate(k, inplace=False)
+                NewS1 = i.mutate(k, inplace=False)
                 Var1 = [NewS1.cluster_variable(k) for k in range(n)]
                 Var1.sort()
                 Var2 = [j.cluster_variable(k) for k in range(n)]
                 Var2.sort()
-                P_Res_NewS1 = NewS1.exchangeable_part()
-                P_Res_S2 = j.exchangeable_part()
-                New_P_Res_NewS1 = P_Res_NewS1.quiver().digraph()
-                New_P_Res_s2 = P_Res_S2.quiver().digraph()
                 if Var1 == Var2 and green and (i, j) not in covers:
                     covers.append((i, j))
 

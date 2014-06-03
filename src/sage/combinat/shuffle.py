@@ -10,8 +10,8 @@ That could be defined inductively by:
 .. MATH::
 
     (a_n)_{n \geqslant 0} \Cup (b_m)_{m \geqslant 0} =
-    a_0 \cdot \left((a_n)_{n \geqslant 1} \Cup (b_m)_{m \geqslant 0}\right)
-    + b_0 \cdot \left((a_n)_{n \geqslant 0} \Cup (b_m)_{m \geqslant 1}\right)
+    a_0 \cdot \left((a_n)_{n \geqslant 1} \Cup (b_m)_{m \geqslant 0}\right)
+    + b_0 \cdot \left((a_n)_{n \geqslant 0} \Cup (b_m)_{m \geqslant 1}\right)
 
 with `(a_n)` and `(b_m)` two non-empty sequences and if one of them is empty
 then the product is equals to the other.

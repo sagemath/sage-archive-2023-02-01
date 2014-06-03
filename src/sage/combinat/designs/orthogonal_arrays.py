@@ -259,15 +259,15 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(None, 1)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when n=1.
+        ValueError: there are no bound on k when 0<=n<=1
     """
     # Is k is None we find the largest available
     if k is None:
-        if n == 1:
+        if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when n=1.")
+            raise ValueError("there are no bound on k when 0<=n<=1")
 
         k = orthogonal_array(None,n,existence=True)
         if existence:
@@ -713,7 +713,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(4,2)
         Traceback (most recent call last):
         ...
-        EmptySetError: No Orthogonal Array exists when k>=n+t except when n=1
+        EmptySetError: No Orthogonal Array exists when k>=n+t except when n<=1
         sage: designs.orthogonal_array(12,20)
         Traceback (most recent call last):
         ...
@@ -738,11 +738,16 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(None,1)
         Traceback (most recent call last):
         ...
-        ValueError: there are no bound on k when n=1.
+        ValueError: there are no bound on k when 0<=n<=1
         sage: designs.orthogonal_array(None,14,existence=True)
         6
         sage: designs.orthogonal_array(16,1)
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+    when `t>2` and `k=None`::
+
+        sage: designs.orthogonal_array(None,5,t=3,existence=True)
+        1
     """
 
     from sage.rings.finite_rings.constructor import FiniteField
@@ -752,15 +757,17 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     # If k is set to None we find the largest value available
     if k is None:
-        if n == 1:
+        if n == 0 or n == 1:
             if existence:
                 from sage.rings.infinity import Infinity
                 return Infinity
-            raise ValueError("there are no bound on k when n=1.")
-
-        for k in range(1,n+2):
-            if not orthogonal_array(k+1,n,existence=True):
-                break
+            raise ValueError("there are no bound on k when 0<=n<=1")
+        elif t == 2 and projective_plane(n,existence=True):
+            k = n+1
+        else:
+            for k in range(1,n+2):
+                if not orthogonal_array(k+1,n,t=t,existence=True):
+                    break
         if existence:
             return k
 
@@ -777,7 +784,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         # i.e. k<n+t.
         if existence:
             return False
-        raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n=1")
+        raise EmptySetError("No Orthogonal Array exists when k>=n+t except when n<=1")
 
     elif k == t:
         if existence:

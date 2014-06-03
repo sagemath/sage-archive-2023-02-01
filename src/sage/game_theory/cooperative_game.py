@@ -107,12 +107,19 @@ class CooperativeGame(SageObject):
         self.payoff_vector = payoff_vector
         return payoff_vector
 
-    def is_monotone():
+    def is_monotone(self):
         r"""
         Returns True if co-operative game is monotonic.
         """
+        sets = list(self.char_fun.keys())
+        for i, k in permutations(sets, 2):
+            if set(i) <= set(k) and self.char_fun[i] > self.char_fun[k]:
+                return False
+            else:
+                pass
+        return True
 
-    def is_superadditive():
+    def is_superadditive(self):
         r"""
         Returns True if co-operative game is superadditive.
         """

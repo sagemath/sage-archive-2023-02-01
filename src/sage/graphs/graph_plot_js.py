@@ -57,11 +57,14 @@ Authors:
   Initial version of the Sage code,
   Javascript code, using examples from `d3.js <http://d3js.org/>`_.
 
+- Thierry Monteil (June 2014): allow offline use of d3.js provided by d3js spkg.
+
 Functions
 ---------
 """
 from sage.misc.temporary_file import tmp_filename
 from sage.plot.colors import rainbow
+import os
 
 #*****************************************************************************
 #       Copyright (C) 2013 Nathann Cohen <nathann.cohen@gmail.com>
@@ -264,10 +267,24 @@ def gen_html_code(G,
                                    "vertex_size": int(vertex_size),
                                    "edge_thickness": int(edge_thickness)})
 
-    from sage.env import SAGE_EXTCODE
+    from sage.env import SAGE_EXTCODE, SAGE_SHARE
     js_code_file = open(SAGE_EXTCODE+"/graphs/graph_plot_js.html", 'r')
-    js_code = js_code_file.read().replace("// HEREEEEEEEEEEE", string)
+    js_code = js_code_file.read().replace("// GRAPH_DATA_HEREEEEEEEEEEE", string)
     js_code_file.close()
+
+    # Add d3.js depending on wether spkg is installed.
+    d3js_filepath = os.path.join(SAGE_SHARE, 'd3js', 'd3.min.js')
+    if os.path.exists(d3js_filepath):
+        with open(d3js_filepath, 'r') as d3js_code_file:
+            d3js_script = '<script>' + d3js_code_file.read() + '</script>'
+    else:
+        from warnings import warn
+        warn("The script d3.js will be fetched from the web. You might "
+                "consider installing the optional d3js package with the Sage "
+                "command ``install_package('d3js')`` or by running "
+                "``sage -i d3js`` from the command line.")
+        d3js_script = '<script src="http://d3js.org/d3.v3.min.js"></script>'
+    js_code = js_code.replace('// D3JS_SCRIPT_HEREEEEEEEEEEE', d3js_script)
 
     # Writes the temporary .html file
     filename = tmp_filename(ext='.html')

@@ -24,6 +24,7 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.structure.element import Element
 from sage.sets.family import Family
 from sage.rings.all import ZZ, QQ
+from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
 from sage.combinat.root_system.plot import PlotOptions, barycentric_projection_matrix
@@ -483,6 +484,33 @@ class RootLatticeRealizations(Category_over_base_ring):
                 return self.simple_roots()
 
         @cached_method
+        def basic_imaginary_roots(self):
+            r"""
+            Return the basic imaginary roots of ``self``.
+
+            The basic imaginary roots `\delta` are the set of imaginary roots
+            in `-C^{\vee}` where `C` is the dominant chamger (i.e.,
+            `\langle \beta, \alpha_i^{\vee} \rangle \leq 0` for all `i \in I`).
+            All imaginary roots are `W`-conjugate to a simple imaginary root.
+
+            EXAMPLES::
+
+                sage: RootSystem(['A', 2]).root_lattice().basic_imaginary_roots()
+                ()
+                sage: Q = RootSystem(['A', 2, 1]).root_lattice()
+                sage: Q.basic_imaginary_roots()
+                (alpha[0] + alpha[1] + alpha[2],)
+                sage: delta = Q.basic_imaginary_roots()[0]
+                sage: all(delta.scalar(Q.simple_coroot(i)) <= 0 for i in Q.index_set())
+                True
+            """
+            if self.cartan_type().is_finite():
+                return ()
+            if self.cartan_type().is_affine():
+                return (self.null_root(),)
+            raise ValueError("only implemented for finite and affine types")
+
+        @cached_method
         def simple_roots_tilde(self):
             r"""
             Return the family `(\tilde\alpha_i)_{i\in I}` of the simple roots.
@@ -533,15 +561,14 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def roots(self):
             """
-            Returns the roots of self.
+            Return the roots of ``self``.
 
             EXAMPLES::
 
                 sage: RootSystem(['A',2]).ambient_lattice().roots()
                 [(1, -1, 0), (1, 0, -1), (0, 1, -1), (-1, 1, 0), (-1, 0, 1), (0, -1, 1)]
 
-
-            This matches with http://en.wikipedia.org/wiki/Root_systems::
+            This matches with :wikipedia:`Root_systems`::
 
                 sage: for T in CartanType.samples(finite = True, crystallographic = True):
                 ...       print "%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots()))
@@ -560,36 +587,110 @@ class RootLatticeRealizations(Category_over_base_ring):
                 ['F', 4]  48  48
                 ['G', 2]  12  12
 
-            .. todo:: the result should be an enumerated set, and handle infinite root systems
+            .. TODO::
+
+                The result should be an enumerated set, and handle
+                infinite root systems.
             """
+            if not self.cartan_type().is_finite():
+                from sage.sets.disjoint_union_enumerated_sets \
+                                import DisjointUnionEnumeratedSets
+                D =  DisjointUnionEnumeratedSets([self.positive_roots(),
+                                                  self.negative_roots()])
+                D.rename("All roots of type {}".format(self.cartan_type()))
+                return D
+
             return list(self.positive_roots()) + list(self.negative_roots())
 
+        def short_roots(self):
+            """
+            Return a list of the short roots of ``self``.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['B',3]).root_lattice()
+                sage: sorted(L.short_roots())
+                [-alpha[1] - alpha[2] - alpha[3],
+                 alpha[1] + alpha[2] + alpha[3],
+                 -alpha[2] - alpha[3],
+                 alpha[2] + alpha[3],
+                 -alpha[3],
+                 alpha[3]]
+            """
+            if not self.cartan_type().is_finite():
+                raise NotImplementedError("only implemented for finite Cartan types")
+            return filter(lambda x: x.is_short_root(), self.roots())
+
+        def long_roots(self):
+            """
+            Return a list of the long roots of ``self``.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['B',3]).root_lattice()
+                sage: sorted(L.long_roots())
+                [-alpha[1], -alpha[1] - 2*alpha[2] - 2*alpha[3],
+                 -alpha[1] - alpha[2], -alpha[1] - alpha[2] - 2*alpha[3],
+                 alpha[1], alpha[1] + alpha[2],
+                 alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[1] + 2*alpha[2] + 2*alpha[3], -alpha[2],
+                 -alpha[2] - 2*alpha[3], alpha[2], alpha[2] + 2*alpha[3]]
+            """
+            if not self.cartan_type().is_finite():
+                raise NotImplementedError("only implemented for finite Cartan types")
+            return filter(lambda x: x.is_long_root(), self.roots())
+
         @cached_method
-        def positive_roots(self, index_set = None):
+        def positive_roots(self, index_set=None):
             r"""
             Return the positive roots of ``self``.
 
-            If ``index_set`` is not None, returns the positive roots of the parabolic subsystem
-            with simple roots in ``index_set``.
+            If ``index_set`` is not ``None``, returns the positive roots of
+            the parabolic subsystem with simple roots in ``index_set``.
+
+            Algorithm for finite type: generate them from the simple roots by
+            applying successive reflections toward the positive chamber.
 
             EXAMPLES::
 
                 sage: L = RootSystem(['A',3]).root_lattice()
                 sage: sorted(L.positive_roots())
-                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
+                [alpha[1], alpha[1] + alpha[2],
+                 alpha[1] + alpha[2] + alpha[3], alpha[2],
+                 alpha[2] + alpha[3], alpha[3]]
                 sage: sorted(L.positive_roots((1,2)))
                 [alpha[1], alpha[1] + alpha[2], alpha[2]]
                 sage: sorted(L.positive_roots(()))
                 []
 
-            Algorithm: generate them from the simple roots by applying
-            successive reflections toward the positive chamber.
+                sage: L = RootSystem(['A',3,1]).root_lattice()
+                sage: PR = L.positive_roots(); PR
+                Disjoint union of Family (Positive real roots of type ['A', 3, 1],
+                    Positive imaginary roots of type ['A', 3, 1])
+                sage: [PR.unrank(i) for i in range(10)]
+                [alpha[1],
+                 alpha[2],
+                 alpha[3],
+                 alpha[1] + alpha[2],
+                 alpha[2] + alpha[3],
+                 alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
             """
+            if self.cartan_type().is_affine():
+                from sage.sets.disjoint_union_enumerated_sets \
+                                import DisjointUnionEnumeratedSets
+                return DisjointUnionEnumeratedSets([self.positive_real_roots(),
+                                                    self.positive_imaginary_roots()])
             if not self.cartan_type().is_finite():
-                raise NotImplementedError("Only implemented for finite Cartan type")
+                raise NotImplementedError("Only implemented for finite and"
+                                          " affine Cartan types")
             if index_set is None:
                 index_set = tuple(self.cartan_type().index_set())
-            return TransitiveIdealGraded(attrcall('pred', index_set=index_set), [self.simple_root(i) for i in index_set])
+            return TransitiveIdealGraded(attrcall('pred', index_set=index_set),
+                                         [self.simple_root(i) for i in index_set])
 
         @cached_method
         def nonparabolic_positive_roots(self, index_set = None):
@@ -638,6 +739,129 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             """
             return self.sum(self.nonparabolic_positive_roots(index_set))
+
+        def positive_real_roots(self):
+            """
+            Return the positive real roots of ``self``.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A',3]).root_lattice()
+                sage: sorted(L.positive_real_roots())
+                [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3],
+                 alpha[2], alpha[2] + alpha[3], alpha[3]]
+
+                sage: L = RootSystem(['A',3,1]).root_lattice()
+                sage: PRR = L.positive_real_roots(); PRR
+                Positive real roots of type ['A', 3, 1]
+                sage: [PRR.unrank(i) for i in range(10)]
+                [alpha[1],
+                 alpha[2],
+                 alpha[3],
+                 alpha[1] + alpha[2],
+                 alpha[2] + alpha[3],
+                 alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + 2*alpha[1] + alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + 2*alpha[2] + alpha[3],
+                 alpha[0] + alpha[1] + alpha[2] + 2*alpha[3],
+                 alpha[0] + 2*alpha[1] + 2*alpha[2] + alpha[3]]
+
+                sage: Q = RootSystem(['A',4,2]).root_lattice()
+                sage: PR = Q.positive_roots()
+                sage: [PR.unrank(i) for i in range(5)]
+                [alpha[1],
+                 alpha[2],
+                 2*alpha[1] + alpha[2],
+                 alpha[1] + alpha[2],
+                 alpha[0] + alpha[1] + alpha[2]]
+
+                sage: Q = RootSystem(['D',3,2]).root_lattice()
+                sage: PR = Q.positive_roots()
+                sage: [PR.unrank(i) for i in range(5)]
+                [alpha[1],
+                 alpha[2],
+                 alpha[1] + 2*alpha[2],
+                 alpha[1] + alpha[2],
+                 alpha[0] + alpha[1] + 2*alpha[2]]
+            """
+            if self.cartan_type().is_finite():
+                return tuple(TransitiveIdealGraded(attrcall('pred'), self.simple_roots()))
+            if not self.cartan_type().is_affine():
+                raise NotImplementedError("only implemented for finite and affine Cartan types")
+
+            from sage.combinat.cartesian_product import CartesianProduct
+            from sage.combinat.root_system.root_system import RootSystem
+            from sage.sets.positive_integers import PositiveIntegers
+            from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+
+            Q = RootSystem(self.cartan_type().classical()).root_space(self.base_ring())
+
+            # Start with the classical positive roots
+            alpha = self.simple_roots()
+            def lift(x):
+                """
+                Lift up the classical element into ``self``.
+                """
+                return self.sum(c*alpha[i] for i,c in x)
+            P = Family(Q.positive_real_roots(), lift)
+
+            # Add all of the delta shifts
+            delta = self.null_root()
+            if self.cartan_type().is_untwisted_affine():
+                C = CartesianProduct(PositiveIntegers(), Q.roots())
+                F = Family(C, lambda x: lift(x[1]) + x[0]*delta)
+                D = DisjointUnionEnumeratedSets([P, F])
+            elif self.cartan_type().type() == 'BC' or self.cartan_type().dual().type() == 'BC':
+                Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
+                Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
+                Fs = Family(Cl, lambda x: (lift(x[1]) + (2*x[0]-1)*delta) / 2)
+                Fm = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
+                Fl = Family(Cl, lambda x: lift(x[1]) + 2*x[0]*delta)
+                D = DisjointUnionEnumeratedSets([P, Fs, Fm, Fl])
+            else: # Other twisted types
+                Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
+                Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
+                Fs = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
+                if self.cartan_type().dual() == 'G': # D_4^3
+                    k = 3
+                else:
+                    k = 2
+                Fl = Family(Cl, lambda x: lift(x[1]) + x[0]*k*delta)
+                D = DisjointUnionEnumeratedSets([P, Fs, Fl])
+
+            # Return the final union
+            D.rename("Positive real roots of type {}".format(self.cartan_type()))
+            return D
+
+        def positive_imaginary_roots(self):
+            """
+            Return the positive imaginary roots of ``self``.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A',3]).root_lattice()
+                sage: L.positive_imaginary_roots()
+                ()
+
+                sage: L = RootSystem(['A',3,1]).root_lattice()
+                sage: PIR = L.positive_imaginary_roots(); PIR
+                Positive imaginary roots of type ['A', 3, 1]
+                sage: [PIR.unrank(i) for i in range(5)]
+                [alpha[0] + alpha[1] + alpha[2] + alpha[3],
+                 2*alpha[0] + 2*alpha[1] + 2*alpha[2] + 2*alpha[3],
+                 3*alpha[0] + 3*alpha[1] + 3*alpha[2] + 3*alpha[3],
+                 4*alpha[0] + 4*alpha[1] + 4*alpha[2] + 4*alpha[3],
+                 5*alpha[0] + 5*alpha[1] + 5*alpha[2] + 5*alpha[3]]
+            """
+            if self.cartan_type().is_finite():
+                return ()
+            if not self.cartan_type().is_affine():
+                raise NotImplementedError("only implemented for finite and affine Cartan types")
+            from sage.sets.positive_integers import PositiveIntegers
+            delta = self.null_root()
+            F = Family(PositiveIntegers(), lambda x: x*delta)
+            F.rename("Positive imaginary roots of type {}".format(self.cartan_type()))
+            return F
 
         @cached_method
         def positive_roots_by_height(self, increasing = True):
@@ -695,7 +919,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted(lattice.positive_roots_parabolic(), key=str)
                 [alpha[1], alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3], alpha[2], alpha[2] + alpha[3], alpha[3]]
 
-            .. warning::
+            .. WARNING::
 
                 This returns an error if the Cartan type is not finite.
             """
@@ -731,7 +955,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: lattice.positive_roots_nonparabolic((1,2,3))
                 []
 
-            .. warning::
+            .. WARNING::
 
                 This returns an error if the Cartan type is not finite.
 
@@ -765,7 +989,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: lattice.positive_roots_nonparabolic_sum((1,2,3))
                 0
 
-            .. warning::
+            .. WARNING::
 
                 This returns an error if the Cartan type is not finite.
 
@@ -2343,8 +2567,11 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
                 Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
                 Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
-                sage: [(line.options()['rgbcolor'], line.options()['thickness']) for line in p]
-                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('black', 2), ('blue', 1), ('black', 2), ('red', 1), ('black', 2), ('red', 1), ('black', 2), ('blue', 1)]
+                sage: sorted((line.options()['rgbcolor'], line.options()['thickness']) for line in p)
+                [('black', 2), ('black', 2), ('black', 2),
+                 ('black', 2), ('black', 2), ('black', 2),
+                 ('blue', 1), ('blue', 1), ('blue', 1),
+                 ('red', 1), ('red', 1), ('red', 1)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):
@@ -2661,6 +2888,82 @@ class RootLatticeRealizations(Category_over_base_ring):
                 ...
                 NotImplementedError: <abstract method scalar at ...>
             """
+
+        def symmetric_form(self, alpha):
+            r"""
+            Return the symmetric form of ``self`` with ``alpha``.
+
+            Consider the simple roots `\alpha_i` and let `(b_{ij})_{ij}`
+            denote the symmetrized Cartan matrix `(a_{ij})_{ij}`, we have
+
+            .. MATH::
+
+                (\alpha_i | \alpha_j) = b_{ij}
+
+            and extended bilinearly. See Chapter 6 in Kac, Infinite
+            Dimensional Lie Algebras for more details.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alpha[1].symmetric_form(alpha[0])
+                0
+                sage: alpha[1].symmetric_form(alpha[1])
+                4
+                sage: elt = alpha[0] - 3*alpha[1] + alpha[2]
+                sage: elt.symmetric_form(alpha[1])
+                -14
+                sage: elt.symmetric_form(alpha[0]+2*alpha[2])
+                14
+                sage: Q = RootSystem(CartanType(['A',4,2]).dual()).root_lattice()
+                sage: Qc = RootSystem(['A',4,2]).coroot_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alphac = Qc.simple_roots()
+                sage: elt = alpha[0] + 2*alpha[1] + 2*alpha[2]
+                sage: eltc = alphac[0] + 2*alphac[1] + 2*alphac[2]
+                sage: elt.symmetric_form(alpha[1])
+                0
+                sage: eltc.symmetric_form(alphac[1])
+                0
+            """
+            cm = self.parent().dynkin_diagram().cartan_matrix()
+            sym = cm.symmetrized_matrix()
+            iset = self.parent().index_set()
+            return sum(cl*sym[iset.index(ml),iset.index(mr)]*cr
+                       for ml,cl in self for mr,cr in alpha)
+
+        def norm_squared(self):
+            """
+            Return the norm squared of ``self`` with respect to the
+            symmetric form.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alpha[1].norm_squared()
+                4
+                sage: alpha[2].norm_squared()
+                2
+                sage: elt = alpha[0] - 3*alpha[1] + alpha[2]
+                sage: elt.norm_squared()
+                50
+                sage: elt = alpha[0] + alpha[1] + 2*alpha[2]
+                sage: elt.norm_squared()
+                0
+                sage: Q = RootSystem(CartanType(['A',4,2]).dual()).root_lattice()
+                sage: Qc = RootSystem(['A',4,2]).coroot_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alphac = Qc.simple_roots()
+                sage: elt = alpha[0] + 2*alpha[1] + 2*alpha[2]
+                sage: eltc = alphac[0] + 2*alphac[1] + 2*alphac[2]
+                sage: elt.norm_squared()
+                0
+                sage: eltc.norm_squared()
+                0
+            """
+            return self.symmetric_form(self)
 
         ##########################################################################
         # Action and orbits w.r.t. the Weyl group
@@ -3419,7 +3722,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def is_short_root(self):
             r"""
-            Is ``self`` a short root?
+            Return ``True`` if ``self`` is a short (real) root.
 
             Returns False unless the parent is an irreducible root system of finite type
             having two root lengths and ``self`` is of the shorter length.
@@ -3439,12 +3742,23 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(['A',2]).root_lattice().simple_root(1).is_short_root()
                 False
 
+            An example in affine type::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alpha[0].is_short_root()
+                False
+                sage: alpha[1].is_short_root()
+                False
+                sage: alpha[2].is_short_root()
+                True
             """
             ct = self.parent().cartan_type()
             if not ct.is_irreducible():
                 raise ValueError("Cartan type needs to be irreducible!")
             if not ct.is_finite():
-                raise NotImplementedError("Implemented only for irreducible finite root systems")
+                return self.norm_squared() == min(alpha.norm_squared()
+                                                  for alpha in self.parent().simple_roots())
             L = self.parent().root_system.ambient_space() # uses peculiarities of ambient embedding
             ls = L(self)
             return ls.scalar(ls) < L._maximum_root_length()
@@ -3462,3 +3776,62 @@ class RootLatticeRealizations(Category_over_base_ring):
             #if ct.type() == 'C' or ct.type() == 'G':
             #    return True
             #return False
+
+        def is_long_root(self):
+            """
+            Return ``True`` if ``self`` is a long (real) root.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alpha[0].is_long_root()
+                True
+                sage: alpha[1].is_long_root()
+                True
+                sage: alpha[2].is_long_root()
+                False
+            """
+            alpha = self.parent().simple_roots()
+            norm_sq = self.norm_squared()
+            return max(sroot.norm_squared() for sroot in alpha) == norm_sq \
+                   and all(c * alpha[i].norm_squared() / norm_sq in ZZ for i,c in self)
+
+        def is_imaginary_root(self):
+            r"""
+            Return ``True`` if ``self`` is an imaginary root.
+
+            A root `\alpha` is imaginary if it is not `W` conjugate
+            to a simple root where `W` is the corresponding Weyl group.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alpha[0].is_imaginary_root()
+                False
+                sage: elt = alpha[0] + alpha[1] + 2*alpha[2]
+                sage: elt.is_imaginary_root()
+                True
+            """
+            return self.norm_squared() <= 0
+
+        def is_real_root(self):
+            r"""
+            Return ``True`` if ``self`` is a real root.
+
+            A root `\alpha` is real if it is `W` conjugate to a simple
+            root where `W` is the corresponding Weyl group.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['B',2,1]).root_lattice()
+                sage: alpha = Q.simple_roots()
+                sage: alpha[0].is_real_root()
+                True
+                sage: elt = alpha[0] + alpha[1] + 2*alpha[2]
+                sage: elt.is_real_root()
+                False
+            """
+            return self.norm_squared() > 0
+

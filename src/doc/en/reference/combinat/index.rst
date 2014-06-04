@@ -34,6 +34,7 @@ Combinatorics
    sage/combinat/perfect_matching
    sage/combinat/six_vertex_model
    sage/combinat/tamari_lattices
+   sage/combinat/interval_posets
    sage/combinat/yang_baxter_graph
 
 **Compositions**

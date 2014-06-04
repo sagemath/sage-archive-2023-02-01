@@ -2129,7 +2129,7 @@ def SetToPath(T):
         sage: SetToPath(PathSubset(4,4))
         [1, 0, 3, 2, 5, 4, 7, 6]
     """
-    n = (max(T)+1)/2
+    n = (max(T)+1) // 2
     ans = [1]
     for i in range(n-1):
         if 2*i in T:

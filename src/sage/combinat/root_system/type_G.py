@@ -152,6 +152,28 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
     AmbientSpace = AmbientSpace
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['G',2]).coxeter_number()
+            6
+        """
+        return 6
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['G',2]).dual_coxeter_number()
+            4
+        """
+        return 4
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type G.

@@ -349,6 +349,7 @@ AUTHORS:
 
 
 import os
+from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
 ## surprisingly long time to initialize itself.  It's better if it is

@@ -1689,7 +1689,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
             3 2 5 4 6 8 7 10 9 1 0
         """
         zeroes = filter(lambda x: x > 0, self._parent._zeroes)
-        zeroes = map(lambda x: x/2, zeroes)
+        zeroes = map(lambda x: x//2, zeroes)
 
         n = self._parent._zeroes.count(0)
         g = self._parent._genus

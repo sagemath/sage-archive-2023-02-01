@@ -28,4 +28,5 @@ section) for their help.
    algebraic_combinatorics/walks
    algebraic_combinatorics/n_cube
    algebraic_combinatorics/tsetlin_library
+   algebraic_combinatorics/rsk.rst
 

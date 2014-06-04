@@ -107,7 +107,7 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
 
 
     ## Organize these vectors by length (and also introduce their negatives)
-    max_len = vec_len/2
+    max_len = vec_len // 2
     vector_list_by_length = [[]  for _ in range(max_len + 1)]
     for v in vector_list:
         l = self(v)

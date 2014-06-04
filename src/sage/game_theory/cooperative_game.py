@@ -157,7 +157,8 @@ class CooperativeGame(SageObject):
                 raise TypeError("Key must be a tuple")
 
         self.ch_f = characteristic_function
-        self.player_list = list(characteristic_function.keys()[-1])
+        #self.player_list = list(characteristic_function.keys()[-1])
+        self.player_list = list(max(characteristic_function.keys(), key = lambda key : len(key)))
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
 
@@ -199,7 +200,7 @@ class CooperativeGame(SageObject):
         Returns True if co-operative game is monotonic.
 
         EXAMPLES::
-        Shows the use of is_monotone on a simple game. ::
+        Shows the use of is_monotone on a simple game that is monotone. ::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -212,6 +213,20 @@ class CooperativeGame(SageObject):
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.is_monotone()
             True
+
+        Shows the use of is_monotone for a game that is not monotone. ::
+
+            sage: integer_function = {(): 0,
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 10,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.is_monotone()
+            False
         """
         sets = list(self.ch_f.keys())
         return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
@@ -252,20 +267,16 @@ class CooperativeGame(SageObject):
         """
         sets = list(self.ch_f.keys())
         for p1, p2 in permutations(sets, 2):
-            if set(p1) & set(p2) != set():
-                pass
-            else:
-                j = tuple(sorted(list(set(p1) | set(p2))))
-                if self.ch_f[j] < self.ch_f[p1] + self.ch_f[p2]:
+            if set(p1) & set(p2) == set():
+                union = tuple(sorted(list(set(p1) | set(p2))))
+                if self.ch_f[union] < self.ch_f[p1] + self.ch_f[p2]:
                     return False
-                else:
-                    pass
         return True
 
     def marginal_contributions(self, player):
         contributions = []
-        for i in permutations(self.player_list):
-            contributions.append(self.marginal_of_pi(player, i))
+        for pi in permutations(self.player_list):
+            contributions.append(self.marginal_of_pi(player, pi))
         return contributions
 
     def marginal_of_pi(self, player, pi):
@@ -294,7 +305,7 @@ class CooperativeGame(SageObject):
     def show(self):
         r"""
         EXAMPLES::
-        Typical use of the show function.::
+        Typical use of the show function with a given Payoff Vector.::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -317,6 +328,9 @@ class CooperativeGame(SageObject):
                  ('A', 'C') : 42
                  ('A', 'B', 'C') : 42
             Payoff vector is {'A': 14, 'C': 14, 'B': 14}
+
+        Typical use of the show function with after calculating the Shapley value.::
+
             sage: letter_game.shapley_value()
             {'A': 2, 'C': 35, 'B': 5}
             sage: letter_game.show()
@@ -362,11 +376,21 @@ class CooperativeGame(SageObject):
             sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
             sage: letter_game.is_efficient()
             True
+
+            sage: letter_function = {(): 0,
+            ....:                    ('A',): 6,
+            ....:                    ('B',): 12,
+            ....:                    ('C',): 42,
+            ....:                    ('A', 'B',): 12,
+            ....:                    ('A', 'C',): 42,
+            ....:                    ('B', 'C',): 42,
+            ....:                    ('A', 'B', 'C',): 42}
+            sage: letter_game = CooperativeGame(letter_function)
+            sage: letter_game.payoff_vector = {'A': 10, 'B': 14, 'C': 14}
+            sage: letter_game.is_efficient()
+            False
         """
-        if sum(self.payoff_vector.values()) == self.ch_f[tuple(self.player_list)]:
-            return True
-        else:
-            return False
+        return sum(self.payoff_vector.values()) == self.ch_f[tuple(self.player_list)]
 
     def nullplayer(self):
         r"""

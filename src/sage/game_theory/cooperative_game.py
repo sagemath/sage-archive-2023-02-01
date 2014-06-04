@@ -79,7 +79,7 @@ class CooperativeGame(SageObject):
         sage: letter_game.is_superadditive()
         False
 
-    The show function will give us basic information about the game. ::
+    The show function will display basic information about the game. ::
 
         sage: letter_game.show()
         A Co-operative Game with 3 players
@@ -94,14 +94,24 @@ class CooperativeGame(SageObject):
              ('A', 'B', 'C') : 42
         Payoff vector is {'A': 2, 'C': 35, 'B': 5}
 
-    Finally, we can test 3 basic properties of the Payoff Vector. They are
+    We can test 3 basic properties of the Payoff Vector. They are
         * Is it is efficient?
         * Does it possess the nullplayer property?
-        * Does it possesss the symmetry property?
+        * Does it possess the symmetry property?
     ::
 
         sage: letter_game.is_efficient()
         True
+        sage: letter_game.nullplayer()
+        True
+        sage: letter_game.symmetry()
+        True
+
+    Any Payoff Vector can be passed to the game and these properties can once again be tested:
+
+        sage: letter_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
+        sage: letter_game.is_efficient()
+        False
         sage: letter_game.nullplayer()
         True
         sage: letter_game.symmetry()
@@ -136,6 +146,8 @@ class CooperativeGame(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: Key must be a tuple
+
+        The above test failed as `(1)` is not read as a tuple.
         """
         if type(characteristic_function) is not dict:
             raise TypeError("Characteristic function must be a dictionary")
@@ -202,12 +214,8 @@ class CooperativeGame(SageObject):
             True
         """
         sets = list(self.ch_f.keys())
-        for p1, p2 in permutations(sets, 2):
-            if set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]:
-                return False
-            else:
-                pass
-        return True
+        return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
+                                        for p1, p2 in permutations(sets, 2)])
 
     def is_superadditive(self):
         r"""

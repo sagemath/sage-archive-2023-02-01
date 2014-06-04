@@ -300,9 +300,9 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
+            sage: letter_game = CooperativeGame(letter_function, {'A': 0, 'B': 14, 'C': 14})
             sage: letter_game.nullplayer()
-            [('A',)]
+            True
 
         A payoff_vector that returns False. ::
 
@@ -316,7 +316,7 @@ class CooperativeGame(SageObject):
             ....:               (1, 2, 3,): 55}
             sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
             sage: A_game.nullplayer()
-            []
+            True
         """
         sets = list(self.char_fun.keys())
         player = [(i,) for i in self.player_list if self.char_fun[(i,)] == 0]
@@ -330,7 +330,12 @@ class CooperativeGame(SageObject):
                 nulls.append(k)
             else:
                 pass
-        return nulls
+        for i in nulls:
+            if self.payoff_vector[i[0]] != 0:
+                return False
+            else:
+                pass
+        return True
 
     def is_symmetry(self):
         r"""

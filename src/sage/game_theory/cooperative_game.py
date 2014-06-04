@@ -100,10 +100,10 @@ class CooperativeGame(SageObject):
             {1: 2, 2: 5, 3: 35}
         """
         payoff_vector = {}
-        for i in self.player_list:
-            player_contribution = self.marginal_contributions(i)
+        for player in self.player_list:
+            player_contribution = self.marginal_contributions(player)
             average = sum(player_contribution) / len(player_contribution)
-            payoff_vector[i] = average
+            payoff_vector[player] = average
         self.payoff_vector = payoff_vector
         return payoff_vector
 

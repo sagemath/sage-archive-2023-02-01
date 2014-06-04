@@ -132,7 +132,8 @@ class CooperativeGame(SageObject):
             TypeError: Characteristic function must be a dictionary
 
         This test checks that an error is raised when a key in the
-        Characteristic Function is not a tuple. ::
+        Characteristic Function is not a tuple. It fails because `(1)`
+        is not a tuple, `(1,)` is however. ::
 
             sage: tuple_function = {(): 0,
             ....:                  (1): 6,
@@ -147,7 +148,18 @@ class CooperativeGame(SageObject):
             ...
             TypeError: Key must be a tuple
 
-        The above test failed as `(1)` is not read as a tuple.
+        A test to ensure that the Characteristic Function is the power
+        set (ie all possible coalitions). ::
+
+            sage: simple_function = {(): 0,
+            ....:                  (1): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: simple_game = CooperativeGame(simple_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: Characteristic Function must be the power set
         """
         if type(characteristic_function) is not dict:
             raise TypeError("Characteristic function must be a dictionary")

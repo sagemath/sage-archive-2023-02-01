@@ -1252,6 +1252,11 @@ def _plot(funcs, xrange, parametric=False,
         1
         sage: p1.show(ymin=-10,ymax=10) # should be one legend
 
+    Parametric plots that get evaluated at invalid points should still
+    plot properly (:trac:`13246`)::
+
+        sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
+
     """
 
     from sage.plot.misc import setup_for_eval_on_grid
@@ -1348,16 +1353,23 @@ def _plot(funcs, xrange, parametric=False,
         if abs(data[i+1][0] - data[i][0]) > 2*abs(xmax - xmin)/plot_points:
             exclude.append((data[i][0] + data[i+1][0])/2)
 
-    # We set exclude back to None if there are no points to be excluded
-    if exclude == []:
-        exclude = None
-    else:
-        exclude = sorted(exclude)
-
     if parametric:
         # We need the original x-values to be able to exclude points in parametric plots
         exclude_data = data
-        data = [(fdata, g(x)) for x, fdata in data]
+        newdata = []
+        for x,fdata in data:
+            try:
+                newdata.append((fdata, g(x)))
+            except ValueError:
+                newdata.append((fdata, 0)) # append a dummy value 0
+                exclude.append(x)
+        data = newdata
+
+    # We set exclude back to None if there are no points to be excluded
+    if not exclude:
+        exclude = None
+    else:
+        exclude.sort()
 
     G = Graphics()
 

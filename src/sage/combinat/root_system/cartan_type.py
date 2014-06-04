@@ -105,8 +105,6 @@ mathematical properties::
     sage: T.is_finite(), T.is_simply_laced(), T.is_affine(), T.is_crystallographic()
     (True, True, False, True)
 
-It will eventually include Coxeter numbers, etc.
-
 In particular, a Sage Cartan type is endowed with a fixed choice of
 labels for the nodes of the Dynkin diagram. This choice follows the
 conventions of Nicolas Bourbaki, Lie Groups and Lie Algebras: Chapter 4-6,
@@ -1788,6 +1786,43 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
         """
 
+    @abstract_method
+    def basic_untwisted(self):
+        r"""
+        Return the basic untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic untwisted type is `X_n`.
+        In other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 1, 1]).basic_untwisted()
+            ['A', 1]
+            sage: CartanType(['A', 3, 1]).basic_untwisted()
+            ['A', 3]
+            sage: CartanType(['B', 3, 1]).basic_untwisted()
+            ['B', 3]
+            sage: CartanType(['E', 6, 1]).basic_untwisted()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).basic_untwisted()
+            ['G', 2]
+
+            sage: CartanType(['A', 2, 2]).basic_untwisted()
+            ['A', 2]
+            sage: CartanType(['A', 4, 2]).basic_untwisted()
+            ['A', 4]
+            sage: CartanType(['A', 11, 2]).basic_untwisted()
+            ['A', 11]
+            sage: CartanType(['D', 5, 2]).basic_untwisted()
+            ['D', 5]
+            sage: CartanType(['E', 6, 2]).basic_untwisted()
+            ['E', 6]
+            sage: CartanType(['D', 4, 3]).basic_untwisted()
+            ['D', 4]
+        """
+
     def row_annihilator(self, m = None):
         r"""
         Return the unique minimal non trivial annihilating linear
@@ -2290,6 +2325,42 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         """
         return CartanType([self.letter, self.n, 1])
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        The Coxeter number is the order of a Coxeter element of the
+        corresponding Weyl group.
+
+        See Bourbaki, Lie Groups and Lie Algebras V.6.1 or
+        :wikipedia:`Coxeter_element` for more information.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).coxeter_number()
+            5
+            sage: CartanType(['B',4]).coxeter_number()
+            8
+            sage: CartanType(['C',4]).coxeter_number()
+            8
+        """
+        return sum(self.affine().a())
+
+    def dual_coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A',4]).dual_coxeter_number()
+            5
+            sage: CartanType(['B',4]).dual_coxeter_number()
+            7
+            sage: CartanType(['C',4]).dual_coxeter_number()
+            5
+        """
+        return sum(self.affine().acheck())
+
     def type(self):
         """
         Returns the type of ``self``.
@@ -2510,6 +2581,30 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
             ['G', 2]
         """
         return CartanType([self.letter,self.n])
+
+    def basic_untwisted(self):
+        r"""
+        Return the basic_untwisted Cartan type associated with this affine
+        Cartan type.
+
+        Given an affine type `X_n^{(r)}`, the basic_untwisted type is `X_n`. In
+        other words, it is the classical Cartan type that is twisted to
+        obtain ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['A', 1, 1]).basic_untwisted()
+            ['A', 1]
+            sage: CartanType(['A', 3, 1]).basic_untwisted()
+            ['A', 3]
+            sage: CartanType(['B', 3, 1]).basic_untwisted()
+            ['B', 3]
+            sage: CartanType(['E', 6, 1]).basic_untwisted()
+            ['E', 6]
+            sage: CartanType(['G', 2, 1]).basic_untwisted()
+            ['G', 2]
+        """
+        return self.classical()
 
     def is_untwisted_affine(self):
         """

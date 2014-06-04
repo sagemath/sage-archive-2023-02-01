@@ -1688,7 +1688,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
             0 1 2 3 4 5 6 7 8 9 10
             3 2 5 4 6 8 7 10 9 1 0
         """
-        zeroes = [x/2 for x in self._parent._zeroes if x > 0]
+        zeroes = [x//2 for x in self._parent._zeroes if x > 0]
 
         n = self._parent._zeroes.count(0)
         g = self._parent._genus

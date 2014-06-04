@@ -619,7 +619,7 @@ class KRTableauxTypeVertical(KirillovReshetikhinTableaux):
 
         # Step 3 - Add the final column
         if c > -1:
-            val = (self._r + x - 1) / 2
+            val = (self._r + x - 1) // 2
             temp_list = [-x - j for j in range(self._r - val)]
             for j in range(val):
                 temp_list.append(val - j)
@@ -1366,7 +1366,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
         """
         if i == 0: # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.epsilon(self, i)
-        return KirillovReshetikhinTableauxElement.epsilon(self, i) / 2
+        return KirillovReshetikhinTableauxElement.epsilon(self, i) // 2
 
     def phi(self, i):
         r"""
@@ -1382,7 +1382,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
         """
         if i == 0: # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.phi(self, i)
-        return KirillovReshetikhinTableauxElement.phi(self, i) / 2
+        return KirillovReshetikhinTableauxElement.phi(self, i) // 2
 
     @cached_method
     def to_array(self, rows=True):

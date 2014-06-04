@@ -428,7 +428,7 @@ class Chain_class(ModuleElement):
             if v.degree() == 0:
                 return AsciiArt(['0'])
             v = str(v.column()).splitlines()
-            return AsciiArt(v, baseline=len(v)/2)
+            return AsciiArt(v, baseline=len(v)//2)
             
         result = []
         chain_complex = self.parent()

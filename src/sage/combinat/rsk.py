@@ -129,7 +129,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     This correspondence has been introduced in [Knu1970]_, where it has been
     referred to as "Construction A".
 
-    For more information, see Chapter 7 in [Sta1999]_.
+    For more information, see Chapter 7 in [Sta-EC2]_.
 
     We also note that integer matrices are in bijection with generalized
     permutations. In addition, we can also convert any word `w` (and any

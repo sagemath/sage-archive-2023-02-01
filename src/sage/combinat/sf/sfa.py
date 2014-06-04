@@ -222,6 +222,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import prod, uniq
 from copy import copy
+from functools import reduce
 
 
 def SymmetricFunctionAlgebra(R, basis="schur"):

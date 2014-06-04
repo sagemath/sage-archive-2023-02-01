@@ -191,6 +191,7 @@ from sage.rings.all import ZZ, QQ, FractionField, divisors
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
+from functools import reduce
 
 @cached_function
 def fq(n, q = None):

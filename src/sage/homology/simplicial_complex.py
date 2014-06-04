@@ -168,6 +168,7 @@ from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
+from functools import reduce
 lazy_import('sage.categories.category_types', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):

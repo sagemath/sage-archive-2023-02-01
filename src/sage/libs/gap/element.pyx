@@ -1203,13 +1203,19 @@ cdef class GapElement_Integer(GapElement):
             1361129467683753853853498429727072845824
             sage: large.sage()
             1361129467683753853853498429727072845824
+
+            sage: huge = libgap.eval('10^9999');  huge     # gap abbreviates very long ints
+            <integer 100...000 (10000 digits)>
+            sage: huge.sage().ndigits()
+            10000
         """
         if ring is None:
             ring = ZZ
         if self.is_C_int():
             return ring(libGAP_INT_INTOBJ(self.value))
         else:
-            return ring(str(self))
+            string = self.String().sage()
+            return ring(string)
 
 
 ############################################################################

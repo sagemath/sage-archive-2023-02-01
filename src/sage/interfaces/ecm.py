@@ -772,7 +772,7 @@ class ECM(SageObject):
             '35', '40', '45', '50', '55', '60', '65', '70', '75', '80']
         h_min = 35
         h_max = 80
-        offset = (self._B1_table_value(factor_digits, h_min, h_max) - h_min) / 5
+        offset = (self._B1_table_value(factor_digits, h_min, h_max) - h_min) // 5
         print('offset', offset)
         curve_count = curve_count_table.split()[offset]
         time = time_table.split()[offset]

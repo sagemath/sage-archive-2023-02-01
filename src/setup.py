@@ -531,8 +531,7 @@ def run_cythonize():
     ext_modules = cythonize(
         ext_modules,
         nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)),
-        build_dir = None, # Don't "cythonize out-of-tree" (cf. #14570) until
-                          # sage-clone and sage-sync-build can deal with that.
+        build_dir = 'build/cythonized',
         force=force)
 
     open(version_file, 'w').write(Cython.__version__)

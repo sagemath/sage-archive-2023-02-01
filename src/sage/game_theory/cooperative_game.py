@@ -223,7 +223,7 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3, 4): 65}
             sage: long_game = CooperativeGame(long_function)
             sage: long_game.shapley_value()
-            {1: 20, 2: 20, 3: 5, 4: 20}
+            {1: 70/3, 2: 10, 3: 25/3, 4: 70/3}
         """
         payoff_vector = {}
         for player in self.player_list:

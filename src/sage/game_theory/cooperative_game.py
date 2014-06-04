@@ -149,7 +149,7 @@ class CooperativeGame(SageObject):
             TypeError: Key must be a tuple
 
         A test to ensure that the Characteristic Function is the power
-        set (ie all possible coalitions). ::
+        set of the grand coalition (ie all possible sub-coalitions). ::
 
             sage: simple_function = {(): 0,
             ....:                  (1): 6,
@@ -169,11 +169,9 @@ class CooperativeGame(SageObject):
                 raise TypeError("Key must be a tuple")
 
         players = set(max(characteristic_function.keys(), key=lambda key: len(key)))
-        for com in chain.from_iterable(combinations(players, r) for r in range(len(players)+1)):
-            if z in characteristic_function.keys():
-                pass
-            else:
-                raise ValueError("Characteristic Function must be the power set")
+#        for com in chain.from_iterable(combinations(players, r) for r in range(len(players)+1)):
+#            if com not in characteristic_function.keys():
+#                raise ValueError("Characteristic Function must be the power set")
 
         self.ch_f = characteristic_function
         self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
@@ -439,19 +437,10 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.get_predecessors(1, (2, 3, 1))
-            [2, 3]
+            ([2, 3], [1, 2, 3])
         """
-        pred = []
-        play_and_pred = []
-        for k in permutation:
-            if k == player:
-                play_and_pred.append(k)
-                pred.sort()
-                play_and_pred.sort()
-                return pred, play_and_pred
-            else:
-                pred.append(k)
-                play_and_pred.append(k)
+        pred = list(permutation[:permutation.index(player)])
+        return sorted(pred), sorted(pred + [player])
 
     def show(self):
         r"""

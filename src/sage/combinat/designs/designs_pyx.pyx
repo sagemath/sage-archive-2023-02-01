@@ -22,7 +22,7 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     - ``k,n,t`` (integers) -- only implemented for `t=2`.
 
     - ``verbose`` (boolean) -- whether to display some information when ``OA``
-      is not an orthogona array `OA(k,n)`.
+      is not an orthogonal array `OA(k,n)`.
 
     - ``terminology`` (string) -- how to phrase the information when ``verbose =
       True``. Possible values are `"OA"`, `"MOLS"`.
@@ -39,7 +39,10 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
         sage: is_orthogonal_array(OA,8,9)
         False
         sage: is_orthogonal_array(OA,8,9,verbose=True)
-        Rows 0 and 3 are not orthogonal
+        Columns 0 and 3 are not orthogonal
+        False
+        sage: is_orthogonal_array(OA,8,9,verbose=True,terminology="MOLS")
+        Squares 0 and 3 are not orthogonal
         False
 
     TESTS::
@@ -52,13 +55,13 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
         The number of rows is 1 instead of 9^2=81
         False
         sage: is_orthogonal_array([[3]*8],8,9,verbose=True,terminology="MOLS")
-        All matrices do not have dimension n^2=9^2
+        All squares do not have dimension n^2=9^2
         False
         sage: is_orthogonal_array([[3]*7],8,9,verbose=True)
         Some row does not have length 8
         False
         sage: is_orthogonal_array([[3]*7],8,9,verbose=True,terminology="MOLS")
-        The number of matrices is not 8
+        The number of squares is not 6
         False
     """
     cdef int n2 = n*n
@@ -71,13 +74,13 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
         if len(R) != k:
             if verbose:
                 print {"OA"   : "Some row does not have length "+str(k),
-                       "MOLS" : "The number of matrices is not "+str(k)}[terminology]
+                       "MOLS" : "The number of squares is not "+str(k-2)}[terminology]
             return False
 
     if len(OA) != n2:
         if verbose:
             print {"OA"   : "The number of rows is {} instead of {}^2={}".format(len(OA),n,n2),
-                   "MOLS" : "All matrices do not have dimension n^2={}^2".format(n)}[terminology]
+                   "MOLS" : "All squares do not have dimension n^2={}^2".format(n)}[terminology]
         return False
 
     cdef int i,j,l
@@ -99,11 +102,11 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
             if x < 0 or x >= n:
                 if verbose:
                     print {"OA"   : "{} is not in the interval [0..{}]".format(x,n-1),
-                           "MOLS" : "Entry {} was expected to be in the interbal [0..{}]".format(x,n-1)}[terminology]
+                           "MOLS" : "Entry {} was expected to be in the interval [0..{}]".format(x,n-1)}[terminology]
                 sage_free(OAc)
                 return False
 
-    # A bitset to keep trac of pairs of values
+    # A bitset to keep track of pairs of values
     cdef bitset_t seen
     bitset_init(seen, n2)
 
@@ -119,8 +122,8 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
                 sage_free(OAc)
                 bitset_free(seen)
                 if verbose:
-                    print {"OA"   : "Rows {} and {} are not orthogonal".format(i,j),
-                           "MOLS" : "Matrices {} and {} are not orthogonal".format(i,j)}[terminology]
+                    print {"OA"   : "Columns {} and {} are not orthogonal".format(i,j),
+                           "MOLS" : "Squares {} and {} are not orthogonal".format(i,j)}[terminology]
                 return False
 
     sage_free(OAc)

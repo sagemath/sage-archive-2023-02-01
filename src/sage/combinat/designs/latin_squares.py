@@ -92,7 +92,7 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         sage: are_mutually_orthogonal_latin_squares([m2,m3])
         True
         sage: are_mutually_orthogonal_latin_squares([m1,m2,m3], verbose=True)
-        Matrices 0 and 2 are not orthogonal
+        Squares 0 and 2 are not orthogonal
         False
 
         sage: m = designs.mutually_orthogonal_latin_squares(8,7)

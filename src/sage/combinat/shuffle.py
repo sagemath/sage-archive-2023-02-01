@@ -121,12 +121,12 @@ class SetShuffleProduct(SageObject):
         self._l2 = list(l2)
 
         if element_constructor is not None:
-            self._element_constructor = element_constructor
+            self._element_constructor_ = element_constructor
         else:
             try:
                 e = iter(l1).next()
                 if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
-                    self._element_constructor = e.parent()._element_constructor_
+                    self._element_constructor_ = e.parent()._element_constructor_
                 else:
                     self._element_constructor_ = list
             except StopIteration:
@@ -143,8 +143,8 @@ class SetShuffleProduct(SageObject):
             Shuffle set product of: [()] and [[1, 4]]
 
         """
-        return "Shuffle set product of: %s and %s" % (self._element_constructor(self._l1),
-                                                      self._element_constructor(self._l2))
+        return "Shuffle set product of: %s and %s" % (self._element_constructor_(self._l1),
+                                                      self._element_constructor_(self._l2))
 
     def _ascii_art_(self):
         r"""
@@ -189,7 +189,7 @@ class SetShuffleProduct(SageObject):
              set([1, 3, 4])]
         """
         def shuffle_elements(pair):
-            return ShuffleProduct(*pair, element_constructor=self._element_constructor)
+            return ShuffleProduct(*pair, element_constructor=self._element_constructor_)
 
         return itertools.chain.from_iterable(
                 itertools.imap(shuffle_elements, itertools.product(self._l1, self._l2)))
@@ -266,11 +266,11 @@ class ShuffleProduct(SageObject):
 
         if element_constructor is None:
             if hasattr(l1, "parent") and hasattr(l1.parent(), "_element_constructor_"):
-                self._element_constructor = l1.parent()._element_constructor_
+                self._element_constructor_ = l1.parent()._element_constructor_
             else:
                 self._element_constructor_ = list
         else:
-            self._element_constructor = element_constructor
+            self._element_constructor_ = element_constructor
 
     def _repr_(self):
         """
@@ -371,7 +371,7 @@ class ShuffleProduct(SageObject):
         mn = m + n
         l = [0] * m + [1] * n # [0, 0 ... m times, 1, 1, 1 ... n times]
 
-        EC = self._element_constructor
+        EC = self._element_constructor_
         yield EC(self._l1 + self._l2)
 
         for _ in gen(mn, m):
@@ -397,7 +397,7 @@ class ShuffleProduct(SageObject):
             sage: [1,4,2,2,5,3] in sh
             False
         """
-        if not isinstance(iterable, type(self._element_constructor([]))):
+        if not isinstance(iterable, type(self._element_constructor_([]))):
             return False
 
         l1 = self._l1

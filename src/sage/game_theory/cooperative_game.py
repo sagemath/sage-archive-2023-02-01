@@ -24,6 +24,7 @@ AUTHOR::
 #*****************************************************************************
 from itertools import chain, permutations, combinations
 from sage.structure.sage_object import SageObject
+from sage.misc.misc import powerset
 
 
 class CooperativeGame(SageObject):
@@ -151,12 +152,12 @@ class CooperativeGame(SageObject):
         A test to ensure that the Characteristic Function is the power
         set of the grand coalition (ie all possible sub-coalitions). ::
 
-            sage: simple_function = {(): 0,
-            ....:                  (1): 6,
+            sage: incorrect_function = {(): 0,
+            ....:                  (1,): 6,
             ....:                  (2,): 12,
             ....:                  (3,): 42,
             ....:                  (1, 2, 3,): 42}
-            sage: simple_game = CooperativeGame(simple_function)
+            sage: incorrect_function = CooperativeGame(incorrect_function)
             Traceback (most recent call last):
             ...
             ValueError: Characteristic Function must be the power set
@@ -168,13 +169,12 @@ class CooperativeGame(SageObject):
             if type(key) is not tuple:
                 raise TypeError("Key must be a tuple")
 
-        players = set(max(characteristic_function.keys(), key=lambda key: len(key)))
-#        for com in chain.from_iterable(combinations(players, r) for r in range(len(players)+1)):
-#            if com not in characteristic_function.keys():
-#                raise ValueError("Characteristic Function must be the power set")
-
-        self.ch_f = characteristic_function
         self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
+        self.ch_f = characteristic_function
+
+        if sorted([tuple(coalition) for coalition in powerset(self.player_list)]) != sorted(self.ch_f.keys()):
+            raise ValueError("Characteristic Function must be the power set")
+
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
 

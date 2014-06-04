@@ -139,7 +139,7 @@ class CooperativeGame(SageObject):
         Returns True if co-operative game is superadditive.
 
         EXAMPLES::
-        An exmple that returns False. ::
+        An example that returns False. ::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -153,7 +153,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.is_superadditive()
             False
 
-        An exmple that returns True. ::
+        An example that returns True. ::
 
             sage: A_function = {(): 0,
             ....:               (1,): 6,

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+set -e
+
+[ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
+
 
 # prepare a clean directory.
 [ -d "work" ] && rm -rf "work"
@@ -24,7 +28,7 @@ fi
 
 # build and move tarball
 tar czvf "d3js-${ZIP_VERSION}.tar.gz" 'd3.min.js' 'LICENSE'
-mv "d3js-${ZIP_VERSION}.tar.gz" '../../../../upstream/'
+mv "d3js-${ZIP_VERSION}.tar.gz" "${SAGE_ROOT}/upstream/"
 
 
 # update package info

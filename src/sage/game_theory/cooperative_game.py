@@ -410,8 +410,3 @@ class CooperativeGame(SageObject):
             else:
                 pass
         return True
-
-    def is_additivity(self):
-        r"""
-        Returns True if the current payoff_vector possesses the additivity property.
-        """

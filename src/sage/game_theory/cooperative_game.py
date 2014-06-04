@@ -157,7 +157,6 @@ class CooperativeGame(SageObject):
                 raise TypeError("Key must be a tuple")
 
         self.ch_f = characteristic_function
-        #self.player_list = list(characteristic_function.keys()[-1])
         self.player_list = max(characteristic_function.keys(), key = lambda key : len(key))
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector

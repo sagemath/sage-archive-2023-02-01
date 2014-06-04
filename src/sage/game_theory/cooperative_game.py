@@ -66,6 +66,45 @@ class CooperativeGame(SageObject):
         ....:                    ('B', 'C',): 42,
         ....:                    ('A', 'B', 'C',): 42}
         sage: letter_game = CooperativeGame(letter_function)
+
+    From this we can now compute the Shapley Value. ::
+
+        sage: letter_game.shapley_value()
+        {'A': 2, 'B': 5, 'C': 35}
+
+    We can test if it is Monotonic or Superadditive. ::
+
+        sage: letter_game.is_monotone()
+        True
+        sage: letter_game.is_superadditive()
+        True
+
+    The show function will give us basic information about the game. ::
+
+        sage: letter_game.show()
+        A Co-operative Game with 3 players
+        Characteristic Function is
+             ('A',) : 6
+             ('B', 'C') : 42
+             () : 0
+             ('C',) : 42
+             ('A', 'B') : 12
+             ('B',) : 12
+             ('A', 'C') : 42
+             ('A', 'B', 'C') : 42
+        Payoff vector is {'A': 2, 'C': 35, 'B': 5}
+
+    Finally, we can test 3 basic properties of the Payoff Vector. They are,
+        * Is it is efficient?
+        * Does it possess the nullplayer property?
+        * Does it possesss the symmetry property? ::
+
+        sage: letter_game.is_efficient()
+        True
+        sage: letter_game.nullplayer()
+        True
+        sage: letter_game.symmetry()
+        True
     """
 
     def __init__(self, characteristic_function, payoff_vector=False):

@@ -105,9 +105,17 @@
     }
 
     // Create a task to start the server
-    [NSTask launchedTaskWithLaunchPath:scriptPath
-                             arguments:[NSArray arrayWithObjects:sageBinary, logPath, nil]];
-    // We now forget about the task.  I hope that's okay...
+    
+    // Get any default options they might have for this session
+    [defaults synchronize];
+    NSString *defArgs = [[defaults dictionaryForKey:@"DefaultArguments"]
+                         objectForKey:@"notebook"];
+    launchTask = [[NSTask launchedTaskWithLaunchPath:scriptPath
+                                           arguments:[NSArray arrayWithObjects:sageBinary,
+                                                      logPath,
+                                                      defArgs, // May be nil, but that's okay
+                                                      nil]]
+                  retain];
 
     // Open loading page since it can take a while to start
     [self browseRemoteURL:[[NSBundle mainBundle] pathForResource:@"loading-page" ofType:@"html"]];
@@ -161,7 +169,9 @@
             [self serverStartedWithPort:p];
         } else {
             // We failed, so tell the user
-            if (haveStatusItem)  [statusItem setImage:statusImageGrey];
+            if (haveStatusItem) {
+                [statusItem setImage:statusImageGrey];
+            }
             port = 0;
         }
         // Reset for next time.
@@ -169,6 +179,34 @@
         theTask = nil;
         [taskPipe release];
         taskPipe = nil;
+    } else if (theObject == launchTask ) {
+        
+        const int status = [theObject terminationStatus];
+        if (status != 0) {
+            // We failed, so tell the user
+            if (haveStatusItem) {
+                [statusItem setImage:statusImageGrey];
+            }
+            port = 0;
+            NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Server failed to start"
+                                             defaultButton:@"View Log"
+                                           alternateButton:@"Cancel"
+                                               otherButton:nil
+                                 informativeTextWithFormat:@"For some reason the Sage server failed to start.  "
+                              "Please check the log for clues, and have that information handy when asking for help."];
+            [alert setAlertStyle:NSWarningAlertStyle];
+            NSModalResponse resp = [alert runModal];
+            if (resp == NSModalResponseOK) {
+                // View Log
+                [self viewSageLog:self];
+            } else {
+                // Cancel
+            }
+        }
+        // Reset for next time.
+        [launchTask release];
+        launchTask = nil;
+        
     } else {
         // NSLog(@"Got called for a different task.");
     }

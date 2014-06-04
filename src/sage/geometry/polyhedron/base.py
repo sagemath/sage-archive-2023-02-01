@@ -623,11 +623,7 @@ class Polyhedron_base(Element):
         else:
             desc += 'A ' + repr(self.dim()) + '-dimensional polyhedron'
         desc += ' in '
-        if   self.base_ring() is QQ:  desc += 'QQ'
-        elif self.base_ring() is ZZ:  desc += 'ZZ'
-        elif self.base_ring() is RDF: desc += 'RDF'
-        else: assert False
-        desc += '^' + repr(self.ambient_dim())
+        desc += self.parent()._repr_ambient_module()
 
         if self.n_vertices()>0:
             desc += ' defined as the convex hull of '
@@ -3974,8 +3970,10 @@ class Polyhedron_base(Element):
             sage: set(pts1) == set(pts2)
             True
 
-            sage: timeit('Polyhedron(v).integral_points()')   # random output
-            sage: timeit('LatticePolytope(v).points()')       # random output
+            sage: timeit('Polyhedron(v).integral_points()')   # not tested - random
+            625 loops, best of 3: 1.41 ms per loop
+            sage: timeit('LatticePolytope(v).points()')       # not tested - random
+            25 loops, best of 3: 17.2 ms per loop
         """
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')

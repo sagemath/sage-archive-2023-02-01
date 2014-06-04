@@ -45,14 +45,9 @@ class PolyhedralSets(Category_over_base_ring):
         """
         TESTS::
 
-            sage: PolyhedralSets((1,2,3))
-            Traceback (most recent call last):
-            ...
-            TypeError: base ring R (=(1, 2, 3)) must be ZZ, QQ, or RDF.
+            sage: PolyhedralSets(AA)
+            Category of polyhedral sets over Algebraic Real Field
         """
-        from sage.rings.all import ZZ, QQ, RDF
-        if R not in [ZZ, QQ, RDF]:
-            raise TypeError('base ring R (='+str(R)+') must be ZZ, QQ, or RDF.')
         Category_over_base_ring.__init__(self, R)
 
     @cached_method

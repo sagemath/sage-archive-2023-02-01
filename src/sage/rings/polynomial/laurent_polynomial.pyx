@@ -1530,7 +1530,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             Multivariate Laurent Polynomial Ring in x, y over Rational Field
             sage: parent(g.coefficients()[0]) is parent(g).base_ring()
             True
-
         """
         cdef dict d = self.dict()
         cdef ETuple e
@@ -1562,18 +1561,17 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         Check that :trac:`2952` is fixed::
 
-            sage: R.<q>=QQ[]
+            sage: R.<q> = QQ[]
             sage: L.<x,y,z> = LaurentPolynomialRing(R)
-            sage: f=(x+y+z^-1)^2
+            sage: f = (x+y+z^-1)^2
             sage: f.substitute(z=1)
             x^2 + 2*x*y + y^2 + 2*x + 2*y + 1
-
         """
         cdef LaurentPolynomial_mpair ans
         if n < 0:
-            return ~(self**-n)
+            return ~(self ** -n)
         ans = self._new_c()
-        ans._poly = self._poly**n
+        ans._poly = self._poly ** n
         ans._mon = self._mon.emul(n)
         return ans
 
@@ -2104,7 +2102,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 no_generator_found = False
                 break
         if no_generator_found:
-            raise TypeError, "x must be a generator of parent"
+            raise TypeError("x must be a generator of parent")
         return self._poly.degree(self.parent().polynomial_ring().gens()[i]) + self._mon[i]
 
 
@@ -2132,7 +2130,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             True
         """
         if (not isinstance(i, (int, Integer))) or (i < 0) or (i >= self.parent().ngens()):
-            raise TypeError, "argument is not the index of a generator"
+            raise TypeError("argument is not the index of a generator")
         if self._mon[i] < 0:
             self._normalize(i)
             if self._mon[i] < 0:
@@ -2204,7 +2202,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             l = len(x)
 
         if l != n:
-            raise TypeError, "number of arguments does not match the number of generators in parent."
+            raise TypeError("number of arguments does not match the number of generators in parent.")
 
         #Check to make sure that we aren't dividing by zero
         for m in range(n):
@@ -2256,7 +2254,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         """
         if in_dict is not None and kwds:
-            raise ValueError, "you cannot specify both a dictionary and keyword arguments"
+            raise ValueError("you cannot specify both a dictionary and keyword arguments")
 
         g = self.parent().gens()
         repr_g = [repr(i) for i in g]
@@ -2429,7 +2427,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
         v = self.variables()
         if len(v) > 1:
-            raise TypeError, "polynomial must involve at most one variable"
+            raise TypeError("polynomial must involve at most one variable")
         elif len(v) == 1:
             x = v[0]
             i = self._parent.gens().index(x)

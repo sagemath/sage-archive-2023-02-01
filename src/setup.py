@@ -563,8 +563,7 @@ print "Discovered Python source, time: %.2f seconds." % (time.time() - t)
 print('Cleaning up stale installed files....')
 t = time.time()
 from sage_setup.clean import clean_install_dir
-site_packages = os.path.realpath(os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages'))
-output_dirs = [site_packages] + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
+output_dirs = [SAGE_LIB] + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
 for output_dir in output_dirs:
     print('- cleaning {0}'.format(output_dir))
     clean_install_dir(output_dir, python_packages, python_modules, ext_modules)

@@ -114,6 +114,12 @@ class CooperativeGame(SageObject):
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
 
+        for key in list(self.ch_f.keys()):
+            if type(key) is not tuple:
+                raise TypeError("Sey must be a tuple")
+
+
+
     def shapley_value(self):
         r"""
         Return the payoff vector for co-operative game.

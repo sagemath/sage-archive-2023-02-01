@@ -100,10 +100,10 @@ class CooperativeGame(SageObject):
             {1: 2, 2: 5, 3: 35}
         """
         payoff_vector = {}
-        for i in self.player_list:
-            player_contribution = self.marginal_contributions(i)
+        for player in self.player_list:
+            player_contribution = self.marginal_contributions(player)
             average = sum(player_contribution) / len(player_contribution)
-            payoff_vector[i] = average
+            payoff_vector[player] = average
         self.payoff_vector = payoff_vector
         return payoff_vector
 
@@ -139,7 +139,7 @@ class CooperativeGame(SageObject):
         Returns True if co-operative game is superadditive.
 
         EXAMPLES::
-        An exmple that returns False. ::
+        An example that returns False. ::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -153,7 +153,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.is_superadditive()
             False
 
-        An exmple that returns True. ::
+        An example that returns True. ::
 
             sage: A_function = {(): 0,
             ....:               (1,): 6,

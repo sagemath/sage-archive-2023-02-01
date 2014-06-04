@@ -90,10 +90,8 @@ _add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
-# SAGE_LIB is the site-packages directory if the sage library
-# has been installed, otherwise it is the same of SAGE_SRC
 _add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
-_add_variable_or_fallback('SAGE_LIB',        os.path.dirname(os.path.dirname(__file__)))
+_add_variable_or_fallback('SAGE_LIB',        opj('$SAGE_LOCAL', 'lib', 'python', 'site-packages'))
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))

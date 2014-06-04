@@ -345,14 +345,14 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3, 4): 65}
             sage: long_game = CooperativeGame(long_function)
             sage: long_game.is_superadditive()
-            False
+            True
 
         An example for is_superadditive with a longer game that returns False. ::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
             ....:                  (2,): 0,
-            ....:                  (3,): 0,
+            ....:                  (3,): 55,
             ....:                  (4,): 0,
             ....:                  (1, 2): 0,
             ....:                  (1, 3): 0,
@@ -367,14 +367,14 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3, 4): 85}
             sage: long_game = CooperativeGame(long_function)
             sage: long_game.is_superadditive()
-            True
+            False
         """
         sets = list(self.ch_f.keys())
-        for p1, p2 in permutations(sets, 2):
-            #if set(p1) & set(p2) == set():
-            union = tuple(sorted(list(set(p1) | set(p2))))
-            if union not in [p1, p2] and self.ch_f[union] < self.ch_f[p1] + self.ch_f[p2]:
-                return False
+        for p1, p2 in combinations(sets, 2):
+            if set(p1) & set(p2) == set():
+                union = tuple(sorted(list(set(p1) | set(p2))))
+                if self.ch_f[union] < self.ch_f[p1] + self.ch_f[p2]:
+                    return False
         return True
 
     def marginal_contributions(self, player):

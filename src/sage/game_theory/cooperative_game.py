@@ -377,7 +377,7 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.marginal_contributions(1)
-
+            [6, 6, 0, 0, 0, 0]
         """
         contributions = []
         for pi in permutations(self.player_list):
@@ -406,7 +406,7 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.marginal_of_pi(2, (2, 3, 1))
-
+            12
         """
         predecessors, player_and_pred = self.get_predecessors(player, pi)
         if predecessors is None:

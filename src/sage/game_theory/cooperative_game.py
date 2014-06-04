@@ -383,8 +383,8 @@ class CooperativeGame(SageObject):
         EXAMPLES::
 
             sage: integer_function = {(): 0,
-            ....:                     (1,): 5,
-            ....:                     (2,): 5,
+            ....:                     (1,): 12,
+            ....:                     (2,): 12,
             ....:                     (3,): 42,
             ....:                     (1, 2,): 12,
             ....:                     (1, 3,): 42,
@@ -398,17 +398,17 @@ class CooperativeGame(SageObject):
         element = [i for i in sets if len(i) == 1]
         other = [i for i in sets]
         for j, k in combinations(element, 2):
+            results = []
             for m in other:
-                junion = tuple(set(j) | set(m))
-                kunion = tuple(set(k) | set(m))
-                results = []
+                junion = tuple(sorted(list(set(j) | set(m))))
+                kunion = tuple(sorted(list(set(k) | set(m))))
                 results.append(self.char_fun[junion] == self.char_fun[kunion])
-                if all(results) and self.payoff_vector[j[0]] == self.payoff_vector[k[0]]:
-                    pass
-                elif all(results):
-                    return False
-                else:
-                    pass
+            if all(results) and self.payoff_vector[j[0]] == self.payoff_vector[k[0]]:
+                pass
+            elif all(results):
+                return False
+            else:
+                pass
         return True
 
     def is_additivity(self):

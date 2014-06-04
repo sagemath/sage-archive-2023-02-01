@@ -752,13 +752,22 @@ def plot(funcs, *args, **kwds):
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
 
-    Note that this function does NOT simply sample equally spaced
-    points between ``xmin`` and ``xmax``. Instead it computes equally spaced
-    points and add small perturbations to them. This reduces the
-    possibility of, e.g., sampling sin only at multiples of
-    `2\pi`, which would yield a very misleading graph.
+    .. note::
 
-    EXAMPLES: We plot the sin function::
+        - this function does NOT simply sample equally spaced points
+          between xmin and xmax. Instead it computes equally spaced points
+          and adds small perturbations to them. This reduces the possibility
+          of, e.g., sampling sin only at multiples of `2\pi`, which would
+          yield a very misleading graph.
+
+        - if there is a range of consecutive points where the function has
+          no value, then those points will be excluded from the plot. See
+          the example below on automatic exclusion of points.
+
+
+    EXAMPLES:
+
+    We plot the sin function::
 
         sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive
@@ -1043,6 +1052,17 @@ def plot(funcs, *args, **kwds):
         sage: f(x) = (floor(x)+0.5) / (1-(x-0.5)^2)
         sage: plot(f, (x, -3.5, 3.5), detect_poles = 'show', exclude = [-3..3], ymin = -5, ymax = 5)
 
+    Regions in which the plot has no values are automatically excluded. The
+    regions thus excluded are in addition to the exclusion points present
+    in the ``exclude`` keyword argument.::
+
+        sage: set_verbose(-1)
+        sage: plot(arcsec, (x, -2, 2))  # [-1, 1] is excluded automatically
+
+        sage: plot(arcsec, (x, -2, 2), exclude=[1.5])  # x=1.5 is also excluded
+
+        sage: set_verbose(0)
+
     TESTS:
 
     We do not randomize the endpoints::
@@ -1316,6 +1336,24 @@ def _plot(funcs, xrange, parametric=False,
     else:
         data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
 
+    # Need exclude to be a list to be able to do automatic exclusion of
+    # plot regions.
+    if exclude is None:
+        exclude = []
+
+    for i in range(len(data)-1):
+        # If the difference between consecutive x-values is more than
+        # 2 times the difference between two consecutive plot points, then
+        # add an exclusion point.
+        if abs(data[i+1][0] - data[i][0]) > 2*abs(xmax - xmin)/plot_points:
+            exclude.append((data[i][0] + data[i+1][0])/2)
+
+    # We set exclude back to None if there are no points to be excluded
+    if exclude == []:
+        exclude = None
+    else:
+        exclude = sorted(exclude)
+
     if parametric:
         # We need the original x-values to be able to exclude points in parametric plots
         exclude_data = data
@@ -1425,11 +1463,13 @@ def _plot(funcs, xrange, parametric=False,
             if exclude is not None and (x0 <= exclusion_point <= x1):
                 G += line(data[start_index:i], **options)
                 start_index = i + 2
-                try:
-                    exclusion_point = exclude.pop()
-                except IndexError:
-                    # all excluded points were considered
-                    exclude = None
+                while exclusion_point <= x1:
+                    try:
+                        exclusion_point = exclude.pop()
+                    except IndexError:
+                        # all excluded points were considered
+                        exclude = None
+                        break
 
         G += line(data[start_index:], legend_label=legend_label, **options)
     else:

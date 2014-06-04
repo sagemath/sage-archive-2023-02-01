@@ -109,7 +109,7 @@ class CooperativeGame(SageObject):
     """
 
     def __init__(self, characteristic_function, payoff_vector=False):
-        self.char_fun = characteristic_function
+        self.ch_f = characteristic_function
         self.player_list = list(characteristic_function.keys()[-1])
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
@@ -166,9 +166,9 @@ class CooperativeGame(SageObject):
             sage: integer_game.is_monotone()
             True
         """
-        sets = list(self.char_fun.keys())
-        for i, k in permutations(sets, 2):
-            if set(i) <= set(k) and self.char_fun[i] > self.char_fun[k]:
+        sets = list(self.ch_f.keys())
+        for p1, p2 in permutations(sets, 2):
+            if set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]:
                 return False
             else:
                 pass
@@ -207,13 +207,13 @@ class CooperativeGame(SageObject):
             sage: A_game.is_superadditive()
             True
         """
-        sets = list(self.char_fun.keys())
-        for i, k in permutations(sets, 2):
-            if set(i) & set(k) != set():
+        sets = list(self.ch_f.keys())
+        for p1, p2 in permutations(sets, 2):
+            if set(p1) & set(p2) != set():
                 pass
             else:
-                j = tuple(sorted(list(set(i) | set(k))))
-                if self.char_fun[j] < self.char_fun[i] + self.char_fun[k]:
+                j = tuple(sorted(list(set(p1) | set(p2))))
+                if self.ch_f[j] < self.ch_f[p1] + self.ch_f[p2]:
                     return False
                 else:
                     pass
@@ -232,7 +232,7 @@ class CooperativeGame(SageObject):
         else:
             predecessors = tuple(predecessors)
         player_and_pred = tuple(player_and_pred)
-        value = self.char_fun[player_and_pred] - self.char_fun[predecessors]
+        value = self.ch_f[player_and_pred] - self.ch_f[predecessors]
         return value
 
     def get_predecessors(self, player, permutation):
@@ -290,7 +290,7 @@ class CooperativeGame(SageObject):
             Payoff vector is {'A': 2, 'C': 35, 'B': 5}
         """
         np = self.number_players
-        cf = self.char_fun
+        cf = self.ch_f
         pv = self.payoff_vector
         print "A Co-operative Game with %s players" % np
         print "Characteristic Function is"
@@ -320,7 +320,7 @@ class CooperativeGame(SageObject):
             sage: letter_game.is_efficient()
             True
         """
-        if sum(self.payoff_vector.values()) == self.char_fun[tuple(self.player_list)]:
+        if sum(self.payoff_vector.values()) == self.ch_f[tuple(self.player_list)]:
             return True
         else:
             return False
@@ -358,14 +358,14 @@ class CooperativeGame(SageObject):
             sage: A_game.nullplayer()
             True
         """
-        sets = list(self.char_fun.keys())
-        player = [(i,) for i in self.player_list if self.char_fun[(i,)] == 0]
+        sets = list(self.ch_f.keys())
+        player = [(i,) for i in self.player_list if self.ch_f[(i,)] == 0]
         nulls = []
         for k in player:
             test = [set(m) for m in sets if k in m]
             results = []
             for j in test:
-                results.append(self.char_fun[tuple(j.remove(k))] == self.char_fun[tuple(j)])
+                results.append(self.ch_f[tuple(j.remove(k))] == self.ch_f[tuple(j)])
             if all(results):
                 nulls.append(k)
             else:
@@ -395,16 +395,15 @@ class CooperativeGame(SageObject):
             sage: integer_game.symmetry()
             False
         """
-        sets = list(self.char_fun.keys())
+        sets = list(self.ch_f.keys())
         element = [i for i in sets if len(i) == 1]
-        other = [i for i in sets]
-        for j, k in combinations(element, 2):
+        for c1, c2 in combinations(element, 2):
             results = []
-            for m in other:
-                junion = tuple(sorted(list(set(j) | set(m))))
-                kunion = tuple(sorted(list(set(k) | set(m))))
-                results.append(self.char_fun[junion] == self.char_fun[kunion])
-            if all(results) and self.payoff_vector[j[0]] == self.payoff_vector[k[0]]:
+            for m in sets:
+                junion = tuple(sorted(list(set(c1) | set(m))))
+                kunion = tuple(sorted(list(set(c2) | set(m))))
+                results.append(self.ch_f[junion] == self.ch_f[kunion])
+            if all(results) and self.payoff_vector[c1[0]] == self.payoff_vector[c2[0]]:
                 pass
             elif all(results):
                 return False

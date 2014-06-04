@@ -199,6 +199,7 @@ Combinatorics
 .. toctree::
    :maxdepth: 1
 
+   sage/combinat/shuffle
    sage/combinat/dict_addition
    sage/combinat/misc
    sage/combinat/combinatorial_map

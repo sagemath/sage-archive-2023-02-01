@@ -417,7 +417,7 @@ class CooperativeGame(SageObject):
 
     def get_predecessors(self, player, permutation):
         r"""
-        Returns a list of all the predecessors of a player in a certain permutation.
+        Returns a list of all the predecessors of a player in a certain permutation and the same list including the original player (used elsewhere).
 
         INPUT:
 
@@ -438,6 +438,10 @@ class CooperativeGame(SageObject):
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.get_predecessors(1, (2, 3, 1))
             ([2, 3], [1, 2, 3])
+            sage: integer_game.get_predecessors(2, (2, 3, 1))
+            ([], [2])
+            sage: integer_game.get_predecessors(3, (2, 3, 1))
+            ([2], [2, 3])
         """
         pred = list(permutation[:permutation.index(player)])
         return sorted(pred), sorted(pred + [player])

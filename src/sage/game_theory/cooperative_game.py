@@ -94,10 +94,11 @@ class CooperativeGame(SageObject):
              ('A', 'B', 'C') : 42
         Payoff vector is {'A': 2, 'C': 35, 'B': 5}
 
-    Finally, we can test 3 basic properties of the Payoff Vector. They are,
+    Finally, we can test 3 basic properties of the Payoff Vector. They are
         * Is it is efficient?
         * Does it possess the nullplayer property?
-        * Does it possesss the symmetry property? ::
+        * Does it possesss the symmetry property?
+    ::
 
         sage: letter_game.is_efficient()
         True

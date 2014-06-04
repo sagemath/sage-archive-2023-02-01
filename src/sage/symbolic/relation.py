@@ -722,7 +722,7 @@ def solve(f, *args, **kwds):
         TypeError: 1 is not a valid variable.
 
     Test that the original version of a system in the French Sage book
-    now works (:trac:`14306`):
+    now works (:trac:`14306`)::
 
         sage: var('y,z')
         (y, z)

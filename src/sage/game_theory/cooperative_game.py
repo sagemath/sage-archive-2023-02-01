@@ -444,7 +444,7 @@ class CooperativeGame(SageObject):
     def show(self):
         r"""
         EXAMPLES::
-        Typical use of the show function with a given Payoff Vector.::
+        Typical use of the show function with a given Payoff Vector. ::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -468,7 +468,7 @@ class CooperativeGame(SageObject):
                  ('A', 'B', 'C') : 42
             Payoff vector is {'A': 14, 'C': 14, 'B': 14}
 
-        Typical use of the show function with after calculating the Shapley value.::
+        Typical use of the show function after calculating the Shapley value. ::
 
             sage: letter_game.shapley_value()
             {'A': 2, 'C': 35, 'B': 5}
@@ -529,6 +529,28 @@ class CooperativeGame(SageObject):
             sage: letter_game.is_efficient()
             False
 
+            A longer example for is_efficient. ::
+
+            sage: long_function = {(): 0,
+            ....:                  (1,): 0,
+            ....:                  (2,): 0,
+            ....:                  (3,): 0,
+            ....:                  (4,): 0,
+            ....:                  (1, 2): 0,
+            ....:                  (1, 3): 0,
+            ....:                  (1, 4): 0,
+            ....:                  (2, 3): 0,
+            ....:                  (2, 4): 0,
+            ....:                  (3, 4): 0,
+            ....:                  (1, 2, 3): 0,
+            ....:                  (1, 2, 4): 45,
+            ....:                  (1, 3, 4): 40,
+            ....:                  (2, 3, 4): 0,
+            ....:                  (1, 2, 3, 4): 65}
+            sage: long_game = CooperativeGame(long_function, {1: 20, 2: 20, 3: 5, 4: 20})
+            sage: long_game.is_efficient()
+            True
+
         TESTS::
         Checks that a game has a payoff_vector. ::
 
@@ -583,6 +605,28 @@ class CooperativeGame(SageObject):
             sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
             sage: A_game.nullplayer()
             False
+
+        A longer example for nullplayer. ::
+
+            sage: long_function = {(): 0,
+            ....:                  (1,): 0,
+            ....:                  (2,): 0,
+            ....:                  (3,): 0,
+            ....:                  (4,): 0,
+            ....:                  (1, 2): 0,
+            ....:                  (1, 3): 0,
+            ....:                  (1, 4): 0,
+            ....:                  (2, 3): 0,
+            ....:                  (2, 4): 0,
+            ....:                  (3, 4): 0,
+            ....:                  (1, 2, 3): 0,
+            ....:                  (1, 2, 4): 45,
+            ....:                  (1, 3, 4): 40,
+            ....:                  (2, 3, 4): 0,
+            ....:                  (1, 2, 3, 4): 65}
+            sage: long_game = CooperativeGame(long_function, {1: 20, 2: 20, 3: 5, 4: 20})
+            sage: long_game.nullplayer()
+            True
 
         TESTS::
         Checks that a game has a payoff_vector. ::
@@ -652,6 +696,28 @@ class CooperativeGame(SageObject):
             sage: integer_game = CooperativeGame(integer_function, {1: 2, 2: 5, 3: 35})
             sage: integer_game.symmetry()
             False
+
+        A longer example for symmetry. ::
+
+            sage: long_function = {(): 0,
+            ....:                  (1,): 0,
+            ....:                  (2,): 0,
+            ....:                  (3,): 0,
+            ....:                  (4,): 0,
+            ....:                  (1, 2): 0,
+            ....:                  (1, 3): 0,
+            ....:                  (1, 4): 0,
+            ....:                  (2, 3): 0,
+            ....:                  (2, 4): 0,
+            ....:                  (3, 4): 0,
+            ....:                  (1, 2, 3): 0,
+            ....:                  (1, 2, 4): 45,
+            ....:                  (1, 3, 4): 40,
+            ....:                  (2, 3, 4): 0,
+            ....:                  (1, 2, 3, 4): 65}
+            sage: long_game = CooperativeGame(long_function, {1: 20, 2: 20, 3: 5, 4: 20})
+            sage: long_game.symmetry()
+            True
 
         TESTS::
         Checks that a game has a payoff_vector. ::

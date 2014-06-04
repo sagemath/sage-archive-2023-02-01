@@ -406,7 +406,6 @@ class CooperativeGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Game must have a payoff_vector
-
         """
         if not self.payoff_vector:
             raise ValueError("Game must have a payoff_vector")
@@ -445,7 +444,27 @@ class CooperativeGame(SageObject):
             sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
             sage: A_game.nullplayer()
             False
+
+        TESTS::
+        Checks that a game has a payoff_vector. ::
+
+            sage: A_function = {(): 0,
+            ....:               (1,): 0,
+            ....:               (2,): 12,
+            ....:               (3,): 42,
+            ....:               (1, 2,): 12,
+            ....:               (1, 3,): 42,
+            ....:               (2, 3,): 55,
+            ....:               (1, 2, 3,): 55}
+            sage: A_game = CooperativeGame(A_function)
+            sage: A_game.nullplayer()
+            Traceback (most recent call last):
+            ...
+            ValueError: Game must have a payoff_vector
         """
+        if not self.payoff_vector:
+            raise ValueError("Game must have a payoff_vector")
+
         allsets = list(self.ch_f.keys())
         players = [(i,) for i in self.player_list if self.ch_f[(i,)] == 0]
         nulls = []
@@ -494,7 +513,27 @@ class CooperativeGame(SageObject):
             sage: integer_game = CooperativeGame(integer_function, {1: 2, 2: 5, 3: 35})
             sage: integer_game.symmetry()
             False
+
+        TESTS::
+        Checks that a game has a payoff_vector. ::
+
+            sage: A_function = {(): 0,
+            ....:               (1,): 0,
+            ....:               (2,): 12,
+            ....:               (3,): 42,
+            ....:               (1, 2,): 12,
+            ....:               (1, 3,): 42,
+            ....:               (2, 3,): 55,
+            ....:               (1, 2, 3,): 55}
+            sage: A_game = CooperativeGame(A_function)
+            sage: A_game.is_efficient()
+            Traceback (most recent call last):
+            ...
+            ValueError: Game must have a payoff_vector
         """
+        if not self.payoff_vector:
+            raise ValueError("Game must have a payoff_vector")
+
         sets = list(self.ch_f.keys())
         element = [i for i in sets if len(i) == 1]
         for c1, c2 in combinations(element, 2):

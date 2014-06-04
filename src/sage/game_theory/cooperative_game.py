@@ -778,6 +778,4 @@ class CooperativeGame(SageObject):
                 pass
             elif all(results):
                 return False
-            else:
-                pass
         return True

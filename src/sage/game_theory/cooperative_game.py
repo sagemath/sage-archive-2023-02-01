@@ -22,7 +22,7 @@ AUTHOR::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from itertools import permutations, combinations
+from itertools import chain, permutations, combinations
 from sage.structure.sage_object import SageObject
 
 
@@ -156,8 +156,15 @@ class CooperativeGame(SageObject):
             if type(key) is not tuple:
                 raise TypeError("Key must be a tuple")
 
+        players = set(max(characteristic_function.keys(), key=lambda key: len(key)))
+        for com in chain.from_iterable(combinations(players, r) for r in range(len(players)+1)):
+            if z in characteristic_function.keys():
+                pass
+            else:
+                raise ValueError("Characteristic Function must be the power set")
+
         self.ch_f = characteristic_function
-        self.player_list = max(characteristic_function.keys(), key = lambda key : len(key))
+        self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
 
@@ -273,12 +280,56 @@ class CooperativeGame(SageObject):
         return True
 
     def marginal_contributions(self, player):
+        r"""
+        Returns a list of contributions specific to one player.
+
+        INPUT:
+
+        -player - A real number or string.
+
+        EXAMPLES::
+
+            sage: integer_function = {(): 0,
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.marginal_contributions(1)
+
+        """
         contributions = []
         for pi in permutations(self.player_list):
             contributions.append(self.marginal_of_pi(player, pi))
         return contributions
 
     def marginal_of_pi(self, player, pi):
+        r"""
+        Returns a value for the players contribution in one permutation.
+
+        INPUT:
+
+        -player - A real number or string.
+
+        -pi - A tuple which is the permutation that should be used.
+
+        EXAMPLES::
+
+            sage: integer_function = {(): 0,
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.marginal_of_pi(2, (2, 3, 1))
+
+        """
         predecessors, player_and_pred = self.get_predecessors(player, pi)
         if predecessors is None:
             predecessors = ()
@@ -289,6 +340,29 @@ class CooperativeGame(SageObject):
         return value
 
     def get_predecessors(self, player, permutation):
+        r"""
+        Returns a list of all the predecessors of a player in a certain permutation.
+
+        INPUT:
+
+        -player - A real number or string.
+
+        -permutation - A tuple which is the permutation that should be used.
+
+        EXAMPLES::
+
+            sage: integer_function = {(): 0,
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.get_predecessors(1, (2, 3, 1))
+            [2, 3]
+        """
         pred = []
         play_and_pred = []
         for k in permutation:

@@ -164,7 +164,7 @@ class CooperativeGame(SageObject):
         if type(characteristic_function) is not dict:
             raise TypeError("Characteristic function must be a dictionary")
 
-        for key in list(characteristic_function.keys()):
+        for key in characteristic_function:
             if type(key) is not tuple:
                 raise TypeError("Key must be a tuple")
 

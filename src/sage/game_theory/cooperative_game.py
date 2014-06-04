@@ -675,20 +675,8 @@ class CooperativeGame(SageObject):
         if not self.payoff_vector:
             raise ValueError("Game must have a payoff_vector")
 
-        allsets = list(self.ch_f.keys())
-        players = [(i,) for i in self.player_list if self.ch_f[(i,)] == 0]
-        nulls = []
-        for player in players:
-            test = [set(m) for m in allsets if player in m]
-            results = []
-            for sets in test:
-                results.append(self.ch_f[tuple(sets.remove(player))] == self.ch_f[tuple(sets)])
-            if all(results):
-                nulls.append(player)
-
-        for player in nulls:
-            if self.payoff_vector[player[0]] != 0:
-                return False
+        for player in self.player_list:
+            return not (all([self.ch_f[coalition] == self.ch_f[tuple(sorted(list(set(coalition) - {player})))] for coalition in [coalition for coalition in self.ch_f if player in coalition]]) and self.payoff_vector[player] != 0)
         return True
 
     def symmetry(self):

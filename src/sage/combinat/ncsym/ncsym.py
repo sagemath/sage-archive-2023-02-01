@@ -27,6 +27,7 @@ from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.sets.set import Set
+from functools import reduce
 
 def matchings(A, B):
     """

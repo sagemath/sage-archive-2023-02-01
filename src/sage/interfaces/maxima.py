@@ -556,8 +556,9 @@ class Maxima(MaximaAbstract, Expect):
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
         self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
-        self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?',
-                     'positive or negative?', 'positive or zero?']
+        self._ask = ['zero or nonzero\\?', 'an integer\\?',
+                     'positive, negative or zero\\?', 'positive or negative\\?',
+                     'positive or zero\\?', 'equal to .*\\?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
                             ['Break [0-9]+'] #note that you might need to change _expect_expr if you
                                              #change this
@@ -642,7 +643,7 @@ class Maxima(MaximaAbstract, Expect):
             TypeError: Computation failed since Maxima requested additional
             constraints (try the command "maxima.assume('a>0')"
             before integral or limit evaluation, for example):
-            Is  a  positive or negative?
+            Is a positive or negative?
             sage: maxima.assume('a>0')
             [a>0]
             sage: maxima('integrate(1/(x^3*(a+b*x)^(1/3)),x)')
@@ -651,9 +652,9 @@ class Maxima(MaximaAbstract, Expect):
             Traceback (most recent call last):
             ...
             TypeError: Computation failed since Maxima requested additional
-            constraints (try the command "maxima.assume('n+1>0')" before
+            constraints (try the command "maxima.assume('n>0')" before
             integral or limit evaluation, for example):
-            Is  n+1  zero or nonzero?
+            Is n equal to -1?
             sage: maxima.assume('n+1>0')
             [n>-1]
             sage: maxima('integrate(x^n,x)')
@@ -670,7 +671,7 @@ class Maxima(MaximaAbstract, Expect):
             TypeError: Computation failed since Maxima requested additional
             constraints (try the command "maxima.assume('a>0')" before
             integral or limit evaluation, for example):
-            Is  a  positive, negative, or zero?
+            Is a positive, negative or zero?
         """
         if expr is None:
             expr = self._prompt_wait
@@ -692,8 +693,8 @@ class Maxima(MaximaAbstract, Expect):
 
                 j = v.find('Is ')
                 v = v[j:]
-                k = v.find(' ',4)
-                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[4:k] +""">0')" before integral or limit evaluation, for example):\n""" + v + self._ask[i-1]
+                k = v.find(' ', 3)
+                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[3:k] + """>0')" before integral or limit evaluation, for example):\n""" + v + self._expect.after
                 self._sendline(";")
                 self._expect_expr()
                 raise ValueError(msg)

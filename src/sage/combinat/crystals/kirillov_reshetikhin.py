@@ -2303,7 +2303,7 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
             1
         """
         b = self.parent().to_ambient_crystal()(self)
-        return b.epsilon(0)/2
+        return b.epsilon(0) // 2
 
     def phi0(self):
         r"""
@@ -2318,7 +2318,7 @@ class KR_type_BnElement(KirillovReshetikhinGenericCrystalElement):
             0
         """
         b = self.parent().to_ambient_crystal()(self)
-        return b.phi(0)/2
+        return b.phi(0) // 2
 
 KR_type_Bn.Element = KR_type_BnElement
 
@@ -2639,9 +2639,9 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
         plus = pm.heights_of_addable_plus()
         minus = pm.heights_of_minus()
         l = len([i for i in plus if i==rank-1])
-        a = (len(plus) + l)/2
+        a = (len(plus) + l) // 2
         list += sum(([i]*a for i in range(1,rank+1)),[])
-        a = (len(minus)-l)/2
+        a = (len(minus)-l) // 2
         list += (range(1,rank+1)+[rank])*a
         for i in reversed(list):
             u = u.f(i)
@@ -3170,7 +3170,7 @@ class PMDiagram(CombinatorialObject):
         """
         t = []
         ll = self._list
-        for i in range((self.n)/2):
+        for i in range(self.n // 2):
             t.append(sum(ll[0:4*i+4]))
             t.append(sum(ll[0:4*i+4]))
         if is_even(self.n+1):

@@ -727,7 +727,7 @@ def serre_cartan_basis(n, p=2, bound=1, **kwds):
             # elements from serre_cartan_basis (n - last, bound=2 * last).
             # This means that 2 last <= n - last, or 3 last <= n.
             result = [(n,)]
-            for last in range(bound, 1+n/3):
+            for last in range(bound, 1+n//3):
                 for vec in serre_cartan_basis(n - last, bound = 2*last):
                     new = vec + (last,)
                     result.append(new)
@@ -740,7 +740,7 @@ def serre_cartan_basis(n, p=2, bound=1, **kwds):
                 result = []
             # 2 cases: append P^{last}, or append P^{last} beta
             # case 1: append P^{last}
-            for last in range(bound, 1+n/(2*(p - 1))):
+            for last in range(bound, 1+n//(2*(p - 1))):
                 if n - 2*(p-1)*last > 0:
                     for vec in serre_cartan_basis(n - 2*(p-1)*last,
                                                   p, p*last, generic=generic):
@@ -748,7 +748,7 @@ def serre_cartan_basis(n, p=2, bound=1, **kwds):
             # case 2: append P^{last} beta
             if bound == 1:
                 bound = 0
-            for last in range(bound+1, 1+n/(2*(p - 1))):
+            for last in range(bound+1, 1+n//(2*(p - 1))):
                 basis = serre_cartan_basis(n - 2*(p-1)*last - 1,
                                            p, p*last, generic=generic)
                 for vec in basis:
@@ -979,8 +979,8 @@ def arnonC_basis(n,bound=1):
         # first also must be divisible by 2**(len(old-basis-elt))
         # This means that 3 first <= 2 n.
         result = [(n,)]
-        for first in range(bound,1+2*n/3):
-            for vec in arnonC_basis(n - first, max(first/2,1)):
+        for first in range(bound, 1+2*n//3):
+            for vec in arnonC_basis(n - first, max(first//2,1)):
                 if first % 2**len(vec) == 0:
                     result.append((first,) + vec)
         return tuple(result)
@@ -1067,7 +1067,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
                                                sorting_pair(y[0][0], y[0][1], basis)))
             deg = n - 2*dim*(p-1)
             q_degrees = [1+2*(p-1)*d for d in
-                         xi_degrees(int((deg - 1)/(2*(p-1))), p)] + [1]
+                         xi_degrees((deg - 1)//(2*(p-1)), p)] + [1]
             q_degrees_decrease = q_degrees
             q_degrees.reverse()
             if deg % (2*(p-1)) <= len(q_degrees):

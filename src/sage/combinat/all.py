@@ -110,10 +110,13 @@ from alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatric
 from non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 from parking_functions import ParkingFunctions, ParkingFunction
 
+# Trees and Tamari interval posets
+from sage.misc.lazy_import import lazy_import
 from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
+lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
 
 from combination import Combinations
 from cartesian_product import CartesianProduct
@@ -181,7 +184,6 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
 
 # Finite State Machines (Automaton, Transducer)
-from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.finite_state_machine',
             ['Automaton', 'Transducer', 'FiniteStateMachine'])
 lazy_import('sage.combinat.finite_state_machine_generators',

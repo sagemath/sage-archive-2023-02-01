@@ -71,6 +71,7 @@ Libraries of algorithms
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/graph_plot
+   sage/graphs/graph_plot_js
    sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_decompositions/rankwidth
    sage/graphs/graph_decompositions/graph_products

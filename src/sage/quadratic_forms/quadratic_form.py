@@ -434,7 +434,7 @@ class QuadraticForm(SageObject):
         ## TODO: Verify that R is a ring...
 
         ## Store the relevant variables
-        N = int(n*(n+1))/2
+        N = n*(n+1)//2
         self.__n = int(n)
         self.__base_ring = R
         self.__coeffs = [self.__base_ring(0)  for i in range(N)]
@@ -602,7 +602,7 @@ class QuadraticForm(SageObject):
             i = j
             j = tmp
 
-        return self.__coeffs[i*self.__n - i*(i-1)/2 + j - i]
+        return self.__coeffs[i*self.__n - i*(i-1)//2 + j - i]
 
 
     def __setitem__(self, ij, coeff):
@@ -640,7 +640,7 @@ class QuadraticForm(SageObject):
 
         ## Set the entry
         try:
-            self.__coeffs[i*self.__n - i*(i-1)/2 + j -i] = self.__base_ring(coeff)
+            self.__coeffs[i*self.__n - i*(i-1)//2 + j -i] = self.__base_ring(coeff)
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 

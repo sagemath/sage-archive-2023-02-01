@@ -479,6 +479,46 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
 
     AmbientSpace = AmbientSpace
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['E',6]).coxeter_number()
+            12
+            sage: CartanType(['E',7]).coxeter_number()
+            18
+            sage: CartanType(['E',8]).coxeter_number()
+            30
+        """
+        if self.n == 6:
+            return 12
+        if self.n == 7:
+            return 18
+        # n == 8
+        return 30
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['E',6]).dual_coxeter_number()
+            12
+            sage: CartanType(['E',7]).dual_coxeter_number()
+            18
+            sage: CartanType(['E',8]).dual_coxeter_number()
+            30
+        """
+        if self.n == 6:
+            return 12
+        if self.n == 7:
+            return 18
+        # n == 8
+        return 30
+
     def dynkin_diagram(self):
         """
         Returns a Dynkin diagram for type E.

@@ -337,7 +337,7 @@ class CooperativeGame(SageObject):
                 pass
         return True
 
-    def is_symmetry(self):
+    def symmetry(self):
         r"""
         Returns True if the current payoff_vector possesses the symmetry property.
 
@@ -352,7 +352,7 @@ class CooperativeGame(SageObject):
             ....:                     (2, 3,): 42,
             ....:                     (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function, {1: 2, 2: 5, 3: 35})
-            sage: integer_game.is_symmetry()
+            sage: integer_game.symmetry()
             False
         """
         sets = list(self.char_fun.keys())

@@ -158,7 +158,7 @@ class CooperativeGame(SageObject):
 
         self.ch_f = characteristic_function
         #self.player_list = list(characteristic_function.keys()[-1])
-        self.player_list = list(max(characteristic_function.keys(), key = lambda key : len(key)))
+        self.player_list = max(characteristic_function.keys(), key = lambda key : len(key))
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
 
@@ -179,7 +179,7 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.player_list
-            [1, 2, 3]
+            (1, 2, 3)
             sage: integer_game.payoff_vector
             False
             sage: integer_game.shapley_value()
@@ -390,7 +390,7 @@ class CooperativeGame(SageObject):
             sage: letter_game.is_efficient()
             False
         """
-        return sum(self.payoff_vector.values()) == self.ch_f[tuple(self.player_list)]
+        return sum(self.payoff_vector.values()) == self.ch_f[self.player_list]
 
     def nullplayer(self):
         r"""

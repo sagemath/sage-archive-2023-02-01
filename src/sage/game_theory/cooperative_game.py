@@ -109,16 +109,45 @@ class CooperativeGame(SageObject):
     """
 
     def __init__(self, characteristic_function, payoff_vector=False):
+        r"""
+        Initializes a co-operative game and checks the inputs.
+
+        TESTS:
+
+        An attempt to construct a game from an integer. ::
+
+            sage: int_game = CooperativeGame(4)
+            Traceback (most recent call last):
+            ...
+            TypeError: Characteristic function must be a dictionary
+
+        This test checks that an error is raised when a key in the
+        Characteristic Function is not a tuple. ::
+
+            sage: tuple_function = {(): 0,
+            ....:                  (1): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  (1, 2,): 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: tuple_game = CooperativeGame(tuple_function)
+            Traceback (most recent call last):
+            ...
+            TypeError: Key must be a tuple
+        """
+        if type(characteristic_function) is not dict:
+            raise TypeError("Characteristic function must be a dictionary")
+
+        for key in list(characteristic_function.keys()):
+            if type(key) is not tuple:
+                raise TypeError("Key must be a tuple")
+
         self.ch_f = characteristic_function
         self.player_list = list(characteristic_function.keys()[-1])
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
-
-        for key in list(self.ch_f.keys()):
-            if type(key) is not tuple:
-                raise TypeError("Sey must be a tuple")
-
-
 
     def shapley_value(self):
         r"""

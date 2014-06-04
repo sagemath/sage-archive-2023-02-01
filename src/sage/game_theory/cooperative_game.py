@@ -70,14 +70,14 @@ class CooperativeGame(SageObject):
     From this we can now compute the Shapley Value. ::
 
         sage: letter_game.shapley_value()
-        {'A': 2, 'B': 5, 'C': 35}
+        {'A': 2, 'C': 35, 'B': 5}
 
     We can test if it is Monotonic or Superadditive. ::
 
         sage: letter_game.is_monotone()
         True
         sage: letter_game.is_superadditive()
-        True
+        False
 
     The show function will give us basic information about the game. ::
 
@@ -211,7 +211,7 @@ class CooperativeGame(SageObject):
             if set(i) & set(k) != set():
                 pass
             else:
-                j = tuple(set(i) | set(k))
+                j = tuple(sorted(list(set(i) | set(k))))
                 if self.char_fun[j] < self.char_fun[i] + self.char_fun[k]:
                     return False
                 else:

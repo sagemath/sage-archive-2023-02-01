@@ -363,7 +363,12 @@ def OrthogonalArrayGraph(k,n):
 
     The intersection graph of the block of a `TD(k,n)` (see
     :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`) is a
-    strongly regular graph.
+    strongly regular graph (unless it is a complete graph). Its parameters
+    `(v,k,\lambda,\mu)` are equal to:
+
+    .. MATH::
+
+        v=n^2,k=k(n-1),\lambda=(k-1)(k-2)+n-2,\mu=k(k-1)
 
     As transversal designs and orthogonal arrays are equivalent
     objects, this graph can also be built from the blocks of an

@@ -985,7 +985,8 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
 
         OUTPUT:
 
-          An ordered list of 2x2 integer matrices representing edges
+          An ordered list of 2x2 integer matrices representing the vertices
+          of the paths joining ``v1`` and ``v2``.
 
         EXAMPLES::
 
@@ -1609,6 +1610,39 @@ class BTQuotient(SageObject, UniqueRepresentation):
         E = self.get_edge_list()
         return E + [e.opposite for e in E]
 
+    def get_nontorsion_generators(self):
+        r"""
+        Uses a fundamental domain in the Bruhat-Tits tree, and
+        certain gluing data for boundary vertices, in order to compute
+        a collection of generators for the nontorsion part
+        of the arithmetic quaternionic
+        group that one is quotienting by. This is analogous to using a
+        polygonal rep. of a compact real surface to present its
+        fundamental domain.
+
+        OUTPUT:
+
+          - A generating list of elements of an arithmetic
+            quaternionic group.
+
+        EXAMPLES::
+
+            sage: X = BTQuotient(3,13)
+            sage: X.get_nontorsion_generators()
+            [
+            [ 2]  [-5]  [ 4]
+            [-5]  [ 3]  [ 1]
+            [ 1]  [ 1]  [-3]
+            [ 0], [ 2], [-2]
+            ]
+        """
+        try:
+            return list(self._nontorsion_generators)
+        except AttributeError:
+            self._compute_quotient()
+            return list(self._nontorsion_generators)
+
+    @cached_method
     def get_generators(self):
         r"""
         Uses a fundamental domain in the Bruhat-Tits tree, and
@@ -1625,20 +1659,22 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: X = BTQuotient(3,13)
+            sage: X = BTQuotient(3,2)
             sage: X.get_generators()
             [
-            [ 2]  [-5]  [ 4]
-            [-5]  [ 3]  [ 1]
-            [ 1]  [ 1]  [-3]
-            [ 0], [ 2], [-2]
+            [-1]  [ 3]
+            [ 1]  [-2]
+            [ 1]  [-2]
+            [ 1], [ 1]
             ]
         """
-        try:
-            return list(self._generators)
-        except AttributeError:
-            self._compute_quotient()
-            return list(self._generators)
+        ans = self.get_nontorsion_generators()
+        for s in self.get_vertex_stabs():
+            for o in s:
+                if o[2]:
+                    ans.append(o[0])
+                    break
+        return ans
 
     def _compute_invariants(self):
         """
@@ -2558,8 +2594,8 @@ class BTQuotient(SageObject, UniqueRepresentation):
         try:
             return self._vertex_stabs
         except AttributeError:
-            self._vertex_stabs = [self._stabilizer(e.rep, as_edge=False)
-                                  for e in self.get_vertex_list()]
+            self._vertex_stabs = [self._stabilizer(v.rep, as_edge=False)
+                                  for v in self.get_vertex_list()]
             return self._vertex_stabs
 
     def get_quaternion_algebra(self):
@@ -2985,7 +3021,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
 
         alpha = Matrix(QQ, 4, 1, alpha1)
         alphamat = self.embed_quaternion(alpha)
-        letters = self.get_generators() + filter(lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(1))
+        letters = self.get_nontorsion_generators() + filter(lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(1))
         I = enumerate_words([self._conv(x) for x in letters])
         n_iters = 0
         while len(T) < l + 1:
@@ -3590,7 +3626,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
         - Cameron Franc (2012-02-20)
         - Marc Masdeu
         """
-        generators = set([])
+        nontorsion_generators = set([])
         genus = self.genus()
         num_verts = 0
         num_edges = 0
@@ -3644,7 +3680,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                         #Add the vertex to the list of pending vertices
                         V.append(v1)
                     else:
-                        generators.add(g1[0])
+                        nontorsion_generators.add(g1[0])
 
                     # Add the edge to the list
                     new_e = Edge(p, num_edges, e, v, v1, determinant=edge_det,
@@ -3685,7 +3721,7 @@ class BTQuotient(SageObject, UniqueRepresentation):
                 raise RuntimeError('Number of vertices different '
                                    'from expected.')
 
-        self._generators = generators
+        self._nontorsion_generators = nontorsion_generators
         self._boundary = dict([(vv.rep, vv) for vv in vertex_list])
         self._edge_list = edge_list
         self._vertex_list = vertex_list

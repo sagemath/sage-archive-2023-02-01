@@ -95,7 +95,7 @@ def eval_dist_at_powseries(phi, f):
         sage: D = Distributions(0,7,10)
         sage: phi = D(range(1,11))
         sage: eval_dist_at_powseries(phi,f)
-        180470298
+        1 + 2*7 + 3*7^2 + 4*7^3 + 5*7^4 + 6*7^5 + 2*7^7 + 3*7^8 + 4*7^9 + O(7^10)
 
     Even though it only makes sense to evaluate a distribution on
     a Tate series, this function will output a (possibly
@@ -103,10 +103,13 @@ def eval_dist_at_powseries(phi, f):
 
         sage: g = (1-X)^(-1)
         sage: eval_dist_at_powseries(phi,g)
-        48
+        6 + 6*7 + O(7^10)
     """
     nmoments = phi.parent().precision_cap()
-    return sum(a * phi.moment(i)
+    K = f.parent().base_ring()
+    if K.is_exact():
+        K = phi.parent().base_ring()
+    return sum(a * K(phi.moment(i))
                for a, i in izip(f.coefficients(), f.exponents())
                if i >= 0 and i < nmoments)
 
@@ -1277,7 +1280,7 @@ class HarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
             sage: X = BTQuotient(3,11)
             sage: H = HarmonicCocycles(X,4,prec=60)
             sage: A = H.hecke_operator(7).matrix() # long time, indirect doctest
-            sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()]
+            sage: print [o.rational_reconstruction() for o in A.charpoly().coefficients()] # long time
             [6496256, 1497856, -109040, -33600, -904, 32, 1]
         """
         return self.__compute_operator_matrix(lambda f: self.__apply_hecke_operator(l, f))
@@ -1558,8 +1561,8 @@ class pAutomorphicFormElement(ModuleElement):
         EXAMPLES::
 
             sage: X = BTQuotient(5,23)
-            sage: H = HarmonicCocycles(X,4,prec=10)
-            sage: A = pAutomorphicForms(X,4,prec=10)
+            sage: H = HarmonicCocycles(X,4,prec = 20)
+            sage: A = pAutomorphicForms(X,4,prec = 20)
             sage: v1 = A(H.basis()[1])
             sage: v1.__nonzero__()
             True

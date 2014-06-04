@@ -87,7 +87,7 @@ values**, see next section)::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x, y, z = p['x'], p['y'], p['z']
-    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+    doctest:...: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
     See http://trac.sagemath.org/15521 for details.
 
 Next, we set the objective function

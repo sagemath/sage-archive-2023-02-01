@@ -90,7 +90,7 @@ Different backends compute with different base fields, for example::
     sage: p.base_ring()
     Real Double Field
     sage: x = p.new_variable()
-    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+    doctest:...: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
     See http://trac.sagemath.org/15521 for details.
     sage: 0.5 + 3/2*x[1]
     0.5 + 1.5*x_0
@@ -581,7 +581,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
          of real type, and the second of integer type ::
 
             sage: x = p.new_variable(real=True)
-            doctest:839: DeprecationWarning: The meaning of 'real' will change, to represent real variables instead of nonnegative ones. Please use the new 'nonnegative' variable type.
+            doctest:...: DeprecationWarning: The meaning of 'real' will change, to represent real variables instead of nonnegative ones. Please use the new 'nonnegative' variable type.
             See http://trac.sagemath.org/15521 for details.
             sage: y = p.new_variable(integer=True)
             sage: p.add_constraint(x[2] + y[3,5], max=2)
@@ -1183,7 +1183,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable(dim=2)
-            doctest:839: DeprecationWarning: The 'dim' argument will soon disappear. Fortunately variable[1,2] is easier to use than variable[1][2]
+            doctest:...: DeprecationWarning: The 'dim' argument will soon disappear. Fortunately variable[1,2] is easier to use than variable[1][2]
             See http://trac.sagemath.org/15489 for details.
             sage: p.add_constraint(b[1][2] +  b[2][3] == 0)
             sage: _ = p.solve()

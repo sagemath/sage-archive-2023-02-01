@@ -34,8 +34,8 @@ class CooperativeGame(SageObject):
     INPUT:
 
     - characteristic_function - a dictionary containing all possible sets of players.
-        * Key - Each set must be entered as a tuple, not a string. Apart from
-                the empty set, they must all end with a comma.
+        * Key - Each set must be entered as a tuple, not a string. A single element
+                tuple must end with a comma.
         * Value - A real number representing each set of players contribution.
 
     - payoff_vector - default = ``False``, a dictionary can be passed instead but
@@ -192,6 +192,28 @@ class CooperativeGame(SageObject):
             {1: 2, 2: 5, 3: 35}
             sage: integer_game.payoff_vector
             {1: 2, 2: 5, 3: 35}
+
+        A longer example of the shapley_value. ::
+
+            sage: long_function = {(): 0,
+            ....:                  (1,): 0,
+            ....:                  (2,): 0,
+            ....:                  (3,): 0,
+            ....:                  (4,): 0,
+            ....:                  (1, 2): 0,
+            ....:                  (1, 3): 0,
+            ....:                  (1, 4): 0,
+            ....:                  (2, 3): 0,
+            ....:                  (2, 4): 0,
+            ....:                  (3, 4): 0,
+            ....:                  (1, 2, 3): 0,
+            ....:                  (1, 2, 4): 45,
+            ....:                  (1, 3, 4): 40,
+            ....:                  (2, 3, 4): 0,
+            ....:                  (1, 2, 3, 4): 65}
+            sage: long_game = CooperativeGame(long_function)
+            sage: long_game.shapley_value()
+            {1: 20, 2: 20, 3: 5, 4: 20}
         """
         payoff_vector = {}
         for player in self.player_list:
@@ -233,6 +255,28 @@ class CooperativeGame(SageObject):
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.is_monotone()
             False
+
+        Shows the use of is_monotone for a longer game. ::
+
+            sage: long_function = {(): 0,
+            ....:                  (1,): 0,
+            ....:                  (2,): 0,
+            ....:                  (3,): 0,
+            ....:                  (4,): 0,
+            ....:                  (1, 2): 0,
+            ....:                  (1, 3): 0,
+            ....:                  (1, 4): 0,
+            ....:                  (2, 3): 0,
+            ....:                  (2, 4): 0,
+            ....:                  (3, 4): 0,
+            ....:                  (1, 2, 3): 0,
+            ....:                  (1, 2, 4): 45,
+            ....:                  (1, 3, 4): 40,
+            ....:                  (2, 3, 4): 0,
+            ....:                  (1, 2, 3, 4): 65}
+            sage: long_game = CooperativeGame(long_function)
+            sage: long_game.is_monotone()
+            True
         """
         sets = list(self.ch_f.keys())
         return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
@@ -270,6 +314,28 @@ class CooperativeGame(SageObject):
             sage: A_game = CooperativeGame(A_function)
             sage: A_game.is_superadditive()
             True
+
+        An example for is_superadditive with a longer game. ::
+
+            sage: long_function = {(): 0,
+            ....:                  (1,): 0,
+            ....:                  (2,): 0,
+            ....:                  (3,): 0,
+            ....:                  (4,): 0,
+            ....:                  (1, 2): 0,
+            ....:                  (1, 3): 0,
+            ....:                  (1, 4): 0,
+            ....:                  (2, 3): 0,
+            ....:                  (2, 4): 0,
+            ....:                  (3, 4): 0,
+            ....:                  (1, 2, 3): 0,
+            ....:                  (1, 2, 4): 45,
+            ....:                  (1, 3, 4): 40,
+            ....:                  (2, 3, 4): 0,
+            ....:                  (1, 2, 3, 4): 65}
+            sage: long_game = CooperativeGame(long_function)
+            sage: long_game.is_superadditive()
+            False
         """
         sets = list(self.ch_f.keys())
         for p1, p2 in permutations(sets, 2):
@@ -622,25 +688,3 @@ class CooperativeGame(SageObject):
             else:
                 pass
         return True
-
-r"""
-sage: long_function = {(): 0,
-....:                  (1,): 0,
-....:                  (2,): 0,
-....:                  (3,): 0,
-....:                  (4,): 0,
-....:                  (1, 2): 0,
-....:                  (1, 3): 0,
-....:                  (1, 4): 0,
-....:                  (2, 3): 0,
-....:                  (2, 4): 0,
-....:                  (3, 4): 0,
-....:                  (1, 2, 3): 0,
-....:                  (1, 2, 4): 45,
-....:                  (1, 3, 4): 40,
-....:                  (2, 3, 4): 0,
-....:                  (1, 2, 3, 4): 65}
-sage: long_game = CooperativeGame(long_function)
-sage: long_game.shapley_value()
-{1: 20, 2: 20, 3: 5, 4: 20}
-"""

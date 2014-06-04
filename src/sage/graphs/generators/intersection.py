@@ -380,7 +380,21 @@ def OrthogonalArrayGraph(k,n):
 
     .. WARNING::
 
-        Brouwer's website uses the notation `OA(n,k)` instead of `OA(k,n)` !
+        - Brouwer's website uses the notation `OA(n,k)` instead of `OA(k,n)`
+
+        - There can be many `OA(k,n)` : the graphs returned are not uniquely
+          defined by their parameters.
+
+        - Results can change between different
+          versions of Sage, or even worse : some could not be available
+          anymore.
+
+          If you like the graphs, save them somewhere (or be ready to reinstall
+          an old version of Sage).
+
+    .. SEEALSO::
+
+        :mod:`sage.combinat.designs.orthogonal_arrays`
 
     INPUT:
 

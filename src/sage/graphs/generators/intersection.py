@@ -361,19 +361,18 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
     r"""
     Returns the graph of an `OA(k,n)`.
 
-    The intersection graph of the block of a `TD(k,n)` (see
-    :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`) is a
-    strongly regular graph (unless it is a complete graph). Its parameters
-    `(v,k,\lambda,\mu)` are equal to:
+    The intersection graph of the blocks of a transversal design with parameters
+    `(k,n)`, or `TD(k,n)` for short, is a strongly regular graph (unless it is a
+    complete graph). Its parameters `(v,k',\lambda,\mu)` are determined by the
+    parameters `k,n` via:
 
     .. MATH::
 
-        v=n^2,k=k(n-1),\lambda=(k-1)(k-2)+n-2,\mu=k(k-1)
+        v=n^2, k'=k(n-1), \lambda=(k-1)(k-2)+n-2, \mu=k(k-1)
 
-    As transversal designs and orthogonal arrays are equivalent
-    objects, this graph can also be built from the blocks of an
-    `OA(k,n)`, two of them being adjacent if one of their coordinates
-    match.
+    As transversal designs and orthogonal arrays (OA for short) are equivalent
+    objects, this graph can also be built from the blocks of an `OA(k,n)`, two
+    of them being adjacent if one of their coordinates match.
 
     For more information on these graphs, see `Andries Brouwer's page
     on Orthogonal Array graphs <www.win.tue.nl/~aeb/graphs/OA.html>`_.
@@ -382,15 +381,13 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
 
         - Brouwer's website uses the notation `OA(n,k)` instead of `OA(k,n)`
 
-        - There can be many `OA(k,n)` : the graphs returned are not uniquely
-          defined by their parameters.
+        - For given parameters `k` and `n` there can be many `OA(k,n)` : the
+          graphs returned are not uniquely defined by their parameters (see the
+          examples below).
 
-        - Results can change between different
-          versions of Sage, or even worse : some could not be available
-          anymore.
-
-          If you like the graphs, save them somewhere (or be ready to reinstall
-          an old version of Sage).
+        - If the function is called only with the parameter ``k`` and ``n`` the
+          results might be different with two versions of Sage, or even worse :
+          some could not be available anymore.
 
     .. SEEALSO::
 
@@ -433,20 +430,34 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
         sage: Ga.is_isomorphic(Gb)
         True
 
-    If the two `OA(k,n)` are not isomorphic, however::
+    But there are examples of `OA(k,n)` for which the resulting graphs are not
+    isomorphic::
 
         sage: oa0 = [[0, 0, 1], [0, 1, 3], [0, 2, 0], [0, 3, 2],
         ....:        [1, 0, 3], [1, 1, 1], [1, 2, 2], [1, 3, 0],
         ....:        [2, 0, 0], [2, 1, 2], [2, 2, 1], [2, 3, 3],
         ....:        [3, 0, 2], [3, 1, 0], [3, 2, 3], [3, 3, 1]]
-        sage: oa1 = [[0, 0, 2], [0, 1, 0], [0, 2, 3], [0, 3, 1],
-        ....:        [1, 0, 3], [1, 1, 1], [1, 2, 0], [1, 3, 2],
-        ....:        [2, 0, 0], [2, 1, 2], [2, 2, 1], [2, 3, 3],
-        ....:        [3, 0, 1], [3, 1, 3], [3, 2, 2], [3, 3, 0]]
+        sage: oa1 = [[0, 0, 1], [0, 1, 0], [0, 2, 3], [0, 3, 2],
+        ....:        [1, 0, 3], [1, 1, 2], [1, 2, 0], [1, 3, 1],
+        ....:        [2, 0, 0], [2, 1, 1], [2, 2, 2], [2, 3, 3],
+        ....:        [3, 0, 2], [3, 1, 3], [3, 2, 1], [3, 3, 0]]
         sage: g0 = graphs.OrthogonalArrayBlockGraph(3,4,oa0)
         sage: g1 = graphs.OrthogonalArrayBlockGraph(3,4,oa1)
         sage: g0.is_isomorphic(g1)
         False
+
+    But nevertheless isospectral::
+
+        sage: g0.spectrum()
+        [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, -3, -3, -3, -3, -3, -3]
+        sage: g1.spectrum()
+        [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, -3, -3, -3, -3, -3, -3]
+
+    Note that the graph ``g0`` is actually isomorphic to the affine polar graph
+    `VO^+(4,2)`::
+
+        sage: graphs.AffineOrthogonalPolarGraph(4,2,'+').is_isomorphic(g0)
+        True
 
     TESTS::
 

@@ -149,9 +149,9 @@ sets such that an ordering `v_1, ..., v_n` of the vertices correspond to
     :nowrap:
 
     \begin{alignat}{2}
-    \intertext{Minimize:}
+    \text{Minimize:}
     &z&\\
-    \intertext{Such that:}
+    \text{Such that:}
     x_v^t &\leq x_v^{t+1}& \forall v\in V,\ 0\leq t\leq n-2\\
     y_v^t &\leq y_v^{t+1}& \forall v\in V,\ 0\leq t\leq n-2\\
     y_v^t &\leq x_w^t& \forall v\in V,\ \forall w\in N^+(v),\ 0\leq t\leq n-1\\
@@ -816,10 +816,10 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
 
     # Declaration of variables.
-    x = p.new_variable( binary = integrality)
-    u = p.new_variable( binary = integrality)
-    y = p.new_variable( binary = True)
-    z = p.new_variable( integer = True, dim = 1 )
+    x = p.new_variable(binary = integrality, nonnegative=bool(not integrality)) # at least one has to be set (#15221)
+    u = p.new_variable(binary = integrality, nonnegative=bool(not integrality))
+    y = p.new_variable(binary = True)
+    z = p.new_variable(integer = True)
 
     N = G.num_verts()
     V = G.vertices()

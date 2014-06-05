@@ -72,7 +72,7 @@ cdef class FiniteFieldHomomorphism_prime(FiniteFieldHomomorphism_generic):
         domain = parent.domain()
         if not is_FiniteField(domain) or not domain.is_prime_field():
             raise TypeError("The domain is not a finite prime field")
-        if section_class == None:
+        if section_class is None:
             section_class = SectionFiniteFieldHomomorphism_prime
         FiniteFieldHomomorphism_generic.__init__(self, parent, im_gens, check,
                                                  section_class)
@@ -162,4 +162,4 @@ cdef class FrobeniusEndomorphism_prime(FrobeniusEndomorphism_finite_field):
             sage: [ embed(x) == x for x in kfixed ]
             [True, True, True, True, True]
         """
-        return self._domain, self._domain.hom(self._domain)
+        return self.domain(), self.domain().hom(self.domain())

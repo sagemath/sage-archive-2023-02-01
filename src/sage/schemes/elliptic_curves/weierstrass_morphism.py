@@ -71,7 +71,7 @@ class baseWI:
             (u, r, s, t)
         """
         if u==0:
-            raise ValueError, "u!=0 required for baseWI"
+            raise ValueError("u!=0 required for baseWI")
         self.u=u; self.r=r; self.s=s; self.t=t
 
     def __cmp__(self, other):
@@ -235,7 +235,7 @@ class baseWI:
            x-=r*z
            y-=(s*x+t*z)
            return [x/u**2,y/u**3,z]
-        raise ValueError, "baseWI(a) only for a=(x,y), (x:y:z) or (a1,a2,a3,a4,a6)"
+        raise ValueError("baseWI(a) only for a=(x,y), (x:y:z) or (a1,a2,a3,a4,a6)")
 
 def isomorphisms(E,F,JustOne=False):
     r"""
@@ -272,7 +272,7 @@ def isomorphisms(E,F,JustOne=False):
     """
     from ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E) or not is_EllipticCurve(F):
-        raise ValueError, "arguments are not elliptic curves"
+        raise ValueError("arguments are not elliptic curves")
     K = E.base_ring()
 #   if not K == F.base_ring(): return []
     j=E.j_invariant()
@@ -420,19 +420,19 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         """
         from ell_generic import is_EllipticCurve
 
-        if E!=None:
+        if E is not None:
             if not is_EllipticCurve(E):
-                raise ValueError, "First argument must be an elliptic curve or None"
-        if F!=None:
+                raise ValueError("First argument must be an elliptic curve or None")
+        if F is not None:
             if not is_EllipticCurve(F):
-                raise ValueError, "Third argument must be an elliptic curve or None"
-        if urst!=None:
+                raise ValueError("Third argument must be an elliptic curve or None")
+        if urst is not None:
             if len(urst)!=4:
-                raise ValueError, "Second argument must be [u,r,s,t] or None"
-        if len([par for par in [E,urst,F] if par!=None])<2:
-            raise ValueError, "At most 1 argument can be None"
+                raise ValueError("Second argument must be [u,r,s,t] or None")
+        if len([par for par in [E,urst,F] if par is not None])<2:
+            raise ValueError("At most 1 argument can be None")
 
-        if F==None:  # easy case
+        if F is None:  # easy case
             baseWI.__init__(self,*urst)
             F=EllipticCurve(baseWI.__call__(self,list(E.a_invariants())))
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
@@ -440,7 +440,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             self._codomain_curve = F
             return
 
-        if E==None:  # easy case in reverse
+        if E is None:  # easy case in reverse
             baseWI.__init__(self,*urst)
             inv_urst=baseWI.__invert__(self)
             E=EllipticCurve(baseWI.__call__(inv_urst,list(F.a_invariants())))
@@ -449,10 +449,10 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             self._codomain_curve = F
             return
 
-        if urst==None: # try to construct the morphism
+        if urst is None: # try to construct the morphism
             urst=isomorphisms(E,F,True)
-            if urst==None:
-                raise ValueError, "Elliptic curves not isomorphic."
+            if urst is None:
+                raise ValueError("Elliptic curves not isomorphic.")
             baseWI.__init__(self, *urst)
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
             self._domain_curve = E
@@ -463,7 +463,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         # none of the parameters is None:
         baseWI.__init__(self,*urst)
         if F!=EllipticCurve(baseWI.__call__(self,list(E.a_invariants()))):
-            raise ValueError, "second argument is not an isomorphism from first argument to third argument"
+            raise ValueError("second argument is not an isomorphism from first argument to third argument")
         else:
             Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
             self._domain_curve = E
@@ -585,7 +585,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
             w=baseWI.__mul__(self,other)
             return WeierstrassIsomorphism(other._domain_curve, w.tuple(), self._codomain_curve)
         else:
-            raise ValueError, "Domain of first argument must equal codomain of second"
+            raise ValueError("Domain of first argument must equal codomain of second")
 
     def __repr__(self):
         r"""

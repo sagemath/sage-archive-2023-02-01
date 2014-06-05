@@ -407,10 +407,15 @@ def call(func, *args, **kwargs):
         sage: type(_)
         <type 'sage.rings.real_double.RealDoubleElement'>
 
-    Check that Trac 11885 is fixed::
+    Check that :trac:`11885` is fixed::
 
         sage: a.call(a.ei, 1.0r, parent=float)
         1.8951178163559366
+
+    Check that :trac:`14984` is fixed::
+
+        sage: a.call(a.log, -1.0r, parent=float)
+        3.141592653589793j
 
     """
     from mpmath import mp
@@ -435,6 +440,11 @@ def call(func, *args, **kwargs):
         return y
     try:
         return parent(y)
-    except TypeError:
-        return parent.complex_field()(y)
-
+    except TypeError, error:
+        try:
+            return parent.complex_field()(y)
+        except AttributeError:
+            if parent is float:
+                return complex(y)
+            else:
+                raise TypeError(error)

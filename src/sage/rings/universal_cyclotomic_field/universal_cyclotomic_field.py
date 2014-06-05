@@ -314,6 +314,8 @@ from sage.rings.integer import GCD_list, LCM_list
 
 from sage.rings.real_mpfr import RealField, mpfr_prec_min
 from sage.rings.complex_field import ComplexField
+from sage.rings.complex_double import CDF
+
 from sage.rings.real_lazy import RLF, CLF
 from sage.combinat.dict_addition import dict_linear_combination, dict_addition
 from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c import \
@@ -389,7 +391,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         # getting the optional argument "bracket" right
         if isinstance(bracket,str) and len(bracket) % 2 == 0:
             bracket_len = len(bracket)
-            bracket = (bracket[:bracket_len/2],bracket[bracket_len/2:])
+            bracket = (bracket[:bracket_len//2],bracket[bracket_len//2:])
         else:
             raise ValueError("The given bracket %s is not a string of even length."%bracket)
 
@@ -1267,6 +1269,26 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 P = self.parent().coerce_embedding().codomain()
                 return AA(P(self))
             raise TypeError("No conversion of %s to the real algebraic field AA."%str(self))
+
+        def __float__(self):
+            r"""
+            Returns ``self`` as a float if ``self`` is real. Raises an error otherwise.
+
+            EXAMPLES::
+
+                sage: UCF.<E> = UniversalCyclotomicField()
+
+                sage: float(E(5)+E(5)^(-1))
+                0.6180339887498949
+
+                sage: float(E(5))
+                Traceback (most recent call last):
+                ...
+                ValueError: E(5) is not real
+            """
+            if self.is_real():
+                return float(CDF(self).real_part())
+            raise ValueError("{} is not real".format(self))
 
         def _rational_(self):
             r"""

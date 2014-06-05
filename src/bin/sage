@@ -246,6 +246,14 @@ if [ "$1" = '--nodotsage' ]; then
     exit $status
 fi
 
+# Check for '--patchbot' before sourcing sage-env: patchbot needs
+# an unclobbered environment before testing unsafe tickets.
+if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
+    shift
+    cd "$SAGE_ROOT"
+    exec local/bin/patchbot/patchbot.py "$@"
+fi
+
 # Check for '--upgrade' before sourcing sage-env: the top-level "make"
 # should be run outside of the Sage shell, see #15517.
 if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
@@ -744,12 +752,6 @@ if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     exec sage-runtests -a "$@"
 fi
 
-if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
-    shift
-    cd "$SAGE_ROOT"
-    exec "$SAGE_LOCAL/bin/patchbot/patchbot.py" "$@"
-fi
-
 if [ "$1" = '-c' ]; then
     shift
     SAGE_BANNER="no"
@@ -884,7 +886,7 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
         cygdb "$SAGE_SRC/build" "$SAGE_SRC/sage" \
-            -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi
     exit $?

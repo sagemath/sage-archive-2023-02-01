@@ -195,7 +195,7 @@ def characteristic_polynomial(x, var='x'):
     try:
         return x.charpoly(var)
     except AttributeError:
-        raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
+        raise NotImplementedError("computation of charpoly of x (={}) not implemented".format(x))
 
 charpoly = characteristic_polynomial
 
@@ -729,15 +729,22 @@ def integral(x, *args, **kwds):
         2
 
     Another symbolic integral, from :trac:`11238`, that used to return
-    zero incorrectly; with maxima 5.26.0 one gets 1/2*sqrt(pi)*e^(1/4),
-    whereas with 5.29.1 the expression is less pleasant, but still
-    has the same value::
+    zero incorrectly; with Maxima 5.26.0 one gets
+    ``1/2*sqrt(pi)*e^(1/4)``, whereas with 5.29.1, and even more so
+    with 5.33.0, the expression is less pleasant, but still has the
+    same value.  Unfortunately, the computation takes a very long time
+    with the default settings, so we temporarily use the Maxima
+    setting ``domain: real``::
 
+        sage: sage.calculus.calculus.maxima('domain: real')
+        real
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
-        1/4*(sqrt(pi)*(erf(1) - 1) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
+        1/4*sqrt(pi)*(erf(1) - 1)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*sqrt(pi)*e^(1/4) - 1/2*e^(1/4) + 1/2*e^(-3/4)
         sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
+        sage: sage.calculus.calculus.maxima('domain: complex')
+        complex
 
     An integral which used to return -1 before maxima 5.28. See :trac:`12842`::
 
@@ -990,7 +997,7 @@ def lift(x):
     try:
         return x.lift()
     except AttributeError:
-        raise ArithmeticError, "no lift defined."
+        raise ArithmeticError("no lift defined.")
 
 def log(x,b=None):
     r"""

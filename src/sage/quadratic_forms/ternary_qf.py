@@ -98,7 +98,7 @@ class TernaryQF(SageObject):
 
         if len(v) != 6:
             # Check we have six coefficients
-            raise ValueError, "Ternary quadratic form must be given by a list of six coefficients"
+            raise ValueError("Ternary quadratic form must be given by a list of six coefficients")
         self._a, self._b, self._c, self._r, self._s, self._t = [ZZ(x) for x in v]
         self._automorphisms = None
         self._number_of_automorphisms = None
@@ -218,7 +218,7 @@ class TernaryQF(SageObject):
         if is_Matrix(v):
             ## Check that v has 3 rows
             if v.nrows() != 3:
-                raise TypeError, "Oops! The matrix must have 3 rows."
+                raise TypeError("Oops! The matrix must have 3 rows.")
             ## Check if v has 3 cols
             if v.ncols() == 3:
                 M = v.transpose() * self.matrix() * v
@@ -228,12 +228,12 @@ class TernaryQF(SageObject):
         elif (is_Vector(v) or isinstance(v, (list, tuple))):
             ## Check that v has lenght 3
             if not (len(v) == 3):
-                raise TypeError, "Oops! Your vector needs to have length 3"
+                raise TypeError("Oops! Your vector needs to have length 3")
             v0, v1, v2 = v
             a, b, c, r, s, t = self.coefficients()
             return a*v0**2 + b*v1**2 + c*v2**2 + r*v1*v2 + s*v0*v2 + t*v0*v1
         else:
-            raise TypeError, "Oops! Presently we can only evaluate a quadratic form on a list, tuple, vector ot matrix"
+            raise TypeError("Oops! Presently we can only evaluate a quadratic form on a list, tuple, vector ot matrix")
 
 
     def quadratic_form(self):
@@ -539,7 +539,7 @@ class TernaryQF(SageObject):
 
             else:
 
-                raise TypeError, "Oops! " + k.__repr__() + " doesn't belongs to a Ring"
+                raise TypeError("Oops! " + k.__repr__() + " doesn't belongs to a Ring")
 
     def reciprocal(self):
         """
@@ -1022,13 +1022,13 @@ class TernaryQF(SageObject):
             p = 2
 
         if self.omega() % p != 0:
-            raise ValueError, "not a valid character"
+            raise ValueError("not a valid character")
 
         if p == -1 and self.omega() % 2**4 != 0:
-            raise ValueError, "not a valid character"
+            raise ValueError("not a valid character")
 
         if p == 2 and self.omega() % 2**5 != 0:
-            raise ValueError, "not a valid character"
+            raise ValueError("not a valid character")
 
         if (p == -1) or (p == 2):
             return kronecker_symbol(p, self.basic_lemma(2))
@@ -1748,7 +1748,7 @@ class TernaryQF(SageObject):
 
         """
 
-        if TernaryQF.possible_automorphisms == None:
+        if TernaryQF.possible_automorphisms is None:
 
              I = [-1, 0, 1]
              auts = [matrix(ZZ, 3, [a, b, c, d, e, f, g, h, i]) for a in I for b in I for c in I for d in I for e in I for f in I for g in I for h in I for i in I]
@@ -1809,9 +1809,9 @@ class TernaryQF(SageObject):
         """
 
         if not self.is_definite():
-           raise ValueError, "Oops, only implemented for definite forms."
+           raise ValueError("Oops, only implemented for definite forms.")
 
-        if self._automorphisms != None:
+        if self._automorphisms is not None:
             return self._automorphisms
 
         if self.is_positive_definite():
@@ -2040,9 +2040,9 @@ class TernaryQF(SageObject):
         """
 
         if not self.is_definite():
-           raise ValueError, "Oops, only implemented for definite forms."
+           raise ValueError("Oops, only implemented for definite forms.")
 
-        if self._number_of_automorphisms != None:
+        if self._number_of_automorphisms is not None:
             return self._number_of_automorphisms
 
         if slow:
@@ -2126,5 +2126,5 @@ def find_a_ternary_qf_by_level_disc(N, d):
     """
 
     q = _find_a_ternary_qf_by_level_disc(N, d)
-    if q != None:
+    if q is not None:
         return TernaryQF(q)

@@ -658,7 +658,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC):
                 self._mat[i,j] = l
                 self._maps[i][j]=phi
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'"%algorithm)
 
     def _compute_matrix(self):
         """

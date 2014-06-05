@@ -141,15 +141,6 @@ def convert_to_milnor_matrix(n, basis, p=2):
 
     ``matrix`` - change-of-basis matrix, a square matrix over ``GF(p)``
 
-    .. note::
-
-        This is called internally.  It is not intended for casual
-        users, so no error checking is made on the integer `n`, the
-        basis name, or the prime.  Also, users should call
-        :func:`convert_to_milnor_matrix` instead of this function
-        (which has a trailing underscore in its name), because the
-        former is the cached version of the latter.
-
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_bases import convert_to_milnor_matrix
@@ -157,7 +148,7 @@ def convert_to_milnor_matrix(n, basis, p=2):
         [0 1]
         [1 1]
         sage: convert_to_milnor_matrix(45, 'milnor')
-        111 x 111 dense matrix over Finite Field of size 2
+        111 x 111 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: convert_to_milnor_matrix(12,'wall')
         [1 0 0 1 0 0 0]
         [1 1 0 0 0 1 0]
@@ -233,7 +224,7 @@ def convert_from_milnor_matrix(n, basis, p=2):
         [1 1 1 0 0 0 0]
         [1 0 1 0 1 0 1]
         sage: convert_from_milnor_matrix(38,'serre_cartan')
-        72 x 72 dense matrix over Finite Field of size 2
+        72 x 72 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: x = convert_to_milnor_matrix(20,'wood_y')
         sage: y = convert_from_milnor_matrix(20,'wood_y')
         sage: x*y
@@ -292,13 +283,6 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
 
     Tuple of objects representing basis elements for the Steenrod algebra
     in dimension n.
-
-    .. note::
-
-        Users should use :func:`steenrod_algebra_basis` instead of
-        this function (which has a trailing underscore in its name):
-        :func:`steenrod_algebra_basis` is the cached version of this
-        one, and so will be faster.
 
     The choices for the string ``basis`` are as follows; see the
     documentation for :mod:`sage.algebras.steenrod.steenrod_algebra`
@@ -734,7 +718,7 @@ def serre_cartan_basis(n, p=2, bound=1):
             # elements from serre_cartan_basis (n - last, bound=2 * last).
             # This means that 2 last <= n - last, or 3 last <= n.
             result = [(n,)]
-            for last in range(bound, 1+n/3):
+            for last in range(bound, 1+n//3):
                 for vec in serre_cartan_basis(n - last, bound = 2*last):
                     new = vec + (last,)
                     result.append(new)
@@ -747,7 +731,7 @@ def serre_cartan_basis(n, p=2, bound=1):
                 result = []
             # 2 cases: append P^{last}, or append P^{last} beta
             # case 1: append P^{last}
-            for last in range(bound, 1+n/(2*(p - 1))):
+            for last in range(bound, 1+n//(2*(p - 1))):
                 if n - 2*(p-1)*last > 0:
                     for vec in serre_cartan_basis(n - 2*(p-1)*last,
                                                   p, p*last):
@@ -755,7 +739,7 @@ def serre_cartan_basis(n, p=2, bound=1):
             # case 2: append P^{last} beta
             if bound == 1:
                 bound = 0
-            for last in range(bound+1, 1+n/(2*(p - 1))):
+            for last in range(bound+1, 1+n//(2*(p - 1))):
                 basis = serre_cartan_basis(n - 2*(p-1)*last - 1,
                                            p, p*last)
                 for vec in basis:
@@ -947,6 +931,7 @@ def atomic_basis(n, basis, **kwds):
                 result.append(tuple(big_list))
         return tuple(result)
 
+@cached_function
 def arnonC_basis(n,bound=1):
     r"""
     Arnon's C basis in dimension `n`.
@@ -985,8 +970,8 @@ def arnonC_basis(n,bound=1):
         # first also must be divisible by 2**(len(old-basis-elt))
         # This means that 3 first <= 2 n.
         result = [(n,)]
-        for first in range(bound,1+2*n/3):
-            for vec in arnonC_basis(n - first, max(first/2,1)):
+        for first in range(bound, 1+2*n//3):
+            for vec in arnonC_basis(n - first, max(first//2,1)):
                 if first % 2**len(vec) == 0:
                     result.append((first,) + vec)
         return tuple(result)
@@ -1072,7 +1057,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
                                                sorting_pair(y[0][0], y[0][1], basis)))
             deg = n - 2*dim*(p-1)
             q_degrees = [1+2*(p-1)*d for d in
-                         xi_degrees(int((deg - 1)/(2*(p-1))), p)] + [1]
+                         xi_degrees((deg - 1)//(2*(p-1)), p)] + [1]
             q_degrees_decrease = q_degrees
             q_degrees.reverse()
             if deg % (2*(p-1)) <= len(q_degrees):
@@ -1140,9 +1125,9 @@ def steenrod_basis_error_check(dim, p):
     """
     import sage.misc.misc as misc
 
-    # Apparently, in this test function, we don't want to benefit from caching.
-    # Hence, the uncached version of steenrod_algebra_basis and of
-    # convert_to-milnor_matrix are used.
+    # In this test function, we don't want to use caching.
+    # Hence, the uncached versions of steenrod_algebra_basis
+    # and of convert_to_milnor_matrix are used.
     if p == 2:
         bases = ('adem','woody', 'woodz', 'wall', 'arnona', 'arnonc',
                  'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz',

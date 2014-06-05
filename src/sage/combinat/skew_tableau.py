@@ -707,7 +707,7 @@ class SkewTableau(CombinatorialObject, Element):
         outer_corners = self.outer_shape().corners()
         if corner is not None:
             if tuple(corner) not in inner_corners:
-                raise ValueError, "corner must be an inner corner"
+                raise ValueError("corner must be an inner corner")
         else:
             if len(inner_corners) == 0:
                 return self
@@ -1571,7 +1571,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
         """
         Return the number of standard skew tableaux with shape of the skew
         partition ``skp``. This uses a formula due to Aitken
-        (see Cor. 7.16.3 of [Sta1999]_).
+        (see Cor. 7.16.3 of [Sta-EC2]_).
 
         EXAMPLES::
 

@@ -227,7 +227,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             im_gens = domain.modulus().any_root(codomain)
             check=False
         RingHomomorphism_im_gens.__init__(self, parent, im_gens, check)
-        if section_class == None:
+        if section_class is None:
             self._section_class = SectionFiniteFieldHomomorphism_generic
         else:
             self._section_class = section_class
@@ -615,13 +615,13 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
             4*t^5 + 2*t^4 + 4*t^2 + t
         """
         if self._degree_fixed == 1:
-            k = FiniteField(self._domain.characteristic())
+            k = FiniteField(self.domain().characteristic())
             from hom_prime_finite_field import FiniteFieldHomomorphism_prime
-            f = FiniteFieldHomomorphism_prime(Hom(k, self._domain))
+            f = FiniteFieldHomomorphism_prime(Hom(k, self.domain()))
         else:
-            k = FiniteField(self._domain.characteristic()**self._degree_fixed,
-                            name=self._domain.variable_name() + "_fixed")
-            f = FiniteFieldHomomorphism_generic(Hom(k, self._domain))
+            k = FiniteField(self.domain().characteristic()**self._degree_fixed,
+                            name=self.domain().variable_name() + "_fixed")
+            f = FiniteFieldHomomorphism_generic(Hom(k, self.domain()))
         return k, f
 
 

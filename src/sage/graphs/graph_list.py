@@ -307,9 +307,9 @@ def to_graphics_arrays(list, **kwds):
                 kwds['graph_border'] = True
                 plist.append(list[i].plot(**kwds))
             else: plist.append(list[i].plot(pos=pos, vertex_size=50, vertex_labels=False, graph_border=True))
-        else:  raise TypeError, 'Param list must be a list of Sage (di)graphs.'
+        else:  raise TypeError('Param list must be a list of Sage (di)graphs.')
 
-    num_arrays = len(plist)/20
+    num_arrays = len(plist) // 20
     if ( len(plist)%20 > 0 ): num_arrays += 1
     rows = 5
     cols = 4

@@ -250,7 +250,7 @@ class SchemeHomset_generic(HomsetWithBase):
           From: Affine Space of dimension 2 over Rational Field
           To:   Affine Space of dimension 2 over Rational Field
         sage: Hom.category()
-        Category of hom sets in Category of Schemes
+        Category of hom sets in Category of schemes
     """
     Element = SchemeMorphism
 
@@ -396,7 +396,7 @@ class SchemeHomset_generic(HomsetWithBase):
         if is_RingHomomorphism(x):
             return SchemeMorphism_spec(self, x, check=check)
 
-        raise TypeError, "x must be a ring homomorphism, list or tuple"
+        raise TypeError("x must be a ring homomorphism, list or tuple")
 
 
 #*******************************************************************

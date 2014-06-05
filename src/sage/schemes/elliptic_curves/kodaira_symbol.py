@@ -99,7 +99,7 @@ class KodairaSymbol_class(SageObject):
             n = Integer(symbol)
             self._n = None
             if n == 0:
-                raise ValueError, "Kodaira Symbol code number must be nonzero."
+                raise ValueError("Kodaira Symbol code number must be nonzero.")
             if n == 1:
                 self._n = 0
                 self._roman = 1
@@ -150,7 +150,7 @@ class KodairaSymbol_class(SageObject):
             self._pari = n
             return
         elif len(symbol) == 0:
-            raise TypeError, "symbol must be a nonempty string"
+            raise TypeError("symbol must be a nonempty string")
         if symbol[0] == "I":
             symbol = symbol[1:]
         starred = False
@@ -203,7 +203,7 @@ class KodairaSymbol_class(SageObject):
                 self._str = "I" + symbol
                 self._latex = "I_{%s}"%(symbol)
         else:
-            raise ValueError, "input is not a Kodaira symbol"
+            raise ValueError("input is not a Kodaira symbol")
 
     def __repr__(self):
         r"""

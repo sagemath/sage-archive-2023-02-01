@@ -952,15 +952,20 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
 
             sage: Sym = SymmetricFunctions(QQ) # indirect doctest
             sage: h = Sym.h(); w = Sym.w()
-            sage: h.coerce_map_from(w)
+
+            sage: phi = h.coerce_map_from(w); phi
             Generic morphism:
               From: Symmetric Functions over Rational Field in the Witt basis
               To:   Symmetric Functions over Rational Field in the homogeneous basis
+            sage: phi(w.an_element()) == h(w.an_element())
+            True
             sage: e = Sym.e(); w2 = Sym.w(coerce_e=True)
-            sage: e.coerce_map_from(w2)
+            sage: psi = e.coerce_map_from(w2); psi
             Generic morphism:
               From: Symmetric Functions over Rational Field in the Witt basis
               To:   Symmetric Functions over Rational Field in the elementary basis
+            sage: psi(w2.an_element()) == e(w2.an_element())
+            True
         """
 
         #category = sage.categories.all.ModulesWithBasis(self.base_ring())
@@ -1027,7 +1032,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             self._h_inverse_transition_matrices = {}
             self   .register_coercion(self._h._module_morphism(self._h_to_w_on_basis, codomain = self))
             self._h.register_coercion(self._module_morphism(self._w_to_h_on_basis, codomain = self._h))
-            if self._friendly == None:
+            if self._friendly is None:
                 self._friendly = self._h
 
         if self._coerce_e:
@@ -1049,7 +1054,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             self._e_inverse_transition_matrices = {}
             self   .register_coercion(self._e._module_morphism(self._e_to_w_on_basis, codomain = self))
             self._e.register_coercion(self._module_morphism(self._w_to_e_on_basis, codomain = self._e))
-            if self._friendly == None:
+            if self._friendly is None:
                 self._friendly = self._e
 
     def from_other_uncached(self, u):

@@ -247,9 +247,9 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         # EVEN DUMBER IMPLEMENTATION!
         from sage.rings.infinity import Infinity
         if self.order() == Infinity:
-            raise NotImplementedError, "No black-box discrete log for infinite abelian groups"
+            raise NotImplementedError("No black-box discrete log for infinite abelian groups")
         u = [y for y in self.list() if y.element() == x]
-        if len(u) == 0: raise TypeError, "Not in group"
+        if len(u) == 0: raise TypeError("Not in group")
         if len(u) > 1: raise NotImplementedError
         return u[0].vector()
 

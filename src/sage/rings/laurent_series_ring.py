@@ -80,13 +80,13 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
     """
     if not names is None: name = names
     if name is None:
-        raise TypeError, "You must specify the name of the indeterminate of the Laurent series ring."
+        raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
 
     global laurent_series
     key = (base_ring, name, default_prec, sparse)
     if key in laurent_series:
         x = laurent_series[key]()
-        if x != None: return x
+        if x is not None: return x
 
     if isinstance(base_ring, field.Field):
         R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
@@ -95,7 +95,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
     elif isinstance(base_ring, commutative_ring.CommutativeRing):
         R = LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
     else:
-        raise TypeError, "base_ring must be a commutative ring"
+        raise TypeError("base_ring must be a commutative ring")
     laurent_series[key] = weakref.ref(R)
     return R
 
@@ -172,7 +172,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
         else:
-            raise TypeError, "no valid base extension defined"
+            raise TypeError("no valid base extension defined")
 
     def change_ring(self, R):
         """
@@ -244,18 +244,17 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             s = 'Sparse ' + s
         return s
 
-    def __call__(self, x, n=0):
+    Element = laurent_series_ring_element.LaurentSeries
+
+    def _element_constructor_(self, x, n=0):
         r"""
-        Coerces the element x into this Laurent series ring.
+        Construct a Laurent series from `x`.
 
         INPUT:
 
+        - ``x`` -- object that can be converted into a Laurent series
 
-        -  ``x`` - the element to coerce
-
-        -  ``n`` - the result of the coercion will be
-           multiplied by `t^n` (default: 0)
-
+        - ``n`` -- (default: 0) multiply the result by `t^n`
 
         EXAMPLES::
 
@@ -288,7 +287,19 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
             1/1024*I*u^18 + O(u^20)
 
-        Various conversions from PARI (see also #2508)::
+        TESTS:
+
+        When converting from `R((z))` to `R((z))((w))`, the variable
+        `z` is sent to `z` rather than to `w` (see :trac:`7085`)::
+
+            sage: A.<z> = LaurentSeriesRing(QQ)
+            sage: B.<w> = LaurentSeriesRing(A)
+            sage: B(z)
+            z
+            sage: z/w
+            z*w^-1
+
+        Various conversions from PARI (see also :trac:`2508`)::
 
             sage: L.<q> = LaurentSeriesRing(QQ)
             sage: L.set_default_prec(10)
@@ -314,9 +325,22 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         from sage.rings.fraction_field_element import is_FractionFieldElement
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+        from sage.structure.element import parent
 
-        if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self is x.parent():
+        P = parent(x)
+        if isinstance(x, self.element_class) and n==0 and P is self:
             return x  # ok, since Laurent series are immutable (no need to make a copy)
+        elif P is self.base_ring():
+            # Convert x into a power series; if P is itself a Laurent
+            # series ring A((t)), this prevents the implementation of
+            # LaurentSeries.__init__() from effectively applying the
+            # ring homomorphism A((t)) -> A((t))((u)) sending t to u
+            # instead of the one sending t to t.  We cannot easily
+            # tell LaurentSeries.__init__() to be more strict, because
+            # A((t)) -> B((u)) is expected to send t to u if A admits
+            # a coercion to B but A((t)) does not, and this condition
+            # would be inefficient to check there.
+            x = self.power_series_ring()(x)
         elif isinstance(x, pari_gen):
             t = x.type()
             if t == "t_RFRAC":   # Rational function
@@ -335,24 +359,21 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
              (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())):
             x = self(x.numerator())/self(x.denominator())
             return (x << n)
-        else:
-            return laurent_series_ring_element.LaurentSeries(self, x, n)
+        return self.element_class(self, x, n)
 
-    def _coerce_impl(self, x):
+    def _coerce_map_from_(self, P):
         """
-        Return canonical coercion of x into self.
+        Return a coercion map from `P` to ``self``, or True, or None.
 
-        Rings that canonically coerce to this power series ring R:
+        The following rings admit a coercion map to the Laurent series
+        ring `A((t))`:
 
-        - R itself
+        - any ring that admits a coercion map to `A` (including `A`
+          itself);
 
-        - Any laurent series ring in the same variable whose base ring
-          canonically coerces to the base ring of R.
-
-        - Any ring that canonically coerces to the power series ring
-          over the base ring of R.
-
-        - Any ring that canonically coerces to the base ring of R
+        - any Laurent series ring, power series ring or polynomial
+          ring in the variable `t` over a ring admitting a coercion
+          map to `A`.
 
         EXAMPLES::
 
@@ -374,18 +395,19 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             sage: R.has_coerce_map_from(ZZ['x'])
             True
         """
-        try:
-            P = x.parent()
-            if is_LaurentSeriesRing(P):
-                if P.variable_name() == self.variable_name():
-                    if self.has_coerce_map_from(P.base_ring()):
-                        return self(x)
-                    else:
-                        raise TypeError, "no natural map between bases of power series rings"
-        except AttributeError:
-            pass
+        A = self.base_ring()
+        if A is P:
+            return True
+        f = A.coerce_map_from(P)
+        if f is not None:
+            return self.coerce_map_from(A) * f
 
-        return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        from sage.rings.power_series_ring import is_PowerSeriesRing
+        if ((is_LaurentSeriesRing(P) or is_PowerSeriesRing(P) or is_PolynomialRing(P))
+            and P.variable_name() == self.variable_name()
+            and A.has_coerce_map_from(P.base_ring())):
+            return True
 
     def __cmp__(self, other):
         """
@@ -532,7 +554,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             x
         """
         if n != 0:
-            raise IndexError, "Generator n not defined."
+            raise IndexError("Generator n not defined.")
         try:
             return self.__generator
         except AttributeError:

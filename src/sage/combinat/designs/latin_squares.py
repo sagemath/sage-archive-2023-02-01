@@ -252,7 +252,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(6, 4)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build these MOLS!
+        NotImplementedError: I don't know how to build 4 MOLS of order 6
 
     TESTS:
 
@@ -326,7 +326,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         else:
             if existence:
                 return False
-            raise EmptySetError("These MOLS do not exist!")
+            raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
@@ -344,7 +344,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build these MOLS!")
+        raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))
 
     if check:
         assert are_mutually_orthogonal_latin_squares(matrices)

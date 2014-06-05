@@ -155,11 +155,11 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         sage: designs.transversal_design(47, 100)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this Transversal Design!
+        NotImplementedError: I don't know how to build a TD(47,100)!
         sage: designs.transversal_design(55, 54)
         Traceback (most recent call last):
         ...
-        EmptySetError: There exists no TD(55, 54)!
+        EmptySetError: There exists no TD(55,54)!
 
     Those two errors correspond respectively to the cases where Sage answer
     ``Unknown`` or ``False`` when the parameter ``existence`` is set to
@@ -313,7 +313,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise EmptySetError("There exists no TD"+str((k,n))+"!")
+            raise EmptySetError("There exists no TD({},{})!".format(k,n))
 
         OA = orthogonal_array(k,n, check = False, who_asked = who_asked + (transversal_design,))
         TD = [[i*n+c for i,c in enumerate(l)] for l in OA]
@@ -321,7 +321,7 @@ def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build this Transversal Design!")
+        raise NotImplementedError("I don't know how to build a TD({},{})!".format(k,n))
 
     if check:
         assert is_transversal_design(TD,k,n)
@@ -717,7 +717,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         sage: designs.orthogonal_array(12,20)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this orthogonal array!
+        NotImplementedError: I don't know how to build an OA(12,20)!
 
     Note that these errors correspond respectively to the answers ``False`` and
     ``Unknown`` when the parameter ``existence`` is set to ``True``::
@@ -831,7 +831,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise EmptySetError("There exists no OA"+str((k,n))+"!")
+            raise EmptySetError("There exists no OA({},{})!".format(k,n))
 
     # Section 6.5.1 from [Stinson2004]
     elif (t == 2 and mutually_orthogonal_latin_squares not in who_asked and
@@ -849,12 +849,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         else:
             if existence:
                 return False
-            raise EmptySetError("There exists no OA"+str((k,n))+"!")
+            raise EmptySetError("There exists no OA({},{})!".format(k,n))
 
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build this orthogonal array!")
+        raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
 
     if check:
         assert is_orthogonal_array(OA,k,n,t)

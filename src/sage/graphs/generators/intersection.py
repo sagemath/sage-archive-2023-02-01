@@ -464,7 +464,7 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
         sage: G = graphs.OrthogonalArrayBlockGraph(4,6)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this orthogonal array!
+        NotImplementedError: I don't know how to build an OA(4,6)!
         sage: G = graphs.OrthogonalArrayBlockGraph(8,2)
         Traceback (most recent call last):
         ...

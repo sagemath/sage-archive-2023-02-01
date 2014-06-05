@@ -6,7 +6,11 @@ to transversal designs.
 
 .. TODO::
 
-    Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+    - Implement an improvement of Wilson's construction for u=1,2 in [CD96]_
+
+    - A resolvable `OA(k,n)` is equivalent to a `OA(k+1,n)`. Sage should be able
+      to return resolvable OA, with sorted rows (so that building the
+      decomposition is easy.
 
 REFERENCES:
 
@@ -359,28 +363,8 @@ def is_transversal_design(B,k,n, verbose=False):
         sage: is_transversal_design(TD, 4, 4)
         False
     """
-    from sage.graphs.generators.basic import CompleteGraph
-    from itertools import combinations
-    g = k*CompleteGraph(n)
-    m = g.size()
-    for X in B:
-        if len(X) != k:
-            if verbose:
-                print "A set has wrong size"
-            return False
-        g.add_edges(list(combinations(X,2)))
-        if g.size() != m+(len(X)*(len(X)-1))/2:
-            if verbose:
-                print "A pair appears twice"
-            return False
-        m = g.size()
-
-    if not g.is_clique():
-        if verbose:
-            print "A pair did not appear"
-        return False
-
-    return True
+    from designs_pyx import is_orthogonal_array
+    return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
 @cached_function
 def find_wilson_decomposition(k,n):
@@ -411,7 +395,8 @@ def find_wilson_decomposition(k,n):
     for t in range(max(1,k),n-1):
         u = n%t
         # We ensure that 1<=u, and that there can exists a TD(k,u), i.e k<u+2
-        if u == 0 or k >= u+2:
+        # (unless u == 1)
+        if u == 0 or (u>1 and k >= u+2):
             continue
 
         m = n//t
@@ -461,7 +446,7 @@ def wilson_construction(k,m,t,u, check = True):
         ....:            k,m,t,u = find_wilson_decomposition(k,n)
         ....:            _ = wilson_construction(k,m,t,u, check=True)
         sage: print total
-        32
+        41
     """
     # Raises a NotImplementedError if one of them does not exist.
     TDkm = transversal_design(k,m,check=False)
@@ -801,12 +786,12 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
             if existence:
                 return projective_plane(n, existence=True)
             p = projective_plane(n, check=False)
-            OA = projective_plane_to_OA(p)
+            OA = projective_plane_to_OA(p, check=False)
         else:
             if existence:
                 return True
             p = projective_plane(n, check=False)
-            OA = [l[:k] for l in projective_plane_to_OA(p)]
+            OA = [l[:k] for l in projective_plane_to_OA(p, check=False)]
 
     # Constructions from the database
     elif n in OA_constructions and k <= OA_constructions[n][0]:
@@ -857,6 +842,7 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         raise NotImplementedError("I don't know how to build this orthogonal array!")
 
     if check:
+        from designs_pyx import is_orthogonal_array
         assert is_orthogonal_array(OA,k,n,t)
 
     return OA
@@ -1056,51 +1042,3 @@ def OA_from_wider_OA(OA,k):
     if len(OA[0]) == k:
         return OA
     return [L[:k] for L in OA]
-
-def is_orthogonal_array(M,k,n,t,verbose=False):
-    r"""
-    Check that the integer matrix `M` is an `OA(k,n,t)`.
-
-    See :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
-    for a definition.
-
-    INPUT:
-
-    - ``M`` -- an integer matrix of size `k^t \times n`
-
-    - ``k, n, t`` -- integers
-
-    - ``verbose`` -- boolean, if ``True`` provide an information on where ``M``
-      fails to be an `OA(k,n,t)`.
-
-    EXAMPLES::
-
-        sage: OA = designs.orthogonal_array(5,9,check=True) # indirect doctest
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-        sage: is_orthogonal_array(OA, 5, 9, 2)
-        True
-        sage: is_orthogonal_array(OA, 4, 5, 2)
-        False
-    """
-    if t != 2:
-        raise NotImplementedError("only implemented for t=2")
-
-    if len(M) != n**2:
-        if verbose:
-            print "wrong number of rows"
-        return False
-
-    if any(len(l) != k for l in M):
-        if verbose:
-            print "a row has the wrong size"
-        return False
-
-    from itertools import combinations
-    for S in combinations(range(k),2):
-        fs = frozenset([tuple([l[i] for i in S]) for l in M])
-        if len(fs) != n**2:
-            if verbose:
-                print "for the choice %s of columns we do not get all tuples"%(S,)
-            return False
-
-    return True

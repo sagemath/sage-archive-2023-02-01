@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Dyck Words
 
@@ -2367,31 +2368,59 @@ class DyckWord_complete(DyckWord):
         root.set_immutable()
         return root
 
-    def to_triangulation(self):
+    def to_triangulation(self, as_graph=False):
         r"""
         Map ``self`` to a triangulation.
 
+        INPUT:
+
+        - `as_graph` -- boolean (default ``False``) whether to return a graph
+
         OUTPUT:
 
-        a list of pairs `(i, j)` of integers between `0` and `n+1`, where
-        `n` is the size of ``self``
+        By default, a list of pairs `(i, j)` of integers between `0`
+        and `n+1`, where `n` is the size of ``self``. This list gives
+        the edges in a triangulation of the regular polygon with `n+2`
+        vertices.
 
-        This list gives the edges in a triangulation of the regular
-        polygon with `n+2` vertices.
+        If `as_graph` is ``True``, return the result as a graph
 
-        In the implemented bijection, the set of smallest vertices of the
-        edges in a triangulation is an encoding of the Dyck word.
+        The implemented bijection can be described as
+        follows. Consider the Dyck word as a path from `(0, 0)` to
+        `(n, n)` staying above the diagonal, where `1` is an up step
+        and `0` is a right step. Then each horizontal step has a
+        co-height (`0` at the top and `n-1` at most at the
+        bottom). One reads the Dyck word from left to right. For each
+        horizontal step (of nonzero co-height), one creates an edge
+        from the vertex indexed by the co-height `i` to the next
+        available vertex. This chops out a triangle from the polygon
+        and removes the middle vertex of this triangle from the list
+        of available vertices.
+
+        This bijection has the property that the set of smallest
+        vertices of the edges in a triangulation is an encoding of the
+        co-heights, from which the Dyck word can be easily recovered.
 
         EXAMPLES::
 
             sage: DyckWord([1, 1, 0, 0]).to_triangulation()
             [(0, 2)]
+
+            sage: DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation(True)
+            Graph on 5 vertices
+
             sage: [t.to_triangulation() for t in DyckWords(3)]
             [[(2, 4), (1, 4)],
             [(2, 4), (0, 2)],
             [(1, 3), (1, 4)],
             [(1, 3), (0, 3)],
             [(0, 2), (0, 3)]]
+
+        REFERENCES:
+
+        .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
+           Coinvariants Quasi-Symétriques, Electronic Journal of
+           Combinatorics Vol 12(1) (2005) N16.
         """
         n = self.number_of_open_symbols()
         l = range(n + 2)
@@ -2405,7 +2434,17 @@ class DyckWord_complete(DyckWord):
                 end = l[i + 2]
                 l.pop(i + 1)
                 edges += [(coheight, end)]
-        return edges
+
+        if not as_graph:
+            return edges
+
+        from sage.graphs.graph import Graph
+        peri = [(i, i + 1) for i in range(n + 1)] + [(n + 1, 0)]
+        g = Graph(n + 2)
+        g.add_edges(peri)
+        g.add_edges(edges)
+        g.set_pos(g.layout_circular())
+        return g
 
     def to_non_decreasing_parking_function(self):
         r"""
@@ -3869,27 +3908,31 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
         Return a random complete Dyck word of semilength `n`
 
         The algorithm is based on a classical combinatorial fact. One
-        chooses at random a word with `n` 0's and `n+1` 1's. One
-        then considers every 1 as an ascending step and every 0 as a
-        descending step, and one finds the lowest point of the
-        path. One then cuts the path at this point and builds a Dyck word
-        by exchanging the two parts of the word and removing the initial step.
+        chooses at random a word with `n` 0's and `n+1` 1's. One then
+        considers every 1 as an ascending step and every 0 as a
+        descending step, and one finds the lowest point of the path
+        (with respect to a slightly tilted slope). One then cuts the
+        path at this point and builds a Dyck word by exchanging the
+        two parts of the word and removing the initial step.
 
         .. TODO::
 
-            extend this to m-Dyck words 
+            extend this to m-Dyck words
 
         EXAMPLES::
 
             sage: dw = DyckWords(8)
             sage: dw.random_element()  # random
             [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0]
+
+            sage: D = DyckWords(8)
+            sage: D.random_element() in D
+            True
         """
         from sage.misc.prandom import shuffle
         n = self.k1
         w = [0] * n + [1] * (n + 1)
         shuffle(w)
-        # rather use sample(range(2*n+1,n) ?
         idx = 0
         height = 0
         height_min = 0
@@ -3902,7 +3945,7 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
                     height_min = height
                     idx = i + 1
         w = w[idx:] + w[:idx]
-        return self(w[1:])
+        return self.element_class(self, w[1:])
 
     def _iter_by_recursion(self):
         """

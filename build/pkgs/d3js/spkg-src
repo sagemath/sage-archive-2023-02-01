@@ -27,7 +27,9 @@ fi
 
 
 # build and move tarball
-tar czvf "d3js-${ZIP_VERSION}.tar.gz" 'd3.min.js' 'LICENSE'
+mkdir "d3js-${ZIP_VERSION}"
+mv 'd3.min.js' 'LICENSE' "d3js-${ZIP_VERSION}"
+tar czvf "d3js-${ZIP_VERSION}.tar.gz" "d3js-${ZIP_VERSION}"
 mv "d3js-${ZIP_VERSION}.tar.gz" "${SAGE_ROOT}/upstream/"
 
 

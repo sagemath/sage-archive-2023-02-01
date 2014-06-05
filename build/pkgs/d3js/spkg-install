@@ -11,5 +11,5 @@ if [ ! -d "${TARGET}" ]; then
    mkdir "${TARGET}"
 fi
 
-cp d3.min.js "${TARGET}/"
+cp 'src/d3.min.js' "${TARGET}/"
 

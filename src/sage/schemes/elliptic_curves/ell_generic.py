@@ -60,7 +60,7 @@ from sage.plot.plot import generate_plot_points
 
 import sage.rings.arith as arith
 import sage.rings.all as rings
-from sage.rings.number_field.all import is_NumberField
+from sage.rings.number_field.number_field_base import is_NumberField
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method, cached_function
 
@@ -146,7 +146,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: EllipticCurve(IntegerModRing(91),[1,2,3,4,5])
             Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Ring of integers modulo 91
         """
-        if extra != None:   # possibility of two arguments
+        if extra is not None:   # possibility of two arguments
             K, ainvs = ainvs, extra
         else:
             K = ainvs[0].parent()
@@ -2271,7 +2271,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: [ len(EllipticCurve_from_j(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
             [2, 24, 2, 12, 2, 6, 6, 6]
         """
-        if field==None:
+        if field is None:
             return [wm.WeierstrassIsomorphism(self, urst, self)
                     for urst in wm.isomorphisms(self,self)]
         E=self.change_ring(field)
@@ -2329,7 +2329,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x + 6 over Finite Field in a of size 7^2
             Via:  (u,r,s,t) = (6*a + 4, 0, 0, 0)]
         """
-        if field==None:
+        if field is None:
             return [wm.WeierstrassIsomorphism(self, urst, other)
                     for urst in wm.isomorphisms(self,other)]
         E=self.change_ring(field)
@@ -2366,20 +2366,20 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         if not is_EllipticCurve(other):
             return False
-        if field==None:
+        if field is None:
             if self.base_ring() != other.base_ring():
                 return False
             elif self.j_invariant() != other.j_invariant():  # easy check
                 return False
             else:
-                return wm.isomorphisms(self,other,True) != None
+                return wm.isomorphisms(self,other,True) is not None
         else:
             E=self.base_extend(field)
             F=other.base_extend(field)
             if E.j_invariant() != F.j_invariant():  # easy check
                 return False
             else:
-                return wm.isomorphisms(E,other,F) != None
+                return wm.isomorphisms(E,other,F) is not None
 
     def change_weierstrass_model(self, *urst):
         r"""

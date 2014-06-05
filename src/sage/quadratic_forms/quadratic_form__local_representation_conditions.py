@@ -198,7 +198,7 @@ class QuadraticFormLocalRepresentationConditions():
             if self.dim >= 2:
                 ## Check that all entries are zero or 'None'
                 for x in tmp_local_repn_vec[1:]:
-                    if not ((x == 0) or (x == None)):
+                    if not ((x == 0) or (x is None)):
                         omit_flag = False
 
             ## Add the results for this prime if there is a congruence obstruction
@@ -429,7 +429,7 @@ class QuadraticFormLocalRepresentationConditions():
         v = self.local_conditions_vector_for_prime(p)
         Zp_univ_flag = True
         for nu in v[1:]:
-            if (nu != None) and ((nu != 0) or (nu == infinity)):
+            if (nu is not None) and ((nu != 0) or (nu == infinity)):
                 Zp_univ_flag = False
         return Zp_univ_flag
 
@@ -590,7 +590,7 @@ class QuadraticFormLocalRepresentationConditions():
         for s in sqclass:
             #print "m =", m, "   s =", s, "   m/s =", (QQ(m)/s)
             if (QQ(m)/s).is_padic_square(p):
-                nu = valuation(m/s, p)
+                nu = valuation(m//s, p)
                 return local_vec[sqclass.index(s) + 1] <= (nu / 2)
 
 

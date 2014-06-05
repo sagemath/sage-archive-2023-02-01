@@ -1417,10 +1417,10 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
                 e.append((i,j))
 
         # build the quotient permutations
-        ss2 = [None]*(N/2)
-        ss3 = [None]*(N/2)
-        ll = [None]*(N/2)
-        rr = [None]*(N/2)
+        ss2 = [None]*(N//2)
+        ss3 = [None]*(N//2)
+        ll = [None]*(N//2)
+        rr = [None]*(N//2)
 
         s3 = self._S3
         l = self._L

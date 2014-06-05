@@ -376,8 +376,9 @@ class Singular(Expect):
             sage: singular == loads(dumps(singular))
             True
         """
-        prompt = '\n> '
+        prompt = '> '
         Expect.__init__(self,
+                        terminal_echo=False,
                         name = 'singular',
                         prompt = prompt,
                         command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
@@ -467,9 +468,7 @@ class Singular(Expect):
         EXAMPLES::
 
             sage: singular._read_in_file_command('test')
-            '< "test";'
-
-        ::
+            '< "...";'
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
@@ -480,7 +479,6 @@ class Singular(Expect):
             '2'
         """
         return '< "%s";'%filename
-
 
     def eval(self, x, allow_semicolon=True, strip=True, **kwds):
         r"""
@@ -1655,7 +1653,7 @@ class SingularElement(ExpectElement):
         if singular_poly_list == ['1','0'] :
             return R(0)
 
-        coeff_start = int(len(singular_poly_list)/2)
+        coeff_start = len(singular_poly_list) // 2
 
         if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
@@ -1678,7 +1676,7 @@ class SingularElement(ExpectElement):
                             power=1
                         exp[var_dict[var]]=power
 
-                if kcache==None:
+                if kcache is None:
                     sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
@@ -1707,7 +1705,7 @@ class SingularElement(ExpectElement):
                     else:
                         exp = int(1)
 
-                if kcache==None:
+                if kcache is None:
                     sage_repr[exp]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]

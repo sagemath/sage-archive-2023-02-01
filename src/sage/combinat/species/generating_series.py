@@ -41,9 +41,9 @@ weighted degree where each variable x_i has weight i.
 ::
 
     sage: def g():
-    ...       for i in _integers_from(0):
-    ...           yield p([2])^i
-    ...           yield p(0)
+    ....:     for i in _integers_from(0):
+    ....:         yield p([2])^i
+    ....:         yield p(0)
     sage: geo1 = CIS((p([1])^i  for i in _integers_from(0)))
     sage: geo2 = CIS(g())
     sage: s = geo1 * geo2
@@ -80,11 +80,14 @@ from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
 
+
 @cached_function
 def OrdinaryGeneratingSeriesRing(R):
     """
-    Returns the ring of ordinary generating series. Note that is is
-    just a LazyPowerSeriesRing whose elements have some extra methods.
+    Returns the ring of ordinary generating series.
+
+    Note that is is just a LazyPowerSeriesRing whose elements have
+    some extra methods.
 
     EXAMPLES::
 
@@ -105,6 +108,7 @@ def OrdinaryGeneratingSeriesRing(R):
     """
     return OrdinaryGeneratingSeriesRing_class(R)
 
+
 class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
     def __init__(self, R):
         """
@@ -116,6 +120,7 @@ class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
             True
         """
         LazyPowerSeriesRing.__init__(self, R, OrdinaryGeneratingSeries)
+
 
 class OrdinaryGeneratingSeries(LazyPowerSeries):
     def count(self, n):
@@ -173,6 +178,7 @@ def ExponentialGeneratingSeriesRing(R):
     """
     return ExponentialGeneratingSeriesRing_class(R)
 
+
 class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
     def __init__(self, R):
         """
@@ -229,11 +235,9 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
 
              f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}
 
-
-
         REFERENCES:
 
-        - Section 2.2 of BLL.
+        - Section 2.2 of [BLL]_.
 
         EXAMPLES::
 
@@ -312,6 +316,7 @@ def CycleIndexSeriesRing(R):
         True
     """
     return CycleIndexSeriesRing_class(R)
+
 
 class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
     def __init__(self, R):
@@ -538,6 +543,7 @@ class CycleIndexSeries(LazyPowerSeries):
     def __invert__(self):
         """
         Return the multiplicative inverse of self.
+
         This algorithm is derived from [BLL]_.
 
         EXAMPLES::
@@ -890,8 +896,9 @@ class CycleIndexSeries(LazyPowerSeries):
         """
         Returns the composition of this cycle index series with the cycle
         index series of y_species where y_species is a weighted species.
+
         Note that this is basically the same algorithm as composition
-        except we can't use the optimization that the powering of cycle
+        except we can not use the optimization that the powering of cycle
         index series commutes with 'stretching'.
 
         EXAMPLES::
@@ -969,5 +976,69 @@ class CycleIndexSeries(LazyPowerSeries):
 
         return parent.sum(res)
 
+    def compositional_inverse(self):
+        r"""
+        Return the compositional inverse of ``self`` if possible.
+
+        (Specifically, if ``self`` is of the form `0 + p_{1} + \dots`.)
+
+        The compositional inverse is the inverse with respect to
+        plethystic substitution. This is the operation on cycle index
+        series which corresponds to substitution, a.k.a. partitional
+        composition, on the level of species. See Section 2.2 of
+        [BLL]_ for a definition of this operation.
+
+        EXAMPLES::
+
+            sage: Eplus = species.SetSpecies(min=1).cycle_index_series()
+            sage: Eplus(Eplus.compositional_inverse()).coefficients(8)
+            [0, p[1], 0, 0, 0, 0, 0, 0]
+
+        TESTS::
+
+            sage: Eplus = species.SetSpecies(min=2).cycle_index_series()
+            sage: Eplus.compositional_inverse()
+            Traceback (most recent call last):
+            ...
+            ValueError: not an invertible series
+
+        ALGORITHM:
+
+        Let `F` be a species satisfying `F = 0 + X + F_2 + F_3 + \dots` for `X` the species of singletons.
+        (Equivalently, `\lvert F[\varnothing] \rvert = 0` and `\lvert F[\{1\}] \rvert = 1`.)
+        Then there exists a (virtual) species `G` satisfying `F \circ G = G \circ F = X`.
+
+        It follows that `(F - X) \circ G = F \circ G - X \circ G = X - G`.
+        Rearranging, we obtain the recursive equation `G = X - (F - X) \circ G`, which can be
+        solved using iterative methods.
+        
+        .. WARNING::
+        
+            This algorithm is functional but can be very slow.
+            Use with caution!
+
+        .. SEEALSO::
+        
+            The compositional inverse `\Omega` of the species `E_{+}`
+            of nonempty sets can be handled much more efficiently
+            using specialized methods. These are implemented in
+            :class:`~sage.combinat.species.combinatorial_logarithm.CombinatorialLogarithmSeries`.
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar
+        """
+        cisr = self.parent()
+        sfa = cisr._base
+
+        X = cisr([0, sfa([1]), 0])
+
+        if self.coefficients(2) != X.coefficients(2):
+            raise ValueError('not an invertible series')
+
+        res = cisr()
+        res.define(X - (self - X).compose(res))
+
+        return res
 
 

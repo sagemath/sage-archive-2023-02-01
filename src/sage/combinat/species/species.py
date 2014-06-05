@@ -56,6 +56,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.combinat.species.misc import accept_size
 from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
+from functools import reduce
 
 class GenericCombinatorialSpecies(SageObject):
     def __init__(self, min=None, max=None, weight=None):

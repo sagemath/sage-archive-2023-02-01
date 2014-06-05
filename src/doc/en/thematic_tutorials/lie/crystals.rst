@@ -418,7 +418,7 @@ crystal::
     sage: v.f(1)
     [[1, 2], [2]]
     sage: v.f(1).f(1)
-    sage: v.f(1).f(1) == None
+    sage: v.f(1).f(1) is None
     True
     sage: v.f(1).f(2)
     [[1, 3], [2]]

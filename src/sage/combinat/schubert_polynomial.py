@@ -19,7 +19,8 @@ Schubert Polynomials
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.categories.all import GradedAlgebrasWithBasis
-from sage.rings.all import Integer, is_MPolynomial, PolynomialRing
+from sage.rings.all import Integer, PolynomialRing
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 import permutation
 import sage.libs.symmetrica.all as symmetrica
 

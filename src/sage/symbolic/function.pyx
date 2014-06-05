@@ -15,6 +15,7 @@ Support for symbolic functions.
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
+from functools import reduce
 from ginac cimport *
 
 from sage.structure.sage_object cimport SageObject

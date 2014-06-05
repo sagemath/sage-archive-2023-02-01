@@ -30,6 +30,7 @@
     NSUserDefaults *defaults;
 
     NSTask *theTask;
+    NSTask *launchTask;
     NSPipe *taskPipe;
 
     int port;

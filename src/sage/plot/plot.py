@@ -135,7 +135,7 @@ have a preference::
 
 You can even have custom tick labels along with custom positioning. ::
 
-    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi])
+    sage: plot(x**2, (x,0,3), ticks=[[1,2.5],pi/2], tick_formatter=[["$x_1$","$x_2$"],pi]) # long time
 
 We construct a plot involving several graphics objects::
 
@@ -196,7 +196,7 @@ the first few zeros::
 
 Many concentric circles shrinking toward the origin::
 
-    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0]))
+    sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0])) # long time
 
 Here is a pretty graph::
 
@@ -237,7 +237,7 @@ Pi Axis::
 
     sage: g1 = plot(sin(x), 0, 2*pi)
     sage: g2 = plot(cos(x), 0, 2*pi, linestyle = "--")
-    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # show their sum, nicely formatted
+    sage: (g1+g2).show(ticks=pi/6, tick_formatter=pi)  # long time # show their sum, nicely formatted
 
 An illustration of integration::
 
@@ -297,7 +297,7 @@ TESTS: We test dumping and loading a plot.
 
 Verify that a clean sage startup does *not* import matplotlib::
 
-    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"")
+    sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
 
 AUTHORS:
@@ -349,6 +349,7 @@ AUTHORS:
 
 
 import os
+from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
 ## surprisingly long time to initialize itself.  It's better if it is
@@ -862,13 +863,13 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot(exp, (1, 10), scale='loglog', base=2) # base of log is 2
+        sage: plot(exp, (1, 10), scale='loglog', base=2) # long time # base of log is 2
 
     We can also change the scale of the axes in the graphics just before
     displaying::
 
-        sage: G = plot(exp, 1, 10)
-        sage: G.show(scale=('semilogy', 2))
+        sage: G = plot(exp, 1, 10) # long time
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     The algorithm used to insert extra points is actually pretty
     simple. On the picture drawn by the lines below::
@@ -962,7 +963,7 @@ def plot(funcs, *args, **kwds):
         sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
         sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
         sage: p4 = plot(sin(x), -pi, pi, fill = 0.5)
-        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False)
+        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
         sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
 
@@ -986,7 +987,7 @@ def plot(funcs, *args, **kwds):
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]])) # long time
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
@@ -1036,7 +1037,7 @@ def plot(funcs, *args, **kwds):
     Excluded points can also be given by an equation::
 
         sage: g(x) = x^2-2*x-2
-        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5)
+        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5) # long time 
 
     ``exclude`` and ``detect_poles`` can be used together::
 
@@ -1498,14 +1499,14 @@ def parametric_plot(funcs, *args, **kwargs):
 
         sage: parametric_plot([cos(x) + 2 * cos(x/4), sin(x) - 2 * sin(x/4)], (x,0, 8*pi), fill = True)
 
-        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red")
+        sage: parametric_plot( (5*cos(x), 5*sin(x), x), (x,-12, 12), plot_points=150, color="red") # long time
 
         sage: y=var('y')
-        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4))
+        sage: parametric_plot( (5*cos(x), x*y, cos(x*y)), (x, -4,4), (y,-4,4)) # long time`
 
         sage: t=var('t')
-        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green')
-        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1))
+        sage: parametric_plot( vector((sin(t), sin(2*t))), (t, 0, 2*pi), color='green') # long time
+        sage: parametric_plot( vector([t, t+1, t^2]), (t, 0, 1)) # long time
 
     Plotting in logarithmic scale is possible with 2D plots. The keyword
     ``aspect_ratio`` will be ignored if the scale is not ``'loglog'`` or
@@ -1669,7 +1670,7 @@ def list_plot(data, plotjoined=False, **kwargs):
 
     EXAMPLES::
 
-        sage: list_plot([i^2 for i in range(5)])
+        sage: list_plot([i^2 for i in range(5)]) # long time
 
     Here are a bunch of random red points::
 
@@ -1728,7 +1729,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     There are two different syntaxes available::
 
         sage: yl = [2**k for k in range(20)]
-        sage: list_plot(yl, scale='semilogy')       # log axis on vertical
+        sage: list_plot(yl, scale='semilogy')  # long time  # log axis on vertical
 
     ::
 
@@ -1747,17 +1748,17 @@ def list_plot(data, plotjoined=False, **kwargs):
 
         Instead this will work. We drop the point `(0,1)`.::
 
-            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog')
+            sage: list_plot(zip(range(1,len(yl)), yl[1:]), scale='loglog') # long time 
 
     We use :func:`list_plot_loglog` and plot in a different base.::
 
-        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2)
+        sage: list_plot_loglog(zip(range(1,len(yl)), yl[1:]), base=2) # long time
 
     We can also change the scale of the axes in the graphics just before
     displaying::
 
-        sage: G = list_plot(yl)
-        sage: G.show(scale=('semilogy', 2))
+        sage: G = list_plot(yl) # long time
+        sage: G.show(scale=('semilogy', 2)) # long time
 
     TESTS:
 
@@ -1837,7 +1838,7 @@ def plot_loglog(funcs, *args, **kwds):
 
     ::
 
-        sage: plot_loglog(exp, (1,10), base=2.1) # with base 2.1 on both axes
+        sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
 
     ::
 
@@ -1863,7 +1864,7 @@ def plot_semilogx(funcs, *args, **kwds):
 
     EXAMPLES::
 
-        sage: plot_semilogx(exp, (1,10)) # plot in semilogx scale, base 10
+        sage: plot_semilogx(exp, (1,10)) # long time # plot in semilogx scale, base 10
 
     ::
 
@@ -1889,11 +1890,11 @@ def plot_semilogy(funcs, *args, **kwds):
 
     EXAMPLES::
 
-        sage: plot_semilogy(exp, (1,10)) # plot in semilogy scale, base 10
+        sage: plot_semilogy(exp, (1,10)) # long time # plot in semilogy scale, base 10
 
     ::
 
-        sage: plot_semilogy(exp, (1,10), base=2) # with base 2
+        sage: plot_semilogy(exp, (1,10), base=2) # long time # with base 2
 
     """
     return plot(funcs, *args, scale='semilogy', **kwds)
@@ -1917,15 +1918,15 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     EXAMPLES::
 
         sage: yl = [5**k for k in range(10)]; xl = [2**k for k in range(10)]
-        sage: list_plot_loglog(zip(xl, yl)) # plot in loglog scale with base 10
+        sage: list_plot_loglog(zip(xl, yl)) # long time # plot in loglog scale with base 10
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=2.1) # with base 2.1 on both axes
+        sage: list_plot_loglog(zip(xl, yl), base=2.1) # long time # with base 2.1 on both axes
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=(2,5))
+        sage: list_plot_loglog(zip(xl, yl), base=(2,5)) # long time
 
     .. warning::
 
@@ -2124,20 +2125,20 @@ def graphics_array(array, n=None, m=None):
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
         sage: h(x) = sin(4*x)
-        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5))
-        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9))
-        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6))
-        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0))
+        sage: p1 = plot(f,(-2*pi,2*pi),color=hue(0.5)) # long time
+        sage: p2 = plot(g,(-2*pi,2*pi),color=hue(0.9)) # long time
+        sage: p3 = parametric_plot((f,g),(0,2*pi),color=hue(0.6)) # long time
+        sage: p4 = parametric_plot((f,h),(0,2*pi),color=hue(1.0)) # long time
 
     Now make a graphics array out of the plots::
 
-        sage: graphics_array(((p1,p2),(p3,p4)))
+        sage: graphics_array(((p1,p2),(p3,p4))) # long time
 
     One can also name the array, and then use :meth:`~sage.plot.graphics.GraphicsArray.show`
     or :meth:`~sage.plot.graphics.GraphicsArray.save`::
 
-        sage: ga = graphics_array(((p1,p2),(p3,p4)))
-        sage: ga.show()
+        sage: ga = graphics_array(((p1,p2),(p3,p4))) # long time
+        sage: ga.show() # long time
 
     Here we give only one row::
 

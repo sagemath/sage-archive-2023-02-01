@@ -593,8 +593,8 @@ class GenericGraph(GenericGraph_pyx):
             total_length = n*n
             bit = lambda x,y : x*n + y
         else:
-            total_length = int(n*(n - 1))/int(2)
-            n_ch_2 = lambda b : int(b*(b-1))/int(2)
+            total_length = (n*(n - 1))//2
+            n_ch_2 = lambda b : int(b*(b-1))//2
             bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
         for u,v,_ in self.edge_iterator():
@@ -891,13 +891,13 @@ class GenericGraph(GenericGraph_pyx):
         if implementation != 'c_graph':
             # We do not care about the value of data_structure. But let's check
             # the user did not define too much.
-            if data_structure != None or immutable != None or sparse != None:
+            if data_structure is not None or immutable is not None or sparse is not None:
                 raise ValueError("'data_structure' 'immutable' and 'sparse' can"
                                  " only be defined when 'implementation'='c_graph'")
-        elif data_structure != None:
+        elif data_structure is not None:
             # data_structure is already defined so there is nothing left to do
             # here ! Did the user try to define too much ?
-            if immutable != None or sparse != None:
+            if immutable is not None or sparse is not None:
                 raise ValueError("You cannot define 'immutable' or 'sparse' "
                                  "when 'data_structure' has a value.")
         # At this point :
@@ -1345,14 +1345,14 @@ class GenericGraph(GenericGraph_pyx):
             Full MatrixSpace of 256 by 256 dense matrices over Integer Ring
             sage: graphs.CubeGraph(9).adjacency_matrix().parent()
             Full MatrixSpace of 512 by 512 sparse matrices over Integer Ring
+            sage: Graph([(i,i+1) for i in range(500)]+[(0,1),], multiedges=True).adjacency_matrix().parent()
+            Full MatrixSpace of 501 by 501 dense matrices over Integer Ring
         """
         n = self.order()
         if sparse is None:
-            if n <= 256 or self.density() > 0.05:
+            sparse=True
+            if self.has_multiple_edges() or n <= 256 or self.density() > 0.05:
                 sparse=False
-            else:
-                sparse=True
-
         verts = self.vertices(boundary_first=boundary_first)
         new_indices = dict((v,i) for i,v in enumerate(verts))
         D = {}
@@ -2711,10 +2711,10 @@ class GenericGraph(GenericGraph_pyx):
                             return False
                         else:
                             # if there was another vertex with the same sign of difference...
-                            if uv[(diff+1)/2] != None:
+                            if uv[(diff+1)//2] is not None:
                                 return False # ... the graph is not semi-eulerian
                             else:
-                                uv[(diff+1)/2] = v
+                                uv[(diff+1)//2] = v
                     else:
                         return False
         else:
@@ -2969,7 +2969,7 @@ class GenericGraph(GenericGraph_pyx):
             degr = g.out_degree(v) if self.is_directed() else g.degree(v)
             if degr == 0:
                 vertices.append(v)
-                if e != None:
+                if e is not None:
                     edges.append(e if labels else (e[0], e[1]))
             else:
                 if self.is_directed():
@@ -3151,6 +3151,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``root_vertex`` -- integer (default: the first vertex) This is the vertex
           that will be used as root for all spanning out-trees if the graph
           is a directed graph.  This argument is ignored if the graph is not a digraph.
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.graph.Graph.spanning_trees` -- enumerates all
+            spanning trees of a graph.
+
 
         REFERENCES:
 
@@ -4048,10 +4054,10 @@ class GenericGraph(GenericGraph_pyx):
                     faces = len(self.faces(self._embedding))
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
-                return (2-verts+edges-faces)/2
+                return (2-verts+edges-faces) // 2
             else: # compute genus on the provided dict
                 faces = len(self.faces(on_embedding))
-                return (2-verts+edges-faces)/2
+                return (2-verts+edges-faces) // 2
         else: # then compute either maximal or minimal genus of all embeddings
             import genus
 
@@ -12849,7 +12855,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.is_directed():
             from sage.graphs.digraph_generators import digraphs
-            return self.subgraph_search_count(digraphs.Circuit(3))/3
+            return self.subgraph_search_count(digraphs.Circuit(3)) // 3
 
         else:
             if algorithm=='iter':
@@ -12858,10 +12864,10 @@ class GenericGraph(GenericGraph_pyx):
                 ggnx = self.networkx_graph()
                 for u in ggnx.nodes_iter():
                     tr += sum(ggnx.has_edge(v,w) for v,w in Combinations(ggnx.neighbors(u),2))
-                return tr/3
+                return tr//3
 
             elif algorithm=='matrix':
-                return (self.adjacency_matrix()**3).trace()/6
+                return (self.adjacency_matrix()**3).trace() // 6
 
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
@@ -13204,7 +13210,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: dist, path = g.shortest_path_all_pairs(algorithm="BFS")
             sage: u,v = g.random_vertex(), g.random_vertex()
             sage: p = [v]
-            sage: while p[0] != None:
+            sage: while p[0] is not None:
             ...     p.insert(0,path[u][p[0]])
             sage: len(p) == dist[u][v] + 2
             True
@@ -15514,20 +15520,37 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.graphplot(**options).plot()
 
-    def show(self, **kwds):
+    def show(self, method = "matplotlib", **kwds):
         """
         Shows the (di)graph.
 
         INPUT:
 
-        This method accepts any option understood by
+        - ``method`` --
+
+            - If ``method="matplotlib"`` (default) then graph is drawn as a
+              picture file, then displayed. In this situation, the method
+              accepts any other option understood by
+              :meth:`~sage.graphs.generic_graph.plot` (graph-specific) or by
+              :meth:`sage.plot.graphics.Graphics.show`.
+
+            - If ``method="js"`` the graph is displayed using the `d3.js
+              <http://d3js.org/>`_ library in a browser. In this situation, the
+              method accepts any other option understood by
+              :meth:`sage.graphs.graph_plot_js.gen_html_code`.
+
+
+        This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
         by :meth:`sage.plot.graphics.Graphics.show`.
 
         .. NOTE::
 
-            See the documentation of the :mod:`sage.graphs.graph_plot` module
-            for information on default arguments of this method.
+            - See the documentation of the :mod:`sage.graphs.graph_plot` module
+              for information on default arguments of this method.
+
+            - For the javascript counterpart, refer to
+              :mod:`sage.graphs.graph_plot_js`.
 
         EXAMPLES::
 
@@ -15535,6 +15558,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()  # long time (3s on sage.math, 2011)
         """
+        if method == "js":
+            from sage.graphs.graph_plot_js import gen_html_code
+            from sage.doctest import DOCTEST_MODE
+            filename = gen_html_code(self, **kwds)
+
+            if DOCTEST_MODE:
+                return
+            from sage.misc.viewer import browser
+            import os
+            os.system('%s %s 2>/dev/null 1>/dev/null &'% (browser(), filename))
+            return
+
         from graph_plot import graphplot_options
 
         # This dictionary only contains the options that graphplot

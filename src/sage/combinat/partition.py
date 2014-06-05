@@ -1739,7 +1739,7 @@ class Partition(CombinatorialObject, Element):
             [4, 3, 2, 0]
         """
         true_length = len(self)
-        if length == None:
+        if length is None:
             length = true_length
         elif length < true_length:
             raise ValueError("length must be at least the length of the partition")
@@ -3521,7 +3521,7 @@ class Partition(CombinatorialObject, Element):
         partitions).
 
         These are also known as **path sequences**, **Maya diagrams**,
-        **plus-minus diagrams**, **Comet code** [Sta1999]_, among others.
+        **plus-minus diagrams**, **Comet code** [Sta-EC2]_, among others.
 
         OUTPUT:
 
@@ -3672,7 +3672,7 @@ class Partition(CombinatorialObject, Element):
             tmp = []
             for i in reversed(range(len(part))):
                 if part[i] % length == e:
-                    tmp.append(ZZ((part[i]-k)/length))
+                    tmp.append(ZZ((part[i]-k)//length))
                     k += length
 
             a = [i for i in tmp if i != 0]

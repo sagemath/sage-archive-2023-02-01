@@ -689,7 +689,7 @@ class NonattackingBacktracker(GenericBacktracker):
         self._shape = shape
         self._n = sum(shape)
         self._initial_data = [ [None]*s for s in shape ]
-        if pi==None:
+        if pi is None:
             pi=Permutation([1]).to_permutation_group_element()
         self.pi=pi
 
@@ -834,6 +834,13 @@ def E(mu, q=None, t=None, pi=None):
     - J. Haglund, M. Haiman, N. Loehr.
       *A combinatorial formula for non-symmetric Macdonald polynomials*.
       :arXiv:`math/0601693v3`.
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.root_system.non_symmetric_macdonald_polynomials.NonSymmetricMacdonaldPolynomials`
+        for a type free implementation where the polynomials are
+        constructed recursively by the application of intertwining
+        operators.
 
     EXAMPLES::
 

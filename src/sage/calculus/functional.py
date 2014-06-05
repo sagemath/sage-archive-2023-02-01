@@ -246,7 +246,7 @@ def integral(f, *args, **kwds):
         constraints; using the 'assume' command before integral evaluation
         *may* help (example of legal syntax is 'assume(a>0)',
         see `assume?` for more details)
-        Is  a  positive, negative, or zero?
+        Is a positive, negative or zero?
         sage: assume(a>0)
         sage: integral(abs(x)*x, x, 0, a)
         1/3*a^3

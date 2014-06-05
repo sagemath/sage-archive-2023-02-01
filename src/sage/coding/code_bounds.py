@@ -266,7 +266,7 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     if algorithm=="LP":
         return delsarte_bound_additive_hamming_space(n,d,q)
 
-    else:       # algorithm==None or algorithm="gap":
+    else:       # algorithm==None or algorithm=="gap":
         return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
 
 
@@ -392,7 +392,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
         for i in range(1,int(r*n)+1):
             if i**2-2*r*n*i+r*n*d>0:
                 I.append(i)
-            return I
+        return I
     I = get_list(n,d,q)
     bnd = min([ff(n,d,w,q) for w in I])
     return int(bnd)

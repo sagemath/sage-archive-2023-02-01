@@ -31,6 +31,7 @@ TODO: - finish integrating tachyon - good default lights, camera
 from cpython.list cimport *
 
 import os
+from functools import reduce
 from math import atan2
 from random import randint
 import zipfile

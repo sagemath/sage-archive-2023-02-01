@@ -32,6 +32,7 @@ AUTHORS:
 #*****************************************************************************
 
 
+from sage.calculus.functions import jacobian
 from sage.categories.homset        import Hom
 from sage.misc.misc                import prod
 from sage.rings.all                import Integer, moebius
@@ -154,13 +155,15 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def homogenize(self,n,newvar='h'):
         r"""
         Return the homogenization of ``self``. If ``self.domain()`` is a subscheme, the domain of
-        the homogenized map is the projective embedding of ``self.domain()``
+        the homogenized map is the projective embedding of ``self.domain()``. The domain and codomain
+        can be homogenized at different coordinates: ``n[0]`` for the domain and ``n[1]`` for the codomain.
 
         INPUT:
 
         - ``newvar`` -- the name of the homogenization variable (only used when ``self.domain()`` is affine space)
 
-        - ``n`` -- the n-th projective embedding into projective space
+        - ``n`` -- a tuple of nonnegative integers. If ``n`` is an integer, then the two values of
+            the tuple are assumed to be the same.
 
         OUTPUT:
 
@@ -181,7 +184,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x,y>=AffineSpace(CC,2)
             sage: H=Hom(A,A)
             sage: f=H([(x^2-2)/(x*y),y^2-x])
-            sage: f.homogenize(0,'z')
+            sage: f.homogenize((2,0),'z')
             Scheme endomorphism of Projective Space of dimension 2 over Complex
             Field with 53 bits of precision
               Defn: Defined on coordinates by sending (x : y : z) to
@@ -205,18 +208,40 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x,y>=AffineSpace(R,2)
             sage: H=Hom(A,A)
             sage: f=H([(x^2-2)/y,y^2-x])
-            sage: f.homogenize(0,'z')
+            sage: f.homogenize((2,0),'z')
             Scheme endomorphism of Projective Space of dimension 2 over Univariate
             Polynomial Ring in t over Integer Ring
               Defn: Defined on coordinates by sending (x : y : z) to
                     (y*z^2 : x^2*z + (-2)*z^3 : y^3 - x*y*z)
+
+        ::
+
+            sage: A.<x>=AffineSpace(QQ,1)
+            sage: H=End(A)
+            sage: f=H([x^2-1])
+            sage: f.homogenize((1,0),'y')
+            Scheme endomorphism of Projective Space of dimension 1 over Rational
+            Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (y^2 : x^2 - y^2)
         """
         A=self.domain()
         B=self.codomain()
         N=A.ambient_space().dimension_relative()
         NB=B.ambient_space().dimension_relative()
-        Vars=list(A.ambient_space().variable_names())+[newvar]
+
+        #it is possible to homogenize the domain and codomain at different coordinates
+        if isinstance(n,(tuple,list)):
+            ind=tuple(n)
+        else:
+            ind=(n,n)
+
+        #homogenize the domain
+        Vars=list(A.ambient_space().variable_names())
+        Vars.insert(ind[0],newvar)
         S=PolynomialRing(A.base_ring(),Vars)
+
+        #find the denominators if a rational function
         try:
             l=lcm([self[i].denominator() for i in range(N)])
         except Exception:  #no lcm
@@ -230,7 +255,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             F=[S(((self[i]*l).numerator())._maxima_().divide(self[i].denominator())[0].sage()) for i in range(N)]
         else:
             F=[S(self[i]*l) for i in range(N)]
-        F.insert(n,S(l))
+
+        #homogenize the codomain
+        F.insert(ind[1],S(l))
         d=max([F[i].degree() for i in range(N+1)])
         F=[F[i].homogenize(newvar)*S.gen(N)**(d-F[i].degree()) for i in range(N+1)]
         from sage.schemes.affine.affine_space import is_AffineSpace
@@ -238,7 +265,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             from sage.schemes.projective.projective_space import ProjectiveSpace
             X=ProjectiveSpace(A.base_ring(),NB,Vars)
         else:
-            X=A.projective_embedding(n).codomain()
+            X=A.projective_embedding(ind[1]).codomain()
             phi=S.hom(X.ambient_space().gens(),X.ambient_space().coordinate_ring())
             F=[phi(f) for f in F]
         H=Hom(X,X)
@@ -546,6 +573,48 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 h=max([c.global_height(prec) for c in C])
             H=max(H,h)
         return(H)
+
+    def jacobian (self):
+        r"""
+        Returns the Jacobian matrix of partial derivitive of ``self`` in which the
+        ``(i,j)`` entry of the Jacobian matrix is the partial derivative ``diff(functions[i], variables[j]``.
+
+        OUTPUT:
+
+        - matrix with coordinates in the coordinate ring of ``self``
+
+        EXAMPLES::
+
+            sage: A.<z> = AffineSpace(QQ,1)
+            sage: H = End(A)
+            sage: f = H([z^2-3/4])
+            sage: f.jacobian()
+            [2*z]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: H = End(A)
+            sage: f = H([x^3 - 25*x + 12*y,5*y^2*x - 53*y + 24])
+            sage: f.jacobian()
+            [ 3*x^2 - 25          12]
+            [      5*y^2 10*x*y - 53]
+
+        ::
+
+            sage: A.<x,y> = AffineSpace(ZZ,2)
+            sage: H = End(A)
+            sage: f = H([(x^2 - x*y)/(1+y),(5+y)/(2+x)])
+            sage: f.jacobian()
+            [         (2*x - y)/(y + 1) (-x^2 - x)/(y^2 + 2*y + 1)]
+            [  (-y - 5)/(x^2 + 4*x + 4)                  1/(x + 2)]
+        """
+        try:
+            return self.__jacobian
+        except AttributeError:
+            pass
+        self.__jacobian = jacobian(list(self),self.domain().gens())
+        return self.__jacobian
 
 class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_affine_space):
     pass

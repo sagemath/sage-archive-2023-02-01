@@ -70,9 +70,10 @@ def is_QuadraticForm(Q):
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
-        sage: is_QuadraticForm(Q)  ##random -- deprecated
+        sage: from sage.quadratic_forms.quadratic_form import is_QuadraticForm
+        sage: is_QuadraticForm(Q)  ##random
         True
-        sage: is_QuadraticForm(2)  ##random -- deprecated
+        sage: is_QuadraticForm(2)  ##random
         False
 
     """
@@ -395,7 +396,7 @@ class QuadraticForm(SageObject):
 
 
         ## Deal with:  QuadraticForm(matrix)
-        if is_Matrix(R) and (n == None):
+        if is_Matrix(R) and (n is None):
 
             ## Test if R is symmetric and has even diagonal
             if not self._is_even_symmetric_matrix_(R):
@@ -433,7 +434,7 @@ class QuadraticForm(SageObject):
         ## TODO: Verify that R is a ring...
 
         ## Store the relevant variables
-        N = int(n*(n+1))/2
+        N = n*(n+1)//2
         self.__n = int(n)
         self.__base_ring = R
         self.__coeffs = [self.__base_ring(0)  for i in range(N)]
@@ -442,7 +443,7 @@ class QuadraticForm(SageObject):
         if isinstance(entries, list) and (len(entries) == N):
             for i in range(N):
                 self.__coeffs[i] = self.__base_ring(entries[i])
-        elif (entries != None):
+        elif (entries is not None):
             raise TypeError("Oops! The entries " + str(entries) + "must be a list of size n(n+1)/2.")
 
         ## -----------------------------------------------------------
@@ -452,13 +453,13 @@ class QuadraticForm(SageObject):
         if unsafe_initialization:
 
             ## Set the number of automorphisms
-            if number_of_automorphisms != None:
+            if number_of_automorphisms is not None:
                 self.set_number_of_automorphisms(number_of_automorphisms)
                 #self.__number_of_automorphisms = number_of_automorphisms
                 #self.__external_initialization_list.append('number_of_automorphisms')
 
             ## Set the determinant
-            if determinant != None:
+            if determinant is not None:
                 self.__det = determinant
                 self._external_initialization_list.append('determinant')
 
@@ -601,7 +602,7 @@ class QuadraticForm(SageObject):
             i = j
             j = tmp
 
-        return self.__coeffs[i*self.__n - i*(i-1)/2 + j - i]
+        return self.__coeffs[i*self.__n - i*(i-1)//2 + j - i]
 
 
     def __setitem__(self, ij, coeff):
@@ -639,7 +640,7 @@ class QuadraticForm(SageObject):
 
         ## Set the entry
         try:
-            self.__coeffs[i*self.__n - i*(i-1)/2 + j -i] = self.__base_ring(coeff)
+            self.__coeffs[i*self.__n - i*(i-1)//2 + j -i] = self.__base_ring(coeff)
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
@@ -925,7 +926,7 @@ class QuadraticForm(SageObject):
             raise TypeError("A is not a matrix.")
 
         ring_coerce_test = True
-        if R == None:            ## This allows us to omit the ring from the variables, and take it from the matrix
+        if R is None:            ## This allows us to omit the ring from the variables, and take it from the matrix
             R = A.base_ring()
             ring_coerce_test = False
 

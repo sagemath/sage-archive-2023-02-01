@@ -90,7 +90,7 @@ def IncidenceStructureFromMatrix(M, name=None):
     for i in range(b):
         B = []
         for j in range(v):
-            if M[i, j] != 0:
+            if M[j, i] != 0:
                 B.append(j)
         blocks.append(B)
     return IncidenceStructure(range(v), blocks, name=nm)
@@ -413,10 +413,10 @@ class IncidenceStructure(object):
 
         The dual of a projective plane is a projective plane::
 
-            sage: PP = designs.ProjectivePlaneDesign(4)
+            sage: PP = designs.DesarguesianProjectivePlaneDesign(4)
             sage: PP.dual_design().is_block_design()
             (True, [2, 21, 5, 1])
-            sage: PP = designs.ProjectivePlaneDesign(4)             # optional - gap_packages
+            sage: PP = designs.DesarguesianProjectivePlaneDesign(4) # optional - gap_packages
             sage: PP.dual_design(algorithm="gap").is_block_design() # optional - gap_packages
             (True, [2, 21, 5, 1])
 

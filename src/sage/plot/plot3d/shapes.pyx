@@ -585,9 +585,9 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
     """
     if radius is None:
         radius = width/50.0
-    if head_radius == None:
+    if head_radius is None:
         head_radius = 3*radius
-    if head_len == None:
+    if head_len is None:
         head_len = 3*head_radius
     start = vector(RDF, start, sparse=False)
     end = vector(RDF, end, sparse=False)

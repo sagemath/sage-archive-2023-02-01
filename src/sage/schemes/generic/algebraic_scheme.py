@@ -1482,7 +1482,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
            resolve singularities and find two points (1 : 1 : 0) and
            (-1 : 1 : 0) at infinity.
         """
-        if F == None:
+        if F is None:
             F = self.base_ring()
         X = self(F)
         if is_RationalField(F) or F == ZZ:

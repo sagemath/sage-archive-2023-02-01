@@ -1031,7 +1031,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Rational Field
               To:   Univariate Polynomial Ring in x over Rational Field
 
-            sage: cm.coercion_maps(QQ, GF(7)) == None
+            sage: cm.coercion_maps(QQ, GF(7)) is None
             True
 
         Note that to break symmetry, if there is a coercion map in both

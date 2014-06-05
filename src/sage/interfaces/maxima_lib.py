@@ -654,7 +654,7 @@ class MaximaLib(MaximaAbstract):
             constraints; using the 'assume' command before integral evaluation
             *may* help (example of legal syntax is 'assume(a>0)', see
             `assume?` for more details)
-            Is  a  positive or negative?
+            Is a positive or negative?
             sage: assume(a>0)
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
             2/9*sqrt(3)*b^2*arctan(1/3*sqrt(3)*(2*(b*x + a)^(1/3) + a^(1/3))/a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
@@ -665,9 +665,9 @@ class MaximaLib(MaximaAbstract):
             ...
             ValueError: Computation failed since Maxima requested additional
             constraints; using the 'assume' command before integral evaluation
-            *may* help (example of legal syntax is 'assume(n+1>0)',
+            *may* help (example of legal syntax is 'assume(n>0)',
             see `assume?` for more details)
-            Is  n+1  zero or nonzero?
+            Is n equal to -1?
             sage: assume(n+1>0)
             sage: integral(x^n,x)
             x^(n + 1)/(n + 1)
@@ -700,7 +700,16 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
+            -1/4*(2*x - sin(2*x))*real_part(sgn(x)) + 1/2*x + 1/4*sin(2*x)
+
+        Note that the last example yielded the same answer in a
+        simpler form in earlier versions of Maxima (<= 5.29.1), namely
+        ``-1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x``.  This
+        is because Maxima no longer simplifies ``realpart(signum(x))``
+        to ``signum(x)``::
+
+            sage: maxima("realpart(signum(x))")
+            'realpart(signum(x))
 
         An example from sage-support thread e641001f8b8d1129::
 
@@ -730,6 +739,24 @@ class MaximaLib(MaximaAbstract):
             sage: integrate(f, (x, -infinity, infinity))
             1/3*pi^2
 
+        Sometimes one needs different simplification settings, such as
+        ``radexpand``, to compute an integral (see :trac:`10955`)::
+
+            sage: f = sqrt(x + 1/x^2)
+            sage: maxima = sage.calculus.calculus.maxima
+            sage: maxima('radexpand')
+            true
+            sage: integrate(f, x)
+            integrate(sqrt(x + 1/x^2), x)
+            sage: maxima('radexpand: all')
+            all
+            sage: g = integrate(f, x); g
+            2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
+            sage: (f - g.diff(x)).simplify_radical()
+            0
+            sage: maxima('radexpand: true')
+            true
+
         """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))
@@ -742,8 +769,8 @@ class MaximaLib(MaximaAbstract):
             elif "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
-                k = s.find(' ',4)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
+                k = s.find(' ', 3)
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
             else:
                 raise
 
@@ -772,7 +799,7 @@ class MaximaLib(MaximaAbstract):
             constraints; using the 'assume' command before summation *may* help
             (example of legal syntax is 'assume(abs(q)-1>0)', see `assume?`
             for more details)
-            Is  abs(q)-1  positive, negative, or zero?
+            Is abs(q)-1 positive, negative or zero?
             sage: assume(q > 1)
             sage: sum(a*q^k, k, 0, oo)
             Traceback (most recent call last):
@@ -795,6 +822,22 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Sum is divergent.
+
+        An error with an infinite sum in Maxima (before 5.30.0,
+        see :trac:`13712`)::
+
+            sage: n = var('n')
+            sage: sum(1/((2*n-1)^2*(2*n+1)^2*(2*n+3)^2), n, 0, oo)
+            3/256*pi^2
+
+        Maxima correctly detects division by zero in a symbolic sum
+        (see :trac:`11894`)::
+
+            sage: sum(1/(m^4 + 2*m^3 + 3*m^2 + 2*m)^2, m, 0, infinity)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ECL says: Error executing code in Maxima: Zero to negative power computed.
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
@@ -808,8 +851,8 @@ class MaximaLib(MaximaAbstract):
             elif "Is" in s: # Maxima asked for a condition
                 j = s.find('Is ')
                 s = s[j:]
-                k = s.find(' ',4)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s)
+                k = s.find(' ', 3)
+                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
             else:
                 raise
 
@@ -834,7 +877,7 @@ class MaximaLib(MaximaAbstract):
             ValueError: Computation failed since Maxima requested additional
             constraints; using the 'assume' command before limit evaluation
             *may* help (see `assume?` for more details)
-            Is  a  positive, negative, or zero?
+            Is a positive, negative or zero?
             sage: assume(a>0)
             sage: limit(x^a,x=0)
             Traceback (most recent call last):
@@ -852,13 +895,21 @@ class MaximaLib(MaximaAbstract):
             []
 
         The second limit below was computed incorrectly prior to
-        maxima-5.24 (:trac:`10868`)::
+        Maxima 5.24 (:trac:`10868`)::
 
             sage: f(n) = 2 + 1/factorial(n)
             sage: limit(f(n), n=infinity)
             2
             sage: limit(1/f(n), n=infinity)
             1/2
+
+        The limit below was computed incorrectly prior to Maxima 5.30
+        (see :trac:`13526`)::
+
+            sage: n = var('n')
+            sage: l = (3^n + (-2)^n) / (3^(n+1) + (-2)^(n+1))
+            sage: l.limit(n=oo)
+            1/3
 
         """
         try:
@@ -966,7 +1017,7 @@ class MaximaLibElement(MaximaAbstractElement):
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: sol = maxima_lib(sin(x) == 0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == pi + 2*pi*z60], [x == 2*pi*z62]]
+            [[x == pi*z54]]
         """
         if options.find("use_grobner=true") != -1:
             cmd=EclObject([[max_to_poly_solve], self.ecl(), sr_to_max(vars),

@@ -10,6 +10,7 @@ Distributive Magmas and Additive Magmas
 
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
     """
@@ -79,3 +80,19 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
                 # right distributivity
                 tester.assert_((x + y) * z == (x * z) + (y * z))
 
+    class CartesianProducts(CartesianProductsCategory):
+        def extra_super_categories(self):
+            """
+            Implement the fact that a cartesian product of magmas distributing
+            over additive magmas is a magma distributing over an
+            additive magma.
+
+            EXAMPLES::
+
+                sage: C = (Magmas() & AdditiveMagmas()).Distributive().CartesianProducts()
+                sage: C.extra_super_categories();
+                [Category of distributive magmas and additive magmas]
+                sage: C.axioms()
+                frozenset(['Distributive'])
+            """
+            return [DistributiveMagmasAndAdditiveMagmas()]

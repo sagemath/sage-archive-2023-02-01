@@ -157,7 +157,7 @@ class CooperativeGame(SageObject):
             ....:                  (2,): 12,
             ....:                  (3,): 42,
             ....:                  (1, 2, 3,): 42}
-            sage: incorrect_function = CooperativeGame(incorrect_function)
+            sage: incorrect_game = CooperativeGame(incorrect_function)
             Traceback (most recent call last):
             ...
             ValueError: Characteristic Function must be the power set
@@ -290,7 +290,7 @@ class CooperativeGame(SageObject):
         """
         sets = list(self.ch_f.keys())
         return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
-                                        for p1, p2 in permutations(sets, 2)])
+                        for p1, p2 in permutations(sets, 2)])
 
     def is_superadditive(self):
         r"""
@@ -439,7 +439,9 @@ class CooperativeGame(SageObject):
 
     def get_predecessors(self, player, permutation):
         r"""
-        Returns a list of all the predecessors of a player in a certain permutation and the same list including the original player (used elsewhere).
+        Returns a list of all the predecessors of a player in a certain
+        permutation and the same list including the original player
+        (used elsewhere).
 
         INPUT:
 
@@ -602,7 +604,8 @@ class CooperativeGame(SageObject):
 
     def nullplayer(self):
         r"""
-        Returns True if the current payoff_vector possesses the null player property.
+        Returns True if the current payoff_vector possesses the null
+        player property.
 
         EXAMPLES::
         A payoff_vector that returns True. ::
@@ -676,7 +679,13 @@ class CooperativeGame(SageObject):
             raise ValueError("Game must have a payoff_vector")
 
         for player in self.player_list:
-            return not (all([self.ch_f[coalition] == self.ch_f[tuple(sorted(list(set(coalition) - {player})))] for coalition in [coalition for coalition in self.ch_f if player in coalition]]) and self.payoff_vector[player] != 0)
+            coalitions = [coal for coal in self.ch_f if player in coal]
+            results = []
+            for coalit in coalitions:
+                results.append(self.ch_f[coalit] == self.ch_f[tuple(
+                               sorted(list(set(coalit) - {player})))])
+            if all(results) and self.payoff_vector[player] != 0:
+                return False
         return True
 
     def symmetry(self):

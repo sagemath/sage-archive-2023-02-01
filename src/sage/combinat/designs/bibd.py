@@ -118,7 +118,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         sage: designs.BalancedIncompleteBlockDesign(16,6)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this design.
+        NotImplementedError: I don't know how to build a BIBD(16,6,1)!
 
     TESTS::
 
@@ -215,7 +215,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
     if existence:
         return Unknown
     else:
-        raise NotImplementedError("I don't know how to build this design.")
+        raise NotImplementedError("I don't know how to build a BIBD({},{},1)!".format(v,k))
 
 def steiner_triple_system(n):
     r"""

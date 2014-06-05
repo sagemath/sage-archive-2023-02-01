@@ -2372,42 +2372,39 @@ class DyckWord_complete(DyckWord):
         r"""
         Map ``self`` to a triangulation.
 
+        The map from complete Dyck words of length `2n` to triangulations of
+        `n+2`-gon given by this function is a bijection that can be described as
+        follows.
+
+        Consider the Dyck word as a path from `(0, 0)` to `(n, n)` staying above
+        the diagonal, where `1` is an up step and `0` is a right step. Then each
+        horizontal step has a co-height (`0` at the top and `n-1` at most at the
+        bottom). One reads the Dyck word from left to right.  At the begining,
+        all vertices from `0` to `n+1` are available.  For each horizontal step,
+        one creates an edge from the vertex indexed by the co-height to the next
+        available vertex. This chops out a triangle from the polygon and one
+        removes the middle vertex of this triangle from the list of available
+        vertices.
+
+        This bijection has the property that the set of smallest vertices of the
+        edges in a triangulation is an encoding of the co-heights, from which
+        the Dyck word can be easily recovered.
+
         INPUT:
 
-        - `as_graph` -- boolean (default ``False``) whether to return a graph
+        - `as_graph` -- boolean (default ``False``) whether to return a graph or
+          simply a list of edges.
 
         OUTPUT:
 
-        By default, a list of pairs `(i, j)` of integers between `0`
-        and `n+1`, where `n` is the size of ``self``. This list gives
-        the edges in a triangulation of the regular polygon with `n+2`
-        vertices.
+        By default, a list of pairs `(i, j)` that are the edges of the
+        triangulations. If `as_graph` is ``True``, return the result as a graph.
 
-        If `as_graph` is ``True``, return the result as a graph
-
-        The implemented bijection can be described as
-        follows. Consider the Dyck word as a path from `(0, 0)` to
-        `(n, n)` staying above the diagonal, where `1` is an up step
-        and `0` is a right step. Then each horizontal step has a
-        co-height (`0` at the top and `n-1` at most at the
-        bottom). One reads the Dyck word from left to right. For each
-        horizontal step (of nonzero co-height), one creates an edge
-        from the vertex indexed by the co-height `i` to the next
-        available vertex. This chops out a triangle from the polygon
-        and removes the middle vertex of this triangle from the list
-        of available vertices.
-
-        This bijection has the property that the set of smallest
-        vertices of the edges in a triangulation is an encoding of the
-        co-heights, from which the Dyck word can be easily recovered.
 
         EXAMPLES::
 
             sage: DyckWord([1, 1, 0, 0]).to_triangulation()
             [(0, 2)]
-
-            sage: DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation(True)
-            Graph on 5 vertices
 
             sage: [t.to_triangulation() for t in DyckWords(3)]
             [[(2, 4), (1, 4)],
@@ -2416,6 +2413,13 @@ class DyckWord_complete(DyckWord):
             [(1, 3), (0, 3)],
             [(0, 2), (0, 3)]]
 
+            sage: g = DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation(as_graph=True)
+            sage: g
+            Graph on 5 vertices
+            sage: g.edges(labels=False)
+            [(0, 1), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (3, 4)]
+            sage: g.show()        # not tested
+
         REFERENCES:
 
         .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
@@ -2423,17 +2427,15 @@ class DyckWord_complete(DyckWord):
            Combinatorics Vol 12(1) (2005) N16.
         """
         n = self.number_of_open_symbols()
-        l = range(n + 2)
-        coheight = n
+        l = range(n + 2)  # from 0 to n+1
         edges = []
-        for letter in self[:-1]:
+        coheight = n-1
+        for letter in self[1:-1]:
             if letter == 1:
                 coheight -= 1
             else:
-                i = l.index(coheight)
-                end = l[i + 2]
-                l.pop(i + 1)
-                edges += [(coheight, end)]
+                edges.append((coheight,l[coheight+2]))
+                l.pop(coheight + 1)
 
         if not as_graph:
             return edges

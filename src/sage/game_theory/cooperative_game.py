@@ -80,9 +80,9 @@ class CooperativeGame(SageObject):
         sage: letter_game.is_superadditive()
         False
 
-    The show function will display basic information about the game. ::
+    The _repr_ function will display basic information about the game. ::
 
-        sage: letter_game.show()
+        sage: letter_game._repr_()
         A Co-operative Game with 3 players
         Characteristic Function is
              ('A',) : 6
@@ -136,7 +136,7 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.is_superadditive()
         False
-        sage: letter_game.show()
+        sage: letter_game._repr_()
         A Co-operative Game with 3 players
         Characteristic Function is
              ('A',) : 6
@@ -521,8 +521,11 @@ class CooperativeGame(SageObject):
         pred = list(permutation[:permutation.index(player)])
         return sorted(pred), sorted(pred + [player])
 
-    def show(self):
+    def _repr_(self):
         r"""
+
+        Returns a concise description of the Game.
+
         EXAMPLES::
         Typical use of the show function with a given Payoff Vector. ::
 
@@ -535,7 +538,7 @@ class CooperativeGame(SageObject):
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
             sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
-            sage: letter_game.show()
+            sage: letter_game._repr_()
             A Co-operative Game with 3 players
             Characteristic Function is
                  ('A',) : 6
@@ -552,7 +555,7 @@ class CooperativeGame(SageObject):
 
             sage: letter_game.shapley_value()
             {'A': 2, 'C': 35, 'B': 5}
-            sage: letter_game.show()
+            sage: letter_game._repr_()
             A Co-operative Game with 3 players
             Characteristic Function is
                  ('A',) : 6

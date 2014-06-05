@@ -357,7 +357,7 @@ def ToleranceGraph(tolrep):
 
     return g
 
-def OrthogonalArrayGraph(k,n):
+def OrthogonalArrayBlockGraph(k,n,OA=None):
     r"""
     Returns the graph of an `OA(k,n)`.
 
@@ -400,24 +400,46 @@ def OrthogonalArrayGraph(k,n):
 
     - ``k,n`` (integers)
 
+    - ``OA`` -- An orthogonal array. If set to ``None`` (default) then
+      :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` is
+      called to compute an `OA(k,n)`.
+
     EXAMPLES::
 
-        sage: G = graphs.OrthogonalArrayGraph(5,5); G
+        sage: G = graphs.OrthogonalArrayBlockGraph(5,5); G
         OA(5,5): Graph on 25 vertices
         sage: G.is_strongly_regular(parameters=True)
         (25, 20, 15, 20)
-        sage: G = graphs.OrthogonalArrayGraph(4,10); G
+        sage: G = graphs.OrthogonalArrayBlockGraph(4,10); G
         OA(4,10): Graph on 100 vertices
         sage: G.is_strongly_regular(parameters=True)
         (100, 36, 14, 12)
 
+    Two graphs built from different orthogonal arrays are also different::
+
+        sage: k=4;n=10
+        sage: OAa = designs.orthogonal_array(k,n)
+        sage: OAb = [[(x+1)%n for x in R] for R in OAa]
+        sage: set(map(tuple,OAa)) == set(map(tuple,OAb))
+        False
+        sage: Ga = graphs.OrthogonalArrayBlockGraph(k,n,OAa)
+        sage: Gb = graphs.OrthogonalArrayBlockGraph(k,n,OAb)
+        sage: Ga == Gb
+        False
+
+    As ``OAb`` was obtained from ``OAa`` by a relabelling the two graphs are
+    isomorphic::
+
+        sage: Ga.is_isomorphic(Gb)
+        True
+
     TESTS::
 
-        sage: G = graphs.OrthogonalArrayGraph(4,6)
+        sage: G = graphs.OrthogonalArrayBlockGraph(4,6)
         Traceback (most recent call last):
         ...
         NotImplementedError: I don't know how to build this orthogonal array!
-        sage: G = graphs.OrthogonalArrayGraph(8,2)
+        sage: G = graphs.OrthogonalArrayBlockGraph(8,2)
         Traceback (most recent call last):
         ...
         ValueError: There is no OA(8,2). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !
@@ -425,10 +447,16 @@ def OrthogonalArrayGraph(k,n):
     if n>1 and k>=n+2:
         raise ValueError("There is no OA({},{}). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !".format(k,n))
 
-    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from itertools import combinations
 
-    OA = map(tuple,orthogonal_array(k,n))
+    if OA is None:
+        from sage.combinat.designs.orthogonal_arrays import orthogonal_array
+        OA = orthogonal_array(k,n)
+    else:
+        assert len(OA) == n**2
+        assert n == 0 or k == len(OA[0])
+
+    OA = map(tuple,OA)
 
     d = [[[] for j in range(n)] for i in range(k)]
     for R in OA:

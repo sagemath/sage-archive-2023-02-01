@@ -25,7 +25,7 @@ from free_module import CombinatorialFreeModule
 from combinatorial_algebra import CombinatorialAlgebra
 from debruijn_sequence import DeBruijnSequences
 
-from schubert_polynomial import SchubertPolynomialRing, is_SchubertPolynomial
+from schubert_polynomial import SchubertPolynomialRing
 from symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetricGroupT
 from symmetric_group_representations import SymmetricGroupRepresentation, SymmetricGroupRepresentations
 from yang_baxter_graph import YangBaxterGraph
@@ -110,10 +110,13 @@ from alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatric
 from non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 from parking_functions import ParkingFunctions, ParkingFunction
 
+# Trees and Tamari interval posets
+from sage.misc.lazy_import import lazy_import
 from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
+lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
 
 from combination import Combinations
 from cartesian_product import CartesianProduct
@@ -134,12 +137,25 @@ from ncsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
-from backtrack import TransitiveIdeal, TransitiveIdealGraded, SearchForest
+
+from sage.misc.superseded import deprecated_callable_import
+deprecated_callable_import(6637,
+                           'sage.combinat.backtrack',
+                           globals(),
+                           locals(),
+                           ["SearchForest", 
+                            "TransitiveIdeal", 
+                            "TransitiveIdealGraded"],
+                           ("This class soon will not be available in that "
+                            "way anymore. Use RecursivelyEnumeratedSet "
+                            "instead."))
 
 # Cluster Algebras and Quivers
 from cluster_algebra_quiver.all import *
 
 #import lrcalc
+
+import ranker
 
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors
@@ -168,7 +184,6 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
 
 # Finite State Machines (Automaton, Transducer)
-from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.finite_state_machine',
             ['Automaton', 'Transducer', 'FiniteStateMachine'])
 lazy_import('sage.combinat.finite_state_machine_generators',

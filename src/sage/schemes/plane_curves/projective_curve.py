@@ -541,7 +541,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         # faster (and more robust).
         v = singular('POINTS').sage_flattened_str_list()
         pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2]))
-                for i in range(len(v)/3)]
+                for i in range(len(v)//3)]
         # singular always dehomogenizes with respect to the last variable
         # so if this variable divides the curve equation, we need to add
         # points at infinity
@@ -613,7 +613,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         R = X2[5][1][1]
         singular.set_ring(R)
         v = singular('POINTS').sage_flattened_str_list()
-        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
+        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)//3)]
         # build correct representation of D for singular
         Dsupport = D.support()
         Dcoeffs = []

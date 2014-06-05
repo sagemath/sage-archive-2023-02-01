@@ -610,7 +610,7 @@ class GraphPlot(SageObject):
                     distance = dist
                     if len(local_labels)*dist > max_dist:
                         distance = float(max_dist)/len(local_labels)
-                    for i in range(len(local_labels)/2):
+                    for i in range(len(local_labels)//2):
                         k = (i+1.0)*distance
                         if self._arcdigraph:
                             odd_start = self._polar_hack_for_multidigraph(p1, [odd_x(k),odd_y(k)], self._vertex_radius)[0]

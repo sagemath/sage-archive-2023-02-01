@@ -1083,7 +1083,7 @@ class GraphLatex(SageObject):
 
         if not(option_name in GraphLatex.__graphlatex_options):
             raise ValueError( "%s is not a LaTeX option for a graph." % option_name )
-        if option_value == None:    # clear the option, if set
+        if option_value is None:    # clear the option, if set
             if option_name in self._options:
                 del self._options[option_name]
         else:
@@ -1346,9 +1346,9 @@ class GraphLatex(SageObject):
             sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
             \begin{tikzpicture}[>=latex,line join=bevel,] 
             %% 
-            \node (3333) at (...bp,...bp) [draw,draw=none] {$3333$}; 
-              \node (88) at (...bp,...bp) [draw,draw=none] {$88$}; 
-              \draw [black,->] (3333) ..controls (...bp,...bp) and (...bp,...bp)  .. (88); 
+            \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
+              \node (node_0) at (...bp,...bp) [draw,draw=none] {$88$};
+              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; 
               \pgfsetstrokecolor{strokecol} 
               \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$}; 

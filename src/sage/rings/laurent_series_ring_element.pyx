@@ -202,6 +202,28 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return self.__u.is_zero()
 
+    def is_monomial(self):
+        """
+        Return True if this element is a monomial.  That is, if self is
+        `x^n` for some integer `n`.
+
+        EXAMPLES::
+
+            sage: k.<z> = LaurentSeriesRing(QQ, 'z')
+            sage: (30*z).is_monomial()
+            False
+            sage: k(1).is_monomial()
+            True
+            sage: (z+1).is_monomial()
+            False
+            sage: (z^-2909).is_monomial()
+            True
+            sage: (3*z^-2909).is_monomial()
+            False
+        """
+
+        return self.__u.is_monomial()
+
     def __nonzero__(self):
         return not not self.__u
 

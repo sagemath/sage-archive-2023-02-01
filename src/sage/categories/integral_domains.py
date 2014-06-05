@@ -3,42 +3,38 @@ Integral domains
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
+#                2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
-from sage.categories.commutative_rings import CommutativeRings
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.domains import Domains
 
-class IntegralDomains(Category_singleton):
+class IntegralDomains(CategoryWithAxiom):
     """
     The category of integral domains
-    commutative rings with no zero divisors
+
+    An integral domain is commutative ring with no zero divisors, or
+    equivalently a commutative domain.
 
     EXAMPLES::
 
-        sage: IntegralDomains()
+        sage: C = IntegralDomains(); C
         Category of integral domains
-        sage: IntegralDomains().super_categories()
+        sage: sorted(C.super_categories(), key=str)
         [Category of commutative rings, Category of domains]
+        sage: C is Domains().Commutative()
+        True
+        sage: C is Rings().Commutative().NoZeroDivisors()
+        True
 
     TESTS::
 
-        sage: TestSuite(IntegralDomains()).run()
+        sage: TestSuite(C).run()
     """
-
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: IntegralDomains().super_categories()
-            [Category of commutative rings, Category of domains]
-        """
-        return [CommutativeRings(), Domains()]
+    _base_category_class_and_axiom = (Domains, "Commutative")
 
     class ParentMethods:
         def is_integral_domain(self):
@@ -47,6 +43,8 @@ class IntegralDomains(Category_singleton):
 
             EXAMPLES::
 
+                sage: QQ.is_integral_domain()
+                True
                 sage: Parent(QQ,category=IntegralDomains()).is_integral_domain()
                 True
 

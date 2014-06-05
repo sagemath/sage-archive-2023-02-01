@@ -97,7 +97,7 @@ def parity(self, allow_rescaling_flag=True):
     Q0 = J0[1]
 
     ## The lattice is even if there is no component of scale (power) 0
-    if J0 == None:
+    if J0 is None:
         return "even"
 
     ## Look for a 1x1 block in the 0-th Jordan component (which by
@@ -274,7 +274,7 @@ def conway_species_list_at_2(self):
         if jordan_list[i].is_even():
             two_t = d
         else:
-            two_t = ZZ(2) * floor((d-1) / 2)
+            two_t = ZZ(2) * ((d-1) // 2)
 
         ## Determine if the form is bound
         if len(jordan_list) == 1:
@@ -554,9 +554,9 @@ def conway_standard_p_mass(self, p):
     ## Some useful variables
     n = self.dim()
     if n % 2 == 0:
-        s = n / 2
+        s = n // 2
     else:
-        s = (n+1) / 2
+        s = (n+1) // 2
 
     ## Compute the inverse of the generic p-mass
     p_mass_inv = 2 * prod([1-p**(-i)  for i in range(2, 2*s, 2)])
@@ -596,9 +596,9 @@ def conway_standard_mass(self):
     """
     n = self.dim()
     if n % 2 == 0:
-        s = n / 2
+        s = n // 2
     else:
-        s = (n+1) / 2
+        s = (n+1) // 2
 
     ## DIAGNOSTIC
     #print "n = ", n

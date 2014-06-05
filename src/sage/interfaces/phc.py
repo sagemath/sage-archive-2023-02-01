@@ -244,7 +244,7 @@ class PHC_Object:
         sol_data += jan_bar
         start_data += str(sol_count) + ' ' + str(var_number) + '\n'
         start_data += jan_bar + sol_data
-        if start_filename != None:
+        if start_filename is not None:
             start_file = file(start_filename,'w')
             start_file.write(start_data)
             start_file.close()
@@ -820,7 +820,7 @@ class PHC:
             phc_dialog = child_phc.read(size = 40)
             print phc_dialog
         child_phc.sendline('0')
-        if path_track_file == None:
+        if path_track_file is None:
             child_phc.sendline('0')
         else:
             child_phc.sendline('2')

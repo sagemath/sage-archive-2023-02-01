@@ -240,6 +240,7 @@ from sage.structure.all import SageObject
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 import operator, re
+from functools import reduce
 
 ###############################################################
 ## Ring Factory framework

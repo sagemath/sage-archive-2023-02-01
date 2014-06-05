@@ -2151,29 +2151,34 @@ class Graphics(SageObject):
         at least 10 units apart::
 
             sage: p = Graphics()
-            sage: p._get_vmin_vmax(1,2,10)
-            (1, 10.0)
-            sage: p._get_vmin_vmax(1,5,10)
-            (1, 10.0)
-            sage: p._get_vmin_vmax(1,10,10)
-            (1, 10)
-            sage: p._get_vmin_vmax(1,11,10)
-            (1, 11)
-            sage: p._get_vmin_vmax(1,50,10)
-            (1, 50)
+            sage: p._get_vmin_vmax(1, 2, 10, None)
+            (9/10, 10.0)
+            sage: p._get_vmin_vmax(1, 5, 10, None)
+            (9/10, 10.0)
+            sage: p._get_vmin_vmax(1, 10, 10, None)
+            (9/10, 11)
+            sage: p._get_vmin_vmax(1, 11, 10, None)
+            (9/10, 121/10)
+            sage: p._get_vmin_vmax(1, 50, 10, None)
+            (9/10, 55)
+
+        We can set the ``axes_pad`` separately::
+
+            sage: p._get_vmin_vmax(1, 50, 2, 2)
+            (0.75, 62.5)
 
         Nonpositive values of ``vmin`` are not accepted due to the domain
         of the logarithm function::
 
             sage: p = Graphics()
-            sage: p._get_vmin_vmax(-1,2,10)
+            sage: p._get_vmin_vmax(-1,2,10, None)
             Traceback (most recent call last):
             ...
             ValueError: vmin must be positive
 
         And ``vmax`` must be greater than ``vmin``::
 
-            sage: p._get_vmin_vmax(1,-2,10)
+            sage: p._get_vmin_vmax(1,-2,10, None)
             Traceback (most recent call last):
             ...
             ValueError: vmin must be less than vmax
@@ -2368,9 +2373,9 @@ class Graphics(SageObject):
         # If any of the x-data are negative, we leave the min/max alone.
         if xscale == 'log' and min(xmin, xmax) > 0:
             if xmin < xmax:
-                xmin, xmax = self._get_vmin_vmax(xmin, xmax, basex)
+                xmin, xmax = self._get_vmin_vmax(xmin, xmax, basex, axes_pad)
             else:
-                xmax, xmin = self._get_vmin_vmax(xmax, xmin, basex)
+                xmax, xmin = self._get_vmin_vmax(xmax, xmin, basex, axes_pad)
         else:
             xpad = 0.02 if axes_pad is None else axes_pad
             xpad = (xmax - xmin)*float(xpad)
@@ -2380,9 +2385,9 @@ class Graphics(SageObject):
         # Likewise for the y-data.
         if yscale == 'log' and min(ymin, ymax) > 0:
             if ymin < ymax:
-                ymin, ymax = self._get_vmin_vmax(ymin, ymax, basey)
+                ymin, ymax = self._get_vmin_vmax(ymin, ymax, basey, axes_pad)
             else:
-                ymax, ymin = self._get_vmin_vmax(ymax, ymin, basey)
+                ymax, ymin = self._get_vmin_vmax(ymax, ymin, basey, axes_pad)
         else:
             ypad = 0.02 if axes_pad is None else axes_pad
             ypad = (ymax - ymin)*float(ypad)

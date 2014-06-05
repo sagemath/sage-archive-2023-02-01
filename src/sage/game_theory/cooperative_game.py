@@ -674,6 +674,20 @@ class CooperativeGame(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: Game must have a payoff_vector
+
+        Checks that the function is going through all players. ::
+
+            sage: A_function = {(): 0,
+            ....:               (1,): 42,
+            ....:               (2,): 12,
+            ....:               (3,): 0,
+            ....:               (1, 2,): 55,
+            ....:               (1, 3,): 42,
+            ....:               (2, 3,): 12,
+            ....:               (1, 2, 3,): 55}
+            sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
+            sage: A_game.nullplayer()
+            False
         """
         if not self.payoff_vector:
             raise ValueError("Game must have a payoff_vector")

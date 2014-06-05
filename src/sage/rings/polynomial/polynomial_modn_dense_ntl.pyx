@@ -817,10 +817,14 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: (x-1)^5
             x^5 + 95*x^4 + 10*x^3 + 90*x^2 + 5*x + 99
 
+        Negative powers will not work::
+        
             sage: R.<x> = PolynomialRing(Integers(101), implementation='ntl')
             sage: (x-1)^(-5)
-            1/(x^5 + 96*x^4 + 10*x^3 + 91*x^2 + 5*x + 100)
-
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Fraction fields not implemented for this type.
+            
         We define ``0^0`` to be unity, :trac:`13895`::
 
             sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')

@@ -1509,6 +1509,43 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         return self._prod.latex(self.parent().variable_names(),
                                 atomic_coefficients=atomic, cmpfn=cmpfn)
 
+    def __invert__(LaurentPolynomial_mpair self):
+        """
+        Return the inverse of ``self``.
+
+        This treats monomials specially so they remain Laurent
+        polynomials; the inverse of any other polynomial is an element
+        of the rational function field.
+
+        TESTS::
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: f = ~x
+            sage: parent(f)
+            Multivariate Laurent Polynomial Ring in x, y over Integer Ring
+            sage: parent(f.coefficients()[0]) is parent(f).base_ring()
+            True
+            sage: g = ~(2*x)
+            sage: parent(g)
+            Multivariate Laurent Polynomial Ring in x, y over Rational Field
+            sage: parent(g.coefficients()[0]) is parent(g).base_ring()
+            True
+        """
+        cdef dict d = self.dict()
+        cdef ETuple e
+        if len(d) == 1:
+            e, c = d.items()[0]
+            e = e.emul(-1)
+            P = self.parent()
+            try:
+                c = c.inverse_of_unit()
+            except (AttributeError, ZeroDivisionError):
+                c = ~c
+                if c.parent() is not P.base_ring():
+                    P = P.change_ring(c.parent())
+            return P({e: c})
+        return super(LaurentPolynomial_mpair, self).__invert__()
+
     def __pow__(LaurentPolynomial_mpair self, n, m):
         """
         EXAMPLES::
@@ -1519,22 +1556,23 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x^2 + 2*x*y + y^2
             sage: f^(-1)
             1/(x + y)
+
+        TESTS:
+
+        Check that :trac:`2952` is fixed::
+
+            sage: R.<q> = QQ[]
+            sage: L.<x,y,z> = LaurentPolynomialRing(R)
+            sage: f = (x+y+z^-1)^2
+            sage: f.substitute(z=1)
+            x^2 + 2*x*y + y^2 + 2*x + 2*y + 1
         """
         cdef LaurentPolynomial_mpair ans
         if n < 0:
-            E = self._poly.exponents()
-            if len(E) == 0:
-                raise ZeroDivisionError
-            elif len(E) > 1:
-                return self.parent()._R.fraction_field()(self)**n
-            else:
-                ans = self._new_c()
-                ans._poly = self._poly.parent().change_ring(self.parent().base_ring().fraction_field())(self._poly.coefficients()[0]**n)
-                ans._mon = self._mon.eadd(E[0]).emul(n)
-        else:
-            ans = self._new_c()
-            ans._poly = self._poly**n
-            ans._mon = self._mon.emul(n)
+            return ~(self ** -n)
+        ans = self._new_c()
+        ans._poly = self._poly ** n
+        ans._mon = self._mon.emul(n)
         return ans
 
     def __getitem__(self, n):
@@ -2064,7 +2102,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 no_generator_found = False
                 break
         if no_generator_found:
-            raise TypeError, "x must be a generator of parent"
+            raise TypeError("x must be a generator of parent")
         return self._poly.degree(self.parent().polynomial_ring().gens()[i]) + self._mon[i]
 
 
@@ -2092,7 +2130,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             True
         """
         if (not isinstance(i, (int, Integer))) or (i < 0) or (i >= self.parent().ngens()):
-            raise TypeError, "argument is not the index of a generator"
+            raise TypeError("argument is not the index of a generator")
         if self._mon[i] < 0:
             self._normalize(i)
             if self._mon[i] < 0:
@@ -2164,7 +2202,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             l = len(x)
 
         if l != n:
-            raise TypeError, "number of arguments does not match the number of generators in parent."
+            raise TypeError("number of arguments does not match the number of generators in parent.")
 
         #Check to make sure that we aren't dividing by zero
         for m in range(n):
@@ -2216,7 +2254,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         """
         if in_dict is not None and kwds:
-            raise ValueError, "you cannot specify both a dictionary and keyword arguments"
+            raise ValueError("you cannot specify both a dictionary and keyword arguments")
 
         g = self.parent().gens()
         repr_g = [repr(i) for i in g]
@@ -2374,7 +2412,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: h = g.univariate_polynomial(); h
             -2*y^-1 + 305 + 700*y^2
             sage: h.parent()
-            Univariate Laurent Polynomial Ring in y over Rational Field
+            Univariate Laurent Polynomial Ring in y over Integer Ring
             sage: g.univariate_polynomial(LaurentPolynomialRing(QQ,'z'))
             -2*z^-1 + 305 + 700*z^2
 
@@ -2389,7 +2427,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
         v = self.variables()
         if len(v) > 1:
-            raise TypeError, "polynomial must involve at most one variable"
+            raise TypeError("polynomial must involve at most one variable")
         elif len(v) == 1:
             x = v[0]
             i = self._parent.gens().index(x)

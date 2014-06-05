@@ -6,16 +6,16 @@ This module implements two constructions of Balanced Incomplete Block Designs:
 * Steiner Triple Systems, i.e. `(v,3,1)`-BIBD.
 * `K_4`-decompositions of `K_v`, i.e. `(v,4,1)`-BIBD.
 
-These BIBD can be obtained through the :meth:`BalancedIncompleteBlockDesign`
-method, available in Sage as ``designs.BalancedIncompleteBlockDesign``.
+These BIBD can be obtained through the :func:`balanced_incomplete_block_design`
+method, available in Sage as ``designs.balanced_incomplete_block_design``.
 
 EXAMPLES::
 
-    sage: designs.BalancedIncompleteBlockDesign(7,3)
+    sage: designs.balanced_incomplete_block_design(7,3)
     Incidence structure with 7 points and 7 blocks
-    sage: designs.BalancedIncompleteBlockDesign(7,3).blocks()
+    sage: designs.balanced_incomplete_block_design(7,3).blocks()
     [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-    sage: designs.BalancedIncompleteBlockDesign(13,4).blocks()
+    sage: designs.balanced_incomplete_block_design(13,4).blocks()
     [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10], [0, 5, 7, 11], [1, 3, 8, 11],
      [1, 4, 7, 9], [1, 5, 6, 10], [2, 3, 7, 10], [2, 4, 6, 11], [2, 5, 8, 9],
      [3, 4, 5, 12], [6, 7, 8, 12], [9, 10, 11, 12]]
@@ -26,7 +26,7 @@ EXAMPLES::
 Decompositions of `K_v` into `K_4` (i.e. `(v,4,1)`-BIBD) are built following
 Douglas Stinson's construction as presented in [Stinson2004]_ page 167. It is
 based upon the construction of `(v\{4,5,8,9,12\})`-PBD (see the doc of
-:meth:`PBD_4_5_8_9_12`), knowing that a `(v\{4,5,8,9,12\})`-PBD on `v` points
+:func:`PBD_4_5_8_9_12`), knowing that a `(v\{4,5,8,9,12\})`-PBD on `v` points
 can always be transformed into a `((k-1)v+1,4,1)`-BIBD, which covers all
 possible cases of `(v,4,1)`-BIBD.
 
@@ -52,7 +52,7 @@ from block_design import BlockDesign
 from sage.rings.arith import binomial
 from sage.rings.arith import is_prime_power
 
-def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
+def balanced_incomplete_block_design(v,k,existence=False,use_LJCR=False):
     r"""
     Returns a BIBD of parameters `v,k`.
 
@@ -82,7 +82,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
 
     - ``use_LJCR`` (boolean) -- whether to query the La Jolla Covering
       Repository for the design when Sage does not know how to build it (see
-      :meth:`~sage.combinat.designs.covering_design.best_known_covering_design_www`). This
+      :func:`~sage.combinat.designs.covering_design.best_known_covering_design_www`). This
       requires internet.
 
     .. SEEALSO::
@@ -98,9 +98,9 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
 
     EXAMPLES::
 
-        sage: designs.BalancedIncompleteBlockDesign(7,3).blocks()
+        sage: designs.balanced_incomplete_block_design(7,3).blocks()
         [[0, 1, 3], [0, 2, 4], [0, 5, 6], [1, 2, 6], [1, 4, 5], [2, 3, 5], [3, 4, 6]]
-        sage: B = designs.BalancedIncompleteBlockDesign(21,5, use_LJCR=True) # optional - internet
+        sage: B = designs.balanced_incomplete_block_design(21,5, use_LJCR=True) # optional - internet
         sage: B                                                              # optional - internet
         Incidence structure with 21 points and 21 blocks
         sage: B.blocks()                                                     # optional - internet
@@ -111,47 +111,48 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
          [2, 7, 8, 13, 19], [3, 4, 10, 13, 18], [3, 5, 8, 14, 17],
          [3, 6, 9, 12, 19], [3, 7, 11, 15, 16], [4, 5, 6, 7, 20],
          [8, 9, 10, 11, 20], [12, 13, 14, 15, 20], [16, 17, 18, 19, 20]]
-        sage: designs.BalancedIncompleteBlockDesign(20,5, use_LJCR=True) # optional - internet
+        sage: designs.balanced_incomplete_block_design(20,5, use_LJCR=True) # optional - internet
         Traceback (most recent call last):
         ...
         ValueError: No such design exists !
-        sage: designs.BalancedIncompleteBlockDesign(16,6)
+        sage: designs.balanced_incomplete_block_design(16,6)
         Traceback (most recent call last):
         ...
         NotImplementedError: I don't know how to build a (16,6,1)-BIBD!
 
     TESTS::
 
-        sage: designs.BalancedIncompleteBlockDesign(85,5,existence=True)
+        sage: designs.balanced_incomplete_block_design(85,5,existence=True)
         True
-        sage: _ = designs.BalancedIncompleteBlockDesign(85,5)
+        sage: _ = designs.balanced_incomplete_block_design(85,5)
 
     A BIBD from a Finite Projective Plane::
 
-        sage: _ = designs.BalancedIncompleteBlockDesign(21,5)
+        sage: _ = designs.balanced_incomplete_block_design(21,5)
 
     Some trivial BIBD::
 
-        sage: designs.BalancedIncompleteBlockDesign(10,10)
+        sage: designs.balanced_incomplete_block_design(10,10)
         Incidence structure with 10 points and 1 blocks
-        sage: designs.BalancedIncompleteBlockDesign(1,10)
+        sage: designs.balanced_incomplete_block_design(1,10)
         Incidence structure with 1 points and 0 blocks
 
     Existence of BIBD with `k=3,4,5`::
 
-        sage: [v for v in xrange(50) if designs.BalancedIncompleteBlockDesign(v,3,existence=True)]
+        sage: [v for v in xrange(50) if designs.balanced_incomplete_block_design(v,3,existence=True)]
         [1, 3, 7, 9, 13, 15, 19, 21, 25, 27, 31, 33, 37, 39, 43, 45, 49]
-        sage: [v for v in xrange(100) if designs.BalancedIncompleteBlockDesign(v,4,existence=True)]
+        sage: [v for v in xrange(100) if designs.balanced_incomplete_block_design(v,4,existence=True)]
         [1, 4, 13, 16, 25, 28, 37, 40, 49, 52, 61, 64, 73, 76, 85, 88, 97]
-        sage: [v for v in xrange(150) if designs.BalancedIncompleteBlockDesign(v,5,existence=True)]
+        sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,5,existence=True)]
         [1, 5, 21, 25, 41, 45, 61, 65, 81, 85, 101, 105, 121, 125, 141, 145]
 
     For `k > 5` there are currently very few constructions::
 
-        sage: [v for v in xrange(150) if designs.BalancedIncompleteBlockDesign(v,6,existence=True) is True]
+        sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
         [1, 6, 31]
-        sage: [v for v in xrange(150) if designs.BalancedIncompleteBlockDesign(v,6,existence=True) is Unknown]
+        sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
         [16, 21, 36, 46, 51, 61, 66, 76, 81, 91, 96, 106, 111, 121, 126, 136, 141]
+
     """
     if v == 1:
         if existence:
@@ -382,14 +383,14 @@ def BIBD_from_TD(v,k,existence=False):
 
     # First construction
     if (v%k == 0 and
-        BalancedIncompleteBlockDesign(v//k,k,existence=True) and
+        balanced_incomplete_block_design(v//k,k,existence=True) and
         transversal_design(k,v//k,existence=True)):
 
         if existence:
             return True
 
         v = v//k
-        BIBDvk = BalancedIncompleteBlockDesign(v,k)
+        BIBDvk = balanced_incomplete_block_design(v,k)
         TDkv = transversal_design(k,v,check=False)
 
         BIBD = TDkv
@@ -398,14 +399,14 @@ def BIBD_from_TD(v,k,existence=False):
 
     # Second construction
     elif ((v-1)%k == 0 and
-        BalancedIncompleteBlockDesign((v-1)//k+1,k,existence=True) and
+        balanced_incomplete_block_design((v-1)//k+1,k,existence=True) and
         transversal_design(k,(v-1)//k,existence=True)):
 
         if existence:
             return True
 
         v = (v-1)//k
-        BIBDv1k = BalancedIncompleteBlockDesign(v+1,k)
+        BIBDv1k = balanced_incomplete_block_design(v+1,k)
         TDkv = transversal_design(k,v,check=False)
 
         inf = v*k
@@ -415,14 +416,14 @@ def BIBD_from_TD(v,k,existence=False):
 
     # Third construction
     elif ((v-k)%k == 0 and
-        BalancedIncompleteBlockDesign((v-k)//k+k,k,existence=True) and
+        balanced_incomplete_block_design((v-k)//k+k,k,existence=True) and
         transversal_design(k,(v-k)//k,existence=True)):
 
         if existence:
             return True
 
         v = (v-k)//k
-        BIBDvpkk = BalancedIncompleteBlockDesign(v+k,k)
+        BIBDvpkk = balanced_incomplete_block_design(v+k,k)
         TDkv = transversal_design(k,v,check=False)
         inf = v*k
         BIBD = TDkv
@@ -518,14 +519,14 @@ def v_4_1_BIBD(v, check=True):
 
     A `(v,4,1)`-BIBD is an edge-decomposition of the complete graph `K_v` into
     copies of `K_4`. For more information, see
-    :meth:`BalancedIncompleteBlockDesign`. It exists if and only if `v\equiv 1,4
+    :func:`balanced_incomplete_block_design`. It exists if and only if `v\equiv 1,4
     \pmod {12}`.
 
     See page 167 of [Stinson2004]_ for the construction details.
 
     .. SEEALSO::
 
-        * :meth:`BalancedIncompleteBlockDesign`
+        * :func:`balanced_incomplete_block_design`
 
     INPUT:
 
@@ -663,7 +664,7 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
         n = len(X)
         N = (k-1)*n+1
         if not (n,k) in base_cases:
-            base_cases[n,k] = _relabel_bibd(BalancedIncompleteBlockDesign(N,k).blcks,N)
+            base_cases[n,k] = _relabel_bibd(balanced_incomplete_block_design(N,k).blcks,N)
 
         for XX in base_cases[n,k]:
             if N-1 in XX:
@@ -692,7 +693,7 @@ def _check_pbd(B,v,S):
 
     EXAMPLE::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
         [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
          [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
@@ -733,7 +734,7 @@ def _relabel_bibd(B,n,p=None):
 
     EXAMPLE::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
         [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
          [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
@@ -774,7 +775,7 @@ def PBD_4_5_8_9_12(v, check=True):
 
     EXAMPLES::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
         [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
          [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
@@ -841,13 +842,13 @@ def _PBD_4_5_8_9_12_closure(B):
     r"""
     Makes sure all blocks of `B` have size in `\{4,5,8,9,12\}`.
 
-    This is a helper function for :meth:`PBD_4_5_8_9_12`. Given that
+    This is a helper function for :func:`PBD_4_5_8_9_12`. Given that
     `\{4,5,8,9,12\}` is PBD-closed, any block of size not in `\{4,5,8,9,12\}`
     can be decomposed further.
 
     EXAMPLES::
 
-        sage: designs.BalancedIncompleteBlockDesign(40,4).blocks() # indirect doctest
+        sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
         [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
          [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
@@ -933,7 +934,7 @@ def v_5_1_BIBD(v, check=True):
 
     .. SEEALSO::
 
-        * :meth:`BalancedIncompleteBlockDesign`
+        * :func:`balanced_incomplete_block_design`
 
     EXAMPLES::
 

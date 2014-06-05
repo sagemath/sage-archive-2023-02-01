@@ -376,7 +376,7 @@ def BIBD_from_TD(v,k,existence=False):
         sage: BIBD_from_TD(20,5)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I do not know how to build this BIBD!
+        NotImplementedError: I do not know how to build a BIBD(20,5,1)!
     """
     from orthogonal_arrays import transversal_design
 
@@ -439,10 +439,9 @@ def BIBD_from_TD(v,k,existence=False):
     # No idea ...
     else:
         if existence:
-            from sage.misc.unknown import Unknown
             return Unknown
         else:
-            raise NotImplementedError("I do not know how to build this BIBD!")
+            raise NotImplementedError("I do not know how to build a BIBD({},{},1)!".format(v,k))
 
     return BIBD
 

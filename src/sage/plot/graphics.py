@@ -1245,7 +1245,7 @@ class Graphics(SageObject):
                 markerscale=0.6, ncol=1, numpoints=2,
                 shadow=False, title=None)
     def show(self, **kwds):
-        """
+        r"""
         Show this graphics image with the default image viewer.
 
         OPTIONAL INPUT:
@@ -1332,7 +1332,7 @@ class Graphics(SageObject):
             the minimum (resp. added to the maximum) value of the axis. For
             instance if the minimum is `m` and the base of the axis is `b`
             then the new minimum after padding the axis will be
-            `m - m/b^{axes_pad}`.
+            `m - m/b^{\text{axes_pad}}`.
 
         - ``ticks_integer`` - (default: False) guarantee that the ticks
           are integers (the ``ticks`` option, if specified, will
@@ -1689,7 +1689,7 @@ class Graphics(SageObject):
         The behavior of the ``axes_pad`` parameter is different if the axis
         is in the ``"log"`` scale. If `b` is the base of the axis, the
         minimum value of the axis, is decreased by the factor
-        `1/b^{axes_pad}` of the minimum and the maximum value of the axis
+        `1/b^{\text{axes_pad}}` of the minimum and the maximum value of the axis
         is increased by the same factor of the maximum value.  Compare the
         axes in the following two plots to see the difference.
 
@@ -2105,11 +2105,12 @@ class Graphics(SageObject):
         return (subplot, x_locator, y_locator, x_formatter, y_formatter)
 
 
-    def _get_vmin_vmax(self, vmin, vmax, basev):
-        """
+    def _get_vmin_vmax(self, vmin, vmax, basev, axes_pad):
+        r"""
         Determine the min/max value for a variable plotted on a logarithmic
         scale. The motivation is that we desire at least two ticks for a log
-        plot; otherwise the reader may assume that the scale is linear.
+        plot; otherwise the reader may assume that the scale is linear. For
+        internal use only.
 
         We check if this case occurs (for e.g. assuming xmin < xmax):
 
@@ -2131,6 +2132,13 @@ class Graphics(SageObject):
         -  ``vmax`` - the current max for this variable (e.g. xmax or ymax)
 
         -  ``basev`` - the base of the logarithmic scale for this variable
+
+        - ``axes_pad`` - the padding for the axis. It determines the
+          exponent of the fraction of the minimum (resp. maximum) that is
+          subtracted from the minimum (resp. added to the maximum) value of
+          the axis. For instance if the minimum is `m` and the base of the
+          axis is `b` then the new minimum after padding the axis will be
+          `m - m/b^{\text{axes_pad}}`.
 
         OUTPUT:
 
@@ -2178,6 +2186,11 @@ class Graphics(SageObject):
             raise ValueError('vmin must be less than vmax')
 
         import math
+        if axes_pad is None:
+            axes_pad = 1
+        else:
+            axes_pad = float(abs(axes_pad))
+
         logvmin = math.log(vmin)/math.log(basev)
         logvmax = math.log(vmax)/math.log(basev)
 
@@ -2187,8 +2200,16 @@ class Graphics(SageObject):
         elif math.floor(logvmax) - math.ceil(logvmin) < 1:
             if logvmax-math.floor(logvmax) > math.ceil(logvmin)-logvmin:
                 vmax = basev**math.ceil(logvmax)
+                if axes_pad > 0:
+                    vmin -= vmin * basev**(-axes_pad)
             else:
                 vmin = basev**math.floor(logvmin)
+                if axes_pad > 0:
+                    vmax += vmax * basev**(-axes_pad)
+        elif axes_pad > 0:
+            # pad the axes if we haven't expanded the axes earlier.
+            vmin -= vmin * basev**(-axes_pad)
+            vmax += vmax * basev**(-axes_pad)
 
         return vmin,vmax
 
@@ -2350,6 +2371,11 @@ class Graphics(SageObject):
                 xmin, xmax = self._get_vmin_vmax(xmin, xmax, basex)
             else:
                 xmax, xmin = self._get_vmin_vmax(xmax, xmin, basex)
+        else:
+            xpad = 0.02 if axes_pad is None else axes_pad
+            xpad = (xmax - xmin)*float(xpad)
+            xmax += xpad
+            xmin -= xpad
 
         # Likewise for the y-data.
         if yscale == 'log' and min(ymin, ymax) > 0:
@@ -2357,6 +2383,11 @@ class Graphics(SageObject):
                 ymin, ymax = self._get_vmin_vmax(ymin, ymax, basey)
             else:
                 ymax, ymin = self._get_vmin_vmax(ymax, ymin, basey)
+        else:
+            ypad = 0.02 if axes_pad is None else axes_pad
+            ypad = (ymax - ymin)*float(ypad)
+            ymax += ypad
+            ymin -= ypad
 
         #-------------------------- Set the legend -----------------------#
         if show_legend is None:

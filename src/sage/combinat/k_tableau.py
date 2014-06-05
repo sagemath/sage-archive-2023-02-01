@@ -3638,7 +3638,7 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = [y for y in map(lambda row: [x for x in row if x==None or abs(x)<=rr], self.to_standard_list()) if len(y)>0]
+        rest_tab = [y for y in map(lambda row: [x for x in row if x is None or abs(x)<=rr], self.to_standard_list()) if len(y)>0]
         new_parent = StrongTableaux( self.k, (Core(map(len, rest_tab), self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 

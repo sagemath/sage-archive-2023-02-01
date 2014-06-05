@@ -2256,8 +2256,8 @@ class Polyhedron_base(Element):
                                                [self.vertices().index(q) for q in proj_verts]])
                 else:
                     vs = a_face[1][:]
-                    adj = dict([a[0], [p for p in a[1] if p in a_face[1]]]
-                               for a in [va for va in self.vertex_adjacencies() if va[0] in a_face[1]])
+                    adj = dict( (a[0], [p for p in a[1] if p in a_face[1]])
+                               for a in self.vertex_adjacencies() if a[0] in a_face[1])
                     t = vs[0]
                     vs.remove(t)
                     ts = adj[t]

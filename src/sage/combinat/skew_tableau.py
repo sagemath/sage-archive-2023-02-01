@@ -252,7 +252,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None,None,None,2,3],[None,1],[None],[2]]).inner_shape()
             [3, 1, 1]
         """
-        return Partition([x for x in [row.count(None) for row in self] if x != 0])
+        return Partition([x for x in (row.count(None) for row in self) if x != 0])
 
     def shape(self):
         r"""
@@ -302,7 +302,7 @@ class SkewTableau(CombinatorialObject, Element):
             sage: SkewTableau([[None, 2], [1, 3]]).size()
             3
         """
-        return sum([len([x for x in row if x is not None]) for row in self])
+        return sum(len([x for x in row if x is not None]) for row in self)
 
     def conjugate(self):
         """

@@ -1495,8 +1495,7 @@ class DyckWord(CombinatorialObject, Element):
             else:
                 close_positions.append(i + 1)
         from sage.combinat.tableau import StandardTableau
-        return StandardTableau([x for x in [open_positions,
-                                                          close_positions] if x != []])
+        return StandardTableau([x for x in [open_positions, close_positions] if x != []])
 
     @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):

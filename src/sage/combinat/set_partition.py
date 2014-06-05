@@ -1132,8 +1132,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             return False
 
         for p in s:
-            f = lambda z: z.intersection(p) != Set([])
-            if len(list(filter(f, list(t))) ) != 1:
+            if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
                 return False
         return True
 
@@ -1661,8 +1660,7 @@ def less(s, t):
     if s == t:
         return False
     for p in s:
-        f = lambda z: z.intersection(p) != Set([])
-        if len(list(filter(f, list(t))) ) != 1:
+        if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
             return False
     return True
 

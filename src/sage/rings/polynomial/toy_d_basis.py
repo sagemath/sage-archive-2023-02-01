@@ -212,7 +212,7 @@ def d_basis(F, strat=True):
     K = R.base_ring()
 
     G = set(inter_reduction(F.gens()))
-    B = set([x_y for x_y in [(f1, f2) for f1 in G for f2 in G] if x_y[0] != x_y[1]])
+    B = set((f1, f2) for f1 in G for f2 in G if f1 != f2)
     D = set()
     C = set(B)
 

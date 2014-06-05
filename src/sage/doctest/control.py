@@ -585,6 +585,7 @@ class DocTestController(SageObject):
                 basename = source.basename
                 return basename not in self.stats or self.stats[basename].get('failed')
             self.sources = list(filter(is_failure, self.sources))
+            self.sources = [x for x in self.sources if is_failure(x)]
 
     def sort_sources(self):
         r"""

@@ -799,7 +799,7 @@ class AbelianStratum(SageObject):
 
         self._genus = Integer(self._genus)
 
-        zeroes = sorted([x for x in self._zeroes if x > 0])
+        zeroes = sorted(x for x in self._zeroes if x > 0)
 
         if self._genus == 1:
             self._cc = (HypCCA,)

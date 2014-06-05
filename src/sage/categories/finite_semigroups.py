@@ -219,7 +219,7 @@ class FiniteSemigroups(CategoryWithAxiom):
                 [['a'], ['ab', 'ba'], ['abc', 'acb', 'bac', 'bca', 'cab', 'cba'], ['ac', 'ca'], ['b'], ['bc', 'cb'], ['c']]
             """
             return [l for l in map(lambda cl: list(filter(attrcall('is_idempotent'), cl)),
-                              self.j_classes()) if len(l) > 0]
+                                   self.j_classes()) if len(l) > 0]
 
         @cached_method
         def j_transversal_of_idempotents(self):

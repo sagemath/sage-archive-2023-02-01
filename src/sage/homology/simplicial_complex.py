@@ -2749,7 +2749,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
         """
         # make sure it's a list (it will be a tuple if immutable)
-        facets = list(f for f in self._facets if f.dimension()<n)
+        facets = [f for f in self._facets if f.dimension() < n]
         facets.extend(self.n_faces(n))
         return SimplicialComplex(facets, is_mutable=self._is_mutable)
 

@@ -433,6 +433,21 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
         sage: Ga.is_isomorphic(Gb)
         True
 
+    If the two `OA(k,n)` are not isomorphic, however::
+
+        sage: oa0 = [[0, 0, 1], [0, 1, 3], [0, 2, 0], [0, 3, 2],
+        ....:        [1, 0, 3], [1, 1, 1], [1, 2, 2], [1, 3, 0],
+        ....:        [2, 0, 0], [2, 1, 2], [2, 2, 1], [2, 3, 3],
+        ....:        [3, 0, 2], [3, 1, 0], [3, 2, 3], [3, 3, 1]]
+        sage: oa1 = [[0, 0, 2], [0, 1, 0], [0, 2, 3], [0, 3, 1],
+        ....:        [1, 0, 3], [1, 1, 1], [1, 2, 0], [1, 3, 2],
+        ....:        [2, 0, 0], [2, 1, 2], [2, 2, 1], [2, 3, 3],
+        ....:        [3, 0, 1], [3, 1, 3], [3, 2, 2], [3, 3, 0]]
+        sage: g0 = graphs.OrthogonalArrayBlockGraph(3,4,oa0)
+        sage: g1 = graphs.OrthogonalArrayBlockGraph(3,4,oa1)
+        sage: g0.is_isomorphic(g1)
+        False
+
     TESTS::
 
         sage: G = graphs.OrthogonalArrayBlockGraph(4,6)

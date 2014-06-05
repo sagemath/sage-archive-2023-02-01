@@ -231,6 +231,7 @@ of objects yield the graph edges.
 
 __append_to_doc(
     ["IntervalGraph",
+     "OrthogonalArrayGraph",
      "PermutationGraph",
      "ToleranceGraph"])
 
@@ -1396,6 +1397,7 @@ class GraphGenerators():
     import sage.graphs.generators.intersection
     IntervalGraph            = staticmethod(sage.graphs.generators.intersection.IntervalGraph)
     PermutationGraph         = staticmethod(sage.graphs.generators.intersection.PermutationGraph)
+    OrthogonalArrayGraph     = staticmethod(sage.graphs.generators.intersection.OrthogonalArrayGraph)
     ToleranceGraph           = staticmethod(sage.graphs.generators.intersection.ToleranceGraph)
 
 ###########################################################################

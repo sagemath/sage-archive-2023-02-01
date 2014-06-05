@@ -118,7 +118,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
         sage: designs.BalancedIncompleteBlockDesign(16,6)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this design.
+        NotImplementedError: I don't know how to build a (16,6,1)-BIBD!
 
     TESTS::
 
@@ -215,7 +215,7 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
     if existence:
         return Unknown
     else:
-        raise NotImplementedError("I don't know how to build this design.")
+        raise NotImplementedError("I don't know how to build a ({},{},1)-BIBD!".format(v,k))
 
 def steiner_triple_system(n):
     r"""
@@ -376,7 +376,7 @@ def BIBD_from_TD(v,k,existence=False):
         sage: BIBD_from_TD(20,5)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I do not know how to build this BIBD!
+        NotImplementedError: I do not know how to build a (20,5,1)-BIBD!
     """
     from orthogonal_arrays import transversal_design
 
@@ -439,10 +439,9 @@ def BIBD_from_TD(v,k,existence=False):
     # No idea ...
     else:
         if existence:
-            from sage.misc.unknown import Unknown
             return Unknown
         else:
-            raise NotImplementedError("I do not know how to build this BIBD!")
+            raise NotImplementedError("I do not know how to build a ({},{},1)-BIBD!".format(v,k))
 
     return BIBD
 

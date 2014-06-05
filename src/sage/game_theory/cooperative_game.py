@@ -117,6 +117,53 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.symmetry()
         True
+
+    TESTS::
+    Checks that the order within a key does not affect other functions. ::
+
+        sage: letter_function = {(): 0,
+        ....:                    ('A',): 6,
+        ....:                    ('B',): 12,
+        ....:                    ('C',): 42,
+        ....:                    ('A', 'B',): 12,
+        ....:                    ('C', 'A',): 42,
+        ....:                    ('B', 'C',): 42,
+        ....:                    ('B', 'A', 'C',): 42}
+        sage: letter_game = CooperativeGame(letter_function)
+        sage: letter_game.shapley_value()
+        {'A': 2, 'C': 35, 'B': 5}
+        sage: letter_game.is_monotone()
+        True
+        sage: letter_game.is_superadditive()
+        False
+        sage: letter_game.show()
+        A Co-operative Game with 3 players
+        Characteristic Function is
+             ('A',) : 6
+             ('B', 'C') : 42
+             () : 0
+             ('C',) : 42
+             ('A', 'B') : 12
+             ('B',) : 12
+             ('A', 'B', 'C') : 42
+             ('A', 'C') : 42
+        Payoff vector is {'A': 2, 'C': 35, 'B': 5}
+        sage: letter_game.is_efficient()
+        True
+        sage: letter_game.nullplayer()
+        True
+        sage: letter_game.symmetry()
+        True
+
+    Any Payoff Vector can be passed to the game and these properties can once again be tested:
+
+        sage: letter_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
+        sage: letter_game.is_efficient()
+        False
+        sage: letter_game.nullplayer()
+        True
+        sage: letter_game.symmetry()
+        True
     """
 
     def __init__(self, characteristic_function, payoff_vector=False):
@@ -171,9 +218,13 @@ class CooperativeGame(SageObject):
 
         self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
         self.ch_f = characteristic_function
+        for key in self.ch_f:
+            sortedkey = tuple(sorted(list(key)))
+            self.ch_f[sortedkey] = self.ch_f.pop(key)
 
-        if sorted([tuple(coalition) for coalition in powerset(self.player_list)]) != sorted(self.ch_f.keys()):
-            raise ValueError("Characteristic Function must be the power set")
+        for coalition in powerset(self.player_list):
+            if tuple(sorted(list(coalition))) not in sorted(self.ch_f.keys()):
+                raise ValueError("Characteristic Function must be the power set")
 
         self.number_players = len(self.player_list)
         self.payoff_vector = payoff_vector
@@ -600,7 +651,8 @@ class CooperativeGame(SageObject):
         if not self.payoff_vector:
             raise ValueError("Game must have a payoff_vector")
 
-        return sum(self.payoff_vector.values()) == self.ch_f[self.player_list]
+        pl = tuple(sorted(list(self.player_list)))
+        return sum(self.payoff_vector.values()) == self.ch_f[pl]
 
     def nullplayer(self):
         r"""

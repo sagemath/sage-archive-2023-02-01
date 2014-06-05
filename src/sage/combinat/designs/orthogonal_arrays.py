@@ -952,10 +952,10 @@ def OA_with_holes(k,n,x,existence=False):
 
     # We try to find the disjoint blocks in an OA(k,n)
     elif orthogonal_array(k,n,existence=True):
-        from sage.graphs.generators.intersection import OrthogonalArrayGraph
+        from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
         from sage.graphs.graph import Graph
 
-        g = OrthogonalArrayGraph(k,n)
+        g = OrthogonalArrayBlockGraph(k,n)
 
         # Computing an independent set of order x with a Linear Program
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException

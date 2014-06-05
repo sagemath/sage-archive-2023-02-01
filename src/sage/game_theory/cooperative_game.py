@@ -771,8 +771,7 @@ class CooperativeGame(SageObject):
                 junion = tuple(sorted(list(set(c1) | set(m))))
                 kunion = tuple(sorted(list(set(c2) | set(m))))
                 results.append(self.ch_f[junion] == self.ch_f[kunion])
-            if all(results) and self.payoff_vector[c1[0]] == self.payoff_vector[c2[0]]:
-                pass
-            elif all(results):
+            if (all(results) and self.payoff_vector[c1[0]] !=
+                    self.payoff_vector[c2[0]]):
                 return False
         return True

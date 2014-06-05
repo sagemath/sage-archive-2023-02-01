@@ -117,6 +117,51 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.symmetry()
         True
+
+    TESTS::
+    Checks that the same game works with its characteristic_function in a
+    different order. ::
+
+        sage: order_function = {(): 0,
+        ....:                   ('A', 'B', 'C',): 42,
+        ....:                   ('B',): 12,
+        ....:                   ('A', 'B',): 12,
+        ....:                   ('A', 'C',): 42,
+        ....:                   ('A',): 6,
+        ....:                   ('B', 'C',): 42,
+        ....:                   ('C',): 42}
+        sage: order_game = CooperativeGame(order_function)
+        sage: order_game.shapley_value()
+        {'A': 2, 'C': 35, 'B': 5}
+        sage: order_game.is_monotone()
+        True
+        sage: order_game.is_superadditive()
+        False
+        sage: order_game.show()
+        A Co-operative Game with 3 players
+        Characteristic Function is
+             ('A',) : 6
+             ('B', 'C') : 42
+             () : 0
+             ('C',) : 42
+             ('A', 'B', 'C') : 42
+             ('B',) : 12
+             ('A', 'B') : 12
+             ('A', 'C') : 42
+        Payoff vector is {'A': 2, 'C': 35, 'B': 5}
+        sage: order_game.is_efficient()
+        True
+        sage: order_game.nullplayer()
+        True
+        sage: order_game.symmetry()
+        True
+        sage: order_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
+        sage: order_game.is_efficient()
+        False
+        sage: order_game.nullplayer()
+        True
+        sage: order_game.symmetry()
+        True
     """
 
     def __init__(self, characteristic_function, payoff_vector=False):

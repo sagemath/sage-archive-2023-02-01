@@ -129,29 +129,28 @@ class CooperativeGame(SageObject):
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
-    We can test 3 basic properties of the Payoff Vector. They are
+    We can test 3 basic properties of a Payoff Vector. They are
         * Is it is efficient?
         * Does it possess the nullplayer property?
         * Does it possess the symmetry property?
     ::
 
-        sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
-        sage: letter_game.is_efficient({'A': 2, 'C': 35, 'B': 5})
+        sage: payoff_vector = letter_game.shapley_value()
+        sage: letter_game.is_efficient(payoff_vector)
         True
-        sage: letter_game.nullplayer({'A': 2, 'C': 35, 'B': 5})
+        sage: letter_game.nullplayer(payoff_vector)
         True
-        sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
+        sage: letter_game.symmetry(payoff_vector)
         True
 
     Any Payoff Vector can be passed to the game and these properties can once again be tested:
 
-        sage: letter_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
-        sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
+        sage: payoff_vector = {'A': 0, 'C': 35, 'B': 3}
+        sage: letter_game.is_efficient(payoff_vector)
         False
-        sage: letter_game.nullplayer({'A': 0, 'C': 35, 'B': 3})
+        sage: letter_game.nullplayer(payoff_vector)
         True
-        sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
+        sage: letter_game.symmetry(payoff_vector)
         True
 
     TESTS:

@@ -23,9 +23,9 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import chain, permutations, combinations
-from sage.structure.sage_object import SageObject
-from sage.misc.misc import powerset
 from sage.misc.latex import latex
+from sage.misc.misc import powerset
+from sage.structure.sage_object import SageObject
 
 
 class CooperativeGame(SageObject):
@@ -44,6 +44,29 @@ class CooperativeGame(SageObject):
                       this will be overwritten if shapley_value is called.
 
     EXAMPLES:
+
+    The type of game that is currently implemented is referred to as a Characteristic Function Game.
+    This is a game on a set $\omega$ of players that is defined by a value function $v:C\to \mathbb{R}$
+    where $C=2^{\Omega}$ is set of all coalitions of players.
+    An example of such a game is shown below:
+
+    $$
+    v(c) = \begin{cases}
+    0,&\text{ if }c=\emptyset\\
+    6,&\text{ if }c=\{1\}\\
+    12,&\text{ if }c=\{2\}\\
+    42,&\text{ if }c=\{3\}\\
+    12,&\text{ if }c=\{1,2\}\\
+    42,&\text{ if }c=\{1,3\}\\
+    42,&\text{ if }c=\{2,3\}\\
+    42,&\text{ if }c=\{1, 2,3\}\\
+    \end{cases}
+    $$
+
+    The function $v$ can be thought of as as a record of contribution of individuals
+    and coalitions of individuals.
+    Of interest, becomes how to fairly share the value of the grand coalition ($\omega$)?
+    This class allows for such an answer to be formulated by calculating the Shapley value of the game.
 
     Basic example of how to implement a co-operative game. These functions will
     be used repeatedly in other examples. ::

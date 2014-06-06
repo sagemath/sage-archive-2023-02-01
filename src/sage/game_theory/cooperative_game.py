@@ -159,9 +159,8 @@ class CooperativeGame(SageObject):
             ...
             TypeError: Characteristic function must be a dictionary
 
-        This test checks that an error is raised when a key in the
-        Characteristic Function is not a tuple. It fails because `(1)`
-        is not a tuple, `(1,)` is however. ::
+        This test checks that an incorrectly entered singularly tuple will be
+        changed into a tuple. In this case `(1)` becomes `(1,)`. ::
 
             sage: tuple_function = {(): 0,
             ....:                  (1): 6,
@@ -172,6 +171,18 @@ class CooperativeGame(SageObject):
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
             sage: tuple_game = CooperativeGame(tuple_function)
+
+        This test checks that if a key is not a tuple an error is raised. ::
+
+            sage: error_function = {(): 0,
+            ....:                  (1,): 6,
+            ....:                  (2,): 12,
+            ....:                  (3,): 42,
+            ....:                  12: 12,
+            ....:                  (1, 3,): 42,
+            ....:                  (2, 3,): 42,
+            ....:                  (1, 2, 3,): 42}
+            sage: error_game = CooperativeGame(error_function)
             Traceback (most recent call last):
             ...
             TypeError: Key must be a tuple
@@ -192,16 +203,17 @@ class CooperativeGame(SageObject):
         if type(characteristic_function) is not dict:
             raise TypeError("Characteristic function must be a dictionary")
 
-        for key in characteristic_function:
-            if type(key) is not tuple:
-                raise TypeError("Key must be a tuple")
-
-        self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
         self.ch_f = characteristic_function
+        for key in self.ch_f:
+            if len(str(key)) == 1 and type(key) is not tuple:
+                self.ch_f[key, ] = self.ch_f.pop(key)
+            elif type(key) is not tuple:
+                raise TypeError("Key must be a tuple")
         for key in self.ch_f:
             sortedkey = tuple(sorted(list(key)))
             self.ch_f[sortedkey] = self.ch_f.pop(key)
 
+        self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
         for coalition in powerset(self.player_list):
             if tuple(sorted(list(coalition))) not in sorted(self.ch_f.keys()):
                 raise ValueError("Characteristic Function must be the power set")

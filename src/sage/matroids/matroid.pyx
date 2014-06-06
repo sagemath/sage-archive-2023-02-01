@@ -4748,3 +4748,16 @@ cdef class Matroid(SageObject):
         eps = 0.00000001
 
         return [F for F in FF if fsol[F] > 1 - eps]
+        
+    cpdef plot(self,B=None,lineorders=None):
+        """Return a sage graphics object: <class 'sage.plot.graphics.Graphics'>
+        that corresponds to the matroid's geometric representation
+        """
+        if self.rank() >3:
+            return
+        elif B==None:
+            B=list(self.basis())
+        elif self.rank() != self.rank(B):
+            return
+        import matroids_plot_helpers
+        return matroids_plot_helpers.geomrep(self,B,lineorders)

@@ -660,7 +660,7 @@ class MaximaLib(MaximaAbstract):
             Traceback (most recent call last):
             ...
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before integral evaluation
+            constraints; using the 'assume' command before evaluation
             *may* help (example of legal syntax is 'assume(a>0)', see
             `assume?` for more details)
             Is a positive or negative?
@@ -672,16 +672,11 @@ class MaximaLib(MaximaAbstract):
             sage: integral(x^n,x)
             Traceback (most recent call last):
             ...
-<<<<<<< HEAD
-            ValueError: Computation failed ...
-            Is  n+1  zero or nonzero?
-=======
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before integral evaluation
+            constraints; using the 'assume' command before evaluation
             *may* help (example of legal syntax is 'assume(n>0)',
             see `assume?` for more details)
             Is n equal to -1?
->>>>>>> develop
             sage: assume(n+1>0)
             sage: integral(x^n,x)
             x^(n + 1)/(n + 1)
@@ -781,14 +776,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Principal Value' in s:
                 raise ValueError("Integral is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-<<<<<<< HEAD
                 self._missing_assumption(s)
-=======
-                j = s.find('Is ')
-                s = s[j:]
-                k = s.find(' ', 3)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
->>>>>>> develop
             else:
                 raise
 
@@ -813,16 +801,11 @@ class MaximaLib(MaximaAbstract):
             sage: sum(a*q^k, k, 0, oo)
             Traceback (most recent call last):
             ...
-<<<<<<< HEAD
-            ValueError: Computation failed ...
-            Is  abs(q)-1  positive, negative, or zero?
-=======
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before summation *may* help
+            constraints; using the 'assume' command before evaluation *may* help
             (example of legal syntax is 'assume(abs(q)-1>0)', see `assume?`
             for more details)
             Is abs(q)-1 positive, negative or zero?
->>>>>>> develop
             sage: assume(q > 1)
             sage: sum(a*q^k, k, 0, oo)
             Traceback (most recent call last):
@@ -872,14 +855,7 @@ class MaximaLib(MaximaAbstract):
 #            if "divergent" in s or 'Pole encountered' in s:
                 raise ValueError("Sum is divergent.")
             elif "Is" in s: # Maxima asked for a condition
-<<<<<<< HEAD
                 self._missing_assumption(s)
-=======
-                j = s.find('Is ')
-                s = s[j:]
-                k = s.find(' ', 3)
-                raise ValueError("Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[3:k] + ">0)', see `assume?` for more details)\n" + s)
->>>>>>> develop
             else:
                 raise
 
@@ -901,15 +877,11 @@ class MaximaLib(MaximaAbstract):
             sage: limit(x^a,x=0)
             Traceback (most recent call last):
             ...
-<<<<<<< HEAD
-            ValueError: Computation failed ...
-            Is  a  positive, negative, or zero?
-=======
             ValueError: Computation failed since Maxima requested additional
-            constraints; using the 'assume' command before limit evaluation
-            *may* help (see `assume?` for more details)
+            constraints; using the 'assume' command before evaluation
+            *may* help (example of legal syntax is 'assume(a>0)', see `assume?`
+            for more details)
             Is a positive, negative or zero?
->>>>>>> develop
             sage: assume(a>0)
             sage: limit(x^a,x=0)
             Traceback (most recent call last):

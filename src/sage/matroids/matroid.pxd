@@ -145,3 +145,4 @@ cdef class Matroid(SageObject):
     
     # visualization
     cpdef plot(self,B=*,lineorders=*)
+    cpdef show(self,B=*,lineorders=*)

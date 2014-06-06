@@ -1,15 +1,60 @@
+r"""
+Helper functions for plotting the geometric representation of matroids
+
+
+AUTHORS:
+
+- Jayant Apte (2014-06-06): initial version
+
+
+EXAMPLES::
+
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2013 Jayant Apte <jayant91089@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
 import scipy
 import scipy.interpolate
 import numpy as np
 import operator
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, line, text, polygon2d, point,points
+from sage.sets.set import Set
 
 def initial_triangle(M,B1,nB1,lps):
-    """takes a matroid of rank=3, a basis B1, non-basis elements that are not loops or parallel elements nB1 and loops lps.
-    returns a dictionary of points with M.rank() elements from B1 and those spanned by any two-subset of basis as keys and 
-    their cartesian co-ordinates in R^2 as values along with non-triangle points and remaining lines that will be (mostly) 
-    drawn curved
+    """
+    Return points on and off the triangle and lines to be drawn for a rank 3 matroid
+    
+    INPUT:
+    
+    - ``M`` -- A matroid.
+    - ``B1``-- A list of labels of groundset elements of M that corresponds to a basis of matroid
+    returned by ``M.simplify()``.
+    - ``nB1``-- A list of labes of elements in the ground set of M that corresponds to ``M.simplify.groundset() \ B1``. 
+    - ``lps``-- A list of labels of elements in the ground set of matroid M that are loops.
+    
+    OUTPUT:
+    
+    A tuple containing 4 elements in this order:
+    
+    1. A dictionary containing 2-tuple (x,y) co-ordinates with ``M.simplify.groundset()`` elements that can be placed on the sides of the triangle as keys
+    2. A list of 3 lists of elements of ``M.simplify.groundset()`` that can be placed on the 3 sides of the triangle
+    3. A list of elements of `M.simplify.groundset()`` that cane be placed inside the triangle in the geometric representation
+    4. A list of lists of elements of ``M.simplify.groundset()`` that correspond to lines in the geometric representation other than the sides of the triangle
+    
+    .. NOTE::
+
+            This method does NOT do any checks. 
+            
     """ 
     tripts = [(0, 0),(1, 2),(2, 0)]
     pts = {}
@@ -53,8 +98,25 @@ def initial_triangle(M,B1,nB1,lps):
     return pts,trilines,nontripts,curvedlines
 
 def trigrid(tripts):
-    """tripts is a list of 3 points(each a 2-tuple) in R^2. returns 4 points that are in the convex hull of tripts 
-        and are arranged in a grid inside the triangle 
+    """
+    Return a grid of 4 points inside given 3 points as a list
+    
+   
+    INPUT:
+    
+    - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the cartesian co-ordinates of a point
+    
+    OUTPUT:
+    
+    A list of lists containing 4 points in following order:
+    
+    1. Barycenter of 3 input points 
+    2,3,4. Barycenters of 1. with 3 different 2-subsets of input points respectively  
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+            
     """ 
     n = 0
     pairs = [[0,1],[1,2],[0,2]]
@@ -65,7 +127,27 @@ def trigrid(tripts):
         grid.append(pt)
     return grid
     
-def addnontripts(M,ptsdict,tripts,nontripts):
+def addnontripts(M,tripts,ptsdict,nontripts):
+    """
+    Return a grid of 4 points inside given 3 points as a list
+    
+   
+    INPUT:
+    
+    - ``M`` -- A matroid.
+    - ``tripts`` -- A list of labels in ``M.simplify().groundset()`` that can be placed on the sides of the triangle
+    - ``ptsdict`` -- A dictionary containing labels in ``tripts`` as keys and their (x,y) position as values
+    - ``nontripts``-- A list of labels in ``M.simplify().groundset()`` that can be placed inside the triangle
+    
+    OUTPUT:
+    
+    A dictionary containing labels in ``tripts`` as keys and their (x,y) position as values allong with all keys and respective values in ``ptsdict`` 
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+            
+    """
     pairs = [[0,1],[1,2],[0,2]]
     q = [tripts]
     num = len(nontripts)
@@ -84,9 +166,30 @@ def addnontripts(M,ptsdict,tripts,nontripts):
         j = j + 1
     return ptsdict
 
-def createline(ll,ptsdict,lineorders2=None):
+def createline(ptsdict,ll,lineorders2=None):
     """
-    Flips x-y if necessary and returns x,y, x_i, y_i lists to be passed to plot function 
+    Return ordered lists of co-ordinates of points to be traversed to draw a 2D line 
+    INPUT:
+    
+    - ``ptsdict`` -- A dictionary containing keys and their (x,y) position as values.
+    - ``ll`` -- A list of keys in ``ptsdict`` through which a line is to be drawn.
+    - ``lineorders2``-- (optional) A list of ordered lists of keys in ``ptsdict`` such that 
+    if ll is setwise same as any of these then points corresponding to values of the keys 
+    will be traversed in that order thus overriding internal order deciding heuristic. 
+    
+    OUTPUT:
+    
+    A tuple containing 4 elements in this order:
+    
+    1. Ordered list of x-coordinates of values of keys in ``ll`` specified in ptsdict 
+    2. Ordered list of y-coordinates of values of keys in ``ll`` specified in ptsdict
+    3. Ordered list of interpolated x-coordinates of points through which a line can be drawn
+    4. Ordered list of interpolated y-coordinates of points through which a line can be drawn    
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+            
     """
     x,lo = line_hasorder(ll,lineorders2)
     flip = False
@@ -116,7 +219,24 @@ def createline(ll,ptsdict,lineorders2=None):
     return sortedx,sortedy,x_i,y_i
 
 def slp(M1):
-    """Takes a matroid M1 and returns it corresponding simple matroid, loops and parallel elements
+    """
+    Return simple matroid, loops and parallel elements of given matroid
+    
+    INPUT:
+    
+    - ``M1`` -- A matroid.
+    
+    OUTPUT:
+    
+    A tuple containing 3 elements in this order:
+    1. Simple matroid corresponding to M1
+    2. Loops of matroid ``M1``
+    3. Elements that are in `M1.groundset()` but not in ground set of 1. or in 2.
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+            
     """
     L = set(M1.loops())
     sg = sorted(M1.simplify().groundset())
@@ -124,10 +244,28 @@ def slp(M1):
     P = set(M1.groundset())-nP
     return [M1.delete(L|P),L,P]
     
-def addlp(G,M,ptsdict,L,P):
-    """Takes a graphics object G, points dictionary, loops and parallel elements and adds loops and 
-    parallel elements to graphics object and returns the modified graphics object
+def addlp(M,L,P,ptsdict,G=None):
     """
+    Return a graphics object containing loops (in inset) and parallel elements of matroid 
+    
+    INPUT:
+    
+    - ``M`` -- A matroid.
+    - ``L`` -- List of labels of elements in ``M.groundset()`` that are loops of matroid ``M``
+    - ``P`` -- List of labels of elements in ``M.groundset()`` not in ``M.simplify.groundset()`` or ``L`` 
+    - ``ptsdict`` -- A dictionary containing elements in ``M.groundset()`` not necessarily containing elements of ``L``
+    - ``G`` -- (optional) A sage graphics object to which loops and parallel elements of matroid `M` added 
+    
+    OUTPUT:
+    A sage graphics object containing loops and parallel elements of matroid ``M``
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+            
+    """
+    if G == None:
+        G=Graphics()
     M1 = M.simplify()
     # deal with loops
     if len(L)>0:
@@ -165,6 +303,25 @@ def addlp(G,M,ptsdict,L,P):
     return G
       
 def line_hasorder(l,lodrs=None):
+    """
+    Determine if and order is specified for a line
+    
+    INPUT:
+    
+    - ``l`` -- A line containing specified as a list of labels
+    - ``lordrs`` -- (optional) A list of lists each specifying an order on the subset of labels corresponding to that list
+     
+    OUTPUT:
+    
+    A tuple containing 3 elements in this order:
+    1. A boolean indicating whether there is any list in ``lordrs`` that is setwise equal to ``l``
+    2. A list specifying an order on ``set(l)`` if 1. is True, otherwise an empty list
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+            
+    """
     if lodrs!=None:
         if len(lodrs) > 0:
             for i in lodrs:
@@ -173,6 +330,24 @@ def line_hasorder(l,lodrs=None):
     return False,[]    
     
 def geomrep(M1,B1=None,lineorders1=None):
+    """
+    Return a sage graphics object containing geometric representation of matroid M1
+    
+    INPUT:
+    
+    - ``M1`` -- A matroid.
+    - ``B1`` -- (optional) A list of labels in ``M1.groundset()`` that correspond to a basis 
+    of ``M1`` and will be placed as vertices of the triangle in the geometric representation of ``M1``
+    - ``lineorders1`` -- (optional) A list of ordered lists of elements of ``M1.grondset()`` such that 
+    if a line in geometric representation is setwise same as any of these then points contained will be
+    traversed in that order thus overriding internal order deciding heuristic.
+    
+    OUTPUT:
+    
+    A sage graphics object of type <class 'sage.plot.graphics.Graphics'> that 
+    corresponds to the geometric representation of the matroid
+    
+    """
     G = Graphics()
     # create lists of loops and parallel elements and simplify given matroid
     [M,L,P] = slp(M1)
@@ -198,7 +373,7 @@ def geomrep(M1,B1=None,lineorders1=None):
             cc = (float(1)/interval)*(k+1)
             pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],cc*lpt[1]+(1-cc)*rpt[1])
         bline.extend(B1)
-        ptsx,ptsy,x_i,y_i = createline(bline,pts2,lineorders1)
+        ptsx,ptsy,x_i,y_i = createline(pts2,bline,lineorders1)
         G += line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for  k in allpts]
@@ -209,12 +384,12 @@ def geomrep(M1,B1=None,lineorders1=None):
             G += text(i,(float(pt[0]), float(pt[1])), color='white',fontsize=13)    
     else:
         pts,trilines,nontripts,curvedlines = initial_triangle(M1,B1,list(set(M.groundset())-set(B1)), list(set(L)|set(P))) #[i for i in sorted(M.groundset()) if i not in B1])
-        pts2= addnontripts(M,pts,[pts[B1[0]],pts[B1[1]],pts[B1[2]]],nontripts)
+        pts2= addnontripts(M,[pts[B1[0]],pts[B1[1]],pts[B1[2]]],pts,nontripts)
         trilines.extend(curvedlines)
         j = 0
         for ll in trilines:
             if len(ll)>=3:
-                ptsx,ptsy,x_i,y_i=createline(ll,pts2,lineorders1)
+                ptsx,ptsy,x_i,y_i=createline(pts2,ll,lineorders1)
                 G += line(zip(x_i,y_i),color='black',thickness=3,zorder=1)
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for  k in allpts]
@@ -224,10 +399,6 @@ def geomrep(M1,B1=None,lineorders1=None):
             pt = list(pts2[i])
             G += text(i,(float(pt[0]), float(pt[1])),color='white',fontsize=13)
     #deal with loops and parallel elements 
-    G = addlp(G,M1,pts2,L,P)
+    G = addlp(M1,L,P,pts2,G)
     G.axes(False)
-    G.xmax(3)
-    G.ymax(3)
-    G.xmin = (-2)
-    G.ymin = (-2)
     return G

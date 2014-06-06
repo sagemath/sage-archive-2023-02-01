@@ -4750,14 +4750,67 @@ cdef class Matroid(SageObject):
         return [F for F in FF if fsol[F] > 1 - eps]
         
     cpdef plot(self,B=None,lineorders=None):
-        """Return a sage graphics object: <class 'sage.plot.graphics.Graphics'>
-        that corresponds to the matroid's geometric representation
         """
-        if self.rank() >3:
+        Return geomrtric representation as a sage graphics object.
+               
+        INPUT:
+        
+        - ``B`` -- (optional) a list containing elements of the groundset 
+        not in any particular order.
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
+        specify ground set elements in a certain order which will be used to draw the
+        corresponding line in geometric representation (if it exists).
+        
+        OUTPUT:
+        
+        A sage graphics object of type <class 'sage.plot.graphics.Graphics'> that 
+        corresponds to the geometric representation of the matroid
+        
+        EXAMPLES::
+        
+            sage: M=matroids.named_matroids.Fano()
+            sage: G=M.plot()
+            sage: type(G)
+            <class 'sage.plot.graphics.Graphics'>
+            sage: G.show()
+
+        """
+        if self.rank() > 3:
             return
-        elif B==None:
-            B=list(self.basis())
+        elif B == None:
+            B = list(self.basis())
         elif self.rank() != self.rank(B):
             return
         import matroids_plot_helpers
         return matroids_plot_helpers.geomrep(self,B,lineorders)
+
+    cpdef show(self,B=None,lineorders=None):
+        """
+        Show the geometric representation of the matroid.
+         
+        INPUT:
+        
+        - ``B`` -- (optional) a list containing elements of the groundset 
+        not in any particular order.
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
+        specify ground set elements in a certain order which will be used to draw the
+        corresponding line in geometric representation (if it exists).
+        
+        EXAMPLES::
+        
+            sage: M=matroids.named_matroids.TernaryDowling3()
+            sage: M.show(B=['a','b','c'])
+            sage: M.show(B=['a','b','c'],lineorders=[['f','e','i']]) 
+                       
+        """
+        if self.rank() > 3:
+            return
+        elif B == None:
+            B = list(self.basis())
+        elif self.rank() != self.rank(B):
+            return
+        B1=B
+        lineorders1=lineorders    
+        G=self.plot(B1,lineorders1)
+        G.show(xmin=-2, xmax=3, ymin=-2, ymax=3)
+        return 

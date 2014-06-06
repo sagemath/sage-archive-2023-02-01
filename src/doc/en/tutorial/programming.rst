@@ -145,7 +145,7 @@ Then the following works:
 
 ::
 
-    sage: attach "test.spyx"
+    sage: attach("test.spyx")
     Compiling (...)/test.spyx...
     sage: test(10)
     11

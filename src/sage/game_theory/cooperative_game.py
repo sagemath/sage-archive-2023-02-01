@@ -96,7 +96,7 @@ class CooperativeGame(SageObject):
     Characteristic function games can be of various types.
 
     A characteristic function game \(G=(N,v)\) is monotone if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
-    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
+    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that \(C_1\cap\C_2=\emptyset\).
 
     We can test if a game is Monotonic or Superadditive. ::
 
@@ -134,7 +134,7 @@ class CooperativeGame(SageObject):
 
         \[sum_{i=1}^N\lambda_i=v(\Omega)\]
 
-        No value of the total coalition is lost.
+        In other words: no value of the total coalition is lost.
 
         * The nullplayer property:
 
@@ -142,7 +142,16 @@ class CooperativeGame(SageObject):
 
         \[\lambda_i=0\]
 
+        In other words: if a player does not contribute to any coalition then that player should receive no payoff.
+
         * Does it possess the symmetry property?
+
+        A payoff vector possesses the symmetry property if \(v(C\cup i)=v(C\cup j)\) for all \(C\in 2^{\Omega}\setminus\{i,j\}\) then:
+
+        \[x_i=x_j\]
+
+        If players contribute symmetrically then they should get the same payoff.
+
     ::
 
         sage: payoff_vector = letter_game.shapley_value()

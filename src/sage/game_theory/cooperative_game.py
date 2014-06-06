@@ -42,7 +42,8 @@ class CooperativeGame(SageObject):
     - payoff_vector - default = ``False``, a dictionary can be passed instead but
                       this will be overwritten if shapley_value is called.
 
-    EXAMPLES::
+    EXAMPLES:
+
     Basic example of how to implement a co-operative game. These functions will
     be used repeatedly in other examples. ::
 
@@ -108,7 +109,8 @@ class CooperativeGame(SageObject):
         sage: letter_game.symmetry()
         True
 
-    TESTS::
+    TESTS:
+
     Checks that the order within a key does not affect other functions. ::
 
         sage: letter_function = {(): 0,
@@ -211,7 +213,8 @@ class CooperativeGame(SageObject):
         r"""
         Return the payoff vector for co-operative game.
 
-        EXAMPLES::
+        EXAMPLES:
+
         A typical example of the use of shapley_value. ::
 
             sage: integer_function = {(): 0,
@@ -266,7 +269,8 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if co-operative game is monotonic.
 
-        EXAMPLES::
+        EXAMPLES:
+
         Shows the use of is_monotone on a simple game that is monotone. ::
 
             sage: integer_function = {(): 0,
@@ -325,7 +329,8 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if co-operative game is superadditive.
 
-        EXAMPLES::
+        EXAMPLES:
+
         An example that returns False. ::
 
             sage: integer_function = {(): 0,
@@ -504,7 +509,8 @@ class CooperativeGame(SageObject):
 
         Returns a concise description of the Game.
 
-        EXAMPLES::
+        EXAMPLES:
+
         Basic description of the game shown when calling the game instance. ::
 
             sage: letter_function = {(): 0,
@@ -528,7 +534,8 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if the current payoff_vector is efficient.
 
-        EXAMPLES::
+        EXAMPLES:
+
         An efficient payoff_vector.::
 
             sage: letter_function = {(): 0,
@@ -578,7 +585,8 @@ class CooperativeGame(SageObject):
             sage: long_game.is_efficient()
             True
 
-        TESTS::
+        TESTS:
+
         Checks that a game has a payoff_vector. ::
 
             sage: A_function = {(): 0,
@@ -606,7 +614,8 @@ class CooperativeGame(SageObject):
         Returns True if the current payoff_vector possesses the null
         player property.
 
-        EXAMPLES::
+        EXAMPLES:
+
         A payoff_vector that returns True. ::
 
             sage: letter_function = {(): 0,
@@ -657,7 +666,8 @@ class CooperativeGame(SageObject):
             sage: long_game.nullplayer()
             True
 
-        TESTS::
+        TESTS:
+
         Checks that a game has a payoff_vector. ::
 
             sage: A_function = {(): 0,
@@ -705,7 +715,8 @@ class CooperativeGame(SageObject):
         r"""
         Returns True if the current payoff_vector possesses the symmetry property.
 
-        EXAMPLES::
+        EXAMPLES:
+
         A Payoff Vector that returns True. ::
 
             sage: letter_function = {(): 0,
@@ -756,7 +767,8 @@ class CooperativeGame(SageObject):
             sage: long_game.symmetry()
             True
 
-        TESTS::
+        TESTS:
+
         Checks that a game has a payoff_vector. ::
 
             sage: A_function = {(): 0,

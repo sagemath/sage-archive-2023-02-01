@@ -23,7 +23,6 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import permutations, combinations
-from sage.misc.latex import latex
 from sage.misc.misc import powerset
 from sage.structure.sage_object import SageObject
 

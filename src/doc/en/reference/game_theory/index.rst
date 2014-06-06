@@ -6,5 +6,4 @@ Games
 
    sage/game_theory/cooperative_game
 
-
 .. include:: ../footer.txt

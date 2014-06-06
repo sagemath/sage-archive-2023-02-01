@@ -40,7 +40,7 @@ class CooperativeGame(SageObject):
                 tuple must end with a comma.
         * Value - A real number representing each set of players contribution.
 
-    - payoff_vector - default = ``False``, a dictionary can be passed instead but
+    - payoff_vector -- (default: False), a dictionary can be passed instead but
                       this will be overwritten if shapley_value is called.
 
     EXAMPLES:

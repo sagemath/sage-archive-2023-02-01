@@ -25,6 +25,7 @@ AUTHOR::
 from itertools import chain, permutations, combinations
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import powerset
+from sage.misc.latex import latex
 
 
 class CooperativeGame(SageObject):
@@ -541,6 +542,51 @@ class CooperativeGame(SageObject):
         cf = self.ch_f
         pv = self.payoff_vector
         return "A %s player Co-operative Game." % np
+
+    def _latex_(self):
+        r"""
+
+        Returns the LaTeX code representing the characteristic function.
+
+        EXAMPLES::
+        Basic description of the game shown when calling the game instance. ::
+
+            sage: letter_function = {(): 0,
+            ....:                    ('A',): 6,
+            ....:                    ('B',): 12,
+            ....:                    ('C',): 42,
+            ....:                    ('A', 'B',): 12,
+            ....:                    ('A', 'C',): 42,
+            ....:                    ('B', 'C',): 42,
+            ....:                    ('A', 'B', 'C',): 42}
+            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
+            sage: latex(letter_game)
+            v(c) = \begin{cases}
+            0,&\text{ if }c=\emptyset\\
+            6,&\text{ if }c=\{A\}\\
+            42,&\text{ if }c=\{C\}\\
+            12,&\text{ if }c=\{B\}\\
+            42,&\text{ if }c=\{B, C\}\\
+            12,&\text{ if }c=\{A, B\}\\
+            42,&\text{ if }c=\{A, C\}\\
+            42,&\text{ if }c=\{A, B, C\}\\
+            \end{cases}
+        """
+        np = self.number_players
+        cf = self.ch_f
+        pv = self.payoff_vector
+        output = "v(c) = \\begin{cases}\n"
+        for key in sorted(cf.keys(), key=lambda key: len(key)) :
+            if key == ():
+                coalition = "\\emptyset"
+            else:
+                coalition = "\{"
+                for player in key[:-1]:
+                    coalition += "%s, " % player
+                coalition += "%s\}" % key[-1]
+            output += "%s,&\\text{ if }c=%s\\\\\n" % (cf[key], coalition)
+        output += "\\end{cases}"
+        return output
 
     def is_efficient(self):
         r"""

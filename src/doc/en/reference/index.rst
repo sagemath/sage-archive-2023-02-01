@@ -1,9 +1,9 @@
 Welcome to Sage's Reference Manual!
 =================================================
 
-This is the reference manual of `Sage <http://www.sagemath.org/>`_, a thematic
-index of all its features. It also contains many examples that illustrate their
-use, all of them systematically tested with each release.
+This is a thematic index of all of `Sage's <http://www.sagemath.org/>`_
+features. It also contains many examples that illustrate their use, all of them
+systematically tested with each release.
 
 Enjoy Sage!
 

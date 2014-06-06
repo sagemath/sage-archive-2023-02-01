@@ -95,6 +95,22 @@ class CooperativeGame(SageObject):
 
     Characteristic function games can be of various types.
 
+    The following example implements a (trivial) 8 player characteristic function game:
+
+    \[v(c)=|c|\text{ for all }c\in 2^{\omega}\]
+
+        sage: def simple_characteristic_function(N):
+        ....:     return {tuple(coalition) : len(coalition)
+        ....:                   for coalition in subsets(range(N))}
+        sage: g = CooperativeGame(simple_characteristic_function(10))
+        sage: g.shapley_value(8)
+        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
+
+    The above is slow to run and this is due to the dimensionality
+    of the calculations involved. There are various approximation
+    approaches to obtaining the Shapley value of a game. Implementing
+    this would be a worthwhile development.
+
     A characteristic function game \(G=(N,v)\) is monotone if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
     A characteristic function game \(G=(N,v)\) is super-additive if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that \(C_1\cap\C_2=\emptyset\).
 

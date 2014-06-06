@@ -22,7 +22,7 @@ def find_python_sources(src_dir, modules=('sage',)):
     INPUT:
 
     - ``src_dir`` -- string. The root directory for the sources.
-    
+
     - ``module`` -- list/tuple/iterable of strings (default:
       ``('sage',)``). The top-level directory name(s) in ``src_dir``.
 
@@ -36,7 +36,7 @@ def find_python_sources(src_dir, modules=('sage',)):
 
         sage: from sage.env import SAGE_SRC
         sage: py_packages, py_modules = find_python_sources(SAGE_SRC)
-        sage: examples = ['sage.structure', 'sage.structure.formal_sum', 
+        sage: examples = ['sage.structure', 'sage.structure.formal_sum',
         ....:             'sage.structure.sage_object', 'sage.doctest.tests']
         sage: [m in py_packages for m in examples]
         [True, False, False, False]
@@ -50,22 +50,25 @@ def find_python_sources(src_dir, modules=('sage',)):
         sage: find_python_sources(SAGE_SRC, modules=['sage_setup'])
         (['sage_setup'], [...'sage_setup.find'...])
     """
+    PYMOD_EXT = os.path.extsep + 'py'
+    INIT_FILE = '__init__' + PYMOD_EXT
+
     python_packages = []
     python_modules = []
-    PY_EXT = os.path.extsep + 'py'
+
     cwd = os.getcwd()
     try:
         os.chdir(src_dir)
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
-                dirpath = dirpath.replace(os.path.sep, '.')
-                if '__init__.py' not in filenames:
+                if INIT_FILE not in filenames:
                     continue
+                dirpath = dirpath.replace(os.path.sep, '.')
                 python_packages.append(dirpath)
                 for filename in filenames:
-                    if filename.endswith(PY_EXT) and \
-                       not filename.startswith('__init__'):
-                        python_modules.append(dirpath + '.' + os.path.splitext(filename)[0])
+                    base, ext = os.path.splitext(filename)
+                    if ext == PYMOD_EXT and base != '__init__':
+                        python_modules.append(dirpath + '.' + base)
     finally:
         os.chdir(cwd)
     return python_packages, python_modules
@@ -78,8 +81,9 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     INPUT:
 
     - ``site_packages`` -- string. The root Python path where the Sage
-      library is being installed. Must have a ``'sage'`` subdirectory.
-    
+      library is being installed. If the path doesn't exist, returns
+      an empty dictionary.
+
     - ``module`` -- list/tuple/iterable of strings (default:
       ``('sage',)``). The top-level directory name(s) in
       ``site_packages``.
@@ -90,11 +94,11 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     and values are list of corresponding file names
     ``['sage/module/foo.py', 'sage/module/foo.pyc']`` relative to
     ``site_packages``.
-    
+
     EXAMPLES::
 
-        sage: from sage.env import SAGE_LOCAL
-        sage: site_packages = os.path.join(SAGE_LOCAL, 'lib', 'python', 'site-packages')
+        sage: from site import getsitepackages
+        sage: site_packages = getsitepackages()[0]
         sage: files_by_module = installed_files_by_module(site_packages)
         sage: files_by_module['sage.structure.sage_object']
         set(['sage/structure/sage_object.so'])
@@ -109,15 +113,14 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     """
     module_files = dict()
     def add(module, filename):
-        files = module_files.get(module, None)
-        if files is None:
-            module_files[module] = set([filename])
-        else:
-            files.add(filename)
-        
+        module_files.setdefault(module, set([filename])).add(filename)
+
     cwd = os.getcwd()
     try:
         os.chdir(site_packages)
+    except OSError:
+        return module_files
+    try:
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
                 module_dir = '.'.join(dirpath.split(os.path.sep))
@@ -131,4 +134,3 @@ def installed_files_by_module(site_packages, modules=('sage',)):
     finally:
         os.chdir(cwd)
     return module_files
-

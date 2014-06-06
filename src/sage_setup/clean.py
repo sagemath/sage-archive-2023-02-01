@@ -21,7 +21,7 @@ from sage_setup.find import installed_files_by_module
 def _remove(file_set, module_base, to_remove):
     """
     Helper to remove files from a set of filenames.
-    
+
     INPUT:
 
     - ``file_set`` -- a set of filenames.
@@ -39,12 +39,12 @@ def _remove(file_set, module_base, to_remove):
     EXAMPLES::
 
         sage: files = set(['a/b/c.py', 'a/b/d.py', 'a/b/c.pyx'])
-        sage: _remove(files, 'a.b', ['c.py', 'd.py']) 
+        sage: _remove(files, 'a.b', ['c.py', 'd.py'])
         sage: files
         set(['a/b/c.pyx'])
 
         sage: files = set(['a/b/c.py', 'a/b/d.py', 'a/b/c.pyx'])
-        sage: _remove(files, 'a.b.c', ['.py', '.pyx']) 
+        sage: _remove(files, 'a.b.c', ['.py', '.pyx'])
         sage: files
         set(['a/b/d.py'])
     """
@@ -75,36 +75,41 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         sage: python_packages, python_modules = find_python_sources(
         ....:     SAGE_SRC, ['sage', 'sage_setup'])
         sage: from sage_setup.clean import _find_stale_files
-    
+
     TODO: move ``module_list.py`` into ``sage_setup`` and also check
     extension modules::
 
         sage: stale_iter = _find_stale_files(SAGE_LIB, python_packages, python_modules, [])
-        sage: for f in stale_iter: 
+        sage: for f in stale_iter:
         ....:     if f.endswith('.so'): continue
         ....:     print('Found stale file: ' + f)
     """
+    PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
+    CEXTMOD_EXTS = (os.path.extsep + 'so',)
+    INIT_FILES= map(lambda x: '__init__' + x, PYMOD_EXTS)
+
     module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])
+
     for mod in python_packages:
         try:
             files = module_files[mod]
         except KeyError:
             # the source module "mod" has not been previously installed, fine.
             continue
-        _remove(files, mod, ['__init__.py', '__init__.pyc'])
+        _remove(files, mod, INIT_FILES)
     for mod in python_modules:
         try:
             files = module_files[mod]
         except KeyError:
             continue
-        _remove(files, mod, ['.py', '.pyc'])
+        _remove(files, mod, PYMOD_EXTS)
     for ext in ext_modules:
         mod = ext.name
         try:
             files = module_files[mod]
         except KeyError:
             continue
-        _remove(files, mod, ['.so'])
+        _remove(files, mod, CEXTMOD_EXTS)
     for files in module_files.values():
         for f in files:
             yield f
@@ -125,7 +130,7 @@ def clean_install_dir(site_packages, python_packages, python_modules, ext_module
 
     - ``site_packages`` -- the root Python path where the Sage library
       is being installed.
-    
+
     - ``python_packages`` -- list of pure Python packages (directories
       with ``__init__.py``).
 
@@ -140,7 +145,3 @@ def clean_install_dir(site_packages, python_packages, python_modules, ext_module
         f = os.path.join(site_packages, f)
         print('Cleaning up stale file: {0}'.format(f))
         os.unlink(f)
-
-
-
-    

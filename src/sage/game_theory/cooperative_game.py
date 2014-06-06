@@ -7,10 +7,11 @@ Methods to calculate the Shapley value (a fair way of sharing common
 resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
 test properties of the game (monotonicity, super additivity) are also included.
 
-AUTHOR::
-- James Campbell 06-2014: Original version
+AUTHOR:
 
-- Vince Knight 06-2014
+    - James Campbell 06-2014: Original version
+    - Vince Knight 06-2014
+
 """
 
 #*****************************************************************************
@@ -113,6 +114,7 @@ class CooperativeGame(SageObject):
         * Is it is efficient?
         * Does it possess the nullplayer property?
         * Does it possess the symmetry property?
+
     ::
 
         sage: letter_game.shapley_value()

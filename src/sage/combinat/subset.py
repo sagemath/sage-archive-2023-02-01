@@ -252,7 +252,7 @@ class Subsets_s(CombinatorialClass):
         """
         lset = __builtin__.list(self.s)
         n = len(self.s)
-        return Set(filter(lambda x: rnd.randint(0,1), lset))
+        return Set([x for x in lset if rnd.randint(0,1)])
 
     def rank(self, sub):
         """

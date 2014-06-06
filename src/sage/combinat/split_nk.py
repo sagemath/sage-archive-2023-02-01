@@ -107,7 +107,7 @@ class SplitNK_nk(CombinatorialClass):
         """
         range_n = range(self._n)
         for kset in choose_nk.ChooseNK(self._n,self._k):
-            yield [ kset, filter(lambda x: x not in kset, range_n) ]
+            yield [ kset, [x for x in range_n if x not in kset] ]
 
 
     def random_element(self):

@@ -5599,11 +5599,9 @@ class GenericGraph(GenericGraph_pyx):
         cut = p.get_values(cut)
 
         if self.is_directed():
-            return filter(lambda u_v_l: cut[u_v_l[0], u_v_l[1]] == 1,
-                          self.edge_iterator())
+            return [x for x in self.edge_iterator() if cut[x[0], x[1]] == 1]
 
-        return filter(lambda u_v_l: cut[R(u_v_l[0], u_v_l[1])] == 1,
-                      self.edge_iterator())
+        return [x for x in self.edge_iterator() if cut[R(x[0], x[1])] == 1]
 
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
@@ -10237,11 +10235,11 @@ class GenericGraph(GenericGraph_pyx):
         else:
             vertices = [v for v in vertices if v in self]
         if labels:
-            filter = lambda v, self: (v, self._backend.degree(v, self._directed))
+            filter_ = lambda v, self: (v, self._backend.degree(v, self._directed))
         else:
-            filter = lambda v, self: self._backend.degree(v, self._directed)
+            filter_ = lambda v, self: self._backend.degree(v, self._directed)
         for v in vertices:
-            yield filter(v, self)
+            yield filter_(v, self)
 
     def degree_sequence(self):
         r"""

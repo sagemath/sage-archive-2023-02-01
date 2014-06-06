@@ -418,11 +418,6 @@ class HighestWeightCrystals(Category_singleton):
                     sage: tuple(L) == T.highest_weight_vectors()
                     True
                 """
-                #from sage.categories.highest_weight_crystals import HighestWeightCrystals
-                #if self not in HighestWeightCrystals():
-                #    raise ValueError("not a highest weight crystal")
-                #if any(B not in HighestWeightCrystals() for B in self.crystals):
-                #    return super(FullTensorProductOfCrystals, self).highest_weight_vectors()
                 n = len(self.crystals)
                 it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
                 path = []

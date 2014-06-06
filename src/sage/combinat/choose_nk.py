@@ -168,7 +168,7 @@ class ChooseNK(CombinatorialClass):
             True
         """
         if r < 0 or r >= self.cardinality():
-            raise ValueError("rank must be between 0 and %d (inclusive)"%(self.cardinality() - 1))
+            raise ValueError("rank must be between 0 and %d (inclusive)" % (self.cardinality() - 1))
         return from_rank(r, self._n, self._k)
 
     def rank(self, x):
@@ -181,7 +181,8 @@ class ChooseNK(CombinatorialClass):
             True
         """
         if x not in self:
-            raise ValueError, "%s not in Choose(%d,%d)" %(str(x),self._n,self._k)
+            raise ValueError("%s not in Choose(%d,%d)" % (str(x),
+                                                          self._n, self._k))
 
         return rank(x, self._n)
 
@@ -303,16 +304,15 @@ def from_rank(r, n, k):
     a = n
     b = k
     x = binomial(n, k) - 1 - r  # x is the 'dual' of m
-    comb = [None]*k
+    comb = [None] * k
 
     for i in xrange(k):
-        comb[i] = _comb_largest(a,b,x)
+        comb[i] = _comb_largest(a, b, x)
         x = x - binomial(comb[i], b)
         a = comb[i]
-        b = b -1
+        b = b - 1
 
     for i in xrange(k):
-        comb[i] = (n-1)-comb[i]
+        comb[i] = (n - 1) - comb[i]
 
     return tuple(comb)
-

@@ -32,14 +32,11 @@ AUTHORS:
 from sage.sets.set import Set
 from sage.rings.arith import binomial
 from sage.rings.integer import Integer
-import sage.combinat.subword as subword
 import sage.combinat.choose_nk as choose_nk
 import sage.misc.prandom as rnd
 import __builtin__
-import copy
 import itertools
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.sets.set import Set_object_enumerated
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from combinat import CombinatorialClass
@@ -122,6 +119,7 @@ def Subsets(s, k=None, submultiset=False):
 
 class Subsets_s(CombinatorialClass):
     element_class = Set_object_enumerated
+
     def __init__(self, s):
         """
         TESTS::
@@ -151,7 +149,7 @@ class Subsets_s(CombinatorialClass):
             sage: repr(Subsets([1,2,3])) #indirect doctest
             'Subsets of {1, 2, 3}'
         """
-        return "Subsets of %s"%self.s
+        return "Subsets of %s" % self.s
 
     def __contains__(self, value):
         """
@@ -351,10 +349,10 @@ class Subsets_sk(Subsets_s):
             sage: S = Subsets(3,2)
             sage: TestSuite(S).run(skip=["_test_elements"])
         """
-        Subsets_s.__init__(self,s)
+        Subsets_s.__init__(self, s)
         self._k = Integer(k)
         if self._k < 0:
-            raise ValueError, "the integer k (=%d) should be non-negative" %k
+            raise ValueError("the integer k (=%d) should be non-negative" % k)
 
     def _repr_(self):
         """
@@ -363,7 +361,7 @@ class Subsets_sk(Subsets_s):
             sage: repr(Subsets(3,2)) #indirect doctest
             'Subsets of {1, 2, 3} of size 2'
         """
-        return Subsets_s._repr_(self) + " of size %s"%(self._k)
+        return Subsets_s._repr_(self) + " of size %s" % (self._k)
 
     def __contains__(self, value):
         """
@@ -515,14 +513,13 @@ class Subsets_sk(Subsets_s):
             return None
 
         n = len(self.s)
-        r = 0
 
-        if self._k not in range(len(self.s)+1):
+        if self._k not in range(len(self.s) + 1):
             return None
         elif self._k != len(subset):
             return None
         else:
-            return choose_nk.rank(index_list,n)
+            return choose_nk.rank(index_list, n)
 
     def unrank(self, r):
         """
@@ -649,7 +646,7 @@ class SubMultiset_s(CombinatorialClass):
             sage: S = Subsets([1, 2, 2, 3], submultiset=True); S #indirect doctest
             SubMultiset of [1, 2, 2, 3]
         """
-        return "SubMultiset of %s"%dict_to_list(self._d)
+        return "SubMultiset of %s" % dict_to_list(self._d)
 
     def __contains__(self, s):
         """
@@ -864,7 +861,7 @@ class SubMultiset_sk(SubMultiset_s):
             sage: repr(S) #indirect doctest
             'SubMultiset of [1, 2, 2, 3] of size 3'
         """
-        return "%s of size %s"%(SubMultiset_s._repr_(self), self._k)
+        return "%s of size %s" % (SubMultiset_s._repr_(self), self._k)
 
     def __contains__(self, s):
         """
@@ -917,5 +914,4 @@ class SubMultiset_sk(SubMultiset_s):
         from sage.combinat.integer_vector import IntegerVectors
         elts = self._d.keys()
         for iv in IntegerVectors(self._k, len(self._d), outer=self._d.values()):
-            yield sum([ [elts[i]]*iv[i] for i in range(len(iv))], [])
-
+            yield sum([[elts[i]] * iv[i] for i in range(len(iv))], [])

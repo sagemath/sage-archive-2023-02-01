@@ -207,8 +207,7 @@ class Combinations_mset(CombinatorialClass):
         except TypeError:
             return False
 
-        return all(i in self.mset for i in x) and \
-               len(uniq(x)) == len(x)
+        return all(i in self.mset for i in x) and len(uniq(x)) == len(x)
 
 
     def __repr__(self):
@@ -218,7 +217,7 @@ class Combinations_mset(CombinatorialClass):
             sage: repr(Combinations(range(4)))
             'Combinations of [0, 1, 2, 3]'
         """
-        return "Combinations of %s"%self.mset
+        return "Combinations of %s" % self.mset
 
     def __iter__(self):
         """
@@ -241,8 +240,8 @@ class Combinations_mset(CombinatorialClass):
             6
         """
         c = 0
-        for k in range(len(self.mset)+1):
-            c +=  Combinations_msetk(self.mset, k).cardinality()
+        for k in range(len(self.mset) + 1):
+            c += Combinations_msetk(self.mset, k).cardinality()
         return c
 
 class Combinations_set(Combinations_mset):
@@ -253,7 +252,7 @@ class Combinations_set(Combinations_mset):
             sage: Combinations([1,2,3]).list() #indirect doctest
             [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
         """
-        for k in range(len(self.mset)+1):
+        for k in range(len(self.mset) + 1):
             for comb in Combinations_setk(self.mset, k):
                 yield comb
 
@@ -335,7 +334,7 @@ class Combinations_msetk(CombinatorialClass):
             sage: repr(Combinations([1,2,2,3],2))
             'Combinations of [1, 2, 2, 3] of length 2'
         """
-        return "Combinations of %s of length %s"%(self.mset, self.k)
+        return "Combinations of %s of length %s" % (self.mset, self.k)
 
     def __iter__(self):
         """
@@ -346,7 +345,7 @@ class Combinations_msetk(CombinatorialClass):
         """
         items = map(self.mset.index, self.mset)
         indices = uniq(sorted(items))
-        counts = [0]*len(indices)
+        counts = [0] * len(indices)
         for i in items:
             counts[indices.index(i)] += 1
         for iv in IntegerVectors(self.k, len(indices), outer=counts):
@@ -364,8 +363,7 @@ class Combinations_msetk(CombinatorialClass):
             12
         """
         items = map(self.mset.index, self.mset)
-        return ZZ(gap.eval("NrCombinations(%s,%s)"%(items,ZZ(self.k))))
-
+        return ZZ(gap.eval("NrCombinations(%s,%s)" % (items,ZZ(self.k))))
 
 
 class Combinations_setk(Combinations_msetk):

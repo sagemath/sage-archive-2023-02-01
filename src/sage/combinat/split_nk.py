@@ -76,7 +76,7 @@ class SplitNK_nk(CombinatorialClass):
             sage: repr(SplitNK(5,2)) #indirect doctest
             'Splits of {0, ..., 4} into a set of size 2 and one of size 3'
         """
-        return "Splits of {0, ..., %s} into a set of size %s and one of size %s"%(self._n-1, self._k, self._n-self._k)
+        return "Splits of {0, ..., %s} into a set of size %s and one of size %s" % (self._n - 1, self._k, self._n - self._k)
 
     def cardinality(self):
         """
@@ -113,7 +113,7 @@ class SplitNK_nk(CombinatorialClass):
         """
         range_n = range(self._n)
         for kset in choose_nk.ChooseNK(self._n,self._k):
-            yield [ kset, tuple(filter(lambda x: x not in kset, range_n))]
+            yield [kset, tuple(filter(lambda x: x not in kset, range_n))]
 
     def random_element(self):
         """
@@ -126,9 +126,9 @@ class SplitNK_nk(CombinatorialClass):
             sage: SplitNK(5,2).random_element()
             [(0, 2), (1, 3, 4)]
         """
-        r = rnd.sample(xrange(self._n),self._n)
+        r = rnd.sample(xrange(self._n), self._n)
         r0 = r[:self._k]
         r1 = r[self._k:]
         r0.sort()
         r1.sort()
-        return [ tuple(r0), tuple(r1) ]
+        return [tuple(r0), tuple(r1)]

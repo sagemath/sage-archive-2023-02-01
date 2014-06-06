@@ -198,7 +198,7 @@ class Subwords_w(CombinatorialClass):
             sage: [2,3,3,1] in Subwords([1,2,3,4,3,4,4])
             False
         """
-        if smallest_positions(self._w, w) != False:
+        if smallest_positions(self._w, w) is not False:
             return True
         return False
 
@@ -209,7 +209,7 @@ class Subwords_w(CombinatorialClass):
             sage: Subwords([1,2,3]).cardinality()
             8
         """
-        return Integer(2)**len(self._w)
+        return Integer(2) ** len(self._w)
 
     def first(self):
         """
@@ -429,7 +429,8 @@ class Subwords_wk(Subwords_w):
         else:
             return itertools.imap(self._build, iterator)
 
-def smallest_positions(word, subword, pos = 0):
+
+def smallest_positions(word, subword, pos=0):
     """
     Returns the smallest positions for which subword appears as a
     subword of word. If pos is specified, then it returns the positions
@@ -475,7 +476,7 @@ def smallest_positions(word, subword, pos = 0):
     pos -= 1
     res = [None] * len(subword)
     for i in xrange(len(subword)):
-        for j in xrange(pos+1, len(word)+1):
+        for j in xrange(pos + 1, len(word) + 1):
             if j == len(word):
                 return False
             if word[j] == subword[i]:
@@ -486,4 +487,3 @@ def smallest_positions(word, subword, pos = 0):
         res[i] = pos
 
     return res
-

@@ -36,6 +36,9 @@ class Function_sin(GinacFunction):
 
             sage: conjugate(sin(x))
             sin(conjugate(x))
+            sage: sin(complex(1,1))
+            (1.2984575814159773+0.6349639147847361j)
+
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
@@ -73,6 +76,9 @@ class Function_cos(GinacFunction):
 
             sage: conjugate(cos(x))
             cos(conjugate(x))
+            sage: cos(complex(1,1))
+            (0.8337300251311491-0.9888977057628651j)
+
         """
         GinacFunction.__init__(self, "cos", latex_name=r"\cos",
                 conversions=dict(maxima='cos',mathematica='Cos'))
@@ -114,6 +120,9 @@ class Function_tan(GinacFunction):
 
             sage: conjugate(tan(x))
             tan(conjugate(x))
+            sage: tan(complex(1,1))
+            (0.2717525853195118+1.0839233273386946j)
+
         """
         GinacFunction.__init__(self, "tan", latex_name=r"\tan")
 
@@ -162,6 +171,14 @@ class Function_sec(BuiltinFunction):
             1.4142135623730950488016887242
             sage: float(sec(pi/4))
             1.4142135623730951
+
+        TESTS:
+
+        Test complex input::
+
+            sage: sec(complex(1,1))
+            (0.49833703055518686+0.5910838417210451j)
+
         """
         if parent is float:
             return 1/math.cos(x)
@@ -253,6 +270,14 @@ class Function_csc(BuiltinFunction):
             1.4142135623730950488016887242
             sage: float(csc(pi/4))
             1.4142135623730951
+
+        TESTS:
+
+        Test complex input::
+
+            sage: csc(complex(1,1))
+            (0.6215180171704284-0.30393100162842646j)
+
         """
         if parent is float:
             return 1/math.sin(x)
@@ -373,6 +398,14 @@ class Function_cot(BuiltinFunction):
             1.0000000000000000000000000000
             sage: float(cot(1))
             0.64209261593433...
+
+        TESTS:
+
+        Test complex input::
+
+            sage: cot(complex(1,1))
+            (0.21762156185440273-0.8680141428959249j)
+
         """
         if parent is float:
             return 1/math.tan(x)
@@ -598,6 +631,14 @@ class Function_arccot(BuiltinFunction):
             1.1071487177940905030170654602
             sage: float(arccot(1/2))
             1.1071487177940904
+
+        TESTS:
+
+        Test complex input::
+
+            sage: arccot(complex(1,1))
+            (0.5535743588970452-0.4023594781085251j)
+
         """
         if parent is float:
             return math.pi/2 - math.atan(x)
@@ -672,6 +713,14 @@ class Function_arccsc(BuiltinFunction):
             0.52359877559829887307710723055
             sage: float(arccsc(2))
             0.52359877559829...
+
+        TESTS:
+
+        Test complex input::
+
+            sage: arccsc(complex(1,1))
+            (0.45227844715119064-0.5306375309525178j)
+
         """
         if parent is float:
             return math.asin(1/x)
@@ -740,6 +789,14 @@ class Function_arcsec(BuiltinFunction):
 
             sage: arcsec(2).n(100)
             1.0471975511965977461542144611
+
+        TESTS:
+
+        Test complex input::
+
+            sage: arcsec(complex(1,1))
+            (1.118517879643706+0.5306375309525178j)
+
         """
         if parent is float:
             return math.acos(1/x)

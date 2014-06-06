@@ -482,6 +482,7 @@ class Projection(SageObject):
         self.arrows = Sequence([])
         self.polygons = Sequence([])
         self.polyhedron_ambient_dim = polyhedron.ambient_dim()
+        self.polyhedron_dim = polyhedron.dim()
 
         if polyhedron.ambient_dim() == 2:
             self._init_from_2d(polyhedron)
@@ -666,8 +667,9 @@ class Projection(SageObject):
 
     def _init_dimension(self):
         """
-        Internal function: Initialize from 2d polyhedron. Must always
-        be called after a coordinate projection.
+        Internal function: Initialize from polyhedron with 
+        projected coordinates. Must always be called after 
+        a coordinate projection.
 
         TESTS::
 
@@ -694,7 +696,9 @@ class Projection(SageObject):
 
     def _init_from_2d(self, polyhedron):
         """
-        Internal function: Initialize from 2d polyhedron.
+        Internal function: Initialize from polyhedron in 
+        2-dimensional space. The polyhedron could be lower 
+        dimensional.
 
         TESTS::
 
@@ -715,7 +719,9 @@ class Projection(SageObject):
 
     def _init_from_3d(self, polyhedron):
         """
-        Internal function: Initialize from 3d polyhedron.
+        Internal function: Initialize from polyhedron in 
+        3-dimensional space. The polyhedron could be 
+        lower dimensional.
 
         TESTS::
 
@@ -1137,19 +1143,22 @@ class Projection(SageObject):
         """
         if self.polyhedron_ambient_dim > 3 or self.polyhedron_ambient_dim < 2:
             raise NotImplementedError("The polytope has to live in 2 or 3 dimensions.")
-        elif self.polyhedron_ambient_dim == 2:
+        elif self.polyhedron_dim < 2 or self.polyhedron_dim > 3:
+            raise NotImplementedError("The polytope has to be 2 or 3-dimensional.")
+        elif self.polyhedron_ambient_dim == 2: #self is a polygon in 2-space
             return self._tikz_2d(scale, edge_color, facet_color, opacity,
                                  vertex_color, axis)
-        elif self.dimension == 2:
+        elif self.polyhedron_dim == 2: # self is a polygon in 3-space
             return self._tikz_2d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
-        else:
+        else: #self is a 3-polytope in 3-space
             return self._tikz_3d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
 
     def _tikz_2d(self, scale, edge_color, facet_color, opacity, vertex_color, axis):
         r"""
-        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        Return a string ``tikz_pic`` consisting of a tikz picture of 
+        ``self``, which is assumed to be a polygon on the plane.
 
         INPUT:
 
@@ -1256,7 +1265,8 @@ class Projection(SageObject):
         r"""
         Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
         according to a projection ``view`` and an angle ``angle``
-        obtained via Jmol through the current state property.
+        obtained via Jmol through the current state property. ``self`` is 
+        assumed to be a polygon in 3-space.
 
         INPUT:
 
@@ -1289,6 +1299,15 @@ class Projection(SageObject):
                 y={(0.192276cm, 0.857859cm)},
                 z={(-0.739905cm, -0.192276cm)},
             sage: open('polytope-tikz3.tex', 'w').write(Image)    # not tested
+
+            sage: p = Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
+            sage: proj = p.projection()
+            sage: Img = proj.tikz([1,1,1],130,axis=True)
+            sage: print '\n'.join(Img.splitlines()[21:25])
+            %% Drawing the interior
+            %%
+            \fill[facet] (1.00, 0.000, 0.000) -- (0.000, 0.000, 1.00) -- (0.000, 1.00, 0.000) -- cycle {};
+            %%
 
         .. NOTE::
 
@@ -1374,7 +1393,8 @@ class Projection(SageObject):
         r"""
         Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
         according to a projection ``view`` and an angle ``angle``
-        obtained via Jmol through the current state property.
+        obtained via Jmol through the current state property. ``self`` is 
+        assumed to be a 3-polytope in 3-space.
 
         INPUT:
 
@@ -1407,6 +1427,22 @@ class Projection(SageObject):
                 y={(-0.243536cm, 0.519228cm)},
                 z={(0.968782cm, 0.170622cm)},
             sage: open('polytope-tikz1.tex', 'w').write(Image)    # not tested
+
+            sage: Associahedron = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
+            sage: ImageAsso = Associahedron.projection().tikz([-15,-755,-655], 116, scale=1)
+            sage: print '\n'.join(ImageAsso.splitlines()[29:41])
+            %% Drawing edges in the back
+            %%
+            \draw[edge,back] (-0.500, -0.500, -0.500) -- (-1.00, 0.000, 0.000);
+            \draw[edge,back] (-0.500, -0.500, -0.500) -- (0.000, -1.00, 0.000);
+            \draw[edge,back] (-0.500, -0.500, -0.500) -- (0.000, 0.000, -1.00);
+            \draw[edge,back] (-1.00, 0.000, 0.000) -- (-1.00, 0.000, 1.00);
+            \draw[edge,back] (-1.00, 0.000, 0.000) -- (-1.00, 1.00, 0.000);
+            \draw[edge,back] (0.000, -1.00, 0.000) -- (0.000, -1.00, 1.00);
+            \draw[edge,back] (0.000, -1.00, 0.000) -- (1.00, -1.00, 0.000);
+            \draw[edge,back] (0.000, 0.000, -1.00) -- (0.000, 1.00, -1.00);
+            \draw[edge,back] (0.000, 0.000, -1.00) -- (1.00, 0.000, -1.00);
+            %%
         """
         view_vector = vector(RDF, view)
         rot = rotate_arbitrary(view_vector, -(angle/360)*2*pi)
@@ -1466,7 +1502,7 @@ class Projection(SageObject):
 
             H_v1 = set(self.parent_polyhedron.Vrepresentation(index1).incident())
             H_v2 = set(self.parent_polyhedron.Vrepresentation(index2).incident())
-            H_v12 = [h for h in H_v1.intersection(H_v2) if h in back_facets]
+            H_v12 = [h for h in H_v1.intersection(H_v2) if facets.index(h) in back_facets]
 
             # The back edge has to be between two vertices in the Back
             # AND such that the 2 facets touching them are in the Back

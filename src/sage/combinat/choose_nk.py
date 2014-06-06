@@ -21,10 +21,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
-from combinat import CombinatorialClass
-import itertools
 
 def ChooseNK(n, k):
     """

@@ -27,12 +27,12 @@ A word can be given either as a string, as a list or as a tuple.
 As repetition can occur in the initial word, the subwords of a given words is
 not a set in general but an enumerated multiset!
 
-TODO:
+.. TODO::
 
-- implement subwords with repetitions
+    - implement subwords with repetitions
 
-- implement the category of EnumeratedMultiset and inheritate from when needed
-  (ie the initial word has repeated letters)
+    - implement the category of EnumeratedMultiset and inheritate from
+      when needed (i.e. the initial word has repeated letters)
 
 AUTHORS:
 
@@ -59,14 +59,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.parent import Parent
 
 import sage.rings.arith as arith
 import sage.misc.prandom as prandom
 from sage.rings.integer import Integer
 import itertools
-import choose_nk
 from combinat import CombinatorialClass
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+
 
 def Subwords(w, k=None):
     """
@@ -127,14 +127,12 @@ def Subwords(w, k=None):
         build = lambda x: ''.join(x)
 
     if k is None:
-        return Subwords_w(w)
-    else:
-        if not isinstance(k, (int, Integer)):
-            raise ValueError("k should be an integer")
-        if k < 0 or k > len(w):
-            return FiniteEnumeratedSet([])
-        else:
-            return Subwords_wk(w, k, build)
+        return Subwords_w(w, build)
+    if not isinstance(k, (int, Integer)):
+        raise ValueError("k should be an integer")
+    if k < 0 or k > len(w):
+        return FiniteEnumeratedSet([])
+    return Subwords_wk(w, k, build)
 
 
 class Subwords_w(CombinatorialClass):
@@ -302,14 +300,14 @@ class Subwords_wk(Subwords_w):
         """
         return (Subwords,(self._w,self._k))
 
-    def _repr_(self):
+    def __repr__(self):
         """
         TESTS::
 
             sage: repr(Subwords([1,2,3],2))  # indirect doctest
             'Subwords of [1, 2, 3] of length 2'
         """
-        return "%s of length %s" %(Subwords_w._repr_(self), self._k)
+        return "%s of length %s" % (Subwords_w.__repr__(self), self._k)
 
     def __contains__(self, w):
         """

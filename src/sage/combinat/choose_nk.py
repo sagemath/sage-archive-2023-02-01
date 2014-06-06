@@ -24,10 +24,9 @@ AUTHORS:
 #*****************************************************************************
 import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
-from sage.misc.misc import uniq
 from combinat import CombinatorialClass
 import itertools
-from sage.rings.integer import Integer
+
 
 class ChooseNK(CombinatorialClass):
     """

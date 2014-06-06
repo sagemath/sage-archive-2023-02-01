@@ -516,9 +516,9 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        -player - A real number or string.
+        - player - A real number or string.
 
-        -pi - A tuple which is the permutation that should be used.
+        - pi - A tuple which is the permutation that should be used.
 
         EXAMPLES::
 
@@ -616,7 +616,7 @@ class CooperativeGame(SageObject):
         INPUT:
 
         - payoff_vector - a dictionary where the key is the player and the
-        value is their payoff.
+                          value is their payoff.
 
         EXAMPLES:
 
@@ -679,7 +679,7 @@ class CooperativeGame(SageObject):
         INPUT:
 
         - payoff_vector - a dictionary where the key is the player and the
-        value is their payoff.
+                          value is their payoff.
 
         EXAMPLES:
 
@@ -767,7 +767,7 @@ class CooperativeGame(SageObject):
         INPUT:
 
         - payoff_vector - a dictionary where the key is the player and the
-        value is their payoff.
+                          value is their payoff.
 
         EXAMPLES:
 

@@ -809,6 +809,58 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
 
 #    list = CombinatorialClass._CombinatorialClass__list_from_iterator
 
+    # TODO: Move to the tensor category of highest weight crystals once implemented?
+    @cached_method
+    def highest_weight_vectors(self):
+        r"""
+        Return the highest weight vectors of ``self``.
+
+        This works by using a backtracing algorithm since if `b_2 \otimes b_1`
+        is highest weight then `b_1` is highest weight.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['D',4], shape=[2,2])
+            sage: D = crystals.Tableaux(['D',4], shape=[1])
+            sage: T = crystals.TensorProduct(D, C)
+            sage: T.highest_weight_vectors()
+            ([[[1]], [[1, 1], [2, 2]]],
+             [[[3]], [[1, 1], [2, 2]]],
+             [[[-2]], [[1, 1], [2, 2]]])
+            sage: L = filter(lambda x: x.is_highest_weight(), T)
+            sage: tuple(L) == T.highest_weight_vectors()
+            True
+        """
+        from sage.categories.highest_weight_crystals import HighestWeightCrystals
+        if self not in HighestWeightCrystals():
+            raise ValueError("not a highest weight crystal")
+        if any(B not in HighestWeightCrystals() for B in self.crystals):
+            return super(FullTensorProductOfCrystals, self).highest_weight_vectors()
+
+        n = len(self.crystals)
+        it = [ iter(self.crystals[-1].highest_weight_vectors()) ]
+        path = []
+        ret = []
+        while it:
+            try:
+                x = it[-1].next()
+            except StopIteration:
+                it.pop()
+                if path:
+                    path.pop(0)
+                continue
+
+            b = self(x, *path)
+            if not b.is_highest_weight():
+                continue
+            path.insert(0, x)
+            if len(path) == n:
+                ret.append(b)
+                path.pop(0)
+            else:
+                it.append( iter(self.crystals[-len(path)-1]) )
+        return tuple(ret)
+
     def cardinality(self):
         """
         Return the cardinality of ``self``.

@@ -7,10 +7,11 @@ Methods to calculate the Shapley value (a fair way of sharing common
 resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
 test properties of the game (monotonicity, super additivity) are also included.
 
-AUTHOR::
-- James Campbell 06-2014: Original version
+AUTHOR:
 
-- Vince Knight 06-2014
+    - James Campbell 06-2014: Original version
+    - Vince Knight 06-2014
+
 """
 
 #*****************************************************************************
@@ -23,7 +24,6 @@ AUTHOR::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from itertools import permutations, combinations
-from sage.misc.latex import latex
 from sage.misc.misc import powerset
 from sage.structure.sage_object import SageObject
 
@@ -550,9 +550,9 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        -player - A real number or string.
+        - player - A real number or string.
 
-        -pi - A tuple which is the permutation that should be used.
+        - pi - A tuple which is the permutation that should be used.
 
         EXAMPLES::
 
@@ -650,7 +650,7 @@ class CooperativeGame(SageObject):
         INPUT:
 
         - payoff_vector - a dictionary where the key is the player and the
-        value is their payoff.
+                          value is their payoff.
 
         EXAMPLES:
 
@@ -713,7 +713,7 @@ class CooperativeGame(SageObject):
         INPUT:
 
         - payoff_vector - a dictionary where the key is the player and the
-        value is their payoff.
+                          value is their payoff.
 
         EXAMPLES:
 
@@ -801,7 +801,7 @@ class CooperativeGame(SageObject):
         INPUT:
 
         - payoff_vector - a dictionary where the key is the player and the
-        value is their payoff.
+                          value is their payoff.
 
         EXAMPLES:
 

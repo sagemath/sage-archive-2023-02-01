@@ -2368,38 +2368,33 @@ class DyckWord_complete(DyckWord):
         root.set_immutable()
         return root
 
-    def to_triangulation(self, as_graph=False):
+    def to_triangulation(self):
         r"""
         Map ``self`` to a triangulation.
 
-        The map from complete Dyck words of length `2n` to triangulations of
-        `n+2`-gon given by this function is a bijection that can be described as
-        follows.
+        The map from complete Dyck words of length `2n` to
+        triangulations of `n+2`-gon given by this function is a
+        bijection that can be described as follows.
 
-        Consider the Dyck word as a path from `(0, 0)` to `(n, n)` staying above
-        the diagonal, where `1` is an up step and `0` is a right step. Then each
-        horizontal step has a co-height (`0` at the top and `n-1` at most at the
-        bottom). One reads the Dyck word from left to right.  At the begining,
-        all vertices from `0` to `n+1` are available.  For each horizontal step,
-        one creates an edge from the vertex indexed by the co-height to the next
-        available vertex. This chops out a triangle from the polygon and one
-        removes the middle vertex of this triangle from the list of available
-        vertices.
+        Consider the Dyck word as a path from `(0, 0)` to `(n, n)`
+        staying above the diagonal, where `1` is an up step and `0` is
+        a right step. Then each horizontal step has a co-height (`0`
+        at the top and `n-1` at most at the bottom). One reads the
+        Dyck word from left to right. At the begining, all vertices
+        from `0` to `n+1` are available. For each horizontal step,
+        one creates an edge from the vertex indexed by the co-height
+        to the next available vertex. This chops out a triangle from
+        the polygon and one removes the middle vertex of this triangle
+        from the list of available vertices.
 
-        This bijection has the property that the set of smallest vertices of the
-        edges in a triangulation is an encoding of the co-heights, from which
-        the Dyck word can be easily recovered.
-
-        INPUT:
-
-        - `as_graph` -- boolean (default ``False``) whether to return a graph or
-          simply a list of edges.
+        This bijection has the property that the set of smallest
+        vertices of the edges in a triangulation is an encoding of the
+        co-heights, from which the Dyck word can be easily recovered.
 
         OUTPUT:
 
-        By default, a list of pairs `(i, j)` that are the edges of the
-        triangulations. If `as_graph` is ``True``, return the result as a graph.
-
+        a list of pairs `(i, j)` that are the edges of the
+        triangulations.
 
         EXAMPLES::
 
@@ -2413,13 +2408,6 @@ class DyckWord_complete(DyckWord):
             [(1, 3), (0, 3)],
             [(0, 2), (0, 3)]]
 
-            sage: g = DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation(as_graph=True)
-            sage: g
-            Graph on 5 vertices
-            sage: g.edges(labels=False)
-            [(0, 1), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (3, 4)]
-            sage: g.show()        # not tested
-
         REFERENCES:
 
         .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
@@ -2427,19 +2415,41 @@ class DyckWord_complete(DyckWord):
            Combinatorics Vol 12(1) (2005) N16.
         """
         n = self.number_of_open_symbols()
-        l = range(n + 2)  # from 0 to n+1
+        l = range(n + 2)  # from 0 to n + 1
         edges = []
-        coheight = n-1
+        coheight = n - 1
         for letter in self[1:-1]:
             if letter == 1:
                 coheight -= 1
             else:
-                edges.append((coheight,l[coheight+2]))
+                edges.append((coheight, l[coheight + 2]))
                 l.pop(coheight + 1)
 
-        if not as_graph:
-            return edges
+        return edges
 
+    def to_triangulation_as_graph(self):
+        r"""
+        Map ``self`` to a triangulation and return the result as a graph.
+
+        See :meth:`to_triangulation` for the bijection used to map
+        complete Dyck words to triangulations.
+
+        OUTPUT:
+
+        - a graph containing both the perimeter edges and the inner
+          edges of a triangulation of a regular polygon.
+
+        EXAMPLES::
+
+            sage: g = DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation_as_graph()
+            sage: g
+            Graph on 5 vertices
+            sage: g.edges(labels=False)
+            [(0, 1), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (3, 4)]
+            sage: g.show()        # not tested
+        """
+        n = self.number_of_open_symbols()
+        edges = self.to_triangulation()
         from sage.graphs.graph import Graph
         peri = [(i, i + 1) for i in range(n + 1)] + [(n + 1, 0)]
         g = Graph(n + 2)

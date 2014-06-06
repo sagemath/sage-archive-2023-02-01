@@ -40,7 +40,7 @@ class CooperativeGame(SageObject):
                 tuple must end with a comma.
         * Value - A real number representing each set of players contribution.
 
-    - payoff_vector -- (default: False), a dictionary can be passed instead but
+    - payoff_vector - default = ``False``, a dictionary can be passed instead but
                       this will be overwritten if shapley_value is called.
 
     EXAMPLES:
@@ -50,7 +50,7 @@ class CooperativeGame(SageObject):
     where $C=2^{\Omega}$ is set of all coalitions of players.
     An example of such a game is shown below:
 
-    $$
+    \[
     v(c) = \begin{cases}
     0,&\text{ if }c=\emptyset\\
     6,&\text{ if }c=\{1\}\\
@@ -61,7 +61,7 @@ class CooperativeGame(SageObject):
     42,&\text{ if }c=\{2,3\}\\
     42,&\text{ if }c=\{1, 2,3\}\\
     \end{cases}
-    $$
+    \]
 
     The function $v$ can be thought of as as a record of contribution of individuals
     and coalitions of individuals.
@@ -93,12 +93,12 @@ class CooperativeGame(SageObject):
         ....:                    ('A', 'B', 'C',): 42}
         sage: letter_game = CooperativeGame(letter_function)
 
-    From this we can now compute the Shapley Value. ::
+    Characteristic function games can be of various types.
 
-        sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
+    A characteristic function game \(G=(N,v)\) is monotone if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
+    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that \(C_1\cap\C_2=\emptyset\).
 
-    We can test if it is Monotonic or Superadditive. ::
+    We can test if a game is Monotonic or Superadditive. ::
 
         sage: letter_game.is_monotone()
         True
@@ -110,32 +110,66 @@ class CooperativeGame(SageObject):
         sage: letter_game
         A 3 player Co-operative Game.
 
-    We can test 3 basic properties of the Payoff Vector. They are
-        * Is it is efficient?
 
-        * Does it possess the nullplayer property?
+    It can be shown that the 'fair' payoff vector, referred to as the Shapley value is given by the following formula:
 
-        * Does it possess the symmetry property?
+    \[
+    \phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)
+    \]
 
-    ::
+    where the summation is over the permutations of the players and the marginal
+    contributions of a player for a given permutation is given as:
+
+    \[
+    \Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))
+    \]
+
+    To compute the Shapley value in Sage is simple:
 
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
-        sage: letter_game.is_efficient({'A': 2, 'C': 35, 'B': 5})
+
+    We can test 3 basic properties of a Payoff Vector $lambda$. They are
+        * Efficiency:
+
+        \[sum_{i=1}^N\lambda_i=v(\Omega)\]
+
+        In other words: no value of the total coalition is lost.
+
+        * The nullplayer property:
+
+        If \(\exists\) \(i\) such that \(\(v(C\cup i)=v(C)\)\) for all \(C\in 2^{\Omega}\) then:
+
+        \[\lambda_i=0\]
+
+        In other words: if a player does not contribute to any coalition then that player should receive no payoff.
+
+        * Does it possess the symmetry property?
+
+        A payoff vector possesses the symmetry property if \(v(C\cup i)=v(C\cup j)\) for all \(C\in 2^{\Omega}\setminus\{i,j\}\) then:
+
+        \[x_i=x_j\]
+
+        If players contribute symmetrically then they should get the same payoff.
+
+    ::
+
+        sage: payoff_vector = letter_game.shapley_value()
+        sage: letter_game.is_efficient(payoff_vector)
         True
-        sage: letter_game.nullplayer({'A': 2, 'C': 35, 'B': 5})
+        sage: letter_game.nullplayer(payoff_vector)
         True
-        sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
+        sage: letter_game.symmetry(payoff_vector)
         True
 
     Any Payoff Vector can be passed to the game and these properties can once again be tested:
 
-        sage: letter_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
-        sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
+        sage: payoff_vector = {'A': 0, 'C': 35, 'B': 3}
+        sage: letter_game.is_efficient(payoff_vector)
         False
-        sage: letter_game.nullplayer({'A': 0, 'C': 35, 'B': 3})
+        sage: letter_game.nullplayer(payoff_vector)
         True
-        sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
+        sage: letter_game.symmetry(payoff_vector)
         True
 
     TESTS:

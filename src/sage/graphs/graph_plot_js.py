@@ -45,6 +45,15 @@ definition can be found in the documentation of
 ``link_distance``, ``link_strength``, ``gravity``, ``vertex_size``,
 ``edge_thickness``.
 
+.. WARNING:: 
+
+    Since the d3js package is not standard yet, the javascript is fetched from
+    d3js.org website by the browser. If you want to avoid that (e.g.  to
+    protect your privacy or by lack of internet connection), you can install
+    the d3js package for offline use with the Sage command
+    ``install_package('d3js')`` or by running ``sage -i d3js`` from the command
+    line.
+  
 .. TODO::
 
     - Add tooltip like in `<http://bl.ocks.org/bentwonk/2514276>`_.
@@ -138,6 +147,15 @@ def gen_html_code(G,
       `<https://github.com/mbostock/d3/wiki/Force-Layout>`_ for more
       information. Set to ``0.04`` by default.
 
+    .. WARNING::
+    
+        Since the d3js package is not standard yet, the javascript is fetched
+        from d3js.org website by the browser. If you want to avoid that (e.g.
+        to protect your privacy or by lack of internet connection), you can
+        install the d3js package for offline use with the Sage command
+        ``install_package('d3js')`` or by running ``sage -i d3js`` from the
+        command line.
+  
     EXAMPLES::
 
         sage: graphs.RandomTree(50).show(method="js") # optional -- internet
@@ -272,17 +290,12 @@ def gen_html_code(G,
     js_code = js_code_file.read().replace("// GRAPH_DATA_HEREEEEEEEEEEE", string)
     js_code_file.close()
 
-    # Add d3.js depending on wether spkg is installed.
+    # Add d3.js script depending on whether d3js package is installed.
     d3js_filepath = os.path.join(SAGE_SHARE, 'd3js', 'd3.min.js')
     if os.path.exists(d3js_filepath):
         with open(d3js_filepath, 'r') as d3js_code_file:
             d3js_script = '<script>' + d3js_code_file.read() + '</script>'
     else:
-        from warnings import warn
-        warn("The script d3.js will be fetched from the web. You might "
-                "consider installing the optional d3js package with the Sage "
-                "command ``install_package('d3js')`` or by running "
-                "``sage -i d3js`` from the command line.")
         d3js_script = '<script src="http://d3js.org/d3.v3.min.js"></script>'
     js_code = js_code.replace('// D3JS_SCRIPT_HEREEEEEEEEEEE', d3js_script)
 

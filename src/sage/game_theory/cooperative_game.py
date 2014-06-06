@@ -1,7 +1,7 @@
 r"""
 Co-operative games with N players.
 
-This module implements characteristic function cooperative games.
+This module implements a **basic** implementation of a characteristic function cooperative game.
 The main contribution is a class for a characteristic function game.
 Methods to calculate the Shapley value (a fair way of sharing common
 resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as

@@ -80,20 +80,10 @@ class CooperativeGame(SageObject):
         sage: letter_game.is_superadditive()
         False
 
-    The _repr_ function will display basic information about the game. ::
+    Instances have a basic representation that will display basic information about the game. ::
 
-        sage: letter_game._repr_()
-        A Co-operative Game with 3 players
-        Characteristic Function is
-             ('A',) : 6
-             ('B', 'C') : 42
-             () : 0
-             ('C',) : 42
-             ('A', 'B') : 12
-             ('B',) : 12
-             ('A', 'C') : 42
-             ('A', 'B', 'C') : 42
-        Payoff vector is {'A': 2, 'C': 35, 'B': 5}
+        sage: letter_game
+        A 3 player Co-operative Game.
 
     We can test 3 basic properties of the Payoff Vector. They are
         * Is it is efficient?
@@ -136,18 +126,6 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.is_superadditive()
         False
-        sage: letter_game._repr_()
-        A Co-operative Game with 3 players
-        Characteristic Function is
-             ('A',) : 6
-             ('B', 'C') : 42
-             () : 0
-             ('C',) : 42
-             ('A', 'B') : 12
-             ('B',) : 12
-             ('A', 'B', 'C') : 42
-             ('A', 'C') : 42
-        Payoff vector is {'A': 2, 'C': 35, 'B': 5}
         sage: letter_game.is_efficient()
         True
         sage: letter_game.nullplayer()
@@ -527,7 +505,7 @@ class CooperativeGame(SageObject):
         Returns a concise description of the Game.
 
         EXAMPLES::
-        Typical use of the show function with a given Payoff Vector. ::
+        Basic description of the game shown when calling the game instance. ::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -538,47 +516,13 @@ class CooperativeGame(SageObject):
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
             sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
-            sage: letter_game._repr_()
-            A Co-operative Game with 3 players
-            Characteristic Function is
-                 ('A',) : 6
-                 ('B', 'C') : 42
-                 () : 0
-                 ('C',) : 42
-                 ('A', 'B') : 12
-                 ('B',) : 12
-                 ('A', 'C') : 42
-                 ('A', 'B', 'C') : 42
-            Payoff vector is {'A': 14, 'C': 14, 'B': 14}
-
-        Typical use of the show function after calculating the Shapley value. ::
-
-            sage: letter_game.shapley_value()
-            {'A': 2, 'C': 35, 'B': 5}
-            sage: letter_game._repr_()
-            A Co-operative Game with 3 players
-            Characteristic Function is
-                 ('A',) : 6
-                 ('B', 'C') : 42
-                 () : 0
-                 ('C',) : 42
-                 ('A', 'B') : 12
-                 ('B',) : 12
-                 ('A', 'C') : 42
-                 ('A', 'B', 'C') : 42
-            Payoff vector is {'A': 2, 'C': 35, 'B': 5}
+            sage: letter_game
+            A 3 player Co-operative Game.
         """
         np = self.number_players
         cf = self.ch_f
         pv = self.payoff_vector
-        print "A Co-operative Game with %s players" % np
-        print "Characteristic Function is"
-        for key in cf:
-            print "\t %s : %s" %(key, cf[key])
-        if pv is False:
-            print "And it has no payoff vector"
-        else:
-            print "Payoff vector is %s" % pv
+        return "A %s player Co-operative Game." % np
 
     def is_efficient(self):
         r"""

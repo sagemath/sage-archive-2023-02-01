@@ -129,9 +129,19 @@ class CooperativeGame(SageObject):
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
-    We can test 3 basic properties of a Payoff Vector. They are
-        * Is it is efficient?
-        * Does it possess the nullplayer property?
+    We can test 3 basic properties of a Payoff Vector $lambda$. They are
+        * Efficiency:
+
+        \[sum_{i=1}^N\lambda_i=v(\Omega)\]
+
+        No value of the total coalition is lost.
+
+        * The nullplayer property:
+
+        If \(\exists\) \(i\) such that \(\(v(C\cup i)=v(C)\)\) for all \(C\in 2^{\Omega}\) then:
+
+        \[\lambda_i=0\]
+
         * Does it possess the symmetry property?
     ::
 

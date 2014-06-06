@@ -601,8 +601,14 @@ class Function_arccot(BuiltinFunction):
         """
         if parent is float:
             return math.pi/2 - math.atan(x)
+
         from sage.symbolic.constants import pi
-        return parent(pi/2 - x.arctan())
+        try:
+            return parent(pi/2 - x.arctan())
+        except AttributeError:
+            # Usually this means that x is of type 'complex'
+            from sage.rings.complex_double import CDF
+            return complex(pi/2 - CDF(x).arctan())
 
     def _eval_numpy_(self, x):
         """
@@ -669,7 +675,13 @@ class Function_arccsc(BuiltinFunction):
         """
         if parent is float:
             return math.asin(1/x)
-        return (1/x).arcsin()
+
+        try:
+            return (1/x).arcsin()
+        except AttributeError:
+            # Usually this means that x is of type 'complex'
+            from sage.rings.complex_double import CDF
+            return complex(CDF(1/x).arcsin())
 
     def _eval_numpy_(self, x):
         """
@@ -731,7 +743,13 @@ class Function_arcsec(BuiltinFunction):
         """
         if parent is float:
             return math.acos(1/x)
-        return (1/x).arccos()
+
+        try:
+            return (1/x).arccos()
+        except AttributeError:
+            # Usually this means that x is of type 'complex'
+            from sage.rings.complex_double import CDF
+            return complex(CDF(1/x).arccos())
 
     def _eval_numpy_(self, x):
         """

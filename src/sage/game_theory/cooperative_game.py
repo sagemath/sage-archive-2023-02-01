@@ -116,21 +116,23 @@ class CooperativeGame(SageObject):
         * Does it possess the symmetry property?
     ::
 
-        sage: letter_game.is_efficient()
+        sage: letter_game.shapley_value()
+        {'A': 2, 'C': 35, 'B': 5}
+        sage: letter_game.is_efficient({'A': 2, 'C': 35, 'B': 5})
         True
-        sage: letter_game.nullplayer()
+        sage: letter_game.nullplayer({'A': 2, 'C': 35, 'B': 5})
         True
-        sage: letter_game.symmetry()
+        sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
         True
 
     Any Payoff Vector can be passed to the game and these properties can once again be tested:
 
         sage: letter_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
-        sage: letter_game.is_efficient()
+        sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
         False
-        sage: letter_game.nullplayer()
+        sage: letter_game.nullplayer({'A': 0, 'C': 35, 'B': 3})
         True
-        sage: letter_game.symmetry()
+        sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
         True
 
     TESTS:
@@ -152,25 +154,24 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.is_superadditive()
         False
-        sage: letter_game.is_efficient()
+        sage: letter_game.is_efficient({'A': 2, 'C': 35, 'B': 5})
         True
-        sage: letter_game.nullplayer()
+        sage: letter_game.nullplayer({'A': 2, 'C': 35, 'B': 5})
         True
-        sage: letter_game.symmetry()
+        sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
         True
 
     Any Payoff Vector can be passed to the game and these properties can once again be tested:
 
-        sage: letter_game.payoff_vector = {'A': 0, 'C': 35, 'B': 3}
-        sage: letter_game.is_efficient()
+        sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
         False
-        sage: letter_game.nullplayer()
+        sage: letter_game.nullplayer({'A': 0, 'C': 35, 'B': 3})
         True
-        sage: letter_game.symmetry()
+        sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
         True
     """
 
-    def __init__(self, characteristic_function, payoff_vector=False):
+    def __init__(self, characteristic_function):
         r"""
         Initializes a co-operative game and checks the inputs.
 
@@ -243,7 +244,6 @@ class CooperativeGame(SageObject):
                 raise ValueError("Characteristic Function must be the power set")
 
         self.number_players = len(self.player_list)
-        self.payoff_vector = payoff_vector
 
     def shapley_value(self):
         r"""
@@ -264,8 +264,6 @@ class CooperativeGame(SageObject):
             sage: integer_game = CooperativeGame(integer_function)
             sage: integer_game.player_list
             (1, 2, 3)
-            sage: integer_game.payoff_vector
-            False
             sage: integer_game.shapley_value()
             {1: 2, 2: 5, 3: 35}
             sage: integer_game.payoff_vector
@@ -557,13 +555,11 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
+            sage: letter_game = CooperativeGame(letter_function)
             sage: letter_game
             A 3 player Co-operative Game.
         """
         np = self.number_players
-        cf = self.ch_f
-        pv = self.payoff_vector
         return "A %s player Co-operative Game." % np
 
     def _latex_(self):
@@ -582,7 +578,7 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
+            sage: letter_game = CooperativeGame(letter_function)
             sage: latex(letter_game)
             v(c) = \begin{cases}
             0,&\text{ if }c=\emptyset\\
@@ -597,7 +593,6 @@ class CooperativeGame(SageObject):
         """
         np = self.number_players
         cf = self.ch_f
-        pv = self.payoff_vector
         output = "v(c) = \\begin{cases}\n"
         for key in sorted(cf.keys(), key=lambda key: len(key)) :
             if key == ():
@@ -611,9 +606,14 @@ class CooperativeGame(SageObject):
         output += "\\end{cases}"
         return output
 
-    def is_efficient(self):
+    def is_efficient(self, payoff_vector):
         r"""
         Returns True if the current payoff_vector is efficient.
+
+        INPUT:
+
+        - payoff_vector - a dictionary where the key is the player and the
+        value is their payoff.
 
         EXAMPLES:
 
@@ -627,8 +627,8 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, {'A': 14, 'B': 14, 'C': 14})
-            sage: letter_game.is_efficient()
+            sage: letter_game = CooperativeGame(letter_function)
+            sage: letter_game.is_efficient({'A': 14, 'B': 14, 'C': 14})
             True
 
             sage: letter_function = {(): 0,
@@ -640,8 +640,7 @@ class CooperativeGame(SageObject):
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
             sage: letter_game = CooperativeGame(letter_function)
-            sage: letter_game.payoff_vector = {'A': 10, 'B': 14, 'C': 14}
-            sage: letter_game.is_efficient()
+            sage: letter_game.is_efficient({'A': 10, 'B': 14, 'C': 14})
             False
 
             A longer example for is_efficient. ::
@@ -662,38 +661,22 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3, 4): 40,
             ....:                  (2, 3, 4): 0,
             ....:                  (1, 2, 3, 4): 65}
-            sage: long_game = CooperativeGame(long_function, {1: 20, 2: 20, 3: 5, 4: 20})
-            sage: long_game.is_efficient()
+            sage: long_game = CooperativeGame(long_function)
+            sage: long_game.is_efficient({1: 20, 2: 20, 3: 5, 4: 20})
             True
-
-        TESTS:
-
-        Checks that a game has a payoff_vector. ::
-
-            sage: A_function = {(): 0,
-            ....:               (1,): 0,
-            ....:               (2,): 12,
-            ....:               (3,): 42,
-            ....:               (1, 2,): 12,
-            ....:               (1, 3,): 42,
-            ....:               (2, 3,): 55,
-            ....:               (1, 2, 3,): 55}
-            sage: A_game = CooperativeGame(A_function)
-            sage: A_game.is_efficient()
-            Traceback (most recent call last):
-            ...
-            ValueError: Game must have a payoff_vector
         """
-        if not self.payoff_vector:
-            raise ValueError("Game must have a payoff_vector")
-
         pl = tuple(sorted(list(self.player_list)))
-        return sum(self.payoff_vector.values()) == self.ch_f[pl]
+        return sum(payoff_vector.values()) == self.ch_f[pl]
 
-    def nullplayer(self):
+    def nullplayer(self, payoff_vector):
         r"""
         Returns True if the current payoff_vector possesses the null
         player property.
+
+        INPUT:
+
+        - payoff_vector - a dictionary where the key is the player and the
+        value is their payoff.
 
         EXAMPLES:
 
@@ -707,8 +690,8 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, {'A': 0, 'B': 14, 'C': 14})
-            sage: letter_game.nullplayer()
+            sage: letter_game = CooperativeGame(letter_function)
+            sage: letter_game.nullplayer({'A': 0, 'B': 14, 'C': 14})
             True
 
         A payoff_vector that returns False. ::
@@ -721,8 +704,8 @@ class CooperativeGame(SageObject):
             ....:               (1, 3,): 42,
             ....:               (2, 3,): 55,
             ....:               (1, 2, 3,): 55}
-            sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
-            sage: A_game.nullplayer()
+            sage: A_game = CooperativeGame(A_function)
+            sage: A_game.nullplayer({1: 10, 2: 10, 3: 25})
             False
 
         A longer example for nullplayer. ::
@@ -743,27 +726,11 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3, 4): 40,
             ....:                  (2, 3, 4): 0,
             ....:                  (1, 2, 3, 4): 65}
-            sage: long_game = CooperativeGame(long_function, {1: 20, 2: 20, 3: 5, 4: 20})
-            sage: long_game.nullplayer()
+            sage: long_game = CooperativeGame(long_function)
+            sage: long_game.nullplayer({1: 20, 2: 20, 3: 5, 4: 20})
             True
 
         TESTS:
-
-        Checks that a game has a payoff_vector. ::
-
-            sage: A_function = {(): 0,
-            ....:               (1,): 0,
-            ....:               (2,): 12,
-            ....:               (3,): 42,
-            ....:               (1, 2,): 12,
-            ....:               (1, 3,): 42,
-            ....:               (2, 3,): 55,
-            ....:               (1, 2, 3,): 55}
-            sage: A_game = CooperativeGame(A_function)
-            sage: A_game.nullplayer()
-            Traceback (most recent call last):
-            ...
-            ValueError: Game must have a payoff_vector
 
         Checks that the function is going through all players. ::
 
@@ -775,26 +742,29 @@ class CooperativeGame(SageObject):
             ....:               (1, 3,): 42,
             ....:               (2, 3,): 12,
             ....:               (1, 2, 3,): 55}
-            sage: A_game = CooperativeGame(A_function, {1: 10, 2: 10, 3: 25})
-            sage: A_game.nullplayer()
+            sage: A_game = CooperativeGame(A_function)
+            sage: A_game.nullplayer({1: 10, 2: 10, 3: 25})
             False
         """
-        if not self.payoff_vector:
-            raise ValueError("Game must have a payoff_vector")
-
         for player in self.player_list:
             coalitions = [coal for coal in self.ch_f if player in coal]
             results = []
             for coalit in coalitions:
                 results.append(self.ch_f[coalit] == self.ch_f[tuple(
                                sorted(list(set(coalit) - {player})))])
-            if all(results) and self.payoff_vector[player] != 0:
+            if all(results) and payoff_vector[player] != 0:
                 return False
         return True
 
-    def symmetry(self):
+    def symmetry(self, payoff_vector):
         r"""
-        Returns True if the current payoff_vector possesses the symmetry property.
+        Returns True if the current payoff_vector possesses the symmetry
+        property.
+
+        INPUT:
+
+        - payoff_vector - a dictionary where the key is the player and the
+        value is their payoff.
 
         EXAMPLES:
 
@@ -808,8 +778,8 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'C',): 42,
             ....:                    ('B', 'C',): 42,
             ....:                    ('A', 'B', 'C',): 42}
-            sage: letter_game = CooperativeGame(letter_function, {'A': 5, 'B': 14, 'C': 20})
-            sage: letter_game.symmetry()
+            sage: letter_game = CooperativeGame(letter_function)
+            sage: letter_game.symmetry({'A': 5, 'B': 14, 'C': 20})
             True
 
         A Payoff Vector that returns False. ::
@@ -822,8 +792,8 @@ class CooperativeGame(SageObject):
             ....:                     (1, 3,): 42,
             ....:                     (2, 3,): 42,
             ....:                     (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function, {1: 2, 2: 5, 3: 35})
-            sage: integer_game.symmetry()
+            sage: integer_game = CooperativeGame(integer_function)
+            sage: integer_game.symmetry({1: 2, 2: 5, 3: 35})
             False
 
         A longer example for symmetry. ::
@@ -844,31 +814,10 @@ class CooperativeGame(SageObject):
             ....:                  (1, 3, 4): 40,
             ....:                  (2, 3, 4): 0,
             ....:                  (1, 2, 3, 4): 65}
-            sage: long_game = CooperativeGame(long_function, {1: 20, 2: 20, 3: 5, 4: 20})
-            sage: long_game.symmetry()
+            sage: long_game = CooperativeGame(long_function)
+            sage: long_game.symmetry({1: 20, 2: 20, 3: 5, 4: 20})
             True
-
-        TESTS:
-
-        Checks that a game has a payoff_vector. ::
-
-            sage: A_function = {(): 0,
-            ....:               (1,): 0,
-            ....:               (2,): 12,
-            ....:               (3,): 42,
-            ....:               (1, 2,): 12,
-            ....:               (1, 3,): 42,
-            ....:               (2, 3,): 55,
-            ....:               (1, 2, 3,): 55}
-            sage: A_game = CooperativeGame(A_function)
-            sage: A_game.is_efficient()
-            Traceback (most recent call last):
-            ...
-            ValueError: Game must have a payoff_vector
         """
-        if not self.payoff_vector:
-            raise ValueError("Game must have a payoff_vector")
-
         sets = list(self.ch_f.keys())
         element = [i for i in sets if len(i) == 1]
         for c1, c2 in combinations(element, 2):
@@ -877,7 +826,6 @@ class CooperativeGame(SageObject):
                 junion = tuple(sorted(list(set(c1) | set(m))))
                 kunion = tuple(sorted(list(set(c2) | set(m))))
                 results.append(self.ch_f[junion] == self.ch_f[kunion])
-            if (all(results) and self.payoff_vector[c1[0]] !=
-                    self.payoff_vector[c2[0]]):
+            if (all(results) and payoff_vector[c1[0]] != payoff_vector[c2[0]]):
                 return False
         return True

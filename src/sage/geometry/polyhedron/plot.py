@@ -667,8 +667,9 @@ class Projection(SageObject):
 
     def _init_dimension(self):
         """
-        Internal function: Initialize from 2d polyhedron. Must always
-        be called after a coordinate projection.
+        Internal function: Initialize from polyhedron with 
+        projected coordinates. Must always be called after 
+        a coordinate projection.
 
         TESTS::
 
@@ -695,7 +696,9 @@ class Projection(SageObject):
 
     def _init_from_2d(self, polyhedron):
         """
-        Internal function: Initialize from 2d polyhedron.
+        Internal function: Initialize from polyhedron in 
+        2-dimensional space. The polyhedron could be lower 
+        dimensional.
 
         TESTS::
 
@@ -716,7 +719,9 @@ class Projection(SageObject):
 
     def _init_from_3d(self, polyhedron):
         """
-        Internal function: Initialize from 3d polyhedron.
+        Internal function: Initialize from polyhedron in 
+        3-dimensional space. The polyhedron could be 
+        lower dimensional.
 
         TESTS::
 
@@ -1121,7 +1126,7 @@ class Projection(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: The polytope has to live in 2 or 3 dimensions.
-
+        
         .. TODO::
 
             Make it possible to draw Schlegel diagram for 4-polytopes. ::
@@ -1138,19 +1143,22 @@ class Projection(SageObject):
         """
         if self.polyhedron_ambient_dim > 3 or self.polyhedron_ambient_dim < 2:
             raise NotImplementedError("The polytope has to live in 2 or 3 dimensions.")
-        elif self.polyhedron_ambient_dim == 2:
+        elif self.polyhedron_dim < 2 or self.polyhedron_dim > 3:
+            raise NotImplementedError("The polytope has to be 2 or 3-dimensional.")
+        elif self.polyhedron_ambient_dim == 2: #self is a polygon in 2-space
             return self._tikz_2d(scale, edge_color, facet_color, opacity,
                                  vertex_color, axis)
-        elif self.polyhedron_dim == 2:
+        elif self.polyhedron_dim == 2: # self is a polygon in 3-space
             return self._tikz_2d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
-        else:
+        else: #self is a 3-polytope in 3-space
             return self._tikz_3d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
 
     def _tikz_2d(self, scale, edge_color, facet_color, opacity, vertex_color, axis):
         r"""
-        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        Return a string ``tikz_pic`` consisting of a tikz picture of 
+        ``self``, which is assumed to be a polygon on the plane.
 
         INPUT:
 
@@ -1257,7 +1265,8 @@ class Projection(SageObject):
         r"""
         Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
         according to a projection ``view`` and an angle ``angle``
-        obtained via Jmol through the current state property.
+        obtained via Jmol through the current state property. ``self`` is 
+        assumed to be a polygon in 3-space.
 
         INPUT:
 
@@ -1384,7 +1393,8 @@ class Projection(SageObject):
         r"""
         Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
         according to a projection ``view`` and an angle ``angle``
-        obtained via Jmol through the current state property.
+        obtained via Jmol through the current state property. ``self`` is 
+        assumed to be a 3-polytope in 3-space.
 
         INPUT:
 

@@ -1219,9 +1219,35 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: HighestWeightCrystals().TensorProducts()
-                Category of tensor products of modules with basis over Rational Field
+                Category of tensor products of highest weight crystals
             """
             return TensorProductsCategory.category_of(self)
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of crystals constructed by tensor product of crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Crystals().TensorProducts().extra_super_categories()
+                [Category of crystals]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            """
+            Implements operations on tensor products of crystals.
+            """
+            pass
+
+        class ElementMethods:
+            """
+            Implements operations on elements of tensor products of crystals.
+            """
+            pass
 
     Finite = LazyImport('sage.categories.finite_crystals', 'FiniteCrystals')
 

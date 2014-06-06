@@ -613,7 +613,7 @@ class TensorProductOfCrystals(CrystalOfWords):
         sage: C = crystals.Letters(['A',2])
         sage: T = crystals.TensorProduct(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
         sage: T.highest_weight_vectors()
-        [[2, 1, 1], [1, 2, 1]]
+        ([2, 1, 1], [1, 2, 1])
 
     Examples with non-regular and infinite crystals (these did not work
     before :trac:`14402`)::

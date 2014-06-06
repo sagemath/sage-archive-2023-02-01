@@ -934,11 +934,16 @@ cdef class BuiltinFunction(Function):
 
             # conversion to the original parent failed
             # we try if it works with the corresponding complex domain
-            if org_parent is float:
+            if org_parent is float or org_parent is complex:
                 try:
-                    return complex(res)
+                    from sage.rings.real_double import RDF
+                    return org_parent(RDF(res))
                 except (TypeError, ValueError):
-                    pass
+                    try:
+                        from sage.rings.complex_double import CDF
+                        return org_parent(CDF(res))
+                    except (TypeError, ValueError):
+                        pass
             elif hasattr(org_parent, 'complex_field'):
                 try:
                     return org_parent.complex_field()(res)

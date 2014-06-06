@@ -293,7 +293,7 @@ class CooperativeGame(SageObject):
         """
         payoff_vector = {}
         for player in self.player_list:
-            player_contribution = self.marginal_contributions(player)
+            player_contribution = self._marginal_contributions(player)
             average = sum(player_contribution) / len(player_contribution)
             payoff_vector[player] = average
         self.payoff_vector = payoff_vector
@@ -445,7 +445,7 @@ class CooperativeGame(SageObject):
                     return False
         return True
 
-    def marginal_contributions(self, player):
+    def _marginal_contributions(self, player):
         r"""
         Returns a list of contributions specific to one player.
 
@@ -464,7 +464,7 @@ class CooperativeGame(SageObject):
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game.marginal_contributions(1)
+            sage: integer_game._marginal_contributions(1)
             [6, 6, 0, 0, 0, 0]
         """
         contributions = []

@@ -95,9 +95,10 @@ class CooperativeGame(SageObject):
 
     Characteristic function games can be of various types.
 
-    In a monotone game...
+    A characteristic function game \(G=(N,v)\) is monotone if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
+    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
 
-    We can test if it is Monotonic or Superadditive. ::
+    We can test if a game is Monotonic or Superadditive. ::
 
         sage: letter_game.is_monotone()
         True

@@ -1126,7 +1126,7 @@ class Projection(SageObject):
             Traceback (most recent call last):
             ...
             NotImplementedError: The polytope has to live in 2 or 3 dimensions.
-        
+ 
         .. TODO::
 
             Make it possible to draw Schlegel diagram for 4-polytopes. ::

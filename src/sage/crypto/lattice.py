@@ -11,8 +11,8 @@ AUTHORS:
   *  Michael Schneider <mischnei@cdc.informatik.tu-darmstadt.de>
 """
 
-def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
-                quotient=None, dual=False, ntl=False):
+def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
+                quotient=None, dual=False, ntl=False, lattice=False):
     """
     This function generates different types of integral lattice bases
     of row vectors relevant in cryptography.
@@ -44,6 +44,9 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
       for Regev's LWE bases [R05]_.
     * ``ntl`` - Set this flag if you want the lattice basis in NTL readable
       format.
+    * ``lattice`` - Set this flag if you want a
+      :class:`FreeModule_submodule_with_basis_integer` object instead
+      of an integer matrix representing the basis.
 
     OUTPUT: ``B`` a unique size-reduced triangular (primal: lower_left,
       dual: lower_right) basis of row vectors for the lattice in question.
@@ -124,6 +127,50 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         sage: B_dual_alt=transpose(11*B_primal.inverse()).change_ring(ZZ)
         sage: B_dual_alt.hermite_form() == B_dual.hermite_form()
         True
+
+    TESTS:
+
+    We are testing output format choices::
+
+        sage: sage.crypto.gen_lattice(m=10, q=11, seed=42)
+        [11  0  0  0  0  0  0  0  0  0]
+        [ 0 11  0  0  0  0  0  0  0  0]
+        [ 0  0 11  0  0  0  0  0  0  0]
+        [ 0  0  0 11  0  0  0  0  0  0]
+        [ 2  4  3  5  1  0  0  0  0  0]
+        [ 1 -5 -4  2  0  1  0  0  0  0]
+        [-4  3 -1  1  0  0  1  0  0  0]
+        [-2 -3 -4 -1  0  0  0  1  0  0]
+        [-5 -5  3  3  0  0  0  0  1  0]
+        [-4 -3  2 -5  0  0  0  0  0  1]
+
+        sage: sage.crypto.gen_lattice(m=10, q=11, seed=42, ntl=True)
+        [
+        [11 0 0 0 0 0 0 0 0 0]
+        [0 11 0 0 0 0 0 0 0 0]
+        [0 0 11 0 0 0 0 0 0 0]
+        [0 0 0 11 0 0 0 0 0 0]
+        [2 4 3 5 1 0 0 0 0 0]
+        [1 -5 -4 2 0 1 0 0 0 0]
+        [-4 3 -1 1 0 0 1 0 0 0]
+        [-2 -3 -4 -1 0 0 0 1 0 0]
+        [-5 -5 3 3 0 0 0 0 1 0]
+        [-4 -3 2 -5 0 0 0 0 0 1]
+        ]
+
+        sage: sage.crypto.gen_lattice(m=10, q=11, seed=42, lattice=True)
+        Free module of degree 10 and rank 10 over Integer Ring
+        User basis matrix:
+        [ 0  0  1  1  0 -1 -1 -1  1  0]
+        [-1  1  0  1  0  1  1  0  1  1]
+        [-1  0  0  0 -1  1  1 -2  0  0]
+        [-1 -1  0  1  1  0  0  1  1 -1]
+        [ 1  0 -1  0  0  0 -2 -2  0  0]
+        [ 2 -1  0  0  1  0  1  0  0 -1]
+        [-1  1 -1  0  1 -1  1  0 -1 -2]
+        [ 0  0 -1  3  0  0  0 -1 -1 -1]
+        [ 0 -1  0 -1  2  0 -1  0  0  2]
+        [ 0  1  1  0  1  1 -2  1 -1 -2]
 
     REFERENCES:
 
@@ -206,7 +253,14 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
                          ZZ(q)]], subdivide=False)
         for i in range(m//2): B.swap_rows(i,m-i-1)
 
-    if not ntl:
-        return B
-    else:
+    if ntl and lattice:
+        raise ValueError("Cannot specify ntl=True and lattice=True "
+                         "at the same time")
+
+    if ntl:
         return B._ntl_()
+    elif lattice:
+        from sage.modules.free_module_integer import IntegerLattice
+        return IntegerLattice(B)
+    else:
+        return B

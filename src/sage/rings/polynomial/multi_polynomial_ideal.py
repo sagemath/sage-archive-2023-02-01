@@ -1017,6 +1017,7 @@ class MPolynomialIdeal_singular_repr(
              (Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
               Ideal (z^2 + 1, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field)]
 
+            sage: from functools import reduce
             sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), [Qi for (Qi,radQi) in pd]) == I
             True
 
@@ -1130,6 +1131,7 @@ class MPolynomialIdeal_singular_repr(
 
         ::
 
+            sage: from functools import reduce
             sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), pd) == I
             True
 

@@ -47,6 +47,7 @@ include 'sage/ext/cdefs.pxi'
 from cpython.dict cimport *
 
 import copy
+from functools import reduce
 from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex

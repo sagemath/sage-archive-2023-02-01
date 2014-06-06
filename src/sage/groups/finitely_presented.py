@@ -998,7 +998,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup import PermutationGroup
         return PermutationGroup([
-                Permutation(coset_table[2*i]) for i in range(len(coset_table)/2)])
+                Permutation(coset_table[2*i]) for i in range(len(coset_table)//2)])
 
     def direct_product(self, H, reduced=False, new_names=True):
         r"""

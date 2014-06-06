@@ -247,8 +247,8 @@ Sage example in ./recequadiff.tex, line 717::
   sage: desolve(eq1,[f,x])
   Traceback (most recent call last):
     ...
-  TypeError: ...
-  Is  k  positive, negative, or zero?
+  TypeError: ECL says: Maxima asks:
+  Is k positive, negative or zero?
 
 Sage example in ./recequadiff.tex, line 728::
 

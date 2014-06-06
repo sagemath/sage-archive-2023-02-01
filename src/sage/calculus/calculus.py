@@ -1048,10 +1048,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional
-        constraints; using the 'assume' command before evaluation *may* help
-        (example of legal syntax is 'assume(a>0)', see `assume?` for
-         more details)
-        Is  a  positive, negative, or zero?
+        constraints; using the 'assume' command before limit evaluation
+        *may* help (see `assume?` for more details)
+        Is a positive, negative or zero?
 
     With this example, Maxima is looking for a LOT of information::
 
@@ -1125,7 +1124,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         ValueError: dir must be one of None, 'plus', '+', 'right',
         'minus', '-', 'left'
 
-    We check that Trac ticket 3718 is fixed, so that
+    We check that :trac:`3718` is fixed, so that
     Maxima gives correct limits for the floor function::
 
         sage: limit(floor(x), x=0, dir='-')
@@ -1136,7 +1135,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         und
 
     Maxima gives the right answer here, too, showing
-    that Trac 4142 is fixed::
+    that :trac:`4142` is fixed::
 
         sage: f = sqrt(1-x^2)
         sage: g = diff(f, x); g
@@ -1153,7 +1152,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(1/x, x=0, dir='-')
         -Infinity
 
-    Check that Trac 8942 is fixed::
+    Check that :trac:`8942` is fixed::
 
         sage: f(x) = (cos(pi/4-x) - tan(x)) / (1 - sin(pi/4+x))
         sage: limit(f(x), x = pi/4, dir='minus')
@@ -1163,7 +1162,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(f(x), x = pi/4)
         Infinity
 
-    Check that we give deprecation warnings for 'above' and 'below' #9200::
+    Check that we give deprecation warnings for 'above' and 'below',
+    :trac:`9200`::
 
         sage: limit(1/x, x=0, dir='above')
         doctest:...: DeprecationWarning: the keyword
@@ -1179,6 +1179,14 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     Check that :trac:`12708` is fixed::
 
         sage: limit(tanh(x),x=0)
+        0
+
+    Check that :trac:`15386` is fixed::
+
+        sage: n = var('n')
+        sage: assume(n>0)
+        sage: sequence = -(3*n^2 + 1)*(-1)^n/sqrt(n^5 + 8*n^3 + 8)
+        sage: limit(sequence, n=infinity)
         0
     """
     if not isinstance(ex, Expression):

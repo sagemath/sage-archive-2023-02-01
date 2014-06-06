@@ -418,6 +418,9 @@ class Semigroups(CategoryWithAxiom):
 
         def extra_super_categories(self):
             """
+            Implement the fact that a cartesian product of semigroups is a
+            semigroup.
+
             EXAMPLES::
 
                 sage: Semigroups().CartesianProducts().extra_super_categories()

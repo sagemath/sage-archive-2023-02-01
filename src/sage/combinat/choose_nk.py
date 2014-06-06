@@ -1,12 +1,11 @@
 """
-Low-level Combinations
+Deprecated combinations
 
 AUTHORS:
 
 - Mike Hansen (2007): initial implementation
 
-- Vincent Delecroix (2011): call itertools for faster iteration, bug
-  corrections, doctests.
+- Vincent Delecroix (2014): deprecation
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -27,166 +26,28 @@ from sage.rings.arith import binomial
 from combinat import CombinatorialClass
 import itertools
 
-
-class ChooseNK(CombinatorialClass):
+def ChooseNK(n, k):
     """
-    Low level combinatorial class of all possible choices of k elements out of
-    range(n) without repetitions. The elements of the output are tuples of
-    Python int (and not Sage Integer).
+    All possible choices of k elements out of range(n) without repetitions.
 
-
-    This is a low-level combinatorial class, with a simplistic interface by
-    design. It aims at speed. It's element are returned as plain list of python
-    int.
+    The elements of the output are tuples of Python int (and not Sage Integer).
 
     EXAMPLES::
 
         sage: from sage.combinat.choose_nk import ChooseNK
         sage: c = ChooseNK(4,2)
         sage: c.first()
-        (0, 1)
+        [0, 1]
         sage: c.list()
-        [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-        sage: type(c.list()[1])
-        <type 'tuple'>
-        sage: type(c.list()[1][1])
-        <type 'int'>
+        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
     """
-    def __init__(self, n, k):
-        """
-        TESTS::
+    from sage.misc.superseded import deprecation
+    deprecation(10534, "ChooseNk is deprecated and will be removed. Use Combinations instead (or combinations from the itertools module for iteration)")
+    from sage.combinat.combination import Combinations
+    return Combinations(n,k)
 
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: c52 = ChooseNK(5,2)
-            sage: c52 == loads(dumps(c52))
-            True
-        """
-        self._n = n
-        self._k = k
-
-    def __contains__(self, x):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: c52 = ChooseNK(5,2)
-            sage: [0,1] in c52
-            True
-            sage: [1,1] in c52
-            False
-            sage: [0,1,3] in c52
-            False
-
-        TESTS::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: c52 = ChooseNK(5,2)
-            sage: [0,2] in c52   # trac 10534
-            True
-            sage: [0,5] in c52
-            False
-        """
-        try:
-            x = map(int,x)
-        except TypeError:
-            return False
-
-        # test if the length is the good one
-        r = len(x)
-        if r != self._k:
-            return False
-
-        # test if there is any repetition
-        x = set(x)
-        if len(x) != r:
-            return False
-
-        # test if x is a subset of {0,1,...,n-1}
-        if x.difference(xrange(self._n)):
-            return False
-
-        return True
-
-    def cardinality(self):
-        """
-        Returns the number of choices of k things from a list of n things.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: ChooseNK(3,2).cardinality()
-            3
-            sage: ChooseNK(5,2).cardinality()
-            10
-        """
-        return binomial(self._n, self._k)
-
-    def __iter__(self):
-        """
-        An iterator for all choices of k things from range(n).
-
-        EXAMPLES::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: list(ChooseNK(5,2))
-            [(0, 1),
-             (0, 2),
-             (0, 3),
-             (0, 4),
-             (1, 2),
-             (1, 3),
-             (1, 4),
-             (2, 3),
-             (2, 4),
-             (3, 4)]
-        """
-        return itertools.combinations(range(self._n), self._k)
-
-    def random_element(self):
-        """
-        Returns a random choice of k things from range(n).
-
-        EXAMPLES::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: ChooseNK(5,2).random_element()
-            (0, 2)
-        """
-        return tuple(rnd.sample(range(self._n), self._k))
-
-        # r.sort() removed in trac 10534
-        # it is not needed to sort because sage.misc.prandom.sample returns
-        # ordered subword
-
-    def unrank(self, r):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: c52 = ChooseNK(5,2)
-            sage: c52.list() == map(c52.unrank, range(c52.cardinality()))
-            True
-        """
-        if r < 0 or r >= self.cardinality():
-            raise ValueError("rank must be between 0 and %d (inclusive)" % (self.cardinality() - 1))
-        return from_rank(r, self._n, self._k)
-
-    def rank(self, x):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.choose_nk import ChooseNK
-            sage: c52 = ChooseNK(5,2)
-            sage: range(c52.cardinality()) == map(c52.rank, c52)
-            True
-        """
-        if x not in self:
-            raise ValueError("%s not in Choose(%d,%d)" % (str(x),
-                                                          self._n, self._k))
-
-        return rank(x, self._n)
-
-
+#TODO: the following functions are used sage.combinat.combination and
+#      sage.combinat.subset. It might be good to move them somewhere else.
 def rank(comb, n, check=True):
     """
     Returns the rank of comb in the subsets of range(n) of size k.

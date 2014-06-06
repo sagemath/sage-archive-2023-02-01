@@ -1062,6 +1062,12 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(arcsec, (x, -2, 2), exclude=[1.5])  # x=1.5 is also excluded
 
+        sage: plot(arcsec(x/2), -2, 2)  # plot should be empty; no valid points
+
+        sage: plot(sqrt(x^2-1), -2, 2)  # [-1, 1] is excluded automatically
+
+        sage: plot(arccsc, -2, 2)       # [-1, 1] is excluded automatically
+
         sage: set_verbose(0)
 
     TESTS:

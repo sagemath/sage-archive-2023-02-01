@@ -112,7 +112,9 @@ class CooperativeGame(SageObject):
 
     We can test 3 basic properties of the Payoff Vector. They are
         * Is it is efficient?
+
         * Does it possess the nullplayer property?
+
         * Does it possess the symmetry property?
 
     ::

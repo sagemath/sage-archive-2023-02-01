@@ -854,7 +854,7 @@ class AffinePermutationTypeA(AffinePermutation):
         m=-1
         for i in range(self.n):
             if c[i]>0:
-                if firstnonzero==None: firstnonzero=i
+                if firstnonzero is None: firstnonzero=i
                 if m!=-1 and c[i]-(i-m) >= c[m]: return False
                 m=i
         #now check m (the last non-zero) against firstnonzero.
@@ -982,7 +982,7 @@ class AffinePermutationTypeA(AffinePermutation):
         #check w is reduced....:should probably throw an exception otherwise.
         x0=prod([g[i] for i in w])
         if x0.length()!=len(w): raise ValueError("Word was not reduced.")
-        if alpha==None:
+        if alpha is None:
             alpha=Composition([1 for i in w])
         else:
             if sum(alpha)!=len(w): raise ValueError("Size of alpha must match length of w.")

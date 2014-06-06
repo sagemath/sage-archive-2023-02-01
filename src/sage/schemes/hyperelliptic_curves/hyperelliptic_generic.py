@@ -58,7 +58,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             F = y**2*z**(deg-2) + F0*y*z**(deg-dh-1) - F1*z**(deg-df)
         plane_curve.ProjectiveCurve_generic.__init__(self,PP,F)
         R = PP.base_ring()
-        if names == None:
+        if names is None:
             names = ["x","y"]
         elif isinstance(names,str):
             names = names.split(",")

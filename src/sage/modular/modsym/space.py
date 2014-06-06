@@ -30,7 +30,8 @@ import sage.misc.misc as misc
 import sage.modular.hecke.all as hecke
 import sage.rings.arith as arith
 import sage.rings.fast_arith as fast_arith
-from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField, infinity, Zmod
+from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, infinity, Zmod
+from sage.rings.number_field.number_field_base import is_NumberField
 from   sage.structure.all import Sequence, SageObject
 import sage.modular.modsym.ambient
 

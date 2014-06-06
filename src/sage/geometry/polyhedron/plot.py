@@ -572,7 +572,7 @@ class Projection(SageObject):
             sage: Projection( polytopes.twenty_four_cell() ).stereographic([2,0,0,0])
             The projection of a polyhedron into 3 dimensions
         """
-        if projection_point == None:
+        if projection_point is None:
             projection_point = [1] + [0]*(self.polyhedron_ambient_dim-1)
         return self.__call__(ProjectionFuncStereographic(projection_point))
 
@@ -605,14 +605,14 @@ class Projection(SageObject):
             The projection of a polyhedron into 3 dimensions
 
         """
-        if projection_direction == None:
+        if projection_direction is None:
             for poly in self.polygons:
                 center = sum([self.coords[i] for i in poly]) / len(poly)
                 print center, "\n"
                 if not center.is_zero():
                     projection_direction = center
                     break
-        if projection_direction == None:
+        if projection_direction is None:
             from sage.rings.arith import primes_first_n
             projection_direction = primes_first_n(self.polyhedron_ambient_dim)
         return self.__call__(ProjectionFuncSchlegel(projection_direction, height = height))

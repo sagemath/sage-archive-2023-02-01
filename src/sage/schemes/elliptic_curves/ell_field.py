@@ -649,7 +649,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 jbase = QQ(j)
             else:
                 return None
-        elif f == None:
+        elif f is None:
             embeddings = K.embeddings(self.base_field())
             if len(embeddings) == 0:
                 raise TypeError("Input must be a subfield of the base field of the curve.")
@@ -660,7 +660,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                     break
                 except Exception:
                     pass
-            if f == None:
+            if f is None:
                 return None
         else:
             try:

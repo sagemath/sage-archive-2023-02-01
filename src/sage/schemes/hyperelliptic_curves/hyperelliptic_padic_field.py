@@ -574,15 +574,15 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             TQ = self.frobenius(Q)
             PP, QQ = P, Q
         prof("tiny integrals")
-        if TP == None:
+        if TP is None:
             P_to_TP = V(0)
         else:
-            if TP!=None:
+            if TP is not None:
                 TPv = (TP[0]**g/TP[1]).valuation()
                 xTPv = TP[0].valuation()
             else:
                 xTPv = TPv = +Infinity
-            if TQ!=None:
+            if TQ is not None:
                 TQv = (TQ[0]**g/TQ[1]).valuation()
                 xTQv = TQ[0].valuation()
             else:
@@ -609,7 +609,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
                 TQ = self.frobenius(Q)
                 V = VectorSpace(K,dim)
             P_to_TP = V(self.tiny_integrals_on_basis(P, TP))
-        if TQ == None:
+        if TQ is None:
             TQ_to_Q = V(0)
         else:
             TQ_to_Q = V(self.tiny_integrals_on_basis(TQ, Q))

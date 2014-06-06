@@ -458,7 +458,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if x in self:
             return self
 
-        from sage.rings.number_field.all import is_NumberFieldElement
+        from sage.rings.number_field.number_field_element import is_NumberFieldElement
         if is_NumberFieldElement(x):
             K, from_K = x.parent().subfield(x)
             return K.order(K.gen())

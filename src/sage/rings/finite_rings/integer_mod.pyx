@@ -350,6 +350,20 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         """
         return sage.rings.finite_rings.integer_mod.mod, (self.lift(), self.modulus(), self.parent())
 
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` under the map that sends the
+        generators of the parent to ``im_gens``.
+
+        EXAMPLE::
+
+            sage: a = Mod(7, 10)
+            sage: R = ZZ.quotient(5)
+            sage: a._im_gens_(R, (R(1),))
+            2
+        """
+        return codomain._coerce_(self)
+
     def is_nilpotent(self):
         r"""
         Return ``True`` if ``self`` is nilpotent,

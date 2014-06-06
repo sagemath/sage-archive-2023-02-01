@@ -9,10 +9,8 @@ Affine Weyl Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.weyl_groups import WeylGroups
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 
 class AffineWeylGroups(Category_singleton):
     """
@@ -30,7 +28,7 @@ class AffineWeylGroups(Category_singleton):
         sage: C = AffineWeylGroups(); C
         Category of affine weyl groups
         sage: C.super_categories()
-        [Category of weyl groups, Category of infinite enumerated sets]
+        [Category of infinite weyl groups]
 
         sage: C.example()
         NotImplemented
@@ -49,9 +47,9 @@ class AffineWeylGroups(Category_singleton):
         EXAMPLES::
 
             sage: AffineWeylGroups().super_categories()
-            [Category of weyl groups, Category of infinite enumerated sets]
+            [Category of infinite weyl groups]
         """
-        return [WeylGroups(), InfiniteEnumeratedSets()]
+        return [WeylGroups().Infinite()]
 
     class ParentMethods:
 

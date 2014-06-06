@@ -662,6 +662,12 @@ def elliptic_j(z):
        sage: elliptic_j(z).real().round()
        -32768
 
+    ::
+
+       sage: tau = (1 + sqrt(-163))/2
+       sage: (-elliptic_j(tau.n(100)).real().round())^(1/3)
+       640320
+
    """
    CC = z.parent()
    from sage.rings.complex_field import is_ComplexField
@@ -696,18 +702,15 @@ class EllipticE(MaximaFunction):
         2*round(z/pi) + sin(z)
         sage: elliptic_e(z, 0)
         z
-        sage: elliptic_e(0.5, 0.1)
+        sage: elliptic_e(0.5, 0.1)  # abs tol 2e-15
         0.498011394498832
-
-        sage: loads(dumps(elliptic_e))
-        elliptic_e
     """
     def __init__(self):
         """
-        EXAMPLES::
+        TESTS::
 
-            sage: elliptic_e(0.5, 0.1)
-            0.498011394498832
+            sage: loads(dumps(elliptic_e))
+            elliptic_e
         """
         MaximaFunction.__init__(self, "elliptic_e")
 

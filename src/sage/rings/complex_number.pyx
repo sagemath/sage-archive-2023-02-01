@@ -2291,6 +2291,49 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.is_real() and self.real() in ZZ
 
+    def is_positive_infinity(self):
+        r"""
+        Check if ``self`` is `+\infty`.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_positive_infinity()
+            False
+            sage: CC(oo, 0).is_positive_infinity()
+            True
+            sage: CC(0, oo).is_positive_infinity()
+            False
+        """
+        return self.real().is_positive_infinity() and self.imag().is_zero()
+
+    def is_negative_infinity(self):
+        r"""
+        Check if ``self`` is `-\infty`.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_negative_infinity()
+            False
+            sage: CC(-oo, 0).is_negative_infinity()
+            True
+            sage: CC(0, -oo).is_negative_infinity()
+            False
+        """
+        return self.real().is_negative_infinity() and self.imag().is_zero()
+
+    def is_infinity(self):
+        r"""
+        Check if ``self`` is `\infty`.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_infinity()
+            False
+            sage: CC(0, oo).is_infinity()
+            True
+        """
+        return self.real().is_infinity() or self.imag().is_infinity()
+
     def zeta(self):
         """
         Return the Riemann zeta function evaluated at this complex number.

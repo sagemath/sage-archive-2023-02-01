@@ -505,7 +505,7 @@ class CooperativeGame(SageObject):
         value = self.ch_f[player_and_pred] - self.ch_f[predecessors]
         return value
 
-    def get_predecessors(self, player, permutation):
+    def get_predecessors(self, player, pi):
         r"""
         Returns a list of all the predecessors of a player in a certain
         permutation and the same list including the original player
@@ -515,7 +515,7 @@ class CooperativeGame(SageObject):
 
         -player - A real number or string.
 
-        -permutation - A tuple which is the permutation that should be used.
+        -pi - A tuple which is the permutation that should be used.
 
         EXAMPLES::
 
@@ -535,7 +535,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.get_predecessors(3, (2, 3, 1))
             ([2], [2, 3])
         """
-        pred = list(permutation[:permutation.index(player)])
+        pred = list(pi[:pi.index(player)])
         return sorted(pred), sorted(pred + [player])
 
     def _repr_(self):

@@ -156,7 +156,7 @@ def two_squares_pyx(uint32_t n):
         sage: two_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
-        OverflowError: value too large to convert to uint32_t
+        OverflowError: ...
 
     TESTS::
 
@@ -197,7 +197,7 @@ def is_sum_of_two_squares_pyx(uint32_t n):
         sage: is_sum_of_two_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
-        OverflowError: value too large to convert to uint32_t
+        OverflowError: ...
     """
     cdef uint_fast32_t i[2]
 
@@ -244,7 +244,7 @@ def three_squares_pyx(uint32_t n):
         sage: three_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
-        OverflowError: value too large to convert to uint32_t
+        OverflowError: ...
 
     TESTS::
 
@@ -291,7 +291,7 @@ def four_squares_pyx(uint32_t n):
         sage: four_squares_pyx(2**32)
         Traceback (most recent call last):
         ...
-        OverflowError: value too large to convert to uint32_t
+        OverflowError: ...
 
     TESTS::
 

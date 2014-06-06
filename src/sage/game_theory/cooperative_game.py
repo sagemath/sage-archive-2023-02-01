@@ -50,7 +50,7 @@ class CooperativeGame(SageObject):
     where $C=2^{\Omega}$ is set of all coalitions of players.
     An example of such a game is shown below:
 
-    $$
+    \[
     v(c) = \begin{cases}
     0,&\text{ if }c=\emptyset\\
     6,&\text{ if }c=\{1\}\\
@@ -61,7 +61,7 @@ class CooperativeGame(SageObject):
     42,&\text{ if }c=\{2,3\}\\
     42,&\text{ if }c=\{1, 2,3\}\\
     \end{cases}
-    $$
+    \]
 
     The function $v$ can be thought of as as a record of contribution of individuals
     and coalitions of individuals.
@@ -93,10 +93,9 @@ class CooperativeGame(SageObject):
         ....:                    ('A', 'B', 'C',): 42}
         sage: letter_game = CooperativeGame(letter_function)
 
-    From this we can now compute the Shapley Value. ::
+    Characteristic function games can be of various types.
 
-        sage: letter_game.shapley_value()
-        {'A': 2, 'C': 35, 'B': 5}
+    In a monotone game...
 
     We can test if it is Monotonic or Superadditive. ::
 
@@ -109,6 +108,25 @@ class CooperativeGame(SageObject):
 
         sage: letter_game
         A 3 player Co-operative Game.
+
+
+    It can be shown that the 'fair' payoff vector, referred to as the Shapley value is given by the following formula:
+
+    \[
+    \phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)
+    \]
+
+    where the summation is over the permutations of the players and the marginal
+    contributions of a player for a given permutation is given as:
+
+    \[
+    \Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))
+    \]
+
+    To compute the Shapley value in Sage is simple:
+
+        sage: letter_game.shapley_value()
+        {'A': 2, 'C': 35, 'B': 5}
 
     We can test 3 basic properties of the Payoff Vector. They are
         * Is it is efficient?

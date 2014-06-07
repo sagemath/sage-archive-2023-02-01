@@ -28,7 +28,6 @@ AUTHORS:
 #*****************************************************************************
 
 import sage.misc.prandom as rnd
-import __builtin__
 import itertools
 
 from sage.categories.sets_cat import EmptySetError, Sets

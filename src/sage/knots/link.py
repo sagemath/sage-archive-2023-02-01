@@ -15,6 +15,10 @@ from sage.rings.integer_ring import ZZ
 from sage.groups.braid import BraidGroup
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod import Mod
+from sage.plot.arrow import arrow2d
+from sage.plot.arrow import arrow
+from sage.plot.graphics import Graphics
+from sage.plot.plot3d.shapes2 import bezier3d
 
 class Link:
     r"""
@@ -99,11 +103,12 @@ class Link:
             return self._gauss_code
 
         elif self._braid != None:
-            L = self.braid()
+            L = self._braid
             B = L.parent()
             l = self.braidword()
             L = Link(B(l)).dt_code()
             gc = Link(dt_code = L).gauss_code()
+            self._gauss_code = gc
             return gc
 
         elif self._dt_code != None:
@@ -128,6 +133,7 @@ class Link:
                             gauss.append(-(j//2 + 1))
                         elif y[j] == 'over':
                             gauss.append(j//2 + 1)
+            self._gauss_code = gauss
             return gauss
 
     def dt_code(self):
@@ -167,7 +173,7 @@ class Link:
                             crossing = i
                             break
                 if(label[2*crossing + next_label%2] == 1):
-                    return "error"
+                    raise Exception("Implemented only for knots")
                 else:
                     label[2*crossing + next_label%2] =  next_label
                     next_label = next_label + 1
@@ -193,20 +199,22 @@ class Link:
                     if label[2*j+1] == 2*i+1:
                         code[i] = label[2*j]
                         break
+            self._dt_code = code
             return code
 
-         #this needs to further worked upon, the signs are not taken in consideration yet
         elif self._gauss_code != None:
             gc = self._gauss_code
             l = [0 for i in range(len(gc))]
             for i in range(len(gc)):
                 k = abs(gc[i])
                 if l[2*(k-1)] == 0:
-                    l[2*(k-1)] = i + 1
+                    l[2*(k-1)] = (i + 1)*(cmp(gc[i],0))
                 else:
-                    l[2*k-1] = i + 1
-            l = [l[i] for i in range(len(gc)) if l[i]%2 == 0]
-            return l
+                    l[2*k-1] = (i + 1)*(cmp(gc[i],0))
+            y = [l[i] for i in range(len(l)) if abs(l[i])%2 == 0]
+            x = [(-1)*y[i] if y[i] < 0 else (-1)*y[i] for i in range(len(y))]
+            self._dt_code = x
+            return x
 
     def _braidwordcomponents(self):
         r"""
@@ -669,3 +677,137 @@ class Link:
                 return 1
         else:
             raise Exception("Arf invariant is defined only for knots")
+
+    #there is an ambiguity in selecting the 2 and 4 co ordinates once the code is generated.
+    #the ambiguity is deciding on which comes first, because while constucting the PD code one needs to
+    #move clockwise around the crossing.And the direction is not captured in the code.
+    def PD_code(self):
+        r"""
+        Returns the Planar Diagram Code
+
+        INPUT:
+            - Either a braidword, gauss_code, dt_code
+
+        OUTPUT:
+            - Planar Representation of the Knot
+
+        EXAMPLES::
+
+            sage: from sage.knots import link
+            sage: B = BraidGroup(20)
+            sage: L = link.Link(B([-1,2,-1,2]))
+            sage: L.PD_code()
+            [[4, 1, 5, 2], [6, 3, 7, 4], [8, 5, 1, 6], [2, 7, 3, 8]]
+            sage: L = link.Link(gauss_code = [-1, 4, -3, 1, -5, 8, -6, 9, -7, 10, -2, 3, -4, 2, -10, 5, -8, 6, -9, 7])
+            sage: L.PD_code()
+            [[1, 4, 2, 5], [3, 14, 4, 15], [5, 12, 6, 13], [7, 2, 8, 3], [9, 16, 10, 17], [11, 18, 12, 19], [13, 20, 14, 1], [15, 6, 16, 7], [17, 8, 18, 9], [19, 10, 20, 11]]
+            sage: L = link.Link(dt_code = [4, 8, 10, -14, 2, -16, -18, -6, -12])
+            sage: L.PD_code()
+            [[4, 1, 5, 2], [8, 3, 9, 4], [10, 5, 11, 6], [7, 14, 8, 15], [2, 9, 3, 10], [11, 16, 12, 17], [13, 18, 14, 1], [15, 6, 16, 7], [17, 12, 18, 13]]
+        """
+        dt = self.dt_code()
+        y = [None for i in range(2*len(dt))]
+        x = [0 for i in range(2*len(dt))]
+        for i in range(len(dt)):
+            x[2*i] = 2*i + 1
+            x[2*i + 1] = dt[i]
+        p = [[None,None] for i in range(len(x))]
+        t = [abs(r) for r in x]
+        for i in range(len(t)):
+            if t[i] != max(t):
+                p[i][0] = t[i]
+                p[i][1] = t[i] + 1
+            else:
+                p[i][0] = t[i]
+                p[i][1] = 1
+        for i in range(len(dt)):
+            if x[2*i+1] > 0:
+                y[2*i+1] = 'under'
+                y[2*i] = 'over'
+            elif x[2*i+1] < 0:
+                y[2*i+1] = 'over'
+                y[2*i] = 'under'
+        for i in range(len(dt)):
+            if y[2*i + 1] == 'under':
+                p[2*i+1].extend(p[2*i])
+            elif y[2*i + 1] == 'over':
+                p[2*i].extend(p[2*i+1])
+        q = [p[i] for i in range(len(p)) if len(p[i]) == 4]
+        for i in range(len(dt)):
+            a = q[i][1]
+            q[i][1] = q[i][2]
+            q[i][2] = a
+        return q
+
+
+    def is_alternating(self):
+        r"""
+        Returns True if the knot is alternating if else it returns False
+
+        INPUT:
+            - Either a braidword, gauss_code, dt_code
+
+        OUTPUT:
+            - True or False, depending whether the knot is alternating or not
+
+        EXAMPLES::
+
+            sage: from sage.knots import link
+            sage: B = BraidGroup(4)
+            sage: L = link.Link(B([1,1,1,2,1,1,1,2]))
+            sage: L.is_alternating()
+            False
+            sage: L = link.Link(B([1,1,1,-2,-1,-1,-1,-2]))
+            sage: L.is_alternating()
+            False
+            sage: L = link.Link(B([1,1,2,-1,2,1,3,2,2,2,3]))
+            sage: L.is_alternating()
+            False
+            sage: L = link.Link(B([-1,2,-1,2,-1,2,-1,2,-1,2]))
+            sage: L.is_alternating()
+            True
+        """
+        if x.is_knot() == True:
+            x = self.gauss_code()
+            s = [cmp(x[i],0) for i in range(len(x))]
+            if s == [(-1)**i+1 for i in range(len(x))] or s == [(-1)**i for i in range(len(x))]:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    #this is being done not in a good way.Just an idea I was working on.
+    def knot_diagram(self):
+        x = self.PD_code()
+        p =[[None for i in range(4)] for i in range(len(x))]
+        plt = Graphics()
+        for i in range(len(x)):
+            a = x[i][0]
+            plt = plt + arrow((i,i,i), (i + 0.4,i,i), legend_color='purple') + arrow((i+0.6,i,i),(i+1,i,i))
+            p[i][0] = ((i,i,i)) #((i,i),(i + 0.4, i))
+            p[i][2] = ((i+0.6,i,i)) #((i+0.6,i),(i+1,i))
+            plt = plt + arrow((i+0.5,i,i-0.5),(i+0.5,i,i-0.1)) + arrow((i+0.5,i,i+0.1),(i+0.5,i,i+0.5))
+            p[i][1] = (i+0.5,i,i-0.5) #((i+0.5,i-0.5),(i+0.5,i-0.1))
+            p[i][3] = (i+0.5,i,i+0.1) #((i+0.5,i+0.1),(i+0.5,i+0.5))
+        #plt = plt + arrow2d((0,1),(1,2))
+        #plt = plt + arrow((2,1),(3,2))
+        q = [x[j][i] for j in range(len(x)) for i in range(4)]
+        r = [list(p[j][i]) for j in range(len(p)) for i in range(4)]
+        t = []
+        print q
+        print r
+        for i in range(1,len(q)+1):
+            for j in range(len(q)):
+                if q[j] == i:
+                    t.append(j)
+                    #plt = plt + bezier_path([[r[j]]])
+        print t
+        #s = [(-1)*r[t[i]] for i in range(len(t))]
+        for i in range(0,len(t),2):
+            print r[t[i]], r[t[i+1]]
+            path = [[tuple(r[t[i]]),tuple(r[t[i+1]])]]
+            b = bezier3d(path, color='green')
+            plt = plt + b
+            #plt = plt + bezier_path([[(s[i]),(s[i+1])]]).plot3d()
+        return plt

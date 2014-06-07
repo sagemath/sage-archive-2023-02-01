@@ -1,0 +1,37 @@
+= pyzmq =
+
+== Description ==
+
+Python bindings for the zeromq networking library.
+
+== License ==
+
+LGPLv3+
+
+== SPKG Maintainers ==
+
+* Volker Braun
+* Thierry Monteil
+* William Stein
+
+== Upstream Contact ==
+
+http://www.zeromq.org
+
+== Dependencies ==
+
+* Python
+* Cython
+* zeromq
+
+== Special Update/Build Instructions ==
+
+ * Here is a description of patches on top of pyzmq.
+
+   - patches/buildutils.patch: This patches the file src/buildutils/detect.py.
+     It remove the option -arch for gcc which was broken on MacOSX 10.5.8.
+     The reason to this is that Sage's gcc spkg does not build a compiler
+     which understands the option -arch of Apple's clone of gcc.
+     https://groups.google.com/forum/?fromgroups#!topic/sage-devel/CuZNKclprIQ
+     http://trac.sagemath.org/sage_trac/ticket/13313
+

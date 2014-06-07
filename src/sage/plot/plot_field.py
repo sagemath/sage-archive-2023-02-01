@@ -149,7 +149,7 @@ class PlotField(GraphicPrimitive):
         subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array, angles='xy', **quiver_options)
 
 @options(plot_points=20,frame=True)
-def plot_vector_field((f, g), xrange, yrange, **options):
+def plot_vector_field(f_g, xrange, yrange, **options):
     r"""
     ``plot_vector_field`` takes two functions of two variables xvar and yvar
     (for instance, if the variables are `x` and `y`, take `(f(x,y), g(x,y))`)
@@ -197,6 +197,7 @@ def plot_vector_field((f, g), xrange, yrange, **options):
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2), xmax=10)
         sage: plot_vector_field((x, y), (x, -2, 2), (y, -2, 2)).show(xmax=10) # These are equivalent
     """
+    (f, g) = f_g
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid
     z, ranges = setup_for_eval_on_grid([f,g], [xrange, yrange], options['plot_points'])

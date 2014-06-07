@@ -96,7 +96,6 @@ contains the following combinatorial functions:
 .. TODO::
 
     GUAVA commands:
-        * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
         * VandermondeMat
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.
@@ -449,7 +448,7 @@ def euler_number(n):
     """
     n = ZZ(n)
     if n < 0:
-        raise ValueError, "n (=%s) must be a nonnegative integer"%n
+        raise ValueError("n (=%s) must be a nonnegative integer"%n)
     return ZZ(maxima.eval("euler(%s)"%n))
 
 def fibonacci(n, algorithm="pari"):
@@ -506,7 +505,7 @@ def fibonacci(n, algorithm="pari"):
     elif algorithm == 'gap':
         return ZZ(gap.eval("Fibonacci(%s)"%n))
     else:
-        raise ValueError, "no algorithm %s"%algorithm
+        raise ValueError("no algorithm %s"%algorithm)
 
 def lucas_number1(n,P,Q):
     """
@@ -627,11 +626,14 @@ def lucas_number2(n,P,Q):
     ans=gap.eval("Lucas(%s,%s,%s)[2]"%(QQ._coerce_(P),QQ._coerce_(Q),ZZ(n)))
     return sage_eval(ans)
 
-def stirling_number1(n,k):
-    """
-    Returns the n-th Stilling number `S_1(n,k)` of the first
-    kind (the number of permutations of n points with k cycles). Wraps
-    GAP's Stirling1.
+
+def stirling_number1(n, k):
+    r"""
+    Returns the `n`-th Stirling number `S_1(n,k)` of the first kind
+
+    This is the number of permutations of `n` points with `k` cycles.
+
+    This wraps GAP's Stirling1.
 
     EXAMPLES::
 
@@ -646,7 +648,9 @@ def stirling_number1(n,k):
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
-    return ZZ(gap.eval("Stirling1(%s,%s)"%(ZZ(n),ZZ(k))))
+    return Integer(gap.eval("Stirling1({0},{1})".format(Integer(n),
+                                                        Integer(k))))
+
 
 def stirling_number2(n, k, algorithm=None):
     """
@@ -842,9 +846,9 @@ class CombinatorialObject(SageObject):
             sage: sorted(L, cmp)
             [[1], [2], [3], [4]]
             sage: f = Foo([4])
-            sage: f == None
+            sage: f is None
             False
-            sage: f != None
+            sage: f is not None
             True
 
         .. WARNING::
@@ -1183,7 +1187,7 @@ class CombinatorialClass(Parent):
             ...
             AttributeError: __len__ has been removed; use .cardinality() instead
         """
-        raise AttributeError, "__len__ has been removed; use .cardinality() instead"
+        raise AttributeError("__len__ has been removed; use .cardinality() instead")
 
     def is_finite(self):
         """
@@ -1329,7 +1333,7 @@ class CombinatorialClass(Parent):
         if x in self:
             return self._element_constructor_(x)
         else:
-            raise ValueError, "%s not in %s"%(x, self)
+            raise ValueError("%s not in %s"%(x, self))
 
     Element = CombinatorialObject # mostly for backward compatibility
     @lazy_attribute
@@ -1444,7 +1448,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError):
                 break
 
-            if l == None:
+            if l is None:
                 break
             else:
                 li.append(l)
@@ -1472,7 +1476,7 @@ class CombinatorialClass(Parent):
             except (TypeError, ValueError, IndexError):
                 break
 
-            if u == None:
+            if u is None:
                 break
             else:
                 yield u
@@ -1522,7 +1526,7 @@ class CombinatorialClass(Parent):
         elif self.list != self.__list_from_iterator:
             return self.__iterator_from_list()
         else:
-            raise NotImplementedError, "iterator called but not implemented"
+            raise NotImplementedError("iterator called but not implemented")
 
     def __unrank_from_iterator(self, r):
         """
@@ -1540,7 +1544,7 @@ class CombinatorialClass(Parent):
             if counter == r:
                 return u
             counter += 1
-        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+        raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
 
     #Set the default implementation of unrank
     unrank = __unrank_from_iterator
@@ -1577,7 +1581,7 @@ class CombinatorialClass(Parent):
             ...
             NotImplementedError: Deprecated: use random_element() instead
         """
-        raise NotImplementedError, "Deprecated: use random_element() instead"
+        raise NotImplementedError("Deprecated: use random_element() instead")
 
     def __rank_from_iterator(self, obj):
         """
@@ -1700,7 +1704,7 @@ class CombinatorialClass(Parent):
             [[1, 2], [2, 1], [1]]
         """
         if not isinstance(right_cc, CombinatorialClass):
-            raise TypeError, "right_cc must be a CombinatorialClass"
+            raise TypeError("right_cc must be a CombinatorialClass")
         return UnionCombinatorialClass(self, right_cc, name=name)
 
     def map(self, f, name=None):
@@ -2121,7 +2125,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
             ...
             NotImplementedError: infinite list
         """
-        raise NotImplementedError, "infinite list"
+        raise NotImplementedError("infinite list")
 
     def __iter__(self):
         """
@@ -2764,7 +2768,7 @@ def bernoulli_polynomial(x, n):
         if n < 0:
             raise TypeError
     except TypeError:
-        raise ValueError, "The second argument must be a non-negative integer"
+        raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
         return ZZ(1)

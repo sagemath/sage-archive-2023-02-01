@@ -107,7 +107,7 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
 
 
     ## Organize these vectors by length (and also introduce their negatives)
-    max_len = vec_len/2
+    max_len = vec_len // 2
     vector_list_by_length = [[]  for _ in range(max_len + 1)]
     for v in vector_list:
         l = self(v)
@@ -357,7 +357,7 @@ def automorphisms(self):
     """
     ## only for definite forms
     if not self.is_definite():
-        raise ValueError, "not a definite form in QuadraticForm.automorphisms()"
+        raise ValueError("not a definite form in QuadraticForm.automorphisms()")
 
     ## Check for a cached value
     try:
@@ -456,7 +456,7 @@ def number_of_automorphisms(self, recompute=False):
     """
     ## only for definite forms
     if not self.is_definite():
-        raise ValueError, "not a definite form in QuadraticForm.number_of_automorphisms()"
+        raise ValueError("not a definite form in QuadraticForm.number_of_automorphisms()")
 
     ## Try to use the cached version if we can
     if not recompute:
@@ -530,7 +530,7 @@ def number_of_automorphisms__souvigner(self):
             return num_of_autos
 
     ## Raise and error if we're here:
-    raise RuntimeError, "Oops! There is a problem..."
+    raise RuntimeError("Oops! There is a problem...")
 
 
 

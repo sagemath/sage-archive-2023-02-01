@@ -366,7 +366,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: F[5]
         1
     """
-    assert(type(hidden_keys) == list)
+    assert(isinstance(hidden_keys, list))
     assert(isinstance(lazy, bool))
 
     if hidden_keys == []:
@@ -1009,7 +1009,7 @@ class LazyFamily(AbstractFamily):
         f = self.function
         # This should be done once for all by registering
         # sage.misc.fpickle.pickle_function to copy_reg
-        if type(f) is type(Family): # TODO: where is the python `function` type?
+        if isinstance(f, type(Family)): # TODO: where is the python `function` type?
             from sage.misc.fpickle import pickle_function
             f = pickle_function(f)
 

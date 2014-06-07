@@ -979,11 +979,11 @@ def branch_weyl_character(chi, R, S, rule="default"):
         sage: A3(0,1,0).branch(C2,rule=br)
         C2(0,0) + C2(0,1)
     """
-    if type(rule) is str or type(rule) is list:
+    if isinstance(rule, str) or isinstance(rule, list):
         rule = branching_rule(R._cartan_type, S._cartan_type, rule)
     if hasattr(rule,"_S"):
         if rule._S != S.cartan_type():
-            raise ValueError,"rule has wrong target Cartan type"        
+            raise ValueError("rule has wrong target Cartan type")        
     mdict = {}
     for k in chi.weight_multiplicities():
         # TODO: Could this use the new from_vector of ambient_space ?
@@ -1120,7 +1120,7 @@ class BranchingRule(SageObject):
             f  = lambda x : other._f(self._f(x))
             return BranchingRule(self._R, other._S, f, "composite", intermediate_types=intermediates, intermediate_names=internames)
         else:
-            raise ValueError, "unable to define composite: source and target don't agree"
+            raise ValueError("unable to define composite: source and target don't agree")
 
     def Rtype(self):
         """
@@ -1180,7 +1180,7 @@ class BranchingRule(SageObject):
         Rspace = RootSystem(self._R).ambient_space()
         Sspace = RootSystem(self._S).ambient_space()
         if self._R.is_compound():
-            raise ValueError,"Cannot describe branching rule from reducible type"
+            raise ValueError("Cannot describe branching rule from reducible type")
         if not no_r:
             print "\n%s"%(self._R.affine().dynkin_diagram()).__repr__()
         if self._S.is_compound():
@@ -1253,7 +1253,7 @@ class BranchingRule(SageObject):
             A2(0,1) + A2(1,0) + A2(0,2) + 2*A2(1,1) + A2(2,0) + A2(1,2) + A2(2,1)
 
         """
-        if style == None:
+        if style is None:
             style = chi.parent()._style
         S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(self.Stype(), style=style)
         return chi.branch(S, rule=self)
@@ -1296,7 +1296,7 @@ def branching_rule(Rtype, Stype, rule="default"):
     sdim = Stype.root_system().ambient_space().dimension()
     if Rtype.is_compound():
         Rtypes = Rtype.component_types()
-        if type(rule) is str:
+        if isinstance(rule, str):
             if rule[:4] == "proj":
                 name = rule
                 proj = [int(j)-1 for j in rule[4:]]
@@ -1370,7 +1370,7 @@ def branching_rule(Rtype, Stype, rule="default"):
         raise ValueError("No default rule found (you must specify the rule)")
     elif rule == "identity":
         if Rtype is not Stype:
-            raise ValueError, "Cartan types must match for identity rule"
+            raise ValueError("Cartan types must match for identity rule")
         return BranchingRule(Rtype, Stype, lambda x : x, "identity")
     elif rule == "levi":
         if not s == r-1:
@@ -2206,7 +2206,7 @@ def maximal_subgroups(ct, mode="print_rules"):
             [k, br] = line.split(":")
             br = eval(br)
             if k in d:
-                if type(d[k]) is not list:
+                if not isinstance(d[k], list):
                     d[k] = [d[k]]
                 d[k].append(br)
             else:

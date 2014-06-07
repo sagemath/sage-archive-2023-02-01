@@ -200,7 +200,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableau_factorized_permutation(t, k, inner_shape = inner_shape)
     else:
-        raise NotImplementedError, "The representation option needs to be 'core', 'bounded', or 'factorized_permuation'"
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
 
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
@@ -264,7 +264,7 @@ def WeakTableaux(k, shape , weight, representation = "core"):
     elif representation == "factorized_permutation":
         return WeakTableaux_factorized_permutation(k, shape, weight)
     else:
-        raise NotImplementedError, "The representation option needs to be 'core', 'bounded', or 'factorized_permuation'"
+        raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permuation'")
 
 #Abstract class for the elements of weak tableau
 class WeakTableau_abstract(ClonableList):
@@ -1382,7 +1382,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         inner = tab.inner_shape()
         weight = tuple(tab.weight())
         if outer.conjugate().length() > k:
-            raise ValueError, "The shape of %s is not %s-bounded"%(t, k)
+            raise ValueError("The shape of %s is not %s-bounded"%(t, k))
         return WeakTableaux_bounded(k, [outer, inner], weight)(t)
 
     def __init__(self, parent, t):
@@ -1426,7 +1426,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         self.k = k
         self._list = [r for r in t]
         if parent._outer_shape.conjugate().length() > k:
-            raise ValueError, "%s is not a %s-bounded tableau"%(t, k)
+            raise ValueError("%s is not a %s-bounded tableau"%(t, k))
         ClonableList.__init__(self, parent, t)
 
     def _repr_diagram(self):
@@ -1805,7 +1805,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             if isinstance(t[0], list) or isinstance(t[0], tuple):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
             elif t[0] not in W:
-                raise ValueError, "The input must be a list of reduced words or Weyl group elements"
+                raise ValueError("The input must be a list of reduced words or Weyl group elements")
             else:
                 w_tuple = tuple(W(r) for r in t)
         else:
@@ -2491,13 +2491,13 @@ class StrongTableau(ClonableList):
         """
         T = self.to_standard_list()
         size = Core(map(len,T), self.k+1).length()
-        inner_size = Core(map(len,filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x==None, row ), T))),self.k+1).length()
+        inner_size = Core(map(len,filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x is None, row ), T))),self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
             for j in range(len(T[i])):
                 v = T[i][j]
-                if v!=None and v<0 and ((i!=0 and T[i-1][j]==abs(v)) or (j<len(T[i])-1 and T[i][j+1]==abs(v))):
+                if v is not None and v<0 and ((i!=0 and T[i-1][j]==abs(v)) or (j<len(T[i])-1 and T[i][j+1]==abs(v))):
                     return False
         return True
 
@@ -3589,7 +3589,7 @@ class StrongTableau(ClonableList):
             }
         """
         def chi(x):
-            if x==None:
+            if x is None:
                 return ""
             if x in ZZ:
                 s = "%s"%abs(x)
@@ -3638,7 +3638,7 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x==None or abs(x)<=rr, row ), self.to_standard_list()))
+        rest_tab = filter(lambda y: len(y)>0, map(lambda row: filter(lambda x: x is None or abs(x)<=rr, row ), self.to_standard_list()))
         new_parent = StrongTableaux( self.k, (Core(map(len, rest_tab), self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 
@@ -4466,7 +4466,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             []
         """
         LL = list(T)
-        marks = [v for row in T for v in row if v!=None and v<0]+[0]
+        marks = [v for row in T for v in row if v is not None and v<0]+[0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
         sh = Core(map(len,T), k+1)
@@ -4481,7 +4481,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                         if msh.length()==sh.length()-1:
                             # if applying t_{j-l,j+1} reduces the size of the shape by 1
                             valcells = [LL[c[0]][c[1]] for c in SkewPartition([sh.to_partition(),msh.to_partition()]).cells()]
-                            if all(x!=None for x in valcells) and all(abs(x)==v for x in valcells) and filter( lambda x: x==-v, valcells )==[-v]:
+                            if all(x is not None for x in valcells) and all(abs(x)==v for x in valcells) and filter( lambda x: x==-v, valcells )==[-v]:
                                 # if all values are \pm v and exactly one of them is -v
                                 transeq.append([j-l, j+1])
                                 LL = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]

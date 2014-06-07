@@ -427,7 +427,7 @@ class Core(CombinatorialObject, Element):
             ...
             ValueError: The two cores do not have the same k
         """
-        if type(self) == type(other):
+        if isinstance(self, type(other)):
             if self.k() != other.k():
                 raise ValueError("The two cores do not have the same k")
         else:
@@ -482,7 +482,7 @@ class Core(CombinatorialObject, Element):
             ...
             ValueError: The two cores do not have the same k
         """
-        if type(self) == type(other):
+        if isinstance(self, type(other)):
             if self.k()!=other.k():
                 raise ValueError("The two cores do not have the same k")
         else:

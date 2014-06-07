@@ -22,6 +22,7 @@ a ``binary_matrix_t`` structure contains :
     width``.
 """
 include "binary_matrix_pxd.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef inline binary_matrix_init(binary_matrix_t m, long n_rows, long n_cols):
     r"""
@@ -56,7 +57,20 @@ cdef inline binary_matrix_fill(binary_matrix_t m, bint bit):
     r"""
     Fill the whole matrix with a bit
     """
-    memset(m.rows[0],-(<char> bit),m.width * m.n_rows * sizeof(unsigned long))
+    memset(m.rows[0],-(<unsigned char> bit),m.width * m.n_rows * sizeof(unsigned long))
+
+cdef inline binary_matrix_complement(binary_matrix_t m):
+    r"""
+    Complements all of the matrix' bits.
+    """
+    cdef int i,j
+    for i in range(m.n_rows):
+        for j in range(m.width):
+            m.rows[i][j] = ~m.rows[i][j]
+
+        # Set the "useless" bits to 0 too.
+        if ((m.n_cols)  & offset_mask):
+            m.rows[i][m.width-1] &= (<unsigned long> 1<<((m.n_cols)  & offset_mask))-1
 
 cdef inline binary_matrix_set1(binary_matrix_t m, long row, long col):
     r"""
@@ -90,6 +104,10 @@ cdef inline binary_matrix_print(binary_matrix_t m):
     cdef int i,j
     import sys
     for i in range(m.n_rows):
+        # If you want to print the *whole* matrix, including the useless bits,
+        # use the following line instead
+        #
+        # for j in (m.width*8*sizeof(unsigned long)):
         for j in range(m.n_cols):
             sys.stdout.write("1" if binary_matrix_get(m, i, j) else ".",)
         print ""

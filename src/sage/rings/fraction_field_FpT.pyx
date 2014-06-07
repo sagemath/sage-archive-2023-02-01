@@ -99,7 +99,6 @@ cdef class FpTElement(RingElement):
             sage: R.<t> = FpT(GF(5)['t'])
             sage: R(7)
             2
-
         """
         RingElement.__init__(self, parent)
         if coerce:
@@ -685,7 +684,6 @@ cdef class FpTElement(RingElement):
             []
             sage: [a for a in R.iter(2) if a.is_square() and a.sqrt()^2 != a]
             []
-
         """
         if nmod_poly_is_zero(self._numer):
             return self
@@ -759,7 +757,6 @@ cdef class FpTElement(RingElement):
             (3*t + 6)/(t^6 + 3*t^3 + 4)
             sage: p.sqrt()^2 == p
             True
-
         """
         s = self._sqrt_or_None()
         if s is None:
@@ -1037,6 +1034,36 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, R.ring_of_integers().Hom(R), check=False)
         self.p = R.base_ring().characteristic()
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R) # indirect doctest
+            sage: f(t^2 + 1)
+            t^2 + 1
+        """
+        _slots['p'] = self.p
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R) # indirect doctest
+            sage: f(t^2 + 1)
+            t^2 + 1
+        """
+        self.p = _slots['p']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, _x):
         """
         Applies the coercion.
@@ -1051,7 +1078,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         """
         cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
@@ -1089,11 +1116,10 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: fraction has denominator 0
-
         """
         cdef Polynomial_zmod_flint x = <Polynomial_zmod_flint?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
@@ -1110,11 +1136,9 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is self._domain):
+                if not (PY_TYPE_CHECK(y, Element) and y.parent() is self.domain()):
                     # We could special case integers and GF(p) elements here.
-                    y = self._domain(y)
-                if not y:
-                    raise ZeroDivisionError('fraction has denominator 0')
+                    y = self.domain()(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
@@ -1180,6 +1204,48 @@ cdef class FpT_Polyring_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(7)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = f.section()   # indirect doctest
+            sage: t = K.gen()
+            sage: g(t^2)
+            t^2
+            sage: g(1/t)
+            Traceback (most recent call last):
+            ...
+            ValueError: not integral
+        """
+        _slots['p'] = self.p
+        return Section._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(7)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = f.section()   # indirect doctest
+            sage: t = K.gen()
+            sage: g(t^2)
+            t^2
+            sage: g(1/t)
+            Traceback (most recent call last):
+            ...
+            ValueError: not integral
+        """
+        self.p = _slots['p']
+        Section._update_slots(self, _slots)
+
     cpdef Element _call_(self, _x):
         """
         Applies the section.
@@ -1212,8 +1278,8 @@ cdef class FpT_Polyring_section(Section):
             normalize(x._numer, x._denom, self.p)
         nmod_poly_init(&ans.x, self.p)
         nmod_poly_set(&ans.x, x._numer)
-        ans._parent = self._codomain
-        ans._cparent = get_cparent(self._codomain)
+        ans._parent = self.codomain()
+        ans._cparent = get_cparent(ans._parent)
         return ans
 
 cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
@@ -1247,6 +1313,42 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, R.base_ring().Hom(R), check=False)
         self.p = R.base_ring().characteristic()
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(GF(5))
+            sage: g = copy(f)
+            sage: g == f
+            True
+            sage: g(GF(5)(2)) == f(GF(5)(2))
+            True
+        """
+        _slots['p'] = self.p
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(GF(5))
+            sage: g = copy(f)
+            sage: g == f
+            True
+            sage: g(GF(5)(2)) == f(GF(5)(2))
+            True
+        """
+        self.p = _slots['p']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, _x):
         """
         Applies the coercion.
@@ -1261,7 +1363,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         """
         cdef IntegerMod_int x = <IntegerMod_int?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
@@ -1290,7 +1392,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         """
         cdef IntegerMod_int x = <IntegerMod_int?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
@@ -1306,7 +1408,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
                     raise ZeroDivisionError
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
-                R = self._codomain.ring_of_integers()
+                R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
                 if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
@@ -1380,6 +1482,60 @@ cdef class FpT_Fp_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(7)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(GF(7))
+            sage: g = f.section()   # indirect doctest
+            sage: t = K.gen()
+            sage: g(t^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not constant
+            sage: g(1/t)
+            Traceback (most recent call last):
+            ...
+            ValueError: not integral
+            sage: g(K(4))
+            4
+            sage: g(K(0))
+            0
+        """
+        _slots['p'] = self.p
+        return Section._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(7)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(GF(7))
+            sage: g = f.section()   # indirect doctest
+            sage: t = K.gen()
+            sage: g(t^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: not constant
+            sage: g(1/t)
+            Traceback (most recent call last):
+            ...
+            ValueError: not integral
+            sage: g(K(4))
+            4
+            sage: g(K(0))
+            0
+        """
+        self.p = _slots['p']
+        Section._update_slots(self, _slots)
+
     cpdef Element _call_(self, _x):
         """
         Applies the section.
@@ -1416,11 +1572,11 @@ cdef class FpT_Fp_section(Section):
             if nmod_poly_degree(x._numer) > 0:
                 raise ValueError, "not constant"
         ans = PY_NEW(IntegerMod_int)
-        ans.__modulus = self._codomain._pyx_order
+        ans._parent = self.codomain()
+        ans.__modulus = ans._parent._pyx_order
         if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
         ans.ivalue = nmod_poly_get_coeff_ui(x._numer, 0)
-        ans._parent = self._codomain
         return ans
 
 cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
@@ -1454,6 +1610,46 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
         self.p = R.base_ring().characteristic()
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(5) == f(5)
+            True
+            sage: g(0) == f(0)
+            True
+        """
+        _slots['p'] = self.p
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(5) == f(5)
+            True
+            sage: g(0) == f(0)
+            True
+        """
+        self.p = _slots['p']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, _x):
         """
         Applies the coercion.
@@ -1468,7 +1664,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         """
         cdef Integer x = <Integer?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
@@ -1499,7 +1695,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         """
         cdef Integer x = <Integer?> _x
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.p = self.p
         nmod_poly_init(ans._numer, ans.p)
         nmod_poly_init(ans._denom, ans.p)
@@ -1515,7 +1711,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
                     raise ZeroDivisionError
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
-                R = self._codomain.ring_of_integers()
+                R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
                 if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
@@ -1561,7 +1757,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             ...
             ValueError: not integral
         """
-        return ZZ.convert_map_from(self._codomain.base_ring()) * Fp_FpT_coerce(self._codomain).section()
+        return ZZ.convert_map_from(self.codomain().base_ring()) * Fp_FpT_coerce(self.codomain()).section()
 
 cdef inline bint normalize(nmod_poly_t numer, nmod_poly_t denom, long p):
     """

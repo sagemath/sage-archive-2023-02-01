@@ -10,9 +10,8 @@ SetsWithPartialMaps
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category, HomCategory
+from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
 from objects import Objects
 
 class SetsWithPartialMaps(Category_singleton):

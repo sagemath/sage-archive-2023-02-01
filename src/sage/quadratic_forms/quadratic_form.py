@@ -70,9 +70,10 @@ def is_QuadraticForm(Q):
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
-        sage: is_QuadraticForm(Q)  ##random -- deprecated
+        sage: from sage.quadratic_forms.quadratic_form import is_QuadraticForm
+        sage: is_QuadraticForm(Q)  ##random
         True
-        sage: is_QuadraticForm(2)  ##random -- deprecated
+        sage: is_QuadraticForm(2)  ##random
         False
 
     """
@@ -386,7 +387,7 @@ class QuadraticForm(SageObject):
             if is_Matrix(n):
                 ## Test if n is symmetric and has even diagonal
                 if not self._is_even_symmetric_matrix_(n, R):
-                    raise TypeError, "Oops!  The matrix is not a symmetric with even diagonal defined over R."
+                    raise TypeError("Oops!  The matrix is not a symmetric with even diagonal defined over R.")
 
                 ## Rename the matrix and ring
                 M = n
@@ -395,11 +396,11 @@ class QuadraticForm(SageObject):
 
 
         ## Deal with:  QuadraticForm(matrix)
-        if is_Matrix(R) and (n == None):
+        if is_Matrix(R) and (n is None):
 
             ## Test if R is symmetric and has even diagonal
             if not self._is_even_symmetric_matrix_(R):
-                raise TypeError, "Oops!  The matrix is not a symmetric with even diagonal."
+                raise TypeError("Oops!  The matrix is not a symmetric with even diagonal.")
 
             ## Rename the matrix and ring
             M = R
@@ -426,14 +427,14 @@ class QuadraticForm(SageObject):
         try:
             n = int(n)
         except Exception:
-            raise TypeError, "Oops! The size " + str(n) + " must be an integer."
+            raise TypeError("Oops! The size " + str(n) + " must be an integer.")
             if (n < 0):
-                raise TypeError, "Oops! The size " + str(n) + " must be a non-negative integer."
+                raise TypeError("Oops! The size " + str(n) + " must be a non-negative integer.")
 
         ## TODO: Verify that R is a ring...
 
         ## Store the relevant variables
-        N = int(n*(n+1))/2
+        N = n*(n+1)//2
         self.__n = int(n)
         self.__base_ring = R
         self.__coeffs = [self.__base_ring(0)  for i in range(N)]
@@ -442,8 +443,8 @@ class QuadraticForm(SageObject):
         if isinstance(entries, list) and (len(entries) == N):
             for i in range(N):
                 self.__coeffs[i] = self.__base_ring(entries[i])
-        elif (entries != None):
-            raise TypeError, "Oops! The entries " + str(entries) + "must be a list of size n(n+1)/2."
+        elif (entries is not None):
+            raise TypeError("Oops! The entries " + str(entries) + "must be a list of size n(n+1)/2.")
 
         ## -----------------------------------------------------------
 
@@ -452,13 +453,13 @@ class QuadraticForm(SageObject):
         if unsafe_initialization:
 
             ## Set the number of automorphisms
-            if number_of_automorphisms != None:
+            if number_of_automorphisms is not None:
                 self.set_number_of_automorphisms(number_of_automorphisms)
                 #self.__number_of_automorphisms = number_of_automorphisms
                 #self.__external_initialization_list.append('number_of_automorphisms')
 
             ## Set the determinant
-            if determinant != None:
+            if determinant is not None:
                 self.__det = determinant
                 self._external_initialization_list.append('determinant')
 
@@ -601,7 +602,7 @@ class QuadraticForm(SageObject):
             i = j
             j = tmp
 
-        return self.__coeffs[i*self.__n - i*(i-1)/2 + j - i]
+        return self.__coeffs[i*self.__n - i*(i-1)//2 + j - i]
 
 
     def __setitem__(self, ij, coeff):
@@ -639,9 +640,9 @@ class QuadraticForm(SageObject):
 
         ## Set the entry
         try:
-            self.__coeffs[i*self.__n - i*(i-1)/2 + j -i] = self.__base_ring(coeff)
+            self.__coeffs[i*self.__n - i*(i-1)//2 + j -i] = self.__base_ring(coeff)
         except Exception:
-            raise RuntimeError, "Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form."
+            raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
 
 ######################################
@@ -696,9 +697,9 @@ class QuadraticForm(SageObject):
 
           """
           if not isinstance(right, QuadraticForm):
-              raise TypeError, "Oops!  Can't add these objects since they're not both quadratic forms. =("
+              raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")
           elif (self.base_ring() != right.base_ring()):
-              raise TypeError, "Oops!  Can't add these since the quadratic forms don't have the same base rings... =("
+              raise TypeError("Oops!  Can't add these since the quadratic forms don't have the same base rings... =(")
           else:
               Q = QuadraticForm(self.base_ring(), self.dim() + right.dim())
               n = self.dim()
@@ -741,11 +742,11 @@ class QuadraticForm(SageObject):
 
           """
           if not isinstance(right, QuadraticForm):
-              raise TypeError, "Oops!  Can't add these objects since they're not both quadratic forms. =("
+              raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")
           elif (self.__n != right.__n):
-              raise TypeError, "Oops!  Can't add these since the quadratic forms don't have the same sizes... =("
+              raise TypeError("Oops!  Can't add these since the quadratic forms don't have the same sizes... =(")
           elif (self.__base_ring != right.__base_ring):
-              raise TypeError, "Oops!  Can't add these since the quadratic forms don't have the same base rings... =("
+              raise TypeError("Oops!  Can't add these since the quadratic forms don't have the same base rings... =(")
           else:
               return QuadraticForm(self.__base_ring, self.__n, [self.__coeffs[i] + right.__coeffs[i]  for i in range(len(self.__coeffs))])
 
@@ -868,7 +869,7 @@ class QuadraticForm(SageObject):
         if is_Matrix(v):
             ## Check that v has the correct number of rows
             if v.nrows() != n:
-                raise TypeError, "Oops!  The matrix must have " + str(n) + " rows. =("
+                raise TypeError("Oops!  The matrix must have " + str(n) + " rows. =(")
 
             ## Create the new quadratic form
             m = v.ncols()
@@ -878,20 +879,20 @@ class QuadraticForm(SageObject):
         elif (is_Vector(v) or isinstance(v, (list, tuple))):
             ## Check the vector/tuple/list has the correct length
             if not (len(v) == n):
-                raise TypeError, "Oops!  Your vector needs to have length " + str(n) + " ."
+                raise TypeError("Oops!  Your vector needs to have length " + str(n) + " .")
 
             ## TO DO:  Check that the elements can be coerced into the base ring of Q -- on first elt.
             if len(v) > 0:
                 try:
                     x = self.base_ring()(v[0])
                 except Exception:
-                    raise TypeError, "Oops!  Your vector is not coercible to the base ring of the quadratic form... =("
+                    raise TypeError("Oops!  Your vector is not coercible to the base ring of the quadratic form... =(")
 
             ## Attempt to evaluate Q[v]
             return QFEvaluateVector(self, v)
 
         else:
-            raise(TypeError, "Oops! Presently we can only evaluate a quadratic form on a list, tuple, vector or matrix.")
+            raise TypeError
 
 
 
@@ -922,15 +923,15 @@ class QuadraticForm(SageObject):
 
         """
         if not is_Matrix(A):
-            raise TypeError, "A is not a matrix."
+            raise TypeError("A is not a matrix.")
 
         ring_coerce_test = True
-        if R == None:            ## This allows us to omit the ring from the variables, and take it from the matrix
+        if R is None:            ## This allows us to omit the ring from the variables, and take it from the matrix
             R = A.base_ring()
             ring_coerce_test = False
 
         if not isinstance(R, Ring):
-            raise TypeError, "R is not a ring."
+            raise TypeError("R is not a ring.")
 
         if not A.is_square():
             return False
@@ -1070,7 +1071,7 @@ class QuadraticForm(SageObject):
         if Int_flag:
             return MatrixSpace(self.base_ring(), n, n)(A)
         else:
-            raise TypeError, "Oops!  This form does not have an integral Gram matrix. =("
+            raise TypeError("Oops!  This form does not have an integral Gram matrix. =(")
 
 
     def has_integral_Gram_matrix(self):
@@ -1124,7 +1125,7 @@ class QuadraticForm(SageObject):
             2
         """
         if self.base_ring() != ZZ:
-            raise TypeError, "Oops! The given quadratic form must be defined over ZZ."
+            raise TypeError("Oops! The given quadratic form must be defined over ZZ.")
 
         return GCD(self.coefficients())
 
@@ -1173,7 +1174,7 @@ class QuadraticForm(SageObject):
         try:
             R = PolynomialRing(self.base_ring(),names,n)
         except Exception:
-            raise ValueError, 'Can only create polynomial rings over commutative rings.'
+            raise ValueError('Can only create polynomial rings over commutative rings.')
         V = vector(R.gens())
         P = (V*M).dot_product(V)
         return P
@@ -1219,7 +1220,7 @@ class QuadraticForm(SageObject):
 
         """
         if self.base_ring() != ZZ:
-            raise TypeError, "Oops! The given quadratic form must be defined over ZZ."
+            raise TypeError("Oops! The given quadratic form must be defined over ZZ.")
 
         g = self.gcd()
         return QuadraticForm(self.base_ring(), self.dim(), [ZZ(x/g)  for x in self.coefficients()])
@@ -1374,9 +1375,9 @@ class QuadraticForm(SageObject):
         """
         ## Check that a canonical coercion is possible
         if not is_Ring(R):
-            raise TypeError, "Oops!  R is not a ring. =("
+            raise TypeError("Oops!  R is not a ring. =(")
         if not R.has_coerce_map_from(self.base_ring()):
-            raise TypeError, "Oops!  There is no canonical coercion from " + str(self.base_ring()) + " to R."
+            raise TypeError("Oops!  There is no canonical coercion from " + str(self.base_ring()) + " to R.")
 
         ## Return the coerced form
         return QuadraticForm(R, self.dim(), [R(x) for x in self.coefficients()])
@@ -1415,7 +1416,7 @@ class QuadraticForm(SageObject):
 
             ## Check that the base ring is a PID
             if not is_PrincipalIdealDomain(self.base_ring()):
-                raise TypeError, "Oops!  The level (as a number) is only defined over a Principal Ideal Domain.  Try using level_ideal()."
+                raise TypeError("Oops!  The level (as a number) is only defined over a Principal Ideal Domain.  Try using level_ideal().")
 
 
             ## Warn the user if the form is defined over a field!
@@ -1428,7 +1429,7 @@ class QuadraticForm(SageObject):
             try:
                 mat_inv = self.matrix()**(-1)
             except ZeroDivisionError:
-                raise TypeError, "Oops!  The quadratic form is degenerate (i.e. det = 0). =("
+                raise TypeError("Oops!  The quadratic form is degenerate (i.e. det = 0). =(")
 
             ## Compute the level
             inv_denoms = []

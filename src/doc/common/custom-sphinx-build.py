@@ -59,6 +59,13 @@ warnings = (re.compile('Segmentation fault'),
 if 'latex' not in sys.argv:
     warnings += (re.compile('WARNING'),)
 
+
+# Do not error out at the first warning, sometimes there is more
+# information. So we run until the end of the file and only then raise
+# the error.
+ERROR_MESSAGE = None
+
+
 class SageSphinxLogger(object):
     """
     This implements the file object interface to serve as sys.stdout
@@ -73,12 +80,20 @@ class SageSphinxLogger(object):
         self._color = stream.isatty()
         prefix = prefix[0:self.prefix_len]
         prefix = ('[{0:'+str(self.prefix_len)+'}]').format(prefix)
-        color = { 1:'darkgreen', 2:'red' }
-        color = color.get(stream.fileno(), 'lightgray')
+        self._is_stdout = (stream.fileno() == 1)
+        self._is_stderr = (stream.fileno() == 2)
+        if self._is_stdout:
+            color = 'darkgreen'
+        elif self._is_stderr:
+            color = 'red'
+        else:
+            color = 'lightgray'
         self._prefix = sphinx.util.console.colorize(color, prefix)
 
-
     def _filter_out(self, line):
+        if ERROR_MESSAGE and self._is_stdout:
+            # swallow non-errors after an error occurred
+            return True
         line = re.sub(self.ansi_color, '', line)
         global useless_chatter
         for regex in useless_chatter:
@@ -86,12 +101,15 @@ class SageSphinxLogger(object):
                 return True
         return False
 
-    def _warnings(self, line):
+    def _check_warnings(self, line):
+        global ERROR_MESSAGE
+        if ERROR_MESSAGE:
+            return  # we already have found an error
         global warnings
         for regex in warnings:
             if regex.search(line) is not None:
-                return True
-        return False
+                ERROR_MESSAGE = line
+                return
 
     def _log_line(self, line):
         if self._filter_out(line):
@@ -104,8 +122,7 @@ class SageSphinxLogger(object):
             line = self.ansi_color.sub('', line)
         self._stream.write(line)
         self._stream.flush()
-        if self._warnings(line):
-            raise OSError(line)
+        self._check_warnings(line)
 
     _line_buffer = ''
 
@@ -186,3 +203,8 @@ try:
 finally:
     sys.stdout = saved_stdout
     sys.stderr = saved_stderr
+
+if ERROR_MESSAGE and ABORT_ON_ERROR:
+    sys.stdout.flush()
+    sys.stderr.flush()
+    raise OSError(ERROR_MESSAGE)

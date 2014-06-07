@@ -470,7 +470,7 @@ class ComplexIntervalField_class(field.Field):
             1*I
         """
         if n != 0:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
         return complex_interval.ComplexIntervalFieldElement(self, 0, 1)
 
     def random_element(self, *args, **kwds):

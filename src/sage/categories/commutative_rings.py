@@ -5,17 +5,15 @@ Commutative rings
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from sage.misc.cachefunc import cached_method
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class CommutativeRings(Category_singleton):
+class CommutativeRings(CategoryWithAxiom):
     """
     The category of commutative rings
 
@@ -24,14 +22,14 @@ class CommutativeRings(Category_singleton):
 
     EXAMPLES::
 
-      sage: CommutativeRings()
-      Category of commutative rings
-      sage: CommutativeRings().super_categories()
-      [Category of rings]
+         sage: C = CommutativeRings(); C
+         Category of commutative rings
+         sage: C.super_categories()
+         [Category of rings, Category of commutative magmas]
 
     TESTS::
 
-        sage: TestSuite(CommutativeRings()).run()
+        sage: TestSuite(C).run()
 
         sage: QQ['x,y,z'] in CommutativeRings()
         True
@@ -46,30 +44,6 @@ class CommutativeRings(Category_singleton):
         True
 
     """
-
-    @cached_method
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: CommutativeRings().super_categories()
-            [Category of rings]
-        """
-        from sage.categories.rings import Rings
-        return [Rings()]
-
-    class ParentMethods:
-        def is_commutative(self):
-            """
-            Return True, since commutative rings are commutative.
-
-            EXAMPLES::
-
-                sage: Parent(QQ,category=CommutativeRings()).is_commutative()
-                True
-
-            """
-            return True
 
     class ElementMethods:
         pass

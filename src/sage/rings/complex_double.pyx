@@ -97,6 +97,7 @@ import real_mpfr
 RR = real_mpfr.RealField()
 
 from real_double import RealDoubleElement, RDF
+from sage.rings.integer_ring import ZZ
 
 
 from sage.structure.parent_gens import ParentWithGens
@@ -416,11 +417,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         if S in [int, float, ZZ, QQ, RDF, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return FloatToCDF(S)
         elif RR.has_coerce_map_from(S):
-            return FloatToCDF(RR) * RR.coerce_map_from(S)
+            return FloatToCDF(RR) * RR._internal_coerce_map_from(S)
         elif isinstance(S, ComplexField_class) and S.prec() >= 53:
             return CCtoCDF(S, self)
         elif CC.has_coerce_map_from(S):
-            return CCtoCDF(CC, self) * CC.coerce_map_from(S)
+            return CCtoCDF(CC, self) * CC._internal_coerce_map_from(S)
 
     def _magma_init_(self, magma):
         r"""
@@ -1490,6 +1491,64 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         return True
+
+    def is_integer(self):
+        """
+        Returns True if this number is a integer
+
+        EXAMPLES::
+
+            sage: CDF(0.5).is_integer()
+            False
+            sage: CDF(I).is_integer()
+            False
+            sage: CDF(2).is_integer()
+            True
+        """
+        return (self.real() in ZZ) and (self.imag()==0)
+
+    def is_positive_infinity(self):
+        r"""
+        Check if ``self`` is `+\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_positive_infinity()
+            False
+            sage: CDF(oo, 0).is_positive_infinity()
+            True
+            sage: CDF(0, oo).is_positive_infinity()
+            False
+        """
+        return self.real().is_positive_infinity() and self.imag().is_zero()
+
+    def is_negative_infinity(self):
+        r"""
+        Check if ``self`` is `-\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_negative_infinity()
+            False
+            sage: CDF(-oo, 0).is_negative_infinity()
+            True
+            sage: CDF(0, -oo).is_negative_infinity()
+            False
+        """
+        return self.real().is_negative_infinity() and self.imag().is_zero()
+
+    def is_infinity(self):
+        r"""
+        Check if ``self`` is `\infty`.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_infinity()
+            False
+            sage: CDF(0, oo).is_infinity()
+            True
+        """
+        return self.real().is_infinity() or self.imag().is_infinity()
 
     def _pow_(self, ComplexDoubleElement a):
         """

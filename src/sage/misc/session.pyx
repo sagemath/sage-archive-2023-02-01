@@ -297,7 +297,7 @@ def save_session(name='sage_session', verbose=False):
         try:
             x = state[k]
             if isinstance(x, (types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType, types.TypeType, types.ClassType)):
-                raise TypeError, '%s is a function, method, class or type'%k
+                raise TypeError('{} is a function, method, class or type'.format(k))
 
             # We attempt to pickle *and* unpickle every variable to
             # make *certain* that we can pickled D at the end below.
@@ -310,9 +310,9 @@ def save_session(name='sage_session', verbose=False):
             if verbose:
                 print "Saving %s"%k
             D[k] = x
-        except Exception, msg:
+        except Exception as msg:
             if verbose:
-                print "Not saving %s: %s"%(k, msg)
+                print("Not saving {}: {}".format(k, msg))
             pass
     save(D, name)
     if embedded():

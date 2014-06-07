@@ -21,6 +21,7 @@ from sage.symbolic.pynac import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from functools import reduce
 GaussianField = I.pyobject().parent()
 
 class FakeExpression(object):
@@ -70,7 +71,7 @@ class FakeExpression(object):
             ...
             TypeError: self must be a numeric expression
         """
-        raise TypeError, 'self must be a numeric expression'
+        raise TypeError('self must be a numeric expression')
 
     def operands(self):
         """
@@ -199,7 +200,7 @@ class Converter(object):
         try:
             obj = ex.pyobject()
             return self.pyobject(ex, obj)
-        except TypeError, err:
+        except TypeError as err:
             if 'self must be a numeric expression' not in err:
                 raise err
 
@@ -295,7 +296,7 @@ class Converter(object):
             ...
             NotImplementedError: pyobject
         """
-        raise NotImplementedError, "pyobject"
+        raise NotImplementedError("pyobject")
 
     def symbol(self, ex):
         """
@@ -311,7 +312,7 @@ class Converter(object):
             ...
             NotImplementedError: symbol
         """
-        raise NotImplementedError, "symbol"
+        raise NotImplementedError("symbol")
 
     def relation(self, ex, operator):
         """
@@ -331,7 +332,7 @@ class Converter(object):
             ...
             NotImplementedError: relation
         """
-        raise NotImplementedError, "relation"
+        raise NotImplementedError("relation")
 
     def derivative(self, ex, operator):
         """
@@ -348,7 +349,7 @@ class Converter(object):
             ...
             NotImplementedError: derivative
         """
-        raise NotImplementedError, "derivative"
+        raise NotImplementedError("derivative")
 
     def arithmetic(self, ex, operator):
         """
@@ -366,7 +367,7 @@ class Converter(object):
             ...
             NotImplementedError: arithmetic
         """
-        raise NotImplementedError, "arithmetic"
+        raise NotImplementedError("arithmetic")
 
     def composition(self, ex, operator):
         """
@@ -383,7 +384,7 @@ class Converter(object):
             ...
             NotImplementedError: composition
         """
-        raise NotImplementedError, "composition"
+        raise NotImplementedError("composition")
 
 class InterfaceInit(Converter):
     def __init__(self, interface):
@@ -748,7 +749,7 @@ class AlgebraicConverter(Converter):
             if base == e and expt / (pi*I) in QQ:
                 return exp(expt)._algebraic_(self.field)
 
-        raise TypeError, "unable to convert %s to %s"%(ex, self.field)
+        raise TypeError("unable to convert %s to %s"%(ex, self.field))
 
     def composition(self, ex, operator):
         """
@@ -780,7 +781,7 @@ class AlgebraicConverter(Converter):
             rat_arg = (operand.imag()/(2*ex.parent().pi()))._rational_()
             if rat_arg == 0:
                 # here we will either try and simplify, or return
-                raise ValueError, "Unable to represent as an algebraic number."
+                raise ValueError("Unable to represent as an algebraic number.")
             real = operand.real()
             if real:
                 mag = exp(operand.real())._algebraic_(QQbar)
@@ -811,7 +812,7 @@ class AlgebraicConverter(Converter):
             #expression back.  For example, QQbar(zeta(7)).  See
             #ticket #12665.
             if cmp(res, ex) == 0:
-                raise TypeError, "unable to convert %s to %s"%(ex, self.field)
+                raise TypeError("unable to convert %s to %s"%(ex, self.field))
         return self.field(res)
 
 def algebraic(ex, field):
@@ -893,7 +894,7 @@ class PolynomialConverter(Converter):
 
         """
         if not (ring is None or base_ring is None):
-            raise TypeError, "either base_ring or ring must be specified, but not both"
+            raise TypeError("either base_ring or ring must be specified, but not both")
         self.ex = ex
 
         if ring is not None:
@@ -901,7 +902,7 @@ class PolynomialConverter(Converter):
             self.varnames = ring.variable_names_recursive()
             for v in ex.variables():
                 if repr(v) not in self.varnames and v not in base_ring:
-                    raise TypeError, "%s is not a variable of %s" %(v, ring)
+                    raise TypeError("%s is not a variable of %s" %(v, ring))
             self.ring = ring
             self.base_ring = base_ring
         elif base_ring is not None:
@@ -913,7 +914,7 @@ class PolynomialConverter(Converter):
             self.ring = PolynomialRing(self.base_ring, names=vars)
             self.varnames = self.ring.variable_names()
         else:
-            raise TypeError, "either a ring or base ring must be specified"
+            raise TypeError("either a ring or base ring must be specified")
 
     def symbol(self, ex):
         """
@@ -981,7 +982,7 @@ class PolynomialConverter(Converter):
         if op == operator.eq:
             return self(ex.lhs()) - self(ex.rhs())
         else:
-            raise ValueError, "Unable to represent as a polynomial"
+            raise ValueError("Unable to represent as a polynomial")
 
     def arithmetic(self, ex, operator):
         """
@@ -1191,7 +1192,7 @@ class FastFloatConverter(Converter):
         try:
             return self.ff.fast_float_constant(float(ex))
         except TypeError:
-            raise ValueError, "free variable: %s" % repr(ex)
+            raise ValueError("free variable: %s" % repr(ex))
 
     def arithmetic(self, ex, operator):
         """

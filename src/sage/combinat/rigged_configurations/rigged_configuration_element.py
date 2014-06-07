@@ -1,7 +1,8 @@
 r"""
 Rigged Configuration Elements
 
-A rigged configuration element is a sequence of :class:`RiggedPartition`
+A rigged configuration element is a sequence of
+:class:`~sage.combinat.rigged_configurations.rigged_partition.RiggedPartition`
 objects.
 
 AUTHORS:
@@ -125,7 +126,8 @@ class RiggedConfigurationElement(ClonableArray):
         <BLANKLINE>
 
     We can go between
-    :class:`tensor products of KR tableaux<TensorProductOfKirillovReshetikhinTableaux>`
+    :class:`tensor products of KR tableaux
+    <sage.combinat.rigged_configurations.tensor_product_kr_tableaux.TensorProductOfKirillovReshetikhinTableaux>`
     and tensor products of
     :mod:`KR crystals <sage.combinat.crystals.kirillov_reshetikhin>`::
 
@@ -372,29 +374,29 @@ class RiggedConfigurationElement(ClonableArray):
             {
             \begin{array}[t]{r|c|c|l}
             \cline{2-3} -1 &\phantom{|}&\phantom{|}& -1 \\
-             \cline{2-3} 
+             \cline{2-3}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} 2 &\phantom{|}&\phantom{|}&\phantom{|}& 2 \\
              \cline{2-4} 0 &\phantom{|}& \multicolumn{3 }{l}{ 0 } \\
-             \cline{2-2} 
+             \cline{2-2}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
-             \cline{2-4} 
+             \cline{2-4}
             \end{array}
-            } 
+            }
             \quad
              {
             \begin{array}[t]{r|c|c|c|l}
             \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
-             \cline{2-4} 
+             \cline{2-4}
             \end{array}
             }
             sage: latex(RC(partition_list=[[],[],[],[]]))
@@ -698,7 +700,7 @@ class RiggedConfigurationElement(ClonableArray):
                     new_vac_nums[i] += 2
                     new_rigging[i] += 2
 
-                
+
                 if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
                     new_vac_nums[rigging_index] += 2
 

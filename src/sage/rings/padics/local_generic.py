@@ -344,7 +344,7 @@ class LocalGeneric(CommutativeRing):
         if K is None or K is self:
             return Integer(1)
         else:
-            raise ValueError, "K should be a subring of self"
+            raise ValueError("K should be a subring of self")
 
     def e(self, K = None):
         r"""

@@ -53,6 +53,7 @@ import sage.rings.integer
 import sage.rings.rational
 
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
 
@@ -305,7 +306,7 @@ cdef class RealDoubleField_class(Field):
         from real_mpfr import RR, RealField_class
         if S in [int, float, ZZ, QQ, RLF] or isinstance(S, RealField_class) and S.prec() >= 53:
             return ToRDF(S)
-        connecting = RR.coerce_map_from(S)
+        connecting = RR._internal_coerce_map_from(S)
         if connecting is not None:
             return ToRDF(RR) * connecting
 
@@ -1771,6 +1772,20 @@ cdef class RealDoubleElement(FieldElement):
             False
         """
         return self._value >= 0
+
+    def is_integer(self):
+        """
+        Return True if this number is a integer
+
+        EXAMPLES::
+
+            sage: RDF(3.5).is_integer()
+            False
+            sage: RDF(3).is_integer()
+            True
+        """
+        return self._value in ZZ
+
 
     def cube_root(self):
         """

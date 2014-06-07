@@ -441,14 +441,12 @@ class Decorator:
                IMPLEMENTATION: Calls the PARI "isprime" function.
             <BLANKLINE>
         """
-        from sage.misc.sageinspect import sage_getsourcelines, sage_getfile
+        from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f
-        if hasattr(f, "func_doc"):
+        doc = f.__doc__ or ''
+        if _extract_embedded_position(doc.splitlines()[0]) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
-            except IOError:
-                sourcelines = None
-            if sourcelines is not None:
                 from sage.env import SAGE_LIB, SAGE_SRC
                 filename = sage_getfile(f)
                 # The following is a heuristics to get
@@ -459,11 +457,9 @@ class Decorator:
                 elif filename.startswith(SAGE_LIB):
                     filename = filename[len(SAGE_LIB):]
                 file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
-                doc = file_info+(f.func_doc or '')
-            else:
-                doc = f.func_doc
-        else:
-            doc = f.__doc__
+                doc = file_info+doc
+            except IOError:
+                pass
         return doc
 
     def _sage_src_(self):
@@ -638,8 +634,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         """
         if f is not None:
             self.f = f
-            if hasattr(f, "func_name"):
-                self.__name__ = f.func_name
+            if hasattr(f, "__name__"):
+                self.__name__ = f.__name__
             else:
                 self.__name__ = f.__name__
             self.__module__ = f.__module__
@@ -737,8 +733,8 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
         self.inst = inst
         self.f = f
         self.af = ArgumentFixer(self.f)
-        if hasattr(f, "func_name"):
-            self.__name__ = f.func_name
+        if hasattr(f, "__name__"):
+            self.__name__ = f.__name__
         else:
             self.__name__ = f.__name__
         self.__module__ = f.__module__
@@ -910,20 +906,20 @@ class EnumeratedSetFromIterator_method_decorator(object):
         if f is not None:
             import types
             self.f = f
-            if hasattr(f,"func_name"):
-                self.__name__ = f.func_name
+            if hasattr(f,"__name__"):
+                self.__name__ = f.__name__
                 self.__module__ = f.__module__
 
             else:
                 if hasattr(f, '__module__'):
                     self.__module__ = f.__module__
-                elif hasattr(f, 'im_func'):
-                    self.__module__ = f.im_func.__module__
+                elif hasattr(f, '__func__'):
+                    self.__module__ = f.__func__.__module__
 
                 if hasattr(f, '__name__'):
                     self.__name__ = f.__name__
-                elif hasattr(f, 'im_func'):
-                    self.__name__ = f.im_func.__name__
+                elif hasattr(f, '__func__'):
+                    self.__name__ = f.__func__.__name__
 
         self.options = options
 

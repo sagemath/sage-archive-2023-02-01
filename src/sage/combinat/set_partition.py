@@ -46,6 +46,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
+from functools import reduce
 
 class SetPartition(ClonableArray):
     """
@@ -1546,8 +1547,7 @@ def _listbloc(n, nbrepets, listint=None):
         yield Set([listint])
         return
 
-    l = list(listint)
-    l.sort()
+    l = sorted(listint)
     smallest = Set(l[:1])
     new_listint = Set(l[1:])
 

@@ -23,6 +23,7 @@ cdef extern from "ginac_wrap.h":
 
     # forward declaration of GEx
     ctypedef struct GEx "ex"
+    ctypedef struct GExprSeq "exprseq"
 
     ctypedef struct GBasic "basic":
         unsigned int gethash()
@@ -81,7 +82,7 @@ cdef extern from "ginac_wrap.h":
         bint find(GEx pattern, GExList s) except +
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
-        GEx subs_map "subs" (GExMap map) except +
+        GEx subs_map "subs" (GExMap map, unsigned options) except +
         GEx coeff(GEx expr, int n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
@@ -202,9 +203,13 @@ cdef extern from "ginac_wrap.h":
     GEx* GEx_construct_symbol "Construct_p<ex, symbol>" \
             (void *mem, GSymbol m) except +
     GEx* GEx_construct_ex "Construct_p<ex, ex>" (void *mem, GEx m) except +
+    void GExMap_destruct "Destruct<exmap>"(GExMap *mem) except +
+    GExMap* GEx_construct_exmap "Construct_p<exmap, exmap>" (void *mem, GExMap m) except +
     GEx* GEx_construct_long "Construct_p<ex, long>" (void *mem, long n) except +
     GEx* GEx_construct_double "Construct_p<ex, double>" \
             (void *mem, double d) except +
+    GEx* GEx_construct_exprseq "Construct_p<ex, exprseq>" \
+            (void *mem, GExprSeq s)
 
     GEx* GEx_construct_pyobject "ASSIGN_WRAP" (GEx mem, object n)
 
@@ -230,6 +235,15 @@ cdef extern from "ginac_wrap.h":
         void push_back(GEx)
         int size()
         GEx at(int i)
+
+    ctypedef struct GExprSeq "exprseq":
+        pass
+
+    GExprSeq* GExprSeq_construct_exvector "Construct_p<exprseq, exvector>" \
+            (void *mem, GExVector m) except +
+    bint is_a_exprseq "is_a<exprseq>" (GEx e)
+    bint is_exactly_a_exprseq "is_exactly_a<exprseq>" (GEx e)
+
 
     ctypedef struct GExSetIter "std::set<ex, ex_is_less>::const_iterator":
         void inc "operator++" ()
@@ -359,6 +373,7 @@ cdef extern from "ginac_wrap.h":
         unsigned get_nparams()
         void set_python_func()
         GFunctionOpt eval_func(object f)
+        GFunctionOpt subs_func(object f)
         GFunctionOpt evalf_func(object f)
         GFunctionOpt conjugate_func(object f)
         GFunctionOpt real_part_func(object f)
@@ -519,6 +534,7 @@ cdef extern from "ginac_wrap.h":
         GEx pyExpression_to_ex(object res) except *
         object ex_to_pyExpression(GEx juice)
         int py_get_ginac_serial()
+        object subs_args_to_PyTuple(GExMap map, unsigned options, GExVector seq)
 
         object py_get_sfunction_from_serial(unsigned s) except +
         unsigned py_get_serial_from_sfunction(object f) except +
@@ -527,7 +543,6 @@ cdef extern from "ginac_wrap.h":
 
         stdstring* py_print_function(unsigned id, object args) except +
         stdstring* py_latex_function(unsigned id, object args) except +
-
 
         GConstant py_get_constant(const_char_ptr name) except +
 

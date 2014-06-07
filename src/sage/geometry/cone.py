@@ -169,7 +169,7 @@ check if you can do necessary things using lattice polytopes and polyhedra
 corresponding to cones::
 
     sage: four_rays.lattice_polytope()
-    A lattice polytope: 3-dimensional, 5 vertices.
+    3-d lattice polytope in 3-d lattice N
     sage: four_rays.polyhedron()
     A 3-dimensional polyhedron in ZZ^3 defined as
     the convex hull of 1 vertex and 4 rays
@@ -872,6 +872,7 @@ class IntegralRayCollection(SageObject,
         """
         return self._lattice
 
+    @cached_method
     def dual_lattice(self):
         r"""
         Return the dual of the ambient lattice of ``self``.
@@ -880,7 +881,7 @@ class IntegralRayCollection(SageObject,
 
         - lattice. If possible (that is, if :meth:`lattice` has a
           ``dual()`` method), the dual lattice is returned. Otherwise,
-          `\ZZ^n` is returned, where `n` is the dimension of ``self``.
+          `\ZZ^n` is returned, where `n` is the dimension of :meth:`lattice`.
 
         EXAMPLES::
 
@@ -891,12 +892,10 @@ class IntegralRayCollection(SageObject,
             Ambient free module of rank 3
             over the principal ideal domain Integer Ring
         """
-        if '_dual_lattice' not in self.__dict__:
-            try:
-                self._dual_lattice = self.lattice().dual()
-            except AttributeError:
-                self._dual_lattice = ZZ**self.lattice_dim()
-        return self._dual_lattice
+        try:
+            return self.lattice().dual()
+        except AttributeError:
+            return ZZ**self.lattice_dim()
 
     def lattice_dim(self):
         r"""
@@ -974,91 +973,6 @@ class IntegralRayCollection(SageObject,
         """
         return self._rays[n]
 
-    def ray_iterator(self, ray_list=None):
-        r"""
-        Return an iterator over (some of) the rays of ``self``.
-
-        INPUT:
-
-        - ``ray_list`` -- list of integers, the indices of the requested rays.
-          If not specified, an iterator over all rays of ``self`` will be
-          returned.
-
-        OUTPUT:
-
-        - iterator.
-
-        EXAMPLES::
-
-            sage: c = Cone([(1,0), (0,1), (-1, 0)])
-            sage: [ray for ray in c.ray_iterator()]
-            doctest:...: DeprecationWarning:
-            ray_iterator(...) is deprecated!
-            See http://trac.sagemath.org/12544 for details.
-            [N(0, 1), N(1, 0), N(-1, 0)]
-        """
-        # I couldn't move it to the new Cython class due to some issues with
-        # generators (may be resolved in 0.16). However, this particular
-        # iterator does not really save time or memory, so I think it can just
-        # go. -- Andrey Novoseltsev, 2012-03-06.
-        deprecation(12544, "ray_iterator(...) is deprecated!")
-        if ray_list is None:
-            for ray in self._rays:
-                yield ray
-        else:
-            rays = self._rays
-            for n in ray_list:
-                yield rays[n]
-
-    def ray_matrix(self):
-        r"""
-        Return a matrix whose columns are rays of ``self``.
-
-        It can be convenient for linear algebra operations on rays, as well as
-        for easy-to-read output.
-
-        OUTPUT:
-
-        - matrix.
-
-        EXAMPLES::
-
-            sage: c = Cone([(1,0), (0,1), (-1, 0)])
-            sage: c.ray_matrix()
-            doctest:...: DeprecationWarning:
-            ray_matrix(...) is deprecated,
-            please use rays().column_matrix() instead!
-            See http://trac.sagemath.org/12544 for details.
-            [ 0  1 -1]
-            [ 1  0  0]
-        """
-        deprecation(12544, "ray_matrix(...) is deprecated, "
-                    "please use rays().column_matrix() instead!")
-        return self.rays().column_matrix()
-
-    def ray_set(self):
-        r"""
-        Return rays of ``self`` as a :class:`frozenset`.
-
-        Use :meth:`rays` if you want to get rays in the fixed order.
-
-        OUTPUT:
-
-        - :class:`frozenset` of rays.
-
-        EXAMPLES::
-
-            sage: c = Cone([(1,0), (0,1), (-1, 0)])
-            sage: c.ray_set()
-            doctest:1: DeprecationWarning:
-            ray_set(...) is deprecated, please use rays().set() instead!
-            See http://trac.sagemath.org/12544 for details.
-            frozenset([N(0, 1), N(1, 0), N(-1, 0)])
-        """
-        deprecation(12544, "ray_set(...) is deprecated, "
-                    "please use rays().set() instead!")
-        return self.rays().set()
-
     def rays(self, *args):
         r"""
         Return (some of the) rays of ``self``.
@@ -1095,73 +1009,6 @@ class IntegralRayCollection(SageObject,
             in 2-d lattice N
         """
         return self._rays if not args else self._rays(*args)
-
-    def ray_basis(self):
-        r"""
-        Returns a linearly independent subset of the rays.
-
-        OUTPUT:
-
-        Returns a random but fixed choice of a `\QQ`-basis (of
-        N-lattice points) for the vector space spanned by the rays.
-
-        .. NOTE::
-
-            See :meth:`sage.geometry.cone.ConvexRationalPolyhedralCone.sublattice`
-            if you need a `\ZZ`-basis.
-
-        EXAMPLES::
-
-            sage: c = Cone([(1,1,1,1), (1,-1,1,1), (-1,-1,1,1), (-1,1,1,1), (0,0,0,1)])
-            sage: c.ray_basis()
-            doctest:...: DeprecationWarning:
-            ray_basis(...) is deprecated,
-            please use rays().basis() instead!
-            See http://trac.sagemath.org/12544 for details.
-            N( 1,  1, 1, 1),
-            N( 1, -1, 1, 1),
-            N(-1, -1, 1, 1),
-            N( 0,  0, 0, 1)
-            in 4-d lattice N
-        """
-        deprecation(12544, "ray_basis(...) is deprecated, "
-                    "please use rays().basis() instead!")
-        return self.rays().basis()
-
-    def ray_basis_matrix(self):
-        r"""
-        Returns a linearly independent subset of the rays as a matrix.
-
-        OUTPUT:
-
-        - Returns a random but fixed choice of a `\QQ`-basis (of
-          N-lattice points) for the vector space spanned by the rays.
-
-        - The linearly independent rays are the columns of the returned matrix.
-
-        .. NOTE::
-
-            * see also :meth:`ray_basis`.
-
-            * See :meth:`sage.geometry.cone.ConvexRationalPolyhedralCone.sublattice`
-              if you need a `\ZZ`-basis.
-
-        EXAMPLES::
-
-            sage: c = Cone([(1,1,1,1), (1,-1,1,1), (-1,-1,1,1), (-1,1,1,1), (0,0,0,1)])
-            sage: c.ray_basis_matrix()
-            doctest:...: DeprecationWarning:
-            ray_basis_matrix(...) is deprecated,
-            please use rays().basis().column_matrix() instead!
-            See http://trac.sagemath.org/12544 for details.
-            [ 1  1 -1  0]
-            [ 1 -1 -1  0]
-            [ 1  1  1  0]
-            [ 1  1  1  1]
-        """
-        deprecation(12544, "ray_basis_matrix(...) is deprecated, "
-                    "please use rays().basis().column_matrix() instead!")
-        return self.rays().basis().column_matrix()
 
 
 def classify_cone_2d(ray0, ray1, check=True):
@@ -1512,7 +1359,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         try:
             point = self._ambient_space_point(point)
-        except TypeError, ex:
+        except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a cone contains a point "
                               "from an incompatible lattice, this is False!",
@@ -2938,6 +2785,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._is_strictly_convex = convex
         return self._is_strictly_convex
 
+    @cached_method
     def lattice_polytope(self):
         r"""
         Return the lattice polytope associated to ``self``.
@@ -2959,24 +2807,24 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: lp = quadrant.lattice_polytope()
             sage: lp
-            A lattice polytope: 2-dimensional, 3 vertices.
-            sage: lp.vertices()
-            [1 0 0]
-            [0 1 0]
+            2-d lattice polytope in 2-d lattice N
+            sage: lp.vertices_pc()
+            N(1, 0),
+            N(0, 1),
+            N(0, 0)
+            in 2-d lattice N
 
             sage: line = Cone([(1,0), (-1,0)])
             sage: lp = line.lattice_polytope()
             sage: lp
-            A lattice polytope: 1-dimensional, 2 vertices.
-            sage: lp.vertices()
-            [ 1 -1]
-            [ 0  0]
+            1-d lattice polytope in 2-d lattice N
+            sage: lp.vertices_pc()
+            N( 1, 0),
+            N(-1, 0)
+            in 2-d lattice N
         """
-        if "_lattice_polytope" not in self.__dict__:
-            self._lattice_polytope = LatticePolytope(
-                                tuple(self.rays()) + (self.lattice().zero(),),
-                                compute_vertices=not self.is_strictly_convex())
-        return self._lattice_polytope
+        return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
+                               compute_vertices=not self.is_strictly_convex())
 
     def line_set(self):
         r"""

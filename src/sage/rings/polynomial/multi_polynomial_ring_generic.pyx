@@ -63,12 +63,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         self.__ngens = n
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
+        self._magma_cache = {}
         # Ring.__init__ already does assign the names.
         # It would be a mistake to call ParentWithGens.__init__
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
         sage.rings.ring.Ring.__init__(self, base_ring, names,
-                                      category=polynomial_default_category(base_ring,n>1))
+                                      category=polynomial_default_category(base_ring.category(),n>1))
 
     def is_integral_domain(self, proof = True):
         """

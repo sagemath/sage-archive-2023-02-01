@@ -37,13 +37,14 @@ Solaris, but should also work on OSX and Cygwin.
  * The package is never installed on OS X, unless you set SAGE_ATLAS_ARCH.
 
 === Patches ===
- * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern
-   RHEL 5 and SLES 10 systems.
- * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
- * patches/long_filenames.patch: fix for long filenames (>128 chars)
+ * patches/detect.patch: Fix Itanium2 support on modern
+   RHEL 5 and SLES 10 systems, work around -m64 issue on Itanium2,
+   and correctly detect number and speed of CPUs on a bunch of systems.
+ * patches/arm_hard_floats.patch: make sure soft floats are not enforced on ARM.
+ * patches/long_filenames.patch: fix for long filenames (>128 chars).
  * patches/shell.patch: replace two instances of "test -e" by "test -f",
-   as the former is not portable (in particular for the Solaris
-   shell).
+   as the former is not portable (in particular for the Solaris shell).
+ * patches/Makefile.patch: fix clean target.
  * patches/threads.patch: Avoid thread-related symbols
    ATL_(Set|Reset|Free|Dec)AtomicCount symbols in single-threaded
    library.
@@ -71,8 +72,8 @@ The package can be configured via three environment variables:
      IBMz10, IBMz196, x86x87, x86SSE1, x86SSE2, x86SSE3, P5, P5MMX,
      PPRO, PII, PIII, PM, CoreSolo, CoreDuo, Core2Solo, Core2, Corei1,
      Corei2, Atom, P4, P4E, Efficeon, K7, HAMMER, AMD64K10h, AMDDOZER,
-     UNKNOWNx86, IA64Itan, IA64Itan2, USI, USII, USIII, USIV, UST2,
-     UnknownUS, MIPSR1xK, MIPSICE9, ARMv7
+     UNKNOWNx86, IA64Itan, IA64Itan2, USI, USII, USIII, USIV, UST1, UST2,
+     UnknownUS, MIPSR1xK, MIPSICE9, ARMv6, ARMv7
 
    and instruction set extensions are
 

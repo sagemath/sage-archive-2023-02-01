@@ -36,7 +36,7 @@ from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
-from sage.rings.finite_rings.all import is_FiniteFieldElement
+from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 import ell_point
 from sage.rings.arith import gcd, lcm
@@ -276,10 +276,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError, "n must be a positive integer"
+            raise TypeError("n must be a positive integer")
 
         if n<1:
-            raise ValueError, "n must be a positive integer"
+            raise ValueError("n must be a positive integer")
 
         if n==1:
             return self.cardinality()
@@ -898,9 +898,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 if N1 == N2:
                     N = N1
                 else:
-                    raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2)
+                    raise RuntimeError("BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2))
             else:
-                raise ValueError, "Algorithm is not known"
+                raise ValueError("Algorithm is not known")
             self._order = Integer(N)
             return self._order
 
@@ -1079,7 +1079,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         if k.degree()==1:
             return ZZ(p + 1 - int(self._pari_().ellap(p)))
         else:
-            raise ValueError, "cardinality_pari() only works over prime fields."
+            raise ValueError("cardinality_pari() only works over prime fields.")
 
     def cardinality_bsgs(self, verbose=False):
         r"""
@@ -1489,7 +1489,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         break
                     except ValueError:
                         pass
-                assert a != None
+                assert a is not None
                 a *= (m*n1a)
                 if debug: print "linear relation gives m=",m,", a=",a
                 if debug: assert m*Q==a*P1
@@ -1670,12 +1670,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         from ell_generic import is_EllipticCurve
         if not is_EllipticCurve(other):
-            raise ValueError, "Second argument is not an Elliptic Curve."
+            raise ValueError("Second argument is not an Elliptic Curve.")
         if self.is_isomorphic(other):
             return True
         elif self.base_field().characteristic() != other.base_field().characteristic():
-            raise ValueError, "The base fields must have the same characteristic."
-        elif field==None:
+            raise ValueError("The base fields must have the same characteristic.")
+        elif field is None:
             if self.base_field().degree() == other.base_field().degree():
                 if self.cardinality() == other.cardinality():
                     return True
@@ -1692,10 +1692,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 else:
                     return False
             else:
-                raise ValueError, "Curves have different base fields: use the field parameter."
+                raise ValueError("Curves have different base fields: use the field parameter.")
         else:
             if not lcm(self.base_field().degree(), other.base_field().degree()).divides(field.degree()):
-                raise ValueError, "Field must be an extension of the base fields of both curves"
+                raise ValueError("Field must be an extension of the base fields of both curves")
             else:
                 if \
 self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
@@ -1949,9 +1949,9 @@ def supersingular_j_polynomial(p):
     try:
         p = ZZ(p)
     except TypeError:
-        raise ValueError, "p (=%s) should be a prime number"%p
+        raise ValueError("p (=%s) should be a prime number"%p)
     if not p.is_prime():
-        raise ValueError, "p (=%s) should be a prime number"%p
+        raise ValueError("p (=%s) should be a prime number"%p)
 
     J = polygen(GF(p),'j')
     if p<13:
@@ -2085,7 +2085,7 @@ def is_j_supersingular(j, proof=True):
 
     """
     if not is_FiniteFieldElement(j):
-        raise ValueError, "%s must be an element of a finite field"%j
+        raise ValueError("%s must be an element of a finite field"%j)
 
     F = j.parent()
     p = F.characteristic()

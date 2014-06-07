@@ -352,8 +352,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
 
             #Choose r of these filled places
             for subset in Subsets(filled_places, r):
-                places_to_fill = unfilled_places + list(subset)
-                places_to_fill.sort()
+                places_to_fill = sorted(unfilled_places + list(subset))
 
                 #Fill in w2 into the places
                 i = 0

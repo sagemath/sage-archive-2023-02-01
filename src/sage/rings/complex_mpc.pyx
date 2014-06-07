@@ -2422,7 +2422,7 @@ cdef class MPCtoMPC(Map):
               To:   Complex Field with 10 bits of precision
         """
         cdef MPComplexNumber y
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         y._set(z)
         return y
 
@@ -2439,7 +2439,7 @@ cdef class MPCtoMPC(Map):
               From: Complex Field with 10 bits of precision
               To:   Complex Field with 100 bits of precision
         """
-        return MPCtoMPC(self._codomain, self._domain)
+        return MPCtoMPC(self.codomain(), self.domain())
 
 cdef class INTEGERtoMPC(Map):
     cpdef Element _call_(self, x):
@@ -2460,7 +2460,7 @@ cdef class INTEGERtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_z(y.value, (<Integer>x).value, rnd)
         return y
 
@@ -2483,7 +2483,7 @@ cdef class MPFRtoMPC(Map):
         cdef MPComplexNumber y
 #        cdef mpc_rnd_t rnd
 #        rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
 #        mpc_set_fr(y.value, (<RealNumber>x).value, rnd)
         y._set(x)
         return y
@@ -2507,7 +2507,7 @@ cdef class CCtoMPC(Map):
         cdef MPComplexNumber y
         cdef mpc_rnd_t rnd
         rnd =(<MPComplexField_class>self._parent).__rnd
-        y = (<MPComplexField_class>self._codomain)._new()
+        y = (<MPComplexField_class>self.codomain())._new()
         mpc_set_fr_fr(y.value, (<ComplexNumber>z).__re, (<ComplexNumber>z).__im, rnd)
         return y
 

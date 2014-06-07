@@ -149,9 +149,9 @@ sets such that an ordering `v_1, ..., v_n` of the vertices correspond to
     :nowrap:
 
     \begin{alignat}{2}
-    \intertext{Minimize:}
+    \text{Minimize:}
     &z&\\
-    \intertext{Such that:}
+    \text{Such that:}
     x_v^t &\leq x_v^{t+1}& \forall v\in V,\ 0\leq t\leq n-2\\
     y_v^t &\leq y_v^{t+1}& \forall v\in V,\ 0\leq t\leq n-2\\
     y_v^t &\leq x_w^t& \forall v\in V,\ \forall w\in N^+(v),\ 0\leq t\leq n-1\\

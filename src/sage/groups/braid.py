@@ -42,11 +42,13 @@ element by a braid::
     sage: f1^-1 * b1
     f1*f2^-1*f1^-1
 
-AUTHOR:
+AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Volker Braun
 - Robert Lipshitz
+- Thierry Monteil: add a ``__hash__`` method consistent with the word
+  problem to ensure correct Cayley graph computations.
 """
 
 ##############################################################################
@@ -111,6 +113,20 @@ class Braid(FinitelyPresentedGroupElement):
         nfother = map(lambda i: i.Tietze(), other.left_normal_form())
         return cmp(nfself, nfother)
 
+    def __hash__(self):
+        r"""
+        Return a hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: B.<s0,s1,s2> = BraidGroup(4)
+            sage: hash(s0*s2) == hash(s2*s0)
+            True
+            sage: hash(s0*s1) == hash(s1*s0)
+            False
+        """
+        return hash(tuple(i.Tietze() for i in self.left_normal_form()))
+
     def _latex_(self):
         """
         Return a LaTeX representation
@@ -172,15 +188,15 @@ class Braid(FinitelyPresentedGroupElement):
             Defining s0, s1, s2
             sage: b = s0*s1/s2/s1
             sage: b.burau_matrix()
-            [     -t + 1           0    -t^2 + t         t^2]
-            [          1           0           0           0]
-            [          0           0           1           0]
-            [          0        t^-2 t^-1 - t^-2    1 - t^-1]
+            [       1 - t            0      t - t^2          t^2]
+            [           1            0            0            0]
+            [           0            0            1            0]
+            [           0         t^-2 -t^-2 + t^-1    -t^-1 + 1]
             sage: s2.burau_matrix('x')
-            [     1      0      0      0]
-            [     0      1      0      0]
-            [     0      0 -x + 1      x]
-            [     0      0      1      0]
+            [    1     0     0     0]
+            [    0     1     0     0]
+            [    0     0 1 - x     x]
+            [    0     0     1     0]
             sage: s0.burau_matrix(reduced=True)
             [-t  0  0]
             [-t  1  0]
@@ -265,17 +281,17 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([1,2,1,2])
             sage: b.alexander_polynomial(normalized=False)
-            t^2 - t + 1
+            1 - t + t^2
             sage: b.alexander_polynomial()
-            1 - t^-1 + t^-2
+            t^-2 - t^-1 + 1
 
         Next we construct the figure 8 knot::
 
             sage: b = B([-1,2,-1,2])
             sage: b.alexander_polynomial(normalized=False)
-            -1 + 3*t^-1 - t^-2
+            -t^-2 + 3*t^-1 - 1
             sage: b.alexander_polynomial()
-            1 - 3*t^-1 + t^-2
+            t^-2 - 3*t^-1 + 1
 
         Our last example is the Kinoshita-Terasaka knot::
 
@@ -1102,6 +1118,27 @@ def BraidGroup(n=None, names='s'):
         (s0, s1)
         sage: BraidGroup(3, 'g').generators()
         (g0, g1)
+
+    Since the word problem for the braid groups is solvable, their Cayley graph
+    can be localy obtained as follows (see :trac:`16059`)::
+
+        sage: def ball(group, radius):
+        ....:     ret = set()
+        ....:     ret.add(group.one())
+        ....:     for length in range(1, radius):
+        ....:         for w in Words(alphabet=group.gens(), length=length):
+        ....:              ret.add(prod(w))
+        ....:     return ret
+        sage: B = BraidGroup(4)
+        sage: GB = B.cayley_graph(elements=ball(B, 4), generators=B.gens()); GB
+        Digraph on 31 vertices
+
+    Since the braid group has nontrivial relations, this graph contains less
+    vertices than the one associated to the free group (which is a tree)::
+
+        sage: F = FreeGroup(3)
+        sage: GF = F.cayley_graph(elements=ball(F, 4), generators=F.gens()); GF
+        Digraph on 40 vertices
 
     TESTS::
 

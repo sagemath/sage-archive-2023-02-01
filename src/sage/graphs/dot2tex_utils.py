@@ -90,33 +90,3 @@ def quoted_str(x):
     """
     return re.sub("\n",r"\\n\\"+"\n", re.sub("\"|\r|}|{","", str(x)))
 
-def key(x):
-    r"""
-    Strips the string representation of ``x`` of quotes and newlines
-    to get a key suitable for naming vertices in a dot2tex string.
-
-    EXAMPLES::
-
-        sage: sage.graphs.dot2tex_utils.key(matrix([[1,1],[0,1],[0,0]]))
-        '110100'
-        sage: sage.graphs.dot2tex_utils.key("blah{bleh}\nblih{")
-        'blahblehblih'
-    """
-    return re.sub("[\\\'\"\[\]() \t\r\n{}]","", str(x))
-
-def key_with_hash(x):
-    """
-    Same as :function:`key`, except that the hash of the object is
-    prepended to better ensure uniqueness. This requires the object to
-    be hashable, but this is anyway necessary to use it as a vertex of
-    a graph.
-
-    EXAMPLES::
-
-        sage: sage.graphs.dot2tex_utils.key_with_hash(3)
-        '3_3'
-        sage: sage.graphs.dot2tex_utils.key_with_hash((1,2,3))
-        '1,2,3_...'
-
-    """
-    return key(x)+"_"+str(hash(x))

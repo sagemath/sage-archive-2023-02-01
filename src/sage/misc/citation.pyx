@@ -72,7 +72,7 @@ def get_systems(cmd):
     import cProfile, pstats, re
 
     if not isinstance(cmd, basestring):
-        raise TypeError, "command must be a string"
+        raise TypeError("command must be a string")
 
     cmd = preparse(cmd)
 

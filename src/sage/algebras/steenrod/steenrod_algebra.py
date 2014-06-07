@@ -2895,7 +2895,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             True
         """
         if not self.is_finite():
-            raise ValueError, "the algebra is not finite dimensional"
+            raise ValueError("the algebra is not finite dimensional")
         p = self.prime()
         # we create the top class in the Milnor basis version
         AM = SteenrodAlgebra(basis='milnor', p=p)

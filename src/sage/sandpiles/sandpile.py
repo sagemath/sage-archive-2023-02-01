@@ -289,9 +289,9 @@ class Sandpile(DiGraph):
             sage: TestSuite(S).run()
         """
         # preprocess a graph, if necessary
-        if type(g) == dict and type(g.values()[0]) == dict:
+        if isinstance(g, dict) and isinstance(g.values()[0], dict):
             pass # this is the default format
-        elif type(g) == dict and type(g.values()[0]) == list:
+        elif isinstance(g, dict) and isinstance(g.values()[0], list):
             processed_g = {}
             for k in g.keys():
                 temp = {}
@@ -299,23 +299,23 @@ class Sandpile(DiGraph):
                     temp[vertex] = 1
                 processed_g[k] = temp
             g = processed_g
-        elif type(g) == Graph:
+        elif isinstance(g, Graph):
             processed_g = {}
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors(v):
-                    if type(g.edge_label(v,n)) == type(1) and g.edge_label(v,n) >=0:
+                    if isinstance(g.edge_label(v,n), type(1)) and g.edge_label(v,n) >=0:
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1
                 processed_g[v] = edges
             g = processed_g
-        elif type(g) == DiGraph:
+        elif isinstance(g, DiGraph):
             processed_g = {}
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors_out(v):
-                    if (type(g.edge_label(v,n)) == type(1)
+                    if (isinstance(g.edge_label(v,n), type(1))
                         and g.edge_label(v,n)>=0):
                         edges[n] = g.edge_label(v,n)
                     else:
@@ -323,7 +323,7 @@ class Sandpile(DiGraph):
                 processed_g[v] = edges
             g = processed_g
         else:
-            raise SyntaxError, g
+            raise SyntaxError(g)
 
         # create digraph and initialize some variables
         DiGraph.__init__(self,g,weighted=True)
@@ -414,7 +414,7 @@ class Sandpile(DiGraph):
                 self._set_points()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def version(self):
         r"""
@@ -1377,7 +1377,7 @@ class Sandpile(DiGraph):
             else:
                 return [r.values() for r in result]
         else:
-            raise UserWarning, "The underlying graph must be undirected."
+            raise UserWarning("The underlying graph must be undirected.")
 
     def canonical_divisor(self):
         r"""
@@ -1401,7 +1401,7 @@ class Sandpile(DiGraph):
         if self.is_undirected():
             return SandpileDivisor(self,[self.out_degree(v)-2 for v in self.vertices()])
         else:
-            raise UserWarning, "Only for undirected graphs."
+            raise UserWarning("Only for undirected graphs.")
 
     def _set_invariant_factors(self):
         r"""
@@ -2223,9 +2223,9 @@ class SandpileConfig(dict):
             True
         """
         if len(c)==S.num_verts()-1:
-            if type(c)==dict or type(c)==SandpileConfig:
+            if isinstance(c, dict) or isinstance(c, SandpileConfig):
                 dict.__init__(self,c)
-            elif type(c)==list:
+            elif isinstance(c, list):
                 c.reverse()
                 config = {}
                 for v in S.vertices():
@@ -2233,7 +2233,7 @@ class SandpileConfig(dict):
                         config[v] = c.pop()
                 dict.__init__(self,config)
         else:
-            raise SyntaxError, c
+            raise SyntaxError(c)
 
         self._sandpile = S
         self._vertices = S.nonsink_vertices()
@@ -2338,7 +2338,7 @@ class SandpileConfig(dict):
                 self._set_is_superstable()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -2833,7 +2833,7 @@ class SandpileConfig(dict):
             True
         """
         c = dict(self)
-        if type(sigma)!=SandpileConfig:
+        if not isinstance(sigma, SandpileConfig):
             sigma = SandpileConfig(self._sandpile, sigma)
         sigma = sigma.values()
         for i in range(len(sigma)):
@@ -3447,13 +3447,13 @@ class SandpileDivisor(dict):
         if len(D)==S.num_verts():
             if type(D) in [dict, SandpileDivisor, SandpileConfig]:
                 dict.__init__(self,dict(D))
-            elif type(D)==list:
+            elif isinstance(D, list):
                 div = {}
                 for i in range(S.num_verts()):
                     div[S.vertices()[i]] = D[i]
                     dict.__init__(self,div)
         else:
-            raise SyntaxError, D
+            raise SyntaxError(D)
 
         self._sandpile = S
         self._vertices = S.vertices()
@@ -3560,7 +3560,7 @@ class SandpileDivisor(dict):
                 self._set_life()
                 return self.__dict__[name]
             else:
-                raise AttributeError, name
+                raise AttributeError(name)
 
     def _set_deg(self):
         r"""
@@ -3967,7 +3967,7 @@ class SandpileDivisor(dict):
             True
         """
         D = dict(self)
-        if type(sigma)!=SandpileDivisor:
+        if not isinstance(sigma, SandpileDivisor):
             sigma = SandpileDivisor(self._sandpile, sigma)
         sigma = sigma.values()
         for i in range(len(sigma)):
@@ -4651,7 +4651,7 @@ def sandlib(selector=None):
                            }
                   },
     }
-    if selector==None:
+    if selector is None:
         print
         print '  Sandpiles in the sandlib:'
         for i in sandpiles:
@@ -5338,7 +5338,7 @@ def wilmes_algorithm(M):
                 L[k] = L[k] + v
         return L
     else:
-        raise UserWarning, 'matrix not of full rank'
+        raise UserWarning('matrix not of full rank')
 
 ######### Notes ################
 """

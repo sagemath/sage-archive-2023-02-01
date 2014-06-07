@@ -4,12 +4,13 @@
 Git the Hard Way
 ================
 
-For beginners to Sage development with no git experience, we recommend using
-the Sage development scripts as explained in :ref:`chapter-walk-through`, which
-simplify using git and the trac server. However, you can use git
-directly to work on Sage if you want to take off the training
-wheels. This chapter will tell you how to do so assuming some
-basic familiarity with git.
+For beginners to Sage development with no git experience, we recommend
+using the ``git trac`` script as explained in :ref:`chapter-git_trac`,
+which simplifies the interaction with our git and trac
+servers. However, you can use just git directly to work with remote
+repositories. This chapter will tell you how to do so assuming some
+basic familiarity with git. In particular, you should have read
+:ref:`chapter-walkthrough` first.
 
 We assume that you have a copy of the Sage git repository, for example
 by running::
@@ -17,89 +18,6 @@ by running::
     [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
     [user@localhost sage]$ make
-
-
-.. _section-git-branch:
-
-Branching Out
-=============
-
-A branch is any set of changes that deviates from the current official
-Sage tree. Whenever you start developing some new feature or fix a bug
-you should first create a new branch to hold the changes. It is easy
-to create a new branch, just check out (switch to) the branch from
-where you want to start (that is, ``master``) and use the *git
-branch* command::
-
-    [user@localhost sage]$ git checkout master
-    [user@localhost sage]$ git branch my_new_branch
-    [user@localhost sage]$ git checkout my_new_branch
-    [user@localhost sage]$ git branch
-      master
-    * my_new_branch
-
-The asterisk shows you which branch you are on. Without an argument,
-the *git branch* command just displays a list of all local branches
-with the current one marked by an asterisk. Also note that *git
-branch* creates a new branch, but does not switch to it. To avoid
-typing the new branch name twice you can use the shortcut ``git
-checkout -b my_new_branch`` to create and switch to the new branch in
-one command.
-
-
-.. _section-git-commit:
-
-Commits (Snapshots)
-===================
-
-Once you have your own branch feel free to make any changes as you
-like. Whenever you have reached your goal, a milestone towards it, or
-just feel like you got some work done you should commit your
-changes. That is, snapshot the state of all files in the
-repository. First, you need to *stage* the changed files, which tells
-git which files you want to be part of the next commit::
-
-    ... edit foobar.txt ...
-
-    [user@localhost sage]$ git status
-    # On branch my_branch
-    # Untracked files:
-    #   (use "git add <file>..." to include in what will be committed)
-    #
-    #       foobar.txt
-    nothing added to commit but untracked files present (use "git add" to track)
-
-    [user@localhost sage]$ git add foobar.txt
-    [user@localhost sage]$ git status
-    # On branch my_branch
-    # Changes to be committed:
-    #   (use "git reset HEAD <file>..." to unstage)
-    #
-    #   new file:   foobar.txt
-    #
-
-Once you are satisfied with the list of staged files, you create a new
-snapshot with the *commit* command::
-
-    [user@localhost sage]$ git commit
-    ... editor opens ...
-    [my_branch 31331f7] Added the very important foobar text file
-     1 file changed, 1 insertion(+)
-      create mode 100644 foobar.txt
-
-This will open an editor for you to write your commit message. The
-commit message should generally have a one-line description, followed
-by an empty line, followed by further explanatory text::
-
-    Added the very important foobar text file
-
-    This is an example commit message. You see there is a one-line
-    summary followed by more detailed description, if necessary.
-
-You can then continue working towards your next milestone, make
-another commit, repeat until finished. As long as you do not
-*checkout* another branch, all commits that you make will be part of
-the branch that you created.
 
 
 
@@ -280,7 +198,7 @@ merge vs. rebase.
 So far, we assumed that there are no conflicts. It is unavoidable in
 distributed development that, sometimes, the same location in a source
 source file is changed by more than one person. Reconciling these
-conflicting edits is explained in the :ref:`section-git-conflict`
+conflicting edits is explained in the :ref:`section-git_trac-conflict`
 section.
 
 
@@ -390,141 +308,18 @@ conflict with the current master, there is no need to do anything on
 your side.
 
 
-.. _section-git-conflict:
-
-Conflict Resolution
-===================
-
-Merge conflicts happen if there are overlapping edits, and they are an
-unavoidable consequence of distributed development. Fortunately,
-resolving them is common and easy with git. As a hypothetical example,
-consider the following code snippet::
-
-    def fibonacci(i):
-        """
-        Return the `i`-th Fibonacci number
-        """
-        return fibonacci(i-1) * fibonacci(i-2)
-
-This is clearly wrong; Two developers, namely Alice and Bob, decide to
-fix it. First, in a cabin in the woods far away from any internet
-connection, Alice corrects the seed values::
-
-    def fibonacci(i):
-       """
-       Return the `i`-th Fibonacci number
-       """
-       if i > 1:
-           return fibonacci(i-1) * fibonacci(i-2)
-       return [0, 1][i]
-
-and turns those changes into a new commit::
-
-    [alice@laptop]$ git commit -m 'return correct seed values'
-    [fibonacci_alice 14ae1d3] return correct seed values
-     1 file changed, 3 insertions(+), 1 deletion(-)
-
-However, not having an internet connection, she cannot immediately
-send her changes to the trac server. Meanwhile, Bob changes the
-multiplication to an addition since that is the correct recursion
-formula::
-
-    def fibonacci(i):
-        """
-        Return the `i`-th Fibonacci number
-        """
-        return fibonacci(i-1) + fibonacci(i-2)
-
-and immediately uploads his change::
-
-    [bob@home]$ git commit -m 'corrected recursion formula, must be + instead of *'
-    [fibonacci_bob 41675df] corrected recursion formula, must be + instead of *
-    1 file changed, 1 insertion(+), 1 deletion(-)
-
-    [bob@home]$ git push trac HEAD:u/bob/fibonacci
-    Counting objects: 5, done.
-    Delta compression using up to 8 threads.
-    Compressing objects: 100% (2/2), done.
-    Writing objects: 100% (3/3), 320 bytes | 0 bytes/s, done.
-    Total 3 (delta 1), reused 0 (delta 0)
-    To trac.sagemath.org:sage
-       14afe53..41675df  HEAD -> u/bob/fibonacci
-
-Eventually, Alice returns to civilization. In her mailbox, she finds a
-trac notification email that Bob has uploaded further changes to their
-joint project. Hence, she starts out by getting his changes into her
-own local branch::
-
-    [alice@laptop]$ git pull trac u/bob/fibonacci
-    From trac.sagemath.org:sage
-     * branch            u/bob/fibonacci     -> FETCH_HEAD
-    Auto-merging fibonacci.py
-    CONFLICT (content): Merge conflict in fibonacci.py
-    Automatic merge failed; fix conflicts and then commit the result.
-
-.. skip    # doctester confuses >>> with input marker
-
-The file now looks like this::
-
-    def fibonacci(i):
-        """
-        Return the `i`-th Fibonacci number
-        """
-    <<<<<<< HEAD
-        if i > 1:
-            return fibonacci(i-1) * fibonacci(i-2)
-        return i
-    =======
-        return fibonacci(i-1) + fibonacci(i-2)
-    >>>>>>> 41675dfaedbfb89dcff0a47e520be4aa2b6c5d1b
-
-The conflict is shown between the conflict markers ``<<<<<<<`` and
-``>>>>>>>``. The first half (up to the ``=======`` marker) is Alice's
-current version, the second half is Bob's version. The 40-digit hex
-number after the second conflict marker is the SHA1 hash of the most
-recent common parent of both.
-
-It is now Alice's job to resolve the conflict by reconciling their
-changes, for example by editing the file. Her result is::
-    
-    def fibonacci(i):
-        """
-        Return the `i`-th Fibonacci number
-        """
-        if i > 1:
-            return fibonacci(i-1) + fibonacci(i-2)
-        return [0, 1][i]
-    
-And then upload both her original change *and* her merge commit to trac::
-
-    [alice@laptop]$ git commit -m "merged Bob's changes with mine"
-    [fibonacci_allice 6316447] merged Bob's changes with mine
-    $ git push trac HEAD:u/alice/fibonacci
-
-The resulting commit graph now has a loop::
-    
-    $ git log --graph --oneline
-    *   6316447 merged Bob's changes with mine
-    |\  
-    | * 41675df corrected recursion formula, must be + instead of *
-    * | 14ae1d3 return correct seed values
-    |/  
-    * 14afe53 initial commit
-    
-If Bob decides to do further work on the ticket then he will have to
-pull from ``u/alice/fibonacci``. However, this time there is no
-conflict on his end: git downloads both Alice's conflicting commit and
-her resolution.
-
+.. _section-git-mergetool:
 
 Merge Tools
------------
+===========
 
-Just editing the file with the conflict markers is often the simplest
-solution. However, for more complicated conflicts there is a range of
-specialized programs available to help you identify the
-conflicts. Because the conflict marker includes the hash of the most
-recent common parent, you can use a three-way diff::
+In the :ref:`section-git_trac-conflict` section we already reviewed
+how to deal with conflicts by editing the file with the conflict
+markers. This is is often the simplest solution. However, for more
+complicated conflicts there is a range of specialized programs
+available to help you identify the conflicts. Because the conflict
+marker includes the hash of the most recent common parent, you can use
+a three-way diff::
 
     [alice@laptop]$ git mergetool
     

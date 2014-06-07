@@ -396,7 +396,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             E = L.rational_reconstruction(prod)
             L = 0  # free memory
             verbose('rational reconstruction completed', t, level=2, caller_name="multimod echelon")
-        except ValueError, msg:
+        except ValueError as msg:
             verbose(msg, level=2)
             verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2, caller_name="multimod echelon")
             M = prod * p*p*p

@@ -557,7 +557,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
                     msg = """
 Error: ffmpeg does not appear to be installed.  Download it from
 www.ffmpeg.org, or use 'convert' to produce gifs instead."""
-                raise OSError, msg
+                raise OSError(msg)
         else:
             if not savefile:
                 savefile = tmp_filename(ext='.gif')
@@ -580,7 +580,7 @@ Error: Cannot generate GIF animation.  Verify that convert
 the animate command can be saved in PNG image format.
 
 See www.imagemagick.org and www.ffmpeg.org for more information."""
-                raise OSError, msg
+                raise OSError(msg)
 
     def show(self, delay=20, iterations=0):
         r"""
@@ -741,7 +741,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
 a movie file in any format other than GIF requires this software, so
 please install it and try again."""
-            raise OSError, msg
+            raise OSError(msg)
         else:
             if savefile is None:
                 if output_format is None:

@@ -163,7 +163,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
     G._scream_if_not_simple(allow_multiple_edges=True)
 
     if n == 0: return
-    if n < 0: raise ValueError, "n must be non-negative."
+    if n < 0: raise ValueError("n must be non-negative.")
 
     V = G.vertices()
     E = G.edges()
@@ -232,7 +232,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
                                 coloring[color_dict[colors[c]]] = [v]
             yield coloring
     except RuntimeError:
-        raise RuntimeError, "Too much recursion!  Graph coloring failed."
+        raise RuntimeError("Too much recursion!  Graph coloring failed.")
 
 def first_coloring(G, n=0, hex_colors=False):
     r"""
@@ -400,7 +400,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
 
-    # If k==None, tries to find an optimal coloring
+    # If k is None, tries to find an optimal coloring
     if k is None:
         # No need to start a linear program if the graph is an
         # independent set or bipartite.
@@ -1580,10 +1580,10 @@ class Test:
                 for i in range(l):
                     for j in range(i+1,l):
                         if G.has_edge(P[i],P[j]):
-                            raise RuntimeError, "Coloring Failed."
+                            raise RuntimeError("Coloring Failed.")
 
             #make the dict into a set for quick uniqueness checking
             S+= Set([Set([(k,tuple(C[k])) for k in C])])
 
         if len(S) != Q(m):
-            raise RuntimeError, "Incorrect number of unique colorings!"
+            raise RuntimeError("Incorrect number of unique colorings!")

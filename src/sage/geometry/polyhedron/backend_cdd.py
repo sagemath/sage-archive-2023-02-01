@@ -200,8 +200,8 @@ class Polyhedron_cdd(Polyhedron_base):
         def expect_in_cddout(expected_string):
             l = cddout.pop(0).strip()
             if l!=expected_string:
-                raise ValueError, ('Error while parsing cdd output: expected "'
-                                   +expected_string+'" but got "'+l+'".\n' )
+                raise ValueError('Error while parsing cdd output: expected "'
+                                   +expected_string+'" but got "'+l+'".\n')
         # nested function
         def cdd_linearities():
             l = cddout[0].split()

@@ -26,3 +26,6 @@ from sage.interfaces.gap import set_gap_memory_pool_size
 set_gap_memory_pool_size(0)  # will be rounded up to 1M
 
 INCREMENTAL_BUILD = os.path.exists(os.path.join(SAGE_DOC, 'output'))
+
+# Error out on errors
+ABORT_ON_ERROR = True

@@ -1332,7 +1332,7 @@ class Graphics(SageObject):
             the minimum (resp. added to the maximum) value of the axis. For
             instance if the minimum is `m` and the base of the axis is `b`
             then the new minimum after padding the axis will be
-            `m - m/b^{\mathrm{axes_pad}}`.
+            `m - m/b^{\mathrm{axes\_pad}}`.
 
         - ``ticks_integer`` - (default: False) guarantee that the ticks
           are integers (the ``ticks`` option, if specified, will
@@ -1689,7 +1689,7 @@ class Graphics(SageObject):
         The behavior of the ``axes_pad`` parameter is different if the axis
         is in the ``"log"`` scale. If `b` is the base of the axis, the
         minimum value of the axis, is decreased by the factor
-        `1/b^{\mathrm{axes_pad}}` of the minimum and the maximum value of the axis
+        `1/b^{\mathrm{axes\_pad}}` of the minimum and the maximum value of the axis
         is increased by the same factor of the maximum value.  Compare the
         axes in the following two plots to see the difference.
 
@@ -2138,7 +2138,7 @@ class Graphics(SageObject):
           subtracted from the minimum (resp. added to the maximum) value of
           the axis. For instance if the minimum is `m` and the base of the
           axis is `b` then the new minimum after padding the axis will be
-          `m - m/b^{\mathrm{axes_pad}}`.
+          `m - m/b^{\mathrm{axes\_pad}}`.
 
         OUTPUT:
 

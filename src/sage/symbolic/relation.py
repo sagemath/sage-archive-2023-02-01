@@ -204,7 +204,7 @@ Conversion to Maxima::
     sage: x = var('x')
     sage: eq = (x^(3/5) >= pi^2 + e^i)
     sage: eq._maxima_init_()
-    '(x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
+    '(_SAGE_VAR_x)^(3/5) >= ((%pi)^(2))+(exp(0+%i*1))'
     sage: e1 = x^3 + x == sin(2*x)
     sage: z = e1._maxima_()
     sage: z.parent() is sage.calculus.calculus.maxima

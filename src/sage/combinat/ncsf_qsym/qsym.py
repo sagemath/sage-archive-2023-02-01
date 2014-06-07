@@ -149,7 +149,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     Chapter 5 of [Reiner2013]_ and Section 11 of [HazWitt1]_ are devoted
     to quasi-symmetric functions, as are Malvenuto's thesis [Mal1993]_
-    and part of Chapter 7 of [Sta1999]_.
+    and part of Chapter 7 of [Sta-EC2]_.
 
     .. rubric:: The implementation of the quasi-symmetric function Hopf algebra
 

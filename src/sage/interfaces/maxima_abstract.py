@@ -2184,14 +2184,14 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             sage: f+3
             sin(x)+3
 
-        The parameter ``x`` is different from the symbolic variable::
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
 
             sage: (f+maxima.cos(x))
             cos(_SAGE_VAR_x)+sin(x)
             sage: (f+maxima.cos(y))
             cos(_SAGE_VAR_y)+sin(x)
             
-        Note that you make get unexpected results when calling symbolic expressions
+        Note that you may get unexpected results when calling symbolic expressions
         and not explicitly giving the variables::
             
             sage: (f+maxima.cos(x))(2)
@@ -2210,14 +2210,14 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             sage: x,y = var('x,y')
             sage: f = maxima.function('x','sin(x)')
             
-        The parameter ``x`` is different from the symbolic variable::
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
 
             sage: (f-maxima.cos(x))
             sin(x)-cos(_SAGE_VAR_x)
             sage: (f-maxima.cos(y))
             sin(x)-cos(_SAGE_VAR_y)
             
-        Note that you make get unexpected results when calling symbolic expressions
+        Note that you may get unexpected results when calling symbolic expressions
         and not explicitly giving the variables::
             
             sage: (f-maxima.cos(x))(2)

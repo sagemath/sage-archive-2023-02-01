@@ -861,20 +861,32 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     return OA
 
-@cached_function
-def OA_with_holes(k,n,x,existence=False):
+@cached_function(key=lambda x1,x2,x3,x4: (x1,x2,tuple(x3),x4))
+def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
     r"""
-    Returns an `OA(k,n)-x.OA(k,1)`.
+    Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
-    A `TD(k,n)-x.TD(k,1)` is a tranversal design from which have been
-    removed `x` disjoint blocks. The counterpart in Orthogonal Arrays,
-    i.e. an `OA(k,n)-x.OA(k,1)`, is an OA from which have been removed
-    `x` blocks such that for each of the `k` columns the blocks all
-    have different coordinates.
+    An `OA(k,n)-\sum_{0\leq i< k} OA(k,s_i)` is an orthogonal array from which
+    have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`.
+
+    A very useful particular case (e.g. :meth:`wilson_construction`) is when
+    `s_i=1`, in which case the incomplete design is a `OA(k,n)-x.OA(k,1)`. This
+    can be obtained from a `TD(k,n)` containing `x` disjoint blocks.
+
+    This specific case is the only one available through this function at the
+    moment.
 
     INPUT:
 
-    - ``k,n,x`` (integers)
+    - ``k,n`` (integers)
+
+    - ``holes_sizes`` (list of integers) -- respective sizes of the holes to be
+      found.
+
+      .. NOTE::
+
+          Right now the feature is only available when all holes have size 1,
+          i.e. `s_i=1`.
 
     - ``existence`` (boolean) -- instead of building the design, returns:
 
@@ -887,34 +899,34 @@ def OA_with_holes(k,n,x,existence=False):
 
     .. NOTE::
 
-        The final OA is labelled in such a way that the `x.TD(k-1)`
-        are blocks ``[n-x,...,n-x]`` to ``[n-1,...,n-1]``.
+        When `s_i=i` for all `i`, the final OA is labelled in such a way that
+        the `x.TD(k-1)` are blocks ``[n-x,...,n-x]`` to ``[n-1,...,n-1]``.
+
+
+    .. SEEALSO::
+
+        :func:`OA_find_disjoint_blocks`
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import OA_with_holes
-        sage: OA_with_holes(3,3,3)
+        sage: designs.incomplete_orthogonal_array(3,3,[1,1,1])
         ((0, 0, 0), (0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0), (2, 2, 2))
 
     TESTS::
 
-        sage: OA_with_holes(8,4,3,existence=True)
+        sage: designs.incomplete_orthogonal_array(8,4,[1,1,1],existence=True)
+        False
+        sage: designs.incomplete_orthogonal_array(4,3,[1,1],existence=True)
         Unknown
-        sage: OA_with_holes(8,4,3)
-        Traceback (most recent call last):
-        ...
-        ValueError: I was not able to build this OA(8,4)-3.OA(8,1)
-        sage: OA_with_holes(4,3,2,existence=True)
-        Unknown
-        sage: OA_with_holes(4,3,2)
+        sage: designs.incomplete_orthogonal_array(4,3,[1,1])
         Traceback (most recent call last):
         ...
         ValueError: I was not able to build this OA(4,3)-2.OA(4,1)
         sage: n=10
         sage: k=designs.orthogonal_array(None,n,existence=True)
-        sage: OA_with_holes(k,n,3,existence=True)
+        sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
         True
-        sage: _ = OA_with_holes(k,n,3)
+        sage: _ = designs.incomplete_orthogonal_array(k,n,[1,1,1])
 
     REFERENCES:
 
@@ -924,6 +936,9 @@ def OA_with_holes(k,n,x,existence=False):
       vol.39, num.3, pages 263-281
       1982
     """
+    assert all(xx==1 for xx in holes_sizes)
+
+    x = len(holes_sizes)
     if x > n:
         if existence:
             return False
@@ -950,39 +965,81 @@ def OA_with_holes(k,n,x,existence=False):
         independent_set = [B[:-1] for B in OA if B[-1] == 0][:x]
         OA = [B[:-1] for B in OA]
 
-    # We try to find the disjoint blocks in an OA(k,n)
     elif orthogonal_array(k,n,existence=True):
-        from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
-        from sage.graphs.graph import Graph
-
-        g = OrthogonalArrayBlockGraph(k,n)
-
-        # Computing an independent set of order x with a Linear Program
-        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-        p = MixedIntegerLinearProgram()
-        b = p.new_variable(binary=True)
-        p.add_constraint(p.sum(b[v] for v in g) == x)
-        for u,v in g.edges(labels=False):
-            p.add_constraint(b[u]+b[v] <=1)
-
+        OA = orthogonal_array(k,n)
         try:
-            p.solve()
+            independent_set = OA_find_disjoint_blocks(OA,k,n,x)
+        except ValueError:
             if existence:
-                return True
-            b = p.get_values(b)
-            independent_set = [v for v,i in b.items() if i]
-            OA = g.vertices()
-        except MIPSolverException:
-            pass
-
-    if not OA:
+                return Unknown
+            raise ValueError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
         if existence:
-            return Unknown
-        raise ValueError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
+            return True
+        independent_set = OA_find_disjoint_blocks(OA,k,n,x)
+
+    else:
+        return orthogonal_array(k,n,existence=existence)
 
     assert x == len(independent_set)
     OA = tuple(map(tuple,OA_relabel(OA,k,n,blocks=independent_set)))
     return OA
+
+def OA_find_disjoint_blocks(OA,k,n,x):
+    r"""
+    Returns `x` disjoint blocks contained in a given `OA(k,n)`.
+
+    `x` blocks of an `OA` are said to be disjoint if they all have
+    different values for a every given index, i.e. if they correspond to
+    disjoint blocks in the `TD` assciated with the `OA`.
+
+    INPUT:
+
+    - ``OA`` -- an orthogonal array
+
+    - ``k,n,x`` (integers)
+
+    .. SEEALSO::
+
+        :func:`incomplete_orthogonal_array`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_find_disjoint_blocks
+        sage: k=3;n=4;x=3
+        sage: Bs = OA_find_disjoint_blocks(designs.orthogonal_array(k,n),k,n,x)
+        sage: assert len(Bs) == x
+        sage: for i in range(k):
+        ....:     assert len(set([B[i] for B in Bs])) == x
+        sage: OA_find_disjoint_blocks(designs.orthogonal_array(k,n),k,n,5)
+        Traceback (most recent call last):
+        ...
+        ValueError: There does not exist 5 disjoint blocks in this OA(3,4)
+    """
+
+    # Computing an independent set of order x with a Linear Program
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+    p = MixedIntegerLinearProgram()
+    b = p.new_variable(binary=True)
+    p.add_constraint(p.sum([b[i] for i in range(len(OA))]) == x)
+
+    # t[i][j] lists of blocks of the OA whose i'th component is j
+    t = [[[] for _ in range(n)] for _ in range(k)]
+    for c,B in enumerate(OA):
+        for i,j in enumerate(B):
+            t[i][j].append(c)
+
+    for R in t:
+        for L in R:
+            p.add_constraint(p.sum([b[i] for i in L]) <=1)
+
+    try:
+        p.solve()
+    except MIPSolverException:
+        raise ValueError("There does not exist {} disjoint blocks in this OA({},{})".format(x,k,n))
+
+    b = p.get_values(b)
+    independent_set = [OA[i] for i,v in b.items() if v]
+    return independent_set
 
 def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
     r"""
@@ -1161,9 +1218,9 @@ def OA_from_quasi_difference_matrix(M,G,add_col=True):
 
 def OA_from_Vmt(m,t,V):
     r"""
-    Returns an Orthogonal Array from a V(m,t)
+    Returns an Orthogonal Array from a `V(m,t)`
 
-    *Definition*
+    **Definition**
 
     Let `q` be a prime power and let `q=mt+1` for `m,t` integers. Let `\omega`
     be a primitive element of `\mathbb{F}_q`. A `V(m,t)` vector is a vector

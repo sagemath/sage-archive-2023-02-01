@@ -1778,6 +1778,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         2
         sage: var('my_new_var').full_simplify()
         my_new_var
+        
+    ODE solution constants are treated differently (:trac:`16007`)::
+    
+        sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
+        sage: sefms('%k1*%x + %k2*%y + %c')
+        _K1*x + _K2*y + _C
 
      """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()

@@ -2394,7 +2394,15 @@ class FiniteStateMachine(SageObject):
         relabel_iter = itertools.count(0)
         for state in self.iter_states():
             if relabel:
-                state._deepcopy_relabel_ = relabel_iter.next()
+                if self._deepcopy_labels_ is None:
+                    state._deepcopy_relabel_ = relabel_iter.next()
+                elif hasattr(self._deepcopy_labels_, '__call__'):
+                    state._deepcopy_relabel_ = self._deepcopy_labels_(state.label())
+                elif hasattr(self._deepcopy_labels_, '__getitem__'):
+                    state._deepcopy_relabel_ = self._deepcopy_labels_[state.label()]
+                else:
+                    raise TypeError("labels must be None, a callable "
+                                    "or a dictionary.")
             s = deepcopy(state, memo)
             if relabel:
                 del state._deepcopy_relabel_
@@ -2426,15 +2434,19 @@ class FiniteStateMachine(SageObject):
         return deepcopy(self, memo)
 
 
-    def relabeled(self, memo=None):
+    def relabeled(self, memo=None, labels=None):
         """
         Returns a deep copy of the finite state machine, but the
-        states are relabeled by integers starting with 0.
+        states are relabeled.
 
         INPUT:
 
         - ``memo`` -- (default: ``None``) a dictionary storing already
           processed elements.
+
+        - ``labels`` -- (default: ``None``) a dictionary or callable
+          mapping old labels to new labels. If ``None``, then the new
+          labels are integers starting with 0.
 
         OUTPUT:
 
@@ -2448,10 +2460,25 @@ class FiniteStateMachine(SageObject):
             sage: FSM2 = FSM1.relabeled()
             sage: FSM2.states()
             [0, 1, 2]
+            sage: FSM3 = FSM1.relabeled(labels={'A': 'a', 'B': 'b', 'C': 'c'})
+            sage: FSM3.states()
+            ['a', 'b', 'c']
+            sage: FSM4 = FSM2.relabeled(labels=lambda x: 2*x)
+            sage: FSM4.states()
+            [0, 2, 4]
+
+        TESTS::
+
+            sage: FSM2.relabeled(labels=1)
+            Traceback (most recent call last):
+            ...
+            TypeError: labels must be None, a callable or a dictionary.
         """
         self._deepcopy_relabel_ = True
+        self._deepcopy_labels_ = labels
         new = deepcopy(self, memo)
         del self._deepcopy_relabel_
+        del self._deepcopy_labels_
         return new
 
 

@@ -1346,9 +1346,9 @@ class GraphLatex(SageObject):
             sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
             \begin{tikzpicture}[>=latex,line join=bevel,] 
             %% 
-            \node (3333) at (...bp,...bp) [draw,draw=none] {$3333$}; 
-              \node (88) at (...bp,...bp) [draw,draw=none] {$88$}; 
-              \draw [black,->] (3333) ..controls (...bp,...bp) and (...bp,...bp)  .. (88); 
+            \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
+              \node (node_0) at (...bp,...bp) [draw,draw=none] {$88$};
+              \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
               \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; 
               \pgfsetstrokecolor{strokecol} 
               \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$}; 

@@ -31,7 +31,8 @@ import sage.misc.prandom as rnd
 import __builtin__
 import itertools
 
-from sage.categories.sets_cat import EmptySetError
+from sage.categories.sets_cat import EmptySetError, Sets
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.structure.parent import Parent
@@ -39,8 +40,11 @@ from sage.structure.element import Element
 
 from sage.sets.set import Set, Set_object_enumerated
 from sage.rings.arith import binomial
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 import choose_nk
+
+ZZ_0 = ZZ.zero()
 
 def Subsets(s, k=None, submultiset=False):
     """
@@ -65,7 +69,7 @@ def Subsets(s, k=None, submultiset=False):
         {}
         sage: S.last()
         {1, 2, 3}
-        sage: S.random_element()
+        sage: S.random_element()  # random
         {2}
         sage: S.list()
         [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
@@ -95,6 +99,38 @@ def Subsets(s, k=None, submultiset=False):
 
         sage: S = Subsets(['a','b','a','b'], 2, submultiset=True); S.list()
         [['a', 'a'], ['a', 'b'], ['b', 'b']]
+
+
+    And it is possible to play with subsets of subsets::
+
+        sage: S = Subsets(3)
+        sage: S2 = Subsets(S); S2
+        Subsets of Subsets of {1, 2, 3}
+        sage: S2.cardinality()
+        256
+        sage: it = iter(S2)
+        sage: [it.next() for _ in xrange(8)]
+        [{}, {{}}, {{1}}, {{2}}, {{3}}, {{1, 2}},  {{1, 3}}, {{2, 3}}]
+        sage: S2.random_element()     # random
+        {{2}, {1, 2, 3}, {}}
+        sage: [S2.unrank(k) for k in xrange(256)] == S2.list()
+        True
+
+        sage: S3 = Subsets(S2)
+        sage: S3.cardinality()
+        115792089237316195423570985008687907853269984665640564039457584007913129639936
+        sage: S3.unrank(14123091480)
+        {{{1, 3}, {1, 2, 3}, {2}, {1}},
+         {{2}, {1, 2, 3}, {}, {1, 2}},
+         {},
+         {{2}, {1, 2, 3}, {}, {3}, {1, 2}},
+         {{1, 2, 3}, {}, {1}}, {{2}, {2, 3}, {}, {1, 2}}}
+
+        sage: T = Subsets(S2, 10)
+        sage: T.cardinality()
+        278826214642518400
+        sage: T.unrank(1441231049)
+        {{{3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, ..., {{2, 3}, {}}, {{}}}
     """
     if k is not None:
         k = Integer(k)
@@ -102,7 +138,8 @@ def Subsets(s, k=None, submultiset=False):
     if isinstance(s, (int, Integer)):
         if s < 0:
             raise ValueError("s must be non-negative")
-        s = Set(range(1,s+1))
+        from sage.sets.integer_range import IntegerRange
+        s = IntegerRange(1,s+1)
 
 #    if len(Set(s)) != len(s):
 #        multi = True
@@ -119,6 +156,31 @@ def Subsets(s, k=None, submultiset=False):
             return Subsets_sk(s, k)
 
 class Subsets_s(Parent):
+    r"""
+    Subsets of a given set.
+
+    EXAMPLES::
+
+        sage: S = Subsets(4); S
+        Subsets of {1, 2, 3, 4}
+        sage: S.cardinality()
+        16
+        sage: Subsets(4).list()
+        [{}, {1}, {2}, {3}, {4},
+         {1, 2}, {1, 3}, {1, 4}, {2, 3}, {2, 4}, {3, 4},
+         {1, 2, 3}, {1, 2, 4}, {1, 3, 4}, {2, 3, 4},
+         {1, 2, 3, 4}]
+
+        sage: S = Subsets(Subsets(Subsets(GF(3)))); S
+        Subsets of Subsets of Subsets of Finite Field of size 3
+        sage: S.cardinality()
+        115792089237316195423570985008687907853269984665640564039457584007913129639936
+        sage: S.unrank(3149254230)
+        {{{1, 2}, {0, 1, 2}, {0, 2}, {0, 1}},
+         {{1, 2}, {}, {0, 2}, {1}, {0, 1, 2}, {2}},
+         {{1, 2}, {0}}, {{1, 2}, {0, 1}, {0, 1, 2}, {1}},
+         {{0, 2}, {1}}}
+    """
     # TODO: Set_object_enumerated does not inherit from Element... so we set
     # directly element_class as Set_object_enumerated
     # (see also below the failed test in __init__)
@@ -143,8 +205,43 @@ class Subsets_s(Parent):
             sage: S = sage.sets.set.Set_object_enumerated([1,2])
             sage: TestSuite(S).run()         # todo: not implemented
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-        self._ls = list(Set_object_enumerated(s))
+        Parent.__init__(self, category=EnumeratedSets().Finite())
+        if s not in EnumeratedSets():
+            from sage.misc.misc import uniq
+            from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+            s = list(s)
+            us = uniq(s)
+            if len(us) == len(s):
+                s = FiniteEnumeratedSet(s)
+            else:
+                s = FiniteEnumeratedSet(us)
+        self._s  = s
+
+    @property
+    def _ls(self):
+        r"""
+        The list of elements of the underlying set.
+
+        We try as much as possible to *not* use it.
+
+        TESTS::
+
+            sage: S = Subsets([1,2,3,4])
+            sage: S._ls
+            [1, 2, 3, 4]
+        """
+        return self._s.list()
+
+    def underlying_set(self):
+        r"""
+        Return the set of elements.
+
+        EXAMPLES::
+
+            sage: Subsets(GF(13)).underlying_set()
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+        """
+        return self.element_class(self._s)
 
     def __eq__(self, other):
         r"""
@@ -161,7 +258,7 @@ class Subsets_s(Parent):
         """
         if self.__class__ != other.__class__:
             return False
-        return self._ls == other._ls
+        return self._s == other._s
 
     def __ne__(self, other):
         r"""
@@ -185,7 +282,7 @@ class Subsets_s(Parent):
             sage: repr(Subsets([1,2,3])) #indirect doctest
             'Subsets of {1, 2, 3}'
         """
-        return "Subsets of {%s}" %', '.join(str(i) for i in self._ls)
+        return "Subsets of %s" %self._s
 
     def __contains__(self, value):
         """
@@ -199,7 +296,9 @@ class Subsets_s(Parent):
             sage: Set([]) in S
             True
         """
-        return all(v in self._ls for v in __builtin__.list(value))
+        if value not in Sets():
+            return False
+        return all(v in self._s for v in value)
 
     def cardinality(self):
         r"""
@@ -216,7 +315,9 @@ class Subsets_s(Parent):
             sage: Subsets(3).cardinality()
             8
         """
-        return Integer(1) << len(self._ls)
+        return Integer(1) << self._s.cardinality()
+
+    __len__ = cardinality
 
     def first(self):
         """
@@ -244,7 +345,7 @@ class Subsets_s(Parent):
             sage: Subsets(3).last()
             {1, 2, 3}
         """
-        return self.element_class(self._ls)
+        return self.element_class(self._s)
 
     def __iter__(self):
         """
@@ -260,9 +361,11 @@ class Subsets_s(Parent):
             [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
 
         """
-        for k in xrange(len(self._ls)+1):
-            for ss in Subsets_sk(self._ls, k):
+        k = ZZ_0
+        while k <= self._s.cardinality():
+            for ss in Subsets_sk(self._s, k):
                 yield ss
+            k += 1
 
     def random_element(self):
         """
@@ -271,12 +374,22 @@ class Subsets_s(Parent):
 
         EXAMPLES::
 
-            sage: Subsets(3).random_element()
+            sage: Subsets(3).random_element()           # random
             {2}
-            sage: Subsets([4,5,6]).random_element()
+            sage: Subsets([4,5,6]).random_element()     # random
             {5}
+
+            sage: S = Subsets(Subsets(Subsets([0,1,2])))
+            sage: S.cardinality()
+            115792089237316195423570985008687907853269984665640564039457584007913129639936
+            sage: s = S.random_element()
+            sage: s     # random
+            {{{1, 2}, {2}, {0}, {1}}, {{1, 2}, {0, 1, 2}, {0, 2}, {0}, {0, 1}}, ..., {{1, 2}, {2}, {1}}, {{2}, {0, 2}, {}, {1}}}
+            sage: s in S
+            True
         """
-        return self.element_class(filter(lambda x: rnd.randint(0,1), self._ls))
+        k = ZZ.random_element(0, self.cardinality())
+        return self.unrank(k)
 
     def rank(self, sub):
         """
@@ -295,15 +408,19 @@ class Subsets_s(Parent):
             ...
             ValueError: {2, 3, 4} is not a subset of {1, 2, 3}
         """
-        lset = self._ls
+        if sub not in Sets():
+            ssub = Set(sub)
+            if len(sub) != len(ssub):
+                raise ValueError("repeated elements in %s"%sub)
+            sub = ssub
 
         try:
-            index_list = sorted(lset.index(x) for x in sub)
-        except ValueError:
-            raise ValueError("{} is not a subset of {}".format(Set(sub),
-                  '{' +  ', '.join(str(i) for i in self._ls) + '}'))
+            index_list = sorted(self._s.rank(x) for x in sub)
+        except (ValueError,IndexError):
+            raise ValueError("%s is not a subset of %s"%(
+                    Set(sub), self._s))
 
-        n = len(self._ls)
+        n = self._s.cardinality()
         r = sum(binomial(n,i) for i in xrange(len(index_list)))
         return r + choose_nk.rank(index_list,n)
 
@@ -317,19 +434,24 @@ class Subsets_s(Parent):
             {}
             sage: Subsets([2,4,5]).unrank(1)
             {2}
-        """
-        lset = self._ls
-        n = len(lset)
+            sage: Subsets([1,2,3]).unrank(257)
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
 
+        """
+        r = Integer(r)
         if r >= self.cardinality() or r < 0:
             raise IndexError("index out of range")
         else:
-            for k in range(n+1):
+            k = ZZ_0
+            n = self._s.cardinality()
+            bin = Integer(1)
+            while r >= bin:
+                r -= bin
+                k += 1
                 bin = binomial(n,k)
-                if r >= bin:
-                    r = r - bin
-                else:
-                    return self.element_class(lset[i] for i in choose_nk.from_rank(r, n, k))
+            return self.element_class([self._s.unrank(i) for i in choose_nk.from_rank(r, n, k)])
 
     def __call__(self, el):
         r"""
@@ -460,7 +582,7 @@ class Subsets_sk(Subsets_s):
         """
         if self.__class__ != other.__class__:
             return False
-        return self._ls == other._ls and self._k == other._k
+        return self._s == other._s and self._k == other._k
 
     def __ne__(self, other):
         r"""
@@ -496,9 +618,11 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(3,4).cardinality()
             0
         """
-        if self._k > len(self._ls):
-            return Integer(0)
-        return binomial(len(self._ls), self._k)
+        if self._k > self._s.cardinality():
+            return ZZ_0
+        return binomial(self._s.cardinality(), self._k)
+
+    __len__ = cardinality
 
     def first(self):
         """
@@ -513,11 +637,14 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(3,2).first()
             {1, 2}
             sage: Subsets(3,4).first()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
         """
-        if self._k < 0 or self._k > len(self._ls):
-            return None
+        if self._k < 0 or self._k > self._s.cardinality():
+            raise EmptySetError
         else:
-            return Set(self._ls[:self._k])
+            return self.element_class(list(itertools.islice(self._s, self._k)))
 
     def last(self):
         """
@@ -532,11 +659,14 @@ class Subsets_sk(Subsets_s):
             sage: Subsets(3,2).last()
             {2, 3}
             sage: Subsets(3,4).last()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
         """
-        if self._k not in range(len(self._ls)+1):
-            return None
+        if self._k > self._s.cardinality():
+            raise EmptySetError
         else:
-            return self.element_class(self._ls[-self._k:])
+            return self.element_class([i for i in itertools.islice(reversed(self._s),self._k)])
 
     def _fast_iterator(self):
         r"""
@@ -550,7 +680,7 @@ class Subsets_sk(Subsets_s):
             sage: list(Subsets(range(3), 2)._fast_iterator())
             [(0, 1), (0, 2), (1, 2)]
         """
-        return itertools.combinations(self._ls, self._k)
+        return itertools.combinations(self._s, self._k)
 
     def __iter__(self):
         """
@@ -609,25 +739,18 @@ class Subsets_sk(Subsets_s):
             ...
             ValueError: {2, 3, 4, 5} is not a subset of length 4 of {2, 3, 4}
         """
-        lsubset = __builtin__.list(sub)
-        lset = self._ls
-        n = len(lset)
+        sub = Set(sub)
+        n = self._s.cardinality()
 
-        if self._k != len(lsubset) or self._k > n:
-            raise ValueError("{%s} is not a subset of length %d of {%s}"%(
-                    ', '.join(str(i) for i in lsubset),
-                    self._k,
-                    ', '.join(str(i) for i in lset)))
+        if self._k != sub.cardinality() or self._k > n:
+            raise ValueError("%s is not a subset of length %d of %s"%(
+                    sub, self._k, self._s))
 
-        # TODO: the algorithm below is quadratic as we run .index() for each
-        # element of lsubset!
         try:
-            index_list = sorted(map(lambda x: lset.index(x), lsubset))
+            index_list = sorted(self._s.rank(x) for x in sub)
         except ValueError:
-            raise ValueError("{%s} is not a subset of length %d of {%s}"%(
-                    ', '.join(str(i) for i in lsubset),
-                    self._k,
-                    ', '.join(str(i) for i in lset)))
+            raise ValueError("%s is not a subset of length %d of %s"%(
+                    sub, self._k, self._s))
 
         return choose_nk.rank(index_list, n)
 
@@ -876,7 +999,6 @@ class SubMultiset_s(Parent):
             sage: sum(S.generating_serie())
             72
         """
-        from sage.rings.integer_ring import ZZ
         from sage.all import prod
         R = ZZ[variable]
         return prod(R([1]*(n+1)) for n in self._d.values())
@@ -1010,7 +1132,6 @@ class SubMultiset_sk(SubMultiset_s):
             True
             True
         """
-        from sage.all import ZZ
         x = ZZ[variable].gen()
         P = SubMultiset_s.generating_serie(self)
         return P[self._k] * (x**self._k)

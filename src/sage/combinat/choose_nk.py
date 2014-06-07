@@ -33,6 +33,10 @@ def ChooseNK(n, k):
 
         sage: from sage.combinat.choose_nk import ChooseNK
         sage: c = ChooseNK(4,2)
+        doctest:...: DeprecationWarning: ChooseNk is deprecated and will be
+        removed. Use Combinations instead (or combinations from the itertools
+        module for iteration)
+        See http://trac.sagemath.org/10534 for details.
         sage: c.first()
         [0, 1]
         sage: c.list()

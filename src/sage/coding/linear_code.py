@@ -1246,9 +1246,9 @@ class LinearCode(module.Module_old):
             # an easy thing to do. Some tricky gymnastics are used to
             # make Sage deal with objects over QQ(sqrt(q)) nicely.
             if is_even(n):
-                Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
-            if not(is_even(n)):
-                Pd = s*q**(k-(n+1)/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
+                Pd = q**(k-n//2) * RT(Cd.zeta_polynomial()) * T**(dperp - d)
+            else:
+                Pd = s * q**(k-(n+1)//2) * RT(Cd.zeta_polynomial()) * T**(dperp - d)
             CP = P+Pd
             f = CP/CP(1,s)
             return f(t,sqrt(q))
@@ -2549,16 +2549,16 @@ class LinearCode(module.Module_old):
         n = C.length()
         d = C.minimum_distance()
         if i == 1:
-            v = (n-4*d)/2 + 4
+            v = (n-4*d)//2 + 4
             m = d-3
-        if i == 2:
-            v = (n-6*d)/8 + 3
+        elif i == 2:
+            v = (n-6*d)//8 + 3
             m = d-5
-        if i == 3:
-            v = (n-4*d)/4 + 3
+        elif i == 3:
+            v = (n-4*d)//4 + 3
             m = d-4
-        if i == 4:
-            v = (n-3*d)/2 + 3
+        elif i == 4:
+            v = (n-3*d)//2 + 3
             m = d-3
         return [v,m]
 

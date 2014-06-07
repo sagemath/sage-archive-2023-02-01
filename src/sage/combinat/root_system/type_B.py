@@ -178,6 +178,28 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
     AmbientSpace = AmbientSpace
 
+    def coxeter_number(self):
+        """
+        Return the Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B',4]).coxeter_number()
+            8
+        """
+        return 2*self.n
+
+    def dual_coxeter_number(self):
+        """
+        Return the dual Coxeter number associated with ``self``.
+
+        EXAMPLES::
+
+            sage: CartanType(['B',4]).dual_coxeter_number()
+            7
+        """
+        return 2*self.n - 1
+
     def dual(self):
         """
         Types B and C are in duality:

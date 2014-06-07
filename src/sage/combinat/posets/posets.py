@@ -1117,9 +1117,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: print P._latex_() #optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-            \node (node_1) at (6bp,57bp) [draw,draw=none] {$2$};
-              \node (node_0) at (6bp,7bp) [draw,draw=none] {$1$};
-              \draw [black,<-] (node_1) ..controls (6bp,31.269bp) and (6bp,20.287bp)  .. (node_0);
+            \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
+              \node (node_0) at (6.0...bp,7.0...bp) [draw,draw=none] {$1$};
+              \draw [black,<-] (node_1) ..controls (6.0...bp,31.269...bp) and (6.0...bp,20.287...bp)  .. (node_0);
             %
             \end{tikzpicture}
         """

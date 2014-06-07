@@ -910,7 +910,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
     EXAMPLES::
 
         sage: designs.incomplete_orthogonal_array(3,3,[1,1,1])
-        ((0, 0, 0), (0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0), (2, 2, 2))
+        ((0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0))
 
     TESTS::
 
@@ -981,7 +981,12 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         return orthogonal_array(k,n,existence=existence)
 
     assert x == len(independent_set)
+
+    for B in independent_set:
+        OA.remove(B)
+
     OA = tuple(map(tuple,OA_relabel(OA,k,n,blocks=independent_set)))
+
     return OA
 
 def OA_find_disjoint_blocks(OA,k,n,x):

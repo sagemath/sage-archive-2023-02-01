@@ -902,7 +902,6 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         When `s_i=i` for all `i`, the final OA is labelled in such a way that
         the `x.TD(k-1)` are blocks ``[n-x,...,n-x]`` to ``[n-1,...,n-1]``.
 
-
     .. SEEALSO::
 
         :func:`OA_find_disjoint_blocks`
@@ -927,6 +926,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
         True
         sage: _ = designs.incomplete_orthogonal_array(k,n,[1,1,1])
+        sage: _ = designs.incomplete_orthogonal_array(k,n,[1])
 
     REFERENCES:
 
@@ -951,7 +951,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         if existence:
             return orthogonal_array(k,n,existence=True)
         OA = orthogonal_array(k,n)
-        independent_set = []
+        independent_set = OA[:x]
 
     elif x <= 3 and n>k-1 and k>=3 and existence:
         # This is lemma 2.3 from [BvR82]_ with u=1

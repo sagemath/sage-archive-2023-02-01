@@ -545,9 +545,9 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        -player - A real number or string.
+        - player - A real number or string.
 
-        -pi - A tuple which is the permutation that should be used.
+        - pi - A tuple which is the permutation that should be used.
 
         EXAMPLES::
 
@@ -607,7 +607,6 @@ class CooperativeGame(SageObject):
 
     def _repr_(self):
         r"""
-
         Returns a concise description of the Game.
 
         EXAMPLES:
@@ -625,13 +624,13 @@ class CooperativeGame(SageObject):
             sage: letter_game = CooperativeGame(letter_function)
             sage: letter_game
             A 3 player Co-operative Game.
+
         """
         np = self.number_players
         return "A %s player Co-operative Game." % np
 
     def _latex_(self):
         r"""
-
         Returns the LaTeX code representing the characteristic function.
 
         EXAMPLES:
@@ -659,7 +658,6 @@ class CooperativeGame(SageObject):
             42,&\text{ if }c=\{A, B, C\}\\
             \end{cases}
         """
-        np = self.number_players
         cf = self.ch_f
         output = "v(c) = \\begin{cases}\n"
         for key in sorted(cf.keys(), key=lambda key: len(key)) :
@@ -711,7 +709,7 @@ class CooperativeGame(SageObject):
             sage: letter_game.is_efficient({'A': 10, 'B': 14, 'C': 14})
             False
 
-            A longer example for is_efficient. ::
+        A longer example for is_efficient. ::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,

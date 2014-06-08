@@ -35,11 +35,11 @@ class CooperativeGame(SageObject):
 
     INPUT:
 
-    - characteristic_function - a dictionary containing all possible sets of
-                                players.
-        * Key - Each set must be entered as a tuple, not a string. A single
-                element tuple must end with a comma.
-        * Value - A real number representing each set of players contribution.
+    - ``characteristic_function`` - a dictionary containing all possible sets of players.
+            * Key - each set must be entered as a tuple, not a string. A
+              single element tuple must end with a comma.
+            * Value - A real number
+              representing each set of players contribution.
 
     EXAMPLES:
 
@@ -49,18 +49,18 @@ class CooperativeGame(SageObject):
     $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
     game is shown below:
 
-    \[
-    v(c) = \begin{cases}
-    0,&\text{ if }c=\emptyset\\
-    6,&\text{ if }c=\{1\}\\
-    12,&\text{ if }c=\{2\}\\
-    42,&\text{ if }c=\{3\}\\
-    12,&\text{ if }c=\{1,2\}\\
-    42,&\text{ if }c=\{1,3\}\\
-    42,&\text{ if }c=\{2,3\}\\
-    42,&\text{ if }c=\{1, 2,3\}\\
-    \end{cases}
-    \]
+        $
+        v(c) = \begin{cases}
+        0,&\text{ if }c=\emptyset\\
+        6,&\text{ if }c=\{1\}\\
+        12,&\text{ if }c=\{2\}\\
+        42,&\text{ if }c=\{3\}\\
+        12,&\text{ if }c=\{1,2\}\\
+        42,&\text{ if }c=\{1,3\}\\
+        42,&\text{ if }c=\{2,3\}\\
+        42,&\text{ if }c=\{1, 2,3\}\\
+        \end{cases}
+        $
 
     The function $v$ can be thought of as as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
@@ -98,7 +98,7 @@ class CooperativeGame(SageObject):
     The following example implements a (trivial) 8 player characteristic
     function game:
 
-    \[v(c)=|c|\text{ for all }c\in 2^{\omega}\]
+        $v(c)=|c|\text{ for all }c\in 2^{\omega}$
 
     ::
 
@@ -114,11 +114,11 @@ class CooperativeGame(SageObject):
     approaches to obtaining the Shapley value of a game. Implementing
     these would be a worthwhile development.
 
-    A characteristic function game \(G=(N,v)\) is monotone if it satisfies
-    \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
-    A characteristic function game \(G=(N,v)\) is super-additive if it
-    satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that
-    \(C_1\cap\C_2=\emptyset\).
+    A characteristic function game $G=(N,v)$ is monotone if it satisfies
+    $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$.
+    A characteristic function game $G=(N,v)$ is super-additive if it
+    satisfies $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$ such that
+    \[C_1 \cap \C_2 = \emptyset\].
 
     We can test if a game is Monotonic or Superadditive. ::
 
@@ -133,20 +133,15 @@ class CooperativeGame(SageObject):
         sage: letter_game
         A 3 player Co-operative Game.
 
-
     It can be shown that the 'fair' payoff vector, referred to as the
     Shapley value is given by the following formula:
 
-    \[
-    \phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)
-    \]
+    $\phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)$
 
     where the summation is over the permutations of the players and the
     marginal contributions of a player for a given permutation is given as:
 
-    \[
-    \Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))
-    \]
+    $\Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))$
 
     To compute the Shapley value in Sage is simple. ::
 
@@ -154,29 +149,20 @@ class CooperativeGame(SageObject):
         {'A': 2, 'C': 35, 'B': 5}
 
     We can test 3 basic properties of a Payoff Vector $lambda$. They are
-        * Efficiency:
+        * Efficiency - $sum_{i=1}^N\lambda_i=v(\Omega)$
+                       In other words, no value of the total coalition is lost.
 
-        \[sum_{i=1}^N\lambda_i=v(\Omega)\]
+        * The nullplayer property - If $\exists$ $i$ such that
+                                    $v(C\cup i)=v(C)$ for all
+                                    $C\in 2^{\Omega}$ then, $\lambda_i=0$.
+                                    In other words: if a player does not
+                                    contribute to any coalition then that
+                                    player should receive no payoff.
 
-        In other words: no value of the total coalition is lost.
-
-        * The nullplayer property:
-
-        If \(\exists\) \(i\) such that \(\(v(C\cup i)=v(C)\)\) for all
-        \(C\in 2^{\Omega}\) then:
-
-        \[\lambda_i=0\]
-
-        In other words: if a player does not contribute to any coalition
-        then that player should receive no payoff.
-
-        * Does it possess the symmetry property?
-
-        A payoff vector possesses the symmetry property if
-        \(v(C\cup i)=v(C\cup j)\) for all \(C\in 2^{\Omega}\setminus\{i,j\}\)
-        then:
-
-        \[x_i=x_j\]
+        * Symmetry property - A payoff vector possesses the symmetry property
+                              if $v(C\cup i)=v(C\cup j)$ for all
+                              $C\in 2^{\Omega}\setminus{i,j}$, then
+                              $x_i=x_j$
 
     If players contribute symmetrically then they should get the same payoff.
 
@@ -236,6 +222,7 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
         True
+
     """
 
     def __init__(self, characteristic_function):
@@ -460,7 +447,9 @@ class CooperativeGame(SageObject):
             sage: A_game.is_superadditive()
             True
 
-        An example for is_superadditive with a longer game that returns True. ::
+        An example for is_superadditive with a longer game that returns True.
+
+        ::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -482,7 +471,9 @@ class CooperativeGame(SageObject):
             sage: long_game.is_superadditive()
             True
 
-        An example for is_superadditive with a longer game that returns False. ::
+        An example for is_superadditive with a longer game that returns False.
+
+        ::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -519,7 +510,7 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        -player - A real number or string.
+        - ``player`` - A real number or string.
 
         EXAMPLES::
 
@@ -536,7 +527,7 @@ class CooperativeGame(SageObject):
             [6, 6, 0, 0, 0, 0]
         """
         return [self._marginal_of_pi(player, pi) for pi
-                            in permutations(self.player_list)]
+                in permutations(self.player_list)]
 
     def _marginal_of_pi(self, player, pi):
         r"""
@@ -580,9 +571,9 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        - player - A real number or string.
+        - ``player`` - A real number or string.
 
-        - pi - A tuple which is the permutation that should be used.
+        - ``pi`` - A tuple which is the permutation that should be used.
 
         EXAMPLES::
 
@@ -678,8 +669,7 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        - payoff_vector - a dictionary where the key is the player and the
-                          value is their payoff.
+        - ``payoff_vector`` - a dictionary where the key is the player and the value is their payoff.
 
         EXAMPLES:
 
@@ -741,8 +731,7 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        - payoff_vector - a dictionary where the key is the player and the
-                          value is their payoff.
+        - ``payoff_vector`` - a dictionary where the key is the player and the value is their payoff.
 
         EXAMPLES:
 
@@ -829,8 +818,7 @@ class CooperativeGame(SageObject):
 
         INPUT:
 
-        - payoff_vector - a dictionary where the key is the player and the
-                          value is their payoff.
+        - ``payoff_vector`` - a dictionary where the key is the player and the value is their payoff.
 
         EXAMPLES:
 

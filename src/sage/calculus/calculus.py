@@ -1782,7 +1782,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     ODE solution constants are treated differently (:trac:`16007`)::
     
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
-        sage: sefms('%k1*%x + %k2*%y + %c')
+        sage: sefms('%k1*x + %k2*y + %c')
         _K1*x + _K2*y + _C
 
      """

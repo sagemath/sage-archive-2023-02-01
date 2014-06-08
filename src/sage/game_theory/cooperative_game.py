@@ -549,7 +549,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.marginal_of_pi(2, (2, 3, 1))
             12
         """
-        predecessors, player_and_pred = self.get_predecessors(player, pi)
+        predecessors, player_and_pred = self._get_predecessors(player, pi)
         if predecessors is None:
             predecessors = ()
         else:
@@ -558,11 +558,11 @@ class CooperativeGame(SageObject):
         value = self.ch_f[player_and_pred] - self.ch_f[predecessors]
         return value
 
-    def get_predecessors(self, player, pi):
+    def _get_predecessors(self, player, pi):
         r"""
         Returns a list of all the predecessors of a player in a certain
-        permutation and the same list including the original player
-        (used elsewhere).
+        permutation and the same list including the original player.
+        This is a hidden function used elsewhere.
 
         INPUT:
 
@@ -581,11 +581,11 @@ class CooperativeGame(SageObject):
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game.get_predecessors(1, (2, 3, 1))
+            sage: integer_game._get_predecessors(1, (2, 3, 1))
             ([2, 3], [1, 2, 3])
-            sage: integer_game.get_predecessors(2, (2, 3, 1))
+            sage: integer_game._get_predecessors(2, (2, 3, 1))
             ([], [2])
-            sage: integer_game.get_predecessors(3, (2, 3, 1))
+            sage: integer_game._get_predecessors(3, (2, 3, 1))
             ([2], [2, 3])
         """
         pred = list(pi[:pi.index(player)])

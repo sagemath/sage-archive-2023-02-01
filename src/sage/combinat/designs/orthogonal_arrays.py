@@ -745,7 +745,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
     """
 
-    from sage.rings.finite_rings.constructor import FiniteField
     from latin_squares import mutually_orthogonal_latin_squares
     from database import OA_constructions
     from block_design import projective_plane, projective_plane_to_OA
@@ -866,15 +865,16 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
     r"""
     Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
 
-    An `OA(k,n)-\sum_{0\leq i< k} OA(k,s_i)` is an orthogonal array from which
-    have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`.
+    An `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)` is an orthogonal array from
+    which have been removed disjoint `OA(k,s_1),...,OA(k,s_x)`. So it can
+    exist only if a `OA(k,n)` exists.
 
-    A very useful particular case (e.g. :meth:`wilson_construction`) is when
-    `s_i=1`, in which case the incomplete design is a `OA(k,n)-x.OA(k,1)`. This
-    can be obtained from a `TD(k,n)` containing `x` disjoint blocks.
-
-    This specific case is the only one available through this function at the
-    moment.
+    A very useful particular case (see e.g. the Wilson construction in
+    :func:`wilson_construction`) is when all `s_i=1`. In that case the
+    incomplete design is a `OA(k,n)-x.OA(k,1)`. Such design is equivalent to
+    transversal design `TD(k,n)` from which has been removed `x` disjoint
+    blocks. This specific case is the only one available through this function
+    at the moment.
 
     INPUT:
 
@@ -899,8 +899,8 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
     .. NOTE::
 
-        When `s_i=i` for all `i`, the final OA is labelled in such a way that
-        the `x.TD(k-1)` are blocks ``[n-x,...,n-x]`` to ``[n-1,...,n-1]``.
+        By convention, the ground set is always `V = \{0, ..., n-1}` and the
+        holes are `\{n-1, ..., n-s_1\}`, `\{n-s_1-1,...,n-s_1-s_2\}`, etc.
 
     .. SEEALSO::
 
@@ -908,8 +908,13 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
     EXAMPLES::
 
-        sage: designs.incomplete_orthogonal_array(3,3,[1,1,1])
+        sage: IOA = designs.incomplete_orthogonal_array(3,3,[1,1,1])
+        sage: IOA
         ((0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0))
+        sage: missing_blocks = ((0,0,0),(1,1,1),(2,2,2))
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: is_orthogonal_array(IOA + missing_blocks,3,3,2)
+        True
 
     TESTS::
 
@@ -920,7 +925,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: designs.incomplete_orthogonal_array(4,3,[1,1])
         Traceback (most recent call last):
         ...
-        ValueError: I was not able to build this OA(4,3)-2.OA(4,1)
+        NotImplementedError: I was not able to build this OA(4,3)-2.OA(4,1)
         sage: n=10
         sage: k=designs.orthogonal_array(None,n,existence=True)
         sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
@@ -943,8 +948,6 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         if existence:
             return False
         raise ValueError("There is no OA(k,n)-x.OA(k,1) when x>n")
-
-    OA = None
 
     # Easy case
     if x <= 1:
@@ -972,7 +975,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         except ValueError:
             if existence:
                 return Unknown
-            raise ValueError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
+            raise NotImplementedError("I was not able to build this OA({},{})-{}.OA({},1)".format(k,n,x,k))
         if existence:
             return True
         independent_set = OA_find_disjoint_blocks(OA,k,n,x)
@@ -1025,7 +1028,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     p = MixedIntegerLinearProgram()
     b = p.new_variable(binary=True)
-    p.add_constraint(p.sum([b[i] for i in range(len(OA))]) == x)
+    p.add_constraint(p.sum(b[i] for i in range(len(OA))) == x)
 
     # t[i][j] lists of blocks of the OA whose i'th component is j
     t = [[[] for _ in range(n)] for _ in range(k)]
@@ -1035,7 +1038,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     for R in t:
         for L in R:
-            p.add_constraint(p.sum([b[i] for i in L]) <=1)
+            p.add_constraint(p.sum(b[i] for i in L) <= 1)
 
     try:
         p.solve()
@@ -1083,8 +1086,15 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
     EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_relabel
-        sage: OA_relabel(designs.orthogonal_array(3,2),3,2,matrix=[["A","B"],["C","D"],["E","F"]])
+        sage: OA = designs.orthogonal_array(3,2)
+        sage: OA_relabel(OA,3,2,matrix=[["A","B"],["C","D"],["E","F"]])
         [['A', 'C', 'E'], ['A', 'D', 'F'], ['B', 'C', 'F'], ['B', 'D', 'E']]
+
+        sage: TD = OA_relabel(OA,3,2,matrix=[[0,1],[2,3],[4,5]]); TD
+        [[0, 2, 4], [0, 3, 5], [1, 2, 5], [1, 3, 4]]
+        sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
+        sage: is_transversal_design(TD)
+        True
 
     Making sure that ``[2,2,2,2]`` is a block of `OA(4,3)`. We do this
     by relabelling block ``[0,0,0,0]`` which belongs to the design.

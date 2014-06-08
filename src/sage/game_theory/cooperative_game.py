@@ -111,8 +111,11 @@ class CooperativeGame(SageObject):
     approaches to obtaining the Shapley value of a game. Implementing
     these would be a worthwhile development.
 
-    A characteristic function game \(G=(N,v)\) is monotone if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
-    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that \(C_1\cap\C_2=\emptyset\).
+    A characteristic function game \(G=(N,v)\) is monotone if it satisfies
+    \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
+    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies
+    \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that
+    \(C_1\cap\C_2=\emptyset\).
 
     We can test if a game is Monotonic or Superadditive. ::
 
@@ -127,7 +130,8 @@ class CooperativeGame(SageObject):
         A 3 player Co-operative Game.
 
 
-    It can be shown that the 'fair' payoff vector, referred to as the Shapley value is given by the following formula:
+    It can be shown that the 'fair' payoff vector, referred to as the
+    Shapley value is given by the following formula:
 
     \[
     \phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)
@@ -158,11 +162,14 @@ class CooperativeGame(SageObject):
 
         \[\lambda_i=0\]
 
-        In other words: if a player does not contribute to any coalition then that player should receive no payoff.
+        In other words: if a player does not contribute to any coalition
+        then that player should receive no payoff.
 
         * Does it possess the symmetry property?
 
-        A payoff vector possesses the symmetry property if \(v(C\cup i)=v(C\cup j)\) for all \(C\in 2^{\Omega}\setminus\{i,j\}\) then:
+        A payoff vector possesses the symmetry property if
+        \(v(C\cup i)=v(C\cup j)\) for all \(C\in 2^{\Omega}\setminus\{i,j\}\)
+        then:
 
         \[x_i=x_j\]
 
@@ -178,7 +185,8 @@ class CooperativeGame(SageObject):
         sage: letter_game.symmetry(payoff_vector)
         True
 
-    Any Payoff Vector can be passed to the game and these properties can once again be tested:
+    Any Payoff Vector can be passed to the game and these properties
+    can once again be tested:
 
         sage: payoff_vector = {'A': 0, 'C': 35, 'B': 3}
         sage: letter_game.is_efficient(payoff_vector)
@@ -214,7 +222,8 @@ class CooperativeGame(SageObject):
         sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
         True
 
-    Any Payoff Vector can be passed to the game and these properties can once again be tested:
+    Any Payoff Vector can be passed to the game and these properties can once
+    again be tested:
 
         sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
         False

@@ -1,10 +1,10 @@
 r"""
 Co-operative games with N players.
 
-This module implements a **basic** implementation of a characteristic function cooperative game.
-The main contribution is a class for a characteristic function game.
-Methods to calculate the Shapley value (a fair way of sharing common
-resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
+This module implements a **basic** implementation of a characteristic function
+cooperative game. The main contribution is a class for a characteristic
+function game. Methods to calculate the Shapley value (a fair way of sharing
+common resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
 test properties of the game (monotonicity, super additivity) are also included.
 
 AUTHOR:
@@ -35,20 +35,19 @@ class CooperativeGame(SageObject):
 
     INPUT:
 
-    - characteristic_function - a dictionary containing all possible sets of players.
-        * Key - Each set must be entered as a tuple, not a string. A single element
-                tuple must end with a comma.
+    - characteristic_function - a dictionary containing all possible sets of
+                                players.
+        * Key - Each set must be entered as a tuple, not a string. A single
+                element tuple must end with a comma.
         * Value - A real number representing each set of players contribution.
-
-    - payoff_vector - default = ``False``, a dictionary can be passed instead but
-                      this will be overwritten if shapley_value is called.
 
     EXAMPLES:
 
-    The type of game that is currently implemented is referred to as a Characteristic Function Game.
-    This is a game on a set $\omega$ of players that is defined by a value function $v:C\to \mathbb{R}$
-    where $C=2^{\Omega}$ is set of all coalitions of players.
-    An example of such a game is shown below:
+    The type of game that is currently implemented is referred to as a
+    Characteristic Function Game. This is a game on a set $\omega$ of players
+    that is defined by a value function $v:C\to \mathbb{R}$ where
+    $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
+    game is shown below:
 
     \[
     v(c) = \begin{cases}
@@ -63,10 +62,11 @@ class CooperativeGame(SageObject):
     \end{cases}
     \]
 
-    The function $v$ can be thought of as as a record of contribution of individuals
-    and coalitions of individuals.
-    Of interest, becomes how to fairly share the value of the grand coalition ($\omega$)?
-    This class allows for such an answer to be formulated by calculating the Shapley value of the game.
+    The function $v$ can be thought of as as a record of contribution of
+    individuals and coalitions of individuals. Of interest, becomes how to
+    fairly share the value of the grand coalition ($\omega$)? This class
+    allows for such an answer to be formulated by calculating the Shapley
+    value of the game.
 
     Basic example of how to implement a co-operative game. These functions will
     be used repeatedly in other examples. ::
@@ -95,15 +95,18 @@ class CooperativeGame(SageObject):
 
     Characteristic function games can be of various types.
 
-    The following example implements a (trivial) 8 player characteristic function game:
+    The following example implements a (trivial) 8 player characteristic
+    function game:
 
     \[v(c)=|c|\text{ for all }c\in 2^{\omega}\]
+
+    ::
 
         sage: def simple_characteristic_function(N):
         ....:     return {tuple(coalition) : len(coalition)
         ....:                   for coalition in subsets(range(N))}
         sage: g = CooperativeGame(simple_characteristic_function(8))
-        sage: g.shapley_value()
+        sage: g.shapley_value() # long time
         {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
 
     The above is slow to run and this is due to the dimensionality
@@ -113,8 +116,8 @@ class CooperativeGame(SageObject):
 
     A characteristic function game \(G=(N,v)\) is monotone if it satisfies
     \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\).
-    A characteristic function game \(G=(N,v)\) is super-additive if it satisfies
-    \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that
+    A characteristic function game \(G=(N,v)\) is super-additive if it
+    satisfies \(v(C_2)\geq v(C_1) for all \(C_1\subseteq C_2\) such that
     \(C_1\cap\C_2=\emptyset\).
 
     We can test if a game is Monotonic or Superadditive. ::
@@ -124,7 +127,8 @@ class CooperativeGame(SageObject):
         sage: letter_game.is_superadditive()
         False
 
-    Instances have a basic representation that will display basic information about the game. ::
+    Instances have a basic representation that will display basic information
+    about the game. ::
 
         sage: letter_game
         A 3 player Co-operative Game.
@@ -137,14 +141,14 @@ class CooperativeGame(SageObject):
     \phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)
     \]
 
-    where the summation is over the permutations of the players and the marginal
-    contributions of a player for a given permutation is given as:
+    where the summation is over the permutations of the players and the
+    marginal contributions of a player for a given permutation is given as:
 
     \[
     \Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))
     \]
 
-    To compute the Shapley value in Sage is simple:
+    To compute the Shapley value in Sage is simple. ::
 
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
@@ -158,7 +162,8 @@ class CooperativeGame(SageObject):
 
         * The nullplayer property:
 
-        If \(\exists\) \(i\) such that \(\(v(C\cup i)=v(C)\)\) for all \(C\in 2^{\Omega}\) then:
+        If \(\exists\) \(i\) such that \(\(v(C\cup i)=v(C)\)\) for all
+        \(C\in 2^{\Omega}\) then:
 
         \[\lambda_i=0\]
 
@@ -173,7 +178,7 @@ class CooperativeGame(SageObject):
 
         \[x_i=x_j\]
 
-        If players contribute symmetrically then they should get the same payoff.
+    If players contribute symmetrically then they should get the same payoff.
 
     ::
 
@@ -186,7 +191,7 @@ class CooperativeGame(SageObject):
         True
 
     Any Payoff Vector can be passed to the game and these properties
-    can once again be tested:
+    can once again be tested. ::
 
         sage: payoff_vector = {'A': 0, 'C': 35, 'B': 3}
         sage: letter_game.is_efficient(payoff_vector)
@@ -223,7 +228,7 @@ class CooperativeGame(SageObject):
         True
 
     Any Payoff Vector can be passed to the game and these properties can once
-    again be tested:
+    again be tested. ::
 
         sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
         False
@@ -629,7 +634,8 @@ class CooperativeGame(SageObject):
 
         Returns the LaTeX code representing the characteristic function.
 
-        EXAMPLES::
+        EXAMPLES:
+
         Basic description of the game shown when calling the game instance. ::
 
             sage: letter_function = {(): 0,
@@ -679,7 +685,7 @@ class CooperativeGame(SageObject):
 
         EXAMPLES:
 
-        An efficient payoff_vector.::
+        An efficient payoff_vector. ::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,

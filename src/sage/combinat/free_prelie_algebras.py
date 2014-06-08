@@ -32,7 +32,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     EXAMPLES::
 
-        sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+        sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
         sage: P = FreePreLieAlgebra(ZZ, 'abc'); P
         Free PreLie algebra on 3 generators ['a', 'b', 'c'] over Integer Ring
     """
@@ -40,7 +40,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ); A
             Free PreLie algebra on one generator ['@'] over Rational Field
             sage: TestSuite(A).run()
@@ -67,7 +67,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: R = FreePreLieAlgebra(QQ, 'xy')
             sage: R.variable_names()
             {'x', 'y'}
@@ -80,7 +80,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: FreePreLieAlgebra(QQ) #indirect doctest
             Free PreLie algebra on one generator ['@'] over Rational Field
         """
@@ -101,7 +101,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: F = FreePreLieAlgebra(ZZ,'xyz')
             sage: F.gen(0)
@@ -126,7 +126,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(ZZ,'fgh'); A
             Free PreLie algebra on 3 generators ['f', 'g', 'h'] over
             Integer Ring
@@ -151,7 +151,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: RT = A.basis().keys()
             sage: A.degree_on_basis(RT([RT([])]))
@@ -165,7 +165,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: A.some_elements()
             [B[[]], B[[[]]], B[[[], [[]]]] + B[[[[[]]]]],
@@ -181,7 +181,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
@@ -197,7 +197,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
@@ -215,7 +215,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: RT = A.basis().keys()
             sage: x = RT([RT([])])
@@ -231,7 +231,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: A = FreePreLieAlgebra(QQ)
             sage: RT = A.basis().keys()
             sage: x = A(RT([RT([])]))
@@ -251,7 +251,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
     #     EXAMPLES::
 
-    #         sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+    #         sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
     #         sage: R = FreePreLieAlgebra(QQ, 'xy')
     #         sage: x, y = R.gens()
     #         sage: R(x)
@@ -293,7 +293,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: F = FreePreLieAlgebra(GF(7), 'xyz'); F
             Free PreLie algebra on 3 generators ['x', 'y', 'z'] over
             Finite Field of size 7
@@ -352,7 +352,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.operads.free_prelie_algebras import FreePreLieAlgebra
+            sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
             sage: F = FreePreLieAlgebra(ZZ, 'xyz')
             sage: G = FreePreLieAlgebra(QQ, 'xyz')
             sage: H = FreePreLieAlgebra(ZZ, 'y')

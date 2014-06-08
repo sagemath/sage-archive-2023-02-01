@@ -15572,8 +15572,10 @@ class GenericGraph(GenericGraph_pyx):
             - If ``method="js"`` the graph is displayed using the `d3.js
               <http://d3js.org/>`_ library in a browser. In this situation, the
               method accepts any other option understood by
-              :meth:`sage.graphs.graph_plot_js.gen_html_code`.
-
+              :meth:`sage.graphs.graph_plot_js.gen_html_code`. Depending on
+              whether d3js optional package is installed or not, the javascript
+              code will be used locally or fetched from d3js.org website by the
+              browser. 
 
         This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or

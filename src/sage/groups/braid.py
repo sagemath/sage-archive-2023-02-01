@@ -716,6 +716,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B1 = BraidGroup(5) # indirect doctest
             sage: B1
             Braid group on 5 strands
+            sage: TestSuite(B1).run()
+
 
         Check that :trac:`14081` is fixed::
 
@@ -850,6 +852,37 @@ class BraidGroup_class(FinitelyPresentedGroup):
             s0*s1*s2
         """
         return self.element_class(self, x)
+
+    def an_element(self):
+        """
+        Return an element of the braid group.
+
+        This is used both for illustration and testing purposes.
+
+        EXAMPLES::
+
+            sage: B=BraidGroup(2)
+            sage: B.an_element()
+            s
+        """
+        return self.gen(0)
+
+    def some_elements(self):
+        """
+        Return a list of some elements of the braid group.
+
+        This is used both for illustration and testing purposes.
+
+        EXAMMPLES::
+
+            sage: B=BraidGroup(3)
+            sage: B.some_elements()
+            [s0, s0*s1, (s0*s1)^3]
+        """
+        elements_list = [self.gen(0)]
+        elements_list.append(self(range(1,self.strands())))
+        elements_list.append(elements_list[-1]**self.strands())
+        return elements_list
 
     def _permutation_braid_Tietze(self, p):
         """

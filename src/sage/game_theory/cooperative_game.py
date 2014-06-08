@@ -501,6 +501,7 @@ class CooperativeGame(SageObject):
     def _marginal_contributions(self, player):
         r"""
         Returns a list of contributions specific to one player.
+        This is a hidden function used in calculation of Shapley value.
 
         INPUT:
 
@@ -520,12 +521,13 @@ class CooperativeGame(SageObject):
             sage: integer_game._marginal_contributions(1)
             [6, 6, 0, 0, 0, 0]
         """
-        return [self.marginal_of_pi(player, pi) for pi
+        return [self._marginal_of_pi(player, pi) for pi
                             in permutations(self.player_list)]
 
-    def marginal_of_pi(self, player, pi):
+    def _marginal_of_pi(self, player, pi):
         r"""
-        Returns a value for the players contribution in one permutation.
+        Returns a value for the contribution of a player in one permutation.
+        This is a hidden function used in calculation of Shapley value.
 
         INPUT:
 
@@ -544,7 +546,7 @@ class CooperativeGame(SageObject):
             ....:                  (2, 3,): 42,
             ....:                  (1, 2, 3,): 42}
             sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game.marginal_of_pi(2, (2, 3, 1))
+            sage: integer_game._marginal_of_pi(2, (2, 3, 1))
             12
         """
         predecessors, player_and_pred = self._get_predecessors(player, pi)
@@ -560,7 +562,7 @@ class CooperativeGame(SageObject):
         r"""
         Returns a list of all the predecessors of a player in a certain
         permutation and the same list including the original player.
-        This is a hidden function used elsewhere.
+        This is a hidden function used in calculation of Shapley value.
 
         INPUT:
 

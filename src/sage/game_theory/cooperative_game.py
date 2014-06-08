@@ -520,10 +520,8 @@ class CooperativeGame(SageObject):
             sage: integer_game._marginal_contributions(1)
             [6, 6, 0, 0, 0, 0]
         """
-        contributions = []
-        for pi in permutations(self.player_list):
-            contributions.append(self.marginal_of_pi(player, pi))
-        return contributions
+        return [self.marginal_of_pi(player, pi) for pi
+                            in permutations(self.player_list)]
 
     def marginal_of_pi(self, player, pi):
         r"""

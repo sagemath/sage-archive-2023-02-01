@@ -873,7 +873,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         This is used both for illustration and testing purposes.
 
-        EXAMMPLES::
+        EXAMPLES::
 
             sage: B=BraidGroup(3)
             sage: B.some_elements()

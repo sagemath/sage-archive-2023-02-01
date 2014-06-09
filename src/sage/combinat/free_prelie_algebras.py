@@ -302,7 +302,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
             sage: x, y, z = F.gens()
             sage: F.coerce(x+y)
-            B[y[]] + B[x[]]
+            B[x[]] + B[y[]]
 
         The free prelie algebra over `\ZZ` on `x, y, z` coerces in, since
         `\ZZ` coerces to `\GF{7}`::
@@ -376,3 +376,32 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
         return False
+
+    class Element(CombinatorialFreeModuleElement):
+        def __lt__(self, other):
+            r"""
+            Shortcut for the prelie product
+
+            EXAMPLES::
+
+                sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
+                sage: A = FreePreLieAlgebra(QQ)
+                sage: A.gen() < A.gen()
+                B[[[]]]
+
+            .. warning:: Due to priority rules for operators, term must be put
+                within parentheses inside sum, product... For example you must
+                write::
+
+                    sage: a = A.gen()
+                    sage: (a<a) + a
+                    B[[]] + B[[[]]]
+
+                Indeed ``a<a + a`` is understood as ``a< (a + a)``
+
+                    sage: (a<a + a) - (a < (a + a))
+                    0
+            """
+            parent = self.parent()
+            assert(parent == other.parent())
+            return parent.pre_Lie_product(self, other)

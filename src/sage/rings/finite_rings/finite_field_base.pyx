@@ -1161,6 +1161,70 @@ cdef class FiniteField(Field):
         from sage.rings.finite_rings.hom_finite_field import FrobeniusEndomorphism_finite_field
         return FrobeniusEndomorphism_finite_field(self, n)
 
+    def multiplicative_cosets(self, e, cosets=None, with_zero=False):
+        r"""
+        Return multiplicative cosets of `x^e` where `x` is a generator of `K^*`.
+
+        INPUT:
+
+        - ``e`` -- an integer that divides the cardinality of ``K`` minus one
+
+        - ``cosets`` -- an optional lists of elements of ``K``. If provided, the
+          function only return a list of cosets that contain the elements
+          ``cosets``.
+
+        - `with_zero` -- boolean that default to ``False``. If `True`, the zero
+          of the field is added to each of the coset.
+
+        OUTPUT:
+
+        A list of lists.
+
+        EXAMPLES::
+
+            sage: GF(7).multiplicative_cosets(2)
+            [[1, 2, 4], [3, 6, 5]]
+
+        The set of squares is a particular case of cosets::
+
+            sage: GF(13).multiplicative_cosets(2,cosets=[1])
+            [[1, 4, 3, 12, 9, 10]]
+            sage: [x for x in GF(13) if not x.is_zero() and x.is_square()]
+            [1, 3, 4, 9, 10, 12]
+
+        Multiplicative cosets are particularly useful in combinatorial design
+        theory to provide so called difference families (see
+        :wikipedia:`Difference_set`). This is illustrated on the following
+        examples::
+
+            sage: H = GF(5).multiplicative_cosets(2); H
+            [[1, 4], [2, 3]]
+            sage: sorted(x-y for D in H for x in D for y in D if x != y)
+            [1, 2, 3, 4]
+
+            sage: H = GF(13).multiplicative_cosets(4,cosets=[1],with_zero=True)
+            sage: H
+            [[0, 1, 3, 9]]
+            sage: sorted(x-y for D in H for x in D for y in D if x != y)
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        """
+        import sage.rings.integer
+        e = sage.rings.integer.Integer(e)
+        q = self.cardinality()
+        assert e >= 1 and q%e == 1
+        f = (q-1) // e
+        x = self.multiplicative_generator()
+        if cosets is None:
+            cosets = [x**i for i in xrange(e)]
+        else:
+            cosets = map(self,cosets)
+        xx = x**e
+        if with_zero:
+            z = self.zero()
+            return [[z] + [y*xx**s for s in xrange(f)] for y in cosets]
+        else:
+            return [[y * xx**s for s in xrange(f)] for y in cosets]
+
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     r"""

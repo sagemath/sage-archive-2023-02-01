@@ -41,11 +41,18 @@ class NormalFormGame(SageObject):
         sage: game.show()
     """
 
-    def __init__(self):
+    def __init__(self, matrix, player1='A', player2='B'):
         r"""
         """
         if is_package_installed('gambit') is not True:
             raise NotImplementedError("Optional package Gambit is not installed")
+
+        self.matrix = matrix
+        game = gambit.new_table([matrix.nrows(), matrix.ncols()])
+        self.player1 = player1
+        self.player2 = player2
+        game.players[0] = player1
+        game.players[1] = player2
 
     def best_responses(self):
         """

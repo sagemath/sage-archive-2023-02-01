@@ -641,7 +641,11 @@ def _set_OA_cache(k,n,truth_value):
     """
     global _OA_cache
 
-    max_true, min_unknown, max_unknown, min_false = _OA_cache.get(n,(0,None,None,n+1))
+    k = int(k)
+    n = int(n)
+
+    max_true, min_unknown, max_unknown, min_false = _OA_cache.get(n,(0,None,None,n+2))
+
     if truth_value is True:
         max_true    = k if k>max_true else max_true
     elif truth_value is Unknown:
@@ -675,6 +679,10 @@ def _get_OA_cache(k,n):
         True
     """
     global _OA_cache
+
+    k = int(k)
+    n = int(n)
+
     try:
         max_true, min_unknown, max_unknown, min_false = _OA_cache[n]
     except KeyError:

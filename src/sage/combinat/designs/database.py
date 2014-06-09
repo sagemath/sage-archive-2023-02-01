@@ -2044,3 +2044,219 @@ OA_constructions = {
     210 : (12 , OA_12_210)
 }
 
+def DF_21_5_1():
+    r"""
+    A `(21,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_21_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_21_5_1()
+        sage: is_difference_family(G,D,21,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(21,5,1)
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [[3,6,7,12,14]]
+    return Zmod(21), D
+
+def DF_37_4_1():
+    r"""
+    A `(37,4,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_37_4_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_37_4_1()
+        sage: is_difference_family(G,D,37,4,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(37,4,1)
+
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [[0,1,3,24],[0,4,26,32],[0,10,18,30]]
+    return Zmod(37), D
+
+def DF_81_5_1():
+    r"""
+    A `(81,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_81_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_81_5_1()
+        sage: is_difference_family(G,D,81,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(81,5,1)
+    """
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+    D = [[(0, 0, 0, 1), (2, 0, 0, 1), (0, 0, 2, 1), (1, 2, 0, 2), (0, 1, 1, 1)],
+         [(0, 0, 1, 0), (1, 1, 0, 2), (0, 2, 1, 0), (1, 2, 0, 1), (1, 1, 1, 0)],
+         [(2, 2, 1, 1), (1, 2, 2, 2), (2, 0, 1, 2), (0, 1, 2, 1), (1, 1, 0, 0)],
+         [(0, 2, 0, 2), (1, 1, 0, 1), (1, 2, 1, 2), (1, 2, 1, 0), (0, 2, 1, 1)]]
+    return AdditiveAbelianGroup([3]*4), D
+
+def DF_91_6_1():
+    r"""
+    A cyclic `(91,6,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_91_6_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_91_6_1()
+        sage: is_difference_family(G,D,91,6,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(91,6,1)
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [[0,1,3,7,25,38], [0,16,21,36,48,62], [0,30,40,63,74,82]]
+    return Zmod(91), D
+
+def DF_121_5_1():
+    r"""
+    A `(121,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_121_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_121_5_1()
+        sage: is_difference_family(G,D,121,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(121,5,1)
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [[0,14,26,51,60],[0,15,31,55,59],[0,10,23,52,58],[0,3,36,56,57],
+         [0,7,18,45,50],[0,8,30,47,49]]
+    return Zmod(121), D
+
+
+def DF_141_5_1():
+    r"""
+    A `(141,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_141_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_141_5_1()
+        sage: is_difference_family(G,D,141,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(141,5,1)
+    """
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    D = [[0,33,60,92,97], [0,3,45,88,110], [0,18,39,68,139],
+         [0,12,67,75,113], [0,1,15,84,94], [0,7,11,24,30],
+         [0,36,90,116,125]]
+    return Zmod(141), D
+
+def DF_161_5_1():
+    r"""
+    A `(161,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_161_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_161_5_1()
+        sage: is_difference_family(G,D,161,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(161,5,1)
+    """
+    D = [[0,19,34,73,80], [0,16,44,71,79], [0,12,33,74,78],
+         [0,13,30,72,77], [0,11,36,67,76], [0,18,32,69,75],
+         [0,10,48,68,70], [0,3,29,52,53]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(161), D
+
+def DF_201_5_1():
+    r"""
+    A cyclic `(201,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_201_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_201_5_1()
+        sage: is_difference_family(G,D,201,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(201,5,1)
+    """
+    D = [[0,1,45,98,100], [0,3,32,65,89], [0,4,54,70,75],
+         [0,6,49,69,91], [0,7,58,81,95], [0,8,34,72,90],
+         [0,9,36,77,96], [0,10,35,83,94], [0,12,40,79,92],
+         [0,15,46,76,93]]
+
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(201), D
+
+def DF_221_5_1():
+    r"""
+    A cyclic `(221,5,1)`-difference family.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import DF_221_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = DF_221_5_1()
+        sage: is_difference_family(G,D,221,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(221,5,1)
+    """
+    D = [[0,1,24,61,116], [0,3,46,65,113], [0,4,73,89,130],
+         [0,5,77,122,124], [0,6,39,50,118], [0,7,66,81,94],
+         [0,8,38,64,139], [0,9,29,80,107], [0,10,35,93,135],
+         [0,12,34,52,88], [0,14,31,63,84]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(221), D
+
+# Index of the (Abelian) difference families constructions
+#
+# Associates to n is a dictionnary (k,lambda) -> a function that return a
+# (n,k,lambda)-difference family.
+#
+# This dictionary is used by designs.difference_family
+
+DF_constructions = {
+    21:  {(5,1): DF_21_5_1},
+    37:  {(4,1): DF_37_4_1},
+    81:  {(5,1): DF_81_5_1},
+    91:  {(6,1): DF_91_6_1},
+    121: {(5,1): DF_121_5_1},
+    141: {(5,1): DF_141_5_1},
+    161: {(5,1): DF_161_5_1},
+    201: {(5,1): DF_201_5_1},
+    221: {(5,1): DF_221_5_1}
+    }
+

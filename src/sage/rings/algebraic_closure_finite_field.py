@@ -829,6 +829,60 @@ class AlgebraicClosureFiniteField_generic(Field):
         return (self(1), self.gen(2), 1+self.gen(3))
 
 
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=None, algorithm=None):
+        r"""
+        Return the roots of the polynomial ``p``.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(GF(3),'x')
+            sage: P = x^7 + 2*x^6 + x^5 + x^4 + 2*x^3 + 2*x^2 + x + 1
+            sage: K = GF(3).algebraic_closure('t')
+            sage: r = P.roots(K)   # indirect doctest
+            sage: sorted(r)
+            [(t7^5 + t7 + 2, 1),
+             (t7^5 + 2*t7 + 2, 1),
+             (t7^5 + 2*t7^3 + t7 + 2, 1),
+             (t7^5 + 2*t7^4 + 2*t7^3 + t7^2 + t7 + 2, 1),
+             (t7^6 + t7^3 + t7 + 1, 1),
+             (t7^6 + 2*t7^4 + 2*t7^3 + 2*t7^2 + 2*t7 + 1, 1),
+             (t7^6 + 2*t7^5 + 2*t7^4 + 2*t7^3 + t7, 1)]
+            sage: all(P(c) == 0 for c,_ in r)
+            True
+            sage: prod((x - c) for c,_ in r) == P
+            True
+        """
+        from sage.rings.arith import lcm
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        # first build a polynomial over some finite field
+        coeffs = [v.as_finite_field_element() for v in p.list()]
+        levels = [c[0].degree() for c in coeffs]
+        l = lcm(levels)
+        F,phi = self.subfield(l)
+        new_coeffs = [F(c[1]) for c in coeffs]
+
+        # then factor it and for each factor add some root by going to a larger
+        # finite field if needed
+        P = PolynomialRing(F, 'x')
+
+        roots = {} # root -> multiplicity
+        polys = [(g,m,F,phi) for g,m in P(new_coeffs).factor()]
+        while polys:
+            g,m,F,phi = polys.pop()
+            if g.degree() == 1: # got a root !
+                c = phi(-g.constant_coefficient())
+                if c not in roots:
+                    roots[c] = 0
+                roots[c] += m
+            else: # build an extension where the polynomial splits
+                FF,pphi = self.subfield(F.degree() * g.degree())
+                polys.extend([(gg,mm,FF,pphi) for gg,mm in g.change_ring(FF).factor()])
+        if multiplicities:
+            return list(roots.iteritems())
+        return roots.keys()
+
+
 class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_generic, WithEqualityById):
     """
     Algebraic closure of a finite field, constructed using

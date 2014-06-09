@@ -10,9 +10,10 @@ This module implements 2 by 2 normal form (bi-matrix) games. A variety of operat
 
 - Identification of (weakly) dominated strategies;
 - Identification of Best responses to a given strategy;
-- Identification of Nash Equilibrium (this is done by interfacing with ???);
+- Identification of Nash Equilibrium (this is done by interfacing with Gambit);
 """
 from sage.structure.sage_object import SageObject
+from sage.misc.package import is_package_installed
 
 
 class NormalFormGame(SageObject):
@@ -28,16 +29,10 @@ class NormalFormGame(SageObject):
     Basic example of how to initiate a normal form game using two matrices. ::
 
         sage: A = matrix([[2,0],
-        ....:             [5,1])
+        ....:             [5,1]])
         sage: B = matrix([[2,5],
-        ....:             [0,1])
+        ....:             [0,1]])
         sage: game = NormalFormGame(A, B)
-        sage: game.show()
-
-
-        sage: C = [[[2,2],[0,5],
-        ....:      [[5,0],[1,1]])
-        sage: game = NormalFormGame(C)
         sage: game.show()
 
         sage: D = matrix([[2, 5],
@@ -48,8 +43,9 @@ class NormalFormGame(SageObject):
 
     def __init__(self):
         r"""
-        Initializes.
         """
+        if is_package_installed('gambit') is not True:
+            raise NotImplementedError("Optional package Gambit is not installed")
 
     def best_responses(self):
         """

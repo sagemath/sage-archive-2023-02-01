@@ -4751,7 +4751,7 @@ cdef class Matroid(SageObject):
         
     cpdef plot(self,B=None,lineorders=None):
         """
-        Return geomrtric representation as a sage graphics object.
+        Return geometric representation as a sage graphics object.
                
         INPUT:
         

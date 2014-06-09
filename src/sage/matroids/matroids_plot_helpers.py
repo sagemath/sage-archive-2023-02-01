@@ -51,6 +51,24 @@ def initial_triangle(M,B1,nB1,lps):
     3. A list of elements of `M.simplify.groundset()`` that cane be placed inside the triangle in the geometric representation
     4. A list of lists of elements of ``M.simplify.groundset()`` that correspond to lines in the geometric representation other than the sides of the triangle
     
+    EXAMPLES::
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0],[0, 1, 0, 1, 0, 1, 1,0],[0, 0, 1, 1, 1, 0, 1,0]])
+        sage: N=M.simplify()
+        sage: B1=list(N.basis())
+        sage: nB1=list(set(M.simplify().groundset())-set(B1))
+        sage: pts,trilines,nontripts,curvedlines=matroids_plot_helpers.initial_triangle(M,B1,nB1,M.loops())
+        sage: print pts
+        {1: (1.0, 0.0), 2: (1.5, 1.0), 3: (0.5, 1.0), 4: (0, 0), 5: (1, 2), 6: (2, 0)}
+        sage: print trilines
+        [[3, 4, 5], [2, 5, 6], [1, 4, 6]]
+        sage: print nontripts
+        [0]
+        sage: print curvedlines
+        [[0, 1, 5], [0, 2, 4], [0, 3, 6], [1, 2, 3], [1, 4, 6], [2, 5, 6], [3, 4, 5]]
+
+    
     .. NOTE::
 
             This method does NOT do any checks. 
@@ -113,6 +131,13 @@ def trigrid(tripts):
     1. Barycenter of 3 input points 
     2,3,4. Barycenters of 1. with 3 different 2-subsets of input points respectively  
     
+    EXAMPLES::
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: points=matroids_plot_helpers.trigrid([[2,1],[4,5],[5,2]])
+        sage: print points
+        [[3.6666666666666665, 2.6666666666666665], [3.222222222222222, 2.888888888888889], [4.222222222222222, 3.222222222222222], [3.5555555555555554, 1.8888888888888886]]
+    
     .. NOTE::
 
             This method does NOT do any checks.
@@ -127,30 +152,42 @@ def trigrid(tripts):
         grid.append(pt)
     return grid
     
-def addnontripts(M,tripts,ptsdict,nontripts):
+def addnontripts(tripts_labels,nontripts_labels,ptsdict):
     """
-    Return a grid of 4 points inside given 3 points as a list
+    Return modified ``ptsdict`` with additional keys and values corresponding to ``nontripts``
     
    
     INPUT:
     
-    - ``M`` -- A matroid.
-    - ``tripts`` -- A list of labels in ``M.simplify().groundset()`` that can be placed on the sides of the triangle
-    - ``ptsdict`` -- A dictionary containing labels in ``tripts`` as keys and their (x,y) position as values
-    - ``nontripts``-- A list of labels in ``M.simplify().groundset()`` that can be placed inside the triangle
+    - ``tripts`` -- A list of 3 labels that are to be placed on vertices of the triangle
+    - ``ptsdict`` -- A dictionary (at least) containing labels in ``tripts`` as keys and their (x,y) position as values
+    - ``nontripts``-- A list of labels whose corresponding points are to be placed inside the triangle
     
     OUTPUT:
     
     A dictionary containing labels in ``tripts`` as keys and their (x,y) position as values allong with all keys and respective values in ``ptsdict`` 
+    
+    EXAMPLES::
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: ptsdict={'a':(0,0),'b':(1,2),'c':(2,0)}
+        sage: ptsdict_1=matroids_plot_helpers.addnontripts(['a','b','c'],['d','e','f'],ptsdict)
+        sage: print ptsdict_1
+        {'a': (0, 0), 'c': (2, 0), 'b': (1, 2), 'e': (0.6666666666666666, 0.8888888888888888), 'd': (1.0, 0.6666666666666666), 'f': (1.3333333333333333, 0.8888888888888888)}
+        
+        sage: ptsdict_2=matroids_plot_helpers.addnontripts(['a','b','c'],['d','e','f','g','h'],ptsdict)
+        sage: print ptsdict_2
+        {'a': (0, 0), 'c': (2, 0), 'b': (1, 2), 'e': (0.6666666666666666, 0.8888888888888888), 'd': (1.0, 0.6666666666666666), 'g': (1.0, 0.2222222222222222), 'f': (1.3333333333333333, 0.8888888888888888), 'h': (0.5555555555555555, 0.5185185185185185)}
     
     .. NOTE::
 
             This method does NOT do any checks.
             
     """
+    tripts=[list(ptsdict[p]) for p in tripts_labels]
     pairs = [[0,1],[1,2],[0,2]]
     q = [tripts]
-    num = len(nontripts)
+    num = len(nontripts_labels)
     gridpts = [[float((tripts[0][0]+tripts[1][0]+tripts[2][0])/3),float(tripts[0][1]+tripts[1][1]+tripts[2][1])/3]]
     n=0
     while n<num:
@@ -161,7 +198,7 @@ def addnontripts(M,tripts,ptsdict,nontripts):
         n = n + 4 
     gridpts=gridpts[0:num]
     j = 0
-    for p in nontripts:
+    for p in nontripts_labels:
         ptsdict[p]=tuple(gridpts[j])
         j = j + 1
     return ptsdict
@@ -186,6 +223,25 @@ def createline(ptsdict,ll,lineorders2=None):
     3. Ordered list of interpolated x-coordinates of points through which a line can be drawn
     4. Ordered list of interpolated y-coordinates of points through which a line can be drawn    
     
+    Examples::
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: ptsdict={'a':(1,3),'b':(2,1),'c':(4,5),'d':(5,2)}
+        sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,['a','b','c','d'])
+        sage: [len(x),len(y),len(x_i),len(y_i)]
+        [4, 4, 100, 100]
+        sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
+        sage: G+=points(zip(x, y), color='black', size=300,zorder=2)
+        sage: G.show()
+        
+        sage: x,y,x_i,y_i=matroids_plot_helpers.createline(ptsdict,['a','b','c','d'],lineorders2=[['b','a','c','d'],['p','q','r','s']])
+        sage: [len(x),len(y),len(x_i),len(y_i)]
+        [4, 4, 100, 100]
+        sage: G = line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
+        sage: G+=points(zip(x, y), color='black', size=300,zorder=2)
+        sage: G.show()
+
+        
     .. NOTE::
 
             This method does NOT do any checks.
@@ -233,6 +289,18 @@ def slp(M1):
     2. Loops of matroid ``M1``
     3. Elements that are in `M1.groundset()` but not in ground set of 1. or in 2.
     
+    EXAMPLES::
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0],[0, 0, 1, 1, 1, 0, 1,0,0]])
+        sage: [M1,L,P]=matroids_plot_helpers.slp(M)
+        sage: print L,P
+        set([7]) set([8])
+        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0],[0, 0, 1, 1, 1, 0, 1,0,0]])
+        sage: [M1,L,P]=matroids_plot_helpers.slp(M)
+        sage: M1.is_simple()
+        True
+    
     .. NOTE::
 
             This method does NOT do any checks.
@@ -258,6 +326,15 @@ def addlp(M,L,P,ptsdict,G=None):
     
     OUTPUT:
     A sage graphics object containing loops and parallel elements of matroid ``M``
+    
+    EXAMPLES:
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0],[0, 0, 1, 1, 1, 0, 1,0,0]])
+        sage: [M1,L,P]=matroids_plot_helpers.slp(M)
+        sage: G=matroids_plot_helpers.addlp(M,L,P,{0:(0,0)})
+        sage: G.show(axes=False)
+        sage: sage: G.show(axes=False)
     
     .. NOTE::
 
@@ -317,6 +394,14 @@ def line_hasorder(l,lodrs=None):
     1. A boolean indicating whether there is any list in ``lordrs`` that is setwise equal to ``l``
     2. A list specifying an order on ``set(l)`` if 1. is True, otherwise an empty list
     
+    EXAMPLES::
+        
+        
+        sage: matroids_plot_helpers.line_hasorder(['a','b','c','d'],[['a','c','d','b'],['p','q','r']])
+        (True, ['a', 'c', 'd', 'b'])
+        sage: matroids_plot_helpers.line_hasorder(['a','b','c','d'],[['p','q','r'],['l','m','n','o']])
+        (False, [])
+        
     .. NOTE::
 
             This method does NOT do any checks.
@@ -347,7 +432,21 @@ def geomrep(M1,B1=None,lineorders1=None):
     A sage graphics object of type <class 'sage.plot.graphics.Graphics'> that 
     corresponds to the geometric representation of the matroid
     
+    EXAMPLES::
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: M=matroids.named_matroids.P7()
+        sage: G=matroids_plot_helpers.geomrep(M)
+        sage: G.show(xmin=-2, xmax=3, ymin=-2, ymax=3)
+        
+        sage: M=matroids.named_matroids.P7()
+        sage: G=matroids_plot_helpers.geomrep(M,lineorders1=[['f','e','d']])
+        sage: G.show(xmin=-2, xmax=3, ymin=-2, ymax=3)
+
+    
     """
+    if B1 == None:
+        B1 = list(M1.basis())
     G = Graphics()
     # create lists of loops and parallel elements and simplify given matroid
     [M,L,P] = slp(M1)
@@ -384,7 +483,7 @@ def geomrep(M1,B1=None,lineorders1=None):
             G += text(i,(float(pt[0]), float(pt[1])), color='white',fontsize=13)    
     else:
         pts,trilines,nontripts,curvedlines = initial_triangle(M1,B1,list(set(M.groundset())-set(B1)), list(set(L)|set(P))) #[i for i in sorted(M.groundset()) if i not in B1])
-        pts2= addnontripts(M,[pts[B1[0]],pts[B1[1]],pts[B1[2]]],pts,nontripts)
+        pts2= addnontripts([B1[0],B1[1],B1[2]],nontripts,pts)
         trilines.extend(curvedlines)
         j = 0
         for ll in trilines:

@@ -302,8 +302,8 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         Elements of the free PreLie algebra canonically coerce in::
 
             sage: x, y, z = F.gens()
-            sage: F.coerce(x+y)
-            B[x[]] + B[y[]]
+            sage: F.coerce(x+y) == x+y
+            True
 
         The free prelie algebra over `\ZZ` on `x, y, z` coerces in, since
         `\ZZ` coerces to `\GF{7}`::
@@ -387,14 +387,15 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
 
                 sage: from sage.combinat.free_prelie_algebras import FreePreLieAlgebra
                 sage: A = FreePreLieAlgebra(QQ)
-                sage: A.gen() < A.gen()
+                sage: a = A.gen(0)
+                sage: a < a
                 B[[[]]]
 
             .. warning:: Due to priority rules for operators, term must be put
                 within parentheses inside sum, product... For example you must
                 write::
 
-                    sage: a = A.gen()
+                    sage: a = A.gen(0)
                     sage: (a<a) + a
                     B[[]] + B[[[]]]
 

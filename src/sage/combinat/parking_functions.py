@@ -273,8 +273,8 @@ class ParkingFunctions_n(CombinatorialClass):
 
     .. warning::
 
-       The precise order in which the parking function are generated or
-       listed is not fixed, and may change in the future.
+        The precise order in which the parking function are generated or
+        listed is not fixed, and may change in the future.
     """
     def __init__(self, n):
         """
@@ -404,6 +404,8 @@ class ParkingFunctions_n(CombinatorialClass):
             sage: pf = ParkingFunctions(8)
             sage: a = pf.random_element(); a  # random
             [5, 7, 2, 4, 2, 5, 1, 3]
+            sage: a in pf
+            True
         """
         n = self.n
         Zm = Zmod(n + 1)
@@ -414,7 +416,7 @@ class ParkingFunctions_n(CombinatorialClass):
             while not(position in free):
                 position += Zm.one()
             free.remove(position)
-        return self([i - free[0] for i in fun])
+        return ParkingFunction([(i - free[0]).lift() for i in fun])
 
 
 def ParkingFunction(pf=None, labelling=None, area_sequence=None,

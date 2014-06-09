@@ -860,7 +860,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
 
     return OA
 
-@cached_function(key=lambda x1,x2,x3,x4: (x1,x2,tuple(x3),x4))
 def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
     r"""
     Returns an `OA(k,n)-\sum_{1\leq i\leq x} OA(k,s_i)`.
@@ -910,8 +909,8 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
         sage: IOA = designs.incomplete_orthogonal_array(3,3,[1,1,1])
         sage: IOA
-        ((0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0))
-        sage: missing_blocks = ((0,0,0),(1,1,1),(2,2,2))
+        [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+        sage: missing_blocks = [[0,0,0],[1,1,1],[2,2,2]]
         sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
         sage: is_orthogonal_array(IOA + missing_blocks,3,3,2)
         True
@@ -988,7 +987,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
     for B in independent_set:
         OA.remove(B)
 
-    OA = tuple(map(tuple,OA_relabel(OA,k,n,blocks=independent_set)))
+    OA = OA_relabel(OA,k,n,blocks=independent_set)
 
     return OA
 
@@ -1093,7 +1092,7 @@ def OA_relabel(OA,k,n,blocks=tuple(),matrix=None):
         sage: TD = OA_relabel(OA,3,2,matrix=[[0,1],[2,3],[4,5]]); TD
         [[0, 2, 4], [0, 3, 5], [1, 2, 5], [1, 3, 4]]
         sage: from sage.combinat.designs.orthogonal_arrays import is_transversal_design
-        sage: is_transversal_design(TD)
+        sage: is_transversal_design(TD,3,2)
         True
 
     Making sure that ``[2,2,2,2]`` is a block of `OA(4,3)`. We do this

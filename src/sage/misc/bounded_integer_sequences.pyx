@@ -479,10 +479,10 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
         if stop>start:
             length = ((stop-start-1)//step)+1
         else:
-            length = 0
+            return allocate_biseq(0, S.itembitsize)
     else:
         if stop>=start:
-            length = 0
+            return allocate_biseq(0, S.itembitsize)
         else:
             length = ((stop-start+1)//step)+1
     cdef biseq_t out
@@ -890,6 +890,22 @@ cdef class BoundedIntegerSequence:
         """
         return self.data.length
 
+    def __nonzero__(self):
+        """
+        A bounded integer sequence is nonzero if and only if its length is nonzero.
+
+        EXAMPLES::
+
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: S = BoundedIntegerSequence(13, [0,0,0])
+            sage: bool(S)
+            True
+            sage: bool(S[1:1])
+            False
+
+        """
+        return self.data.length!=0
+
     def __repr__(self):
         """
         String representation.
@@ -1036,6 +1052,11 @@ cdef class BoundedIntegerSequence:
             3
             sage: (X+S)[10]
             0
+
+        ::
+
+            sage: S[2:2] == X[4:2]
+            True
 
         """
         cdef BoundedIntegerSequence out

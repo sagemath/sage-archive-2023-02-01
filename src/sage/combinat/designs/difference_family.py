@@ -1,7 +1,6 @@
 r"""
 Difference families
 
-
 REFERENCES:
 
 .. [We72] R. M. Wilson "Cyclotomy and difference families in elementary Abelian
@@ -50,7 +49,8 @@ def group_law(G):
 
 def cyclotomic_cosets(K, e, cosets=None, with_zero=False):
     r"""
-    Return the `e`-th cyclotomic cosets on `K^*`.
+    Return the `e`-th cyclotomic cosets on the multiplicative group `K^*` of the
+    finite field `K`.
 
     Let `q` be the cardinality of `K` and `e` be an integer that divides `q-1`.
     Let `x` be a multiplicative generator of `K^*`. Then the `e`-th cyclotomic
@@ -67,7 +67,7 @@ def cyclotomic_cosets(K, e, cosets=None, with_zero=False):
 
     OUTPUT:
 
-    A lists of list.
+    A list of lists.
 
     EXAMPLES::
 
@@ -187,7 +187,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         sage: is_difference_family(G, D)
         True
 
-    Examples with a (non Abelian) multiplicative group::
+    The function also supports multiplicative groups (non necessarily Abelian)::
 
         sage: G = DihedralGroup(8)
         sage: x,y = G.gens()
@@ -288,17 +288,17 @@ def _nonzero_and_have_distinct_images(elts, f, images=None):
 
 def difference_family(v, k, l=1, existence=False, check=True):
     r"""
-    Return a `(k,l)`-difference family on a group of size `v`.
+    Return a (``k``, ``l``)-difference family on a group of size ``v``.
 
     Let `G` be a finite Abelian group. For a given subset `D` of `G`, we define
     `\Delta D` to be the multi-set of differences `\Delta D = \{x - y; x \in D,
-    y \in D, x \not y\}`. A *`(G,k,\lambda)`-difference family* is a collection
+    y \in D, x \not= y\}`. A `(G,k,\lambda)`-*difference family* is a collection
     of `k`-subsets of `G`, `D = \{D_1, D_2, \ldots, D_b\}` such that the union
     of the difference sets `\Delta D_i` for `i=1,...b`, seen as a multi-set,
     contains each element of `G \backslash \{0\}` exactly `\lambda`-times.
 
-    When there is only one block, i.e. `l(v - 1) = k(k-1)`, then a
-    `(G,k,l)`-difference family is also called a *difference set*.
+    When there is only one block, i.e. `\lambda(v - 1) = k(k-1)`, then a
+    `(G,k,\lambda)`-difference family is also called a *difference set*.
 
     See also :wikipedia:`Difference_set`.
 
@@ -358,7 +358,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
         sage: l7[False]
         []
 
-    Other constructions for `l > 1`::
+    Other constructions for `\lambda > 1`::
 
         sage: from sage.combinat.designs.difference_family import is_difference_family
         sage: vkl = [(7,3,2),(11,5,2),(16,3,2),(16,5,4),(19,3,2),(19,6,5),

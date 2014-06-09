@@ -1,13 +1,6 @@
 r"""
 Difference families
 
-.. TODO::
-
-    There is a slightly more general version where the stabilizers of the blocks
-    are taken into account. A block is *short* if the stabilizer is not trivial.
-    In the case is not trivial we consider slight less differences. It is still
-    possible to construct BIBD from this more general version (see the
-    Handbook of combinatorial designs).
 
 REFERENCES:
 
@@ -28,15 +21,21 @@ import sage.rings.arith as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
 
-def zmod_or_finite_field(q):
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
-    from sage.rings.finite_rings.constructor import GF
-
-    if arith.is_prime(q):
-        return Zmod(q)
-    return GF(q,'z')
-
 def group_law(G):
+    r"""
+    Return a triple ``(identity, operation, inverse)`` that define the
+    operations on the group ``G``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import group_law
+        sage: group_law(Zmod(3))
+        (0, <built-in function add>, <built-in function neg>)
+        sage: group_law(SymmetricGroup(5))
+        ((), <built-in function mul>, <built-in function inv>)
+        sage: group_law(VectorSpace(QQ,3))
+        ((0, 0, 0), <built-in function add>, <built-in function neg>)
+    """
     import operator
     from sage.categories.groups import Groups
     from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
@@ -49,38 +48,41 @@ def group_law(G):
     else:
         raise ValueError("%s does not seem to be a group"%G)
 
-
-def cyclotomic_cosets(K, e, x=None):
+def cyclotomic_cosets(K, e, cosets=None, with_zero=False):
     r"""
-    Return the `e`-th cyclotomic cosets on `K`.
+    Return the `e`-th cyclotomic cosets on `K^*`.
 
-    Let `e` be an integer that divides the cardinality of `K`. The `e`-th
-    cyclotomic cosets are the cosets modulo the group of `e`-th power in `K^*`.
-    They form a ``(q,f,f-1)`` difference family in `K`.
+    Let `q` be the cardinality of `K` and `e` be an integer that divides `q-1`.
+    Let `x` be a multiplicative generator of `K^*`. Then the `e`-th cyclotomic
+    cosets are the cosets modulo the group of `e`-th power in `K^*`.
 
     INPUT:
 
-    - ``K`` -- a finite field or an integer which is a prime power
+    - ``K`` -- a finite field
 
     - ``e`` -- an integer that divides the cardinality of ``K`` minus one
 
-    - ``x`` -- an optional generator for the multiplicative group `K - \{0\}`.
+    - ``cosets`` -- an optional lists of elements of ``K``. If it is provided,
+      then return the list of cosets that contain the elements ``cosets``.
 
     OUTPUT:
 
-    The output is a pair ``(K,H)`` where ``K`` is a finite field and ``H`` is
-    the list of cosets.
+    A lists of list.
 
     EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import cyclotomic_cosets, is_difference_family
-        sage: K,H = cyclotomic_cosets(7,2)
+
+    All cyclotomic cosets form a ``(q,f,f-1)`` difference family::
+
+        sage: H = cyclotomic_cosets(GF(7),2)
         sage: H
         [[1, 2, 4], [3, 6, 5]]
-        sage: is_difference_family(K,H,7,3,2)
+        sage: is_difference_family(GF(7),H,7,3,2)
         True
 
-        sage: K,H = cyclotomic_cosets(16,5)
+        sage: K = GF(16,'z')
+        sage: H = cyclotomic_cosets(K,5)
         sage: H
         [[1, z^2 + z, z^2 + z + 1],
          [z, z^3 + z^2, z^3 + z^2 + z],
@@ -89,64 +91,52 @@ def cyclotomic_cosets(K, e, x=None):
          [z + 1, z^3 + z, z^3 + 1]]
         sage: is_difference_family(K,H,16,3,2)
         True
+
+    If `q` is congruent to `3` mod `4` then the squares in `GF(q)` form a `(q,
+    (q-1)/2, (q-3)/4)`-difference family::
+
+        sage: H = cyclotomic_cosets(GF(19),2,cosets=[1])
+        sage: is_difference_family(GF(19),H,19,9,4)
+        True
+
+        sage: H = cyclotomic_cosets(GF(23),2,cosets=[1])
+        sage: is_difference_family(GF(23),H,23,11,5)
+        True
+
+    If `q = 4t^2 + 1` with `t` odd, then the fourth power form a `(q, (q-1)/4,
+    (q-5)/16)`-difference family::
+
+        sage: B = cyclotomic_cosets(GF(37),4,cosets=[1])
+        sage: is_difference_family(GF(37),B,37,9,2)
+        True
+
+        sage: B = cyclotomic_cosets(GF(101),4,cosets=[1])
+        sage: is_difference_family(GF(101),B,101,25,6)
+        True
+
+    If `q = 4t^2 + 9` with `t` odd, then the fourth power with `0` form a
+    `(q, (q+3)/4, (q+3)/16)`-difference set::
+
+        sage: B = cyclotomic_cosets(GF(13),4,cosets=[1],with_zero=True)
+        sage: is_difference_family(GF(13),B,13,4,1)
+        True
+
+        sage: B = cyclotomic_cosets(GF(109),4,cosets=[1],with_zero=True)
+        sage: is_difference_family(GF(109),B,109,28,7)
+        True
     """
-    if isinstance(K, (int,Integer)):
-        q = K
-        K = zmod_or_finite_field(K)
-    else:
-        q = K.cardinality()
+    q = K.cardinality()
     assert q%e == 1
     f = (q-1) // e
-    if x is None:
-        x = K.multiplicative_generator()
-    return K, [[x**(e*s+i) for s in xrange(f)] for i in xrange(e)]
-
-def quadratic_residues(K):
-    r"""
-    Return the set of quadratic residues in the finite field `K`.
-
-    If `q` is congruent to `3` mod `4` they form a `(q, (q-1)//2, (q-1)//4)`-difference family.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import quadratic_residues, is_difference_family
-        sage: K = GF(19)
-        sage: quad_res = quadratic_residues(K)
-        sage: is_difference_family(K,[quad_res],19,9,4)
-        True
-
-        sage: K = GF(23)
-        sage: quad_res = quadratic_residues(K)
-        sage: is_difference_family(K, [quad_res],23,11,5)
-        True
-    """
-    quad_res = set(x**2 for x in K)
-    quad_res.remove(K.zero())
-    return sorted(quad_res)
-
-def quartic_residues(K):
-    r"""
-    Return the set of quartic residues in the finite field `K`.
-
-    If `q = 4t^2 + 1` with `t` odd, then it is a `(q, (q-1)//4, (q-5)//16)`-difference family.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import quartic_residues, is_difference_family
-
-        sage: K = GF(37)   # 4*3^2 + 1
-        sage: B = quartic_residues(K)
-        sage: is_difference_family(K,[B],37,9,2)
-        True
-
-        sage: K = GF(101)   # 4*5^2 + 1
-        sage: B = quartic_residues(K)
-        sage: is_difference_family(K,[B],101,25,6)
-        True
-    """
-    quart_res = set(x**4 for x in K)
-    quart_res.remove(K.zero())
-    return sorted(quart_res)
+    x = K.multiplicative_generator()
+    if cosets is None:
+        cosets = [x**i for i in xrange(e)]
+    xx = x**e
+    if with_zero:
+        z = K.zero()
+        return [[z] + [y*xx**s for s in xrange(f)] for y in cosets]
+    else:
+        return [[y * xx**s for s in xrange(f)] for y in cosets]
 
 def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     r"""
@@ -161,6 +151,10 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     - ``v``, ``k`` and ``l`` - optional parameters of the difference family
 
     - ``verbose`` - whether to print additional information
+
+    .. SEEALSO::
+
+        :func:`difference_family`
 
     EXAMPLES::
 
@@ -230,11 +224,10 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
         l = b*k*(k-1) // (v-1)
     else:
         l = int(l)
-
-    if b*k*(k-1) != l*(v-1):
-        if verbose:
-            print "the relation bk(k-1) == l(v-1) is not satisfied with b=%d, k=%d, l=%d, v=%d"%(b,k,l,v)
-        return False
+        if b*k*(k-1) != l*(v-1):
+            if verbose:
+                print "the relation bk(k-1) == l(v-1) is not satisfied with b=%d, k=%d, l=%d, v=%d"%(b,k,l,v)
+            return False
 
     identity, op, inv = group_law(G)
 
@@ -250,6 +243,10 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
                 if i == j:
                     continue
                 g = op(dd[i], inv(dd[j]))
+                if g == identity:
+                    if verbose:
+                        print "two identical elements in the same block"
+                    return False
                 counter[g] += 1
                 if counter[g] > l:
                     if verbose:
@@ -260,21 +257,22 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     return True
 
 
-def _have_distinct_images(elts, f, images=None):
+def _nonzero_and_have_distinct_images(elts, f, images=None):
     r"""
-    Check whether ``elts`` are non zero and mapped to distinct image through
-    ``f``. If ``images`` is provided, the image must also be distinct from it.
+    Check whether ``elts`` are non zero and mapped to distinct values by the
+    dictionnary ``f``. If ``images`` is provided, the image must also be
+    distinct from it.
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.difference_family import _have_distinct_images
+        sage: from sage.combinat.designs.difference_family import _nonzero_and_have_distinct_images
         sage: f = {1:0, 2:1, 3:1, 4:2}
-        sage: [(i,j) for i in srange(5) for j in srange(5) if _have_distinct_images([i,j], f)]
+        sage: [(i,j) for i in srange(5) for j in srange(5) if _nonzero_and_have_distinct_images([i,j], f)]
         [(1, 2), (1, 3), (1, 4), (2, 1), (2, 4), (3, 1), (3, 4), (4, 1), (4, 2), (4, 3)]
 
-        sage: _have_distinct_images([2,4], f, set([0]))
+        sage: _nonzero_and_have_distinct_images([2,4], f, set([0]))
         True
-        sage: _have_distinct_images([2,4], f, set([2]))
+        sage: _nonzero_and_have_distinct_images([2,4], f, set([2]))
         False
     """
     if images is None:
@@ -292,10 +290,17 @@ def difference_family(v, k, l=1, existence=False, check=True):
     r"""
     Return a `(k,l)`-difference family on a group of size `v`.
 
-    Let `G` be a finite Abelian group. A *`(G,k,\lambda)`-difference family* is
-    a collection of `k`-subsets of `G`, `D = \{D_1, D_2, \ldots, D_b\}` such
-    that the set of differences seen as a multi-set contains each element of `G
-    \backslash \{0\}` exactly `\lambda`-times.
+    Let `G` be a finite Abelian group. For a given subset `D` of `G`, we define
+    `\Delta D` to be the multi-set of differences `\Delta D = \{x - y; x \in D,
+    y \in D, x \not y\}`. A *`(G,k,\lambda)`-difference family* is a collection
+    of `k`-subsets of `G`, `D = \{D_1, D_2, \ldots, D_b\}` such that the union
+    of the difference sets `\Delta D_i` for `i=1,...b`, seen as a multi-set,
+    contains each element of `G \backslash \{0\}` exactly `\lambda`-times.
+
+    When there is only one block, i.e. `l(v - 1) = k(k-1)`, then a
+    `(G,k,l)`-difference family is also called a *difference set*.
+
+    See also :wikipedia:`Difference_set`.
 
     If there is no such difference family, an ``EmptySetError`` is raised and if
     there is no construction at the moment ``NotImplementedError`` is raised.
@@ -355,40 +360,70 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     Other constructions for `l > 1`::
 
-        sage: _ = designs.difference_family(23,11,5)
-        sage: _ = designs.difference_family(101,25,6)
-    """
-    from database import DF_constructions
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: vkl = [(7,3,2),(11,5,2),(16,3,2),(16,5,4),(19,3,2),(19,6,5),
+        ....:        (19,9,4),(19,9,8),(23,11,5),(37,9,2),(101,25,6),(109,28,7)]
+        sage: for v,k,l in vkl:
+        ....:      assert designs.difference_family(v,k,l,existence=True)
+        ....:      K,B = designs.difference_family(v,k,l)
+        ....:      assert is_difference_family(K,B,v,k,l)
 
+    .. TODO::
+
+        There is a slightly more general version of difference families where
+        the stabilizers of the blocks are taken into account. A block is *short*
+        if the stabilizer is not trivial. The more general version is called a
+        *partial difference family*. It is still possible to construct BIBD from
+        this more general version (see the chapter 16 in the Handbook
+        [DesignHandbook]_).
+
+        Implement recursive constructions from Buratti "Recursive for difference
+        matrices and relative difference families" (1998) and Jungnickel
+        "Composition theorems for difference families and regular planes" (1978)
+    """
     if (l*(v-1)) % (k*(k-1)) != 0:
         if existence:
             return False
         raise EmptySetError("A (v,%d,%d)-difference family may exist only if %d*(v-1) = mod %d"%(k,l,l,k*(k-1)))
 
-    D = None
-    e = k*(k-1)
-    t = (v-1) // e  # number of blocks
+    from database import DF_constructions
+    if (v,k,l) in DF_constructions:
+        return DF_constructions[(v,k,l)]()
 
-    if v in DF_constructions and (k,l) in DF_constructions[v]:
-        return DF_constructions[v][(k,l)]()
+    e = k*(k-1)
+    t = l*(v-1) // e  # number of blocks
+
+    D = None
 
     if arith.is_prime_power(v):
-        K = zmod_or_finite_field(v)
+        from sage.rings.finite_rings.constructor import GF
+        K = GF(v,'z')
 
         if l == (k-1):
             if existence:
                 return True
             return K, cyclotomic_cosets(K, (v-1)//k)
 
-        if v%4 == 3 and k == (v-1)//2 and l == (v-1)//4:
-            if existence:
-                return True
-            return K, [quadratic_residues(K)]
+        if t == 1:
+            # some of the difference set constructions VI.18.48 from the
+            # Handbook of combinatorial designs
+            # q = 3 mod 4
+            if v%4 == 3 and k == (v-1)//2:
+                if existence:
+                    return True
+                return K, cyclotomic_cosets(K, 2, [1])
 
-        if v%8 == 5 and k == (v-1)//4 and l == (v-5)//16 and arith.is_square((v-1)//4):
-            if existence:
-                return True
-            return K, [quartic_residues(K)]
+            # q = 4t^2 + 1, t odd
+            if v%8 == 5 and k == (v-1)//4 and arith.is_square((v-1)//4):
+                if existence:
+                    return True
+                return K, cyclotomic_cosets(K, 4, [1])
+
+            # q = 4t^2 + 9, t odd
+            if v%8 == 5 and k == (v+3)//4 and arith.is_square((v-9)//4):
+                if existence:
+                    return True
+                return K, cyclotomic_cosets(K, 4, [1], with_zero=True)
 
         if l != 1:
             raise NotImplementedError
@@ -403,7 +438,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
             to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
             r = x ** ((v-1) // k)  # primitive k-th root of unity
             cosets = set()
-            if _have_distinct_images((r**j-one for j in xrange(1,m+1)), to_coset):
+            if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m+1)), to_coset):
                 if existence:
                     return True
                 B = [r**j for j in xrange(k)]  # = H^((k-1)t) whose difference is
@@ -419,7 +454,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
             to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
             r = x ** ((v-1) // (k-1))  # primitive (k-1)-th root of unity
             cosets = set([0])
-            if _have_distinct_images((r**j-one for j in xrange(1,m)), to_coset, set([0])):
+            if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m)), to_coset, set([0])):
                 if existence:
                     return True
                 B = [K.zero()] + [r**j for j in xrange(k-1)]
@@ -431,7 +466,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
             xx = x**5
             to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
             for c in to_coset:
-                if _have_distinct_images((r-1, c*(r-1), c-1, c-r, c-r**2), to_coset):
+                if _nonzero_and_have_distinct_images((r-1, c*(r-1), c-1, c-r, c-r**2), to_coset):
                     if existence:
                         return True
                     B = [one,r,r**2,c,c*r,c*r**2]

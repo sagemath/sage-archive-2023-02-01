@@ -548,6 +548,13 @@ def v_4_1_BIBD(v, check=True):
         sage: for n in range(13,100):                            # long time
         ....:    if n%12 in [1,4]:                               # long time
         ....:       _ = v_4_1_BIBD(n, check = True)              # long time
+
+    TESTS:
+
+    Check that the `(37,4)`-difference family is available::
+
+        sage: assert designs.difference_family(37,4,existence=True)
+        sage: _ = designs.difference_family(37,4)
     """
     from sage.rings.finite_rings.constructor import FiniteField
     k = 4
@@ -925,6 +932,14 @@ def v_5_1_BIBD(v, check=True):
         ....:    i += 20
         ....:    _ = v_5_1_BIBD(i+1)
         ....:    _ = v_5_1_BIBD(i+5)
+
+    TESTS:
+
+    Check that the needed difference families are there::
+
+        sage: for v in [21,41,61,81,141,161,281]:
+        ....:     assert designs.difference_family(v,5,existence=True)
+        ....:     _ = designs.difference_family(v,5)
     """
     v = int(v)
 

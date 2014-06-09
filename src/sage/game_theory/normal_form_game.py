@@ -14,6 +14,9 @@ This module implements 2 by 2 normal form (bi-matrix) games. A variety of operat
 """
 from sage.structure.sage_object import SageObject
 from sage.misc.package import is_package_installed
+if is_package_installed('gambit') is not True:
+            raise NotImplementedError("Optional package Gambit is not installed")
+from gambit import *
 
 
 class NormalFormGame(SageObject):
@@ -41,18 +44,24 @@ class NormalFormGame(SageObject):
         sage: game.show()
     """
 
-    def __init__(self, matrix, player1='A', player2='B'):
+    def __init__(self, matrix1, matrix2, player1='A', player2='B'):
         r"""
         """
-        if is_package_installed('gambit') is not True:
-            raise NotImplementedError("Optional package Gambit is not installed")
-
-        self.matrix = matrix
-        game = gambit.new_table([matrix.nrows(), matrix.ncols()])
+        self.game = gambit.new_table([matrix1.nrows(), matrix1.ncols()])
         self.player1 = player1
         self.player2 = player2
-        game.players[0] = player1
-        game.players[1] = player2
+        self.game.players[0].label = player1
+        self.game.players[1].label = player2
+
+        for row in range(matrix1.nrows()):
+            for col in range(matrix1.ncols()):
+                a = matrix1[row,col]
+                b = matrix2[row,col]
+                self.game[row, col][0] = 1
+                self.game[row, col][1] = 2
+
+    def _repr_(self):
+        print self.game
 
     def best_responses(self):
         """
@@ -68,3 +77,5 @@ class NormalFormGame(SageObject):
         """
         Compute all equilibrium
         """
+        solver = gambit.nash.ExternalEnumPureSolver()
+        return solver.solver(self.game)

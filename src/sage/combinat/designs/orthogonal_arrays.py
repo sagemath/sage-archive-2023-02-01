@@ -22,6 +22,7 @@ Functions
 from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+from sage.rings.infinity import Infinity
 
 def transversal_design(k,n,check=True,existence=False, who_asked=tuple()):
     r"""
@@ -609,6 +610,84 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
         assert is_transversal_design(TD,k,N)
 
     return TD
+
+# Stores for every integer n the four values :
+# - max_true
+# - min_unknown
+# - max_unknown
+# - min_false
+#
+# corresponding to the max/min values of which orthogonal_array returns
+# truth_value.
+
+_OA_cache = {0:(Infinity,None,None,None),1:(Infinity,None,None,None)}
+def _set_OA_cache(k,n,truth_value):
+    r"""
+    Sets a value in the OA cache of existence results
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``truth_value`` -- one of ``True,False,Unknown``
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache
+        sage: _get_OA_cache(4,10)
+        sage: _set_OA_cache(4,10,True)
+        sage: _get_OA_cache(4,10)
+        True
+    """
+    global _OA_cache
+
+    max_true, min_unknown, max_unknown, min_false = _OA_cache.get(n,(0,None,None,n+1))
+    if truth_value is True:
+        max_true    = k if k>max_true else max_true
+    elif truth_value is Unknown:
+        min_unknown = k if (min_unknown is None or k<min_unknown) else min_unknown
+        max_unknown = k if (max_unknown is None or k>max_unknown) else max_unknown
+    else:
+        min_false   = k if k<min_false else min_false
+
+    _OA_cache[n] = (max_true, min_unknown, max_unknown, min_false)
+
+def _get_OA_cache(k,n):
+    r"""
+    Gets a value from the OA cache of existence results
+
+    INPUT:
+
+    ``k,n`` (integers)
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import _set_OA_cache, _get_OA_cache
+        sage: _get_OA_cache(0,10)
+        True
+        sage: _get_OA_cache(1,10)
+        True
+        sage: _get_OA_cache(2,10)
+        True
+        sage: _get_OA_cache(2**10+1,2**10)
+        sage: _set_OA_cache(2**10+1,2**10,True)
+        sage: _get_OA_cache(2**10+1,2**10)
+        True
+    """
+    global _OA_cache
+    try:
+        max_true, min_unknown, max_unknown, min_false = _OA_cache[n]
+    except KeyError:
+        return None
+
+    if k <= max_true:
+        return True
+    elif min_unknown is not None and (k >= min_unknown or k <= max_unknown):
+        return Unknown
+    elif k >= min_false:
+        return False
+
+    return None
 
 def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
     r"""

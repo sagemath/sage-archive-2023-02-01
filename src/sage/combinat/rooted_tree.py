@@ -196,6 +196,56 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         """
         return False
 
+    def graft_list(self, other):
+        """
+        Return the list of trees obtained by grafting ``other`` on ``self``
+
+        This is useful for free pre-Lie algebras.
+
+        EXAMPLES::
+
+            sage: RT = RootedTree
+            sage: x = RT([])
+            sage: y = RT([x, x])
+            sage: x.graft_list(x)
+            [[[]]]
+            sage: y.graft_list(x)
+            [[[], [], []], [[], [[]]], [[], [[]]]]
+        """
+        resu = []
+        with self.clone() as t:
+            t.append(other)
+            resu += [t]
+        for i, sub in enumerate(self):
+            for new_sub in sub.graft_list(other):
+                with self.clone() as t:
+                    t[i] = new_sub
+                    resu += [t]
+        return resu
+
+    def graft_on_root(self, other):
+        """
+        Return the tree obtained by grafting ``other`` on the root of ``self``
+
+        This is useful for free Nap algebras.
+
+        EXAMPLES::
+
+            sage: RT = RootedTree
+            sage: x = RT([])
+            sage: y = RT([x, x])
+            sage: x.graft_on_root(x)
+            [[]]
+            sage: y.graft_on_root(x)
+            [[], [], []]
+            sage: x.graft_on_root(y)
+            [[[], []]]
+        """
+        with self.clone() as t:
+            t.append(other)
+            resu = t
+        return resu
+
 
 class RootedTreesFactory(factories.SetFactory):
     """
@@ -373,56 +423,6 @@ class RootedTrees_all(factories.ParentWithSetFactory,
             Labelled rooted trees
         """
         return LabelledRootedTrees()
-
-    def graft_list(self, other):
-        """
-        Return the list of trees obtained by grafting ``other`` on ``self``
-
-        This is useful for free pre-Lie algebras.
-
-        EXAMPLES::
-
-            sage: RT = RootedTree
-            sage: x = RT([])
-            sage: y = RT([x, x])
-            sage: x.graft_list(x)
-            [[[]]]
-            sage: y.graft_list(x)
-            [[[], [], []], [[], [[]]], [[], [[]]]]
-        """
-        resu = []
-        with self.clone() as t:
-            t.append(other)
-            resu += [t]
-        for i, sub in enumerate(self):
-            for new_sub in sub.graft_list(other):
-                with self.clone() as t:
-                    t[i] = new_sub
-                    resu += [t]
-        return resu
-
-   def graft_on_root(self, other):
-       """
-       Return the tree obtained by grafting ``other`` on the root of ``self``
-
-       This is useful for free Nap algebras.
-
-       EXAMPLES::
-
-           sage: RT = RootedTree
-           sage: x = RT([])
-           sage: y = RT([x, x])
-           sage: x.graft_on_root(x)
-           [[]]
-           sage: y.graft_on_root(x)
-           [[], [], []]
-           sage: x.graft_on_root(y)
-           [[[], []]]
-       """
-       with self.clone() as t:
-           t.append(other)
-           resu = t
-       return resu
 
 
 class RootedTrees_size(factories.ParentWithSetFactory, UniqueRepresentation):

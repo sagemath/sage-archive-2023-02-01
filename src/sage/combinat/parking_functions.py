@@ -101,10 +101,8 @@ def ParkingFunctions(n=None):
          [1, 2, 2], [2, 1, 2], [2, 2, 1], [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1],
          [3, 1, 2], [3, 2, 1]]
 
-    If no size is specified, then ParkingFunctions returns the combinatorial class of
-    all parking functions.
-
-    ::
+    If no size is specified, then ParkingFunctions returns the
+    combinatorial class of all parking functions. ::
 
         sage: PF = ParkingFunctions(); PF
         Parking functions
@@ -396,8 +394,11 @@ class ParkingFunctions_n(CombinatorialClass):
         Return a random parking function of size `n`
 
         The algorithm uses a circular parking space with `n+1`
-        slots. Then all `n` cars can parks and there remains one empty
-        slot. Slots are then renumbered so that the empty slot is `0`.
+        spots. Then all `n` cars can park and there remains one empty
+        spot. Spots are then renumbered so that the empty spot is `0`.
+
+        The probability distribution is uniform on the set of
+        `(n+1)^(n-1)` parking functions of size `n`.
 
         EXAMPLES::
 
@@ -517,8 +518,9 @@ class ParkingFunction_class(CombinatorialObject):
 
         .. NOTE::
 
-        Note that this is different than the image of ``n`` under function.  It is
-        "off by one" in that it agrees with sage indexing starting at 0.
+            Note that this is different than the image of ``n`` under
+            function.  It is "off by one" in that it agrees with sage
+            indexing starting at 0.
 
         EXAMPLES::
 
@@ -606,7 +608,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the permutation of parking spots that corresponds to
+        - the permutation of parking spots that corresponds to
           the parking function and which is the same size as parking
           function
 
@@ -632,6 +634,7 @@ class ParkingFunction_class(CombinatorialObject):
         r"""
         Returns the sequence of cars that take parking spots 1 through `n`
         and corresponding to the parking function.
+
         For example, ``cars_permutation(PF) = [2, 4, 5, 6, 3, 1, 7]``
         means that car 2 takes spots 1, car 4 takes spot 2, ..., car 1 takes spot 6 and
         car 7 takes spot 7.
@@ -642,7 +645,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the permutation of cars corresponding to the parking function
+        - the permutation of cars corresponding to the parking function
           and which is the same size as parking function
 
         EXAMPLES::
@@ -671,6 +674,7 @@ class ParkingFunction_class(CombinatorialObject):
     def jump_list(self):  # cars displacements
         r"""
         Returns the displacements of cars that corresponds to the parking function.
+
         For example, ``jump_list(PF) = [0, 0, 0, 0, 1, 3, 2]``
         means that car 1 through 4 parked in their preferred spots,
         car 5 had to park one spot farther (jumped or was displaced by one spot),
@@ -682,7 +686,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the displacements sequence of parked cars which corresponds
+        - the displacements sequence of parked cars which corresponds
           to the parking function and which is the same size as parking function
 
         EXAMPLES::
@@ -719,7 +723,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the sum of the differences between the parked and preferred parking
+        - the sum of the differences between the parked and preferred parking
           spots
 
         EXAMPLES::
@@ -751,7 +755,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the cars that can park in their preferred spots
+        - the cars that can park in their preferred spots
 
         EXAMPLES::
 
@@ -782,7 +786,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the number of cars that parked in their preferred parking spots
+        - the number of cars that parked in their preferred parking spots
 
         EXAMPLES::
 
@@ -812,7 +816,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the pairs `(i, j)` such that `i < j`, and `i^{th}` area = `j^{th}` area,
+        - the pairs `(i, j)` such that `i < j`, and `i^{th}` area = `j^{th}` area,
           and `i^{th}` label < `j^{th}` label
 
         EXAMPLES::
@@ -846,7 +850,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the pairs `(i, j)` such that `i < j`, and `i^{th}` area = `j^{th}` area +1,
+        - the pairs `(i, j)` such that `i < j`, and `i^{th}` area = `j^{th}` area +1,
           and `i^{th}` label > `j^{th}` label
 
         EXAMPLES::
@@ -880,7 +884,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the primary and secondary diversion pairs
+        - the primary and secondary diversion pairs
 
         EXAMPLES::
 
@@ -911,7 +915,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the number of dinversion pairs
+        - the number of dinversion pairs
 
         EXAMPLES::
 
@@ -940,7 +944,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the sum of squares under and over the main diagonal the Dyck Path,
+        - the sum of squares under and over the main diagonal the Dyck Path,
           corresponding to the parking function
 
         EXAMPLES::
@@ -1043,7 +1047,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the sequence of touch points after the initial step of the
+        - the sequence of touch points after the initial step of the
           labelled Dyck path that corresponds to the parking function
 
         EXAMPLES::
@@ -1077,7 +1081,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the length between the corresponding touch points which
+        - the length between the corresponding touch points which
           of the labelled Dyck path that corresponds to the parking function
 
         EXAMPLES::
@@ -1110,7 +1114,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the labelling of the Dyck path
+        - the labelling of the Dyck path
 
         EXAMPLES::
 
@@ -1140,7 +1144,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns area sequence of the Dyck path
+        - the area sequence of the Dyck path
 
         EXAMPLES::
 
@@ -1204,7 +1208,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the Dyck word of the corresponding parking function
+        - the Dyck word of the corresponding parking function
 
         .. SEEALSO:: :meth:`DyckWord`
 
@@ -1237,7 +1241,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the labelled Dyck word of the corresponding parking function
+        - the labelled Dyck word of the corresponding parking function
           which is twice the size of parking function word
 
         EXAMPLES::
@@ -1257,7 +1261,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         dw = self.to_dyck_word()
         out = list(copy(self.to_labelling_permutation()))
-        for i in range(2*len(out)):
+        for i in range(2 * len(out)):
             if dw[i] == 0:
                 out.insert(i, 0)
         return out
@@ -1273,7 +1277,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns the pair ``(L, D)``, where ``L`` is the labelling and ``D`` is
+        - the pair ``(L, D)``, where ``L`` is the labelling and ``D`` is
           the Dyck word of the parking function
 
         .. SEEALSO:: :meth:`DyckWord`
@@ -1307,7 +1311,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         OUTPUT:
 
-        - returns a sorted parking function
+        - a sorted parking function
 
         .. SEEALSO:: :meth:`NonDecreasingParkingFunction`
 
@@ -1492,7 +1496,7 @@ def from_labelling_and_area_sequence(L, D):
 
     OUTPUT:
 
-    - returns the parking function corresponding the labelling permutation ``L``
+    - the parking function corresponding the labelling permutation ``L``
       and ``D`` an area sequence of the corresponding Dyck path
 
     EXAMPLES::
@@ -1526,7 +1530,7 @@ def from_labelled_dyck_word(LDW):
 
     OUTPUT:
 
-    - returns the parking function corresponding to the labelled Dyck
+    - the parking function corresponding to the labelled Dyck
       word that is half the size of ``LDW``
 
     EXAMPLES::

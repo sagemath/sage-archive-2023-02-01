@@ -5148,6 +5148,10 @@ class FiniteStateMachine(SageObject):
         raise NotImplementedError
 
 
+    def epsilon_successors(self, state):
+        return state._epsilon_successors_(self)
+
+
     def accessible_components(self):
         """
         Returns a new finite state machine with the accessible states

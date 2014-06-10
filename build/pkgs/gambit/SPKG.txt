@@ -26,10 +26,7 @@ https://github.com/gambitproject/gambit
 Put a bulleted list of dependencies here:
 
 * python
-* readline
-
-== Special Update/Build Instructions ==
-
-List patches that need to be applied and what they do. If the
-tarball was modified by hand and not via a spkg-src script,
-describe what was changed.
+* cython
+* setuptools
+* IPython
+* scipy

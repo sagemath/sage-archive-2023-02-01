@@ -8588,6 +8588,46 @@ class FSMTape(SageObject):
 
 
 
+
+    def read_letter(self, tape_number=None):
+        """
+        TODO
+
+        Reads a letter from the input tape.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A letter.
+
+        Exception ``StopIteration`` is thrown if tape has reached
+        the end.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
+            sage: it.read_letter()  # not tested
+            0
+        """
+        if tape_number is None:
+            if self.is_multitape:
+                return tuple(self.read_letter(n)
+                             for n in srange(len(self.tape)))
+            else:
+                return self.read_letter(0)
+        t = self.tape[tape_number]
+        while not t:
+            if not self.read(tape_number):
+                raise StopIteration
+        return next(iter(t))
+
+
     def compare_to_tape(self, tape_number, word):
         t = self.tape[tape_number]
         while len(t) < len(word):
@@ -8617,6 +8657,37 @@ class FSMTape(SageObject):
             position.append((p + increments[t], t))
         position.sort()
         self.position = tuple(position)
+
+
+    def transition_possible(self, transition):
+        if self.is_multitape:
+            word_in = transition.word_in
+        else:
+            word_in = (transition.word_in,)
+        if len(word_in) != len(self.tape):
+            raise TypeError('transition %s has wrong input word (%s entries '
+                            'instead of %s)' % (transition,
+                                                len(word_in), len(self.tape)))
+        return self._transition_possible_test_(word_in)
+
+
+    def _transition_possible_epsilon_(self, word_in):
+        for word in word_in:
+            if not word:
+                continue
+            for letter in word:
+                if letter is not None:
+                    return False
+        return True
+
+
+    def _transition_possible_test_(self, word_in):
+        if self._transition_possible_epsilon_(word_in):
+            return False
+        for tape_number, word in enumerate(word_in):
+            if not self.compare_to_tape(tape_number, word):
+                return False
+        return True
 
 #*****************************************************************************
 

@@ -8522,8 +8522,90 @@ class Transducer(FiniteStateMachine):
             if not it.accept_input:
                 raise ValueError("Invalid input sequence.")
             return it.output_tape
+#*****************************************************************************
 
 
+class FSMTape(SageObject):
+    def __init__(self, tapes, tapes_raw, tapes_raw_ended,
+                 position, is_multitape):
+        """
+        TODO: position nicht in FSMTape?
+
+        INPUT:
+
+        - ``tapes`` -- a list of the existing instances of
+          FSMTape. ``self`` will be appended to ``tapes``.
+
+        - ``tapes_raw`` -- a tuple or list of the input tapes.
+
+        - ``position`` -- a tuple of the current positions of each of
+          the input tapes. TODO
+
+        - ``is_multitape`` -- If ``True`` each entry of the
+          input-word-tuple of a transition is interpreted as word for
+          the corresponding input tape.
+        """
+        if len(tapes_raw) != len(position):
+            raise TypeError('The length of the inputs do not match')
+        self.position = position
+        self.tapes_raw = tapes_raw
+        self.tapes_raw_ended = tapes_raw_ended
+        self.is_multitape = is_multitape
+
+        self.tapes = tapes
+        self.tapes.append(self)
+        self.tape = tuple(collections.deque() for _ in self.tapes_raw)
+
+
+    def _repr_(self):
+        return 'tape ' + repr(self.tape) + ' at ' + repr(self.position)
+
+
+
+    def read(self, tape_number):
+        try:
+            newval = next(self.tapes_raw[tape_number])
+        except StopIteration:
+            self.tapes_raw_ended[tape_number] = True
+            return False
+
+        # update all tapes
+        for tape in self.tapes:
+            tape.tape[tape_number].append(newval)
+
+        return True
+
+
+
+    def compare_to_tape(self, tape_number, word):
+        t = self.tape[tape_number]
+        while len(t) < len(word):
+            if not self.read(tape_number):
+                return False
+        for a, b in izip(word, iter(t)):
+            if a != b:
+                return False
+        return True
+
+
+    def forward(self, transition):
+        if self.is_multitape:
+            increments = tuple(len(word) for word in transition.word_in)
+        else:
+            increments = (len(transition.word_in),)
+
+        for tape_number, (t, i) in \
+                enumerate(izip(self.tape, increments)):
+            for _ in range(i):
+                if not t:
+                    if not self.read(tape_number):
+                        raise ValueError('forwarding tape is not possible')
+                t.popleft()
+        position = []
+        for p, t in self.position:
+            position.append((p + increments[t], t))
+        position.sort()
+        self.position = tuple(position)
 
 #*****************************************************************************
 

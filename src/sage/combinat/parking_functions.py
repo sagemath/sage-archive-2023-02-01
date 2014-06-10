@@ -88,8 +88,8 @@ def ParkingFunctions(n=None):
     of a Dyck Path of size n such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
     and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
 
-    The number of parking functions of size `n` is equal to the number of rooted forest
-    on `n` vertices and is equal to `(n+1)^{n-1}`.
+    The number of parking functions of size `n` is equal to the number
+    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
 
     EXAMPLES:
 
@@ -255,8 +255,8 @@ class ParkingFunctions_n(CombinatorialClass):
     of a Dyck Path of size `n` such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
     and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
 
-    The number of parking functions of size `n` is equal to the number of rooted forest
-    on `n` vertices and is equal to `(n+1)^{n-1}`.
+    The number of parking functions of size `n` is equal to the number
+    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
 
     EXAMPLES::
 
@@ -398,7 +398,7 @@ class ParkingFunctions_n(CombinatorialClass):
         spot. Spots are then renumbered so that the empty spot is `0`.
 
         The probability distribution is uniform on the set of
-        `(n+1)^(n-1)` parking functions of size `n`.
+        `(n+1)^{n-1}` parking functions of size `n`.
 
         EXAMPLES::
 
@@ -434,8 +434,8 @@ def ParkingFunction(pf=None, labelling=None, area_sequence=None,
     of a Dyck Path of size `n` such that `D[i] \geq 0`, `D[i+1] \leq D[i]+1`
     and if `D[i+1] = D[i]+1` then `L[i+1] > L[i]`.
 
-    The number of parking functions of size `n` is equal to the number of rooted forests
-    on `n` vertices and is equal to `(n+1)^{n-1}`.
+    The number of parking functions of size `n` is equal to the number
+    of rooted forests on `n` vertices and is equal to `(n+1)^{n-1}`.
 
     INPUT:
 
@@ -1337,18 +1337,21 @@ class ParkingFunction_class(CombinatorialObject):
     def characteristic_quasisymmetric_function(self, q=None,
                                                R=QQ['q', 't'].fraction_field()):
         r"""
+        Return the characteristic quasisymmetric function of ``self``
+
         The characteristic function of the Parking Function is the sum
         over all permutation labellings of the Dyck path `q^{dinv(PF)}
-        F_{ides(PF)}` where `ides(PF)` is :meth:`ides_composition` is
+        F_{ides(PF)}` where `ides(PF)` (:meth:`ides_composition`) is
         the descent composition of diagonal reading word of the
         parking function.
 
         INPUT:
 
-        - ``q`` -- (default: ``q = R('q')``) a parameter for the generating function power
+        - ``q`` -- (default: ``q = R('q')``) a parameter for the
+          generating function power
 
-        - ``R`` -- (default: ``R = QQ['q','t'].fraction_field()``) the base ring to do
-          the calculations over
+        - ``R`` -- (default: ``R = QQ['q','t'].fraction_field()``) the
+          base ring to do the calculations over
 
         OUTPUT:
 
@@ -1356,7 +1359,7 @@ class ParkingFunction_class(CombinatorialObject):
 
         EXAMPLES::
 
-            sage: R=QQ['q','t'].fraction_field()
+            sage: R = QQ['q','t'].fraction_field()
             sage: (q,t) = R.gens()
             sage: cqf = sum(t**PF.area()*PF.characteristic_quasisymmetric_function() for PF in ParkingFunctions(3)); cqf
             (q^3+q^2*t+q*t^2+t^3+q*t)*F[1, 1, 1] + (q^2+q*t+t^2+q+t)*F[1, 2] + (q^2+q*t+t^2+q+t)*F[2, 1] + F[3]

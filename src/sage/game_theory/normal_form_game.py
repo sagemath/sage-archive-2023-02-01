@@ -12,20 +12,20 @@ This module implements 2 by 2 normal form (bi-matrix) games. A variety of operat
 - Identification of Best responses to a given strategy;
 - Identification of Nash Equilibrium (this is done by interfacing with Gambit);
 """
-
-from sage.misc.package import is_package_installed
-if is_package_installed('gambit') is not True:
-            raise NotImplementedError("Optional package Gambit is not installed")
-
-from gambit.lib.libgambit import new_table
-from sage.matrix.constructor import matrix
 from itertools import product
+from sage.misc.package import is_package_installed
 
 
 def two_matrix_game(matrix1, matrix2):
     """
-    Goes from two matrices to a gambit game.
+    Creates an instance of the Gambit game class from
+    2 matrices.
     """
+    if is_package_installed('gambit') is not True:
+        raise NotImplementedError("Optional package Gambit is not installed")
+    else:
+        from gambit.lib.libgambit import new_table
+
     #create a test for all matrices being the same shape.
     p1_strats = [i for i in range(len(matrix1.rows()))]
     p2_strats = [i for i in range(len(matrix1.columns()))]
@@ -40,6 +40,7 @@ def two_matrix_game(matrix1, matrix2):
 
 
 def test_game():
+    from sage.matrix.constructor import matrix
     a = matrix([[1, 2], [3, 4]])
     b = matrix([[3, 3], [1, 4]])
     return two_matrix_game(a, b)

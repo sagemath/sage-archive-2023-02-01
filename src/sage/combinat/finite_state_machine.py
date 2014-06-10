@@ -8561,6 +8561,17 @@ class FSMTape(SageObject):
         return 'tape ' + repr(self.tape) + ' at ' + repr(self.position)
 
 
+    def __deepcopy__(self, memo):
+        new = FSMTape(self.tapes, self.tapes_raw, self.tapes_raw_ended,
+                      deepcopy(self.position, memo),
+                      deepcopy(self.is_multitape, memo))
+        new.tape = deepcopy(self.tape, memo)
+        return new
+
+
+    def deepcopy(self, memo=None):
+         return deepcopy(self, memo)
+
 
     def read(self, tape_number):
         try:

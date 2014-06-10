@@ -8587,6 +8587,12 @@ class FSMTape(SageObject):
         return True
 
 
+    def finished(self, tape_number=None):
+        if tape_number is None:
+            return all(self.finished(n) for n in srange(len(self.tape)))
+        if not self.tape[tape_number]:
+            self.read(tape_number)  # to make sure tapes_raw_ended is set
+        return self.tapes_raw_ended[tape_number] and not self.tape[tape_number]
 
 
     def read_letter(self, tape_number=None):

@@ -564,6 +564,7 @@ from sage.symbolic.ring import SR
 from sage.calculus.var import var
 from sage.misc.latex import latex
 from sage.misc.misc import verbose
+from sage.misc.misc import srange
 from sage.functions.trig import cos, sin, atan2
 from sage.symbolic.constants import pi
 
@@ -571,8 +572,10 @@ from copy import copy
 from copy import deepcopy
 
 import itertools
-from itertools import imap, ifilter
+from itertools import imap, ifilter, izip
+import collections
 from collections import defaultdict
+import bisect
 
 
 def full_group_by(l, key=lambda x: x):

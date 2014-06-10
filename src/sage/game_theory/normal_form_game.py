@@ -16,9 +16,9 @@ from itertools import product
 from sage.misc.package import is_package_installed
 
 
-def two_matrix_game(matrix1, matrix2):
+def normal_form_game(matrix1, matrix2):
     """
-    Creates an instance of the Gambit game class from
+    Creates an instance of the Gambit Game class from
     2 matrices.
     """
     if is_package_installed('gambit') is not True:
@@ -37,6 +37,13 @@ def two_matrix_game(matrix1, matrix2):
             game[k][1] = int(matrix2[k])
 
     return game
+
+
+def game_matrix(game):
+    """
+    Creates 2 Matrices based on a Gambit Game object.
+    """
+    # check that it is only two players.
 
 
 def test_game():

@@ -9161,50 +9161,134 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 #*****************************************************************************
 
 
+class FSMProcessIteratorEpsilon(FSMProcessIterator):
+    """
 
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.write_word([4, 2])
-            sage: it.output_tape
-            [4, 2]
-        """
-        for letter in word:
-            self.write_letter(letter)
+    TESTS::
 
-    def get_next_transition(self, word_in):
-        """
-        Returns the next transition according to ``word_in``. It is
-        assumed that we are in state ``self.current_state``.
+        sage: T = Transducer([(0, 1, 0, 'a'), (0, 2, None, 'b'),
+        ....:                 (2, 1, None, 'c')])
+        sage: from sage.combinat.finite_state_machine import FSMProcessIteratorEpsilon
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(0),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {0: [''], 1: ['bc'], 2: ['b']}
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(1),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: ['']}
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(2),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: ['c'], 2: ['']}
 
-        INPUT:
+    ::
 
-        - ``word_in`` -- the input word.
+        sage: A = Automaton([(0, 1, 0), (1, 2, None), (2, 3, None),
+        ....:                (3, 1, None), (3, 4, None), (1, 4, None)])
+        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
+        ....:                                initial_state=A.state(0))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {0: [[]]}
+        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
+        ....:                                initial_state=A.state(1))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: [[], []], 2: [[]], 3: [[]], 4: [[], []]}
+        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
+        ....:                                initial_state=A.state(2))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: [[]], 2: [[], []], 3: [[]], 4: [[], []]}
+        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
+        ....:                                initial_state=A.state(3))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: [[]], 2: [[]], 3: [[], []], 4: [[], []]}
+        sage: it = FSMProcessIteratorEpsilon(A, input_tape=[],
+        ....:                                initial_state=A.state(4))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {4: [[]]}
 
-        OUTPUT:
+    ::
 
-        The next transition according to ``word_in``. It is assumed
-        that we are in state ``self.current_state``. If no transition
-        matches, a ``ValueError`` is thrown.
+        sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, None, 'b'),
+        ....:                 (2, 3, None, 'c'), (3, 1, None, 'd'),
+        ....:                 (3, 4, None, 'e'), (1, 4, None, 'f')])
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(0),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {0: ['']}
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(1),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: ['', 'bcd'], 2: ['b'],
+         3: ['bc'], 4: ['f', 'bce']}
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(2),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: ['cd'], 2: ['', 'cdb'],
+         3: ['c'], 4: ['ce', 'cdf']}
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(3),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {1: ['d'], 2: ['db'],
+         3: ['', 'dbc'], 4: ['e', 'df']}
+        sage: it = FSMProcessIteratorEpsilon(T, input_tape=[],
+        ....:                                initial_state=T.state(4),
+        ....:                                format_output=lambda o: ''.join(o))
+        sage: for _ in it:
+        ....:     pass
+        sage: it.visited_states
+        {4: ['']}
+    """
+    def __init__(self, *args, **kwargs):
+        self.tape_type = FSMTapeDetectEpsilon
+        self.visited_states = {}
+        kwargs['check_epsilon_transitions'] = False
+        return super(FSMProcessIteratorEpsilon, self).__init__(*args, **kwargs)
 
-        EXAMPLES::
 
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.get_next_transition([0])
-            Transition from 'A' to 'A': 0|1
-            sage: it.get_next_transition([2])
-            Traceback (most recent call last):
-            ...
-            ValueError: No transition with input [2] found.
-        """
-        for transition in self.current_state.transitions:
-            if transition.word_in == word_in:
-                return transition
-        raise ValueError("No transition with input %s found." % (word_in,))
+    def _add_current_(self, state, tape, output):
+        if state not in self.visited_states:
+            new = True
+            self.visited_states[state] = []
+        else:
+            new = False
+        self.visited_states[state].extend(
+            deepcopy(map(self.format_output, output)))
+        if not new:
+            return
+        return super(FSMProcessIteratorEpsilon, self)._add_current_(
+            state, tape, output)
 
 
 #*****************************************************************************

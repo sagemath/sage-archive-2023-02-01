@@ -2,7 +2,7 @@
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+./configure --disable-gui --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring Gambit."
     exit 1

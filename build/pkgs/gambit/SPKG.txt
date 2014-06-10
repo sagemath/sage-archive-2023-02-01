@@ -1,0 +1,35 @@
+= GAMBIT =
+
+== Description ==
+
+Gambit is a set of software tools for doing computation on finite,
+noncooperative games. The Gambit Project was founded in the mid-1980s by
+Richard McKelvey at the California Institute of Technology.
+
+== License ==
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2 of the License, or (at your option) any
+later version.
+
+== SPKG Maintainers ==
+
+* Theodore Turocy
+
+== Upstream Contact ==
+
+https://github.com/gambitproject/gambit
+
+== Dependencies ==
+
+Put a bulleted list of dependencies here:
+
+* python
+* readline
+
+== Special Update/Build Instructions ==
+
+List patches that need to be applied and what they do. If the
+tarball was modified by hand and not via a spkg-src script,
+describe what was changed.

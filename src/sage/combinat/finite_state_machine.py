@@ -8830,7 +8830,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
         ValueError: Several initial states.
 
     """
-    def __init__(self, fsm, input_tape=None, initial_state=None, **kwargs):
+    def __init__(self, fsm,
+                 input_tape=None, initial_state=None,
+                 input_tapes=[], initial_states=[],
+                 use_multitape_input=None,
+                 check_epsilon_transitions=True,
+                 format_output=None,
+                 **kwargs):
         """
         See :class:`FSMProcessIterator` for more information.
 
@@ -8842,45 +8848,109 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
             sage: for _ in it:
             ....:     pass
-            sage: it.output_tape
-            [1, 0]
+            sage: it.result()
+            [(True, 'A', [1, 0])]
         """
+        # FSM
         self.fsm = fsm
-        if initial_state is None:
-            fsm_initial_states = self.fsm.initial_states()
-            try:
-                self.current_state = fsm_initial_states[0]
-            except IndexError:
+
+        # initial states
+        initial_states = list(initial_states)
+        if initial_state is not None:
+            initial_states.append(initial_state)
+        if not initial_states:
+            initial_states = self.fsm.initial_states()
+            if not initial_states:
                 raise ValueError("No state is initial.")
-            if len(fsm_initial_states) > 1:
-                raise ValueError("Several initial states.")
-        else:
-            self.current_state = initial_state
-        self.output_tape = []
-        if input_tape is None:
-            self._input_tape_iter_ = iter([])
-        else:
-            if hasattr(input_tape, '__iter__'):
-                self._input_tape_iter_ = iter(input_tape)
-            else:
+
+        # input tapes
+        input_tapes = list(input_tapes)
+        if input_tape:
+            input_tapes.append(input_tape)
+        for tape in input_tapes:
+            if not hasattr(tape, '__iter__'):
                 raise ValueError("Given input tape is not iterable.")
+        if not input_tapes:
+            input_tapes.append(iter([]))
+        self._input_tapes_raw_ = tuple(iter(tape) for tape in input_tapes)
+        self._input_tapes_raw_ended_ = [False for _ in input_tapes]
 
-    def __iter__(self):
-        """
-        Returns ``self``.
+        if use_multitape_input is None:
+            self.is_multitape = len(self._input_tapes_raw_) >= 2
+        else:
+            self.is_multitape = use_multitape_input
+        if len(self._input_tapes_raw_) >= 2 and not self.is_multitape:
+            raise ValueError('%s tapes given, so use_multitape_input should '
+                             'be True' % (len(self._input_tapes_raw_),))
 
-        TESTS::
+        self._input_tapes_ = []
+        position_zero = tuple((ZZ(0), i)
+                              for i in srange(len(self._input_tapes_raw_)))
+        if not hasattr(self, 'tape_type'):
+            self.tape_type = FSMTape
+        for _ in initial_states:
+            self.tape_type(self._input_tapes_,
+                           self._input_tapes_raw_,
+                           self._input_tapes_raw_ended_,
+                           position_zero,
+                           self.is_multitape)
 
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: id(it) == id(iter(it))
-            True
-        """
-        return self
+        if format_output is None:
+            self.format_output = lambda o: list(o)
+        else:
+            self.format_output = format_output
 
-    def next(self):
+        self.check_epsilon_transitions = check_epsilon_transitions
+
+        self._current_ = {}
+        self._current_positions_ = []  # a sorted list of the keys of _current_
+        for state, tape in izip(initial_states, self._input_tapes_):
+            self.add_current(state, tape, [[]])
+
+        self._finished_ = []  # contains (accept, state, output)
+
+
+
+    def _add_current_(self, state, tape, output):
+        if not self._current_.has_key(tape.position):
+            self._current_[tape.position] = {}
+            bisect.insort(self._current_positions_, tape.position)
+
+        states = self._current_[tape.position]
+        if states.has_key(state):
+            existing_tape, existing_output = states[state]
+            existing_output.extend(output)
+            # TODO: discard equal outputs... (instead of just .extend() them)
+            states[state] = (existing_tape, existing_output)
+        else:
+            states[state] = (tape, output)
+
+
+    def add_current(self, state, tape, output):
+        self._add_current_(state, tape, output)
+        if not self.check_epsilon_transitions:
+            return
+        if state._in_epsilon_cycle_(self.fsm):
+            if not state._epsilon_cycle_output_empty_(self.fsm):
+                raise RuntimeError(
+                    'State %s is in an epsilon cycle (no input), '
+                    'but output is written.' % (state,))
+        memo = {}
+        for eps_state, eps_output in \
+                state._epsilon_successors_(self.fsm).iteritems():
+            if eps_state == state:
+                continue
+                # "eps_state == state" means epsilon cycle
+                # Since we excluded epsilon cycles where
+                # output is writte, this has to be one,
+                # which doesn't write output; therefore
+                # skipped.
+            for eps_out in eps_output:
+                new_out = [o + list(eps_out) for o in output]
+                self._add_current_(eps_state, deepcopy(tape, memo), new_out)
+
+
+    def __next__(self):
         """
         Makes one step in processing the input tape.
 
@@ -8900,9 +8970,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
             sage: it.next()
-            Transition from 'A' to 'A': 0|1
+            {((1, 0),): {'A': (tape (deque([]),) at ((1, 0),), [[1]])}}
             sage: it.next()
-            Transition from 'A' to 'A': 1|0
+            {((2, 0),): {'A': (tape (deque([]),) at ((2, 0),), [[1, 0]])}}
+            sage: it.next()
+            {}
             sage: it.next()
             Traceback (most recent call last):
             ...
@@ -8918,115 +8990,88 @@ class FSMProcessIterator(SageObject, collections.Iterator):
             sage: Z.process([])
             (True, 0, [1, 2])
         """
-        if hasattr(self, 'accept_input'):
+        if not self._current_:
             raise StopIteration
-        try:
+
+        def step(current_state, input_tape, output):
             # process current state
-            transition = None
-            try:
-                transition = self.current_state.hook(
-                    self.current_state, self)
-            except AttributeError:
-                pass
-            self.write_word(self.current_state.word_out)
+            next_transitions = None
+            state_said_finished = False
+            if hasattr(current_state, 'hook'):
+                try:
+                    next_transitions = current_state.hook(
+                        self, current_state, input_tape, output)
+                except StopIteration:
+                    next_transitions = []
+                    state_said_finished = True
+            if isinstance(next_transitions, FSMTransition):
+                next_transitions = [next_transitions]
+                if next_transitions is not None and \
+                        not hasattr(next_transitions, '__iter__'):
+                    raise ValueError('hook of state should return a '
+                                     'transition or '
+                                     'a list/tuple of transitions.')
+
+            # write output word of state
+            self.write_word(output, current_state.word_out)
 
             # get next
-            if not isinstance(transition, FSMTransition):
-                next_word = []
-                found = False
+            if next_transitions is None:
+                next_transitions = \
+                    [transition for transition in current_state.transitions
+                     if input_tape.transition_possible(transition)]
 
-                try:
-                    while not found:
-                        next_word.append(self.read_letter())
-                        try:
-                            transition = self.get_next_transition(
-                                next_word)
-                            found = True
-                        except ValueError:
-                            pass
-                except StopIteration:
-                    # this means input tape is finished
-                    if len(next_word) > 0:
-                        self.current_state = FSMState(None,
-                                                      allow_label_None=True)
-                    raise StopIteration
+            if not next_transitions:
+                # this branch has to end here...
+                finished = (input_tape.finished() or state_said_finished)
+                successful = finished and current_state.is_final
+                if successful:
+                    self.write_word(output, current_state.final_word_out)
+                if not finished:
+                    return False
+                for o in output:
+                    self._finished_.append((successful, current_state,
+                                            self.format_output(o)))
+                return True
 
-            # process transition
-            try:
-                transition.hook(transition, self)
-            except AttributeError:
-                pass
-            self.write_word(transition.word_out)
+            # at this point we know that there is at least one
+            # outgoing transition to take
 
-            # go to next state
-            self.current_state = transition.to_state
+            new_currents = [(input_tape, output)]
+            if len(next_transitions) > 1:
+                memo = {}
+                new_currents.extend(
+                    [deepcopy(new_currents[0], memo)
+                     for _ in srange(len(next_transitions) - 1)])
 
-        except StopIteration:
-            # this means, either input tape is finished or
-            # someone has thrown StopIteration manually (in one
-            # of the hooks)
-            if self.current_state.label is None or not self.current_state.is_final:
-                self.accept_input = False
-            if not hasattr(self, 'accept_input'):
-                self.accept_input = True
-            if self.current_state.is_final:
-                self.write_word(self.current_state.final_word_out)
-            raise StopIteration
+            # process transitions
+            for transition, (tape, out) in izip(next_transitions, new_currents):
+                if hasattr(transition, 'hook'):
+                    transition.hook(transition, self)
+                self.write_word(out, transition.word_out)
 
-        # return
-        return transition
+                # go to next state
+                state = transition.to_state
+                tape.forward(transition)
+                self.add_current(state, tape, out)
+            return None
 
-    def read_letter(self):
-        """
-        Reads a letter from the input tape.
+        states_dict = self._current_.pop(self._current_positions_.pop(0))
+        for state, (tape, output) in states_dict.iteritems():
+            step(state, tape, output)
+        return self._current_
 
-        INPUT:
 
-        Nothing.
+    next = __next__
 
-        OUTPUT:
 
-        A letter.
+    def result(self, format_output=None):
+        if format_output is None:
+            return self._finished_
+        return [r[:2] + format_output(r[2]) + r[3:] for r in self._finished_]
 
-        Exception ``StopIteration`` is thrown if tape has reached
-        the end.
 
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.read_letter()
-            0
-        """
-        return self._input_tape_iter_.next()
-
-    def write_letter(self, letter):
-        """
-        Writes a letter on the output tape.
-
-        INPUT:
-
-        - ``letter`` -- the letter to be written.
-
-        OUTPUT:
-
-        Nothing.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
-            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:     initial_states=['A'], final_states=['A'])
-            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
-            sage: it.write_letter(42)
-            sage: it.output_tape
-            [42]
-        """
-        self.output_tape.append(letter)
-
-    def write_word(self, word):
+    def write_word(self, output, word):
         """
         Writes a word on the output tape.
 
@@ -9038,7 +9083,24 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         Nothing.
 
-        EXAMPLES::
+        TESTS::
+
+            sage: from sage.combinat.finite_state_machine import FSMProcessIterator
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = FSMProcessIterator(inverter, input_tape=[0, 1])
+            sage: output = [[], [0], [0, 0]]
+            sage: it.write_word(output, [4, 2])
+            sage: output
+            [[4, 2], [0, 4, 2], [0, 0, 4, 2]]
+        """
+        for o in output:
+            o.extend(word)
+
+
+#*****************************************************************************
+
+
 
             sage: from sage.combinat.finite_state_machine import FSMProcessIterator
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},

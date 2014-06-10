@@ -163,7 +163,7 @@ def ParkingFunctions(n=None):
 
 def is_a(x, n=None):
     r"""
-    Checks whether a list is a parking function.
+    Check whether a list is a parking function.
 
     If a size `n` is specified, checks if a list is a parking function
     of size `n`.
@@ -390,8 +390,8 @@ class ParkingFunctions_n(CombinatorialClass):
         return
 
     def random_element(self):
-        """
-        Return a random parking function of size `n`
+        r"""
+        Return a random parking function of size `n`.
 
         The algorithm uses a circular parking space with `n+1`
         spots. Then all `n` cars can park and there remains one empty
@@ -514,7 +514,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def __getitem__(self, n):
         """
-        Returns the `n^{th}` item in the underlying list.
+        Return the `n^{th}` item in the underlying list.
 
         .. NOTE::
 
@@ -534,7 +534,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def __call__(self, n):
         """
-        Returns the image of ``n`` under the parking function.
+        Return the image of ``n`` under the parking function.
 
         EXAMPLES::
 
@@ -548,7 +548,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def diagonal_reading_word(self):
         r"""
-        Returns a diagonal word of the labelled Dyck path corresponding to parking
+        Return a diagonal word of the labelled Dyck path corresponding to parking
         function (see [Hag08]_ p. 75).
 
         INPUT:
@@ -594,7 +594,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def parking_permutation(self):     # indices are cars, entries are parking spaces
         r"""
-        Returns the sequence of parking spots that are taken by cars 1
+        Return the sequence of parking spots that are taken by cars 1
         through `n` and corresponding to the parking function.
 
         For example, ``parking_permutation(PF) = [6, 1, 5, 2, 3, 4,
@@ -632,7 +632,7 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to car permutation')
     def cars_permutation(self):     # indices are parking spaces, entries are car labels
         r"""
-        Returns the sequence of cars that take parking spots 1 through `n`
+        Return the sequence of cars that take parking spots 1 through `n`
         and corresponding to the parking function.
 
         For example, ``cars_permutation(PF) = [2, 4, 5, 6, 3, 1, 7]``
@@ -673,7 +673,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def jump_list(self):  # cars displacements
         r"""
-        Returns the displacements of cars that corresponds to the parking function.
+        Return the displacements of cars that corresponds to the parking function.
 
         For example, ``jump_list(PF) = [0, 0, 0, 0, 1, 3, 2]``
         means that car 1 through 4 parked in their preferred spots,
@@ -712,8 +712,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def jump(self):      # sum of all jumps, sum of all displacements
         r"""
-        Returns the sum of the differences between the parked and
-        preferred parking spots
+        Return the sum of the differences between the parked and
+        preferred parking spots.
 
         See [Shin]_ p. 18.
 
@@ -745,7 +745,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def lucky_cars(self):     # the set of cars that can park in their preferred spots
         r"""
-        Returns the cars that can park in their preferred spots.  For example,
+        Return the cars that can park in their preferred spots.  For example,
         ``lucky_cars(PF) = [1, 2, 7]`` means that cars 1, 2 and 7 parked in their
         preferred spots and all the other cars did not.
 
@@ -777,7 +777,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def luck(self):     # the number of lucky cars
         r"""
-        Returns the number of cars that parked in their preferred parking spots
+        Return the number of cars that parked in their preferred parking spots
         (see [Shin]_ p. 33).
 
         INPUT:
@@ -807,7 +807,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def primary_dinversion_pairs(self):
         r"""
-        Returns the primary descent inversion pairs of a labelled Dyck path corresponding
+        Return the primary descent inversion pairs of a labelled Dyck path corresponding
         to the parking function.
 
         INPUT:
@@ -841,7 +841,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     def secondary_dinversion_pairs(self):
         r"""
-        Returns the secondary descent inversion pairs of a labelled Dyck path
+        Return the secondary descent inversion pairs of a labelled Dyck path
         corresponding to the parking function.
 
         INPUT:
@@ -875,8 +875,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def dinversion_pairs(self):
         r"""
-        Returns the descent inversion pairs of a labelled Dyck path corresponding
-        to the parking function.
+        Return the descent inversion pairs of a labelled Dyck path
+        corresponding to the parking function.
 
         INPUT:
 
@@ -905,9 +905,10 @@ class ParkingFunction_class(CombinatorialObject):
 
     def dinv(self):
         r"""
-        Returns the number of inversions of a labelled Dyck path corresponding
-        to the parking function (see [Hag08]_ p. 74).  Same as the cardinality of
-        :meth:`dinversion_pairs`.
+        Return the number of inversions of a labelled Dyck path corresponding
+        to the parking function (see [Hag08]_ p. 74).
+
+        Same as the cardinality of :meth:`dinversion_pairs`.
 
         INPUT:
 
@@ -936,7 +937,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def area(self):
         r"""
-        Returns the area of the labelled Dyck path corresponding to the parking function.
+        Return the area of the labelled Dyck path corresponding to the
+        parking function.
 
         INPUT:
 
@@ -967,12 +969,15 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to ides composition')
     def ides_composition(self):
         r"""
-        Return the :meth:`~sage.combinat.permutation.Permutation.descents_composition`
-        of the inverse of the :meth:`diagonal_reading_word` of corresponding parking
-        function.  For example, ``ides_composition(PF) = [4, 2, 1]``
-        means that the descents of the inverse of the permutation
-        :meth:`diagonal_reading_word` of the parking function with word ``PF`` are at
-        the 4th and 6th positions.
+        Return the
+        :meth:`~sage.combinat.permutation.Permutation.descents_composition`
+        of the inverse of the :meth:`diagonal_reading_word` of
+        corresponding parking function.
+
+        For example, ``ides_composition(PF) = [4, 2, 1]`` means that
+        the descents of the inverse of the permutation
+        :meth:`diagonal_reading_word` of the parking function with
+        word ``PF`` are at the 4th and 6th positions.
 
         INPUT:
 
@@ -1004,6 +1009,7 @@ class ParkingFunction_class(CombinatorialObject):
         r"""
         Return the :meth:`~sage.combinat.permutation.Permutation.descents` sequence
         of the inverse of the :meth:`diagonal_reading_word` of ``self``.
+
         For example, ``ides(PF) = [1, 2, 3, 5]`` means that descents are at the 2nd, 3rd,
         4th and 6th positions in the inverse of the
         :meth:`diagonal_reading_word` of the parking function (see [GXZ]_ p. 2).
@@ -1036,10 +1042,12 @@ class ParkingFunction_class(CombinatorialObject):
 
     def touch_points(self):
         r"""
-        Returns the sequence of touch points which corresponds to the labelled Dyck path
-        after initial step.  For example, ``touch_points(PF) = [4, 7]`` means that after
-        the initial step, the path touches the main diagonal at points `(4, 4)` and
-        `(7, 7)`.
+        Return the sequence of touch points which corresponds to the labelled Dyck path
+        after initial step.
+
+        For example, ``touch_points(PF) = [4, 7]`` means that after
+        the initial step, the path touches the main diagonal at points
+        `(4, 4)` and `(7, 7)`.
 
         INPUT:
 
@@ -1070,10 +1078,12 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to touch composition')
     def touch_composition(self):
         r"""
-        Returns the composition of the labelled Dyck path corresponding to the
-        parking function.  For example, ``touch_composition(PF) = [4, 3]``
-        means that the first touch is four diagonal units from the starting point, and
-        the second is three units further (see [GXZ]_ p. 2).
+        Return the composition of the labelled Dyck path corresponding
+        to the parking function.
+
+        For example, ``touch_composition(PF) = [4, 3]`` means that the
+        first touch is four diagonal units from the starting point,
+        and the second is three units further (see [GXZ]_ p. 2).
 
         INPUT:
 
@@ -1106,7 +1116,7 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to labelling permutation')
     def to_labelling_permutation(self):
         r"""
-        Returns the labelling of the support Dyck path of the parking function.
+        Return the labelling of the support Dyck path of the parking function.
 
         INPUT:
 
@@ -1136,7 +1146,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def to_area_sequence(self):
         r"""
-        Returns the area sequence of the support Dyck path of the parking function.
+        Return the area sequence of the support Dyck path of the
+        parking function.
 
         INPUT:
 
@@ -1166,8 +1177,9 @@ class ParkingFunction_class(CombinatorialObject):
 
     def to_labelling_area_sequence_pair(self):
         r"""
-        Returns a pair consisting of a labelling and an area sequence of a Dyck path
-        which corresponds to the given parking function.
+        Return a pair consisting of a labelling and an area sequence
+        of a Dyck path which corresponds to the given parking
+        function.
 
         INPUT:
 
@@ -1200,7 +1212,7 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to dyck word')
     def to_dyck_word(self):
         r"""
-        Returns the support Dyck word of the parking function.
+        Return the support Dyck word of the parking function.
 
         INPUT:
 
@@ -1231,9 +1243,11 @@ class ParkingFunction_class(CombinatorialObject):
 
     def to_labelled_dyck_word(self):
         r"""
-        Returns the labelled Dyck word corresponding to the parking function.
-        This is a representation of the parking function as a list where the entries of
-        1 in the Dyck word are replaced with the corresponding label.
+        Return the labelled Dyck word corresponding to the parking function.
+
+        This is a representation of the parking function as a list
+        where the entries of 1 in the Dyck word are replaced with the
+        corresponding label.
 
         INPUT:
 
@@ -1268,8 +1282,8 @@ class ParkingFunction_class(CombinatorialObject):
 
     def to_labelling_dyck_word_pair(self):
         r"""
-        Returns the pair ``(L, D)`` where ``L`` is a labelling and ``D`` is the Dyck
-        word of the parking function.
+        Return the pair ``(L, D)`` where ``L`` is a labelling and
+        ``D`` is the Dyck word of the parking function.
 
         INPUT:
 
@@ -1302,8 +1316,8 @@ class ParkingFunction_class(CombinatorialObject):
     @combinatorial_map(name='to non-decreasing parking function')
     def to_NonDecreasingParkingFunction(self):
         r"""
-        Returns the non-decreasing parking function which underlies the parking
-        function.
+        Return the non-decreasing parking function which underlies the
+        parking function.
 
         INPUT:
 
@@ -1337,7 +1351,7 @@ class ParkingFunction_class(CombinatorialObject):
     def characteristic_quasisymmetric_function(self, q=None,
                                                R=QQ['q', 't'].fraction_field()):
         r"""
-        Return the characteristic quasisymmetric function of ``self``
+        Return the characteristic quasisymmetric function of ``self``.
 
         The characteristic function of the Parking Function is the sum
         over all permutation labellings of the Dyck path `q^{dinv(PF)}
@@ -1489,7 +1503,8 @@ class ParkingFunction_class(CombinatorialObject):
 
 def from_labelling_and_area_sequence(L, D):
     r"""
-    Returns the parking function corresponding to the labelling area sequence pair.
+    Return the parking function corresponding to the labelling area
+    sequence pair.
 
     INPUT:
 
@@ -1525,7 +1540,7 @@ def from_labelling_and_area_sequence(L, D):
 
 def from_labelled_dyck_word(LDW):
     r"""
-    Returns the parking function corresponding to the labelled Dyck word.
+    Return the parking function corresponding to the labelled Dyck word.
 
     INPUT:
 

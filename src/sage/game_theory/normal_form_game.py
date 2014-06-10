@@ -19,20 +19,22 @@ if is_package_installed('gambit') is not True:
 
 from gambit.lib.libgambit import new_table
 from sage.matrix.constructor import matrix
+from itertools import product
 
 
 def two_matrix_game(matrix1, matrix2):
-
+    """
+    Goes from two matrices to a gambit game.
+    """
     #create a test for all matrices being the same shape.
-    p1_strats = len(matrix1.rows())
-    p2_strats = len(matrix1.columns())
+    p1_strats = [i for i in range(len(matrix1.rows()))]
+    p2_strats = [i for i in range(len(matrix1.columns()))]
 
-    game = new_table([p1_strats, p2_strats])
+    game = new_table([len(p1_strats), len(p2_strats)])
 
-    for i in range(p1_strats):
-        for j in range(p2_strats):
-            game[i, j][0] = int(matrix1[i, j])
-            game[i, j][1] = int(matrix2[i, j])
+    for k in product(p1_strats, p2_strats):
+            game[k][0] = int(matrix1[k])
+            game[k][1] = int(matrix2[k])
 
     return game
 
@@ -41,3 +43,5 @@ def test_game():
     a = matrix([[1, 2], [3, 4]])
     b = matrix([[3, 3], [1, 4]])
     return two_matrix_game(a, b)
+
+

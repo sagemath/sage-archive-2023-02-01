@@ -432,7 +432,7 @@ just saying in which state we are and which transition we take
 
 ::
 
-    sage: def state_hook(state, process):
+    sage: def state_hook(process, state, input, output):
     ....:     print "We are now in State %s." % (state.label(),)
     sage: from sage.combinat.finite_state_machine import FSMWordSymbol
     sage: def transition_hook(transition, process):
@@ -477,8 +477,8 @@ our finite automaton by a counter::
 
     sage: from sage.combinat.finite_state_machine import FSMState, FSMTransition
     sage: C = FiniteStateMachine()
-    sage: def update_counter(state, process):
-    ....:     l = process.read_letter()
+    sage: def update_counter(process, state, input, output):
+    ....:     l = input.read_letter()
     ....:     process.fsm.counter += 1 if l == 1 else -1
     ....:     if process.fsm.counter > 0:
     ....:         next_state = 'positive'

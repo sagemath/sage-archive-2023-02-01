@@ -4467,6 +4467,31 @@ class FiniteStateMachine(SageObject):
             sage: [NAF.process(w)[0] for w in [[0], [0, 1], [1, 1], [0, 1, 0, 1],
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
+
+        Non-deterministic finite state machines can be handeled as well.
+
+        ::
+
+            sage: T = Transducer([(0, 1, 0, 0), (0, 2, 0, 0)],
+            ....:     initial_states=[0])
+            sage: T.process([0])
+            [(False, 1, [0]), (False, 2, [0])]
+
+        ::
+
+            sage: T = Transducer([(0, 1, [0, 0], 'a'), (0, 2, [0, 0, 1], 'b'),
+            ....:                 (0, 1, 1, 'c'), (1, 0, [], 'd'),
+            ....:                 (1, 1, 1, 'e')],
+            ....:                initial_states=[0], final_states=[0, 1])
+            sage: T.process([0], format_output=lambda o: ''.join(o))
+            (False, None, None)
+            sage: T.process([0, 0], format_output=lambda o: ''.join(o))
+            [(True, 0, 'ad'), (True, 1, 'a')]
+            sage: T.process([1], format_output=lambda o: ''.join(o))
+            [(True, 0, 'cd'), (True, 1, 'c')]
+            sage: T.process([1, 1], format_output=lambda o: ''.join(o))
+            [(True, 0, 'cdcd'), (True, 0, 'ced'),
+             (True, 1, 'cdc'), (True, 1, 'ce')]
         """
         if not kwargs.has_key('full_output'):
             kwargs['full_output'] = True

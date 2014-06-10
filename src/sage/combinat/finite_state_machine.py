@@ -8798,20 +8798,83 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         sage: from sage.combinat.finite_state_machine import FSMProcessIterator
         sage: it = FSMProcessIterator(T, input_tape=input)
+        sage: for current in it:
+        ....:     print current
+        {((1, 0),): {'B': (tape (deque([]),) at ((1, 0),), [[]])}}
+        {((2, 0),): {'B': (tape (deque([]),) at ((2, 0),), [[]])}}
+        {((3, 0),): {'A': (tape (deque([]),) at ((3, 0),), [[1, 0]])}}
+        {((4, 0),): {'A': (tape (deque([]),) at ((4, 0),), [[1, 0, 0]])}}
+        {((5, 0),): {'B': (tape (deque([]),) at ((5, 0),), [[1, 0, 0]])}}
+        {((6, 0),): {'A': (tape (deque([]),) at ((6, 0),), [[1, 0, 0, 1, 0]])}}
+        {((7, 0),): {'B': (tape (deque([]),) at ((7, 0),), [[1, 0, 0, 1, 0]])}}
+        {((8, 0),): {'B': (tape (deque([]),) at ((8, 0),), [[1, 0, 0, 1, 0]])}}
+        {((9, 0),): {'B': (tape (deque([]),) at ((9, 0),), [[1, 0, 0, 1, 0]])}}
+        {((10, 0),): {'A': (tape (deque([]),) at ((10, 0),), [[1, 0, 0, 1, 0, 1, 0]])}}
+        {}
+        sage: it.result()
+        [(True, 'A', [1, 0, 0, 1, 0, 1, 0])]
+
+    ::
+
+        sage: T = Transducer([(0, 0, 0, 'a'), (0, 1, 0, 'b'),
+        ....:                 (1, 2, 1, 'c'), (2, 0, 0, 'd'),
+        ....:                 (2, 1, None, 'd')],
+        ....:                initial_states=[0], final_states=[2])
+        sage: for o in T.process([0, 0, 1],
+        ....:                    format_output=lambda o: ''.join(o)):
+        ....:     print o
+        (False, 1, 'abcd')
+        (True, 2, 'abc')
+        sage: it = FSMProcessIterator(T, input_tape=[0, 0, 1],
+        ....:                         format_output=lambda o: ''.join(o))
         sage: for _ in it:
-        ....:     print (it.current_state, it.output_tape)
-        ('B', [])
-        ('B', [])
-        ('A', [1, 0])
-        ('A', [1, 0, 0])
-        ('B', [1, 0, 0])
-        ('A', [1, 0, 0, 1, 0])
-        ('B', [1, 0, 0, 1, 0])
-        ('B', [1, 0, 0, 1, 0])
-        ('B', [1, 0, 0, 1, 0])
-        ('A', [1, 0, 0, 1, 0, 1, 0])
-        sage: it.accept_input
-        True
+        ....:     pass
+        sage: it.result()
+        [(False, 1, 'abcd'), (True, 2, 'abc')]
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, None), (1, 0, None, None)],
+        ....:                initial_states=[0], final_states=[1])
+        sage: for o in T.process([],
+        ....:                    format_output=lambda o: ''.join(o),
+        ....:                    list_of_outputs=True):
+        ....:     print o
+        (False, 0, '')
+        (True, 1, '')
+        sage: _ = T.add_transition(-1, 0, 0, 'r')
+        sage: T.state(-1).is_initial = True
+        sage: T.state(0).is_initial = False
+        sage: for o in T.process([0],
+        ....:                    format_output=lambda o: ''.join(o),
+        ....:                    list_of_outputs=True):
+        ....:     print o
+        (False, 0, 'r')
+        (True, 1, 'r')
+
+    ::
+
+        sage: T = Transducer([(0, 1, None, 'z'), (1, 0, None, None)],
+        ....:                initial_states=[0], final_states=[1])
+        sage: for o in T.process([],
+        ....:                    format_output=lambda o: ''.join(o),
+        ....:                    list_of_outputs=True):
+        ....:     print o
+        Traceback (most recent call last):
+        ...
+        RuntimeError: State 0 is in an epsilon cycle (no input),
+        but output is written.
+        sage: _ = T.add_transition(-1, 0, 0, 'r')
+        sage: T.state(-1).is_initial = True
+        sage: T.state(0).is_initial = False
+        sage: for o in T.process([0],
+        ....:                    format_output=lambda o: ''.join(o),
+        ....:                    list_of_outputs=True):
+        ....:     print o
+        Traceback (most recent call last):
+        ...
+        RuntimeError: State 0 is in an epsilon cycle (no input),
+        but output is written.
 
     TESTS::
 
@@ -8825,10 +8888,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         sage: T = Transducer([[0, 1, 0, 0]], initial_states=[0, 1])
         sage: T.process([])
-        Traceback (most recent call last):
-        ...
-        ValueError: Several initial states.
-
+        [(False, 0, []), (False, 1, [])]
     """
     def __init__(self, fsm,
                  input_tape=None, initial_state=None,

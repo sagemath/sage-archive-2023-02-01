@@ -25,6 +25,6 @@ python setup.py build
 python setup.py install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing Cython"
+    echo "Error installing Python API"
     exit 1
 fi

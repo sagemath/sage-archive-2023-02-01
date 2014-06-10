@@ -898,7 +898,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
 
     .. NOTE::
 
-        By convention, the ground set is always `V = \{0, ..., n-1}` and the
+        By convention, the ground set is always `V = \{0, ..., n-1\}` and the
         holes are `\{n-1, ..., n-s_1\}^k`, `\{n-s_1-1,...,n-s_1-s_2\}^k`, etc.
 
     .. SEEALSO::

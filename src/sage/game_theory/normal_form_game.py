@@ -12,14 +12,15 @@ This module implements 2 by 2 normal form (bi-matrix) games. A variety of operat
 - Identification of Best responses to a given strategy;
 - Identification of Nash Equilibrium (this is done by interfacing with Gambit);
 """
-from sage.structure.sage_object import SageObject
+
 from sage.misc.package import is_package_installed
 if is_package_installed('gambit') is not True:
             raise NotImplementedError("Optional package Gambit is not installed")
-from gambit import *
+
+from gambit.lib.libgambit import Game
 
 
-class NormalFormGame(SageObject):
+class NormalFormGame(Game):
     r"""
     An object representing a normal form game.
 
@@ -44,7 +45,7 @@ class NormalFormGame(SageObject):
         sage: game.show()
     """
 
-    def __init__(self, matrix1, matrix2, player1='A', player2='B'):
+    def __init__(self):
         r"""
         """
         self.game = gambit.new_table([matrix1.nrows(), matrix1.ncols()])

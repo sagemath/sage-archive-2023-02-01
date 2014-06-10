@@ -8538,7 +8538,10 @@ def is_FSMProcessIterator(PI):
     return isinstance(PI, FSMProcessIterator)
 
 
-class FSMProcessIterator(SageObject):
+#*****************************************************************************
+
+
+class FSMProcessIterator(SageObject, collections.Iterator):
     """
     This class is for processing an input string on a finite state
     machine.

@@ -1395,6 +1395,46 @@ class FSMState(SageObject):
         return True  # A state cannot be zero (see __init__)
 
 
+    def _epsilon_successors_(self, fsm=None):
+        """
+        Returns the dictionary with states reachable from ``self``
+        without reading anything from an input tape as keys. The
+        values are lists of outputs.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, None, 'a'), (1, 2, None, 'b')])
+            sage: T.state(0)._epsilon_successors_(T)
+            {1: [['a']], 2: [['a', 'b']]}
+            sage: T.state(1)._epsilon_successors_(T)
+            {2: [['b']]}
+            sage: T.state(2)._epsilon_successors_(T)
+            {}
+
+        ::
+
+            sage: T.state(0)._epsilon_successors_()
+            {1: [['a']], 2: [['a', 'b']]}
+        """
+        if hasattr(self, '_epsilon_successors_dict_'):
+            return self._epsilon_successors_dict_
+        if not hasattr(self, 'transitions'):
+            raise ValueError('State %s does not belong to a '
+                             'finite state machine.' % (self,))
+
+        it = FSMProcessIteratorEpsilon(fsm, input_tape=[],
+                                       initial_state=self)
+        # TODO: optimize the following lines (use already calculated
+        # epsilon successors)
+        for _ in it:
+            pass
+        self._epsilon_successors_dict_ = it.visited_states
+        self._epsilon_successors_dict_[self].remove([])  # delete starting state
+        if not self._epsilon_successors_dict_[self]:
+            del self._epsilon_successors_dict_[self]
+        # TODO: apply "unique" on outputs
+        return self._epsilon_successors_dict_
+
 #*****************************************************************************
 
 

@@ -1435,6 +1435,49 @@ class FSMState(SageObject):
         # TODO: apply "unique" on outputs
         return self._epsilon_successors_dict_
 
+
+    def _in_epsilon_cycle_(self, fsm=None):
+        """
+        TESTS::
+
+            sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, 'b'),
+            ....:                (2, 0, None, 'c'), (4, 1, None, 'd')])
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [['a', 'b', 'c']], 1: [['a']], 2: [['a', 'b']]}
+            sage: A.state(0)._in_epsilon_cycle_(A)
+            True
+            sage: A.state(4)._epsilon_successors_(A)
+            {0: [['d', 'b', 'c']], 1: [['d'], ['d', 'b', 'c', 'a']],
+             2: [['d', 'b']]}
+            sage: A.state(4)._in_epsilon_cycle_(A)
+            False
+        """
+        return self in self._epsilon_successors_(fsm)
+
+
+    def _epsilon_cycle_output_empty_(self, fsm=None):
+        """
+        TESTS::
+
+            sage: A = Automaton([(0, 1, None, 'a'), (1, 2, None, None),
+            ....:                (2, 0, None, None), (4, 1, None, None)])
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [['a']], 1: [['a']], 2: [['a']]}
+            sage: A.state(0)._epsilon_cycle_output_empty_(A)
+            False
+            sage: A = Automaton([(0, 1, None, None), (1, 2, None, None),
+            ....:                (2, 0, None, None), (4, 1, None, None)])
+            sage: A.state(0)._epsilon_successors_(A)
+            {0: [[]], 1: [[]], 2: [[]]}
+            sage: A.state(0)._epsilon_cycle_output_empty_(A)
+            True
+        """
+        for output in self._epsilon_successors_(fsm)[self]:
+            if not output:
+                return True
+        return False
+
+
 #*****************************************************************************
 
 

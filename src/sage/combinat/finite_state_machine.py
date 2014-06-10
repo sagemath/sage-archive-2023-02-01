@@ -4508,10 +4508,14 @@ class FiniteStateMachine(SageObject):
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
-            sage: for _ in it:
-            ....:     pass
-            sage: it.output_tape
-            [1, 0, 0]
+            sage: for current in it:
+            ....:     print current
+            {((1, 0),): {'A': (tape (deque([]),) at ((1, 0),), [[1]])}}
+            {((2, 0),): {'A': (tape (deque([]),) at ((2, 0),), [[1, 0]])}}
+            {((3, 0),): {'A': (tape (deque([]),) at ((3, 0),), [[1, 0, 0]])}}
+            {}
+            sage: it.result()
+            [(True, 'A', [1, 0, 0])]
         """
         return FSMProcessIterator(self, input_tape, initial_state, **kwargs)
 
@@ -7647,7 +7651,7 @@ class Automaton(FiniteStateMachine):
             sage: auto.is_deterministic()
             False
             sage: auto.process(list('aaab'))
-            (False, 'A')
+            [(False, 'A'), (True, 'C')]
             sage: auto.states()
             ['A', 'C', 'B']
             sage: Ddet = auto.determinisation()
@@ -7666,6 +7670,8 @@ class Automaton(FiniteStateMachine):
             [frozenset(['A'])]
             sage: Ddet.final_states()
             [frozenset(['A', 'C'])]
+            sage: Ddet.process(list('aaab'))
+            (True, frozenset(['A', 'C']))
         """
         if any(len(t.word_in) > 1 for t in self.iter_transitions()):
             return self.split_transitions().determinisation()

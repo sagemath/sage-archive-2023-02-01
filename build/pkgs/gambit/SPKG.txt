@@ -16,11 +16,10 @@ GPL v2+
 
 == Upstream Contact ==
 
-http://www.gambit-project.org/
+* Website: http://www.gambit-project.org/
+* Mailing List: http://sourceforge.net/p/gambit/mailman/gambit-devel/
 
 == Dependencies ==
-
-Put a bulleted list of dependencies here:
 
 * python
 * cython

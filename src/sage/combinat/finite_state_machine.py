@@ -4468,10 +4468,35 @@ class FiniteStateMachine(SageObject):
             ....:                           [0, 1, 1, 1, 0], [1, 0, 0, 1, 1]]]
             [True, True, False, True, False, False]
         """
+        if not kwargs.has_key('full_output'):
+            kwargs['full_output'] = True
+        if not kwargs.has_key('list_of_outputs'):
+            kwargs['list_of_outputs'] = None
+
         it = self.iter_process(*args, **kwargs)
         for _ in it:
             pass
-        return (it.accept_input, it.current_state, it.output_tape)
+
+        # process output
+        it_output = it.result()
+        if len(it_output) > 1 and kwargs['list_of_outputs'] == False:
+            raise ValueError('Got more than one output, but only allowed '
+                             'to show one. Change list_of_outputs option.')
+        if not it_output:
+            NoneState = FSMState(None, allow_label_None=True)
+            return self._process_format_output_(
+                (False, NoneState, None), **kwargs)
+        if len(it_output) > 1 or kwargs['list_of_outputs']:
+            output = [self._process_format_output_(out, **kwargs)
+                      for out in it_output]
+            return output
+        else:
+            return self._process_format_output_(it_output[0], **kwargs)
+
+
+    def _process_format_output_(self, output, **kwargs):
+        accept_input, current_state, output_tape = output
+        return (accept_input, current_state, output_tape)
 
 
     def iter_process(self, input_tape=None, initial_state=None, **kwargs):
@@ -7891,21 +7916,19 @@ class Automaton(FiniteStateMachine):
                                "will change. Please use the corresponding "
                                "functions from FiniteStateMachine "
                                "for the original output.")
-            return super(Automaton, self).process(*args, **kwargs)
 
-        if not kwargs.has_key('full_output'):
-            kwargs['full_output'] = True
+        return super(Automaton, self).process(*args, **kwargs)
 
-        it = self.iter_process(*args, **kwargs)
-        for _ in it:
-            pass
 
-        # process output
+    def _process_format_output_(self, output, **kwargs):
+        if FSMOldProcessOutput:
+            return super(Automaton, self)._process_format_output_(
+                output, **kwargs)
+        accept_input, current_state, output_tape = output
         if kwargs['full_output']:
-            return (it.accept_input, it.current_state)
+            return (accept_input, current_state)
         else:
-            return it.accept_input
-
+            return accept_input
 
 #*****************************************************************************
 
@@ -8503,25 +8526,26 @@ class Transducer(FiniteStateMachine):
                                "will change. Please use the corresponding "
                                "functions from FiniteStateMachine "
                                "for the original output.")
-            return super(Transducer, self).process(*args, **kwargs)
 
-        if not kwargs.has_key('full_output'):
-            kwargs['full_output'] = True
+        return super(Transducer, self).process(*args, **kwargs)
 
-        it = self.iter_process(*args, **kwargs)
-        for _ in it:
-            pass
 
-        # process output
+    def _process_format_output_(self, output, **kwargs):
+        if FSMOldProcessOutput:
+            return super(Transducer, self)._process_format_output_(
+                output, **kwargs)
+        accept_input, current_state, output_tape = output
         if kwargs['full_output']:
-            if it.current_state.label() is None:
-                return (it.accept_input, it.current_state, None)
+            if current_state.label() is None:
+                return (accept_input, current_state, None)
             else:
-                return (it.accept_input, it.current_state, it.output_tape)
+                return (accept_input, current_state, output_tape)
         else:
-            if not it.accept_input:
+            if not accept_input:
                 raise ValueError("Invalid input sequence.")
-            return it.output_tape
+            return output_tape
+
+
 #*****************************************************************************
 
 

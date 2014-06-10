@@ -8695,6 +8695,23 @@ class FSMTape(SageObject):
                 return False
         return True
 
+
+#*****************************************************************************
+
+
+class FSMTapeDetectEpsilon(FSMTape):
+    def _transition_possible_test_(self, word_in):
+        return self._transition_possible_epsilon_(word_in)
+
+
+#*****************************************************************************
+
+
+class FSMTapeDetectAll(FSMTape):
+    def _transition_possible_test_(self, word_in):
+        return True
+
+
 #*****************************************************************************
 
 

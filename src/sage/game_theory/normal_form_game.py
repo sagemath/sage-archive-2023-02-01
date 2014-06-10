@@ -17,15 +17,20 @@ from sage.misc.package import is_package_installed
 if is_package_installed('gambit') is not True:
             raise NotImplementedError("Optional package Gambit is not installed")
 
-from gambit.lib.libgambit import *
+from gambit.lib.libgambit import new_table
 
 
-def matrix_game(*args):
-    num_players = len(args)
+def two_matrix_game(matrix1, matrix2):
 
     #create a test for all matrices being the same shape.
+    p1_strats = matrix1.rows()
+    p2_strats = matrix1.cols()
 
-    numrows = args[0].nrows()
-    numcols = args[0].ncols()
+    game = new_table([p1_strats, p2_strats])
 
-    game_array =
+    for i in range(p1_strats):
+        for j in range(p2_strats):
+            game[i, j][0] = int(matrix1[i, j])
+            game[i, j][1] = int(matrix2[i, j])
+
+    return game

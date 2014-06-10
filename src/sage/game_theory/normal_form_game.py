@@ -34,3 +34,9 @@ def two_matrix_game(matrix1, matrix2):
             game[i, j][1] = int(matrix2[i, j])
 
     return game
+
+
+def test():
+    a = matrix([[1, 2], [3, 4]])
+    b = matrix([[3, 3], [1, 4]])
+    two_matrix_game(a, b)

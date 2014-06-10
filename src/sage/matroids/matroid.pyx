@@ -4775,6 +4775,13 @@ cdef class Matroid(SageObject):
             sage: G.show()
 
         """
+        if self._cached_info == None:
+            self._cached_info={'positions':None,'lineorders': None}
+        if 'positions' not in self._cached_info.keys():
+            self._cached_info['positions'] = None
+        if 'lineorders'  not in self._cached_info.keys():
+            self._cached_info['lineorders'] = None
+            
         if self.rank() > 3:
             return
         elif B == None:
@@ -4782,7 +4789,8 @@ cdef class Matroid(SageObject):
         elif self.rank() != self.rank(B):
             return
         import matroids_plot_helpers
-        return matroids_plot_helpers.geomrep(self,B,lineorders)
+        lineorders2=matroids_plot_helpers.lineorders_union(self._cached_info['lineorders'],lineorders)
+        return matroids_plot_helpers.geomrep(self,B,lineorders2)
 
     cpdef show(self,B=None,lineorders=None):
         """

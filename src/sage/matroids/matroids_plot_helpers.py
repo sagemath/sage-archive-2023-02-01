@@ -37,8 +37,7 @@ def initial_triangle(M,B1,nB1,lps):
     INPUT:
     
     - ``M`` -- A matroid.
-    - ``B1``-- A list of labels of groundset elements of M that corresponds to a basis of matroid
-    returned by ``M.simplify()``.
+    - ``B1``-- A list of labels of groundset elements of M that corresponds to a basis of matroid M
     - ``nB1``-- A list of labes of elements in the ground set of M that corresponds to ``M.simplify.groundset() \ B1``. 
     - ``lps``-- A list of labels of elements in the ground set of matroid M that are loops.
     
@@ -74,6 +73,7 @@ def initial_triangle(M,B1,nB1,lps):
             This method does NOT do any checks. 
             
     """ 
+  
     tripts = [(0, 0),(1, 2),(2, 0)]
     pts = {}
     j=0
@@ -102,6 +102,7 @@ def initial_triangle(M,B1,nB1,lps):
         lines[i-1].extend(L[i-1])
         lines[i-1].extend([B1[pairs[i-1][1]]])
     # place triangle and L1,L2,L3
+    
     for i in L:# loop over megalist
         interval = 1/float(len(i)+1)
         pt1 = list(tripts[pairs[L.index(i)][0]])
@@ -110,6 +111,8 @@ def initial_triangle(M,B1,nB1,lps):
             #Loop over L1,L2,L3
             cc = interval*j
             pts[i[j-1]] = (cc*pt1[0]+(1-cc)*pt2[0],cc*pt1[1]+(1-cc)*pt2[1])
+            
+    
     trilines = [list(set(x)) for x in lines if len(x)>=3]
     curvedlines = [list(set(list(x)).difference(set(lps))) for x in M.flats(2) if set(list(x)) not in trilines if len(list(x))>=3]
     nontripts = [i for i in nB1 if i not in pts.keys()] 
@@ -184,12 +187,12 @@ def addnontripts(tripts_labels,nontripts_labels,ptsdict):
             This method does NOT do any checks.
             
     """
-    tripts=[list(ptsdict[p]) for p in tripts_labels]
+    tripts = [list(ptsdict[p]) for p in tripts_labels]
     pairs = [[0,1],[1,2],[0,2]]
     q = [tripts]
     num = len(nontripts_labels)
     gridpts = [[float((tripts[0][0]+tripts[1][0]+tripts[2][0])/3),float(tripts[0][1]+tripts[1][1]+tripts[2][1])/3]]
-    n=0
+    n = 0
     while n<num:
         g = trigrid(q[0])
         q.extend([[g[0],q[0][pairs[0][0]],q[0][pairs[0][1]]],[g[0],q[0][pairs[1][0]],q[0][pairs[1][1]]],[g[0],q[0][pairs[2][0]],q[0][pairs[2][1]]]])
@@ -199,7 +202,7 @@ def addnontripts(tripts_labels,nontripts_labels,ptsdict):
     gridpts=gridpts[0:num]
     j = 0
     for p in nontripts_labels:
-        ptsdict[p]=tuple(gridpts[j])
+        ptsdict[p] = tuple(gridpts[j])
         j = j + 1
     return ptsdict
 
@@ -249,7 +252,7 @@ def createline(ptsdict,ll,lineorders2=None):
     """
     x,lo = line_hasorder(ll,lineorders2)
     flip = False
-    if x==False:
+    if x == False:
         linepts = [list(ptsdict[i]) for i in ll] # convert dictionary to list of lists
         xpts = [x[0] for x in linepts]
         ypts = [y[1] for y in linepts]
@@ -266,7 +269,7 @@ def createline(ptsdict,ll,lineorders2=None):
         sortedx = [k[0] for k in linepts]
         sortedy = [k[1] for k in linepts]
         
-    if flip==True:
+    if flip == True:
         tck,u = scipy.interpolate.splprep([sortedy,sortedx],s=0.0,k=2)
         y_i,x_i = scipy.interpolate.splev(np.linspace(0,1,100),tck)
     else:
@@ -342,10 +345,10 @@ def addlp(M,L,P,ptsdict,G=None):
             
     """
     if G == None:
-        G=Graphics()
+        G = Graphics()
     M1 = M.simplify()
     # deal with loops
-    if len(L)>0:
+    if len(L) > 0:
         loops = L
         looptext = ", ".join([str(l) for l in loops])
         rectx = -1
@@ -356,20 +359,20 @@ def addlp(M,L,P,ptsdict,G=None):
         G += text(looptext,(rectx+0.5,recty+0.3),color='black',fontsize=13)
         G += point((rectx+0.2, recty+0.3),color='black', size=300,zorder=2)
         G += text('Loop(s)',(rectx+0.5+0.4*len(loops)+0.1,recty+0.3),fontsize=13,color='black')
-    if len(P)>0:
+    if len(P) > 0:
         # create list of lists where inner lists are parallel classes 
-        pcls=[]
+        pcls = []
         gnd = sorted(M1.groundset_list())
         for g in gnd:
             pcl = [g]
             for p in P:
-                if M.rank([g,p])==1:
+                if M.rank([g,p]) == 1:
                     pcl.extend([p])
             pcls.append(pcl)
         for pcl in pcls:
-            if len(pcl)>1:
+            if len(pcl) > 1:
                 basept = list(ptsdict[pcl[0]])
-                if len(pcl)<=2:
+                if len(pcl) <= 2:
                     # add side by side
                     ptsdict[pcl[1]] = (basept[0],basept[1]-0.13)
                     G += points(zip([basept[0]], [basept[1]-0.13]),color='black', size=300,zorder=2)
@@ -381,7 +384,7 @@ def addlp(M,L,P,ptsdict,G=None):
       
 def line_hasorder(l,lodrs=None):
     """
-    Determine if and order is specified for a line
+    Determine if an order is specified for a line
     
     INPUT:
     
@@ -390,7 +393,7 @@ def line_hasorder(l,lodrs=None):
      
     OUTPUT:
     
-    A tuple containing 3 elements in this order:
+    A tuple containing 2 elements in this order:
     1. A boolean indicating whether there is any list in ``lordrs`` that is setwise equal to ``l``
     2. A list specifying an order on ``set(l)`` if 1. is True, otherwise an empty list
     
@@ -407,12 +410,54 @@ def line_hasorder(l,lodrs=None):
             This method does NOT do any checks.
             
     """
-    if lodrs!=None:
+    if lodrs != None:
         if len(lodrs) > 0:
             for i in lodrs:
-                if Set(i)==Set(l):
+                if Set(i) == Set(l):
                     return True,i
     return False,[]    
+
+def lineorders_union(lineorders1,lineorders2):
+    """
+    Return a list of ordered lists labels that corresponds to union of two sets of ordered lists of labels in a sense
+    
+    INPUT:
+    
+    - ``lineorders1`` -- A list of ordered lists specifying orders on sets of labels
+    - ``lineorders2`` -- A list of ordered lists specifying orders on sets of labels  
+    
+    OUTPUT:
+    
+    A list of ordered lists of labels that are (setwise) in only one of ``lineorders1`` or ``lineorders2`` 
+    along with the ones in lineorder2 that are setwise equal to any list in lineorders1  
+    
+    EXAMPLES::
+    
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: matroids_plot_helpers.lineorders_union([['a','b','c'],['p','q','r'],['i','j','k','l']],[['r','p','q']])
+        [['a', 'b', 'c'], ['p', 'q', 'r'], ['i', 'j', 'k', 'l']]
+
+    """
+    if lineorders1 != None and lineorders2 != None:
+        lineorders = lineorders1
+        for order in lineorders2:
+            x,lo = line_hasorder(order,lineorders1)
+            if x == False:
+                lineorders.append(order)
+                lineorders.remove(lo)
+        return lineorders
+    elif lineorders1 == None and lineorders2 != None:
+        return lineorders2 
+    elif lineorders1!=None:
+        return lineorders1
+    else:
+        return None 
+    
+    
+    
+    
+    
+    
     
 def geomrep(M1,B1=None,lineorders1=None):
     """
@@ -450,27 +495,39 @@ def geomrep(M1,B1=None,lineorders1=None):
     G = Graphics()
     # create lists of loops and parallel elements and simplify given matroid
     [M,L,P] = slp(M1)
+    M._cached_info = M1._cached_info
     if M.rank()==1:
-        pts = {}
-        gnd = sorted(M.groundset())
-        pts[gnd[0]]=(1,float(2)/3)
+        if M._cached_info != None and 'positions' in M._cached_info.keys() and M._cached_info['positions'] != None:
+            pts = M._cached_info['positions']
+        else:
+            pts = {}
+            gnd = sorted(M.groundset())
+            
+        pts[gnd[0]] = (1,float(2)/3)
         G += point((1, float(2)/3),size=300,zorder=2)
         pts2 = pts
     elif M.rank() == 2:
-        pts2 = {}
-        pts2[B1[0]] = (0,0)
-        pts2[B1[1]] = (2,0)
-        nB1=list(set(M.groundset_list())-set(B1))
+        nB1=list(set(list(M.groundset())) - set(B1))
         bline = []
         for j in nB1:
             if M.is_dependent([j,B1[0],B1[1]]):
                 bline.append(j)
+        
         interval = len(bline)+1
-        lpt = list(pts2[B1[0]])
-        rpt = list(pts2[B1[1]])
-        for k in range(len(bline)):
-            cc = (float(1)/interval)*(k+1)
-            pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],cc*lpt[1]+(1-cc)*rpt[1])
+        
+        if M._cached_info != None and 'positions' in M._cached_info.keys() and M._cached_info['positions'] != None:
+            pts2 = M._cached_info['positions']
+        else:
+            pts2 = {}
+            pts2[B1[0]] = (0,0)
+            pts2[B1[1]] = (2,0)
+            lpt = list(pts2[B1[0]])
+            rpt = list(pts2[B1[1]])
+            for k in range(len(bline)):
+                cc = (float(1)/interval)*(k+1)
+                pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],cc*lpt[1]+(1-cc)*rpt[1])
+            M._cached_info['positions']=pts2
+            
         bline.extend(B1)
         ptsx,ptsy,x_i,y_i = createline(pts2,bline,lineorders1)
         G += line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
@@ -482,9 +539,14 @@ def geomrep(M1,B1=None,lineorders1=None):
             pt = list(pts2[i])
             G += text(i,(float(pt[0]), float(pt[1])), color='white',fontsize=13)    
     else:
-        pts,trilines,nontripts,curvedlines = initial_triangle(M1,B1,list(set(M.groundset())-set(B1)), list(set(L)|set(P))) #[i for i in sorted(M.groundset()) if i not in B1])
-        pts2= addnontripts([B1[0],B1[1],B1[2]],nontripts,pts)
-        trilines.extend(curvedlines)
+        if M._cached_info == None or 'positions' not in M._cached_info.keys() or M._cached_info['positions'] == None:
+            pts,trilines,nontripts,curvedlines = initial_triangle(M1,B1,list(set(M.groundset())-set(B1)), list(set(L)|set(P)))
+            pts2= addnontripts([B1[0],B1[1],B1[2]],nontripts,pts)
+            trilines.extend(curvedlines)
+        else:
+            pts2=M._cached_info['positions']
+            trilines=[list(set(list(x)).difference(L|P)) for x in M1.flats(2) if len(list(x))>=3]
+        
         j = 0
         for ll in trilines:
             if len(ll)>=3:
@@ -497,6 +559,8 @@ def geomrep(M1,B1=None,lineorders1=None):
         for i in pts2:
             pt = list(pts2[i])
             G += text(i,(float(pt[0]), float(pt[1])),color='white',fontsize=13)
+        M1._cached_info['positions']=pts2
+        M1._cached_info['lineorders']=lineorders1
     #deal with loops and parallel elements 
     G = addlp(M1,L,P,pts2,G)
     G.axes(False)

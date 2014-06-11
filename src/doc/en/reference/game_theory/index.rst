@@ -1,5 +1,5 @@
 Game Theory
-=====
+===========
 
 .. toctree::
    :maxdepth: 2

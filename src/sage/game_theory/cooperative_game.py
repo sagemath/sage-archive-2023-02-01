@@ -49,8 +49,8 @@ class CooperativeGame(SageObject):
     $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
     game is shown below:
 
-    $
-    v(c) = \begin{cases}
+    
+    `v(c) = \begin{cases}
     0,&\text{ if }c=\emptyset\\
     6,&\text{ if }c=\{1\}\\
     12,&\text{ if }c=\{2\}\\
@@ -59,8 +59,8 @@ class CooperativeGame(SageObject):
     42,&\text{ if }c=\{1,3\}\\
     42,&\text{ if }c=\{2,3\}\\
     42,&\text{ if }c=\{1, 2,3\}\\
-    \end{cases}
-    $
+    \end{cases}`
+    
 
     The function $v$ can be thought of as as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
@@ -117,7 +117,7 @@ class CooperativeGame(SageObject):
     A characteristic function game $G=(N,v)$ is monotone if it satisfies
     $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$. A characteristic function
     game $G=(N,v)$ is super-additive if it satisfies $v(C_2)\geq v(C_1)$ for
-    all $C_1\subseteq C_2$ such that \[C_1 \cap \C_2 = \emptyset\].
+    all $C_1\subseteq C_2$ such that `C_1\cap C_2 = \emptyset`.
 
     We can test if a game is Monotonic or Superadditive. ::
 
@@ -148,20 +148,20 @@ class CooperativeGame(SageObject):
         {'A': 2, 'C': 35, 'B': 5}
 
     We can test 3 basic properties of a Payoff Vector $\lambda$. They are
-        * Efficiency - $sum_{i=1}^N\lambda_i=v(\Omega)$
+        * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 
-        * The nullplayer property - If $\exists$ $i$ such that
-                                    $v(C\cup i)=v(C)$ for all
-                                    $C\in 2^{\Omega}$ then, $\lambda_i=0$.
+        * The nullplayer property - If `\exists` `i` such that
+                                    `v(C\cup i)=v(C)` for all
+                                    `C\in 2^{\Omega}` then, `\lambda_i=0`.
                                     In other words: if a player does not
                                     contribute to any coalition then that
                                     player should receive no payoff.
 
         * Symmetry property - A payoff vector possesses the symmetry property
-                              if $v(C\cup i)=v(C\cup j)$ for all
-                              $C\in 2^{\Omega}\setminus{i,j}$, then
-                              $x_i=x_j$
+                              if `v(C\cup i)=v(C\cup j)` for all
+                              `C\in 2^{\Omega}\setminus{i,j}`, then
+                              `x_i=x_j`
 
     If players contribute symmetrically then they should get the same payoff.
 

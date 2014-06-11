@@ -117,7 +117,7 @@ class CooperativeGame(SageObject):
     A characteristic function game $G=(N,v)$ is monotone if it satisfies
     $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$. A characteristic function
     game $G=(N,v)$ is super-additive if it satisfies $v(C_2)\geq v(C_1)$ for
-    all $C_1\subseteq C_2$ such that `C_1 \cap\C_2` = \emptyset.
+    all $C_1\subseteq C_2$ such that `C_1\cap C_2 = \emptyset`.
 
     We can test if a game is Monotonic or Superadditive. ::
 

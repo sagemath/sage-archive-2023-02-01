@@ -195,10 +195,12 @@ def cyclotomic_cosets(q, n, t = None):
         [1, 3, 4, 5, 9]
     """
     from sage.misc.superseded import deprecation
-    deprecation(16464, 'cyclotomic_cosets(q,n,t) is deprecated. Use Zmod(n).cyclotomic_cosets(q) or Zmod(n).cyclotomic_cosets(q,[t]) instead. Be careful that this method returns elements of Zmod(n).')
+    deprecation(16464, """cyclotomic_cosets(q,n,t) is deprecated. Use
+                          Zmod(n).cyclotomic_cosets(q) or
+                          Zmod(n).cyclotomic_cosets(q,[t]) instead. Be careful
+                          that this method returns elements of Zmod(n).""")
 
     from sage.rings.finite_rings.integer_mod_ring import Zmod
-    from sage.rings.integer import Integer
     if t is None:
         return [[x.lift() for x in cos] for cos in Zmod(n).cyclotomic_cosets(q)]
     else:
@@ -210,18 +212,28 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
 
     A splitting of `R = \ZZ/n\ZZ` is a pair of subsets of `R` which is a
     partition of `R \\backslash \{0\}` and such that there exists an element `r`
-    of `R` such that `r S_1 = S_2` and `r S_2 = S_1`.
-
-    INPUT: S1, S2 are disjoint sublists partitioning [1, 2, ..., n-1]
-    n is an integer
-
-    OUTPUT: a boolean, or if `return_automorphism` is set a, b where a is True or False, depending on whether S1, S2
-    form a "splitting" of n (ie, if there is a b such that b\*S1=S2
-    (point-wise multiplication mod n), and b is a splitting (if a =
-    True) or 0 (if a = False)
+    of `R` such that `r S_1 = S_2` and `r S_2 = S_1` (where `r S` is the
+    point-wise multiplication of the elements of `S` by `r`).
 
     Splittings are useful for computing idempotents in the quotient
-    ring `Q = GF(q)[x]/(x^n-1)`. For
+    ring `Q = GF(q)[x]/(x^n-1)`.
+
+    INPUT:
+
+    - ``S1, S2`` -- disjoint sublists partitioning ``[1, 2, ..., n-1]``
+
+    - ``n`` (integer)
+
+    - ``return_automorphism`` (boolean) -- whether to return the automorphism
+      exchanging `S_1` and `S_2`.
+
+    OUTPUT:
+
+    If ``return_automorphism is False`` (default) the function returns boolean values.
+
+    Otherwise, it returns a pair ``(b, r)`` where ``b`` is a boolean indicating
+    whether `S1`, `S2` is a splitting of `n`, and `r` is such that `r S_1 = S_2`
+    and `r S_2 = S_1` (if `b` is ``False``, `r` is equal to ``None``).
 
     EXAMPLES::
 
@@ -300,7 +312,7 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
         else:
             return False
     for b in range(2,n):
-        if GCD(b,n) == 1 and all(b*x in S2 for x in S1)  and all(b*x in S1 for x in S2):
+        if GCD(b,n) == 1 and all(b*x in S2 for x in S1):
             if return_automorphism:
                 return True, b
             else:
@@ -1071,9 +1083,9 @@ def QuadraticResidueCodeEvenPair(n,F):
     """
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
-    "odd-like" codes and a pair of "even-like" codes. If n > 2 is prime
-    then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
-    quadratic residue mod n.
+    "odd-like" codes and a pair of "even-like" codes. If `n > 2` is prime
+    then (Theorem 6.6.2 in [HP]_) a QR code exists over `GF(q)` iff q is a
+    quadratic residue mod `n`.
 
     They are constructed as "even-like" duadic codes associated the
     splitting (Q,N) mod n, where Q is the set of non-zero quadratic
@@ -1130,7 +1142,6 @@ def QuadraticResidueCodeEvenPair(n,F):
     if q not in Q:
         raise ValueError("the order of the finite field must be a quadratic residue modulo n")
     return DuadicCodeEvenPair(F,Q,N)
-
 
 def QuadraticResidueCodeOddPair(n,F):
     """

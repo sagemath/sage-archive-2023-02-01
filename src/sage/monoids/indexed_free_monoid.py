@@ -20,6 +20,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
 from sage.structure.indexed_generators import IndexedGenerators
+from sage.combinat.dict_addition import dict_addition
 
 from sage.categories.monoids import Monoids
 from sage.categories.poor_man_map import PoorManMap
@@ -53,7 +54,7 @@ class IndexedMonoidElement(MonoidElement):
         EXAMPLES::
 
             sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: F(1)
+            sage: F.gen(1)
             F[1]
             sage: a,b,c,d,e = [F.gen(i) for i in range(5)]
             sage: x = a^2 * b^3 * a^2 * b^4; x
@@ -552,10 +553,8 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             sage: a*b^2*e*d
             F[0]*F[1]^2*F[3]*F[4]
         """
-        ret = copy(self._monomial)
-        for k,v in other._monomial.iteritems():
-            ret[k] = ret.get(k, 0) + v
-        return self.__class__(self.parent(), ret)
+        return self.__class__(self.parent(),
+                              dict_addition([self._monomial, other._monomial]))
 
     def __pow__(self, n):
         """
@@ -672,11 +671,19 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             ('LEFT', 'RIGHT')
             sage: F is G
             False
+            sage: Groups.Commutative.free()
+            Traceback (most recent call last):
+            ...
+            ValueError: no index set specified
         """
         if isinstance(indices, str):
             indices = FiniteEnumeratedSet(list(indices))
         elif isinstance(indices, (list, tuple)):
             indices = FiniteEnumeratedSet(indices)
+        elif indices is None:
+            if 'names' not in kwds:
+                raise ValueError("no index set specified")
+            indices = FiniteEnumeratedSet(kwds['names'])
 
         # bracket or latex_bracket might be lists, so convert
         # them to tuples so that they're hashable.
@@ -712,6 +719,19 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         kwds.pop('key', None)
         IndexedGenerators.__init__(self, indices, prefix, **kwds)
 
+    def _first_ngens(self, n):
+        """
+        Used by the preparser for ``F.<x> = ...``.
+
+        EXAMPLES::
+
+            sage: F.<x,y,z> = FreeMonoid(index_set=ZZ)
+            sage: [x, y, z]
+            [F[0], F[1], F[-1]]
+        """
+        it = iter(self._indices)
+        return tuple(self.gen(it.next()) for i in range(n))
+
     def _element_constructor_(self, x=None):
         """
         Create an element of this abelian monoid from ``x``.
@@ -721,17 +741,18 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: F = FreeAbelianMonoid(index_set=ZZ)
             sage: F(F.gen(2))
             F[2]
-            sage: F(-5)
-            F[-5]
-            sage: F(1)
-            F[1]
             sage: F([[1, 3], [-2, 12]])
             F[-2]^12*F[1]^3
+            sage: F(-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert -5, use gen() instead
         """
         if x is None:
             return self.one()
         if x in self._indices:
-            return self.gens()[x]
+            raise ValueError("unable to convert {}, use gen() instead".format(x))
+        #    return self.gens()[x]
         return self.element_class(self, x)
 
     def _an_element_(self):
@@ -922,10 +943,6 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
             sage: F = FreeAbelianMonoid(index_set=ZZ)
             sage: F(F.gen(2))
             F[2]
-            sage: F(-5)
-            F[-5]
-            sage: F(1)
-            F[1]
             sage: F([[1, 3], [-2, 12]])
             F[-2]^12*F[1]^3
             sage: F({1:3, -2: 12})

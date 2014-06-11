@@ -76,7 +76,7 @@ class FreeMonoidFactory(UniqueFactory):
 FreeMonoid_factory = FreeMonoidFactory("sage.monoids.free_monoid.FreeMonoid_factory")
 
 @rename_keyword(deprecation=15289, n="index_set")
-def FreeMonoid(index_set=None, names=None, abelian=False, **kwds):
+def FreeMonoid(index_set=None, names=None, commutative=False, **kwds):
     r"""
     Return a free monoid on `n` generators or with the generators indexed by
     a set `I`.
@@ -93,8 +93,8 @@ def FreeMonoid(index_set=None, names=None, abelian=False, **kwds):
 
     -  ``names`` -- names of generators
 
-    - ``abelian`` -- (default: ``False``) whether the free monoid is abelian
-      or not
+    - ``commutative`` -- (default: ``False``) whether the free monoid is
+      commutative or not
 
     OUTPUT:
 
@@ -109,10 +109,14 @@ def FreeMonoid(index_set=None, names=None, abelian=False, **kwds):
 
         sage: F.<x,y,z> = FreeMonoid(abelian=True); F
         Free abelian monoid on 3 generators (x, y, z)
-        sage: FreeMonoid(index_set=ZZ, abelian=True)
+        sage: FreeMonoid(index_set=ZZ, commutative=True)
         Free abelian monoid indexed by Integer Ring
     """
-    if abelian:
+    if 'abelian' in kwds:
+        commutative = kwds['abelian']
+        del kwds['abelian']
+
+    if commutative:
         from sage.monoids.free_abelian_monoid import FreeAbelianMonoid
         return FreeAbelianMonoid(index_set, names, **kwds)
 

@@ -241,7 +241,6 @@ from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
 from sage.combinat.composition import Composition
 import tableau
-from permutation_nk import PermutationsNK
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import sample
@@ -4779,8 +4778,8 @@ class Permutations_nk(Permutations):
             sage: [p for p in Permutations(3,4)]
             []
         """
-        for x in PermutationsNK(self.n, self.k):
-            yield self.element_class(self, [i+1 for i in x])
+        for x in itertools.permutations(range(1,self.n+1), self.k):
+            yield self.element_class(self, x)
 
     def cardinality(self):
         """
@@ -5293,8 +5292,8 @@ class Permutations_setk(Permutations_set):
             sage: [i for i in Permutations([1,2,3],2)] # indirect doctest
             [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
         """
-        for perm in PermutationsNK(len(self._set), self.k):
-            yield self.element_class(self, [self._set[x] for x in perm])
+        for perm in itertools.permutations(self._set, self.k):
+            yield self.element_class(self, perm)
 
     def random_element(self):
         """

@@ -27,8 +27,8 @@ def normal_form_game(matrix1, matrix2):
         from gambit.lib.libgambit import new_table
 
     #create a test for all matrices being the same shape.
-    p1_strats = [i for i in range(len(matrix1.rows()))]
-    p2_strats = [i for i in range(len(matrix1.columns()))]
+    p1_strats = range(len(matrix1.rows()))
+    p2_strats = range(len(matrix1.columns()))
 
     game = new_table([len(p1_strats), len(p2_strats)])
 

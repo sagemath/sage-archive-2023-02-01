@@ -49,7 +49,7 @@ class CooperativeGame(SageObject):
     $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
     game is shown below:
 
-    
+
     `v(c) = \begin{cases}
     0,&\text{ if }c=\emptyset\\
     6,&\text{ if }c=\{1\}\\
@@ -60,7 +60,7 @@ class CooperativeGame(SageObject):
     42,&\text{ if }c=\{2,3\}\\
     42,&\text{ if }c=\{1, 2,3\}\\
     \end{cases}`
-    
+
 
     The function $v$ can be thought of as as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
@@ -68,7 +68,7 @@ class CooperativeGame(SageObject):
     allows for such an answer to be formulated by calculating the Shapley
     value of the game.
 
-    Basic example of how to implement a co-operative game. These functions will
+    Basic examples of how to implement a co-operative game. These functions will
     be used repeatedly in other examples. ::
 
         sage: integer_function = {(): 0,
@@ -94,25 +94,6 @@ class CooperativeGame(SageObject):
         sage: letter_game = CooperativeGame(letter_function)
 
     Characteristic function games can be of various types.
-
-    The following example implements a (trivial) 8 player characteristic
-    function game:
-
-    $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
-
-    ::
-
-        sage: def simple_characteristic_function(N):
-        ....:     return {tuple(coalition) : len(coalition)
-        ....:                   for coalition in subsets(range(N))}
-        sage: g = CooperativeGame(simple_characteristic_function(8))
-        sage: g.shapley_value() # long time
-        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
-
-    The above is slow to run and this is due to the dimensionality
-    of the calculations involved. There are various approximation
-    approaches to obtaining the Shapley value of a game. Implementing
-    these would be a worthwhile development.
 
     A characteristic function game $G=(N,v)$ is monotone if it satisfies
     $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$. A characteristic function
@@ -147,7 +128,26 @@ class CooperativeGame(SageObject):
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
-    We can test 3 basic properties of a Payoff Vector $\lambda$. They are
+    The following example implements a (trivial) 8 player characteristic
+    function game:
+
+    $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
+
+    ::
+
+        sage: def simple_characteristic_function(N):
+        ....:     return {tuple(coalition) : len(coalition)
+        ....:                   for coalition in subsets(range(N))}
+        sage: g = CooperativeGame(simple_characteristic_function(8))
+        sage: g.shapley_value() # long time
+        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
+
+    The above is slow to run and this is due to the dimensionality
+    of the calculations involved. There are various approximation
+    approaches to obtaining the Shapley value of a game. Implementing
+    these would be a worthwhile development.
+
+    We can test 3 basic properties of any Payoff Vector $\lambda$. They are
         * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 

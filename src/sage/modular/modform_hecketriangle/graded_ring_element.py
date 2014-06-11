@@ -1,5 +1,5 @@
 r"""
-Graded rings of modular forms for Hecke triangle groups
+Graded rings of modular forms for Hecke triangle groups.
 
 AUTHORS:
 
@@ -73,8 +73,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         ``self.parent().graded_ring()``.
 
         INPUT:
-        - ``parent``  - An (non abstract) instance of ``FormsRing_abstract``.
-        - ``rat``     - A rational function in ``parent.rat_field()``, the
+
+        - ``parent`` -- An (non abstract) instance of ``FormsRing_abstract``.
+
+        - ``rat``    -- A rational function in ``parent.rat_field()``, the
                         fraction field of the polynomial ring in ``x,y,z,d``
                         over the base ring of ``parent``.
         
@@ -634,16 +636,6 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
         return self.parent()(self._rat-other._rat)
 
-    #def _rmul_(self,other):
-    #    res = self.parent().rat_field()(self._rat*other)
-    #    return self.parent()(res)
-    #def _lmul_(self,other):
-    #    res = self.parent().rat_field()(other*self._rat)
-    #    return self.parent()(res)
-    #def _rdiv_(self,other):
-    #    res = self.parent().rat_field()(self._rat/other)
-    #    return self.parent()(res)
-
     def _mul_(self,other):
         r"""
         Return the product of ``self`` and ``other``.
@@ -815,11 +807,6 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         # The sqrt of a homogeneous element is homogeneous if it exists
         return self.parent()(res).reduce()
 
-    #def __invert__(self,other):
-    #    res = self.parent().rat_field()(1/self._rat)
-    #    new_parent = self.parent().extend_type(ring=True, mero=True)
-    #    return new_parent(res).reduce()
-
     def diff_op(self, op, new_parent=None):
         r"""
         Return the differential operator ``op`` applied to ``self``.
@@ -829,7 +816,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         INPUT:
 
-        - ``op``           - An element of ``self.parent().diff_alg()``.
+        - ``op``          -- An element of ``self.parent().diff_alg()``.
                              I.e. an element of the algebra over ``QQ``
                              of differential operators generated
                              by ``X, Y, Z, dX, dY, DZ``, where e.g. ``X``
@@ -841,7 +828,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                              should be homogeneous operator (with respect
                              to the the usual, special grading).
 
-        - ``new_parent``   - Try to convert the result to the specified
+        - ``new_parent``  -- Try to convert the result to the specified
                              ``new_parent``. If ``new_parent == None`` (default)
                              then the parent is extended to a
                              "quasi meromorphic" ring.
@@ -1060,13 +1047,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                 pass
 
             return order_inf
-        #elif False:
-        #    n   = self.hecke_n()
-        #    k   = self.weight()
-        #    ep  = self.ep()
-        #    dim = sum([\
-        #              QQ( (k - 2*r)*(n - 2)/(4*n) - (1 - ep*(-1)**r)/4 ).floor()\
-        #              + 1 for r in range(ZZ(0), QQ(k/ZZ(2)).floor() + 1) ])
+
         else:
             num_val   = prec_num_bound   = 1 #(self.parent()._prec/ZZ(2)).ceil()
             denom_val = prec_denom_bound = 1 #(self.parent()._prec/ZZ(2)).ceil()
@@ -1124,6 +1105,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         else:
             return self
 
+    ## FIXME: Better use keyword in former method and check if (self.parent().has_reduced_hom() or force) and self.is_homogenous():
     def force_reduce(self):
         r"""
         If ``self`` is homogeneous. The converted element
@@ -1200,22 +1182,22 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         INPUT:
 
-        - ``prec``        - An integer, the desired output precision O(q^prec).
+        - ``prec``       -- An integer, the desired output precision O(q^prec).
 
-        - ``fix_d``       - If ``True`` then the numerical value of d
+        - ``fix_d``      -- If ``True`` then the numerical value of d
                             corresponding to n will be used.
                             If n = 3, 4, 6 the used value is exact.
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 
-        - ``set_d``       - ``None`` or a value to substitute for d.
+        - ``set_d``      -- ``None`` or a value to substitute for d.
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 
-        - ``d_num_prec``  - An integer, namely the precision to be used if a
+        - ``d_num_prec`` -- An integer, namely the precision to be used if a
                             numerical value for d is substituted.
 
-        - ``fix_prec``    - If ``fix_prec`` is not ``False`` (default)
+        - ``fix_prec``   -- If ``fix_prec`` is not ``False`` (default)
                             then the precision of the ``MFSeriesConstructor`` is
                             set such that the output has exactly the specified
                             precision O(q^prec).
@@ -1238,8 +1220,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             #if (prec <1):
             #    print "Warning: non-positiv precision!"
             if not (fix_d or (set_d is not None) or self.base_ring().is_exact()):
+                ## FIXME: Use from warnings import warn
                 print "Warning: For non-exact base rings it is strongly recommended to fix/set d!"
             if ((not self.is_zero()) and prec <= self.order_inf()):
+                ## FIXME: Use from warnings import warn
                 print "Warning: precision too low to determine any coefficient!"
 
             # This should _exactly_ ensure the given precision O(q^prec):
@@ -1269,26 +1253,26 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         INPUT:
 
-        - ``prec``        - An integer, the desired output precision O(q^prec).
+        - ``prec``       -- An integer, the desired output precision O(q^prec).
                             Default: ``None`` in which case the default precision
                             of ``self.parent()`` is used.
 
-        - ``fix_d``       - If ``True`` then the numerical value of d corresponding to n
+        - ``fix_d``      -- If ``True`` then the numerical value of d corresponding to n
                             will be used (default: ``False``).
                             If n = 3, 4, 6 the used value is exact.
                             The base_ring will be changed accordingly (if possible).
                             Alternatively also a value as in ``set_d`` can be specified.
                             Also see ``MFSeriesConstructor``.
 
-        - ``set_d``       - ``None`` (default) or a value to substitute for d.
+        - ``set_d``      -- ``None`` (default) or a value to substitute for d.
                             The base_ring will be changed accordingly (if possible).
                             Also see ``MFSeriesConstructor``.
 
-        - ``d_num_prec``  - The precision to be used if a numerical value for d is substituted.
+        - ``d_num_prec`` -- The precision to be used if a numerical value for d is substituted.
                             Default: ``None`` in which case the default
                             numerical precision of ``self.parent()`` is used.
 
-        - ``fix_prec``    - If ``fix_prec`` is not ``False`` (default)
+        - ``fix_prec``   -- If ``fix_prec`` is not ``False`` (default)
                             then the precision of the ``MFSeriesConstructor`` is
                             increased such that the output has exactly the specified
                             precision O(q^prec).
@@ -1354,15 +1338,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         INPUT:
 
-        - ``prec``        - An integer, the desired output precision O(q^prec).
+        - ``prec``       -- An integer, the desired output precision O(q^prec).
                             Default: ``None`` in which case the default precision
                             of ``self.parent()`` is used.
 
-        - ``d_num_prec``  - The precision to be used if a numerical value for d is substituted.
+        - ``d_num_prec`` -- The precision to be used if a numerical value for d is substituted.
                             Default: ``None`` in which case the default
                             numerical precision of ``self.parent()`` is used.
 
-        - ``fix_prec``    - If ``fix_prec`` is not ``False`` (default)
+        - ``fix_prec``   -- If ``fix_prec`` is not ``False`` (default)
                             then the precision of the ``MFSeriesConstructor`` is
                             increased such that the output has exactly the specified
                             precision O(q^prec).
@@ -1406,15 +1390,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         INPUT:
         
-        - ``tau``        - ``infinity`` or an element of the upper
+        - ``tau``       -- ``infinity`` or an element of the upper
                            half plane. E.g. with parent ``AA`` or ``CC``.
 
-        - ``prec``       - An integer, namely the precision used for the
+        - ``prec``      -- An integer, namely the precision used for the
                            Fourier expansion. If ``prec == None`` (default)
                            then the default precision of ``self.parent()``
                            is used.
                       
-        - ``num_prec``   - An integer, namely the minimal numerical precision
+        - ``num_prec``  -- An integer, namely the minimal numerical precision
                            used for ``tau`` and ``d``. If `num_prec == None`
                            (default) then the default numerical precision of
                            ``self.parent()`` is used.
@@ -1426,7 +1410,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         ALGORITHM:
 
-        #. If (tau == infinity):
+        #. If ``(tau == infinity)``:
         
            Return ``infinity`` unless the order at infinity is
            non-negative in which case the constant Fourier coefficient
@@ -1542,6 +1526,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         tau = tau.n(num_prec)
         (x,y,z,d) = self.parent().rat_field().gens()
 
+        ## FIXME: make arithmetic expressions more readable (-> Sage style guide)
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
             A, w, aut_factor = self.group().get_FD(tau,self.parent().aut_factor)

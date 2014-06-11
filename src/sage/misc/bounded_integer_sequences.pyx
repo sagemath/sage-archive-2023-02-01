@@ -22,10 +22,6 @@ modules::
     cdef list biseq_to_list(biseq_t S)
        # Convert a bounded integer sequence to a list
 
-    cdef str biseq_to_str(biseq_t S)
-       # String representation of bounded integer sequence as comma
-       # separated list
-
     cdef biseq_t* concat_biseq(biseq_t S1, biseq_t S2) except NULL
        # Does not test whether the sequences have the same bound!
 
@@ -37,6 +33,10 @@ modules::
        # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
        # if S2 is not a subsequence. Does not check whether the sequences have the
        # same bound!
+
+    cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0
+       # Returns the minimal *positive* integer i such that S2 starts with S1[i:].
+       # This function will *not* test whether S2 starts with S1!
 
     cdef int index_biseq(biseq_t S, int item, size_t start)
        # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
@@ -164,7 +164,8 @@ cdef list biseq_to_list(biseq_t S):
     """
     cdef __mpz_struct seq
     seq = deref(<__mpz_struct*>S.data)
-    cdef unsigned int index, limb_index, bit_index, max_limb
+    cdef unsigned int index, limb_index, bit_index
+    cdef int max_limb
     index = 0
     cdef mp_limb_t *tmp_limb
     tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
@@ -176,6 +177,8 @@ cdef list biseq_to_list(biseq_t S):
     # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
     # Otherwise, GMP was clever and has removed trailing zeroes.
     max_limb = seq._mp_size - 1
+    if max_limb<0:
+        return [int(0)]*S.length
     for n from S.length>=n>0:
         limb_index = index>>times_mp_bits_per_limb
         bit_index  = index&mod_mp_bits_per_limb
@@ -203,50 +206,6 @@ cdef list biseq_to_list(biseq_t S):
         L.extend([int(0)]*n)
     sage_free(tmp_limb)
     return L
-
-cdef str biseq_to_str(biseq_t S):
-    """
-    String representation of bounded integer sequence as comma
-    separated list of integers
-    """
-    cdef __mpz_struct seq
-    seq = deref(<__mpz_struct*>S.data)
-    cdef unsigned int index, limb_index, bit_index, max_limb
-    index = 0
-    cdef mp_limb_t *tmp_limb
-    tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
-    if tmp_limb==NULL:
-        raise MemoryError("Cannot even allocate two long integers")
-    cdef list L = []
-    cdef size_t n
-    # If limb_index<max_limb, then we safely are in allocated memory.
-    # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
-    # Otherwise, GMP was clever and has removed trailing zeroes.
-    max_limb = seq._mp_size - 1
-    for n from S.length>=n>0:
-        limb_index = index>>times_mp_bits_per_limb
-        bit_index  = index&mod_mp_bits_per_limb
-        if limb_index < max_limb:
-            if bit_index:
-                if bit_index+S.itembitsize >= mp_bits_per_limb:
-                    mpn_rshift(tmp_limb, seq._mp_d+limb_index, 2, bit_index)
-                    L.append(repr(<int>(tmp_limb[0]&S.mask_item)))
-                else:
-                    L.append(repr(<int>(((seq._mp_d[limb_index])>>bit_index)&S.mask_item)))
-            else:
-                L.append(repr(<int>(seq._mp_d[limb_index]&S.mask_item)))
-        elif limb_index == max_limb:
-            if bit_index:
-                L.append(repr(<int>(((seq._mp_d[limb_index])>>bit_index)&S.mask_item)))
-            else:
-                L.append(repr(<int>(seq._mp_d[limb_index]&S.mask_item)))
-        else:
-            break
-        index += S.itembitsize
-    if n:
-        L.extend(["0"]*n)
-    sage_free(tmp_limb)
-    return ', '.join(L)
 
 #
 # Arithmetics
@@ -378,6 +337,66 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start):
     mpz_clear(tmp)
     return -1
 
+cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0:
+    """
+    Returns the smallest **positive** integer ``i`` such that ``S2`` starts with ``S1[i:]``.
+
+    Returns ``-1`` if there is no overlap. Note that ``i==0`` will not be considered!
+
+    INPUT:
+
+    - ``S1``, ``S2`` -- two bounded integer sequences
+
+    ASSUMPTION:
+
+    - The two sequences must have equivalent bounds, i.e., the items on the
+      sequences must fit into the same number of bits. This condition is not
+      tested.
+
+    """
+    cdef __mpz_struct seq
+    seq = deref(<__mpz_struct*>S1.data)
+    cdef mpz_t tmp
+    # Idea: We shift-copy enough limbs from S1 to tmp and then compare with
+    # the initial part of S2, for each shift.
+    sig_on()
+    mpz_init2(tmp, S1.bitsize+mp_bits_per_limb)
+    sig_off()
+    # We will use tmp to store enough bits to be able to compare with the tail
+    # of S1.
+    cdef unsigned int n, limb_index, bit_index
+    cdef int index, i, start_index
+    if S2.length>=S1.length:
+        start_index = 1
+    else:
+        start_index = S1.length-S2.length
+    n = S1.itembitsize*start_index
+    for index from start_index<=index<S1.length:
+        limb_index = n>>times_mp_bits_per_limb
+        if limb_index>=seq._mp_size:
+            break
+        bit_index  = n&mod_mp_bits_per_limb
+        if bit_index:
+            mpn_rshift((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, seq._mp_size-limb_index, bit_index)
+        else:
+            mpn_copyi((<__mpz_struct*>tmp)._mp_d, seq._mp_d+limb_index, seq._mp_size-limb_index)
+        (<__mpz_struct*>tmp)._mp_size = seq._mp_size-limb_index
+        if mpz_congruent_2exp_p(tmp, S2.data, S1.bitsize-n):
+            mpz_clear(tmp)
+            return index
+        n += S1.itembitsize
+    # now, it could be that we have to check for leading zeroes on S2.
+    if index<S1.length:
+        mpz_clear(tmp)
+        mpz_init_set_ui(tmp, 0)
+        for i from index <= i < S1.length:
+            if mpz_congruent_2exp_p(tmp, S2.data, S1.bitsize-n):
+                mpz_clear(tmp)
+                return i
+            n += S1.itembitsize
+    mpz_clear(tmp)
+    return -1
+
 cdef int index_biseq(biseq_t S, int item, size_t start) except -2:
     """
     Returns the position in S of an item in S[start:], or -1 if S[start:] does
@@ -487,7 +506,8 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
             length = ((stop-start+1)//step)+1
     cdef biseq_t out
     out = deref(allocate_biseq(length, S.itembitsize))
-    cdef unsigned int offset_mod, offset_div, limb_size
+    cdef unsigned int offset_mod, offset_div
+    cdef int limb_size
     total_shift = start*S.itembitsize
     if step==1:
         # allocate_biseq allocates one limb more than strictly needed. This is
@@ -499,6 +519,9 @@ cdef biseq_t* slice_biseq(biseq_t S, int start, int stop, int step) except NULL:
         # limb_size may be so large that it would access non-allocated
         # memory. We adjust this now:
         limb_size = min(limb_size, (<__mpz_struct*>(S.data))._mp_size-offset_div)
+        if limb_size<=0:
+            (<__mpz_struct*>(out.data))._mp_size = 0
+            return &out
         mpn_rshift((<__mpz_struct*>(out.data))._mp_d, (<__mpz_struct*>(S.data))._mp_d+offset_div, limb_size, offset_mod)
         for n from limb_size>n>=0:
             if (<__mpz_struct*>(out.data))._mp_d[n]:
@@ -918,6 +941,8 @@ cdef class BoundedIntegerSequence:
             sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
             sage: BoundedIntegerSequence(21, [4,1,6,2,7,20,9])   # indirect doctest
             <4, 1, 6, 2, 7, 20, 9>
+            sage: BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0])
+            <0, 0, 0, 0>
 
         """
         return '<'+self.str()+'>'
@@ -935,7 +960,7 @@ cdef class BoundedIntegerSequence:
             <4, 1, 6, 2, 7, 20, 9>
 
         """
-        return biseq_to_str(self.data)
+        return ', '.join([repr(n) for n in biseq_to_list(self.data)])
 
     def bound(self):
         """
@@ -978,11 +1003,14 @@ cdef class BoundedIntegerSequence:
             [4, 1, 6, 2, 7, 2, 3]
             sage: list(X+S)
             [4, 1, 6, 2, 7, 2, 3, 0, 0, 0, 0, 0, 0, 0]
+            sage: list(BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0]))
+            [0, 0, 0, 0]
 
         """
         cdef __mpz_struct seq
         seq = deref(<__mpz_struct*>self.data.data)
-        cdef unsigned int index, limb_index, bit_index, max_limb
+        cdef unsigned int index, limb_index, bit_index
+        cdef int max_limb
         index = 0
         cdef mp_limb_t *tmp_limb
         tmp_limb = <mp_limb_t*>sage_malloc(2<<times_size_of_limb)
@@ -993,6 +1021,10 @@ cdef class BoundedIntegerSequence:
         # If limb_index==max_limb, then we must only consider *one* limb (as it is the last)
         # Otherwise, GMP was clever and has removed trailing zeroes.
         max_limb = seq._mp_size - 1
+        if max_limb<0:
+            for n from self.data.length>=n>0:
+                yield <int>0
+            return
         for n from self.data.length>=n>0:
             limb_index = index>>times_mp_bits_per_limb
             bit_index  = index&mod_mp_bits_per_limb
@@ -1052,6 +1084,8 @@ cdef class BoundedIntegerSequence:
             3
             sage: (X+S)[10]
             0
+            sage: (X+S)[12:]
+            <0, 0>
 
         ::
 
@@ -1148,6 +1182,11 @@ cdef class BoundedIntegerSequence:
             sage: S = BoundedIntegerSequence(32, L)
             sage: S.list() == list(S) == L
             True
+
+        The discussion at :trac:`15820` explains why the following is a good test::
+
+            sage: (BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0])).list()
+            [0, 0, 0, 0]
 
         """
         return biseq_to_list(self.data)
@@ -1279,6 +1318,13 @@ cdef class BoundedIntegerSequence:
             ...
             TypeError: Cannot concatenate bounded integer sequence and None
 
+        TESTS:
+
+        The discussion at :trac:`15820` explains why the following is a good test::
+
+            sage: BoundedIntegerSequence(21, [0,0]) + BoundedIntegerSequence(21, [0,0])
+            <0, 0, 0, 0>
+
         """
         cdef BoundedIntegerSequence myself, right, out
         if other is None or self is None:
@@ -1290,6 +1336,33 @@ cdef class BoundedIntegerSequence:
         out = BoundedIntegerSequence.__new__(BoundedIntegerSequence, 0, None)
         out.data = deref(concat_biseq(myself.data, right.data))
         return out
+
+    cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other):
+        """
+        Returns ``self``'s maximal trailing sub-sequence that ``other`` starts with.
+
+        Returns ``None`` if there is no overlap
+
+        EXAMPLES::
+
+            sage: from sage.misc.bounded_integer_sequences import BoundedIntegerSequence
+            sage: X = BoundedIntegerSequence(21, [4,1,6,2,7,2,3])
+            sage: S = BoundedIntegerSequence(21, [0,0,0,0,0,0,0])
+            sage: T = BoundedIntegerSequence(21, [2,7,2,3,0,0,0,0,0,0,0,1])
+            sage: (X+S).maximal_overlap(T)
+            <2, 7, 2, 3, 0, 0, 0, 0, 0, 0, 0>
+            sage: print (X+S).maximal_overlap(BoundedIntegerSequence(21, [2,7,2,3,0,0,0,0,0,1]))
+            None
+            sage: (X+S).maximal_overlap(BoundedIntegerSequence(21, [0,0]))
+            <0, 0>
+
+        """
+        if other.startswith(self):
+            return self
+        cdef int i = max_overlap_biseq(self.data, other.data)
+        if i==-1:
+            return None
+        return self[i:]
 
     def __cmp__(self, other):
         """

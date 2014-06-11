@@ -24,10 +24,6 @@ cdef biseq_t* list_to_biseq(biseq_t S, list data) except NULL
 cdef list biseq_to_list(biseq_t S)
    # Convert a bounded integer sequence to a list
 
-cdef str biseq_to_str(biseq_t S)
-   # String representation of bounded integer sequence as comma
-   # separated list
-
 cdef biseq_t* concat_biseq(biseq_t S1, biseq_t S2) except NULL
    # Does not test whether the sequences have the same bound!
 
@@ -39,6 +35,10 @@ cdef int contains_biseq(biseq_t S1, biseq_t S2, size_t start)
    # Returns the position *in S1* of S2 as a subsequence of S1[start:], or -1
    # if S2 is not a subsequence. Does not check whether the sequences have the
    # same bound!
+
+cdef int max_overlap_biseq(biseq_t S1, biseq_t S2) except 0
+   # Returns the minimal *positive* integer i such that S2 starts with S1[i:].
+   # This function will *not* test whether S2 starts with S1!
 
 cdef int index_biseq(biseq_t S, int item, size_t start) except -2
    # Returns the position *in S* of the item in S[start:], or -1 if S[start:]
@@ -55,5 +55,6 @@ cdef class BoundedIntegerSequence:
     cdef str str(self)
     cpdef bint startswith(self, BoundedIntegerSequence other)
     cpdef list list(self)
+    cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other)
 
 cpdef BoundedIntegerSequence NewBISEQ(data, unsigned long int bitsize, unsigned int itembitsize, size_t length)

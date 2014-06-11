@@ -1066,7 +1066,7 @@ def QuadraticResidueCodeEvenPair(n,F):
     """
     Quadratic residue codes of a given odd prime length and base ring
     either don't exist at all or occur as 4-tuples - a pair of
-    "odd-like" codes and a pair of "even-like" codes. If n 2 is prime
+    "odd-like" codes and a pair of "even-like" codes. If n > 2 is prime
     then (Theorem 6.6.2 in [HP]_) a QR code exists over GF(q) iff q is a
     quadratic residue mod n.
 
@@ -1085,10 +1085,9 @@ def QuadraticResidueCodeEvenPair(n,F):
         sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
         (Linear code of length 13, dimension 6 over Finite Field in z of size 3^2,
          Linear code of length 13, dimension 6 over Finite Field in z of size 3^2)
-        sage: C1 = codes.QuadraticResidueCodeEvenPair(7,GF(2))[0]
+        sage: C1,C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))
         sage: C1.is_self_orthogonal()
         True
-        sage: C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))[1]
         sage: C2.is_self_orthogonal()
         True
         sage: C3 = codes.QuadraticResidueCodeOddPair(17,GF(2))[0]
@@ -1100,20 +1099,32 @@ def QuadraticResidueCodeEvenPair(n,F):
 
     TESTS::
 
-        sage: codes.QuadraticResidueCodeOddPair(14,GF(2))
+        sage: codes.QuadraticResidueCodeEvenPair(14,Zmod(4))
         Traceback (most recent call last):
         ...
-        TypeError: No quadratic residue code exists for these parameters.
+        ValueError: the argument F must be a finite field
+        sage: codes.QuadraticResidueCodeEvenPair(14,GF(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the argument n must be an odd prime
+        sage: codes.QuadraticResidueCodeEvenPair(5,GF(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: the order of the finite field must be a quadratic residue modulo n
     """
+    from sage.misc.misc import srange
+    from sage.categories.finite_fields import FiniteFields
+    if F not in FiniteFields():
+        raise ValueError("the argument F must be a finite field")
     q = F.order()
-    Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
-    N = range(1,n); tmp = [N.remove(x) for x in Q]  # non-zero quad non-residues
-    if (n.is_prime() and n>2 and not(q in Q)):
-        raise ValueError("No quadratic residue code exists for these parameters.")
-    try:
-        return DuadicCodeEvenPair(F,Q,N)
-    except TypeError:
-        raise TypeError("No quadratic residue code exists for these parameters.")
+    n = Integer(n)
+    if n <= 2 or not n.is_prime():
+        raise ValueError("the argument n must be an odd prime")
+    Q = quadratic_residues(n); Q.remove(0)       # non-zero quad residues
+    N = [x for x in srange(1,n) if x not in Q]   # non-zero quad non-residues
+    if q not in Q:
+        raise ValueError("the order of the finite field must be a quadratic residue modulo n")
+    return DuadicCodeEvenPair(F,Q,N)
 
 
 def QuadraticResidueCodeOddPair(n,F):
@@ -1162,18 +1173,21 @@ def QuadraticResidueCodeOddPair(n,F):
         sage: codes.QuadraticResidueCodeOddPair(9,GF(2))
         Traceback (most recent call last):
         ...
-        TypeError: No quadratic residue code exists for these parameters.
+        ValueError: the argument n must be an odd prime
     """
+    from sage.misc.misc import srange
+    from sage.categories.finite_fields import FiniteFields
+    if F not in FiniteFields():
+        raise ValueError("the argument F must be a finite field")
     q = F.order()
-    Q = quadratic_residues(n); Q.remove(0)  # non-zero quad residues
-    N = range(1,n); tmp = [N.remove(x) for x in Q]  # non-zero quad non-residues
-    if (n.is_prime() and n>2 and not(q in Q)):
-        raise ValueError("No quadratic residue code exists for these parameters.")
-    try:
-        return DuadicCodeOddPair(F,Q,N)
-    except TypeError:
-        raise TypeError("No quadratic residue code exists for these parameters.")
-
+    n = Integer(n)
+    if n <= 2 or not n.is_prime():
+        raise ValueError("the argument n must be an odd prime")
+    Q = quadratic_residues(n); Q.remove(0)       # non-zero quad residues
+    N = [x for x in srange(1,n) if x not in Q]   # non-zero quad non-residues
+    if q not in Q:
+        raise ValueError("the order of the finite field must be a quadratic residue modulo n")
+    return DuadicCodeOddPair(F,Q,N)
 
 def RandomLinearCode(n,k,F):
     r"""

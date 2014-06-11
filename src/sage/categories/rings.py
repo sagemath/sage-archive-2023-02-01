@@ -905,6 +905,132 @@ class Rings(CategoryWithAxiom):
                 return False
             raise NotImplementedError
 
+    class Finite(CategoryWithAxiom):
+        class ParentMethods:
+            def cyclotomic_cosets(self, q, cosets=None):
+                r"""
+                Return the orbits of `q` in that finite ring.
+
+                Let `R` be a finite ring. The group of invertible element `R^*`
+                in `R` give rise to a group action. The orbits of this action
+                are called *cyclotomic cosets* (since in a finite ring, each
+                invertible element is a root of unity).
+
+                When `R = \ZZ / n \ZZ` then the smallest element of each coset
+                is sometimes callled a *coset leader*. This function returns
+                sorted lists so the coset leader will always be the first
+                element of the coset.
+
+                These cosets arise in the theory of duadic codes and minimal
+                polynomials of finite fields. Fix a primitive element `z`
+                of `GF(q^k)`. The minimal polynomial of `z^s` over
+                `GF(q)` is given by
+
+                .. math::
+
+                         M_s(x) = \prod_{i \in C_s} (x-z^i),
+
+
+                where `C_s` is the q-cyclotomic coset mod n containing s,
+                `n = q^k - 1`.
+
+                INPUT:
+
+                - ``q`` -- an invertible element of the ring
+
+                - ``cosets`` -- an optional lists of elements of ``self``. If provided,
+                  the function only return the list of cosets that contain the elements
+                  ``cosets``.
+
+                OUTPUT:
+
+                A list of lists.
+
+                EXAMPLES::
+
+                    sage: Zmod(11).cyclotomic_cosets(2)
+                    [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+                    sage: Zmod(15).cyclotomic_cosets(2)
+                    [[0], [1, 2, 4, 8], [3, 6, 9, 12], [5, 10], [7, 11, 13, 14]]
+
+                Since the group of invertible element of a finite field is
+                cyclic, the set of squares is a particular case of cyclotomic
+                coset::
+
+                    sage: K = GF(25,'z')
+                    sage: a = K.multiplicative_generator()
+                    sage: K.cyclotomic_cosets(a**2,cosets=[1])
+                    [[1, 2, 3, 4, z + 1, z + 3,
+                      2*z + 1, 2*z + 2, 3*z + 3,
+                      3*z + 4, 4*z + 2, 4*z + 4]]
+                    sage: sorted(b for b in K if not b.is_zero() and b.is_square())
+                    [1, 2, 3, 4, z + 1, z + 3,
+                     2*z + 1, 2*z + 2, 3*z + 3,
+                     3*z + 4, 4*z + 2, 4*z + 4]
+
+                We compute some examples of minimal polynomials::
+
+                    sage: K = GF(27,'z')
+                    sage: a = K.multiplicative_generator()
+                    sage: R.<X> = PolynomialRing(K, 'X')
+                    sage: a.minimal_polynomial(X)
+                    X^3 + 2*X + 1
+                    sage: cyc3 = Zmod(26).cyclotomic_cosets(3,cosets=[1]); cyc3
+                    [[1, 3, 9]]
+                    sage: prod(X - a**i for i in cyc3[0])
+                    X^3 + 2*X + 1
+
+                    sage: (a**7).minimal_polynomial(X)
+                    X^3 + X^2 + 2*X + 1
+                    sage: cyc7 = Zmod(26).cyclotomic_cosets(3,cosets=[7]); cyc7
+                    [[7, 11, 21]]
+                    sage: prod(X - a**i for i in cyc7[0])
+                    X^3 + X^2 + 2*X + 1
+
+                Cyclotomic cosets of fields are useful in combinatorial design
+                theory to provide so called difference families (see
+                :wikipedia:`Difference_set`). This is illustrated on the
+                following examples::
+
+                    sage: K = GF(5)
+                    sage: a = K.multiplicative_generator()
+                    sage: H = K.cyclotomic_cosets(a**2, cosets=[1,2]); H
+                    [[1, 4], [2, 3]]
+                    sage: sorted(x-y for D in H for x in D for y in D if x != y)
+                    [1, 2, 3, 4]
+
+                    sage: K = GF(37)
+                    sage: a = K.multiplicative_generator()
+                    sage: H = K.cyclotomic_cosets(a**4, cosets=[1]); H
+                    [[1, 7, 9, 10, 12, 16, 26, 33, 34]]
+                    sage: sorted(x-y for D in H for x in D for y in D if x != y)
+                    [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, ..., 33, 34, 34, 35, 35, 36, 36]
+                """
+                q = self(q)
+
+                try:
+                    ~q
+                except ZeroDivisionError:
+                    raise ValueError("%s is not invertible in %s"%(q,self))
+
+                if cosets is None:
+                    rest = set(self)
+                else:
+                    rest = set(self(x) for x in cosets)
+
+                orbits = []
+                while rest:
+                    x0 = rest.pop()
+                    o = [x0]
+                    x = q*x0
+                    while x != x0:
+                        o.append(x)
+                        if x in rest:
+                            rest.remove(x)
+                        x *= q
+                    orbits.append(o)
+                return sorted(sorted(o) for o in orbits)
+
     class HomCategory(HomCategory):
         pass
 

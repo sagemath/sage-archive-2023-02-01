@@ -77,7 +77,7 @@ def obtain_Nash(game):
         if len(game.players) > 2:
             raise NotImplementedError("Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms.")
         algorithm = "lrsnash"  # This will do for now: when we have a variety of algorithms we will test the best and set the best one.
-    if algorithm = "lrsnash":
+    if algorithm == "lrsnash":
         if not is_package_installed('lrs'):  # This is different to how you've used above, this is better unless there are Sage common practices that point to your way.
             raise NotImplementedError("lrs is not installed")
         # Run lrs (Have something simple that takes opposite of matrices as input to lrs)

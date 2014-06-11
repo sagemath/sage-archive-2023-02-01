@@ -6,6 +6,9 @@ AUTHORS:
 - Based on the thesis of John Garrett Leo (2008)
 - Jonas Jermann (2013): initial version
 
+.. NOTE:
+
+   ``J_inv_ZZ`` is the main function used to determine all Fourier expansions.
 """
 
 #*****************************************************************************
@@ -67,6 +70,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             except TypeError:
                 group = HeckeTriangleGroup(group.n())
         prec=ZZ(prec)
+        ## FIXME: Don't you need this assumption -> raise ValueError(...)
         #if (prec<1):
         #    raise Exception("prec must be an Integer >=1")
 
@@ -85,8 +89,6 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         if (set_d is not None):
             base_ring=(base_ring(1)*set_d).parent()
-        #elif (not base_ring.is_exact()):
-        #    raise NotImplementedError
 
         return super(MFSeriesConstructor,cls).__classcall__(cls, group, base_ring, prec, fix_d, set_d, d_num_prec)
 
@@ -97,14 +99,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         INPUT:
 
-        - ``group``       - A Hecke triangle group (default: HeckeTriangleGroup(3)).
+        - ``group``      -- A Hecke triangle group (default: HeckeTriangleGroup(3)).
 
-        - ``base_ring``   - The base ring (default: ZZ)
+        - ``base_ring``  -- The base ring (default: ZZ)
 
-        - ``prec``        - An integer (default: 10), the default precision used
+        - ``prec``       -- An integer (default: 10), the default precision used
                             in calculations in the LaurentSeriesRing or PowerSeriesRing.
 
-        - ``fix_d``       - ``True`` or ``False`` (default: ``False``).
+        - ``fix_d``      -- ``True`` or ``False`` (default: ``False``).
 
                             If ``fix_d == False`` the base ring of the power series
                             is (the fraction field) of the polynomial ring over the base
@@ -116,14 +118,14 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
                             or LaurentSeriesRing is changed to a common parent of
                             ``base_ring`` and the parent of the mentioned value ``d``.
 
-        - ``set_d``       - A number which replaces the formal parameter ``d``.
+        - ``set_d``      -- A number which replaces the formal parameter ``d``.
                             The base ring of the PowerSeriesRing or LaurentSeriesRing is
                             changed to a common parent of ``base_ring``
                             and the parent of the specified value for ``d``.
                             Note that in particular ``set_d=1`` will produce
                             rational Fourier expansions.
 
-        - ``d_num_prec``  - An integer, a lower bound for the precision of the
+        - ``d_num_prec`` -- An integer, a lower bound for the precision of the
                             numerical value of ``d``.
 
         OUTPUT:
@@ -399,6 +401,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         This is the main function used to determine all Fourier expansions!
 
+        .. TODO:
+
+          The functions that are used in this implementation are
+          products of hypergeometric series with other, elementary,
+          functions.  Implement them and clean up this representation.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
@@ -410,17 +418,25 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Laurent Series Ring in q over Rational Field
         """
 
-        F1       = lambda a,b:   self._ZZseries_ring(\
-                       [ ZZ(0) ] + [\
-                           rising_factorial(a,k) * rising_factorial(b,k) / (ZZ(k).factorial())**2 * sum([\
-                               ZZ(1)/(a+j)+ZZ(1)/(b+j)-ZZ(2)/ZZ(1+j) for j in range(ZZ(0),ZZ(k))\
-                           ]) for k in range(ZZ(1),ZZ(self._prec+1))
-                       ], ZZ(self._prec+1)\
+        F1       = lambda a,b:   self._ZZseries_ring(
+                       [ ZZ(0) ]
+                       + [
+                           rising_factorial(a,k) * rising_factorial(b,k) / (ZZ(k).factorial())**2
+                           * sum(ZZ(1)/(a+j) + ZZ(1)/(b+j) - ZZ(2)/ZZ(1+j)
+                                  for j in range(ZZ(0),ZZ(k))
+                             )
+                           for k in range(ZZ(1), ZZ(self._prec+1))
+                       ],
+                       ZZ(self._prec+1)
                    )
-        F        = lambda a,b,c: self._ZZseries_ring([\
-                       rising_factorial(a,k) * rising_factorial(b,k) / rising_factorial(c,k) / (ZZ(k).factorial())\
-                       for k in range(ZZ(0),ZZ(self._prec+1))\
-                   ], ZZ(self._prec+1))
+
+        F        = lambda a,b,c: self._ZZseries_ring(
+                       [
+                         rising_factorial(a,k) * rising_factorial(b,k) / rising_factorial(c,k) / ZZ(k).factorial()
+                         for k in range(ZZ(0), ZZ(self._prec+1))
+                       ],
+                       ZZ(self._prec+1)
+                   )
         a        = self._group.alpha()
         b        = self._group.beta()
         Phi      = F1(a,b) / F(a,b,ZZ(1))

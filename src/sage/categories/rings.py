@@ -909,17 +909,12 @@ class Rings(CategoryWithAxiom):
         class ParentMethods:
             def cyclotomic_cosets(self, q, cosets=None):
                 r"""
-                Return the orbits of `q` in that finite ring.
+                Return the orbits of `q` in the ring.
 
-                Let `R` be a finite ring. The group of invertible element `R^*`
-                in `R` give rise to a group action. The orbits of this action
-                are called *cyclotomic cosets* (since in a finite ring, each
-                invertible element is a root of unity).
-
-                When `R = \ZZ / n \ZZ` then the smallest element of each coset
-                is sometimes callled a *coset leader*. This function returns
-                sorted lists so the coset leader will always be the first
-                element of the coset.
+                Let `R` be a finite ring. The group of invertible elements `R^*`
+                in `R` gives rise to a group action on `R`. The orbits of this
+                action are called *cyclotomic cosets* (since in a finite ring,
+                each invertible element is a root of unity).
 
                 These cosets arise in the theory of duadic codes and minimal
                 polynomials of finite fields. Fix a primitive element `z`
@@ -931,16 +926,23 @@ class Rings(CategoryWithAxiom):
                          M_s(x) = \prod_{i \in C_s} (x-z^i),
 
 
-                where `C_s` is the q-cyclotomic coset mod n containing s,
+                where `C_s` is the `q`-cyclotomic coset mod `n` containing `s`,
                 `n = q^k - 1`.
+
+                .. NOTE::
+
+                    When `R = \ZZ / n \ZZ` the smallest element of each coset is
+                    sometimes callled a *coset leader*. This function returns
+                    sorted lists so that the coset leader will always be the
+                    first element of the coset.
 
                 INPUT:
 
                 - ``q`` -- an invertible element of the ring
 
-                - ``cosets`` -- an optional lists of elements of ``self``. If provided,
-                  the function only return the list of cosets that contain the elements
-                  ``cosets``.
+                - ``cosets`` -- an optional lists of elements of ``self``. If
+                  provided, the function only return the list of cosets that
+                  contain some element from ``cosets``.
 
                 OUTPUT:
 
@@ -953,7 +955,7 @@ class Rings(CategoryWithAxiom):
                     sage: Zmod(15).cyclotomic_cosets(2)
                     [[0], [1, 2, 4, 8], [3, 6, 9, 12], [5, 10], [7, 11, 13, 14]]
 
-                Since the group of invertible element of a finite field is
+                Since the group of invertible elements of a finite field is
                 cyclic, the set of squares is a particular case of cyclotomic
                 coset::
 
@@ -1025,11 +1027,13 @@ class Rings(CategoryWithAxiom):
                     x = q*x0
                     while x != x0:
                         o.append(x)
-                        if x in rest:
-                            rest.remove(x)
+                        rest.discard(x)
                         x *= q
+                    o.sort()
                     orbits.append(o)
-                return sorted(sorted(o) for o in orbits)
+
+                orbits.sort()
+                return orbits
 
     class HomCategory(HomCategory):
         pass

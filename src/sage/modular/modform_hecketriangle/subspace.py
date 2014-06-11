@@ -79,8 +79,9 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
 
         INPUT:
 
-        - ``ambient_space``   - An ambient forms space.
-        - ``basis```          - A tuple of linearly independent elements of ``ambient_space``.
+        - ``ambient_space``  -- An ambient forms space.
+
+        - ``basis```         -- A tuple of linearly independent elements of ``ambient_space``.
 
         OUTPUT:
 

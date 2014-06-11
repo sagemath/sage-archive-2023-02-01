@@ -268,13 +268,42 @@ def difference_family(v, k, l=1, existence=False, check=True):
 
     Other constructions for `\lambda > 1`::
 
-        sage: from sage.combinat.designs.difference_family import is_difference_family
-        sage: vkl = [(7,3,2),(11,5,2),(16,3,2),(16,5,4),(19,3,2),(19,6,5),
-        ....:        (19,9,4),(19,9,8),(23,11,5),(37,9,2),(101,25,6),(109,28,7)]
-        sage: for v,k,l in vkl:
-        ....:      assert designs.difference_family(v,k,l,existence=True)
-        ....:      K,B = designs.difference_family(v,k,l)
-        ....:      assert is_difference_family(K,B,v,k,l)
+        sage: for v in xrange(2,100):
+        ....:     constructions = []
+        ....:     for k in xrange(2,10):
+        ....:         for l in xrange(2,10):
+        ....:             if designs.difference_family(v,k,l,existence=True):
+        ....:                 constructions.append((k,l))
+        ....:                 _ = designs.difference_family(v,k,l)
+        ....:     if constructions:
+        ....:         print "%2d: %s"%(v, ', '.join('(%d,%d)'%(k,l) for k,l in constructions))
+         4: (3,2)
+         5: (4,3)
+         7: (3,2), (6,5)
+         8: (7,6)
+         9: (4,3), (8,7)
+        11: (5,2), (5,4)
+        13: (3,2), (4,3), (6,5)
+        16: (3,2), (5,4)
+        17: (4,3), (8,7)
+        19: (3,2), (6,5), (9,4), (9,8)
+        25: (3,2), (4,3), (6,5), (8,7)
+        29: (4,3), (7,6)
+        31: (3,2), (5,4), (6,5)
+        37: (3,2), (4,3), (6,5), (9,2), (9,8)
+        41: (4,3), (5,4), (8,7)
+        43: (3,2), (6,5), (7,6)
+        49: (3,2), (4,3), (6,5), (8,7)
+        53: (4,3)
+        61: (3,2), (4,3), (5,4), (6,5)
+        64: (3,2), (7,6), (9,8)
+        67: (3,2), (6,5)
+        71: (5,4), (7,6)
+        73: (3,2), (4,3), (6,5), (8,7), (9,8)
+        79: (3,2), (6,5)
+        81: (4,3), (5,4), (8,7)
+        89: (4,3), (8,7)
+        97: (3,2), (4,3), (6,5), (8,7)
 
     .. TODO::
 
@@ -320,68 +349,65 @@ def difference_family(v, k, l=1, existence=False, check=True):
             if v%4 == 3 and k == (v-1)//2:
                 if existence:
                     return True
-                return K, K.cyclotomic_cosets(x**2, [1])
+                D = K.cyclotomic_cosets(x**2, [1])
 
             # q = 4t^2 + 1, t odd
-            if v%8 == 5 and k == (v-1)//4 and arith.is_square((v-1)//4):
+            elif v%8 == 5 and k == (v-1)//4 and arith.is_square((v-1)//4):
                 if existence:
                     return True
-                return K, K.cyclotomic_cosets(x**4, [1])
+                D = K.cyclotomic_cosets(x**4, [1])
 
             # q = 4t^2 + 9, t odd
-            if v%8 == 5 and k == (v+3)//4 and arith.is_square((v-9)//4):
+            elif v%8 == 5 and k == (v+3)//4 and arith.is_square((v-9)//4):
                 if existence:
                     return True
-                m = K.cyclotomic_cosets(x**4, [1])
-                m[0].insert(0,K.zero())
-                return K,m
+                D = K.cyclotomic_cosets(x**4, [1])
+                D[0].insert(0,K.zero())
 
-        if l != 1:
-            raise NotImplementedError
+        if D is None and l == 1:
+            one = K.one()
 
-        one = K.one()
-
-        # Wilson (1972), Theorem 9
-        if k%2 == 1:
-            m = (k-1) // 2
-            xx = x**m
-            to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
-            r = x ** ((v-1) // k)  # primitive k-th root of unity
-            cosets = set()
-            if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m+1)), to_coset):
-                if existence:
-                    return True
-                B = [r**j for j in xrange(k)]  # = H^((k-1)t) whose difference is
-                                               # H^(mt) (r^i - 1, i=1,..,m)
-                # Now pick representatives a translate of R for by a set of
-                # representatives of H^m / H^(mt)
-                D = [[x**(i*m) * b for b in B] for i in xrange(t)]
-
-        # Wilson (1972), Theorem 10
-        else:
-            m = k//2
-            xx = x**m
-            to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
-            r = x ** ((v-1) // (k-1))  # primitive (k-1)-th root of unity
-            cosets = set([0])
-            if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m)), to_coset, set([0])):
-                if existence:
-                    return True
-                B = [K.zero()] + [r**j for j in xrange(k-1)]
-                D = [[x**(i*m) * b for b in B] for i in xrange(t)]
-
-        # Wilson (1972), Theorem 11
-        if D is None and k == 6:
-            r = x**((v-1)//3)  # primitive cube root of unity
-            xx = x**5
-            to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
-            for c in to_coset:
-                if _nonzero_and_have_distinct_images((r-1, c*(r-1), c-1, c-r, c-r**2), to_coset):
+            # Wilson (1972), Theorem 9
+            if k%2 == 1:
+                m = (k-1) // 2
+                xx = x**m
+                to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
+                r = x ** ((v-1) // k)  # primitive k-th root of unity
+                cosets = set()
+                if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m+1)), to_coset):
                     if existence:
                         return True
-                    B = [one,r,r**2,c,c*r,c*r**2]
-                    D = [[x**(i*5) * b for b in B] for i in xrange(t)]
-                    break
+                    B = [r**j for j in xrange(k)]  # = H^((k-1)t) whose difference is
+                                                   # H^(mt) (r^i - 1, i=1,..,m)
+                    # Now pick representatives a translate of R for by a set of
+                    # representatives of H^m / H^(mt)
+                    D = [[x**(i*m) * b for b in B] for i in xrange(t)]
+
+            # Wilson (1972), Theorem 10
+            else:
+                m = k//2
+                xx = x**m
+                to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
+                r = x ** ((v-1) // (k-1))  # primitive (k-1)-th root of unity
+                cosets = set([0])
+                if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m)), to_coset, set([0])):
+                    if existence:
+                        return True
+                    B = [K.zero()] + [r**j for j in xrange(k-1)]
+                    D = [[x**(i*m) * b for b in B] for i in xrange(t)]
+
+            # Wilson (1972), Theorem 11
+            if D is None and k == 6:
+                r = x**((v-1)//3)  # primitive cube root of unity
+                xx = x**5
+                to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
+                for c in to_coset:
+                    if _nonzero_and_have_distinct_images((r-1, c*(r-1), c-1, c-r, c-r**2), to_coset):
+                        if existence:
+                            return True
+                        B = [one,r,r**2,c,c*r,c*r**2]
+                        D = [[x**(i*5) * b for b in B] for i in xrange(t)]
+                        break
 
     if D is None:
         if existence:

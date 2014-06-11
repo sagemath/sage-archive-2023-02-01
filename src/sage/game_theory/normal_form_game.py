@@ -48,7 +48,7 @@ def test_game():
     return two_matrix_game(a, b)
 
 
-def obtain_Nash():
+def obtain_Nash(game):
     r"""
     A function to return the Nash equilibrium for a game.
     Optional arguments can be used to specify the algorithm used.
@@ -73,3 +73,13 @@ def obtain_Nash():
        - When set to ``True`` (default) it is assumed that players aim to maximise their utility.
        - When set to ``False`` (default) it is assumed that players aim to minimise their utility.
     """
+    if not algorithm:
+        if len(game.players) > 2:
+            raise NotImplementedError("Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms.")
+        algorithm = "lrsnash"  # This will do for now: when we have a variety of algorithms we will test the best and set the best one.
+    if algorithm = "lrsnash":
+        if not is_package_installed('lrs'):  # This is different to how you've used above, this is better unless there are Sage common practices that point to your way.
+            raise NotImplementedError("lrs is not installed")
+        # Run lrs (Have something simple that takes opposite of matrices as input to lrs)
+        return vector(1/3,1/3,1/3),vector(1/2,1/2)
+    raise NotImplementedError("%s is not yet implemented" % algorithm)

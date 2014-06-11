@@ -147,7 +147,11 @@ class CooperativeGame(SageObject):
     approaches to obtaining the Shapley value of a game. Implementing
     these would be a worthwhile development.
 
-    We can test 3 basic properties of any Payoff Vector $\lambda$. They are
+    We can test 3 basic properties of any Payoff Vector $\lambda$.
+    The Shapley value (described above) is none to be the unique
+    payoff vector that satisfies these and 1 other property
+    not implemented here (additivity).
+    They are
         * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 

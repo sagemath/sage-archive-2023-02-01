@@ -3,7 +3,7 @@ Difference families
 
 REFERENCES:
 
-.. [We72] R. M. Wilson "Cyclotomy and difference families in elementary Abelian
+.. [Wi72] R. M. Wilson "Cyclotomy and difference families in elementary Abelian
    groups", J. of Num. Th., 4 (1972), pp. 17-47.
 """
 #*****************************************************************************
@@ -165,35 +165,6 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     return True
 
 
-def _nonzero_and_have_distinct_images(elts, f, images=None):
-    r"""
-    Check whether ``elts`` are non zero and mapped to distinct values by the
-    dictionnary ``f``. If ``images`` is provided, the image must also be
-    distinct from it.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import _nonzero_and_have_distinct_images
-        sage: f = {1:0, 2:1, 3:1, 4:2}
-        sage: [(i,j) for i in srange(5) for j in srange(5) if _nonzero_and_have_distinct_images([i,j], f)]
-        [(1, 2), (1, 3), (1, 4), (2, 1), (2, 4), (3, 1), (3, 4), (4, 1), (4, 2), (4, 3)]
-
-        sage: _nonzero_and_have_distinct_images([2,4], f, set([0]))
-        True
-        sage: _nonzero_and_have_distinct_images([2,4], f, set([2]))
-        False
-    """
-    if images is None:
-        images = set()
-    for elt in elts:
-        if elt.is_zero():
-            return False
-        i = f[elt]
-        if i in images:
-            return False
-        images.add(i)
-    return True
-
 def difference_family(v, k, l=1, existence=False, check=True):
     r"""
     Return a (``k``, ``l``)-difference family on a group of size ``v``.
@@ -305,6 +276,20 @@ def difference_family(v, k, l=1, existence=False, check=True):
         89: (4,3), (8,7)
         97: (3,2), (4,3), (6,5), (8,7)
 
+    TESTS::
+
+    Check more of the Wilson constructions from [Wi72]_::
+
+        sage: Q5 = [241, 281,421,601,641, 661, 701, 821,881]
+        sage: Q9 = [73, 1153, 1873, 2017]
+        sage: Q15 = [76231]
+        sage: Q4 = [13, 73, 97, 109, 181, 229, 241, 277, 337, 409, 421, 457]
+        sage: Q8 = [1009, 3137, 3697]
+        sage: for Q,k in [(Q4,4),(Q5,5),(Q8,8),(Q9,9),(Q15,15)]:
+        ....:     for q in Q:
+        ....:         assert designs.difference_family(q,k,1,existence=True)
+        ....:         _ = designs.difference_family(q,k,1)
+
     .. TODO::
 
         There is a slightly more general version of difference families where
@@ -373,8 +358,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
                 xx = x**m
                 to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
                 r = x ** ((v-1) // k)  # primitive k-th root of unity
-                cosets = set()
-                if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m+1)), to_coset):
+                if len(set(to_coset[r**j-one] for j in xrange(1,m+1))) == m:
                     if existence:
                         return True
                     B = [r**j for j in xrange(k)]  # = H^((k-1)t) whose difference is
@@ -389,8 +373,8 @@ def difference_family(v, k, l=1, existence=False, check=True):
                 xx = x**m
                 to_coset = {x**i * xx**j: i for i in xrange(m) for j in xrange((v-1)/m)}
                 r = x ** ((v-1) // (k-1))  # primitive (k-1)-th root of unity
-                cosets = set([0])
-                if _nonzero_and_have_distinct_images((r**j-one for j in xrange(1,m)), to_coset, set([0])):
+                if (all(to_coset[r**j-one] != 0 for j in xrange(1,m)) and
+                    len(set(to_coset[r**j-one] for j in xrange(1,m))) == m-1):
                     if existence:
                         return True
                     B = [K.zero()] + [r**j for j in xrange(k-1)]
@@ -399,10 +383,13 @@ def difference_family(v, k, l=1, existence=False, check=True):
             # Wilson (1972), Theorem 11
             if D is None and k == 6:
                 r = x**((v-1)//3)  # primitive cube root of unity
+                r2 = r*r
                 xx = x**5
                 to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
                 for c in to_coset:
-                    if _nonzero_and_have_distinct_images((r-1, c*(r-1), c-1, c-r, c-r**2), to_coset):
+                    if c == 1 or c == r or c == r2:
+                        continue
+                    if len(set(to_coset[elt] for elt in (r-1, c*(r-1), c-1, c-r, c-r**2))) == 5:
                         if existence:
                             return True
                         B = [one,r,r**2,c,c*r,c*r**2]

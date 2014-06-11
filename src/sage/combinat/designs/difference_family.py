@@ -37,106 +37,14 @@ def group_law(G):
     """
     import operator
     from sage.categories.groups import Groups
-    from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
-    from sage.categories.modules import Modules
+    from sage.categories.additive_groups import AdditiveGroups
 
-    if G in Groups():  # multiplicative groups
+    if G in Groups():            # multiplicative groups
         return (G.one(), operator.mul, operator.inv)
-    elif G in CommutativeAdditiveGroups() or G in Modules(ZZ):  # additive groups
+    elif G in AdditiveGroups():  # additive groups
         return (G.zero(), operator.add, operator.neg)
     else:
         raise ValueError("%s does not seem to be a group"%G)
-
-def cyclotomic_cosets(K, e, cosets=None, with_zero=False):
-    r"""
-    Return the `e`-th cyclotomic cosets on the multiplicative group `K^*` of the
-    finite field `K`.
-
-    Let `q` be the cardinality of `K` and `e` be an integer that divides `q-1`.
-    Let `x` be a multiplicative generator of `K^*`. Then the `e`-th cyclotomic
-    cosets are the cosets modulo the group of `e`-th power in `K^*`.
-
-    INPUT:
-
-    - ``K`` -- a finite field
-
-    - ``e`` -- an integer that divides the cardinality of ``K`` minus one
-
-    - ``cosets`` -- an optional lists of elements of ``K``. If it is provided,
-      then return the list of cosets that contain the elements ``cosets``.
-
-    OUTPUT:
-
-    A list of lists.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.difference_family import cyclotomic_cosets, is_difference_family
-
-    All cyclotomic cosets form a ``(q,f,f-1)`` difference family::
-
-        sage: H = cyclotomic_cosets(GF(7),2)
-        sage: H
-        [[1, 2, 4], [3, 6, 5]]
-        sage: is_difference_family(GF(7),H,7,3,2)
-        True
-
-        sage: K = GF(16,'z')
-        sage: H = cyclotomic_cosets(K,5)
-        sage: H
-        [[1, z^2 + z, z^2 + z + 1],
-         [z, z^3 + z^2, z^3 + z^2 + z],
-         [z^2, z^3 + z + 1, z^3 + z^2 + z + 1],
-         [z^3, z^2 + 1, z^3 + z^2 + 1],
-         [z + 1, z^3 + z, z^3 + 1]]
-        sage: is_difference_family(K,H,16,3,2)
-        True
-
-    If `q` is congruent to `3` mod `4` then the squares in `GF(q)` form a `(q,
-    (q-1)/2, (q-3)/4)`-difference family::
-
-        sage: H = cyclotomic_cosets(GF(19),2,cosets=[1])
-        sage: is_difference_family(GF(19),H,19,9,4)
-        True
-
-        sage: H = cyclotomic_cosets(GF(23),2,cosets=[1])
-        sage: is_difference_family(GF(23),H,23,11,5)
-        True
-
-    If `q = 4t^2 + 1` with `t` odd, then the fourth power form a `(q, (q-1)/4,
-    (q-5)/16)`-difference family::
-
-        sage: B = cyclotomic_cosets(GF(37),4,cosets=[1])
-        sage: is_difference_family(GF(37),B,37,9,2)
-        True
-
-        sage: B = cyclotomic_cosets(GF(101),4,cosets=[1])
-        sage: is_difference_family(GF(101),B,101,25,6)
-        True
-
-    If `q = 4t^2 + 9` with `t` odd, then the fourth power with `0` form a
-    `(q, (q+3)/4, (q+3)/16)`-difference set::
-
-        sage: B = cyclotomic_cosets(GF(13),4,cosets=[1],with_zero=True)
-        sage: is_difference_family(GF(13),B,13,4,1)
-        True
-
-        sage: B = cyclotomic_cosets(GF(109),4,cosets=[1],with_zero=True)
-        sage: is_difference_family(GF(109),B,109,28,7)
-        True
-    """
-    q = K.cardinality()
-    assert q%e == 1
-    f = (q-1) // e
-    x = K.multiplicative_generator()
-    if cosets is None:
-        cosets = [x**i for i in xrange(e)]
-    xx = x**e
-    if with_zero:
-        z = K.zero()
-        return [[z] + [y*xx**s for s in xrange(f)] for y in cosets]
-    else:
-        return [[y * xx**s for s in xrange(f)] for y in cosets]
 
 def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
     r"""
@@ -398,11 +306,12 @@ def difference_family(v, k, l=1, existence=False, check=True):
     if arith.is_prime_power(v):
         from sage.rings.finite_rings.constructor import GF
         K = GF(v,'z')
+        x = K.multiplicative_generator()
 
         if l == (k-1):
             if existence:
                 return True
-            return K, cyclotomic_cosets(K, (v-1)//k)
+            return K, K.cyclotomic_cosets(x**((v-1)//k))[1:]
 
         if t == 1:
             # some of the difference set constructions VI.18.48 from the
@@ -411,25 +320,26 @@ def difference_family(v, k, l=1, existence=False, check=True):
             if v%4 == 3 and k == (v-1)//2:
                 if existence:
                     return True
-                return K, cyclotomic_cosets(K, 2, [1])
+                return K, K.cyclotomic_cosets(x**2, [1])
 
             # q = 4t^2 + 1, t odd
             if v%8 == 5 and k == (v-1)//4 and arith.is_square((v-1)//4):
                 if existence:
                     return True
-                return K, cyclotomic_cosets(K, 4, [1])
+                return K, K.cyclotomic_cosets(x**4, [1])
 
             # q = 4t^2 + 9, t odd
             if v%8 == 5 and k == (v+3)//4 and arith.is_square((v-9)//4):
                 if existence:
                     return True
-                return K, cyclotomic_cosets(K, 4, [1], with_zero=True)
+                m = K.cyclotomic_cosets(x**4, [1])
+                m[0].insert(0,K.zero())
+                return K,m
 
         if l != 1:
             raise NotImplementedError
 
         one = K.one()
-        x = K.multiplicative_generator()
 
         # Wilson (1972), Theorem 9
         if k%2 == 1:

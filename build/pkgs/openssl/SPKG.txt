@@ -22,7 +22,5 @@ library in a variety of computer languages are available.
 
 === Patches ===
 
- * src/Configure: Sage's gcc doesn't recognize the '-arch' option,
-   while Apple's gcc does, so we remove this flag.
  * src/config: patched to fix a problem on Solaris.
 

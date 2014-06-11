@@ -182,22 +182,27 @@ def cyclotomic_cosets(q, n, t = None):
         sage: cyclotomic_cosets(2,11)
         doctest:...: DeprecationWarning: cyclotomic_cosets(q,n,t) is deprecated.
         Use Zmod(n).cyclotomic_cosets(q) or Zmod(n).cyclotomic_cosets(q,[t])
-        instead. Be careful that this method return integers mod n.
+        instead. Be careful that this method returns elements of Zmod(n).
         See http://trac.sagemath.org/16464 for details.
         [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
 
         sage: Zmod(11).cyclotomic_cosets(2)
         [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+
+        sage: cyclotomic_cosets(5,11)
+        [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
+        sage: cyclotomic_cosets(5,11,3)
+        [1, 3, 4, 5, 9]
     """
     from sage.misc.superseded import deprecation
-    deprecation(16464, 'cyclotomic_cosets(q,n,t) is deprecated. Use Zmod(n).cyclotomic_cosets(q) or Zmod(n).cyclotomic_cosets(q,[t]) instead. Be careful that this method return integers mod n.')
+    deprecation(16464, 'cyclotomic_cosets(q,n,t) is deprecated. Use Zmod(n).cyclotomic_cosets(q) or Zmod(n).cyclotomic_cosets(q,[t]) instead. Be careful that this method returns elements of Zmod(n).')
 
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     from sage.rings.integer import Integer
     if t is None:
         return [[x.lift() for x in cos] for cos in Zmod(n).cyclotomic_cosets(q)]
     else:
-        return [x.lift() for x in Zmod(n).cyclotomic_cosets(q,[t])]
+        return [x.lift() for x in Zmod(n).cyclotomic_cosets(q,[t])[0]]
 
 def is_a_splitting(S1, S2, n, return_automorphism=False):
     """

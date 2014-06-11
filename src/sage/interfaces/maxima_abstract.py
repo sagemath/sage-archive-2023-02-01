@@ -850,7 +850,7 @@ class MaximaAbstract(Interface):
         self.eval('depends(%s)'%str_vars)
         m = self(de)
         a = 'ode2(%s, %s)'%(m.name(), str_vars)
-        if ics != None:
+        if ics is not None:
             if len(ics) == 3:
                 cmd = "ic2("+a+",%s=%s,%s=%s,diff(%s,%s)=%s);"%(vars[0],ics[0], vars[1],ics[1], vars[1], vars[0], ics[2])
                 return self(cmd)

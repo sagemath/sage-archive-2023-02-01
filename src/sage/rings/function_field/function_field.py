@@ -394,7 +394,7 @@ class FunctionField_polymod(FunctionField):
             sage: L.<w> = K.extension(y^5 - x^3 - 3*x + x*y); L
             Function field in w defined by y^5 + x*y - x^3 - 3*x
         """
-        from sage.rings.polynomial.all import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
             raise TypeError("polynomial must be univariate a polynomial")
         if names is None:

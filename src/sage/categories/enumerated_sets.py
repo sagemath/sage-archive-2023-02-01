@@ -9,7 +9,7 @@ Enumerated Sets
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from category_types import Category
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_cat import EmptySetError
@@ -215,30 +215,6 @@ class EnumeratedSets(Category_singleton):
                 return self._iterator_from_list()
             else:
                 raise NotImplementedError("iterator called but not implemented")
-
-        def cardinality(self):
-            """
-            The cardinality of ``self``.
-
-            ``self.cardinality()`` should return the cardinality of the set
-            ``self`` as a sage :class:`Integer` or as ``infinity``.
-
-            This if the default implementation from the category
-            ``EnumeratedSets()`` it returns ``NotImplementedError`` since one does
-            not know whether the set is finite or not.
-
-            EXAMPLES::
-
-                sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
-                sage: broken().cardinality()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: unknown cardinality
-            """
-            raise NotImplementedError("unknown cardinality")
 
         def list(self):
             """
@@ -448,7 +424,7 @@ class EnumeratedSets(Category_singleton):
                 except (TypeError, ValueError, IndexError):
                     break
 
-                if u == None:
+                if u is None:
                     break
                 else:
                     yield u
@@ -696,10 +672,12 @@ class EnumeratedSets(Category_singleton):
             """
             return self.parent().rank(self)
 
+    Finite   = LazyImport('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets', at_startup=True)
+    Infinite = LazyImport('sage.categories.infinite_enumerated_sets', 'InfiniteEnumeratedSets', at_startup=True)
+
     class CartesianProducts(CartesianProductsCategory):
 
         class ParentMethods:
-
             def __iter__(self):
                 r"""
                 Iterates over the elements of self.

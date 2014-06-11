@@ -179,6 +179,7 @@ import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
+from sage.rings.integer_ring import ZZ
 import sage.structure.parent_gens as gens
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.commutative_rings import CommutativeRings
@@ -2810,6 +2811,16 @@ class FreeModule_generic_pid(FreeModule_generic):
         if is_FreeModule(basis):
             basis = basis.gens()
         if base_ring is None or base_ring == self.base_ring():
+            try:
+                if self.is_dense():
+                    from free_module_integer import FreeModule_submodule_with_basis_integer
+                    return FreeModule_submodule_with_basis_integer(self.ambient_module(),
+                                                                   basis=basis, check=check,
+                                                                   already_echelonized=already_echelonized,
+                                                                   lll_reduce=False)
+            except TypeError:
+                pass
+
             return FreeModule_submodule_with_basis_pid(
                 self.ambient_module(), basis=basis, check=check,
                 already_echelonized=already_echelonized)
@@ -5036,7 +5047,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     r"""
-    Construct a submodule of a free module over PID with a distiguished basis.
+    Construct a submodule of a free module over PID with a distinguished basis.
 
     INPUT:
 

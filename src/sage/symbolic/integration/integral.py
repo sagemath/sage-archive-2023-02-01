@@ -668,6 +668,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: F = integrate(f, t, 1, Infinity)
         sage: F(x=1, a=7).numerical_approx() # abs tol 1e-10
         4.32025625668262
+        sage: forget()
 
     Verify that MinusInfinity works with sympy (:trac:`12345`)::
 
@@ -679,6 +680,12 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: N(integrate(sin(x^2)/(x^2), x, 1, infinity))
         0.285736646322858
 
+    Check that :trac:`14209` is fixed::
+
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
+        sage: integral(e^(-abs(x))/cosh(x),x,-infinity,infinity)
+        2*log(2)
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

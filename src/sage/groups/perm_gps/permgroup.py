@@ -129,7 +129,7 @@ from sage.misc.randstate import current_randstate
 import sage.groups.old as group
 
 from sage.rings.all import QQ, Integer
-from sage.interfaces.all import is_ExpectElement
+from sage.interfaces.expect import is_ExpectElement
 from sage.interfaces.gap import gap, GapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, standardize_generator
 from sage.groups.abelian_gps.abelian_group import AbelianGroup

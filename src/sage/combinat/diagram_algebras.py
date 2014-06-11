@@ -1424,7 +1424,7 @@ def to_set_partition(l, k=None):
         sage: da.to_set_partition([[1,-1],[2,-2]]) == da.identity_set_partition(2)
         True
     """
-    if k == None:
+    if k is None:
         if l == []:
             return SetPartition([])
         else:

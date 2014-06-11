@@ -1615,8 +1615,8 @@ class _Bessel():
             sage: from sage.functions.bessel import _Bessel
             sage: _Bessel(3,'K')(5.0)
             0.00829176841523093
-            sage: _Bessel(20,algorithm='maxima')(5.0)
-            27.703300521289436e-12
+            sage: _Bessel(20,algorithm='maxima')(5.0)  # rel tol 1e-15
+            2.770330052128942e-11
             sage: _Bessel(20,prec=100)(5.0101010101010101)
             2.8809188227195382093062257967e-11
             sage: B = _Bessel(2,'Y',algorithm='scipy',prec=50)

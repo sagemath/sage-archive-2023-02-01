@@ -13342,7 +13342,7 @@ class GenericGraph(GenericGraph_pyx):
     ### Searches
 
     def breadth_first_search(self, start, ignore_direction=False,
-                             distance=None, neighbors=None):
+                             distance=None, neighbors=None, report_distance=False):
         """
         Returns an iterator over the vertices in a breadth-first ordering.
 
@@ -13366,6 +13366,9 @@ class GenericGraph(GenericGraph_pyx):
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
           :meth:`.successors` function of the graph.
+        - ``report_distance`` - (default False) If True, reports tuples
+          of vertices and their distance. If False only the vertices
+          are reported.
 
         .. SEEALSO::
 
@@ -13436,9 +13439,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
 
+        ::
+        We check that :trac:`16470` is correctly implemented:
+
+            sage: G = graphs.PetersenGraph()
+            sage: list(G.breadth_first_search(0, report_distance = True))
+            [(0, 0),(1, 1), (4, 1), (5, 1), (2, 2), (6, 2), (3, 2), (9, 2), (7, 2), (8, 2)]
+            sage: list(G.breadth_first_search(0, report_distance = False))
+            [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
+
+            sage: D = DiGraph({0:[1, 3], 1:[0, 2], 2:[0, 3], 3:[4]})
+            sage: D.show()
+            sage: list(D.breadth_first_search(4, neighbors = D.neighbor_in_iterator, report_distance=True))
+            [(4, 0), (3, 1), (0, 2), (2, 2), (1, 3)]
+
         """
         # Preferably use the Cython implementation
-        if neighbors is None and not isinstance(start,list) and distance is None and hasattr(self._backend,"breadth_first_search"):
+        if neighbors is None and not isinstance(start,list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:
             for v in self._backend.breadth_first_search(start, ignore_direction = ignore_direction):
                 yield v
         else:
@@ -13454,7 +13471,10 @@ class GenericGraph(GenericGraph_pyx):
                 queue=[(start,0)]
 
             for v,d in queue:
-                yield v
+                if report_distance:
+                    yield v, d
+                else:
+                    yield v
                 seen.add(v)
 
             while len(queue)>0:
@@ -13464,7 +13484,10 @@ class GenericGraph(GenericGraph_pyx):
                         if w not in seen:
                             seen.add(w)
                             queue.append((w, d+1))
-                            yield w
+                            if report_distance:
+                                yield w, d+1
+                            else:
+                                yield w
 
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):

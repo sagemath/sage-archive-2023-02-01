@@ -137,6 +137,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             return (self.group() == other.group() and self.rat() == other.rat())
         else:
             return False
+        ## FIXME: If d is a rational number, plug it in to check for equality.
 
     def _repr_(self):
         r"""

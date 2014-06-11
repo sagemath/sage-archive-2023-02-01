@@ -150,7 +150,7 @@ class AnalyticTypeElement(LatticePosetElement):
             sage: AT("weak").latex_space_name()
             'M^!'
             sage: AT(["quasi", "cusp"]).latex_space_name()
-            'QC'
+            'QS'
             sage: AT([]).latex_space_name()
             'Z'
         """

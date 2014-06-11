@@ -34,11 +34,11 @@ def normal_form_game(matrix1, matrix2):
     return game
 
 
-def game_matrix(game):
-    """
-    Creates 2 Matrices based on a Gambit Game object.
-    """
-    # check that it is only two players.
+#def game_matrix(game):
+#    """
+#    Creates 2 Matrices based on a Gambit Game object.
+#    """
+#    # check that it is only two players.
 
 
 def test_game():
@@ -48,3 +48,28 @@ def test_game():
     return two_matrix_game(a, b)
 
 
+def obtain_Nash():
+    r"""
+    A function to return the Nash equilibrium for a game.
+    Optional arguments can be used to specify the algorithm used.
+    If no algorithm is passed then an attempt is made to use the most appropriate algorithm.
+
+    INPUT:
+
+    - ``game`` -- a gambit game object.
+
+    - ``algorithm`` -- the following algorithms should be available through this function:
+
+      - lrsnash (``algorithm="lrsnash"``). This algorithm is only suited for 2 player games. See the [insert website here] web site.
+
+      - gambit (``algorithm="gambit"``). This algorithm is only suited for 2 player games. See the [insert website here] web site. NOTE THAT WE NEED TO GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+
+      - support enumeration (``algorithm="supportenum"``). This is a very inefficient algorithm (in essence a brute force approach).
+
+      - If ``algorithm=False`` (default), a default solver dependent on the size of the game will be used.
+
+    - ``maximization``
+
+       - When set to ``True`` (default) it is assumed that players aim to maximise their utility.
+       - When set to ``False`` (default) it is assumed that players aim to minimise their utility.
+    """

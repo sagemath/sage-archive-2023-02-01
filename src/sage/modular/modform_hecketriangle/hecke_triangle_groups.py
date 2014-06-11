@@ -27,31 +27,8 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-# This is just a stub implementation, to implement the class
+# TODO: This is just a stub implementation, to implement the class
 # properly an element class has to be introduced/etc...
-
-#from sage.matrix.matrix_space import MatrixSpace
-#from sage.matrix.matrix_generic_dense import Matrix_generic_dense
-#from hecke_triangle_group_element import *
-#
-#class HeckeTriangleGroup(MatrixSpace):
-#    Element=HeckeTriangleGroupElement
-#
-#    @staticmethod
-#    def __classcall__(self,n):
-#        return super(MatrixSpace,self).__classcall__(self,n)
-#
-#    def __init__(self):
-#        ...
-#        self.element_class       = HeckeTriangleGroupElement
-#        MatrixSpace.__init__(self,AA,ZZ(2))
-#
-#    def _get_matrix_class(self):
-#        return Matrix_generic_dense
-#        return HeckeTriangleGroupElement
-# "act" should be implemented by HeckeTriangleGroupElement instead,
-# using _l_action(self,t).
-
 
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
@@ -175,6 +152,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return AlgebraicField()(exp(pi/self._n*i))
 
+    ## FIXME: Explain (briefly) in documentation what alpha is.  Same for beta.
     @cached_method
     def alpha(self):
         r"""
@@ -232,7 +210,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(10).I()
             [1 0]
             [0 1]
-            sage: HeckeTriangleGroup(10).I().parent()  # todo: this should return self...
+
+        Since this is a stub implementation, the parent of a group
+        element is simply a matrix space.
+
+        ::
+
+            sage: HeckeTriangleGroup(10).I().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
         """
 
@@ -248,7 +232,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(10).one_element()
             [1 0]
             [0 1]
-            sage: HeckeTriangleGroup(10).one_element().parent()  # todo: this should return self...
+
+        Since this is a stub implementation, the parent of a group
+        element is simply a matrix space.
+
+        ::
+
+            sage: HeckeTriangleGroup(10).one_element().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
         """
 
@@ -269,7 +259,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(10).T()
             [                 1 1.902113032590308?]
             [                 0                  1]
-            sage: HeckeTriangleGroup(10).T().parent()  # todo: this should return self...
+
+        Since this is a stub implementation, the parent of a group
+        element is simply a matrix space.
+
+        ::
+
+            sage: HeckeTriangleGroup(10).T().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
         """
 
@@ -294,7 +290,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             True
             sage: HeckeTriangleGroup(10).S()^4 == HeckeTriangleGroup(10).I()
             True
-            sage: HeckeTriangleGroup(10).S().parent()  # todo: this should return self...
+
+        Since this is a stub implementation, the parent of a group
+        element is simply a matrix space.
+
+        ::
+
+            sage: HeckeTriangleGroup(10).S().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
         """
 
@@ -323,7 +325,13 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             True
             sage: HeckeTriangleGroup(10).U()^20 == HeckeTriangleGroup(10).I()
             True
-            sage: HeckeTriangleGroup(10).U().parent()  # todo: this should return self...
+
+        Since this is a stub implementation, the parent of a group
+        element is simply a matrix space.
+
+        ::
+
+            sage: HeckeTriangleGroup(10).U().parent()
             Full MatrixSpace of 2 by 2 dense matrices over Algebraic Real Field
         """
 
@@ -379,8 +387,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return self.U()**(j-1) * self._T
 
-    #TODO: Be more precise (transfinite diameter of what exactly)
-    #TODO: Is d or 1/d the transfinite diameter?
+    #FIXME: Be more precise (transfinite diameter of what exactly)
+    #FIXME: Is d or 1/d the transfinite diameter?
     @cached_method
     def dvalue(self):
         r"""
@@ -512,7 +520,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         OUTPUT:
 
-        A tuple (A,w,fact).
+        A tuple ``(A,w,fact)``.
 
         - ``A`` -- a matrix in ``self`` such that ``self.act(A,w)==z``
           (if ``z`` is exact at least).

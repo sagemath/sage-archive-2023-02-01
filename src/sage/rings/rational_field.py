@@ -499,6 +499,43 @@ class RationalField(_uniq, number_field_base.NumberField):
                     yield self(height/other)
                     yield self(-height/other)
 
+    def primes_of_bounded_norm_iter(self, B):
+        r"""
+        Iterator yielding all primes less than or equal to `B`.
+
+        INPUT:
+
+        - ``B`` -- a positive integer; upper bound on the primes generated.
+
+        OUTPUT:
+
+        An iterator over all integer primes less than or equal to `B`.
+
+        .. note::
+
+            This function exists for compatibility with the related number
+            field method, though it returns prime integers, not ideals.
+
+        EXAMPLES::
+
+            sage: it = QQ.primes_of_bounded_norm_iter(10)
+            sage: list(it)
+            [2, 3, 5, 7]
+            sage: list(QQ.primes_of_bounded_norm_iter(1))
+            []
+        """
+        try:
+            B = ZZ(B.ceil())
+        except (TypeError, AttributeError):
+            raise TypeError("%s is not valid bound on prime ideals" % B)
+
+        if B<2:
+            raise StopIteration
+
+        from sage.rings.arith import primes
+        for p in primes(B+1):
+            yield p
+
     def discriminant(self):
         """
         Return the discriminant of the field of rational numbers, which is 1.
@@ -579,6 +616,56 @@ class RationalField(_uniq, number_field_base.NumberField):
             raise ValueError("no embeddings of the rational field into K.")
         return [self.hom(K)]
 
+    def places(self, all_complex=False, prec=None):
+        r"""
+        Return the collection of all infinite places of self, which
+        in this case is just the embedding of self into `\RR`.
+
+        By default, this returns homomorphisms into ``RR``.  If
+        ``prec`` is not None, we simply return homomorphisms into
+        ``RealField(prec)`` (or ``RDF`` if ``prec=53``).
+
+        There is an optional flag ``all_complex``, which defaults to
+        False.  If ``all_complex`` is True, then the real embeddings
+        are returned as embeddings into the corresponding complex
+        field.
+
+        For consistency with non-trivial number fields.
+
+        EXAMPLES::
+
+            sage: QQ.places()
+            [Ring morphism:
+              From: Rational Field
+              To:   Real Field with 53 bits of precision
+              Defn: 1 |--> 1.00000000000000]
+            sage: QQ.places(prec=53)
+            [Ring morphism:
+              From: Rational Field
+              To:   Real Double Field
+              Defn: 1 |--> 1.0]
+            sage: QQ.places(prec=200, all_complex=True)
+            [Ring morphism:
+              From: Rational Field
+              To:   Complex Field with 200 bits of precision
+              Defn: 1 |--> 1.0000000000000000000000000000000000000000000000000000000000]
+        """
+        import sage.rings.all
+        if prec is None:
+            R = sage.rings.all.RR
+            C = sage.rings.all.CC
+        elif prec == 53:
+            R = sage.rings.all.RDF
+            C = sage.rings.all.CDF
+        elif prec == infinity.Infinity:
+            R = sage.rings.all.AA
+            C = sage.rings.all.QQbar
+        else:
+            R = sage.rings.all.RealField(prec)
+            C = sage.rings.all.ComplexField(prec)
+        domain = C if all_complex else R
+        return [self.hom([domain(1)])]
+
     def complex_embedding(self, prec=53):
         """
         Return embedding of the rational numbers into the complex numbers.
@@ -599,6 +686,30 @@ class RationalField(_uniq, number_field_base.NumberField):
         import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
+
+    def residue_field(self, p, check=True):
+        r"""
+        Return the residue field of `\QQ` at the prime `p`, for
+        consistency with other number fields.
+
+        INPUT:
+
+        -  ``p`` - a prime integer.
+
+        -  ``check`` (default True) - if True check the primality of
+           `p`, else do not.
+
+        OUTPUT: The residue field at this prime.
+
+        EXAMPLES::
+
+            sage: QQ.residue_field(5)
+            Residue field of Integers modulo 5
+            sage: QQ.residue_field(next_prime(10^9))
+            Residue field of Integers modulo 1000000007
+        """
+        from sage.rings.residue_field import ResidueField
+        return ResidueField(ZZ.ideal(p), check=check)
 
     def gens(self):
         r"""

@@ -675,7 +675,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
             sage: all( [ bk.cardinality() == len(bk.list()) for bk in bks] )
             True
         """
-        for sp in SetPartitions(self._set, [2]*(len(self._set)/2)):
+        for sp in SetPartitions(self._set, [2]*(len(self._set)//2)):
             yield self.element_class(self, sp)
 
 class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
@@ -747,7 +747,7 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
              {{1, 2}, {-3, -1}, {4, -4}, {3, -2}}]
         """
         set = range(1,self.k+1) + map(lambda x: -1*x, range(1,self.k+1))
-        for sp in SetPartitions(set, [2]*(len(set)/2) ):
+        for sp in SetPartitions(set, [2]*(len(set)//2) ):
             yield self.element_class(self, Set(list(sp)) + Set([Set([self.k+1, -self.k -1])]))
 
 #####

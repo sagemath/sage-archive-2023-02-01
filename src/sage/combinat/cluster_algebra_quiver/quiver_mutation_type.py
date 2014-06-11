@@ -1614,7 +1614,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
                 n = self._rank
                 a = binomial( 2*(n+1), n+1 ) / (n+2)
                 if n % 2 == 1:
-                    a += binomial( n+1, (n+1)/2 )
+                    a += binomial( n+1, (n+1)//2 )
                 if n % 3 == 0:
                     a += 2 * binomial( 2*n/3, n/3 )
                 return a / (n+3)
@@ -1966,7 +1966,7 @@ def _construct_classical_mutation_classes(n):
     # finite A
     data[ ('A',n) ] = ClusterQuiver(['A',n]).mutation_class(data_type='dig6')
     # affine A
-    for j in range(1, n/2+1):
+    for j in range(1, n//2+1):
         data[ ('A',(n-j,j),1) ] = ClusterQuiver(['A',[n-j,j],1]).mutation_class(data_type='dig6')
     # finite B
     if n > 1:

@@ -308,7 +308,7 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
 
     # we first check whether (S1,S2) is a partition of R - {0}
     if (len(S1) + len(S2) != n-1 or len(S1) != len(S2) or
-        R.zero() in S1 or R.zero() in S2 or S1&S2):
+        R.zero() in S1 or R.zero() in S2 or not S1.isdisjoint(S2)):
         if return_automorphism:
             return False, None
         else:

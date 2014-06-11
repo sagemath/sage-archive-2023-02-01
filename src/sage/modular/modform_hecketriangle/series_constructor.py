@@ -29,6 +29,7 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_groups import HeckeTriangleGroup
 
+## FIXME: Use truncation in doctests.  E.g. 1.69... * q
 
 class MFSeriesConstructor(SageObject,UniqueRepresentation):
     r"""

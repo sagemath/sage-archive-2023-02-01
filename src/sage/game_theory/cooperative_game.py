@@ -4,7 +4,7 @@ Co-operative games with N players.
 This module implements a **basic** implementation of a characteristic function
 cooperative game. The main contribution is a class for a characteristic
 function game. Methods to calculate the Shapley value (a fair way of sharing
-common resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
+common resources: (see 'Computational aspects of cooperative game theory' by Chalkiadakis et al.)  as well as
 test properties of the game (monotonicity, super additivity) are also included.
 
 AUTHOR:
@@ -44,7 +44,7 @@ class CooperativeGame(SageObject):
     EXAMPLES:
 
     The type of game that is currently implemented is referred to as a
-    Characteristic Function Game. This is a game on a set $\omega$ of players
+    Characteristic Function Game. This is a game on a set $\Omega$ of players
     that is defined by a value function $v:C\to \mathbb{R}$ where
     $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
     game is shown below:
@@ -64,7 +64,7 @@ class CooperativeGame(SageObject):
 
     The function $v$ can be thought of as as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
-    fairly share the value of the grand coalition ($\omega$)? This class
+    fairly share the value of the grand coalition ($\Omega$)? This class
     allows for such an answer to be formulated by calculating the Shapley
     value of the game.
 
@@ -98,7 +98,7 @@ class CooperativeGame(SageObject):
     The following example implements a (trivial) 8 player characteristic
     function game:
 
-    $v(c)=|c|\text{ for all }c\in 2^{\omega}$
+    $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
 
     ::
 

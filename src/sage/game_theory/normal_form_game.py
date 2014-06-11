@@ -1,11 +1,6 @@
 r"""
 2 Player normal form games
 
-This module implements characteristic function cooperative games.
-The main contribution is a class for a characteristic function game.
-Methods to calculate the Shapley value (a fair way of sharing common
-resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
-test properties of the game (monotonicity, super additivity) are also included.
 This module implements 2 by 2 normal form (bi-matrix) games. A variety of operations on these games can be carried out:
 
 - Identification of (weakly) dominated strategies;

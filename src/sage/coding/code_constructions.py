@@ -305,12 +305,17 @@ def is_a_splitting(S1, S2, n, return_automorphism=False):
     R = IntegerModRing(n)
     S1 = set(R(x) for x in S1)
     S2 = set(R(x) for x in S2)
+
+    # we first check whether (S1,S2) is a partition of R - {0}
     if (len(S1) + len(S2) != n-1 or len(S1) != len(S2) or
-        R.zero() in S1 or R.zero() in S2 or len(S1.union(S2)) != n-1):
+        R.zero() in S1 or R.zero() in S2 or S1&S2):
         if return_automorphism:
             return False, None
         else:
             return False
+
+    # now that we know that (S1,S2) is a partition, we look for an invertible
+    # element b that maps S1 to S2 by multiplication
     for b in range(2,n):
         if GCD(b,n) == 1 and all(b*x in S2 for x in S1):
             if return_automorphism:

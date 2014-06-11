@@ -47,10 +47,12 @@ class FormsRing_abstract(Parent):
 
         INPUT:
 
-        - ``group``       - The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
-        - ``base_ring``   - The base_ring (default: ``ZZ``).
-        - ``red_hom``     - If True then results of binary operations are considered
-                            homogeneous whenever it makes sense (default: False).
+        - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
+
+        - ``base_ring``  -- The base_ring (default: `\Z).
+
+        - ``red_hom``    -- If ``True`` then results of binary operations are considered
+                            homogeneous whenever it makes sense (default: ``False``).
                             This is mainly used by the (Hecke) forms.
 
         OUTPUT:
@@ -195,9 +197,9 @@ class FormsRing_abstract(Parent):
             and self._analytic_type >= S._analytic_type\
             and self.base_ring().has_coerce_map_from(S.base_ring()) ):
                 return True
-        # TODO: This case never occurs: remove it?
         elif isinstance(S, FormsSpace_abstract):
-            return self._coerce_map_from_(S.graded_ring())
+            raise RuntimeError( "This case should not occur." )
+            # return self._coerce_map_from_(S.graded_ring())
         elif (self.AT("holo") <= self._analytic_type) and (self.coeff_ring().has_coerce_map_from(S)):
             return True
         else:
@@ -228,8 +230,14 @@ class FormsRing_abstract(Parent):
         Set the default precision ``prec`` for the Fourier expansion.
         If ``prec=None`` (default) then the current default precision is returned instead.
 
-        Note: This is also used as the default precision for
-        the Fourier expansion when evaluating forms.
+        INPUT:
+
+        - ``prec`` -- An integer.
+
+        NOTE:
+
+        This is also used as the default precision for the Fourier
+        expansion when evaluating forms.
 
         EXAMPLES::
 
@@ -260,7 +268,9 @@ class FormsRing_abstract(Parent):
         If ``prec="max"`` the precision is set to the default precision.
         If ``prec=None`` (default) then the current display precision is returned instead.
 
-        Note: This is used for displaying/representing (elements of)
+        NOTE:
+
+        This is used for displaying/representing (elements of)
         ``self`` as Fourier expansions.
 
         EXAMPLES::
@@ -369,8 +379,10 @@ class FormsRing_abstract(Parent):
 
         INPUT:
 
-        - ``analytic_type``   - An ``AnalyticType`` or something which coerces into it (default: ``None``).
-        - ``ring``            - Whether to extend to a graded ring (default: ``False``).
+        - ``analytic_type``  -- An ``AnalyticType`` or something which
+                                coerces into it (default: ``None``).
+
+        - ``ring``           -- Whether to extend to a graded ring (default: ``False``).
 
         OUTPUT:
 
@@ -413,9 +425,10 @@ class FormsRing_abstract(Parent):
 
         INPUT:
 
-        - ``analytic_type``   - An ``AnalyticType`` or something which coerces into it (default: ``None``).
-        - ``degree``          - ``None`` (default) or the degree of the homogeneous component to which
-                                ``self`` should be reduced.
+        - ``analytic_type``   -- An ``AnalyticType`` or something which coerces into it (default: ``None``).
+
+        - ``degree``          -- ``None`` (default) or the degree of the homogeneous component to which
+                                 ``self`` should be reduced.
 
         OUTPUT:
 
@@ -462,9 +475,9 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-        sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
-        sage: ModularFormsRing().construction()
-        (ModularFormsRingFunctor(n=3), BaseFacade(Integer Ring))
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: ModularFormsRing().construction()
+            (ModularFormsRingFunctor(n=3), BaseFacade(Integer Ring))
         """
 
         from functors import FormsRingFunctor, BaseFacade
@@ -477,15 +490,15 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-        sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
-        sage: MR = ModularFormsRing(n=7)
-        sage: MR.group()
-        Hecke triangle group for n = 7
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: MR = ModularFormsRing(n=7)
+            sage: MR.group()
+            Hecke triangle group for n = 7
 
-        sage: from sage.modular.modform_hecketriangle.space import CuspForms
-        sage: CF = CuspForms(n=7, k=4/5)
-        sage: CF.group()
-        Hecke triangle group for n = 7
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: CF = CuspForms(n=7, k=4/5)
+            sage: CF.group()
+            Hecke triangle group for n = 7
         """
 
         return self._group
@@ -498,15 +511,15 @@ class FormsRing_abstract(Parent):
 
         EXAMPLES::
 
-        sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
-        sage: MR = ModularFormsRing(n=7)
-        sage: MR.hecke_n()
-        7
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: MR = ModularFormsRing(n=7)
+            sage: MR.hecke_n()
+            7
 
-        sage: from sage.modular.modform_hecketriangle.space import CuspForms
-        sage: CF = CuspForms(n=7, k=4/5)
-        sage: CF.hecke_n()
-        7
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: CF = CuspForms(n=7, k=4/5)
+            sage: CF.hecke_n()
+            7
         """
 
         return self._group.n()
@@ -605,6 +618,7 @@ class FormsRing_abstract(Parent):
 
         # We only use two operators for now which do not involve 'd', so for performance
         # reason we choose FractionField(base_ring) instead of self.coeff_ring().
+        ## FIXME: Base ring is not used, but ZZ instead.
         free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
         (X,Y,Z,dX,dY,dZ) = free_alg.gens()
         diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
@@ -633,7 +647,7 @@ class FormsRing_abstract(Parent):
     def _serre_derivative_op(self):
         r"""
         Return the differential operator in ``self.diff_alg()``
-        corresponding to the serre derivative of forms.
+        corresponding to the Serre derivative of forms.
 
         EXAMPLES::
 
@@ -780,7 +794,7 @@ class FormsRing_abstract(Parent):
 
     def is_zerospace(self):
         r"""
-        Return whether ``self`` is the (0-dimensional) zero space.
+        Return whether ``self`` is the (`0`-dimensional) zero space.
 
         EXAMPLES::
 
@@ -821,6 +835,12 @@ class FormsRing_abstract(Parent):
     def homogeneous_space(self, k, ep):
         r"""
         Return the homogeneous component of degree (``k``, ``e``) of ``self``.
+
+        INPUT:
+
+        - `k` -- An integer.
+
+        - ``ep`` -- `+1` or `-1`.
 
         EXAMPLES::
 
@@ -1067,15 +1087,15 @@ class FormsRing_abstract(Parent):
     @cached_method
     def G_inv(self):
         r"""
-        If ``2`` divides ``n``: Return the G-invariant of the group of ``self``.
+        If `2` divides `n`: Return the G-invariant of the group of ``self``.
 
-        The G-invariant is analogous to the G-invariant but has multiplier ``-1``.
+        The G-invariant is analogous to the J-invariant but has multiplier `-1`.
         I.e. ``G_inv(-1/t) = -G_inv(t)``. It is a holomorphic square root
         of ``J_inv*(J_inv-1)`` with real Fourier coefficients.
 
-        If ``2`` does not divide ``n`` the function doesn't exist and an exception is raised.
+        If `2` does not divide `n` the function does not exist and an exception is raised.
 
-        It lies in a (weak) extension of the graded ring of ``self``.
+        The G-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
 
@@ -1108,26 +1128,35 @@ class FormsRing_abstract(Parent):
 
             sage: WeakModularForms(n=4, k=0, ep=-1).G_inv()
             1/65536*q^-1 - 3/8192 - 955/16384*q - 49/32*q^2 - 608799/32768*q^3 - 659/4*q^4 + O(q^5)
+
+        As explained above, the G-invariant exists only for even `n`::
+
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
+            sage: MF = WeakModularForms(n=9)
+            sage: MF.G_inv()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: G_inv doesn't exists for n=9.
         """
 
         if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise Exception("G_inv doesn't exists for n={}.".format(self._group.n()))
+           raise ArithmeticError("G_inv doesn't exists for n={}.".format(self._group.n()))
 
     @cached_method
     def g_inv(self):
         r"""
-        If ``2`` divides ``n``: Return the g-invariant of the group of ``self``.
+        If `2` divides `n`: Return the g-invariant of the group of ``self``.
 
         The g-invariant is analogous to the j-invariant but has multiplier ``-1``.
         I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a (normalized) holomorphic square root
         of ``J_inv*(J_inv-1)``, normalized such that its first nontrivial Fourier coefficient is ``1``.
 
-        If ``2`` does not divide ``n`` the function doesn't exist and an exception is raised.
+        If `2` does not divide ``n`` the function does not exist and an exception is raised.
 
-        It lies in a (weak) extension of the graded ring of ``self``.
+        The g-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
         the corresponding homogeneous space.
 
@@ -1160,18 +1189,27 @@ class FormsRing_abstract(Parent):
 
             sage: WeakModularForms(n=4, k=0, ep=-1).g_inv()
             q^-1 - 24 - 3820*q - 100352*q^2 - 1217598*q^3 - 10797056*q^4 + O(q^5)
+
+        As explained above, the g-invariant exists only for even `n`::
+
+            sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
+            sage: MF = WeakModularForms(n=9)
+            sage: MF.g_inv()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: g_inv doesn't exists for n=9.
         """
 
         if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise Exception("g_inv doesn't exists for n={}.".format(self._group.n()))
+           raise ArithmeticError("g_inv doesn't exists for n={}.".format(self._group.n()))
 
     @cached_method
     def E4(self):
         r"""
-        Return the normalized Eisenstein series of weight ``4`` of the graded ring of ``self``.
+        Return the normalized Eisenstein series of weight 4` of the graded ring of ``self``.
         It is equal to ``f_rho^(n-2)``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
@@ -1217,7 +1255,7 @@ class FormsRing_abstract(Parent):
     @cached_method
     def E6(self):
         r"""
-        Return the normalized Eisenstein series of weight ``6`` of the graded ring of ``self``,
+        Return the normalized Eisenstein series of weight `6` of the graded ring of ``self``,
         It is equal to ``f_rho^(n-3) * f_i``.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
@@ -1264,7 +1302,7 @@ class FormsRing_abstract(Parent):
     def Delta(self):
         r"""
         Return an analog of the Delta-function of the graded ring of ``self``.
-        It is a cusp form of weight ``12`` and is equal to
+        It is a cusp form of weight `12` and is equal to
         ``d*(E4^3 - E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n - y^2)``.
 
         It lies in a (cuspidal) extension of the graded ring of ``self``.
@@ -1312,7 +1350,7 @@ class FormsRing_abstract(Parent):
     @cached_method
     def E2(self):
         r"""
-        Return the normalized quasi holomorphic Eisenstein series of weight ``2`` of the
+        Return the normalized quasi holomorphic Eisenstein series of weight `2` of the
         graded ring of ``self``. It is also a generator of the graded ring of
         ``self`` and  the polynomial variable ``z`` exactly corresponds to ``E2``.
 

@@ -148,14 +148,13 @@ class NormalFormGame(Game):
 
         - ``algorithm`` - the following algorithms should be available through
                           this function:
-                * lrsnash - This algorithm is only suited for 2 player games.
-                            See the [insert website here] web site.
-                * LCP - This algorithm is only suited for 2 player games. See
-                        the [insert website here] web site. NOTE THAT WE NEED
-                        TO GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
-
-          - support enumeration (``algorithm="supportenum"``). This is a very
-            inefficient algorithm (in essence a brute force approach).
+                * ``"lrs"`` - This algorithm is only suited for 2 player games.
+                  See the [insert website here] web site.
+                * ``"LCP"`` - This algorithm is only suited for 2 player games.
+                  See the [insert website here] web site. NOTE THAT WE NEED TO
+                  GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+                * ``"support enumeration"`` - This is a very inefficient
+                  algorithm (in essence a brute force approach).
 
         - ``maximization``
 
@@ -174,9 +173,10 @@ class NormalFormGame(Game):
             solver = ExternalLCPSolver()
             return solver.solve(self)
 
-        # if algorithm == "lrsnash":
-        #     if not is_package_installed('lrs'):  # This is different to how you've used above, this is better unless there are Sage common practices that point to your way.
-        #         raise NotImplementedError("lrs is not installed")
-        #     # Run lrs (Have something simple that takes opposite of matrices as input to lrs)
-        #     return vector(1/3,1/3,1/3),vector(1/2,1/2)
-        # raise NotImplementedError("%s is not yet implemented" % algorithm)
+        if algorithm == "lrs":
+            if not is_package_installed('lrs'):
+                raise NotImplementedError("lrs is not installed")
+            pass
+
+        if algorithm == "support enumeration":
+            pass

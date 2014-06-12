@@ -15,7 +15,26 @@ from gambit.nash import ExternalLCPSolver
 
 
 class NormalFormGame(Game):
+    r"""
+    An object representing a Normal Form Game. Primarily used to compute the
+    Nash Equilibrium.
+
+    INPUT:
+
+    If only ``matrix1`` is provided, ``matrix2`` will be created as the
+    negative of ``matrix1`` so that a zero-sum game is created. If a ``game``
+    is provided, ``matrix1`` and ``matrix2`` will be generated automatically.
+
+    - ``matrix1`` - a matrix representing the payoff for player1 in a 2 player
+                    Normal Form game.
+    - ``matrix2`` - a matrix representing the payoff for player2 in a 2 player
+                    Normal Form game.
+    - ``game`` - an instance of gambit.Game.
+    """
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
+        r"""
+        Creates an Instance of NormalFormGame.
+        """
         if matrix1 and game:
             raise ValueError("Can't input both a matrix and a game.")
         if matrix1:
@@ -24,10 +43,14 @@ class NormalFormGame(Game):
             g = game
         else:
             g = Game.new_table([2, 2])
+
         g.__class__ = NormalFormGame
         return g
 
     def __init__(self, matrix1=False, matrix2=False, game=False):
+        r"""
+        Initializes a Normal Form game and checks the inputs.
+        """
 
         if game and len(game.players) <= 2:
             # construct 2 matrices

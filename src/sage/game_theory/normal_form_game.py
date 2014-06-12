@@ -19,10 +19,9 @@ class NormalFormGame(Game):
             g = Game.new_table([len(matrix1.rows()), len(matrix2.rows())])
             g.__class__ = NormalFormGame
             return g
-        if game:
-            h = game
-            h.__class__ = NormalFormGame
-            return h
+        g = game
+        g.__class__ = NormalFormGame
+        return g
 
     def __init__(self, matrix1=False, matrix2=False, game=False ):
 

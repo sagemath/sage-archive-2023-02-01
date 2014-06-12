@@ -276,7 +276,7 @@ def difference_family(v, k, l=1, existence=False, check=True):
         89: (4,3), (8,7)
         97: (3,2), (4,3), (6,5), (8,7)
 
-    TESTS::
+    TESTS:
 
     Check more of the Wilson constructions from [Wi72]_::
 

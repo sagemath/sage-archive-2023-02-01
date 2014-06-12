@@ -987,16 +987,30 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: is_orthogonal_array(IOA + missing_blocks,3,3,2)
         True
 
-    TESTS::
+    TESTS:
+
+    Affine planes and projective planes::
+
+        sage: for q in xrange(2,100):
+        ....:     if is_prime_power(q):
+        ....:         assert designs.incomplete_orthogonal_array(q,q,[1]*q,existence=True)
+        ....:         assert not designs.incomplete_orthogonal_array(q+1,q,[1]*2,existence=True)
+
+    Further tests::
 
         sage: designs.incomplete_orthogonal_array(8,4,[1,1,1],existence=True)
         False
-        sage: designs.incomplete_orthogonal_array(4,3,[1,1],existence=True)
+        sage: designs.incomplete_orthogonal_array(5,10,[1,1,1],existence=True)
         Unknown
+        sage: designs.incomplete_orthogonal_array(5,10,[1,1,1])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build this orthogonal array!
         sage: designs.incomplete_orthogonal_array(4,3,[1,1])
         Traceback (most recent call last):
         ...
-        NotImplementedError: I was not able to build this OA(4,3)-2.OA(4,1)
+        EmptySetError: There is no OA(n+1,n) - 2.OA(n+1,1) as all blocks do
+        intersect in a projective plane.
         sage: n=10
         sage: k=designs.orthogonal_array(None,n,existence=True)
         sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
@@ -1012,13 +1026,19 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
       vol.39, num.3, pages 263-281
       1982
     """
-    assert all(xx==1 for xx in holes_sizes)
+    assert all(xx > 0 for xx in holes_sizes)
 
+    y = sum(holes_sizes)
     x = len(holes_sizes)
-    if x > n:
+    if y > n:
         if existence:
             return False
-        raise ValueError("There is no OA(k,n)-x.OA(k,1) when x>n")
+        raise EmptySetError("The total size of holes must be smaller or equal than the size of the ground set")
+
+    if any(xx != 1 for xx in holes_sizes):
+        if existence:
+            return Unknown
+        raise NotImplementedError("This function is only implemented for holes of size 1")
 
     # Easy case
     if x <= 1:
@@ -1027,9 +1047,14 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         OA = orthogonal_array(k,n)
         independent_set = OA[:x]
 
-    elif x <= 3 and n>k-1 and k>=3 and existence:
+    elif x <= 3 and n > k-1 and k >= 3 and existence:
         # This is lemma 2.3 from [BvR82]_ with u=1
-        return True
+        return orthogonal_array(k,n,existence=True)
+
+    elif x >= 2 and k == n+1:
+        if existence:
+            return False
+        raise EmptySetError("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks do intersect in a projective plane.".format(x))
 
     # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
     elif orthogonal_array(k+1,n,existence=True):
@@ -1051,8 +1076,18 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
             return True
         independent_set = OA_find_disjoint_blocks(OA,k,n,x)
 
+    elif orthogonal_array(k,n,existence=existence) is False:
+        if existence:
+            return False
+        raise EmptySetError("There is no OA({},{}) and hence no OA({},{})-{}.OA({},1)".format(k,n,k,n,k))
+
+    elif orthogonal_array(k,n,existence=existence) is Unknown:
+        if existence:
+            return Unknown
+        raise NotImplementedError("I do not know how to build this OA({},{})-{}.OA({},1)".format(k,n,k))
+
     else:
-        return orthogonal_array(k,n,existence=existence)
+        raise RuntimeError("This should not happen!")
 
     assert x == len(independent_set)
 
@@ -1396,27 +1431,48 @@ def OA_from_PBD(k,n,PBD, check=True):
 
     - ``PBD`` -- a PBD on `0,...,n-1`.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
-        sage: from sage.combinat.designs.database import OA_7_66
-        sage: OA = OA_7_66() # indirect doctest
-        sage: print is_orthogonal_array(OA,7,66,2)
+    We start from the example VI.1.2 from the [DesignHandbook]_ to build an
+    `OA(3,10)`::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: pbd = [[0,1,2,3],[0,4,5,6],[0,7,8,9],[1,4,7],[1,5,8],
+        ....: [1,6,9],[2,4,9],[2,5,7],[2,6,8],[3,4,8],[3,5,9],[3,6,7]]
+        sage: oa = OA_from_PBD(3,10,pbd)
+        sage: is_orthogonal_array(oa, 3, 10)
         True
+
+    But we can not build an `OA(4,10)`::
+
+        sage: OA_from_PBD(4,10,pbd)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: The construction is impossible since there is no OA(4,3)-3.OA(4,1)
+
+    Or an `OA(6,10)`::
+
+        sage: _ = OA_from_PBD(3,6,pbd)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: This is not a nice honest PBD from the good old days !
     """
     # Size of the sets of the PBD
     K = set(map(len,PBD))
+    if check:
+        from bibd import _check_pbd
+        _check_pbd(PBD, n, K)
 
-    # Building the OA
-    OAs ={i:orthogonal_array(k,i) for i in K}
-
-    # Turning them into IMOLS
-    for i,OA in OAs.items():
-        for ii in range(i):
-            try:
-                OAs[i].remove([ii]*k)
-            except ValueError:
-                raise RuntimeError("I was not able to build an IMOLS({},{})".format(k,i))
+    # Building the IOA
+    OAs = {}
+    for i in K:
+        if incomplete_orthogonal_array(k,i,(1,)*i,existence=True) is False:
+            raise EmptySetError("The construction is impossible since there is no OA({},{})-{}.OA({},1)".format(k,i,i,k))
+        elif incomplete_orthogonal_array(k,i,(1,)*i,existence=True) is Unknown:
+            raise NotImplementedError("I was not able to build an OA({},{})-{}.OA({},1)".format(k,i,i,k))
+        else:
+            OAs[i] = incomplete_orthogonal_array(k,i,(1,)*i)
 
     OA = []
     # For every block B of the PBD we add to the OA rows covering all pairs of

@@ -664,7 +664,7 @@ def _check_pbd(B,v,S):
 
     - ``v`` (integer) -- number of points
 
-    - ``S`` -- list of integers
+    - ``S`` -- list of integers `\geq 2`.
 
     EXAMPLE::
 
@@ -673,12 +673,20 @@ def _check_pbd(B,v,S):
          [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
+        sage: from sage.combinat.designs.bibd import _check_pbd
+        sage: _check_pbd([[1],[]],1,[1,0])
+        Traceback (most recent call last):
+        ...
+        RuntimeError: All integers of S must be >=2
     """
     from itertools import combinations
     from sage.graphs.graph import Graph
 
     if not all(len(X) in S for X in B):
         raise RuntimeError("Some block has wrong size: this is not a nice honest PBD from the good old days !")
+
+    if any(x < 2 for x in S):
+        raise RuntimeError("All integers of S must be >=2")
 
     if v == 0 or v == 1:
         if B:

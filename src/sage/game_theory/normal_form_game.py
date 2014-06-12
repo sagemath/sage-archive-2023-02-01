@@ -142,20 +142,20 @@ class NormalFormGame(Game):
         if not matrix1 and not game:
             pass
         elif not matrix1 and game:
-            self.to_matrix()
+            self.game_to_matrix()
         else:
             self.matrix1 = matrix1
             if not matrix2:
                 self.matrix2 = - self.matrix1
             else:
                 self.matrix2 = matrix2
-            p1_strats = range(len(self.matrix1.rows()))
-            p2_strats = range(len(self.matrix1.columns()))
-            for k in product(p1_strats, p2_strats):
-                    self[k][0] = int(self.matrix1[k])
-                    self[k][1] = int(self.matrix2[k])
+            self.matrix_to_game()
 
-    def to_matrix(self):
+    def game_to_matrix(self):
+        r"""
+        Sets ``self.matrix1`` and ``self.matrix2`` to be the payoff matrices
+        associated with current game.
+        """
         if len(self.players) != 2:
             raise ValueError("Only available for games with 2 players.")
         self.matrix1 = matrix([])
@@ -163,6 +163,18 @@ class NormalFormGame(Game):
         for k in list(self.contingencies):
                 self.matrix1[k] = self[k][0]
                 self.matrix2[k] = self[k][1]
+
+    def matrix_to_game(self):
+        r"""
+        Builds a game based on ``self.matrix1`` and ``self.matrix2``
+        """
+        if self.matrix1.dimensions() != self.matrix2.dimensions():
+            raise ValueError("Matrices must be the same size.")
+        p1_strats = range(len(self.matrix1.rows()))
+        p2_strats = range(len(self.matrix1.columns()))
+        for k in product(p1_strats, p2_strats):
+                self[k][0] = int(self.matrix1[k])
+                self[k][1] = int(self.matrix2[k])
 
     def obtain_Nash(self, algorithm="LCP"):
         r"""
@@ -206,4 +218,5 @@ class NormalFormGame(Game):
             pass
 
         if algorithm == "support enumeration":
-            pass
+            raise NotImplementedError("Support enumeration is not implemented "
+                                      "yet.")

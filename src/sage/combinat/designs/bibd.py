@@ -149,9 +149,9 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
     For `k > 5` there are currently very few constructions::
 
         sage: [v for v in xrange(150) if designs.BalancedIncompleteBlockDesign(v,6,existence=True) is True]
-        [1, 6, 31]
+        [1, 6, 31, 91]
         sage: [v for v in xrange(150) if designs.BalancedIncompleteBlockDesign(v,6,existence=True) is Unknown]
-        [16, 21, 36, 46, 51, 61, 66, 76, 81, 91, 96, 106, 111, 121, 126, 136, 141]
+        [16, 21, 36, 46, 51, 61, 66, 76, 81, 96, 106, 111, 121, 126, 136, 141]
     """
     if v == 1:
         if existence:
@@ -186,6 +186,8 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
             return v%20 == 1 or v%20 == 5
         return BlockDesign(v, v_5_1_BIBD(v), test = False)
 
+    from difference_family import difference_family
+
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
@@ -195,6 +197,11 @@ def BalancedIncompleteBlockDesign(v,k,existence=False,use_LJCR=False):
             return True
         from block_design import projective_plane
         return projective_plane(k-1)
+    if difference_family(v,k,existence=True):
+        if existence:
+            return True
+        G,D = difference_family(v,k)
+        return BlockDesign(v, BIBD_from_difference_family(G,D,check=False), test=False)
     if use_LJCR:
         from covering_design import best_known_covering_design_www
         B = best_known_covering_design_www(v,k,2)
@@ -462,7 +469,7 @@ def BIBD_from_difference_family(G, D, check=True):
 
     INPUT::
 
-    - ``G`` - a finite Abelian group
+    - ``G`` - a finite additive Abelian group
 
     - ``D`` - a difference family on ``G``.
 
@@ -507,8 +514,6 @@ def BIBD_from_difference_family(G, D, check=True):
 
 
 
-
-
 ################
 # (v,4,1)-BIBD #
 ################
@@ -543,6 +548,13 @@ def v_4_1_BIBD(v, check=True):
         sage: for n in range(13,100):                            # long time
         ....:    if n%12 in [1,4]:                               # long time
         ....:       _ = v_4_1_BIBD(n, check = True)              # long time
+
+    TESTS:
+
+    Check that the `(37,4)`-difference family is available::
+
+        sage: assert designs.difference_family(37,4,existence=True)
+        sage: _ = designs.difference_family(37,4)
     """
     from sage.rings.finite_rings.constructor import FiniteField
     k = 4
@@ -590,34 +602,10 @@ def v_4_1_BIBD(v, check=True):
                 [14, 17, 23, 25], [14, 18, 22, 27], [15, 18, 24, 26], [15, 19, 21, 23],
                 [16, 19, 25, 27], [16, 20, 22, 24], [17, 20, 21, 26]]
     if v == 37:
-        return [[0, 1, 3, 24], [0, 2, 23, 36], [0, 4, 26, 32], [0, 5, 9, 31],
-                [0, 6, 11, 15], [0, 7, 17, 25], [0, 8, 20, 27], [0, 10, 18, 30],
-                [0, 12, 19, 29], [0, 13, 14, 16], [0, 21, 34, 35], [0, 22, 28, 33],
-                [1, 2, 4, 25], [1, 5, 27, 33], [1, 6, 10, 32], [1, 7, 12, 16],
-                [1, 8, 18, 26], [1, 9, 21, 28], [1, 11, 19, 31], [1, 13, 20, 30],
-                [1, 14, 15, 17], [1, 22, 35, 36], [1, 23, 29, 34], [2, 3, 5, 26],
-                [2, 6, 28, 34], [2, 7, 11, 33], [2, 8, 13, 17], [2, 9, 19, 27],
-                [2, 10, 22, 29], [2, 12, 20, 32], [2, 14, 21, 31], [2, 15, 16, 18],
-                [2, 24, 30, 35], [3, 4, 6, 27], [3, 7, 29, 35], [3, 8, 12, 34],
-                [3, 9, 14, 18], [3, 10, 20, 28], [3, 11, 23, 30], [3, 13, 21, 33],
-                [3, 15, 22, 32], [3, 16, 17, 19], [3, 25, 31, 36], [4, 5, 7, 28],
-                [4, 8, 30, 36], [4, 9, 13, 35], [4, 10, 15, 19], [4, 11, 21, 29],
-                [4, 12, 24, 31], [4, 14, 22, 34], [4, 16, 23, 33], [4, 17, 18, 20],
-                [5, 6, 8, 29], [5, 10, 14, 36], [5, 11, 16, 20], [5, 12, 22, 30],
-                [5, 13, 25, 32], [5, 15, 23, 35], [5, 17, 24, 34], [5, 18, 19, 21],
-                [6, 7, 9, 30], [6, 12, 17, 21], [6, 13, 23, 31], [6, 14, 26, 33],
-                [6, 16, 24, 36], [6, 18, 25, 35], [6, 19, 20, 22], [7, 8, 10, 31],
-                [7, 13, 18, 22], [7, 14, 24, 32], [7, 15, 27, 34], [7, 19, 26, 36],
-                [7, 20, 21, 23], [8, 9, 11, 32], [8, 14, 19, 23], [8, 15, 25, 33],
-                [8, 16, 28, 35], [8, 21, 22, 24], [9, 10, 12, 33], [9, 15, 20, 24],
-                [9, 16, 26, 34], [9, 17, 29, 36], [9, 22, 23, 25], [10, 11, 13, 34],
-                [10, 16, 21, 25], [10, 17, 27, 35], [10, 23, 24, 26], [11, 12, 14, 35],
-                [11, 17, 22, 26], [11, 18, 28, 36], [11, 24, 25, 27], [12, 13, 15, 36],
-                [12, 18, 23, 27], [12, 25, 26, 28], [13, 19, 24, 28], [13, 26, 27, 29],
-                [14, 20, 25, 29], [14, 27, 28, 30], [15, 21, 26, 30], [15, 28, 29, 31],
-                [16, 22, 27, 31], [16, 29, 30, 32], [17, 23, 28, 32], [17, 30, 31, 33],
-                [18, 24, 29, 33], [18, 31, 32, 34], [19, 25, 30, 34], [19, 32, 33, 35],
-                [20, 26, 31, 35], [20, 33, 34, 36], [21, 27, 32, 36]]
+        from difference_family import difference_family
+        G,D = difference_family(37,4)
+        return BIBD_from_difference_family(G,D,check=False)
+
 
     # Step 2 : this is function PBD_4_5_8_9_12
     PBD = PBD_4_5_8_9_12((v-1)/(k-1),check=False)
@@ -944,6 +932,14 @@ def v_5_1_BIBD(v, check=True):
         ....:    i += 20
         ....:    _ = v_5_1_BIBD(i+1)
         ....:    _ = v_5_1_BIBD(i+5)
+
+    TESTS:
+
+    Check that the needed difference families are there::
+
+        sage: for v in [21,41,61,81,141,161,281]:
+        ....:     assert designs.difference_family(v,5,existence=True)
+        ....:     _ = designs.difference_family(v,5)
     """
     v = int(v)
 
@@ -954,31 +950,10 @@ def v_5_1_BIBD(v, check=True):
     if v%5 == 0 and (v//5)%4 == 1 and is_prime_power(v//5):
         bibd = BIBD_5q_5_for_q_prime_power(v//5)
     # Lemma 28
-    elif v == 21:
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_difference_family(Zmod(21), [[0,1,4,14,16]], check=False)
-    elif v == 41:
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_difference_family(Zmod(41), [[0,1,4,11,29],[0,2,8,17,22]], check=False)
-    elif v == 61:
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_difference_family(Zmod(61), [[0,1,3,13,34],[0,4,9,23,45],[0,6,17,24,32]], check=False)
-    elif v == 81:
-        from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
-        D = [[(0, 0, 0, 1), (2, 0, 0, 1), (0, 0, 2, 1), (1, 2, 0, 2), (0, 1, 1, 1)],
-             [(0, 0, 1, 0), (1, 1, 0, 2), (0, 2, 1, 0), (1, 2, 0, 1), (1, 1, 1, 0)],
-             [(2, 2, 1, 1), (1, 2, 2, 2), (2, 0, 1, 2), (0, 1, 2, 1), (1, 1, 0, 0)],
-             [(0, 2, 0, 2), (1, 1, 0, 1), (1, 2, 1, 2), (1, 2, 1, 0), (0, 2, 1, 1)]]
-        bibd = BIBD_from_difference_family(AdditiveAbelianGroup([3]*4), D, check=False)
-    elif v == 161:
-        # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
-        D = [(0, 19, 34, 73, 80), (0, 16, 44, 71, 79), (0, 12, 33, 74, 78), (0, 13, 30, 72, 77), (0, 11, 36, 67, 76), (0, 18, 32, 69, 75), (0, 10, 48, 68, 70), (0, 3, 29, 52, 53)]
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        bibd = BIBD_from_difference_family(Zmod(161), D, check=False)
-    elif v == 281:
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        D = [[3**(2*a+56*b) for b in range(5)] for a in range(14)]
-        bibd = BIBD_from_difference_family(Zmod(281), D, check=False)
+    elif v in [21,41,61,81,141,161,281]:
+        from difference_family import difference_family
+        G,D = difference_family(v,5)
+        bibd = BIBD_from_difference_family(G, D, check=False)
     # Lemma 29
     elif v == 165:
         bibd = BIBD_from_PBD(v_5_1_BIBD(41,check=False),165,5,check=False)
@@ -987,13 +962,6 @@ def v_5_1_BIBD(v, check=True):
     elif v in (201,285,301,401,421,425):
         # Call directly the BIBD_from_TD function
         bibd = BIBD_from_TD(v,5)
-    # Lemma 30
-    elif v == 141:
-        # VI.16.16 of the Handbook of Combinatorial Designs, Second Edition
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
-        D = [(0, 33, 60, 92, 97), (0, 3, 45, 88, 110), (0, 18, 39, 68, 139), (0, 12, 67, 75, 113), (0, 1, 15, 84, 94), (0, 7, 11, 24, 30), (0, 36, 90, 116, 125)]
-        bibd = BIBD_from_difference_family(Zmod(141), D, check=False)
-
     # Theorem 31.2
     elif (v-1)//4 in [80, 81, 85, 86, 90, 91, 95, 96, 110, 111, 115, 116, 120, 121, 250, 251, 255, 256, 260, 261, 265, 266, 270, 271]:
         r = (v-1)//4

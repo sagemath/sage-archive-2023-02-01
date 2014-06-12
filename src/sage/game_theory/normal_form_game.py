@@ -25,7 +25,16 @@ class NormalFormGame(Game):
 
 
     def __init__(self, matrix1=False, matrix2=False, game=False ):
-        pass
+
+        self.matrix1 = matrix1
+        self.matrix2 = matrix2
+        if matrix1 and matrix2:
+            p1_strats = range(len(matrix1.rows()))
+            p2_strats = range(len(matrix1.columns()))
+
+            for k in product(p1_strats, p2_strats):
+                    self[k][0] = int(matrix1[k])
+                    self[k][1] = int(matrix2[k])
 
 
     def _from_2matrix_to_game(self, matrix1, matrix2):
@@ -35,16 +44,7 @@ class NormalFormGame(Game):
 
         #create a test for all matrices being the same shape.
 
-        A = self.players.add()
-        B = self.players.add()
-        p1_strats = range(len(matrix1.rows()))
-        p2_strats = range(len(matrix1.columns()))
-
-        game = Game.new_table([len(p1_strats), len(p2_strats)])
-
-        for k in product(p1_strats, p2_strats):
-                game[k][0] = int(matrix1[k])
-                game[k][1] = int(matrix2[k])
+        
 
         return game
 

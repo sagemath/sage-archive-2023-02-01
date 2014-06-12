@@ -287,7 +287,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - ``constraint_generation`` -- Only used when ``solver=None``.
 
-          - When set to ``True``, after solving the 
+          - When set to ``True``, after solving the
             ``MixedIntegerLinearProgram``, it is possible to add a constraint,
             and then solve it again. The effect is that solvers that do not
             support this feature will not be used.

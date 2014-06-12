@@ -1,67 +1,103 @@
 r"""
 2 Player normal form games
 
-This module implements characteristic function cooperative games.
-The main contribution is a class for a characteristic function game.
-Methods to calculate the Shapley value (a fair way of sharing common
-resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
-test properties of the game (monotonicity, super additivity) are also included.
 This module implements 2 by 2 normal form (bi-matrix) games. A variety of operations on these games can be carried out:
 
 - Identification of (weakly) dominated strategies;
 - Identification of Best responses to a given strategy;
-- Identification of Nash Equilibrium (this is done by interfacing with ???);
+- Identification of Nash Equilibrium (this is done by interfacing with Gambit);
 """
-from sage.structure.sage_object import SageObject
+from itertools import product
+from sage.misc.package import is_package_installed
+from gambit import *
 
 
-class NormalFormGame(SageObject):
-    r"""
-    An object representing a normal form game.
-
-    INPUT:
-
-    - Bi matrix: can be input as two matrices, an array of two dimensional lists OR a single matrix in which case it will be assumed that the game is zero sum.
-    - Strategy names - default = ``False``, if a list of names is passed then all strategy vectors will be returned as dictionaries...
-
-    EXAMPLES::
-    Basic example of how to initiate a normal form game using two matrices. ::
-
-        sage: A = matrix([[2,0],
-        ....:             [5,1])
-        sage: B = matrix([[2,5],
-        ....:             [0,1])
-        sage: game = NormalFormGame(A, B)
-        sage: game.show()
+class NormalFormGame(Game):
+    def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
+        if matrix1 and matrix2:
+            g = Game.new_table([len(matrix1.rows()), len(matrix2.rows())])
+            g.__class__ = NormalFormGame
+            return g
+        if game:
+            h = game
+            h.__class__ = NormalFormGame
+            return h
 
 
-        sage: C = [[[2,2],[0,5],
-        ....:      [[5,0],[1,1]])
-        sage: game = NormalFormGame(C)
-        sage: game.show()
+    def __init__(self, matrix1=False, matrix2=False, game=False ):
 
-        sage: D = matrix([[2, 5],
-        ....:             [1, 0]])
-        sage: game = NormalFormGame(D)
-        sage: game.show()
-    """
+        self.matrix1 = matrix1
+        self.matrix2 = matrix2
+        if matrix1 and matrix2:
+            p1_strats = range(len(matrix1.rows()))
+            p2_strats = range(len(matrix1.columns()))
 
-    def __init__(self):
+            for k in product(p1_strats, p2_strats):
+                    self[k][0] = int(matrix1[k])
+                    self[k][1] = int(matrix2[k])
+
+
+    def _from_2matrix_to_game(self, matrix1, matrix2):
+        """
+        Creates a Normal Form game from 2 matrices.
+        """
+
+        #create a test for all matrices being the same shape.
+
+        
+
+        return game
+
+    def obtain_Nash(game):
         r"""
-        Initializes.
+        A function to return the Nash equilibrium for a game.
+        Optional arguments can be used to specify the algorithm used.
+        If no algorithm is passed then an attempt is made to use the most appropriate algorithm.
+
+        INPUT:
+
+        - ``game`` -- a gambit game object.
+
+        - ``algorithm`` -- the following algorithms should be available through this function:
+
+          - lrsnash (``algorithm="lrsnash"``). This algorithm is only suited for 2 player games. See the [insert website here] web site.
+
+          - gambit (``algorithm="gambit"``). This algorithm is only suited for 2 player games. See the [insert website here] web site. NOTE THAT WE NEED TO GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+
+          - support enumeration (``algorithm="supportenum"``). This is a very inefficient algorithm (in essence a brute force approach).
+
+          - If ``algorithm=False`` (default), a default solver dependent on the size of the game will be used.
+
+        - ``maximization``
+
+           - When set to ``True`` (default) it is assumed that players aim to maximise their utility.
+           - When set to ``False`` (default) it is assumed that players aim to minimise their utility.
         """
 
-    def best_responses(self):
-        """
-        Maybe return a dictionary for each player...
-        """
+        if not algorithm:
+            if len(game.players) > 2:
+                raise NotImplementedError("Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms.")
+            algorithm = "lrsnash"  # This will do for now: when we have a variety of algorithms we will test the best and set the best one.
+        if algorithm == "lrsnash":
+            if not is_package_installed('lrs'):  # This is different to how you've used above, this is better unless there are Sage common practices that point to your way.
+                raise NotImplementedError("lrs is not installed")
+            # Run lrs (Have something simple that takes opposite of matrices as input to lrs)
+            return vector(1/3,1/3,1/3),vector(1/2,1/2)
+        raise NotImplementedError("%s is not yet implemented" % algorithm)
 
-    def dominated_strategies(self):
-        """
-        Identify any dominated strategies (dominated by pure but also by mixed, that's harder... I'm not entirely sure how to do it, but there will be a way somewhere...)
-        """
 
-    def nash_equilibrium(self):
-        """
-        Compute all equilibrium
-        """
+    def game_matrix(game):
+       """
+       Creates 2 Matrices based on a Gambit Game object.
+       """
+       # check that it is only two players.
+
+
+def test_game():
+    from sage.matrix.constructor import matrix
+    a = matrix([[1, 2], [3, 4]])
+    b = matrix([[3, 3], [1, 4]])
+    return NormalFormGame(matrix1=a, matrix2=b)
+
+
+

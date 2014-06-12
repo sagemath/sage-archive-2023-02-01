@@ -30,6 +30,30 @@ class NormalFormGame(Game):
     - ``matrix2`` - a matrix representing the payoff for player2 in a 2 player
                     Normal Form game.
     - ``game`` - an instance of gambit.Game.
+
+    EXAMPLES:
+
+    A basic 2-player game constructed from matrices. ::
+
+        sage: a = matrix([[1, 2], [3, 4]])
+        sage:     b = matrix([[3, 3], [1, 4]])
+        sage: NormalFormGame(matrix1=a, matrix2=b)
+        NFG 1 R "" { "1" "2" }
+
+        { { "1" "2" }
+        { "1" "2" }
+        }
+        ""
+
+        {
+        { "" 1, 3 }
+        { "" 3, 1 }
+        { "" 2, 3 }
+        { "" 4, 4 }
+        }
+        1 2 3 4
+        <BLANKLINE>
+
     """
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
         r"""
@@ -111,10 +135,3 @@ class NormalFormGame(Game):
         #     # Run lrs (Have something simple that takes opposite of matrices as input to lrs)
         #     return vector(1/3,1/3,1/3),vector(1/2,1/2)
         # raise NotImplementedError("%s is not yet implemented" % algorithm)
-
-
-def test_game():
-    from sage.matrix.constructor import matrix
-    a = matrix([[1, 2], [3, 4]])
-    b = matrix([[3, 3], [1, 4]])
-    return NormalFormGame(matrix1=a, matrix2=b)

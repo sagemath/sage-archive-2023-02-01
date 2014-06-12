@@ -48,17 +48,15 @@ class NormalFormGame(Game):
 
         INPUT:
 
-        - ``game`` -- a gambit game object.
-
-        - ``algorithm`` -- the following algorithms should be available through this function:
-
-          - lrsnash (``algorithm="lrsnash"``). This algorithm is only suited for 2 player games. See the [insert website here] web site.
-
-          - LCP (``algorithm="LCP"``). This algorithm is only suited for 2 player games. See the [insert website here] web site. NOTE THAT WE NEED TO GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+        - ``algorithm`` - the following algorithms should be available through
+                          this function:
+                * lrsnash - This algorithm is only suited for 2 player games.
+                            See the [insert website here] web site.
+                * LCP - This algorithm is only suited for 2 player games. See
+                        the [insert website here] web site. NOTE THAT WE NEED
+                        TO GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
 
           - support enumeration (``algorithm="supportenum"``). This is a very inefficient algorithm (in essence a brute force approach).
-
-          - If ``algorithm=False`` (default), a default solver dependent on the size of the game will be used.
 
         - ``maximization``
 

@@ -9,7 +9,8 @@ This module implements 2 by 2 normal form (bi-matrix) games. A variety of operat
 """
 from itertools import product
 from sage.misc.package import is_package_installed
-from gambit import *
+from gambit import Game
+from gambit.nash import ExternalLCPSolver
 
 
 class NormalFormGame(Game):
@@ -35,7 +36,7 @@ class NormalFormGame(Game):
                     self[k][0] = int(matrix1[k])
                     self[k][1] = int(matrix2[k])
 
-    def obtain_Nash(game):
+    def obtain_Nash(self, algorithm="gambit"):
         r"""
         A function to return the Nash equilibrium for a game.
         Optional arguments can be used to specify the algorithm used.
@@ -60,6 +61,10 @@ class NormalFormGame(Game):
            - When set to ``True`` (default) it is assumed that players aim to maximise their utility.
            - When set to ``False`` (default) it is assumed that players aim to minimise their utility.
         """
+
+        if algorithm == "gambit":
+            solver = ExternalLCPSolver()
+            return solver.solve(self)
 
         if not algorithm:
             if len(game.players) > 2:

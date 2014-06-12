@@ -1954,7 +1954,7 @@ class MPowerSeries(PowerSeries):
         n_inv_factorial = R.base_ring().one()
         x_pow_n = Rbg.one()
         exp_x = Rbg.one().add_bigoh(prec)
-        for n in range(1,prec/val+1):
+        for n in range(1,prec//val+1):
             x_pow_n = (x_pow_n * x).add_bigoh(prec)
             n_inv_factorial /= n
             exp_x += x_pow_n * n_inv_factorial
@@ -2046,7 +2046,7 @@ class MPowerSeries(PowerSeries):
             prec = R.default_prec()
         x_pow_n = Rbg.one()
         log_x = Rbg.zero().add_bigoh(prec)
-        for n in range(1,prec/val+1):
+        for n in range(1,prec//val+1):
             x_pow_n = (x_pow_n * x).add_bigoh(prec)
             log_x += x_pow_n / n
         result_bg = log_c - log_x

@@ -128,6 +128,7 @@ import copy_reg
 import os
 import subprocess
 import StringIO
+from functools import reduce
 
 
 data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')

@@ -472,7 +472,7 @@ def is_hyperbolic(self, p):
     ## Compare local invariants
     ## (Note: since the dimension is even, the extra powers of 2 in
     ##        self.det() := Det(2*Q) don't affect the answer!)
-    m = ZZ(self.dim() / 2)
+    m = ZZ(self.dim() // 2)
     if p == "infinity":
         return (self.signature() == 0)
 

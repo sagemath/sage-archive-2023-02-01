@@ -2,7 +2,11 @@
 
 cd src
 
+<<<<<<< HEAD
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+=======
+./configure --disable-gui --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+>>>>>>> gambit
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring Gambit."
     exit 1
@@ -25,6 +29,10 @@ python setup.py build
 python setup.py install
 
 if [ $? -ne 0 ]; then
+<<<<<<< HEAD
     echo "Error installing Cython"
+=======
+    echo "Error installing Python API"
+>>>>>>> gambit
     exit 1
 fi

@@ -248,7 +248,7 @@ Sage example in ./recequadiff.tex, line 717::
   Traceback (most recent call last):
     ...
   TypeError: ECL says: Maxima asks:
-  Is  k  positive, negative, or zero?
+  Is k positive, negative or zero?
 
 Sage example in ./recequadiff.tex, line 728::
 

@@ -151,7 +151,8 @@ class CooperativeGame(SageObject):
     The Shapley value (described above) is none to be the unique
     payoff vector that satisfies these and 1 other property
     not implemented here (additivity).
-    They are
+    They are:
+    
         * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 

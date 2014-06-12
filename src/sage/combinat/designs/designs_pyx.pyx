@@ -63,6 +63,18 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
         sage: is_orthogonal_array([[3]*7],8,9,verbose=True,terminology="MOLS")
         The number of squares is not 6
         False
+
+    Up to relabelling, there is a unique `OA(3,2)`. So their number is just the
+    cardinality of the relabeling group which is `S_2^3 \times S_3` and has
+    cardinality `48`::
+
+        sage: from itertools import product
+        sage: n = 0
+        sage: for a in product(product((0,1), repeat=3), repeat=4):
+        ....:     if is_orthogonal_array(a,3,2):
+        ....:          n += 1
+        sage: n
+        48
     """
     cdef int n2 = n*n
     cdef int x
@@ -98,13 +110,13 @@ def is_orthogonal_array(OA, int k, int n, int t=2, verbose=False, terminology="O
     # Filling OAc
     for i,R in enumerate(OA):
         for j,x in enumerate(R):
-            OAc[j*n2+i] = x
             if x < 0 or x >= n:
                 if verbose:
                     print {"OA"   : "{} is not in the interval [0..{}]".format(x,n-1),
                            "MOLS" : "Entry {} was expected to be in the interval [0..{}]".format(x,n-1)}[terminology]
                 sage_free(OAc)
                 return False
+            OAc[j*n2+i] = x
 
     # A bitset to keep track of pairs of values
     cdef bitset_t seen

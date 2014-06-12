@@ -54,7 +54,36 @@ class NormalFormGame(Game):
         1 2 3 4
         <BLANKLINE>
 
+    We can also pass a Gambit game and create it manually. ::
+
+        sage: gam = Game.new_table([2, 2])
+        sage: g = NormalFormGame(game=gam)
+        sage: g[int(0), int(0)][int(0)] = int(8)
+        sage: g[int(0), int(0)][int(1)] = int(8)
+        sage: g[int(0), int(1)][int(0)] = int(2)
+        sage: g[int(0), int(1)][int(1)] = int(10)
+        sage: g[int(1), int(0)][int(0)] = int(10)
+        sage: g[int(1), int(0)][int(1)] = int(2)
+        sage: g[int(1), int(1)][int(0)] = int(5)
+        sage: g[int(1), int(1)][int(1)] = int(5)
+        sage: gam
+        NFG 1 R "" { "1" "2" }
+        <BLANKLINE>
+        { { "1" "2" }
+        { "1" "2" }
+        }
+        ""
+        <BLANKLINE>
+        {
+        { "" 8, 8 }
+        { "" 10, 2 }
+        { "" 2, 10 }
+        { "" 5, 5 }
+        }
+        1 2 3 4
+        <BLANKLINE>
     """
+
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
         r"""
         Creates an Instance of NormalFormGame.

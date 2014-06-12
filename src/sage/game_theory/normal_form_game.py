@@ -23,6 +23,7 @@ class NormalFormGame(Game):
             h.__class__ = NormalFormGame
             return h
 
+
     def __init__(self, matrix1=False, matrix2=False, game=False ):
         pass
 

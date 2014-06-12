@@ -23,7 +23,6 @@ class NormalFormGame(Game):
             h.__class__ = NormalFormGame
             return h
 
-
     def __init__(self, matrix1=False, matrix2=False, game=False ):
 
         self.matrix1 = matrix1
@@ -35,18 +34,6 @@ class NormalFormGame(Game):
             for k in product(p1_strats, p2_strats):
                     self[k][0] = int(matrix1[k])
                     self[k][1] = int(matrix2[k])
-
-
-    def _from_2matrix_to_game(self, matrix1, matrix2):
-        """
-        Creates a Normal Form game from 2 matrices.
-        """
-
-        #create a test for all matrices being the same shape.
-
-        
-
-        return game
 
     def obtain_Nash(game):
         r"""

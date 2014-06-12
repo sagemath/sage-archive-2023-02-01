@@ -37,8 +37,15 @@ class NormalFormGame(Game):
 
         sage: a = matrix([[1, 2], [3, 4]])
         sage: b = matrix([[3, 3], [1, 4]])
-        sage: NormalFormGame(matrix1=a, matrix2=b)
-        NFG 1 R "" { "1" "2" }
+        sage: c = NormalFormGame(matrix1=a, matrix2=b)
+
+    This can be given a title and the players can be named. ::
+
+        sage: c.title = "Simple Game"
+        sage: c.players[int(0)].label = "James"
+        sage: c.players[int(1)].label = "Vince"
+        sage: c
+        NFG 1 R "Simple Game" { "James" "Vince" }
         <BLANKLINE>
         { { "1" "2" }
         { "1" "2" }
@@ -54,7 +61,8 @@ class NormalFormGame(Game):
         1 2 3 4
         <BLANKLINE>
 
-    We can also pass a Gambit game and create it manually. ::
+    We can also pass a Gambit game and create it manually.
+    (Taken from [GAMBIT WEBSITE]) ::
 
         sage: gam = Game.new_table([2, 2])
         sage: g = NormalFormGame(game=gam)
@@ -66,8 +74,11 @@ class NormalFormGame(Game):
         sage: g[int(1), int(0)][int(1)] = int(2)
         sage: g[int(1), int(1)][int(0)] = int(5)
         sage: g[int(1), int(1)][int(1)] = int(5)
+        sage: gam.title = "A prisoner's dilemma game"
+        sage: gam.players[int(0)].label = "Alphonse"
+        sage: gam.players[int(1)].label = "Gaston"
         sage: gam
-        NFG 1 R "" { "1" "2" }
+        NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
         <BLANKLINE>
         { { "1" "2" }
         { "1" "2" }
@@ -82,6 +93,11 @@ class NormalFormGame(Game):
         }
         1 2 3 4
         <BLANKLINE>
+
+    This can be solved using ``obtain_Nash``. ::
+
+        sage: gam.obtain_Nash()
+        [<NashProfile for 'A prisoner's dilemma game': [0.0, 1.0, 0.0, 1.0]>]
     """
 
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):

@@ -44,22 +44,7 @@ class NormalFormGame(Game):
 
         return game
 
-
-#def game_matrix(game):
-#    """
-#    Creates 2 Matrices based on a Gambit Game object.
-#    """
-#    # check that it is only two players.
-
-
-def test_game():
-    from sage.matrix.constructor import matrix
-    a = matrix([[1, 2], [3, 4]])
-    b = matrix([[3, 3], [1, 4]])
-    return two_matrix_game(a, b)
-
-
-def obtain_Nash(game):
+    def obtain_Nash(game):
     r"""
     A function to return the Nash equilibrium for a game.
     Optional arguments can be used to specify the algorithm used.
@@ -94,3 +79,20 @@ def obtain_Nash(game):
         # Run lrs (Have something simple that takes opposite of matrices as input to lrs)
         return vector(1/3,1/3,1/3),vector(1/2,1/2)
     raise NotImplementedError("%s is not yet implemented" % algorithm)
+
+
+    def game_matrix(game):
+       """
+       Creates 2 Matrices based on a Gambit Game object.
+       """
+       # check that it is only two players.
+
+
+def test_game():
+    from sage.matrix.constructor import matrix
+    a = matrix([[1, 2], [3, 4]])
+    b = matrix([[3, 3], [1, 4]])
+    return two_matrix_game(a, b)
+
+
+

@@ -15,7 +15,7 @@ from gambit.nash import ExternalLCPSolver
 
 class NormalFormGame(Game):
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
-        if matrix1 and matrix2:
+        if matrix1:
             g = Game.new_table([len(matrix1.rows()), len(matrix2.rows())])
         elif game:
             g = game
@@ -27,7 +27,11 @@ class NormalFormGame(Game):
     def __init__(self, matrix1=False, matrix2=False, game=False ):
 
         self.matrix1 = matrix1
-        self.matrix2 = matrix2
+        if not matrix2:
+            self.matrix2 = - self.matrix1
+        else:
+            self.matrix2 = matrix2
+
         if matrix1 and matrix2:
             p1_strats = range(len(matrix1.rows()))
             p2_strats = range(len(matrix1.columns()))

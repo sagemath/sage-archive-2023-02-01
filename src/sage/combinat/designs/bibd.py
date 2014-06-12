@@ -551,8 +551,10 @@ def v_4_1_BIBD(v, check=True):
 
     TESTS:
 
-    Check that the `(37,4)`-difference family is available::
+    Check that the `(25,4)` and `(37,4)`-difference family are available::
 
+        sage: assert designs.difference_family(25,4,existence=True)
+        sage: _ = designs.difference_family(25,4)
         sage: assert designs.difference_family(37,4,existence=True)
         sage: _ = designs.difference_family(37,4)
     """
@@ -570,20 +572,10 @@ def v_4_1_BIBD(v, check=True):
     if v == 16:
         from block_design import AffineGeometryDesign
         return AffineGeometryDesign(2,1,FiniteField(4,'x')).blocks()
-    if v == 25:
-        return [[0, 1, 17, 22], [0, 2, 11, 21], [0, 3, 15, 18], [0, 4, 7, 13],
-                [0, 5, 12, 14], [0, 6, 19, 23], [0, 8, 16, 24], [0, 9, 10, 20],
-                [1, 2, 3, 4], [1, 5, 6, 7], [1, 8, 12, 15], [1, 9, 13, 16],
-                [1, 10, 11, 14], [1, 18, 20, 23], [1, 19, 21, 24], [2, 5, 15, 24],
-                [2, 6, 9, 17], [2, 7, 14, 18], [2, 8, 22, 23], [2, 10, 12, 13],
-                [2, 16, 19, 20], [3, 5, 16, 22], [3, 6, 11, 20], [3, 7, 12, 19],
-                [3, 8, 9, 14], [3, 10, 17, 24], [3, 13, 21, 23], [4, 5, 10, 23],
-                [4, 6, 8, 21], [4, 9, 18, 24], [4, 11, 15, 16], [4, 12, 17, 20],
-                [4, 14, 19, 22], [5, 8, 13, 20], [5, 9, 11, 19], [5, 17, 18, 21],
-                [6, 10, 15, 22], [6, 12, 16, 18], [6, 13, 14, 24], [7, 8, 11, 17],
-                [7, 9, 15, 23], [7, 10, 16, 21], [7, 20, 22, 24], [8, 10, 18, 19],
-                [9, 12, 21, 22], [11, 12, 23, 24], [11, 13, 18, 22], [13, 15, 17, 19],
-                [14, 15, 20, 21], [14, 16, 17, 23]]
+    if v == 25 or v == 37:
+        from difference_family import difference_family
+        G,D = difference_family(v,4)
+        return BIBD_from_difference_family(G,D,check=False)
     if v == 28:
         return [[0, 1, 23, 26], [0, 2, 10, 11], [0, 3, 16, 18], [0, 4, 15, 20],
                 [0, 5, 8, 9], [0, 6, 22, 25], [0, 7, 14, 21], [0, 12, 17, 27],
@@ -601,11 +593,6 @@ def v_4_1_BIBD(v, check=True):
                 [9, 13, 25, 26], [10, 12, 14, 20], [10, 13, 22, 23], [11, 13, 14, 15],
                 [14, 17, 23, 25], [14, 18, 22, 27], [15, 18, 24, 26], [15, 19, 21, 23],
                 [16, 19, 25, 27], [16, 20, 22, 24], [17, 20, 21, 26]]
-    if v == 37:
-        from difference_family import difference_family
-        G,D = difference_family(37,4)
-        return BIBD_from_difference_family(G,D,check=False)
-
 
     # Step 2 : this is function PBD_4_5_8_9_12
     PBD = PBD_4_5_8_9_12((v-1)/(k-1),check=False)
@@ -673,7 +660,7 @@ def _check_pbd(B,v,S):
 
     INPUT:
 
-    - ``bibd`` -- a list of blocks
+    - ``B`` -- a list of blocks
 
     - ``v`` (integer) -- number of points
 
@@ -691,7 +678,13 @@ def _check_pbd(B,v,S):
     from sage.graphs.graph import Graph
 
     if not all(len(X) in S for X in B):
-        raise RuntimeError("This is not a nice honest PBD from the good old days !")
+        raise RuntimeError("Some block has wrong size: this is not a nice honest PBD from the good old days !")
+
+    if v == 0 or v == 1:
+        if B:
+            raise RuntimeError("This is not a nice honest PBD from the good old days!")
+        else:
+            return
 
     g = Graph()
     m = 0
@@ -754,7 +747,7 @@ def PBD_4_5_8_9_12(v, check=True):
 
     INPUT:
 
-    - ``v`` (integer)
+    - ``v`` -- an integer congruent to `0` or `1` modulo `4`.
 
     - ``check`` (boolean) -- whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -768,14 +761,20 @@ def PBD_4_5_8_9_12(v, check=True):
          [0, 5, 7, 11], [0, 13, 26, 39], [0, 14, 25, 28],
          [0, 15, 27, 38], [0, 16, 22, 32], [0, 17, 23, 34],
         ...
+
+    Check that :trac:`16476` is fixed::
+
+        sage: from sage.combinat.designs.bibd import PBD_4_5_8_9_12
+        sage: for v in (0,1,4,5,8,9,12,13,16,17,20,21,24,25):
+        ....:     _ = PBD_4_5_8_9_12(v)
     """
     if not v%4 in [0,1]:
         raise ValueError
-    if v == 0:
-        return []
-    if v == 13:
-        PBD = v_4_1_BIBD(v, check=False)
-    elif v == 28:
+    if v <= 1:
+        PBD = []
+    elif v <= 12:
+        PBD = [range(v)]
+    elif v == 13 or v == 28:
         PBD = v_4_1_BIBD(v, check=False)
     elif v == 29:
         TD47 = transversal_design(4,7)

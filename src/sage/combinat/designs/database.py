@@ -2272,11 +2272,30 @@ def CDF_21_5_1():
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     return Zmod(21), D
 
+def ADF_5x5_4_1():
+    r"""
+    An Abelian difference family on `(\ZZ / 5 \ZZ)^2`.
+
+    This is the example 7.26 of [Stinson2004]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import ADF_5x5_4_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G,D = ADF_5x5_4_1()
+        sage: is_difference_family(G,D,25,4,1)
+        True
+    """
+    D = [[(0,0),(0,1),(1,0),(2,2)],[(0,0),(0,2),(2,0),(4,4)]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    from sage.categories.cartesian_product import cartesian_product
+    return cartesian_product([Zmod(5),Zmod(5)]), D
+
 def CDF_37_4_1():
     r"""
     A cyclic `(37,4,1)`-difference family.
 
-    From the examples VI.16.14 of [DesignHandbook]_.
+    It appears as example 7.28 in [Stinson2004]_ and in the examples VI.16.14 of [DesignHandbook]_.
 
     EXAMPLES::
 
@@ -2469,6 +2488,7 @@ def CDF_221_5_1():
 
 DF_constructions = {
     (21,5,1): CDF_21_5_1,
+    (25,4,1): ADF_5x5_4_1,
     (37,4,1): CDF_37_4_1,
     (81,5,1): CDF_81_5_1,
     (91,6,1): CDF_91_6_1,

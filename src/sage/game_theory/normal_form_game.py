@@ -103,6 +103,22 @@ class NormalFormGame(Game):
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
         r"""
         Creates an Instance of NormalFormGame.
+
+        EXAMPLES:
+
+        A simple 2x2 two player game. ::
+
+            sage: g = NormalFormGame()
+
+        TESTS:
+
+        Raise an error if both matrix and game provided. ::
+
+            sage: g = NormalFormGame(matrix1=4, game=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Can't input both a matrix and a game.
+
         """
         if matrix1 and game:
             raise ValueError("Can't input both a matrix and a game.")
@@ -111,7 +127,7 @@ class NormalFormGame(Game):
         elif game:
             g = game
         else:
-            g = Game.new_table([2, 2])
+            g = Game.new_table([])
 
         g.__class__ = NormalFormGame
         return g
@@ -121,21 +137,23 @@ class NormalFormGame(Game):
         Initializes a Normal Form game and checks the inputs.
         """
 
-        if game and len(game.players) <= 2:
-            # construct 2 matrices
-            pass
+        if not matrix1:
+            self.to_matrix()
         else:
             self.matrix1 = matrix1
             if not matrix2:
                 self.matrix2 = - self.matrix1
             else:
                 self.matrix2 = matrix2
-
             p1_strats = range(len(self.matrix1.rows()))
             p2_strats = range(len(self.matrix1.columns()))
             for k in product(p1_strats, p2_strats):
                     self[k][0] = int(self.matrix1[k])
                     self[k][1] = int(self.matrix2[k])
+
+    def to_matrix(self):
+        # add code here
+        return
 
     def obtain_Nash(self, algorithm="LCP"):
         r"""

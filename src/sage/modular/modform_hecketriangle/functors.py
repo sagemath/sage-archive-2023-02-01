@@ -30,7 +30,7 @@ from abstract_space                              import FormsSpace_abstract
 from subspace                                    import SubSpaceForms
 
 
-def get_base_ring(ring, var_name="d"):
+def _get_base_ring(ring, var_name="d"):
     r"""
     Return the base ring of the given ``ring``:
 
@@ -58,20 +58,20 @@ def get_base_ring(ring, var_name="d"):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform_hecketriangle.functors import get_base_ring
-        sage: get_base_ring(ZZ) == ZZ
+        sage: from sage.modular.modform_hecketriangle.functors import _get_base_ring
+        sage: _get_base_ring(ZZ) == ZZ
         True
-        sage: get_base_ring(QQ) == ZZ
+        sage: _get_base_ring(QQ) == ZZ
         True
-        sage: get_base_ring(PolynomialRing(CC, 'd')) == CC
+        sage: _get_base_ring(PolynomialRing(CC, 'd')) == CC
         True
-        sage: get_base_ring(PolynomialRing(QQ, 'd')) == ZZ
+        sage: _get_base_ring(PolynomialRing(QQ, 'd')) == ZZ
         True
-        sage: get_base_ring(FractionField(PolynomialRing(CC, 'd'))) == CC
+        sage: _get_base_ring(FractionField(PolynomialRing(CC, 'd'))) == CC
         True
-        sage: get_base_ring(FractionField(PolynomialRing(QQ, 'd'))) == ZZ
+        sage: _get_base_ring(FractionField(PolynomialRing(QQ, 'd'))) == ZZ
         True
-        sage: get_base_ring(PolynomialRing(QQ, 'x')) == PolynomialRing(QQ, 'x')
+        sage: _get_base_ring(PolynomialRing(QQ, 'x')) == PolynomialRing(QQ, 'x')
         True
     """
 
@@ -127,14 +127,15 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         The functor can only be applied to rings for which the basis
         can be converted into the corresponding forms space
-        given by the ``ambient_space_functor`` applied to the ring.        
+        given by the ``ambient_space_functor`` applied to the ring.
 
         See :meth:`__call__` for a description of the functor.
 
         INPUT:
 
-        - ``ambient_space_functor``  - A FormsSpaceFunctor
-        - ``basis``                  - A list of elements of some ambient space
+        - ``ambient_space_functor`` -- A FormsSpaceFunctor
+
+        - ``basis``                 -- A list of elements of some ambient space
                                        over some base ring.
 
         OUTPUT:
@@ -156,7 +157,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
         if not isinstance(ambient_space_functor, FormsSpaceFunctor):
-            raise Exception("{} is not a FormsSpaceFunctor!".format(ambient_space_functor))
+            raise ValueError("{} is not a FormsSpaceFunctor!".format(ambient_space_functor))
         # TODO: canonical parameters? Some checks?
         # The basis should have an associated base ring
         # self._basis_ring = ...
@@ -277,6 +278,7 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
                     basis = self._basis
                     return FormsSubSpaceFunctor(merged_ambient_space_functor, basis)
                 else:
+                    ## FIXME: Either construct a basis of the span or raise NotImplementedError.
                     #TODO: Or combine the basis to a new basis (which one?)
                     #basis = self._basis + other._basis
                     return merged_ambient_space_functor
@@ -315,12 +317,12 @@ class FormsSpaceFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms spaces.
 
-    Note: When the base ring is not a ``BaseFacade``
-    the functor is first merged with the ConstantFormsSpaceFunctor.
-    This case occurs in the pushout constructions
-    (when trying to find a common parent
-    between a forms space and a ring which
-    is not a ``BaseFacade``).
+    NOTE:
+
+    When the base ring is not a ``BaseFacade`` the functor is first
+    merged with the ConstantFormsSpaceFunctor.  This case occurs in
+    the pushout constructions (when trying to find a common parent
+    between a forms space and a ring which is not a ``BaseFacade``).
     """
 
     from analytic_type import AnalyticType
@@ -339,10 +341,13 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         INPUT:
 
-        - ``analytic_type``   - An element of ``AnalyticType()``. 
-        - ``group``           - A Hecke Triangle group.
-        - ``k``               - A rational number, the weight of the space.
-        - ``ep``              - ``1`` or ``-1``, the multiplier of the space.
+        - ``analytic_type``  -- An element of ``AnalyticType()``. 
+    
+        - ``group``          -- The index of a Hecke Triangle group.
+        
+        - ``k``              -- A rational number, the weight of the space.
+        
+        - ``ep``             -- `1` or `-1`, the multiplier of the space.
 
         OUTPUT:
  
@@ -364,7 +369,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
     def __call__(self, R):
         r"""
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
-        forms space with base ring ``get_base_ring(S)``.
+        forms space with base ring ``_get_base_ring(S)``.
         
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
 
@@ -383,10 +388,10 @@ class FormsSpaceFunctor(ConstructionFunctor):
         """
 
         if (isinstance(R, BaseFacade)):
-            R = get_base_ring(R._ring)
+            R = _get_base_ring(R._ring)
             return FormsSpace(self._analytic_type, self._group, R, self._k, self._ep)
         else:
-            R = BaseFacade(get_base_ring(R))
+            R = BaseFacade(_get_base_ring(R))
             merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
             return merged_functor(R)
 
@@ -500,12 +505,12 @@ class FormsRingFunctor(ConstructionFunctor):
     r"""
     Construction functor for forms rings.
 
-    Note: When the base ring is not a ``BaseFacade``
-    the functor is first merged with the ConstantFormsSpaceFunctor.
-    This case occurs in the pushout constructions.
-    (when trying to find a common parent
-    between a forms ring and a ring which
-    is not a ``BaseFacade``).
+    NOTE:
+
+    When the base ring is not a ``BaseFacade`` the functor is first
+    merged with the ConstantFormsSpaceFunctor.  This case occurs in
+    the pushout constructions.  (when trying to find a common parent
+    between a forms ring and a ring which is not a ``BaseFacade``).
     """
 
     from analytic_type import AnalyticType
@@ -525,9 +530,11 @@ class FormsRingFunctor(ConstructionFunctor):
         
                                                                                 
                                                                             
-        - ``analytic_type``   - An element of ``AnalyticType()``. 
-        - ``group``           - A Hecke Triangle group.
-        - ``red_hom``         - A boolean variable for the parameter ``red_hom``
+        - ``analytic_type``  -- An element of ``AnalyticType()``. 
+
+        - ``group``          -- The index of a Hecke Triangle group.
+
+        - ``red_hom``        -- A boolean variable for the parameter ``red_hom``
                                 (also see ``FormsRing_abstract``).
 
         OUTPUT:
@@ -552,7 +559,7 @@ class FormsRingFunctor(ConstructionFunctor):
     def __call__(self, R):
         r"""
         If ``R`` is a ``BaseFacade(S)`` then return the corresponding
-        forms ring with base ring ``get_base_ring(S)``.
+        forms ring with base ring ``_get_base_ring(S)``.
         
         If not then we first merge the functor with the ConstantFormsSpaceFunctor.
 
@@ -571,10 +578,10 @@ class FormsRingFunctor(ConstructionFunctor):
         """
 
         if (isinstance(R, BaseFacade)):
-            R = get_base_ring(R._ring)
+            R = _get_base_ring(R._ring)
             return FormsRing(self._analytic_type, self._group, R, self._red_hom)
         else:
-            R = BaseFacade(get_base_ring(R))
+            R = BaseFacade(_get_base_ring(R))
             merged_functor = self.merge(ConstantFormsSpaceFunctor(self._group))
             return merged_functor(R)
 
@@ -725,7 +732,7 @@ class BaseFacade(Parent, UniqueRepresentation):
         """
 
         Parent.__init__(self, facade=ring, category=Rings())
-        self._ring = get_base_ring(ring)
+        self._ring = _get_base_ring(ring)
         # The BaseFacade(R) coerces/embeds into R, used in pushout
         self.register_embedding(self.Hom(self._ring,Sets())(lambda x: x))
 

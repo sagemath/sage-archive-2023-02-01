@@ -30,8 +30,8 @@ class FormsElement(FormsRingElement):
 
         INPUT:
 
-        - ``parent``      - a modular form space
-        - ``rat``         - a rational function which corresponds to a
+        - ``parent``     -- a modular form space
+        - ``rat``        -- a rational function which corresponds to a
                             modular form in the modular form space
 
         OUTPUT:
@@ -71,14 +71,14 @@ class FormsElement(FormsRingElement):
             self.is_homogeneous() and\
             self._weight  == parent.weight() and\
             self._ep      == parent.ep() ):
-                raise Exception("{} does not correspond to an element of {}.".format(rat, parent))
+                raise ValueError("{} does not correspond to an element of {}.".format(rat, parent))
 
         from subspace import SubSpaceForms
         if isinstance(parent, SubSpaceForms) and (parent._module is not None):
             try:
                 self.coordinate_vector()
             except TypeError:
-                raise Exception("{} does not correspond to an element of {}.".format(rat, parent))
+                raise ValueError("{} does not correspond to an element of {}.".format(rat, parent))
 
     def _repr_(self):
         """

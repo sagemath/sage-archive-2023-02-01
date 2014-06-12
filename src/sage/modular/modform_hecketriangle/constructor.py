@@ -38,29 +38,31 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     INPUT:
 
-    - ``f``               - A rational function in ``x,y,z,d`` over ``base_ring``.
-    - ``n``               - An integer greater or equal to ``3`` corresponding
-                           to the ``HeckeTriangleGroup`` with that parameter
-                           (default: ``3``).
-    - ``base_ring```      - The base ring of the corresponding forms ring, resp.
+    - `f`                -- A rational function in ``x,y,z,d`` over ``base_ring``.
+
+    - `n`                -- An integer greater or equal to `3` corresponding
+                            to the ``HeckeTriangleGroup`` with that parameter
+                            (default: `3`).
+
+    - ``base_ring```     -- The base ring of the corresponding forms ring, resp.
                             polynomial ring (default: ``ZZ``).
 
     OUTPUT:
     
     A tuple ``(elem, homo, k, ep, analytic_type)`` describing the basic
-    analytic properties of ``f`` (with the interpretation indicated above).
+    analytic properties of `f` (with the interpretation indicated above).
     
-    - ``elem``            - ``True`` if ``f`` has a homogeneous denominator.
-    - ``homo``            - ``True`` if ``f`` also has a homogeneous numerator.
-    - ``k``               - ``None`` if ``f`` is not homogeneneous, otherwise
-                            the weight of ``f`` (which is the first component
+    - ``elem``            - ``True`` if `f` has a homogeneous denominator.
+    - ``homo``            - ``True`` if `f` also has a homogeneous numerator.
+    - ``k``               - ``None`` if `f` is not homogeneneous, otherwise
+                            the weight of `f` (which is the first component
                             of its degree).
-    - ``ep``              - ``None`` if ``f`` is not homogeneous, otherwise
-                            the multiplier of ``f`` (which is the second component
+    - ``ep``              - ``None`` if `f` is not homogeneous, otherwise
+                            the multiplier of `f` (which is the second component
                             of its degree)
-    - ``analytic_type``   - The ``AnalyticType`` of ``f``.
+    - ``analytic_type``   - The ``AnalyticType`` of `f`.
 
-    For the zero function the degree ``(0, 1)`` is choosen.
+    For the zero function the degree `(0, 1)` is choosen.
 
     This function is (heavily) used to determine the type of elements
     and to check if the element really is contained in its parent.
@@ -162,10 +164,11 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         if (not dhom(num).is_constant()) and finf_pol.divides(num):
             analytic_type = analytic_type.reduce_to(["quasi", "cusp"])
     else:
-        # -> because of a bug with singular in case some cases
+        # -> Because of a bug with singular in some cases
         try:
             while (finf_pol.divides(denom)):
                 # a simple "denom /= finf_pol" is strangely not enough for non-exact rings
+                ## FIXME: for nonexact rings divisibility doesn't make sense in a strict way
                 denom = denom.quo_rem(finf_pol)[0]
                 denom = R(denom)
         except TypeError:
@@ -185,17 +188,21 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
 
     INPUT:
 
-    - ``analytic_type``   - An element of ``AnalyticType()`` describing
-                            the analytic type of the space.
-    - ``group``           - The (Hecke triangle) group of the space
-                            (default: ``3``).
-    - ``base_ring``       - The base ring of the space
-                            (default: ``ZZ``).
-    - ``k``               - The weight of the space, a rational number
-                            (default: ``0``).
-    - ``ep``              - The multiplier of the space, ``1``, ``-1``
-                            or ``None`` (in case ``ep`` should be
-                            determined from ``k``). Default: ``None``.
+    - ``analytic_type``   -- An element of ``AnalyticType()`` describing
+                             the analytic type of the space.
+
+    - ``group``           -- The index of the (Hecke triangle) group of the
+                             space (default: `3`).
+
+    - ``base_ring``       -- The base ring of the space
+                             (default: ``ZZ``).
+
+    - ``k``               -- The weight of the space, a rational number
+                             (default: ``0``).
+
+    - ``ep``              -- The multiplier of the space, `1`, `-1
+                             or ``None`` (in case ``ep`` should be
+                             determined from ``k``). Default: ``None``.
 
     For the variables ``group``, ``base_ring``, ``k``, ``ep``
     the same arguments as for the class ``FormsSpace_abstract`` can be used.
@@ -270,7 +277,7 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
             if analytic_type <= AT(["holo", "quasi"]):
                 if analytic_type <= AT(["cusp", "quasi"]):
                     if analytic_type <= AT(["quasi"]):
-                        raise Exception("There should be only non-quasi ZeroForms. That could be changed but then this exception should be removed.")
+                        raise ValueError("There should be only non-quasi ZeroForms. That could be changed but then this exception should be removed.")
                         from space import ZeroForm
                         return ZeroForm(group=group, base_ring=base_ring, k=k, ep=ep)
                     else:
@@ -286,7 +293,7 @@ def FormsSpace(analytic_type, group=3, base_ring=ZZ, k=QQ(0), ep=None):
             from space import QuasiMeromorphicModularForms
             return QuasiMeromorphicModularForms(group=group, base_ring=base_ring, k=k, ep=ep)
     else:
-        raise NotImplementedError
+        raise NotImplementedError("Analytic type not implemented.")
 
 
 def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
@@ -296,13 +303,16 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
 
     INPUT:
 
-    - ``analytic_type``   - An element of ``AnalyticType()`` describing
+    - ``analytic_type``  -- An element of ``AnalyticType()`` describing
                             the analytic type of the space.
-    - ``group``           - The (Hecke triangle) group of the space
-                            (default: ``3``).
-    - ``base_ring``       - The base ring of the space
+
+    - ``group``          -- The index of the (Hecke triangle) group of the space
+                            (default: 3`).
+
+    - ``base_ring``      -- The base ring of the space
                             (default: ``ZZ``).
-    - ``red_hom``         - The (boolean= variable ``red_hom`` of the space
+
+    - ``red_hom``        -- The (boolean= variable ``red_hom`` of the space
                             (default: ``False``).
 
     For the variables ``group``, ``base_ring``, ``red_hom``
@@ -356,6 +366,7 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
         if analytic_type <= AT("weak"):
             if analytic_type <= AT("holo"):
                 if analytic_type <= AT("cusp"):
+                    ## FIXME: Raise (not implemented) error if zero type is passed
                     from graded_ring import CuspFormsRing
                     return CuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
                 else:
@@ -371,6 +382,7 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
         if analytic_type <= AT(["weak", "quasi"]):
             if analytic_type <= AT(["holo", "quasi"]):
                 if analytic_type <= AT(["cusp", "quasi"]):
+                    ## FIXME: Raise (value) error if zero type is passed
                     from graded_ring import QuasiCuspFormsRing
                     return QuasiCuspFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
                 else:
@@ -383,4 +395,4 @@ def FormsRing(analytic_type, group=3, base_ring=ZZ, red_hom=False):
             from graded_ring import QuasiMeromorphicModularFormsRing
             return QuasiMeromorphicModularFormsRing(group=group, base_ring=base_ring, red_hom=red_hom)
     else:
-        raise NotImplementedError
+        raise NotImplementedError("Analytic type not implemented.")

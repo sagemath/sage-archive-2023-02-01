@@ -45,12 +45,15 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``group``       - The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
-        - ``k``           - The weight (default: ``0``)
-        - ``ep``          - The epsilon (default: ``None``).
-                            If ``None``, then k*(n-2) has to be divisible by 2 and
-                            ep=(-1)^(k*(n-2)/2) is used.
-        - ``base_ring``   - The base_ring (default: ``ZZ``).
+        - ``group``       -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
+
+        - ``k``           -- The weight (default: `0`)
+
+        - ``ep``          -- The epsilon (default: ``None``).
+                             If ``None``, then k*(n-2) has to be divisible by `2` and
+                             ``ep=(-1)^(k*(n-2)/2)`` is used.
+
+        - ``base_ring``   -- The base_ring (default: `\Z`).
 
         OUTPUT:
 
@@ -151,8 +154,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF([0,1]) == MF(Delta)
             True
-            sage: MF([1,0]) == MF(x^3) - 720*MF(Delta) # todo: this should give True, the result is False because d!=1/1728 but a formal parameter
-            False
+            sage: MF([1,0]) == MF(x^3) - 720*MF(Delta) # FIXME: this should give True, the result is False because d!=1/1728 but a formal parameter
+            True
 
             sage: vec = MF(Delta).coordinate_vector()
             sage: vec
@@ -414,9 +417,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         ambient_space_functor = FormsSpaceFunctor(self._analytic_type, self._group, self._weight, self._ep)
 
         if (self.is_ambient()):
-            return ambient_space_functor, BaseFacade(self._base_ring)
+            return (ambient_space_functor, BaseFacade(self._base_ring))
         else:
-            return FormsSubSpaceFunctor(ambient_space_functor, self._basis), BaseFacade(self._base_ring)
+            return (FormsSubSpaceFunctor(ambient_space_functor, self._basis), BaseFacade(self._base_ring))
 
     @cached_method
     def weight(self):
@@ -484,7 +487,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         if not self.module():
-            raise Exception("No free module defined for {}".format(self))
+            raise ValueError("No free module defined for {}".format(self))
         basis = self.gens()
         assert(len(basis) == len(vec))
         # vec = self.module()(self.module().linear_combination_of_basis(vec))
@@ -537,18 +540,22 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF = QuasiMeromorphicModularForms(n=6, k=4)
             sage: MF == MF.homogeneous_space(4,1)
             True
+            sage: MF.homogeneous_space(5,1)
+            Traceback (most recent call last):
+            ...
+            ValueError: QuasiMeromorphicModularForms(n=6, k=4, ep=1) over Integer Ring already is homogeneous with degree (4, 1) != (5, 1)!
         """
 
         if (k==self._weight and ep==self._ep):
             return self
         else:
-            raise Exception("{} already is homogeneous with degree ({}, {}) != ({}, {})!".format(self, self._weight, self._ep, k, ep))
+            raise ValueError("{} already is homogeneous with degree ({}, {}) != ({}, {})!".format(self, self._weight, self._ep, k, ep))
 
     def weight_parameters(self):
         r"""
         Check whether ``self`` has a valid weight and multiplier.
         If not then an exception is raised. Otherwise the two weight
-        paramters corresponding for the weight and multiplier of ``self``
+        paramters corresponding to the weight and multiplier of ``self``
         are returned.
 
         The weight parameters are e.g. used to calculate dimensions
@@ -591,7 +598,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             l2 = num%n
             l1 = ((num-l2)/n).numerator()
         else:
-            raise Exception('Invalid resp. non-occuring weight!')
+            raise ValueError('Invalid or non-occuring weight!')
         return (l1,l2)
 
     # TODO: this only makes sense for modular forms,
@@ -611,9 +618,10 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``gamma``   - An element of the group of ``self``. For now only
-                        the basic generators (and their inverses) are supported.
-        - ``t``       - An element of the upper half plane.
+        - ``gamma``   -- An element of the group of ``self``. For now only
+                         the basic generators (and their inverses) are supported.
+
+        - ``t``       -- An element of the upper half plane.
 
         EXAMPLES::
 
@@ -655,16 +663,17 @@ class FormsSpace_abstract(FormsRing_abstract):
         elif (gamma == self._group.S() or gamma == -self._group.S()):
             return self._ep*(t/AlgebraicField()(i))**self._weight
         else:
-            raise NotImplementedError
+            raise NotImplementedError("Factor of autormorphy is implemented only for some group elements.")
 
     @cached_method
     def F_simple(self):
         r"""
-        Return a (the most) simple normalized element of ``self`` corresponding to the weight
-        parameters ``l1=self._l1`` and ``l2=self._l2``. If the element does not lie in
-        ``self`` the type of its parent is extended accordingly.
+        Return a (the most) simple normalized element of ``self``
+        corresponding to the weight parameters ``l1=self._l1`` and
+        ``l2=self._l2``. If the element does not lie in ``self`` the
+        type of its parent is extended accordingly.
 
-        The main part of the element is given by a power (``l1``) of ``f_inf``,
+        The main part of the element is given by the ``l1``-th power of ``f_inf``,
         up to a small holomorphic correction factor.
 
         EXAMPLES::
@@ -703,7 +712,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return the ``m``'th Faber polynomial of ``self``.
 
-        Namely a polynomial P(q) such that ``P(J_inv)*F_simple()``
+        Namely a polynomial `P(q)` such that ``P(J_inv)*F_simple()``
         has a Fourier expansion of the form ``q^(-m) + O(q^(self._l1 + 1))``.
         ``d^(self._l1 + m)*P(q)`` is a monic polynomial of degree ``self._l1 + m``.
 
@@ -712,20 +721,23 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``m``            - An integer ``m >= -self._l1``.
-        - ``fix_d``        - ``True`` if the value of ``d`` should be
+        - ``m``           -- An integer ``m >= -self._l1``.
+
+        - ``fix_d``       -- ``True`` if the value of ``d`` should be
                              (numerically) substituted for the coefficients
                              of the polynomial (default: ``False``).
-        - ``set_d``        - The value which should be substituted for ``d`` (default: ``None``).
+
+        - ``set_d``       -- The value which should be substituted for ``d`` (default: ``None``).
                              The value is ignored if ``fix_d=True``.                             
-        - ``d_num_prec``   - The numerical precision to be used for ``d``
+
+        - ``d_num_prec``  -- The numerical precision to be used for ``d``
                              in case ``fix_d=True`` or ``set_d`` is set,
                              Default: ``None``, in which case the default
                              numerical precision ``self.num_prec()`` is used.
 
         OUTPUT:
 
-        The corresponding Faber polynomial P(q) with coefficients in ``self.coeff_ring()``
+        The corresponding Faber polynomial `P(q)` with coefficients in ``self.coeff_ring()``
         resp. a numerical ring in case ``fix_d=True`` or ``set_d`` is set
         (and the group of ``self`` is not arithmetic).
 
@@ -784,7 +796,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         m = ZZ(m)
         if (m < -self._l1):
-            raise Exception("Invalid basis index: {}<{}!".format(m,-self._l1))
+            raise ValueError("Invalid basis index: {}<{}!".format(m,-self._l1))
         if (d_num_prec == None):
             d_num_prec = self._num_prec
 
@@ -818,7 +830,7 @@ class FormsSpace_abstract(FormsRing_abstract):
     # very similar to Faber_pol: faber_pol(q)=Faber_pol(d*q)
     def faber_pol(self, m, fix_d=False, set_d=None, d_num_prec=None):
         r"""
-        Return the ``m``'th Faber polynomial of ``self``
+        Return the `m`'th Faber polynomial of ``self``
         with a different normalization based on ``j_inv``
         instead of ``J_inv``.
 
@@ -830,13 +842,16 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``m``            - An integer ``m >= -self._l1``.
-        - ``fix_d``        - ``True`` if the value of ``d`` should be
+        - ``m``           -- An integer ``m >= -self._l1``.
+
+        - ``fix_d``       -- ``True`` if the value of ``d`` should be
                              (numerically) substituted for the coefficients
                              of the polynomial (default: ``False``).
-        - ``set_d``        - The value which should be substituted for ``d`` (default: ``None``).
+
+        - ``set_d``       -- The value which should be substituted for ``d`` (default: ``None``).
                              The value is ignored if ``fix_d=True``.                             
-        - ``d_num_prec``   - The numerical precision to be used for ``d``
+
+        - ``d_num_prec``  -- The numerical precision to be used for ``d``
                              in case ``fix_d=True`` or ``set_d`` is set,
                              Default: ``None``, in which case the default
                              numerical precision ``self.num_prec()`` is used.
@@ -891,7 +906,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         m = ZZ(m)
         if (m < -self._l1):
-            raise Exception("Invalid basis index: {}<{}!".format(m,-self._l1))
+            raise ValueError("Invalid basis index: {}<{}!".format(m,-self._l1))
         if (d_num_prec == None):
             d_num_prec = self._num_prec
 
@@ -932,7 +947,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
         
-        - ``m``            - An integer ``m >= -self._l1``.
+        - ``m``           -- An integer ``m >= -self._l1``.
 
         OUTPUT:
 
@@ -1061,7 +1076,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         INPUT:
 
-        - ``laurent_series``   - A Laurent or Power series.        
+        - ``laurent_series``  -- A Laurent or Power series.        
 
         OUTPUT:
 
@@ -1110,7 +1125,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         if (laurent_series.prec() < self._l1+1):
-            raise Exception('Insufficient precision!')
+            raise ValueError('Insufficient precision!')
 
         laurent_series = laurent_series.add_bigoh(self._l1+1)
         coefficients   = laurent_series.coefficients()
@@ -1203,10 +1218,16 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         Return the coordinate vector of the element ``v``
         with respect to ``self.gens()``.
-        
-        Note: Elements use this method (from their parent)
+
+        NOTE:
+
+        Elements use this method (from their parent)
         to calculate their coordinates.
 
+        INPUT:
+
+        - `v` -- An element of ``self``.
+        
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import ModularForms
@@ -1222,7 +1243,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             (1, 0)
         """
 
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @cached_method
     def ambient_coordinate_vector(self, v):
@@ -1231,8 +1252,14 @@ class FormsSpace_abstract(FormsRing_abstract):
         in ``self.module()`` with respect to the basis
         from ``self.ambient_space``.
         
-        Note: Elements use this method (from their parent)
+        NOTE:
+
+        Elements use this method (from their parent)
         to calculate their coordinates.
+
+        INPUT:
+
+        - `v` -- An element of ``self``.
 
         EXAMPLES::
 
@@ -1271,7 +1298,7 @@ class FormsSpace_abstract(FormsRing_abstract):
              q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5)]
         """
 
-        raise NotImplementedError
+        raise NotImplementedError()
  
     def gen(self, k=0):
         r"""
@@ -1291,4 +1318,4 @@ class FormsSpace_abstract(FormsRing_abstract):
         if k>=0 and k < self.dimension():
             return self.gens()[k]
         else:
-            raise Exception("Invalid index: k={} does not satisfy 0 <= k <= {}!".format(k, self.dimension()))
+            raise ValueError("Invalid index: k={} does not satisfy 0 <= k <= {}!".format(k, self.dimension()))

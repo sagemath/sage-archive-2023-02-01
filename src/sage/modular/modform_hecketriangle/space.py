@@ -59,7 +59,7 @@ def canonical_parameters(group, base_ring, k, ep, n=None):
     try:
         num = ZZ(num)
     except TypeError:
-        raise Exception("Invalid resp. non-occuring weight!")
+        raise ValueError("Invalid or non-occuring weight!")
 
     return (group, base_ring, k, ep, n)
 
@@ -205,6 +205,10 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         of quasi modular forms of the form ``E2^r*f``,
         where ``f`` is a modular form.
 
+        INPUT:
+
+        - `r` -- An integer.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import QuasiModularForms
@@ -279,6 +283,7 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         n  = self.hecke_n()
         k  = self.weight()
         ep = self.ep()
+        ## FIXME: rearrange expression according to style guide
         return sum([ 
             max( QQ( (k - 2*r)*(n - 2)/(4*n) - (1 - ep*(-1)**r)/4 ).floor() + 1, 0)\
             for r in range(ZZ(0), QQ(k/ZZ(2)).floor() + 1) ])
@@ -342,6 +347,10 @@ class QuasiCuspForms(FormsSpace_abstract, Module, UniqueRepresentation):
         Return a basis of ``self`` for the submodule
         of quasi cusp forms of the form ``E2^r*f``,
         where ``f`` is a cusp form.
+
+        INPUT:
+
+        - `r` -- An integer.
 
         EXAMPLES::
 
@@ -842,6 +851,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         self._analytic_type=self.AT([])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
+    ## FIXME: Add missing INPUT:
     def _change_degree(self, k, ep):
         r"""
         Return the Zeroform space with a different weight ``k`` and multiplier ``ep``
@@ -890,6 +900,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         return 0
 
+    ## FIXME: Add missing INPUT:
     @cached_method
     def coordinate_vector(self, v):
         r"""

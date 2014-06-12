@@ -1,7 +1,8 @@
 r"""
 2 Player normal form games
 
-This module implements 2 by 2 normal form (bi-matrix) games. A variety of operations on these games can be carried out:
+This module implements 2 by 2 normal form (bi-matrix) games. A variety of
+operations on these games can be carried out:
 
 - Identification of (weakly) dominated strategies;
 - Identification of Best responses to a given strategy;
@@ -22,11 +23,11 @@ class NormalFormGame(Game):
         elif game:
             g = game
         else:
-            g = Game.new_table([2,2])
+            g = Game.new_table([2, 2])
         g.__class__ = NormalFormGame
         return g
 
-    def __init__(self, matrix1=False, matrix2=False, game=False ):
+    def __init__(self, matrix1=False, matrix2=False, game=False):
 
         if game and len(game.players) <= 2:
             # construct 2 matrices
@@ -48,7 +49,8 @@ class NormalFormGame(Game):
         r"""
         A function to return the Nash equilibrium for a game.
         Optional arguments can be used to specify the algorithm used.
-        If no algorithm is passed then an attempt is made to use the most appropriate algorithm.
+        If no algorithm is passed then an attempt is made to use the most
+        appropriate algorithm.
 
         INPUT:
 
@@ -60,12 +62,15 @@ class NormalFormGame(Game):
                         the [insert website here] web site. NOTE THAT WE NEED
                         TO GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
 
-          - support enumeration (``algorithm="supportenum"``). This is a very inefficient algorithm (in essence a brute force approach).
+          - support enumeration (``algorithm="supportenum"``). This is a very
+            inefficient algorithm (in essence a brute force approach).
 
         - ``maximization``
 
-           - When set to ``True`` (default) it is assumed that players aim to maximise their utility.
-           - When set to ``False`` (default) it is assumed that players aim to minimise their utility.
+           - When set to ``True`` (default) it is assumed that players aim to
+             maximise their utility.
+           - When set to ``False`` (default) it is assumed that players aim to
+             minimise their utility.
         """
 
         if algorithm == "LCP":
@@ -90,6 +95,3 @@ def test_game():
     a = matrix([[1, 2], [3, 4]])
     b = matrix([[3, 3], [1, 4]])
     return NormalFormGame(matrix1=a, matrix2=b)
-
-
-

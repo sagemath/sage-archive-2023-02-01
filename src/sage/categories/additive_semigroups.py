@@ -11,6 +11,7 @@ Additive semigroups
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.additive_magmas import AdditiveMagmas
 
@@ -81,6 +82,24 @@ class AdditiveSemigroups(CategoryWithAxiom_singleton):
             from sage.combinat.cartesian_product import CartesianProduct
             for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
                 tester.assert_((x + y) + z == x + (y + z))
+
+    class CartesianProducts(CartesianProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            Implement the fact that a cartesian product of additive semigroups
+            is an additive semigroup.
+
+            EXAMPLES::
+
+                sage: from sage.categories.additive_semigroups import AdditiveSemigroups
+                sage: C = AdditiveSemigroups().CartesianProducts()
+                sage: C.extra_super_categories()
+                [Category of additive semigroups]
+                sage: C.axioms()
+                frozenset(['AdditiveAssociative'])
+            """
+            return [AdditiveSemigroups()]
 
     class Algebras(AlgebrasCategory):
 

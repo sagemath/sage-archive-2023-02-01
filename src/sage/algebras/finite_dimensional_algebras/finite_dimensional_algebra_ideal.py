@@ -21,6 +21,7 @@ from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
 
 from sage.misc.cachefunc import cached_method
+from functools import reduce
 
 
 class FiniteDimensionalAlgebraIdeal(Ideal_generic):

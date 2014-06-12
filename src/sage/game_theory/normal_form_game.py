@@ -17,9 +17,10 @@ class NormalFormGame(Game):
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
         if matrix1 and matrix2:
             g = Game.new_table([len(matrix1.rows()), len(matrix2.rows())])
-            g.__class__ = NormalFormGame
-            return g
-        g = game
+        elif game:
+            g = game
+        else:
+            g = Game.new_table([2,2])
         g.__class__ = NormalFormGame
         return g
 

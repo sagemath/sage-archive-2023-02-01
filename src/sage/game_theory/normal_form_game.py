@@ -12,7 +12,7 @@ from itertools import product
 from sage.misc.package import is_package_installed
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
-from sage.matrix.constructor import matrix
+from sage.matrix.constructor import matrix, copy, QQ
 
 
 class NormalFormGame(Game):
@@ -118,11 +118,11 @@ class NormalFormGame(Game):
             sage: g = NormalFormGame(matrix1=4, game=5)
             Traceback (most recent call last):
             ...
-            ValueError: Can't input both a matrix and a game.
+            ValueError: Can't input both a matrix and a game
 
         """
         if matrix1 and game:
-            raise ValueError("Can't input both a matrix and a game.")
+            raise ValueError("Can't input both a matrix and a game")
         if matrix1:
             g = Game.new_table([len(matrix1.rows()), len(matrix1.rows())])
         elif game:
@@ -155,14 +155,46 @@ class NormalFormGame(Game):
         r"""
         Sets ``self.matrix1`` and ``self.matrix2`` to be the payoff matrices
         associated with current game.
+
+        EXAMPLES:
+
+        A simple 2 player game. ::
+
+            sage: two_player = Game.new_table([2, 2])
+            sage: simple = NormalFormGame(game=two_player)
+            sage: simple[int(0), int(0)][int(0)] = int(8)
+            sage: simple[int(0), int(0)][int(1)] = int(8)
+            sage: simple[int(0), int(1)][int(0)] = int(2)
+            sage: simple[int(0), int(1)][int(1)] = int(10)
+            sage: simple[int(1), int(0)][int(0)] = int(10)
+            sage: simple[int(1), int(0)][int(1)] = int(2)
+            sage: simple[int(1), int(1)][int(0)] = int(5)
+            sage: simple[int(1), int(1)][int(1)] = int(5)
+            sage: simple.game_to_matrix()
+            sage: simple.matrix1
+            [ 8  2]
+            [10  5]
+            sage: simple.matrix2
+            [ 8 10]
+            [ 2  5]
+
+        TESTS:
+
+        Raise an error if a game with more than two players is used. ::
+
+            sage: three_player = Game.new_table([1, 2, 3])
+            sage: large_game = NormalFormGame(game=three_player)
+            Traceback (most recent call last):
+            ...
+            ValueError: Only available for games with 2 players
         """
+        self.matrix1 = matrix(len(self.players[0].strategies), len(self.players[1].strategies))
+        self.matrix2 = copy(self.matrix1)
         if len(self.players) != 2:
-            raise ValueError("Only available for games with 2 players.")
-        self.matrix1 = matrix([])
-        self.matrix2 = matrix([])
+            raise ValueError("Only available for games with 2 players")
         for k in list(self.contingencies):
-                self.matrix1[k] = self[k][0]
-                self.matrix2[k] = self[k][1]
+                self.matrix1[tuple(k)] = int(self[k][0])
+                self.matrix2[tuple(k)] = int(self[k][1])
 
     def matrix_to_game(self):
         r"""
@@ -190,10 +222,10 @@ class NormalFormGame(Game):
             sage: error = NormalFormGame(matrix1=p1, matrix2=p2)
             Traceback (most recent call last):
             ...
-            ValueError: Matrices must be the same size.
+            ValueError: Matrices must be the same size
         """
         if self.matrix1.dimensions() != self.matrix2.dimensions():
-            raise ValueError("Matrices must be the same size.")
+            raise ValueError("Matrices must be the same size")
         p1_strats = range(len(self.matrix1.rows()))
         p2_strats = range(len(self.matrix1.columns()))
         for k in product(p1_strats, p2_strats):
@@ -232,7 +264,7 @@ class NormalFormGame(Game):
                 raise NotImplementedError("Nash equilibrium for games with "
                       "more than 2 players have not been implemented yet."
                       "Please see the gambit website [LINK] that has a variety"
-                      " of available algorithms.")
+                      " of available algorithms")
             solver = ExternalLCPSolver()
             return solver.solve(self)
 
@@ -243,4 +275,4 @@ class NormalFormGame(Game):
 
         if algorithm == "support enumeration":
             raise NotImplementedError("Support enumeration is not implemented "
-                                      "yet.")
+                                      "yet")

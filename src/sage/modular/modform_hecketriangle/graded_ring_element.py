@@ -1364,7 +1364,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
             sage: E2 = QuasiModularFormsRing(n=5, red_hom=True).E2()
             sage: E2.q_expansion_fixed_d(prec=3)
-            1.00000000000000 - 6.38095656542654*q - 23.1858454761703*q^2 + O(q^3)
+            1.000000000000... - 6.380956565426...*q - 23.18584547617...*q^2 + O(q^3)
 
             sage: x,y = var("x,y")
             sage: WeakModularFormsRing()((x+1)/(x^3-y^2)).q_expansion_fixed_d(prec=2, fix_prec = True)
@@ -1472,28 +1472,28 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: E4    = MR.E4().full_reduce()
             sage: rho   = MR.group().rho()
 
-            sage: f_rho(rho)  # rel tol 1e-8
-            7.92477417022042e-10 + 3.21684682133615e-16*I
-            sage: f_i(i)      # rel tol 1e-8
-            6.07291994469961e-14
+            sage: f_rho(rho)
+            7.924774170220...e-10 + 3.216846821336...e-16*I
+            sage: f_i(i)
+            6.072919944699...e-14
             sage: f_inf(infinity)
             0
 
             sage: z = -1/(-1/(2*i+30)-1)
             sage: z
             2/965*I + 934/965
-            sage: E4(z)  # rel tol 1e-8
-            32288.0558881115 - 118329.856601604*I
-            sage: E4(z, prec=30, num_prec=100)    # long time, rel tol 1e-20
-            32288.055887235113004131105328 - 118329.85660034999975142038115*I
-            sage: E2(z)  # rel tol 1e-8
-            409.314473710529 + 100.692685748937*I
-            sage: E2(z, prec=30, num_prec=100)    # long time, rel tol 1e-20
-            409.31447371048976125458495194 + 100.69268574895244068451386637*I
-            sage: (E2^2-E4)(z) #rel tol 1e-8
-            125111.265538387 + 200759.803947950*I
-            sage: (E2^2-E4)(z, prec=30, num_prec=100)    # long time, rel tol 1e-20
-            125111.26553833619626220046951 + 200759.80394800990541038569915*I
+            sage: E4(z)
+            32288.05588811... - 118329.8566016...*I
+            sage: E4(z, prec=30, num_prec=100)    # long time
+            32288.0558872351130041311053... - 118329.856600349999751420381...*I
+            sage: E2(z)
+            409.3144737105... + 100.6926857489...*I
+            sage: E2(z, prec=30, num_prec=100)    # long time
+            409.314473710489761254584951... + 100.692685748952440684513866...*I
+            sage: (E2^2-E4)(z)
+            125111.2655383... + 200759.8039479...*I
+            sage: (E2^2-E4)(z, prec=30, num_prec=100)    # long time
+            125111.265538336196262200469... + 200759.803948009905410385699...*I
             
             sage: (E2^2-E4)(infinity)
             0

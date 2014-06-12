@@ -29,8 +29,6 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_groups import HeckeTriangleGroup
 
-## FIXME: Use truncation in doctests.  E.g. 1.69... * q
-
 class MFSeriesConstructor(SageObject,UniqueRepresentation):
     r"""
     Constructor for the Fourier expansion of some
@@ -151,7 +149,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
             sage: MFSeriesConstructor(set_d=CC(1))
             Power series constructor for Hecke modular forms for n=3, base ring=Complex Field with 53 bits of precision
-            with (basic series) precision 10 with parameter d=1.00000000000000
+            with (basic series) precision 10 with parameter d=1.000000000000...
             
             sage: MFSeriesConstructor(group=4, fix_d=True)
             Power series constructor for Hecke modular forms for n=4, base ring=Rational Field
@@ -159,7 +157,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
             sage: MFSeriesConstructor(group=5, fix_d=True)
             Power series constructor for Hecke modular forms for n=5, base ring=Real Field with 53 bits of precision
-            with (basic series) precision 10 with parameter d=0.00705223418128563
+            with (basic series) precision 10 with parameter d=0.007052234181285...
         """
 
         self._group          = group
@@ -273,7 +271,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, fix_d=True, set_d=1).fix_d()
             True
             sage: MFSeriesConstructor(group=5, fix_d=True, set_d=1).set_d()
-            0.00705223418128563
+            0.007052234181285...
             sage: MFSeriesConstructor(group=5, set_d=1).fix_d()
             False
         """
@@ -290,7 +288,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(group=5, fix_d=True, set_d=1).set_d()
-            0.00705223418128563
+            0.007052234181285...
             sage: MFSeriesConstructor(group=5, set_d=1).set_d()
             1
             sage: MFSeriesConstructor(group=5, set_d=1).set_d().parent()
@@ -332,7 +330,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=4).d().parent()
             Fraction Field of Univariate Polynomial Ring in d over Integer Ring
             sage: MFSeriesConstructor(group=5, fix_d=True).d()
-            0.00705223418128563
+            0.007052234181285...
             sage: MFSeriesConstructor(group=5, set_d=1).d()
             1
         """
@@ -461,7 +459,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).J_inv()
             d*q^-1 + 79/200 + 42877/(640000*d)*q + O(q^2)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).J_inv()
-            0.00705223418128563*q^-1 + 0.395000000000000 + 9.49987064777062*q + O(q^2)
+            0.007052234181285...*q^-1 + 0.3950000000000... + 9.499870647770...*q + O(q^2)
 
             sage: MFSeriesConstructor(group=5, prec=3).J_inv().parent()
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -511,7 +509,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).f_rho()
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_rho()
-            1.00000000000000 + 9.92593243510795*q + 2.63903932249093*q^2 + O(q^3)
+            1.000000000000... + 9.925932435107...*q + 2.639039322490...*q^2 + O(q^3)
 
             sage: MFSeriesConstructor(group=5, prec=3).f_rho().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -560,7 +558,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).f_i()
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_i()
-            1.00000000000000 - 46.0846863058583*q - 110.274143118371*q^2 + O(q^3)
+            1.000000000000... - 46.08468630585...*q - 110.2741431183...*q^2 + O(q^3)
 
             sage: MFSeriesConstructor(group=5, prec=3).f_i().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -609,7 +607,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).f_inf()
             q - 9/(200*d)*q^2 + 279/(640000*d^2)*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).f_inf()
-            0.000000000000000 + 1.00000000000000*q - 6.38095656542654*q^2 + 8.76538060684488*q^3 + O(q^4)
+            0.0000000000000... + 1.000000000000...*q - 6.380956565426...*q^2 + 8.765380606844...*q^3 + O(q^4)
 
             sage: MFSeriesConstructor(group=5, prec=3).f_inf().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -658,7 +656,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=8, prec=3).G_inv()
             d^3*q^-1 - 15*d^2/128 - 15139*d/262144*q + O(q^2)
             sage: MFSeriesConstructor(group=8, prec=3, fix_d=True).G_inv()
-            1.64838830030189e-6*q^-1 - 0.0000163526310530017 - 0.000682197999433738*q + O(q^2)
+            1.648388300301...e-6*q^-1 - 0.00001635263105300... - 0.0006821979994337...*q + O(q^2)
 
             sage: MFSeriesConstructor(group=8, prec=3).G_inv().parent()
             Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -705,7 +703,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).E4()
             1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).E4()
-            1.00000000000000 + 29.7777973053239*q + 303.489522086457*q^2 + O(q^3)
+            1.000000000000... + 29.77779730532...*q + 303.4895220864...*q^2 + O(q^3)
 
             sage: MFSeriesConstructor(group=5, prec=3).E4().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -753,7 +751,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).E6()
             1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).E6()
-            1.00000000000000 - 26.2328214356424*q - 921.338894897250*q^2 + O(q^3)
+            1.000000000000... - 26.23282143564...*q - 921.3388948972...*q^2 + O(q^3)
 
             sage: MFSeriesConstructor(group=5, prec=3).E6().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -799,7 +797,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).Delta()
             71/50*q + 28267/(16000*d)*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).Delta()
-            0.000000000000000 + 1.42000000000000*q + 250.514582270711*q^2 + O(q^3)
+            0.0000000000000... + 1.420000000000...*q + 250.5145822707...*q^2 + O(q^3)
 
             sage: MFSeriesConstructor(group=5, prec=3).Delta().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
@@ -846,7 +844,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=3).E2()
             1 - 9/(200*d)*q - 369/(320000*d^2)*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3, fix_d=True).E2()
-            1.00000000000000 - 6.38095656542654*q - 23.1858454761703*q^2 + O(q^3)
+            1.000000000000... - 6.380956565426...*q - 23.18584547617...*q^2 + O(q^3)
 
             sage: MFSeriesConstructor(group=5, prec=3).E2().parent()
             Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring

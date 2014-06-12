@@ -36,7 +36,7 @@ All classes and functions are also individually documented (with doctest example
       sage: G.dvalue()
       e^(2*euler_gamma - 2*sqrt(6)*pi/(sqrt(3) + 3) + psi(19/24) + psi(17/24))
       sage: G.lam()
-      1.931851652578137?
+      1.9318516525781...?
 
       sage: G = HeckeTriangleGroup(6)
       sage: G
@@ -49,7 +49,7 @@ All classes and functions are also individually documented (with doctest example
       True
       sage: G.gens()
       (
-      [ 0 -1]  [                 1 1.732050807568878?]
+      [ 0 -1]  [                 1 1.7320508075688...?]
       [ 1  0], [                 0                  1]
       )
 
@@ -311,7 +311,7 @@ All classes and functions are also individually documented (with doctest example
       sage: QuasiModularFormsRing(n=5).E2().q_expansion(prec=3)
       1 - 9/(200*d)*q - 369/(320000*d^2)*q^2 + O(q^3)
       sage: QuasiModularFormsRing(n=5).E2().q_expansion_fixed_d(prec=3)
-      1.00000000000000 - 6.38095656542654*q - 23.1858454761703*q^2 + O(q^3)
+      1.000000000000... - 6.380956565426...*q - 23.18584547617...*q^2 + O(q^3)
 
 
 - **Evaluation of forms:**
@@ -329,11 +329,11 @@ All classes and functions are also individually documented (with doctest example
       sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
       sage: f_i = ModularFormsRing(n=4).f_i()
       sage: f_i(i)
-      2.44249065417534e-15
+      2.442490654175...e-15
       sage: f_i(infinity)
       1
       sage: f_i(1/7 + 0.01*i)
-      32189.0201672354 + 21226.6295139408*I
+      32189.02016723... + 21226.62951394...*I
 
 - **(Serre) derivatives:**
   Derivatives and Serre derivatives of forms can be calculated.

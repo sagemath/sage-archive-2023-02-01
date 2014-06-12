@@ -120,11 +120,11 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(3).lam()
             1
             sage: HeckeTriangleGroup(4).lam()^2
-            2.000000000000000?
+            2.0000000000000...?
             sage: HeckeTriangleGroup(6).lam()^2
-            3.000000000000000?
+            3.0000000000000...?
             sage: HeckeTriangleGroup(10).lam()
-            1.902113032590308?
+            1.9021130325903...?
         """
 
         return AA(2 * cos(pi/self._n))
@@ -146,7 +146,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(6).rho() == sqrt(3)/2 + 1/2*i
             True
             sage: HeckeTriangleGroup(10).rho()
-            0.9510565162951536? + 0.3090169943749474?*I
+            0.95105651629515...? + 0.30901699437494...?*I
                         
         """
 
@@ -257,7 +257,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [1 1]
             [0 1]
             sage: HeckeTriangleGroup(10).T()
-            [                 1 1.902113032590308?]
+            [                 1 1.9021130325903...?]
             [                 0                  1]
 
         Since this is a stub implementation, the parent of a group
@@ -319,7 +319,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: HeckeTriangleGroup(3).U()^6 == HeckeTriangleGroup(3).I()
             True
             sage: HeckeTriangleGroup(10).U()
-            [1.902113032590308?                 -1]
+            [1.9021130325903...?                 -1]
             [                 1                  0]
             sage: HeckeTriangleGroup(10).U()^10 == -HeckeTriangleGroup(10).I()
             True
@@ -370,17 +370,17 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: G = HeckeTriangleGroup(5)
             sage: G.V(1)
-            [                 1 1.618033988749895?]
+            [                 1 1.6180339887498...?]
             [                 0                  1]
             sage: G.V(2)
-            [1.618033988749895? 1.618033988749895?]
-            [                 1 1.618033988749895?]
+            [1.6180339887498...? 1.6180339887498...?]
+            [                 1 1.6180339887498...?]
             sage: G.V(3)
-            [1.618033988749895? 1.000000000000000?]
-            [1.618033988749895? 1.618033988749895?]
+            [1.6180339887498...? 1.0000000000000...?]
+            [1.6180339887498...? 1.6180339887498...?]
             sage: G.V(4)
-            [1.000000000000000?            0.?e-17]
-            [1.618033988749895? 1.000000000000000?]
+            [1.0000000000000...?            0.?e-17]
+            [1.6180339887498...? 1.0000000000000...?]
             sage: G.V(5) == G.S()
             True
         """
@@ -552,8 +552,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: z = AlgebraicField()(1+i/2)
             sage: (A,w,fact) = G.get_FD(z)
             sage: A
-            [-1.847759065022574?                   1]
-            [-1.000000000000000?                   0]
+            [-1.8477590650225...?                   1]
+            [-1.0000000000000...?                   0]
             sage: G.act(A,w) == z
             True
             sage: full_factor = lambda mat, t: (mat[1][0]*t+mat[1][1])**4

@@ -310,22 +310,22 @@ class FormsRing_abstract(Parent):
             sage: MF.default_num_prec()
             10
             sage: E6 = MF.E6()
-            sage: E6(i)                                   # rel tol 1e-4
-            -0.0020
+            sage: E6(i)
+            -0.002...
             sage: MF.default_num_prec(100)
-            sage: E6(i)                                   # rel tol 1e-25
-            0.00000000000000000000000000000
+            sage: E6(i)
+            0.000000000000000000000000000...
 
             sage: MF = ModularForms(n=5, k=4/3)
             sage: f_rho = MF.f_rho()
             sage: f_rho.q_expansion(prec=2)[1]
             7/(100*d)
             sage: MF.default_num_prec(10)
-            sage: f_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-1
-            9.9
+            sage: f_rho.q_expansion_fixed_d(prec=2)[1]
+            9.9...
             sage: MF.default_num_prec(100)
-            sage: f_rho.q_expansion_fixed_d(prec=2)[1]    # rel tol 1e-25
-            9.9259324351079591527601778294
+            sage: f_rho.q_expansion_fixed_d(prec=2)[1]
+            9.92593243510795915276017782...
         """
 
         if (prec is not None):

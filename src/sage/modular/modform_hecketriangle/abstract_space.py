@@ -651,7 +651,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: z = AlgebraicField()(1+i/2)
 
             sage: MF.aut_factor(S, z)
-            1.365521532425669? + 0.05680599118287792?*I
+            1.3655215324256...? + 0.056805991182877...?*I
             sage: MF.aut_factor(T, z)
             1
             sage: MF.aut_factor(S, z) == MF.ep() * (z/i)^MF.weight()

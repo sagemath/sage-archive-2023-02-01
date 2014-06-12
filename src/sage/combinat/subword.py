@@ -81,16 +81,16 @@ def _stringification(data):
 
 def Subwords(w, k=None, element_constructor=None):
     """
-    Returns the set of subwords of ``w``.
+    Return the set of subwords of ``w``.
 
     INPUT:
 
-    - ``w`` - a word (can be a list, a string, a tuple or a word)
+    - ``w`` -- a word (can be a list, a string, a tuple or a word)
 
-    - ``k`` - an optional integer to specify the length of subwords
+    - ``k`` -- an optional integer to specify the length of subwords
 
-    - ``element_constructor`` - an optional function that will be used to build
-      the subwords.
+    - ``element_constructor`` -- an optional function that will be used
+      to build the subwords
 
     EXAMPLES::
 
@@ -160,7 +160,7 @@ def Subwords(w, k=None, element_constructor=None):
 
 class Subwords_w(Parent):
     r"""
-    Subwords of a given word
+    Subwords of a given word.
     """
     def __init__(self, w, element_constructor):
         """
@@ -199,7 +199,7 @@ class Subwords_w(Parent):
 
     def __reduce__(self):
         r"""
-        Pickle (how to construct back the object)
+        Pickle (how to construct back the object).
 
         TESTS::
 
@@ -222,7 +222,7 @@ class Subwords_w(Parent):
             sage: repr(Subwords([1,2,3])) # indirect doctest
             'Subwords of [1, 2, 3]'
         """
-        return "Subwords of %s" % repr(self._w)
+        return "Subwords of {!r}".format(self._w)
 
     def __contains__(self, w):
         """
@@ -282,7 +282,7 @@ class Subwords_w(Parent):
 
     def random_element(self):
         r"""
-        Return a random subword with uniform law
+        Return a random subword with uniform law.
 
         EXAMPLES::
 
@@ -310,11 +310,12 @@ class Subwords_w(Parent):
             sage: Subwords('123').list()
             ['', '1', '2', '3', '12', '13', '23', '123']
         """
-        return itertools.chain(*[Subwords_wk(self._w,i,self._build) for i in range(0,len(self._w)+1)])
+        return itertools.chain(*[ Subwords_wk(self._w,i,self._build)
+                                  for i in range(len(self._w)+1) ])
 
 class Subwords_wk(Subwords_w):
     r"""
-    Subwords with fixed length of a given word
+    Subwords with fixed length of a given word.
     """
     def __init__(self, w, k, element_constructor):
         """
@@ -345,7 +346,7 @@ class Subwords_wk(Subwords_w):
 
     def __reduce__(self):
         r"""
-        Pickle (how to construct back the object)
+        Pickle (how to construct back the object).
 
         TESTS::
 
@@ -365,7 +366,7 @@ class Subwords_wk(Subwords_w):
             sage: repr(Subwords([1,2,3],2))  # indirect doctest
             'Subwords of [1, 2, 3] of length 2'
         """
-        return "%s of length %s" % (Subwords_w.__repr__(self), self._k)
+        return "{} of length {}".format(Subwords_w.__repr__(self), self._k)
 
     def __contains__(self, w):
         """
@@ -441,7 +442,7 @@ class Subwords_wk(Subwords_w):
 
     def random_element(self):
         r"""
-        Return a random subword of given length with uniform law
+        Return a random subword of given length with uniform law.
 
         EXAMPLES::
 
@@ -489,11 +490,11 @@ class Subwords_wk(Subwords_w):
 
 def smallest_positions(word, subword, pos=0):
     """
-    Returns the smallest positions for which subword appears as a
-    subword of word. If pos is specified, then it returns the positions
-    of the first appearance of subword starting at pos.
+    Return the smallest positions for which ``subword`` appears as a
+    subword of ``word``. If ``pos`` is specified, then it returns the positions
+    of the first appearance of subword starting at ``pos``.
 
-    If subword is not found in word, then it returns False.
+    If ``subword`` is not found in ``word``, then return ``False``.
 
     EXAMPLES::
 

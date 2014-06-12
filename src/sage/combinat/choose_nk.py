@@ -29,6 +29,9 @@ def ChooseNK(n, k):
 
     The elements of the output are tuples of Python int (and not Sage Integer).
 
+    This was deprecated in :trac:`10534` for :func:`Combinations`
+    (or ``itertools.combinations`` for doing iteration).
+
     EXAMPLES::
 
         sage: from sage.combinat.choose_nk import ChooseNK
@@ -51,10 +54,11 @@ def ChooseNK(n, k):
 #      sage.combinat.subset. It might be good to move them somewhere else.
 def rank(comb, n, check=True):
     """
-    Returns the rank of comb in the subsets of range(n) of size k.
+    Return the rank of ``comb`` in the subsets of ``range(n)`` of size ``k``
+    where ``k`` is the length of ``comb``.
 
     The algorithm used is based on combinadics and James McCaffrey's
-    MSDN article. See: http://en.wikipedia.org/wiki/Combinadic
+    MSDN article. See: :wikipedia:`Combinadic`.
 
     EXAMPLES::
 
@@ -84,6 +88,11 @@ def rank(comb, n, check=True):
         Traceback (most recent call last):
         ...
         ValueError: comb must be a subword of (0,1,...,n)
+
+        sage: choose_nk.rank([1,2], 3)
+        2
+        sage: choose_nk.rank([0,1,2], 3)
+        0
     """
     k = len(comb)
     if check:

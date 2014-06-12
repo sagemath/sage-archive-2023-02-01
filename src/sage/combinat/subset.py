@@ -281,7 +281,7 @@ class Subsets_s(Parent):
             sage: repr(Subsets([1,2,3])) #indirect doctest
             'Subsets of {1, 2, 3}'
         """
-        return "Subsets of %s" %self._s
+        return "Subsets of {}".format(self._s)
 
     def __contains__(self, value):
         """
@@ -362,8 +362,8 @@ class Subsets_s(Parent):
         """
         k = ZZ_0
         while k <= self._s.cardinality():
-            for ss in Subsets_sk(self._s, k):
-                yield ss
+            for ss in Subsets_sk(self._s, k)._fast_iterator():
+                yield self.element_class(ss)
             k += 1
 
     def random_element(self):
@@ -410,13 +410,13 @@ class Subsets_s(Parent):
         if sub not in Sets():
             ssub = Set(sub)
             if len(sub) != len(ssub):
-                raise ValueError("repeated elements in %s"%sub)
+                raise ValueError("repeated elements in {}".format(sub))
             sub = ssub
 
         try:
             index_list = sorted(self._s.rank(x) for x in sub)
         except (ValueError,IndexError):
-            raise ValueError("%s is not a subset of %s"%(
+            raise ValueError("{} is not a subset of {}".format(
                     Set(sub), self._s))
 
         n = self._s.cardinality()
@@ -457,7 +457,7 @@ class Subsets_s(Parent):
         Workaround for returning non elements.
 
         See the extensive documentation in
-        :meth:`sage.sets.finite_enumerated_set.FiniteEnumeratedSet`.
+        :meth:`sage.sets.finite_enumerated_set.FiniteEnumeratedSet.__call__`.
 
         TESTS::
 
@@ -544,7 +544,7 @@ class Subsets_sk(Subsets_s):
         Subsets_s.__init__(self, s)
         self._k = Integer(k)
         if self._k < 0:
-            raise ValueError("the integer k (=%d) should be non-negative" % k)
+            raise ValueError("the integer k (={}) should be non-negative".format(k))
 
     def _repr_(self):
         """
@@ -553,7 +553,7 @@ class Subsets_sk(Subsets_s):
             sage: repr(Subsets(3,2)) #indirect doctest
             'Subsets of {1, 2, 3} of size 2'
         """
-        return Subsets_s._repr_(self) + " of size %s" % (self._k)
+        return Subsets_s._repr_(self) + " of size {}".format(self._k)
 
     def __contains__(self, value):
         """
@@ -742,13 +742,13 @@ class Subsets_sk(Subsets_s):
         n = self._s.cardinality()
 
         if self._k != sub.cardinality() or self._k > n:
-            raise ValueError("%s is not a subset of length %d of %s"%(
+            raise ValueError("{} is not a subset of length {} of {}".format(
                     sub, self._k, self._s))
 
         try:
             index_list = sorted(self._s.rank(x) for x in sub)
         except ValueError:
-            raise ValueError("%s is not a subset of length %d of %s"%(
+            raise ValueError("{} is not a subset of length {} of {}".format(
                     sub, self._k, self._s))
 
         return choose_nk.rank(index_list, n)
@@ -880,7 +880,7 @@ class SubMultiset_s(Parent):
             sage: S = Subsets([1, 2, 2, 3], submultiset=True); S #indirect doctest
             SubMultiset of [1, 2, 2, 3]
         """
-        return "SubMultiset of %s" % dict_to_list(self._d)
+        return "SubMultiset of {}".format(dict_to_list(self._d))
 
     def __eq__(self, other):
         r"""
@@ -1035,7 +1035,7 @@ class SubMultiset_s(Parent):
         Workaround for returning non elements.
 
         See the extensive documentation in
-        :meth:`sage.sets.finite_enumerated_set.FiniteEnumeratedSet`.
+        :meth:`sage.sets.finite_enumerated_set.FiniteEnumeratedSet.__call__`.
 
         TESTS::
 
@@ -1163,7 +1163,7 @@ class SubMultiset_sk(SubMultiset_s):
             sage: repr(S) #indirect doctest
             'SubMultiset of [1, 2, 2, 3] of size 3'
         """
-        return "%s of size %s" % (SubMultiset_s._repr_(self), self._k)
+        return "{} of size {}".format(SubMultiset_s._repr_(self), self._k)
 
     def __contains__(self, s):
         """

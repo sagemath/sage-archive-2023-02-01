@@ -217,7 +217,7 @@ class Combinations_mset(CombinatorialClass):
             sage: repr(Combinations(range(4)))
             'Combinations of [0, 1, 2, 3]'
         """
-        return "Combinations of %s" % self.mset
+        return "Combinations of {}".format(self.mset)
 
     def __iter__(self):
         """
@@ -334,7 +334,7 @@ class Combinations_msetk(CombinatorialClass):
             sage: repr(Combinations([1,2,2,3],2))
             'Combinations of [1, 2, 2, 3] of length 2'
         """
-        return "Combinations of %s of length %s" % (self.mset, self.k)
+        return "Combinations of {} of length {}".format(self.mset, self.k)
 
     def __iter__(self):
         """
@@ -363,7 +363,7 @@ class Combinations_msetk(CombinatorialClass):
             12
         """
         items = map(self.mset.index, self.mset)
-        return ZZ(gap.eval("NrCombinations(%s,%s)" % (items,ZZ(self.k))))
+        return ZZ(gap.eval("NrCombinations({},{})".format( items,ZZ(self.k))) )
 
 
 class Combinations_setk(Combinations_msetk):

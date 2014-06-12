@@ -428,7 +428,7 @@ class Chain_class(ModuleElement):
             if v.degree() == 0:
                 return AsciiArt(['0'])
             v = str(v.column()).splitlines()
-            return AsciiArt(v, baseline=len(v)/2)
+            return AsciiArt(v, baseline=len(v)//2)
             
         result = []
         chain_complex = self.parent()
@@ -1339,9 +1339,13 @@ class ChainComplex_class(Parent):
             [2, 1, 0, 0, 0]
             sage: C.betti()
             {0: 2, 1: 1}
+
+            sage: D = ChainComplex({0:matrix(GF(5), [[3, 1],[1, 2]])})
+            sage: D.betti()
+            {0: 1, 1: 1}
         """
         if base_ring is None:
-            base_ring = QQ
+            base_ring = self.base_ring()
         try:
             base_ring = base_ring.fraction_field()
         except AttributeError:

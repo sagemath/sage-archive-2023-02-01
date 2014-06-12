@@ -266,7 +266,7 @@ class Subsets_s(CombinatorialClass):
             4
             sage: Subsets(3).rank([1,2,3])
             7
-            sage: Subsets(3).rank([2,3,4]) == None
+            sage: Subsets(3).rank([2,3,4]) is None
             True
         """
         subset = Set(sub)

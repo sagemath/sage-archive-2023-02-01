@@ -246,7 +246,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             ...
             TypeError: Second argument (= Integer Ring) must be a finite field.
         """
-        if F == None:
+        if F is None:
             if not is_FiniteField(self.base_ring()):
                 raise TypeError("Base ring (= %s) must be a finite field."%self.base_ring())
             return [ P for P in self ]

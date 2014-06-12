@@ -5,22 +5,20 @@ Rings
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import re
-from sage.categories.rngs import Rngs
-from sage.categories.semirings import Semirings
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from category import HomCategory
 from sage.misc.cachefunc import cached_method
-import sage
+from sage.misc.lazy_import import LazyImport
+from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.rngs import Rngs
+from category import HomCategory
+from functools import reduce
 
-class Rings(Category_singleton):
+class Rings(CategoryWithAxiom):
     """
     The category of rings
 
@@ -28,31 +26,99 @@ class Rings(Category_singleton):
 
     EXAMPLES::
 
-      sage: Rings()
-      Category of rings
-      sage: Rings().super_categories()
-      [Category of rngs, Category of semirings]
+        sage: Rings()
+        Category of rings
+        sage: sorted(Rings().super_categories(), key=str)
+        [Category of rngs, Category of semirings]
+
+        sage: sorted(Rings().axioms())
+        ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+         'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+
+        sage: Rings() is (CommutativeAdditiveGroups() & Monoids()).Distributive()
+        True
+        sage: Rings() is Rngs().Unital()
+        True
+        sage: Rings() is Semirings().AdditiveInverse()
+        True
 
     TESTS::
 
         sage: TestSuite(Rings()).run()
 
-    TODO (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
+    .. TODO::
 
-     - Make Rings() into a subcategory or alias of Algebras(ZZ);
+        (see: http://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
 
-     - A parent P in the category ``Rings()`` should automatically be
-       in the category ``Algebras(P)``.
+        - Make Rings() into a subcategory or alias of Algebras(ZZ);
+
+        - A parent P in the category ``Rings()`` should automatically be
+          in the category ``Algebras(P)``.
     """
 
-    def super_categories(self):
-        """
-        EXAMPLES::
+    _base_category_class_and_axiom = (Rngs, "Unital")
 
-            sage: Rings().super_categories()
-            [Category of rngs, Category of semirings]
-        """
-        return [Rngs(), Semirings()]
+    class SubcategoryMethods:
+
+        def NoZeroDivisors(self):
+            """
+            Return the full subcategory of the objects of ``self`` having
+            no nonzero zero divisors.
+
+            A *zero divisor* in a ring `R` is an element `x \in R` such
+            that there exists a nonzero element `y \in R` such that
+            `x \cdot y = 0` or `y \cdot x = 0`
+            (see :wikipedia:`Zero_divisor`).
+
+            EXAMPLES::
+
+                sage: Rings().NoZeroDivisors()
+                Category of domains
+
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
+
+            TESTS::
+
+                sage: TestSuite(Rings().NoZeroDivisors()).run()
+                sage: Algebras(QQ).NoZeroDivisors.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('NoZeroDivisors')
+
+        def Division(self):
+            """
+            Return the full subcategory of the division objects of ``self``.
+
+            A ring satisfies the *division axiom* if all non-zero
+            elements have multiplicative inverses.
+
+            .. NOTE::
+
+                This could be generalized to
+                :class:`MagmasAndAdditiveMagmas.Distributive.AdditiveUnital`.
+
+            EXAMPLES::
+
+                sage: Rings().Division()
+                Category of division rings
+                sage: Rings().Commutative().Division()
+                Category of fields
+
+            TESTS::
+
+                sage: TestSuite(Rings().Division()).run()
+                sage: Algebras(QQ).Division.__module__
+                'sage.categories.rings'
+            """
+            return self._with_axiom('Division')
+
+
+    NoZeroDivisors = LazyImport('sage.categories.domains', 'Domains', at_startup=True)
+    Division       = LazyImport('sage.categories.division_rings', 'DivisionRings', at_startup=True)
+    Commutative    = LazyImport('sage.categories.commutative_rings', 'CommutativeRings', at_startup=True)
 
     class ParentMethods:
         def is_ring(self):
@@ -321,7 +387,8 @@ class Rings(Category_singleton):
                 return
 
             # test that #12988 is fixed
-            tester.assertEqual(type(characteristic),sage.rings.integer.Integer)
+            from sage.rings.integer import Integer
+            tester.assertIsInstance(characteristic, Integer)
 
         def ideal(self, *args, **kwds):
             """
@@ -549,14 +616,13 @@ class Rings(Category_singleton):
             EXAMPLE::
 
                 sage: MS = MatrixSpace(QQ,2)
-                sage: MS.full_category_initialisation()
                 sage: I = MS*MS.gens()*MS
 
             ``MS`` is not an instance of :class:`~sage.rings.ring.Ring`.
-            But since its category was fully initalised (which is not
-            by default, by :trac:`11900`), it is an instance of
-            the parent class of the category of rings. The quotient
-            method is inherited from there::
+
+            However it is an instance of the parent class of the
+            category of rings. The quotient method is inherited from
+            there::
 
                 sage: isinstance(MS,sage.rings.ring.Ring)
                 False
@@ -839,10 +905,139 @@ class Rings(Category_singleton):
                 return False
             raise NotImplementedError
 
+    class Finite(CategoryWithAxiom):
+        class ParentMethods:
+            def cyclotomic_cosets(self, q, cosets=None):
+                r"""
+                Return the (multiplicative) orbits of ``q`` in the ring.
+
+                Let `R` be a finite ring. The group of invertible elements `R^*`
+                in `R` gives rise to a group action on `R` by multiplication.
+                An orbit of the subgroup generated by an invertible element `q`
+                is called a `q`-*cyclotomic coset* (since in a finite ring,
+                each invertible element is a root of unity).
+
+                These cosets arise in the theory of minimal polynomials of
+                finite fields, duadic codes and combinatorial designs. Fix a
+                primitive element `z` of `GF(q^k)`. The minimal polynomial of
+                `z^s` over `GF(q)` is given by
+
+                .. math::
+
+                         M_s(x) = \prod_{i \in C_s} (x - z^i),
+
+
+                where `C_s` is the `q`-cyclotomic coset mod `n` containing `s`,
+                `n = q^k - 1`.
+
+                .. NOTE::
+
+                    When `R = \ZZ / n \ZZ` the smallest element of each coset is
+                    sometimes callled a *coset leader*. This function returns
+                    sorted lists so that the coset leader will always be the
+                    first element of the coset.
+
+                INPUT:
+
+                - ``q`` -- an invertible element of the ring
+
+                - ``cosets`` -- an optional lists of elements of ``self``. If
+                  provided, the function only return the list of cosets that
+                  contain some element from ``cosets``.
+
+                OUTPUT:
+
+                A list of lists.
+
+                EXAMPLES::
+
+                    sage: Zmod(11).cyclotomic_cosets(2)
+                    [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+                    sage: Zmod(15).cyclotomic_cosets(2)
+                    [[0], [1, 2, 4, 8], [3, 6, 9, 12], [5, 10], [7, 11, 13, 14]]
+
+                Since the group of invertible elements of a finite field is
+                cyclic, the set of squares is a particular case of cyclotomic
+                coset::
+
+                    sage: K = GF(25,'z')
+                    sage: a = K.multiplicative_generator()
+                    sage: K.cyclotomic_cosets(a**2,cosets=[1])
+                    [[1, 2, 3, 4, z + 1, z + 3,
+                      2*z + 1, 2*z + 2, 3*z + 3,
+                      3*z + 4, 4*z + 2, 4*z + 4]]
+                    sage: sorted(b for b in K if not b.is_zero() and b.is_square())
+                    [1, 2, 3, 4, z + 1, z + 3,
+                     2*z + 1, 2*z + 2, 3*z + 3,
+                     3*z + 4, 4*z + 2, 4*z + 4]
+
+                We compute some examples of minimal polynomials::
+
+                    sage: K = GF(27,'z')
+                    sage: a = K.multiplicative_generator()
+                    sage: R.<X> = PolynomialRing(K, 'X')
+                    sage: a.minimal_polynomial(X)
+                    X^3 + 2*X + 1
+                    sage: cyc3 = Zmod(26).cyclotomic_cosets(3,cosets=[1]); cyc3
+                    [[1, 3, 9]]
+                    sage: prod(X - a**i for i in cyc3[0])
+                    X^3 + 2*X + 1
+
+                    sage: (a**7).minimal_polynomial(X)
+                    X^3 + X^2 + 2*X + 1
+                    sage: cyc7 = Zmod(26).cyclotomic_cosets(3,cosets=[7]); cyc7
+                    [[7, 11, 21]]
+                    sage: prod(X - a**i for i in cyc7[0])
+                    X^3 + X^2 + 2*X + 1
+
+                Cyclotomic cosets of fields are useful in combinatorial design
+                theory to provide so called difference families (see
+                :wikipedia:`Difference_set`). This is illustrated on the
+                following examples::
+
+                    sage: K = GF(5)
+                    sage: a = K.multiplicative_generator()
+                    sage: H = K.cyclotomic_cosets(a**2, cosets=[1,2]); H
+                    [[1, 4], [2, 3]]
+                    sage: sorted(x-y for D in H for x in D for y in D if x != y)
+                    [1, 2, 3, 4]
+
+                    sage: K = GF(37)
+                    sage: a = K.multiplicative_generator()
+                    sage: H = K.cyclotomic_cosets(a**4, cosets=[1]); H
+                    [[1, 7, 9, 10, 12, 16, 26, 33, 34]]
+                    sage: sorted(x-y for D in H for x in D for y in D if x != y)
+                    [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, ..., 33, 34, 34, 35, 35, 36, 36]
+                """
+                q = self(q)
+
+                try:
+                    ~q
+                except ZeroDivisionError:
+                    raise ValueError("%s is not invertible in %s"%(q,self))
+
+                if cosets is None:
+                    rest = set(self)
+                else:
+                    rest = set(self(x) for x in cosets)
+
+                orbits = []
+                while rest:
+                    x0 = rest.pop()
+                    o = [x0]
+                    x = q*x0
+                    while x != x0:
+                        o.append(x)
+                        rest.discard(x)
+                        x *= q
+                    o.sort()
+                    orbits.append(o)
+
+                orbits.sort()
+                return orbits
+
     class HomCategory(HomCategory):
         pass
-
-from sage.structure.parent_gens import _certify_names
 
 def _gen_names(elts):
     r"""
@@ -859,7 +1054,8 @@ def _gen_names(elts):
         sage: list(_gen_names((1..27)))[-1]
         'aa'
     """
-    from sage.symbolic.ring import is_SymbolicVariable
+    import re
+    from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     it.next() # skip empty word
@@ -870,6 +1066,6 @@ def _gen_names(elts):
             name = "sqrt%s" % m.groups()[0]
         try:
             _certify_names([name])
-        except ValueError as msg:
+        except ValueError:
             name = it.next().string_rep()
         yield name

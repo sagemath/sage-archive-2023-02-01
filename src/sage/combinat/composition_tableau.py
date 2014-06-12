@@ -779,7 +779,7 @@ class CompositionTableauxBacktracker(GenericBacktracker):
         self._shape = shape
         self._n = sum(shape)
         self._initial_data = [ [None]*s for s in shape ]
-        if max_entry==None:
+        if max_entry is None:
             max_entry=sum(shape)
         self.max_entry=max_entry
 

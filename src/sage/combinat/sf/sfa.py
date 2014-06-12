@@ -212,7 +212,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, QQ
+from sage.rings.all import Integer, PolynomialRing, QQ
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 import sage.combinat.partition
 from sage.combinat.partition import _Partitions, Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
@@ -220,6 +222,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import prod, uniq
 from copy import copy
+from functools import reduce
 
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
@@ -382,12 +385,12 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = SymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Category of graded hopf algebras with basis over Rational Field, Category of realizations of Symmetric Functions over Rational Field, Category of commutative rings]
+            [Category of commutative graded hopf algebras with basis over Rational Field,
+             Category of realizations of Symmetric Functions over Rational Field]
         """
         from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
-        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()),
-                Realizations(self.base()),
-                CommutativeRings()]
+        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()).Commutative(),
+                Realizations(self.base())]
 
     class ParentMethods:
 

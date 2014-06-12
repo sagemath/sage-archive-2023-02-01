@@ -15,6 +15,8 @@ from gambit.nash import ExternalLCPSolver
 
 class NormalFormGame(Game):
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
+        if matrix1 and game:
+            raise ValueError("Can't input both a matrix and a game.")
         if matrix1:
             g = Game.new_table([len(matrix1.rows()), len(matrix2.rows())])
         elif game:
@@ -29,7 +31,7 @@ class NormalFormGame(Game):
         if game and len(game.players) <= 2:
             # construct 2 matrices
             pass
-        elif not game:
+        else:
             self.matrix1 = matrix1
             if not matrix2:
                 self.matrix2 = - self.matrix1

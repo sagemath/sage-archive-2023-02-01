@@ -13,7 +13,8 @@ All the designs returned by these functions can be obtained through the
 
 Implemented constructions :
 
-- :func:`OA(6,20) <OA_6_20>`,
+- :func:`OA(7,18) <OA_7_18>`,
+  :func:`OA(6,20) <OA_6_20>`,
   :func:`OA(7,21) <OA_7_21>`,
   :func:`OA(5,22) <OA_5_22>`,
   :func:`OA(9,24) <OA_9_24>`,
@@ -38,6 +39,7 @@ Implemented constructions :
   :func:`OA(7,54) <OA_7_54>`,
   :func:`OA(8,55) <OA_8_55>`,
   :func:`OA(9,56) <OA_9_56>`,
+  :func:`OA(9,57) <OA_9_57>`,
   :func:`OA(7,60) <OA_7_60>`,
   :func:`OA(7,62) <OA_7_62>`,
   :func:`OA(9,75) <OA_9_75>`,
@@ -45,7 +47,11 @@ Implemented constructions :
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
   :func:`OA(12,144) <OA_12_144>`,
-  :func:`OA(12,210) <OA_12_210>`
+  :func:`OA(10,154) <OA_10_154>`,
+  :func:`OA(12,210) <OA_12_210>`,
+  :func:`OA(12,276) <OA_12_276>`,
+  :func:`OA(12,298) <OA_12_298>`,
+  :func:`OA(12,342) <OA_12_342>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -85,7 +91,7 @@ cyclic_shift = lambda l,i : l[-i:]+l[:-i]
 
 def TD_6_12():
     r"""
-    Returns a `TD(6,12)` as build in [Hanani75]_.
+    Returns a `TD(6,12)` as built in [Hanani75]_.
 
     This design is Lemma 3.21 from [Hanani75]_.
 
@@ -359,6 +365,60 @@ MOLS_constructions = {
     15 : (4, MOLS_15_4),
     18 : (3, MOLS_18_3)
 }
+
+def OA_7_18():
+    r"""
+    Returns an OA(7,18)
+
+    Proved in [JulianAbel13]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_18
+        sage: OA = OA_7_18()
+        sage: print is_orthogonal_array(OA,7,18,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,18,existence=True)
+        True
+    """
+    M = """
+        000 100 100 000 100 100 100 000 000 000 100 000
+        000 020 100 100 000 120 110 110 010 020 010 120
+        000 100 022 102 112 001 101 120 121 001 020 002
+        000 002 100 002 102 122 010 111 110 121 021 001
+        000 021 000 100 020 112 100 021 112 102 102 012
+        000 000 011 010 100 010 110 122 011 121 120 111
+        000 100 002 022 011 121 020 122 100 010 112 112
+        """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    from sage.categories.cartesian_product import cartesian_product
+    G = cartesian_product([AdditiveCyclic(2),AdditiveCyclic(3),AdditiveCyclic(3)])
+    M = [G(map(int,xxx)) for xxx in M.split()]
+    M = [M[i*12:(i+1)*12] for i in range(7)]
+
+    Mb = [[] for _ in range(7)]
+
+    for a,b,c,d,e,f,g in zip(*M):
+        for y in range(3):
+            Mb[0].append(a + G((0,  0  , 0 )))
+            Mb[1].append(b + G((0,  0  , y )))
+            Mb[2].append(c + G((0,  y  , 0 )))
+            Mb[3].append(d + G((0, 2*y , y )))
+            Mb[4].append(e + G((0, 2*y ,2*y)))
+            Mb[5].append(f + G((0,  y  ,2*y)))
+            Mb[6].append(g + G((0,  0  ,2*y)))
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
+    M = M[:len(M)/2] # only develop w.r.t the last two coordinates
+    return M
 
 def OA_6_20():
     r"""
@@ -1631,6 +1691,38 @@ def OA_9_56():
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
 
+def OA_9_57():
+    r"""
+    Returns an OA(9,57)
+
+    Given by Julian R. Abel.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_57
+        sage: OA = OA_9_57()
+        sage: print is_orthogonal_array(OA,9,57,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,57,existence=True)
+        True
+    """
+    from orthogonal_arrays import orthogonal_array
+    M = orthogonal_array(8,8)
+    M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, 7..7 rows.
+    B = (1,6,7,9,19,38,42,49) # base block of a (57,8,1) BIBD
+    M = [[B[x] for x in R] for R in M]
+    M.append([0]*8)
+    Mb = zip(*M)
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(57)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    return M
+
 def OA_7_60():
     r"""
     Returns an OA(7,60)
@@ -1974,6 +2066,33 @@ def OA_12_144():
     M = OA_from_Vmt(10,13,[0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84])
     return M
 
+def OA_10_154():
+    r"""
+    Returns an OA(10,154)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_154
+        sage: OA = OA_10_154()
+        sage: print is_orthogonal_array(OA,10,154,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,154,existence=True)
+        True
+    """
+    M = OA_from_Vmt(8,17,[0,1,3,2,133,126,47,109,74])
+    return M
+
 def OA_12_210():
     r"""
     Returns an OA(12,210)
@@ -2001,6 +2120,87 @@ def OA_12_210():
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
     return M
 
+def OA_12_276():
+    r"""
+    Returns an OA(12,276)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_276
+        sage: OA = OA_12_276()
+        sage: print is_orthogonal_array(OA,12,276,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,276,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,25,[0,1,3,85,140,178,195,22,48,179,188])
+    return M
+
+def OA_12_298():
+    r"""
+    Returns an OA(12,298)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_298
+        sage: OA = OA_12_298()
+        sage: print is_orthogonal_array(OA,12,298,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,298,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,27,[0,1,3,82,109,241,36,112,141,263,126])
+    return M
+
+def OA_12_342():
+    r"""
+    Returns an OA(12,342)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_342
+        sage: OA = OA_12_342()
+        sage: print is_orthogonal_array(OA,12,342,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,342,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,31,[0,1,3,57,128,247,289,239,70,271,96])
+    return M
+
 # Index of the OA constructions
 #
 # Associates to n the pair (k,f) where f() is a function that returns an OA(k,n)
@@ -2008,6 +2208,7 @@ def OA_12_210():
 # This dictionary is used by designs.orthogonal_array(k,n).
 
 OA_constructions = {
+    18  : (7  , OA_7_18),
     20  : (6  , OA_6_20),
     21  : (7  , OA_7_21),
     22  : (5  , OA_5_22),
@@ -2033,6 +2234,7 @@ OA_constructions = {
     54  : (7  , OA_7_54),
     55  : (8  , OA_8_55),
     56  : (9  , OA_9_56),
+    57  : (9  , OA_9_57),
     60  : (7  , OA_7_60),
     62  : (7  , OA_7_62),
     65  : (9  , OA_9_65),
@@ -2041,6 +2243,10 @@ OA_constructions = {
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
     144 : (12 , OA_12_144),
-    210 : (12 , OA_12_210)
+    154 : (10 , OA_10_154),
+    210 : (12 , OA_12_210),
+    276 : (12 , OA_12_276),
+    298 : (12 , OA_12_298),
+    342 : (12 , OA_12_342)
 }
 

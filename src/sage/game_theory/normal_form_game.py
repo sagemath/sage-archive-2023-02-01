@@ -14,12 +14,12 @@ from gambit import Game
 
 class NormalFormGame(Game):
     def __new__(NormalFormGame):
-        g = Game.new_table()
+        g = Game.new_table([])
         g.__class__ = NormalFormGame
         return g
 
     def __init__(self, matrix1=False, matrix2=False, game=False ):
-
+        pass
 
 
     def _from_matrix_to_game(matrix1, matrix2):

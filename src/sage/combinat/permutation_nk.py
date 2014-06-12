@@ -18,12 +18,15 @@ Deprecated low-level permutations
 
 def PermutationsNK(n, k):
     r"""
+    This is deprecated in :trac:`16472`. Use :class:`Permutations` instead
+    (or ``itertools.permutations`` for iteration).
+
     EXAMPLES::
 
         sage: from sage.combinat.permutation_nk import PermutationsNK
         sage: P = PermutationsNK(10,4)
-        doctest:...: DeprecationWarning: PermutationsNK is deprecated. Please use
-        Permutations instead.
+        doctest:...: DeprecationWarning: PermutationsNK is deprecated. Please
+        use Permutations instead (or itertools.permutations for iteration).
         See http://trac.sagemath.org/16472 for details.
         sage: [ p for p in PermutationsNK(3,2)]
         [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
@@ -33,7 +36,7 @@ def PermutationsNK(n, k):
         120
     """
     from sage.misc.superseded import deprecation
-    deprecation(16472, "PermutationsNK is deprecated. Please use Permutations instead.")
+    deprecation(16472, "PermutationsNK is deprecated. Please use Permutations instead (or itertools.permutations for iteration).")
     from permutation import Permutations
     return Permutations(range(n),k)
 

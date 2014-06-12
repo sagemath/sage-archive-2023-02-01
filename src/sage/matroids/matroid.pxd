@@ -145,5 +145,5 @@ cdef class Matroid(SageObject):
     cpdef flat_cover(self)
     
     # visualization
-    cpdef plot(self,B=*,lineorders=*)
-    cpdef show(self,B=*,lineorders=*)
+    cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)
+    cpdef show(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)

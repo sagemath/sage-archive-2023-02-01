@@ -4749,17 +4749,26 @@ cdef class Matroid(SageObject):
 
         return [F for F in FF if fsol[F] > 1 - eps]
         
-    cpdef plot(self,B=None,lineorders=None):
+    cpdef plot(self, B=None, lineorders=None, pos_method=None,pos_dict=None,save_pos=False):
         """
         Return geometric representation as a sage graphics object.
                
         INPUT:
         
-        - ``B`` -- (optional) a list containing elements of the groundset 
-        not in any particular order.
+        - ``B`` -- (optional) a list containing elements of the groundset not in any particular order. 
+        If internal point placement is used, these elements will be placed as vertices of a triangle.
         - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
         specify ground set elements in a certain order which will be used to draw the
         corresponding line in geometric representation (if it exists).
+        - ``pos_method`` -- An integer specifying positioning method 
+            ``0``: default positioning
+            ``1``: use pos_dict if it is not ``None``
+            ``2``: Force directed (Not yet implemented). 
+        - ``pos_dict``: A dictionary mapping ground set elements to their (x,y) positions.
+        - ``save_pos``: A boolean indicating that point placements (either internal or user provided) and 
+        line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for 
+        reproducing the geometric representation during the same session
+            
         
         OUTPUT:
         
@@ -4775,6 +4784,15 @@ cdef class Matroid(SageObject):
             sage: G.show()
 
         """
+        import matroids_plot_helpers
+        if pos_method == 1  and pos_dict!=None:
+        # check sanity of pos_dict and add it to cached info if sane
+            if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True: 
+                self._cached_info={'positions':pos_dict,'lineorders':lineorders}
+        # placeholder for aditional placement methods. Only need to compute positions and update self._cached_info
+        elif pos_method == 2:
+            raise NotImplementedError
+        
         if self._cached_info == None:
             self._cached_info={'positions':None,'lineorders': None}
         if 'positions' not in self._cached_info.keys():
@@ -4786,23 +4804,30 @@ cdef class Matroid(SageObject):
             return
         elif B == None:
             B = list(self.basis())
-        elif self.rank() != self.rank(B):
+        elif self.is_basis(B)==False:
             return
-        import matroids_plot_helpers
         lineorders2=matroids_plot_helpers.lineorders_union(self._cached_info['lineorders'],lineorders)
-        return matroids_plot_helpers.geomrep(self,B,lineorders2)
+        return matroids_plot_helpers.geomrep(self,B,lineorders2,pd=pos_dict, sp=save_pos)
 
-    cpdef show(self,B=None,lineorders=None):
+    cpdef show(self,B=None,lineorders=None,pos_method=None,pos_dict=None,save_pos=False):
         """
         Show the geometric representation of the matroid.
          
         INPUT:
         
-        - ``B`` -- (optional) a list containing elements of the groundset 
-        not in any particular order.
+        - ``B`` -- (optional) a list containing elements of the groundset not in any particular order.
+        If internal point placement is used, these elements will be placed as vertices of a triangle.
         - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
         specify ground set elements in a certain order which will be used to draw the
         corresponding line in geometric representation (if it exists).
+        - ``pos_method`` -- An integer specifying positioning method 
+            ``0``: default positioning
+            ``1``: use pos_dict if it is not ``None``
+            ``2``: Force directed (Not yet implemented). 
+        - ``pos_dict``: A dictionary mapping ground set elements to their (x,y) positions.
+        - ``save_pos``: A boolean indicating that point placements (either internal or user provided) and 
+        line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for 
+        reproducing the geometric representation during the same session
         
         EXAMPLES::
         
@@ -4815,10 +4840,13 @@ cdef class Matroid(SageObject):
             return
         elif B == None:
             B = list(self.basis())
-        elif self.rank() != self.rank(B):
+        elif self.is_basis(B)==False:
             return
         B1=B
-        lineorders1=lineorders    
-        G=self.plot(B1,lineorders1)
+        lineorders1=lineorders
+        pm=pos_method
+        pd=pos_dict
+        sp=save_pos    
+        G=self.plot(B1,lineorders1,pm,pd,sp)
         G.show(xmin=-2, xmax=3, ymin=-2, ymax=3)
         return 

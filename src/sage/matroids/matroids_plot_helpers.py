@@ -37,9 +37,9 @@ def initial_triangle(M,B1,nB1,lps):
     INPUT:
     
     - ``M`` -- A matroid.
-    - ``B1``-- A list of labels of groundset elements of M that corresponds to a basis of matroid M
-    - ``nB1``-- A list of labes of elements in the ground set of M that corresponds to ``M.simplify.groundset() \ B1``. 
-    - ``lps``-- A list of labels of elements in the ground set of matroid M that are loops.
+    - ``B1``-- A list of groundset elements of ``M`` that corresponds to a basis of matroid ``M``
+    - ``nB1``-- A list of elements in the ground set of M that corresponds to ``M.simplify.groundset() \ B1``. 
+    - ``lps``-- A list of elements in the ground set of matroid M that are loops.
     
     OUTPUT:
     
@@ -162,13 +162,13 @@ def addnontripts(tripts_labels,nontripts_labels,ptsdict):
    
     INPUT:
     
-    - ``tripts`` -- A list of 3 labels that are to be placed on vertices of the triangle
-    - ``ptsdict`` -- A dictionary (at least) containing labels in ``tripts`` as keys and their (x,y) position as values
-    - ``nontripts``-- A list of labels whose corresponding points are to be placed inside the triangle
+    - ``tripts`` -- A list of 3 ground set elements that are to be placed on vertices of the triangle
+    - ``ptsdict`` -- A dictionary (at least) containing ground set elements in ``tripts`` as keys and their (x,y) position as values
+    - ``nontripts``-- A list of ground set elements whose corresponding points are to be placed inside the triangle
     
     OUTPUT:
     
-    A dictionary containing labels in ``tripts`` as keys and their (x,y) position as values allong with all keys and respective values in ``ptsdict`` 
+    A dictionary containing ground set elements in ``tripts`` as keys and their (x,y) position as values allong with all keys and respective values in ``ptsdict`` 
     
     EXAMPLES::
         
@@ -277,32 +277,41 @@ def createline(ptsdict,ll,lineorders2=None):
         x_i,y_i = scipy.interpolate.splev(np.linspace(0,1,100),tck)
     return sortedx,sortedy,x_i,y_i
 
-def slp(M1):
+def slp(M1,pos_dict=None):
     """
     Return simple matroid, loops and parallel elements of given matroid
     
     INPUT:
     
     - ``M1`` -- A matroid.
+    - ``pos_dict`` -- (optional) A dictionary containing non loopy elements of ``M`` as keys and their (x,y) positions
+    as keys. While simplifying the matroid, all except one element in a parallel class that is also specified in ``pos_dict``
+    will be retained. 
     
     OUTPUT:
     
     A tuple containing 3 elements in this order:
-    1. Simple matroid corresponding to M1
+    1. Simple matroid corresponding to ``M1``
     2. Loops of matroid ``M1``
     3. Elements that are in `M1.groundset()` but not in ground set of 1. or in 2.
     
     EXAMPLES::
         
         sage: from sage.matroids import matroids_plot_helpers
-        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0],[0, 0, 1, 1, 1, 0, 1,0,0]])
-        sage: [M1,L,P]=matroids_plot_helpers.slp(M)
-        sage: print L,P
-        set([7]) set([8])
-        sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0],[0, 0, 1, 1, 1, 0, 1,0,0]])
-        sage: [M1,L,P]=matroids_plot_helpers.slp(M)
-        sage: M1.is_simple()
+        sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
+        sage: [M,L,P]=matroids_plot_helpers.slp(M1)
+        sage: M.is_simple()
         True
+        sage: [L,P]
+        [{7}, {8, 9, 10}]
+        
+        sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
+        sage: posdict= {8: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),  4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666)}
+        sage: [M,L,P]=matroids_plot_helpers.slp(M1,pos_dict=posdict)
+        sage: M.is_simple()
+        True
+        sage: [L,P]
+        [{7}, {0, 9, 10}]
     
     .. NOTE::
 
@@ -313,17 +322,25 @@ def slp(M1):
     sg = sorted(M1.simplify().groundset())
     nP = L|set(M1.simplify().groundset())
     P = set(M1.groundset())-nP
-    return [M1.delete(L|P),L,P]
+    if pos_dict != None:
+        pcls=list(set([frozenset(set(M1.closure([p]))-L) for p in list(P)]))
+        newP=[]
+        for pcl in pcls:
+            pcl_in_dict=[p for p in list(pcl) if p in pos_dict.keys()]
+            newP.extend(list(pcl-set([pcl_in_dict[0]])))
+        return [M1.delete(L|set(newP)),L,set(newP)]
+    else:
+        return [M1.delete(L|P),L,P]
     
-def addlp(M,L,P,ptsdict,G=None):
+def addlp(M,M1,L,P,ptsdict,G=None):
     """
     Return a graphics object containing loops (in inset) and parallel elements of matroid 
     
     INPUT:
     
     - ``M`` -- A matroid.
-    - ``L`` -- List of labels of elements in ``M.groundset()`` that are loops of matroid ``M``
-    - ``P`` -- List of labels of elements in ``M.groundset()`` not in ``M.simplify.groundset()`` or ``L`` 
+    - ``L`` -- List of elements in ``M.groundset()`` that are loops of matroid ``M``
+    - ``P`` -- List of elements in ``M.groundset()`` not in ``M.simplify.groundset()`` or ``L`` 
     - ``ptsdict`` -- A dictionary containing elements in ``M.groundset()`` not necessarily containing elements of ``L``
     - ``G`` -- (optional) A sage graphics object to which loops and parallel elements of matroid `M` added 
     
@@ -335,7 +352,7 @@ def addlp(M,L,P,ptsdict,G=None):
         sage: from sage.matroids import matroids_plot_helpers
         sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0],[0, 0, 1, 1, 1, 0, 1,0,0]])
         sage: [M1,L,P]=matroids_plot_helpers.slp(M)
-        sage: G=matroids_plot_helpers.addlp(M,L,P,{0:(0,0)})
+        sage: G=matroids_plot_helpers.addlp(M,M1,L,P,{0:(0,0)})
         sage: G.show(axes=False)
         sage: sage: G.show(axes=False)
     
@@ -346,7 +363,7 @@ def addlp(M,L,P,ptsdict,G=None):
     """
     if G == None:
         G = Graphics()
-    M1 = M.simplify()
+    #M1 = M.simplify()
     # deal with loops
     if len(L) > 0:
         loops = L
@@ -388,8 +405,8 @@ def line_hasorder(l,lodrs=None):
     
     INPUT:
     
-    - ``l`` -- A line containing specified as a list of labels
-    - ``lordrs`` -- (optional) A list of lists each specifying an order on the subset of labels corresponding to that list
+    - ``l`` -- A line specified as a list of ground set elements
+    - ``lordrs`` -- (optional) A list of lists each specifying an order on the subset of ground set elements that may or may not correspond to a line in geometric representation
      
     OUTPUT:
     
@@ -419,17 +436,17 @@ def line_hasorder(l,lodrs=None):
 
 def lineorders_union(lineorders1,lineorders2):
     """
-    Return a list of ordered lists labels that corresponds to union of two sets of ordered lists of labels in a sense
+    Return a list of ordered lists of ground set elements that corresponds to union of two sets of ordered lists of ground set elements in a sense
     
     INPUT:
     
-    - ``lineorders1`` -- A list of ordered lists specifying orders on sets of labels
-    - ``lineorders2`` -- A list of ordered lists specifying orders on sets of labels  
+    - ``lineorders1`` -- A list of ordered lists specifying orders on subsets of ground set.
+    - ``lineorders2`` -- A list of ordered lists specifying orders subsets of ground set. 
     
     OUTPUT:
     
-    A list of ordered lists of labels that are (setwise) in only one of ``lineorders1`` or ``lineorders2`` 
-    along with the ones in lineorder2 that are setwise equal to any list in lineorders1  
+    A list of ordered lists of ground set elements that are (setwise) in only one of ``lineorders1`` or ``lineorders2`` 
+    along with the ones in lineorder2 that are setwise equal to any list in lineorders1.   
     
     EXAMPLES::
     
@@ -453,24 +470,70 @@ def lineorders_union(lineorders1,lineorders2):
     else:
         return None 
     
+def posdict_is_sane(M1,pos_dict):
+    """
+    Return a boolean establishing sanity of ``posdict`` wrt matroid ``M``
+    
+    INPUT:
+    
+    - ``M1`` -- A matroid.
+    - ``posdict`` -- A dictionary mapping ground set elements to (x,y) positions
+    
+    OUTPUT:
+    
+    A boolean that is ``True`` if posdict indeed has all the required elements to plot the geometric elements, otherwise ``False``
+    
+    EXAMPLES:
+        
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
+        sage: pos_dict= {0: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),  4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666)}
+        sage: matroids_plot_helpers.posdict_is_sane(M1,pos_dict)
+        True
+        sage: pos_dict= {1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),  4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666)}
+        sage: matroids_plot_helpers.posdict_is_sane(M1,pos_dict)
+        False
+     
+    
+    .. NOTE::
+
+            This method does NOT do any checks. ``M1`` is assumed to be a matroid and ``posdict`` is assumed to be a dictionary
+    """
+    L = set(M1.loops())
+    sg = sorted(M1.simplify().groundset())
+    nP = L|set(M1.simplify().groundset())
+    P = set(M1.groundset())-nP
+    #pcls=list(set([set(M1.closure([p]))-L for p in list(P)]))
+    pcls=list(set([frozenset(set(M1.closure([p]))-L) for p in list(P)]))
+    for pcl in pcls:
+        pcl_list=list(pcl)
+        if not any([x in pos_dict.keys() for x in pcl_list]):
+            return False
+    allP=[]
+    for pcl in pcls:
+            allP.extend(list(pcl))
+    if not all([x in pos_dict.keys() for x in list(set(M1.groundset())-(L|set(allP)))]):
+            return False
+    return True
     
     
     
     
     
-    
-def geomrep(M1,B1=None,lineorders1=None):
+def geomrep(M1,B1=None,lineorders1=None,pd=None,sp=False):
     """
     Return a sage graphics object containing geometric representation of matroid M1
     
     INPUT:
     
     - ``M1`` -- A matroid.
-    - ``B1`` -- (optional) A list of labels in ``M1.groundset()`` that correspond to a basis 
+    - ``B1`` -- (optional) A list of elements in ``M1.groundset()`` that correspond to a basis 
     of ``M1`` and will be placed as vertices of the triangle in the geometric representation of ``M1``
     - ``lineorders1`` -- (optional) A list of ordered lists of elements of ``M1.grondset()`` such that 
     if a line in geometric representation is setwise same as any of these then points contained will be
     traversed in that order thus overriding internal order deciding heuristic.
+    - ``pd`` - (optional) A dictionary mapping ground set elements to their (x,y) positions.
+    - ``sp`` -- (optional) If True, a positioning dictionary and line orders will be placed in ``M._cached_info``
     
     OUTPUT:
     
@@ -494,7 +557,7 @@ def geomrep(M1,B1=None,lineorders1=None):
         B1 = list(M1.basis())
     G = Graphics()
     # create lists of loops and parallel elements and simplify given matroid
-    [M,L,P] = slp(M1)
+    [M,L,P] = slp(M1,pos_dict=pd)
     M._cached_info = M1._cached_info
     if M.rank()==1:
         if M._cached_info != None and 'positions' in M._cached_info.keys() and M._cached_info['positions'] != None:
@@ -526,7 +589,8 @@ def geomrep(M1,B1=None,lineorders1=None):
             for k in range(len(bline)):
                 cc = (float(1)/interval)*(k+1)
                 pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],cc*lpt[1]+(1-cc)*rpt[1])
-            M._cached_info['positions']=pts2
+            if sp == True:
+                M._cached_info['positions']=pts2
             
         bline.extend(B1)
         ptsx,ptsy,x_i,y_i = createline(pts2,bline,lineorders1)
@@ -559,9 +623,10 @@ def geomrep(M1,B1=None,lineorders1=None):
         for i in pts2:
             pt = list(pts2[i])
             G += text(i,(float(pt[0]), float(pt[1])),color='white',fontsize=13)
-        M1._cached_info['positions']=pts2
-        M1._cached_info['lineorders']=lineorders1
+        if sp == True:
+            M1._cached_info['positions']=pts2
+            M1._cached_info['lineorders']=lineorders1
     #deal with loops and parallel elements 
-    G = addlp(M1,L,P,pts2,G)
+    G = addlp(M1,M,L,P,pts2,G)
     G.axes(False)
     return G

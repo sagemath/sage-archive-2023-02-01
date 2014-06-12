@@ -124,7 +124,7 @@ class NormalFormGame(Game):
         if matrix1 and game:
             raise ValueError("Can't input both a matrix and a game.")
         if matrix1:
-            g = Game.new_table([len(matrix1.rows()), len(matrix2.rows())])
+            g = Game.new_table([len(matrix1.rows()), len(matrix1.rows())])
         elif game:
             g = game
         else:
@@ -167,6 +167,30 @@ class NormalFormGame(Game):
     def matrix_to_game(self):
         r"""
         Builds a game based on ``self.matrix1`` and ``self.matrix2``
+
+        EXAMPLES:
+
+        A zero-sum game. ::
+
+            sage: single = matrix([[1, 0], [-2, 3]])
+            sage: zero_game = NormalFormGame(matrix1=single)
+            sage: zero_game.matrix1
+            [ 1  0]
+            [-2  3]
+            sage: zero_game.matrix2
+            [-1  0]
+            [ 2 -3]
+
+        TESTS:
+
+        Raise error if matrices are not the same size. ::
+
+            sage: p1 = matrix([[1, 2], [3, 4]])
+            sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
+            sage: error = NormalFormGame(matrix1=p1, matrix2=p2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Matrices must be the same size.
         """
         if self.matrix1.dimensions() != self.matrix2.dimensions():
             raise ValueError("Matrices must be the same size.")

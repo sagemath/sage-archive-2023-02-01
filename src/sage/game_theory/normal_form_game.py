@@ -36,15 +36,15 @@ class NormalFormGame(Game):
     A basic 2-player game constructed from matrices. ::
 
         sage: a = matrix([[1, 2], [3, 4]])
-        sage:     b = matrix([[3, 3], [1, 4]])
+        sage: b = matrix([[3, 3], [1, 4]])
         sage: NormalFormGame(matrix1=a, matrix2=b)
         NFG 1 R "" { "1" "2" }
-
+        <BLANKLINE>
         { { "1" "2" }
         { "1" "2" }
         }
         ""
-
+        <BLANKLINE>
         {
         { "" 1, 3 }
         { "" 3, 1 }

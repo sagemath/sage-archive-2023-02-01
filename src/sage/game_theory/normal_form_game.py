@@ -12,6 +12,7 @@ from itertools import product
 from sage.misc.package import is_package_installed
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
+from sage.matrix.constructor import matrix
 
 
 class NormalFormGame(Game):
@@ -136,8 +137,11 @@ class NormalFormGame(Game):
         r"""
         Initializes a Normal Form game and checks the inputs.
         """
-
-        if not matrix1:
+        self.matrix1 = None
+        self.matrix2 = None
+        if not matrix1 and not game:
+            pass
+        elif not matrix1 and game:
             self.to_matrix()
         else:
             self.matrix1 = matrix1
@@ -152,8 +156,13 @@ class NormalFormGame(Game):
                     self[k][1] = int(self.matrix2[k])
 
     def to_matrix(self):
-        # add code here
-        return
+        if len(self.players) != 2:
+            raise ValueError("Only available for games with 2 players.")
+        self.matrix1 = matrix([])
+        self.matrix2 = matrix([])
+        for k in list(self.contingencies):
+                self.matrix1[k] = self[k][0]
+                self.matrix2[k] = self[k][1]
 
     def obtain_Nash(self, algorithm="LCP"):
         r"""

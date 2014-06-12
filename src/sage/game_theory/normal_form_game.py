@@ -26,19 +26,21 @@ class NormalFormGame(Game):
 
     def __init__(self, matrix1=False, matrix2=False, game=False ):
 
-        self.matrix1 = matrix1
-        if not matrix2:
-            self.matrix2 = - self.matrix1
-        else:
-            self.matrix2 = matrix2
+        if game and len(game.players) <= 2:
+            # construct 2 matrices
+            pass
+        elif not game:
+            self.matrix1 = matrix1
+            if not matrix2:
+                self.matrix2 = - self.matrix1
+            else:
+                self.matrix2 = matrix2
 
-        if matrix1 and matrix2:
-            p1_strats = range(len(matrix1.rows()))
-            p2_strats = range(len(matrix1.columns()))
-
+            p1_strats = range(len(self.matrix1.rows()))
+            p2_strats = range(len(self.matrix1.columns()))
             for k in product(p1_strats, p2_strats):
-                    self[k][0] = int(matrix1[k])
-                    self[k][1] = int(matrix2[k])
+                    self[k][0] = int(self.matrix1[k])
+                    self[k][1] = int(self.matrix2[k])
 
     def obtain_Nash(self, algorithm="LCP"):
         r"""
@@ -79,13 +81,6 @@ class NormalFormGame(Game):
         #     # Run lrs (Have something simple that takes opposite of matrices as input to lrs)
         #     return vector(1/3,1/3,1/3),vector(1/2,1/2)
         # raise NotImplementedError("%s is not yet implemented" % algorithm)
-
-
-    def game_matrix(game):
-       """
-       Creates 2 Matrices based on a Gambit Game object.
-       """
-       # check that it is only two players.
 
 
 def test_game():

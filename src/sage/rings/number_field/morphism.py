@@ -5,6 +5,8 @@ This module provides classes to represent ring homomorphisms between number
 fields (i.e. field embeddings).
 """
 
+from sage.misc.cachefunc import cached_method
+
 from sage.rings.homset import RingHomset_generic
 from sage.rings.morphism import RingHomomorphism_im_gens, RingHomomorphism
 from sage.rings.integer import Integer
@@ -133,14 +135,11 @@ class NumberFieldHomset(RingHomset_generic):
             sage: End(K).order()
             6
         """
-        try:
-            return self.__order
-        except AttributeError:
-            pass
-        n = len(self.list())
-        self.__order = n
-        return n
+        return Integer(len(self.list()))
 
+    cardinality = order
+
+    @cached_method
     def list(self):
         """
         Return a list of all the elements of self.
@@ -183,10 +182,6 @@ class NumberFieldHomset(RingHomset_generic):
               Defn: a |--> 1/2*a*b - 1/2*a
             ]
         """
-        try:
-            return self.__list
-        except AttributeError:
-            pass
         D = self.domain()
         C = self.codomain()
         if D.degree().divides(C.absolute_degree()):
@@ -200,9 +195,7 @@ class NumberFieldHomset(RingHomset_generic):
             v = [D.hom([r], codomain=C, check=False) for r in roots]
         else:
             v = []
-        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
-        self.__list = v
-        return v
+        return Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
 
     def __getitem__(self, n):
         r"""
@@ -215,7 +208,6 @@ class NumberFieldHomset(RingHomset_generic):
               Defn: zeta37 |--> zeta37^4
         """
         return self.list()[n]
-
 
 class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
     def __invert__(self):

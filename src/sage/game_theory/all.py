@@ -1,5 +1,4 @@
+from sage.misc.package import is_package_installed
 from cooperative_game import CooperativeGame
-try:
+if is_package_installed('gambit'):
     from normal_form_game import *
-except:
-    pass

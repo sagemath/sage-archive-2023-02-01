@@ -1,2 +1,5 @@
 from cooperative_game import CooperativeGame
-from normal_form_game import *
+try:
+    from normal_form_game import *
+except:
+    pass

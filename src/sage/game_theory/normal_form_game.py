@@ -30,7 +30,7 @@ class NormalFormGame(Game):
                     Normal Form game.
     - ``matrix2`` - a matrix representing the payoff for player2 in a 2 player
                     Normal Form game.
-    - ``game`` - an instance of gambit.Game.
+    - ``game`` - an instance of gambit.Game().
 
     EXAMPLES:
 
@@ -154,7 +154,9 @@ class NormalFormGame(Game):
     def game_to_matrix(self):
         r"""
         Sets ``self.matrix1`` and ``self.matrix2`` to be the payoff matrices
-        associated with current game.
+        associated with current game. This gets called at ``__init__``, but if
+        ``self`` changes at any point, ``game_to_matrix`` can be called to
+        update those changes.
 
         EXAMPLES:
 
@@ -198,7 +200,9 @@ class NormalFormGame(Game):
 
     def matrix_to_game(self):
         r"""
-        Builds a game based on ``self.matrix1`` and ``self.matrix2``
+        Builds a game based on ``self.matrix1`` and ``self.matrix2``. This
+        gets called at ``__init__``, but it either matrix gets altered it can
+        be called again to update ``self``.
 
         EXAMPLES:
 
@@ -271,8 +275,15 @@ class NormalFormGame(Game):
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
-            pass
+            return _solve_lrs()
 
         if algorithm == "support enumeration":
             raise NotImplementedError("Support enumeration is not implemented "
                                       "yet")
+            return _solve_enumeration()
+
+    def _solve_lrs(self):
+        pass
+
+    def _solve_enumeration(self):
+        pass

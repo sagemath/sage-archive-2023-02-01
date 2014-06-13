@@ -12,7 +12,7 @@ from itertools import product
 from sage.misc.package import is_package_installed
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
-from sage.matrix.constructor import matrix, copy, QQ
+from sage.matrix.constructor import matrix, copy
 
 
 class NormalFormGame(Game):
@@ -66,19 +66,19 @@ class NormalFormGame(Game):
     (Taken from [GAMBIT WEBSITE]) ::
 
         sage: gam = Game.new_table([2, 2])
-        sage: g = NormalFormGame(game=gam)
-        sage: g[int(0), int(0)][int(0)] = int(8)
-        sage: g[int(0), int(0)][int(1)] = int(8)
-        sage: g[int(0), int(1)][int(0)] = int(2)
-        sage: g[int(0), int(1)][int(1)] = int(10)
-        sage: g[int(1), int(0)][int(0)] = int(10)
-        sage: g[int(1), int(0)][int(1)] = int(2)
-        sage: g[int(1), int(1)][int(0)] = int(5)
-        sage: g[int(1), int(1)][int(1)] = int(5)
+        sage: gam[int(0), int(0)][int(0)] = int(8)
+        sage: gam[int(0), int(0)][int(1)] = int(8)
+        sage: gam[int(0), int(1)][int(0)] = int(2)
+        sage: gam[int(0), int(1)][int(1)] = int(10)
+        sage: gam[int(1), int(0)][int(0)] = int(10)
+        sage: gam[int(1), int(0)][int(1)] = int(2)
+        sage: gam[int(1), int(1)][int(0)] = int(5)
+        sage: gam[int(1), int(1)][int(1)] = int(5)
         sage: gam.title = "A prisoner's dilemma game"
         sage: gam.players[int(0)].label = "Alphonse"
         sage: gam.players[int(1)].label = "Gaston"
-        sage: gam
+        sage: g = NormalFormGame(game=gam)
+        sage: g
         NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
         <BLANKLINE>
         { { "1" "2" }

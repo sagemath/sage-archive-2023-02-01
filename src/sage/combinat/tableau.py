@@ -3864,7 +3864,7 @@ class Tableaux(UniqueRepresentation, Parent):
         else:
             n = None
 
-        if n == None:
+        if n is None:
             return Tableaux_all()
         else:
             if not isinstance(n,(int, Integer)) or n < 0:

@@ -103,6 +103,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.sage_object import SageObject
 
+import sage.rings.number_field.number_field_element
 import sage.rings.number_field.number_field as number_field
 import sage.rings.arith as arith
 import sage.rings.all as rings
@@ -2596,7 +2597,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
                 elif isinstance(f, BinaryQF):
                     # convert from BinaryQF
                     f = tuple(f)
-                elif rings.is_NumberFieldElement(f):
+                elif sage.rings.number_field.number_field_element.is_NumberFieldElement(f):
                     # tau = number field element
                     g = f.minpoly()
                     if g.degree() != 2:

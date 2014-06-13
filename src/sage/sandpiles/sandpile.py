@@ -4651,7 +4651,7 @@ def sandlib(selector=None):
                            }
                   },
     }
-    if selector==None:
+    if selector is None:
         print
         print '  Sandpiles in the sandlib:'
         for i in sandpiles:

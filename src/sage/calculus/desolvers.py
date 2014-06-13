@@ -541,7 +541,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 #    name0 = vars[0]._repr_()[0:(len(vars[0]._repr_())-2-len(str(vars[1])))]
 #    name1 = str(vars[1])
 #    #maxima("de:"+de+";")
-#    if ics!=None:
+#    if ics is not None:
 #        ic0 = maxima("ic:"+str(vars[1])+"="+str(ics[0]))
 #        d = len(ics)
 #        for i in range(d-1):
@@ -635,7 +635,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     """
     #This is the original code from David Joyner (inputs and outputs strings)
     #maxima("de:"+de._repr_()+"=0;")
-    #if ics!=None:
+    #if ics is not None:
     #    d = len(ics)
     #    for i in range(0,d-1):
     #        ic = "atvalue(diff("+vars[1]+"("+vars[0]+"),"+str(vars[0])+","+str(i)+"),"+str(vars[0])+"="+str(ics[0])+","+str(ics[1+i])+")"
@@ -669,7 +669,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     if str(soln).strip() == 'false':
         raise NotImplementedError("Maxima was unable to solve this ODE.")
     soln=soln.sage()
-    if ics!=None:
+    if ics is not None:
         d = len(ics)
         for i in range(0,d-1):
             soln=eval('soln.substitute(diff(dvar,ivar,i)('+str(ivar)+'=ics[0])==ics[i+1])')
@@ -1489,7 +1489,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
     from sage.ext.fast_eval import fast_float
     from sage.calculus.functions import jacobian
 
-    if ivar==None:
+    if ivar is None:
         if len(dvars)==0 or len(dvars)==1:
             if len(dvars)==1:
                 des=des[0]

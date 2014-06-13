@@ -92,13 +92,32 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         sage: are_mutually_orthogonal_latin_squares([m2,m3])
         True
         sage: are_mutually_orthogonal_latin_squares([m1,m2,m3], verbose=True)
-        Matrices 0 and 2 are not orthogonal
+        Squares 0 and 2 are not orthogonal
         False
 
         sage: m = designs.mutually_orthogonal_latin_squares(8,7)
         sage: are_mutually_orthogonal_latin_squares(m)
         True
+
+    TESTS:
+
+    Not a latin square::
+
+        sage: m1 = matrix([[0,1,0],[2,0,1],[1,2,0]])
+        sage: m2 = matrix([[0,1,2],[1,2,0],[2,0,1]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2], verbose=True)
+        Matrix 0 is not row latin
+        False
+        sage: m1 = matrix([[0,1,2],[1,0,2],[1,2,0]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2], verbose=True)
+        Matrix 0 is not column latin
+        False
+        sage: m1 = matrix([[0,0,0],[1,1,1],[2,2,2]])
+        sage: m2 = matrix([[0,1,2],[0,1,2],[0,1,2]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2])
+        False
     """
+
     if not l:
         raise ValueError("the list must be non empty")
 
@@ -108,6 +127,17 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         if verbose:
             print "Not all matrices are square matrices of the same dimensions"
         return False
+
+    # Check that all matrices are latin squares
+    for i,M in enumerate(l):
+        if any(len(set(R)) != n for R in M):
+            if verbose:
+                print "Matrix {} is not row latin".format(i)
+            return False
+        if any(len(set(R)) != n for R in zip(*M)):
+            if verbose:
+                print "Matrix {} is not column latin".format(i)
+            return False
 
     from designs_pyx import is_orthogonal_array
     return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
@@ -235,7 +265,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(6, 4)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build these MOLS!
+        NotImplementedError: I don't know how to build 4 MOLS of order 6
 
     TESTS:
 
@@ -309,7 +339,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         else:
             if existence:
                 return False
-            raise EmptySetError("These MOLS do not exist!")
+            raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
@@ -327,7 +357,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build these MOLS!")
+        raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))
 
     if check:
         assert are_mutually_orthogonal_latin_squares(matrices)

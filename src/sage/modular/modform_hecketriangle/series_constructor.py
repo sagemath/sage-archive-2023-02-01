@@ -69,9 +69,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             except TypeError:
                 group = HeckeTriangleGroup(group.n())
         prec=ZZ(prec)
-        ## FIXME: Don't you need this assumption -> raise ValueError(...)
-        #if (prec<1):
-        #    raise Exception("prec must be an Integer >=1")
+        # We don't need this assumption the precision may in principle also be negative.
+        # if (prec<1):
+        #     raise Exception("prec must be an Integer >=1")
 
         fix_d = bool(fix_d)
         if (fix_d):

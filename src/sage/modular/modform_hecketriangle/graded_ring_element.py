@@ -1084,11 +1084,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         return self.parent().graded_ring()(self._rat)
 
-    def reduce(self):
+    def reduce(self, force=False):
         r"""
         In case ``self.parent().has_reduce_hom() == True``
-        and ``self`` is homogeneous. The converted element
-        lying in the corresponding homogeneous_space is returned.
+        (or ``force==True``) and ``self`` is homogeneous
+        the converted element lying in the corresponding
+        homogeneous_space is returned.
         
         Otherwise ``self`` is returned.
 
@@ -1103,32 +1104,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             QuasiModularForms(n=7, k=2, ep=-1) over Integer Ring
             sage: ModularFormsRing(n=7)(x+1).reduce().parent()
             ModularFormsRing(n=7) over Integer Ring
-        """
-
-        if self.parent().has_reduce_hom() and self.is_homogeneous():
-            return self.parent().homogeneous_space(self._weight, self._ep)(self._rat)
-        else:
-            return self
-
-    ## FIXME: Better use keyword in former method and check if (self.parent().has_reduced_hom() or force) and self.is_homogenous():
-    def force_reduce(self):
-        r"""
-        If ``self`` is homogeneous. The converted element
-        lying in the corresponding homogeneous_space is returned.
-        
-        Otherwise ``self`` is returned.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
-            sage: E2 = ModularFormsRing(n=7).E2().force_reduce()
+            sage: E2 = ModularFormsRing(n=7).E2().reduce(force=True)
             sage: E2.parent()
             QuasiModularForms(n=7, k=2, ep=-1) over Integer Ring
-            sage: ModularFormsRing(n=7)(x+1).force_reduce().parent()
+            sage: ModularFormsRing(n=7)(x+1).reduce(force=True).parent()
             ModularFormsRing(n=7) over Integer Ring
         """
 
-        if self.is_homogeneous():
+        if (force or self.parent().has_reduce_hom()) and self.is_homogeneous():
             return self.parent().homogeneous_space(self._weight, self._ep)(self._rat)
         else:
             return self
@@ -1225,11 +1208,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             #if (prec <1):
             #    print "Warning: non-positiv precision!"
             if not (fix_d or (set_d is not None) or self.base_ring().is_exact()):
-                ## FIXME: Use from warnings import warn
-                print "Warning: For non-exact base rings it is strongly recommended to fix/set d!"
+                from warnings import warn
+                warn("For non-exact base rings it is strongly recommended to fix/set d!")
             if ((not self.is_zero()) and prec <= self.order_inf()):
-                ## FIXME: Use from warnings import warn
-                print "Warning: precision too low to determine any coefficient!"
+                from warnings import warn
+                warn("precision too low to determine any coefficient!")
 
             # This should _exactly_ ensure the given precision O(q^prec):
             prec += self.denominator().order_inf() + max(-self.order_inf(), 0)
@@ -1531,19 +1514,18 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         tau = tau.n(num_prec)
         (x,y,z,d) = self.parent().rat_field().gens()
 
-        ## FIXME: make arithmetic expressions more readable (-> Sage style guide)
         if (self.is_homogeneous() and self.is_modular()):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
-            A, w, aut_factor = self.group().get_FD(tau,self.force_reduce().parent().aut_factor)
+            A, w, aut_factor = self.group().get_FD(tau,self.reduce(force=True).parent().aut_factor)
             if (type(q_exp) == LaurentSeries):
-                return q_exp.laurent_polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))*aut_factor
+                return q_exp.laurent_polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
             else:
-                return q_exp.polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))*aut_factor
+                return q_exp.polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
         elif (self._rat == z):
-            E2 = self.parent().graded_ring().E2().force_reduce()
+            E2 = self.parent().graded_ring().E2().reduce(force=True)
             A, w, aut_factor = self.group().get_FD(tau,E2.parent().aut_factor)
-            E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2*pi*i).n(num_prec)/self.group().lam()*w))
-            E2_cor_term = 4*self.group().lam()/(2*pi*i).n(num_prec)*self.hecke_n()/(self.hecke_n()-2) * A[1][0]*(A[1][0]*w + A[1][1])
+            E2_wvalue = E2.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec).polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w))
+            E2_cor_term = 4 * self.group().lam() / (2*pi*i).n(num_prec) * self.hecke_n() / (self.hecke_n()-2) * A[1][0] * (A[1][0]*w + A[1][1])
             return E2_wvalue*aut_factor + E2_cor_term
         else:
             f_rho = self.parent().graded_ring().f_rho()

@@ -168,7 +168,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
         try:
             while (finf_pol.divides(denom)):
                 # a simple "denom /= finf_pol" is strangely not enough for non-exact rings
-                ## FIXME: for nonexact rings divisibility doesn't make sense in a strict way
+                # and dividing would/may result with an element of the quotient ring of the polynomial ring
                 denom = denom.quo_rem(finf_pol)[0]
                 denom = R(denom)
         except TypeError:

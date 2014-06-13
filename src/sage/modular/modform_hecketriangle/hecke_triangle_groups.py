@@ -152,12 +152,12 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
         return AlgebraicField()(exp(pi/self._n*i))
 
-    ## FIXME: Explain (briefly) in documentation what alpha is.  Same for beta.
     @cached_method
     def alpha(self):
         r"""
         Return the parameter ``alpha`` of ``self``.
-        It is used in the calculation of the Hauptmodul of ``self``.
+        This is the first parameter of the hypergeometric series used
+        in the calculation of the Hauptmodul of ``self``.
 
         EXAMPLES::
 
@@ -180,7 +180,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
     def beta(self):
         r"""
         Return the parameter ``beta`` of ``self``.
-        It is used in the calculation of the Hauptmodul of ``self``.
+        This is the second parameter of the hypergeometric series used
+        in the calculation of the Hauptmodul of ``self``.
 
         EXAMPLES::
 

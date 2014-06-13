@@ -283,10 +283,9 @@ class QuasiModularForms(FormsSpace_abstract, Module, UniqueRepresentation):
         n  = self.hecke_n()
         k  = self.weight()
         ep = self.ep()
-        ## FIXME: rearrange expression according to style guide
         return sum([ 
-            max( QQ( (k - 2*r)*(n - 2)/(4*n) - (1 - ep*(-1)**r)/4 ).floor() + 1, 0)\
-            for r in range(ZZ(0), QQ(k/ZZ(2)).floor() + 1) ])
+            max(QQ((k-2*r)*(n-2)/(4*n) - (1-ep*(-1)**r)/4).floor() + 1, 0)\
+            for r in range(ZZ(0), QQ(k / ZZ(2)).floor() + 1)])
 
     # TODO: it is possible to define coordinate_vector!
     # for this a routine needs to be written to additively decompose
@@ -851,13 +850,18 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         self._analytic_type=self.AT([])
         self._module = FreeModule(self.coeff_ring(), self.dimension())
 
-    ## FIXME: Add missing INPUT:
     def _change_degree(self, k, ep):
         r"""
         Return the Zeroform space with a different weight ``k`` and multiplier ``ep``
         for the same group and base_ring.
 
         All those spaces coerce into each other.
+
+        INPUT:
+
+        - ``k``   -- A rational number, the weight.
+
+        - ``ep``  -- ``1`` or ``-1``, the multiplier.
 
         EXAMPLES::
 
@@ -900,7 +904,6 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
 
         return 0
 
-    ## FIXME: Add missing INPUT:
     @cached_method
     def coordinate_vector(self, v):
         r"""
@@ -910,6 +913,10 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         Since this is the zero module which only contains
         the zero form the trivial vector in the trivial
         module of dimension ``0`` is returned.
+
+        INPUT:
+
+        - ``v``    - An element of ``self``, i.e. in this case the zero vector.
 
         EXAMPLES::
  

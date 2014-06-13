@@ -68,7 +68,7 @@ All classes and functions are also individually documented (with doctest example
       sage: from sage.modular.modform_hecketriangle.analytic_type import AnalyticType
       sage: AnalyticType()(["quasi", "cusp"])
       quasi cuspidal
-                  
+
 
 - **Modular form (for Hecke triangle groups):**
   A function of some analytic type which transforms like a modular form

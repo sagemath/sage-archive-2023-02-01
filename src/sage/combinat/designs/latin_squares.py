@@ -310,7 +310,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
         ]
     """
-    from sage.combinat.designs.orthogonal_arrays import orthogonal_array, _set_OA_cache, _get_OA_cache
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array, _OA_cache_set, _OA_cache_get, _OA_cache_construction_available
     from sage.matrix.constructor import Matrix
     from sage.rings.arith import factor
     from database import MOLS_constructions
@@ -327,8 +327,10 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         if existence:
             return k
 
-    if existence and not who_asked and _get_OA_cache(k+2,n) is not None:
-        return _get_OA_cache(k+2,n)
+    if existence and not who_asked and _OA_cache_get(k+2,n) is not None:
+        return _OA_cache_get(k+2,n)
+
+    may_be_available = _OA_cache_construction_available(k+2,n) is not False
 
     if n == 1:
         if existence:
@@ -340,8 +342,8 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
             return False
         raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
 
-    elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
-        _set_OA_cache(MOLS_constructions[n][0]+2,n,True)
+    elif may_be_available and n in MOLS_constructions and k <= MOLS_constructions[n][0]:
+        _OA_cache_set(MOLS_constructions[n][0]+2,n,True)
         if existence:
             return True
         _, construction = MOLS_constructions[n]
@@ -375,7 +377,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
 
     else:
         if not who_asked:
-            _set_OA_cache(k+2,n,Unknown)
+            _OA_cache_set(k+2,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))

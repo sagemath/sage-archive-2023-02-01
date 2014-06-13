@@ -136,10 +136,15 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         if (super(FormsRingElement, self).__eq__(other)):
             return True
         elif (isinstance(other, FormsRingElement)):
-            return (self.group() == other.group() and self.rat() == other.rat())
+            if (self.group() == other.group()):
+                if (self.group().is_arithmetic()):
+                    return (self.rat().subs(d=self.group().dvalue()) == other.rat().subs(d=other.group().dvalue()))
+                else:
+                    return (self.rat() == other.rat())
+            else:
+                return False
         else:
             return False
-        ## FIXME: If d is a rational number, plug it in to check for equality.
 
     def _repr_(self):
         r"""

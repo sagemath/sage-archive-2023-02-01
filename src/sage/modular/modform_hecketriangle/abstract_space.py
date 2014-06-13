@@ -154,7 +154,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF([0,1]) == MF(Delta)
             True
-            sage: MF([1,0]) == MF(x^3) - 720*MF(Delta) # FIXME: this should give True, the result is False because d!=1/1728 but a formal parameter
+            sage: MF([1,0]) == MF(x^3) - 720*MF(Delta)
             True
 
             sage: vec = MF(Delta).coordinate_vector()

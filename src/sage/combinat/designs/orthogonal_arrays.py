@@ -1005,7 +1005,7 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: designs.incomplete_orthogonal_array(5,10,[1,1,1])
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build this orthogonal array!
+        NotImplementedError: I don't know how to build an OA(5,10)!
         sage: designs.incomplete_orthogonal_array(4,3,[1,1])
         Traceback (most recent call last):
         ...
@@ -1076,18 +1076,8 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
             return True
         independent_set = OA_find_disjoint_blocks(OA,k,n,x)
 
-    elif orthogonal_array(k,n,existence=existence) is False:
-        if existence:
-            return False
-        raise EmptySetError("There is no OA({},{}) and hence no OA({},{})-{}.OA({},1)".format(k,n,k,n,k))
-
-    elif orthogonal_array(k,n,existence=existence) is Unknown:
-        if existence:
-            return Unknown
-        raise NotImplementedError("I do not know how to build this OA({},{})-{}.OA({},1)".format(k,n,k))
-
     else:
-        raise RuntimeError("This should not happen!")
+        return orthogonal_array(k,n,existence=existence)
 
     assert x == len(independent_set)
 
@@ -1444,12 +1434,12 @@ def OA_from_PBD(k,n,PBD, check=True):
         sage: is_orthogonal_array(oa, 3, 10)
         True
 
-    But we can not build an `OA(4,10)`::
+    But we cannot build an `OA(4,10)`::
 
         sage: OA_from_PBD(4,10,pbd)
         Traceback (most recent call last):
         ...
-        EmptySetError: The construction is impossible since there is no OA(4,3)-3.OA(4,1)
+        EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
 
     Or an `OA(6,10)`::
 
@@ -1465,14 +1455,7 @@ def OA_from_PBD(k,n,PBD, check=True):
         _check_pbd(PBD, n, K)
 
     # Building the IOA
-    OAs = {}
-    for i in K:
-        if incomplete_orthogonal_array(k,i,(1,)*i,existence=True) is False:
-            raise EmptySetError("The construction is impossible since there is no OA({},{})-{}.OA({},1)".format(k,i,i,k))
-        elif incomplete_orthogonal_array(k,i,(1,)*i,existence=True) is Unknown:
-            raise NotImplementedError("I was not able to build an OA({},{})-{}.OA({},1)".format(k,i,i,k))
-        else:
-            OAs[i] = incomplete_orthogonal_array(k,i,(1,)*i)
+    OAs = {i:incomplete_orthogonal_array(k,i,(1,)*i) for i in K}
 
     OA = []
     # For every block B of the PBD we add to the OA rows covering all pairs of

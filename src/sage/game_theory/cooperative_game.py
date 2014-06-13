@@ -4,7 +4,7 @@ Co-operative games with N players.
 This module implements a **basic** implementation of a characteristic function
 cooperative game. The main contribution is a class for a characteristic
 function game. Methods to calculate the Shapley value (a fair way of sharing
-common resources: https://www.youtube.com/watch?v=aThG4YAFErw) as well as
+common resources: (see 'Computational aspects of cooperative game theory' by Chalkiadakis et al.)  as well as
 test properties of the game (monotonicity, super additivity) are also included.
 
 AUTHOR:
@@ -44,13 +44,13 @@ class CooperativeGame(SageObject):
     EXAMPLES:
 
     The type of game that is currently implemented is referred to as a
-    Characteristic Function Game. This is a game on a set $\omega$ of players
+    Characteristic Function Game. This is a game on a set $\Omega$ of players
     that is defined by a value function $v:C\to \mathbb{R}$ where
     $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
     game is shown below:
 
-    $
-    v(c) = \begin{cases}
+
+    `v(c) = \begin{cases}
     0,&\text{ if }c=\emptyset\\
     6,&\text{ if }c=\{1\}\\
     12,&\text{ if }c=\{2\}\\
@@ -59,16 +59,16 @@ class CooperativeGame(SageObject):
     42,&\text{ if }c=\{1,3\}\\
     42,&\text{ if }c=\{2,3\}\\
     42,&\text{ if }c=\{1, 2,3\}\\
-    \end{cases}
-    $
+    \end{cases}`
+
 
     The function $v$ can be thought of as as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
-    fairly share the value of the grand coalition ($\omega$)? This class
+    fairly share the value of the grand coalition ($\Omega$)? This class
     allows for such an answer to be formulated by calculating the Shapley
     value of the game.
 
-    Basic example of how to implement a co-operative game. These functions will
+    Basic examples of how to implement a co-operative game. These functions will
     be used repeatedly in other examples. ::
 
         sage: integer_function = {(): 0,
@@ -95,29 +95,10 @@ class CooperativeGame(SageObject):
 
     Characteristic function games can be of various types.
 
-    The following example implements a (trivial) 8 player characteristic
-    function game:
-
-    $v(c)=|c|\text{ for all }c\in 2^{\omega}$
-
-    ::
-
-        sage: def simple_characteristic_function(N):
-        ....:     return {tuple(coalition) : len(coalition)
-        ....:                   for coalition in subsets(range(N))}
-        sage: g = CooperativeGame(simple_characteristic_function(8))
-        sage: g.shapley_value() # long time
-        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
-
-    The above is slow to run and this is due to the dimensionality
-    of the calculations involved. There are various approximation
-    approaches to obtaining the Shapley value of a game. Implementing
-    these would be a worthwhile development.
-
     A characteristic function game $G=(N,v)$ is monotone if it satisfies
     $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$. A characteristic function
     game $G=(N,v)$ is super-additive if it satisfies $v(C_2)\geq v(C_1)$ for
-    all $C_1\subseteq C_2$ such that \[C_1 \cap \C_2 = \emptyset\].
+    all $C_1\subseteq C_2$ such that `C_1\cap C_2 = \emptyset`.
 
     We can test if a game is Monotonic or Superadditive. ::
 
@@ -147,21 +128,45 @@ class CooperativeGame(SageObject):
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
-    We can test 3 basic properties of a Payoff Vector $\lambda$. They are
-        * Efficiency - $sum_{i=1}^N\lambda_i=v(\Omega)$
+    The following example implements a (trivial) 8 player characteristic
+    function game:
+
+    $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
+
+    ::
+
+        sage: def simple_characteristic_function(N):
+        ....:     return {tuple(coalition) : len(coalition)
+        ....:                   for coalition in subsets(range(N))}
+        sage: g = CooperativeGame(simple_characteristic_function(8))
+        sage: g.shapley_value() # long time
+        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
+
+    The above is slow to run and this is due to the dimensionality
+    of the calculations involved. There are various approximation
+    approaches to obtaining the Shapley value of a game. Implementing
+    these would be a worthwhile development.
+
+    We can test 3 basic properties of any Payoff Vector $\lambda$.
+    The Shapley value (described above) is none to be the unique
+    payoff vector that satisfies these and 1 other property
+    not implemented here (additivity).
+    They are:
+    
+        * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 
-        * The nullplayer property - If $\exists$ $i$ such that
-                                    $v(C\cup i)=v(C)$ for all
-                                    $C\in 2^{\Omega}$ then, $\lambda_i=0$.
+        * The nullplayer property - If `\exists` `i` such that
+                                    `v(C\cup i)=v(C)` for all
+                                    `C\in 2^{\Omega}` then, `\lambda_i=0`.
                                     In other words: if a player does not
                                     contribute to any coalition then that
                                     player should receive no payoff.
 
         * Symmetry property - A payoff vector possesses the symmetry property
-                              if $v(C\cup i)=v(C\cup j)$ for all
-                              $C\in 2^{\Omega}\setminus{i,j}$, then
-                              $x_i=x_j$
+                              if `v(C\cup i)=v(C\cup j)` for all
+                              `C\in 2^{\Omega}\setminus{i,j}`, then
+                              `x_i=x_j`
 
     If players contribute symmetrically then they should get the same payoff.
 

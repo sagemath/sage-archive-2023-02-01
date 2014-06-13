@@ -198,7 +198,7 @@ class NumberFieldHomset(RingHomset_generic):
             v = [D.hom([r], codomain=C, check=False) for r in roots]
         else:
             v = []
-        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])            
+        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
         self.__list = v
         return v
 
@@ -536,7 +536,7 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
         C = self.codomain()
         D_abs = D.absolute_field('a')
         v = [self(f, check=False) for f in D_abs.Hom(C).list()]
-        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])            
+        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
         self.__list = v
         return v
 
@@ -611,7 +611,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         except AttributeError:
             pass
         D = self.domain()
-        C = self.codomain()        
+        C = self.codomain()
         v = Sequence([self(x) for x in D.gens()], universe=C, check=False, immutable=True)
         self.__im_gens = v
         return v
@@ -764,7 +764,7 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             else:
                 w = C.zeta(n)
             v = [self([w**k], check=False) for k in Zmod(n) if k.is_unit()]
-        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])            
+        v = Sequence(v, universe=self, check=False, immutable=True, cr=v!=[])
         self.__list = v
         return v
 

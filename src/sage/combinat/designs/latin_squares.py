@@ -33,19 +33,19 @@ from the Handbook of Combinatorial Designs.
     <BLANKLINE>
       0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   5  18
      20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
-     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   7   2  58
+     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   7   5  58
      60|   5  60   5   6  63   7   5  66   5   6   6  70   7  72   5   7   6   6   6  78
-     80|   9  80   8  82   6   6   6   3   7  88   4   6   6   4   3   6   7  96   6   8
-    100|   8 100   6 102   7   7   5 106   5 108   4   6   7 112   3   7   5   8   4   6
-    120|   6 120   5   6   5 124   6 126 127   7   6 130   6   6   6   6   7 136   4 138
-    140|   6   7   6  10  10   7   6   7   5 148   6 150   7   8   8   5   5 156   4   6
-    160|   7   7   6 162   5   7   4 166   7 168   6   8   6 172   6   6  10   9   6 178
+     80|   9  80   8  82   6   6   6   6   7  88   5   6   6   6   6   6   7  96   6   8
+    100|   8 100   6 102   7   7   6 106   6 108   6   6   7 112   6   7   5   8   4   6
+    120|   6 120   6   6   6 124   6 126 127   7   6 130   6   6   6   6   7 136   6 138
+    140|   6   7   6  10  10   7   6   7   6 148   6 150   7   8   8   6   6 156   6   6
+    160|   7   7   6 162   5   7   6 166   7 168   6   8   6 172   6   6  10   9   6 178
     180|   6 180   6   6   7   8   6  10   6   6   6 190   7 192   6   7   6 196   6 198
     200|   7   7   6   7   6   6   6   8  12  11  10 210   6   7   6   7   7   8   6  10
-    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   5 238
-    240|   7 240   6 242   6   7   6  12   7   7   5 250   6  10   7   7 255 256   4   7
-    260|   6   8   7 262   7   8   6  10   6 268   6 270  15  16   5  10  10 276   6   8
-    280|   7 280   6 282   6  12   6   7  15 288   6   6   5 292   6   6   7  10  10  12
+    220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   6 238
+    240|   7 240   6 242   6   7   6  12   7   7   6 250   6  10   7   7 255 256   6   7
+    260|   6   8   7 262   7   8   6  10   6 268   7 270  15  16   6  10  10 276   6   8
+    280|   7 280   6 282   6  12   6   7  15 288   6   6   6 292   6   6   7  10  10  12
 
 TODO:
 
@@ -295,7 +295,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         [4 5 6 7 1 2 3 9 0 8], [7 1 2 3 4 5 6 9 8 0]
         ]
     """
-    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array, _set_OA_cache, _get_OA_cache
     from sage.matrix.constructor import Matrix
     from sage.rings.arith import factor
     from database import MOLS_constructions
@@ -312,6 +312,9 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         if existence:
             return k
 
+    if existence and not who_asked and _get_OA_cache(k+2,n) is not None:
+        return _get_OA_cache(k+2,n)
+
     if n == 1:
         if existence:
             return True
@@ -323,6 +326,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         raise EmptySetError("There exist at most n-1 MOLS of size n if n>=2.")
 
     elif n in MOLS_constructions and k <= MOLS_constructions[n][0]:
+        _set_OA_cache(MOLS_constructions[n][0]+2,n,True)
         if existence:
             return True
         _, construction = MOLS_constructions[n]
@@ -355,6 +359,8 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         matrices = [Matrix(M) for M in matrices]
 
     else:
+        if not who_asked:
+            _set_OA_cache(k+2,n,Unknown)
         if existence:
             return Unknown
         raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))

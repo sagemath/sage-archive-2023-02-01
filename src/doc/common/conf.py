@@ -290,40 +290,6 @@ latex_elements['preamble'] = r"""
 \usepackage{amssymb}
 \usepackage{textcomp}
 \usepackage{mathrsfs}
-
-% With Sphinx 1.1.2-py, the compilation of the pdf documentation fails
-% with a "too deeply nested" error. This is triggered by our massive
-% use of nested classes.
-% It seems that replacing `list` by `trivlist` in Sphinx's customized
-% Verbatim environment defined in sphinx.sty fixes the problem.
-% This has been reported upstream (Sphinx issue #777). For now, we
-% monkey patch it here. See #9107 for details.
-\renewcommand{\Verbatim}[1][1]{%
-  % list starts new par, but we don't want it to be set apart vertically
-  \bgroup\parskip=0pt%
-  \smallskip%
-  % The list environement is needed to control perfectly the vertical
-  % space.
-  \trivlist{}{%
-  \setlength\parskip{0pt}%
-  \setlength\itemsep{0ex}%
-  \setlength\topsep{0ex}%
-  \setlength\partopsep{0pt}%
-  \setlength\leftmargin{0pt}%
-  }%
-  \item\MakeFramed {\FrameRestore}%
-     \small%
-    \OriginalVerbatim[#1]%
-}
-\renewcommand{\endVerbatim}{%
-    \endOriginalVerbatim%
-  \endMakeFramed%
-  \endtrivlist%
-  % close group to restore \parskip
-  \egroup%
-}
-
-
 \DeclareUnicodeCharacter{01CE}{\capitalcaron a}
 \DeclareUnicodeCharacter{0428}{cyrillic Sha}
 \DeclareUnicodeCharacter{250C}{+}

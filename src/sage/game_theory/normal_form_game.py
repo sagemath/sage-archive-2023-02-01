@@ -112,15 +112,29 @@ class NormalFormGame(Game):
         sage: B = matrix([[3,2],
         ....:             [2,6],
         ....:             [3,1]])
-        sage: game = NormalFormGame(A,B)
+        sage: g = NormalFormGame(A,B)
 
 
-    This particular game has 3 Nash equilibrium::
+    This particular game has 3 Nash equilibrium ::
 
-        sage: game.obtain_Nash()
+        sage: g.obtain_Nash()
         [[[1.0, 0.0, 0.0], [1.0, 0.0]],
          [[0.8, 0.2, 0.0], [0.6666666667, 0.3333333333]],
          [[0.0, 0.3333333333, 0.6666666667], [0.3333333333, 0.6666666667]]]
+
+    One can also input a single matrix and then a zero sum game is constructed.
+    Here is an instance of Rock-Paper-Scissors-Lizard-Spock ::
+
+        sage: A = matrix([[0, -1, 1, 1, -1],
+        ....:             [1, 0, -1, -1, 1],
+        ....:             [-1, 1, 0, 1 , -1],
+        ....:             [-1, 1, -1, 0, 1],
+        ....:             [1, -1, 1, -1, 0]])
+        sage: g = NormalFormGame(A)
+        sage: g.obtain_Nash()
+        [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
+
+
     """
 
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):

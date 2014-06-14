@@ -25,30 +25,30 @@ class NormalFormGame(Game):
 
     INPUT:
 
-    If only ``matrix1`` is provided, ``matrix2`` will be created as the
-    negative of ``matrix1`` so that a zero-sum game is created. If a ``game``
-    is provided, ``matrix1`` and ``matrix2`` will be generated automatically.
+    If 2 matrices are passed in the list then the corresponding Normal
+    Form Game is produced.
+    If a single matrix is passed in the list then the corresponding zero
+    sum game is produced.
+    If a gambit game object is passed then the corresponding game is created.
 
-    - ``matrix1`` - a matrix representing the payoff for player1 in a 2 player
-                    Normal Form game.
-    - ``matrix2`` - a matrix representing the payoff for player2 in a 2 player
-                    Normal Form game.
+    - ``payoff_matrices`` - a list of payoff matrices defining a
+                            Normal Form game.
     - ``game`` - an instance of gambit.Game().
 
     EXAMPLES:
 
     A basic 2-player game constructed from matrices. ::
 
-        sage: a = matrix([[1, 2], [3, 4]])
-        sage: b = matrix([[3, 3], [1, 4]])
-        sage: c = NormalFormGame(matrix1=a, matrix2=b)
+        sage: A = matrix([[1, 2], [3, 4]])
+        sage: B = matrix([[3, 3], [1, 4]])
+        sage: C = NormalFormGame([A, B])
 
     This can be given a title and the players can be named. ::
 
-        sage: c.title = "Simple Game"
-        sage: c.players[int(0)].label = "James"
-        sage: c.players[int(1)].label = "Vince"
-        sage: c
+        sage: C.title = "Simple Game"
+        sage: C.players[int(0)].label = "James"
+        sage: C.players[int(1)].label = "Vince"
+        sage: C
         NFG 1 R "Simple Game" { "James" "Vince" }
         <BLANKLINE>
         { { "1" "2" }
@@ -182,7 +182,7 @@ class NormalFormGame(Game):
 
     """
 
-    def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
+    def __new__(NormalFormGame, generator):
         r"""
         Creates an Instance of NormalFormGame.
 
@@ -202,39 +202,30 @@ class NormalFormGame(Game):
             ValueError: Can't input both a matrix and a game
 
         """
-        if matrix1 and game:
-            raise ValueError("Can't input both a matrix and a game")
-        if matrix1:
-            g = Game.new_table([matrix1.dimensions()[0], matrix1.dimensions()[1]])
-        elif game:
-            g = game
+        if type(generator) is list:
+            g = Game.new_table([generator[0].dimensions()[0], generator[0].dimensions()[1]])
+        if type(generator) is gambit.Game:
+            g = generator
         else:
             g = Game.new_table([])
 
         g.__class__ = NormalFormGame
         return g
 
-    def __init__(self, matrix1=False, matrix2=False, game=False):
+    def __init__(self, generator):
         r"""
         Initializes a Normal Form game and checks the inputs.
         """
-        self.matrix1 = None
-        self.matrix2 = None
-        if not matrix1 and not game:
-            pass
-        elif not matrix1 and game:
-            self.game_to_matrix()
-        else:
-            self.matrix1 = matrix1
-            if not matrix2:
-                self.matrix2 = - self.matrix1
-            else:
-                self.matrix2 = matrix2
+        if type(generator) is list:
+            if len(generator) == 1:
+                generator.append(- generator[-1])
             self.matrix_to_game()
+        if type(generator) is gambit.Game:
+            self.payoff_matrices = self.game_to_matrix(generator)
 
-    def game_to_matrix(self):
+    def game_to_matrix(game):
         r"""
-        Sets ``self.matrix1`` and ``self.matrix2`` to be the payoff matrices
+        Sets ``self.payoff_matrices`` to be the payoff matrices
         associated with current game. This gets called at ``__init__``, but if
         ``self`` changes at any point, ``game_to_matrix`` can be called to
         update those changes.
@@ -271,18 +262,19 @@ class NormalFormGame(Game):
             ...
             ValueError: Only available for games with 2 players
         """
-        self.matrix1 = matrix(len(self.players[0].strategies), len(self.players[1].strategies))
-        self.matrix2 = copy(self.matrix1)
+        payoff_matrices = [matrix(len(game.players[0].strategies), len(game.players[1].strategies)) for player in range(len(self.players))]
+
         if len(self.players) != 2:
             raise ValueError("Only available for games with 2 players")
-        for k in list(self.contingencies):
-            self.matrix1[tuple(k)] = int(self[k][0])
-            self.matrix2[tuple(k)] = int(self[k][1])
+        for k in list(game.contingencies):
+            for player in range(len(self.players)):
+                payoff_matrices[player][tuple(k)] = int(self[k][player])
+        return payoff_matrices
 
     def matrix_to_game(self):
         r"""
         Builds a game based on ``self.matrix1`` and ``self.matrix2``. This
-        gets called at ``__init__``, but it either matrix gets altered it can
+        gets called at ``__init__``, but if either matrix gets altered it can
         be called again to update ``self``.
 
         EXAMPLES:
@@ -311,10 +303,10 @@ class NormalFormGame(Game):
         """
         if self.matrix1.dimensions() != self.matrix2.dimensions():
             raise ValueError("Matrices must be the same size")
-        strategysizes = [range(self.matrix1.dimensions()[0]), range(self.matrix1.dimensions()[1])]
+        strategysizes = [range(self.payoff_matrices.dimensions()[0]), range(self.payoff_matrices.dimensions()[1])]
         for k in product(*strategysizes):
-                self[k][0] = int(self.matrix1[k])
-                self[k][1] = int(self.matrix2[k])
+            for player in range(len(self.players)):
+                self[k][player] = int(self.payoff_matrices[player][k])
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
         r"""

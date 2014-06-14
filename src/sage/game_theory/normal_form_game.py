@@ -102,7 +102,7 @@ class NormalFormGame(Game):
     This can be solved using ``obtain_Nash``. ::
 
         sage: gam.obtain_Nash()
-        [<NashProfile for 'A prisoner's dilemma game': [0.0, 1.0, 0.0, 1.0]>]
+        [[[0.0, 1.0], [0.0, 1.0]]]
 
     Here is an example of a 3 by 2 game ::
 
@@ -118,9 +118,9 @@ class NormalFormGame(Game):
     This particular game has 3 Nash equilibrium::
 
         sage: game.obtain_Nash()
-        [<NashProfile for '': [1.0, 0.0, 0.0, 1.0, 0.0]>,
-         <NashProfile for '': [0.8, 0.2, 0.0, 0.6666666667, 0.3333333333]>,
-         <NashProfile for '': [0.0, 0.3333333333, 0.6666666667, 0.3333333333, 0.6666666667]>]
+        [[[1.0, 0.0, 0.0], [1.0, 0.0]],
+         [[0.8, 0.2, 0.0], [0.6666666667, 0.3333333333]],
+         [[0.0, 0.3333333333, 0.6666666667], [0.3333333333, 0.6666666667]]]
     """
 
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
@@ -291,8 +291,7 @@ class NormalFormGame(Game):
                   " of available algorithms")
 
         if algorithm == "LCP":
-            solver = ExternalLCPSolver()
-            return solver.solve(self)
+            return [self._gambit_profile_to_vector(profile) for profile in ExternalLCPSolver().solve(self)]
 
         if algorithm == "lrs":
             if not is_package_installed('lrs'):

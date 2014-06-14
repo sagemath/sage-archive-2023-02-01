@@ -10,6 +10,8 @@ Make sure that you are using the most recent recent branch form this repository.
     cd SAGE_ROOT
     ./sage -i gambit
 
-The above steps should download the relative Gambit branch, create a tarbell and then add it to sage.
+If the last command fails with `checksum` errors run `sage -sh sage-fix-pkg-checksums`.
+
+The above steps should download the relative Gambit branch (you can of course simply add the corresponding remote branch to your own gambit repo if you have one), create a tarbell and then add it to sage.
 
 To check that this is worked, in Sage simply type `import gambit`.

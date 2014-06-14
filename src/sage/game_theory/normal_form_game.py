@@ -204,9 +204,10 @@ class NormalFormGame(Game):
         """
         if type(generator) is list:
             g = Game.new_table([generator[0].dimensions()[0], generator[0].dimensions()[1]])
-        if type(generator) is gambit.Game:
+        elif type(generator) is Game:
             g = generator
         else:
+            g = generator
             g = Game.new_table([])
 
         g.__class__ = NormalFormGame
@@ -219,8 +220,9 @@ class NormalFormGame(Game):
         if type(generator) is list:
             if len(generator) == 1:
                 generator.append(- generator[-1])
+            self.payoff_matrices = generator
             self.matrix_to_game()
-        if type(generator) is gambit.Game:
+        if type(generator) is Game:
             self.payoff_matrices = self.game_to_matrix(generator)
 
     def game_to_matrix(game):
@@ -301,9 +303,10 @@ class NormalFormGame(Game):
             ...
             ValueError: Matrices must be the same size
         """
-        if self.matrix1.dimensions() != self.matrix2.dimensions():
+        #if self.matrix1.dimensions() != self.matrix2.dimensions():
+        if len(set([matrix.dimensions() for matrix in self.payoff_matrices])) != 1:
             raise ValueError("Matrices must be the same size")
-        strategysizes = [range(self.payoff_matrices.dimensions()[0]), range(self.payoff_matrices.dimensions()[1])]
+        strategysizes = [range(self.payoff_matrices[0].dimensions()[0]), range(self.payoff_matrices[0].dimensions()[1])]
         for k in product(*strategysizes):
             for player in range(len(self.players)):
                 self[k][player] = int(self.payoff_matrices[player][k])

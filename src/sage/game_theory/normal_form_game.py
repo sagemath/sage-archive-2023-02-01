@@ -118,9 +118,9 @@ class NormalFormGame(Game):
     This particular game has 3 Nash equilibrium::
 
         sage: game.obtain_Nash()
-        [<NashProfile for '': [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]>,
-         <NashProfile for '': [0.8, 0.2, 0.0, 0.6666666667, 0.3333333333, 0.0]>,
-         <NashProfile for '': [0.0, 0.3333333333, 0.6666666667, 0.3333333333, 0.6666666667, 0.0]>]
+        [<NashProfile for '': [1.0, 0.0, 0.0, 1.0, 0.0]>,
+         <NashProfile for '': [0.8, 0.2, 0.0, 0.6666666667, 0.3333333333]>,
+         <NashProfile for '': [0.0, 0.3333333333, 0.6666666667, 0.3333333333, 0.6666666667]>]
     """
 
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
@@ -146,7 +146,7 @@ class NormalFormGame(Game):
         if matrix1 and game:
             raise ValueError("Can't input both a matrix and a game")
         if matrix1:
-            g = Game.new_table([len(matrix1.rows()), len(matrix1.rows())])
+            g = Game.new_table([len(matrix1.rows()), len(matrix1.columns())])
         elif game:
             g = game
         else:
@@ -303,6 +303,15 @@ class NormalFormGame(Game):
             raise NotImplementedError("Support enumeration is not implemented "
                                       "yet")
             return self._solve_enumeration()
+
+    def _gambit_profile_to_vector(self, gambitstrategy):
+        gambitstrategy = eval(str(gambitstrategy)[str(gambitstrategy).index("["): str(gambitstrategy).index("]") + 1])
+        profile = [gambitstrategy[:len(self.players[int(0)].strategies)]]
+        for player in list(self.players)[1:]:
+            previousplayerstrategylength = len(profile[-1])
+            profile.append(gambitstrategy[previousplayerstrategylength: previousplayerstrategylength + len(player.strategies)])
+        return profile
+
 
     def _solve_lrs(self):
         # file1 = id_generator(6)

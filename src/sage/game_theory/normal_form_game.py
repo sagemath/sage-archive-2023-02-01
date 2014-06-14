@@ -252,9 +252,8 @@ class NormalFormGame(Game):
         """
         if self.matrix1.dimensions() != self.matrix2.dimensions():
             raise ValueError("Matrices must be the same size")
-        p1_strats = range(self.matrix1.dimensions()[0])
-        p2_strats = range(self.matrix1.dimensions()[1])
-        for k in product(p1_strats, p2_strats):
+        strategysizes = [range(self.matrix1.dimensions()[0]), range(self.matrix1.dimensions()[1])]
+        for k in product(*strategysizes):
                 self[k][0] = int(self.matrix1[k])
                 self[k][1] = int(self.matrix2[k])
 

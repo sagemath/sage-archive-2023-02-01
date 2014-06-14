@@ -10,11 +10,15 @@ operations on these games can be carried out:
 """
 from itertools import product
 from sage.misc.package import is_package_installed
-from sage.matrix.constructor import matrix, copy, QQ
+from sage.matrix.constructor import matrix, copy
 
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
 
+from subprocess import Popen, PIPE, call
+import random
+import string
+from os import remove
 
 class NormalFormGame(Game):
     r"""
@@ -31,7 +35,7 @@ class NormalFormGame(Game):
                     Normal Form game.
     - ``matrix2`` - a matrix representing the payoff for player2 in a 2 player
                     Normal Form game.
-    - ``game`` - an instance of gambit.Game.
+    - ``game`` - an instance of gambit.Game().
 
     EXAMPLES:
 
@@ -66,20 +70,20 @@ class NormalFormGame(Game):
     We can also pass a Gambit game and create it manually.
     (Taken from [GAMBIT WEBSITE]) ::
 
-        sage: gam = Game.new_table([2, 2])
-        sage: g = NormalFormGame(game=gam)
-        sage: g[int(0), int(0)][int(0)] = int(8)
-        sage: g[int(0), int(0)][int(1)] = int(8)
-        sage: g[int(0), int(1)][int(0)] = int(2)
-        sage: g[int(0), int(1)][int(1)] = int(10)
-        sage: g[int(1), int(0)][int(0)] = int(10)
-        sage: g[int(1), int(0)][int(1)] = int(2)
-        sage: g[int(1), int(1)][int(0)] = int(5)
-        sage: g[int(1), int(1)][int(1)] = int(5)
-        sage: gam.title = "A prisoner's dilemma game"
-        sage: gam.players[int(0)].label = "Alphonse"
-        sage: gam.players[int(1)].label = "Gaston"
-        sage: gam
+        sage: gambitgame= Game.new_table([2, 2])
+        sage: gambitgame[int(0), int(0)][int(0)] = int(8)
+        sage: gambitgame[int(0), int(0)][int(1)] = int(8)
+        sage: gambitgame[int(0), int(1)][int(0)] = int(2)
+        sage: gambitgame[int(0), int(1)][int(1)] = int(10)
+        sage: gambitgame[int(1), int(0)][int(0)] = int(10)
+        sage: gambitgame[int(1), int(0)][int(1)] = int(2)
+        sage: gambitgame[int(1), int(1)][int(0)] = int(5)
+        sage: gambitgame[int(1), int(1)][int(1)] = int(5)
+        sage: gambitgame.title = "A prisoner's dilemma game"
+        sage: gambitgame.players[int(0)].label = "Alphonse"
+        sage: gambitgame.players[int(1)].label = "Gaston"
+        sage: g = NormalFormGame(game=gambitgame)
+        sage: g
         NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
         <BLANKLINE>
         { { "1" "2" }
@@ -96,10 +100,88 @@ class NormalFormGame(Game):
         1 2 3 4
         <BLANKLINE>
 
+
     This can be solved using ``obtain_Nash``. ::
 
-        sage: gam.obtain_Nash()
-        [<NashProfile for 'A prisoner's dilemma game': [0.0, 1.0, 0.0, 1.0]>]
+        sage: g.obtain_Nash()
+        [[[0.0, 1.0], [0.0, 1.0]]]
+
+    Here is an example of a 3 by 2 game ::
+
+        sage: A = matrix([[3,3],
+        ....:             [2,5],
+        ....:             [0,6]])
+        sage: B = matrix([[3,2],
+        ....:             [2,6],
+        ....:             [3,1]])
+        sage: g = NormalFormGame(A,B)
+
+    This particular game has 3 Nash equilibrium ::
+
+        sage: g.obtain_Nash()
+        [[[1.0, 0.0, 0.0], [1.0, 0.0]],
+         [[0.8, 0.2, 0.0], [0.6666666667, 0.3333333333]],
+         [[0.0, 0.3333333333, 0.6666666667], [0.3333333333, 0.6666666667]]]
+
+    Here is a slightly larger game ::
+
+        sage: A = matrix([[160, 205, 44],
+        ....:       [175, 180, 45],
+        ....:       [201, 204, 50],
+        ....:       [120, 207, 49]])
+        sage: B = matrix([[2, 2, 2],
+        ....:             [1, 0, 0],
+        ....:             [3, 4, 1],
+        ....:             [4, 1, 2]])
+        sage: g=NormalFormGame(A,B)
+        sage: g.obtain_Nash()
+        [[[0.0, 0.0, 0.75, 0.25], [0.0357142857, 0.9642857143, 0.0]]]
+
+    One can also input a single matrix and then a zero sum game is constructed.
+    Here is an instance of Rock-Paper-Scissors-Lizard-Spock ::
+
+        sage: A = matrix([[0, -1, 1, 1, -1],
+        ....:             [1, 0, -1, -1, 1],
+        ....:             [-1, 1, 0, 1 , -1],
+        ....:             [-1, 1, -1, 0, 1],
+        ....:             [1, -1, 1, -1, 0]])
+        sage: g = NormalFormGame(A)
+        sage: g.obtain_Nash()
+        [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
+
+    Here is a slightly longer game.
+    Consider the following:
+
+    An airline loses two suitcases belonging to two different travelers.
+    Both suitcases happen to be identical and contain identical antiques.
+    An airline manager tasked to settle the claims of both travelers explains
+    that the airline is liable for a maximum of 10 per suitcase, and in
+    order to determine an honest appraised value of the antiques the manager
+    separates both travelers so they can’t confer, and asks them to write
+    down the amount of their value at no less than 2 and no larger than 100.
+    He also tells them that if both write down the same number, he will
+    treat that number as the true dollar value of both suitcases and
+    reimburse both travelers that amount.
+    However, if one writes down a smaller number than the other,
+    this smaller number will be taken as the true dollar value,
+    and both travelers will receive that amount along with a bonus/malus:
+    2 extra will be paid to the traveler who wrote down the lower value
+    and a 2 deduction will be taken from the person who wrote down the higher amount.
+    The challenge is: what strategy should both travelers follow to decide
+    the value they should write down?
+
+    In the following we create the game and solve it ::
+
+    sage: K = 10  # Modifying this value lets us play with games of any size
+    sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: g = NormalFormGame(A, B)
+    sage: g.obtain_Nash()
+    [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
+
+    The equilibrium strategy is thus for both players to state that the value of their suitcase is 2.
+
     """
 
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):
@@ -125,7 +207,7 @@ class NormalFormGame(Game):
         if matrix1 and game:
             raise ValueError("Can't input both a matrix and a game")
         if matrix1:
-            g = Game.new_table([len(matrix1.rows()), len(matrix1.rows())])
+            g = Game.new_table([matrix1.dimensions()[0], matrix1.dimensions()[1]])
         elif game:
             g = game
         else:
@@ -155,7 +237,9 @@ class NormalFormGame(Game):
     def game_to_matrix(self):
         r"""
         Sets ``self.matrix1`` and ``self.matrix2`` to be the payoff matrices
-        associated with current game.
+        associated with current game. This gets called at ``__init__``, but if
+        ``self`` changes at any point, ``game_to_matrix`` can be called to
+        update those changes.
 
         EXAMPLES:
 
@@ -194,12 +278,14 @@ class NormalFormGame(Game):
         if len(self.players) != 2:
             raise ValueError("Only available for games with 2 players")
         for k in list(self.contingencies):
-                self.matrix1[tuple(k)] = int(self[k][0])
-                self.matrix2[tuple(k)] = int(self[k][1])
+            self.matrix1[tuple(k)] = int(self[k][0])
+            self.matrix2[tuple(k)] = int(self[k][1])
 
     def matrix_to_game(self):
         r"""
-        Builds a game based on ``self.matrix1`` and ``self.matrix2``
+        Builds a game based on ``self.matrix1`` and ``self.matrix2``. This
+        gets called at ``__init__``, but it either matrix gets altered it can
+        be called again to update ``self``.
 
         EXAMPLES:
 
@@ -227,13 +313,12 @@ class NormalFormGame(Game):
         """
         if self.matrix1.dimensions() != self.matrix2.dimensions():
             raise ValueError("Matrices must be the same size")
-        p1_strats = range(len(self.matrix1.rows()))
-        p2_strats = range(len(self.matrix1.columns()))
-        for k in product(p1_strats, p2_strats):
+        strategysizes = [range(self.matrix1.dimensions()[0]), range(self.matrix1.dimensions()[1])]
+        for k in product(*strategysizes):
                 self[k][0] = int(self.matrix1[k])
                 self[k][1] = int(self.matrix2[k])
 
-    def obtain_Nash(self, algorithm="LCP"):
+    def obtain_Nash(self, algorithm="LCP", maximization=True):
         r"""
         A function to return the Nash equilibrium for a game.
         Optional arguments can be used to specify the algorithm used.
@@ -259,21 +344,70 @@ class NormalFormGame(Game):
            - When set to ``False`` (default) it is assumed that players aim to
              minimise their utility.
         """
+        if len(self.players) > 2:
+            raise NotImplementedError("Nash equilibrium for games with "
+                  "more than 2 players have not been implemented yet."
+                  "Please see the gambit website [LINK] that has a variety"
+                  " of available algorithms")
 
         if algorithm == "LCP":
-            if len(self.players) > 2:
-                raise NotImplementedError("Nash equilibrium for games with "
-                      "more than 2 players have not been implemented yet."
-                      "Please see the gambit website [LINK] that has a variety"
-                      " of available algorithms")
-            solver = ExternalLCPSolver()
-            return solver.solve(self)
+            return [self._gambit_profile_to_list(profile) for profile in ExternalLCPSolver().solve(self)]
 
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
-            pass
+            return self._solve_lrs()
 
         if algorithm == "support enumeration":
             raise NotImplementedError("Support enumeration is not implemented "
                                       "yet")
+            return self._solve_enumeration()
+
+    def _gambit_profile_to_list(self, gambitstrategy):
+        gambitstrategy = eval(str(gambitstrategy)[str(gambitstrategy).index("["): str(gambitstrategy).index("]") + 1])
+        profile = [gambitstrategy[:len(self.players[int(0)].strategies)]]
+        for player in list(self.players)[1:]:
+            previousplayerstrategylength = len(profile[-1])
+            profile.append(gambitstrategy[previousplayerstrategylength: previousplayerstrategylength + len(player.strategies)])
+        return profile
+
+
+    def _solve_lrs(self):
+        # file1 = id_generator(6)
+        # game = open(file1, "w")
+        # game.write("%s %s\n" % (len(self.players[0].strategies), len(self.players[1].strategies))
+
+        # for i in list(self.matrix1):
+        #     game.write("\n")
+        #     game.write(" ".join([str(e) for e in i]))
+
+        # game.write("\n")
+
+        # for j in list(self.matrix2):
+        #     game.write("\n")
+        #     game.write(" ".join([str(e) for e in j]))
+        # game.close()
+
+        # # Write H representations for each player (really should automate this)
+        # file2 = id_generator(6)
+        # file3 = id_generator(6)
+        # call(["setupnash", file1, file2, file3], stdout=PIPE)
+        # # Solve game using lrs:
+        # process = Popen(["nash", file2, file3], stdout=PIPE)
+        # # Save output
+        # lrs_output = [row for row in process.stdout]
+        # # Delete lrs files, need to do this without writing hard files
+        # for f in [file1, file2, file3]:
+        #     remove(f)
+        # return lrs_output
+        pass
+
+    def _solve_enumeration(self):
+        pass
+
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    """
+    A function to generate random file names for physical files needed to communicate with lrs.
+    """
+    return ''.join(random.choice(chars) for x in range(size))

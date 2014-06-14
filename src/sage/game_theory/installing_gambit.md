@@ -1,30 +1,18 @@
 At present Gambit is not an optional package (which is the first step to becoming a full part of Sage).
 The good guys over at [Gambit]() have made some tweaks to their code to enable easier integration in to Sage: that all lives in this git branch: [https://github.com/tturocy/gambit/tree/sage_integration](https://github.com/tturocy/gambit/tree/sage_integration).
 
-To install Gambit so that it is part of your Sage package follow the following instructions.
+To install Gambit so that you can use NormalFormGame functionality, follow the steps below.
+Make sure that you are using the most recent recent branch form this repository.
 
-- Getting Gambit:
-
-    - If you already have a clone of the gambit repository, make sure you have the `sage-integration` branch checked out:
-
-        git remote add turocy https://github.com/tturocy/gambit.git
-        git checkout -b sage_integration
-        git pull turocy sage_integration
-
-    - If you don't have a clone of the gambit repository:
-
-        git clone https://github.com/tturocy/gambit.git
-        git checkout origin/sage_integration
-
-- Getting Gambit in to Sage:
-
-    cd GAMBIT_ROOT
+    git clone --single-branch --branch sage_integration https://github.com/tturocy/gambit
+    cd gambit
     make dist
-    cd SAGE_ROOT/upstream
-    mv GAMBIT_ROOT/gambit-14.0.2.tar.gz ./gambit-13.1.2.tar.gz  # Note here that we are changing the name of the file (this is ugly and should be fixed)
+    mv gambit-14.0.2.tar.gz SAGE_ROOT/upstream
     cd SAGE_ROOT
     ./sage -i gambit
 
-The above steps should download the gambit 13.1.2 tarbell and then use Sage to unpacke as necessary.
+If the last command fails with `checksum` errors run `sage -sh sage-fix-pkg-checksums`.
+
+The above steps should download the relative Gambit branch (you can of course simply add the corresponding remote branch to your own gambit repo if you have one), create a tarbell and then add it to sage.
 
 To check that this is worked, in Sage simply type `import gambit`.

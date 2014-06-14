@@ -1751,13 +1751,13 @@ cdef class FormalCompositeMap(Map):
             s+= "\nthen\n  %s"%f
         return s
 
-    def head(self):
+    def first(self):
         """
         The first applied map in the formal composition.
 
         Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
-        self.head() returns f_0.
-        We have: self == self.then()*self.head().
+        self.first() returns f_0.
+        We have: self == self.then()*self.first().
 
         EXAMPLE::
 
@@ -1767,9 +1767,9 @@ cdef class FormalCompositeMap(Map):
             sage: f = SetMorphism(Hom(R,S,Rings()), lambda p: p[0]*a^p.degree())
             sage: g = S.hom([2*x])
             sage: fg=f*g
-            sage: fg.head() == g
+            sage: fg.first() == g
             True
-            sage: fg == fg.then()*fg.head()
+            sage: fg == fg.then()*fg.first()
             True
         """
         return self.__list[0]
@@ -1779,8 +1779,8 @@ cdef class FormalCompositeMap(Map):
         Return the tail of the list of maps.
 
         Suppose that self represents f_n o f_{n-1} o ... o f_1 o f_0, then
-        self.head() returns f_n o f_{n-1} o ... o f_1.
-        We have: self == self.then()*self.head().
+        self.first() returns f_n o f_{n-1} o ... o f_1.
+        We have: self == self.then()*self.first().
 
         EXAMPLE::
 

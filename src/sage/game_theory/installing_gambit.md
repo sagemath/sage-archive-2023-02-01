@@ -7,7 +7,6 @@ Make sure that you are using the most recent recent branch form this repository.
     cd gambit
     make dist
     mv gambit-14.0.2.tar.gz SAGE_ROOT/upstream
-    cd SAGE_ROOT/upstream
     cd SAGE_ROOT
     ./sage -i gambit
 

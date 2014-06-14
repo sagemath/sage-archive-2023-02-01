@@ -213,10 +213,10 @@ class NormalFormGame(Game):
                 generator.append(- generator[-1])
             self.payoff_matrices = generator
             self.matrix_to_game()
-        if type(generator) is Game:
-            self.payoff_matrices = self.game_to_matrix(generator)
+        if type(generator) is NormalFormGame:
+            self.payoff_matrices = self.game_to_matrix()
 
-    def game_to_matrix(game):
+    def game_to_matrix(self):
         r"""
         Sets ``self.payoff_matrices`` to be the payoff matrices
         associated with current game. This gets called at ``__init__``, but if
@@ -228,7 +228,7 @@ class NormalFormGame(Game):
         A simple 2 player game. ::
 
             sage: two_player = Game.new_table([2, 2])
-            sage: simple = NormalFormGame(game=two_player)
+            sage: simple = NormalFormGame(two_player)
             sage: simple[int(0), int(0)][int(0)] = int(8)
             sage: simple[int(0), int(0)][int(1)] = int(8)
             sage: simple[int(0), int(1)][int(0)] = int(2)
@@ -237,29 +237,28 @@ class NormalFormGame(Game):
             sage: simple[int(1), int(0)][int(1)] = int(2)
             sage: simple[int(1), int(1)][int(0)] = int(5)
             sage: simple[int(1), int(1)][int(1)] = int(5)
-            sage: simple.game_to_matrix()
-            sage: simple.matrix1
-            [ 8  2]
-            [10  5]
-            sage: simple.matrix2
-            [ 8 10]
-            [ 2  5]
+            sage: simple.payoff_matrices = simple.game_to_matrix()
+            sage: simple.payoff_matrices
+            [
+            [ 8  2]  [ 8 10]
+            [10  5], [ 2 5]
+            ]
 
         TESTS:
 
         Raise an error if a game with more than two players is used. ::
 
             sage: three_player = Game.new_table([1, 2, 3])
-            sage: large_game = NormalFormGame(game=three_player)
+            sage: large_game = NormalFormGame(three_player)
             Traceback (most recent call last):
             ...
             ValueError: Only available for games with 2 players
         """
-        payoff_matrices = [matrix(len(game.players[0].strategies), len(game.players[1].strategies)) for player in range(len(self.players))]
+        payoff_matrices = [matrix(len(self.players[0].strategies), len(self.players[1].strategies)) for player in range(len(self.players))]
 
         if len(self.players) != 2:
             raise ValueError("Only available for games with 2 players")
-        for k in list(game.contingencies):
+        for k in list(self.contingencies):
             for player in range(len(self.players)):
                 payoff_matrices[player][tuple(k)] = int(self[k][player])
         return payoff_matrices
@@ -275,13 +274,12 @@ class NormalFormGame(Game):
         A zero-sum game. ::
 
             sage: single = matrix([[1, 0], [-2, 3]])
-            sage: zero_game = NormalFormGame(matrix1=single)
-            sage: zero_game.matrix1
-            [ 1  0]
-            [-2  3]
-            sage: zero_game.matrix2
-            [-1  0]
-            [ 2 -3]
+            sage: zero_game = NormalFormGame([single])
+            sage: zero_game.payoff_matrices
+            [
+            [ 1  0]  [-1  0]
+            [-2  3], [ 2 -3]
+            ]
 
         TESTS:
 
@@ -289,7 +287,7 @@ class NormalFormGame(Game):
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
-            sage: error = NormalFormGame(matrix1=p1, matrix2=p2)
+            sage: error = NormalFormGame([p1, p2])
             Traceback (most recent call last):
             ...
             ValueError: Matrices must be the same size

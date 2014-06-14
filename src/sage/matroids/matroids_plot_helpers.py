@@ -18,20 +18,20 @@ AUTHORS:
     gives aesthetically pleasing point placement (in some sense. This is not yet implemented).
     One can then use ``createline`` function to produce sequence of ``100`` points on a
     smooth curve containing the points in the specified line which inturn uses ``scipy.interpolate.splprep``.
-    and ``scipy.interpolate.splprep``  Then one an use sage's
-    graphics primitives ``line``,``point``,``text`` and``points`` to produce graphics
-    object containg points (ground set elements) and lines (for a rank 3 matroid, these
-    are flats of rank 2 of size greater than equal to 3) of the geometric representation
-    of the matroid. Loops and parallel elements are added as per conventions in [Oxley] 
-    using function ``addlp``. The priority order for point placement methods used inside 
-    plot() and show() is as follows: 
+    and ``scipy.interpolate.splev``.  Then one can use sage's graphics primitives ``line``,``point``,
+    ``text`` and``points`` to produce graphics object containg points (ground set elements) and
+    lines (for a rank 3 matroid, these are flats of rank 2 of size greater than equal to 3) of 
+    the geometric representation of the matroid. Loops and parallel elements are added as per 
+    conventions in [Oxley] using function ``addlp``. The priority order for point placement methods
+    used inside plot() and show() is as follows: 
     1) User Specified points dictionary and lineorders
-    2) cached point placement dictionary and line orders (alist of ordered lists) in 
+    2) cached point placement dictionary and line orders (a list of ordered lists) in 
     M._cached_info (a dictionary)
     3) Internal point placement and orders deciding heuristics
     If a custom point placement and/or line orders is desired, then user can simply specify 
     the custom points dictionary as 
-    ``M.cached info = {'positions':dictionary_of _points``,'lineorders') 
+    ``M.cached info = {'positions':<dictionary_of _points>,'lineorders':<list of lists>)`` 
+
 
 
 REFERENCES
@@ -318,7 +318,7 @@ def createline(ptsdict, ll, lineorders2=None):
 
 def slp(M1, pos_dict=None):
     """
-    Return simple matroid, loops and parallel elements of given matroid
+    Return simple matroid, loops and parallel elements of given matroid.
     
     INPUT:
     

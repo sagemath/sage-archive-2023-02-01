@@ -8,7 +8,9 @@ and the optional package Octave.
 
 Solutions from the Maxima package can contain the three constants
 ``_C``, ``_K1``, and ``_K2`` where the underscore is used to distinguish
-them from symbolic variables that the user might have used. 
+them from symbolic variables that the user might have used. You can
+substitute values for them, and make them into accessible usable
+symbolic variables, for example with ``var("_C")``.
 
 Commands:
 

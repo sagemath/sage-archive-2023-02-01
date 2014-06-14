@@ -6,9 +6,47 @@ AUTHORS:
 
 - Jayant Apte (2014-06-06): initial version
 
+    .. NOTE::
+    
+    This file provides functions that are called by ``show()`` and ``plot()`` 
+    methods of abstract matroids class. The basic idea is to first decide the placement
+    of points in $\mathbb{R}^2$ and then draw lines in geometric representation through these points.
+    Point placement procedures such as ``addtripts``, ``addnontripts`` together 
+    produce ``(x,y)`` tuples corresponding to ground set of the matroid in a dictionary.
+    These methods provide simple but rigid point placement algorithm. Alternatively,
+    one can build the point placement dictionary manually or via an optimization that
+    gives aesthetically pleasing point placement (in some sense. This is not yet implemented).
+    One can then use ``createline`` function to produce sequence of ``100`` points on a
+    smooth curve containing the points in the specified line which inturn uses ``scipy.interpolate.splprep``.
+    and ``scipy.interpolate.splprep``  Then one an use sage's
+    graphics primitives ``line``,``point``,``text`` and``points`` to produce graphics
+    object containg points (ground set elements) and lines (for a rank 3 matroid, these
+    are flats of rank 2 of size greater than equal to 3) of the geometric representation
+    of the matroid. Loops and parallel elements are added as per conventions in [Oxley] 
+    using function ``addlp``. The priority order for point placement methods used inside 
+    plot() and show() is as follows: 
+    1) User Specified points dictionary and lineorders
+    2) cached point placement dictionary and line orders (alist of ordered lists) in 
+    M._cached_info (a dictionary)
+    3) Internal point placement and orders deciding heuristics
+    If a custom point placement and/or line orders is desired, then user can simply specify 
+    the custom points dictionary as 
+    ``M.cached info = {'positions':dictionary_of _points``,'lineorders') 
+
+
+REFERENCES
+==========
+
+..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
 
 EXAMPLES::
 
+    sage: from sage.matroids import matroids_plot_helpers
+    sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],[0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
+    sage: pos_dict= {0: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),  4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666)}
+    sage: M1._cached_info={'positions':pos_dict,'lineorders':None}
+    sage: matroids_plot_helpers.geomrep(M1,sp=True)
+    
 """
 
 #*****************************************************************************
@@ -30,14 +68,14 @@ from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, line, text, polygon2d, point,points
 from sage.sets.set import Set
 
-def initial_triangle(M,B1,nB1,lps):
+def initial_triangle(M, B1, nB1, lps):
     """
-    Return points on and off the triangle and lines to be drawn for a rank 3 matroid
+    Return points on and off the triangle and lines to be drawn for a rank 3 matroid.
     
     INPUT:
     
     - ``M`` -- A matroid.
-    - ``B1``-- A list of groundset elements of ``M`` that corresponds to a basis of matroid ``M``
+    - ``B1``-- A list of groundset elements of ``M`` that corresponds to a basis of matroid ``M``.
     - ``nB1``-- A list of elements in the ground set of M that corresponds to ``M.simplify.groundset() \ B1``. 
     - ``lps``-- A list of elements in the ground set of matroid M that are loops.
     
@@ -45,10 +83,10 @@ def initial_triangle(M,B1,nB1,lps):
     
     A tuple containing 4 elements in this order:
     
-    1. A dictionary containing 2-tuple (x,y) co-ordinates with ``M.simplify.groundset()`` elements that can be placed on the sides of the triangle as keys
-    2. A list of 3 lists of elements of ``M.simplify.groundset()`` that can be placed on the 3 sides of the triangle
-    3. A list of elements of `M.simplify.groundset()`` that cane be placed inside the triangle in the geometric representation
-    4. A list of lists of elements of ``M.simplify.groundset()`` that correspond to lines in the geometric representation other than the sides of the triangle
+    1. A dictionary containing 2-tuple (x,y) co-ordinates with ``M.simplify.groundset()`` elements that can be placed on the sides of the triangle as keys.
+    2. A list of 3 lists of elements of ``M.simplify.groundset()`` that can be placed on the 3 sides of the triangle.
+    3. A list of elements of `M.simplify.groundset()`` that cane be placed inside the triangle in the geometric representation.
+    4. A list of lists of elements of ``M.simplify.groundset()`` that correspond to lines in the geometric representation other than the sides of the triangle.
     
     EXAMPLES::
         
@@ -120,19 +158,19 @@ def initial_triangle(M,B1,nB1,lps):
 
 def trigrid(tripts):
     """
-    Return a grid of 4 points inside given 3 points as a list
+    Return a grid of 4 points inside given 3 points as a list.
     
    
     INPUT:
     
-    - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the cartesian co-ordinates of a point
+    - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the cartesian co-ordinates of a point.
     
     OUTPUT:
     
     A list of lists containing 4 points in following order:
     
-    1. Barycenter of 3 input points 
-    2,3,4. Barycenters of 1. with 3 different 2-subsets of input points respectively  
+    1. Barycenter of 3 input points.
+    2,3,4. Barycenters of 1. with 3 different 2-subsets of input points respectively.  
     
     EXAMPLES::
         
@@ -157,18 +195,18 @@ def trigrid(tripts):
     
 def addnontripts(tripts_labels,nontripts_labels,ptsdict):
     """
-    Return modified ``ptsdict`` with additional keys and values corresponding to ``nontripts``
+    Return modified ``ptsdict`` with additional keys and values corresponding to ``nontripts``.
     
    
     INPUT:
     
-    - ``tripts`` -- A list of 3 ground set elements that are to be placed on vertices of the triangle
-    - ``ptsdict`` -- A dictionary (at least) containing ground set elements in ``tripts`` as keys and their (x,y) position as values
-    - ``nontripts``-- A list of ground set elements whose corresponding points are to be placed inside the triangle
+    - ``tripts`` -- A list of 3 ground set elements that are to be placed on vertices of the triangle.
+    - ``ptsdict`` -- A dictionary (at least) containing ground set elements in ``tripts`` as keys and their (x,y) position as values.
+    - ``nontripts``-- A list of ground set elements whose corresponding points are to be placed inside the triangle.
     
     OUTPUT:
     
-    A dictionary containing ground set elements in ``tripts`` as keys and their (x,y) position as values allong with all keys and respective values in ``ptsdict`` 
+    A dictionary containing ground set elements in ``tripts`` as keys and their (x,y) position as values allong with all keys and respective values in ``ptsdict``. 
     
     EXAMPLES::
         
@@ -206,9 +244,10 @@ def addnontripts(tripts_labels,nontripts_labels,ptsdict):
         j = j + 1
     return ptsdict
 
-def createline(ptsdict,ll,lineorders2=None):
+def createline(ptsdict, ll, lineorders2=None):
     """
-    Return ordered lists of co-ordinates of points to be traversed to draw a 2D line 
+    Return ordered lists of co-ordinates of points to be traversed to draw a 2D line.
+    
     INPUT:
     
     - ``ptsdict`` -- A dictionary containing keys and their (x,y) position as values.
@@ -221,10 +260,10 @@ def createline(ptsdict,ll,lineorders2=None):
     
     A tuple containing 4 elements in this order:
     
-    1. Ordered list of x-coordinates of values of keys in ``ll`` specified in ptsdict 
-    2. Ordered list of y-coordinates of values of keys in ``ll`` specified in ptsdict
-    3. Ordered list of interpolated x-coordinates of points through which a line can be drawn
-    4. Ordered list of interpolated y-coordinates of points through which a line can be drawn    
+    1. Ordered list of x-coordinates of values of keys in ``ll`` specified in ptsdict.
+    2. Ordered list of y-coordinates of values of keys in ``ll`` specified in ptsdict.
+    3. Ordered list of interpolated x-coordinates of points through which a line can be drawn.
+    4. Ordered list of interpolated y-coordinates of points through which a line can be drawn.  
     
     Examples::
         
@@ -277,7 +316,7 @@ def createline(ptsdict,ll,lineorders2=None):
         x_i,y_i = scipy.interpolate.splev(np.linspace(0,1,100),tck)
     return sortedx,sortedy,x_i,y_i
 
-def slp(M1,pos_dict=None):
+def slp(M1, pos_dict=None):
     """
     Return simple matroid, loops and parallel elements of given matroid
     
@@ -291,8 +330,8 @@ def slp(M1,pos_dict=None):
     OUTPUT:
     
     A tuple containing 3 elements in this order:
-    1. Simple matroid corresponding to ``M1``
-    2. Loops of matroid ``M1``
+    1. Simple matroid corresponding to ``M1``.
+    2. Loops of matroid ``M1``.
     3. Elements that are in `M1.groundset()` but not in ground set of 1. or in 2.
     
     EXAMPLES::
@@ -332,17 +371,17 @@ def slp(M1,pos_dict=None):
     else:
         return [M1.delete(L|P),L,P]
     
-def addlp(M,M1,L,P,ptsdict,G=None):
+def addlp(M, M1, L, P, ptsdict, G=None):
     """
-    Return a graphics object containing loops (in inset) and parallel elements of matroid 
+    Return a graphics object containing loops (in inset) and parallel elements of matroid. 
     
     INPUT:
     
     - ``M`` -- A matroid.
-    - ``L`` -- List of elements in ``M.groundset()`` that are loops of matroid ``M``
-    - ``P`` -- List of elements in ``M.groundset()`` not in ``M.simplify.groundset()`` or ``L`` 
-    - ``ptsdict`` -- A dictionary containing elements in ``M.groundset()`` not necessarily containing elements of ``L``
-    - ``G`` -- (optional) A sage graphics object to which loops and parallel elements of matroid `M` added 
+    - ``L`` -- List of elements in ``M.groundset()`` that are loops of matroid ``M``.
+    - ``P`` -- List of elements in ``M.groundset()`` not in ``M.simplify.groundset()`` or ``L``.
+    - ``ptsdict`` -- A dictionary containing elements in ``M.groundset()`` not necessarily containing elements of ``L``.
+    - ``G`` -- (optional) A sage graphics object to which loops and parallel elements of matroid `M` added .
     
     OUTPUT:
     A sage graphics object containing loops and parallel elements of matroid ``M``
@@ -399,20 +438,19 @@ def addlp(M,M1,L,P,ptsdict,G=None):
                     G += text('{ '+", ".join(sorted([str(kk) for kk in pcl[1:]]))+' }',(float(basept[0]), float(basept[1]-0.2)-0.034),color='black',fontsize=13)
     return G
       
-def line_hasorder(l,lodrs=None):
+def line_hasorder(l, lodrs=None):
     """
     Determine if an order is specified for a line
     
     INPUT:
     
-    - ``l`` -- A line specified as a list of ground set elements
-    - ``lordrs`` -- (optional) A list of lists each specifying an order on the subset of ground set elements that may or may not correspond to a line in geometric representation
-     
+    - ``l`` -- A line specified as a list of ground set elements.
+    - ``lordrs`` -- (optional) A list of lists each specifying an order on the subset of ground set elements that may or may not correspond to a line in geometric representation.
     OUTPUT:
     
     A tuple containing 2 elements in this order:
-    1. A boolean indicating whether there is any list in ``lordrs`` that is setwise equal to ``l``
-    2. A list specifying an order on ``set(l)`` if 1. is True, otherwise an empty list
+    1. A boolean indicating whether there is any list in ``lordrs`` that is setwise equal to ``l``.
+    2. A list specifying an order on ``set(l)`` if 1. is True, otherwise an empty list.
     
     EXAMPLES::
         
@@ -434,9 +472,9 @@ def line_hasorder(l,lodrs=None):
                     return True,i
     return False,[]    
 
-def lineorders_union(lineorders1,lineorders2):
+def lineorders_union(lineorders1, lineorders2):
     """
-    Return a list of ordered lists of ground set elements that corresponds to union of two sets of ordered lists of ground set elements in a sense
+    Return a list of ordered lists of ground set elements that corresponds to union of two sets of ordered lists of ground set elements in a sense.
     
     INPUT:
     
@@ -470,18 +508,18 @@ def lineorders_union(lineorders1,lineorders2):
     else:
         return None 
     
-def posdict_is_sane(M1,pos_dict):
+def posdict_is_sane(M1, pos_dict):
     """
-    Return a boolean establishing sanity of ``posdict`` wrt matroid ``M``
+    Return a boolean establishing sanity of ``posdict`` wrt matroid ``M``.
     
     INPUT:
     
     - ``M1`` -- A matroid.
-    - ``posdict`` -- A dictionary mapping ground set elements to (x,y) positions
+    - ``posdict`` -- A dictionary mapping ground set elements to (x,y) positions.
     
     OUTPUT:
     
-    A boolean that is ``True`` if posdict indeed has all the required elements to plot the geometric elements, otherwise ``False``
+    A boolean that is ``True`` if posdict indeed has all the required elements to plot the geometric elements, otherwise ``False``.
     
     EXAMPLES:
         
@@ -497,7 +535,7 @@ def posdict_is_sane(M1,pos_dict):
     
     .. NOTE::
 
-            This method does NOT do any checks. ``M1`` is assumed to be a matroid and ``posdict`` is assumed to be a dictionary
+            This method does NOT do any checks. ``M1`` is assumed to be a matroid and ``posdict`` is assumed to be a dictionary.
     """
     L = set(M1.loops())
     sg = sorted(M1.simplify().groundset())
@@ -520,25 +558,25 @@ def posdict_is_sane(M1,pos_dict):
     
     
     
-def geomrep(M1,B1=None,lineorders1=None,pd=None,sp=False):
+def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
     """
-    Return a sage graphics object containing geometric representation of matroid M1
+    Return a sage graphics object containing geometric representation of matroid M1.
     
     INPUT:
     
     - ``M1`` -- A matroid.
-    - ``B1`` -- (optional) A list of elements in ``M1.groundset()`` that correspond to a basis 
-    of ``M1`` and will be placed as vertices of the triangle in the geometric representation of ``M1``
+    - ``B1`` -- (optional) A list of elements in ``M1.groundset()`` that correspond to a basis.
+    of ``M1`` and will be placed as vertices of the triangle in the geometric representation of ``M1``.
     - ``lineorders1`` -- (optional) A list of ordered lists of elements of ``M1.grondset()`` such that 
     if a line in geometric representation is setwise same as any of these then points contained will be
     traversed in that order thus overriding internal order deciding heuristic.
     - ``pd`` - (optional) A dictionary mapping ground set elements to their (x,y) positions.
-    - ``sp`` -- (optional) If True, a positioning dictionary and line orders will be placed in ``M._cached_info``
+    - ``sp`` -- (optional) If True, a positioning dictionary and line orders will be placed in ``M._cached_info``.
     
     OUTPUT:
     
     A sage graphics object of type <class 'sage.plot.graphics.Graphics'> that 
-    corresponds to the geometric representation of the matroid
+    corresponds to the geometric representation of the matroid.
     
     EXAMPLES::
         
@@ -551,7 +589,9 @@ def geomrep(M1,B1=None,lineorders1=None,pd=None,sp=False):
         sage: G=matroids_plot_helpers.geomrep(M,lineorders1=[['f','e','d']])
         sage: G.show(xmin=-2, xmax=3, ymin=-2, ymax=3)
 
-    
+    .. NOTE::
+
+            This method does NOT do any checks.
     """
     if B1 == None:
         B1 = list(M1.basis())

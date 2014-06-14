@@ -10,11 +10,9 @@ operations on these games can be carried out:
 """
 from itertools import product
 from sage.misc.package import is_package_installed
-from sage.matrix.constructor import matrix, copy
-
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
-
+from sage.matrix.constructor import matrix, copy
 from subprocess import Popen, PIPE, call
 import random
 import string

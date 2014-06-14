@@ -194,6 +194,13 @@ the first few zeros::
     Graphics object consisting of 2 graphics primitives
     sage: p1 + p2    # display it
 
+.. NOTE::
+
+    Not all functions in Sage are symbolic. When plotting non-symbolic functions
+    they should be wrapped in ``lambda``::
+    
+        sage: plot(lambda x:fibonacci(round(x)),(x,1,10))
+
 Many concentric circles shrinking toward the origin::
 
     sage: show(sum(circle((i,0), i, hue=sin(i/10)) for i in [10,9.9,..,0])) # long time

@@ -80,7 +80,7 @@ class NormalFormGame(Game):
         sage: gambitgame.title = "A prisoner's dilemma game"
         sage: gambitgame.players[int(0)].label = "Alphonse"
         sage: gambitgame.players[int(1)].label = "Gaston"
-        sage: g = NormalFormGame(game=gambitgame)
+        sage: g = NormalFormGame(gambitgame)
         sage: g
         NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
         <BLANKLINE>
@@ -112,7 +112,7 @@ class NormalFormGame(Game):
         sage: B = matrix([[3,2],
         ....:             [2,6],
         ....:             [3,1]])
-        sage: g = NormalFormGame(A,B)
+        sage: g = NormalFormGame([A, B])
 
     This particular game has 3 Nash equilibrium ::
 
@@ -131,7 +131,7 @@ class NormalFormGame(Game):
         ....:             [1, 0, 0],
         ....:             [3, 4, 1],
         ....:             [4, 1, 2]])
-        sage: g=NormalFormGame(A,B)
+        sage: g=NormalFormGame([A, B])
         sage: g.obtain_Nash()
         [[[0.0, 0.0, 0.75, 0.25], [0.0357142857, 0.9642857143, 0.0]]]
 
@@ -143,7 +143,7 @@ class NormalFormGame(Game):
         ....:             [-1, 1, 0, 1 , -1],
         ....:             [-1, 1, -1, 0, 1],
         ....:             [1, -1, 1, -1, 0]])
-        sage: g = NormalFormGame(A)
+        sage: g = NormalFormGame([A])
         sage: g.obtain_Nash()
         [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
@@ -173,7 +173,7 @@ class NormalFormGame(Game):
     sage: K = 10  # Modifying this value lets us play with games of any size
     sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
-    sage: g = NormalFormGame(A, B)
+    sage: g = NormalFormGame([A, B])
     sage: g.obtain_Nash()
     [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
@@ -185,12 +185,6 @@ class NormalFormGame(Game):
     def __new__(NormalFormGame, generator):
         r"""
         Creates an Instance of NormalFormGame.
-
-        EXAMPLES:
-
-        A simple 2x2 two player game. ::
-
-            sage: g = NormalFormGame()
 
         """
         if type(generator) is list:
@@ -210,7 +204,7 @@ class NormalFormGame(Game):
         """
         if type(generator) is list:
             if len(generator) == 1:
-                generator.append(- generator[-1])
+                generator.append(-generator[-1])
             self.payoff_matrices = generator
             self.matrix_to_game()
         if type(generator) is NormalFormGame:

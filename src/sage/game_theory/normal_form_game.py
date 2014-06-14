@@ -192,15 +192,6 @@ class NormalFormGame(Game):
 
             sage: g = NormalFormGame()
 
-        TESTS:
-
-        Raise an error if both matrix and game provided. ::
-
-            sage: g = NormalFormGame(matrix1=4, game=5)
-            Traceback (most recent call last):
-            ...
-            ValueError: Can't input both a matrix and a game
-
         """
         if type(generator) is list:
             g = Game.new_table([generator[0].dimensions()[0], generator[0].dimensions()[1]])

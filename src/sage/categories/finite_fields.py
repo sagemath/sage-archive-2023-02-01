@@ -26,7 +26,7 @@ class FiniteFields(CategoryWithAxiom):
     A finite field is a finite monoid with the structure of a field::
 
         sage: K.super_categories()
-        [Category of fields, Category of finite monoids]
+        [Category of fields, Category of finite commutative rings]
 
     Some examples of membership testing and coercion::
 

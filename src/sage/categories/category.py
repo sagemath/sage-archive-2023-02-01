@@ -2003,9 +2003,6 @@ class Category(UniqueRepresentation, SageObject):
         Note that several of the above examples are actually join
         categories; they are just nicely displayed::
 
-            sage: (Rings().Commutative() & Sets().Finite())._repr_(as_join=True)
-            'Join of Category of commutative rings and Category of finite monoids'
-
             sage: AlgebrasWithBasis(QQ) & FiniteSets().Algebras(QQ)
             Join of Category of finite dimensional algebras with basis over Rational Field
                 and Category of finite set algebras over Rational Field

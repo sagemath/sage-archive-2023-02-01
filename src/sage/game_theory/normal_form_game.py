@@ -316,7 +316,7 @@ class NormalFormGame(Game):
                 self[k][0] = int(self.matrix1[k])
                 self[k][1] = int(self.matrix2[k])
 
-    def obtain_Nash(self, algorithm="LCP"):
+    def obtain_Nash(self, algorithm="LCP", maximization=True):
         r"""
         A function to return the Nash equilibrium for a game.
         Optional arguments can be used to specify the algorithm used.
@@ -349,7 +349,7 @@ class NormalFormGame(Game):
                   " of available algorithms")
 
         if algorithm == "LCP":
-            return [self._gambit_profile_to_vector(profile) for profile in ExternalLCPSolver().solve(self)]
+            return [self._gambit_profile_to_list(profile) for profile in ExternalLCPSolver().solve(self)]
 
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
@@ -361,7 +361,7 @@ class NormalFormGame(Game):
                                       "yet")
             return self._solve_enumeration()
 
-    def _gambit_profile_to_vector(self, gambitstrategy):
+    def _gambit_profile_to_list(self, gambitstrategy):
         gambitstrategy = eval(str(gambitstrategy)[str(gambitstrategy).index("["): str(gambitstrategy).index("]") + 1])
         profile = [gambitstrategy[:len(self.players[int(0)].strategies)]]
         for player in list(self.players)[1:]:

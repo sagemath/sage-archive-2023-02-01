@@ -98,10 +98,29 @@ class NormalFormGame(Game):
         1 2 3 4
         <BLANKLINE>
 
+
     This can be solved using ``obtain_Nash``. ::
 
         sage: gam.obtain_Nash()
         [<NashProfile for 'A prisoner's dilemma game': [0.0, 1.0, 0.0, 1.0]>]
+
+    Here is an example of a 3 by 2 game ::
+
+        sage: A = matrix([[3,3],
+        ....:             [2,5],
+        ....:             [0,6]])
+        sage: B = matrix([[3,2],
+        ....:             [2,6],
+        ....:             [3,1]])
+        sage: game = NormalFormGame(A,B)
+
+
+    This particular game has 3 Nash equilibrium::
+
+        sage: game.obtain_Nash()
+        [<NashProfile for '': [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]>,
+         <NashProfile for '': [0.8, 0.2, 0.0, 0.6666666667, 0.3333333333, 0.0]>,
+         <NashProfile for '': [0.0, 0.3333333333, 0.6666666667, 0.3333333333, 0.6666666667, 0.0]>]
     """
 
     def __new__(NormalFormGame, matrix1=False, matrix2=False, game=False):

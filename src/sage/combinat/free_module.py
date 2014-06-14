@@ -450,10 +450,8 @@ class CombinatorialFreeModuleElement(Element):
         """
         if have_same_parent(left, right) and left._monomial_coefficients == right._monomial_coefficients:
             return 0
-        nonzero = lambda mc: mc[1] != 0
-        v = sorted(filter(nonzero, left._monomial_coefficients.items()))
-        w = filter(nonzero, right._monomial_coefficients.items())
-        w.sort()
+        v = sorted(mc for mc in left._monomial_coefficients.items() if mc[1] != 0)
+        w = sorted(mc for mc in right._monomial_coefficients.items() if mc[1] != 0)
         return cmp(v, w)
 
     def _add_(self, other):

@@ -2392,7 +2392,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         polynomials = map(pullback_polynomial, polynomials)
         patch_cover = sage.schemes.affine.affine_space.AffineSpace(R)
         polynomials = list(I.gens()) + polynomials
-        polynomials = filter( lambda x:not x.is_zero(), polynomials)
+        polynomials = [x for x in polynomials if not x.is_zero()]
         patch = patch_cover.subscheme(polynomials)
 
         # TODO: If the cone is not smooth, then the coordinate_ring()

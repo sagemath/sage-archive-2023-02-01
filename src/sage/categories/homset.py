@@ -692,7 +692,7 @@ class Homset(Set_generic):
                     Call morphism:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
-            
+
       Also note that making a copy of the resulting map will automatically
       make strengthened copies of the composed maps::
 

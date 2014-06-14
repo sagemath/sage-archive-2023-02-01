@@ -146,7 +146,7 @@ class NormalFormGame(Game):
         if matrix1 and game:
             raise ValueError("Can't input both a matrix and a game")
         if matrix1:
-            g = Game.new_table([len(matrix1.rows()), len(matrix1.columns())])
+            g = Game.new_table([matrix1.dimensions()[0], matrix1.dimensions()[1]])
         elif game:
             g = game
         else:
@@ -252,8 +252,8 @@ class NormalFormGame(Game):
         """
         if self.matrix1.dimensions() != self.matrix2.dimensions():
             raise ValueError("Matrices must be the same size")
-        p1_strats = range(len(self.matrix1.rows()))
-        p2_strats = range(len(self.matrix1.columns()))
+        p1_strats = range(self.matrix1.dimensions()[0])
+        p2_strats = range(self.matrix1.dimensions()[1])
         for k in product(p1_strats, p2_strats):
                 self[k][0] = int(self.matrix1[k])
                 self[k][1] = int(self.matrix2[k])

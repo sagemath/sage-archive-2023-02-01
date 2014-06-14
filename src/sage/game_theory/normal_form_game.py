@@ -284,13 +284,13 @@ class NormalFormGame(Game):
            - When set to ``False`` (default) it is assumed that players aim to
              minimise their utility.
         """
+        if len(self.players) > 2:
+            raise NotImplementedError("Nash equilibrium for games with "
+                  "more than 2 players have not been implemented yet."
+                  "Please see the gambit website [LINK] that has a variety"
+                  " of available algorithms")
 
         if algorithm == "LCP":
-            if len(self.players) > 2:
-                raise NotImplementedError("Nash equilibrium for games with "
-                      "more than 2 players have not been implemented yet."
-                      "Please see the gambit website [LINK] that has a variety"
-                      " of available algorithms")
             solver = ExternalLCPSolver()
             return solver.solve(self)
 

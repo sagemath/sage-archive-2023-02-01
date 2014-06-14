@@ -68,19 +68,19 @@ class NormalFormGame(Game):
     We can also pass a Gambit game and create it manually.
     (Taken from [GAMBIT WEBSITE]) ::
 
-        sage: gam = Game.new_table([2, 2])
-        sage: gam[int(0), int(0)][int(0)] = int(8)
-        sage: gam[int(0), int(0)][int(1)] = int(8)
-        sage: gam[int(0), int(1)][int(0)] = int(2)
-        sage: gam[int(0), int(1)][int(1)] = int(10)
-        sage: gam[int(1), int(0)][int(0)] = int(10)
-        sage: gam[int(1), int(0)][int(1)] = int(2)
-        sage: gam[int(1), int(1)][int(0)] = int(5)
-        sage: gam[int(1), int(1)][int(1)] = int(5)
-        sage: gam.title = "A prisoner's dilemma game"
-        sage: gam.players[int(0)].label = "Alphonse"
-        sage: gam.players[int(1)].label = "Gaston"
-        sage: g = NormalFormGame(game=gam)
+        sage: gambitgame= Game.new_table([2, 2])
+        sage: gambitgame[int(0), int(0)][int(0)] = int(8)
+        sage: gambitgame[int(0), int(0)][int(1)] = int(8)
+        sage: gambitgame[int(0), int(1)][int(0)] = int(2)
+        sage: gambitgame[int(0), int(1)][int(1)] = int(10)
+        sage: gambitgame[int(1), int(0)][int(0)] = int(10)
+        sage: gambitgame[int(1), int(0)][int(1)] = int(2)
+        sage: gambitgame[int(1), int(1)][int(0)] = int(5)
+        sage: gambitgame[int(1), int(1)][int(1)] = int(5)
+        sage: gambitgame.title = "A prisoner's dilemma game"
+        sage: gambitgame.players[int(0)].label = "Alphonse"
+        sage: gambitgame.players[int(1)].label = "Gaston"
+        sage: g = NormalFormGame(game=gambitgame)
         sage: g
         NFG 1 R "A prisoner's dilemma game" { "Alphonse" "Gaston" }
         <BLANKLINE>
@@ -101,7 +101,7 @@ class NormalFormGame(Game):
 
     This can be solved using ``obtain_Nash``. ::
 
-        sage: gam.obtain_Nash()
+        sage: g.obtain_Nash()
         [[[0.0, 1.0], [0.0, 1.0]]]
 
     Here is an example of a 3 by 2 game ::

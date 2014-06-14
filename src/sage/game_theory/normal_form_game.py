@@ -114,13 +114,26 @@ class NormalFormGame(Game):
         ....:             [3,1]])
         sage: g = NormalFormGame(A,B)
 
-
     This particular game has 3 Nash equilibrium ::
 
         sage: g.obtain_Nash()
         [[[1.0, 0.0, 0.0], [1.0, 0.0]],
          [[0.8, 0.2, 0.0], [0.6666666667, 0.3333333333]],
          [[0.0, 0.3333333333, 0.6666666667], [0.3333333333, 0.6666666667]]]
+
+    Here is a slightly larger game ::
+
+        sage: A = matrix([[160, 205, 44],
+        ....:       [175, 180, 45],
+        ....:       [201, 204, 50],
+        ....:       [120, 207, 49]])
+        sage: B = matrix([[2, 2, 2],
+        ....:             [1, 0, 0],
+        ....:             [3, 4, 1],
+        ....:             [4, 1, 2]])
+        sage: g=NormalFormGame(A,B)
+        sage: g.obtain_Nash()
+        [[[0.0, 0.0, 0.75, 0.25], [0.0357142857, 0.9642857143, 0.0]]]
 
     One can also input a single matrix and then a zero sum game is constructed.
     Here is an instance of Rock-Paper-Scissors-Lizard-Spock ::
@@ -134,6 +147,38 @@ class NormalFormGame(Game):
         sage: g.obtain_Nash()
         [[[0.2, 0.2, 0.2, 0.2, 0.2], [0.2, 0.2, 0.2, 0.2, 0.2]]]
 
+    Here is a slightly longer game.
+    Consider the following:
+
+    An airline loses two suitcases belonging to two different travelers.
+    Both suitcases happen to be identical and contain identical antiques.
+    An airline manager tasked to settle the claims of both travelers explains
+    that the airline is liable for a maximum of 10 per suitcase, and in
+    order to determine an honest appraised value of the antiques the manager
+    separates both travelers so they can’t confer, and asks them to write
+    down the amount of their value at no less than 2 and no larger than 100.
+    He also tells them that if both write down the same number, he will
+    treat that number as the true dollar value of both suitcases and
+    reimburse both travelers that amount.
+    However, if one writes down a smaller number than the other,
+    this smaller number will be taken as the true dollar value,
+    and both travelers will receive that amount along with a bonus/malus:
+    2 extra will be paid to the traveler who wrote down the lower value
+    and a 2 deduction will be taken from the person who wrote down the higher amount.
+    The challenge is: what strategy should both travelers follow to decide
+    the value they should write down?
+
+    In the following we create the game and solve it ::
+
+    sage: K = 10  # Modifying this value lets us play with games of any size
+    sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
+    sage: g = NormalFormGame(A, B)
+    sage: g.obtain_Nash()
+    [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
+
+    The equilibrium strategy is thus for both players to state that the value of their suitcase is 2.
 
     """
 

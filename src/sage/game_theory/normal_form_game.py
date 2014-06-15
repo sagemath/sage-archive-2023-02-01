@@ -192,7 +192,6 @@ class NormalFormGame(Game):
         elif type(generator) is Game:
             g = generator
         else:
-            g = generator
             g = Game.new_table([])
 
         g.__class__ = NormalFormGame
@@ -207,7 +206,7 @@ class NormalFormGame(Game):
                 generator.append(-generator[-1])
             self.payoff_matrices = generator
             self.matrix_to_game()
-        if type(generator) is NormalFormGame:
+        if type(generator) is Game and len(self.players) == 2:
             self.payoff_matrices = self.game_to_matrix()
 
     def game_to_matrix(self):
@@ -244,14 +243,17 @@ class NormalFormGame(Game):
 
             sage: three_player = Game.new_table([1, 2, 3])
             sage: large_game = NormalFormGame(three_player)
+            sage: large_game.game_to_matrix()
             Traceback (most recent call last):
             ...
             ValueError: Only available for games with 2 players
         """
-        payoff_matrices = [matrix(len(self.players[0].strategies), len(self.players[1].strategies)) for player in range(len(self.players))]
 
         if len(self.players) != 2:
             raise ValueError("Only available for games with 2 players")
+
+        payoff_matrices = [matrix(len(self.players[0].strategies), len(self.players[1].strategies)) for player in range(len(self.players))]
+
         for k in list(self.contingencies):
             for player in range(len(self.players)):
                 payoff_matrices[player][tuple(k)] = int(self[k][player])
@@ -346,7 +348,6 @@ class NormalFormGame(Game):
             previousplayerstrategylength = len(profile[-1])
             profile.append(gambitstrategy[previousplayerstrategylength: previousplayerstrategylength + len(player.strategies)])
         return profile
-
 
     def _solve_lrs(self):
         # file1 = id_generator(6)

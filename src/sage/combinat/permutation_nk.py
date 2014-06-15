@@ -37,6 +37,6 @@ def PermutationsNK(n, k):
     """
     from sage.misc.superseded import deprecation
     deprecation(16472, "PermutationsNK is deprecated. Please use Permutations instead (or itertools.permutations for iteration).")
-    from permutation import Permutations
+    from sage.combinat.permutation import Permutations
     return Permutations(range(n),k)
 

@@ -192,14 +192,12 @@ class Link:
                 else:
                     string = string - 1
                 crossing = crossing + 1
-
             code = [0 for i in range(N)]
             for i in range(N):
                 for j in range(N):
                     if label[2*j+1] == 2*i+1:
                         code[i] = label[2*j]
                         break
-            self._dt_code = code
             return code
 
         elif self._gauss_code != None:
@@ -212,8 +210,7 @@ class Link:
                 else:
                     l[2*k-1] = (i + 1)*(cmp(gc[i],0))
             y = [l[i] for i in range(len(l)) if abs(l[i])%2 == 0]
-            x = [(-1)*y[i] if y[i] < 0 else (-1)*y[i] for i in range(len(y))]
-            self._dt_code = x
+            x = [(-1)*y[i] for i in range(len(y))]
             return x
 
     def _braidwordcomponents(self):
@@ -678,96 +675,86 @@ class Link:
         else:
             raise Exception("Arf invariant is defined only for knots")
 
-    #there is an ambiguity in selecting the 2 and 4 co ordinates once the code is generated.
-    #the ambiguity is deciding on which comes first, because while constucting the PD code one needs to
-    #move clockwise around the crossing.And the direction is not captured in the code.
     def PD_code(self):
-        r"""
-        Returns the Planar Diagram Code
-
-        INPUT:
-            - Either a braidword, gauss_code, dt_code
-
-        OUTPUT:
-            - Planar Representation of the Knot
-
-        EXAMPLES::
-
-            sage: from sage.knots import link
-            sage: B = BraidGroup(20)
-            sage: L = link.Link(B([-1,2,-1,2]))
-            sage: L.PD_code()
-            [[4, 1, 5, 2], [6, 3, 7, 4], [8, 5, 1, 6], [2, 7, 3, 8]]
-            sage: L = link.Link(gauss_code = [-1, 4, -3, 1, -5, 8, -6, 9, -7, 10, -2, 3, -4, 2, -10, 5, -8, 6, -9, 7])
-            sage: L.PD_code()
-            [[1, 4, 2, 5], [3, 14, 4, 15], [5, 12, 6, 13], [7, 2, 8, 3], [9, 16, 10, 17], [11, 18, 12, 19], [13, 20, 14, 1], [15, 6, 16, 7], [17, 8, 18, 9], [19, 10, 20, 11]]
-            sage: L = link.Link(dt_code = [4, 8, 10, -14, 2, -16, -18, -6, -12])
-            sage: L.PD_code()
-            [[4, 1, 5, 2], [8, 3, 9, 4], [10, 5, 11, 6], [7, 14, 8, 15], [2, 9, 3, 10], [11, 16, 12, 17], [13, 18, 14, 1], [15, 6, 16, 7], [17, 12, 18, 13]]
-        """
-        dt = self.dt_code()
-        y = [None for i in range(2*len(dt))]
-        x = [0 for i in range(2*len(dt))]
-        for i in range(len(dt)):
-            x[2*i] = 2*i + 1
-            x[2*i + 1] = dt[i]
-        p = [[None,None] for i in range(len(x))]
-        t = [abs(r) for r in x]
-        for i in range(len(t)):
-            if t[i] != max(t):
-                p[i][0] = t[i]
-                p[i][1] = t[i] + 1
+        b = list(self._braid.Tietze())
+        N = len(b)
+        label = [0 for i in range(2*N)]
+        string = 1
+        next_label = 1
+        type1 = 0
+        crossing = 0
+        while(next_label <= 2*N):
+            string_found = 0
+            for i in range(crossing, N):
+                if(abs(b[i]) == string or abs(b[i]) == string - 1):
+                    string_found = 1
+                    crossing = i
+                    break
+            if(string_found == 0):
+                for i in range(0,crossing):
+                    if(abs(b[i]) == string or abs(b[i]) == string - 1):
+                        string_found = 1
+                        crossing = i
+                        break
+            if(label[2*crossing + next_label%2] == 1):
+                raise Exception("Implemented only for knots")
             else:
-                p[i][0] = t[i]
-                p[i][1] = 1
-        for i in range(len(dt)):
-            if x[2*i+1] > 0:
-                y[2*i+1] = 'under'
-                y[2*i] = 'over'
-            elif x[2*i+1] < 0:
-                y[2*i+1] = 'over'
-                y[2*i] = 'under'
-        for i in range(len(dt)):
-            if y[2*i + 1] == 'under':
-                p[2*i+1].extend(p[2*i])
-            elif y[2*i + 1] == 'over':
-                p[2*i].extend(p[2*i+1])
-        q = [p[i] for i in range(len(p)) if len(p[i]) == 4]
-        for i in range(len(dt)):
-            a = q[i][1]
-            q[i][1] = q[i][2]
-            q[i][2] = a
-        return q
-
+                label[2*crossing + next_label%2] =  next_label
+                next_label = next_label + 1
+                if(type1 == 0):
+                    if(b[crossing] < 0):
+                        type1 = -1
+                    else:
+                        type1 = 1
+                else:
+                    type1 = -1 * type1
+                    if((abs(b[crossing]) == string and b[crossing] * type1 > 0) or (abs(b[crossing]) != string and b[crossing] * type1 < 0)):
+                        if(next_label%2 == 1):
+                            label[2*crossing] = label[2*crossing] * -1
+            if(abs(b[crossing]) == string):
+                string = string + 1
+            else:
+                string = string - 1
+            crossing = crossing + 1
+        s = [None for i in range(len(label))]
+        for i in range(N):
+            if cmp(label[2*i],0) == -1:
+                s[2*i] = 'over'
+                s[2*i+1] = 'under'
+            if (label[2*i]%2 == 0 and cmp(label[2*i],0) == 1):
+                s[2*i] = 'under'
+                s[2*i+1] = 'over'
+            if (label[2*i+1]%2 == 0 and cmp(label[2*i+1],0) == 1):
+                s[2*i+1] = 'under'
+                s[2*i] = 'over'
+        pd = [[None for i in range(4)] for i in range(N)]
+        for j in range(N):
+            if s[2*j] == 'under':
+                if cmp(b[j],0) == -1:
+                    pd[j][0] = abs(label[2*j])
+                    pd[j][3] = abs(label[2*j+1])
+                    pd[j][2] = pd[j][0] + 1
+                    pd[j][1] = pd[j][3] + 1
+                elif cmp(b[j],0) == 1:
+                    pd[j][0] = abs(label[2*j])
+                    pd[j][1] = abs(label[2*j+1])
+                    pd[j][2] = pd[j][0] + 1
+                    pd[j][3] = pd[j][1] + 1
+            elif s[2*j] == 'over':
+                if cmp(b[j],0) == -1:
+                    pd[j][0] = abs(label[2*j+1])
+                    pd[j][2] = pd[j][0] + 1
+                    pd[j][3] = abs(label[2*j])
+                    pd[j][1] = pd[j][3] + 1
+                if cmp(b[j],0) == 1:
+                    pd[j][0] = abs(label[2*j+1])
+                    pd[j][2] = pd[j][0] + 1
+                    pd[j][1] = abs(label[2*j])
+                    pd[j][3] = pd[j][1] + 1
+        return pd
 
     def is_alternating(self):
-        r"""
-        Returns True if the knot is alternating if else it returns False
-
-        INPUT:
-            - Either a braidword, gauss_code, dt_code
-
-        OUTPUT:
-            - True or False, depending whether the knot is alternating or not
-
-        EXAMPLES::
-
-            sage: from sage.knots import link
-            sage: B = BraidGroup(4)
-            sage: L = link.Link(B([1,1,1,2,1,1,1,2]))
-            sage: L.is_alternating()
-            False
-            sage: L = link.Link(B([1,1,1,-2,-1,-1,-1,-2]))
-            sage: L.is_alternating()
-            False
-            sage: L = link.Link(B([1,1,2,-1,2,1,3,2,2,2,3]))
-            sage: L.is_alternating()
-            False
-            sage: L = link.Link(B([-1,2,-1,2,-1,2,-1,2,-1,2]))
-            sage: L.is_alternating()
-            True
-        """
-        if x.is_knot() == True:
+        if self.is_knot() == True:
             x = self.gauss_code()
             s = [cmp(x[i],0) for i in range(len(x))]
             if s == [(-1)**i+1 for i in range(len(x))] or s == [(-1)**i for i in range(len(x))]:
@@ -777,12 +764,13 @@ class Link:
         else:
             return False
 
-    #this is being done not in a good way.Just an idea I was working on.
     def knot_diagram(self):
         x = self.PD_code()
+        #p = [i for i in range(len(x))]
         p =[[None for i in range(4)] for i in range(len(x))]
         plt = Graphics()
         for i in range(len(x)):
+            #print (p[i],p[i] + 1)
             a = x[i][0]
             plt = plt + arrow((i,i,i), (i + 0.4,i,i), legend_color='purple') + arrow((i+0.6,i,i),(i+1,i,i))
             p[i][0] = ((i,i,i)) #((i,i),(i + 0.4, i))
@@ -790,6 +778,7 @@ class Link:
             plt = plt + arrow((i+0.5,i,i-0.5),(i+0.5,i,i-0.1)) + arrow((i+0.5,i,i+0.1),(i+0.5,i,i+0.5))
             p[i][1] = (i+0.5,i,i-0.5) #((i+0.5,i-0.5),(i+0.5,i-0.1))
             p[i][3] = (i+0.5,i,i+0.1) #((i+0.5,i+0.1),(i+0.5,i+0.5))
+        #print p
         #plt = plt + arrow2d((0,1),(1,2))
         #plt = plt + arrow((2,1),(3,2))
         q = [x[j][i] for j in range(len(x)) for i in range(4)]
@@ -811,3 +800,104 @@ class Link:
             plt = plt + b
             #plt = plt + bezier_path([[(s[i]),(s[i+1])]]).plot3d()
         return plt
+
+    #*****************************************************************************
+    # Various methods for the implementation of the Vogel's algorithm
+    # start here.The input is the oriented gauss code where in every cross is
+    # given a sign for the orientation. The missing information in the last
+    # implementation of PD was which part of the over crossing we encounter first.
+    # So we took the braid word as the input, now in addition to the gauss code we
+    # take the orientation at every crossing and call it the oriented gauss code.
+    # Eventually after this algorithmic implementation we would like to work on
+    # making the planar diagram code as a standard input.
+    #
+    #  The crux of the Vogel algorithm is two steps, identify the unoriented
+    # Seifert circle and perform a move. The first part deals with identifying
+    # the regions and Seifert circles.
+    #*****************************************************************************
+
+    #**************************** PART - 1 ***************************************
+    #Whatever is the crossing one should give the sign for that first
+    #the order of the sign is as per the ordering of the crossings as in the gauss code
+    #so for example if the gauss code is 1 -3 2 -1 3 -2 then the
+    #order of the sign of the crossings is sign of crossing 1 then 3 then at 2
+    #and so on and so forth.
+    def PD_code_ogc(self, oriented_gauss_code):
+        self.oriented_gauss_code = oriented_gauss_code
+        gc = self.oriented_gauss_code[0]
+        gc_sign = self.oriented_gauss_code[1]
+        l = [0 for i in range(len(gc))]
+        for i in range(len(gc)):
+            k = abs(gc[i])
+            if l[2*(k-1)] == 0:
+                l[2*(k-1)] = (i + 1)*(cmp(gc[i],0))
+            else:
+                l[2*k-1] = (i + 1)*(cmp(gc[i],0))
+        y = [None for i in range(2*len(gc_sign))]
+        for i in range(0,2*len(gc_sign),2):
+            if l[i] < 0:
+                y[i] = 'under'
+                y[i+1] = 'over'
+            elif l[i] > 0:
+                y[i] = 'over'
+                y[i+1] = 'under'
+        l1 = [abs(x) for x in l]
+        r = []
+        p = [[None for i in range(4)] for i in range(len(gc_sign))]
+        for i in range(len(gc_sign)):
+            if gc_sign[i] == '-':
+                if y[2*i] == 'under':
+                    p[i][0] = l1[2*i]
+                    p[i][2] = p[i][0] + 1
+                    p[i][3] = l1[2*i+1]
+                    p[i][1] = p[i][3] + 1
+                elif y[2*i+1] == 'under':
+                    p[i][0] = l1[2*i+1]
+                    p[i][3] = l1[2*i]
+                    p[i][2] = p[i][0] + 1
+                    p[i][1] = p[i][3] + 1
+            elif gc_sign[i] == '+':
+                if y[2*i] == 'under':
+                    p[i][0] = l1[2*i]
+                    p[i][2] = p[i][0] + 1
+                    p[i][1] = l1[2*i+1]
+                    p[i][3] = p[i][1] + 1
+                elif y[2*i+1] == 'under':
+                    p[i][0] = l1[2*i+1]
+                    p[i][1] = l1[2*i]
+                    p[i][2] = p[i][0] + 1
+                    p[i][3] = p[i][1] + 1
+        return p
+
+
+    def regions(self, oriented_gauss_code):
+        self.oriented_gauss_code = oriented_gauss_code
+        print self.oriented_gauss_code
+        x = self.PD_code_ogc(self.oriented_gauss_code)
+        print x
+        s = [[None for i in range(4)] for i in range(len(x))]
+        for i in range(len(x)):
+            s[i][0] = 'entering'
+            s[i][2] = 'leaving'
+            if self.oriented_gauss_code[1][i] == '-':
+                s[i][1] = 'leaving'
+                s[i][3] = 'entering'
+            elif self.oriented_gauss_code[1][i] == '+':
+                s[i][1] = 'entering'
+                s[i][3] = 'leaving'
+        print s
+        q = []
+        q = [[None for i in range(len(x))] for i in range(len(x))]
+        for i in range(len(x)):
+            for j in range(len(x)):
+                q[i][j] = (list(set(x[i]).intersection(set(x[j]))))
+        '''p = [[None for i in range(len(x))] for i in range(len(x))]
+        for i in range(len(x)):
+            for j in range(len(x)):
+                if len(q[i][j]) == 4 or len(q[i][j]) == 0:
+                    p[i][j] = 0
+                else:
+                    p[i][j] = 1
+        for i in range(len(x)):
+            q[i].remove(q[i][i])'''
+        return q

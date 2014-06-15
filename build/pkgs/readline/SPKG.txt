@@ -42,6 +42,18 @@ does.
 
 == Changelog ==
 
+=== readline-6.3 (Erik Massop, 15 June 2014) ===
+ * Trac #16480: Upgrade to 6.3 (latest upstream)
+ * Updated shobj-conf.patch. It used to 1) add -ltinfo to SHOBJ_LIBS
+   for the general case, 2) add -ltinfo to SHLIB_LIBS for the general
+   case and for OS/X, 3) remove case freebsd*-gentoo, 4) assume elf if
+   /usr/bin/objformat does not exist, 5) remove numeric freebsd
+   versions at freebsdelf*|dragonfly*, 6) remove
+   MACOSX_DEPLOYMENT_TARGET, 7) do things related to -arch_only on
+   OS/X. I applied 1 through 6 analogously. I omitted 7, as readline
+   now does some handling of -arch_only itself and I will assume that
+   they did this correctly.
+
 === readline-6.2.p4 (Volker Braun, 3 April 2013) ===
  * Do not build static libraries
  * Use ncurses instead of termcap

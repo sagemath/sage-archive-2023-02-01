@@ -5257,25 +5257,6 @@ class Permutations_setk(Permutations_set):
         Permutations_set.__init__(self, s)
         self.k = k
 
-    def __setstate__(self, state):
-        r"""
-        For unpickling old ``PermutationsNK`` objects.
-
-        EXAMPLES::
-
-            sage: loads("x\x9cM\x90\xcdN\xc30\x10\x84\xd5B\x0bM\x81\xf2\xd3\x1ex\x03\xb8\xe4\x80x\x8bJ\x16B\xf2y\xb5qV\xa9\x95\xd8\xce\xda[$\x0eHp\xe0\xc0[\xe3\xb4j
-            ....:       \xe1bi\xfd\xcd\x8cg\xfd96\t\x1b*Mp\x95\xf5(eO\xd1m\x05\xc5\x06\x0f\xbe-^\xfe\xc6\xa4\xd6\x05\x8f\x1e\xbfx\xfc\xc1'\x0f\xba\x00r\x15\xd5\xb5
-            ....:       \xf5\r\x9f*\xbd\x04\x13\xfc\x1bE\x01G\xb2\t5xt\xc4\x13\xa5\xa7`j\x14\xe4\xa9\xd230(\xd4\x84\xf8\xceg\x03\x18$\x89\xcf\x95\x1e\x83\xe7\xd9
-            ....:       \xbeH\xccy\xa9\xb4>\xeb(\x16\x0e[\x82\xc3\xc0\x85\x1e=\x7f\xbf\xf2\\\xcf\xa1!O\x11%\xc4\xc4\x17\x83\xbf\xe5\xcbM\xc6O\x19_\xe9\tT\x98\x88
-            ....:       \x17J/\xa0\xb7\xa6\xed\x08r\xb3\x94w\xe0\xeb\xf5(W\xa5\x8e\x1cy\x19*'\x89[\x93s\xf8F\xe9U~\xca\x8a\xc5\xee\xb8Kg\x93\xf0\xad\xd2\xf7G\xcb\xa0
-            ....:       \x80\x1eS\xcaG\xcc\x17|\xf7\x93\x03\x0f>4\xbb\x8f\xdb\xd9\x96\xea\x1f0\x81\xa2\xa1=X\xa9mU\xfe\x02=\xaa\x87\x14")
-            Permutations of the set [0, 1, 2, 3] of length 2
-        """
-        if isinstance(state, dict):
-            self.__init__(tuple(range(state['_n'])), state['_k'])
-        else:
-            super(Permtuations_setk, self).__setstate__(state)
-
     def __contains__(self, x):
         """
         EXAMPLES::
@@ -7463,9 +7444,31 @@ def CyclicPermutations_mset(partition):
     deprecation(14772,'this class is deprecated. Use sage.combinat.permutation.CyclicPermutations instead')
     return CyclicPermutations(partition)
 
+class PermutationsNK(Permutations_setk):
+    """
+    This exists solely for unpickling ``PermutationsNK`` objects created
+    with Sage <= 6.3.
+    """
+    def __setstate__(self, state):
+        r"""
+        For unpickling old ``PermutationsNK`` objects.
+
+        EXAMPLES::
+
+            sage: loads("x\x9cM\x90\xcdN\xc30\x10\x84\xd5B\x0bM\x81\xf2\xd3\x1ex\x03\xb8\xe4\x80x\x8bJ\x16B\xf2y\xb5qV\xa9\x95\xd8\xce\xda[$\x0eHp\xe0\xc0[\xe3\xb4j
+            ....:       \xe1bi\xfd\xcd\x8cg\xfd96\t\x1b*Mp\x95\xf5(eO\xd1m\x05\xc5\x06\x0f\xbe-^\xfe\xc6\xa4\xd6\x05\x8f\x1e\xbfx\xfc\xc1'\x0f\xba\x00r\x15\xd5\xb5
+            ....:       \xf5\r\x9f*\xbd\x04\x13\xfc\x1bE\x01G\xb2\t5xt\xc4\x13\xa5\xa7`j\x14\xe4\xa9\xd230(\xd4\x84\xf8\xceg\x03\x18$\x89\xcf\x95\x1e\x83\xe7\xd9
+            ....:       \xbeH\xccy\xa9\xb4>\xeb(\x16\x0e[\x82\xc3\xc0\x85\x1e=\x7f\xbf\xf2\\\xcf\xa1!O\x11%\xc4\xc4\x17\x83\xbf\xe5\xcbM\xc6O\x19_\xe9\tT\x98\x88
+            ....:       \x17J/\xa0\xb7\xa6\xed\x08r\xb3\x94w\xe0\xeb\xf5(W\xa5\x8e\x1cy\x19*'\x89[\x93s\xf8F\xe9U~\xca\x8a\xc5\xee\xb8Kg\x93\xf0\xad\xd2\xf7G\xcb\xa0
+            ....:       \x80\x1eS\xcaG\xcc\x17|\xf7\x93\x03\x0f>4\xbb\x8f\xdb\xd9\x96\xea\x1f0\x81\xa2\xa1=X\xa9mU\xfe\x02=\xaa\x87\x14")
+            Permutations of the set [0, 1, 2, 3] of length 2
+        """
+        self.__class__ = Permutations_setk
+        self.__init__(tuple(range(state['_n'])), state['_k'])
+
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.combinat.permutation", "Permutation_class", Permutation)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)
-register_unpickle_override('sage.combinat.permutation_nk', 'PermutationsNK', Permutations_setk)
+register_unpickle_override('sage.combinat.permutation_nk', 'PermutationsNK', PermutationsNK)
 

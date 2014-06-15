@@ -12,11 +12,12 @@ from itertools import product
 from sage.misc.package import is_package_installed
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
-from sage.matrix.constructor import matrix, copy
+from sage.matrix.constructor import matrix
 from subprocess import Popen, PIPE, call
 import random
 import string
 from os import remove
+
 
 class NormalFormGame(Game):
     r"""
@@ -201,6 +202,9 @@ class NormalFormGame(Game):
         r"""
         Initializes a Normal Form game and checks the inputs.
         """
+        if type(generator) is not list and type(generator) is not Game:
+            raise TypeError("Generator function must be a list or Game")
+
         if type(generator) is list:
             if len(generator) == 1:
                 generator.append(-generator[-1])
@@ -288,7 +292,6 @@ class NormalFormGame(Game):
             ...
             ValueError: Matrices must be the same size
         """
-        #if self.matrix1.dimensions() != self.matrix2.dimensions():
         if len(set([matrix.dimensions() for matrix in self.payoff_matrices])) != 1:
             raise ValueError("Matrices must be the same size")
         strategysizes = [range(self.payoff_matrices[0].dimensions()[0]), range(self.payoff_matrices[0].dimensions()[1])]

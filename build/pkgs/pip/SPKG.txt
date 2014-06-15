@@ -2,13 +2,13 @@
 
 == Description ==
 
-This package install pip. The tool for installing and managing Python packages,
+This package installs pip, the tool for installing and managing Python packages,
 such as those found in the Python Package Index. It’s a replacement for
 easy_install.
 
 == License ==
 
-Custom license compatible GPLv3+.
+Custom license that is compatible with GPLv3+.
 
 == SPKG Maintainers ==
 

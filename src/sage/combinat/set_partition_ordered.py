@@ -39,6 +39,7 @@ from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.words.word import Word
 import sage.combinat.permutation as permutation
+from functools import reduce
 
 class OrderedSetPartition(ClonableArray):
     """

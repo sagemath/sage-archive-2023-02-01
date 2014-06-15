@@ -99,7 +99,7 @@ def siegel_product(self, u):
 
     ## Make the odd generic factors
     if ((n % 2) == 1):
-        m = (n-1) / 2
+        m = (n-1) // 2
         d1 = fundamental_discriminant(((-1)**m) * 2*d * u)     ## Replaced d by 2d here to compensate for the determinant
         f = abs(d1)                                            ## gaining an odd power of 2 by using the matrix of 2Q instead
                                                                ## of the matrix of Q.
@@ -124,7 +124,7 @@ def siegel_product(self, u):
 
     ## Make the even generic factor
     if ((n % 2) == 0):
-        m = n / 2
+        m = n // 2
         d1 = fundamental_discriminant(((-1)**m) * d)
         f = abs(d1)
 

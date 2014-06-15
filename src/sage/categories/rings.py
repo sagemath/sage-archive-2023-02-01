@@ -16,6 +16,7 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from category import HomCategory
+from functools import reduce
 
 class Rings(CategoryWithAxiom):
     """

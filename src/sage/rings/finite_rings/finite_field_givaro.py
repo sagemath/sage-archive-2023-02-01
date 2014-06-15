@@ -508,7 +508,7 @@ class FiniteField_givaro(FiniteField):
         ret = []
         for i in range(self.degree()):
             ret.append(quo%b)
-            quo = quo/b
+            quo = quo // b
         ret = ret + [1]
         R = self.polynomial_ring(name)
         if name is None:

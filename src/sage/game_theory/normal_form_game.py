@@ -328,6 +328,10 @@ class NormalFormGame(Game):
                   " of available algorithms")
 
         if algorithm == "LCP":
+            if maximization is False:
+                for k in list(self.contingencies):
+                    for player in range(len(self.players)):
+                        self[k][player] = -self[k][player]
             return [self._gambit_profile_to_list(profile) for profile in ExternalLCPSolver().solve(self)]
 
         if algorithm == "lrs":

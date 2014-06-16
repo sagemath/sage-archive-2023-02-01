@@ -202,7 +202,7 @@ class NormalFormGame(Game):
         r"""
         Initializes a Normal Form game and checks the inputs.
         """
-        if type(generator) is not list and type(generator) is not Game:
+        if type(generator) is not list and type(generator) is not NormalFormGame:
             raise TypeError("Generator function must be a list or Game")
 
         if type(generator) is list:
@@ -353,41 +353,7 @@ class NormalFormGame(Game):
         return profile
 
     def _solve_lrs(self):
-        # file1 = id_generator(6)
-        # game = open(file1, "w")
-        # game.write("%s %s\n" % (len(self.players[0].strategies), len(self.players[1].strategies))
-
-        # for i in list(self.matrix1):
-        #     game.write("\n")
-        #     game.write(" ".join([str(e) for e in i]))
-
-        # game.write("\n")
-
-        # for j in list(self.matrix2):
-        #     game.write("\n")
-        #     game.write(" ".join([str(e) for e in j]))
-        # game.close()
-
-        # # Write H representations for each player (really should automate this)
-        # file2 = id_generator(6)
-        # file3 = id_generator(6)
-        # call(["setupnash", file1, file2, file3], stdout=PIPE)
-        # # Solve game using lrs:
-        # process = Popen(["nash", file2, file3], stdout=PIPE)
-        # # Save output
-        # lrs_output = [row for row in process.stdout]
-        # # Delete lrs files, need to do this without writing hard files
-        # for f in [file1, file2, file3]:
-        #     remove(f)
-        # return lrs_output
         pass
 
     def _solve_enumeration(self):
         pass
-
-
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    """
-    A function to generate random file names for physical files needed to communicate with lrs.
-    """
-    return ''.join(random.choice(chars) for x in range(size))

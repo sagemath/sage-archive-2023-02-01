@@ -124,12 +124,19 @@ class CooperativeGame(SageObject):
 
     $\Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))$
 
+    Note that an equivalent formula for the Shapley value is given by:
+
+    $\phi_i(G)=\sum_{s\subseteq\Omega}\sum_{p\in S}\frac{(|s|-1)!(N-|S|)!}{N!}v(s)-v(s\setminus \{i\})$
+
+    This later formulation is implemented in Sage and
+    requires $2^N-1$ calculations instead of $N!$.
+
     To compute the Shapley value in Sage is simple. ::
 
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
-    The following example implements a (trivial) 8 player characteristic
+    The following example implements a (trivial) 10 player characteristic
     function game:
 
     $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
@@ -139,14 +146,14 @@ class CooperativeGame(SageObject):
         sage: def simple_characteristic_function(N):
         ....:     return {tuple(coalition) : len(coalition)
         ....:                   for coalition in subsets(range(N))}
-        sage: g = CooperativeGame(simple_characteristic_function(8))
-        sage: g.shapley_value() # long time
-        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
+        sage: g = CooperativeGame(simple_characteristic_function(10))
+        sage: g.shapley_value()
+        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
 
-    The above is slow to run and this is due to the dimensionality
-    of the calculations involved. There are various approximation
-    approaches to obtaining the Shapley value of a game. Implementing
-    these would be a worthwhile development.
+    For very large game it might be worth taking advantage of the particular
+    problem structure to calculate the Shapley value and there are also
+    various approximation approaches to obtaining the Shapley value of a game.
+    Implementing these would be a worthwhile development.
 
     We can test 3 basic properties of any Payoff Vector $\lambda$.
     The Shapley value (described above) is none to be the unique
@@ -360,7 +367,7 @@ class CooperativeGame(SageObject):
                 contribution = (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p
                                                             in coalition
                                                             if p != player])])
-                weighted_contribution += weight  * contribution
+                weighted_contribution += weight * contribution
             payoff_vector[player] = weighted_contribution
 
         self.payoff_vector = payoff_vector

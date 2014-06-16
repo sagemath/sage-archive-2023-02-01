@@ -25,6 +25,7 @@ AUTHOR:
 #*****************************************************************************
 from itertools import permutations, combinations
 from sage.misc.misc import powerset
+from sage.rings.arith import factorial
 from sage.structure.sage_object import SageObject
 
 
@@ -152,7 +153,7 @@ class CooperativeGame(SageObject):
     payoff vector that satisfies these and 1 other property
     not implemented here (additivity).
     They are:
-    
+
         * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 
@@ -351,9 +352,14 @@ class CooperativeGame(SageObject):
         """
         payoff_vector = {}
         for player in self.player_list:
-            player_contribution = self._marginal_contributions(player)
-            average = sum(player_contribution) / len(player_contribution)
-            payoff_vector[player] = average
+            r = 0
+            for coalition in [coalition for coalition in powerset(self.player_list) if len(coalition) != 0]:
+                r += factorial(len(coalition) - 1) * factorial(len(self.player_list) - len(coalition)) / factorial(len(self.player_list)) * (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p in coalition if p != player])])
+            payoff_vector[player] = r
+
+#            player_contribution = self._marginal_contributions(player)
+#            average = sum(player_contribution) / len(player_contribution)
+#            payoff_vector[player] = average
         self.payoff_vector = payoff_vector
         return payoff_vector
 

@@ -391,8 +391,31 @@ class NormalFormGame(Game):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: C._Hrepresentation()
-            ('H-representation\nlinearity 1 5\nbegin\n5 4 rational\n0 1 0 0\n0 0 1 0\n0 -3 -1 1\n0 -3 -4 1\n-1 1 1 0\nend\n', 'H-representation\nlinearity 1 5\nbegin\n5 4 rational\n0 -1 -2 1\n0 -3 -4 1\n0 1 0 0\n0 0 1 0\n-1 1 1 0\nend\n')
+            sage: print C._Hrepresentation()[0]
+            H-representation
+            linearity 1 5
+            begin
+            5 4 rational
+            0 1 0 0
+            0 0 1 0
+            0 -3 -1 1
+            0 -3 -4 1
+            -1 1 1 0
+            end
+            <BLANKLINE>
+            sage: print C._Hrepresentation()[1]
+            H-representation
+            linearity 1 5
+            begin
+            5 4 rational
+            0 -1 -2 1
+            0 -3 -4 1
+            0 1 0 0
+            0 0 1 0
+            -1 1 1 0
+            end
+            <BLANKLINE>
+
         """
         from sage.geometry.polyhedron.misc import _to_space_separated_string
 

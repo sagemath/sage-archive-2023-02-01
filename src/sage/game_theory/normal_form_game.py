@@ -13,10 +13,6 @@ from sage.misc.package import is_package_installed
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
 from sage.matrix.constructor import matrix
-from subprocess import Popen, PIPE, call
-import random
-import string
-from os import remove
 
 
 class NormalFormGame(Game):
@@ -353,7 +349,25 @@ class NormalFormGame(Game):
         return profile
 
     def _solve_lrs(self):
-        pass
+        from sage.misc.temporary_file import tmp_filename
+        from subprocess import Popen, PIPE
+        # so that we don't call _cdd_Hrepresentation() twice.
+        in_str = self._cdd_Hrepresentation()
+        game1_str = in_str[0]
+        game2_str = in_str[1]
+
+        g1_name = tmp_filename()
+        g2_name = tmp_filename()
+        g1_file = file(g1_name, 'w')
+        g2_file = file(g2_name, 'w')
+        g1_file.write(game1_str)
+        g1_file.close()
+        g2_file.write(game2_str)
+        g2_file.close()
+
+        process = Popen(['nash', g1_name, g2_name], stdout=PIPE)
+        lrs_output = [row for row in process.stdout]
+        return lrs_output
 
     def _solve_enumeration(self):
         pass
@@ -365,35 +379,11 @@ class NormalFormGame(Game):
         """
         pass
 
-    def cdd_Hrepresentation(self):
-        """
-        Write the inequalities/equations data of the polyhedron in
-        cdd's H-representation format.
-
-        OUTPUT:
-
-        A string. If you save the output to filename.ine then you can
-        run the stand-alone cdd via ``cddr+ filename.ine``
-
-        EXAMPLES::
-
-            sage: p = polytopes.n_cube(2)
-            sage: print p.cdd_Hrepresentation()
-            H-representation
-            begin
-             4 3 rational
-             1 1 0
-             1 0 1
-             1 -1 0
-             1 0 -1
-            end
-        """
-
-        return self._cdd_Hrepresentation(self.payoff_matrices[0],
-                                         self.payoff_matrices[1])
-
-    def _cdd_Hrepresentation(self, m1, m2):
+    def _cdd_Hrepresentation(self):
         from sage.geometry.polyhedron.misc import _to_space_separated_string
+
+        m1 = self.payoff_matrices[0]
+        m2 = self.payoff_matrices[1]
 
         m = len(self.players[0].strategies)
         n = len(self.players[1].strategies)
@@ -427,5 +417,4 @@ class NormalFormGame(Game):
             t += '1 '
         t += '0\n'
         t += 'end\n'
-        print s
-        print t
+        return s, t

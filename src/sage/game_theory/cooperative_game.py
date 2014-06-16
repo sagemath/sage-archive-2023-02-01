@@ -352,10 +352,16 @@ class CooperativeGame(SageObject):
         """
         payoff_vector = {}
         for player in self.player_list:
-            r = 0
+            weighted_contribution = 0
             for coalition in [coalition for coalition in powerset(self.player_list) if len(coalition) != 0]:
-                r += factorial(len(coalition) - 1) * factorial(len(self.player_list) - len(coalition)) / factorial(len(self.player_list)) * (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p in coalition if p != player])])
-            payoff_vector[player] = r
+                weight = factorial(len(coalition) - 1)
+                weight *= factorial(len(self.player_list) - len(coalition))
+                weight /= factorial(len(self.player_list))
+                contribution = (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p
+                                                            in coalition
+                                                            if p != player])])
+                weighted_contribution += weight  * contribution
+            payoff_vector[player] = weighted_contribution
 
         self.payoff_vector = payoff_vector
         return payoff_vector

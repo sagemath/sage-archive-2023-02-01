@@ -385,6 +385,14 @@ class NormalFormGame(Game):
     def _Hrepresentation(self):
         r"""
         Creates the H-representation strings required to use lrs nash.
+
+        EXAMPLES::
+
+            sage: A = matrix([[1, 2], [3, 4]])
+            sage: B = matrix([[3, 3], [1, 4]])
+            sage: C = NormalFormGame([A, B])
+            sage: C._Hrepresentation()
+            ('H-representation\nlinearity 1 5\nbegin\n5 4 rational\n0 1 0 0\n0 0 1 0\n0 -3 -1 1\n0 -3 -4 1\n-1 1 1 0\nend\n', 'H-representation\nlinearity 1 5\nbegin\n5 4 rational\n0 -1 -2 1\n0 -3 -4 1\n0 1 0 0\n0 0 1 0\n-1 1 1 0\nend\n')
         """
         from sage.geometry.polyhedron.misc import _to_space_separated_string
 

@@ -337,6 +337,9 @@ class NormalFormGame(Game):
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
+            if maximization is False:
+                self.payoff_matrices[0] = -self.payoff_matrices[0]
+                self.payoff_matrices[1] = -self.payoff_matrices[1]
             return self._solve_lrs()
 
         if algorithm == "support enumeration":

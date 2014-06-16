@@ -388,34 +388,29 @@ class NormalFormGame(Game):
              1 0 -1
             end
         """
-        cdd_type = 'rational'
 
-        return _cdd_Hrepresentation(cdd_type,
-                                    list(self.payoff_matrices[0]),
-                                    list(self.payoff_matrices[1]))
+        return self._cdd_Hrepresentation(self.payoff_matrices[0],
+                                         self.payoff_matrices[1])
 
-def _cdd_Hrepresentation(cdd_type, ieqs, eqns):
-    from sage.geometry.polyhedron.misc import _set_to_None_if_empty, _common_length_of, _to_space_separated_string
+    def _cdd_Hrepresentation(self, m1, m2):
+        from sage.geometry.polyhedron.misc import _to_space_separated_string
 
-    ieqs = _set_to_None_if_empty(ieqs)
-    eqns = _set_to_None_if_empty(eqns)
+        m = len(self.players[0].strategies)
+        n = len(self.players[1].strategies)
+        midentity = list(matrix.identity(m))
+        nidentity = list(matrix.identity(n))
 
-    num, ambient_dim = _common_length_of(ieqs, eqns)
-    ambient_dim -= 1
-
-    s = 'H-representation\n'
-    if eqns is not None:
-        assert len(eqns) > 0
-        n = len(eqns)
-        s += "linearity " + repr(n) + ' '
-        s += _to_space_separated_string(range(1, n+1)) + '\n'
-    s += 'begin\n'
-    s += ' ' + repr(num) + ' ' + repr(ambient_dim+1) + ' ' + cdd_type + '\n'
-    if eqns is not None:
-        for e in eqns:
-            s += ' ' + _to_space_separated_string(e) + '\n'
-    if ieqs is not None:
-        for i in ieqs:
-            s += ' ' + _to_space_separated_string(i) + '\n'
-    s += 'end\n'
-    return s
+        s = 'H-representation\n'
+        s += 'linearity 1 ' + str(m + n + 1) + '\n'
+        s += 'begin\n'
+        s += str(m + n + 1) + ' ' + str(m + 2) + ' rational\n'
+        for f in list(midentity):
+            s += '0 ' + _to_space_separated_string(f) + ' 0\n'
+        for e in list(m2.transpose()):
+            s += '0 ' + _to_space_separated_string(-e) + ' 1\n'
+        s += '-1 '
+        for g in range(m):
+            s += '1 '
+        s += '0\n'
+        s += 'end\n'
+        return s

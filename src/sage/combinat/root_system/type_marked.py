@@ -170,7 +170,7 @@ class CartanType(cartan_type.CartanType_decorator):
             A_{4} \text{ with nodes $\left(1, 3\right)$ marked}
 
         A more compact, but potentially confusing, representation can
-        be obtained using the ``latex_relabel`` global option::
+        be obtained using the ``latex_marked`` global option::
 
             sage: CartanType.global_options['latex_marked'] = False
             sage: latex(ct)

@@ -47,12 +47,14 @@ def DynkinDiagram(*args, **kwds):
     - a Cartan matrix
     - a Cartan matrix and an indexing set
 
-    Also one can input an index_set by
+    One can also input an indexing set by passing a tuple using the optional
+    argument ``index_set``.
 
-    The edge multiplicities are encoded as edge labels. This uses the
-    convention in Hong and Kang, Kac, Fulton Harris, and crystals. This is the
-    **opposite** convention in Bourbaki and Wikipedia's Dynkin diagram
-    (:wikipedia:`Dynkin_diagram`). That is for `i \neq j`::
+    The edge multiplicities are encoded as edge labels. For the corresponding
+    Cartan matrices, this uses the convention in Hong and Kang, Kac,
+    Fulton and Harris, and crystals. This is the **opposite** convention
+    in Bourbaki and Wikipedia's Dynkin diagram (:wikipedia:`Dynkin_diagram`).
+    That is for `i \neq j`::
 
        i <--k-- j <==> a_ij = -k
                   <==> -scalar(coroot[i], root[j]) = k

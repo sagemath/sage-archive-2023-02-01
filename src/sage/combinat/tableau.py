@@ -423,10 +423,10 @@ class Tableau(CombinatorialObject, Element):
             [   1  2  3,   2   ,   3   ,   3 ]
             sage: Tableaux.global_options(ascii_art="compact")
             sage: ascii_art(list(StandardTableaux(3)))
-            [                        |3| ]
-            [          |2|    |3|    |2| ]
-            [ |1|2|3|, |1|3|, |1|2|, |1| ]
-            sage: Tableaux.global_options(ascii_art="table")
+            [                        |1| ]
+            [          |1|3|  |1|2|  |2| ]
+            [ |1|2|3|, |2|  , |3|  , |3| ]
+            sage: Tableaux.global_options(convention="french", ascii_art="table")
             sage: ascii_art(list(StandardTableaux(3)))
             [                                      +---+ ]
             [                                      | 3 | ]
@@ -435,7 +435,6 @@ class Tableau(CombinatorialObject, Element):
             [ +---+---+---+  +---+---+  +---+---+  +---+ ]
             [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
             [ +---+---+---+, +---+---+, +---+---+, +---+ ]
-            sage: Tableaux.global_options(convention="french")
             sage: Tableaux.global_options(ascii_art="repr")
             sage: ascii_art(list(StandardTableaux(3)))
             [                              3 ]
@@ -451,9 +450,19 @@ class Tableau(CombinatorialObject, Element):
 
     def _ascii_art_table(self):
         """
-        TESTS::
+        TESTS:
 
-            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_table()
+        We check that :trac:`16487` is fixed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: print t._ascii_art_table()
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            | 4 | 5 |
+            +---+---+
+            sage: Tableaux.global_options(convention="french")
+            sage: print t._ascii_art_table()
             +---+---+
             | 4 | 5 |
             +---+---+---+
@@ -462,36 +471,64 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([]); print t._ascii_art_table()
             ++
             ++
+            sage: Tableaux.global_options.reset()
         """
-        if len(self) == 0: return "++\n++"
+        if len(self) == 0:
+            return "++\n++"
+
         matr = ""
-        for row in self:
-            l1 = ""; l2 =  ""
-            for e in row:
-                l1 += "+---"
-                l2 += "| " + str(e) + " "
-            l1 += "+"; l2 += "|"
-            matr = l1 + "\n" + l2 + "\n" + matr
-        matr += "+---"** Integer(len(self[0])) + "+"
+        if self.parent().global_options('convention') == "English":
+            for row in self:
+                l1 = ""; l2 =  ""
+                for e in row:
+                    l1 += "+---"
+                    l2 += "| " + str(e) + " "
+                l1 += "+"; l2 += "|"
+                matr += "\n" + l2 + "\n" + l1
+            matr = "+---"** Integer(len(self[0])) + "+" + matr
+        else:
+            for row in self:
+                l1 = ""; l2 =  ""
+                for e in row:
+                    l1 += "+---"
+                    l2 += "| " + str(e) + " "
+                l1 += "+"; l2 += "|"
+                matr = l1 + "\n" + l2 + "\n" + matr
+            matr += "+---"** Integer(len(self[0])) + "+"
+
         return matr
 
     def _ascii_art_compact(self):
         """
-        TESTS::
+        TESTS:
 
-            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_compact()
+        We check that :trac:`16487` is fixed::
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: print t._ascii_art_compact()
+            |1|2|3|
+            |4|5|
+            sage: Tableaux.global_options(convention="french")
+            sage: print t._ascii_art_compact()
             |4|5|
             |1|2|3|
+            sage: Tableaux.global_options.reset()
         """
         if len(self) == 0:
             return "."
+
+        if self.parent().global_options('convention') == "English":
+            T = self
+        else:
+            T = reversed(self)
+
         matr = ''
-        for row in self:
+        for row in T:
             l1 = ""
             for e in row:
                 l1 += "|" + str(e)
             l1 += "|"
-            matr = l1 + "\n" + matr
+            matr += l1 + "\n"
         return matr
 
     def _latex_(self):

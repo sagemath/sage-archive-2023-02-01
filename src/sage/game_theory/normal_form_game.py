@@ -349,10 +349,13 @@ class NormalFormGame(Game):
         return profile
 
     def _solve_lrs(self):
+        r"""
+
+        """
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
-        # so that we don't call _cdd_Hrepresentation() twice.
-        in_str = self._cdd_Hrepresentation()
+        # so that we don't call _Hrepresentation() twice.
+        in_str = self._Hrepresentation()
         game1_str = in_str[0]
         game2_str = in_str[1]
 
@@ -379,7 +382,10 @@ class NormalFormGame(Game):
         """
         pass
 
-    def _cdd_Hrepresentation(self):
+    def _Hrepresentation(self):
+        r"""
+        Creates the H-representation strings required to use lrs nash.
+        """
         from sage.geometry.polyhedron.misc import _to_space_separated_string
 
         m1 = self.payoff_matrices[0]

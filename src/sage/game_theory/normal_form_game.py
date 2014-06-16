@@ -357,3 +357,10 @@ class NormalFormGame(Game):
 
     def _solve_enumeration(self):
         pass
+
+    def _scale_matrices(self):
+        r"""
+        Returns the ``payoff_matrices`` with integer coeficcients so that they
+        can be solved using gambit.
+        """
+

@@ -413,4 +413,19 @@ class NormalFormGame(Game):
             s += '1 '
         s += '0\n'
         s += 'end\n'
-        return s
+
+        t = 'H-representation\n'
+        t += 'linearity 1 ' + str(m + n + 1) + '\n'
+        t += 'begin\n'
+        t += str(m + n + 1) + ' ' + str(n + 2) + ' rational\n'
+        for e in list(m1):
+            t += '0 ' + _to_space_separated_string(-e) + ' 1\n'
+        for f in list(nidentity):
+            t += '0 ' + _to_space_separated_string(f) + ' 0\n'
+        t += '-1 '
+        for g in range(m):
+            t += '1 '
+        t += '0\n'
+        t += 'end\n'
+        print s
+        print t

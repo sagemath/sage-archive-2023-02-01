@@ -363,4 +363,59 @@ class NormalFormGame(Game):
         Returns the ``payoff_matrices`` with integer coeficcients so that they
         can be solved using gambit.
         """
+        pass
 
+    def cdd_Hrepresentation(self):
+        """
+        Write the inequalities/equations data of the polyhedron in
+        cdd's H-representation format.
+
+        OUTPUT:
+
+        A string. If you save the output to filename.ine then you can
+        run the stand-alone cdd via ``cddr+ filename.ine``
+
+        EXAMPLES::
+
+            sage: p = polytopes.n_cube(2)
+            sage: print p.cdd_Hrepresentation()
+            H-representation
+            begin
+             4 3 rational
+             1 1 0
+             1 0 1
+             1 -1 0
+             1 0 -1
+            end
+        """
+        cdd_type = 'rational'
+
+        return _cdd_Hrepresentation(cdd_type,
+                                    list(self.payoff_matrices[0]),
+                                    list(self.payoff_matrices[1]))
+
+def _cdd_Hrepresentation(cdd_type, ieqs, eqns):
+    from sage.geometry.polyhedron.misc import _set_to_None_if_empty, _common_length_of, _to_space_separated_string
+
+    ieqs = _set_to_None_if_empty(ieqs)
+    eqns = _set_to_None_if_empty(eqns)
+
+    num, ambient_dim = _common_length_of(ieqs, eqns)
+    ambient_dim -= 1
+
+    s = 'H-representation\n'
+    if eqns is not None:
+        assert len(eqns) > 0
+        n = len(eqns)
+        s += "linearity " + repr(n) + ' '
+        s += _to_space_separated_string(range(1, n+1)) + '\n'
+    s += 'begin\n'
+    s += ' ' + repr(num) + ' ' + repr(ambient_dim+1) + ' ' + cdd_type + '\n'
+    if eqns is not None:
+        for e in eqns:
+            s += ' ' + _to_space_separated_string(e) + '\n'
+    if ieqs is not None:
+        for i in ieqs:
+            s += ' ' + _to_space_separated_string(i) + '\n'
+    s += 'end\n'
+    return s

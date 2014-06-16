@@ -2653,7 +2653,7 @@ class MPolynomialIdeal_singular_repr(
 
         V = []
         for t in T:
-            Vbar = _variety(list(t),[])
+            Vbar = _variety([P(f) for f in t], [])
             #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:

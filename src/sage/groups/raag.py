@@ -18,13 +18,13 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.groups.group import Group
+from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
+from sage.groups.free_group import FreeGroup
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.graphs.graph import Graph
 
-class RightAngledArtinGroup(Group, UniqueRepresentation):
+class RightAngledArtinGroup(FinitelyPresentedGroup):
     r"""
     The right-angled Artin group defined by a graph `G`.
 
@@ -153,7 +153,11 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             sage: TestSuite(G).run()
         """
         self._graph = G
-        Group.__init__(self)
+        F = FreeGroup(names=['v{}'.format(v) for v in self._graph.vertices()])
+        CG = Graph(G).complement() # Make sure it's mutable
+        CG.relabel() # Standardize the labels
+        rels = tuple(F([i+1, j+1, -i-1, -j-1]) for i,j in CG.edges(False)) #+/- 1 for indexing
+        FinitelyPresentedGroup.__init__(self, F, rels)
 
     def _repr_(self):
         """
@@ -166,22 +170,6 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         """
         return "Right-angled Artin group of {}".format(self._graph)
 
-    def gap(self):
-        """
-        Return a Gap representation of ``self`` (as a finitely
-        presented group).
-
-        EXAMPLES::
-
-            sage: Gamma = graphs.PathGraph(5).complement()
-            sage: G = RightAngledArtinGroup(Gamma)
-            sage: G.gap()
-            <fp group of size infinity on the generators [ v0, v1, v2, v3, v4 ]>
-        """
-        return self.as_finitely_presented_group().gap()
-
-    _gap_ = gap
-
     def gen(self, i):
         """
         Return the ``i``-th generator of ``self``.
@@ -193,7 +181,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             sage: G.gen(2)
             v2
         """
-        return self.element_class(self, [(i, 1)])
+        return self.element_class( self, ((i, 1),) )
 
     def gens(self):
         """
@@ -261,26 +249,6 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         """
         raise ValueError("the group is infinite")
 
-    def as_finitely_presented_group(self):
-        r"""
-        Return ``self`` as a
-        :class:`~sage.groups.finitely_presented.FinitelyPresentedGroup`.
-
-        EXAMPLES::
-
-            sage: Gamma = graphs.PathGraph(5).complement()
-            sage: G = RightAngledArtinGroup(Gamma)
-            sage: G.as_finitely_presented_group()
-            Finitely presented group < v0, v1, v2, v3, v4 |
-             v0*v1*v0^-1*v1^-1, v1*v2*v1^-1*v2^-1,
-             v2*v3*v2^-1*v3^-1, v3*v4*v3^-1*v4^-1 >
-        """
-        from sage.groups.free_group import FreeGroup
-        F = FreeGroup(names=['v{}'.format(v) for v in self._graph.vertices()])
-        CG = Graph(self._graph).complement() # Make sure it's mutable
-        CG.relabel()
-        return F / [F([i+1, j+1, -i-1, -j-1]) for i,j in CG.edges(False)] #+/- 1 for indexing
-
     def graph(self):
         """
         Return the defining graph of ``self``.
@@ -306,7 +274,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             sage: G.one()
             1
         """
-        return self.element_class(self, [])
+        return self.element_class(self, ())
 
     one_element = one
 
@@ -345,7 +313,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
             sage: Gamma = graphs.CycleGraph(5)
             sage: G = RightAngledArtinGroup(Gamma)
             sage: G._normal_form([[0,2], [3,1], [2,1], [0,1], [1,1], [3,1]])
-            [[0, 3], [3, 1], [2, 1], [1, 1], [3, 1]]
+            ([0, 3], [3, 1], [2, 1], [1, 1], [3, 1])
             sage: a,b,c,d,e = G.gens()
             sage: a^2 * d * c * a * b * d
             v0^3*v3*v2*v1*v3
@@ -382,10 +350,10 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                         w.pop(pos+j)
                         comm_set.pop(j)
                         i -= 1
-                        if len(comm_set) == 0:
+                        if not comm_set:
                             pos = 0 # Start again since cancellation can be pronounced effects
                             break
-                elif all( not G.has_edge(v[w[j][0]], v[letter]) for j in range(pos, i)):
+                elif all(not G.has_edge(v[w[j][0]], v[letter]) for j in range(pos, i)):
                     j = 0
                     for x in comm_set:
                         if x > letter:
@@ -396,9 +364,9 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
 
                 i += 1
             pos += len(comm_set)
-        return w
+        return tuple(w)
 
-    class Element(ClonableArray):
+    class Element(FinitelyPresentedGroupElement):
         """
         An element of a right-angled Artin group (RAAG).
 
@@ -406,18 +374,41 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         ``i`` is the index of a vertex in the defining graph (with some
         fixed order of the vertices) and ``p`` is the power.
         """
-        def check(self):
+        def __init__(self, parent, lst):
             """
-            Check if ``self`` is a valid element. Nothing to check.
+            Initialize ``self``.
 
             TESTS::
 
                 sage: Gamma = graphs.CycleGraph(5)
                 sage: G = RightAngledArtinGroup(Gamma)
-                sage: elt = G.gen(2)
-                sage: elt.check()
+                sage: elt = G.prod(G.gens())
+                sage: TestSuite(elt).run()
             """
-            pass
+            self._data = lst
+            elt = []
+            for i,p in lst:
+                if p > 0:
+                    elt.extend([i+1]*p)
+                elif p < 0:
+                    elt.extend([-i-1]*-p)
+            FinitelyPresentedGroupElement.__init__(self, parent, elt)
+
+        def __reduce__(self):
+            """
+            Used in pickling.
+
+            TESTS::
+
+                sage: Gamma = graphs.CycleGraph(5)
+                sage: G = RightAngledArtinGroup(Gamma)
+                sage: elt = G.prod(G.gens())
+                sage: loads(dumps(elt)) == elt
+                True
+            """
+            P = self.parent()
+            V = P._graph.vertices()
+            return (P, ([[V[i], p] for i,p in self._data],))
 
         def _repr_(self):
             """
@@ -436,11 +427,11 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                 sage: z * y^-2 * x^3
                 vzeta*vy^-2*vx^3
             """
-            if len(self) == 0:
+            if not self._data:
                 return '1'
             v = self.parent()._graph.vertices()
             to_str = lambda name,p: "v{}".format(name) if p == 1 else "v{}^{}".format(name, p)
-            return '*'.join(to_str(v[i], p) for i,p in self)
+            return '*'.join(to_str(v[i], p) for i,p in self._data)
 
         def _latex_(self):
             r"""
@@ -461,13 +452,13 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                 sage: latex(x^-5*y*z^3)
                 \sigma_{\text{\texttt{x}}}^{-5}\sigma_{\text{\texttt{y}}}\sigma_{\text{\texttt{zeta}}}^{3}
             """
-            if len(self) == 0:
+            if not self._data:
                 return '1'
 
             from sage.misc.latex import latex
             latexrepr = ''
             v = self.parent()._graph.vertices()
-            for i,p in self:
+            for i,p in self._data:
                 latexrepr += "\\sigma_{{{}}}".format(latex(v[i]))
                 if p != 1:
                     latexrepr += "^{{{}}}".format(p)
@@ -494,7 +485,35 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                 v4^-1*v0*v3*v1*v0^-2*v2*v1^-1*v4*v3*v4
             """
             P = self.parent()
-            lst = list(self) + list(y)
+            lst = self._data + y._data
+            return self.__class__(P, P._normal_form(lst))
+
+        def __pow__(self, n):
+            """
+            Implement exponentiation.
+
+            TESTS::
+
+                sage: Gamma = graphs.CycleGraph(5)
+                sage: G = RightAngledArtinGroup(Gamma)
+                sage: elt = G.prod(G.gens())
+                sage: elt**3
+                v0*v1*v2*v3*v4*v0*v1*v2*v3*v4*v0*v1*v2*v3*v4
+                sage: elt^-2
+                v4^-1*v3^-1*v2^-1*v1^-1*v0^-1*v4^-1*v3^-1*v2^-1*v1^-1*v0^-1
+                sage: elt^0
+                1
+            """
+            P = self.parent()
+            if not n:
+                return P.one()
+
+            if n < 0:
+                lst = sum([self._data for i in range(-n)], ()) # Positive product
+                lst = map(lambda x: [x[0], -x[1]], reversed(lst)) # Now invert
+                return self.__class__(P, P._normal_form(lst))
+
+            lst = sum([self._data for i in range(n)], ())
             return self.__class__(self.parent(), P._normal_form(lst))
 
         def __invert__(self):
@@ -509,5 +528,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
                 sage: (a * b)^-2
                 v1^-1*v0^-1*v1^-1*v0^-1
             """
-            return self.__class__(self.parent(), map(lambda x: [x[0], -x[1]], reversed(self)))
+            P = self.parent()
+            lst = map(lambda x: [x[0], -x[1]], reversed(self._data))
+            return self.__class__(P, P._normal_form(lst))
 

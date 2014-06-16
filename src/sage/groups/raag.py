@@ -40,7 +40,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
     This RAAG's contains both free groups, given by the complete graphs,
     and free abelian groups, given by disjoint vertices.
 
-    .. NOTE::
+    .. WARNING::
 
         This is the opposite convention of some papers.
 
@@ -226,7 +226,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         return self._graph.num_verts()
 
     def cardinality(self):
-        """
+        r"""
         Return the number of group elements.
 
         OUTPUT:
@@ -244,12 +244,12 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         return Infinity
 
     order = cardinality
-    
+
     def as_permutation_group(self):
-        """
-        Raises a ``ValueError`` error since right-angled Artin groups
+        r"""
+        Raise a ``ValueError`` error since right-angled Artin groups
         are infinite, so they have no isomorphic permutation group.
-        
+
         EXAMPLES::
 
             sage: Gamma = graphs.CycleGraph(5)
@@ -262,7 +262,7 @@ class RightAngledArtinGroup(Group, UniqueRepresentation):
         raise ValueError("the group is infinite")
 
     def as_finitely_presented_group(self):
-        """
+        r"""
         Return ``self`` as a
         :class:`~sage.groups.finitely_presented.FinitelyPresentedGroup`.
 

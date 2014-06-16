@@ -357,9 +357,6 @@ class CooperativeGame(SageObject):
                 r += factorial(len(coalition) - 1) * factorial(len(self.player_list) - len(coalition)) / factorial(len(self.player_list)) * (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p in coalition if p != player])])
             payoff_vector[player] = r
 
-#            player_contribution = self._marginal_contributions(player)
-#            average = sum(player_contribution) / len(player_contribution)
-#            payoff_vector[player] = average
         self.payoff_vector = payoff_vector
         return payoff_vector
 
@@ -513,98 +510,6 @@ class CooperativeGame(SageObject):
                     return False
         return True
 
-    def _marginal_contributions(self, player):
-        r"""
-        Returns a list of contributions specific to one player.
-        This is a hidden function used in calculation of Shapley value.
-
-        INPUT:
-
-        - ``player`` - A real number or string.
-
-        EXAMPLES::
-
-            sage: integer_function = {(): 0,
-            ....:                  (1,): 6,
-            ....:                  (2,): 12,
-            ....:                  (3,): 42,
-            ....:                  (1, 2,): 12,
-            ....:                  (1, 3,): 42,
-            ....:                  (2, 3,): 42,
-            ....:                  (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game._marginal_contributions(1)
-            [6, 6, 0, 0, 0, 0]
-        """
-        return [self._marginal_of_pi(player, pi) for pi
-                in permutations(self.player_list)]
-
-    def _marginal_of_pi(self, player, pi):
-        r"""
-        Returns a value for the contribution of a player in one permutation.
-        This is a hidden function used in calculation of Shapley value.
-
-        INPUT:
-
-        - player - A real number or string.
-
-        - pi - A tuple which is the permutation that should be used.
-
-        EXAMPLES::
-
-            sage: integer_function = {(): 0,
-            ....:                  (1,): 6,
-            ....:                  (2,): 12,
-            ....:                  (3,): 42,
-            ....:                  (1, 2,): 12,
-            ....:                  (1, 3,): 42,
-            ....:                  (2, 3,): 42,
-            ....:                  (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game._marginal_of_pi(2, (2, 3, 1))
-            12
-        """
-        predecessors, player_and_pred = self._get_predecessors(player, pi)
-        if predecessors is None:
-            predecessors = ()
-        else:
-            predecessors = tuple(predecessors)
-        player_and_pred = tuple(player_and_pred)
-        value = self.ch_f[player_and_pred] - self.ch_f[predecessors]
-        return value
-
-    def _get_predecessors(self, player, pi):
-        r"""
-        Returns a list of all the predecessors of a player in a certain
-        permutation and the same list including the original player.
-        This is a hidden function used in calculation of Shapley value.
-
-        INPUT:
-
-        - ``player`` - A real number or string.
-
-        - ``pi`` - A tuple which is the permutation that should be used.
-
-        EXAMPLES::
-
-            sage: integer_function = {(): 0,
-            ....:                  (1,): 6,
-            ....:                  (2,): 12,
-            ....:                  (3,): 42,
-            ....:                  (1, 2,): 12,
-            ....:                  (1, 3,): 42,
-            ....:                  (2, 3,): 42,
-            ....:                  (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game._get_predecessors(1, (2, 3, 1))
-            ([2, 3], [1, 2, 3])
-            sage: integer_game._get_predecessors(2, (2, 3, 1))
-            ([], [2])
-            sage: integer_game._get_predecessors(3, (2, 3, 1))
-            ([2], [2, 3])
-        """
-        pred = list(pi[:pi.index(player)])
-        return sorted(pred), sorted(pred + [player])
 
     def _repr_(self):
         r"""

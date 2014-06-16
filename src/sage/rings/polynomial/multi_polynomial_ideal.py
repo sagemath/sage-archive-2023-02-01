@@ -2620,9 +2620,9 @@ class MPolynomialIdeal_singular_repr(
                 return V
 
             variable = f.variable(0)
-            roots = f.univariate_polynomial().roots(ring=ring)
+            roots = f.univariate_polynomial().roots(ring=ring, multiplicities=False)
 
-            for root,_ in roots:
+            for root in roots:
                 vbar = v.copy()
                 vbar[variable] = root
                 Tbar = [ f.subs({variable:root}) for f in T ]

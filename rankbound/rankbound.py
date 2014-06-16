@@ -29,6 +29,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.functions.log import log, exp
 from sage.symbolic.constants import pi, euler_gamma
+from sage.libs.pari.all import pari
 
 class LFunctionZeroSum_abstract:
     """
@@ -58,6 +59,11 @@ class LFunctionZeroSum_abstract:
          - "sincquared" -- f(x) = (sin(pi*x)/(pi*x))^2
          - "gaussian"   -- f(x) = exp(-x^2)
         """
+
+        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
+        # when summing over the logarithmic derivative coefficients
+        if Delta > 6.95:
+            raise ValueError("Delta value too large; will result in overflow")
 
         if function=="sincsquared":
             return self._rankbound_sincsquared(Delta=Delta)
@@ -133,6 +139,66 @@ class LFunctionZeroSum_abstract:
 
         return RDF(u+w+y+0.1)/Deltasqrtpi
 
+    def _rankbound_sincsquared_fast(self,Delta=1):
+        """
+        A faster, more intelligent version of self._rankbound_sincsquared().
+
+        Bound from above the analytic rank of the form attached to self
+        by computing
+            sum_gamma f(Delta*gamma),
+        where gamma ranges over the imaginary parts of the zeros of L_E(s)
+        along the critical strip, and f(x) = (sin(pi*x)/(pi*x))^2.
+        As Delta increases this sum limits from above to the analytic rank
+        of E, as f(0) = 1 is counted with multiplicity r, and the other terms
+        go to 0.
+
+        This will only produce correct output if self._E is given by its
+        global minimal model, i.e. if self._E.is_minimal()==True.
+        """
+
+        npi = self._pi
+        twopi = 2*npi
+        eg = self._euler_gamma
+
+        t = RDF(Delta*twopi)
+        expt = exp(t)
+
+        u = t*(-eg + log(RDF(self._N))/2 - log(twopi))
+        w = RDF(npi**2/RDF(6)-spence(RDF(1)-RDF(1)/expt))
+
+        y = RDF(0)
+        bound1 = int(exp(t/2))
+        bound2 = int(expt)
+        n = int(2)
+        while n <= bound1:
+            if pari(n).isprime():
+                logp = log(RDF(n))
+                ap = RDF(self._e.ellap(n))
+                p = RDF(n)
+
+                z = (ap/p)*(t-logp)
+                alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
+                alpha = alpha_p**2
+                q = p**2
+                logq = logp*2
+                while logq < t:
+                    aq = RDF(round(2*alpha.real()))
+                    z += (aq/q)*(t-logq)
+
+                    logq += logp
+                    q = q*p
+                    alpha = alpha*alpha_p
+                y -= z*logp
+            n += 1
+        while n <= bound2:
+            if pari(n).isprime():
+                logp = log(RDF(n))
+                ap = RDF(self._e.ellap(n))
+                y -= ap*logp/RDF(n)*(t-logp)
+            n += 1
+
+        return 2*(u+w+y)/(t**2)
+
 
 class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     """
@@ -149,6 +215,8 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             self._N = N
         else:
             self._N = self._E.conductor()
+        # PARI minicurve for computing ap coefficients
+        self._e = E.pari_mincurve()
 
         self._pi = RDF(pi)
         self._euler_gamma = RDF(euler_gamma)
@@ -190,6 +258,7 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         if n.is_prime():
             logn = log(n_float)
             ap = self._E.ap(n)
+            #print(n,-ap*logn/n_float)
             return -ap*logn/n_float
         else:
             p,e = n.perfect_power()
@@ -199,6 +268,37 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 return - ap**e*logp/n_float
             c = CDF(ap,(4*p-ap**2).sqrt())/2
             aq = (2*(c**e).real()).round()
+            #print(n,-aq*logp/n_float)
             return -aq*logp/n_float
+
+    def _sincsquared_summand(self,p,t,bound):
+        """
+        Return the summand for the summand corresponing to prime p
+        of the sinc^2(Delta*gamma) sum over the zeros of the L_E(s),
+        where t = 2*pi*Delta. The returned sum runs over all powers
+        of p <= bound = floor(exp(t)).
+
+        p must be a prime python int.
+        """
+
+        logp = log(RDF(p))
+        ap = RDF(self._e.ellap(p))
+        p_float = RDF(p)
+        n = p_float**2
+        if 2*logp > t:
+            return (-ap*logp/p_float)*(t-logp)
+        else:
+            y = ap/p_float
+            c = CDF(ap,(4*p_float-ap**2).sqrt())/2
+            d = c
+            logn = logp*2
+            while logn < t:
+                n = n*p_float
+                d = d*c
+                aq = RDF((2*d.real()).round())
+                y += (aq/n)*(t-logn)
+
+                logn += logp
+            return -y*logp
 
 

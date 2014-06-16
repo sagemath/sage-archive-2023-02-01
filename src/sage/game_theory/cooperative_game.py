@@ -1,4 +1,4 @@
-r"""
+"""
 Co-operative games with N players.
 
 This module implements a **basic** implementation of a characteristic function
@@ -161,7 +161,7 @@ class CooperativeGame(SageObject):
     not implemented here (additivity).
     They are:
 
-        * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
+        * Efficiency - `\sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 
         * The nullplayer property - If `\exists` `i` such that
@@ -332,8 +332,6 @@ class CooperativeGame(SageObject):
             (1, 2, 3)
             sage: integer_game.shapley_value()
             {1: 2, 2: 5, 3: 35}
-            sage: integer_game.payoff_vector
-            {1: 2, 2: 5, 3: 35}
 
         A longer example of the shapley_value. ::
 
@@ -365,12 +363,10 @@ class CooperativeGame(SageObject):
                 weight *= factorial(len(self.player_list) - len(coalition))
                 weight /= factorial(len(self.player_list))
                 contribution = (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p
-                                                            in coalition
-                                                            if p != player])])
+                                                    in coalition if p != player])])
                 weighted_contribution += weight * contribution
             payoff_vector[player] = weighted_contribution
 
-        self.payoff_vector = payoff_vector
         return payoff_vector
 
     def is_monotone(self):
@@ -522,7 +518,6 @@ class CooperativeGame(SageObject):
                 if self.ch_f[union] < self.ch_f[p1] + self.ch_f[p2]:
                     return False
         return True
-
 
     def _repr_(self):
         r"""

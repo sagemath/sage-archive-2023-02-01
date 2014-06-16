@@ -373,7 +373,8 @@ class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = <StaticSparseCGraph> StaticSparseCGraph(G)
         self._cg = cg
 
-        self._directed = cg._directed
+        # .directed and not ._directed. Because of CGraph.
+        self.directed = cg.directed
 
         vertices = G.vertices()
         self._order = len(vertices)

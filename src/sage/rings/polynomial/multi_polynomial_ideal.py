@@ -2593,6 +2593,13 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety()
             []
 
+        Check that the issue at :trac:`16485` is fixed::
+
+            sage: R.<a,b,c> = PolynomialRing(QQ, order='lex')
+            sage: I = R.ideal(c^2-2, b-c, a)
+            sage: I.variety(QQbar)
+            [...a: 0...]
+
         ALGORITHM:
 
         Uses triangular decomposition.

@@ -65,9 +65,10 @@ Home Page: http://sphinx.pocoo.org,
      the huge index of the Sage reference manual when building the PDF
      version of that manual.
 
-   - patches/nested.patch: This changes the verbatim environment to use
-     \trivlist instead of \list. This fixes the pdf docbuild for deeply
-     nested classes/methods for #9107.
+   - patches/nested.patch (submitted upstream: pull request #250, issue #777):
+     This changes the sphinx's customized Verbatim environment to use
+     \trivlist instead of \list. This fixes the pdf docbuild for
+     deeply nested classes/methods revealed in #9107.
 
  * The script create_grammar_pickle.py creates the file
    Grammar2.7.pickle in site-packages/Sphinx-.../sphinx/pycode/.  This

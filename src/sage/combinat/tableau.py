@@ -452,7 +452,7 @@ class Tableau(CombinatorialObject, Element):
         """
         TESTS:
 
-
+        We check that :trac:`16487` is fixed::
 
             sage: t = Tableau([[1,2,3],[4,5]])
             sage: print t._ascii_art_table()
@@ -476,27 +476,33 @@ class Tableau(CombinatorialObject, Element):
         if len(self) == 0:
             return "++\n++"
 
-        if self.parent().global_options('convention') == "English":
-            T = self
-            ell = len(self[0])
-        else:
-            T = reversed(self)
-            ell = len(self[-1])
-
         matr = ""
-        for row in T:
-            l1 = ""; l2 =  ""
-            for e in row:
-                l1 += "+---"
-                l2 += "| " + str(e) + " "
-            l1 += "+"; l2 += "|"
-            matr += l1 + "\n" + l2 + "\n"
-        matr += "+---"** Integer(ell) + "+"
+        if self.parent().global_options('convention') == "English":
+            for row in self:
+                l1 = ""; l2 =  ""
+                for e in row:
+                    l1 += "+---"
+                    l2 += "| " + str(e) + " "
+                l1 += "+"; l2 += "|"
+                matr += "\n" + l2 + "\n" + l1
+            matr = "+---"** Integer(len(self[0])) + "+" + matr
+        else:
+            for row in self:
+                l1 = ""; l2 =  ""
+                for e in row:
+                    l1 += "+---"
+                    l2 += "| " + str(e) + " "
+                l1 += "+"; l2 += "|"
+                matr = l1 + "\n" + l2 + "\n" + matr
+            matr += "+---"** Integer(len(self[0])) + "+"
+
         return matr
 
     def _ascii_art_compact(self):
         """
-        TESTS::
+        TESTS:
+
+        We check that :trac:`16487` is fixed::
 
             sage: t = Tableau([[1,2,3],[4,5]])
             sage: print t._ascii_art_compact()

@@ -208,6 +208,38 @@ class NormalFormGame(Game):
             ...
             TypeError: Generator function must be a list or Game
 
+        Can have games with more than 2 players. ::
+
+            sage: threeplayer = Game.new_table([2,2,2])
+            sage: threegame = NormalFormGame(threeplayer)
+            sage: threegame[int(0), int(0), int(0)][int(0)] = int(3)
+            sage: threegame[int(0), int(0), int(0)][int(1)] = int(1)
+            sage: threegame[int(0), int(0), int(0)][int(2)] = int(4)
+            sage: threegame[int(0), int(0), int(1)][int(0)] = int(1)
+            sage: threegame[int(0), int(0), int(1)][int(1)] = int(5)
+            sage: threegame[int(0), int(0), int(1)][int(2)] = int(9)
+            sage: threegame[int(0), int(1), int(0)][int(0)] = int(2)
+            sage: threegame[int(0), int(1), int(0)][int(1)] = int(6)
+            sage: threegame[int(0), int(1), int(0)][int(2)] = int(5)
+            sage: threegame[int(0), int(1), int(1)][int(0)] = int(3)
+            sage: threegame[int(0), int(1), int(1)][int(1)] = int(5)
+            sage: threegame[int(0), int(1), int(1)][int(2)] = int(8)
+            sage: threegame[int(1), int(0), int(0)][int(0)] = int(9)
+            sage: threegame[int(1), int(0), int(0)][int(1)] = int(7)
+            sage: threegame[int(1), int(0), int(0)][int(2)] = int(9)
+            sage: threegame[int(1), int(0), int(1)][int(0)] = int(3)
+            sage: threegame[int(1), int(0), int(1)][int(1)] = int(2)
+            sage: threegame[int(1), int(0), int(1)][int(2)] = int(3)
+            sage: threegame[int(1), int(1), int(0)][int(0)] = int(8)
+            sage: threegame[int(1), int(1), int(0)][int(1)] = int(4)
+            sage: threegame[int(1), int(1), int(0)][int(2)] = int(6)
+            sage: threegame[int(1), int(1), int(1)][int(0)] = int(2)
+            sage: threegame[int(1), int(1), int(1)][int(1)] = int(6)
+            sage: threegame[int(1), int(1), int(1)][int(2)] = int(4)
+            sage: threegame.obtain_Nash()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
         """
         if type(generator) is not list and type(generator) is not NormalFormGame:
             raise TypeError("Generator function must be a list or Game")

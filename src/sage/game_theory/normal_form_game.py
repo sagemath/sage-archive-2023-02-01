@@ -431,8 +431,32 @@ class NormalFormGame(Game):
         r"""
         Returns the ``payoff_matrices`` with integer coeficcients so that they
         can be solved using gambit.
+
+        EXAMPLES:
+
+        Simple example. ::
+
+            sage: a = matrix([[1, 0], [1/3, 4]])
+            sage: b = matrix([[2.5, 3], [-0.75, 4]])
+            sage: c = NormalFormGame([a, b])
+            sage: c._scale_matrices()
+            sage: c.payoff_matrices[0]
+            [24  0]
+            [ 8 96]
+            sage: c.payoff_matrices[1]
+            [ 60.0000000000000  72.0000000000000]
+            [-18.0000000000000  96.0000000000000]
         """
-        pass
+        from sage.rings.rational import Rational
+        scalar = 1
+        for player in range(len(self.players)):
+            for k in list(self.contingencies):
+                utility = Rational(self.payoff_matrices[player][tuple(k)])
+                scalar *= utility.denom()
+
+        self.payoff_matrices[0] *= scalar
+        self.payoff_matrices[1] *= scalar
+        self.matrix_to_game()
 
     def _Hrepresentation(self, m1, m2):
         r"""

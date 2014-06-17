@@ -1466,9 +1466,6 @@ if __name__ == '__main__':
 
     import sage.all
 
-    # Minimize GAP/libGAP RAM usage when we build the docs
-    set_gap_memory_pool_size(1)  # 1 MB
-
     # Set up Intersphinx cache
     C = IntersphinxCache()
 

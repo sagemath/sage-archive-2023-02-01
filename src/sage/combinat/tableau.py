@@ -472,31 +472,68 @@ class Tableau(CombinatorialObject, Element):
             ++
             ++
             sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_table()
+            +----+----+----+----+----+
+            |  1 |  2 |  3 | 10 | 15 |
+            +----+----+----+----+----+
+            | 12 | 15 | 17 |
+            +----+----+----+
+
+            sage: t = Tableau([[1,2,15,7],[12,5,6],[8,10],[9]])
+            sage: Tableaux.global_options(ascii_art='table')
+            sage: ascii_art(t)
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            | 12 |  5 |  6 |
+            +----+----+----+
+            |  8 | 10 |
+            +----+----+
+            |  9 |
+            +----+
+            sage: Tableaux.global_options(convention='french')
+            sage: ascii_art(t)
+            +----+
+            |  9 |
+            +----+----+
+            |  8 | 10 |
+            +----+----+----+
+            | 12 |  5 |  6 |
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            sage: Tableaux.global_options.reset()
         """
         if len(self) == 0:
             return "++\n++"
 
-        matr = ""
-        if self.parent().global_options('convention') == "English":
-            for row in self:
-                l1 = ""; l2 =  ""
-                for e in row:
-                    l1 += "+---"
-                    l2 += "| " + str(e) + " "
-                l1 += "+"; l2 += "|"
-                matr += "\n" + l2 + "\n" + l1
-            matr = "+---"** Integer(len(self[0])) + "+" + matr
-        else:
-            for row in self:
-                l1 = ""; l2 =  ""
-                for e in row:
-                    l1 += "+---"
-                    l2 += "| " + str(e) + " "
-                l1 += "+"; l2 += "|"
-                matr = l1 + "\n" + l2 + "\n" + matr
-            matr += "+---"** Integer(len(self[0])) + "+"
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), self)
+        col_widths = [1]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
 
-        return matr
+        matr = []  # just the list of lines
+        l1 = ""
+        for w in col_widths:
+            l1 += "+--" + '-'*w
+        matr.append(l1 + "+")
+        for row in str_tab:
+            l1 = ""; l2 = ""
+            for i,e in enumerate(row):
+                l1 += "+--" + '-'*col_widths[i]
+                l2 += "| {:^{width}} ".format(e, width=col_widths[i])
+            l1 += "+"; l2 += "|"
+            matr.append(l2)
+            matr.append(l1)
+
+        if self.parent().global_options('convention') == "English":
+            return "\n".join(matr)
+        else:
+            return "\n".join(reversed(matr))
 
     def _ascii_art_compact(self):
         """
@@ -513,6 +550,11 @@ class Tableau(CombinatorialObject, Element):
             |4|5|
             |1|2|3|
             sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_compact()
+            |1 |2 |3 |10|15|
+            |12|15|17|
         """
         if len(self) == 0:
             return "."
@@ -522,14 +564,16 @@ class Tableau(CombinatorialObject, Element):
         else:
             T = reversed(self)
 
-        matr = ''
-        for row in T:
-            l1 = ""
-            for e in row:
-                l1 += "|" + str(e)
-            l1 += "|"
-            matr += l1 + "\n"
-        return matr
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), T)
+        col_widths = [1]*len(self[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        return "\n".join("|"
+                       + "|".join("{:^{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
+                       + "|" for row in str_tab)
 
     def _latex_(self):
         r"""
@@ -1079,7 +1123,7 @@ class Tableau(CombinatorialObject, Element):
         the reading word::
 
             sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
-            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T)
+            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T) # long time
             True
         """
         if check and self not in SemistandardTableaux():
@@ -4561,7 +4605,7 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
             sage: TestSuite(T).run()
 
             sage: T=sage.combinat.tableau.SemistandardTableaux_all(max_entry=3)
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         if max_entry is not PlusInfinity():
             self.max_entry = max_entry
@@ -5742,7 +5786,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         yield self.element_class(self, tableau)
 
-        # iterate until we reach the last tableau which is 
+        # iterate until we reach the last tableau which is
         # filled with the row indices.
         last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 

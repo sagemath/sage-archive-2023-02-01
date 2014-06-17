@@ -148,23 +148,23 @@ class NormalFormGame(Game):
     Here is a slightly longer game.
     Consider the following:
 
-    An airline loses two suitcases belonging to two different travelers.
-    Both suitcases happen to be identical and contain identical antiques.
-    An airline manager tasked to settle the claims of both travelers explains
-    that the airline is liable for a maximum of 10 per suitcase, and in
-    order to determine an honest appraised value of the antiques the manager
-    separates both travelers so they can’t confer, and asks them to write
-    down the amount of their value at no less than 2 and no larger than 100.
-    He also tells them that if both write down the same number, he will
-    treat that number as the true dollar value of both suitcases and
-    reimburse both travelers that amount.
-    However, if one writes down a smaller number than the other,
-    this smaller number will be taken as the true dollar value,
-    and both travelers will receive that amount along with a bonus/malus:
-    2 extra will be paid to the traveler who wrote down the lower value
-    and a 2 deduction will be taken from the person who wrote down the higher amount.
-    The challenge is: what strategy should both travelers follow to decide
-    the value they should write down?
+    An airline loses two suitcases belonging to two different travelers. Both
+    suitcases happen to be identical and contain identical antiques. An
+    airline manager tasked to settle the claims of both travelers explains
+    that the airline is liable for a maximum of 10 per suitcase, and in order
+    to determine an honest appraised value of the antiques the manager
+    separates both travelers so they can’t confer, and asks them to write down
+    the amount of their value at no less than 2 and no larger than 100. He
+    also tells them that if both write down the same number, he will treat
+    that number as the true dollar value of both suitcases and reimburse both
+    travelers that amount.
+    However, if one writes down a smaller number than the other, this smaller
+    number will be taken as the true dollar value, and both travelers will
+    receive that amount along with a bonus/malus: 2 extra will be paid to the
+    traveler who wrote down the lower value and a 2 deduction will be taken
+    from the person who wrote down the higher amount. The challenge is: what
+    strategy should both travelers follow to decide the value they should
+    write down?
 
     In the following we create the game and solve it ::
 
@@ -176,14 +176,14 @@ class NormalFormGame(Game):
     [[[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
 
-    The equilibrium strategy is thus for both players to state that the value of their suitcase is 2.
+    The equilibrium strategy is thus for both players to state that the value
+    of their suitcase is 2.
 
     """
 
     def __new__(NormalFormGame, generator):
         r"""
         Creates an Instance of NormalFormGame.
-
         """
         if type(generator) is list:
             g = Game.new_table([generator[0].dimensions()[0], generator[0].dimensions()[1]])
@@ -198,6 +198,16 @@ class NormalFormGame(Game):
     def __init__(self, generator):
         r"""
         Initializes a Normal Form game and checks the inputs.
+
+        EXAMPLES:
+
+        Check for type of inputs. ::
+
+            sage: NormalFormGame(4)
+            Traceback (most recent call last):
+            ...
+            TypeError: Generator function must be a list or Game
+
         """
         if type(generator) is not list and type(generator) is not NormalFormGame:
             raise TypeError("Generator function must be a list or Game")
@@ -212,10 +222,10 @@ class NormalFormGame(Game):
 
     def game_to_matrix(self):
         r"""
-        Sets ``self.payoff_matrices`` to be the payoff matrices
-        associated with current game. This gets called at ``__init__``, but if
-        ``self`` changes at any point, ``game_to_matrix`` can be called to
-        update those changes.
+        Sets ``self.payoff_matrices`` to be the payoff matrices associated
+        with current game. This gets called at ``__init__``, but if ``self``
+        changes at any point, ``game_to_matrix`` can be called to update those
+        changes.
 
         EXAMPLES:
 
@@ -352,6 +362,24 @@ class NormalFormGame(Game):
             sage: g = NormalFormGame([A, B])
             sage: g.obtain_Nash(maximization=False)
             [[[1.0, 0.0, 0.0], [0.0, 1.0]]]
+
+        2 random matrices. ::
+
+            sage: player1 = matrix([[2, 8, -1, 1, 0],
+            ....:                  [1, 1, 2, 1, 80],
+            ....:                  [0, 2, 15, 0, -12],
+            ....:                  [-2, -2, 1, -20, -1],
+            ....:                  [1, -2, -1, -2, 1]])
+            sage: player2 = matrix([[0, 8, 4, 2, -1],
+            ....:                  [6, 14, -5, 1, 0],
+            ....:                  [0, -2, -1, 8, -1],
+            ....:                  [1, -1, 3, -3, 2],
+            ....:                  [8, -4, 1, 1, -17]])
+            sage: fivegame = NormalFormGame([player1, player2])
+            sage: fivegame.obtain_Nash()
+            [[[1.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0]]]
+            sage: fivegame.obtain_Nash(algorithm='lrs')
+            [([1, 0, 0, 0, 0], [0, 1, 0, 0, 0])]
 
         """
         if len(self.players) > 2:

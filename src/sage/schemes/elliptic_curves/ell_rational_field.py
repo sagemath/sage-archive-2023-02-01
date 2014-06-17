@@ -66,6 +66,8 @@ import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
 
+from sage.lfunctions.zero_sums import LFunctionZeroSum_EllipticCurve
+
 import sage.modular.modform.constructor
 import sage.modular.modform.element
 import sage.libs.mwrank.all as mwrank
@@ -1395,6 +1397,43 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         else:
             raise ValueError("algorithm %s not defined"%algorithm)
 
+    def analytic_rank_bound(self,Delta=1,N=None):
+        """
+        Return an upper bound for the analytic rank of self via a L-function
+        zero sum method that is insensitive to conductor, i.e. can be run on
+        curves with very large conductor. Uses Bober's rank bounding method
+        as described in http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf.
+
+        INPUT:
+
+        - ''Delta'' - (Default 1) - Positive real value parameterizing the
+          tightness of the zero sum. Larger values of Delta yield better
+          bounds.
+
+        - ''N'' - (Default None) - If not None, positive integer equal to
+          the conductor of self, so that rank estimation for curves whose
+          (large) conductor has been precomputed. Note: Output will be
+          incorrect if incorrect conductor is specified.
+
+
+        OUTPUT:
+
+        A positive real double field element strictly greater than the
+        analytic rank of self
+
+        .. note::
+
+          Computation time is exponential in Delta, roughly doubling for
+          0.1 increase thereof, so vary at your own risk.
+
+        EXAMPLES::
+
+        TESTS:
+
+        """
+        pass
+        Z = LFunctionZeroSum_EllipticCurve(self,N)
+        return Z.rankbound(Delta)
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=3,
                           maxprob=20, limbigprime=30, known_points=None):
@@ -2639,7 +2678,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Tests if curve is p-minimal at a given prime p.
 
-        INPUT: p - a primeOUTPUT: True - if curve is p-minimal
+        INPUT: p - a prime
+
+        OUTPUT: True - if curve is p-minimal
 
 
         -  ``False`` - if curve isn't p-minimal

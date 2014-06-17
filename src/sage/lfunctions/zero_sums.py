@@ -1,6 +1,6 @@
 """
-Class file for computing sums over zeros of motivic L-functions. All computations
-are done to double precision.
+Class file for computing sums over zeros of motivic L-functions.
+All computations are done to double precision.
 
 AUTHORS:
 
@@ -23,6 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+from sage.structure.sage_object import SageObject
 from scipy.special import erfcx,spence
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
@@ -31,7 +32,7 @@ from sage.functions.log import log, exp
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
 
-class LFunctionZeroSum_abstract:
+class LFunctionZeroSum_abstract(SageObject):
     """
     Abstract class for computing certain sums over zeros of a motivic L-function
     without having to determine the zeros themselves
@@ -301,4 +302,18 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 logn += logp
             return -y*logp
 
+def LFunctionZeroSum(X,*args,**kwds):
+    """
+    Constructor for the LFunctionZeroSum class.
+    """
 
+    # Here to avoid import recursion
+    from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
+
+    if isinstance(X,EllipticCurve_rational_field):
+        return LFunctionZeroSum_EllipticCurve(X,*args,**kwds)
+
+    else:
+        s = "Zero sum estimator class currently only "\
+            +"implemented for elliptic curves over QQ."
+        raise NotImplementedError(s)

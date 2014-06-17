@@ -1106,7 +1106,7 @@ class Tableau(CombinatorialObject, Element):
         the reading word::
 
             sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
-            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T)
+            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T) # long time
             True
         """
         if check and self not in SemistandardTableaux():
@@ -4588,7 +4588,7 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
             sage: TestSuite(T).run()
 
             sage: T=sage.combinat.tableau.SemistandardTableaux_all(max_entry=3)
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         if max_entry is not PlusInfinity():
             self.max_entry = max_entry

@@ -331,8 +331,15 @@ class NormalFormGame(Game):
             if maximization is False:
                 for k in list(self.contingencies):
                     for player in range(len(self.players)):
-                        self[k][player] = -self[k][player]
-            return [self._gambit_profile_to_list(profile) for profile in ExternalLCPSolver().solve(self)]
+                        self[k][player] *= -1
+
+            nasheq = [self._gambit_profile_to_list(profile) for profile in ExternalLCPSolver().solve(self)]
+
+            if maximization is False:
+                for k in list(self.contingencies):
+                    for player in range(len(self.players)):
+                        self[k][player] *= -1
+            return nasheq
 
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
@@ -340,9 +347,12 @@ class NormalFormGame(Game):
             if maximization is False:
                 self.payoff_matrices[0] *= -1
                 self.payoff_matrices[1] *= -1
+
             nasheq = self._solve_lrs()
-            self.payoff_matrices[0] *= -1
-            self.payoff_matrices[1] *= -1
+
+            if maximization is False:
+                self.payoff_matrices[0] *= -1
+                self.payoff_matrices[1] *= -1
             return nasheq
 
         if algorithm == "support enumeration":

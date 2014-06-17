@@ -16,9 +16,11 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import AlgebraElement
+from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.algebras import Algebras
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.rings import Rings
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import QQ
@@ -205,17 +207,21 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ)
             sage: J = JordanAlgebra(F)
             sage: TestSuite(J).run()
+            sage: J.category()
         """
-        self._A = A
         R = A.base_ring()
-        # This isn't right, but we need non-assoc. algebras. Therefore we need #10963.
-        # Similarly, this algebra is only unital if ``A`` is unital
-        if A in AlgebrasWithBasis(R):
-            cat = (AlgebrasWithBasis(R), CommutativeAlgebras(R))
-        elif A in Algebras(R):
-            cat = CommutativeAlgebras(R)
-        else:
-            raise ValueError("A is not an algebra")
+        if A not in MagmaticAlgebras(R).Associative():
+            raise ValueError("A is not an associative algebra")
+
+        self._A = A
+        C = MagmaticAlgebras(R)
+        cat = C.Commutative()
+        if A in C.Unital():
+            cat = cat.Unital()
+        if A in C.WithBasis():
+            cat = cat.WithBasis()
+        if A in C.FiniteDimensional():
+            cat = cat.FiniteDimensional()
 
         Parent.__init__(self, base=R, names=names, category=cat)
 
@@ -507,9 +513,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         """
         self._form = form
         self._M = FreeModule(R, form.ncols())
-        # This isn't right, but we need non-assoc. algebras. Therefore we need #10963.
-        # However this is a unital algebra
-        cat = (AlgebrasWithBasis(R), CommutativeAlgebras(R))
+        cat = MagmaticAlgebras(R).Commutative().Unital().FiniteDimensional().WithBasis()
         Parent.__init__(self, base=R, names=names, category=cat)
 
     def _repr_(self):

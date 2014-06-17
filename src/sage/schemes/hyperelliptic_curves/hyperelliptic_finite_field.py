@@ -415,7 +415,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.frobenius_polynomial()
             x^6 - 14*x^5 + 1512*x^4 - 66290*x^3 + 3028536*x^2 - 56168126*x + 8036054027
 
-        Curves defined over a non-prime field are only supported as well,
+        Curves defined over a non-prime field are supported as well,
         but a naive algorithm is used; especially when  ``g = 1``,
         fast point counting on elliptic curves should be used::
 
@@ -542,7 +542,6 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
                 for x in K:
                     points.append(self.point([x, f(x).sqrt(), one], check=True))
             else:
-                R = f.base_ring()
                 a_sqrts = { } # Artin-Schreier 2-roots
                 for x in K:
                     a_sqrts[x**2 + x] = x  # char 2 => x^2 - x == x^2 + x
@@ -816,13 +815,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         if f is None:
             f = self.frobenius_polynomial()
 
-        g = self.genus()
         q = self.base_ring().cardinality()
         S = PowerSeriesRing(QQ, default_prec=n+1, names='t')
         frev = f.reverse()
-        # the coefficients() method of power series only returns non-zero coefficients
-        # so let's use the list() method
-        # but this does not work for zero which gives the empty list
+        # the coefficients() method of power series only returns
+        # non-zero coefficients so let us use the list() method but
+        # this does not work for zero which gives the empty list
         flog = S(frev).log()
         return [q**(i+1) + 1 + ZZ((i+1)*flog[i+1]) for i in xrange(n)]
 
@@ -1249,9 +1247,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: H.zeta_function()
             (1369*x^4 + 37*x^3 - 52*x^2 + x + 1)/(37*x^2 - 38*x + 1)
 
-        A quadratic twist:
-
-        ::
+        A quadratic twist::
 
             sage: R.<t> = PolynomialRing(GF(37))
             sage: H = HyperellipticCurve(2*t^5 + 2*t + 4)
@@ -1555,29 +1551,29 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         #Since Trac Ticket #11115, there is a different cache for methods
         #that don't  accept arguments. Anyway, the easiest is to call
         #the cached method and simply see whether the data belong to self.
-        M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
-        if E!=self:
+        M, Coeffs, g, Fq, p, E = self._Cartier_matrix_cached()
+        if E != self:
             self._Cartier_matrix_cached.clear_cache()
-            M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
+            M, Coeffs, g, Fq, p, E = self._Cartier_matrix_cached()
 
         #This compute the action of p^kth Frobenius  on list of coefficients
         def frob_mat(Coeffs, k):
-            a = p**k
+            a = p ** k
             mat = []
-            Coeffs_pow = [c**a for c in Coeffs]
-            for i in range(1,g+1):
-                H=[(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
-                mat.append(H);
-            return matrix(Fq,mat)
+            Coeffs_pow = [c ** a for c in Coeffs]  # not used ??
+            for i in range(1, g + 1):
+                H = [(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
+                mat.append(H)
+            return matrix(Fq, mat)
 
         #Computes all the different possible action of frobenius on matrix M and stores in list Mall
-        Mall = [M] + [frob_mat(Coeffs,k) for k in range(1,g)]
+        Mall = [M] + [frob_mat(Coeffs, k) for k in range(1, g)]
 
         #initial N=I, so we can go through Mall and multiply all matrices with I and
         #get the Hasse-Witt matrix.
-        N = identity_matrix(Fq,g)
+        N = identity_matrix(Fq, g)
         for l in Mall:
-            N = N*l;
+            N = N * l
         return N, E
 
     #This is the function which is actually called by command line

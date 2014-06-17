@@ -519,19 +519,19 @@ class Tableau(CombinatorialObject, Element):
         matr = ""
         if self.parent().global_options('convention') == "English":
             for row in str_tab:
-                l1 = ""; l2 =  ""
+                l1 = ""; l2 = ""
                 for i,e in enumerate(row):
                     l1 += "+--" + '-'*col_widths[i]
                     l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "
                 l1 += "+"; l2 += "|"
                 matr += "\n" + l2 + "\n" + l1
-            l1 = "+"
+            l1 = ""
             for w in col_widths:
                 l1 += "+--" + '-'*w
-            matr = l1 + matr
+            matr = l1 + "+" + matr
         else:
             for row in str_tab:
-                l1 = ""; l2 =  ""
+                l1 = ""; l2 = ""
                 for i,e in enumerate(row):
                     l1 += "+--" + '-'*col_widths[i]
                     l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "

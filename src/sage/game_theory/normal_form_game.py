@@ -321,6 +321,24 @@ class NormalFormGame(Game):
              maximise their utility.
            - When set to ``False`` (default) it is assumed that players aim to
              minimise their utility.
+
+        EXAMPLES:
+
+        A game with 2 equilibria. ::
+
+            sage: A = matrix([[160, 205, 44],
+            ....:       [175, 180, 45],
+            ....:       [201, 204, 50],
+            ....:       [120, 207, 49]])
+            sage: B = matrix([[2, 2, 2],
+            ....:             [1, 0, 0],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 2]])
+            sage: g=NormalFormGame([A, B])
+            sage: g.obtain_Nash(algorithm='lrs')
+            [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
+            sage: g.obtain_Nash(algorithm='lrs', maximization=False)
+            [([1, 0, 0, 0], [127/1212, 115/1212, 485/606]), ([0, 1, 0, 0], [0, 1/26, 25/26])]
         """
         if len(self.players) > 2:
             raise NotImplementedError("Nash equilibrium for games with "
@@ -347,15 +365,12 @@ class NormalFormGame(Game):
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
             if maximization is False:
-                self.payoff_matrices[0] *= -1
-                self.payoff_matrices[1] *= -1
-
-            output = self._solve_lrs()
-            nasheq = Formatter(output).format_lrs()
-
-            if maximization is False:
-                self.payoff_matrices[0] *= -1
-                self.payoff_matrices[1] *= -1
+                min1 = - self.payoff_matrices[0]
+                min2 = - self.payoff_matrices[1]
+                nasheq = self._solve_lrs(min1, min2)
+            else:
+                nasheq = self._solve_lrs(self.payoff_matrices[0],
+                                         self.payoff_matrices[1])
             return nasheq
 
         if algorithm == "support enumeration":
@@ -363,14 +378,20 @@ class NormalFormGame(Game):
                                       "yet")
             return self._solve_enumeration()
 
-    def _solve_lrs(self):
+    def _solve_lrs(self, m1, m2):
         r"""
+        EXAMPLES:
 
+            sage: A = matrix([[1, 2], [3, 4]])
+            sage: B = matrix([[3, 3], [1, 4]])
+            sage: C = NormalFormGame([A, B])
+            sage: C._solve_lrs(A, B)
+            [([0, 1], [0, 1])]
         """
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
         # so that we don't call _Hrepresentation() twice.
-        in_str = self._Hrepresentation()
+        in_str = self._Hrepresentation(m1, m2)
         game1_str = in_str[0]
         game2_str = in_str[1]
 
@@ -385,7 +406,8 @@ class NormalFormGame(Game):
 
         process = Popen(['nash', g1_name, g2_name], stdout=PIPE)
         lrs_output = [row for row in process.stdout]
-        return lrs_output
+        nasheq = Formatter(lrs_output).format_lrs()
+        return nasheq
 
     def _solve_enumeration(self):
         pass
@@ -397,7 +419,7 @@ class NormalFormGame(Game):
         """
         pass
 
-    def _Hrepresentation(self):
+    def _Hrepresentation(self, m1, m2):
         r"""
         Creates the H-representation strings required to use lrs nash.
 
@@ -406,7 +428,7 @@ class NormalFormGame(Game):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: print C._Hrepresentation()[0]
+            sage: print C._Hrepresentation(A, B)[0]
             H-representation
             linearity 1 5
             begin
@@ -418,7 +440,7 @@ class NormalFormGame(Game):
             -1 1 1 0
             end
             <BLANKLINE>
-            sage: print C._Hrepresentation()[1]
+            sage: print C._Hrepresentation(A, B)[1]
             H-representation
             linearity 1 5
             begin
@@ -433,10 +455,6 @@ class NormalFormGame(Game):
 
         """
         from sage.geometry.polyhedron.misc import _to_space_separated_string
-
-        m1 = self.payoff_matrices[0]
-        m2 = self.payoff_matrices[1]
-
         m = len(self.players[0].strategies)
         n = len(self.players[1].strategies)
         midentity = list(matrix.identity(m))

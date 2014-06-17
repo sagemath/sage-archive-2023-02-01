@@ -4866,6 +4866,35 @@ cdef class Matroid(SageObject):
         - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
         specify ground set elements in a certain order which will be used to draw the
         corresponding line in geometric representation (if it exists).
+        
+        EXAMPLES::
+            
+            sage: M=matroids.named_matroids.BetsyRoss()
+            sage: pos={}
+            sage: s="abcde"
+            sage: t="fghij"
+            sage: x=1.61
+            sage: y=1/1.61
+            sage: for i in range(5):
+            ....:         pos[s[i]]=(RR(x*sin(2*pi*i/5)), RR(x*cos(2*pi*i/5)))
+            ....:         pos[t[i]]=(RR(y*sin(2*pi*(i+1/2)/5)), RR(y*cos(2*pi*(i+1/2)/5)))
+            ....: 
+            sage: pos['k']=(0,0)
+            sage: M._fix_positions(pos_dict=pos)
+            sage: M._cached_info
+            {'lineorders': None,
+             'positions': {'a': (0.000000000000000, 1.61000000000000),
+              'b': (1.53120099123520, 0.497517360943665),
+              'c': (0.946334256190882, -1.30251736094367),
+              'd': (-0.946334256190882, -1.30251736094367),
+              'e': (-1.53120099123520, 0.497517360943665),
+              'f': (0.365084007635076, 0.502495027562079),
+              'g': (0.590718333102580, -0.191936021350899),
+              'h': (0.000000000000000, -0.621118012422360),
+              'i': (-0.590718333102580, -0.191936021350899),
+              'j': (-0.365084007635077, 0.502495027562079),
+              'k': (0, 0)}}
+        
         """
         # check sanity of pos_dict and add it to cached info if sane
         if(pos_dict!=None):

@@ -350,9 +350,8 @@ class NormalFormGame(Game):
                 self.payoff_matrices[0] *= -1
                 self.payoff_matrices[1] *= -1
 
-            # output = self._solve_lrs()
-            # nasheq = Formatter(output).format_lrs()
-            nasheq = self._solve_lrs()
+            output = self._solve_lrs()
+            nasheq = Formatter(output).format_lrs()
 
             if maximization is False:
                 self.payoff_matrices[0] *= -1

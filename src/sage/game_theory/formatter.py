@@ -5,12 +5,18 @@ class Formatter():
         self.game = game
 
     def format_lrs(self):
+        from fractions import Fraction
         p2_strategies = []
         p1_strategies = []
         for i in self.messy_crap:
             if i.startswith('2'):
+                nums = [float(Fraction(k)) for k in i.split()]
+                p2_strategies.append(nums[1:-1])
+            elif i.startswith('1'):
+                nums = [float(Fraction(k)) for k in i.split()]
+                p1_strategies.append(nums[1:-1])
 
-
+        return zip(p1_strategies, p2_strategies)
 
     def format_gambit(self):
         nice_stuff = []

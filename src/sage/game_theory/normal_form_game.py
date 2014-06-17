@@ -350,6 +350,8 @@ class NormalFormGame(Game):
                 self.payoff_matrices[0] *= -1
                 self.payoff_matrices[1] *= -1
 
+            # output = self._solve_lrs()
+            # nasheq = Formatter(output).format_lrs()
             nasheq = self._solve_lrs()
 
             if maximization is False:
@@ -446,13 +448,13 @@ class NormalFormGame(Game):
         s += 'begin\n'
         s += str(m + n + 1) + ' ' + str(m + 2) + ' rational\n'
         for f in list(midentity):
-            s += '0 ' + _to_space_separated_string(f) + ' 0\n'
+            s += '0 ' + _to_space_separated_string(f) + ' 0 \n'
         for e in list(m2.transpose()):
-            s += '0 ' + _to_space_separated_string(-e) + ' 1\n'
+            s += '0 ' + _to_space_separated_string(-e) + '  1 \n'
         s += '-1 '
         for g in range(m):
             s += '1 '
-        s += '0\n'
+        s += '0 \n'
         s += 'end\n'
 
         t = 'H-representation\n'
@@ -460,12 +462,12 @@ class NormalFormGame(Game):
         t += 'begin\n'
         t += str(m + n + 1) + ' ' + str(n + 2) + ' rational\n'
         for e in list(m1):
-            t += '0 ' + _to_space_separated_string(-e) + ' 1\n'
+            t += '0 ' + _to_space_separated_string(-e) + '  1 \n'
         for f in list(nidentity):
-            t += '0 ' + _to_space_separated_string(f) + ' 0\n'
+            t += '0 ' + _to_space_separated_string(f) + ' 0 \n'
         t += '-1 '
-        for g in range(m):
+        for g in range(n):
             t += '1 '
-        t += '0\n'
+        t += '0 \n'
         t += 'end\n'
         return s, t

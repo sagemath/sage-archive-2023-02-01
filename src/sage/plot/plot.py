@@ -758,7 +758,7 @@ def plot(funcs, *args, **kwds):
         - this function does NOT simply sample equally spaced points
           between xmin and xmax. Instead it computes equally spaced points
           and adds small perturbations to them. This reduces the possibility
-          of, e.g., sampling sin only at multiples of `2\pi`, which would
+          of, e.g., sampling `\sin` only at multiples of `2\pi`, which would
           yield a very misleading graph.
 
         - if there is a range of consecutive points where the function has
@@ -768,7 +768,7 @@ def plot(funcs, *args, **kwds):
 
     EXAMPLES:
 
-    We plot the sin function::
+    We plot the `\sin` function::
 
         sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive

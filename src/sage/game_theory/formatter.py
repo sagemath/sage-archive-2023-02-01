@@ -4,8 +4,13 @@ class Formatter():
         self.messy_crap = messy_crap
         self.game = game
 
-    def format_lrs():
-        pass
+    def format_lrs(self):
+        p2_strategies = []
+        p1_strategies = []
+        for i in self.messy_crap:
+            if i.startswith('2'):
+
+
 
     def format_gambit(self):
         nice_stuff = []

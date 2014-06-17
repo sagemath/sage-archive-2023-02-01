@@ -26,6 +26,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import QQ
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module import FreeModule
+from sage.sets.family import Family
 from copy import copy
 
 class JordanAlgebra(Parent, UniqueRepresentation):
@@ -80,7 +81,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
         sage: F.<x,y,z> = FreeAlgebra(QQ)
         sage: J = JordanAlgebra(F); J
         Jordan algebra of Free Algebra on 3 generators (x, y, z) over Rational Field
-        sage: a,b,c = J.gens()
+        sage: a,b,c = map(J, F.gens())
         sage: a*b
         1/2*x*y + 1/2*y*x
         sage: b*a
@@ -148,9 +149,10 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
         We check arguments with passing in an associative algebra::
 
-            sage: F.<x,y,z> = FreeAlgebra(QQ)
-            sage: J1 = JordanAlgebra(F, names=['a','b','c'])
-            sage: J2.<a,b,c> = JordanAlgebra(F)
+            sage: cat = Algebras(QQ).WithBasis().FiniteDimensional()
+            sage: C = CombinatorialFreeModule(QQ, ['x','y','z'], category=cat)
+            sage: J1 = JordanAlgebra(C, names=['a','b','c'])
+            sage: J2.<a,b,c> = JordanAlgebra(C)
             sage: J1 is J2
             True
 
@@ -178,7 +180,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
             if not is_Matrix(arg0):
                 if arg0.base_ring().characteristic() == 2:
                     raise ValueError("the base ring cannot have characteristic 2")
-                return SpecialJordanAlgebra(arg0, names=names)
+                return SpecialJordanAlgebra(arg0, names)
 
             arg0, arg1 = arg0.base_ring(), arg0
         elif is_Matrix(arg0):
@@ -208,6 +210,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: J = JordanAlgebra(F)
             sage: TestSuite(J).run()
             sage: J.category()
+            Category of commutative unital algebras with basis over Rational Field
         """
         R = A.base_ring()
         if A not in MagmaticAlgebras(R).Associative():
@@ -218,8 +221,10 @@ class SpecialJordanAlgebra(JordanAlgebra):
         cat = C.Commutative()
         if A in C.Unital():
             cat = cat.Unital()
+            self._no_generic_basering_coercion = True # Remove once 16492 is fixed
         if A in C.WithBasis():
             cat = cat.WithBasis()
+            self.basis = self.algebra_generators
         if A in C.FiniteDimensional():
             cat = cat.FiniteDimensional()
 
@@ -252,11 +257,6 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: elt.parent() is J
             True
         """
-        if isinstance(x, SpecialJordanAlgebra.Element):
-            if x.parent() is self:
-                return x
-            return self.element_class(self, self._A(x._x))
-
         return self.element_class(self, self._A(x))
 
     def _an_element_(self):
@@ -273,28 +273,46 @@ class SpecialJordanAlgebra(JordanAlgebra):
         return self.element_class(self, self._A.an_element())
 
     @cached_method
-    def gens(self):
+    def algebra_generators(self):
         """
-        Return the generators of ``self``.
-
-        .. WARNING::
-
-            These do not generate the Jordan algebra `A^+` as an algebra
-            since `A^+` is isomorphic to `A` as `R`-modules.
+        Return the algebra generators of ``self``.
 
         EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ)
             sage: J = JordanAlgebra(F)
-            sage: J.gens()
-            (x, y, z)
+            sage: J.algebra_generators()
+            Lazy family (Generator map(i))_{i in Free monoid on 3 generators (x, y, z)}
         """
-        return tuple(map(lambda x: self.element_class(self, x), self._A.gens()))
+        B = self._A.basis()
+        return Family(B.keys(), lambda x: self.element_class(self, B[x]), name="Generator map")
+
+    # TODO: Keep this until we can better handle R.<...> shorthand
+    def gens(self):
+        """
+        Return the generators of ``self``.
+
+        EXAMPLES::
+
+            sage: cat = Algebras(QQ).WithBasis().FiniteDimensional()
+            sage: C = CombinatorialFreeModule(QQ, ['x','y','z'], category=cat)
+            sage: J = JordanAlgebra(C)
+            sage: J.gens()
+            (B['x'], B['y'], B['z'])
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ)
+            sage: J = JordanAlgebra(F)
+            sage: J.gens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: unknown cardinality
+        """
+        return tuple(self.algebra_generators())
 
     @cached_method
     def zero(self):
         """
-        Return the element 0.
+        Return the element `0`.
 
         EXAMPLES::
 
@@ -308,7 +326,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
     @cached_method
     def one(self):
         """
-        Return the element 1 if it exists.
+        Return the element `1` if it exists.
 
         EXAMPLES::
 
@@ -330,7 +348,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: TestSuite(a + 2*b - c).run()
             """
             self._x = x
@@ -343,7 +362,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: a + 2*b - c
                 x + 2*y - z
             """
@@ -356,7 +376,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x0,x1,x2> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: latex(a + 2*b - c)
                 x_{0} + 2x_{1} - x_{2}
             """
@@ -370,7 +391,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: (a + 2*b - c).__nonzero__()
                 True
             """
@@ -383,7 +405,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: elt = a + 2*b - c
                 sage: elt == elt
                 True
@@ -405,7 +428,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: elt = a + 2*b - c
                 sage: elt != elt
                 False
@@ -423,7 +447,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: a + 2*b
                 x + 2*y
             """
@@ -436,7 +461,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: -(a + 2*b)
                 -x - 2*y
             """
@@ -449,7 +475,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: a - 2*b
                 x - 2*y
             """
@@ -462,7 +489,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: (a + 2*b) * (c - b)
                 -1/2*x*y + 1/2*x*z - 1/2*y*x - 2*y^2 + y*z + 1/2*z*x + z*y
             """
@@ -478,7 +506,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: (a + b) * 2
                 2*x + 2*y
             """
@@ -491,7 +520,8 @@ class SpecialJordanAlgebra(JordanAlgebra):
             EXAMPLES::
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
-                sage: J.<a,b,c> = JordanAlgebra(F)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
                 sage: 2 * (a + b)
                 2*x + 2*y
             """
@@ -514,6 +544,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         self._form = form
         self._M = FreeModule(R, form.ncols())
         cat = MagmaticAlgebras(R).Commutative().Unital().FiniteDimensional().WithBasis()
+        self._no_generic_basering_coercion = True # Remove once 16492 is fixed
         Parent.__init__(self, base=R, names=names, category=cat)
 
     def _repr_(self):
@@ -528,8 +559,8 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             [-2  3]
             [ 3  4]
         """
-        return "Jordan algebra over {} given by the symmetric blinear form:\n{}".format(
-                self.base_ring(), self._form)
+        return "Jordan algebra over {} given by the symmetric blinear" \
+               " form:\n{}".format(self.base_ring(), self._form)
 
     def _element_constructor_(self, *args):
         """
@@ -543,9 +574,9 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             2 + (0, 0)
             sage: J((-4, (2, 5)))
             -4 + (2, 5)
-            sage: J(2, (-2, 3)) # known bug - defaulting to the base ring morphism, see #16054
+            sage: J(2, (-2, 3)) # known bug - defaults to the base ring morphism #16054
             2 + (-2, 3)
-            sage: J(-1, 1, 0) # known bug - defaulting to the base ring morphism, see #16054
+            sage: J(-1, 1, 0) # known bug - defaults to the base ring morphism #16054
             -1 + (1, 0)
         """
         R = self.base_ring()
@@ -585,14 +616,27 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             sage: m = matrix([[0,1],[1,1]])
             sage: J = JordanAlgebra(m)
             sage: J.basis()
-            (1 + (0, 0), 0 + (1, 0), 0 + (0, 1))
+            Family (1 + (0, 0), 0 + (1, 0), 0 + (0, 1))
         """
         R = self.base_ring()
         ret = (self.element_class(self, R.one(), self._M.zero()),)
         ret += tuple(map(lambda x: self.element_class(self, R.zero(), x), self._M.basis()))
-        return ret
+        return Family(ret)
 
-    gens = basis
+    algebra_generators = basis
+
+    def gens(self):
+        """
+        Return the generators of ``self``.
+
+        EXAMPLES::
+
+            sage: m = matrix([[0,1],[1,1]])
+            sage: J = JordanAlgebra(m)
+            sage: J.basis()
+            Family (1 + (0, 0), 0 + (1, 0), 0 + (0, 1))
+        """
+        return tuple(self.algebra_generators())
 
     @cached_method
     def zero(self):
@@ -791,7 +835,9 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             """
             P = self.parent()
             # This is safer than dividing by 2
-            return self.__class__(P, self._s * other._s + (self._v * P._form * other._v.column())[0],
+            return self.__class__(P,
+                                  self._s * other._s
+                                   + (self._v * P._form * other._v.column())[0],
                                   other._s * self._v + self._s * other._v)
 
         def _lmul_(self, other):
@@ -852,7 +898,8 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 sage: x.norm()
                 19
             """
-            return self._s * self._s + (self._v * self.parent()._form * self._v.column())[0]
+            return self._s * self._s + (self._v * self.parent()._form
+                                        * self._v.column())[0]
 
         def bar(self):
             r"""

@@ -16,7 +16,7 @@ Partition/Diagram Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass, catalan_number
+from combinat import catalan_number
 from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
 from sage.sets.set import Set, is_Set
@@ -27,7 +27,9 @@ from sage.rings.all import Integer
 from sage.rings.real_mpfr import is_RealNumber
 from subset import Subsets
 from sage.functions.all import ceil
-import functools, math
+import functools
+import math
+
 
 def create_set_partition_function(letter, k):
     """
@@ -63,7 +65,6 @@ class SetPartitionsXkElement(SetPartition):
             {{1, 2, 3, -1, -3, -2}}
         """
         #Check to make sure each element of x is a set
-        u = Set([])
         for s in self:
             assert isinstance(s, (set, frozenset)) or is_Set(s)
 
@@ -1380,12 +1381,9 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
         TESTS::
 
             sage: L = list(SetPartitionsPRk(2.5)); L
-            [{{-3, 3}, {-2}, {-1}, {1}, {2}},
-             {{-3, 3}, {-2}, {-1, 1}, {2}},
-             {{-3, 3}, {-2, 1}, {-1}, {2}},
-             {{-3, 3}, {-2}, {-1, 2}, {1}},
-             {{-3, 3}, {-2, 2}, {-1}, {1}},
-             {{-3, 3}, {-2, 2}, {-1, 1}}]
+            [{{-3, 3}, {-2}, {-1}, {1}, {2}}, {{-3, 3}, {-2}, {-1, 1}, {2}},
+             {{-3, 3}, {-2, 1}, {-1}, {2}}, {{-3, 3}, {-2}, {-1, 2}, {1}},
+             {{-3, 3}, {-2, 2}, {-1}, {1}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
             sage: len(L)
             6
         """
@@ -1858,4 +1856,3 @@ def set_partition_composition(sp1, sp2):
 
 
     return ( Set(res), total_removed )
-

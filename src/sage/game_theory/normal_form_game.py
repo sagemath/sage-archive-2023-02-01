@@ -324,7 +324,8 @@ class NormalFormGame(Game):
 
         EXAMPLES:
 
-        A game with 2 equilibria. ::
+        A game with 2 equilibria when ``maximization`` is ``True`` and 3 when
+        ``maximization`` is ``False``. ::
 
             sage: A = matrix([[160, 205, 44],
             ....:       [175, 180, 45],
@@ -339,12 +340,26 @@ class NormalFormGame(Game):
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
             sage: g.obtain_Nash(algorithm='lrs', maximization=False)
             [([1, 0, 0, 0], [127/1212, 115/1212, 485/606]), ([0, 1, 0, 0], [0, 1/26, 25/26])]
+
+        This particular game has 3 Nash equilibria. ::
+
+            sage: A = matrix([[3,3],
+            ....:             [2,5],
+            ....:             [0,6]])
+            sage: B = matrix([[3,2],
+            ....:             [2,6],
+            ....:             [3,1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.obtain_Nash(maximization=False)
+            [[[1.0, 0.0, 0.0], [0.0, 1.0]]]
+
         """
         if len(self.players) > 2:
-            raise NotImplementedError("Nash equilibrium for games with "
-                  "more than 2 players have not been implemented yet."
-                  "Please see the gambit website [LINK] that has a variety"
-                  " of available algorithms")
+            raise NotImplementedError("Nash equilibrium for games with more "
+                                      "than 2 players have not been "
+                                      "implemented yet. Please see the gambit "
+                                      "website [LINK] that has a variety of "
+                                      "available algorithms")
 
         if algorithm == "LCP":
             if maximization is False:

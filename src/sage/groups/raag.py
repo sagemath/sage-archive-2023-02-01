@@ -116,7 +116,7 @@ class RightAngledArtinGroup(FinitelyPresentedGroup):
        Artin group*. Invent. Math. **145** (2001). No 1, 19-36.
        :arxiv:`math/0003133`.
 
-    .. [VW94] Leonard Van Wyk. *Graph groups are biautomatic*. J. Pure Appl.
+    .. [VW1994] Leonard Van Wyk. *Graph groups are biautomatic*. J. Pure Appl.
        Alg. **94** (1994). no. 3, 341-352.
 
     - :wikipedia:`Artin_group#Right-angled_Artin_groups`

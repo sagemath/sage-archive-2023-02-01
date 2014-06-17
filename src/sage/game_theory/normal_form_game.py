@@ -13,6 +13,7 @@ from sage.misc.package import is_package_installed
 from gambit import Game
 from gambit.nash import ExternalLCPSolver
 from sage.matrix.constructor import matrix
+from formatter import Formatter
 
 
 class NormalFormGame(Game):
@@ -333,7 +334,8 @@ class NormalFormGame(Game):
                     for player in range(len(self.players)):
                         self[k][player] *= -1
 
-            nasheq = [self._gambit_profile_to_list(profile) for profile in ExternalLCPSolver().solve(self)]
+            output = ExternalLCPSolver().solve(self)
+            nasheq = Formatter(output, self).format_gambit()
 
             if maximization is False:
                 for k in list(self.contingencies):
@@ -359,14 +361,6 @@ class NormalFormGame(Game):
             raise NotImplementedError("Support enumeration is not implemented "
                                       "yet")
             return self._solve_enumeration()
-
-    def _gambit_profile_to_list(self, gambitstrategy):
-        gambitstrategy = eval(str(gambitstrategy)[str(gambitstrategy).index("["): str(gambitstrategy).index("]") + 1])
-        profile = [gambitstrategy[:len(self.players[int(0)].strategies)]]
-        for player in list(self.players)[1:]:
-            previousplayerstrategylength = len(profile[-1])
-            profile.append(gambitstrategy[previousplayerstrategylength: previousplayerstrategylength + len(player.strategies)])
-        return profile
 
     def _solve_lrs(self):
         r"""

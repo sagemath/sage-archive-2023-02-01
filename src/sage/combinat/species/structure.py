@@ -109,11 +109,10 @@ class GenericSpeciesStructure(CombinatorialObject):
         Returns the labels used for this structure.
 
         .. note::
-        
-           This includes labels which may not "appear" in this
-           particular structure.
 
-        
+            This includes labels which may not "appear" in this
+            particular structure.
+
         EXAMPLES::
 
             sage: P = species.SubsetSpecies()
@@ -292,9 +291,9 @@ class SpeciesWrapper(CombinatorialClass):
         
         .. note::
 
-           One typically does not use :class:`SpeciesWrapper`
-           directly, but instead instantiates one of its subclasses:
-           :class:`StructuresWrapper` or :class:`IsotypesWrapper`.
+            One typically does not use :class:`SpeciesWrapper`
+            directly, but instead instantiates one of its subclasses:
+            :class:`StructuresWrapper` or :class:`IsotypesWrapper`.
            
         EXAMPLES::
 
@@ -414,7 +413,7 @@ class SimpleStructuresWrapper(SpeciesWrapper):
         """
         .. warning::
 
-           This is deprecated and currently not used for anything.
+            This is deprecated and currently not used for anything.
 
         EXAMPLES::
 
@@ -429,12 +428,13 @@ class SimpleStructuresWrapper(SpeciesWrapper):
                                 "Simple structures",
                                 structure_class)
 
+
 class SimpleIsotypesWrapper(SpeciesWrapper):
     def __init__(self, species, labels, structure_class):
         """
         .. warning::
 
-           This is deprecated and currently not used for anything.
+            This is deprecated and currently not used for anything.
 
         EXAMPLES::
 

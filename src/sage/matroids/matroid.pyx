@@ -4804,12 +4804,12 @@ cdef class Matroid(SageObject):
             return
         elif B == None:
             B = list(self.basis())
-        elif self.is_basis(B)==False:
+        elif B != None and self.is_basis(B)==False:
             return
         lineorders2=matroids_plot_helpers.lineorders_union(self._cached_info['lineorders'],lineorders)
         return matroids_plot_helpers.geomrep(self,B,lineorders2,pd=pos_dict, sp=save_pos)
 
-    cpdef show(self,B=None,lineorders=None,pos_method=None,pos_dict=None,save_pos=False):
+    cpdef show(self,B=None,lineorders=None,pos_method=None,pos_dict=None,save_pos=False,lims=None):
         """
         Show the geometric representation of the matroid.
          
@@ -4824,23 +4824,25 @@ cdef class Matroid(SageObject):
             ``0``: default positioning
             ``1``: use pos_dict if it is not ``None``
             ``2``: Force directed (Not yet implemented). 
-        - ``pos_dict``: A dictionary mapping ground set elements to their (x,y) positions.
-        - ``save_pos``: A boolean indicating that point placements (either internal or user provided) and 
+        - ``pos_dict`` -- A dictionary mapping ground set elements to their (x,y) positions.
+        - ``save_pos`` -- A boolean indicating that point placements (either internal or user provided) and 
         line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for 
         reproducing the geometric representation during the same session
+        - ``lims`` -- A list of 4 elements ``[xmin,xmax,ymin,ymax]``
         
         EXAMPLES::
         
             sage: M=matroids.named_matroids.TernaryDowling3()
             sage: M.show(B=['a','b','c'])
-            sage: M.show(B=['a','b','c'],lineorders=[['f','e','i']]) 
+            sage: M.show(B=['a','b','c'],lineorders=[['f','e','i']])
+            sage: M.show(pos_method=1, pos_dict=pos,lims=[-3,3,-3,3]) 
                        
         """
         if self.rank() > 3:
             return
         elif B == None:
             B = list(self.basis())
-        elif self.is_basis(B)==False:
+        elif B != None and self.is_basis(B)==False:
             return
         B1=B
         lineorders1=lineorders
@@ -4848,5 +4850,27 @@ cdef class Matroid(SageObject):
         pd=pos_dict
         sp=save_pos    
         G=self.plot(B1,lineorders1,pm,pd,sp)
-        G.show(xmin=-2, xmax=3, ymin=-2, ymax=3)
+        if lims == None:
+            G.show()
+        else:
+            G.show(xmin=lims[0], xmax=lims[1], ymin=lims[2], ymax=lims[3])
         return 
+        
+    cpdef _fix_positions(self,pos_dict=None,lineorders=None):
+        """
+        Cache point positions and line orders without actually plotting
+        
+        INPUT:
+        
+        - ``pos_dict`` -- (optional) A dictionary mapping ground set elements to their (x,y) positions.
+        - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
+        specify ground set elements in a certain order which will be used to draw the
+        corresponding line in geometric representation (if it exists).
+        """
+        # check sanity of pos_dict and add it to cached info if sane
+        if(pos_dict!=None):
+            import matroids_plot_helpers
+            if matroids_plot_helpers.posdict_is_sane(self,pos_dict) ==True: 
+                self._cached_info={'positions':pos_dict,'lineorders':lineorders}
+        return
+    

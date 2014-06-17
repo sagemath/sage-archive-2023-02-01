@@ -30,7 +30,7 @@ AUTHORS:
     3) Internal point placement and orders deciding heuristics
     If a custom point placement and/or line orders is desired, then user can simply specify 
     the custom points dictionary as 
-    ``M.cached info = {'positions':<dictionary_of _points>,'lineorders':<list of lists>)`` 
+    ``M.cached info = {'positions':<dictionary_of _points>,'lineorders':<list of lists>}`` 
 
 
 
@@ -316,7 +316,7 @@ def createline(ptsdict, ll, lineorders2=None):
         x_i,y_i = scipy.interpolate.splev(np.linspace(0,1,100),tck)
     return sortedx,sortedy,x_i,y_i
 
-def slp(M1, pos_dict=None):
+def slp(M1, pos_dict=None,B=None):
     """
     Return simple matroid, loops and parallel elements of given matroid.
     
@@ -326,6 +326,7 @@ def slp(M1, pos_dict=None):
     - ``pos_dict`` -- (optional) A dictionary containing non loopy elements of ``M`` as keys and their (x,y) positions
     as keys. While simplifying the matroid, all except one element in a parallel class that is also specified in ``pos_dict``
     will be retained. 
+    - ``B`` -- (optional) A basis of M1 that has been chosen for placement on vertics of triangle
     
     OUTPUT:
     
@@ -361,17 +362,30 @@ def slp(M1, pos_dict=None):
     sg = sorted(M1.simplify().groundset())
     nP = L|set(M1.simplify().groundset())
     P = set(M1.groundset())-nP
-    if pos_dict != None:
-        pcls=list(set([frozenset(set(M1.closure([p]))-L) for p in list(P)]))
-        newP=[]
-        for pcl in pcls:
-            pcl_in_dict=[p for p in list(pcl) if p in pos_dict.keys()]
-            newP.extend(list(pcl-set([pcl_in_dict[0]])))
-        return [M1.delete(L|set(newP)),L,set(newP)]
+    if len(P) > 0:
+        if pos_dict != None:
+            pcls=list(set([frozenset(set(M1.closure([p]))-L) for p in list(P)]))
+            newP=[]
+            for pcl in pcls:
+                pcl_in_dict=[p for p in list(pcl) if p in pos_dict.keys()]
+                newP.extend(list(pcl-set([pcl_in_dict[0]])))
+            return [M1.delete(L|set(newP)),L,set(newP)]
+        elif B != None:
+            pcls=list(set([frozenset(set(M1.closure([p]))-L) for p in list(P)]))
+            newP=[]
+            for pcl in pcls:
+                pcl_in_basis=[p for p in list(pcl) if p in B]
+                if len(pcl_in_basis)>0:
+                    newP.extend(list(pcl-set([pcl_in_basis[0]])))
+                else:
+                    newP.extend(list(pcl-set([pcl[0]])))
+                return [M1.delete(L|set(newP)),L,set(newP)]
+        else:
+            return [M1.delete(L|P),L,P]
     else:
         return [M1.delete(L|P),L,P]
     
-def addlp(M, M1, L, P, ptsdict, G=None):
+def addlp(M, M1, L, P, ptsdict, G=None,limits=None):
     """
     Return a graphics object containing loops (in inset) and parallel elements of matroid. 
     
@@ -382,9 +396,13 @@ def addlp(M, M1, L, P, ptsdict, G=None):
     - ``P`` -- List of elements in ``M.groundset()`` not in ``M.simplify.groundset()`` or ``L``.
     - ``ptsdict`` -- A dictionary containing elements in ``M.groundset()`` not necessarily containing elements of ``L``.
     - ``G`` -- (optional) A sage graphics object to which loops and parallel elements of matroid `M` added .
+    - ``limits``-- (optional) Current axes limits [xmin,xmax,ymin,ymax].
     
     OUTPUT:
-    A sage graphics object containing loops and parallel elements of matroid ``M``
+    A 2-tuple containing:
+    
+    1. A sage graphics object containing loops and parallel elements of matroid ``M``
+    2. axes limits array
     
     EXAMPLES:
         
@@ -407,14 +425,19 @@ def addlp(M, M1, L, P, ptsdict, G=None):
     if len(L) > 0:
         loops = L
         looptext = ", ".join([str(l) for l in loops])
-        rectx = -1
-        recty = -1
+        if(limits==None):
+            rectx = -1
+            recty = -1
+        else:
+            rectx = limits[0]
+            recty = limits[2]-1
         rectw = 0.5 + 0.4*len(loops) + 0.5 # control this based on len(loops) 
         recth = 0.6
         G += polygon2d([[rectx,recty], [rectx,recty+recth], [rectx+rectw,recty+recth], [rectx+rectw,recty]], color='black',fill=False,thickness=4)
         G += text(looptext,(rectx+0.5,recty+0.3),color='black',fontsize=13)
         G += point((rectx+0.2, recty+0.3),color='black', size=300,zorder=2)
         G += text('Loop(s)',(rectx+0.5+0.4*len(loops)+0.1,recty+0.3),fontsize=13,color='black')
+        limits=tracklims(limits,[rectx,rectx+rectw],[recty,recty+recth])
     if len(P) > 0:
         # create list of lists where inner lists are parallel classes 
         pcls = []
@@ -433,10 +456,12 @@ def addlp(M, M1, L, P, ptsdict, G=None):
                     ptsdict[pcl[1]] = (basept[0],basept[1]-0.13)
                     G += points(zip([basept[0]], [basept[1]-0.13]),color='black', size=300,zorder=2)
                     G += text(pcl[1],(float(basept[0]), float(basept[1])-0.13),color='white',fontsize=13)
+                    limits=tracklims(limits,[basept[0]],[basept[1]-0.13])
                 else:
                     # add in a bracket
                     G += text('{ '+", ".join(sorted([str(kk) for kk in pcl[1:]]))+' }',(float(basept[0]), float(basept[1]-0.2)-0.034),color='black',fontsize=13)
-    return G
+                    limits=tracklims(limits,[basept[0]],[(basept[1]-0.2)-0.034])
+    return G,limits
       
 def line_hasorder(l, lodrs=None):
     """
@@ -554,9 +579,35 @@ def posdict_is_sane(M1, pos_dict):
             return False
     return True
     
+def tracklims(lims,x_i=[],y_i=[]):
+    """
+    Return modified limits list 
     
+    INPUT:
     
+    - ``lims`` -- A list with 4 elements ``[xmin,xmax,ymin,ymax]``
+    - ``x_i`` -- New x values to track
+    - ``y_i`` -- New y values to track
     
+    OUTPUT:
+    
+    A list with 4 elements ``[xmin,xmax,ymin,ymax]`` 
+    
+    EXAMPLES::
+    
+        sage: from sage.matroids import matroids_plot_helpers
+        sage: matroids_plot_helpers.tracklims([0,5,-1,7],[1,2,3,6,-1],[-1,2,3,6])
+        [-1, 6, -1, 7]
+    
+    .. NOTE::
+
+            This method does NOT do any checks.
+    """
+    if lims!=None and lims[0]!=None and lims[1]!=None and lims[2]!=None and lims[3]!=None: 
+        lims=[min(min(x_i),lims[0]),max(max(x_i),lims[1]),min(min(y_i),lims[2]),max(max(y_i),lims[3])]
+    else:
+        lims=[min(x_i),max(x_i),min(y_i),max(y_i)]
+    return lims   
     
 def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
     """
@@ -593,12 +644,13 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
 
             This method does NOT do any checks.
     """
-    if B1 == None:
-        B1 = list(M1.basis())
     G = Graphics()
     # create lists of loops and parallel elements and simplify given matroid
-    [M,L,P] = slp(M1,pos_dict=pd)
+    if B1 == None:
+        B1 = list(M.basis())
+    [M,L,P] = slp(M1,pos_dict=pd,B=B1)
     M._cached_info = M1._cached_info
+    
     if M.rank()==1:
         if M._cached_info != None and 'positions' in M._cached_info.keys() and M._cached_info['positions'] != None:
             pts = M._cached_info['positions']
@@ -609,6 +661,9 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         pts[gnd[0]] = (1,float(2)/3)
         G += point((1, float(2)/3),size=300,zorder=2)
         pts2 = pts
+        # track limits [xmin,xmax,ymin,ymax]
+        pl=[list(x) for x in pts2.values()]
+        lims=tracklims([None,None,None,None],[pt[0] for pt in pl],[pt[1] for pt in pl])  
     elif M.rank() == 2:
         nB1=list(set(list(M.groundset())) - set(B1))
         bline = []
@@ -631,9 +686,12 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
                 pts2[bline[k]] = (cc*lpt[0]+(1-cc)*rpt[0],cc*lpt[1]+(1-cc)*rpt[1])
             if sp == True:
                 M._cached_info['positions']=pts2
-            
+        # track limits [xmin,xmax,ymin,ymax]
+        pl=[list(x) for x in pts2.values()]
+        lims=tracklims([None,None,None,None],[pt[0] for pt in pl],[pt[1] for pt in pl])    
         bline.extend(B1)
         ptsx,ptsy,x_i,y_i = createline(pts2,bline,lineorders1)
+        lims=tracklims(lims,x_i,y_i) 
         G += line(zip(x_i, y_i),color='black',thickness=3,zorder=1)
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for  k in allpts]
@@ -650,11 +708,13 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         else:
             pts2=M._cached_info['positions']
             trilines=[list(set(list(x)).difference(L|P)) for x in M1.flats(2) if len(list(x))>=3]
-        
+        pl=[list(x) for x in pts2.values()]
+        lims=tracklims([None,None,None,None],[pt[0] for pt in pl],[pt[1] for pt in pl]) 
         j = 0
         for ll in trilines:
             if len(ll)>=3:
                 ptsx,ptsy,x_i,y_i=createline(pts2,ll,lineorders1)
+                lims=tracklims(lims,x_i,y_i)
                 G += line(zip(x_i,y_i),color='black',thickness=3,zorder=1)
         allpts = [list(pts2[i]) for i in M.groundset()]
         xpts = [float(k[0]) for  k in allpts]
@@ -666,7 +726,8 @@ def geomrep(M1, B1=None, lineorders1=None, pd=None, sp=False):
         if sp == True:
             M1._cached_info['positions']=pts2
             M1._cached_info['lineorders']=lineorders1
-    #deal with loops and parallel elements 
-    G = addlp(M1,M,L,P,pts2,G)
+    #deal with loops and parallel elements
+    G,lims = addlp(M1,M,L,P,pts2,G,lims)
     G.axes(False)
+    G.axes_range(xmin=lims[0]-0.5,xmax=lims[1]+0.5,ymin=lims[2]-0.5,ymax=lims[3]+0.5)
     return G

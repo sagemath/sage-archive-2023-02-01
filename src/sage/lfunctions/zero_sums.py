@@ -37,11 +37,21 @@ class LFunctionZeroSum_abstract(SageObject):
     Abstract class for computing certain sums over zeros of a motivic L-function
     without having to determine the zeros themselves
     """
-    def __init__(self):
+
+    def level(self):
         """
-        Should never be called.
+        Return the level of the form attached to self. If self was constructed
+        from an elliptic curve, then this is equal to the conductor of E.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
-        pass
+        return self._N
 
     def rankbound(self,Delta=1,function="sincsquared"):
         """
@@ -59,6 +69,14 @@ class LFunctionZeroSum_abstract(SageObject):
         Current options for function are
          - "sincquared" -- f(x) = (sin(pi*x)/(pi*x))^2
          - "gaussian"   -- f(x) = exp(-x^2)
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
 
         # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
@@ -83,6 +101,14 @@ class LFunctionZeroSum_abstract(SageObject):
         As Delta increases this sum limits from above to the analytic rank
         of E, as f(0) = 1 is counted with multiplicity r, and the other terms
         go to 0.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
 
         npi = self._pi
@@ -116,6 +142,14 @@ class LFunctionZeroSum_abstract(SageObject):
         As Delta increases this sum limits from above to the analytic rank
         of E, as f(0) = 1 is counted with multiplicity r, and the other terms
         go to 0.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
 
         npi = self._pi
@@ -155,6 +189,14 @@ class LFunctionZeroSum_abstract(SageObject):
 
         This will only produce correct output if self._E is given by its
         global minimal model, i.e. if self._E.is_minimal()==True.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
 
         npi = self._pi
@@ -232,14 +274,16 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     def E(self):
         """
         Return the elliptic curve associated with self.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
         return self._E
-
-    def level(self):
-        """
-        Return the level of self, equal to the conductor of E.
-        """
-        return self._N
 
     def log_deriv_coeff(self,n):
         """
@@ -248,6 +292,14 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         axis. This is zero if n is not a perfect prime power, and if n=p^e,
         then log_deriv_coeff(n) = -(a_p)^e*log(p)/p^e, where
         a_p = p+1-#{E(FF_p)} is the trace of Frobenius at p.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
         n = ZZ(n)
         if n==1:
@@ -280,6 +332,14 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         of p <= bound = floor(exp(t)).
 
         p must be a prime python int.
+
+        INPUT:
+
+        OUTPUT:
+
+        EXAMPLES::
+
+        TESTS:
         """
 
         logp = log(RDF(p))
@@ -305,6 +365,15 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 def LFunctionZeroSum(X,*args,**kwds):
     """
     Constructor for the LFunctionZeroSum class.
+
+    INPUT:
+
+    OUTPUT:
+
+    EXAMPLES::
+
+    TESTS:
+
     """
 
     # Here to avoid import recursion

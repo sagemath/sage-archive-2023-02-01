@@ -472,29 +472,48 @@ class Tableau(CombinatorialObject, Element):
             ++
             ++
             sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_table()
+            +----+----+----+----+----+
+            |  1 |  2 |  3 | 10 | 15 |
+            +----+----+----+----+----+
+            | 12 | 15 | 17 |
+            +----+----+----+
         """
         if len(self) == 0:
             return "++\n++"
 
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), self)
+        col_widths = [1]*len(str_tab[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
         matr = ""
         if self.parent().global_options('convention') == "English":
-            for row in self:
+            for row in str_tab:
                 l1 = ""; l2 =  ""
-                for e in row:
-                    l1 += "+---"
-                    l2 += "| " + str(e) + " "
+                for i,e in enumerate(row):
+                    l1 += "+--" + '-'*col_widths[i]
+                    l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "
                 l1 += "+"; l2 += "|"
                 matr += "\n" + l2 + "\n" + l1
-            matr = "+---"** Integer(len(self[0])) + "+" + matr
+            matr = "+" + matr
+            for w in col_widths:
+                matr = "+--" + '-'*w + matr
         else:
-            for row in self:
+            for row in str_tab:
                 l1 = ""; l2 =  ""
-                for e in row:
-                    l1 += "+---"
-                    l2 += "| " + str(e) + " "
+                for i,e in enumerate(row):
+                    l1 += "+--" + '-'*col_widths[i]
+                    l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "
                 l1 += "+"; l2 += "|"
                 matr = l1 + "\n" + l2 + "\n" + matr
-            matr += "+---"** Integer(len(self[0])) + "+"
+            for w in col_widths:
+                matr += "+--" + '-'*w
+            matr += "+"
 
         return matr
 
@@ -513,6 +532,11 @@ class Tableau(CombinatorialObject, Element):
             |4|5|
             |1|2|3|
             sage: Tableaux.global_options.reset()
+
+            sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
+            sage: print t._ascii_art_compact()
+            | 1| 2| 3|10|15|
+            |12|15|17|
         """
         if len(self) == 0:
             return "."
@@ -522,17 +546,20 @@ class Tableau(CombinatorialObject, Element):
         else:
             T = reversed(self)
 
-        matr = ''
-        for row in T:
-            l1 = ""
-            for e in row:
-                l1 += "|" + str(e)
-            l1 += "|"
-            matr += l1 + "\n"
-        return matr
+        # Get the widths of the columns
+        str_tab = map(lambda row: map(str, row), T)
+        col_widths = [1]*len(self[0])
+        for row in str_tab:
+            for i,e in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(e))
+
+        return "\n".join("|"
+                         + "|".join(" "*(col_widths[i]-len(e)) + e
+                                    for i,e in enumerate(row))
+                         + "|" for row in str_tab)
 
     def _latex_(self):
-        r"""
+        r""" 
         Return a LaTeX version of ``self``.
 
         EXAMPLES::

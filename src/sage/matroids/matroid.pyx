@@ -4839,7 +4839,7 @@ cdef class Matroid(SageObject):
                        
         """
         if self.rank() > 3:
-            return
+            raise NotImplementedError
         elif B == None:
             B = list(self.basis())
         elif B != None and self.is_basis(B)==False:

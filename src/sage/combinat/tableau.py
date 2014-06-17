@@ -516,32 +516,24 @@ class Tableau(CombinatorialObject, Element):
             for i,e in enumerate(row):
                 col_widths[i] = max(col_widths[i], len(e))
 
-        matr = ""
-        if self.parent().global_options('convention') == "English":
-            for row in str_tab:
-                l1 = ""; l2 = ""
-                for i,e in enumerate(row):
-                    l1 += "+--" + '-'*col_widths[i]
-                    l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "
-                l1 += "+"; l2 += "|"
-                matr += "\n" + l2 + "\n" + l1
-            l1 = ""
-            for w in col_widths:
-                l1 += "+--" + '-'*w
-            matr = l1 + "+" + matr
-        else:
-            for row in str_tab:
-                l1 = ""; l2 = ""
-                for i,e in enumerate(row):
-                    l1 += "+--" + '-'*col_widths[i]
-                    l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "
-                l1 += "+"; l2 += "|"
-                matr = l1 + "\n" + l2 + "\n" + matr
-            for w in col_widths:
-                matr += "+--" + '-'*w
-            matr += "+"
+        matr = []  # just the list of lines
+        l1 = ""
+        for w in col_widths:
+            l1 += "+--" + '-'*w
+        matr.append(l1 + "+")
+        for row in str_tab:
+            l1 = ""; l2 = ""
+            for i,e in enumerate(row):
+                l1 += "+--" + '-'*col_widths[i]
+                l2 += "| {:>{width}} ".format(e, width=col_widths[i])
+            l1 += "+"; l2 += "|"
+            matr.append(l2)
+            matr.append(l1)
 
-        return matr
+        if self.parent().global_options('convention') == "English":
+            return "\n".join(matr)
+        else:
+            return "\n".join(reversed(matr))
 
     def _ascii_art_compact(self):
         """
@@ -580,12 +572,11 @@ class Tableau(CombinatorialObject, Element):
                 col_widths[i] = max(col_widths[i], len(e))
 
         return "\n".join("|"
-                         + "|".join(" "*(col_widths[i]-len(e)) + e
-                                    for i,e in enumerate(row))
-                         + "|" for row in str_tab)
+                       + "|".join("{:>{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
+                       + "|" for row in str_tab)
 
     def _latex_(self):
-        r""" 
+        r"""
         Return a LaTeX version of ``self``.
 
         EXAMPLES::
@@ -5795,7 +5786,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         yield self.element_class(self, tableau)
 
-        # iterate until we reach the last tableau which is 
+        # iterate until we reach the last tableau which is
         # filled with the row indices.
         last_tableau=flatten([ [row]*l for (row,l) in enumerate(pi)])
 

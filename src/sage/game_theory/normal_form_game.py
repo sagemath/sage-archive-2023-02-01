@@ -343,7 +343,7 @@ class NormalFormGame(Game):
             nasheq = self._solve_lrs()
             self.payoff_matrices[0] *= -1
             self.payoff_matrices[1] *= -1
-            return self.nasheq
+            return nasheq
 
         if algorithm == "support enumeration":
             raise NotImplementedError("Support enumeration is not implemented "

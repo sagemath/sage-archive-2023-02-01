@@ -528,7 +528,7 @@ class Tableau(CombinatorialObject, Element):
             l1 = "+"
             for w in col_widths:
                 l1 += "+--" + '-'*w
-            matr = la + matr
+            matr = l1 + matr
         else:
             for row in str_tab:
                 l1 = ""; l2 =  ""

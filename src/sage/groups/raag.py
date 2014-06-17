@@ -105,7 +105,7 @@ class RightAngledArtinGroup(FinitelyPresentedGroup):
 
     .. [BB1997] Mladen Bestvina and Noel Brady.
        *Morse theory and finiteness properties of groups*. Invent. Math.
-       **129** (1997). No. 3, 445-470. www.math.ou.edu/~nbrady/papers/morse.ps‎.
+       **129** (1997). No. 3, 445-470. www.math.ou.edu/~nbrady/papers/morse.ps.
 
     .. [Droms1987] Carl Droms. *Isomorphisms of graph groups*. Proc. of
        the Amer. Math. Soc. **100** (1987). No 3.

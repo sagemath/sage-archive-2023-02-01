@@ -366,15 +366,15 @@ class NormalFormGame(Game):
         2 random matrices. ::
 
             sage: player1 = matrix([[2, 8, -1, 1, 0],
-            ....:                  [1, 1, 2, 1, 80],
-            ....:                  [0, 2, 15, 0, -12],
-            ....:                  [-2, -2, 1, -20, -1],
-            ....:                  [1, -2, -1, -2, 1]])
+            ....:                   [1, 1, 2, 1, 80],
+            ....:                   [0, 2, 15, 0, -12],
+            ....:                   [-2, -2, 1, -20, -1],
+            ....:                   [1, -2, -1, -2, 1]])
             sage: player2 = matrix([[0, 8, 4, 2, -1],
-            ....:                  [6, 14, -5, 1, 0],
-            ....:                  [0, -2, -1, 8, -1],
-            ....:                  [1, -1, 3, -3, 2],
-            ....:                  [8, -4, 1, 1, -17]])
+            ....:                   [6, 14, -5, 1, 0],
+            ....:                   [0, -2, -1, 8, -1],
+            ....:                   [1, -1, 3, -3, 2],
+            ....:                   [8, -4, 1, 1, -17]])
             sage: fivegame = NormalFormGame([player1, player2])
             sage: fivegame.obtain_Nash()
             [[[1.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0]]]
@@ -425,11 +425,29 @@ class NormalFormGame(Game):
         r"""
         EXAMPLES:
 
+        A simple game. ::
+
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
             sage: C._solve_lrs(A, B)
             [([0, 1], [0, 1])]
+
+        2 random matrices. ::
+
+        sage: p1 = matrix([[-1, 4, 0, 2, 0],
+        ....:              [-17, 246, -5, 1, -2],
+        ....:              [0, 1, 1, -4, -4],
+        ....:              [1, -3, 9, 6, -1],
+        ....:              [2, 53, 0, -5, 0]])
+        sage: p2 = matrix([[0, 1, 1, 3, 1],
+        ....:              [3, 9, 44, -1, -1],
+        ....:              [1, -4, -1, -3, 1],
+        ....:              [1, 0, 1, 0, 0,],
+        ....:              [1, -3, 1, 21, -2]])
+        sage: biggame = NormalFormGame([p1, p2])
+        sage: biggame._solve_lrs(p1, p2)
+        [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
         """
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE

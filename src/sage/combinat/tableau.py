@@ -480,6 +480,31 @@ class Tableau(CombinatorialObject, Element):
             +----+----+----+----+----+
             | 12 | 15 | 17 |
             +----+----+----+
+
+            sage: t = Tableau([[1,2,15,7],[12,5,6],[8,10],[9]])
+            sage: Tableaux.global_options(ascii_art='table')
+            sage: ascii_art(t)
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            | 12 |  5 |  6 |
+            +----+----+----+
+            |  8 | 10 |
+            +----+----+
+            |  9 |
+            +----+
+            sage: Tableaux.global_options(convention='french')
+            sage: ascii_art(t)
+            +----+
+            |  9 |
+            +----+----+
+            |  8 | 10 |
+            +----+----+----+
+            | 12 |  5 |  6 |
+            +----+----+----+---+
+            |  1 |  2 | 15 | 7 |
+            +----+----+----+---+
+            sage: Tableaux.global_options.reset()
         """
         if len(self) == 0:
             return "++\n++"
@@ -500,9 +525,10 @@ class Tableau(CombinatorialObject, Element):
                     l2 += "| " + " "*(col_widths[i]-len(e)) + e + " "
                 l1 += "+"; l2 += "|"
                 matr += "\n" + l2 + "\n" + l1
-            matr = "+" + matr
+            l1 = "+"
             for w in col_widths:
-                matr = "+--" + '-'*w + matr
+                l1 += "+--" + '-'*w
+            matr = la + matr
         else:
             for row in str_tab:
                 l1 = ""; l2 =  ""

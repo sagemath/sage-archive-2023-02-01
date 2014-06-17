@@ -525,7 +525,7 @@ class Tableau(CombinatorialObject, Element):
             l1 = ""; l2 = ""
             for i,e in enumerate(row):
                 l1 += "+--" + '-'*col_widths[i]
-                l2 += "| {:>{width}} ".format(e, width=col_widths[i])
+                l2 += "| {:^{width}} ".format(e, width=col_widths[i])
             l1 += "+"; l2 += "|"
             matr.append(l2)
             matr.append(l1)
@@ -553,7 +553,7 @@ class Tableau(CombinatorialObject, Element):
 
             sage: t = Tableau([[1,2,3,10,15],[12,15,17]])
             sage: print t._ascii_art_compact()
-            | 1| 2| 3|10|15|
+            |1 |2 |3 |10|15|
             |12|15|17|
         """
         if len(self) == 0:
@@ -572,7 +572,7 @@ class Tableau(CombinatorialObject, Element):
                 col_widths[i] = max(col_widths[i], len(e))
 
         return "\n".join("|"
-                       + "|".join("{:>{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
+                       + "|".join("{:^{width}}".format(e,width=col_widths[i]) for i,e in enumerate(row))
                        + "|" for row in str_tab)
 
     def _latex_(self):

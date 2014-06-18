@@ -8,5 +8,4 @@ clean:
 	rm -rf en/reference/sage
 	rm -rf en/reference/sagenb
 	rm -rf output
-	git clean -f -d .
 

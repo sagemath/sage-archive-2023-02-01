@@ -13,9 +13,9 @@ class NormalFormGame(SageObject):
         self.generate_strategy_profiles()
 
     def generate_strategy_profiles(self):
-        # strategy_sizes = [p.]
-        # for profile in product
-        pass
+        strategy_sizes = [range(p.num_strategies) for p in self.players]
+        for profile in product(strategy_sizes):
+            self.strategy_profiles[profile] = False
 
     def add_strategy(self, player):
         self.players[player].add_strategy()

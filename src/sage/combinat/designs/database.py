@@ -8,6 +8,9 @@ on :mod:`Mutually Orthogonal Latin Squares
 <sage.combinat.designs.latin_squares>` from the Handbook of Combinatorial
 Designs.
 
+Most of this would only be a dream without the mathematical knowledge and help
+of Julian R. Abel.
+
 All the designs returned by these functions can be obtained through the
 ``designs.<tab>`` functions.
 
@@ -42,7 +45,12 @@ Implemented constructions :
   :func:`OA(9,57) <OA_9_57>`,
   :func:`OA(7,60) <OA_7_60>`,
   :func:`OA(7,62) <OA_7_62>`,
+  :func:`OA(7,66) <OA_7_66>`,
+  :func:`OA(7,68) <OA_7_68>`,
+  :func:`OA(8,69) <OA_8_69>`,
+  :func:`OA(7,74) <OA_7_74>`,
   :func:`OA(9,75) <OA_9_75>`,
+  :func:`OA(8,76) <OA_8_76>`,
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
@@ -84,7 +92,9 @@ Functions
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
-                                                     OA_from_wider_OA)
+                                                     OA_from_wider_OA,
+                                                     OA_from_PBD,
+                                                     orthogonal_array)
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -1710,7 +1720,6 @@ def OA_9_57():
         sage: designs.orthogonal_array(9,57,existence=True)
         True
     """
-    from orthogonal_arrays import orthogonal_array
     M = orthogonal_array(8,8)
     M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, 7..7 rows.
     B = (1,6,7,9,19,38,42,49) # base block of a (57,8,1) BIBD
@@ -1849,7 +1858,6 @@ def OA_9_65():
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
-    from orthogonal_arrays import orthogonal_array
 
     B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
     OA = orthogonal_array(9,9,2)
@@ -1860,6 +1868,199 @@ def OA_9_65():
 
     M = OA_from_quasi_difference_matrix(zip(*M), G(57),add_col=False)
     return M
+
+def OA_7_66():
+    r"""
+    Returns an OA(7,66)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_66
+        sage: OA = OA_7_66()
+        sage: print is_orthogonal_array(OA,7,66,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,66,existence=True)
+        True
+    """
+
+    # base block of a (73,9,1) BIBD
+    B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    # the first 7 elements of an oval
+    #
+    # (this is the only difference with the OA(7,68) construction)
+    oval = [(-x)%73 for x in B][:7]
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in oval] for B in BIBD]
+    # We relabel the points to 0,1,2,...
+    V = [x for x in range(73) if x not in oval]
+    rel = dict(zip(V,range(len(V))))
+    PBD = [[rel[x] for x in B] for B in PBD]
+    return OA_from_PBD(7,66,PBD,check=False)
+
+def OA_7_68():
+    r"""
+    Returns an OA(7,68)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_68
+        sage: OA = OA_7_68()
+        sage: print is_orthogonal_array(OA,7,68,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,68,existence=True)
+        True
+    """
+
+    # base block of a (73,9,1) BIBD
+    B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    # the first 5 elements of an oval
+    #
+    # (this is the only difference with the OA(7,66) construction)
+    oval = [(-x)%73 for x in B][:5]
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in oval] for B in BIBD]
+    # We relabel the points to 0,1,2,...
+    V = [x for x in range(73) if x not in oval]
+    rel = dict(zip(V,range(len(V))))
+    PBD = [[rel[x] for x in B] for B in PBD]
+    return OA_from_PBD(7,68,PBD,check=False)
+
+def OA_8_69():
+    r"""
+    Returns an OA(8,69)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_69
+        sage: OA = OA_8_69()
+        sage: print is_orthogonal_array(OA,8,69,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,69,existence=True)
+        True
+    """
+    # base block of a (73,9,1) BIBD
+    B = [1,2,4,8,16,32,37,55,64]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    oval = [72,71,69,65]
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in oval] for B in BIBD]
+
+    sets_of_size_seven = [R for R in PBD if len(R) == 7]
+    others             = [R for R in PBD if len(R) != 7]
+
+    # 68, 27, and 52 are the only elements appearing twice in the rows of
+    # sets_of_size_seven, and each row contains exactly one of them.
+
+    # We split them into "balanced" halves.
+    O1 = sets_of_size_seven[:3]
+    O2 = sets_of_size_seven[-3:]
+    assert all(x in sum(O1,[]) for x in (68,27,52))
+    assert all(x in sum(O2,[]) for x in (68,27,52))
+
+    # Blocks of "others", without the 0..0,1..1,2..2 ... rows
+    OA = OA_from_PBD(8,69,others,check=False)[:-69]
+
+    # Blocks of O1
+    OA_8_7 = orthogonal_array(8,7,check=False)
+    for B in O1:
+        for BB in OA_8_7:
+            OA.append([B[i] for i in BB])
+
+    # Blocks of O2
+    OA_8_7_minus_TD_8_1 = OA_8_7
+    OA_8_7_minus_TD_8_1.remove([0]*8)
+    for B in O2:
+        # Making sure the double element is the first one
+        B.sort(key=lambda x: int(bool(x not in (68,27,52))))
+        for BB in OA_8_7:
+            OA.append([B[i] for i in BB])
+
+
+    # Adding the  missing 0..0,1..1,... rows
+    done = sum(O1,[])+sum(O2,[])
+    missing = [x for x in range(73) if x not in done and x not in oval]
+    for x in missing:
+        OA.append([x]*8)
+
+    # Relabelling everything to 0..68
+    relabel = dict(zip([x for x in range(73) if x not in oval],range(69)))
+    OA = [[relabel[x] for x in B] for B in OA]
+    return OA
+
+def OA_7_74():
+    r"""
+    Returns an OA(7,74)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_74
+        sage: OA = OA_7_74()
+        sage: print is_orthogonal_array(OA,7,74,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,74,existence=True)
+        True
+    """
+
+    # base block of a (91,10,1) BIBD
+    B = [0,1,3,9,27,81,61,49,56,77]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    # an oval
+    oval = [(-x)%91 for x in B][-7:]
+    # PBD minus the oval+B
+    to_delete = oval + B
+    PBD = [[x for x in B if x not in to_delete] for B in BIBD]
+    PBD.remove([])
+    # We relabel the points to 0,1,2,...
+    V = [x for x in range(91) if x not in to_delete]
+    rel = dict(zip(V,range(len(V))))
+    PBD = [[rel[x] for x in B] for B in PBD]
+    return OA_from_PBD(7,74,PBD,check=False)
 
 def OA_9_75():
     r"""
@@ -1915,6 +2116,73 @@ def OA_9_75():
     Mb = zip(*Mb)
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
+
+def OA_8_76():
+    r"""
+    Returns an OA(8,76)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_76
+        sage: OA = OA_8_76()
+        sage: print is_orthogonal_array(OA,8,76,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,76,existence=True)
+        True
+    """
+    # base block of a (91,10,1) BIBD
+    B = [0,1,3,9,27,81,61,49,56,77]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    oval = [2,4,5,12,24]
+    to_remove = oval + B
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in to_remove] for B in BIBD]
+    PBD.remove([])
+
+    sets_of_size_seven = [R for R in PBD if len(R) == 7]
+    others             = [R for R in PBD if len(R) != 7]
+
+    # critical_points are the 10 elements appearing twice in the rows of the 10
+    # sets_of_size_seven, and each row contains exactly two of them
+    critical_points = [57,83,52,13,15,64,37,50,63,31]
+
+    # We reorder the rows such that every element of critical_points is exactly
+    # once the first element of a row.
+    for i,x in zip(critical_points,sets_of_size_seven):
+        x.sort(key=lambda x:-int(x==i))
+        assert x[0]==i
+
+    # Blocks of "others", without the 0..0,1..1,2..2 ... rows
+    OA = OA_from_PBD(8,76,others,check=False)[:-76]
+
+    OA_8_7 = orthogonal_array(8,7,check=False)
+    OA_8_7_minus_TD_8_1 = OA_8_7
+    OA_8_7_minus_TD_8_1.remove([0]*8)
+    for B in sets_of_size_seven:
+        for BB in OA_8_7:
+            OA.append([B[i] for i in BB])
+
+    # Adding the  missing 0..0,1..1,... rows
+    done = sum(sets_of_size_seven,[])
+    missing = [x for x in range(91) if x not in done and x not in to_remove]
+    for x in missing:
+        OA.append([x]*8)
+
+    # Relabelling everything to 0..68
+    relabel = dict(zip([x for x in range(91) if x not in to_remove],range(91)))
+    OA = [[relabel[x] for x in B] for B in OA]
+    return OA
 
 def OA_11_80():
     r"""
@@ -2238,7 +2506,12 @@ OA_constructions = {
     60  : (7  , OA_7_60),
     62  : (7  , OA_7_62),
     65  : (9  , OA_9_65),
+    66  : (7  , OA_7_66),
+    68  : (7  , OA_7_68),
+    69  : (8  , OA_8_69),
+    74  : (7  , OA_7_74),
     75  : (9  , OA_9_75),
+    76  : (8  , OA_8_76),
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),

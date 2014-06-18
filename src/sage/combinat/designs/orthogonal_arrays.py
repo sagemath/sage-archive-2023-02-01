@@ -365,7 +365,6 @@ def is_transversal_design(B,k,n, verbose=False):
         sage: is_transversal_design(TD, 4, 4)
         False
     """
-    from designs_pyx import is_orthogonal_array
     return is_orthogonal_array([[x%n for x in R] for R in B],k,n,verbose=verbose)
 
 @cached_function
@@ -929,7 +928,6 @@ def orthogonal_array(k,n,t=2,check=True,existence=False,who_asked=tuple()):
         raise NotImplementedError("I don't know how to build an OA({},{})!".format(k,n))
 
     if check:
-        from designs_pyx import is_orthogonal_array
         assert is_orthogonal_array(OA,k,n,t)
 
     return OA
@@ -989,16 +987,30 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         sage: is_orthogonal_array(IOA + missing_blocks,3,3,2)
         True
 
-    TESTS::
+    TESTS:
+
+    Affine planes and projective planes::
+
+        sage: for q in xrange(2,100):
+        ....:     if is_prime_power(q):
+        ....:         assert designs.incomplete_orthogonal_array(q,q,[1]*q,existence=True)
+        ....:         assert not designs.incomplete_orthogonal_array(q+1,q,[1]*2,existence=True)
+
+    Further tests::
 
         sage: designs.incomplete_orthogonal_array(8,4,[1,1,1],existence=True)
         False
-        sage: designs.incomplete_orthogonal_array(4,3,[1,1],existence=True)
+        sage: designs.incomplete_orthogonal_array(5,10,[1,1,1],existence=True)
         Unknown
+        sage: designs.incomplete_orthogonal_array(5,10,[1,1,1])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: I don't know how to build an OA(5,10)!
         sage: designs.incomplete_orthogonal_array(4,3,[1,1])
         Traceback (most recent call last):
         ...
-        NotImplementedError: I was not able to build this OA(4,3)-2.OA(4,1)
+        EmptySetError: There is no OA(n+1,n) - 2.OA(n+1,1) as all blocks do
+        intersect in a projective plane.
         sage: n=10
         sage: k=designs.orthogonal_array(None,n,existence=True)
         sage: designs.incomplete_orthogonal_array(k,n,[1,1,1],existence=True)
@@ -1014,13 +1026,19 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
       vol.39, num.3, pages 263-281
       1982
     """
-    assert all(xx==1 for xx in holes_sizes)
+    assert all(xx > 0 for xx in holes_sizes)
 
+    y = sum(holes_sizes)
     x = len(holes_sizes)
-    if x > n:
+    if y > n:
         if existence:
             return False
-        raise ValueError("There is no OA(k,n)-x.OA(k,1) when x>n")
+        raise EmptySetError("The total size of holes must be smaller or equal than the size of the ground set")
+
+    if any(xx != 1 for xx in holes_sizes):
+        if existence:
+            return Unknown
+        raise NotImplementedError("This function is only implemented for holes of size 1")
 
     # Easy case
     if x <= 1:
@@ -1029,9 +1047,14 @@ def incomplete_orthogonal_array(k,n,holes_sizes,existence=False):
         OA = orthogonal_array(k,n)
         independent_set = OA[:x]
 
-    elif x <= 3 and n>k-1 and k>=3 and existence:
+    elif x <= 3 and n > k-1 and k >= 3 and existence:
         # This is lemma 2.3 from [BvR82]_ with u=1
-        return True
+        return orthogonal_array(k,n,existence=True)
+
+    elif x >= 2 and k == n+1:
+        if existence:
+            return False
+        raise EmptySetError("There is no OA(n+1,n) - {}.OA(n+1,1) as all blocks do intersect in a projective plane.".format(x))
 
     # If we can build OA(k+1,n) then we can find n disjoint blocks in OA(k,n)
     elif orthogonal_array(k+1,n,existence=True):
@@ -1371,6 +1394,84 @@ def OA_from_Vmt(m,t,V):
     M = OA_from_quasi_difference_matrix(M,Fq,add_col = False)
 
     return M
+
+def OA_from_PBD(k,n,PBD, check=True):
+    r"""
+    Returns an `OA(k,n)` from a PBD
+
+    **Construction**
+
+    Let `\\mathcal B` be a `(n,K,1)`-PBD. If there exists for every `i\in K` a
+    `TD(k,i)-i\times TD(k,1)` (i.e. if there exist `k` idempotent MOLS), then
+    one can obtain a `OA(k,n)` by concatenating:
+
+    - A `TD(k,i)-i\times TD(k,1)` defined over the elements of `B` for every `B
+      \in \\mathcal B`.
+
+    - The rows `(i,...,i)` of length `k` for every `i\in [n]`.
+
+    .. NOTE::
+
+        This function raises an exception when Sage is unable to build the
+        necessary designs.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    - ``PBD`` -- a PBD on `0,...,n-1`.
+
+    EXAMPLES:
+
+    We start from the example VI.1.2 from the [DesignHandbook]_ to build an
+    `OA(3,10)`::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: pbd = [[0,1,2,3],[0,4,5,6],[0,7,8,9],[1,4,7],[1,5,8],
+        ....: [1,6,9],[2,4,9],[2,5,7],[2,6,8],[3,4,8],[3,5,9],[3,6,7]]
+        sage: oa = OA_from_PBD(3,10,pbd)
+        sage: is_orthogonal_array(oa, 3, 10)
+        True
+
+    But we cannot build an `OA(4,10)`::
+
+        sage: OA_from_PBD(4,10,pbd)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: There is no OA(n+1,n) - 3.OA(n+1,1) as all blocks do intersect in a projective plane.
+
+    Or an `OA(6,10)`::
+
+        sage: _ = OA_from_PBD(3,6,pbd)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: This is not a nice honest PBD from the good old days !
+    """
+    # Size of the sets of the PBD
+    K = set(map(len,PBD))
+    if check:
+        from bibd import _check_pbd
+        _check_pbd(PBD, n, K)
+
+    # Building the IOA
+    OAs = {i:incomplete_orthogonal_array(k,i,(1,)*i) for i in K}
+
+    OA = []
+    # For every block B of the PBD we add to the OA rows covering all pairs of
+    # (distinct) coordinates within the elements of B.
+    for S in PBD:
+        for B in OAs[len(S)]:
+            OA.append([S[i] for i in B])
+
+    # Adding the 0..0, 1..1, 2..2 .... rows
+    for i in range(n):
+        OA.append([i]*k)
+
+    if check:
+        assert is_orthogonal_array(OA,k,n,2)
+
+    return OA
 
 def OA_from_wider_OA(OA,k):
     r"""

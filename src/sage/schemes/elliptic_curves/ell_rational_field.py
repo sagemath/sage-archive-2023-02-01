@@ -1399,39 +1399,87 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def analytic_rank_bound(self,Delta=1,N=None):
         """
-        Return an upper bound for the analytic rank of self via a L-function
-        zero sum method that is insensitive to conductor, i.e. can be run on
-        curves with very large conductor. Uses Bober's rank bounding method
-        as described in http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf.
+        Return an upper bound for the analytic rank of self conditional on
+        GRH, via a L-function zero sum method that is insensitive to
+        conductor, i.e. this can be run on curves with very large conductor.
+        Uses Bober's rank bounding method as described in [Bob13].
 
         INPUT:
 
-        - ''Delta'' - (Default 1) - Positive real value parameterizing the
+        - ''Delta'' - (default: 1) - positive real value parameterizing the
           tightness of the zero sum. Larger values of Delta yield better
           bounds.
 
-        - ''N'' - (Default None) - If not None, positive integer equal to
-          the conductor of self, so that rank estimation for curves whose
-          (large) conductor has been precomputed. Note: Output will be
-          incorrect if incorrect conductor is specified.
+        - ''N'' - (default: None) - If not None, a positive integer equal to
+          the conductor of self. This is passable so that rank estimation
+          can be done for curves whose (large) conductor has been precomputed.
 
+        .. NOTE::
+
+            Output will be incorrect if the incorrect conductor is specified.
+
+        .. WARNING::
+
+            Computation time is exponential in '\Delta', roughly doubling for
+            every increase of 0.1 thereof. Using '\Delta=1' will yield a
+            computation time of a few milliseconds; '\Delta=2' takes a few
+            seconds, and '\Delta=3' takes upwards of an hour. Increase at your
+            own risk beyond this!
 
         OUTPUT:
 
         A positive real double field element strictly greater than the
         analytic rank of self
 
-        .. note::
+        .. SEEALSO::
 
-          Computation time is exponential in Delta, roughly doubling for
-          0.1 increase thereof, so vary at your own risk.
+            :func:`LFunctionZeroSum`
 
-        EXAMPLES::
+        EXAMPLES:
 
-        TESTS:
+        For most elliptic curves the central zero(s) of 'L_E(s)' are fairly
+        isolated, so small values of '\Delta' will yield tight rank estimates:
+
+        ::
+
+            sage: E = EllipticCurve('11a')
+            sage: E.analytic_rank_bound(Delta=1)
+            0.0145146387076
+
+            sage: E = EllipticCurve([-39,123])
+            sage: E.rank()
+            1
+            sage: E.analytic_rank_bound(Delta=1)
+            1.35695265433
+
+        This is especially true for elliptic curves with large rank:
+
+        ::
+
+            sage: E = elliptic_curves.rank(8)[0]; E
+            Elliptic Curve defined by y^2 + y = x^3 - 23737*x + 960366 over Rational Field
+            sage: E.analytic_rank_bound(Delta=1)
+            8.51446122452
+
+        However, some curves have 'L'-functions with low-lying zeroes, and for these
+        larger values of '\Delta' must be used to get tight estimates:
+
+        ::
+
+        sage: E = EllipticCurve('974b1')
+        sage: r = E.rank(); r
+        0
+        sage: E.analytic_rank_bound(Delta=1)
+        1.18433868164
+        sage: E.analytic_rank_bound(Delta=1.3)
+        0.764493718013
+
+        REFERENCES:
+
+        [Bob13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
+        ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
 
         """
-        pass
         Z = LFunctionZeroSum_EllipticCurve(self,N)
         return Z.rankbound(Delta)
 

@@ -43,36 +43,73 @@ class LFunctionZeroSum_abstract(SageObject):
         Return the level of the form attached to self. If self was constructed
         from an elliptic curve, then this is equal to the conductor of E.
 
-        INPUT:
-
-        OUTPUT:
-
         EXAMPLES::
 
-        TESTS:
+            sage: E = EllipticCurve('389a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.level()
+            389
+
         """
         return self._N
 
-    def rankbound(self,Delta=1,function="sincsquared"):
+    def weight(self):
         """
+        Return the weight of the form attached to self. If self was constructed
+        from an elliptic curve, then this is 2.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: Z = LFunctionZeroSum(E)
+            sage: Z.weight()
+            2
+
+        """
+        return self._k
+
+    def rankbound(self,Delta=1,function="sincsquared_fast"):
+        r"""
         Bound from above the analytic rank of the form attached to self
         by computing
-            sum_gamma f(Delta*gamma),
-        where gamma ranges over the imaginary parts of the zeros of L_E(s)
-        along the critical strip, and f(x) is an appropriate continuous
-        L_2 function such that f(0)=1.
+            '\sum_{\gamma} f(\Delta*\gamma),'
+        where '\gamma' ranges over the imaginary parts of the zeros of 'L_E(s)'
+        along the critical strip, and 'f(x)' is an appropriate continuous
+        'L_2' function such that 'f(0)=1'.
 
-        As Delta increases this sum limits from above to the analytic rank
-        of E, as f(0) = 1 is counted with multiplicity r, and the other terms
-        go to 0.
-
-        Current options for function are
-         - "sincquared" -- f(x) = (sin(pi*x)/(pi*x))^2
-         - "gaussian"   -- f(x) = exp(-x^2)
+        As '\Delta' increases this sum limits from above to the analytic rank
+        of the form, as 'f(0) = 1' is counted with multiplicity 'r', and the
+        other terms all go to 0 uniformly.
 
         INPUT:
 
+        - ``Delta`` -- positive real number (default: 1) parameter defining the
+          tightness of the zero sum, and thus the closeness of the returned
+          estimate to the actual analytic rank of the form attached to self.
+
+        - ``function`` -- string (default: "sincsquared_fast") - the function
+          'f(x)' as described above. Currently implemented options for 'f' are:
+
+          - ``sincquared`` -- 'f(x) = \left(\frac{\sin(\pi*x)}{(\pi*x)}\right)^2'
+          - ``gaussian``   -- 'f(x) = \exp(-x^2)'
+          - ``sincquared_fast`` -- Same as "sincsquared", but faster
+            implementation; however self must be attached to an elliptic curve
+            over QQ given by its global minimal model, otherwise the returned
+            result will be incorrect.
+
+        .. WARNING::
+
+            Computation time is exponential in '\Delta', roughly doubling for
+            every increase of 0.1 thereof. Using '\Delta=1' will yield a
+            computation time of a few milliseconds; '\Delta=2' takes a few
+            seconds, and '\Delta=3' takes upwards of an hour. Increase at your
+            own risk beyond this!
+
+
         OUTPUT:
+
+        A positive real number that bounds the analytic rank of the modular form
+        attached to self from above.
 
         EXAMPLES::
 
@@ -84,7 +121,9 @@ class LFunctionZeroSum_abstract(SageObject):
         if Delta > 6.95:
             raise ValueError("Delta value too large; will result in overflow")
 
-        if function=="sincsquared":
+        if function=="sincsquared_fast":
+            return self._rankbound_sincsquared_fast(Delta=Delta)
+        elif function=="sincsquared":
             return self._rankbound_sincsquared(Delta=Delta)
         elif function=="gaussian":
             return self._rankbound_gaussian(Delta=Delta)
@@ -125,7 +164,7 @@ class LFunctionZeroSum_abstract(SageObject):
         n = int(0)
         while n < expt:
             n += 1
-            cn  = self.log_deriv_coeff(n)
+            cn  = self.logarithmic_derivative_coefficient(n)
             if cn!=0:
                 logn = log(RDF(n))
                 y += cn*(t-logn)
@@ -167,7 +206,7 @@ class LFunctionZeroSum_abstract(SageObject):
         exp2piDelta = exp(2*npi*Delta)
         while n < exp2piDelta:
             n += 1
-            cn  = self.log_deriv_coeff(n)
+            cn  = self.logarithmic_derivative_coefficient(n)
             if cn != 0:
                 logn = log(RDF(n))
                 y += cn*exp(-(logn/(2*Delta))**2)
@@ -220,17 +259,29 @@ class LFunctionZeroSum_abstract(SageObject):
                 p = RDF(n)
 
                 z = (ap/p)*(t-logp)
-                alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
-                alpha = alpha_p**2
-                q = p**2
-                logq = logp*2
-                while logq < t:
-                    aq = RDF(round(2*alpha.real()))
-                    z += (aq/q)*(t-logq)
-
-                    logq += logp
-                    q = q*p
-                    alpha = alpha*alpha_p
+                
+                # The p^n coefficients are calculated differently
+                # depending on whether p divides the level or not
+                if self._N%n==0:
+                    aq = ap**2
+                    q = p**2
+                    logq = logp*2
+                    while logq < t:
+                        z += (aq/q)*(t-logq)
+                        logq += logp
+                        q = q*p
+                        aq = aq*ap
+                else:
+                    alpha_p = CDF(ap,(4*p-ap**2).sqrt())/2
+                    alpha = alpha_p**2
+                    q = p**2
+                    logq = logp*2
+                    while logq < t:
+                        aq = RDF(round(2*alpha.real()))
+                        z += (aq/q)*(t-logq)
+                        logq += logp
+                        q = q*p
+                        alpha = alpha*alpha_p
                 y -= z*logp
             n += 1
         while n <= bound2:
@@ -253,6 +304,7 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         Initializes self.
         """
 
+        self._k = ZZ(2)
         self._E = E
         if N is not None:
             self._N = N
@@ -285,7 +337,7 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         """
         return self._E
 
-    def log_deriv_coeff(self,n):
+    def logarithmic_derivative_coefficient(self,n):
         """
         Return the nth derivative of the logarithmic derivative of the
         L-function, shifted so that the critical line lies on the imaginary
@@ -324,55 +376,38 @@ class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             #print(n,-aq*logp/n_float)
             return -aq*logp/n_float
 
-    def _sincsquared_summand(self,p,t,bound):
-        """
-        Return the summand for the summand corresponing to prime p
-        of the sinc^2(Delta*gamma) sum over the zeros of the L_E(s),
-        where t = 2*pi*Delta. The returned sum runs over all powers
-        of p <= bound = floor(exp(t)).
-
-        p must be a prime python int.
-
-        INPUT:
-
-        OUTPUT:
-
-        EXAMPLES::
-
-        TESTS:
-        """
-
-        logp = log(RDF(p))
-        ap = RDF(self._e.ellap(p))
-        p_float = RDF(p)
-        n = p_float**2
-        if 2*logp > t:
-            return (-ap*logp/p_float)*(t-logp)
-        else:
-            y = ap/p_float
-            c = CDF(ap,(4*p_float-ap**2).sqrt())/2
-            d = c
-            logn = logp*2
-            while logn < t:
-                n = n*p_float
-                d = d*c
-                aq = RDF((2*d.real()).round())
-                y += (aq/n)*(t-logn)
-
-                logn += logp
-            return -y*logp
-
 def LFunctionZeroSum(X,*args,**kwds):
     """
     Constructor for the LFunctionZeroSum class.
 
     INPUT:
 
+    - ''X'' - A motivic object. Currently only implemented for X = an elliptic curve
+      over the rational numbers.
+
     OUTPUT:
+
+    An LFunctionZeroSum object.
 
     EXAMPLES::
 
-    TESTS:
+        sage: E = EllipticCurve('389a')
+        sage: Z = LFunctionZeroSum(E); Z
+        Zero sum estimator for L-function attached to Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+
+    TESTS::
+
+        sage: E = EllipticCurve([1.2,3.8])
+        sage: LFunctionZeroSum(E)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Currently only implemented for elliptic curves over QQ
+
+        sage: f = Newforms(46)[0]
+        sage: LFunctionZeroSum(f)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Currently only implemented for elliptic curves over QQ
 
     """
 
@@ -382,7 +417,4 @@ def LFunctionZeroSum(X,*args,**kwds):
     if isinstance(X,EllipticCurve_rational_field):
         return LFunctionZeroSum_EllipticCurve(X,*args,**kwds)
 
-    else:
-        s = "Zero sum estimator class currently only "\
-            +"implemented for elliptic curves over QQ."
-        raise NotImplementedError(s)
+    raise NotImplementedError("Currently only implemented for elliptic curves over QQ")

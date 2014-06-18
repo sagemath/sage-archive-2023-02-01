@@ -2465,6 +2465,19 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self._pairwise_product_(right)
 
     def _variables(self):
+        """
+        Returns the variable of self, either as defined by the basering,
+        or the (alphabetically-sorted) union of the set of variables from
+        each component.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: vector([x, y, 3])._variables()
+            [x, y, z]
+            sage: vector(SR, [x, y, 3])._variables()
+            [x, y]
+        """
         R = self._parent.base_ring()
         try:
             var_names = R.variable_names()

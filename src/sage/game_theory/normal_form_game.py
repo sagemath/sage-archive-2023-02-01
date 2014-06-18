@@ -14,6 +14,8 @@ from gambit import Game
 from gambit.nash import ExternalLCPSolver
 from sage.matrix.constructor import matrix
 from formatter import Formatter
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.all', 'ZZ')
 
 
 class NormalFormGame(Game):
@@ -522,8 +524,8 @@ class NormalFormGame(Game):
             [24  0]
             [ 8 96]
             sage: c.payoff_matrices[1]
-            [ 60.0000000000000  72.0000000000000]
-            [-18.0000000000000  96.0000000000000]
+            [ 60  72]
+            [-18  96]
         """
         from sage.rings.rational import Rational
         scalar = 1
@@ -534,6 +536,8 @@ class NormalFormGame(Game):
 
         self.payoff_matrices[0] *= scalar
         self.payoff_matrices[1] *= scalar
+        self.payoff_matrices[0] = self.payoff_matrices[0].change_ring(ZZ)
+        self.payoff_matrices[1] = self.payoff_matrices[1].change_ring(ZZ)
         self.matrix_to_game()
 
     def _Hrepresentation(self, m1, m2):

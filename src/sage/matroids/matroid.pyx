@@ -4764,15 +4764,15 @@ cdef class Matroid(SageObject):
         - ``lineorders`` -- (optional) A list of lists where each of the inner lists 
           specify ground set elements in a certain order which will be used to draw the
           corresponding line in geometric representation (if it exists).
-        - ``pos_method`` -- An integer specifying positioning method 
-            ``0``: default positioning
-            ``1``: use pos_dict if it is not ``None``
-            ``2``: Force directed (Not yet implemented).
+        - ``pos_method`` -- An integer specifying positioning method.
+            - ``0``: default positioning
+            - ``1``: use pos_dict if it is not ``None``
+            - ``2``: Force directed (Not yet implemented).
+            
         - ``pos_dict``: A dictionary mapping ground set elements to their (x,y) positions.
         - ``save_pos``: A boolean indicating that point placements (either internal or user provided) and
           line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for
           reproducing the geometric representation during the same session
-
 
         OUTPUT:
 
@@ -4820,18 +4820,19 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``B`` -- (optional) a list containing elements of the groundset not in any particular order.
-        If internal point placement is used, these elements will be placed as vertices of a triangle.
+          If internal point placement is used, these elements will be placed as vertices of a triangle.
         - ``lineorders`` -- (optional) A list of lists where each of the inner lists
-        specify ground set elements in a certain order which will be used to draw the
-        corresponding line in geometric representation (if it exists).
+          specify ground set elements in a certain order which will be used to draw the
+          corresponding line in geometric representation (if it exists).
         - ``pos_method`` -- An integer specifying positioning method
-            ``0``: default positioning
-            ``1``: use pos_dict if it is not ``None``
-            ``2``: Force directed (Not yet implemented).
+            - ``0``: default positioning
+            - ``1``: use pos_dict if it is not ``None``
+            - ``2``: Force directed (Not yet implemented).
+            
         - ``pos_dict`` -- A dictionary mapping ground set elements to their (x,y) positions.
         - ``save_pos`` -- A boolean indicating that point placements (either internal or user provided) and
-        line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for
-        reproducing the geometric representation during the same session
+          line orders (if provided) will be cached in the matroid (``M._cached_info``) and can be used for
+          reproducing the geometric representation during the same session
         - ``lims`` -- A list of 4 elements ``[xmin,xmax,ymin,ymax]``
 
         EXAMPLES::

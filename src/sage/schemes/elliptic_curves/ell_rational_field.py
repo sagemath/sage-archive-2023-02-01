@@ -1406,11 +1406,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        - ''Delta'' - (default: 1) - positive real value parameterizing the
+        - ``Delta`` -- (default: 1) positive real value parameterizing the
           tightness of the zero sum. Larger values of Delta yield better
           bounds.
 
-        - ''N'' - (default: None) - If not None, a positive integer equal to
+        - ``N`` -- (default: None) If not None, a positive integer equal to
           the conductor of self. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
 

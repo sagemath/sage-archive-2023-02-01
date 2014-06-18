@@ -81,3 +81,5 @@ from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_square
 from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array, incomplete_orthogonal_array
 
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign, steiner_triple_system
+
+from sage.combinat.designs.difference_family import difference_family

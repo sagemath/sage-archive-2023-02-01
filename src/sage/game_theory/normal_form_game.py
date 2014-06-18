@@ -251,7 +251,7 @@ class NormalFormGame(Game):
                 generator.append(-generator[-1])
             self.payoff_matrices = generator
             self.matrix_to_game()
-        if type(generator) is Game and len(self.players) == 2:
+        if type(generator) is NormalFormGame and len(self.players) == 2:
             self.payoff_matrices = self.game_to_matrix()
 
     def game_to_matrix(self):
@@ -335,6 +335,7 @@ class NormalFormGame(Game):
         """
         if len(set([matrix.dimensions() for matrix in self.payoff_matrices])) != 1:
             raise ValueError("Matrices must be the same size")
+
         strategysizes = [range(self.payoff_matrices[0].dimensions()[0]), range(self.payoff_matrices[0].dimensions()[1])]
         for k in product(*strategysizes):
             for player in range(len(self.players)):
@@ -424,6 +425,10 @@ class NormalFormGame(Game):
                                       "available algorithms")
 
         if algorithm == "LCP":
+            if (self.payoff_matrices[0].base_ring() != 'Integer Ring' or
+                    self.payoff_matrices[1].base_ring != 'Integer Ring'):
+                self._scale_matrices()
+
             if maximization is False:
                 for k in list(self.contingencies):
                     for player in range(len(self.players)):

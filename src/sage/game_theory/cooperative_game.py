@@ -114,7 +114,7 @@ class CooperativeGame(SageObject):
         sage: letter_game
         A 3 player Co-operative Game.
 
-    It can be shown that the 'fair' payoff vector, referred to as the
+    It can be shown (see: [this](http://www.math.ucla.edu/~tom/Game_Theory/coal.pdf)) that the 'fair' payoff vector, referred to as the
     Shapley value is given by the following formula:
 
     $\phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)$

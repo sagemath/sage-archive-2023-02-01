@@ -1,4 +1,4 @@
-r"""
+"""
 Co-operative games with N players.
 
 This module implements a **basic** implementation of a characteristic function
@@ -25,6 +25,7 @@ AUTHOR:
 #*****************************************************************************
 from itertools import permutations, combinations
 from sage.misc.misc import powerset
+from sage.rings.arith import factorial
 from sage.structure.sage_object import SageObject
 
 
@@ -123,12 +124,19 @@ class CooperativeGame(SageObject):
 
     $\Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))$
 
+    Note that an equivalent formula for the Shapley value is given by:
+
+    $\phi_i(G)=\sum_{s\subseteq\Omega}\sum_{p\in S}\frac{(|s|-1)!(N-|S|)!}{N!}v(s)-v(s\setminus \{i\})$
+
+    This later formulation is implemented in Sage and
+    requires $2^N-1$ calculations instead of $N!$.
+
     To compute the Shapley value in Sage is simple. ::
 
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
-    The following example implements a (trivial) 8 player characteristic
+    The following example implements a (trivial) 10 player characteristic
     function game:
 
     $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
@@ -138,22 +146,22 @@ class CooperativeGame(SageObject):
         sage: def simple_characteristic_function(N):
         ....:     return {tuple(coalition) : len(coalition)
         ....:                   for coalition in subsets(range(N))}
-        sage: g = CooperativeGame(simple_characteristic_function(8))
-        sage: g.shapley_value() # long time
-        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1}
+        sage: g = CooperativeGame(simple_characteristic_function(10))
+        sage: g.shapley_value()
+        {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1}
 
-    The above is slow to run and this is due to the dimensionality
-    of the calculations involved. There are various approximation
-    approaches to obtaining the Shapley value of a game. Implementing
-    these would be a worthwhile development.
+    For very large game it might be worth taking advantage of the particular
+    problem structure to calculate the Shapley value and there are also
+    various approximation approaches to obtaining the Shapley value of a game.
+    Implementing these would be a worthwhile development.
 
     We can test 3 basic properties of any Payoff Vector $\lambda$.
     The Shapley value (described above) is none to be the unique
     payoff vector that satisfies these and 1 other property
     not implemented here (additivity).
     They are:
-    
-        * Efficiency - `sum_{i=1}^N\lambda_i=v(\Omega)`
+
+        * Efficiency - `\sum_{i=1}^N\lambda_i=v(\Omega)`
                        In other words, no value of the total coalition is lost.
 
         * The nullplayer property - If `\exists` `i` such that
@@ -324,8 +332,6 @@ class CooperativeGame(SageObject):
             (1, 2, 3)
             sage: integer_game.shapley_value()
             {1: 2, 2: 5, 3: 35}
-            sage: integer_game.payoff_vector
-            {1: 2, 2: 5, 3: 35}
 
         A longer example of the shapley_value. ::
 
@@ -351,10 +357,16 @@ class CooperativeGame(SageObject):
         """
         payoff_vector = {}
         for player in self.player_list:
-            player_contribution = self._marginal_contributions(player)
-            average = sum(player_contribution) / len(player_contribution)
-            payoff_vector[player] = average
-        self.payoff_vector = payoff_vector
+            weighted_contribution = 0
+            for coalition in [coalition for coalition in powerset(self.player_list) if len(coalition) != 0]:
+                weight = factorial(len(coalition) - 1)
+                weight *= factorial(len(self.player_list) - len(coalition))
+                weight /= factorial(len(self.player_list))
+                contribution = (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p
+                                                    in coalition if p != player])])
+                weighted_contribution += weight * contribution
+            payoff_vector[player] = weighted_contribution
+
         return payoff_vector
 
     def is_monotone(self):
@@ -506,99 +518,6 @@ class CooperativeGame(SageObject):
                 if self.ch_f[union] < self.ch_f[p1] + self.ch_f[p2]:
                     return False
         return True
-
-    def _marginal_contributions(self, player):
-        r"""
-        Returns a list of contributions specific to one player.
-        This is a hidden function used in calculation of Shapley value.
-
-        INPUT:
-
-        - ``player`` - A real number or string.
-
-        EXAMPLES::
-
-            sage: integer_function = {(): 0,
-            ....:                  (1,): 6,
-            ....:                  (2,): 12,
-            ....:                  (3,): 42,
-            ....:                  (1, 2,): 12,
-            ....:                  (1, 3,): 42,
-            ....:                  (2, 3,): 42,
-            ....:                  (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game._marginal_contributions(1)
-            [6, 6, 0, 0, 0, 0]
-        """
-        return [self._marginal_of_pi(player, pi) for pi
-                in permutations(self.player_list)]
-
-    def _marginal_of_pi(self, player, pi):
-        r"""
-        Returns a value for the contribution of a player in one permutation.
-        This is a hidden function used in calculation of Shapley value.
-
-        INPUT:
-
-        - player - A real number or string.
-
-        - pi - A tuple which is the permutation that should be used.
-
-        EXAMPLES::
-
-            sage: integer_function = {(): 0,
-            ....:                  (1,): 6,
-            ....:                  (2,): 12,
-            ....:                  (3,): 42,
-            ....:                  (1, 2,): 12,
-            ....:                  (1, 3,): 42,
-            ....:                  (2, 3,): 42,
-            ....:                  (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game._marginal_of_pi(2, (2, 3, 1))
-            12
-        """
-        predecessors, player_and_pred = self._get_predecessors(player, pi)
-        if predecessors is None:
-            predecessors = ()
-        else:
-            predecessors = tuple(predecessors)
-        player_and_pred = tuple(player_and_pred)
-        value = self.ch_f[player_and_pred] - self.ch_f[predecessors]
-        return value
-
-    def _get_predecessors(self, player, pi):
-        r"""
-        Returns a list of all the predecessors of a player in a certain
-        permutation and the same list including the original player.
-        This is a hidden function used in calculation of Shapley value.
-
-        INPUT:
-
-        - ``player`` - A real number or string.
-
-        - ``pi`` - A tuple which is the permutation that should be used.
-
-        EXAMPLES::
-
-            sage: integer_function = {(): 0,
-            ....:                  (1,): 6,
-            ....:                  (2,): 12,
-            ....:                  (3,): 42,
-            ....:                  (1, 2,): 12,
-            ....:                  (1, 3,): 42,
-            ....:                  (2, 3,): 42,
-            ....:                  (1, 2, 3,): 42}
-            sage: integer_game = CooperativeGame(integer_function)
-            sage: integer_game._get_predecessors(1, (2, 3, 1))
-            ([2, 3], [1, 2, 3])
-            sage: integer_game._get_predecessors(2, (2, 3, 1))
-            ([], [2])
-            sage: integer_game._get_predecessors(3, (2, 3, 1))
-            ([2], [2, 3])
-        """
-        pred = list(pi[:pi.index(player)])
-        return sorted(pred), sorted(pred + [player])
 
     def _repr_(self):
         r"""

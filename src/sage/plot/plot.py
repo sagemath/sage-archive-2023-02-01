@@ -1269,6 +1269,7 @@ def _plot(funcs, xrange, parametric=False,
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
+    excluded_points = []
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
@@ -1327,38 +1328,40 @@ def _plot(funcs, xrange, parametric=False,
             v = exclude.variables()[0]
             points = [e.right() for e in exclude.solve(v) if e.left() == v and (v not in e.right().variables())]
             # We are only interested in real solutions
-            exclude = []
             for x in points:
                 try:
-                    exclude.append(float(x))
+                    excluded_points.append(float(x))
                 except TypeError:
                     pass
+            excluded_points.sort()
 
-        if isinstance(exclude, (list, tuple)):
-            exclude = sorted(exclude)
-            # We make sure that points plot points close to the excluded points are computed
-            epsilon = 0.001*(xmax - xmin)
-            initial_points = reduce(lambda a,b: a+b, [[x - epsilon, x + epsilon] for x in exclude], [])
-            data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize, initial_points)
+        # We should either have a list in excluded points or exclude
+        # itself must be a list
+        elif isinstance(exclude, (list, tuple)):
+            excluded_points = sorted(exclude)
         else:
             raise ValueError('exclude needs to be a list of numbers or an equation')
 
-        if exclude == []:
-            exclude = None
+        # We make sure that points plot points close to the excluded points are computed
+        epsilon = 0.001*(xmax - xmin)
+        initial_points = reduce(lambda a,b: a+b,
+                                [[x - epsilon, x + epsilon]
+                                 for x in excluded_points], [])
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize, initial_points)
     else:
-        data = generate_plot_points(f, xrange, plot_points, adaptive_tolerance, adaptive_recursion, randomize)
+        data = generate_plot_points(f, xrange, plot_points,
+                                    adaptive_tolerance, adaptive_recursion,
+                                    randomize)
 
-    # Need exclude to be a list to be able to do automatic exclusion of
-    # plot regions.
-    if exclude is None:
-        exclude = []
 
     for i in range(len(data)-1):
         # If the difference between consecutive x-values is more than
         # 2 times the difference between two consecutive plot points, then
         # add an exclusion point.
         if abs(data[i+1][0] - data[i][0]) > 2*abs(xmax - xmin)/plot_points:
-            exclude.append((data[i][0] + data[i+1][0])/2)
+            excluded_points.append((data[i][0] + data[i+1][0])/2)
 
     if parametric:
         # We need the original x-values to be able to exclude points in parametric plots
@@ -1369,15 +1372,10 @@ def _plot(funcs, xrange, parametric=False,
                 newdata.append((fdata, g(x)))
             except ValueError:
                 newdata.append((fdata, 0)) # append a dummy value 0
-                exclude.append(x)
+                excluded_points.append(x)
         data = newdata
 
-    # We set exclude back to None if there are no points to be excluded
-    if not exclude:
-        exclude = None
-    else:
-        exclude.sort()
-
+    excluded_points.sort()
     G = Graphics()
 
     fillcolor = options.pop('fillcolor', 'automatic')
@@ -1445,7 +1443,7 @@ def _plot(funcs, xrange, parametric=False,
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if exclude is not None or detect_poles != False:
+    if excluded_points or detect_poles != False:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -1457,13 +1455,15 @@ def _plot(funcs, xrange, parametric=False,
 
         # setup for exclusion points
         exclusion_point = 0
-        if exclude is not None:
-            exclude.reverse()
-            exclusion_point = exclude.pop()
+        if excluded_points:
+            excluded_points.reverse()
+            exclusion_point = excluded_points.pop()
 
+        flag = True
         for i in range(len(data)-1):
             x0, y0 = exclude_data[i]
             x1, y1 = exclude_data[i+1]
+
             # detect poles
             if (not (polar or parametric)) and detect_poles != False \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
@@ -1479,15 +1479,15 @@ def _plot(funcs, xrange, parametric=False,
                     start_index = i+2
 
             # exclude points
-            if exclude is not None and (x0 <= exclusion_point <= x1):
+            if flag and (x0 <= exclusion_point <= x1):
                 G += line(data[start_index:i], **options)
                 start_index = i + 2
                 while exclusion_point <= x1:
                     try:
-                        exclusion_point = exclude.pop()
+                        exclusion_point = excluded_points.pop()
                     except IndexError:
                         # all excluded points were considered
-                        exclude = None
+                        flag = False
                         break
 
         G += line(data[start_index:], legend_label=legend_label, **options)

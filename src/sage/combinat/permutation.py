@@ -3566,9 +3566,33 @@ class Permutation(CombinatorialObject, Element):
 
             :meth:`permutohedron_lequal`, :meth:`permutohedron_meet`.
 
+        ALGORITHM:
+
+        It is enough to construct the join of any two permutations
+        `\pi` and `\psi` in `S_n` with respect to the right weak
+        order. (The join of `\pi` and `\psi` with respect to the
+        left weak order is the inverse of the join of `\pi^{-1}`
+        and `\psi^{-1}` with respect to the right weak order.)
+        Start with an empty list `l` (denoted ``xs`` in the actual
+        code). For `i = 1, 2, \ldots, n` (in this order), we insert
+        `i` into this list in the rightmost possible position such
+        that any letter in `\{ 1, 2, ..., i-1 \}` which appears
+        further right than `i` in either `\pi` or `\psi` (or both)
+        must appear further right than `i` in the resulting list.
+        After all numbers are inserted, we are left with a list
+        which is precisely the join of `\pi` and `\psi` (in
+        one-line notation). This algorithm is due to Markowsky,
+        [Mark94]_ (Theorem 1 (a)).
+
+        REFERENCES:
+
+        .. [Mark94] George Markowsky.
+           *Permutation lattices revisited*.
+           Mathematical Social Sciences, 27 (1994), 59--72.
+
         AUTHORS:
 
-        Viviane Pons (algorithm) and Darij Grinberg, 18 June 2014.
+        Viviane Pons and Darij Grinberg, 18 June 2014.
 
         EXAMPLES::
 
@@ -3634,15 +3658,6 @@ class Permutation(CombinatorialObject, Element):
             sage: r.permutohedron_join(p, side="left")
             [3, 1, 2]
         """
-        # Algorithm: We start with an empty list ``xs``. For
-        # `i = 1, 2, ..., n` (where `n` is the size of the two
-        # permutations), we insert `i` into this list in the
-        # rightmost possible position such that any letter in
-        # `\{ 1, 2, ..., i-1 \}` which lies to the right of
-        # `i` in either ``self`` or ``other`` must lie to the
-        # right of `i` in the resulting list. After all numbers
-        # are inserted, we are left with the join of ``self``
-        # and ``other``.
         if side == "left":
             return self.inverse().permutohedron_join(other.inverse()).inverse()
         n = self.size()

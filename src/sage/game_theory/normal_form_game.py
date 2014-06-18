@@ -26,8 +26,8 @@ class NormalFormGame(SageObject):
 
     def _is_complete(self):
         # will check that all strategy profiles have a legitimate payoff_vector
-        # solve_nash can't be called until that's true.
-        pass
+        # solve_nash etc can't be called until that's true.
+        return all(self.strategy_profiles.values())
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
         # copy from old

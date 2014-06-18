@@ -507,7 +507,7 @@ class NormalFormGame(Game):
 
     def _scale_matrices(self):
         r"""
-        Returns the ``payoff_matrices`` with integer coeficcients so that they
+        Returns the ``payoff_matrices`` with integer coefficients so that they
         can be solved using gambit.
 
         EXAMPLES:

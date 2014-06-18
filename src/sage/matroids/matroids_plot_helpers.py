@@ -48,11 +48,12 @@ EXAMPLES::
 
     sage: from sage.matroids import matroids_plot_helpers
     sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
-    [0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
+    ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0], [0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
     sage: pos_dict= {0: (0, 0),  1: (2, 0),  2: (1, 2),  3: (1.5, 1.0),
-    4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666)}
-    sage: M1._cached_info={'positions':pos_dict,'lineorders':None}
-    sage: matroids_plot_helpers.geomrep(M1,sp=True)
+    ....: 4: (0.5, 1.0),  5: (1.0, 0.0), 6: (1.0, 0.6666666666666666),
+    ....: 7: (3,3), 8: (4,0), 9: (-1,1), 10: (-2,-2)}
+    sage: M1._cached_info={'positions': pos_dict, 'lineorders': None}
+    sage: matroids_plot_helpers.geomrep(M1, sp=True)
 
 """
 # *****************************************************************************
@@ -82,26 +83,26 @@ def it(M, B1, nB1, lps):
 
     - ``M`` -- A matroid.
     - ``B1``-- A list of groundset elements of ``M`` that corresponds to a
-    basis of matroid ``M``.
+      basis of matroid ``M``.
     - ``nB1``-- A list of elements in the ground set of M that corresponds to
-    ``M.simplify.groundset() \ B1``.
+      ``M.simplify.groundset() \ B1``.
     - ``lps``-- A list of elements in the ground set of matroid M that are
-    loops.
+      loops.
 
     OUTPUT:
 
     A tuple containing 4 elements in this order:
 
     1. A dictionary containing 2-tuple (x,y) co-ordinates with
-    ``M.simplify.groundset()`` elements that can be placed on the sides of
-    the triangle as keys.
+       ``M.simplify.groundset()`` elements that can be placed on the sides of
+       the triangle as keys.
     2. A list of 3 lists of elements of ``M.simplify.groundset()`` that can
-    be placed on the 3 sides of the triangle.
+       be placed on the 3 sides of the triangle.
     3. A list of elements of `M.simplify.groundset()`` that cane be placed
-    inside the triangle in the geometric representation.
+       inside the triangle in the geometric representation.
     4. A list of lists of elements of ``M.simplify.groundset()`` that
-    correspond to lines in the geometric representation other than the sides
-    of the triangle.
+       correspond to lines in the geometric representation other than the sides
+       of the triangle.
 
     EXAMPLES::
 
@@ -180,15 +181,15 @@ def trigrid(tripts):
     INPUT:
 
     - ``tripts`` -- A list of 3 lists of the form [x,y] where x and y are the
-    cartesian co-ordinates of a point.
+      cartesian co-ordinates of a point.
 
     OUTPUT:
 
     A list of lists containing 4 points in following order:
 
-    1. Barycenter of 3 input points.
-    2,3,4. Barycenters of 1. with 3 different 2-subsets of input points
-    respectively.
+    - 1. Barycenter of 3 input points.
+    - 2,3,4. Barycenters of 1. with 3 different 2-subsets of input points
+      respectively.
 
     EXAMPLES::
 
@@ -225,11 +226,11 @@ def addnontripts(tripts_labels, nontripts_labels, ptsdict):
     INPUT:
 
     - ``tripts`` -- A list of 3 ground set elements that are to be placed on
-    vertices of the triangle.
+      vertices of the triangle.
     - ``ptsdict`` -- A dictionary (at least) containing ground set elements in
-    ``tripts`` as keys and their (x,y) position as values.
+      ``tripts`` as keys and their (x,y) position as values.
     - ``nontripts``-- A list of ground set elements whose corresponding points
-    are to be placed inside the triangle.
+      are to be placed inside the triangle.
 
     OUTPUT:
 
@@ -240,23 +241,22 @@ def addnontripts(tripts_labels, nontripts_labels, ptsdict):
     EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
+        sage: from sage.matroids.advanced import setprint
         sage: ptsdict={'a':(0,0),'b':(1,2),'c':(2,0)}
         sage: ptsdict_1=matroids_plot_helpers.addnontripts(['a','b','c'],
         ....:         ['d','e','f'],ptsdict)
-        sage: print ptsdict_1
-        sage:         sage: print ptsdict_1
-        {'a': (0, 0), 'c': (2, 0), 'b': (1, 2),
-         'e': (0.6666666666666666, 0.8888888888888888),
-         'd': (1.0, 0.6666666666666666),
-         'f': (1.3333333333333333, 0.8888888888888888)}
+        sage: setprint(ptsdict_1)
+        {'a': [0, 0], 'b': [1, 2], 'c': [0, 2], 'd': [0.6666666666666666, 1.0],
+        'e': [0.6666666666666666, 0.8888888888888888],
+        'f': [0.8888888888888888, 1.3333333333333333]}
         sage: ptsdict_2=matroids_plot_helpers.addnontripts(['a','b','c'],
         ....:         ['d','e','f','g','h'],ptsdict)
-        sage: print ptsdict_2
-        {'a': (0, 0), 'c': (2, 0), 'b': (1, 2),
-         'e': (0.6666666666666666, 0.8888888888888888),
-         'd': (1.0, 0.6666666666666666), 'g': (1.0, 0.2222222222222222),
-         'f': (1.3333333333333333, 0.8888888888888888),
-         'h': (0.5555555555555555, 0.5185185185185185)}
+        sage: setprint(ptsdict_2)
+        {'a': [0, 0], 'b': [1, 2], 'c': [0, 2], 'd': [0.6666666666666666, 1.0],
+        'e': [0.6666666666666666, 0.8888888888888888],
+        'f': [0.8888888888888888, 1.3333333333333333],
+        'g': [0.2222222222222222, 1.0],
+        'h': [0.5185185185185185, 0.5555555555555555]}
 
     .. NOTE::
 
@@ -294,28 +294,28 @@ def createline(ptsdict, ll, lineorders2=None):
     INPUT:
 
     - ``ptsdict`` -- A dictionary containing keys and their (x,y) position as
-    values.
+      values.
     - ``ll`` -- A list of keys in ``ptsdict`` through which a line is to be
-    drawn.
+      drawn.
     - ``lineorders2``-- (optional) A list of ordered lists of keys in
-    ``ptsdict`` such that if ll is setwise same as any of these then points
-    corresponding to values of the keys will be traversed in that order thus
-    overriding internal order deciding heuristic.
+      ``ptsdict`` such that if ll is setwise same as any of these then points
+      corresponding to values of the keys will be traversed in that order thus
+      overriding internal order deciding heuristic.
 
     OUTPUT:
 
     A tuple containing 4 elements in this order:
 
     1. Ordered list of x-coordinates of values of keys in ``ll`` specified in
-    ptsdict.
+       ptsdict.
     2. Ordered list of y-coordinates of values of keys in ``ll`` specified
-    in ptsdict.
+       in ptsdict.
     3. Ordered list of interpolated x-coordinates of points through which a
-    line can be drawn.
+       line can be drawn.
     4. Ordered list of interpolated y-coordinates of points through which a
-    line can be drawn.
+       line can be drawn.
 
-    Examples::
+    EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
         sage: ptsdict={'a':(1,3),'b':(2,1),'c':(4,5),'d':(5,2)}
@@ -379,11 +379,11 @@ def slp(M1, pos_dict=None, B=None):
 
     - ``M1`` -- A matroid.
     - ``pos_dict`` -- (optional) A dictionary containing non loopy elements of
-    ``M`` as keys and their (x,y) positions.
-    as keys. While simplifying the matroid, all except one element in a
-    parallel class that is also specified in ``pos_dict`` will be retained.
+      ``M`` as keys and their (x,y) positions.
+      as keys. While simplifying the matroid, all except one element in a
+      parallel class that is also specified in ``pos_dict`` will be retained.
     - ``B`` -- (optional) A basis of M1 that has been chosen for placement on
-    vertics of triangle.
+      vertics of triangle.
 
     OUTPUT:
 
@@ -392,17 +392,18 @@ def slp(M1, pos_dict=None, B=None):
     1. Simple matroid corresponding to ``M1``.
     2. Loops of matroid ``M1``.
     3. Elements that are in `M1.groundset()` but not in ground set of 1 or
-    in 2
+       in 2
 
     EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
+        sage: from sage.matroids.advanced import setprint
         sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
         ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
         sage: [M,L,P]=matroids_plot_helpers.slp(M1)
         sage: M.is_simple()
         True
-        sage: [L,P]
+        sage: setprint([L,P])
         [{7}, {8, 9, 10}]
         sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],
         ....: [0, 1, 0, 1, 0, 1, 1,0,0,1,0],[0, 0, 1, 1, 1, 0, 1,0,0,0,0]])
@@ -411,7 +412,7 @@ def slp(M1, pos_dict=None, B=None):
         sage: [M,L,P]=matroids_plot_helpers.slp(M1,pos_dict=posdict)
         sage: M.is_simple()
         True
-        sage: [L,P]
+        sage: setprint([L,P])
         [{7}, {0, 9, 10}]
 
     .. NOTE::
@@ -458,13 +459,13 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
 
     - ``M`` -- A matroid.
     - ``L`` -- List of elements in ``M.groundset()`` that are loops of matroid
-    ``M``.
+      ``M``.
     - ``P`` -- List of elements in ``M.groundset()`` not in
-    ``M.simplify.groundset()`` or ``L``.
+      ``M.simplify.groundset()`` or ``L``.
     - ``ptsdict`` -- A dictionary containing elements in ``M.groundset()`` not
-    necessarily containing elements of ``L``.
+      necessarily containing elements of ``L``.
     - ``G`` -- (optional) A sage graphics object to which loops and parallel
-    elements of matroid `M` added .
+      elements of matroid `M` added .
     - ``limits``-- (optional) Current axes limits [xmin,xmax,ymin,ymax].
 
     OUTPUT:
@@ -472,10 +473,10 @@ def addlp(M, M1, L, P, ptsdict, G=None, limits=None):
     A 2-tuple containing:
 
     1. A sage graphics object containing loops and parallel elements of
-    matroid ``M``
+       matroid ``M``
     2. axes limits array
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
         sage: M=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1],
@@ -554,15 +555,17 @@ def line_hasorder(l, lodrs=None):
 
     - ``l`` -- A line specified as a list of ground set elements.
     - ``lordrs`` -- (optional) A list of lists each specifying an order on
-    a subset of ground set elements that may or may not correspond to a
-    line in geometric representation.
+      a subset of ground set elements that may or may not correspond to a
+      line in geometric representation.
+
     OUTPUT:
 
     A tuple containing 2 elements in this order:
+
     1. A boolean indicating whether there is any list in ``lordrs`` that is
-    setwise equal to ``l``.
+       setwise equal to ``l``.
     2. A list specifying an order on ``set(l)`` if 1. is True, otherwise
-    an empty list.
+       an empty list.
 
     EXAMPLES::
 
@@ -570,7 +573,7 @@ def line_hasorder(l, lodrs=None):
         sage: matroids_plot_helpers.line_hasorder(['a','b','c','d'],
         ....: [['a','c','d','b'],['p','q','r']])
         (True, ['a', 'c', 'd', 'b'])
-        sage: sage: matroids_plot_helpers.line_hasorder(['a','b','c','d'],
+        sage: matroids_plot_helpers.line_hasorder(['a','b','c','d'],
         ....: [['p','q','r'],['l','m','n','o']])
         (False, [])
 
@@ -594,9 +597,9 @@ def lineorders_union(lineorders1, lineorders2):
     INPUT:
 
     - ``lineorders1`` -- A list of ordered lists specifying orders on subsets
-    of ground set.
+      of ground set.
     - ``lineorders2`` -- A list of ordered lists specifying orders subsets of
-    ground set.
+      ground set.
 
     OUTPUT:
 
@@ -636,14 +639,14 @@ def posdict_is_sane(M1, pos_dict):
 
     - ``M1`` -- A matroid.
     - ``posdict`` -- A dictionary mapping ground set elements to (x,y)
-    positions.
+      positions.
 
     OUTPUT:
 
     A boolean that is ``True`` if posdict indeed has all the required elements
     to plot the geometric elements, otherwise ``False``.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.matroids import matroids_plot_helpers
         sage: M1=Matroid(ring=GF(2), matrix=[[1, 0, 0, 0, 1, 1, 1,0,1,0,1],

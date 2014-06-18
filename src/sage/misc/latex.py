@@ -2679,6 +2679,11 @@ def latex_variable_name(x, is_fname=False):
     else:
         prefix = x[:underscore]
         suffix = x[underscore+1:]
+        if prefix == '':
+            from sage.calculus.calculus import symtable
+            for sym in symtable.values():
+                if sym[0] == '_' and sym[1:] == suffix:
+                    return latex_variable_name(suffix)
     if suffix and len(suffix) > 0:
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)

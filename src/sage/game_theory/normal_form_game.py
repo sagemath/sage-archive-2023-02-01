@@ -363,7 +363,7 @@ class NormalFormGame(Game):
 
            - When set to ``True`` (default) it is assumed that players aim to
              maximise their utility.
-           - When set to ``False`` (default) it is assumed that players aim to
+           - When set to ``False`` it is assumed that players aim to
              minimise their utility.
 
         EXAMPLES:
@@ -509,7 +509,7 @@ class NormalFormGame(Game):
 
     def _scale_matrices(self):
         r"""
-        Returns the ``payoff_matrices`` with integer coeficcients so that they
+        Returns the ``payoff_matrices`` with integer coefficients so that they
         can be solved using gambit.
 
         EXAMPLES:

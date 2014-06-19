@@ -15,7 +15,7 @@ class NormalFormGame(SageObject):
         sage: B = matrix([[3, 3], [1, 4]])
         sage: C = NormalFormGame([A, B])
     """
-    def __init__(self, arg1, arg2):
+    def __init__(self, arg1=None, arg2=None):
 
         self.players = []
         if type(arg1) is list:
@@ -40,15 +40,13 @@ class NormalFormGame(SageObject):
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
         for key in self.strategy_profiles:
-            self.strategy_profiles[key][0] = matrices[0][key]
-            self.strategy_profiles[key][1] = matrices[1][key]
+            self.strategy_profiles[key] = (matrices[0][key], matrices[1][key])
 
     def _bimatrix_game(self, bimatrix):
         self.add_player(bimatrix.dimensions()[0])
         self.add_player(bimatrix.dimensions()[1])
         for key in self.strategy_profiles:
-            self.strategy_profiles[key][0] = bimatrix[key][0]
-            self.strategy_profiles[key][1] = bimatrix[key][1]
+            self.strategy_profiles[key] = bimatrix[key]
 
     def add_player(self, num_strategies):
         self.players.append(_Player(num_strategies))

@@ -89,7 +89,7 @@ with the Littelmann path model::
 Now we do an example of a simply-laced (so symmetrizable) hyperbolic
 type `H_1^{(4)}`, which comes from the complete graph on 4 vertices::
 
-    sage: CM = CartanMatrix([[2, -1, -1,-1],[-1,2,-1,-1],[-1,-1,2,-1],[-1,-1,-1,2]]); M
+    sage: CM = CartanMatrix([[2, -1, -1,-1],[-1,2,-1,-1],[-1,-1,2,-1],[-1,-1,-1,2]]); CM
     [ 2 -1 -1 -1]
     [-1  2 -1 -1]
     [-1 -1  2 -1]

@@ -1034,7 +1034,7 @@ a2s``, and choose to do so in ``A2s.B.C``::
     sage: A2s().B().C()
     Category of b c e f a2s
     sage: type(A2s().B().C())
-    <class '__main__.B.C_with_category'>
+    <class '__main__.A2s.B.C_with_category'>
 
 As desired, William's theorem and its consequences hold::
 
@@ -2324,7 +2324,7 @@ class CategoryWithAxiom(Category):
             sage: from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
             sage: C = MagmasAndAdditiveMagmas().Distributive().AdditiveAssociative().AdditiveCommutative()
             sage: C.__class__
-            <class 'sage.categories.distributive_magmas_and_additive_magmas.AdditiveAssociative.AdditiveCommutative_with_category'>
+            <class 'sage.categories.distributive_magmas_and_additive_magmas.DistributiveMagmasAndAdditiveMagmas.AdditiveAssociative.AdditiveCommutative_with_category'>
             sage: C.__reduce__()
             (<function call_method at ...>, (Category of additive associative distributive magmas and additive magmas, '_with_axiom', 'AdditiveCommutative'))
         """

@@ -23,22 +23,28 @@ Website: http://gf2x.gforge.inria.fr/
  * None
 
 == Special Update/Build Instructions ==
- * As sse2_tr_fixes.patch touches config/acinclude.m4, we have to touch
-   aclocal.m4, configure, Makefile.in and gf2x/gf2x-config.h.in to prevent
-   autotools to try to regenerate these files.
+ * As some patches touch config/acinclude.m4, we have to touch aclocal.m4,
+   configure, Makefile.in and gf2x/gf2x-config.h.in to prevent autotools
+   to try to regenerate these files.
 
 === Patches ===
- * no-undefined.patch: pass -no-undefined flag to libtool.
- * sse2_tr_fixes.patch: backport upstream fixes for non-portable use of tr and for
-   sse2 checks.
- * x_hardware_specific_code.patch: disable cpu-dependent optimizations
-   (x_ prefix in filename such that the patch applies after
-   sse2_tr_fixes.patch)
+ * 0001-Trac-15014-Let-gf2x-build-a-shared-library-on-Cygwin.patch: pass
+   -no-undefined flag to libtool.
+ * 0002-tr-portability.patch: backport upstream fix for non-portable tr use
+ * 0003-Improve-detection-of-sse2-support.patch: backport upstream improved
+   check for sse2
+ * 0004-Add-disable-hardware-specific-code.patch: add option
+   --disable-hardware-specific-code to build system. This is partly
+   backported from upstream.
+ * 0005-Update-autotooled-files.patch: the above patches make changes to
+   code used by autotools for generation of the build system. This patches
+   those files, so that autotools need not be installed.
 
 == Changelog ==
 
-=== gf2x-1.1.p1 (Jean-Pierre Flori, 6 January 2014) ===
+=== gf2x-1.1.p1 (Jean-Pierre Flori, Erik Massop, 19 June 2014) ===
   * Trac #15316: Use --libdir and make SAGE_FAT_BINARY work.
+  * Trac #16481: Use stricter sse-2 check for gf2x
 
 === gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
   * Trac #15014: Let gf2x build a shared library on Cygwin.

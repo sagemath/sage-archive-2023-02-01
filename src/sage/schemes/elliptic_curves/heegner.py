@@ -270,16 +270,16 @@ class RingClassField(SageObject):
         """
         Used for computing hash of ``self``.
 
-        NOTE:
+        .. NOTE::
 
-        The hash is equal to the hash of the pair ``(discriminant, conductor)``.
+            The hash is equal to the hash of the pair
+            ``(discriminant, conductor)``.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('389a'); K5 = E.heegner_point(-7,5).ring_class_field()
             sage: hash(K5) == hash((-7,5))
             True
-
         """
         return hash((self.__D, self.__c))
 
@@ -1284,7 +1284,8 @@ class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
 
     def __hash__(self):
         """
-        The hash value is the same as the hash value of the pair ``(self.parent(), 1)``.
+        The hash value is the same as the hash value of the
+        pair ``(self.parent(), 1)``.
 
         EXAMPLES::
 
@@ -1292,7 +1293,6 @@ class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
             sage: conj = G.complex_conjugation()
             sage: hash(conj) == hash((conj.parent(), 1))
             True
-
         """
         return hash((self.parent(), 1))
 
@@ -1730,7 +1730,7 @@ class HeegnerPoint(SageObject):
 
     def __hash__(self):
         """
-        The hash value is obtained from level, discriminant and conductor.
+        The hash value is obtained from level, discriminant, and conductor.
 
         EXAMPLES::
 
@@ -1738,7 +1738,6 @@ class HeegnerPoint(SageObject):
             <class 'sage.schemes.elliptic_curves.heegner.HeegnerPoint'>
             sage: hash(H)  == hash((H.level(), H.discriminant(), H.conductor()))
             True
-
         """
         return hash((self.__N, self.__D, self.__c))
 
@@ -2624,8 +2623,8 @@ class HeegnerPointOnX0N(HeegnerPoint):
 
     def __hash__(self):
         """
-        The hash is obtained from the hash provided by :class:`HeegnerPoint`, together
-        with the reduced quadratic form.
+        The hash is obtained from the hash provided by :class:`HeegnerPoint`,
+        together with the reduced quadratic form.
 
         EXAMPLES::
 
@@ -2633,7 +2632,6 @@ class HeegnerPointOnX0N(HeegnerPoint):
             sage: from sage.schemes.elliptic_curves.heegner import HeegnerPoint
             sage: hash(x) == hash( (HeegnerPoint.__hash__(x), x.reduced_quadratic_form()) )
             True
-
         """
         return hash((HeegnerPoint.__hash__(self), self.reduced_quadratic_form()))
 
@@ -2934,14 +2932,14 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
     def __hash__(self):
         """
-        The hash value is obtained from the elliptic curve and the Heegner point on `X_0(N)`.
+        The hash value is obtained from the elliptic curve and the Heegner
+        point on `X_0(N)`.
 
         EXAMPLES::
 
             sage: x = EllipticCurve('389a').heegner_point(-7,5)
             sage: hash(x) == hash( (x.curve(), x.heegner_point_on_X0N()) )
             True
-
         """
         return hash((self.__E, self.__x))
 

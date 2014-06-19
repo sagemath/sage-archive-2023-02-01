@@ -275,10 +275,10 @@ class SingletonClass(WithEqualityById):
     to the list of base classes::
 
         sage: from sage.misc.fast_methods import SingletonClass
-        sage: class C(SingletonClass, SageObject):
+        sage: class C(SingletonClass, Parent):
         ....:     def __init__(self):
         ....:         print "creating singleton"
-        ....:
+        ....:         Parent.__init__(self, base=ZZ, category=Rings())
         sage: c = C()
         creating singleton
         sage: c2 = C()
@@ -288,13 +288,26 @@ class SingletonClass(WithEqualityById):
     The unique instance of a singleton stays in memory as long as the
     singleton itself does.
 
-    Pickling, copying, hashing and comparison are provided for by
+    Pickling, copying, hashing, and comparison are provided for by
     :class:`SingletonClass` according to the singleton paradigm. Note
     that pickling fails if the class is replaced by a sub-sub-class
-    after creation of the instance.
+    after creation of the instance::
 
+        sage: import __main__      # This is only needed ...
+        sage: __main__.C = C       # ... in doctests
+        sage: orig = type(c)
+        sage: c._refine_category_(Fields())
+        sage: orig == type(c)
+        False
+        sage: loads(dumps(c))
+        Traceback (most recent call last):
+        ...
+        AssertionError: (("<class '__main__.C_with_category'> is not a direct
+        subclass of <class 'sage.misc.fast_methods.SingletonClass'>",),
+        <class '__main__.C_with_category'>, ())
     """
     __metaclass__ = ClasscallMetaclass
+
     @staticmethod
     def __classcall__(cls):
         """
@@ -309,24 +322,24 @@ class SingletonClass(WithEqualityById):
             ....:     def __init__(self):
             ....:         print "creating singleton"
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
-            ....:
             sage: c = C()
             creating singleton
             sage: import __main__      # This is only needed ...
             sage: __main__.C = C       # ... in doctests
             sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
             True
- 
         """
-        assert cls.mro()[1] == SingletonClass, "%s is not a direct subclass of %s"%(cls, SingletonClass)
+        assert cls.mro()[1] == SingletonClass, "{} is not a direct subclass of {}".format(cls, SingletonClass)
         res = typecall(cls)
         cf = ConstantFunction(res)
         cls._set_classcall(cf)
         res.__class__._set_classcall(cf)
         return res
+
     def __copy__(self):
         """
-        There is a unique instance of a singleton, hence, copying returns self.
+        There is a unique instance of a singleton, hence, copying
+        returns ``self``.
 
         EXAMPLES::
 
@@ -335,19 +348,19 @@ class SingletonClass(WithEqualityById):
             ....:     def __init__(self):
             ....:         print "creating singleton"
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
-            ....:
             sage: c = C()
             creating singleton
             sage: import __main__      # This is only needed ...
             sage: __main__.C = C       # ... in doctests
             sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
             True
- 
         """ 
         return self
+
     def __reduce__(self):
         """
-        There is a unique instance of a singleton, hence, pickling returns self.
+        There is a unique instance of a singleton, hence, pickling
+        returns ``self``.
 
         EXAMPLES::
 
@@ -364,21 +377,11 @@ class SingletonClass(WithEqualityById):
             sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
             True
  
-        The pickle data mainly consist of the class of the unique instance, which
-        may be a subclass of the original class used to create the instance.
-        If the class is replaced by a sub-sub-class after creation of the
-        instance, pickling fails::
-
-            sage: orig = type(c)
-            sage: c._refine_category_(Fields())
-            sage: orig == type(c)
-            False
-            sage: loads(dumps(c))
-            Traceback (most recent call last):
-            ...
-            AssertionError: ("<class '__main__.C_with_category'> is not a direct
-            subclass of <class 'sage.misc.fast_methods.SingletonClass'>",
-            <class '__main__.C_with_category'>, ())
-
+        The pickle data mainly consist of the class of the unique instance,
+        which may be a subclass of the original class used to create the
+        instance.If the class is replaced by a sub-sub-class after creation
+        of the instance, pickling fails. See the doctest
+        in :class:`SingletonClass`.
         """ 
-        return self.__class__, () 
+        return self.__class__, ()
+

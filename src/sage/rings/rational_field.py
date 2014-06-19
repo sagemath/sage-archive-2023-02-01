@@ -57,18 +57,8 @@ ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
 import sage.rings.number_field.number_field_base as number_field_base
-
-
-#_obj = {}
-#class _uniq(object):
-#    def __new__(cls):
-#        if 0 in obj:
-#            return _obj[0]
-#        O = number_field_base.NumberField.__new__(cls)
-#        _obj[0] = O
-#        return O
-
 from sage.misc.fast_methods import SingletonClass
+
 class RationalField(SingletonClass, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.

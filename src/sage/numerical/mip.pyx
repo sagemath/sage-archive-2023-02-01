@@ -203,6 +203,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
       - Gurobi (``solver="Gurobi"``). See the `Gurobi <http://www.gurobi.com/>`_
           web site.
 
+      - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
+          web site.
+
       - PPL (``solver="PPL"``). See the `PPL <http://bugseng.com/products/ppl>`_
           web site.
 
@@ -271,6 +274,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
           - Gurobi (``solver="Gurobi"``). See the `Gurobi
             <http://www.gurobi.com/>`_ web site.
+
+          - CVXOPT (``solver="CVXOPT"``). See the `CVXOPT <http://www.cvxopt.org/>`_
+              web site.
 
           - PPL (``solver="PPL"``). See the `PPL
             <http://bugseng.com/products/ppl>`_ web site.

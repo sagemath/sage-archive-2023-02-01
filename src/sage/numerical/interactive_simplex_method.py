@@ -162,7 +162,7 @@ simplex method!
 #*****************************************************************************
 
 
-import re, sys
+import operator, re, sys
 
 
 from copy import copy
@@ -294,7 +294,13 @@ def _latex_product(coefficients, variables,
         if latex(c).strip().startswith("-"):
             sign = "-"
             c = - c
-        t = latex(v) if c == 1 else latex(c) + " " + latex(v)
+        if c == 1:
+            t = latex(v)
+        else:
+            t = latex(c)
+            if SR(c).operator() in [operator.add, operator.sub]:
+                t = r"\left( " + t + r" \right)"
+            t += " " + latex(v)
         entries.extend([sign, t])
     if drop_plus:   # Don't start with +
         for i, e in enumerate(entries):

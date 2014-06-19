@@ -201,7 +201,8 @@ class NormalFormGame(SageObject, MutableMapping):
         self._generate_strategy_profiles(False)
 
     def _is_complete(self):
-        return all(self.strategy_profiles.values())
+        results = [all(i) for i in self.strategy_profiles.values()]
+        return all(results)
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
         if len(self.players) > 2:

@@ -30,14 +30,21 @@ class NormalFormGame(SageObject):
         return all(self.strategy_profiles.values())
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
+        if not self._is_complete():
+            raise ValueError("strategy_profiles hasn't been populated")
         # copy from old
-        pass
 
     def _solve_gambit(self):
-        # call _is_complete()
         # create a gambit.Game object using self.strategy_profiles
         # should be very quick
-        pass
+        if not is_package_installed('gambit'):
+                raise NotImplementedError("gambit is not installed")
+        from gambit import Game
+        strategy_sizes = [p.num_strategies for p in self.players]
+        g = Game.new_table(strategy_sizes)
+        for key in self.strategy_profiles:
+            for player in range(len(self.players)):
+                g[key][player] = self.strategy_profiles[key][player]
 
     def _solve_lrs(self):
         # call _is_complete()

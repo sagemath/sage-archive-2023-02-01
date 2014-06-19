@@ -623,7 +623,7 @@ appropriate super classes according to
 
     sage: Groups().element_class.__bases__
     (<class 'sage.categories.monoids.Monoids.element_class'>,
-     <class 'sage.categories.magmas.Unital.Inverse.element_class'>)
+     <class 'sage.categories.magmas.Magmas.Unital.Inverse.element_class'>)
 
 We now see that the hierarchy of classes for parents and elements is
 parallel to the hierarchy of categories::

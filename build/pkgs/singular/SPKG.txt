@@ -48,6 +48,11 @@ See spkg-src.
    Fix and simplify generation of `factory/cf_gmp.h` (cf. #14737).
  * exeext.patch: Add $(EXEEXT) to some executable names.
  * cygwin64.path: Support for Cywgin64.
+ * singular-3.1.6-fix_mpoly_factor_segfault.patch:
+   Fix potential segfault in factorization of multivariate poly-
+   nomials.  Collection / subset of upstream commits, latest
+   being 28f4fe9464722511718050dfab7cd61d29898968.
+   (Cf. #16462 and Singular trac #621.)
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -74,6 +79,12 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3.1.6.p2 (Leif Leonhardy, June 9th 2014) ===
+ * #16462 Add patch to fix segfault in factorization of multivariate
+   polynomials.  (Cherry-picked from upstream; cf. Singular trac #621.
+   The pull request / commit referenced there isn't sufficient, as it
+   isn't based on Singular 3.1.6.)
 
 === singular-3-1-6.p1 (Jean-Pierre Flori, 31 December 2013) ===
  * #14876: update patch for NTL compatibility.

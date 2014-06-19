@@ -8,12 +8,16 @@ on :mod:`Mutually Orthogonal Latin Squares
 <sage.combinat.designs.latin_squares>` from the Handbook of Combinatorial
 Designs.
 
+Most of this would only be a dream without the mathematical knowledge and help
+of Julian R. Abel.
+
 All the designs returned by these functions can be obtained through the
 ``designs.<tab>`` functions.
 
 Implemented constructions :
 
-- :func:`OA(6,20) <OA_6_20>`,
+- :func:`OA(7,18) <OA_7_18>`,
+  :func:`OA(6,20) <OA_6_20>`,
   :func:`OA(7,21) <OA_7_21>`,
   :func:`OA(5,22) <OA_5_22>`,
   :func:`OA(9,24) <OA_9_24>`,
@@ -38,14 +42,27 @@ Implemented constructions :
   :func:`OA(7,54) <OA_7_54>`,
   :func:`OA(8,55) <OA_8_55>`,
   :func:`OA(9,56) <OA_9_56>`,
+  :func:`OA(9,57) <OA_9_57>`,
   :func:`OA(7,60) <OA_7_60>`,
   :func:`OA(7,62) <OA_7_62>`,
+  :func:`OA(7,66) <OA_7_66>`,
+  :func:`OA(7,68) <OA_7_68>`,
+  :func:`OA(8,69) <OA_8_69>`,
+  :func:`OA(7,74) <OA_7_74>`,
   :func:`OA(9,75) <OA_9_75>`,
+  :func:`OA(8,76) <OA_8_76>`,
   :func:`OA(11,80) <OA_11_80>`,
   :func:`OA(10,82) <OA_10_82>`,
   :func:`OA(10,100) <OA_10_100>`,
   :func:`OA(12,144) <OA_12_144>`,
-  :func:`OA(12,210) <OA_12_210>`
+  :func:`OA(10,154) <OA_10_154>`,
+  :func:`OA(12,210) <OA_12_210>`,
+  :func:`OA(18,273) <OA_18_273>`,
+  :func:`OA(12,276) <OA_12_276>`,
+  :func:`OA(12,298) <OA_12_298>`,
+  :func:`OA(12,342) <OA_12_342>`,
+  :func:`OA(12,474) <OA_12_474>`,
+  :func:`OA(33,993) <OA_33_993>`
 
 - :func:`two MOLS of order 10 <MOLS_10_2>`,
   :func:`five MOLS of order 12 <MOLS_12_5>`,
@@ -78,14 +95,16 @@ Functions
 
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      OA_from_Vmt,
-                                                     OA_from_wider_OA)
+                                                     OA_from_wider_OA,
+                                                     OA_from_PBD,
+                                                     orthogonal_array)
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
 
 def TD_6_12():
     r"""
-    Returns a `TD(6,12)` as build in [Hanani75]_.
+    Returns a `TD(6,12)` as built in [Hanani75]_.
 
     This design is Lemma 3.21 from [Hanani75]_.
 
@@ -360,6 +379,60 @@ MOLS_constructions = {
     18 : (3, MOLS_18_3)
 }
 
+def OA_7_18():
+    r"""
+    Returns an OA(7,18)
+
+    Proved in [JulianAbel13]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_quasi_difference_matrix`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_18
+        sage: OA = OA_7_18()
+        sage: print is_orthogonal_array(OA,7,18,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,18,existence=True)
+        True
+    """
+    M = """
+        000 100 100 000 100 100 100 000 000 000 100 000
+        000 020 100 100 000 120 110 110 010 020 010 120
+        000 100 022 102 112 001 101 120 121 001 020 002
+        000 002 100 002 102 122 010 111 110 121 021 001
+        000 021 000 100 020 112 100 021 112 102 102 012
+        000 000 011 010 100 010 110 122 011 121 120 111
+        000 100 002 022 011 121 020 122 100 010 112 112
+        """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    from sage.categories.cartesian_product import cartesian_product
+    G = cartesian_product([AdditiveCyclic(2),AdditiveCyclic(3),AdditiveCyclic(3)])
+    M = [G(map(int,xxx)) for xxx in M.split()]
+    M = [M[i*12:(i+1)*12] for i in range(7)]
+
+    Mb = [[] for _ in range(7)]
+
+    for a,b,c,d,e,f,g in zip(*M):
+        for y in range(3):
+            Mb[0].append(a + G((0,  0  , 0 )))
+            Mb[1].append(b + G((0,  0  , y )))
+            Mb[2].append(c + G((0,  y  , 0 )))
+            Mb[3].append(d + G((0, 2*y , y )))
+            Mb[4].append(e + G((0, 2*y ,2*y)))
+            Mb[5].append(f + G((0,  y  ,2*y)))
+            Mb[6].append(g + G((0,  0  ,2*y)))
+
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=False)
+    M = M[:len(M)/2] # only develop w.r.t the last two coordinates
+    return M
+
 def OA_6_20():
     r"""
     Returns an OA(6,20)
@@ -372,7 +445,7 @@ def OA_6_20():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_20
         sage: OA = OA_6_20()
         sage: print is_orthogonal_array(OA,6,20,2)
@@ -418,7 +491,7 @@ def OA_7_21():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_21
         sage: OA = OA_7_21()
         sage: print is_orthogonal_array(OA,7,21,2)
@@ -460,7 +533,7 @@ def OA_5_22():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_5_22
         sage: OA = OA_5_22()
         sage: print is_orthogonal_array(OA,5,22,2)
@@ -512,7 +585,7 @@ def OA_9_24():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_24
         sage: OA = OA_9_24()
         sage: print is_orthogonal_array(OA,9,24,2)
@@ -563,7 +636,7 @@ def OA_6_26():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_26
         sage: OA = OA_6_26()
         sage: print is_orthogonal_array(OA,6,26,2)
@@ -611,7 +684,7 @@ def OA_7_28():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_28
         sage: OA = OA_7_28()
         sage: print is_orthogonal_array(OA,7,28,2)
@@ -663,7 +736,7 @@ def OA_6_30():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_30
         sage: OA = OA_6_30()
         sage: print is_orthogonal_array(OA,6,30,2)
@@ -715,7 +788,7 @@ def OA_7_33():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_33
         sage: OA = OA_7_33()
         sage: print is_orthogonal_array(OA,7,33,2)
@@ -766,7 +839,7 @@ def OA_6_34():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_34
         sage: OA = OA_6_34()
         sage: print is_orthogonal_array(OA,6,34,2)
@@ -818,7 +891,7 @@ def OA_7_35():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_35
         sage: OA = OA_7_35()
         sage: print is_orthogonal_array(OA,7,35,2)
@@ -856,7 +929,7 @@ def OA_10_36():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_36
         sage: OA = OA_10_36()
         sage: print is_orthogonal_array(OA,10,36,2)
@@ -914,7 +987,7 @@ def OA_6_38():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_38
         sage: OA = OA_6_38()
         sage: print is_orthogonal_array(OA,6,38,2)
@@ -963,7 +1036,7 @@ def OA_7_39():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_39
         sage: OA = OA_7_39()
         sage: print is_orthogonal_array(OA,7,39,2)
@@ -1014,7 +1087,7 @@ def OA_9_40():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_40
         sage: OA = OA_9_40()
         sage: print is_orthogonal_array(OA,9,40,2)
@@ -1088,7 +1161,7 @@ def OA_7_42():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_42
         sage: OA = OA_7_42()
         sage: print is_orthogonal_array(OA,7,42,2)
@@ -1133,7 +1206,7 @@ def OA_7_44():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_44
         sage: OA = OA_7_44()
         sage: print is_orthogonal_array(OA,7,44,2)
@@ -1202,7 +1275,7 @@ def OA_8_45():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_45
         sage: OA = OA_8_45()
         sage: print is_orthogonal_array(OA,8,45,2)
@@ -1261,7 +1334,7 @@ def OA_6_46():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_6_46
         sage: OA = OA_6_46()
         sage: print is_orthogonal_array(OA,6,46,2)
@@ -1287,7 +1360,7 @@ def OA_10_48():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_48
         sage: OA = OA_10_48()
         sage: print is_orthogonal_array(OA,10,48,2)
@@ -1344,7 +1417,7 @@ def OA_8_50():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_50
         sage: OA = OA_8_50()
         sage: print is_orthogonal_array(OA,8,50,2)
@@ -1370,7 +1443,7 @@ def OA_7_51():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_51
         sage: OA = OA_7_51()
         sage: print is_orthogonal_array(OA,7,51,2)
@@ -1416,7 +1489,7 @@ def OA_7_52():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_52
         sage: OA = OA_7_52()
         sage: print is_orthogonal_array(OA,7,52,2)
@@ -1497,7 +1570,7 @@ def OA_7_54():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_54
         sage: OA = OA_7_54()
         sage: print is_orthogonal_array(OA,7,54,2)
@@ -1543,7 +1616,7 @@ def OA_8_55():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_8_55
         sage: OA = OA_8_55()
         sage: print is_orthogonal_array(OA,8,55,2)
@@ -1589,7 +1662,7 @@ def OA_9_56():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_56
         sage: OA = OA_9_56()
         sage: print is_orthogonal_array(OA,9,56,2)
@@ -1631,6 +1704,37 @@ def OA_9_56():
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
 
+def OA_9_57():
+    r"""
+    Returns an OA(9,57)
+
+    Given by Julian R. Abel.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_9_57
+        sage: OA = OA_9_57()
+        sage: print is_orthogonal_array(OA,9,57,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(9,57,existence=True)
+        True
+    """
+    M = orthogonal_array(8,8)
+    M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, 7..7 rows.
+    B = (1,6,7,9,19,38,42,49) # base block of a (57,8,1) BIBD
+    M = [[B[x] for x in R] for R in M]
+    M.append([0]*8)
+    Mb = zip(*M)
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(57)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    return M
+
 def OA_7_60():
     r"""
     Returns an OA(7,60)
@@ -1652,7 +1756,7 @@ def OA_7_60():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_60
         sage: OA = OA_7_60()
         sage: print is_orthogonal_array(OA,7,60,2)
@@ -1699,7 +1803,7 @@ def OA_7_62():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_7_62
         sage: OA = OA_7_62()
         sage: print is_orthogonal_array(OA,7,62,2)
@@ -1745,7 +1849,7 @@ def OA_9_65():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_65
         sage: OA = OA_9_65()
         sage: print is_orthogonal_array(OA,9,65,2)
@@ -1757,7 +1861,6 @@ def OA_9_65():
         True
     """
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as G
-    from orthogonal_arrays import orthogonal_array
 
     B = [None,1, 6, 7, 9, 19, 38, 42, 49] # Base block of a (57,8,1)-BIBD
     OA = orthogonal_array(9,9,2)
@@ -1768,6 +1871,199 @@ def OA_9_65():
 
     M = OA_from_quasi_difference_matrix(zip(*M), G(57),add_col=False)
     return M
+
+def OA_7_66():
+    r"""
+    Returns an OA(7,66)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_66
+        sage: OA = OA_7_66()
+        sage: print is_orthogonal_array(OA,7,66,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,66,existence=True)
+        True
+    """
+
+    # base block of a (73,9,1) BIBD
+    B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    # the first 7 elements of an oval
+    #
+    # (this is the only difference with the OA(7,68) construction)
+    oval = [(-x)%73 for x in B][:7]
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in oval] for B in BIBD]
+    # We relabel the points to 0,1,2,...
+    V = [x for x in range(73) if x not in oval]
+    rel = dict(zip(V,range(len(V))))
+    PBD = [[rel[x] for x in B] for B in PBD]
+    return OA_from_PBD(7,66,PBD,check=False)
+
+def OA_7_68():
+    r"""
+    Returns an OA(7,68)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_68
+        sage: OA = OA_7_68()
+        sage: print is_orthogonal_array(OA,7,68,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,68,existence=True)
+        True
+    """
+
+    # base block of a (73,9,1) BIBD
+    B = [0, 19, 26, 14, 63, 15, 32, 35, 65]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    # the first 5 elements of an oval
+    #
+    # (this is the only difference with the OA(7,66) construction)
+    oval = [(-x)%73 for x in B][:5]
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in oval] for B in BIBD]
+    # We relabel the points to 0,1,2,...
+    V = [x for x in range(73) if x not in oval]
+    rel = dict(zip(V,range(len(V))))
+    PBD = [[rel[x] for x in B] for B in PBD]
+    return OA_from_PBD(7,68,PBD,check=False)
+
+def OA_8_69():
+    r"""
+    Returns an OA(8,69)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_69
+        sage: OA = OA_8_69()
+        sage: print is_orthogonal_array(OA,8,69,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,69,existence=True)
+        True
+    """
+    # base block of a (73,9,1) BIBD
+    B = [1,2,4,8,16,32,37,55,64]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%73 for x in B] for i in range(73)]
+    oval = [72,71,69,65]
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in oval] for B in BIBD]
+
+    sets_of_size_seven = [R for R in PBD if len(R) == 7]
+    others             = [R for R in PBD if len(R) != 7]
+
+    # 68, 27, and 52 are the only elements appearing twice in the rows of
+    # sets_of_size_seven, and each row contains exactly one of them.
+
+    # We split them into "balanced" halves.
+    O1 = sets_of_size_seven[:3]
+    O2 = sets_of_size_seven[-3:]
+    assert all(x in sum(O1,[]) for x in (68,27,52))
+    assert all(x in sum(O2,[]) for x in (68,27,52))
+
+    # Blocks of "others", without the 0..0,1..1,2..2 ... rows
+    OA = OA_from_PBD(8,69,others,check=False)[:-69]
+
+    # Blocks of O1
+    OA_8_7 = orthogonal_array(8,7,check=False)
+    for B in O1:
+        for BB in OA_8_7:
+            OA.append([B[i] for i in BB])
+
+    # Blocks of O2
+    OA_8_7_minus_TD_8_1 = OA_8_7
+    OA_8_7_minus_TD_8_1.remove([0]*8)
+    for B in O2:
+        # Making sure the double element is the first one
+        B.sort(key=lambda x: int(bool(x not in (68,27,52))))
+        for BB in OA_8_7:
+            OA.append([B[i] for i in BB])
+
+
+    # Adding the  missing 0..0,1..1,... rows
+    done = sum(O1,[])+sum(O2,[])
+    missing = [x for x in range(73) if x not in done and x not in oval]
+    for x in missing:
+        OA.append([x]*8)
+
+    # Relabelling everything to 0..68
+    relabel = dict(zip([x for x in range(73) if x not in oval],range(69)))
+    OA = [[relabel[x] for x in B] for B in OA]
+    return OA
+
+def OA_7_74():
+    r"""
+    Returns an OA(7,74)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_7_74
+        sage: OA = OA_7_74()
+        sage: print is_orthogonal_array(OA,7,74,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(7,74,existence=True)
+        True
+    """
+
+    # base block of a (91,10,1) BIBD
+    B = [0,1,3,9,27,81,61,49,56,77]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    # an oval
+    oval = [(-x)%91 for x in B][-7:]
+    # PBD minus the oval+B
+    to_delete = oval + B
+    PBD = [[x for x in B if x not in to_delete] for B in BIBD]
+    PBD.remove([])
+    # We relabel the points to 0,1,2,...
+    V = [x for x in range(91) if x not in to_delete]
+    rel = dict(zip(V,range(len(V))))
+    PBD = [[rel[x] for x in B] for B in PBD]
+    return OA_from_PBD(7,74,PBD,check=False)
 
 def OA_9_75():
     r"""
@@ -1781,7 +2077,7 @@ def OA_9_75():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_9_75
         sage: OA = OA_9_75()
         sage: print is_orthogonal_array(OA,9,75,2)
@@ -1824,6 +2120,73 @@ def OA_9_75():
     M = OA_from_quasi_difference_matrix(Mb,G,add_col = True)
     return M
 
+def OA_8_76():
+    r"""
+    Returns an OA(8,76)
+
+    Construction shared by Julian R. Abel.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_8_76
+        sage: OA = OA_8_76()
+        sage: print is_orthogonal_array(OA,8,76,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(8,76,existence=True)
+        True
+    """
+    # base block of a (91,10,1) BIBD
+    B = [0,1,3,9,27,81,61,49,56,77]
+    # The corresponding BIBD
+    BIBD= [[(x+i)%91 for x in B] for i in range(91)]
+    oval = [2,4,5,12,24]
+    to_remove = oval + B
+    # PBD minus the oval
+    PBD = [[x for x in B if x not in to_remove] for B in BIBD]
+    PBD.remove([])
+
+    sets_of_size_seven = [R for R in PBD if len(R) == 7]
+    others             = [R for R in PBD if len(R) != 7]
+
+    # critical_points are the 10 elements appearing twice in the rows of the 10
+    # sets_of_size_seven, and each row contains exactly two of them
+    critical_points = [57,83,52,13,15,64,37,50,63,31]
+
+    # We reorder the rows such that every element of critical_points is exactly
+    # once the first element of a row.
+    for i,x in zip(critical_points,sets_of_size_seven):
+        x.sort(key=lambda x:-int(x==i))
+        assert x[0]==i
+
+    # Blocks of "others", without the 0..0,1..1,2..2 ... rows
+    OA = OA_from_PBD(8,76,others,check=False)[:-76]
+
+    OA_8_7 = orthogonal_array(8,7,check=False)
+    OA_8_7_minus_TD_8_1 = OA_8_7
+    OA_8_7_minus_TD_8_1.remove([0]*8)
+    for B in sets_of_size_seven:
+        for BB in OA_8_7:
+            OA.append([B[i] for i in BB])
+
+    # Adding the  missing 0..0,1..1,... rows
+    done = sum(sets_of_size_seven,[])
+    missing = [x for x in range(91) if x not in done and x not in to_remove]
+    for x in missing:
+        OA.append([x]*8)
+
+    # Relabelling everything to 0..68
+    relabel = dict(zip([x for x in range(91) if x not in to_remove],range(91)))
+    OA = [[relabel[x] for x in B] for B in OA]
+    return OA
+
 def OA_11_80():
     r"""
     Returns an OA(11,80)
@@ -1836,7 +2199,7 @@ def OA_11_80():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_11_80
         sage: OA = OA_11_80()
         sage: print is_orthogonal_array(OA,11,80,2)
@@ -1906,7 +2269,7 @@ def OA_10_82():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_82
         sage: OA = OA_10_82()
         sage: print is_orthogonal_array(OA,10,82,2)
@@ -1933,7 +2296,7 @@ def OA_10_100():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_10_100
         sage: OA = OA_10_100()
         sage: print is_orthogonal_array(OA,10,100,2)
@@ -1960,7 +2323,7 @@ def OA_12_144():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_12_144
         sage: OA = OA_12_144()
         sage: print is_orthogonal_array(OA,12,144,2)
@@ -1972,6 +2335,33 @@ def OA_12_144():
         True
     """
     M = OA_from_Vmt(10,13,[0, 1, 5, 10, 22, 6, 14, 9, 53, 129, 84])
+    return M
+
+def OA_10_154():
+    r"""
+    Returns an OA(10,154)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_10_154
+        sage: OA = OA_10_154()
+        sage: print is_orthogonal_array(OA,10,154,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(10,154,existence=True)
+        True
+    """
+    M = OA_from_Vmt(8,17,[0,1,3,2,133,126,47,109,74])
     return M
 
 def OA_12_210():
@@ -1987,7 +2377,7 @@ def OA_12_210():
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.orthogonal_arrays import is_orthogonal_array
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_12_210
         sage: OA = OA_12_210()
         sage: print is_orthogonal_array(OA,12,210,2)
@@ -2001,6 +2391,178 @@ def OA_12_210():
     M = OA_from_Vmt(10,19,[0, 1, 3, 96, 143, 156, 182, 142, 4, 189, 25])
     return M
 
+def OA_18_273():
+    r"""
+    Returns an OA(18,273)
+
+    Given by Julian R. Abel.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_18_273
+        sage: OA = OA_18_273()
+        sage: print is_orthogonal_array(OA,18,273,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(18,273,existence=True)
+        True
+    """
+    M = orthogonal_array(17,17)
+    M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, ... rows.
+    B = (1,2,4,8,16,32,64,91,117,128,137,182,195,205,234,239,256) # (273,17,1) difference set
+    M = [[B[x] for x in R] for R in M]
+    M.append([0]*17)
+    Mb = zip(*M)
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(273)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    return M
+
+def OA_12_276():
+    r"""
+    Returns an OA(12,276)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_276
+        sage: OA = OA_12_276()
+        sage: print is_orthogonal_array(OA,12,276,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,276,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,25,[0,1,3,85,140,178,195,22,48,179,188])
+    return M
+
+def OA_12_298():
+    r"""
+    Returns an OA(12,298)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_298
+        sage: OA = OA_12_298()
+        sage: print is_orthogonal_array(OA,12,298,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,298,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,27,[0,1,3,82,109,241,36,112,141,263,126])
+    return M
+
+def OA_12_342():
+    r"""
+    Returns an OA(12,342)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_342
+        sage: OA = OA_12_342()
+        sage: print is_orthogonal_array(OA,12,342,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,342,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,31,[0,1,3,57,128,247,289,239,70,271,96])
+    return M
+
+def OA_12_474():
+    r"""
+    Returns an OA(12,474)
+
+    Given by Julian R. Abel, using a `V(m,t)` from the Handbook
+    [DesignHandbook]_.
+
+    .. SEEALSO::
+
+        :func:`sage.combinat.designs.orthogonal_arrays.OA_from_Vmt`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_12_474
+        sage: OA = OA_12_474()
+        sage: print is_orthogonal_array(OA,12,474,2)
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(12,474,existence=True)
+        True
+    """
+    M = OA_from_Vmt(10,43,[0,1,6,29,170,207,385,290,375,32,336])
+    return M
+
+def OA_33_993():
+    r"""
+    Returns an OA(33,993)
+
+    Given by Julian R. Abel.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
+        sage: from sage.combinat.designs.database import OA_33_993
+        sage: OA = OA_33_993()                          # not tested -- too long
+        sage: print is_orthogonal_array(OA,33,993,2)    # not tested -- too long
+        True
+
+    The design is available from the general constructor::
+
+        sage: designs.orthogonal_array(33,993,existence=True)
+        True
+    """
+    M = orthogonal_array(32,32)
+    M = [R for R in M if any(x!=R[0] for x in R)] # removing the 0..0, 1..1, ... rows.
+    B = (0,74,81,126,254,282,308,331,344,375,387,409,525,563, # (993,32,1) difference set
+         572,611,631,661,694,702,734,763,798,809,814,851,906,
+         908,909,923,927,933)
+    M = [[B[x] for x in R] for R in M]
+    M.append([0]*32)
+    Mb = zip(*M)
+
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
+    G = AdditiveCyclic(993)
+    M = OA_from_quasi_difference_matrix(Mb,G,add_col=True)
+    return M
+
 # Index of the OA constructions
 #
 # Associates to n the pair (k,f) where f() is a function that returns an OA(k,n)
@@ -2008,6 +2570,7 @@ def OA_12_210():
 # This dictionary is used by designs.orthogonal_array(k,n).
 
 OA_constructions = {
+    18  : (7  , OA_7_18),
     20  : (6  , OA_6_20),
     21  : (7  , OA_7_21),
     22  : (5  , OA_5_22),
@@ -2033,14 +2596,276 @@ OA_constructions = {
     54  : (7  , OA_7_54),
     55  : (8  , OA_8_55),
     56  : (9  , OA_9_56),
+    57  : (9  , OA_9_57),
     60  : (7  , OA_7_60),
     62  : (7  , OA_7_62),
     65  : (9  , OA_9_65),
+    66  : (7  , OA_7_66),
+    68  : (7  , OA_7_68),
+    69  : (8  , OA_8_69),
+    74  : (7  , OA_7_74),
     75  : (9  , OA_9_75),
+    76  : (8  , OA_8_76),
     80  : (11 , OA_11_80),
     82  : (10 , OA_10_82),
     100 : (10 , OA_10_100),
     144 : (12 , OA_12_144),
-    210 : (12 , OA_12_210)
+    154 : (10 , OA_10_154),
+    210 : (12 , OA_12_210),
+    273 : (18 , OA_18_273),
+    276 : (12 , OA_12_276),
+    298 : (12 , OA_12_298),
+    342 : (12 , OA_12_342),
+    474 : (12 , OA_12_474),
+    993 : (33 , OA_33_993)
+}
+
+def CDF_21_5_1():
+    r"""
+    A cyclic `(21,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_21_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_21_5_1()
+        sage: is_difference_family(G,D,21,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(21,5,1)
+    """
+    D = [[0,1,4,14,16]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(21), D
+
+def ADF_5x5_4_1():
+    r"""
+    An Abelian difference family on `(\ZZ / 5 \ZZ)^2`.
+
+    This is the example 7.26 of [Stinson2004]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import ADF_5x5_4_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G,D = ADF_5x5_4_1()
+        sage: is_difference_family(G,D,25,4,1)
+        True
+    """
+    D = [[(0,0),(0,1),(1,0),(2,2)],[(0,0),(0,2),(2,0),(4,4)]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    from sage.categories.cartesian_product import cartesian_product
+    return cartesian_product([Zmod(5),Zmod(5)]), D
+
+def CDF_37_4_1():
+    r"""
+    A cyclic `(37,4,1)`-difference family.
+
+    It appears as example 7.28 in [Stinson2004]_ and in the examples VI.16.14 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_37_4_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_37_4_1()
+        sage: is_difference_family(G,D,37,4,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(37,4,1)
+
+    """
+    D = [[0,1,3,24],[0,4,26,32],[0,10,18,30]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(37), D
+
+def CDF_81_5_1():
+    r"""
+    A cyclic `(81,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_81_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_81_5_1()
+        sage: is_difference_family(G,D,81,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(81,5,1)
+    """
+    D = [[0,1,5,12,26],[0,2,10,40,64],[0,3,18,47,53],[0,9,32,48,68]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(81), D
+
+def CDF_91_6_1():
+    r"""
+    A cyclic `(91,6,1)`-difference family.
+
+    From the examples VI.16.18 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_91_6_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_91_6_1()
+        sage: is_difference_family(G,D,91,6,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(91,6,1)
+    """
+    D = [[0,1,3,7,25,38], [0,16,21,36,48,62], [0,30,40,63,74,82]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(91), D
+
+def CDF_121_5_1():
+    r"""
+    A cyclic `(121,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_121_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_121_5_1()
+        sage: is_difference_family(G,D,121,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(121,5,1)
+    """
+    D = [[0,14,26,51,60],[0,15,31,55,59],[0,10,23,52,58],[0,3,36,56,57],
+         [0,7,18,45,50],[0,8,30,47,49]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(121), D
+
+def CDF_141_5_1():
+    r"""
+    A cyclic `(141,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_141_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_141_5_1()
+        sage: is_difference_family(G,D,141,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(141,5,1)
+    """
+    D = [[0,33,60,92,97], [0,3,45,88,110], [0,18,39,68,139],
+         [0,12,67,75,113], [0,1,15,84,94], [0,7,11,24,30],
+         [0,36,90,116,125]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(141), D
+
+def CDF_161_5_1():
+    r"""
+    A cyclic `(161,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_161_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_161_5_1()
+        sage: is_difference_family(G,D,161,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(161,5,1)
+    """
+    D = [[0,19,34,73,80], [0,16,44,71,79], [0,12,33,74,78],
+         [0,13,30,72,77], [0,11,36,67,76], [0,18,32,69,75],
+         [0,10,48,68,70], [0,3,29,52,53]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(161), D
+
+def CDF_201_5_1():
+    r"""
+    A cyclic `(201,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_201_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_201_5_1()
+        sage: is_difference_family(G,D,201,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(201,5,1)
+    """
+    D = [[0,1,45,98,100], [0,3,32,65,89], [0,4,54,70,75],
+         [0,6,49,69,91], [0,7,58,81,95], [0,8,34,72,90],
+         [0,9,36,77,96], [0,10,35,83,94], [0,12,40,79,92],
+         [0,15,46,76,93]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(201), D
+
+def CDF_221_5_1():
+    r"""
+    A cyclic `(221,5,1)`-difference family.
+
+    From the examples VI.16.16 of [DesignHandbook]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.database import CDF_221_5_1
+        sage: from sage.combinat.designs.difference_family import is_difference_family
+        sage: G, D = CDF_221_5_1()
+        sage: is_difference_family(G,D,221,5,1)
+        True
+
+    The difference family is available from the constructor::
+
+        sage: _ = designs.difference_family(221,5,1)
+    """
+    D = [[0,1,24,61,116], [0,3,46,65,113], [0,4,73,89,130],
+         [0,5,77,122,124], [0,6,39,50,118], [0,7,66,81,94],
+         [0,8,38,64,139], [0,9,29,80,107], [0,10,35,93,135],
+         [0,12,34,52,88], [0,14,31,63,84]]
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    return Zmod(221), D
+
+# Index of the (right now cyclic) difference families constructions
+#
+# Associates to triple (v,k,lambda) a function that return a
+# (n,k,lambda)-difference family.
+#
+# This dictionary is used by designs.difference_family
+
+DF_constructions = {
+    (21,5,1): CDF_21_5_1,
+    (25,4,1): ADF_5x5_4_1,
+    (37,4,1): CDF_37_4_1,
+    (81,5,1): CDF_81_5_1,
+    (91,6,1): CDF_91_6_1,
+    (121,5,1): CDF_121_5_1,
+    (141,5,1): CDF_141_5_1,
+    (161,5,1): CDF_161_5_1,
+    (201,5,1): CDF_201_5_1,
+    (221,5,1): CDF_221_5_1
 }
 

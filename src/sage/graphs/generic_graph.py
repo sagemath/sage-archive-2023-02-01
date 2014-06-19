@@ -1620,12 +1620,18 @@ class GenericGraph(GenericGraph_pyx):
             [-1 -1  2  0]
             [-1  0  0  1]
             sage: G.set_boundary([2,3])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: M = G.kirchhoff_matrix(weighted=True, boundary_first=True); M
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             [ 5  0 -3 -2]
             [ 0  4 -4  0]
             [-3 -4  8 -1]
             [-2  0 -1  3]
             sage: M = G.kirchhoff_matrix(boundary_first=True); M
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             [ 2  0 -1 -1]
             [ 0  1 -1  0]
             [-1 -1  3 -1]
@@ -1720,9 +1726,14 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.set_boundary([0,1,2,3,4])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: G.get_boundary()
             [0, 1, 2, 3, 4]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
+
         return self._boundary
 
     def set_boundary(self, boundary):
@@ -1733,12 +1744,17 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.set_boundary([0,1,2,3,4])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: G.get_boundary()
             [0, 1, 2, 3, 4]
             sage: G.set_boundary((1..4))
             sage: G.get_boundary()
             [1, 2, 3, 4]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
+
         if isinstance(boundary,list):
             self._boundary = boundary
         else:
@@ -3586,6 +3602,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
             sage: g439.set_boundary([1,2,3,4])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: g439.show()
             sage: g439.is_circular_planar(boundary = [1,2,3,4])
             False
@@ -3958,11 +3976,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: cube = graphs.CubeGraph(2)
             sage: cube.set_boundary(['01','10'])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: cube.genus()
             0
             sage: cube.is_circular_planar()
             True
             sage: cube.genus(circular=True)
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             0
             sage: cube.genus(circular=True, on_embedding=True)
             0
@@ -5577,11 +5599,9 @@ class GenericGraph(GenericGraph_pyx):
         cut = p.get_values(cut)
 
         if self.is_directed():
-            return filter(lambda u_v_l: cut[u_v_l[0], u_v_l[1]] == 1,
-                          self.edge_iterator())
+            return [x for x in self.edge_iterator() if cut[x[0], x[1]] == 1]
 
-        return filter(lambda u_v_l: cut[R(u_v_l[0], u_v_l[1])] == 1,
-                      self.edge_iterator())
+        return [x for x in self.edge_iterator() if cut[R(x[0], x[1])] == 1]
 
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
@@ -8390,6 +8410,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PathGraph(5)
             sage: G.set_vertices({0: 'no delete', 1: 'delete'})
             sage: G.set_boundary([1,2])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: G.delete_vertex(1)
             sage: G.get_vertices()
             {0: 'no delete', 2: None, 3: None, 4: None}
@@ -8867,6 +8889,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: P = graphs.PetersenGraph()
             sage: P.set_boundary((5..9))
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: P.vertices(boundary_first=True)
             [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
             sage: P.vertices(boundary_first=True, key=lambda x: -x)
@@ -8875,6 +8899,8 @@ class GenericGraph(GenericGraph_pyx):
         if not boundary_first:
             return sorted(list(self.vertex_iterator()), key=key)
 
+        from sage.misc.superseded import deprecation
+        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
         bdy_verts = []
         int_verts = []
         for v in self.vertex_iterator():
@@ -10209,11 +10235,11 @@ class GenericGraph(GenericGraph_pyx):
         else:
             vertices = [v for v in vertices if v in self]
         if labels:
-            filter = lambda v, self: (v, self._backend.degree(v, self._directed))
+            filter_ = lambda v, self: (v, self._backend.degree(v, self._directed))
         else:
-            filter = lambda v, self: self._backend.degree(v, self._directed)
+            filter_ = lambda v, self: self._backend.degree(v, self._directed)
         for v in vertices:
-            yield filter(v, self)
+            yield filter_(v, self)
 
     def degree_sequence(self):
         r"""
@@ -12646,7 +12672,11 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
             sage: eg2 = copy(eg1)
             sage: eg2.set_boundary([0,1,3])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: sorted(eg2.interior_paths(0,6))
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             [[0, 2, 4, 5, 6]]
             sage: sorted(eg2.all_paths(0,6))
             [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
@@ -12697,6 +12727,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: sorted(ug.interior_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
+
         from copy import copy
         H = copy(self)
         for vertex in self.get_boundary():
@@ -15219,6 +15252,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.set_boundary([0,1])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
 
@@ -15537,8 +15572,10 @@ class GenericGraph(GenericGraph_pyx):
             - If ``method="js"`` the graph is displayed using the `d3.js
               <http://d3js.org/>`_ library in a browser. In this situation, the
               method accepts any other option understood by
-              :meth:`sage.graphs.graph_plot_js.gen_html_code`.
-
+              :meth:`sage.graphs.graph_plot_js.gen_html_code`. Depending on
+              whether d3js optional package is installed or not, the javascript
+              code will be used locally or fetched from d3js.org website by the
+              browser. 
 
         This method accepts any other option understood by
         :meth:`~sage.graphs.generic_graph.GenericGraph.plot` (graph-specific) or
@@ -16823,6 +16860,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PathGraph(5)
             sage: G.set_vertices({0: 'before', 1: 'delete', 2: 'after'})
             sage: G.set_boundary([1,2,3])
+            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
+            See http://trac.sagemath.org/15494 for details.
             sage: G.delete_vertex(1)
             sage: G.relabel()
             sage: G.get_vertices()

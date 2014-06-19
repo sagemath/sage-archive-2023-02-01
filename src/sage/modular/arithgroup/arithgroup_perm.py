@@ -388,7 +388,7 @@ def ArithmeticSubgroup_Permutation(
          L=(1,2)(3,5,4)
          R=(1,2)(3,4,5)
     """
-    gens = filter(lambda x: x is not None, [S2,S3,L,R])
+    gens = [x for x in [S2,S3,L,R] if x is not None]
     if len(gens) == 0:
         S2 = S3 = L = R = ''
     elif len(gens) < 2:

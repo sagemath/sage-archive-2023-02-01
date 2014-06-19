@@ -7,8 +7,25 @@ from player import _Player
 
 class NormalFormGame(SageObject):
 
-    def __init__(self):
+    def __init__(self, arg1, arg2):
         self.players = []
+        if type(arg1) is list:
+            matrices = arg1
+            flag = 'two-matrix'
+            if matrices[0].dimensions() != matrices[1].dimensions():
+                raise ValueError("matrices must be the same size")
+        elif arg1 == 'bi-matrix':
+            flag = arg1
+            bimatrix = arg2
+        elif arg1 == 'zero-sum':
+            flag = 'two-matrix'
+            matrices = [arg2]
+            matrices.append(-arg2)
+
+        if flag == 'two-matrix':
+            self._two_matrix_game(matrices)
+        elif flag == 'bi-matrix':
+            self._bimatrix_game(bimatrix)
 
     def add_player(self, num_strategies):
         self.players.append(_Player(num_strategies))

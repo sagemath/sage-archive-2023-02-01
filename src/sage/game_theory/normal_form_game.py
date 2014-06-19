@@ -1,6 +1,7 @@
 from itertools import product
 from sage.structure.sage_object import SageObject
 from sage.misc.package import is_package_installed
+from sage.matrix.constructor import matrix
 from parser import Parser
 from player import _Player
 
@@ -89,17 +90,16 @@ class NormalFormGame(SageObject):
         if algorithm == "lrs":
             if not is_package_installed('lrs'):
                 raise NotImplementedError("lrs is not installed")
+            m1, m2 = self._game_two_matrix()
             if maximization is False:
-                min1 = - self.payoff_matrices[0]
-                min2 = - self.payoff_matrices[1]
+                min1 = - m1
+                min2 = - m2
                 nasheq = self._solve_lrs(min1, min2)
             else:
-                nasheq = self._solve_lrs(self.payoff_matrices[0],
-                                         self.payoff_matrices[1])
+                nasheq = self._solve_lrs(m1, m2)
             return nasheq
 
-    def game_two_matrix(self):
-        from sage.matrix.constructor import matrix
+    def _game_two_matrix(self):
         m1 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
         for key in self.strategy_profiles:
@@ -170,7 +170,7 @@ class NormalFormGame(SageObject):
 
         process = Popen(['nash', g1_name, g2_name], stdout=PIPE)
         lrs_output = [row for row in process.stdout]
-        nasheq = Formatter(lrs_output).format_lrs()
+        nasheq = Parser(lrs_output).format_lrs()
         return nasheq
 
     def _solve_enumeration(self):
@@ -214,8 +214,8 @@ class NormalFormGame(SageObject):
 
         """
         from sage.geometry.polyhedron.misc import _to_space_separated_string
-        m = len(self.players[0].strategies)
-        n = len(self.players[1].strategies)
+        m = self.players[0].num_strategies
+        n = self.players[1].num_strategies
         midentity = list(matrix.identity(m))
         nidentity = list(matrix.identity(n))
 

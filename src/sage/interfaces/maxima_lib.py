@@ -577,7 +577,7 @@ class MaximaLib(MaximaAbstract):
             if "Is" in s: # Maxima asked for a condition
                 self._missing_assumption(s)
             else:
-                raise error
+                raise
         return name
 
     def _function_class(self):

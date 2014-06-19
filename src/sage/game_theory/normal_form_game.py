@@ -1,6 +1,8 @@
 from itertools import product
 from sage.structure.sage_object import SageObject
 from sage.misc.package import is_package_installed
+from formatter import Formatter
+from player import _Player
 
 
 class NormalFormGame(SageObject):
@@ -40,7 +42,6 @@ class NormalFormGame(SageObject):
                 raise NotImplementedError("gambit is not installed")
         from gambit import Game
         from gambit.nash import ExternalLCPSolver
-        from formatter import Formatter
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
         for key in self.strategy_profiles:
@@ -62,11 +63,3 @@ class NormalFormGame(SageObject):
         # call _is_complete()
         # write algorithm at some point
         pass
-
-
-class _Player():
-    def __init__(self, num_strategies):
-        self.num_strategies = num_strategies
-
-    def add_strategy(self):
-        self.num_strategies += 1

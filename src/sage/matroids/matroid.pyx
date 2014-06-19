@@ -300,6 +300,7 @@ from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
 from sage.combinat.subset import Subsets
+from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.calculus.all import var
@@ -1443,6 +1444,57 @@ cdef class Matroid(SageObject):
             raise ValueError("input X is not a subset of the groundset.")
         return self._closure(frozenset(X))
 
+    cpdef k_closure(self, X, k):
+        r"""
+        Return the ``k``-closure of ``X``.
+
+        A set `S` is `k`-*closed* if the closure of any `k` element subsets
+        is contained in `S`. The `k`-*closure* of a set `X` is the smallest
+        `k`-closed set containing `X`.
+
+        INPUT:
+
+        - ``X`` -- a subset of ``self.groundset()``
+        - ``k`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: m = matrix([[1,2,5,2], [0,2,1,0]])
+            sage: M = Matroid(m)
+            sage: sorted(M.k_closure({1,3}, 2))
+            [0, 1, 2, 3]
+            sage: sorted(M.k_closure({0,1}, 1))
+            [0, 1, 3]
+            sage: sorted(M.k_closure({1,2}, 1))
+            [1, 2]
+
+            sage: Q = RootSystem(['D',4]).root_lattice()
+            sage: m = matrix(map(lambda x: x.to_vector(), Q.positive_roots()))
+            sage: m = m.transpose(); m
+            [1 0 0 0 1 0 0 0 1 1 1 1]
+            [0 1 0 0 1 1 1 1 1 1 1 2]
+            [0 0 1 0 0 0 1 1 1 0 1 1]
+            [0 0 0 1 0 1 0 1 0 1 1 1]
+            sage: M = Matroid(m)
+            sage: sorted(M.k_closure({0,2,3,11}, 3))
+            [0, 2, 3, 11]
+            sage: sorted(M.k_closure({0,2,3,11}, 4))
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            sage: sorted(M.k_closure({0,1}, 4))
+            [0, 1, 4]
+        """
+        cdef int cur
+        cdef frozenset S, cl
+        cur = 0
+        S = frozenset(X)
+        while cur != len(S):
+            cur = len(S)
+            cl = frozenset([])
+            for T in Subsets(S, min(k,cur)):
+                cl = cl.union(self.closure(T))
+            S = cl
+        return S
+
     cpdef augment(self, X, Y=None):
         r"""
         Return a maximal subset `I` of `Y - X` such that
@@ -1881,6 +1933,64 @@ cdef class Matroid(SageObject):
         if not self.groundset().issuperset(X):
             raise ValueError("input X is not a subset of the groundset.")
         return self._is_closed(frozenset(X))
+
+    cpdef is_subset_k_closed(self, X, k):
+        r"""
+        Test if ``X`` is a ``k``-closed set of the matroid.
+
+        A set `S` is `k`-*closed* if the closure of any `k` element subsets
+        is contained in `S`.
+
+        INPUT:
+
+        - ``X`` -- a subset of ``self.groundset()``
+        - ``k`` -- a positive integer
+
+        OUTPUT:
+
+        Boolean.
+
+        .. SEEALSO::
+
+            :meth:`M.k_closure() <sage.matroids.matroid.Matroid.k_closure>`
+
+        EXAMPLES::
+
+            sage: m = matrix([[1,2,5,2], [0,2,1,0]])
+            sage: M = Matroid(m)
+            sage: M.is_subset_k_closed({1,3}, 2)
+            False
+            sage: M.is_subset_k_closed({0,1}, 1)
+            False
+            sage: M.is_subset_k_closed({1,2}, 1)
+            True
+
+            sage: Q = RootSystem(['D',4]).root_lattice()
+            sage: m = matrix(map(lambda x: x.to_vector(), Q.positive_roots()))
+            sage: m = m.transpose(); m
+            [1 0 0 0 1 0 0 0 1 1 1 1]
+            [0 1 0 0 1 1 1 1 1 1 1 2]
+            [0 0 1 0 0 0 1 1 1 0 1 1]
+            [0 0 0 1 0 1 0 1 0 1 1 1]
+            sage: M = Matroid(m)
+            sage: M.is_subset_k_closed({0,2,3,11}, 3)
+            True
+            sage: M.is_subset_k_closed({0,2,3,11}, 4)
+            False
+            sage: M.is_subset_k_closed({0,1}, 4)
+            False
+            sage: M.is_subset_k_closed({0,1,4}, 4)
+            True
+        """
+        if len(X) < k:
+            return self.is_closed(X)
+
+        cdef frozenset cl
+        for T in Subsets(X, k):
+            cl = self.closure(T)
+            if not cl.issubset(T):
+                return False
+        return True
 
     cpdef is_circuit(self, X):
         r"""
@@ -4216,6 +4326,38 @@ cdef class Matroid(SageObject):
                 Y = groundset.difference(X)
                 if (self.rank(X) + self.rank(Y) - r == 1):
                     return False
+        return True
+
+    # matroid k-closed
+
+    cpdef is_k_closed(self, k):
+        r"""
+        Return if ``self`` is a ``k``-closed matroid.
+
+        We say a matroid is `k`-closed if all `k`-closed subsets
+        are closed in ``M``.
+
+        EXAMPLES::
+
+            sage: PR = RootSystem(['A',4]).root_lattice().positive_roots()
+            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
+            sage: M = Matroid(m)
+            sage: M.is_k_closed(3)
+            True
+            sage: M.is_k_closed(4)
+            True
+
+            sage: PR = RootSystem(['D',4]).root_lattice().positive_roots()
+            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
+            sage: M = Matroid(m)
+            sage: M.is_k_closed(3)
+            False
+            sage: M.is_k_closed(4)
+            True
+        """
+        for S in subsets(self.groundset()):
+            if self.is_subset_k_closed(S, k) and not self.is_closed(S):
+                return False
         return True
 
     # optimization

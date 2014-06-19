@@ -448,7 +448,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             """
             IM = IntegerMatrices(list(p), list(q))
             P = Compositions(self.realization_of()._n)
-            to_composition = lambda m: P( filter(lambda x: x != 0, m.list()) )
+            to_composition = lambda m: P( [x for x in m.list() if x != 0] )
             return self.sum_of_monomials(map(to_composition, IM))
 
         @cached_method

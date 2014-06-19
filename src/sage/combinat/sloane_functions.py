@@ -370,6 +370,7 @@ class A000001(SloaneSequence):
             sage: sloane.A000001._eval(4)
             2
             sage: sloane.A000001._eval(51) # optional - database_gap
+            1
         """
         if n <= 50:
             return self._small[n-1]

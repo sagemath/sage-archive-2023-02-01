@@ -1,7 +1,7 @@
 from itertools import product
 from sage.structure.sage_object import SageObject
 from sage.misc.package import is_package_installed
-from formatter import Formatter
+from parser import Parser
 from player import _Player
 
 
@@ -14,11 +14,14 @@ class NormalFormGame(SageObject):
         sage: A = matrix([[1, 2], [3, 4]])
         sage: B = matrix([[3, 3], [1, 4]])
         sage: C = NormalFormGame([A, B])
+        sage: C.obtain_Nash()
+        [[[0.0, 1.0], [0.0, 1.0]]]
 
     """
     def __init__(self, arg1=None, arg2=None):
 
         self.players = []
+        flag = 'n-player'
         if type(arg1) is list:
             matrices = arg1
             flag = 'two-matrix'
@@ -93,11 +96,11 @@ class NormalFormGame(SageObject):
         for key in self.strategy_profiles:
             for player in range(len(self.players)):
                 if maximization is False:
-                    g[key][player] = - self.strategy_profiles[key][player]
+                    g[key][player] = - int(self.strategy_profiles[key][player])
                 else:
-                    g[key][player] = self.strategy_profiles[key][player]
-        output = ExternalLCPSolver().solve(self)
-        nasheq = Formatter(output, self).format_gambit()
+                    g[key][player] = int(self.strategy_profiles[key][player])
+        output = ExternalLCPSolver().solve(g)
+        nasheq = Parser(output, g).format_gambit()
         return nasheq
 
     def _solve_lrs(self):

@@ -55,6 +55,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         sage: f.add_strategy(0)
         sage: f.strategy_profiles
+        {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
     Here is an example of a 3 by 2 game ::
 
@@ -185,17 +186,19 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def add_player(self, num_strategies):
         self.players.append(_Player(num_strategies))
-        self.generate_strategy_profiles()
+        self._generate_strategy_profiles(True)
 
-    def generate_strategy_profiles(self):
-        self.strategy_profiles = {}
+    def _generate_strategy_profiles(self, replacement):
         strategy_sizes = [range(p.num_strategies) for p in self.players]
+        if replacement is True:
+            self.strategy_profiles = {}
         for profile in product(*strategy_sizes):
-            self.strategy_profiles[profile] = [False] * len(self.players)
+            if profile not in self.strategy_profiles.keys():
+                self.strategy_profiles[profile] = [False]*len(self.players)
 
     def add_strategy(self, player):
         self.players[player].add_strategy()
-        self.generate_strategy_profiles()
+        self._generate_strategy_profiles(False)
 
     def _is_complete(self):
         return all(self.strategy_profiles.values())

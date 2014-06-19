@@ -9,11 +9,12 @@ class NormalFormGame(SageObject):
     r"""
     EXAMPLES:
 
-    A basic 2-player game constructed from matrices. ::
+    A basic 2-player game constructed from two matrices. ::
 
         sage: A = matrix([[1, 2], [3, 4]])
         sage: B = matrix([[3, 3], [1, 4]])
         sage: C = NormalFormGame([A, B])
+
     """
     def __init__(self, arg1=None, arg2=None):
 
@@ -23,9 +24,9 @@ class NormalFormGame(SageObject):
             flag = 'two-matrix'
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
-        elif arg1 == 'bi-matrix':
-            flag = arg1
-            bimatrix = arg2
+        # elif arg1 == 'bi-matrix':
+        #     flag = arg1
+        #     bimatrix = arg2
         elif arg1 == 'zero-sum':
             flag = 'two-matrix'
             matrices = [arg2]
@@ -33,8 +34,8 @@ class NormalFormGame(SageObject):
 
         if flag == 'two-matrix':
             self._two_matrix_game(matrices)
-        elif flag == 'bi-matrix':
-            self._bimatrix_game(bimatrix)
+        # elif flag == 'bi-matrix':
+        #     self._bimatrix_game(bimatrix)
 
     def _two_matrix_game(self, matrices):
         self.add_player(matrices[0].dimensions()[0])
@@ -42,11 +43,11 @@ class NormalFormGame(SageObject):
         for key in self.strategy_profiles:
             self.strategy_profiles[key] = (matrices[0][key], matrices[1][key])
 
-    def _bimatrix_game(self, bimatrix):
-        self.add_player(bimatrix.dimensions()[0])
-        self.add_player(bimatrix.dimensions()[1])
-        for key in self.strategy_profiles:
-            self.strategy_profiles[key] = bimatrix[key]
+    # def _bimatrix_game(self, bimatrix):
+    #     self.add_player(bimatrix.dimensions()[0])
+    #     self.add_player(bimatrix.dimensions()[1])
+    #     for key in self.strategy_profiles:
+    #         self.strategy_profiles[key] = bimatrix[key]
 
     def add_player(self, num_strategies):
         self.players.append(_Player(num_strategies))

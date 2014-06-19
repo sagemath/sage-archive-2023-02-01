@@ -27,6 +27,12 @@ class NormalFormGame(SageObject):
         elif flag == 'bi-matrix':
             self._bimatrix_game(bimatrix)
 
+    def _two_matrix_game(self, matrices):
+        pass
+
+    def _bimatrix_game(self, bimatrix):
+        pass
+
     def add_player(self, num_strategies):
         self.players.append(_Player(num_strategies))
         self.generate_strategy_profiles()

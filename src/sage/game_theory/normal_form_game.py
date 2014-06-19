@@ -62,7 +62,7 @@ class NormalFormGame(SageObject, MutableMapping):
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
         for key in self.strategy_profiles:
-            self.strategy_profiles[key] = (matrices[0][key], matrices[1][key])
+            self.strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
 
     # def _bimatrix_game(self, bimatrix):
     #     self.add_player(bimatrix.dimensions()[0])
@@ -83,9 +83,6 @@ class NormalFormGame(SageObject, MutableMapping):
     def add_strategy(self, player):
         self.players[player].add_strategy()
         self.generate_strategy_profiles()
-
-    def define_utility_vector(self, strategy_profile, utility_vector):
-        self.strategy_profiles[strategy_profile] = utility_vector
 
     def _is_complete(self):
         return all(self.strategy_profiles.values())

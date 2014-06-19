@@ -1,17 +1,14 @@
 """
-Co-operative games with N players.
+Co-operative Games With Finite Players
 
-This module implements a **basic** implementation of a characteristic function
-cooperative game. The main contribution is a class for a characteristic
-function game. Methods to calculate the Shapley value (a fair way of sharing
-common resources: (see 'Computational aspects of cooperative game theory' by Chalkiadakis et al.)  as well as
-test properties of the game (monotonicity, super additivity) are also included.
+This module implements a class for a characteristic function cooperative
+game. Methods to calculate the Shapley value (a fair way of sharing
+common resources: see [CEW2011]_) as well as test properties of the game
+(monotonicity, superadditivity) are also included.
 
-AUTHOR:
+AUTHORS:
 
-    - James Campbell 06-2014: Original version
-    - Vince Knight 06-2014
-
+- James Campbell and Vince Knight (06-2014): Original version
 """
 
 #*****************************************************************************
@@ -25,52 +22,51 @@ AUTHOR:
 #*****************************************************************************
 from itertools import permutations, combinations
 from sage.misc.misc import powerset
-from sage.rings.arith import factorial
+from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
-
 
 class CooperativeGame(SageObject):
     r"""
     An object representing a co-operative game. Primarily used to compute the
-    Shapley Value, but can also provide other information.
+    Shapley value, but can also provide other information.
 
     INPUT:
 
-    - ``characteristic_function`` - a dictionary containing all possible sets of players.
-            * Key - each set must be entered as a tuple, not a string. A
-              single element tuple must end with a comma.
-            * Value - A real number
-              representing each set of players contribution.
+    - ``characteristic_function`` -- a dictionary containing all possible
+      sets of players:
+
+      * key - each set must be entered as a tuple, not a string
+      * value - a real number representing each set of players contribution
 
     EXAMPLES:
 
     The type of game that is currently implemented is referred to as a
-    Characteristic Function Game. This is a game on a set $\Omega$ of players
-    that is defined by a value function $v:C\to \mathbb{R}$ where
-    $C=2^{\Omega}$ is set of all coalitions of players. An example of such a
-    game is shown below:
+    Characteristic Function Game. This is a game on a set of players
+    `\Omega` that is defined by a value function `v : C \to \RR` where
+    `C = 2^{\Omega}` is set of all coalitions of players. Let `N := |\Omega|`.
+    An example of such a game is shown below:
 
+    .. MATH::
 
-    `v(c) = \begin{cases}
-    0,&\text{ if }c=\emptyset\\
-    6,&\text{ if }c=\{1\}\\
-    12,&\text{ if }c=\{2\}\\
-    42,&\text{ if }c=\{3\}\\
-    12,&\text{ if }c=\{1,2\}\\
-    42,&\text{ if }c=\{1,3\}\\
-    42,&\text{ if }c=\{2,3\}\\
-    42,&\text{ if }c=\{1, 2,3\}\\
-    \end{cases}`
+        v(c) = \begin{cases}
+        0 &\text{if } c = \emptyset, \\
+        6 &\text{if } c = \{1\}, \\
+        12 &\text{if } c = \{2\}, \\
+        42 &\text{if } c = \{3\}, \\
+        12 &\text{if } c = \{1,2\}, \\
+        42 &\text{if } c = \{1,3\}, \\
+        42 &\text{if } c = \{2,3\}, \\
+        42 &\text{if } c = \{1,2,3\}. \\
+        \end{cases}
 
-
-    The function $v$ can be thought of as as a record of contribution of
+    The function `v` can be thought of as as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
-    fairly share the value of the grand coalition ($\Omega$)? This class
+    fairly share the value of the grand coalition (`\Omega`)? This class
     allows for such an answer to be formulated by calculating the Shapley
     value of the game.
 
-    Basic examples of how to implement a co-operative game. These functions will
-    be used repeatedly in other examples. ::
+    Basic examples of how to implement a co-operative game. These functions
+    will be used repeatedly in other examples. ::
 
         sage: integer_function = {(): 0,
         ....:                     (1,): 6,
@@ -96,12 +92,12 @@ class CooperativeGame(SageObject):
 
     Characteristic function games can be of various types.
 
-    A characteristic function game $G=(N,v)$ is monotone if it satisfies
-    $v(C_2)\geq v(C_1)$ for all $C_1\subseteq C_2$. A characteristic function
-    game $G=(N,v)$ is super-additive if it satisfies $v(C_2)\geq v(C_1)$ for
-    all $C_1\subseteq C_2$ such that `C_1\cap C_2 = \emptyset`.
+    A characteristic function game `G = (N, v)` is monotone if it satisfies
+    `v(C_2) \geq v(C_1)` for all `C_1 \subseteq C_2`. A characteristic
+    function game `G = (N, v)` is super-additive if it satisfies `v(C_2)
+    \geq v(C_1)` for all `C_1 \subseteq C_2` such that `C_1 \cap C_2 = \emptyset`.
 
-    We can test if a game is Monotonic or Superadditive. ::
+    We can test if a game is monotonic or superadditive. ::
 
         sage: letter_game.is_monotone()
         True
@@ -109,37 +105,49 @@ class CooperativeGame(SageObject):
         False
 
     Instances have a basic representation that will display basic information
-    about the game. ::
+    about the game::
 
         sage: letter_game
-        A 3 player Co-operative Game.
+        A 3 player co-operative game
 
-    It can be shown that the 'fair' payoff vector, referred to as the
+    It can be shown that the "fair" payoff vector, referred to as the
     Shapley value is given by the following formula:
 
-    $\phi_i(G)=\frac{1}{N!}\sum_{\pi\in\Pi_n}\Delta_\pi^G(i)$
+    .. MATH::
+
+        \phi_i(G) = \frac{1}{N!} \sum_{\pi\in\Pi_n} \Delta_{\pi}^G(i),
 
     where the summation is over the permutations of the players and the
     marginal contributions of a player for a given permutation is given as:
 
-    $\Delta_\pi^G(i)=v(S_{\pi}(i)\cup i)-v(S_{\pi}(i))$
+    .. MATH::
+
+        \Delta_{\pi}^G(i) = v\bigl( S_{\pi}(i) \cup \{i\} \bigr)
+        - v\bigl( S_{\pi}(i) \bigr)
+
+    where `S_{\pi}(i)` is the number of predecessors of `i` in `\pi`, i.e.
+    `S_{\pi}(i) = \{ j \mid \pi(i) > \pi(j) \}` (or the number of inversions
+    of the form `(i, j)`).
 
     Note that an equivalent formula for the Shapley value is given by:
 
-    $\phi_i(G)=\sum_{s\subseteq\Omega}\sum_{p\in S}\frac{(|s|-1)!(N-|S|)!}{N!}v(s)-v(s\setminus \{i\})$
+    .. MATH::
+
+        \phi_i(G) = \sum_{S \subseteq \Omega} \sum_{p \in S}
+        \frac{(|S|-1)!(N-|S|)!}{N!} \bigl( v(S) - v(S \setminus \{p\}) \bigr)
+        = \sum_{S \subseteq \Omega} \sum_{p \in S}
+        \frac{1}{|S|\binom{N}{|S|}} \bigl( v(S) - v(S \setminus \{p\}) \bigr).
 
     This later formulation is implemented in Sage and
-    requires $2^N-1$ calculations instead of $N!$.
+    requires `2^N-1` calculations instead of `N!`.
 
-    To compute the Shapley value in Sage is simple. ::
+    To compute the Shapley value in Sage is simple::
 
         sage: letter_game.shapley_value()
         {'A': 2, 'C': 35, 'B': 5}
 
     The following example implements a (trivial) 10 player characteristic
-    function game:
-
-    $v(c)=|c|\text{ for all }c\in 2^{\Omega}$
+    function game with `v(c) = |c|` for all `c \in 2^{\Omega}`.
 
     ::
 
@@ -155,30 +163,24 @@ class CooperativeGame(SageObject):
     various approximation approaches to obtaining the Shapley value of a game.
     Implementing these would be a worthwhile development.
 
-    We can test 3 basic properties of any Payoff Vector $\lambda$.
+    We can test 3 basic properties of any payoff vector `\lambda`.
     The Shapley value (described above) is none to be the unique
     payoff vector that satisfies these and 1 other property
-    not implemented here (additivity).
-    They are:
+    not implemented here (additivity). They are:
 
-        * Efficiency - `\sum_{i=1}^N\lambda_i=v(\Omega)`
-                       In other words, no value of the total coalition is lost.
+    * Efficiency - `\sum_{i=1}^N \lambda_i = v(\Omega)`
+      In other words, no value of the total coalition is lost.
 
-        * The nullplayer property - If `\exists` `i` such that
-                                    `v(C\cup i)=v(C)` for all
-                                    `C\in 2^{\Omega}` then, `\lambda_i=0`.
-                                    In other words: if a player does not
-                                    contribute to any coalition then that
-                                    player should receive no payoff.
+    * The nullplayer property - If there exists an `i` such that
+      `v(C \cup i) = v(C)` for all `C \in 2^{\Omega}` then, `\lambda_i = 0`.
+      In other words: if a player does not contribute to any coalition then
+      that player should receive no payoff.
 
-        * Symmetry property - A payoff vector possesses the symmetry property
-                              if `v(C\cup i)=v(C\cup j)` for all
-                              `C\in 2^{\Omega}\setminus{i,j}`, then
-                              `x_i=x_j`
+    * Symmetry property - A payoff vector possesses the symmetry property
+      if `v(C \cup i) = v(C \cup j)` for all
+      `C \in 2^{\Omega} \setminus \{i,j\}`, then `x_i=x_j`.
 
-    If players contribute symmetrically then they should get the same payoff.
-
-    ::
+    If players contribute symmetrically then they should get the same payoff::
 
         sage: payoff_vector = letter_game.shapley_value()
         sage: letter_game.is_efficient(payoff_vector)
@@ -188,8 +190,8 @@ class CooperativeGame(SageObject):
         sage: letter_game.symmetry(payoff_vector)
         True
 
-    Any Payoff Vector can be passed to the game and these properties
-    can once again be tested. ::
+    Any payoff vector can be passed to the game and these properties
+    can once again be tested::
 
         sage: payoff_vector = {'A': 0, 'C': 35, 'B': 3}
         sage: letter_game.is_efficient(payoff_vector)
@@ -201,7 +203,7 @@ class CooperativeGame(SageObject):
 
     TESTS:
 
-    Checks that the order within a key does not affect other functions. ::
+    Check that the order within a key does not affect other functions::
 
         sage: letter_function = {(): 0,
         ....:                    ('A',): 6,
@@ -225,7 +227,7 @@ class CooperativeGame(SageObject):
         sage: letter_game.symmetry({'A': 2, 'C': 35, 'B': 5})
         True
 
-    Any Payoff Vector can be passed to the game and these properties can once
+    Any payoff vector can be passed to the game and these properties can once
     again be tested. ::
 
         sage: letter_game.is_efficient({'A': 0, 'C': 35, 'B': 3})
@@ -235,23 +237,28 @@ class CooperativeGame(SageObject):
         sage: letter_game.symmetry({'A': 0, 'C': 35, 'B': 3})
         True
 
-    """
+    REFERENCES:
 
+    .. [CEW2011] Georgios Chalkiadakis, Edith Elkind, and Michael Wooldridge.
+       *Computational Aspects of Cooperative Game Theory*.
+       Morgan & Claypool Publishers, (2011).
+       ISBN 9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
+    """
     def __init__(self, characteristic_function):
         r"""
         Initializes a co-operative game and checks the inputs.
 
         TESTS:
 
-        An attempt to construct a game from an integer. ::
+        An attempt to construct a game from an integer::
 
             sage: int_game = CooperativeGame(4)
             Traceback (most recent call last):
             ...
-            TypeError: Characteristic function must be a dictionary
+            TypeError: characteristic function must be a dictionary
 
         This test checks that an incorrectly entered singularly tuple will be
-        changed into a tuple. In this case `(1)` becomes `(1,)`. ::
+        changed into a tuple. In this case ``(1)`` becomes ``(1,)``::
 
             sage: tuple_function = {(): 0,
             ....:                  (1): 6,
@@ -263,7 +270,7 @@ class CooperativeGame(SageObject):
             ....:                  (1, 2, 3,): 42}
             sage: tuple_game = CooperativeGame(tuple_function)
 
-        This test checks that if a key is not a tuple an error is raised. ::
+        This test checks that if a key is not a tuple an error is raised::
 
             sage: error_function = {(): 0,
             ....:                  (1,): 6,
@@ -276,10 +283,10 @@ class CooperativeGame(SageObject):
             sage: error_game = CooperativeGame(error_function)
             Traceback (most recent call last):
             ...
-            TypeError: Key must be a tuple
+            TypeError: key must be a tuple
 
-        A test to ensure that the Characteristic Function is the power
-        set of the grand coalition (ie all possible sub-coalitions). ::
+        A test to ensure that the characteristic function is the power
+        set of the grand coalition (ie all possible sub-coalitions)::
 
             sage: incorrect_function = {(): 0,
             ....:                  (1,): 6,
@@ -289,17 +296,17 @@ class CooperativeGame(SageObject):
             sage: incorrect_game = CooperativeGame(incorrect_function)
             Traceback (most recent call last):
             ...
-            ValueError: Characteristic Function must be the power set
+            ValueError: characteristic function must be the power set
         """
         if type(characteristic_function) is not dict:
-            raise TypeError("Characteristic function must be a dictionary")
+            raise TypeError("characteristic function must be a dictionary")
 
         self.ch_f = characteristic_function
         for key in self.ch_f:
             if len(str(key)) == 1 and type(key) is not tuple:
-                self.ch_f[key, ] = self.ch_f.pop(key)
+                self.ch_f[(key,)] = self.ch_f.pop(key)
             elif type(key) is not tuple:
-                raise TypeError("Key must be a tuple")
+                raise TypeError("key must be a tuple")
         for key in self.ch_f:
             sortedkey = tuple(sorted(list(key)))
             self.ch_f[sortedkey] = self.ch_f.pop(key)
@@ -307,17 +314,17 @@ class CooperativeGame(SageObject):
         self.player_list = max(characteristic_function.keys(), key=lambda key: len(key))
         for coalition in powerset(self.player_list):
             if tuple(sorted(list(coalition))) not in sorted(self.ch_f.keys()):
-                raise ValueError("Characteristic Function must be the power set")
+                raise ValueError("characteristic function must be the power set")
 
         self.number_players = len(self.player_list)
 
     def shapley_value(self):
         r"""
-        Return the payoff vector for co-operative game.
+        Return the payoff vector for ``self``.
 
         EXAMPLES:
 
-        A typical example of the use of shapley_value. ::
+        A typical example of the use of shapley_value::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -333,7 +340,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.shapley_value()
             {1: 2, 2: 5, 3: 35}
 
-        A longer example of the shapley_value. ::
+        A longer example of the Shapley value::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -356,26 +363,27 @@ class CooperativeGame(SageObject):
             {1: 70/3, 2: 10, 3: 25/3, 4: 70/3}
         """
         payoff_vector = {}
+        n = Integer(len(self.player_list))
         for player in self.player_list:
             weighted_contribution = 0
-            for coalition in [coalition for coalition in powerset(self.player_list) if len(coalition) != 0]:
-                weight = factorial(len(coalition) - 1)
-                weight *= factorial(len(self.player_list) - len(coalition))
-                weight /= factorial(len(self.player_list))
-                contribution = (self.ch_f[tuple(coalition)] - self.ch_f[tuple([p for p
-                                                    in coalition if p != player])])
-                weighted_contribution += weight * contribution
+            for coalition in powerset(self.player_list):
+                if coalition: # If non-empty
+                    k = Integer(len(coalition))
+                    weight = 1 / (n.binomial(k) * k)
+                    t = tuple(p for p in coalition if p != player)
+                    weighted_contribution += weight * (self.ch_f[tuple(coalition)]
+                                                       - self.ch_f[t])
             payoff_vector[player] = weighted_contribution
 
         return payoff_vector
 
     def is_monotone(self):
         r"""
-        Returns True if co-operative game is monotonic.
+        Return ``True`` if ``self`` is monotonic.
 
         EXAMPLES:
 
-        Shows the use of is_monotone on a simple game that is monotone. ::
+        A simple game that is monotone::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -389,7 +397,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.is_monotone()
             True
 
-        Shows the use of is_monotone for a game that is not monotone. ::
+        An example when the game is not monotone::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -403,7 +411,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.is_monotone()
             False
 
-        Shows the use of is_monotone for a longer game. ::
+        An example on a longer game::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -425,17 +433,16 @@ class CooperativeGame(SageObject):
             sage: long_game.is_monotone()
             True
         """
-        sets = list(self.ch_f.keys())
         return not any([set(p1) <= set(p2) and self.ch_f[p1] > self.ch_f[p2]
-                        for p1, p2 in permutations(sets, 2)])
+                        for p1, p2 in permutations(self.ch_f.keys(), 2)])
 
     def is_superadditive(self):
         r"""
-        Returns True if co-operative game is superadditive.
+        Return ``True`` if ``self`` is superadditive.
 
         EXAMPLES:
 
-        An example that returns False. ::
+        An example that is not superadditive::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -449,7 +456,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.is_superadditive()
             False
 
-        An example that returns True. ::
+        An example that is superadditive::
 
             sage: A_function = {(): 0,
             ....:               (1,): 6,
@@ -463,9 +470,7 @@ class CooperativeGame(SageObject):
             sage: A_game.is_superadditive()
             True
 
-        An example for is_superadditive with a longer game that returns True.
-
-        ::
+        An example with a longer game that is superadditive::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -487,9 +492,7 @@ class CooperativeGame(SageObject):
             sage: long_game.is_superadditive()
             True
 
-        An example for is_superadditive with a longer game that returns False.
-
-        ::
+        An example with a longer game that is not::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -511,21 +514,19 @@ class CooperativeGame(SageObject):
             sage: long_game.is_superadditive()
             False
         """
-        sets = list(self.ch_f.keys())
+        sets = self.ch_f.keys()
         for p1, p2 in combinations(sets, 2):
-            if set(p1) & set(p2) == set():
-                union = tuple(sorted(list(set(p1) | set(p2))))
+            if not (set(p1) & set(p2)):
+                union = tuple(sorted(set(p1) | set(p2)))
                 if self.ch_f[union] < self.ch_f[p1] + self.ch_f[p2]:
                     return False
         return True
 
     def _repr_(self):
         r"""
-        Returns a concise description of the Game.
+        Return a concise description of ``self``.
 
-        EXAMPLES:
-
-        Basic description of the game shown when calling the game instance. ::
+        EXAMPLES::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -537,19 +538,15 @@ class CooperativeGame(SageObject):
             ....:                    ('A', 'B', 'C',): 42}
             sage: letter_game = CooperativeGame(letter_function)
             sage: letter_game
-            A 3 player Co-operative Game.
-
+            A 3 player co-operative game
         """
-        np = self.number_players
-        return "A %s player Co-operative Game." % np
+        return "A {} player co-operative game".format(self.number_players)
 
     def _latex_(self):
         r"""
-        Returns the LaTeX code representing the characteristic function.
+        Return the LaTeX code representing the characteristic function.
 
-        EXAMPLES:
-
-        Basic description of the game shown when calling the game instance. ::
+        EXAMPLES::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -562,41 +559,39 @@ class CooperativeGame(SageObject):
             sage: letter_game = CooperativeGame(letter_function)
             sage: latex(letter_game)
             v(c) = \begin{cases}
-            0,&\text{ if }c=\emptyset\\
-            6,&\text{ if }c=\{A\}\\
-            42,&\text{ if }c=\{C\}\\
-            12,&\text{ if }c=\{B\}\\
-            42,&\text{ if }c=\{B, C\}\\
-            12,&\text{ if }c=\{A, B\}\\
-            42,&\text{ if }c=\{A, C\}\\
-            42,&\text{ if }c=\{A, B, C\}\\
+            0, & \text{if } c = \emptyset \\
+            6, & \text{if } c = \{A\} \\
+            42, & \text{if } c = \{C\} \\
+            12, & \text{if } c = \{B\} \\
+            42, & \text{if } c = \{B, C\} \\
+            12, & \text{if } c = \{A, B\} \\
+            42, & \text{if } c = \{A, C\} \\
+            42, & \text{if } c = \{A, B, C\} \\
             \end{cases}
         """
         cf = self.ch_f
         output = "v(c) = \\begin{cases}\n"
-        for key in sorted(cf.keys(), key=lambda key: len(key)) :
-            if key == ():
+        for key in sorted(cf.keys(), key=lambda key: len(key)):
+            if not key: # == ()
                 coalition = "\\emptyset"
             else:
-                coalition = "\{"
-                for player in key[:-1]:
-                    coalition += "%s, " % player
-                coalition += "%s\}" % key[-1]
-            output += "%s,&\\text{ if }c=%s\\\\\n" % (cf[key], coalition)
+                coalition = "\\{" + ", ".join(str(player) for player in key) + "\\}"
+            output += "{}, & \\text{{if }} c = {} \\\\\n".format(cf[key], coalition)
         output += "\\end{cases}"
         return output
 
     def is_efficient(self, payoff_vector):
         r"""
-        Returns True if the current payoff_vector is efficient.
+        Return ``True`` if ``payoff_vector`` is efficient.
 
         INPUT:
 
-        - ``payoff_vector`` - a dictionary where the key is the player and the value is their payoff.
+        - ``payoff_vector`` -- a dictionary where the key is the player
+          and the value is their payoff
 
         EXAMPLES:
 
-        An efficient payoff_vector. ::
+        An efficient payoff vector::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -622,7 +617,7 @@ class CooperativeGame(SageObject):
             sage: letter_game.is_efficient({'A': 10, 'B': 14, 'C': 14})
             False
 
-        A longer example for is_efficient. ::
+        A longer example::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -649,16 +644,17 @@ class CooperativeGame(SageObject):
 
     def nullplayer(self, payoff_vector):
         r"""
-        Returns True if the current payoff_vector possesses the null
-        player property.
+        Return ``True`` if ``payoff_vector`` possesses the nullplayer
+        property.
 
         INPUT:
 
-        - ``payoff_vector`` - a dictionary where the key is the player and the value is their payoff.
+        - ``payoff_vector`` -- a dictionary where the key is the player
+          and the value is their payoff
 
         EXAMPLES:
 
-        A payoff_vector that returns True. ::
+        A payoff vector that returns ``True``::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 0,
@@ -672,7 +668,7 @@ class CooperativeGame(SageObject):
             sage: letter_game.nullplayer({'A': 0, 'B': 14, 'C': 14})
             True
 
-        A payoff_vector that returns False. ::
+        A payoff vector that returns ``False``::
 
             sage: A_function = {(): 0,
             ....:               (1,): 0,
@@ -686,7 +682,7 @@ class CooperativeGame(SageObject):
             sage: A_game.nullplayer({1: 10, 2: 10, 3: 25})
             False
 
-        A longer example for nullplayer. ::
+        A longer example for nullplayer::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -710,7 +706,7 @@ class CooperativeGame(SageObject):
 
         TESTS:
 
-        Checks that the function is going through all players. ::
+        Checks that the function is going through all players::
 
             sage: A_function = {(): 0,
             ....:               (1,): 42,
@@ -725,27 +721,27 @@ class CooperativeGame(SageObject):
             False
         """
         for player in self.player_list:
-            coalitions = [coal for coal in self.ch_f if player in coal]
             results = []
-            for coalit in coalitions:
-                results.append(self.ch_f[coalit] == self.ch_f[tuple(
-                               sorted(list(set(coalit) - {player})))])
+            for coalit in self.ch_f:
+                if player in coalit:
+                    t = tuple(sorted(set(coalit) - {player}))
+                    results.append(self.ch_f[coalit] == self.ch_f[t])
             if all(results) and payoff_vector[player] != 0:
                 return False
         return True
 
     def symmetry(self, payoff_vector):
         r"""
-        Returns True if the current payoff_vector possesses the symmetry
-        property.
+        Return ``True`` if ``payoff_vector`` possesses the symmetry property.
 
         INPUT:
 
-        - ``payoff_vector`` - a dictionary where the key is the player and the value is their payoff.
+        - ``payoff_vector`` -- a dictionary where the key is the player
+          and the value is their payoff
 
         EXAMPLES:
 
-        A Payoff Vector that returns True. ::
+        A payoff pector that has the symmetry property::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,
@@ -759,7 +755,7 @@ class CooperativeGame(SageObject):
             sage: letter_game.symmetry({'A': 5, 'B': 14, 'C': 20})
             True
 
-        A Payoff Vector that returns False. ::
+        A payoff vector that returns ``False``::
 
             sage: integer_function = {(): 0,
             ....:                     (1,): 12,
@@ -773,7 +769,7 @@ class CooperativeGame(SageObject):
             sage: integer_game.symmetry({1: 2, 2: 5, 3: 35})
             False
 
-        A longer example for symmetry. ::
+        A longer example for symmetry::
 
             sage: long_function = {(): 0,
             ....:                  (1,): 0,
@@ -795,14 +791,15 @@ class CooperativeGame(SageObject):
             sage: long_game.symmetry({1: 20, 2: 20, 3: 5, 4: 20})
             True
         """
-        sets = list(self.ch_f.keys())
+        sets = self.ch_f.keys()
         element = [i for i in sets if len(i) == 1]
         for c1, c2 in combinations(element, 2):
             results = []
             for m in sets:
-                junion = tuple(sorted(list(set(c1) | set(m))))
-                kunion = tuple(sorted(list(set(c2) | set(m))))
+                junion = tuple(sorted(set(c1) | set(m)))
+                kunion = tuple(sorted(set(c2) | set(m)))
                 results.append(self.ch_f[junion] == self.ch_f[kunion])
-            if (all(results) and payoff_vector[c1[0]] != payoff_vector[c2[0]]):
+            if all(results) and payoff_vector[c1[0]] != payoff_vector[c2[0]]:
                 return False
         return True
+

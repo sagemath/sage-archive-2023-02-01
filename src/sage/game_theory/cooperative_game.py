@@ -41,7 +41,7 @@ class CooperativeGame(SageObject):
     EXAMPLES:
 
     The type of game that is currently implemented is referred to as a
-    Characteristic Function Game. This is a game on a set of players
+    Characteristic function game. This is a game on a set of players
     `\Omega` that is defined by a value function `v : C \to \RR` where
     `C = 2^{\Omega}` is set of all coalitions of players. Let `N := |\Omega|`.
     An example of such a game is shown below:
@@ -94,7 +94,7 @@ class CooperativeGame(SageObject):
 
     A characteristic function game `G = (N, v)` is monotone if it satisfies
     `v(C_2) \geq v(C_1)` for all `C_1 \subseteq C_2`. A characteristic
-    function game `G = (N, v)` is super-additive if it satisfies `v(C_2)
+    function game `G = (N, v)` is superadditive if it satisfies `v(C_2)
     \geq v(C_1)` for all `C_1 \subseteq C_2` such that `C_1 \cap C_2 = \emptyset`.
 
     We can test if a game is monotonic or superadditive. ::
@@ -176,9 +176,8 @@ class CooperativeGame(SageObject):
       In other words: if a player does not contribute to any coalition then
       that player should receive no payoff.
 
-    * Symmetry property - A payoff vector possesses the symmetry property
-      if `v(C \cup i) = v(C \cup j)` for all
-      `C \in 2^{\Omega} \setminus \{i,j\}`, then `x_i=x_j`.
+    * Symmetry property - If `v(C \cup i) = v(C \cup j)` for all
+      `C \in 2^{\Omega} \setminus \{i,j\}`, then `x_i = x_j`.
 
     If players contribute symmetrically then they should get the same payoff::
 
@@ -320,11 +319,20 @@ class CooperativeGame(SageObject):
 
     def shapley_value(self):
         r"""
-        Return the payoff vector for ``self``.
+        Return the Shapley value for ``self``.
+
+        The Shapley value is the "fair" payoff vector and
+        is computed by the following formula:
+
+        .. MATH::
+
+            \phi_i(G) = \sum_{S \subseteq \Omega} \sum_{p \in S}
+            \frac{1}{|S|\binom{N}{|S|}}
+            \bigl( v(S) - v(S \setminus \{p\}) \bigr).
 
         EXAMPLES:
 
-        A typical example of the use of shapley_value::
+        A typical example of computing the Shapley value::
 
             sage: integer_function = {(): 0,
             ....:                  (1,): 6,
@@ -380,6 +388,9 @@ class CooperativeGame(SageObject):
     def is_monotone(self):
         r"""
         Return ``True`` if ``self`` is monotonic.
+
+        A game `G = (N, v)` is monotonic if it satisfies
+        `v(C_2) \geq v(C_1)` for all `C_1 \subseteq C_2`.
 
         EXAMPLES:
 
@@ -439,6 +450,10 @@ class CooperativeGame(SageObject):
     def is_superadditive(self):
         r"""
         Return ``True`` if ``self`` is superadditive.
+
+        A game `G = (N, v)` is superadditive if it satisfies
+        `v(C_2) \geq v(C_1)` for all `C_1 \subseteq C_2` such
+        that `C_1 \cap C_2 = \emptyset`.
 
         EXAMPLES:
 
@@ -584,6 +599,10 @@ class CooperativeGame(SageObject):
         r"""
         Return ``True`` if ``payoff_vector`` is efficient.
 
+        A payoff vector `v` is efficient if
+        `\sum_{i=1}^N \lambda_i = v(\Omega)`;
+        in other words, no value of the total coalition is lost.
+
         INPUT:
 
         - ``payoff_vector`` -- a dictionary where the key is the player
@@ -646,6 +665,11 @@ class CooperativeGame(SageObject):
         r"""
         Return ``True`` if ``payoff_vector`` possesses the nullplayer
         property.
+
+        A payoff vector `v` has the nullplayer property if there exists
+        an `i` such that `v(C \cup i) = v(C)` for all `C \in 2^{\Omega}`
+        then, `\lambda_i = 0`. In other words: if a player does not
+        contribute to any coalition then that player should receive no payoff.
 
         INPUT:
 
@@ -733,6 +757,10 @@ class CooperativeGame(SageObject):
     def symmetry(self, payoff_vector):
         r"""
         Return ``True`` if ``payoff_vector`` possesses the symmetry property.
+
+        A payoff vector possesses the symmetry property if
+        `v(C \cup i) = v(C \cup j)` for all
+        `C \in 2^{\Omega} \setminus \{i,j\}`, then `x_i = x_j`.
 
         INPUT:
 

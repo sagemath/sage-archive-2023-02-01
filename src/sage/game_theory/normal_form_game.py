@@ -32,6 +32,29 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: A = matrix([[1, 2], [3, 4]])
         sage: B = matrix([[3, 3], [1, 4]])
         sage: C = NormalFormGame([A, B])
+        sage: C.strategy_profiles
+        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
+
+    The same game can be constructed manually. ::
+
+        sage: f = NormalFormGame()
+        sage: f.add_player(2)
+        sage: f.add_player(2)
+        sage: f[0,0][0] = 1
+        sage: f[0,0][1] = 3
+        sage: f[0,1][0] = 2
+        sage: f[0,1][1] = 3
+        sage: f[1,0][0] = 3
+        sage: f[1,0][1] = 1
+        sage: f[1,1][0] = 4
+        sage: f[1,1][1] = 4
+        sage: f.strategy_profiles
+        {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
+
+    We can add an extra strategy to the first player. ::
+
+        sage: f.add_strategy(0)
+        sage: f.strategy_profiles
 
     Here is an example of a 3 by 2 game ::
 
@@ -168,7 +191,7 @@ class NormalFormGame(SageObject, MutableMapping):
         self.strategy_profiles = {}
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         for profile in product(*strategy_sizes):
-            self.strategy_profiles[profile] = False
+            self.strategy_profiles[profile] = [False] * len(self.players)
 
     def add_strategy(self, player):
         self.players[player].add_strategy()

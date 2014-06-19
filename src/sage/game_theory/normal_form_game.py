@@ -1,5 +1,6 @@
 from itertools import product
 from sage.structure.sage_object import SageObject
+from sage.misc.package import is_package_installed
 
 
 class NormalFormGame(SageObject):
@@ -32,19 +33,27 @@ class NormalFormGame(SageObject):
     def obtain_Nash(self, algorithm="LCP", maximization=True):
         if not self._is_complete():
             raise ValueError("strategy_profiles hasn't been populated")
-        # copy from old
 
-    def _solve_gambit(self):
-        # create a gambit.Game object using self.strategy_profiles
-        # should be very quick
+        if algorithm == "LCP":
+            return self._solve_LCP(maximization)
+
+    def _solve_LCP(self, maximization):
         if not is_package_installed('gambit'):
                 raise NotImplementedError("gambit is not installed")
         from gambit import Game
+        from gambit.nash import ExternalLCPSolver
+        from formatter import Formatter
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
         for key in self.strategy_profiles:
             for player in range(len(self.players)):
-                g[key][player] = self.strategy_profiles[key][player]
+                if maximization is False:
+                    g[key][player] = - self.strategy_profiles[key][player]
+                else:
+                    g[key][player] = self.strategy_profiles[key][player]
+        output = ExternalLCPSolver().solve(self)
+        nasheq = Formatter(output, self).format_gambit()
+        return nasheq
 
     def _solve_lrs(self):
         # call _is_complete()

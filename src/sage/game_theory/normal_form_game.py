@@ -4,6 +4,7 @@ from sage.misc.package import is_package_installed
 from sage.matrix.constructor import matrix
 from parser import Parser
 from player import _Player
+from sage.rings.rational import Rational
 
 
 class NormalFormGame(SageObject):
@@ -110,16 +111,28 @@ class NormalFormGame(SageObject):
     def _solve_LCP(self, maximization):
         if not is_package_installed('gambit'):
                 raise NotImplementedError("gambit is not installed")
+
         from gambit import Game
         from gambit.nash import ExternalLCPSolver
+
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
+
+        scalar = 1
         for key in self.strategy_profiles:
             for player in range(len(self.players)):
+                utility = Rational(self.strategy_profiles[key][player])
+                scalar *= utility.denom()
                 if maximization is False:
                     g[key][player] = - int(self.strategy_profiles[key][player])
                 else:
                     g[key][player] = int(self.strategy_profiles[key][player])
+
+        if scalar != 1:
+            for key in self.strategy_profiles:
+                for player in range(len(self.players)):
+                    g[key][player] *= scalar
+
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()
         return nasheq

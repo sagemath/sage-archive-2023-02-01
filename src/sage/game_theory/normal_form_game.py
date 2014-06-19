@@ -6,8 +6,17 @@ from player import _Player
 
 
 class NormalFormGame(SageObject):
+    r"""
+    EXAMPLES:
 
+    A basic 2-player game constructed from matrices. ::
+
+        sage: A = matrix([[1, 2], [3, 4]])
+        sage: B = matrix([[3, 3], [1, 4]])
+        sage: C = NormalFormGame([A, B])
+    """
     def __init__(self, arg1, arg2):
+
         self.players = []
         if type(arg1) is list:
             matrices = arg1
@@ -28,7 +37,6 @@ class NormalFormGame(SageObject):
             self._bimatrix_game(bimatrix)
 
     def _two_matrix_game(self, matrices):
-        # going to refector this straight away
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
         for key in self.strategy_profiles:
@@ -36,7 +44,11 @@ class NormalFormGame(SageObject):
             self.strategy_profiles[key][1] = matrices[1][key]
 
     def _bimatrix_game(self, bimatrix):
-        pass
+        self.add_player(bimatrix.dimensions()[0])
+        self.add_player(bimatrix.dimensions()[1])
+        for key in self.strategy_profiles:
+            self.strategy_profiles[key][0] = bimatrix[key][0]
+            self.strategy_profiles[key][1] = bimatrix[key][1]
 
     def add_player(self, num_strategies):
         self.players.append(_Player(num_strategies))
@@ -59,6 +71,13 @@ class NormalFormGame(SageObject):
         return all(self.strategy_profiles.values())
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
+        if len(self.players) > 2:
+            raise NotImplementedError("Nash equilibrium for games with more "
+                                      "than 2 players have not been "
+                                      "implemented yet. Please see the gambit "
+                                      "website [LINK] that has a variety of "
+                                      "available algorithms")
+
         if not self._is_complete():
             raise ValueError("strategy_profiles hasn't been populated")
 

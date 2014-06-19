@@ -200,12 +200,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def __hash__(self):
         """
+        The hash is formed from the base ring and the `a`-invariants.
+
         TESTS::
 
             sage: E = EllipticCurve('37a')
-            sage: hash(E)
-            -1437250549             # 32-bit
-            -2189969105152029685    # 64-bit
+            sage: hash(E) == hash((E.base_ring(), E.a_invariants()))
+            True
             sage: hash(E) != hash(E.change_ring(GF(7)))
             True
         """

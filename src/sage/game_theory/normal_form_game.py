@@ -28,7 +28,12 @@ class NormalFormGame(SageObject):
             self._bimatrix_game(bimatrix)
 
     def _two_matrix_game(self, matrices):
-        pass
+        # going to refector this straight away
+        self.add_player(matrices[0].dimensions()[0])
+        self.add_player(matrices[1].dimensions()[1])
+        for key in self.strategy_profiles:
+            self.strategy_profiles[key][0] = matrices[0][key]
+            self.strategy_profiles[key][1] = matrices[1][key]
 
     def _bimatrix_game(self, bimatrix):
         pass

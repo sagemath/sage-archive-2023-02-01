@@ -86,6 +86,27 @@ class NormalFormGame(SageObject):
         if algorithm == "LCP":
             return self._solve_LCP(maximization)
 
+        if algorithm == "lrs":
+            if not is_package_installed('lrs'):
+                raise NotImplementedError("lrs is not installed")
+            if maximization is False:
+                min1 = - self.payoff_matrices[0]
+                min2 = - self.payoff_matrices[1]
+                nasheq = self._solve_lrs(min1, min2)
+            else:
+                nasheq = self._solve_lrs(self.payoff_matrices[0],
+                                         self.payoff_matrices[1])
+            return nasheq
+
+    def game_two_matrix(self):
+        from sage.matrix.constructor import matrix
+        m1 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
+        m2 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
+        for key in self.strategy_profiles:
+                m1[key] = self[key][0]
+                m2[key] = self[key][1]
+        return m1, m2
+
     def _solve_LCP(self, maximization):
         if not is_package_installed('gambit'):
                 raise NotImplementedError("gambit is not installed")
@@ -103,12 +124,126 @@ class NormalFormGame(SageObject):
         nasheq = Parser(output, g).format_gambit()
         return nasheq
 
-    def _solve_lrs(self):
-        # call _is_complete()
-        # create polytope??
-        pass
+    def _solve_lrs(self, m1, m2):
+        r"""
+        EXAMPLES:
+
+        A simple game. ::
+
+            sage: A = matrix([[1, 2], [3, 4]])
+            sage: B = matrix([[3, 3], [1, 4]])
+            sage: C = NormalFormGame([A, B])
+            sage: C._solve_lrs(A, B)
+            [([0, 1], [0, 1])]
+
+        2 random matrices. ::
+
+        sage: p1 = matrix([[-1, 4, 0, 2, 0],
+        ....:              [-17, 246, -5, 1, -2],
+        ....:              [0, 1, 1, -4, -4],
+        ....:              [1, -3, 9, 6, -1],
+        ....:              [2, 53, 0, -5, 0]])
+        sage: p2 = matrix([[0, 1, 1, 3, 1],
+        ....:              [3, 9, 44, -1, -1],
+        ....:              [1, -4, -1, -3, 1],
+        ....:              [1, 0, 1, 0, 0,],
+        ....:              [1, -3, 1, 21, -2]])
+        sage: biggame = NormalFormGame([p1, p2])
+        sage: biggame._solve_lrs(p1, p2)
+        [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
+        """
+        from sage.misc.temporary_file import tmp_filename
+        from subprocess import Popen, PIPE
+        # so that we don't call _Hrepresentation() twice.
+        in_str = self._Hrepresentation(m1, m2)
+        game1_str = in_str[0]
+        game2_str = in_str[1]
+
+        g1_name = tmp_filename()
+        g2_name = tmp_filename()
+        g1_file = file(g1_name, 'w')
+        g2_file = file(g2_name, 'w')
+        g1_file.write(game1_str)
+        g1_file.close()
+        g2_file.write(game2_str)
+        g2_file.close()
+
+        process = Popen(['nash', g1_name, g2_name], stdout=PIPE)
+        lrs_output = [row for row in process.stdout]
+        nasheq = Formatter(lrs_output).format_lrs()
+        return nasheq
 
     def _solve_enumeration(self):
         # call _is_complete()
         # write algorithm at some point
         pass
+
+    def _Hrepresentation(self, m1, m2):
+        r"""
+        Creates the H-representation strings required to use lrs nash.
+
+        EXAMPLES::
+
+            sage: A = matrix([[1, 2], [3, 4]])
+            sage: B = matrix([[3, 3], [1, 4]])
+            sage: C = NormalFormGame([A, B])
+            sage: print C._Hrepresentation(A, B)[0]
+            H-representation
+            linearity 1 5
+            begin
+            5 4 rational
+            0 1 0 0
+            0 0 1 0
+            0 -3 -1 1
+            0 -3 -4 1
+            -1 1 1 0
+            end
+            <BLANKLINE>
+            sage: print C._Hrepresentation(A, B)[1]
+            H-representation
+            linearity 1 5
+            begin
+            5 4 rational
+            0 -1 -2 1
+            0 -3 -4 1
+            0 1 0 0
+            0 0 1 0
+            -1 1 1 0
+            end
+            <BLANKLINE>
+
+        """
+        from sage.geometry.polyhedron.misc import _to_space_separated_string
+        m = len(self.players[0].strategies)
+        n = len(self.players[1].strategies)
+        midentity = list(matrix.identity(m))
+        nidentity = list(matrix.identity(n))
+
+        s = 'H-representation\n'
+        s += 'linearity 1 ' + str(m + n + 1) + '\n'
+        s += 'begin\n'
+        s += str(m + n + 1) + ' ' + str(m + 2) + ' rational\n'
+        for f in list(midentity):
+            s += '0 ' + _to_space_separated_string(f) + ' 0 \n'
+        for e in list(m2.transpose()):
+            s += '0 ' + _to_space_separated_string(-e) + '  1 \n'
+        s += '-1 '
+        for g in range(m):
+            s += '1 '
+        s += '0 \n'
+        s += 'end\n'
+
+        t = 'H-representation\n'
+        t += 'linearity 1 ' + str(m + n + 1) + '\n'
+        t += 'begin\n'
+        t += str(m + n + 1) + ' ' + str(n + 2) + ' rational\n'
+        for e in list(m1):
+            t += '0 ' + _to_space_separated_string(-e) + '  1 \n'
+        for f in list(nidentity):
+            t += '0 ' + _to_space_separated_string(f) + ' 0 \n'
+        t += '-1 '
+        for g in range(n):
+            t += '1 '
+        t += '0 \n'
+        t += 'end\n'
+        return s, t

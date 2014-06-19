@@ -31,21 +31,21 @@ from the Handbook of Combinatorial Designs.
            0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19
         ________________________________________________________________________________
     <BLANKLINE>
-      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   3  18
+      0| +oo +oo   1   2   3   4   1   6   7   8   2  10   5  12   4   4  15  16   5  18
      20|   4   5   3  22   7  24   4  26   5  28   4  30  31   5   4   5   8  36   4   5
-     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   3   2  58
-     60|   5  60   5   6  63   7   2  66   4   4   6  70   7  72   3   7   3   6   3  78
-     80|   9  80   8  82   6   6   6   3   7  88   3   6   4   4   3   6   7  96   6   8
-    100|   8 100   6 102   7   4   5 106   5 108   4   6   7 112   3   7   5   8   3   6
-    120|   6 120   4   6   5 124   6 126 127   5   6 130   6   6   4   6   7 136   4 138
-    140|   6   7   6  10  10   7   6   7   5 148   6 150   7   8   5   5   5 156   4   6
-    160|   7   7   4 162   5   7   4 166   7 168   6   8   6 172   6   6  10   6   6 178
-    180|   6 180   6   6   7   8   6  10   6   6   4 190   7 192   6   7   6 196   6 198
-    200|   7   7   6   7   5   6   6   8  12  10  10 210   6   7   6   7   7   8   5  10
+     40|   7  40   5  42   5   6   4  46   8  48   6   5   5  52   5   6   7   7   2  58
+     60|   5  60   5   6  63   7   5  66   5   6   6  70   7  72   5   7   6   6   6  78
+     80|   9  80   8  82   6   6   6   3   7  88   4   6   6   4   3   6   7  96   6   8
+    100|   8 100   6 102   7   7   5 106   5 108   4   6   7 112   3   7   5   8   4   6
+    120|   6 120   5   6   5 124   6 126 127   7   6 130   6   6   6   6   7 136   4 138
+    140|   6   7   6  10  10   7   6   7   5 148   6 150   7   8   8   5   5 156   4   6
+    160|   7   7   6 162   5   7   4 166   7 168   6   8   6 172   6   6  10   9   6 178
+    180|   6 180   6   6   7   8   6  10   6   6   6 190   7 192   6   7   6 196   6 198
+    200|   7   7   6   7   6   6   6   8  12  11  10 210   6   7   6   7   7   8   6  10
     220|   6  12   6 222   7   8   6 226   6 228   6   6   7 232   6   7   6   6   5 238
-    240|   7 240   6 242   6   7   6  12   7   7   5 250   6  10   4   7 255 256   4   7
-    260|   6   8   7 262   7   8   6  10   6 268   6 270  15   7   5  10   6 276   6   8
-    280|   7 280   6 282   6  12   6   7  15 288   6   6   5 292   6   6   7  10   6  12
+    240|   7 240   6 242   6   7   6  12   7   7   5 250   6  10   7   7 255 256   4   7
+    260|   6   8   7 262   7   8   6  10   6 268   6 270  15  16   5  10  10 276   6   8
+    280|   7 280   6 282   6  12   6   7  15 288   6   6   5 292   6   6   7  10  10  12
 
 TODO:
 
@@ -92,42 +92,55 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
         sage: are_mutually_orthogonal_latin_squares([m2,m3])
         True
         sage: are_mutually_orthogonal_latin_squares([m1,m2,m3], verbose=True)
-        matrices 0 and 2 are not orthogonal
+        Squares 0 and 2 are not orthogonal
         False
 
         sage: m = designs.mutually_orthogonal_latin_squares(8,7)
         sage: are_mutually_orthogonal_latin_squares(m)
         True
+
+    TESTS:
+
+    Not a latin square::
+
+        sage: m1 = matrix([[0,1,0],[2,0,1],[1,2,0]])
+        sage: m2 = matrix([[0,1,2],[1,2,0],[2,0,1]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2], verbose=True)
+        Matrix 0 is not row latin
+        False
+        sage: m1 = matrix([[0,1,2],[1,0,2],[1,2,0]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2], verbose=True)
+        Matrix 0 is not column latin
+        False
+        sage: m1 = matrix([[0,0,0],[1,1,1],[2,2,2]])
+        sage: m2 = matrix([[0,1,2],[0,1,2],[0,1,2]])
+        sage: are_mutually_orthogonal_latin_squares([m1,m2])
+        False
     """
+
     if not l:
         raise ValueError("the list must be non empty")
 
-    n = l[0].nrows()
-    if any(M.nrows() != n and M.ncols() != n for M in l):
+    n = l[0].ncols()
+    k = len(l)
+    if any(M.ncols() != n or M.nrows() != n for M in l):
         if verbose:
-            print "some matrix has wrong dimension"
+            print "Not all matrices are square matrices of the same dimensions"
         return False
 
-    # check that the matrices in l are actually latin
+    # Check that all matrices are latin squares
     for i,M in enumerate(l):
-        if (any(sorted(r) != range(n) for r in M.rows()) or
-            any(sorted(c) != range(n) for c in M.columns())):
+        if any(len(set(R)) != n for R in M):
             if verbose:
-                print "matrix %d is not latin"%i
+                print "Matrix {} is not row latin".format(i)
+            return False
+        if any(len(set(R)) != n for R in zip(*M)):
+            if verbose:
+                print "Matrix {} is not column latin".format(i)
             return False
 
-    # check orthogonality of each pair
-    for k1 in xrange(len(l)):
-        M1 = l[k1]
-        for k2 in xrange(k1):
-            M2 = l[k2]
-            L = [(M1[i,j],M2[i,j]) for i in xrange(n) for j in xrange(n)]
-            if len(set(L)) != len(L):
-                if verbose:
-                    print "matrices %d and %d are not orthogonal"%(k2,k1)
-                return False
-
-    return True
+    from designs_pyx import is_orthogonal_array
+    return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
 
 def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, existence=False, who_asked=tuple()):
     r"""
@@ -252,7 +265,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         sage: designs.mutually_orthogonal_latin_squares(6, 4)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build these MOLS!
+        NotImplementedError: I don't know how to build 4 MOLS of order 6
 
     TESTS:
 
@@ -326,7 +339,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
         else:
             if existence:
                 return False
-            raise EmptySetError("These MOLS do not exist!")
+            raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
         OA = orthogonal_array(k+2,n,check=False, who_asked = who_asked+(mutually_orthogonal_latin_squares,))
         OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
@@ -344,7 +357,7 @@ def mutually_orthogonal_latin_squares(n,k, partitions = False, check = True, exi
     else:
         if existence:
             return Unknown
-        raise NotImplementedError("I don't know how to build these MOLS!")
+        raise NotImplementedError("I don't know how to build {} MOLS of order {}".format(k,n))
 
     if check:
         assert are_mutually_orthogonal_latin_squares(matrices)

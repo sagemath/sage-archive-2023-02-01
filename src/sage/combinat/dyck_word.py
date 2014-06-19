@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Dyck Words
 
@@ -937,7 +938,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([]).number_of_open_symbols()
             0
         """
-        return len(filter(lambda x: x == open_symbol, self))
+        return len([x for x in self if x == open_symbol])
 
     size = deprecated_function_alias(13550, number_of_open_symbols)
 
@@ -957,7 +958,7 @@ class DyckWord(CombinatorialObject, Element):
             sage: DyckWord([]).number_of_close_symbols()
             0
         """
-        return len(filter(lambda x: x == close_symbol, self))
+        return len([x for x in self if x == close_symbol])
 
     def is_complete(self):
         r"""
@@ -1495,8 +1496,7 @@ class DyckWord(CombinatorialObject, Element):
             else:
                 close_positions.append(i + 1)
         from sage.combinat.tableau import StandardTableau
-        return StandardTableau(filter(lambda x: x != [], [open_positions,
-                                                          close_positions]))
+        return StandardTableau([x for x in [open_positions, close_positions] if x != []])
 
     @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):
@@ -2371,18 +2371,91 @@ class DyckWord_complete(DyckWord):
         r"""
         Map ``self`` to a triangulation.
 
-        .. TODO::
+        The map from complete Dyck words of length `2n` to
+        triangulations of `n+2`-gon given by this function is a
+        bijection that can be described as follows.
 
-            Implement :meth:`DyckWord_complete.to_triangulation`.
+        Consider the Dyck word as a path from `(0, 0)` to `(n, n)`
+        staying above the diagonal, where `1` is an up step and `0` is
+        a right step. Then each horizontal step has a co-height (`0`
+        at the top and `n-1` at most at the bottom). One reads the
+        Dyck word from left to right. At the begining, all vertices
+        from `0` to `n+1` are available. For each horizontal step,
+        one creates an edge from the vertex indexed by the co-height
+        to the next available vertex. This chops out a triangle from
+        the polygon and one removes the middle vertex of this triangle
+        from the list of available vertices.
 
-        TESTS::
+        This bijection has the property that the set of smallest
+        vertices of the edges in a triangulation is an encoding of the
+        co-heights, from which the Dyck word can be easily recovered.
+
+        OUTPUT:
+
+        a list of pairs `(i, j)` that are the edges of the
+        triangulations.
+
+        EXAMPLES::
 
             sage: DyckWord([1, 1, 0, 0]).to_triangulation()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: TODO
+            [(0, 2)]
+
+            sage: [t.to_triangulation() for t in DyckWords(3)]
+            [[(2, 4), (1, 4)],
+            [(2, 4), (0, 2)],
+            [(1, 3), (1, 4)],
+            [(1, 3), (0, 3)],
+            [(0, 2), (0, 3)]]
+
+        REFERENCES:
+
+        .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
+           Coinvariants Quasi-Symétriques, Electronic Journal of
+           Combinatorics Vol 12(1) (2005) N16.
         """
-        raise NotImplementedError("TODO")
+        n = self.number_of_open_symbols()
+        l = range(n + 2)  # from 0 to n + 1
+        edges = []
+        coheight = n - 1
+        for letter in self[1:-1]:
+            if letter == 1:
+                coheight -= 1
+            else:
+                edges.append((coheight, l[coheight + 2]))
+                l.pop(coheight + 1)
+
+        return edges
+
+    def to_triangulation_as_graph(self):
+        r"""
+        Map ``self`` to a triangulation and return the result as a graph.
+
+        See :meth:`to_triangulation` for the bijection used to map
+        complete Dyck words to triangulations.
+
+        OUTPUT:
+
+        - a graph containing both the perimeter edges and the inner
+          edges of a triangulation of a regular polygon.
+
+        EXAMPLES::
+
+            sage: g = DyckWord([1, 1, 0, 0, 1, 0]).to_triangulation_as_graph()
+            sage: g
+            Graph on 5 vertices
+            sage: g.edges(labels=False)
+            [(0, 1), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (3, 4)]
+            sage: g.show()        # not tested
+        """
+        n = self.number_of_open_symbols()
+        edges = self.to_triangulation()
+        from sage.graphs.graph import Graph
+        peri = [(i, i + 1) for i in range(n + 1)] + [(n + 1, 0)]
+        g = Graph(n + 2)
+        g.add_edges(peri)
+        g.add_edges(edges)
+        g.set_pos(g.layout_circular())
+        return g
 
     def to_non_decreasing_parking_function(self):
         r"""
@@ -3840,6 +3913,50 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
             True
         """
         return catalan_number(self.k1)
+
+    def random_element(self):
+        """
+        Return a random complete Dyck word of semilength `n`
+
+        The algorithm is based on a classical combinatorial fact. One
+        chooses at random a word with `n` 0's and `n+1` 1's. One then
+        considers every 1 as an ascending step and every 0 as a
+        descending step, and one finds the lowest point of the path
+        (with respect to a slightly tilted slope). One then cuts the
+        path at this point and builds a Dyck word by exchanging the
+        two parts of the word and removing the initial step.
+
+        .. TODO::
+
+            extend this to m-Dyck words
+
+        EXAMPLES::
+
+            sage: dw = DyckWords(8)
+            sage: dw.random_element()  # random
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0]
+
+            sage: D = DyckWords(8)
+            sage: D.random_element() in D
+            True
+        """
+        from sage.misc.prandom import shuffle
+        n = self.k1
+        w = [0] * n + [1] * (n + 1)
+        shuffle(w)
+        idx = 0
+        height = 0
+        height_min = 0
+        for i in range(2 * n):
+            if w[i] == 1:
+                height += n
+            else:
+                height -= n + 1
+                if height < height_min:
+                    height_min = height
+                    idx = i + 1
+        w = w[idx:] + w[:idx]
+        return self.element_class(self, w[1:])
 
     def _iter_by_recursion(self):
         """

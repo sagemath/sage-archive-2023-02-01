@@ -26,13 +26,7 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/polyhedron/representation
    sage/geometry/polyhedron/library
    sage/geometry/polyhedron/plot
-   sage/geometry/polyhedron/base
-   sage/geometry/polyhedron/base_QQ
-   sage/geometry/polyhedron/base_ZZ
-   sage/geometry/polyhedron/base_RDF
    sage/geometry/polyhedron/face
-   sage/geometry/polyhedron/backend_cdd
-   sage/geometry/polyhedron/backend_ppl
    sage/geometry/polyhedron/cdd_file_format
    sage/geometry/pseudolines
 
@@ -59,5 +53,22 @@ Hyperbolic Geometry
    sage/geometry/hyperbolic_space/hyperbolic_model
    sage/geometry/hyperbolic_space/hyperbolic_interface
    sage/geometry/hyperbolic_space/hyperbolic_methods
+
+Backends for Polyhedral Computations
+------------------------------------
+   
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/polyhedron/backend_cdd
+   sage/geometry/polyhedron/backend_ppl
+   sage/geometry/polyhedron/backend_field
+   sage/geometry/polyhedron/double_description
+   sage/geometry/polyhedron/double_description_inhomogeneous
+   sage/geometry/polyhedron/base
+   sage/geometry/polyhedron/base_QQ
+   sage/geometry/polyhedron/base_ZZ
+   sage/geometry/polyhedron/base_RDF
+   
 
 .. include:: ../footer.txt

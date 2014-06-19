@@ -1,0 +1,21 @@
+diff -ur src/sphinx/texinputs/sphinx.sty src.patched/sphinx/texinputs/sphinx.sty
+--- src/sphinx/texinputs/sphinx.sty	2014-03-25 14:26:14.000000000 +0200
++++ src.patched/sphinx/texinputs/sphinx.sty	2014-06-13 13:50:13.014623000 +0100
+@@ -169,7 +169,7 @@
+   \smallskip%
+   % The list environement is needed to control perfectly the vertical
+   % space.
+-  \list{}{%
++  \trivlist{}{% using trivlist rather than list fixes #777 (too deeply nested error)
+   \setlength\parskip{0pt}%
+   \setlength\itemsep{0ex}%
+   \setlength\topsep{0ex}%
+@@ -183,7 +183,7 @@
+ \renewcommand{\endVerbatim}{%
+     \endOriginalVerbatim%
+   \endMakeFramed%
+-  \endlist%
++  \endtrivlist%
+   % close group to restore \parskip
+   \egroup%
+ }

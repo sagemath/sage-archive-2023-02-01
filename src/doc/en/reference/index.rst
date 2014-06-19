@@ -96,6 +96,7 @@ Miscellaneous Mathematics
 * :doc:`Statistics <stats/index>`
 * :doc:`Quantitative Finance <finance/index>`
 * :doc:`Coding Theory <coding/index>`
+* :doc:`Game Theory <game_theory/index>`
 
 Doctesting, Interfaces, Databases, Miscellany
 ---------------------------------------------

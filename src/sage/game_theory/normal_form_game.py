@@ -173,6 +173,9 @@ class NormalFormGame(SageObject, MutableMapping):
         #     self._bimatrix_game(bimatrix)
 
     def _two_matrix_game(self, matrices):
+        """
+        Populates ``self.strategy_profiles`` with the values from 2 matrices.
+        """
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
         for key in self.strategy_profiles:
@@ -185,10 +188,16 @@ class NormalFormGame(SageObject, MutableMapping):
     #         self.strategy_profiles[key] = bimatrix[key]
 
     def add_player(self, num_strategies):
+        """
+        Adds a player to a NormalFormGame.
+        """
         self.players.append(_Player(num_strategies))
         self._generate_strategy_profiles(True)
 
     def _generate_strategy_profiles(self, replacement):
+        """
+        Creates all the required keys for ``self.strategy_profiles`` with
+        """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:
             self.strategy_profiles = {}

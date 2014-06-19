@@ -1,3 +1,4 @@
+from collections import MutableMapping
 from itertools import product
 from sage.structure.sage_object import SageObject
 from sage.misc.package import is_package_installed
@@ -7,7 +8,7 @@ from player import _Player
 from sage.rings.rational import Rational
 
 
-class NormalFormGame(SageObject):
+class NormalFormGame(SageObject, MutableMapping):
     r"""
     EXAMPLES:
 
@@ -20,6 +21,21 @@ class NormalFormGame(SageObject):
         [[[0.0, 1.0], [0.0, 1.0]]]
 
     """
+    def __delitem__(self, key):
+        self.strategy_profiles.pop(key, None)
+
+    def __getitem__(self, key):
+        return self.strategy_profiles[key]
+
+    def __iter__(self):
+        return iter(self.strategy_profiles)
+
+    def __len__(self):
+        return len(self.strategy_profiles)
+
+    def __setitem__(self, key, value):
+        self.strategy_profiles[key] = value
+
     def __init__(self, arg1=None, arg2=None):
 
         self.players = []

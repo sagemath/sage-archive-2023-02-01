@@ -478,9 +478,9 @@ Single column KR crystals
 A single column KR crystal is `B^{r,1}` for any `r \in I_0`.
 
 In [LNSSS14I]_ and [LNSSS14II]_, it was shown that single column KR
-crystals can be constructed by projecting level 0 crystals (using LS paths).
-We first vertify that we do get an isomorphic crystal for `B^{1,1}`
-in type `E_6^{(1)}`::
+crystals can be constructed by projecting level 0 crystals of LS paths onto
+the classical weight lattice. We first verify that we do get an isomorphic
+crystal for `B^{1,1}` in type `E_6^{(1)}`::
 
     sage: K = crystals.KirillovReshetikhin(['E',6,1], 1,1)
     sage: K2 = crystals.kirillov_reshetikhin.LSPaths(['E',6,1], 1,1)

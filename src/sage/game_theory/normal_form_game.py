@@ -31,7 +31,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: A = matrix([[1, 2], [3, 4]])
         sage: B = matrix([[3, 3], [1, 4]])
         sage: C = NormalFormGame([A, B])
-        sage: C.strategy_profiles
+        sage: C
         {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
     The same game can be constructed manually. ::
@@ -47,13 +47,13 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: f[1,0][1] = 1
         sage: f[1,1][0] = 4
         sage: f[1,1][1] = 4
-        sage: f.strategy_profiles
+        sage: f
         {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
     We can add an extra strategy to the first player. ::
 
         sage: f.add_strategy(0)
-        sage: f.strategy_profiles
+        sage: f
         {(0, 1): [2, 3], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [3, 1], (1, 1): [4, 4]}
 
     Here is an example of a 3 by 2 game ::
@@ -135,19 +135,19 @@ class NormalFormGame(SageObject, MutableMapping):
 
     """
     def __delitem__(self, key):
-        self.strategy_profiles.pop(key, None)
+        self._strategy_profiles.pop(key, None)
 
     def __getitem__(self, key):
-        return self.strategy_profiles[key]
+        return self._strategy_profiles[key]
 
     def __iter__(self):
-        return iter(self.strategy_profiles)
+        return iter(self._strategy_profiles)
 
     def __len__(self):
-        return len(self.strategy_profiles)
+        return len(self._strategy_profiles)
 
     def __setitem__(self, key, value):
-        self.strategy_profiles[key] = value
+        self._strategy_profiles[key] = value
 
     def __init__(self, arg1=None, arg2=None):
         r"""
@@ -217,9 +217,22 @@ class NormalFormGame(SageObject, MutableMapping):
         if flag == 'two-matrix':
             self._two_matrix_game(matrices)
 
+    def _repr_(self):
+        r"""
+        Returns the strategy_profiles of the game.
+
+        EXAMPLES:
+
+        Basic description of the game shown when calling the game instance. ::
+
+
+
+        """
+        return str(self._strategy_profiles)
+
     def _two_matrix_game(self, matrices):
         r"""
-        Populates ``self.strategy_profiles`` with the values from 2 matrices.
+        Populates ``self._strategy_profiles`` with the values from 2 matrices.
 
         EXAMPLES:
 
@@ -231,11 +244,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: two_game._two_matrix_game([s1, s2])
         """
         self.players = []
-        self.strategy_profiles = {}
+        self._strategy_profiles = {}
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
-        for key in self.strategy_profiles:
-            self.strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
+        for key in self._strategy_profiles:
+            self._strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
 
     def add_player(self, num_strategies):
         r"""
@@ -251,7 +264,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g.add_player(2)
         sage: g.add_player(1)
         sage: g.add_player(1)
-        sage: g.strategy_profiles
+        sage: g
         {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
         """
         self.players.append(_Player(num_strategies))
@@ -259,7 +272,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _generate_strategy_profiles(self, replacement):
         r"""
-        Creates all the required keys for ``self.strategy_profiles``.
+        Creates all the required keys for ``self._strategy_profiles``.
 
         INPUT:
 
@@ -268,15 +281,15 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:
-            self.strategy_profiles = {}
+            self._strategy_profiles = {}
         for profile in product(*strategy_sizes):
-            if profile not in self.strategy_profiles.keys():
-                self.strategy_profiles[profile] = [False]*len(self.players)
+            if profile not in self._strategy_profiles.keys():
+                self._strategy_profiles[profile] = [False]*len(self.players)
 
     def add_strategy(self, player):
         r"""
         Adds a strategy to a player, will not affect already completed
-        strategy_profiles.
+        strategy profiles.
 
         INPUT:
 
@@ -289,10 +302,10 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: s = matrix([[1, 0], [-2, 3]])
             sage: t = matrix([[3, 2], [-1, 0]])
             sage: example = NormalFormGame([s, t])
-            sage: example.strategy_profiles
+            sage: example
             {(0, 1): [0, 2], (1, 0): [-2, -1], (0, 0): [1, 3], (1, 1): [3, 0]}
             sage: example.add_strategy(0)
-            sage: example.strategy_profiles
+            sage: example
             {(0, 1): [0, 2], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [-2, -1], (1, 1): [3, 0]}
 
         """
@@ -301,10 +314,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _is_complete(self):
         r"""
-        Checks if ``strategy_profiles`` has been completed and returns a
+        Checks if ``_strategy_profiles`` has been completed and returns a
         boolean.
         """
-        for profile in self.strategy_profiles.values():
+        for profile in self._strategy_profiles.values():
             for i in profile:
                 if i == 0:
                     pass
@@ -396,7 +409,7 @@ class NormalFormGame(SageObject, MutableMapping):
                                       "available algorithms")
 
         if not self._is_complete():
-            raise ValueError("strategy_profiles hasn't been populated")
+            raise ValueError("_strategy_profiles hasn't been populated")
 
         if algorithm == "LCP":
             return self._solve_LCP(maximization)
@@ -416,7 +429,7 @@ class NormalFormGame(SageObject, MutableMapping):
     def _game_two_matrix(self):
         m1 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(self.players[0].num_strategies, self.players[1].num_strategies)
-        for key in self.strategy_profiles:
+        for key in self._strategy_profiles:
                 m1[key] = self[key][0]
                 m2[key] = self[key][1]
         return m1, m2
@@ -447,17 +460,17 @@ class NormalFormGame(SageObject, MutableMapping):
         g = Game.new_table(strategy_sizes)
 
         scalar = 1
-        for key in self.strategy_profiles:
+        for key in self._strategy_profiles:
             for player in range(len(self.players)):
-                utility = Rational(self.strategy_profiles[key][player])
+                utility = Rational(self._strategy_profiles[key][player])
                 scalar *= utility.denom()
 
         if maximization is False:
             scalar *= -1
 
-        for key in self.strategy_profiles:
+        for key in self._strategy_profiles:
             for player in range(len(self.players)):
-                g[key][player] = int(scalar * self.strategy_profiles[key][player])
+                g[key][player] = int(scalar * self._strategy_profiles[key][player])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()

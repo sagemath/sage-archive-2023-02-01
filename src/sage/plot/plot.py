@@ -1137,6 +1137,17 @@ def plot(funcs, *args, **kwds):
     Check that :trac:`15030` is fixed::
 
         sage: plot(abs(log(x)), x)
+
+    Check that if excluded points are less than xmin then the exclusion
+    still works for polar and parametric plots. The following should
+    show two excluded points::
+
+        sage: set_verbose(-1)
+        sage: polar_plot(sin(sqrt(x^2-1)), (x,0,2*pi), exclude=[1/2,2,3])
+
+        sage: parametric_plot((sqrt(x^2-1),sqrt(x^2-1/2)), (x,0,5), exclude=[1,2,3])
+
+        sage: set_verbose(0)
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 
@@ -1478,7 +1489,16 @@ def _plot(funcs, xrange, parametric=False,
                     start_index = i+2
 
             # exclude points
-            if flag and (x0 <= exclusion_point <= x1):
+            if x0 > exclusion_point:
+                while exclusion_point <= x1:
+                    try:
+                        exclusion_point = excluded_points.pop()
+                    except IndexError:
+                        # all excluded points were considered
+                        flag = False
+                        break
+
+            elif flag and (x0 <= exclusion_point <= x1):
                 G += line(data[start_index:i], **options)
                 start_index = i + 2
                 while exclusion_point <= x1:

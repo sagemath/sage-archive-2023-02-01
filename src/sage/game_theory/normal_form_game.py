@@ -196,7 +196,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _generate_strategy_profiles(self, replacement):
         """
-        Creates all the required keys for ``self.strategy_profiles`` with
+        Creates all the required keys for ``self.strategy_profiles``.
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:
@@ -214,6 +214,82 @@ class NormalFormGame(SageObject, MutableMapping):
         return all(results)
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
+        r"""
+        A function to return the Nash equilibrium for a game.
+        Optional arguments can be used to specify the algorithm used.
+        If no algorithm is passed then an attempt is made to use the most
+        appropriate algorithm.
+
+        INPUT:
+
+        - ``algorithm`` - the following algorithms should be available through
+                          this function:
+                * ``"lrs"`` - This algorithm is only suited for 2 player games.
+                  See the [insert website here] web site.
+                * ``"LCP"`` - This algorithm is only suited for 2 player games.
+                  See the [insert website here] web site. NOTE THAT WE NEED TO
+                  GET THE ACTUAL NAME OF THE GAMBIT ALGORITHM
+                * ``"support enumeration"`` - This is a very inefficient
+                  algorithm (in essence a brute force approach).
+
+        - ``maximization``
+
+           - When set to ``True`` (default) it is assumed that players aim to
+             maximise their utility.
+           - When set to ``False`` it is assumed that players aim to
+             minimise their utility.
+
+        EXAMPLES:
+
+        A game with 2 equilibria when ``maximization`` is ``True`` and 3 when
+        ``maximization`` is ``False``. ::
+
+            sage: A = matrix([[160, 205, 44],
+            ....:       [175, 180, 45],
+            ....:       [201, 204, 50],
+            ....:       [120, 207, 49]])
+            sage: B = matrix([[2, 2, 2],
+            ....:             [1, 0, 0],
+            ....:             [3, 4, 1],
+            ....:             [4, 1, 2]])
+            sage: g=NormalFormGame([A, B])
+            sage: g.strategy_profiles
+            sage: g.obtain_Nash(algorithm='lrs')
+            [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
+            sage: g.obtain_Nash(algorithm='lrs', maximization=False)
+            [([1, 0, 0, 0], [127/1212, 115/1212, 485/606]), ([0, 1, 0, 0], [0, 1/26, 25/26])]
+
+        This particular game has 3 Nash equilibria. ::
+
+            sage: A = matrix([[3,3],
+            ....:             [2,5],
+            ....:             [0,6]])
+            sage: B = matrix([[3,2],
+            ....:             [2,6],
+            ....:             [3,1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.obtain_Nash(maximization=False)
+            [[[1.0, 0.0, 0.0], [0.0, 1.0]]]
+
+        2 random matrices. ::
+
+            sage: player1 = matrix([[2, 8, -1, 1, 0],
+            ....:                   [1, 1, 2, 1, 80],
+            ....:                   [0, 2, 15, 0, -12],
+            ....:                   [-2, -2, 1, -20, -1],
+            ....:                   [1, -2, -1, -2, 1]])
+            sage: player2 = matrix([[0, 8, 4, 2, -1],
+            ....:                   [6, 14, -5, 1, 0],
+            ....:                   [0, -2, -1, 8, -1],
+            ....:                   [1, -1, 3, -3, 2],
+            ....:                   [8, -4, 1, 1, -17]])
+            sage: fivegame = NormalFormGame([player1, player2])
+            sage: fivegame.obtain_Nash()
+            [[[1.0, 0.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0, 0.0]]]
+            sage: fivegame.obtain_Nash(algorithm='lrs')
+            [([1, 0, 0, 0, 0], [0, 1, 0, 0, 0])]
+
+        """
         if len(self.players) > 2:
             raise NotImplementedError("Nash equilibrium for games with more "
                                       "than 2 players have not been "

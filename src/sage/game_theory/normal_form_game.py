@@ -316,14 +316,22 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Checks if ``_strategy_profiles`` has been completed and returns a
         boolean.
+
+        EXAMPLES:
+
+        A simple example. ::
+
+            sage: s = matrix([[1, 0], [-2, 3]])
+            sage: t = matrix([[3, 2], [-1, 0]])
+            sage: example = NormalFormGame([s, t])
+            sage: example.add_strategy(0)
+            sage: example._is_complete()
+            False
         """
+        results = []
         for profile in self._strategy_profiles.values():
-            for i in profile:
-                if i == 0:
-                    pass
-                elif i is False:
-                    return False
-        return True
+            results.append(all(type(i) is not bool for i in profile))
+        return all(results)
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
         r"""

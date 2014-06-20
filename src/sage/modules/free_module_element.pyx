@@ -2466,9 +2466,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _variables(self):
         """
-        Returns the variable of self, either as defined by the basering,
-        or the (alphabetically-sorted) union of the set of variables from
-        each component.
+        Return the ordered variable of self, as defined by the basering.
 
         EXAMPLES::
 
@@ -2476,22 +2474,26 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector([x, y, 3])._variables()
             [x, y, z]
             sage: vector(SR, [x, y, 3])._variables()
-            [x, y]
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: v(x, y, z) = (-y, x, 0)
+            sage: v._variables()
+            [(x, y, z) |--> x, (x, y, z) |--> y, (x, y, z) |--> z]
         """
         R = self._parent.base_ring()
         try:
             var_names = R.variable_names()
         except ValueError:
-            all = set()
-            for c in self:
-                for x in c.variables():
-                    all.add(str(x))
-            var_names = sorted(all)
+            if hasattr(R, 'arguments'):
+                var_names = R.arguments()
+            else:
+                raise ValueError("Unable to determine ordered variable names for %s" % R)
         return [R(x) for x in var_names]
 
-    def div(self, vars=None):
+    def div(self, variables=None):
         """
-        Returns the divergence of this vector function.
+        Return the divergence of this vector function.
 
         EXAMPLES::
 
@@ -2501,7 +2503,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: vector([x*y, y*z, z*x]).div()
             x + y + z
 
-            sage: R.<x,y,z, w> = QQ[]
+            sage: R.<x,y,z,w> = QQ[]
             sage: vector([x*y, y*z, z*x]).div([x, y, z])
             x + y + z
             sage: vector([x*y, y*z, z*x]).div([z, x, y])
@@ -2510,17 +2512,21 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             y + z
 
             sage: vector(SR, [x*y, y*z, z*x]).div()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: vector(SR, [x*y, y*z, z*x]).div([x, y, z])
             x + y + z
         """
-        if vars is None:
-            vars = self._variables()
-        if len(vars) != len(self):
-            raise ValueError("variable list must be equal to the dimension of self")
-        return sum(c.derivative(x) for (c, x) in zip(self, vars))
+        if variables is None:
+            variables = self._variables()
+        if len(variables) != len(self):
+            raise ValueError("number of variables must equal dimension of self")
+        return sum(c.derivative(x) for (c, x) in zip(self, variables))
 
-    def curl(self, vars=None):
+    def curl(self, variables=None):
         """
-        Returns the curl of this three-dimensional vector function.
+        Return the curl of this three-dimensional vector function.
 
         EXAMPLES::
 
@@ -2533,14 +2539,31 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (0, 0, -2*y)
             sage: (R^3).random_element().curl().div()
             0
+
+        For rings where the variable order is not well defined, it must be
+        defined explicitly::
+
+            sage: v = vector(SR, [-y, x, 0])
+            sage: v.curl()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine ordered variable names for Symbolic Ring
+            sage: v.curl([x, y, z])
+            (0, 0, 2)
+
+        Note that callable vectors have well defined variable orderings::
+
+            sage: v(x, y, z) = (-y, x, 0)
+            sage: v.curl()
+            (x, y, z) |--> (0, 0, 2)
         """
         if len(self) != 3:
-            raise TypeError, "curl only defined for 3 dimensions"
-        if vars is None:
-            vars = self._variables()
-        if len(vars) != 3:
-            raise ValueError, "exactly 3 variables must be provided"
-        x, y, z = vars
+            raise TypeError("curl only defined for 3 dimensions")
+        if variables is None:
+            variables = self._variables()
+        if len(variables) != 3:
+            raise ValueError("exactly 3 variables must be provided")
+        x, y, z = variables
         Fx, Fy, Fz = self
         return self.parent([Fz.derivative(y) - Fy.derivative(z),
                             Fx.derivative(z) - Fz.derivative(x),

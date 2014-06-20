@@ -408,6 +408,21 @@ class NormalFormGame(SageObject, MutableMapping):
         return m1, m2
 
     def _solve_LCP(self, maximization):
+        r"""
+        Solves a NormalFormGame using Gambit's LCP algorithm. Gambit only takes
+        and this method will automatically scale games that don't meet that
+        requirment.
+
+        EXAMPLES:
+
+        Simple example. ::
+
+            sage: a = matrix([[1, 0], [1/3, 4]])
+            sage: b = matrix([[2.5, 3], [-0.75, 4]])
+            sage: c = NormalFormGame([a, b])
+            sage: c._solve_LCP(maximization=True)
+            [[[0.0, 1.0], [0.0, 1.0]]]
+        """
         if not is_package_installed('gambit'):
                 raise NotImplementedError("gambit is not installed")
 
@@ -422,15 +437,13 @@ class NormalFormGame(SageObject, MutableMapping):
             for player in range(len(self.players)):
                 utility = Rational(self.strategy_profiles[key][player])
                 scalar *= utility.denom()
-                if maximization is False:
-                    g[key][player] = - int(self.strategy_profiles[key][player])
-                else:
-                    g[key][player] = int(self.strategy_profiles[key][player])
 
-        if scalar != 1:
-            for key in self.strategy_profiles:
-                for player in range(len(self.players)):
-                    g[key][player] *= scalar
+        if maximization is False:
+            scalar *= -1
+
+        for key in self.strategy_profiles:
+            for player in range(len(self.players)):
+                g[key][player] = int(scalar * self.strategy_profiles[key][player])
 
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output, g).format_gambit()

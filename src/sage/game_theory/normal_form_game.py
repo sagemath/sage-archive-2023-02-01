@@ -1,11 +1,14 @@
 from collections import MutableMapping
 from itertools import product
+from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
-from sage.misc.package import is_package_installed
-from sage.matrix.constructor import matrix
-from parser import Parser
-from sage.rings.rational import Rational
-
+lazy_import('sage.misc.package', 'is_package_installed')
+lazy_import('sage.matrix.constructor', 'matrix')
+lazy_import('parser', 'Parser')
+lazy_import('sage.rings.rational', 'Rational')
+lazy_import('sage.misc.temporary_file', 'tmp_filename')
+lazy_import('subprocess', 'Popen')
+lazy_import('subprocess', 'PIPE')
 
 class NormalFormGame(SageObject, MutableMapping):
     r"""
@@ -477,8 +480,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: biggame._solve_lrs(p1, p2)
         [([0, 0, 0, 20/21, 1/21], [11/12, 0, 0, 1/12, 0]), ([0, 0, 0, 1, 0], [9/10, 0, 1/10, 0, 0])]
         """
-        from sage.misc.temporary_file import tmp_filename
-        from subprocess import Popen, PIPE
+
         # so that we don't call _Hrepresentation() twice.
         in_str = self._Hrepresentation(m1, m2)
         game1_str = in_str[0]

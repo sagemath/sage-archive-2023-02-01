@@ -4,7 +4,6 @@ from sage.structure.sage_object import SageObject
 from sage.misc.package import is_package_installed
 from sage.matrix.constructor import matrix
 from parser import Parser
-from player import _Player
 from sage.rings.rational import Rational
 
 
@@ -516,3 +515,11 @@ class NormalFormGame(SageObject, MutableMapping):
         t += '0 \n'
         t += 'end\n'
         return s, t
+
+
+class _Player():
+    def __init__(self, num_strategies):
+        self.num_strategies = num_strategies
+
+    def add_strategy(self):
+        self.num_strategies += 1

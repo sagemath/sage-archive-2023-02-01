@@ -244,10 +244,11 @@ class NormalFormGame(SageObject, MutableMapping):
         EXAMPLES:
 
         sage: g = NormalFormGame()
-        sage: g.add_player(3)
-        sage: g.add_player(4)
+        sage: g.add_player(2)
+        sage: g.add_player(1)
+        sage: g.add_player(1)
         sage: g.strategy_profiles
-        {(0, 1): [False, False], (1, 2): [False, False], (0, 0): [False, False], (2, 1): [False, False], (0, 2): [False, False], (2, 0): [False, False], (1, 3): [False, False], (2, 3): [False, False], (2, 2): [False, False], (1, 0): [False, False], (0, 3): [False, False], (1, 1): [False, False]}
+        {(1, 0, 0): [False, False, False], (0, 0, 0): [False, False, False]}
         """
         self.players.append(_Player(num_strategies))
         self._generate_strategy_profiles(True)
@@ -255,6 +256,11 @@ class NormalFormGame(SageObject, MutableMapping):
     def _generate_strategy_profiles(self, replacement):
         r"""
         Creates all the required keys for ``self.strategy_profiles``.
+
+        INPUT:
+
+            - replacement - Boolean value of whether previously created
+                            profiles should be replaced or not.
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
         if replacement is True:
@@ -265,7 +271,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def add_strategy(self, player):
         r"""
-        Adds a strategy to a player.
+        Adds a strategy to a player, will not affect already completed
+        strategy_profiles.
 
         INPUT:
 

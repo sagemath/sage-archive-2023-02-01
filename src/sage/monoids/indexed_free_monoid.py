@@ -653,7 +653,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
     - ``indices`` -- the indices for the generators
 
     For the optional arguments that control the printing, see
-    :class:`~sage.misc.indexed_generators.IndexedGenerators`.
+    :class:`~sage.structure.indexed_generators.IndexedGenerators`.
     """
     @staticmethod
     def __classcall__(cls, indices, prefix="F", **kwds):
@@ -837,7 +837,7 @@ class IndexedFreeMonoid(IndexedMonoid):
     - ``indices`` -- the indices for the generators
 
     For the optional arguments that control the printing, see
-    :class:`~sage.misc.indexed_generators.IndexedGenerators`.
+    :class:`~sage.structure.indexed_generators.IndexedGenerators`.
 
     EXAMPLES::
 
@@ -907,7 +907,7 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
     - ``indices`` -- the indices for the generators
 
     For the optional arguments that control the printing, see
-    :class:`~sage.misc.indexed_generators.IndexedGenerators`.
+    :class:`~sage.structure.indexed_generators.IndexedGenerators`.
 
     EXAMPLES::
 

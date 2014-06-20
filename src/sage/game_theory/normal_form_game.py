@@ -159,9 +159,6 @@ class NormalFormGame(SageObject, MutableMapping):
             flag = 'two-matrix'
             if matrices[0].dimensions() != matrices[1].dimensions():
                 raise ValueError("matrices must be the same size")
-        # elif arg1 == 'bi-matrix':
-        #     flag = arg1
-        #     bimatrix = arg2
         elif arg1 == 'zero-sum':
             flag = 'two-matrix'
             matrices = [arg2]
@@ -169,8 +166,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
         if flag == 'two-matrix':
             self._two_matrix_game(matrices)
-        # elif flag == 'bi-matrix':
-        #     self._bimatrix_game(bimatrix)
 
     def _two_matrix_game(self, matrices):
         """
@@ -182,12 +177,6 @@ class NormalFormGame(SageObject, MutableMapping):
         self.add_player(matrices[1].dimensions()[1])
         for key in self.strategy_profiles:
             self.strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
-
-    # def _bimatrix_game(self, bimatrix):
-    #     self.add_player(bimatrix.dimensions()[0])
-    #     self.add_player(bimatrix.dimensions()[1])
-    #     for key in self.strategy_profiles:
-    #         self.strategy_profiles[key] = bimatrix[key]
 
     def add_player(self, num_strategies):
         """

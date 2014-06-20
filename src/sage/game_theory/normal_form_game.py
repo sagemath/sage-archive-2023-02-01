@@ -310,12 +310,12 @@ class NormalFormGame(SageObject, MutableMapping):
                 * ``"support enumeration"`` - This is a very inefficient
                   algorithm (in essence a brute force approach).
 
-        - ``maximization``
-
-           - When set to ``True`` (default) it is assumed that players aim to
-             maximise their utility.
-           - When set to ``False`` it is assumed that players aim to
-             minimise their utility.
+        - ``maximization`` - Whether a player is trying to maxize their utility
+                             or miniize it.
+                * When set to ``True`` (default) it is assumed that players
+                  aim to maximise their utility.
+                * When set to ``False`` it is assumed that players aim to
+                  minimise their utility.
 
         EXAMPLES:
 

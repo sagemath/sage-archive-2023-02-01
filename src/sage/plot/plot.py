@@ -1375,7 +1375,7 @@ def _plot(funcs, xrange, parametric=False,
                 excluded_points.append(x)
         data = newdata
 
-    excluded_points.sort()
+    excluded_points.sort(reverse=True)
     G = Graphics()
 
     fillcolor = options.pop('fillcolor', 'automatic')
@@ -1456,7 +1456,6 @@ def _plot(funcs, xrange, parametric=False,
         # setup for exclusion points
         exclusion_point = 0
         if excluded_points:
-            excluded_points.reverse()
             exclusion_point = excluded_points.pop()
 
         flag = True

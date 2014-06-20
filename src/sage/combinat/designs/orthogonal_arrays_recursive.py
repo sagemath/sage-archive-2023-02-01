@@ -38,6 +38,7 @@ def find_recursive_construction(k,n):
     - :func:`construction_3_4`
     - :func:`construction_3_5`
     - :func:`construction_3_6`
+    - :func:`construction_q_x`
 
     INPUT:
 
@@ -67,11 +68,11 @@ def find_recursive_construction(k,n):
     for find_c in [find_construction_3_3,
                    find_construction_3_4,
                    find_construction_3_5,
-                   find_construction_3_6]:
+                   find_construction_3_6,
+                   find_q_x]:
         res = find_c(k,n)
         if res:
             return res
-
     return False
 
 def find_construction_3_3(k,n):
@@ -554,3 +555,180 @@ def OA_and_oval(q):
 
     assert all(sum([xx == 0 for xx in b[1:]]) <= 2 for b in OA)
     return OA
+
+def construction_q_x(k,q,x,check=True):
+    r"""
+    Returns an `OA(k,(q-1)*(q-x)+x+2)` using the `q-x` construction.
+
+    Let `v=(q-1)*(q-x)+x+2`. If there exists a projective plane of order `q`
+    (e.g. when `q` is a prime power) and `0<x<q` then there exists a
+    `(v-1,\{q-x-1,q-x+1\})`-GDD of type `(q-1)^{q-x}(x+1)^1` (see [Greig99]_ or
+    Theorem 2.50, section IV.2.3 of [DesignHandbook]_). By adding to the ground
+    set one point contained in all groups of the GDD, one obtains a
+    `(v,\{q-x-1,q-x+1,q,x+2\})`-PBD with exactly one set of size `x+2`.
+
+    Thus, assuming that we have the following:
+
+    - `OA(k,q-x-1)-(q-x-1).OA(k,1)`
+    - `OA(k,q-x+1)-(q-x+1).OA(k,1)`
+    - `OA(k,q)-q.OA(k,1)`
+    - `OA(k,x+2)`
+
+    Then we can build from the PBD an `OA(k,v)`.
+
+    Construction of the PBD (shared by Julian R. Abel):
+
+        Start with a resolvable `(q^2,q,1)`-BIBD and put the points into a `q\times q`
+        array so that rows form a parallel class and columns form another.
+
+        Now delete:
+
+        - All `x(q-1)` points from the first `x` columns and not in the first
+          row
+
+        - All `q-x` points in the last `q-x` columns AND the first row.
+
+        Then add a point `p_1` to the blocks that are rows. Add a second point
+        `p_2` to the `q-x` blocks that are columns of size `q-1`, plus the first
+        row of size `x+1`.
+
+    INPUT:
+
+    - ``k,q,x`` -- integers such that `0<x<q` and such that Sage can build:
+
+        - A projective plane of order `q`
+        - `OA(k,q-x-1)-(q-x-1).OA(k,1)`
+        - `OA(k,q-x+1)-(q-x+1).OA(k,1)`
+        - `OA(k,q)-q.OA(k,1)`
+        - `OA(k,x+2)`
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
+    .. SEEALSO::
+
+        - :func:`find_q_x`
+        - :func:`~sage.combinat.designs.block_design.projective_plane`
+        - :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
+        - :func:`~sage.combinat.designs.orthogonal_arrays.OA_from_PBD`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import construction_q_x
+        sage: _ = construction_q_x(9,16,6)
+
+    REFERENCES::
+
+    .. [Greig99] Designs from projective planes and PBD bases
+      Malcolm Greig
+      Journal of Combinatorial Designs
+      vol. 7, num. 5, pp. 341--374
+      1999
+    """
+    from sage.combinat.designs.orthogonal_arrays import OA_from_PBD
+    from sage.combinat.designs.orthogonal_arrays import incomplete_orthogonal_array
+
+    n = (q-1)*(q-x)+x+2
+
+    # We obtain the qxq matrix from a OA(q,q)-q.OA(1,q). We will need to add
+    # blocks corresponding to the rows/columns
+    OA = incomplete_orthogonal_array(q,q,(1,)*q)
+    TD = [[i*q+xx for i,xx in enumerate(B)] for B in OA]
+
+    # Add rows, extended with p1 and p2
+    p1 = q**2
+    p2 = p1+1
+    TD.extend([[ii*q+i for ii in range(q)]+[p1] for i in range(1,q)])
+    TD.append( [ii*q   for ii in range(q)]+[p1,p2])
+
+    # Add Columns. We do not add some columns which would have size 1 after we
+    # delete points.
+    #
+    # TD.extend([range(i*q,(i+1)*q) for i in range(x)])
+    TD.extend([range(i*q,(i+1)*q)+[p2] for i in range(x,q)])
+
+    points_to_delete = set([i*q+j for i in range(x) for j in range(1,q)]+[i*q for i in range(x,q)])
+    points_to_keep = set(range(q**2+2))-points_to_delete
+    relabel = {i:j for j,i in enumerate(points_to_keep)}
+
+    from sage.combinat.designs.bibd import _check_pbd
+    PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
+
+    # _check_pbd(PBD,n,[q,q-x-1,q-x+1,x+2])
+
+    # Taking the unique block of size x+2
+    assert map(len,PBD).count(x+2)==1
+    for B in PBD:
+        if len(B) == x+2:
+            break
+
+    # We call OA_from_PBD without the block of size x+2 as there may not exist a
+    # OA(k,x+2)-(x+2).OA(k,1)
+    PBD.remove(B)
+    OA = OA_from_PBD(k,(q-1)*(q-x)+x+2,PBD,check=False)
+
+    # Filling the hole
+    for xx in B:
+        OA.remove([xx]*k)
+
+    for BB in orthogonal_array(k,x+2):
+        OA.append([B[x] for x in BB])
+
+    if check:
+        assert is_orthogonal_array(OA,k,n,2)
+
+    return OA
+
+def find_q_x(k,n):
+    r"""
+    Find integers `q,x` such that the `q-x` construction yields an `OA(k,n)`.
+
+    See the documentation of :func:`construction_q_x` to find out what
+    hypotheses the integers `q,x` must satisfy.
+
+    .. WARNING::
+
+        For efficiency reasons, this function checks that Sage can build an
+        `OA(k+1,q-x-1)` and an `OA(k+1,q-x+1)`, which is stronger than checking
+        that Sage can build a `OA(k,q-x-1)-(q-x-1).OA(k,1)` and a
+        `OA(k,q-x+1)-(q-x+1).OA(k,1)`. The latter would trigger a lot of
+        independent set computations in
+        :func:`sage.combinat.designs.orthogonal_arrays.incomplete_orthogonal_array`.
+
+    INPUT:
+
+    - ``k,n`` (integers)
+
+    .. SEEALSO::
+
+        :func:`construction_q_x`
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.orthogonal_arrays_recursive import find_q_x
+        sage: find_q_x(10,9)
+        False
+        sage: find_q_x(9,158)[1]
+        (9, 16, 6)
+    """
+    from sage.rings.arith import is_prime_power
+    # n = (q-1)*(q-x) + x + 2
+    #   = q^2 - q*x - q + 2*x + 2
+
+    for q in range(3,n):
+        # n-q**2+q-2 = 2x-qx
+        #            = x(2-q)
+        x = (n-q**2+q-2)//(2-q)
+        if (x < q and
+            1 < x and
+            n == (q-1)*(q-x)+x+2 and
+            is_prime_power(q) and
+            orthogonal_array(k+1,q-x-1,existence=True) and
+            orthogonal_array(k+1,q-x+1,existence=True) and
+            # The next is always True, because q is a prime power
+            # orthogonal_array(k+1,q,existence=True) and
+            orthogonal_array(k, x+2 ,existence=True)):
+            return construction_q_x, (k,q,x)
+    return False

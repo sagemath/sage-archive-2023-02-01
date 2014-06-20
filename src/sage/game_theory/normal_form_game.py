@@ -176,6 +176,8 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         Populates ``self.strategy_profiles`` with the values from 2 matrices.
         """
+        self.players = []
+        self.strategy_profiles = {}
         self.add_player(matrices[0].dimensions()[0])
         self.add_player(matrices[1].dimensions()[1])
         for key in self.strategy_profiles:
@@ -210,8 +212,13 @@ class NormalFormGame(SageObject, MutableMapping):
         self._generate_strategy_profiles(False)
 
     def _is_complete(self):
-        results = [all(i) for i in self.strategy_profiles.values()]
-        return all(results)
+        for profile in self.strategy_profiles.values():
+            for i in profile:
+                if i == 0:
+                    pass
+                elif i is False:
+                    return False
+        return True
 
     def obtain_Nash(self, algorithm="LCP", maximization=True):
         r"""
@@ -253,7 +260,6 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 2]])
             sage: g=NormalFormGame([A, B])
-            sage: g.strategy_profiles
             sage: g.obtain_Nash(algorithm='lrs')
             [([0, 0, 3/4, 1/4], [1/28, 27/28, 0])]
             sage: g.obtain_Nash(algorithm='lrs', maximization=False)

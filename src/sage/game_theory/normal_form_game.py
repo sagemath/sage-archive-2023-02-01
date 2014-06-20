@@ -14,15 +14,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
     INPUT:
 
-    If 2 matrices are passed in the list then the corresponding Normal
-    Form Game is produced.
-    If a single matrix is passed in the list then the corresponding zero
-    sum game is produced.
-    If a gambit game object is passed then the corresponding game is created.
-
-    - ``payoff_matrices`` - a list of payoff matrices defining a
-                            Normal Form game.
-    - ``game`` - an instance of gambit.Game().
 
     EXAMPLES:
 
@@ -240,6 +231,18 @@ class NormalFormGame(SageObject, MutableMapping):
     def add_player(self, num_strategies):
         r"""
         Adds a player to a NormalFormGame.
+
+        INPUT:
+
+        - ``num_strategies`` - the number of strategies the player should have.
+
+        EXAMPLES:
+
+        sage: g = NormalFormGame()
+        sage: g.add_player(3)
+        sage: g.add_player(4)
+        sage: g.strategy_profiles
+        {(0, 1): [False, False], (1, 2): [False, False], (0, 0): [False, False], (2, 1): [False, False], (0, 2): [False, False], (2, 0): [False, False], (1, 3): [False, False], (2, 3): [False, False], (2, 2): [False, False], (1, 0): [False, False], (0, 3): [False, False], (1, 1): [False, False]}
         """
         self.players.append(_Player(num_strategies))
         self._generate_strategy_profiles(True)
@@ -258,6 +261,14 @@ class NormalFormGame(SageObject, MutableMapping):
     def add_strategy(self, player):
         r"""
         Adds a strategy to a player.
+
+        INPUT:
+
+        - ``player`` - the index of the player.
+
+        EXAMPLES:
+
+
         """
         self.players[player].add_strategy()
         self._generate_strategy_profiles(False)

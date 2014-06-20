@@ -4,11 +4,12 @@ from sage.misc.lazy_import import lazy_import
 from sage.structure.sage_object import SageObject
 lazy_import('sage.misc.package', 'is_package_installed')
 lazy_import('sage.matrix.constructor', 'matrix')
-lazy_import('parser', 'Parser')
+from parser import Parser
 lazy_import('sage.rings.rational', 'Rational')
 lazy_import('sage.misc.temporary_file', 'tmp_filename')
 lazy_import('subprocess', 'Popen')
 lazy_import('subprocess', 'PIPE')
+
 
 class NormalFormGame(SageObject, MutableMapping):
     r"""
@@ -283,6 +284,16 @@ class NormalFormGame(SageObject, MutableMapping):
 
         EXAMPLES:
 
+        A simple example. ::
+
+            sage: s = matrix([[1, 0], [-2, 3]])
+            sage: t = matrix([[3, 2], [-1, 0]])
+            sage: example = NormalFormGame([s, t])
+            sage: example.strategy_profiles
+            {(0, 1): [0, 2], (1, 0): [-2, -1], (0, 0): [1, 3], (1, 1): [3, 0]}
+            sage: example.add_strategy(0)
+            sage: example.strategy_profiles
+            {(0, 1): [0, 2], (0, 0): [1, 3], (2, 1): [False, False], (2, 0): [False, False], (1, 0): [-2, -1], (1, 1): [3, 0]}
 
         """
         self.players[player].add_strategy()

@@ -151,7 +151,46 @@ class NormalFormGame(SageObject, MutableMapping):
         self.strategy_profiles[key] = value
 
     def __init__(self, arg1=None, arg2=None):
+        r"""
+        Initializes a Normal Form game and checks the inputs.
 
+        EXAMPLES:
+
+        Can have games with more than 2 players. ::
+
+            sage: threegame = NormalFormGame()
+            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)
+            sage: threegame.add_player(2)
+            sage: threegame[0, 0, 0][0] = 3
+            sage: threegame[0, 0, 0][1] = 1
+            sage: threegame[0, 0, 0][2] = 4
+            sage: threegame[0, 0, 1][0] = 1
+            sage: threegame[0, 0, 1][1] = 5
+            sage: threegame[0, 0, 1][2] = 9
+            sage: threegame[0, 1, 0][0] = 2
+            sage: threegame[0, 1, 0][1] = 6
+            sage: threegame[0, 1, 0][2] = 5
+            sage: threegame[0, 1, 1][0] = 3
+            sage: threegame[0, 1, 1][1] = 5
+            sage: threegame[0, 1, 1][2] = 8
+            sage: threegame[1, 0, 0][0] = 9
+            sage: threegame[1, 0, 0][1] = 7
+            sage: threegame[1, 0, 0][2] = 9
+            sage: threegame[1, 0, 1][0] = 3
+            sage: threegame[1, 0, 1][1] = 2
+            sage: threegame[1, 0, 1][2] = 3
+            sage: threegame[1, 1, 0][0] = 8
+            sage: threegame[1, 1, 0][1] = 4
+            sage: threegame[1, 1, 0][2] = 6
+            sage: threegame[1, 1, 1][0] = 2
+            sage: threegame[1, 1, 1][1] = 6
+            sage: threegame[1, 1, 1][2] = 4
+            sage: threegame.obtain_Nash()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Nash equilibrium for games with more than 2 players have not been implemented yet. Please see the gambit website [LINK] that has a variety of available algorithms
+        """
         self.players = []
         flag = 'n-player'
         if type(arg1) is list:
@@ -179,14 +218,14 @@ class NormalFormGame(SageObject, MutableMapping):
             self.strategy_profiles[key] = [matrices[0][key], matrices[1][key]]
 
     def add_player(self, num_strategies):
-        """
+        r"""
         Adds a player to a NormalFormGame.
         """
         self.players.append(_Player(num_strategies))
         self._generate_strategy_profiles(True)
 
     def _generate_strategy_profiles(self, replacement):
-        """
+        r"""
         Creates all the required keys for ``self.strategy_profiles``.
         """
         strategy_sizes = [range(p.num_strategies) for p in self.players]
@@ -197,10 +236,17 @@ class NormalFormGame(SageObject, MutableMapping):
                 self.strategy_profiles[profile] = [False]*len(self.players)
 
     def add_strategy(self, player):
+        r"""
+        Adds a strategy to a player.
+        """
         self.players[player].add_strategy()
         self._generate_strategy_profiles(False)
 
     def _is_complete(self):
+        r"""
+        Checks if ``strategy_profiles`` has been completed and returns a
+        boolean.
+        """
         for profile in self.strategy_profiles.values():
             for i in profile:
                 if i == 0:

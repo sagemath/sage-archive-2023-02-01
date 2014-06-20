@@ -35,7 +35,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: C.strategy_profiles
         {(0, 1): [2, 3], (1, 0): [3, 1], (0, 0): [1, 3], (1, 1): [4, 4]}
 
-    The same game can be constructed manually. ::
+    The same game can be constructed manually using Gambit syntax ([website]). ::
 
         sage: f = NormalFormGame()
         sage: f.add_player(2)
@@ -225,6 +225,9 @@ class NormalFormGame(SageObject, MutableMapping):
             raise ValueError("strategy_profiles hasn't been populated")
 
         if algorithm == "LCP":
+            if not is_package_installed('gambit'):
+                    raise NotImplementedError("gambit is not installed")
+
             return self._solve_LCP(maximization)
 
         if algorithm == "lrs":
@@ -248,9 +251,6 @@ class NormalFormGame(SageObject, MutableMapping):
         return m1, m2
 
     def _solve_LCP(self, maximization):
-        if not is_package_installed('gambit'):
-                raise NotImplementedError("gambit is not installed")
-
         from gambit import Game
         from gambit.nash import ExternalLCPSolver
 
